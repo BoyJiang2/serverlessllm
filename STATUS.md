@@ -48,3 +48,7 @@ Current files are an extension experiment on GLM-5.1 official FP8. They do not c
 ## Candidate13b milestone
 
 New controls/candidate13b is unapproved and unexecuted, input manifest SHA 7682cfe51de10cc06a2715e8c831626a1ed1335e41ffef5364daa9da64b881f4. All Python candidates compile,9local admission tests and3shell syntax checks pass;35runtime source evidence copies match parent frozen hashes. Root guard/probe and full model lifecycles remain unrun. New booking bk-20261025T1538-fe2ffc58 extends03:00-09:00; planned new control guard08:50. Human permits continued use beyond booked windows if no later conflict; refresh/revalidate before any needed guard renewal, never stop another job. Original-run v6 remains02:50 until separately verified handover. R1b will bind this committed code and manifest.
+
+## R1b conclusion
+
+DeepSeek session session-f3000b94-fe59-4aa3-ad69-87b75b64eebf completed with changes_required, code e1af9dd51055c2d1e4e8e3c2ea3dc0a9227f1592 / manifest7682cfe51de10cc06a2715e8c831626a1ed1335e41ffef5364daa9da64b881f4. No new guard or G1 compute started. Probe status, persistent evidence, acceptance binding and budget checks need a new revision. Existing21Store log prefixes provide18pool-marker counterexamples to the speculative logging blocker; submitted for re-review, not silently dismissed. Latest source/payload statuses unchanged.

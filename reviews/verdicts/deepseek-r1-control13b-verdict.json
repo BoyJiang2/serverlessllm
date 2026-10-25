@@ -1,0 +1,325 @@
+{
+  "stage": "R1b",
+  "verdict": "changes_required",
+  "code_commit": "e1af9dd51055c2d1e4e8e3c2ea3dc0a9227f1592",
+  "manifest_sha256": "7682cfe51de10cc06a2715e8c831626a1ed1335e41ffef5364daa9da64b881f4",
+  "scope": "G1 untimed stability, window guard, identity, cleanup and forensics only; R2 and formal timing not reviewed",
+  "r2_status": "not_reviewed_not_approved",
+  "formal_timing_status": "not_reviewed_not_approved",
+  "blocking_findings": [
+    "R1b-N01",
+    "R1b-N02",
+    "R1b-N03",
+    "R1b-N04",
+    "R1b-N07",
+    "R1b-N08"
+  ],
+  "findings": [
+    {
+      "id": "R1b-F01",
+      "severity": "resolved",
+      "status": "resolved",
+      "title": "父 manifest 哈希已与包内/审计一致",
+      "location": "run-manifest.json:1470; launch_control13.py:17-23; control-input-manifest.json:117-120",
+      "evidence": "父哈希 e38e31e7...；包内 evidence/run-manifest.json 与 handoff actual 同值；launch 断言父 manifest、review-input-manifest-v11 和全部 1,142 行；handoff manifest_sha da681f...，files=1142，mismatches=[]。",
+      "impact": "旧 93c05a38 矛盾已消除；但 1,142 项不含 142 个 756GB 权重，权重为历史 LFS SHA-256，当前加载权重审计属 R2。",
+      "verification": "启动前 sha256sum 父 run-manifest.json 和 review-input-manifest-v11.json；运行 launch 的断言；核对 handoff 1,142。"
+    },
+    {
+      "id": "R1b-F02",
+      "severity": "resolved_with_caveat",
+      "status": "resolved_with_caveat",
+      "title": "父资产在容器内只读；仍有父树写入点",
+      "location": "launch_control13.py:59-63; headray13a.json:8-25; service13a-template.json:21; prepare_host13.py:20-26; model.cpp:40-71,96,103",
+      "evidence": "asset_root readonly；新 native-home rw；控制目录 rw；Store 的 /experiment/store 只读；Model 以 O_RDONLY 打开 tensor.data_*；prepare_host 复制 18,875,581B 缓存；line 26 创建 asset/controls/run_id。",
+      "impact": "历史 checkpoint/Store/gold 在容器内不可写；但 asset/controls 新目录削弱父树未修改声明，且 copy 目标未复核。",
+      "verification": "docker inspect mount RW；find /experiment -writable；sha256sum 父 gold/store-restore；检查 asset/controls；删除 line 26；复核 copy 目标哈希。"
+    },
+    {
+      "id": "R1b-F03",
+      "severity": "partially_resolved",
+      "status": "changes_required",
+      "title": "清理脚本主体已强化；探针未验证 cleanup 退出状态",
+      "location": "cleanup_guard13.sh:4-34; install_guard13.sh:11-12,29-35; preflight_control13.py:32",
+      "evidence": "run_id 硬编码、精确参数、root、0700、先 slice kill、label/uid、remaining/pids 计入 failed；probe_passed=True 硬编码；install 只查容器停止/PID 消失；不查 service Result/ExecMainStatus，不解析 failed=0；探针 slice 由 Docker 创建。",
+      "impact": "探针可在 cleanup failed=1 时仍通过；主 systemd slice 的 kill 路径未直接证明。",
+      "verification": "systemctl show run_id-v13-test.service -p Result -p ExecMainStatus 必须 0；解析 cleanup_finished failed=0；加非容器哨兵或验证探针 slice pids.current=0；再检查主 slice。"
+    },
+    {
+      "id": "R1b-F04",
+      "severity": "partially_resolved",
+      "status": "changes_required",
+      "title": "guard proof 校验较强；证据只在 /run",
+      "location": "install_guard13.sh:13-58; preflight_control13.py:28-49; launch_control13.py:48-51",
+      "evidence": "proof 0444 root，含脚本 stat/hash、boot、ExecStart、timer、限额、探针日志；preflight 校验；launch 复检 timer；proof/主 cleanup 日志在 /run。",
+      "impact": "启动前 guard 身份 fail-closed 成立；/run 清空或重启后完整 proof/cleanup 证据丢失；dispatch preflight 子集不含限额/ExecStart。",
+      "verification": "归档 guard-verification.json 和 cleanup-v13-main.log 并哈希；纳入 G1-acceptance；systemctl show live 值。"
+    },
+    {
+      "id": "R1b-F05",
+      "severity": "resolved_with_runtime_refresh",
+      "status": "resolved_with_runtime_refresh",
+      "title": "窗口/授权已按精确 booking 绑定",
+      "location": "resource_window_control13.py:14-29; resource-window-extension-v3.json:10-44; R1-RESPONSE.md:21-25,39-41; PLAN.md:7",
+      "evidence": "三个精确 ID/users/resource、连续性、start<=now<last end、deadline=last-600、guard timer、UID/ssh_user；03-09 新 booking；直接人工授权；第二个 booking 的 Kimi 用途保留。",
+      "impact": "旧 purpose/start/UID 问题已处理；直接授权足够本次有限窗口；无无限窗口、无其他作业终止。代码使用快照，不查询实时 API。",
+      "verification": "启动前刷新真实 booking/occupancy 并与冻结 rows 对比；记录；不使用 09:00 后区间；不停止其他作业。"
+    },
+    {
+      "id": "R1b-F06",
+      "severity": "resolved",
+      "status": "resolved",
+      "title": "节点/硬件身份在 dispatch 前强制校验",
+      "location": "run-manifest.json:1478-1492; preflight_control13.py:17-22; deploy_control13.py:22-33",
+      "evidence": "hostname、machine-id、boot-id、有序 8 GPU UUID、UID；deploy 校验 machine/boot/GPU/UID；host 8×H20-3e；handoff 一致。",
+      "impact": "错误节点/重启/GPU 顺序在 Docker create 前失败；deploy 未查 hostname 是小不对称。",
+      "verification": "nvidia-smi -L；/etc/machine-id；boot_id；运行 launch preflight。"
+    },
+    {
+      "id": "R1b-F07",
+      "severity": "partially_resolved",
+      "status": "changes_required",
+      "title": "就绪/pool 证明强，但 pool-created log 断言不成立",
+      "location": "bootstrap_control13.py:94-108; listener_control13.py:4-18; server.py:47-49,215-245; checkpoint_store.cpp:80-83; pinned_memory_pool.cpp:23-46; vllm_backend.py:181-197",
+      "evidence": "私有 net/PID namespace；loopback；listener PID/inode；5s GetServerConfig；VmRSS；source 在 listen 前构造 CheckpointStore/PinnedMemoryPool；1,432×512MiB=716GiB；C++ 行是 glog LOG(INFO)；模板无 GLOG_logtostderr；候选包无 logger.py；无捕获 store.log；断言无 poll。",
+      "impact": "旧 TCP 误判已修复；但日志断言可能使正确 pool 的 service13a 失败；accept 只查 pool_bytes；Store 仍绑 0.0.0.0。service13a 是 local_disk，不声称 pool-hit。",
+      "verification": "运行 Store 检查 store.log；加入 logger.py/GLOG 配置或轮询 Python StorageServicer 行；accept 复核 pool-ready 全字段/affinity；绑定 127.0.0.1。"
+    },
+    {
+      "id": "R1b-F08",
+      "severity": "resolved",
+      "status": "resolved",
+      "title": "gold/store bytes 已一致",
+      "location": "control-input-manifest.json:88-95,313; evidence/native-gold.sha256:1; handoff:3298-3305,5493-5495; validation_control13.py:26-27; bootstrap_control13.py:31-33",
+      "evidence": "包内 gold 9a2db690...，sidecar 9a2db690...，父 gold 9a2db690...；store-restore e400fb42...，父 e400fb42...；父 manifest 钉住；launch 重哈希。",
+      "impact": "旧 7e7d/0243 不一致已消除；validation 未用 gold rank_audits sha256 复核 reference 文件，但父 manifest 已钉住，低风险。",
+      "verification": "sha256sum 父 gold/sidecar/store-restore；与清单/父 manifest 对比；运行 launch。"
+    },
+    {
+      "id": "R1b-F09",
+      "severity": "resolved_with_accept_gap",
+      "status": "resolved_with_accept_gap",
+      "title": "最终释放脚本已实现；accept 只查长度",
+      "location": "release_control13.py:4-47; accept_control13.py:21-22; supervise_control13.py:13",
+      "evidence": "61 样本/60s；NVML、own containers、slice pids、memory/cpu、host meminfo、processes；无 GPU 进程；allstopped 零容器/pids=0/baseline+16；ray stage 只允许 monitor。",
+      "impact": "旧缺失已实现；release 只读，操作者须先停 head/monitor/observer；全局 no-GPU 假设独占；accept 不复核内容。",
+      "verification": "每个 ray 后和全部停止后运行；检查 61 行、零容器、pids=0、GPU baseline；accept 内容复核。"
+    },
+    {
+      "id": "R1b-F10",
+      "severity": "resolved_with_gap",
+      "status": "resolved_with_gap",
+      "title": "monitor cgroup/GPU/NUMA 覆盖强；持续性/持久化有缺口",
+      "location": "monitor_control13.py:13-89; preflight_control13.py:50-58; accept_control13.py:23-35; install_observers13.sh:12-14; launch_control13.py:36-37",
+      "evidence": "cgroup-only；移除 host-wide 非 GPU 扫描；ready；两个 observer active；gap<=5；最后 partial；kernel 0600；own Docker events；NVML/cgroup/host/NUMA/RSS/PSS。observer 只在 dispatch 前检查；kernel 日志在 /run；monitor 无界；accept 全量读。",
+      "impact": "own 覆盖强；host-global actor 不可排除；kernel 证据可能丢失；长日志有内存/磁盘风险。",
+      "verification": "运行后检查 ready/gap/observer；归档 kernel/docker 日志；估算并流式解析 JSONL；保留全局缺口声明。"
+    },
+    {
+      "id": "R1b-F11",
+      "severity": "clarified",
+      "status": "clarified",
+      "title": "234 DSA scratch 是合理排除，R2 未签",
+      "location": "weight_contract.py:4-14; validation_control13.py:94-100,125-130; native-weight-contract.json:1-81; native-gold.json:221-282; accept_control13.py:18",
+      "evidence": "234 个 attribute:*.topk_indices_buffer，int32 [2048,2048]，16,777,216 bytes；5,814 非 scratch；156 KV；6048=5814+234；logical bytes 差 234×16,777,216；新审计记录排除计数、不比较 scratch 值。",
+      "impact": "234 不是 checkpoint 权重/scale；非 scratch 相等才是权重/scale 检查；新 native-service 审计未执行；tensor_audit/行 schema 不在包内，值级相等属 R2。",
+      "verification": "运行审计；检查 runtime-rank 行；确认 5,814/234/156；引用 contract；不声称 scratch 值相等。"
+    },
+    {
+      "id": "R1b-F12",
+      "severity": "resolved",
+      "status": "resolved",
+      "title": "旧状态已清理；新 guard/probe 未执行",
+      "location": "run-manifest.json:1462,1471-1492; PLAN.md:7; R1-RESPONSE.md:17; evidence/g0/legacy-*; evidence/guard_state; evidence/cleanup-v6-probe.log",
+      "evidence": "status G1-only/zero formal/checkpoint present；旧 head/monitor 61 release；旧 v6 guard 02:50 未停；新 guard/probe 未执行；旧 evidence 明确 v6。",
+      "impact": "新身份不被旧 A1 污染；旧 v6 保留；新 proof 必须新做；旧 probe 不得引用。",
+      "verification": "用新 run_id 安装/运行 guard/probe；检查旧 v6 timer 仍 02:50；归档新 proof。"
+    },
+    {
+      "id": "R1b-F13",
+      "severity": "partially_resolved",
+      "status": "changes_required",
+      "title": "-O 主入口已拒绝；helper/test 覆盖不足",
+      "location": "launch_control13.py:9-10,16-37; preflight_control13.py:4-5; materialize_control13.py:1-3; ray_control13.py:1-3; validation_control13.py:1-3; release_control13.py:1-3; accept_control13.py:1-3; prepare_host13.py:4-5; deploy_control13.py:23,38; bootstrap_control13.py 顶部; store_numa_exec_v10.py; test_control13.py:35-38",
+      "evidence": "hash-before-import 已实现；主入口拒绝 -O；test 只对 materialize 做负测试；bootstrap/monitor/store_numa/run_store_server 无直接检查（部分靠父/导入传递）；多数安全门仍 assert。",
+      "impact": "主路径受保护；直接调用子脚本 -O 时 assert 关闭；测试未证明每个入口。",
+      "verification": "给入口加顶置检查；扩展负测试；保持 hash-before-import。"
+    },
+    {
+      "id": "R1b-F14",
+      "severity": "resolved",
+      "status": "resolved",
+      "title": "overlay 时间线已自洽",
+      "location": "resource-window-extension-v3.json:5-7; run-manifest.json:1472; control-input-manifest.json:462-465",
+      "evidence": "overlay 15:48:45Z > manifest created 14:54:32Z；overlay original_manifest_sha 30b9365d = control manifest run-manifest sha；control manifest 15:53:10Z。",
+      "impact": "旧 14:22/14:54 矛盾已消除；created_utc 是身份创建时间，hash 绑定最终字节。",
+      "verification": "sha256sum run-manifest；与 overlay/control 对比；检查创建顺序。"
+    },
+    {
+      "id": "R1b-N01",
+      "severity": "high",
+      "status": "changes_required",
+      "title": "service13a 的 pool-created log 断言很可能不可满足",
+      "location": "bootstrap_control13.py:107; checkpoint_store.cpp:83; server.py:40-45; service13a-template.json 全文",
+      "evidence": "C++ LOG(INFO) 走 glog；store.log 是进程 stdout/stderr；glog 默认 INFO 写文件、stderrthreshold=ERROR；模板无 GLOG_logtostderr；候选包无 sllm_store/logger.py；无捕获 store.log；断言无 poll。",
+      "impact": "正确 716GiB pool 也可能在 service13a 失败；G1 无法完成。",
+      "verification": "运行 Store 检查 store.log；加入 logger.py/GLOG 配置或轮询 Python StorageServicer 行；保留 RPC/RSS/listener 主证明。"
+    },
+    {
+      "id": "R1b-N02",
+      "severity": "high",
+      "status": "changes_required",
+      "title": "guard 探针不检查 cleanup 退出状态",
+      "location": "install_guard13.sh:32-35,44-47; preflight_control13.py:32; cleanup_guard13.sh:33",
+      "evidence": "probe_passed=True 硬编码；只查容器停止/PID 消失；不查 systemd-run Result/ExecMainStatus；不解析 failed=0；探针 slice 由 Docker 创建，主 slice 由 systemd 创建。",
+      "impact": "探针可在 failed=1 时通过；主 slice kill 路径未直接证明。",
+      "verification": "systemctl show service Result/ExecMainStatus=0；解析 failed=0；加非容器哨兵或验证 pids.current=0；再测主 slice。"
+    },
+    {
+      "id": "R1b-N03",
+      "severity": "medium_high",
+      "status": "changes_required",
+      "title": "guard/主 cleanup/kernel 证据只在 /run",
+      "location": "install_guard13.sh:53-56; cleanup_guard13.sh:12; install_observers13.sh:12; accept_control13.py 全文",
+      "evidence": "guard-verification.json、cleanup-v13-main.log、kernel-private.jsonl 在 /run；G1-acceptance 不引用。",
+      "impact": "/run 清空/重启后 guard 和 cleanup 证据丢失；exit137 的 own kernel 证据可能丢失。",
+      "verification": "归档 proof/cleanup/kernel 并哈希；纳入 G1-acceptance；明确全局缺口。"
+    },
+    {
+      "id": "R1b-N04",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "accept 不复核输入/身份/pool/observer，receipt 不自绑定",
+      "location": "accept_control13.py:7-45",
+      "evidence": "不重哈希 manifest/rows；不读 deployment code_commit；不查 dispatch boot_id；pool-ready 只查 pool_bytes；不查 affinity/observer；release 只查 61 行；receipt 无 code_commit/manifest/run_id/boot_id。",
+      "impact": "acceptance 不自证 commit/manifest/boot；控制目录被改动后可能仍通过；real pool proof/observer 未在最终验收复检。",
+      "verification": "accept 开头重哈希；读 deployment/boot；检查 pool-ready 全字段/affinity/observer；receipt 写入绑定。"
+    },
+    {
+      "id": "R1b-N05",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "deploy 不验证 origin/branch/审阅 commit",
+      "location": "deploy_control13.py:3-20,36-48; launch_control13.py:85-92",
+      "evidence": "origin 是字面量；无 git remote get-url；无 branch 检查；不要求 head 等于 e1af9dd；launch 只检查 40 hex。",
+      "impact": "不同 remote/branch 但相同文件哈希的 clean checkout 可部署；审计绑定较弱。",
+      "verification": "git remote get-url origin；branch；expected commit assert；launch/preflight assert deployment code_commit。"
+    },
+    {
+      "id": "R1b-N06",
+      "severity": "medium_low",
+      "status": "changes_required",
+      "title": "prepare_host 仍在父资产树创建目录",
+      "location": "prepare_host13.py:26",
+      "evidence": "asset/controls/run_id mkdir；未被 mount 使用；与 only new control/cache writable 表述不一致。",
+      "impact": "父树留下未受控目录；若不可写则 prepare 失败。",
+      "verification": "检查 asset/controls；删除或移动到 root；记录父树未修改。"
+    },
+    {
+      "id": "R1b-N07",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "launch 120s 余量小于 supervisor 预算",
+      "location": "launch_control13.py:42-43; supervise_control13.py:9; bootstrap_control13.py:71-74",
+      "evidence": "launch 只要求 now < deadline-120；ray supervisor 330s，service 3420s；ray 无 3600 等价检查；08:48 启动会被 08:50 guard 杀掉。",
+      "impact": "可预防的失败控制尝试；不违反不重试，但浪费预算。",
+      "verification": "launch/supervise 要求 remaining >= budget + margin；测试。"
+    },
+    {
+      "id": "R1b-N08",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "validation 未比较 gold logprob 值",
+      "location": "validation_control13.py:82-85",
+      "evidence": "只检查长度和 finite；native-gold results[*].logprobs 是冻结值；PLAN.md:18 要求 logprob 检查。",
+      "impact": "token/text/finish 正确但 logprob 漂移仍可通过。",
+      "verification": "与 gold logprob 比较（精确或容差）；记录 max diff/hash；accept 体现。"
+    },
+    {
+      "id": "R1b-N09",
+      "severity": "low_medium",
+      "status": "changes_required",
+      "title": "monitor JSONL 无界，accept 全量读",
+      "location": "monitor_control13.py:24-65; accept_control13.py:23-30",
+      "evidence": "1Hz 全量 processes/status/smaps；13h 可数 GB；accept read_bytes/splitlines/samples。",
+      "impact": "/data 空间和 accept 内存风险。",
+      "verification": "估算行大小；限制/压缩/分段；流式解析。"
+    },
+    {
+      "id": "R1b-N10",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "Store 绑定 0.0.0.0",
+      "location": "bootstrap_control13.py:92-93",
+      "evidence": "容器 bridge 上 head 等可达；readiness 已用 loopback/child inode。",
+      "impact": "跨容器暴露面；非 readiness 假通过。",
+      "verification": "改为 --host 127.0.0.1 或专用网络。"
+    },
+    {
+      "id": "R1b-N11",
+      "severity": "low_medium",
+      "status": "changes_required",
+      "title": "-O 检查未覆盖全部入口/测试",
+      "location": "bootstrap_control13.py 顶部; monitor_control13.py 顶部; store_numa_exec_v10.py; run_store_server.py; test_control13.py:35-38",
+      "evidence": "部分依赖父/import 传递；负测试只 materialize。",
+      "impact": "直接子脚本 -O 时 assert 关闭；测试未证明每个 entry。",
+      "verification": "加直接检查；扩展负测试。"
+    },
+    {
+      "id": "R1b-N12",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "head spec validate/test 是自比较",
+      "location": "materialize_control13.py:12-13; test_control13.py:33-34",
+      "evidence": "expected_spec 返回同一 head json；test tautology。",
+      "impact": "hash 钉住所以非安全漏洞；测试假保证。",
+      "verification": "独立 template/expected dict 或明确说明。"
+    },
+    {
+      "id": "R1b-N13",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "accept 硬编码 5814/234",
+      "location": "accept_control13.py:18",
+      "evidence": "contract/gold 已给值；父 manifest 钉住；accept 未读。",
+      "impact": "contract 更新时漂移。",
+      "verification": "从 hash-pinned contract 读取。"
+    },
+    {
+      "id": "R1b-N14",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "prepare_host 未复核 copy 目标",
+      "location": "prepare_host13.py:24-25",
+      "evidence": "只记录 source hash；copytree 后无目标复核。",
+      "impact": "静默复制损坏可能进入新缓存。",
+      "verification": "copy 后逐文件 hash 对比。"
+    }
+  ],
+  "runtime_conditions": [
+    "新 guard/probe 未安装/未执行；无 guard-verification.json；旧 guard_state 是 v6 02:50，旧 cleanup-v6-probe.log 是旧 run，不得引用。",
+    "新 install_observers13 未运行；无新 kernel/docker observer active 证据。",
+    "新 monitor 未运行；无 resource-monitor-v12.jsonl、无 monitor-v3-ready.json。",
+    "ray13a/ray13b 未运行；无 ray-only-* result/supervisor result。",
+    "service13a bootstrap 未运行；无 pool-ready.json、store.log、store-affinity-ready.json、model-result.json。",
+    "两个格式 × 两个 cycle 的 native lifecycle 未执行；8 rank 权重/scale 审计未执行；16 rank 记录不存在。",
+    "release_control13 的 ray13a/ray13b/allstopped 未运行；无 release60-*.json。",
+    "当前 GPU 空闲；启动前需实时复核 host 身份/booking/MemAvailable/磁盘；证据快照 MemAvailable 1.97TB、/data 2.17TB、8×H20-3e、0 GPU compute。",
+    "父资产 1,142 行 handoff 无 mismatch；launch 会重哈希；756GB 权重无新鲜全量哈希，加载权重审计属 R2。",
+    "716GiB pool 的构造顺序/GetServerConfig/VmRSS 尚未实际验证；store.log 断言是 N01 直接风险。",
+    "正式 ID 9 terminal/31 unstarted，zero formal consumed；accept 必须验证 9 个结果哈希不变、31 个目录不存在。",
+    "新 guard 必须在 20:00–07:50 安装；service 必须在 07:50 前启动（budget>3600）；ray 控制必须有足够剩余时间（N07）。",
+    "旧 v6 guard 仍应 02:50 保留；新 guard 独立；旧 monitor/head 的 61 样本 release 在 evidence/g0。",
+    "全局 Docker daemon/audit 日志不持续导出；own kernel 日志 root 0600 且只在 /run；最终报告必须保留 cause unknown。",
+    "R2/FP8/正式计时/统计/完整 gate 未审；R1b 通过不等于 R2/正式准入。"
+  ],
+  "limitations": [
+    "无 shell，不能独立重算全部 SHA256；绑定调用给出的 code_commit e1af9dd... 和 manifest_sha256 7682cfe...，以清单/父 manifest/审计/sidecar/实际内容交叉核验。",
+    "未逐行复算 1,142 个父文件；未重哈希 756GB 权重；未读取父资产 sllm_store/logger.py、tensor_audit.py、runtime-rank 行 schema（不在候选包内）。",
+    "未访问 qjhs003 或其他节点；未运行远端命令；未修改文件；未读账号凭据；未派子代理。",
+    "handoff-current-audit-v2.json 7,097 行，仅重点读取身份/内存/尝试/版本/路径段。",
+    "reviews/r1-candidate13 和旧 verdict 保留原状，不作为本版审批；本版仅审 controls/candidate13b。",
+    "R2 的 FP8 正确性、torch_dtype=bfloat16、placement_config.memory_pool=[] 语义、缓存/mincore、正式计时和统计未审。",
+    "服务 716GiB pool、store.log、monitor、guard、release、accept 均未实际执行；所有 runtime_conditions 均未通过。"
+  ]
+}
