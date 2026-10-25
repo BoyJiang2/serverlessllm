@@ -1,0 +1,38 @@
+{
+  "code_commit": "b5b48807fe04251777c324d52f9e015c5d05aad5",
+  "scope": "CPU synthetic execution of actual source; Popen/clock/monitor/window/file writes mocked; no child process, Ray, Docker or SSH",
+  "threshold_cases": [
+    {
+      "remaining_seconds": 3599,
+      "outer_accepts": false,
+      "bootstrap_accepts": false
+    },
+    {
+      "remaining_seconds": 3600,
+      "outer_accepts": true,
+      "bootstrap_accepts": false
+    },
+    {
+      "remaining_seconds": 3720,
+      "outer_accepts": true,
+      "bootstrap_accepts": false
+    },
+    {
+      "remaining_seconds": 3721,
+      "outer_accepts": true,
+      "bootstrap_accepts": true
+    }
+  ],
+  "supervisor_counterexample": {
+    "begin_ns": 0,
+    "status": "passed including cleanup",
+    "timeout_seconds": 330,
+    "child_pid": 12345,
+    "end_ns": 331000000000
+  },
+  "defects_confirmed": [
+    "inconsistent admission",
+    "late child exit recorded passed beyond stated total budget"
+  ],
+  "runtime_G1": false
+}

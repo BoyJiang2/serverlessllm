@@ -1,0 +1,179 @@
+{
+  "stage": "R1c",
+  "verdict": "changes_required",
+  "code_commit": "b5b48807fe04251777c324d52f9e015c5d05aad5",
+  "manifest_sha256": "2feefa1e9d74412084fd71cb5b412f9a9f95d6181ab983d95d5c29550e31eb56",
+  "scope": "R1c static review of stability, window guard, identity, cleanup, forensics, cache control and historical termination evidence; R2 and formal timing not reviewed",
+  "r2_status": "not_reviewed_not_approved",
+  "formal_timing_status": "not_reviewed_not_approved",
+  "blocking_findings": [
+    "R1c-B01",
+    "R1c-B02",
+    "R1c-B03",
+    "R1c-B04",
+    "R1c-B05",
+    "R1c-B10"
+  ],
+  "prior_findings": {
+    "R1c-N01": "withdrawn: actual 18/21 store.log prefixes contain the 716GB marker; 3 are aborted before pool completion; bootstrap assertion is supported",
+    "R1c-N02": "resolved: sentinel, Result, ExecMainStatus, SubState, probe_empty, failed=0, archived proof",
+    "R1c-N03": "resolved: root-evidence-private13, snapshot_root13 index, accept root-index binding",
+    "R1c-N04": "resolved: accept rehashes inputs and binds deployment/code/boot/pool/affinity/release/monitor/root index",
+    "R1c-N05": "resolved: deploy verifies origin, experiment branch, reviewed commit ancestor and candidate13c source diff",
+    "R1c-N06": "clarified: empty nested bind mountpoint is required; no frozen payload write; must remain empty",
+    "R1c-N07": "partial: 120s margin fixed in launcher/supervisor, but bootstrap budget check is inconsistent; see B02",
+    "R1c-N08": "withdrawn: original contract is exact token/text/finish plus finite logprobs; no float magnitude equality",
+    "R1c-N09": "resolved: 4GiB producer cap and 4MiB streaming row cap; no full-log in-memory parse",
+    "R1c-N10": "withdrawn: StoreManager connects worker-address:8073; loopback would break native cross-container routing",
+    "R1c-N11": "resolved: optimize checks on operational entries; 16-entry negative test",
+    "R1c-N12": "resolved: mutated-head negative test replaces self-comparison",
+    "R1c-N13": "resolved: rank counts read from pinned native-weight-contract",
+    "R1c-N14": "resolved: copied native-home destination hashes match source"
+  },
+  "findings": [
+    {
+      "id": "R1c-B01",
+      "severity": "high",
+      "status": "changes_required",
+      "title": "deploy actual includes __pycache__; actual!=allowed",
+      "location": "seal_candidate13.py:37-38; deploy_control13.py:20-22; controls/candidate13c/__pycache__",
+      "evidence": "control-input-manifest has 178 rows; actual directory has 188 files; 8 are __pycache__/*.cpython-313.pyc; deploy actual includes them but allowed does not",
+      "impact": "deploy fails before copying; G1 cannot deploy",
+      "verification": "find controls/candidate13c -type d -name __pycache__; run deploy; exclude pycache or remove it"
+    },
+    {
+      "id": "R1c-B02",
+      "severity": "medium_high",
+      "status": "changes_required",
+      "title": "service budget 3600 vs bootstrap >3720",
+      "location": "budget_control13.py:2-8; launch_control13.py:43-44; supervise_control13.py:14-15; bootstrap_control13.py:75-77; test_accept_control13.py:34-38",
+      "evidence": "require_budget service13a 3600 returns 3420; bootstrap budget=deadline-now-120 and assert budget>3600 requires remaining>3720",
+      "impact": "service start in [3600,3720) passes launcher/supervisor but fails bootstrap after container creation",
+      "verification": "test 3600/3719/3720; align bootstrap to budget>3300 or require 3720"
+    },
+    {
+      "id": "R1c-B03",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "cache NUMA capacity proxy may choose Store-pool node",
+      "location": "cache_prepare_v8.py:23-33,63-80; cache_state_control13.py:40-45; store_numa_exec_v13.py:52-60; accept_control13.py:116-119",
+      "evidence": "choose_node uses MemFree+FilePages; Store 716GiB pinned on node0; cache about 704GiB plus 64GiB margin; accept does not compare cache hot_placement.node with store-numa node",
+      "impact": "cache may be placed on node0 with the 716GiB Store, risking incomplete mincore/OOM; fail-closed but preventable",
+      "verification": "inspect hot-placement.node vs store-numa-launch.node; require different or use MemAvailable/exclude Store node"
+    },
+    {
+      "id": "R1c-B04",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "cache accept does not verify initial-scan/repair/read-idle",
+      "location": "accept_control13.py:49-73; cache_state_control13.py:62-118; cache_repair_v9.py:13-66",
+      "evidence": "validate_cache checks final summary files and eviction only; repair_history, initial-scan, preparation.jsonl bytes_read and read_idle_receipt are written but not accepted",
+      "impact": "repair correctness and initial/read-idle proof are not independently verified",
+      "verification": "accept each repair selection/reads/summary and initial-scan; verify bytes_read and read-idle"
+    },
+    {
+      "id": "R1c-B05",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "monitor gap uses monotonic_ns, not begin/end",
+      "location": "monitor_control13.py:33,69-81; accept_control13.py:15-35; CURRENT-BOUNDARY.md:7",
+      "evidence": "rows carry sample_begin_ns/monotonic_ns/sample_end_ns; accept computes max gap only from monotonic_ns and does not check sample duration or begin-to-begin",
+      "impact": "a slow sample's own duration may not be bounded; historical 33.8s gap motivation is not fully closed by the metric",
+      "verification": "accept sample_end-sample_begin and begin-to-begin; negative slow-sample test"
+    },
+    {
+      "id": "R1c-B06",
+      "severity": "low_medium",
+      "status": "changes_required",
+      "title": "ancestor cgroup check excludes root and ignores memory.high",
+      "location": "preflight_control13.py:50-56",
+      "evidence": "loop stops before /sys/fs/cgroup; memory.high and memory.events read but only memory.max asserted",
+      "impact": "outer root/high limit could constrain the 1700G budget without preflight failure",
+      "verification": "include root, assert memory.max and numeric memory.high; record swap.max"
+    },
+    {
+      "id": "R1c-B07",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "seal rewrites window but leaves overlay_created_utc stale",
+      "location": "seal_candidate13.py:10-14; run-manifest.json:1462,1472,1493; resource-window-extension-v3.json:5-6",
+      "evidence": "seal updates run-manifest status and window original hash to 15a0e5... at 17:23 but overlay_created_utc remains 15:48:45Z",
+      "impact": "overlay claims a creation time before the manifest bytes it binds; F14 re-opened",
+      "verification": "set overlay_created_utc at window write; or freeze manifest before window"
+    },
+    {
+      "id": "R1c-B08",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "cache initial read bytes and hot-placement final field not asserted",
+      "location": "cache_state_control13.py:43-46,80-87; cache_prepare_v8.py:75-80,98-99",
+      "evidence": "repair asserts bytes_read==size but initial read_hot does not; hot-placement.json written before eviction_resident_pages is set",
+      "impact": "initial read completeness relies only on later mincore; hot-placement file lacks final eviction field",
+      "verification": "assert initial bytes_read==size; write hot-placement after eviction or rely only on summary"
+    },
+    {
+      "id": "R1c-B09",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "cache LFS expected_sha256 not cross-checked",
+      "location": "cache_contract13.py:11-19; cache-inputs13.json; run-manifest.json; checkpoint/VERIFIED.json",
+      "evidence": "weight expected_sha256 are frozen LFS identity but cache_contract checks only closure/size; manifest is hash-pinned",
+      "impact": "static consistency with official LFS list is not independently checked; later 8rank audit is separate",
+      "verification": "cross-check 142 expected_sha256 against checkpoint VERIFIED; no fresh payload hash"
+    },
+    {
+      "id": "R1c-B10",
+      "severity": "medium",
+      "status": "changes_required",
+      "title": "accept does not read per-cycle idle60 rows",
+      "location": "validation_control13.py:108-129; accept_control13.py:100-110",
+      "evidence": "validation writes cycle{1,2}-idle60.jsonl 61 rows; accept checks PSS and model-result but not idle60",
+      "impact": "per-cycle delete 60s observation is not accepted field-by-field",
+      "verification": "accept 61 rows/60s/GPU/pids/memory/shm per cycle; negative test"
+    },
+    {
+      "id": "R1c-B11",
+      "severity": "low",
+      "status": "changes_required",
+      "title": "release content RSS/PSS/locked/shared not accepted",
+      "location": "accept_control13.py:37-47; release_control13.py",
+      "evidence": "release records processes/status/smaps and cgroup memory/cpu, but validate_release checks only 61/60s, own containers, pids, GPU",
+      "impact": "release field-level completeness is weaker than claimed",
+      "verification": "assert no residual uid2147 processes and locked/shmem; or explicitly scope RSS/PSS to monitor/PSS"
+    },
+    {
+      "id": "R1c-B12",
+      "severity": "low",
+      "status": "runtime_condition",
+      "title": "deploy origin exact .git and branch must match",
+      "location": "deploy_control13.py:7-12",
+      "evidence": "origin must equal .git URL; branch must equal experiment/glm51-fp8-takeover-20261025",
+      "impact": "wrong actual remote/branch fails closed; user URL is written without .git",
+      "verification": "git remote get-url origin; git branch --show-current; compare/normalize"
+    }
+  ],
+  "runtime_conditions": [
+    "Current GPUs are occupied by another job; only CPU work; no Ray/pool/full-cache starting; do not assume 02:50 release; do not terminate others.",
+    "New install_guard13/probe not executed; old v6 guard remains 02:50; new 08:50 independent guard not installed; no unguarded process; original-run handover still separate.",
+    "New sentinel/probe Result/ExecMainStatus/SubState/probe_empty/private proof and snapshot_root13 not executed.",
+    "New install_observers13/monitor not executed; no observer-registration13.json, monitor-v3-ready.json or resource-monitor-v12.jsonl.",
+    "Real cache control not executed; no cache_g1hot13 summary/initial/eviction/repair; 148 inputs/756GB/8 readers/600s/64GiB/2 repairs unverified.",
+    "Four native Lifecycles, PSS, 16 rank records and 8-rank weight audit not executed; R2 not passed.",
+    "release60-ray13a/ray13b/allstopped, root-evidence-index13.json and G1-acceptance.json not produced.",
+    "Historical exit137 remains failed; dockerd stop/force is historical mechanism evidence; upstream caller/reason unknown; no absolute OOM exclusion; no Ray attribution.",
+    "9 terminal and 31 unstarted formal IDs unchanged; zero formal consumed; store_pool_hit_03 remains next after G1/R2/gate.",
+    "25 local tests, Python compile and 3 bash -n only local static checks; not guard/probe/G1/8-rank/R2."
+  ],
+  "limitations": [
+    "No shell; cannot recompute all SHA256; bound to code_commit b5b488... and manifest_sha256 2feefa...; cross-checked actual files, manifest, parent manifest and audit.",
+    "Read key candidate13c source, diffs, templates, tests and evidence; did not rehash all 1,142 parent files or 756GB weights; did not run cache/G1/8-rank/R2.",
+    "control-input-manifest has 178 rows; actual directory has 188 files including 8 __pycache__ pyc files.",
+    "Did not access qjhs003 or other nodes; no remote commands; no file modification; no credentials; no subagents.",
+    "Historical evidence read from CURRENT-BOUNDARY, two target-journal files, joint receipt and daemon reports; did not re-run investigation.",
+    "R2/FP8 correctness, bfloat16 semantics, memory_pool=[] lifecycle semantics, formal timing and statistics not reviewed.",
+    "R1c changes_required does not approve R2 or formal G1; G1 success would not retroactively solve historical exit137.",
+    "GPU occupancy is a runtime hold, not a code verdict; revalidate occupancy/NUMA/window/budget after actual release."
+  ],
+  "global_gap_impact": "Global Docker daemon/audit journals are not continuously exported; this permits bounded own-cgroup/GPU observation but does not exclude a host-global actor or OOM. It blocks any external-SIGKILL/OOM-exclusion or historical-root-cause-solved claim; it does not block a bounded G1 report that keeps cause unknown, provided own kernel/Docker/cgroup evidence is archived.",
+  "signal_probe_recommendation": "No new signal/BPF/global Docker probe is required for R1c. The historical dockerd stop/force is already recorded and a new signal probe cannot recover the upstream caller. Any future probe should be target-TGID/cgroup-filtered, untimed, independently deadline-bounded, and only after the R1 controls."
+}
