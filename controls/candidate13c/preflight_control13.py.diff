@@ -1,0 +1,25 @@
+--- candidate13b/preflight_control13.py
++++ candidate13c/preflight_control13.py
+@@ -47,13 +47,21 @@
+         require(call('systemctl','show',run+'.slice','-p',key,'--value')==value,'slice limit changed: '+key)
+     group=call('systemctl','show',run+'.slice','-p','ControlGroup','--value')
+     require(pathlib.PurePosixPath(group).name==run+'.slice','slice identity changed')
++    ancestors={}
++    current=pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
++    while current!=pathlib.Path('/sys/fs/cgroup'):
++        values={name:(current/name).read_text().strip() for name in ('memory.max','memory.high','memory.events')}
++        require(values['memory.max']=='max' or int(values['memory.max'])>=1825361100800,'ancestor memory limit below frozen budget')
++        ancestors[str(current)]=values
++        current=current.parent
+     if monitor_required:
+         ready=json.loads((root/'monitor-v3-ready.json').read_text())
+         require(ready['run_id']==run and ready['boot_id']==expected['boot_id'],'monitor identity changed')
+         require(0<=time.monotonic_ns()-ready['last_sample_ns']<=5_000_000_000,'monitor not fresh')
++        require(ready['observers_ok'],'observer liveness failed')
+         for suffix in ['kernelobserver13','dockerobserver13']:
+             unit=run+'-'+suffix+'.service'
+             require(call('systemctl','is-active',unit)=='active','observer inactive: '+suffix)
+             observer_group=call('systemctl','show',unit,'-p','ControlGroup','--value')
+             require(observer_group.startswith(group+'/'),'observer escaped run slice')
+-    return dict(run_id=run,checked_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),boot_id=expected['boot_id'],gpu_uuids=uuids,guard_script_sha256=proof['cleanup_sha256'],control_group=group,monitor_required=monitor_required,host_meminfo=memory,available_memory_bytes=available)
++    return dict(run_id=run,checked_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),boot_id=expected['boot_id'],gpu_uuids=uuids,guard_script_sha256=proof['cleanup_sha256'],control_group=group,monitor_required=monitor_required,host_meminfo=memory,available_memory_bytes=available,ancestor_limits=ancestors)

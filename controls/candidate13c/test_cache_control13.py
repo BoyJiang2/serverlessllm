@@ -1,0 +1,57 @@
+"""Tiny synthetic vectors test cache acceptance; never claim real cache evidence."""
+import gzip,hashlib,json,pathlib,tempfile,unittest
+from accept_control13 import validate_cache
+from cache_contract13 import frozen_paths
+
+class CacheAcceptance(unittest.TestCase):
+    def fixture(self,root):
+        dest=root/'cache_g1hot13'; dest.mkdir()
+        inputs=[dict(path=f'model-{i:05}.safetensors' if i<142 else f'metadata{i}.json',bytes=1) for i in range(148)]
+        manifest=root/'cache-inputs13.json'; manifest.write_text(json.dumps(dict(files=inputs)))
+        rows=[]; eviction=[]
+        for i,item in enumerate(inputs):
+            for hot,value in [(True,b'\x01'),(False,b'\x00')]:
+                name=f'{i}-{hot}.gz'; (dest/name).write_bytes(gzip.compress(value))
+                row=dict(file=item['path'],source_path='/experiment/checkpoint/'+item['path'],bytes=1,pages=1,resident_pages=int(hot),page_size=4096,vector=name,vector_sha256=hashlib.sha256(value).hexdigest())
+                (rows if hot else eviction).append(row)
+        summary=dict(input_manifest_sha256=hashlib.sha256(manifest.read_bytes()).hexdigest(),mode='hot',kind='safetensors_inputs',cache_condition_passed=True,hot_workers=8,repair_passes=0,total_cache_admission_end_ns=1,total_cache_admission_begin_ns=0,files=rows)
+        (dest/'summary.json').write_text(json.dumps(summary)); (dest/'eviction-mincore.jsonl').write_text('\n'.join(json.dumps(r) for r in eviction))
+        return dest,summary
+    def test_positive(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d); self.fixture(root); self.assertEqual(validate_cache(root)['inputs'],148)
+    def test_missing_file(self): self.bad(lambda s:s['files'].pop())
+    def test_partial_residency(self): self.bad(lambda s:s['files'][0].update(resident_pages=0))
+    def test_missing_pages(self): self.bad(lambda s:s['files'][0].update(pages=2))
+    def test_over_budget(self): self.bad(lambda s:s.update(total_cache_admission_end_ns=601_000_000_000))
+    def test_corrupt_vector(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d); dest,s=self.fixture(root); (dest/s['files'][0]['vector']).write_bytes(gzip.compress(b'\x00'))
+            with self.assertRaises(RuntimeError): validate_cache(root)
+    def bad(self,change):
+        with tempfile.TemporaryDirectory() as d:
+            root=pathlib.Path(d); dest,s=self.fixture(root); change(s); (dest/'summary.json').write_text(json.dumps(s))
+            with self.assertRaises(RuntimeError): validate_cache(root)
+
+class InputClosure(unittest.TestCase):
+    def test_sizes_and_metadata_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base=pathlib.Path(directory); rows=[]
+            for i in range(148):
+                name=f'model-{i:05}.safetensors' if i<142 else f'metadata{i}.json'
+                (base/name).write_bytes(b'x'); row=dict(path=name,bytes=1)
+                if i>=142: row.update(hash_kind='sha256',expected_hash=hashlib.sha256(b'x').hexdigest())
+                rows.append(row)
+            manifest=base/'inputs.json'; manifest.write_text(json.dumps(dict(files=rows)))
+            self.assertEqual(len(frozen_paths(base,manifest)),148)
+            (base/rows[-1]['path']).write_bytes(b'y')
+            with self.assertRaisesRegex(RuntimeError,'metadata hash'): frozen_paths(base,manifest)
+            (base/rows[-1]['path']).write_bytes(b'x')
+            (base/rows[0]['path']).write_bytes(b'xx')
+            with self.assertRaisesRegex(RuntimeError,'size differs'): frozen_paths(base,manifest)
+    def test_incomplete_closure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base=pathlib.Path(directory); manifest=base/'inputs.json'; manifest.write_text('{"files":[]}')
+            with self.assertRaises(RuntimeError): frozen_paths(base,manifest)
+
+if __name__=='__main__': unittest.main()

@@ -60,3 +60,7 @@ Unapproved controls/candidate13c adds real sentinel/probe exit checks, persisten
 ## 2026-10-26 01:21 local-only checkpoint
 
 User resource hold remains active: no new Ray, pool, cache control or model execution. Candidate13c remains unsealed/unapproved; seventeen CPU unit tests pass, including optimized-entry rejection and synthetic acceptance failures. Fast monitoring no longer reads smaps_rollup; bounded private-namespace PSS is separate. Privileged read-only historical journal collection found dockerd escalation of the exact failed formal6 container after a 90s SIGTERM wait; upstream stop requester/reason remains unknown. Original exit137 stays failed and is not attributed to Ray. Current G1/R2 remain pending. Full frozen-input hot-cache control and current R1 review still need completion before runtime.
+
+## R1c sealed for read-only review
+
+Candidate13c now includes frozen148-file hot-cache control, strict full mincore vector acceptance and separate bounded PSS.25CPU tests, all Python compile and3bash syntax checks pass. Input manifest2feefa1e9d74412084fd71cb5b412f9a9f95d6181ab983d95d5c29550e31eb56 (178files). Runtime/G1/R2 unexecuted/unapproved; resource hold active. Historical dockerd escalation evidence and independent joint-review receipts included; upstream requester/reason remains unknown. Current code commit is the commit containing this milestone; next action is actual DeepSeek R1c review, never compute while resources occupied. Formal ledger unchanged9terminal/31unstarted.

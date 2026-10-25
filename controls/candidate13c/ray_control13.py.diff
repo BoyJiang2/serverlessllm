@@ -1,9 +1,0 @@
---- candidate13/ray_control13.py
-+++ candidate13b/ray_control13.py
-@@ -1,3 +1,6 @@
-+import sys,os
-+if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
-+    raise RuntimeError('optimized Python is forbidden')
- """Untimed Ray readiness/IP control: no Store, checkpoint reads, or inference."""
- import datetime
- import json

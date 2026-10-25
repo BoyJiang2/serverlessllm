@@ -1,22 +1,26 @@
---- service_model_validation.py
-+++ validation_control13.py
-@@ -55,7 +55,9 @@
-             assert response.status == 200
-             return json.load(response)
- 
--    known_audits = set()
-+    audit_root = pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR'])
-+    known_audits = set(audit_root.iterdir()) if audit_root.exists() else set()
-+    baseline_audits = len(known_audits)
-     for cycle in [1,2]:
-         event('native_register_begin',cycle=cycle)
-         assert http('/register',config) == {'status':'ok'}
-@@ -80,7 +82,7 @@
-             event('native_business_request_complete_correct',cycle=cycle,case=case['name'])
-         if audit_weights:
-             audits = set(pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR']).iterdir())
--            assert len(audits) == cycle
-+            assert len(audits) == baseline_audits+cycle
-             new_audits = audits-known_audits
-             assert len(new_audits) == 1
-             current = new_audits.pop()
+--- candidate13b/validation_control13.py
++++ candidate13c/validation_control13.py
+@@ -105,6 +105,10 @@
+         listed = http('/v1/models')
+         (out/f'cycle{cycle}-models-after-delete.json').write_text(json.dumps(listed,indent=2))
+         assert model not in {row['id'] for row in listed['models']}
++        pss_path=out/f'cycle{cycle}-pss.json'
++        store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
++        pss_log=(out/f'cycle{cycle}-pss.log').open('x')
++        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
+         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
+             for second in range(61):
+                 shm = os.statvfs('/dev/shm')
+@@ -117,6 +121,12 @@
+                     'memory_stat':pathlib.Path('/sys/fs/cgroup/memory.stat').read_text()})+'\n')
+                 samples.flush()
+                 if second<60: time.sleep(1)
++        if pss.poll() is None:
++            pss.kill()
++            stop=time.monotonic()+5
++            while pss.poll() is None and time.monotonic()<stop: time.sleep(.1)
++        pss_log.close()
++        assert pss.poll()==0 and json.loads(pss_path.read_text())['status']=='completed', 'bounded PSS probe incomplete; no next lifecycle started'
+         event('post_delete_observation_complete',cycle=cycle,seconds=60)
+         remaining = [int(line) for line in subprocess.check_output(
+             ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]

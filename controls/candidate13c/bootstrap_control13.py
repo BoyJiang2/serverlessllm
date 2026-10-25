@@ -123,6 +123,11 @@ try:
         'entrypoint':'sllm.cli._cli_utils.start_server + native FastAPI /health'},indent=2))
     print('native_control_plane_healthy_no_model_registered',flush=True)
     if validate_model:
+        # Independent untimed full-cache control; does not label later lifecycle cache state.
+        cache_log=(out/'hot-cache-control.log').open('x')
+        try:
+            subprocess.run([python,str(pathlib.Path(__file__).resolve().parent/'cache_state_control13.py'),'hot','safetensors_inputs','g1hot13'],stdout=cache_log,stderr=subprocess.STDOUT,env=env,timeout=600,check=True)
+        finally: cache_log.close()
         if formal:
             from formal_trials_v11 import run
         else:

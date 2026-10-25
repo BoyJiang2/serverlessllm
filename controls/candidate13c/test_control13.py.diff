@@ -1,0 +1,24 @@
+--- candidate13b/test_control13.py
++++ candidate13c/test_control13.py
+@@ -30,12 +30,16 @@
+     def test_monitor_escape(self):
+         with patch.object(m,'call',return_value='/other.slice'):
+             with self.assertRaises(AssertionError): m.expected_spec(root,'monitor13')
+-    def test_head_exact(self):
+-        m.validate_spec(root,json.loads((root/'headray13a.json').read_text()))
++    def test_mutated_head_rejected(self):
++        spec=json.loads((root/'headray13a.json').read_text())
++        spec['argv'].append('--num-gpus=8')
++        with self.assertRaises(AssertionError): m.validate_spec(root,spec)
+     def test_optimized_rejected(self):
+-        result=subprocess.run([sys.executable,'-O',str(root/'materialize_control13.py'),'otherjob'],capture_output=True,text=True)
+-        self.assertNotEqual(result.returncode,0)
+-        self.assertIn('optimized Python is forbidden',result.stderr)
++        for name in ['materialize_control13.py','bootstrap_control13.py','monitor_control13.py','supervise_control13.py','launch_control13.py','ray_control13.py','validation_control13.py','release_control13.py','accept_control13.py','prepare_host13.py','deploy_control13.py','snapshot_root13.py','store_numa_exec_v13.py','run_store_server13.py','collect_pss13.py','cache_state_control13.py']:
++            with self.subTest(entry=name):
++                result=subprocess.run([sys.executable,'-O',str(root/name),'otherjob'],capture_output=True,text=True)
++                self.assertNotEqual(result.returncode,0)
++                self.assertIn('optimized Python',result.stderr)
+     def test_window_before_start_rejected(self):
+         from resource_window_control13 import load_window
+         with tempfile.TemporaryDirectory() as directory:

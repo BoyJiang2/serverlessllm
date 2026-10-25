@@ -1,28 +1,66 @@
---- candidate13/monitor_control13.py
-+++ candidate13b/monitor_control13.py
-@@ -7,7 +7,7 @@
- import time
- # CONTROL COPY (v11): the v1 overlay deadline (2026-10-25T05:50) has passed; this monitor
- # reads the v2 additive window instead so it keeps sampling until the v2 deadline.
--from resource_window_v3 import load_window
-+from resource_window_control13 import load_window
- from compilation_guard import TOOLS, observed_interference
- 
- root = pathlib.Path('/experiment')
-@@ -73,16 +73,6 @@
+--- candidate13b/monitor_control13.py
++++ candidate13c/monitor_control13.py
+@@ -1,3 +1,6 @@
++import sys,os
++if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
++    raise RuntimeError('optimized Python is forbidden')
+ """Read-only resource monitor restricted to the experiment's exact cgroup."""
+ import datetime
+ import json
+@@ -21,8 +24,13 @@
+ output_root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1')
+ log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
+ assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')
++registration_path=output_root/'observer-registration13.json'
++assert registration_path.stat().st_uid==0
++registration=json.loads(registration_path.read_text())
++assert registration['run_id']==manifest['run_id'] and registration['boot_id']==manifest['runtime_identity']['boot_id']
+ with (output_root/log_name).open('x') as output:
+     while time.time() < deadline:
++        sample_begin_ns=time.monotonic_ns()
+         current = int((cgroup/'memory.current').read_text())
+         sampled_peak = max(sampled_peak,current)
+         pids = set()
+@@ -44,11 +52,19 @@
+                     continue
+                 row = {'pid':pid,'status':status,'stat':proc.joinpath('stat').read_text(),
+                        'cmdline':proc.joinpath('cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')}
+-                try: row['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
+-                except PermissionError: row['smaps_rollup_error'] = 'permission denied; PSS unavailable'
++                row['pss_collection']='separate bounded after-delete collector; excluded from fast heartbeat'
+                 processes.append(row)
+             except (FileNotFoundError,ProcessLookupError):
+                 continue
++        observer_states=[]
++        for registered in registration['observers']:
++            try:
++                proc=pathlib.Path('/proc')/str(registered['pid'])
++                same_start=proc.joinpath('stat').read_text().rpartition(')')[2].split()[19]==registered['start_ticks']
++                same_group=proc.joinpath('cgroup').read_text()==registered['cgroup']
++                observer_states.append(dict(unit=registered['unit'],pid=registered['pid'],ok=same_start and same_group))
++            except (FileNotFoundError,ProcessLookupError,PermissionError):
++                observer_states.append(dict(unit=registered['unit'],pid=registered['pid'],ok=False))
+         kernel_peak = cgroup/'memory.peak'
+         row = {'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'monotonic_ns':time.monotonic_ns(),
+                'cgroup_memory_current':current,'sampled_memory_peak':sampled_peak,
+@@ -61,13 +77,17 @@
+                'numa_meminfo':{str(p):p.read_text() for p in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo')},
+                'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
+                'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
+-               'processes':processes}
+-        output.write(json.dumps(row)+'\n')
++               'processes':processes,'observers':observer_states,'sample_begin_ns':sample_begin_ns,'sample_end_ns':time.monotonic_ns(),
++               'sampling_scope':'non-atomic field reads bounded by begin/end; UTC is not a simultaneous snapshot'}
++        encoded=json.dumps(row)+'\n'
++        if output.tell()+len(encoded.encode())>4*1024**3:
++            raise RuntimeError('finite control monitor exceeded4GiB log budget')
++        output.write(encoded)
+         output.flush()
+         ready_path = output_root/'monitor-v3-ready.json'
+         temporary = ready_path.with_suffix('.tmp')
+         temporary.write_text(json.dumps({'last_sample_ns':row['monotonic_ns'],
+-                                         'run_id':manifest['run_id'],
++                                         'run_id':manifest['run_id'],'observers_ok':all(item['ok'] for item in observer_states),
+                                          'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()}))
+         temporary.replace(ready_path)
          interference = observed_interference(processes)
-         # Only names and PIDs are read outside the experiment; never record
-         # other users' command arguments or act on their processes.
--        for proc in pathlib.Path('/proc').iterdir():
--            if not proc.name.isdigit():
--                continue
--            try:
--                name = (proc/'comm').read_text().strip()
--                if name in TOOLS:
--                    interference.append({'pid':int(proc.name),'comm':name,
--                                         'scope':'host compiler/download process observed'})
--            except (FileNotFoundError,ProcessLookupError,PermissionError):
--                pass
-         for line in row['gpu_processes'].splitlines():
-             pid = int(line.split(',',1)[0])
-             try:

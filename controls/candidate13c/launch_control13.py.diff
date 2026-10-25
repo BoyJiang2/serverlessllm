@@ -1,82 +1,38 @@
---- candidate13/launch_control13.py
-+++ candidate13b/launch_control13.py
-@@ -6,7 +6,8 @@
- import sys
- import time
- import os
--from resource_window_v3 import load_window
-+if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
-+    raise RuntimeError('optimized Python is forbidden')
+--- candidate13b/launch_control13.py
++++ candidate13c/launch_control13.py
+@@ -24,7 +24,7 @@
  
- root = pathlib.Path(__file__).resolve().parent
- manifest = json.loads((root / 'run-manifest.json').read_text())
-@@ -14,15 +15,26 @@
- assert str(asset_root) == '/data/brick1/boyjiang/sllm-glm51fp8-20261024T051606Z-deb76e57'
- import hashlib
- assert hashlib.sha256((asset_root/'run-manifest.json').read_bytes()).hexdigest() == manifest['parent_manifest_sha256']
-+parent_manifest=asset_root/'review-input-manifest-v11.json'
-+assert hashlib.sha256(parent_manifest.read_bytes()).hexdigest()=='da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4'
-+for row in json.loads(parent_manifest.read_text())['files']:
-+    path=(asset_root/row['path']).resolve()
-+    assert path.is_relative_to(asset_root)
-+    assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
-+
  run = manifest['run_id']
--from materialize_control13 import validate_spec
  assert pathlib.Path(sys.argv[1]).name == sys.argv[1]
-+assert len(sys.argv)==3 and hashlib.sha256((root/'control-input-manifest.json').read_bytes()).hexdigest()==sys.argv[2], 'review manifest SHA required'
+-assert len(sys.argv)==3 and hashlib.sha256((root/'control-input-manifest.json').read_bytes()).hexdigest()==sys.argv[2], 'review manifest SHA required'
++assert len(sys.argv)==4 and hashlib.sha256((root/'control-input-manifest.json').read_bytes()).hexdigest()==sys.argv[2], 'review manifest SHA required'
  for row in json.loads((root/'control-input-manifest.json').read_text())['files']:
      path=(root/row['path']).resolve()
      assert path.is_relative_to(root)
-     assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
-+from materialize_control13 import validate_spec
-+from resource_window_control13 import load_window
- spec = json.loads((root / sys.argv[1]).read_text())
- validate_spec(root, spec)
-+from preflight_control13 import check
-+preflight=check(root,monitor_required=spec['name']!='monitor13')
- assert root == pathlib.Path('/data/brick1/boyjiang') / run
- assert os.getuid() == manifest['uid'] == 2147
+@@ -40,7 +40,8 @@
  assert spec['name'].replace('_', '').isalnum()
-@@ -37,14 +49,15 @@
- expected_next = deadline.strftime('%Y-%m-%d %H:%M:%S')
- observed_next = call('systemctl', 'show', window['guard_timer'], '-p', 'NextElapseUSecRealtime', '--value')
- assert expected_next in observed_next, (expected_next, observed_next)
--if spec.get('gpus'):
-+if spec.get('gpus') or spec['name'].startswith('head'):
-     assert not call('nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader').strip(), 'GPU occupied'
- args = ['docker', 'create', '--network=' + spec.get('network', 'none'), '--memory=' + spec['memory'],
-         '--cpus=' + str(spec['cpus']), '--shm-size=32g', '--ulimit=core=0', '--restart=no', '--cgroup-parent=' + run + '.slice',
-         '--name=' + run + '-' + spec['name'], '--label=sllm.run_id=' + run,
-         '--label=sllm.uid=2147', '--user=2147:2147',
-         '--env=USER=boyjiang', '--env=LOGNAME=boyjiang', '--env=HOME=/experiment/home',
--        '--mount=type=bind,src=' + str(asset_root) + ',dst=/experiment',
-+        '--mount=type=bind,src=' + str(asset_root) + ',dst=/experiment,readonly',
-+        '--mount=type=bind,src=' + str(root/'native-home') + ',dst=/experiment/native-home',
-         '--mount=type=bind,src=' + str(root) + ',dst=/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1',
-         '--mount=type=bind,src=' + str(root/'run-manifest.json') + ',dst=/experiment/run-manifest.json,readonly',
-         '--mount=type=bind,src=' + str(root/'resource-window-extension-v3.json') + ',dst=/experiment/resource-window-extension-v3.json,readonly']
-@@ -69,10 +82,13 @@
-     args += ['--env=' + key + '=' + str(value)]
+ window = load_window(root)
+ deadline = datetime.datetime.fromisoformat(window['cleanup_deadline'])
+-assert datetime.datetime.now(datetime.timezone.utc).timestamp() < deadline.timestamp() - 120
++from budget_control13 import require_budget
++require_budget(spec['name'],deadline.timestamp()-time.time())
+ 
+ def call(*args):
+     return subprocess.check_output(args, text=True).strip()
+@@ -83,7 +84,7 @@
  args += ['--entrypoint=' + spec['argv'][0], manifest['image_id'], *spec['argv'][1:]]
  dispatch_monotonic_ns = time.monotonic_ns()
-+deployment=json.loads((root/'deployment.json').read_text())
-+assert deployment['run_id']==run and deployment['input_manifest_sha256']==sys.argv[2]
-+assert len(deployment['code_commit'])==40 and all(c in '0123456789abcdef' for c in deployment['code_commit'])
+ deployment=json.loads((root/'deployment.json').read_text())
+-assert deployment['run_id']==run and deployment['input_manifest_sha256']==sys.argv[2]
++assert deployment['run_id']==run and deployment['input_manifest_sha256']==sys.argv[2] and deployment['code_commit']==sys.argv[3]
+ assert len(deployment['code_commit'])==40 and all(c in '0123456789abcdef' for c in deployment['code_commit'])
  dispatch_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
  with (root / (spec['name'] + '-dispatch.json')).open('x') as output:
-     json.dump({'run_id':run,'spec':spec,'uid':os.getuid(),
--               'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,
-+               'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,'preflight':preflight,'code_commit':deployment['code_commit'],
-                'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()},output,indent=2)
- cid = call(*args)
- create_complete_ns = time.monotonic_ns()
-@@ -85,7 +101,7 @@
+@@ -101,6 +102,7 @@
      subprocess.run(['docker', 'kill', cid], check=True)
      raise RuntimeError('container escaped guarded experiment cgroup')
  record = {'run_id': run, 'spec': spec, 'container_id': cid, 'pid': pid, 'cgroup': cgroup,
--          'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,
-+          'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,'preflight':preflight,
++          'code_commit':deployment['code_commit'],'manifest_sha256':sys.argv[2],
+           'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,'preflight':preflight,
            'docker_create_complete_ns':create_complete_ns,'docker_start_complete_ns':start_complete_ns,
            'launch_utc': datetime.datetime.now(datetime.timezone.utc).isoformat()}
- (root / (spec['name'] + '-identity.json')).write_text(json.dumps(record, indent=2))

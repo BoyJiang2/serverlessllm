@@ -1,7 +1,7 @@
 """Full post-control acceptance; no model execution or formal samples."""
 import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
-import hashlib,json,pathlib,stat
+import gzip,hashlib,json,pathlib,stat
 
 def require(value,message):
     if not value: raise RuntimeError(message)
@@ -46,6 +46,32 @@ def validate_release(rows,stage,run,baseline):
             require(len(used)==len(baseline)==8 and all(a<=b+16 for a,b in zip(used,baseline)),'GPU memory retained')
         else: require(running<={run+'-monitor13'},'owned workload retained')
 
+def validate_cache(root):
+    contract=json.loads((root/'cache-inputs13.json').read_text())
+    dest=root/'cache_g1hot13'; summary=json.loads((dest/'summary.json').read_text())
+    require(summary['input_manifest_sha256']==digest(root/'cache-inputs13.json'),'cache input manifest differs')
+    require(summary['mode']=='hot' and summary['kind']=='safetensors_inputs' and summary['cache_condition_passed'] is True,'hot cache control failed')
+    require(summary['hot_workers']==8 and summary['repair_passes']<=2 and (summary['total_cache_admission_end_ns']-summary['total_cache_admission_begin_ns'])<=600_000_000_000,'cache budget differs')
+    expected={r['path']:r for r in contract['files']}
+    require(len(expected)==len(summary['files'])==148,'cache input closure differs')
+    require({r['file'] for r in summary['files']}==set(expected),'cache file names differ')
+    def flags(row):
+        path=(dest/row['vector']).resolve()
+        require(path.is_relative_to(dest.resolve()),'mincore vector escaped')
+        value=gzip.decompress(path.read_bytes())
+        require(len(value)==row['pages'] and hashlib.sha256(value).hexdigest()==row['vector_sha256'],'mincore vector identity differs')
+        return sum(v&1 for v in value)
+    for row in summary['files']:
+        require(row['source_path']=='/experiment/checkpoint/'+row['file'] and row['bytes']==expected[row['file']]['bytes'],'cache source differs')
+        require(row['page_size']>0 and row['pages']==(row['bytes']+row['page_size']-1)//row['page_size'],'cache page coverage differs')
+        require(flags(row)==row['resident_pages']==row['pages'],'hot residency not full')
+    eviction=[json.loads(line) for line in (dest/'eviction-mincore.jsonl').read_text().splitlines()]
+    require(len(eviction)==148 and {r['source_path'] for r in eviction}=={'/experiment/checkpoint/'+name for name in expected},'eviction closure differs')
+    final={r['source_path']:r for r in summary['files']}
+    for row in eviction:
+        require(row['pages']==final[row['source_path']]['pages'] and flags(row)==row['resident_pages']==0,'initial eviction not fully cold')
+    return dict(summary_sha256=digest(dest/'summary.json'),inputs=148,threshold='all pages resident; initial eviction zero',pgsteal='diagnostic only')
+
 def expand_cpus(value):
     result=set()
     for part in value.split(','):
@@ -82,6 +108,7 @@ def accept(root,sha,code_commit):
         for cycle in (1,2):
             pss=load(f'service-bootstrap-service13a/{fmt}/cycle{cycle}-pss.json')
             require(pss['status']=='completed' and pss['end_ns']>=pss['begin_ns'] and any(v['pid']==pss['store_pid'] and v['smaps_rollup'] is not None for v in pss['processes']),'PSS sample incomplete')
+    cache_proof=validate_cache(root)
     pool=load('service-bootstrap-service13a/pool-ready.json'); restored=load('evidence/store-restore-validation.json')
     require(pool['pool_bytes']==restored['pool_bytes'] and pool['chunk_bytes']==restored['chunk_bytes'],'pool capacity differs')
     require(pool['rpc_config']==dict(mem_pool_size=pool['pool_bytes'],chunk_size=pool['chunk_bytes']) and pool['rss_bytes']>=pool['pool_bytes'],'real resident pool unproven')
@@ -107,7 +134,7 @@ def accept(root,sha,code_commit):
         directory=asset/'formal-trials'/row['attempt_id']
         if row['status']=='unstarted': require(not directory.exists(),'formal ID consumed')
         else: require(digest(directory/'result.json')==row['result_sha256'],'terminal result changed')
-    receipt=dict(status='G1 acceptance passed; no formal samples',run_id=run,boot_id=boot,code_commit=code_commit,manifest_sha256=sha,monitor=summary,root_evidence_index_sha256=digest(index_path),pool_initializations=1,ray_only_controls=2,native_lifecycles_per_format=2,scope='bounded current stability only; historical exit137 cause unknown')
+    receipt=dict(status='G1 acceptance passed; no formal samples',run_id=run,boot_id=boot,code_commit=code_commit,manifest_sha256=sha,monitor=summary,cache_control=cache_proof,root_evidence_index_sha256=digest(index_path),pool_initializations=1,ray_only_controls=2,native_lifecycles_per_format=2,scope='bounded current stability only; historical exit137 cause unknown')
     with (root/'G1-acceptance.json').open('x') as stream: json.dump(receipt,stream,indent=2)
     print(json.dumps(receipt,indent=2))
 

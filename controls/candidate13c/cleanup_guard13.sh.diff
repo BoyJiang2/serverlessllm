@@ -1,0 +1,15 @@
+--- candidate13b/cleanup_guard13.sh
++++ candidate13c/cleanup_guard13.sh
+@@ -9,7 +9,11 @@
+   probe) target="$run_id-guard-v13-probe" ;;
+   *) exit 2 ;;
+ esac
+-exec >> "/run/$run_id/cleanup-v13-$2.log" 2>&1
++base="/data/brick1/boyjiang/$run_id"
++private="$base/root-evidence-private13"
++test ! -L "$private"
++test "$(stat -c %u "$private")" = 0
++exec >> "$private/cleanup-v13-$2.log" 2>&1
+ printf 'cleanup_started %s target=%s\n' "$(date -Is)" "$target"
+ # Kill this exact owned slice first; Docker/logging failures cannot delay the deadline.
+ systemctl kill --kill-who=all --signal=SIGKILL "$target.slice" || true
