@@ -79,6 +79,9 @@ def accept(root,sha,code_commit):
         for row in coverage:
             expected=contract[row['rank']]
             require(row['weight_scale_derived_references']==expected['verified_weight_references'] and row['dsa_workspace_references_excluded']==expected['runtime_index_references_excluded'] and row['kv_references_excluded']==expected['kv_runtime_references_excluded'],'rank contract differs')
+        for cycle in (1,2):
+            pss=load(f'service-bootstrap-service13a/{fmt}/cycle{cycle}-pss.json')
+            require(pss['status']=='completed' and pss['end_ns']>=pss['begin_ns'] and any(v['pid']==pss['store_pid'] and v['smaps_rollup'] is not None for v in pss['processes']),'PSS sample incomplete')
     pool=load('service-bootstrap-service13a/pool-ready.json'); restored=load('evidence/store-restore-validation.json')
     require(pool['pool_bytes']==restored['pool_bytes'] and pool['chunk_bytes']==restored['chunk_bytes'],'pool capacity differs')
     require(pool['rpc_config']==dict(mem_pool_size=pool['pool_bytes'],chunk_size=pool['chunk_bytes']) and pool['rss_bytes']>=pool['pool_bytes'],'real resident pool unproven')

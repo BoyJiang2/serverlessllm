@@ -56,3 +56,7 @@ DeepSeek session session-f3000b94-fe59-4aa3-ad69-87b75b64eebf completed with cha
 ## R1c work in progress
 
 Unapproved controls/candidate13c adds real sentinel/probe exit checks, persistent root evidence, stronger acceptance/commit binding and bounded budgets. It is NOT runnable/frozen: input manifest is not regenerated yet, tests/ledger/review pending. Dedicated user-authorized read-only SIGKILL investigator has newly bound CID to hostPID/cgroup and found a33.8s non-atomic monitor gap; synchronous large-Store PSS is being removed from fast heartbeat before any G1 execution. No new node compute or formal ID consumed. Last reviewed candidate13b remains unchanged.
+
+## 2026-10-26 01:21 local-only checkpoint
+
+User resource hold remains active: no new Ray, pool, cache control or model execution. Candidate13c remains unsealed/unapproved; seventeen CPU unit tests pass, including optimized-entry rejection and synthetic acceptance failures. Fast monitoring no longer reads smaps_rollup; bounded private-namespace PSS is separate. Privileged read-only historical journal collection found dockerd escalation of the exact failed formal6 container after a 90s SIGTERM wait; upstream stop requester/reason remains unknown. Original exit137 stays failed and is not attributed to Ray. Current G1/R2 remain pending. Full frozen-input hot-cache control and current R1 review still need completion before runtime.

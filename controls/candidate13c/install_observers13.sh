@@ -9,7 +9,7 @@ test "$(stat -c %u "$base")" = 2147
 test "$(systemctl is-active "$run_id-deadline-v13.timer")" = active
 remaining=$((1792975800-$(date +%s)))
 test "$remaining" -gt 120
-systemd-run --unit="$run_id-kernelobserver13" --slice="$run_id.slice" --property="RuntimeMaxSec=$remaining" --property=UMask=0077 --property=MemoryMax=256M --property=CPUQuota=100% --property="StandardOutput=append:$base/root-evidence-private13/kernel-private.jsonl" --property="StandardError=append:$base/root-evidence-private13/kernel-error.log" /usr/bin/stdbuf -oL /usr/bin/journalctl --kernel --since=now --follow --output=json
+systemd-run --unit="$run_id-kernelobserver13" --slice="$run_id.slice" --property="RuntimeMaxSec=$remaining" --property=UMask=0077 --property=MemoryMax=256M --property=CPUQuota=100% --property="StandardOutput=append:$base/root-evidence-private13/kernel-private.jsonl" --property="StandardError=append:$base/root-evidence-private13/kernel-error.log" /usr/bin/stdbuf -oL /usr/bin/journalctl -k --since=now --follow --output=json
 systemd-run --unit="$run_id-dockerobserver13" --slice="$run_id.slice" --uid=2147 --property="RuntimeMaxSec=$remaining" --property=UMask=0077 --property=MemoryMax=256M --property=CPUQuota=100% --property="StandardOutput=append:$base/docker-events13.jsonl" --property="StandardError=append:$base/docker-events13-error.log" /usr/bin/docker events --since=0s --filter="label=sllm.run_id=$run_id" --format='{{json .}}'
 systemctl is-active "$run_id-kernelobserver13.service" "$run_id-dockerobserver13.service"
 export CONTROL13_RUN_ID="$run_id"

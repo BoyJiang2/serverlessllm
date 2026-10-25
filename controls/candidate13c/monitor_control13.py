@@ -30,6 +30,7 @@ registration=json.loads(registration_path.read_text())
 assert registration['run_id']==manifest['run_id'] and registration['boot_id']==manifest['runtime_identity']['boot_id']
 with (output_root/log_name).open('x') as output:
     while time.time() < deadline:
+        sample_begin_ns=time.monotonic_ns()
         current = int((cgroup/'memory.current').read_text())
         sampled_peak = max(sampled_peak,current)
         pids = set()
@@ -51,8 +52,7 @@ with (output_root/log_name).open('x') as output:
                     continue
                 row = {'pid':pid,'status':status,'stat':proc.joinpath('stat').read_text(),
                        'cmdline':proc.joinpath('cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')}
-                try: row['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
-                except PermissionError: row['smaps_rollup_error'] = 'permission denied; PSS unavailable'
+                row['pss_collection']='separate bounded after-delete collector; excluded from fast heartbeat'
                 processes.append(row)
             except (FileNotFoundError,ProcessLookupError):
                 continue
@@ -77,7 +77,8 @@ with (output_root/log_name).open('x') as output:
                'numa_meminfo':{str(p):p.read_text() for p in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo')},
                'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
                'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
-               'processes':processes,'observers':observer_states}
+               'processes':processes,'observers':observer_states,'sample_begin_ns':sample_begin_ns,'sample_end_ns':time.monotonic_ns(),
+               'sampling_scope':'non-atomic field reads bounded by begin/end; UTC is not a simultaneous snapshot'}
         encoded=json.dumps(row)+'\n'
         if output.tell()+len(encoded.encode())>4*1024**3:
             raise RuntimeError('finite control monitor exceeded4GiB log budget')

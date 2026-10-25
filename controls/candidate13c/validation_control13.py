@@ -105,6 +105,10 @@ def run(out, audit_weights=True):
         listed = http('/v1/models')
         (out/f'cycle{cycle}-models-after-delete.json').write_text(json.dumps(listed,indent=2))
         assert model not in {row['id'] for row in listed['models']}
+        pss_path=out/f'cycle{cycle}-pss.json'
+        store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
+        pss_log=(out/f'cycle{cycle}-pss.log').open('x')
+        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
             for second in range(61):
                 shm = os.statvfs('/dev/shm')
@@ -117,6 +121,12 @@ def run(out, audit_weights=True):
                     'memory_stat':pathlib.Path('/sys/fs/cgroup/memory.stat').read_text()})+'\n')
                 samples.flush()
                 if second<60: time.sleep(1)
+        if pss.poll() is None:
+            pss.kill()
+            stop=time.monotonic()+5
+            while pss.poll() is None and time.monotonic()<stop: time.sleep(.1)
+        pss_log.close()
+        assert pss.poll()==0 and json.loads(pss_path.read_text())['status']=='completed', 'bounded PSS probe incomplete; no next lifecycle started'
         event('post_delete_observation_complete',cycle=cycle,seconds=60)
         remaining = [int(line) for line in subprocess.check_output(
             ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]

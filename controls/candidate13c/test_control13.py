@@ -35,7 +35,7 @@ class Admission(unittest.TestCase):
         spec['argv'].append('--num-gpus=8')
         with self.assertRaises(AssertionError): m.validate_spec(root,spec)
     def test_optimized_rejected(self):
-        for name in ['materialize_control13.py','bootstrap_control13.py','monitor_control13.py','supervise_control13.py','launch_control13.py','ray_control13.py','validation_control13.py','release_control13.py','accept_control13.py','prepare_host13.py','deploy_control13.py','snapshot_root13.py','store_numa_exec_v13.py','run_store_server13.py']:
+        for name in ['materialize_control13.py','bootstrap_control13.py','monitor_control13.py','supervise_control13.py','launch_control13.py','ray_control13.py','validation_control13.py','release_control13.py','accept_control13.py','prepare_host13.py','deploy_control13.py','snapshot_root13.py','store_numa_exec_v13.py','run_store_server13.py','collect_pss13.py']:
             with self.subTest(entry=name):
                 result=subprocess.run([sys.executable,'-O',str(root/name),'otherjob'],capture_output=True,text=True)
                 self.assertNotEqual(result.returncode,0)

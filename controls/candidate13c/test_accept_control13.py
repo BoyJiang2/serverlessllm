@@ -1,5 +1,5 @@
 """Synthetic metadata failure cases, never substitutes for real G1 evidence."""
-import copy,json,pathlib,tempfile,unittest
+import json,pathlib,tempfile,unittest
 from accept_control13 import monitor_summary,validate_release
 from budget_control13 import require_budget
 

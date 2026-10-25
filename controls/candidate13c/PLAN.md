@@ -1,6 +1,6 @@
 # R1 candidate13c: finite untimed G1
 
-Unapproved and unexecuted. Codex implements; DeepSeek Harness independently reviews actual committed source read-only. Candidate13 and its changes_required verdict remain unchanged in reviews/. R2 and formal timing are not approved.
+Unapproved and unexecuted. Codex implements; DeepSeek Harness independently reviews actual committed source read-only. Candidate13 and candidate13b and their changes_required verdicts remain unchanged in reviews/. R2 and formal timing are not approved.
 
 Only SSH qjhs003; control identity sllm-glm51fp8-20261025T145409Z-0b3a25a1. Hardware preflight enforces current machine-id/boot-id/ordered8GPU UUIDs. Parent original assets/40IDs bind readonly at /experiment, with new control output and separate native-home cache mounts. Cache copy is currently18,875,581B, bounded8GiB, after guard verification; no model/Store copy. All candidate and1142 parent file hashes are verified. Full payload hashes are historical, not a fresh756GB pass. deploy_control13.py requires a clean commit, tracked exact package and destination hash verification; it copies metadata/source only. Runtime specs vary only by own observed head IP/exact cgroup. Optimized Python is forbidden.
 
@@ -8,7 +8,7 @@ Three verified contiguous bookings cover20:00 Oct25 to09:00 Oct26. New boyjiang0
 
 Before any control/cache copy/pool: install_guard13.sh hardbinds this run, root-owned0700 cleanup,1700GiB MemoryMax/SwapMax0/TasksMax8192,08:50 timer and a256MiB CPU sleep cleanup probe. Protected root proof records boot, script hash/stat, exact ExecStart, limits and absent probe PID. Launcher compares all these before dispatch. No new guard/probe has executed. Root cleanup kills only the exact own slice before bounded container/log operations; label errors cannot prevent slice kill. No sysctl/memory-policy or other-job changes. Legacy own head/monitor already stopped;61release samples passed.
 
-Root kernel and exact-own-label Docker observers plus resource monitor precede the first head. Store/sllm/Ray stdout starts at child launch. Each head/worker needs a fresh<=5s heartbeat and active observers in the owned slice. Monitor records NVML, cgroup events/current/peak, RSS/PSS when permitted, CPU/threads, shared/locked memory, host/per-NUMA memory. Host-wide non-GPU process-name scanning is removed. Kernel raw log stays0600/private. Global Docker-daemon/audit journals are not continuously exported: an explicit gap, never causal exclusion proof. Final monitor check requires max gap<=5s, coverage before first dispatch through last cleanup; one interrupted final row is separately hashed/disclosed, earlier corruption fails.
+Root kernel and exact-own-label Docker observers plus resource monitor precede the first head. Store/sllm/Ray stdout starts at child launch. Each head/worker needs a fresh<=5s heartbeat and active observers in the owned slice. Monitor records NVML, cgroup events/current/peak, fast RSS/status; separate bounded PSS only after deletion, CPU/threads, shared/locked memory, host/per-NUMA memory. Host-wide non-GPU process-name scanning is removed. Kernel raw log stays0600/private. Global Docker-daemon/audit journals are not continuously exported: an explicit gap, never causal exclusion proof. Final monitor check requires max gap<=5s, coverage before first dispatch through last cleanup; one interrupted final row is separately hashed/disclosed, earlier corruption fails.
 
 Frozen sequence and acceptance:
 
@@ -21,3 +21,18 @@ Frozen sequence and acceptance:
 7. accept_control13.py requires all phase results, real pool proof,16rank records for EACH format, all three release receipts, full monitor coverage/cadence and unchanged nine terminal formal hashes with31IDs still unstarted. Missing proof fails. No formal ID consumed/replaced.
 
 R1-RESPONSE.md lists hypotheses/support/counterevidence/unknowns,14finding responses and remaining runtime conditions. G1 success does not explain historical exit137. R2 plus full formal admission precedes store_pool_hit_03; R3 recomputes statistics and real shared/overlapping costs. Formal timing excludes audits/compile/download/cache setup/Git. This is a GLM FP8 extension, not a claim of all paper evaluations.
+
+
+## R1c amendments and current resource hold
+
+User states GPUs are reserved/occupied by another job. Even an instantaneous zero-NVML snapshot is not proof of release. This candidate is LOCAL-ONLY until resources and effective authority are freshly confirmed; no Ray/pool/full-cache control while occupied, no assumption of02:50 completion, no other-job termination. Old guard may expire only with zero owned processes; new identity is guarded and probed before its work. Report actual progress without forcing31IDs into a window.
+
+Probe now checks systemd Result/ExecMainStatus/exited plus a separate non-container sentinel in the probe slice. Root proof and cleanup/kernel raw logs persist under root-evidence-private13 on brick1. snapshot_root13 produces a protected final index after cleanup; accept verifies it. Raw kernel contents stay private. Root installer/observer code is still unexecuted.
+
+Launch budgets are330/3420 seconds plus180 seconds consisting of60seconds final observation and120seconds cleanup/forensic margin, checked by both host launcher and supervisor. No fixed clock substitutes for this calculation. Acceptance streams monitor rows with4MiB row cap and producer4GiB file cap, rehashes all frozen inputs, code/deploy/boot bindings, pool/listener/RSS/affinity, all release rows and root evidence index. Rank counts come from pinned native-weight-contract. All operational entry points reject optimized Python.
+
+Historical monitor now shows a33.8s mixed-time gap; no per-read timer proves its exact blocking call. Slow smaps_rollup is removed from fast heartbeat. Each after-delete60s interval runs one separate PSS process in the service private PID namespace,45s alarm and a bounded parent stop check; timestamps surround each read, and unavailable values are never zero. The next lifecycle cannot start before that probe exits successfully. Fast rows carry begin/end and are not atomic snapshots. These are correctness-only G1 probes, not performance samples or a diagnosis of old137.
+
+Store.log pool-created marker is retained:18of21historical prefixes contain it, including716GiB pools, and target formal6 warns before-InitGoogleLogging messages go to STDERR. StoreManager directly connects worker-address:8073 in actual pinned source, so binding loopback would break cross-container native routing. Bridge network has no host-published ports; listener PID/inode is enforced. The only parent-tree creation is a documented empty, uniquely owned nested bind mountpoint, required for the readonly parent mount; no frozen payload file is written.
+
+Gold equality is raw token/text/finish equality plus finite logprobs; gold logprob magnitude equality was never a user requirement. No old failure or threshold is changed. Fresh G1 and R2 remain unpassed. Normal-flags proof and full formal gate need separate R2 work after actual G1.
