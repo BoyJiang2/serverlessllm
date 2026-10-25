@@ -1,0 +1,22 @@
+--- service_model_validation.py
++++ validation_control13.py
+@@ -55,7 +55,9 @@
+             assert response.status == 200
+             return json.load(response)
+ 
+-    known_audits = set()
++    audit_root = pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR'])
++    known_audits = set(audit_root.iterdir()) if audit_root.exists() else set()
++    baseline_audits = len(known_audits)
+     for cycle in [1,2]:
+         event('native_register_begin',cycle=cycle)
+         assert http('/register',config) == {'status':'ok'}
+@@ -80,7 +82,7 @@
+             event('native_business_request_complete_correct',cycle=cycle,case=case['name'])
+         if audit_weights:
+             audits = set(pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR']).iterdir())
+-            assert len(audits) == cycle
++            assert len(audits) == baseline_audits+cycle
+             new_audits = audits-known_audits
+             assert len(new_audits) == 1
+             current = new_audits.pop()

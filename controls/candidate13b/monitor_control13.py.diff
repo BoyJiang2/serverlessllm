@@ -1,0 +1,28 @@
+--- candidate13/monitor_control13.py
++++ candidate13b/monitor_control13.py
+@@ -7,7 +7,7 @@
+ import time
+ # CONTROL COPY (v11): the v1 overlay deadline (2026-10-25T05:50) has passed; this monitor
+ # reads the v2 additive window instead so it keeps sampling until the v2 deadline.
+-from resource_window_v3 import load_window
++from resource_window_control13 import load_window
+ from compilation_guard import TOOLS, observed_interference
+ 
+ root = pathlib.Path('/experiment')
+@@ -73,16 +73,6 @@
+         interference = observed_interference(processes)
+         # Only names and PIDs are read outside the experiment; never record
+         # other users' command arguments or act on their processes.
+-        for proc in pathlib.Path('/proc').iterdir():
+-            if not proc.name.isdigit():
+-                continue
+-            try:
+-                name = (proc/'comm').read_text().strip()
+-                if name in TOOLS:
+-                    interference.append({'pid':int(proc.name),'comm':name,
+-                                         'scope':'host compiler/download process observed'})
+-            except (FileNotFoundError,ProcessLookupError,PermissionError):
+-                pass
+         for line in row['gpu_processes'].splitlines():
+             pid = int(line.split(',',1)[0])
+             try:

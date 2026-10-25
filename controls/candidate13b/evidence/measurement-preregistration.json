@@ -1,0 +1,276 @@
+{
+  "schema": 1,
+  "phase": "B",
+  "formal_timing_admission": "A2+A3+A4 and independent patch/protocol review must pass",
+  "seed": 20261024,
+  "order_method": "paired randomized blocks, one of each condition per block",
+  "config": {
+    "model_revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+    "tp": 8,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "mtp": false,
+    "enforce_eager": true,
+    "prefix_cache": false,
+    "greedy": true,
+    "fixed_token_count": 32,
+    "VLLM_USE_DEEP_GEMM_E8M0": "0"
+  },
+  "attempt_timeout_seconds": 1200,
+  "post_delete_observation_seconds": 60,
+  "cache_admission": {
+    "disk_cold": "mincore resident pages == 0 for every timed input file after file-specific eviction; otherwise retain as cache-condition failure",
+    "disk_hot": "mincore resident pages == total pages for every timed input file; otherwise retain as cache-condition failure",
+    "pool_hit": "all eight registered rank files completely resident in Store pinned pool; pool initialization/idle cost recorded separately"
+  },
+  "denominator": "10 per executable condition; failures/timeouts/OOM/crashes remain in denominator; unsupported native-service paths reported separately",
+  "statistics": {
+    "success_rate": "successes / all 10 attempts, with Wilson 95% interval",
+    "latencies": "retain all raw values; successful samples mean, median, nearest-rank P90; annotate sample count",
+    "uncertainty": "95% bootstrap interval by resampling paired blocks with fixed seed; no numeric interval for missing data"
+  },
+  "failure_policy": "never replace failed attempt IDs or infer timeout latency as observed completion; preserve logs and right-censoring",
+  "attempts": [
+    {
+      "attempt_id": "safetensors_disk_hot_01",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_01",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_01",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_01",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_03",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_03",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_03",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_03",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_04",
+      "block": 4,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_04",
+      "block": 4,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_04",
+      "block": 4,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_04",
+      "block": 4,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_05",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_05",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_05",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_05",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_06",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_06",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_06",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_06",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_07",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_07",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_07",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_07",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_08",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_08",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_08",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_08",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_09",
+      "block": 9,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_09",
+      "block": 9,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_09",
+      "block": 9,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_09",
+      "block": 9,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_10",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_10",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_10",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_10",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    }
+  ]
+}

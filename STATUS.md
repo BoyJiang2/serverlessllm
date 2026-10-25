@@ -8,7 +8,7 @@ Origin: https://github.com/BoyJiang2/serverlessllm-glm51-fp8.git (private).
 Branch: `experiment/glm51-fp8-takeover-20261025`; only the main agent writes it.
 Initial upstream repository HEAD: `87770ab9abb6e922f55bcf694dec5d0a675f8442` (README only).
 Latest code commit at this snapshot: the initial takeover commit containing this file, to be identified by `git log`; no self-referential SHA is required.
-Push state at file creation: pending. A subsequent recorded remote-ref verification determines backup status; this document alone is not a push receipt.
+Initial takeover commit1436dcb08fa665dbf3e834cff60f3040ad397492 was pushed and ls-remote verified at2026-10-25T15:25:52Z. This next candidate commit is not approval; its push must be separately verified.
 
 Only SSH alias `qjhs003` is allowed. Current physical hostname is `qjhs3`. Eight ordered GPU UUIDs match the Oct24 historical records; the current SSH host public fingerprint also matches the preexisting known_hosts file (mtime Oct23). Current machine-id is captured; a historical machine-id snapshot is unavailable. Current boot differs following a reboot. No other compute nodes were accessed during this takeover.
 
@@ -44,3 +44,7 @@ Historical exit137 is unexplained. OOMKilled=false/log absence does not prove ex
 4. R3 recomputes results and true shared/overlapping costs. Report incomplete or failed conditions honestly and retain cleanup evidence.
 
 Current files are an extension experiment on GLM-5.1 official FP8. They do not claim replication of the paper's original models or complete evaluation. No current G1/R2/R3 pass is asserted.
+
+## Candidate13b milestone
+
+New controls/candidate13b is unapproved and unexecuted, input manifest SHA 7682cfe51de10cc06a2715e8c831626a1ed1335e41ffef5364daa9da64b881f4. All Python candidates compile,9local admission tests and3shell syntax checks pass;35runtime source evidence copies match parent frozen hashes. Root guard/probe and full model lifecycles remain unrun. New booking bk-20261025T1538-fe2ffc58 extends03:00-09:00; planned new control guard08:50. Human permits continued use beyond booked windows if no later conflict; refresh/revalidate before any needed guard renewal, never stop another job. Original-run v6 remains02:50 until separately verified handover. R1b will bind this committed code and manifest.
