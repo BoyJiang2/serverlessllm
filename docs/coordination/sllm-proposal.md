@@ -19,6 +19,8 @@
 | 权限 | SLLM执行UID/GID=2147；组2147、docker(123)、approachingai(57272) | 本次 `id` 实测。Node8实际执行UID/组尚待其确认 |
 | 当前审阅 | R1c=`changes_required`，绑定 code b5b48807fe04251777c324d52f9e015c5d05aad5、manifest2feefa1e9d74412084fd71cb5b412f9a9f95d6181ab983d95d5c29550e31eb56 | [实际DeepSeek结论](../../reviews/verdicts/deepseek-r1-control13c-verdict.json)。R1d为未封板本地草稿，未部署；本轮保护其已有改动 |
 
+冻结实验为 `zai-org/GLM-5.1-FP8`，官方revision `f396cf805182f4ca10fa675e1a99815b3ca384db`，TP8、max_model_len2048、单请求、MTP关闭、eager；保留官方FP8/scale及混合精度元数据。金标SHA256 `9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0`，预登记SHA256 `90d4c91bf8b0c9495e0cb95376a55f84d17351308541414d58dd650d8e2dd37c`。
+
 原40个正式ID仍为 **5成功、4失败、31未开始**，下一项 `store_pool_hit_03`；v5=0成功/1失败、v6=0/1、v7=4/1、v8=1/1，不合并为同一v8。金标和冻结官方revision不变。历史exit137仍失败：dockerd stop-timeout/force有机制记录，**上游请求者与原因未知**；Ray修复或协调合同不能解决该因果缺口。
 
 准入缺项：完成新候选整改与CPU回归、commit/manifest绑定及DeepSeek R1复审；当前有效窗口和实际资源再核验；新run独立截止守护/probe/身份/监控实际通过；有界G1实际证据；必要normal-flags证据及R2完整gate/派生配置准入。**共享合同一致只增加申请资格，不替代任何实验gate。**
