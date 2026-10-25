@@ -1,0 +1,65 @@
+--- launch_workload_v12.py
++++ launch_control13.py
+@@ -1,15 +1,4 @@
+-"""Launch a named workload inside this run's v2 authorization and guard.
+-
+-Identical to launch_workload_v9.py in every safety property: the run id, uid, spec name
+-shape, cgroup-parent, the two labels, the guarded cgroup escape check, and the dispatch
+-and identity receipts. The only difference is the window source:
+-
+-  * the window comes from resource_window_v2 (the additive v2 overlay);
+-  * the guard is checked against the deadline the overlay declares, instead of a
+-    hard-coded calendar string. The timer's NextElapseRealtime is compared to the
+-    overlay deadline formatted as local wall-clock time, so the guard must fire exactly
+-    at the declared cleanup deadline and a mismatched timer still fails closed.
+-"""
++"""Isolated, untimed G1 launch using reviewed inputs and booking-derived window v3."""
+ import datetime
+ import json
+ import pathlib
+@@ -21,8 +10,19 @@
+ 
+ root = pathlib.Path(__file__).resolve().parent
+ manifest = json.loads((root / 'run-manifest.json').read_text())
++asset_root = pathlib.Path(manifest['parent_asset_root'])
++assert str(asset_root) == '/data/brick1/boyjiang/sllm-glm51fp8-20261024T051606Z-deb76e57'
++import hashlib
++assert hashlib.sha256((asset_root/'run-manifest.json').read_bytes()).hexdigest() == manifest['parent_manifest_sha256']
+ run = manifest['run_id']
++from materialize_control13 import validate_spec
++assert pathlib.Path(sys.argv[1]).name == sys.argv[1]
++for row in json.loads((root/'control-input-manifest.json').read_text())['files']:
++    path=(root/row['path']).resolve()
++    assert path.is_relative_to(root)
++    assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
+ spec = json.loads((root / sys.argv[1]).read_text())
++validate_spec(root, spec)
+ assert root == pathlib.Path('/data/brick1/boyjiang') / run
+ assert os.getuid() == manifest['uid'] == 2147
+ assert spec['name'].replace('_', '').isalnum()
+@@ -44,7 +44,10 @@
+         '--name=' + run + '-' + spec['name'], '--label=sllm.run_id=' + run,
+         '--label=sllm.uid=2147', '--user=2147:2147',
+         '--env=USER=boyjiang', '--env=LOGNAME=boyjiang', '--env=HOME=/experiment/home',
+-        '--mount=type=bind,src=' + str(root) + ',dst=/experiment']
++        '--mount=type=bind,src=' + str(asset_root) + ',dst=/experiment',
++        '--mount=type=bind,src=' + str(root) + ',dst=/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1',
++        '--mount=type=bind,src=' + str(root/'run-manifest.json') + ',dst=/experiment/run-manifest.json,readonly',
++        '--mount=type=bind,src=' + str(root/'resource-window-extension-v3.json') + ',dst=/experiment/resource-window-extension-v3.json,readonly']
+ if spec.get('gpus'):
+     args += ['--gpus=all']
+ else:
+@@ -54,11 +57,11 @@
+ if spec.get('raw_export_hook') or spec.get('phase_trace'):
+     if spec.get('raw_export_hook'):
+         assert spec['env'].get('SLLM_EXPORT_RAW_STORE') == '/experiment/store/vllm/glm51-fp8'
+-    args += ['--mount=type=bind,src=' + str(root / 'patches/base_loader.py')
++    args += ['--mount=type=bind,src=' + str(asset_root / 'patches/base_loader.py')
+              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py,readonly']
+ if spec.get('phase_trace'):
+     assert spec['env'].get('SLLM_EVENT_DIR', '').startswith('/experiment/')
+-    args += ['--mount=type=bind,src=' + str(root / 'patches/gpu_worker.py')
++    args += ['--mount=type=bind,src=' + str(asset_root / 'patches/gpu_worker.py')
+              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py,readonly']
+ if spec.get('host_monitor'):
+     args += ['--pid=host', '--cgroupns=host']

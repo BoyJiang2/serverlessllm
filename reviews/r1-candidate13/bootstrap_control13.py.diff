@@ -1,0 +1,52 @@
+--- service_bootstrap_v11.py
++++ bootstrap_control13.py
+@@ -13,7 +13,7 @@
+ root = pathlib.Path('/experiment')
+ label = sys.argv[1] if len(sys.argv)>1 else 'probe'
+ assert label.isalnum()
+-out = root/('service-bootstrap-'+label)
++out = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1')/('service-bootstrap-'+label)
+ out.mkdir(exist_ok=False)
+ env = os.environ.copy()
+ validate_model = os.environ.get('SLLM_VALIDATE_FULL_MODEL') == '1'
+@@ -35,12 +35,13 @@
+         pool_bytes = 67108864
+         chunk_bytes = 32*1024*1024
+ env.update(STORAGE_PATH=str(root/'store' if validate_model else out/'store'),
+-           RAY_TMPDIR=str(root/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
++           RAY_TMPDIR=str(pathlib.Path('/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1')/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
+ pathlib.Path(env['STORAGE_PATH']).mkdir(exist_ok=True)
+ python = '/experiment/.venv/bin/python'
+ ip = socket.gethostbyname(socket.gethostname())
+ address = os.environ['SLLM_PRIVATE_RAY_ADDRESS']
+ env['RAY_ADDRESS'] = address
++os.environ.update(RAY_TMPDIR=env['RAY_TMPDIR'],RAY_ADDRESS=address,RAY_USAGE_STATS_ENABLED='0')
+ processes, logs = [], []
+ 
+ def launch(name, args):
+@@ -65,19 +66,22 @@
+     raise TimeoutError('native service validation deadline reached')
+ 
+ signal.signal(signal.SIGALRM,expired)
+-from resource_window_v2 import load_window
++from resource_window_v3 import load_window
+ deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
+ budget = int(deadline-time.time()-120)
+ assert budget > (3600 if validate_model else 300)
+-signal.alarm(min(7200 if validate_model else 300,budget))
++signal.alarm(min(2400 if validate_model else 300,budget))
+ 
+ try:
+     worker = launch('ray-worker',[python,'-m','ray.scripts.scripts','start','--address='+address,'--node-ip-address='+ip,
+         '--num-cpus=16','--num-gpus=8','--resources={"worker_node":1,"worker_id_0":1}',
+         '--min-worker-port=22000','--max-worker-port=22999',
+         '--object-store-memory=268435456','--disable-usage-stats','--block'])
++    wait_ready(lambda:'Ray runtime started.' in (out/'ray-worker.log').read_text(),60,worker)
+     import ray
+-    ray.init(address=address,log_to_driver=False)
++    ray.init(address=address,_node_ip_address=ip,log_to_driver=False)
++    own = next(node for node in ray.nodes() if node['Alive'] and node['NodeManagerAddress']==ip)
++    assert own['NodeID'] == str(ray.get_runtime_context().get_node_id()) and own['Resources']['GPU']==8
+     wait_ready(lambda:sum(node['Alive'] for node in ray.nodes())==2,60,worker)
+     nodes = ray.nodes()
+     assert len({node['NodeManagerAddress'] for node in nodes}) == 2

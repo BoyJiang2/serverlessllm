@@ -1,0 +1,353 @@
+diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
+index bed58f8..8f5128c 100644
+--- a/sllm/backends/vllm_backend.py
++++ b/sllm/backends/vllm_backend.py
+@@ -36,7 +36,10 @@ from vllm import (
+     SamplingParams,
+ )
+ from vllm.inputs import TokensPrompt
+-from vllm.utils import Counter
++try:
++    from vllm.utils.counter import Counter
++except ImportError:
++    from vllm.utils import Counter
+ 
+ from sllm.backends.backend_utils import (
+     BackendStatus,
+@@ -46,7 +49,9 @@ from sllm.backends.backend_utils import (
+ logger = logging.getLogger("ray")
+ 
+ 
+-def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
++def process_output(
++    output: RequestOutput, model_name: str, include_token_ids: bool = False
++) -> Dict[str, Any]:
+     choices: List[Dict[str, Any]] = [
+         {
+             "index": idx,
+@@ -59,6 +64,9 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+         }
+         for idx, result in enumerate(output.outputs)
+     ]
++    if include_token_ids:
++        for choice, result in zip(choices, output.outputs):
++            choice["token_ids"] = list(result.token_ids)
+ 
+     api_response = {
+         "id": output.request_id,
+@@ -188,7 +196,8 @@ class VllmBackend(SllmBackend):
+         filtered_engine_config["enable_prefix_caching"] = (
+             self.enable_prefix_caching
+         )
+-        filtered_engine_config["task"] = self.task
++        if "task" in async_engine_fields:
++            filtered_engine_config["task"] = self.task
+ 
+         logger.info(
+             f"Creating new VLLM engine with config: {filtered_engine_config}"
+@@ -216,6 +225,9 @@ class VllmBackend(SllmBackend):
+             return {"error": "Request data is missing"}
+ 
+         model_name: str = request_data.pop("model", "vllm-model")
++        return_token_ids = request_data.pop("return_token_ids", False)
++        if not isinstance(return_token_ids, bool):
++            return {"error": "return_token_ids must be a boolean"}
+         messages: Dict[Dict[str, str], str] = request_data.pop("messages", [])
+         construct_prompt: str = "\n".join(
+             [
+@@ -260,7 +272,7 @@ class VllmBackend(SllmBackend):
+         if not self.trace_debug:
+             await self.request_trace.delete_request(request_id)
+ 
+-        return process_output(final_output, model_name)
++        return process_output(final_output, model_name, return_token_ids)
+ 
+     async def shutdown(self):
+         """Abort all requests and shutdown the backend."""
+@@ -273,10 +285,15 @@ class VllmBackend(SllmBackend):
+         requests = await self.request_trace.return_all_request_ids()
+         tasks = [self.engine.abort(request_id) for request_id in requests]
+         await asyncio.gather(*tasks)
+-        if hasattr(self, "engine"):
++        if self.engine is not None:
++            shutdown = getattr(self.engine, "shutdown", None)
++            if shutdown is not None:
++                result = shutdown()
++                if inspect.isawaitable(result):
++                    await result
+             del self.engine
+         gc.collect()
+-        if torch.cuda.is_available():
++        if torch.cuda.is_initialized():
+             torch.cuda.empty_cache()
+             torch.cuda.synchronize()
+ 
+diff --git a/sllm/controller.py b/sllm/controller.py
+index 6104456..365de6e 100644
+--- a/sllm/controller.py
++++ b/sllm/controller.py
+@@ -270,9 +270,9 @@ class SllmController:
+             router = self.request_routers.pop(model_name)
+             self.registered_models.pop(model_name)
+ 
+-        # if router is not None:
+-        #     deleted_instance_id = await router.shutdown.remote()
+-        del router
++        if router is not None:
++            await router.shutdown.remote()
++            ray.kill(router)
+ 
+     async def get_models(self):
+         async with self.metadata_lock:
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 4b93340..b53a99d 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -21,6 +21,7 @@
+ #include <unistd.h>
+ 
+ #include <cstring>
++#include <cstdlib>
+ #include <iostream>
+ 
+ AlignedBuffer::AlignedBuffer(const std::string& filename)
+@@ -35,7 +36,15 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
+ AlignedBuffer::~AlignedBuffer() {
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
++    size_t aligned_size =
++        (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
++    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
++    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
++        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
++      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
++                << std::endl;
++      std::abort();
++    }
+   }
+   if (buffer_) {
+     free(buffer_);
+@@ -110,4 +119,4 @@ size_t AlignedBuffer::writePadding(size_t padding_size) {
+     file_offset_ += buf_size_;
+   }
+   return padding_size;
+-}
+\ No newline at end of file
++}
+diff --git a/sllm_store/csrc/checkpoint/checkpoint.cpp b/sllm_store/csrc/checkpoint/checkpoint.cpp
+index 58c3b6b..77fff7a 100644
+--- a/sllm_store/csrc/checkpoint/checkpoint.cpp
++++ b/sllm_store/csrc/checkpoint/checkpoint.cpp
+@@ -99,7 +99,8 @@ at::ScalarType stringToScalarType(const std::string& dtype_str) {
+       {"torch.float64", torch::kFloat64},  {"torch.int16", torch::kInt16},
+       {"torch.int32", torch::kInt32},      {"torch.int64", torch::kInt64},
+       {"torch.uint8", torch::kUInt8},      {"torch.int8", torch::kInt8},
+-      {"torch.bfloat16", torch::kBFloat16}};
++      {"torch.bfloat16", torch::kBFloat16},
++      {"torch.float8_e4m3fn", torch::kFloat8_e4m3fn}};
+ 
+   auto it = dtype_map.find(dtype_str);
+   if (it != dtype_map.end()) {
+@@ -247,4 +248,4 @@ std::unordered_map<int, std::string> GetDeviceUuidMap() {
+     device_uuid_map[p.second] = p.first;
+   }
+   return device_uuid_map;
+-}
+\ No newline at end of file
++}
+diff --git a/sllm_store/csrc/checkpoint/tensor_writer.cpp b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+index 46eb304..ad84009 100644
+--- a/sllm_store/csrc/checkpoint/tensor_writer.cpp
++++ b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
+ uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
++    if (partition_idx_ != -1) {
++      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
++    }
+     partition_idx_++;
+     partition_size_ = 0;
+     std::string partition_filename =
+diff --git a/sllm_store/setup.py b/sllm_store/setup.py
+index 4c10956..e9ce540 100644
+--- a/sllm_store/setup.py
++++ b/sllm_store/setup.py
+@@ -239,6 +239,7 @@ setup(
+     extras_require=extras,
+     entry_points={
+         "console_scripts": ["sllm-store=sllm_store.cli:main"],
++        "vllm.general_plugins": ["sllm_raw_fp8=sllm_store.vllm_loader:register"],
+     },
+     package_data={
+         "sllm_store": ["py.typed", "*.so"],
+diff --git a/sllm_store/sllm_store/vllm_loader.py b/sllm_store/sllm_store/vllm_loader.py
+new file mode 100644
+index 0000000..2ffbf4e
+--- /dev/null
++++ b/sllm_store/sllm_store/vllm_loader.py
+@@ -0,0 +1,163 @@
++"""GLM-5.1 FP8 raw TP checkpoints for the pinned vLLM integration experiment."""
++import gc
++import hashlib
++import importlib.metadata
++import json
++import os
++from pathlib import Path
++
++import torch
++from vllm.config import ModelConfig, VllmConfig
++from vllm.model_executor.model_loader import register_model_loader
++from vllm.model_executor.model_loader.base_loader import BaseModelLoader
++from vllm.model_executor.model_loader.utils import (
++    initialize_model,
++    process_weights_after_loading,
++)
++from vllm.utils.torch_utils import set_default_torch_dtype
++
++FORMAT = "sllm-glm51-fp8-raw-v1"
++REVISION = "f396cf805182f4ca10fa675e1a99815b3ca384db"
++
++
++def _named_tensors(model):
++    tensors = dict(model.named_parameters(remove_duplicate=False))
++    tensors.update(model.named_buffers(remove_duplicate=False))
++    return tensors
++
++
++def _digest(tensor):
++    data = tensor.detach().contiguous().reshape(-1).view(torch.uint8).cpu()
++    return hashlib.sha256(memoryview(data.numpy())).hexdigest()
++
++
++def save_raw_model(model, output_path):
++    """Called before vLLM quantization postprocessing, never on runtime layout."""
++    from vllm.distributed import get_tensor_model_parallel_rank, get_tensor_model_parallel_world_size
++    from sllm_store.torch import save_dict
++
++    if os.environ.get("VLLM_USE_DEEP_GEMM_E8M0") != "0":
++        raise ValueError("raw FP8 integration requires E8M0 requantization off")
++    if get_tensor_model_parallel_world_size() != 8:
++        raise ValueError("raw export requires TP8")
++    if os.environ.get("SLLM_MODEL_REVISION") != REVISION:
++        raise ValueError("raw export source revision is not frozen")
++    rank = get_tensor_model_parallel_rank()
++    directory = Path(output_path) / f"rank_{rank}"
++    directory.mkdir(parents=True, exist_ok=False)
++    cpu, rows, storages = {}, {}, {}
++    for name, tensor in _named_tensors(model).items():
++        if not tensor.is_contiguous():
++            raise ValueError(f"unsupported pre-process tensor stride: {name}")
++        row = {"shape": list(tensor.shape), "stride": list(tensor.stride()),
++               "dtype": str(tensor.dtype), "bytes": tensor.numel()*tensor.element_size()}
++        if not tensor.numel():
++            row.update(empty=True, sha256=hashlib.sha256(b"").hexdigest())
++        else:
++            storage = (str(tensor.device), tensor.untyped_storage().data_ptr())
++            view = (tensor.storage_offset(), tuple(tensor.shape), tuple(tensor.stride()), tensor.dtype)
++            if storage in storages:
++                canonical, prior = storages[storage]
++                if prior != view:
++                    raise ValueError(f"unsupported overlapping raw tensor views: {canonical}, {name}")
++                row.update(alias=canonical, sha256=rows[canonical]["sha256"])
++            else:
++                copied = tensor.detach().cpu().contiguous()
++                if copied.storage_offset() or copied.untyped_storage().nbytes() != row["bytes"]:
++                    copied = copied.clone()
++                assert copied.untyped_storage().nbytes() == row["bytes"]
++                cpu[name] = copied
++                row["sha256"] = _digest(copied)
++                storages[storage] = (name, view)
++        rows[name] = row
++    if not {"torch.float8_e4m3fn", "torch.float32", "torch.bfloat16"}.issubset({row["dtype"] for row in rows.values()}):
++        raise ValueError("expected official mixed FP8/F32/BF16 state")
++    save_dict(cpu, str(directory))
++    del cpu
++    gc.collect()
++    for path in directory.iterdir():
++        with path.open("rb") as file:
++            os.fsync(file.fileno())
++    document = {"format": FORMAT, "rank": rank, "tensor_parallel_size": 8,
++                "state": "before_quantization_postprocessing", "tensors": rows,
++                "torch_version": torch.__version__, "vllm_version": importlib.metadata.version("vllm"),
++                "source_revision": REVISION, "VLLM_USE_DEEP_GEMM_E8M0": "0"}
++    with (directory / "raw_state.json").open("x") as file:
++        json.dump(document, file, indent=2)
++        file.flush()
++        os.fsync(file.fileno())
++
++
++class ServerlessLLMLoader(BaseModelLoader):
++    def download_model(self, model_config: ModelConfig) -> None:
++        if not Path(model_config.model).is_dir():
++            raise ValueError("ServerlessLLM raw checkpoint must already exist locally")
++
++    def load_model(self, vllm_config: VllmConfig, model_config: ModelConfig, prefix=""):
++        if (model_config.hf_config.model_type != "glm_moe_dsa"
++                or model_config.quantization != "fp8"
++                or model_config.dtype != torch.bfloat16
++                or vllm_config.parallel_config.tensor_parallel_size != 8
++                or os.environ.get("VLLM_USE_DEEP_GEMM_E8M0") != "0"):
++            raise ValueError("this raw loader is scoped to GLM FP8 TP8 with E8M0 off")
++        device = torch.device(vllm_config.device_config.device)
++        with set_default_torch_dtype(model_config.dtype):
++            with device:
++                model = initialize_model(vllm_config=vllm_config, model_config=model_config, prefix=prefix)
++            tensors = _named_tensors(model)
++            self.expected = {name: (list(t.shape), list(t.stride()), str(t.dtype)) for name, t in tensors.items()}
++            # Preserve parameter subclasses/attributes while releasing the initial GPU storage.
++            for tensor in tensors.values():
++                tensor.data = torch.empty(0, device=tensor.device, dtype=tensor.dtype)
++            del tensors
++            gc.collect()
++            torch.cuda.empty_cache()
++            self.load_weights(model, model_config)
++            process_weights_after_loading(model, model_config, device)
++        return model.eval()
++
++    def load_weights(self, model, model_config):
++        from vllm.distributed import get_tensor_model_parallel_rank
++        from sllm_store.torch import load_dict
++
++        rank = get_tensor_model_parallel_rank()
++        directory = Path(model_config.model) / f"rank_{rank}"
++        metadata = json.loads((directory / "raw_state.json").read_text())
++        if (metadata["format"] != FORMAT or metadata["rank"] != rank
++                or metadata["state"] != "before_quantization_postprocessing"
++                or metadata["tensor_parallel_size"] != 8
++                or metadata["VLLM_USE_DEEP_GEMM_E8M0"] != "0"
++                or metadata["source_revision"] != REVISION
++                or metadata["vllm_version"] != importlib.metadata.version("vllm")
++                or metadata["torch_version"] != torch.__version__):
++            raise ValueError("raw checkpoint state or ABI mismatch")
++        rows = metadata["tensors"]
++        if set(rows) != set(self.expected):
++            raise ValueError("raw checkpoint tensor key mismatch")
++        for name, (shape, stride, dtype) in self.expected.items():
++            if rows[name]["shape"] != shape or rows[name]["stride"] != stride or rows[name]["dtype"] != dtype:
++                raise ValueError(f"raw tensor metadata mismatch: {name}")
++        storage = Path(os.environ["STORAGE_PATH"]).resolve()
++        identifier = str(directory.resolve().relative_to(storage))
++        loaded = load_dict(identifier, {"": torch.cuda.current_device()}, storage_path=str(storage))
++        canonical = {name for name, row in rows.items() if not row.get("empty") and "alias" not in row}
++        if set(loaded) != canonical:
++            raise ValueError("Store returned an incomplete or extra tensor set")
++        # Quantization may replace the tensor which owns the shared CUDA allocation.
++        model._sllm_storage_owners = tuple(loaded.values())
++        verify = os.environ.get("SLLM_VERIFY_WEIGHTS") == "1"
++        for name, tensor in _named_tensors(model).items():
++            row = rows[name]
++            if row.get("empty"):
++                value = torch.empty(row["shape"], device=tensor.device, dtype=tensor.dtype)
++            else:
++                value = loaded[row.get("alias", name)]
++                if list(value.shape) != row["shape"] or str(value.dtype) != row["dtype"]:
++                    raise ValueError(f"Store tensor shape/dtype mismatch: {name}")
++                if verify and _digest(value) != row["sha256"]:
++                    raise ValueError(f"Store tensor bytes mismatch: {name}")
++            tensor.data = value
++
++
++def register():
++    register_model_loader("serverless_llm")(ServerlessLLMLoader)

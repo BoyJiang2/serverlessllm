@@ -1,0 +1,96 @@
+diff --git a/vllm/model_executor/model_loader/base_loader.py b/vllm/model_executor/model_loader/base_loader.py
+index d6c3866..9c7b8fb 100644
+--- a/vllm/model_executor/model_loader/base_loader.py
++++ b/vllm/model_executor/model_loader/base_loader.py
+@@ -1,9 +1,11 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++import os
+ from abc import ABC, abstractmethod
+ 
+ import torch
+ import torch.nn as nn
++from sllm_store.event_trace import record_event
+ 
+ import vllm.envs as envs
+ from vllm.config import ModelConfig, VllmConfig
+@@ -61,7 +63,14 @@ class BaseModelLoader(ABC):
+             log_model_inspection(model)
+ 
+             logger.debug("Loading weights on %s ...", load_device)
++            record_event("weight_ingestion_begin")
+             self.load_weights(model, model_config)
++            record_event("weight_ingestion_end")
++
++            if os.environ.get("SLLM_EXPORT_RAW_STORE"):
++                from sllm_store.vllm_loader import save_raw_model
++
++                save_raw_model(model, os.environ["SLLM_EXPORT_RAW_STORE"])
+ 
+             # Log peak GPU memory after loading weights. This is needed
+             # to have test coverage on peak memory for online quantization.
+@@ -75,10 +84,12 @@ class BaseModelLoader(ABC):
+ 
+             # Process weights into kernel format. Note that when using online
+             # quantization, weights are (typically) quantized as they are loaded.
++            record_event("quantization_postprocess_begin")
+             if _has_online_quant(model):
+                 finalize_layerwise_processing(model, model_config)
+ 
+             process_weights_after_loading(model, model_config, target_device)
++            record_event("quantization_postprocess_end")
+ 
+         return model.eval()
+ 
+diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+index 91dcdc2..7d10d5e 100644
+--- a/vllm/v1/worker/gpu_worker.py
++++ b/vllm/v1/worker/gpu_worker.py
+@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
+ import numpy as np
+ import torch
+ import torch.nn as nn
++from sllm_store.event_trace import traced
+ 
+ import vllm.envs as envs
+ from vllm.config import CUDAGraphMode, VllmConfig, set_current_vllm_config
+@@ -216,6 +217,7 @@ class Worker(WorkerBase):
+         return allocator.use_memory_pool(tag=tag)
+ 
+     @instrument(span_name="Init device")
++    @traced("device_setup_including_communication")
+     def init_device(self):
+         if self.device_config.device_type == "cuda":
+             # This env var set by Ray causes exceptions with graph building.
+@@ -315,6 +317,7 @@ class Worker(WorkerBase):
+ 
+     # FIXME(youkaichao & ywang96): Use TorchDispatchMode instead of memory pool
+     # to hijack tensor allocation.
++    @traced("weights_pipeline_including_allocation")
+     def load_model(self, *, load_dummy_weights: bool = False) -> None:
+         with (
+             self._maybe_get_memory_pool_context(tag="weights"),
+@@ -512,6 +515,7 @@ class Worker(WorkerBase):
+         logger.debug("Updated max_model_len to %d", max_model_len)
+ 
+     @instrument(span_name="Allocate KV cache")
++    @traced("kv_cache_allocation")
+     def initialize_from_config(self, kv_cache_config: KVCacheConfig) -> None:
+         """Allocate GPU KV cache with the specified kv_cache_config."""
+ 
+@@ -547,6 +551,7 @@ class Worker(WorkerBase):
+             self.model_runner._init_kv_zero_meta()
+ 
+     @instrument(span_name="Warmup (GPU)")
++    @traced("compile_graph_and_warmup")
+     def compile_or_warm_up_model(self) -> float:
+         warmup_sizes: list[int] = []
+ 
+@@ -1009,6 +1014,7 @@ class Worker(WorkerBase):
+         return self.elastic_ep_executor.execute(execute_method, *args, **kwargs)
+ 
+ 
++@traced("communication_groups")
+ def init_worker_distributed_environment(
+     vllm_config: VllmConfig,
+     rank: int,

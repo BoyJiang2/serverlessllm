@@ -1,0 +1,38 @@
+--- resource_monitor_v12.py
++++ monitor_control13.py
+@@ -18,9 +18,10 @@
+ assert cgroup.is_dir()
+ deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
+ sampled_peak = 0
++output_root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1')
+ log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
+ assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')
+-with (root/log_name).open('x') as output:
++with (output_root/log_name).open('x') as output:
+     while time.time() < deadline:
+         current = int((cgroup/'memory.current').read_text())
+         sampled_peak = max(sampled_peak,current)
+@@ -57,12 +58,13 @@
+                'cgroup_pids_current':int((cgroup/'pids.current').read_text()),
+                'memory_events_local':(cgroup/'memory.events.local').read_text() if (cgroup/'memory.events.local').exists() else None,
+                'memory_events':(cgroup/'memory.events').read_text(),'host_meminfo':pathlib.Path('/proc/meminfo').read_text(),
++               'numa_meminfo':{str(p):p.read_text() for p in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo')},
+                'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
+                'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
+                'processes':processes}
+         output.write(json.dumps(row)+'\n')
+         output.flush()
+-        ready_path = root/'monitor-v3-ready.json'
++        ready_path = output_root/'monitor-v3-ready.json'
+         temporary = ready_path.with_suffix('.tmp')
+         temporary.write_text(json.dumps({'last_sample_ns':row['monotonic_ns'],
+                                          'run_id':manifest['run_id'],
+@@ -91,7 +93,7 @@
+             except PermissionError:
+                 interference.append({'pid':pid,'scope':'GPU ownership could not be verified'})
+         if interference:
+-            with (root/'interference-v3.jsonl').open('a') as events:
++            with (output_root/'interference-v3.jsonl').open('a') as events:
+                 events.write(json.dumps({'monotonic_ns':row['monotonic_ns'],
+                                          'processes':interference})+'\n')
+         time.sleep(1)

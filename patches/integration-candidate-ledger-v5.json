@@ -1,0 +1,204 @@
+{
+  "created_at": "2026-10-24T11:26:52.065827+00:00",
+  "status": "candidate only; no independent approval; B forbidden until the separate gate is accepted",
+  "repositories": [
+    {
+      "repository": "sllm",
+      "commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+      "patch": "sllm-integration-candidate-v5.patch",
+      "sha256": "2d508961eda6f6d8ae4b9915d117043b08bc618ce90ffb116f9cee877e30844d",
+      "files": [
+        {
+          "path": "sllm/backends/vllm_backend.py",
+          "sha256": "ac77b058a198ecc045a2a87be61c83fda16ae81495e5a7f8f3231258c477c3a0"
+        },
+        {
+          "path": "sllm/controller.py",
+          "sha256": "2ccb0471943f0db3db892ee258d73d2d025b6009def3808dfc88920c1e8e39fb"
+        },
+        {
+          "path": "sllm/routers/roundrobin_router.py",
+          "sha256": "6ea707d5ead80d0886eacf7299296837bebbf910d74db6aeb12b4a4854cf15cb"
+        },
+        {
+          "path": "sllm_store/csrc/checkpoint/aligned_buffer.cpp",
+          "sha256": "aa7a4aa1b5202be21e0b3d4a4849d5a9c6613bbe696b812f4bfdb09b7625f53f"
+        },
+        {
+          "path": "sllm_store/csrc/checkpoint/checkpoint.cpp",
+          "sha256": "eb731fab981dae01d752e0cd3a4539cbffeae415d50eabb030d0acb9f3de8099"
+        },
+        {
+          "path": "sllm_store/csrc/checkpoint/tensor_writer.cpp",
+          "sha256": "9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404"
+        },
+        {
+          "path": "sllm_store/csrc/sllm_store/checkpoint_store.cpp",
+          "sha256": "2ec03dd407e8f8f25fd6abd522b78892d633f46735264d102e27c4911e49ffdd"
+        },
+        {
+          "path": "sllm_store/csrc/sllm_store/checkpoint_store.h",
+          "sha256": "02ca7c740f2318f930136d3588c9ee48d73c76abe7aee833d8b3ca9b90c63af2"
+        },
+        {
+          "path": "sllm_store/csrc/sllm_store/checkpoint_store_py.cpp",
+          "sha256": "621a6d103c1f972f620f068dccbeb9bacc3ac1c63b2a5c5609389c9a02a74674"
+        },
+        {
+          "path": "sllm_store/setup.py",
+          "sha256": "e5ef6908077685f13b6eb412519f86f75de65a3d9a7be1e7606ace5dfd7c1d87"
+        },
+        {
+          "path": "sllm_store/sllm_store/client.py",
+          "sha256": "8e2cbfe3f58c467a322e5cd4ef058ccaed5099966c3ba916a7597fef11a6bffe"
+        },
+        {
+          "path": "sllm_store/sllm_store/event_trace.py",
+          "sha256": "e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c"
+        },
+        {
+          "path": "sllm_store/sllm_store/server.py",
+          "sha256": "c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c"
+        },
+        {
+          "path": "sllm_store/sllm_store/torch.py",
+          "sha256": "5dc2b43d1a640d9f4cf8f7a9a0a7e5e909b474869c665c17963a14fa82d035f6"
+        },
+        {
+          "path": "sllm_store/sllm_store/vllm_loader.py",
+          "sha256": "36a40e20f8d2d6b2e7b3346ec5e1c54d5598359b1b1756348ef97723e34fa502"
+        }
+      ]
+    },
+    {
+      "repository": "vllm",
+      "commit": "43a9b1afbb7ed88e63ebeefeb55df8d445aa1992",
+      "patch": "vllm-integration-candidate-v5.patch",
+      "sha256": "60dfa6eb35eb73b0cdff139e16db737277e9e0f343abe4a09f99f3ee22d7bac0",
+      "files": [
+        {
+          "path": "vllm/model_executor/model_loader/base_loader.py",
+          "sha256": "d26f6561e4a3480591f63d1b653b0efd170ae09c03ee18397996289e35285ab7"
+        },
+        {
+          "path": "vllm/v1/worker/gpu_worker.py",
+          "sha256": "86f5606fa76ab71b78699e22b70319cc9c85ead31761dba2e0c1187e984c8182"
+        }
+      ]
+    }
+  ],
+  "scripts": [
+    {
+      "path": "work/run_store_restore_validation.py",
+      "sha256": "14ee01348ca2267127bef85f5b3fe4c22c1602545254d1faed3ce492fa7fa449"
+    },
+    {
+      "path": "work/store_model_validation.py",
+      "sha256": "03b1be33e097e8fd08b8d63555b120a0ce53658104ec8ba9faab74bdb8a8c516"
+    },
+    {
+      "path": "work/service_bootstrap_probe.py",
+      "sha256": "2d7221868e6cfee42fdde3f6378f1354b6924de0297b1200dcb5106e5310c10f"
+    },
+    {
+      "path": "work/service_model_validation.py",
+      "sha256": "36897c32d1f87eb51a1ea17016f0c988594edf21c7d2ae16f695ab89c649af96"
+    },
+    {
+      "path": "work/cache_state.py",
+      "sha256": "a5f52ffb255b4f9ba4918fe5c3809f448cf0aa1fb3d93dffc38ff4bee011ff51"
+    },
+    {
+      "path": "work/tensor_audit.py",
+      "sha256": "069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff"
+    },
+    {
+      "path": "work/weight_contract.py",
+      "sha256": "ed03317a0c8647069041df7c5b9a12910985a12cf9f4d871cd52ec78da7f6a95"
+    },
+    {
+      "path": "work/launch_workload.py",
+      "sha256": "a08b47cdb05ba02c626457912525d6d90a4441659ac7d663039c6309298debb7"
+    },
+    {
+      "path": "work/test_store_wait_concurrency.py",
+      "sha256": "349c6fe6a401a0e90c3522732bab677b4baf4221d406c048e1c0fd7449fe69a4"
+    },
+    {
+      "path": "work/test_backend_control.py",
+      "sha256": "a935a4158f77f8534fd75f0c0d8df8ba777d066a5af7467a37503f7e76530ea1"
+    },
+    {
+      "path": "work/run_store_server.py",
+      "sha256": "c160ee17b11b1283cb0cbf9e4900f67699e8bf7766a6d92f96d5d459fba7b5b8"
+    },
+    {
+      "path": "work/formal_trials.py",
+      "sha256": "9c2eabda8712aa7b5eb19272d4c0c8f6ec1726b3aedb104ba6ccf0104f1584b3"
+    },
+    {
+      "path": "work/phase_summary.py",
+      "sha256": "a65adf4f633a04f30422ad97f089ba5ab9ad2d72d8f99a7dea47999b58276128"
+    },
+    {
+      "path": "work/analyse_formal.py",
+      "sha256": "8676369588b9b3fdd99b7a33a3ad1b4959adc04b40ad65153d3562e88934b2b9"
+    },
+    {
+      "path": "work/test_formal_gate.py",
+      "sha256": "c87e0d74c1ecae911630427190a98493d1656c97699de580c1e540b0efc67198"
+    },
+    {
+      "path": "work/test_formal_statistics.py",
+      "sha256": "ad2dc9ca18c808bedf10616188d3609af91652b070b65df78af6e281a53f6e88"
+    },
+    {
+      "path": "work/resource_monitor_v3.py",
+      "sha256": "a09198cb81594af0007a4689c31080fef982903aad4cd9ec45caeb55a915d184"
+    },
+    {
+      "path": "work/probe_memory_reclaim.py",
+      "sha256": "32fbf9e296e1297c7fef62ca48a31d945b3c0becc8b2190ff919fa40fc9df831"
+    },
+    {
+      "path": "work/compilation_guard.py",
+      "sha256": "0e217d4801edd105b0bf5afa9c7eb9b443546b0360f6f9894215440cc7e37786"
+    },
+    {
+      "path": "work/test_compilation_guard.py",
+      "sha256": "9908166d950586ec515331136e2e37543376f5780f6f8c18fe953fd3abb222a4"
+    },
+    {
+      "path": "work/test_event_clock.py",
+      "sha256": "5b8e0fde96aa2c11d9ff0d73756d5ab4f043eee341a80ba556f0853f45aaa3f4"
+    },
+    {
+      "path": "work/analyse_resources.py",
+      "sha256": "686b8dfbf06dd38308ea43b12cec555014a5ad6f097fde379f02f026b6a22f4d"
+    },
+    {
+      "path": "work/test_resource_statistics.py",
+      "sha256": "03fa4a3e21cdda0930b01b9bb6ac0aa1c4c1bed694a0944e5add205bdb0f2277"
+    },
+    {
+      "path": "work/capture_monitor_sample.py",
+      "sha256": "f5d1e9ddd93f018016f74005cfaed3a28c7d49c9ba705314122758cb2fdff378"
+    },
+    {
+      "path": "work/make_phase_proof.py",
+      "sha256": "2d474183e9ab84ca52b49d9e02ec0fb81ca06e47bd89a1c2f87d4df57329c03e"
+    },
+    {
+      "path": "work/freeze_review_inputs.py",
+      "sha256": "9d019c25bf08eb07fbcc9044bcee73afe801e8df58a5ee4e459cb65d4631ee09"
+    },
+    {
+      "path": "work/verify_review_inputs_readonly.py",
+      "sha256": "b9737f21777f3515ba6483668ae3cd8d1fc06ce535a1fed550a5641a116a5ec7"
+    },
+    {
+      "path": "work/materialize_formal_spec.py",
+      "sha256": "78f739914dbddc47ba2b3fd0550ccb689b1f7cd54c1e31e910116dfca28e8401"
+    }
+  ]
+}

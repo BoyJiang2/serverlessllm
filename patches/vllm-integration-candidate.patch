@@ -1,0 +1,22 @@
+diff --git a/vllm/model_executor/model_loader/base_loader.py b/vllm/model_executor/model_loader/base_loader.py
+index d6c3866..a8d644f 100644
+--- a/vllm/model_executor/model_loader/base_loader.py
++++ b/vllm/model_executor/model_loader/base_loader.py
+@@ -1,5 +1,6 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++import os
+ from abc import ABC, abstractmethod
+ 
+ import torch
+@@ -63,6 +64,10 @@ class BaseModelLoader(ABC):
+             logger.debug("Loading weights on %s ...", load_device)
+             self.load_weights(model, model_config)
+ 
++            if os.environ.get("SLLM_EXPORT_RAW_STORE"):
++                from sllm_store.vllm_loader import save_raw_model
++                save_raw_model(model, os.environ["SLLM_EXPORT_RAW_STORE"])
++
+             # Log peak GPU memory after loading weights. This is needed
+             # to have test coverage on peak memory for online quantization.
+             if current_platform.is_cuda():

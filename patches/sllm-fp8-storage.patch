@@ -1,0 +1,71 @@
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 4b93340..b53a99d 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -21,6 +21,7 @@
+ #include <unistd.h>
+ 
+ #include <cstring>
++#include <cstdlib>
+ #include <iostream>
+ 
+ AlignedBuffer::AlignedBuffer(const std::string& filename)
+@@ -35,7 +36,15 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
+ AlignedBuffer::~AlignedBuffer() {
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
++    size_t aligned_size =
++        (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
++    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
++    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
++        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
++      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
++                << std::endl;
++      std::abort();
++    }
+   }
+   if (buffer_) {
+     free(buffer_);
+@@ -110,4 +119,4 @@ size_t AlignedBuffer::writePadding(size_t padding_size) {
+     file_offset_ += buf_size_;
+   }
+   return padding_size;
+-}
+\ No newline at end of file
++}
+diff --git a/sllm_store/csrc/checkpoint/checkpoint.cpp b/sllm_store/csrc/checkpoint/checkpoint.cpp
+index 58c3b6b..77fff7a 100644
+--- a/sllm_store/csrc/checkpoint/checkpoint.cpp
++++ b/sllm_store/csrc/checkpoint/checkpoint.cpp
+@@ -99,7 +99,8 @@ at::ScalarType stringToScalarType(const std::string& dtype_str) {
+       {"torch.float64", torch::kFloat64},  {"torch.int16", torch::kInt16},
+       {"torch.int32", torch::kInt32},      {"torch.int64", torch::kInt64},
+       {"torch.uint8", torch::kUInt8},      {"torch.int8", torch::kInt8},
+-      {"torch.bfloat16", torch::kBFloat16}};
++      {"torch.bfloat16", torch::kBFloat16},
++      {"torch.float8_e4m3fn", torch::kFloat8_e4m3fn}};
+ 
+   auto it = dtype_map.find(dtype_str);
+   if (it != dtype_map.end()) {
+@@ -247,4 +248,4 @@ std::unordered_map<int, std::string> GetDeviceUuidMap() {
+     device_uuid_map[p.second] = p.first;
+   }
+   return device_uuid_map;
+-}
+\ No newline at end of file
++}
+diff --git a/sllm_store/csrc/checkpoint/tensor_writer.cpp b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+index 46eb304..ad84009 100644
+--- a/sllm_store/csrc/checkpoint/tensor_writer.cpp
++++ b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
+ uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
++    if (partition_idx_ != -1) {
++      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
++    }
+     partition_idx_++;
+     partition_size_ = 0;
+     std::string partition_filename =
