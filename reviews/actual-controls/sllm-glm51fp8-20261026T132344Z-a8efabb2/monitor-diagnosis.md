@@ -1,0 +1,13 @@
+# C7 monitoring failure: established facts and bounded next step
+
+Native correctness is separately validated:two formats x two native HTTP lifecycles,32rank records,12gold responses and4complete post-delete observations. Standalone raw recomputation passed. Complete G1 remains failed:the unchanged acceptor returned1 at supervisor failure; no G1-acceptance.json exists. Automatic exact-owned cleanup,61point75.7569s final release and root-owned index passed. Actually executed58-file source is retained under executed-source-a7c5a2f; cost/outcome retained remotely.
+
+Full monitor scan (2391 complete rows, no partial rows) found TWO slow samples, not merely the final tail:
+
+- Early:begin146885422339049,row timestamp146901702225816,end146905964141014. Total20.541801965s;16.279886767s elapsed before row timestamp, before either NVIDIA query. It precedes service worker dispatch146913697437674. Proc/cgroup/observer reads or scheduling are candidates; no exact culprit is proved.
+- Final:begin149353687637042,row timestamp149353690368107,end149363776468860. Total10.088831818s;only2.731065ms precedes row timestamp. Later fields include memory/NUMA reads,NVIDIA queries,helper derivation. Exact blocking call remains unknown.
+- Maximum timestamp gap17.60155992s. Sampled observer flags were true; this does not prove continuous liveness during blocked intervals. Even eliminating the final stall would not make the early violation acceptable under the unchanged5s criteria.
+
+Existing readonly investigator /root/sigkill_joint_investigation checked all five actual monitor/bootstrap/supervisor/watchdog/acceptance sources and agreed with this narrower attribution. No remote/GPU operations or source edits by reviewer. Historical original exit137 upstream cause is still unknown and separate.
+
+Next minimal work:instrument begin/end/outcome for individual cgroup/proc fields (including PID/start ticks),observer reads,memory/NUMA,NVIDIA queries,helper derivation,encoding/flush and ready write/rename. Keep tracing bounded and validate fake delayed operations on CPU first. Do not assume NVML alone or rewrite the sampler before locating the stage. Start with a separately reviewed,guarded lightweight own CPU-process/import probe; any CUDA-context or real-Store teardown probe needs explicit current R1 scope and fresh resource/guard checks. No checkpoint loading/full-cache pass/fullG1 rerun until the diagnostic adds evidence. Unknown/error is never empty PIDs/zero memory; all5s freshness,budgets,model/gold/ID/cache thresholds remain unchanged. Do not reclassify C7 or start R2/formal from component correctness.

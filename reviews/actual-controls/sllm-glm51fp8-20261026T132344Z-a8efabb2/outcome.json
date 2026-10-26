@@ -1,0 +1,134 @@
+{
+  "run_id": "sllm-glm51fp8-20261026T132344Z-a8efabb2",
+  "code_commit": "a7c5a2faf98562cdf8b3709423b4e41dc6c66238",
+  "manifest_sha256": "d95ab4a15155138f8a10c7ad11421a4cd72085c22b490b44373a2dd6ecbcade2",
+  "status": "G1 failed: monitoring freshness gap during final native bootstrap cleanup; correctness components passed",
+  "formal_ids_consumed": 0,
+  "formal_counts": {
+    "success": 5,
+    "failed": 4,
+    "unstarted": 31
+  },
+  "ray_controls_passed": 2,
+  "pool_ready": {
+    "monotonic_ns": 147116097225441,
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "store_pid": 2159,
+    "listener": {
+      "pid": 2159,
+      "port": 8073,
+      "listening_sockets": [
+        {
+          "fd": 199,
+          "inode": "61343943"
+        }
+      ],
+      "scope": "private container network/PID namespace; current child ownership required"
+    },
+    "rpc_config": {
+      "mem_pool_size": 768799145984,
+      "chunk_size": 536870912
+    },
+    "rss_bytes": 770293276672
+  },
+  "cache_control": {
+    "passed": true,
+    "files": 148,
+    "repair_passes": 0
+  },
+  "native_lifecycles_per_format": 2,
+  "raw_rank_records": 32,
+  "correct_business_responses": 12,
+  "native_idle_observations": 4,
+  "supervisor": {
+    "begin_ns": 146914901955404,
+    "status": "failed",
+    "timeout_seconds": 3420,
+    "child_pid": 933,
+    "error": "RuntimeError('control stopped after monitor/observer heartbeat failure')",
+    "end_ns": 149357499866561,
+    "child_alive_at_end": false,
+    "cleanup_reserve_seconds": 25,
+    "total_budget_seconds": 3420
+  },
+  "monitor": {
+    "samples": 2391,
+    "partial_lines": 0,
+    "max_gap_s": 17.60155992,
+    "max_duration_s": 20.541801965,
+    "slow_samples": [
+      {
+        "monotonic_ns": 146901702225816,
+        "duration_s": 20.541801965,
+        "sample_begin_ns": 146885422339049,
+        "sample_end_ns": 146905964141014,
+        "observers": [
+          {
+            "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-kernelobserver13.service",
+            "pid": 2308670,
+            "ok": true
+          },
+          {
+            "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-dockerobserver13.service",
+            "pid": 2308672,
+            "ok": true
+          }
+        ],
+        "gpu_pids": [],
+        "foreign_gpu_pids": []
+      },
+      {
+        "monotonic_ns": 149353690368107,
+        "duration_s": 10.088831818,
+        "sample_begin_ns": 149353687637042,
+        "sample_end_ns": 149363776468860,
+        "observers": [
+          {
+            "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-kernelobserver13.service",
+            "pid": 2308670,
+            "ok": true
+          },
+          {
+            "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-dockerobserver13.service",
+            "pid": 2308672,
+            "ok": true
+          }
+        ],
+        "gpu_pids": [],
+        "foreign_gpu_pids": []
+      }
+    ],
+    "interpretation": "All sampled observer flags in slow row true; no proof of continuous observer liveness during missing interval. Exact blocking call unknown; serial unbounded NVML queries are a candidate, not established cause."
+  },
+  "service_final_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 1,
+    "Error": "",
+    "StartedAt": "2026-10-26T13:49:55.90501076Z",
+    "FinishedAt": "2026-10-26T14:30:45.619535823Z"
+  },
+  "cleanup_passed": true,
+  "release_samples": 61,
+  "release_seconds": 75.756880602,
+  "release_sha256": "a2529edc613b772bc71f8cc26462788d8c7a987be0642e396ad6246ccdeb39db",
+  "root_index_sha256": "b95133d6386545e88ecd1ed006a9ac0e5745b9e9fef99b954a6e5a19ee4bc71b",
+  "g1_acceptance": "actual unchanged accept_control13 returned1 supervisor failure; no acceptance file",
+  "raw_recheck": {
+    "status": "raw G1 weight and business recomputation passed",
+    "ranks": 32,
+    "responses": 12,
+    "stdout_sha256": "fdadbea7e391e1cba721b5b63e2e3c0d4d34442c34463fcf08cf557d99d9c7e4",
+    "checker_sha256": "3c872c27298494484d9f0e7700ed69b9a0563cca2ceb49e69d32f915327f2c18"
+  },
+  "historical_exit137_upstream_cause": "unknown; unchanged separate event",
+  "executed_source": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261026T132344Z-a8efabb2/executed-source-a7c5a2f",
+  "source_hashes_reverified": true,
+  "closed_utc": "2026-10-26T14:42:07.114032+00:00"
+}

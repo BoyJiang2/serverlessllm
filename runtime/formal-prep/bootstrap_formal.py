@@ -19,12 +19,11 @@ control = run_root()
 verify_input_layout()
 config=json.loads((control/'run-manifest.json').read_text())
 label=sys.argv[1]
-assert label.isalnum() and label==config['service_worker_label']
-purpose=config['execution_purpose']
-assert purpose in ('normal-flags-control','formal-measurement')
-normal_smoke=purpose=='normal-flags-control'
+assert label in ('service13a','formal13')
+assert config['execution_purpose']=='formal-continuation'
+assert config['scope']=='formal continuation of original forty IDs'
+normal_smoke=label=='service13a'
 if normal_smoke:
-    assert config['scope']=='normal-flags controls only; zero formal IDs'
     from formal_gate import verify_normal_reference,g1_reference_root
     verify_normal_reference(config,root)
 else:

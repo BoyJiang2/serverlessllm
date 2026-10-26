@@ -1,0 +1,69 @@
+test_formal_role_requires_current_gate_before_output (test_bootstrap_roles.BootstrapRoles.test_formal_role_requires_current_gate_before_output) ... ERROR
+test_normal_control_reuses_existing_service_role (test_bootstrap_roles.BootstrapRoles.test_normal_control_reuses_existing_service_role) ... ERROR
+test_unreviewed_role_rejected (test_bootstrap_roles.BootstrapRoles.test_unreviewed_role_rejected) ... ERROR
+test_wrong_purpose_rejected (test_bootstrap_roles.BootstrapRoles.test_wrong_purpose_rejected) ... ERROR
+
+======================================================================
+ERROR: test_formal_role_requires_current_gate_before_output (test_bootstrap_roles.BootstrapRoles.test_formal_role_requires_current_gate_before_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 36, in test_formal_role_requires_current_gate_before_output
+    self.assertEqual(self.exercise('formal13'),['layout','formal-gate'])
+                     ~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 28, in exercise
+    exec(compile(ast.Module(body=body[:stop],type_ignores=[]),str(source),'exec'),{})
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\bootstrap_formal.py", line 22, in <module>
+    assert label.isalnum() and label==config['service_worker_label']
+                                      ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'service_worker_label'
+
+======================================================================
+ERROR: test_normal_control_reuses_existing_service_role (test_bootstrap_roles.BootstrapRoles.test_normal_control_reuses_existing_service_role)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 33, in test_normal_control_reuses_existing_service_role
+    self.assertEqual(self.exercise('service13a'),['layout','normal-reference'])
+                     ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 28, in exercise
+    exec(compile(ast.Module(body=body[:stop],type_ignores=[]),str(source),'exec'),{})
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\bootstrap_formal.py", line 22, in <module>
+    assert label.isalnum() and label==config['service_worker_label']
+                                      ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'service_worker_label'
+
+======================================================================
+ERROR: test_unreviewed_role_rejected (test_bootstrap_roles.BootstrapRoles.test_unreviewed_role_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 39, in test_unreviewed_role_rejected
+    with self.assertRaises(AssertionError):self.exercise('normal13')
+                                           ~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 28, in exercise
+    exec(compile(ast.Module(body=body[:stop],type_ignores=[]),str(source),'exec'),{})
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\bootstrap_formal.py", line 22, in <module>
+    assert label.isalnum() and label==config['service_worker_label']
+                                      ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'service_worker_label'
+
+======================================================================
+ERROR: test_wrong_purpose_rejected (test_bootstrap_roles.BootstrapRoles.test_wrong_purpose_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 42, in test_wrong_purpose_rejected
+    with self.assertRaises(AssertionError):self.exercise('formal13','G1')
+                                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_bootstrap_roles.py", line 28, in exercise
+    exec(compile(ast.Module(body=body[:stop],type_ignores=[]),str(source),'exec'),{})
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\bootstrap_formal.py", line 22, in <module>
+    assert label.isalnum() and label==config['service_worker_label']
+                                      ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'service_worker_label'
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.118s
+
+FAILED (errors=4)
