@@ -1,0 +1,11 @@
+# C20 complete timing-chain correction — full local readonly R1
+
+C19 actual normal gold lifecycle and R2 passed, but original formal store_pool_hit_03 failed strict phase extraction because CPU head lacked SLLM_EVENT_DIR. Preserve terminal failure, old IDs/order/gold/cache thresholds/common pool. Current 5 success/5 failed/30 unstarted; next safetensors_disk_cold_03. New run, no reused guard/gate.
+
+Smallest repair: derive same event directory for head/worker in existing materializer; retain CPU head without GPU phase overlay. Normal two formats/two cycles call identical strict formal extractor after first correct arithmetic response, require backend process/current boot, persist four summaries and SHA links in model-result. Seal and verify_normal_cache recompute exact summaries from raw events and lifecycle windows, enforce cycle/order/budget, bind unchanged JIT/R2/gate chain. A missing/duplicate event or malformed tail fails closed; no retry or dropped lines.
+
+Existing preallocation CPU probe pins original event_trace source and actual loaded record_event bytecode, asserts original head env before using a separate exclusive probe directory, exercises backend process and router event branches, preserves raw events/hash, restores environment. Launcher requires proof before any real pool. Existing Linux SIGINT/atomic/cold-boundary probes unchanged. No new tracer, wrappers or dependencies.
+
+Tests include regression head-env KeyError before repair (after correcting local sandbox temp path), missing/duplicate router, missing rank/process/cycle, wrong boot/request/window, partial tail, summary bytes changed, probe contamination, raw event tamper after seal, exact loaded tracer origin/bytecode. Windows CPU fixtures are not actual Linux runtime proof. New full R1, fresh actual resources/new08:50guard/probe, normal actual complete phase qualification, R2 and formal gate mandatory. C17 audited eight-rank G1 reference remains separately bound, not a replacement for C20 affected normal control.
+
+Prior C19 formal-trials is explicitly readonly-mounted, consumed by actual state collection; original seed ledger remains unchanged. No formal ID used for debugging. Costs of previous failed formal batch preserved. Full source package and operators reviewed, no code changes by reviewer, no SSH/external sends/credentials/model data.

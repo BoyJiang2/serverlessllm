@@ -29,6 +29,19 @@ def verify_store_imports(expected,package_root=pathlib.Path('/experiment/code/St
             rows[name].update(serve_code_filename=actual_code.co_filename,serve_source_code_match=True,serve_bytecode_sha256=hashlib.sha256(actual_code.co_code).hexdigest())
     return rows
 
+
+def verify_event_trace(expected,package_root=pathlib.Path('/experiment/code/Store-source-v7/sllm_store')):
+    module=importlib.import_module('sllm_store.event_trace')
+    path=pathlib.Path(module.__file__).resolve()
+    if path!=package_root.resolve()/'event_trace.py':raise RuntimeError('event trace origin differs')
+    digest=hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest!=expected:raise RuntimeError('event trace source hash differs')
+    compiled=compile(path.read_bytes(),str(path),'exec')
+    code=next(value for value in compiled.co_consts if isinstance(value,types.CodeType) and value.co_name=='record_event')
+    actual=module.record_event.__code__
+    if actual!=code or actual.co_filename!=str(path):raise RuntimeError('event trace bytecode differs')
+    return dict(path=str(path),sha256=digest,source_code_match=True)
+
 if __name__=='__main__':
     from workspace import run_root,manifest
     parser = argparse.ArgumentParser()

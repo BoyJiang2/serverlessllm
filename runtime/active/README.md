@@ -1,3 +1,3 @@
-# Single active canonical19 runtime
+# Single active canonical20 runtime
 
-See reviews/full-r1-canonical19/PLAN.md and rejected canonical18 verdict. Same bootstrap/materializer/supervisor/operator; actual current Linux probes/normal lifecycle/R2/formal admission remain mandatory. No deployment or computation for this candidate yet.
+See reviews/full-r1-canonical20/PLAN.md. Full R1 → fresh actual guard/identity/probes → affected normal phase control → R2 → formal admission. No current candidate compute yet. C19 failed store_pool_hit_03 remains terminal; next original safetensors_disk_cold_03.

@@ -45,11 +45,13 @@ for path in sorted(source.rglob('*')):
     if path.is_symlink() or len(data)>1024**2 or b'\0' in data:raise RuntimeError('unexpected package input')
     rows.append(dict(path=path.relative_to(source).as_posix(),bytes=len(data),sha256=digest(path)))
 repository_inputs=[pathlib.Path(__file__),repo/'protocol/CANONICAL-WORKSPACE.md',out/'cpu-tests.log',out/'shell-syntax.json',
-                   repo/'tools/run_control13.py',repo/'tools/root_control13.py',repo/'tools/test_control_transport13.py',out/'operator-tests.log']
+                   repo/'tools/run_control13.py',repo/'tools/root_control13.py',repo/'tools/test_control_transport13.py',out/'operator-tests.log',
+                   repo/'reviews/actual-controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/closure-exact/formal-final-ledger.json']
 manifest=dict(gate='R1',scope='full-runtime',status='pending actual independent review; not runtime approval',created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),files=rows,
               repository_inputs=[dict(path=p.relative_to(repo).as_posix(),sha256=digest(p),bytes=p.stat().st_size) for p in repository_inputs],
               local_validation=dict(cpu_tests=result.testsRun,operator_tests=operator_result.testsRun,python_compile='passed',shell_syntax='3 passed separately; scripts not executed'),
-              unchanged_history=dict(success=5,failed=4,unstarted=31,next_id='store_pool_hit_03'),
+              unchanged_original_history=dict(success=5,failed=4,unstarted=31,next_id='store_pool_hit_03',scope='original nine historical attempts only; not current totals'),
+              current_history=dict(success=5,failed=5,unstarted=30,next_id='safetensors_disk_cold_03',ledger=repository_inputs[-1].relative_to(repo).as_posix(),sha256=digest(repository_inputs[-1])),
               external_source_reference=dict(path='protocol/historical-review-manifest-v11.json',sha256='da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4',files=1142,scope='rehash at launch through pinned canonical mapping; no payload hash claim'))
 save(source/'control-input-manifest.json',manifest)
 print(json.dumps(dict(files=len(rows),tests=result.testsRun,manifest_sha256=digest(source/'control-input-manifest.json'))))

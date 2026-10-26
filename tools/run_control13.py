@@ -110,6 +110,29 @@ if registration.get('execution_purpose')=='formal-continuation':
  sigint_proof['atomic_publication']=dict(local_same_filesystem=True,exclusive_collision_rejected=collision_rejected,temporary_removed=True)
  from cache_contract13 import probe_cold_boundary
  sigint_proof['cold_boundary_probe']=probe_cold_boundary(run_root()/(label+'-cold-boundary-probe'),pathlib.Path('/experiment/checkpoint/config.json'))
+ from run_store_server13 import verify_event_trace
+ trace=verify_event_trace(registration['event_trace_sha256'])
+ original=os.environ.get('SLLM_EVENT_DIR')
+ assert original=='/r/events-'+label, 'CPU head timing directory absent or differs'
+ probe_dir=run_root()/(label+'-event-trace-probe');probe_dir.mkdir()
+ try:
+  os.environ['SLLM_EVENT_DIR']=str(probe_dir)
+  from sllm_store.event_trace import record_event
+  record_event('backend_engine_create_begin',probe=True)
+  record_event('router_instance_published',probe=True)
+  files=list(probe_dir.glob('*.jsonl'));assert len(files)==1
+  data=files[0].read_bytes();events=[json.loads(line) for line in data.splitlines()]
+  assert [row['name'] for row in events]==['backend_engine_create_begin','router_instance_published']
+  creation=events[0]
+  assert creation['boot_id']==registration['runtime_identity']['boot_id']
+  assert creation['pid']==os.getpid() and creation['process_start_ticks']>0 and creation['clock_ticks_per_second']>0
+  assert type(creation['boottime_minus_monotonic_ns']) is int
+  sigint_proof['event_trace_probe']=dict(source=trace,measurement_event_dir=original,probe_event_dir=str(probe_dir),raw_events=events,raw_sha256=hashlib.sha256(data).hexdigest(),original_env_verified=True,isolated=True)
+ finally:
+  os.environ['SLLM_EVENT_DIR']=original
+ assert os.environ['SLLM_EVENT_DIR']==original
+ sigint_proof['event_trace_probe']['environment_restored']=True
+
 deployment=json.loads((run_root()/'deployment.json').read_text())
 sigint_proof.update(run_id=registration['run_id'],head_container_id=head_identity['container_id'],image_id=registration['image_id'],boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'])
 if manifest().get('grpc_shutdown_probe') is True:

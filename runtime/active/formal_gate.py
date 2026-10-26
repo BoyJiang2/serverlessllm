@@ -57,11 +57,14 @@ def seal_normal_cache(root,source,assets):
     from budget_control13 import load_formal_batch
     budget=load_formal_batch(root,'service13a')
     proofs=[]
+    phase_end=budget['begin_ns']
     for kind in ('serverless_llm','safetensors'):
         relative='service-bootstrap-service13a/'+kind+'/model-result.json'
         path=root/relative;data=path.read_bytes();proof=json.loads(data)
         if proof.get('status')!='normal-flags gold smoke lifecycle checks passed' or proof.get('cycles')!=2 or proof.get('weight_format')!=kind or proof.get('weight_audit_performed') is not False:
             raise ValueError('complete normal native lifecycle required before JIT seal')
+        from phase_summary import verify_normal_phases
+        phase_end=verify_normal_phases(root,path,proof,config['runtime_identity']['boot_id'],phase_end,budget['work_end_ns'])
         proofs.append(dict(path=relative,sha256=hashlib.sha256(data).hexdigest()))
     artifacts=artifact_snapshot(root/'native-home')
     if not artifacts:raise ValueError('normal runtime compiled artifact set empty')
@@ -95,10 +98,13 @@ def verify_normal_cache(root,source,assets,expected_sha):
             raise ValueError('normal head controlled stop not proven')
     if not proof['artifacts'] or artifact_snapshot(root/'native-home')!=proof['artifacts']:
         raise ValueError('normal JIT cache changed or is empty')
+    phase_end=proof['batch_budget']['begin_ns']
     for row in proof['normal_flags_proofs']:
         path=(root/row['path']).resolve()
         if not path.is_relative_to(root.resolve()):raise ValueError('normal cache proof escaped run')
-        checked_json(path,row['sha256'])
+        normal=checked_json(path,row['sha256'])
+        from phase_summary import verify_normal_phases
+        phase_end=verify_normal_phases(root,path,normal,config['runtime_identity']['boot_id'],phase_end,proof['qualified_ns'])
     return proof
 
 

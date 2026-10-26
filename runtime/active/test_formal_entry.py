@@ -150,6 +150,16 @@ class PreparedMaterializer(unittest.TestCase):
             self.assertEqual(spec['argv'][2],'/experiment/code/experiment/supervise_control13.py')
         with self.assertRaises(RuntimeError):module.expected_spec(root,'headnormal13')
 
+    def test_head_and_worker_share_timing_directory_without_head_gpu_overlay(self):
+        root,module=self.fixture()
+        for label in ('service13a','formal13'):
+            head=module.expected_spec(root,'head'+label)
+            worker=module.expected_spec(root,label)
+            self.assertEqual(head['env']['SLLM_EVENT_DIR'],'/r/events-'+label)
+            self.assertEqual(head['env']['SLLM_EVENT_DIR'],worker['env']['SLLM_EVENT_DIR'])
+            self.assertFalse(head.get('gpus',False))
+            self.assertFalse(head.get('phase_trace',False))
+
     def test_both_workers_strip_audit_but_preserve_timing(self):
         root,module=self.fixture()
         for name in ('service13a','formal13'):
@@ -163,6 +173,38 @@ class PreparedMaterializer(unittest.TestCase):
         self.assertEqual(formal['env']['SLLM_PRIVATE_RAY_ADDRESS'],'172.17.0.2:26533')
 
 
+def phase_fixture(root,target,start):
+    from phase_summary import PHASES,summarize
+    directory=root/'events-service13a';directory.mkdir(exist_ok=True)
+    rows=[];boundaries=[];evidence=[]
+    for cycle in (1,2):
+        begin=start;stamp=begin+1;request_id=f'A4-cycle{cycle}-business_arithmetic'
+        def event(name,**values):
+            nonlocal stamp
+            row=dict(name=name,monotonic_ns=stamp,container_hostname='worker',pid=10,**values)
+            rows.append(row);stamp+=1;return row
+        event('backend_engine_create_begin',process_start_ticks=1,clock_ticks_per_second=100,boottime_minus_monotonic_ns=0,boot_id='b')
+        event('backend_engine_ready');event('router_instance_published')
+        for rank in range(8):
+            for phase in PHASES:
+                event(phase+'_begin',rank=rank);event(phase+'_end',rank=rank)
+            # Rank mapping is per process, as in the actual eight workers.
+            for row in rows:
+                if row.get('rank')==rank:row['pid']=100+rank
+        event('backend_first_token_observed',request_id=request_id)
+        end=stamp;start=end+10
+        boundaries.extend([dict(name='native_register_begin',cycle=cycle,monotonic_ns=begin),
+            dict(name='native_business_request_complete_correct',cycle=cycle,case='business_arithmetic',request_id=request_id,response_received_ns=end,monotonic_ns=end+1)])
+        path=directory/(target.name+f'-cycle{cycle}.jsonl')
+        path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+        rows=[]
+        summary=summarize(directory,begin,end,request_id)
+        phase_path=target/f'cycle{cycle}-phases.json';phase_path.write_text(json.dumps(summary))
+        evidence.append(dict(cycle=cycle,path=phase_path.name,sha256=hashlib.sha256(phase_path.read_bytes()).hexdigest()))
+    (target/'model-events.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in boundaries))
+    return evidence,start
+
+
 class NormalQualification(unittest.TestCase):
     def fixture(self):
         import formal_gate
@@ -171,20 +213,22 @@ class NormalQualification(unittest.TestCase):
         config=dict(run_id='r',runtime_identity=dict(boot_id='b'),image_id='i',g1_acceptance_sha256='g')
         (root/'run-manifest.json').write_text(json.dumps(config))
         (root/'deployment.json').write_text(json.dumps(dict(code_commit='c',input_manifest_sha256='m')))
+        start=100
         for kind in ('serverless_llm','safetensors'):
             target=root/'service-bootstrap-service13a'/kind;target.mkdir(parents=True)
-            (target/'model-result.json').write_text(json.dumps(dict(status='normal-flags gold smoke lifecycle checks passed',cycles=2,weight_format=kind,weight_audit_performed=False)))
+            evidence,start=phase_fixture(root,target,start)
+            (target/'model-result.json').write_text(json.dumps(dict(status='normal-flags gold smoke lifecycle checks passed',cycles=2,weight_format=kind,weight_audit_performed=False,phase_evidence=evidence)))
         self.artifacts={'kernel.so':{'sha256':'abc'}}
-        batch=dict(begin_ns=1,work_end_ns=100,total_end_ns=200,head_end_ns=210)
+        batch=dict(begin_ns=1,work_end_ns=10000,total_end_ns=20000,head_end_ns=21000)
         for role in ('service13a','headservice13a'):
             dispatch=dict(run_id='r',code_commit='c',manifest_sha256='m',boot_id='b',dispatch_monotonic_ns=1)
             (root/(role+'-dispatch.json')).write_text(json.dumps(dispatch))
             result=dict(dispatch,status='passed including cleanup',child_alive_at_end=False,
-                absolute_end_ns=210 if role.startswith('head') else 200,end_ns=20,controlled_stop=True,forced_kill=False,terminate_sent_ns=15,child_returncode=1)
+                absolute_end_ns=21000 if role.startswith('head') else 20000,end_ns=9500,controlled_stop=True,forced_kill=False,terminate_sent_ns=15,child_returncode=1)
             (root/(role+'-supervisor-result.json')).write_text(json.dumps(result))
         patches=[patch.dict(sys.modules,compilation_guard_v6=types.SimpleNamespace(artifact_snapshot=lambda home:self.artifacts)),
                  patch('budget_control13.load_formal_batch',return_value=batch),
-                 patch.object(time,'monotonic_ns',return_value=10)]
+                 patch.object(time,'monotonic_ns',return_value=9000)]
         for item in patches:item.start();self.addCleanup(item.stop)
         return root,formal_gate
 
@@ -193,6 +237,48 @@ class NormalQualification(unittest.TestCase):
         sha=hashlib.sha256((root/'normal-jit-qualification.json').read_bytes()).hexdigest()
         proof=module.verify_normal_cache(root,root,root,sha)
         self.assertEqual(len(proof['normal_flags_proofs']),2)
+
+    def test_missing_phase_or_tampered_bound_summary_cannot_seal(self):
+        for defect in ('missing-cycle','changed-summary','wrong-boot','missing-process','missing-router','duplicate-router','missing-rank','partial-tail','wrong-request','boundary','probe-contamination'):
+            root,module=self.fixture();target=root/'service-bootstrap-service13a/serverless_llm'
+            model=target/'model-result.json';proof=json.loads(model.read_text())
+            phase=target/'cycle1-phases.json'
+            raw=root/'events-service13a/serverless_llm-cycle1.jsonl'
+            rows=[json.loads(line) for line in raw.read_text().splitlines()]
+            if defect=='missing-cycle':
+                proof['phase_evidence'].pop();model.write_text(json.dumps(proof))
+            elif defect=='changed-summary':phase.write_bytes(phase.read_bytes()+b' ')
+            elif defect=='partial-tail':
+                with raw.open('a') as stream:stream.write('{')
+            elif defect=='boundary':
+                events=target/'model-events.jsonl'
+                # Explicitly change the recorded first response boundary.
+                values=[json.loads(line) for line in events.read_text().splitlines()]
+                values[1]['response_received_ns']+=1;events.write_text(''.join(json.dumps(row)+'\n' for row in values))
+            else:
+                if defect=='missing-router':rows=[r for r in rows if r['name']!='router_instance_published']
+                elif defect=='duplicate-router':rows.append(dict(next(r for r in rows if r['name']=='router_instance_published')))
+                elif defect=='probe-contamination':rows.append(dict(rows[0],probe=True))
+                elif defect=='missing-rank':rows=[r for r in rows if not(r.get('rank')==7 and r['name']=='weight_ingestion_end')]
+                elif defect=='wrong-request':next(r for r in rows if r['name']=='backend_first_token_observed')['request_id']='wrong'
+                elif defect=='missing-process':
+                    for key in ('process_start_ticks','clock_ticks_per_second','boottime_minus_monotonic_ns','boot_id'):rows[0].pop(key)
+                elif defect=='wrong-boot':rows[0]['boot_id']='old-boot'
+                raw.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                if defect in ('missing-process','wrong-boot'):
+                    from phase_summary import summarize
+                    summary=json.loads(phase.read_text());phase.write_text(json.dumps(summarize(root/'events-service13a',summary['begin_ns'],summary['end_ns'],summary['request_id'])))
+                    proof['phase_evidence'][0]['sha256']=hashlib.sha256(phase.read_bytes()).hexdigest();model.write_text(json.dumps(proof))
+            with self.subTest(defect=defect),self.assertRaises((ValueError,AssertionError,KeyError)):module.seal_normal_cache(root,root,root)
+            self.assertFalse((root/'normal-jit-qualification.json').exists())
+
+    def test_raw_events_are_recomputed_after_sealing(self):
+        root,module=self.fixture();module.seal_normal_cache(root,root,root)
+        sha=hashlib.sha256((root/'normal-jit-qualification.json').read_bytes()).hexdigest()
+        raw=root/'events-service13a/safetensors-cycle2.jsonl'
+        rows=[json.loads(line) for line in raw.read_text().splitlines()]
+        raw.write_text(''.join(json.dumps(r)+'\n' for r in rows if r['name']!='router_instance_published'))
+        with self.assertRaisesRegex(AssertionError,'router_instance_published'):module.verify_normal_cache(root,root,root,sha)
 
     def test_nonempty_but_changed_cache_cannot_pass(self):
         root,module=self.fixture();module.seal_normal_cache(root,root,root)

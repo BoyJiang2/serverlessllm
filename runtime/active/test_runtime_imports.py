@@ -55,6 +55,20 @@ class ImportIdentity(unittest.TestCase):
             with patch('run_store_server13.importlib.import_module',side_effect=modules.get),self.assertRaisesRegex(RuntimeError,'bytecode differs'):
                 verify_store_imports(expected,root)
 
+    def test_event_trace_exact_source_and_loaded_function_match(self):
+        from run_store_server13 import verify_event_trace
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);path=root/'event_trace.py'
+            path.write_text('def record_event(name, **values):\n    return name, values\n')
+            scope={};exec(compile(path.read_bytes(),str(path),'exec'),scope)
+            module=types.SimpleNamespace(__file__=str(path),record_event=scope['record_event'])
+            digest=hashlib.sha256(path.read_bytes()).hexdigest()
+            with patch('run_store_server13.importlib.import_module',return_value=module):
+                self.assertTrue(verify_event_trace(digest,root)['source_code_match'])
+                with self.assertRaisesRegex(RuntimeError,'source hash'):verify_event_trace('wrong',root)
+                module.record_event=lambda *args:None
+                with self.assertRaisesRegex(RuntimeError,'bytecode'):verify_event_trace(digest,root)
+
     def test_overlay_is_exact_single_statement_change_and_frozen_hash(self):
         source=pathlib.Path(__file__).resolve().parent
         patched=(source/'store_server13.py').read_bytes()

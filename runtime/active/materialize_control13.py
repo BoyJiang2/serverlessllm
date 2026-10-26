@@ -22,6 +22,14 @@ def verify_sigint_probe(root,info,code,sha,label='service13a'):
         cold=proof.get('cold_boundary_probe',{})
         if cold.get('version')!=1 or cold.get('metadata_sha256')!=manifest['metadata']['config.json']['sha256'] or type(cold.get('pages')) is not int or not cold['pages']>0 or type(cold.get('old_order_resident_pages')) is not int or not 0<cold['old_order_resident_pages']<=cold['pages'] or cold.get('initial_resident_pages')!=0 or cold.get('fixed_order_resident_pages')!=0 or cold.get('cleanup_complete') is not True:
             raise RuntimeError('actual Linux cold-boundary negative and fixed control required')
+    if manifest.get('execution_purpose')=='formal-continuation':
+        trace=proof.get('event_trace_probe',{})
+        rows=trace.get('raw_events',[])
+        if trace.get('source')!=dict(path='/experiment/code/Store-source-v7/sllm_store/event_trace.py',sha256=manifest['event_trace_sha256'],source_code_match=True) or trace.get('measurement_event_dir')!='/r/events-'+label or trace.get('probe_event_dir')!='/r/'+label+'-event-trace-probe' or any(trace.get(key) is not True for key in ('original_env_verified','isolated','environment_restored')) or [row.get('name') for row in rows]!=['backend_engine_create_begin','router_instance_published']:
+            raise RuntimeError('actual isolated event trace probe required')
+        creation=rows[0]
+        if creation.get('boot_id')!=manifest['runtime_identity']['boot_id'] or not creation.get('process_start_ticks',0)>0 or not creation.get('clock_ticks_per_second',0)>0 or type(creation.get('boottime_minus_monotonic_ns')) is not int:
+            raise RuntimeError('event trace process metadata missing or wrong boot')
     if head['run_id']!=manifest['run_id'] or head['code_commit']!=code or head['manifest_sha256']!=sha or dispatch['boot_id']!=expected['boot_id']:raise RuntimeError('SIGINT head identity differs')
     if info['Id']!=head['container_id'] or info['Image']!=manifest['image_id'] or not info['State']['Running'] or info['State']['Pid']!=head['pid']:raise RuntimeError('SIGINT probe head no longer active')
     if info['Config']['Labels'].get('sllm.run_id')!=manifest['run_id'] or info['Config']['Labels'].get('sllm.uid')!='2147':raise RuntimeError('SIGINT head ownership differs')
@@ -73,13 +81,13 @@ def expected_spec(root,name):
         for key in ('SLLM_VALIDATE_FULL_MODEL','SLLM_VERIFY_WEIGHTS','SLLM_SERVICE_WEIGHT_AUDIT_DIR','SLLM_EXPORT_RAW_STORE','VLLM_ALLOW_INSECURE_SERIALIZATION','SLLM_POOL_DIAGNOSTIC','SLLM_NORMAL_FLAGS_SMOKE'):
             spec['env'].pop(key,None)
         spec['raw_export_hook']=False
+        spec['env']['SLLM_EVENT_DIR']='/r/events-'+label
         if head:
             spec['argv']=['/experiment/.venv/bin/python','-u',str(SOURCE/'supervise_control13.py'),'head',label]
             # SOURCE is a host path here; container argv is always canonical.
             spec['argv'][2]='/experiment/code/experiment/supervise_control13.py'
         else:
             spec['argv'][-1]=label
-            spec['env']['SLLM_EVENT_DIR']='/r/events-'+label
             spec['env']['SLLM_HEAD_IDENTITY_FILE']='/r/head'+label+'-identity.json'
             if label=='formal13':
                 deployment=json.loads((root/'deployment.json').read_text())

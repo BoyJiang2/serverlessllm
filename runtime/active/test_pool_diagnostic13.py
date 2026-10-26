@@ -214,7 +214,7 @@ class SigintAdmission(unittest.TestCase):
 
     def test_formal_native_role_requires_actual_atomic_publication_probe(self):
         root,proof,info=self.fixture()
-        path=root/'run-manifest.json';config=json.loads(path.read_text());config['execution_purpose']='formal-continuation';config['metadata']={'config.json':{'sha256':'metadata'}};path.write_text(json.dumps(config))
+        path=root/'run-manifest.json';config=json.loads(path.read_text());config['execution_purpose']='formal-continuation';config['metadata']={'config.json':{'sha256':'metadata'}};config['event_trace_sha256']='trace';path.write_text(json.dumps(config))
         target=root/'service13a-cpu-import-preflight.json';target.write_text(json.dumps(dict(sigint_probe=proof)))
         with self.assertRaisesRegex(RuntimeError,'publication probe'):materialize.verify_sigint_probe(root,info,'code','sha')
         proof['atomic_publication']=dict(local_same_filesystem=True,exclusive_collision_rejected=True,temporary_removed=True)
@@ -222,7 +222,14 @@ class SigintAdmission(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'cold-boundary'):materialize.verify_sigint_probe(root,info,'code','sha')
         proof['cold_boundary_probe']=dict(version=1,metadata_sha256='metadata',pages=9,old_order_resident_pages=9,initial_resident_pages=0,fixed_order_resident_pages=0,cleanup_complete=True)
         target.write_text(json.dumps(dict(sigint_probe=proof)))
+        with self.assertRaisesRegex(RuntimeError,'event trace'):materialize.verify_sigint_probe(root,info,'code','sha')
+        proof['event_trace_probe']=dict(source=dict(path='/experiment/code/Store-source-v7/sllm_store/event_trace.py',sha256='trace',source_code_match=True),measurement_event_dir='/r/events-service13a',probe_event_dir='/r/service13a-event-trace-probe',original_env_verified=True,isolated=True,environment_restored=True,raw_events=[dict(name='backend_engine_create_begin',boot_id='boot',process_start_ticks=1,clock_ticks_per_second=100,boottime_minus_monotonic_ns=0),dict(name='router_instance_published')])
+        target.write_text(json.dumps(dict(sigint_probe=proof)))
         materialize.verify_sigint_probe(root,info,'code','sha')
+        for field,value in [('isolated',False),('original_env_verified',False),('measurement_event_dir','/r/wrong')]:
+            changed=json.loads(json.dumps(proof));changed['event_trace_probe'][field]=value
+            target.write_text(json.dumps(dict(sigint_probe=changed)))
+            with self.subTest(field=field),self.assertRaisesRegex(RuntimeError,'event trace'):materialize.verify_sigint_probe(root,info,'code','sha')
         for field,value in [('old_order_resident_pages',0),('fixed_order_resident_pages',1),('metadata_sha256','other'),('cleanup_complete',False)]:
             changed=json.loads(json.dumps(proof));changed['cold_boundary_probe'][field]=value
             target.write_text(json.dumps(dict(sigint_probe=changed)))

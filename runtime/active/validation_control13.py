@@ -70,8 +70,10 @@ def run(out, audit_weights=True):
     events = (out/'model-events.jsonl').open('x')
 
     def event(name,**values):
-        events.write(json.dumps({'name':name,'monotonic_ns':time.monotonic_ns(),**values})+'\n')
+        stamp=time.monotonic_ns()
+        events.write(json.dumps({'name':name,'monotonic_ns':stamp,**values})+'\n')
         events.flush()
+        return stamp
 
     def http(path,body=None):
         request = urllib.request.Request('http://127.0.0.1:8343'+path,
@@ -85,11 +87,12 @@ def run(out, audit_weights=True):
     known_audits = set(audit_root.iterdir()) if audit_root is not None and audit_root.exists() else set()
     baseline_audits = len(known_audits)
     coverage=[]
+    phase_evidence=[]
     for cycle in [1,2]:
         snapshot=host_gpu(); observed_ns=time.monotonic_ns()
         require_helper_only(snapshot,helper,observed_ns,manifest['run_id'],manifest['runtime_identity']['boot_id'])
         (out/f'cycle{cycle}-gpu-before.json').write_text(json.dumps(dict(monotonic_ns=observed_ns,host_gpu_snapshot=snapshot),indent=2))
-        event('native_register_begin',cycle=cycle)
+        register_ns=event('native_register_begin',cycle=cycle)
         assert http('/register',config) == {'status':'ok'}
         event('native_register_complete',cycle=cycle)
         order = [1,2,0]  # Complete natural-EOS business first; fixed32 is a separate test.
@@ -100,6 +103,7 @@ def run(out, audit_weights=True):
                        'logprobs':1,'return_token_ids':True,'request_id':f'A4-cycle{cycle}-{case["name"]}'}
             event('native_business_request_begin',cycle=cycle,case=case['name'])
             result = http('/v1/chat/completions',request)
+            received_ns=time.monotonic_ns()
             (out/f'cycle{cycle}-{case["name"]}.json').write_text(json.dumps(result,ensure_ascii=False,indent=2))
             choice = result['choices'][0]
             assert choice['token_ids'] == expected['token_ids']
@@ -109,7 +113,15 @@ def run(out, audit_weights=True):
             assert len(logprobs) == len(choice['token_ids'])
             assert all(math.isfinite(row[str(token)]['logprob'])
                        for token,row in zip(choice['token_ids'],logprobs,strict=True))
-            event('native_business_request_complete_correct',cycle=cycle,case=case['name'])
+            event('native_business_request_complete_correct',cycle=cycle,case=case['name'],
+                  request_id=request['request_id'],response_received_ns=received_ns)
+            if not audit_weights and number==1:
+                from phase_summary import summarize,require_process
+                phases=summarize(os.environ['SLLM_EVENT_DIR'],register_ns,received_ns,request['request_id'])
+                require_process(phases,manifest['runtime_identity']['boot_id'])
+                phase_path=out/f'cycle{cycle}-phases.json'
+                with phase_path.open('x') as stream:json.dump(phases,stream,indent=2)
+                phase_evidence.append(dict(cycle=cycle,path=phase_path.name,sha256=hashlib.sha256(phase_path.read_bytes()).hexdigest()))
         if audit_weights:
             audits = set(pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR']).iterdir())
             assert len(audits) == baseline_audits+cycle
@@ -173,7 +185,7 @@ def run(out, audit_weights=True):
         assert len(remaining) == 8 and all(after <= before+1024 for before,after in zip(baseline,remaining,strict=True)), 'model GPU memory retained after native delete'
     events.close()
     (out/'model-result.json').write_text(json.dumps({'status':'A4 native HTTP lifecycle checks passed' if audit_weights else 'normal-flags gold smoke lifecycle checks passed',
-        'weight_audit_performed':audit_weights,'rank_coverage':coverage,
+        'weight_audit_performed':audit_weights,'rank_coverage':coverage,'phase_evidence':phase_evidence,
         'exclusions':'234 DSA top-k scratch references per rank are not checkpoint weights/scales; fixed count, dtype, shape and byte size checked, scratch values not compared. KV runtime and opaque kernel allocations are excluded from weight equality.',
         'weight_format':weight_format,
         'cycles':2,'tests_per_cycle':['natural-EOS arithmetic','natural-EOS translation','greedy fixed32'],

@@ -64,6 +64,41 @@ def summarize(directory, begin_ns, end_ns, request_id):
             'raw_event_sha256':hashlib.sha256(serialized).hexdigest(), 'raw_events':rows}
 
 
+def require_process(summary, boot):
+    process=summary['backend_process_creation']
+    if not process or process['boot_id']!=boot:
+        raise ValueError('backend process creation and current boot required')
+
+
+def verify_normal_phases(root, model_path, proof, boot, begin_ns, end_ns):
+    """Recompute each normal cycle using the same strict formal extractor."""
+    evidence=proof.get('phase_evidence',[])
+    if len(evidence)!=2 or [row['cycle'] for row in evidence]!=[1,2]:
+        raise ValueError('two normal cycle phase proofs required')
+    events=[json.loads(line) for line in (model_path.parent/'model-events.jsonl').read_text().splitlines()]
+    previous_end=begin_ns-1
+    for row in evidence:
+        if row['path']!=f"cycle{row['cycle']}-phases.json":
+            raise ValueError('normal phase path differs')
+        path=model_path.parent/row['path']
+        data=path.read_bytes()
+        if hashlib.sha256(data).hexdigest()!=row['sha256']:
+            raise ValueError('normal phase bytes changed')
+        summary=json.loads(data)
+        begins=[e for e in events if e['name']=='native_register_begin' and e['cycle']==row['cycle']]
+        ends=[e for e in events if e['name']=='native_business_request_complete_correct' and e['cycle']==row['cycle'] and e['case']=='business_arithmetic']
+        if len(begins)!=1 or len(ends)!=1:
+            raise ValueError('normal phase lifecycle boundaries missing or duplicated')
+        begin,end=begins[0]['monotonic_ns'],ends[0]['response_received_ns']
+        if not previous_end<begin<end<=ends[0]['monotonic_ns']<end_ns:
+            raise ValueError('normal phase windows overlap or are invalid')
+        if summary!=summarize(root/'events-service13a',begin,end,ends[0]['request_id']):
+            raise ValueError('normal phase summary differs from raw events')
+        require_process(summary,boot)
+        previous_end=end
+    return previous_end
+
+
 if __name__ == '__main__':
     directory, begin, end, request_id, destination = sys.argv[1:]
     result = summarize(directory, int(begin), int(end), request_id)
