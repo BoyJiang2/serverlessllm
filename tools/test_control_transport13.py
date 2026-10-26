@@ -91,7 +91,8 @@ class Transport(unittest.TestCase):
             def save(path,value):
                 path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value))
             save(out/'run-manifest.json',dict(run_id=run,image_id='frozen-image',cleanup_deadline='2099-01-01T00:00:00+00:00',runtime_identity=dict(boot_id='boot')))
-            save(out/'monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=time.monotonic_ns()))
+            stamp=time.monotonic_ns()
+            save(out/'monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=stamp,sample_begin_ns=stamp,sample_end_ns=stamp,history_ok=True,first_monitor_error=None))
             for name in ('headray13a','ray13a'):
                 save(out/(name+'-identity.json'),dict(run_id=run,code_commit=code,manifest_sha256=sha,
                      container_id=name,pid=1,dispatch_monotonic_ns=time.monotonic_ns()-10_000_000_000))
@@ -125,7 +126,7 @@ class Transport(unittest.TestCase):
             out=node/'validation/controls'/run;out.mkdir(parents=True)
             def save(name,value):(out/name).write_text(json.dumps(value))
             save('run-manifest.json',dict(run_id=run,image_id='frozen-image',scope='monitor diagnostics only; no model or pool',monitor_diagnostic_trace=trace,cleanup_deadline='2099-01-01T00:00:00+00:00',runtime_identity=dict(boot_id='boot')))
-            save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=100_000_000_000,sample_begin_ns=100_000_000_000))
+            save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=100_000_000_000,sample_begin_ns=100_000_000_000,sample_end_ns=100_000_000_000,history_ok=True,first_monitor_error=None))
             save('monitor13-identity.json',dict(run_id=run,code_commit=code,manifest_sha256=sha,container_id='own-monitor',pid=1))
             save('headservice13a-identity.json',dict(run_id=run,code_commit=code,manifest_sha256=sha,container_id='own-head',pid=1,spec=dict(argv=['--port=26532'])))
             calls=[];clock=[100.0];running=[True]
@@ -138,10 +139,10 @@ class Transport(unittest.TestCase):
                 if args[:2]==['docker','stop']:
                     running[0]=False
                     clock[0]+=.1
-                    if post_sample:save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9)))
+                    if post_sample:save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None))
                 if args[:2]==['docker','exec'] and expire:
                     clock[0]=281.0
-                    save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9)))
+                    save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None))
                 return types.SimpleNamespace(returncode=0,stdout=stdout,stderr='')
             actual_path=pathlib.Path
             def redirect(value):return node if str(value)=='/data/brick1/boyjiang/glm5.1-fp8' else actual_path(value)

@@ -3,7 +3,7 @@ import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
 import gzip,hashlib,json,pathlib,stat
 from workspace import SOURCE,run_root,workspace,host_workspace
-from gpu_identity13 import require_helper_binding,require_helper_only,store_identity,gpu_pids
+from gpu_identity13 import require_helper_binding,require_helper_only,store_identity,gpu_pids,require_monitor_sample
 
 def require(value,message):
     if not value: raise RuntimeError(message)
@@ -33,19 +33,17 @@ def monitor_summary(path,gpu_context=None,expected_gpu=None):
                 require(row['registered_store_helper']==store_identity(launch,service,row['processes'],boot),'host monitor helper derivation differs')
                 for key in ('registered_store_helper','gpu_pids','foreign_gpu_pids'):
                     require(row[key]==expected[key],'GPU snapshot differs from raw host monitor: '+key)
-                for key in ('gpu','gpu_processes','sample_begin_ns'):
+                for key in ('gpu','gpu_processes','sample_begin_ns','sample_end_ns'):
                     require(row[key]==expected[key],'GPU snapshot raw field differs: '+key)
                 require(row['gpu_pids']==sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),'host NVML PID list differs')
                 found_gpu.add(row['monotonic_ns'])
             now=row['monotonic_ns']
             begin=row['sample_begin_ns']; end=row['sample_end_ns']
-            require(begin<=now<=end and end-begin<=5_000_000_000,'slow or inconsistent monitor sample')
+            require_monitor_sample(begin,now,end,last_begin,last)
             max_duration=max(max_duration,(end-begin)/1e9)
-            if last_begin is not None: require(0<begin-last_begin<=5_000_000_000,'monitor begin-to-begin gap')
             last_begin=begin
             if first is None: first=now
             if last is not None:
-                require(now>last,'nonmonotonic monitor')
                 max_gap=max(max_gap,(now-last)/1e9)
             last=now; count+=1
     require(count>2 and max_gap<=5,'monitor coverage/cadence failed')

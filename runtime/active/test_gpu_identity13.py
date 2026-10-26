@@ -9,7 +9,7 @@ class GPUIdentity(unittest.TestCase):
         service=dict(container_id='c'*64,cgroup='0::/own/container\n')
         process=dict(pid=9001,status='Uid:\t2147 2147 2147 2147\nNSpid:\t9001 1124\n',stat='9001 (python) '+' '.join(['S']+['0']*18+['333']+['0']*10),cgroup=service['cgroup'],pid_namespace=launch['pid_namespace'])
         helper=store_identity(launch,service,[process],'b')
-        snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=0,sample_begin_ns=0,gpu='host GPU accounting',gpu_processes='9001, python, 322 MiB',registered_store_helper=helper,gpu_pids=[9001],foreign_gpu_pids=[])
+        snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=0,sample_begin_ns=0,sample_end_ns=0,history_ok=True,first_monitor_error=None,gpu='host GPU accounting',gpu_processes='9001, python, 322 MiB',registered_store_helper=helper,gpu_pids=[9001],foreign_gpu_pids=[])
         return launch,service,process,helper,snapshot
     def test_exact_store_helper_allowed(self):
         launch,service,process,helper,snapshot=self.fixture();require_helper_binding(helper,launch,service,'b');require_helper_only(snapshot,helper,1,'r','b')
@@ -32,15 +32,18 @@ class GPUIdentity(unittest.TestCase):
         for key,value in [('pid_namespace','pid:[43]'),('cgroup','0::/other\n'),('status','Uid:\t0 0 0 0\nNSpid:\t9001 1124\n')]:
             changed=dict(process);changed[key]=value
             with self.subTest(key=key):self.assertIsNone(store_identity(launch,service,[changed],'b'))
-    def monitor(self,corrupt=False):
+    def monitor(self,corrupt=False,end_corrupt=False):
         launch,service,process,helper,snapshot=self.fixture()
         rows=[dict(monotonic_ns=n*10**9,sample_begin_ns=n*10**9,sample_end_ns=n*10**9+1,observers=[{'ok':True},{'ok':True}],registered_store_helper=helper,processes=[process],gpu_pids=[9001],foreign_gpu_pids=[],gpu='host GPU accounting',gpu_processes='9001, python, 322 MiB') for n in range(3)]
-        expected=copy.deepcopy(snapshot);expected['last_sample_ns']=expected['sample_begin_ns']=2_000_000_000
+        expected=copy.deepcopy(snapshot);expected['last_sample_ns']=expected['sample_begin_ns']=2_000_000_000;expected['sample_end_ns']=2_000_000_001
         if corrupt:rows[-1]['gpu_pids']=[9002]
+        if end_corrupt:expected['sample_end_ns']+=1
         with tempfile.TemporaryDirectory() as directory:
             path=pathlib.Path(directory)/'monitor.jsonl';path.write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
             return monitor_summary(path,gpu_context=(launch,service,'b'),expected_gpu={expected['last_sample_ns']:expected})
     def test_gpu_receipt_matches_raw_host_monitor(self):self.assertEqual(self.monitor()['samples'],3)
+    def test_snapshot_end_must_equal_raw_monitor_end(self):
+        with self.assertRaisesRegex(RuntimeError,'sample_end_ns'):self.monitor(end_corrupt=True)
     def test_changed_raw_gpu_receipt_rejected(self):
         with self.assertRaises(RuntimeError):self.monitor(True)
 

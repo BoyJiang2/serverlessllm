@@ -11,7 +11,7 @@ import subprocess
 import time
 import urllib.request
 from weight_contract import weight_state
-from gpu_identity13 import require_helper_binding,require_helper_only
+from gpu_identity13 import require_helper_binding,require_helper_only,require_monitor_ready
 
 
 def run(out, audit_weights=True):
@@ -52,7 +52,10 @@ def run(out, audit_weights=True):
     service_label=manifest.get('service_worker_label','service13a')
     assert service_label in ('service13a','normal13','formal13')
     service=json.loads((control/(service_label+'-identity.json')).read_text())
-    def host_gpu(): return json.loads((control/'monitor-v3-ready.json').read_text())
+    def host_gpu():
+        snapshot=json.loads((control/'monitor-v3-ready.json').read_text())
+        require_monitor_ready(snapshot,time.monotonic_ns(),manifest['run_id'],manifest['runtime_identity']['boot_id'])
+        return snapshot
     stop=time.monotonic()+5
     helper=None
     while time.monotonic()<stop:

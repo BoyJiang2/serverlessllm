@@ -61,6 +61,7 @@ def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=N
 # reads the v2 additive window instead so it keeps sampling until the v2 deadline.
 from resource_window_control13 import load_window
 from compilation_guard import TOOLS, observed_interference
+from gpu_identity13 import require_monitor_sample
 
 from workspace import run_root
 root = run_root()
@@ -71,6 +72,7 @@ cgroup = pathlib.Path('/sys/fs/cgroup')/str(control).lstrip('/')
 assert cgroup.is_dir()
 deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
 sampled_peak = 0
+previous_begin=None;previous_mid=None;first_monitor_error=None
 output_root = root
 trace_enabled=manifest.get('monitor_diagnostic_trace',False)
 if type(trace_enabled) is not bool:raise RuntimeError('diagnostic trace flag must be boolean')
@@ -157,6 +159,13 @@ with (output_root/log_name).open('x') as output:
             module=measured('import.gpu_identity13',lambda:__import__('gpu_identity13'))
             helper=measured('helper.derive',lambda:module.store_identity(json.loads(launch_path.read_text()),json.loads(identity_path.read_text()),processes,manifest['runtime_identity']['boot_id']))
         row.update(registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign,sample_end_ns=time.monotonic_ns())
+        try:
+            require_monitor_sample(row['sample_begin_ns'],row['monotonic_ns'],row['sample_end_ns'],previous_begin,previous_mid)
+            if len(observer_states)!=2 or not all(item['ok'] for item in observer_states):raise RuntimeError('observer liveness gap')
+        except RuntimeError as error:
+            if first_monitor_error is None:
+                first_monitor_error=dict(reason=str(error),sample_begin_ns=row['sample_begin_ns'],last_sample_ns=row['monotonic_ns'],sample_end_ns=row['sample_end_ns'],previous_begin_ns=previous_begin,previous_sample_ns=previous_mid)
+        previous_begin=row['sample_begin_ns'];previous_mid=row['monotonic_ns']
         encoded=measured('json.encode',lambda:json.dumps(row)+'\n')
         if measured('log.budget',lambda:output.tell()+len(encoded.encode())>4*1024**3):
             raise RuntimeError('finite control monitor exceeded4GiB log budget')
@@ -164,7 +173,7 @@ with (output_root/log_name).open('x') as output:
         measured('log.flush',lambda:output.flush())
         ready_path=output_root/'monitor-v3-ready.json'
         temporary=ready_path.with_suffix('.tmp')
-        ready_encoded=measured('ready.encode',lambda:json.dumps(dict(last_sample_ns=row['monotonic_ns'],sample_begin_ns=row['sample_begin_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu=row['gpu'],gpu_processes=row['gpu_processes'],gpu_pids=row['gpu_pids'],foreign_gpu_pids=foreign)))
+        ready_encoded=measured('ready.encode',lambda:json.dumps(dict(last_sample_ns=row['monotonic_ns'],sample_begin_ns=row['sample_begin_ns'],sample_end_ns=row['sample_end_ns'],history_ok=first_monitor_error is None,first_monitor_error=first_monitor_error,run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu=row['gpu'],gpu_processes=row['gpu_processes'],gpu_pids=row['gpu_pids'],foreign_gpu_pids=foreign)))
         measured('ready.write',lambda:temporary.write_text(ready_encoded))
         measured('ready.rename',lambda:temporary.replace(ready_path))
         if interference:

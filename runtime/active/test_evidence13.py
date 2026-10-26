@@ -31,8 +31,11 @@ class NativeIdle(unittest.TestCase):
     def rows(self):
         gpu='\n'.join(f'{i}, GPU-{i}, 143771 MiB, 1769 MiB, 0 %' for i in range(8))
         raw='9001, python, 322 MiB'
-        return [dict(second=n,monotonic_ns=n*10**9,delete_ack_ns=0,memory_current=1,pids_current=3,shm_used_bytes=0,memory_stat='anon 0\nfile 1\nshmem 0\nunevictable 0',cpu_stat='usage_usec 0',gpu=gpu,gpu_processes=raw,host_gpu_snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=n*10**9,sample_begin_ns=n*10**9,registered_store_helper=self.helper(),gpu=gpu,gpu_processes=raw,gpu_pids=[9001],foreign_gpu_pids=[])) for n in range(61)]
+        return [dict(second=n,monotonic_ns=n*10**9,delete_ack_ns=0,memory_current=1,pids_current=3,shm_used_bytes=0,memory_stat='anon 0\nfile 1\nshmem 0\nunevictable 0',cpu_stat='usage_usec 0',gpu=gpu,gpu_processes=raw,host_gpu_snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=n*10**9,sample_begin_ns=n*10**9,sample_end_ns=n*10**9,history_ok=True,first_monitor_error=None,registered_store_helper=self.helper(),gpu=gpu,gpu_processes=raw,gpu_pids=[9001],foreign_gpu_pids=[])) for n in range(61)]
     def test_valid_persistent_helper(self):validate_native_idle(self.rows(),[1769]*8,self.helper(),'r','b')
+    def test_c7_bad_sample_cannot_enter_native_idle(self):
+        rows=self.rows();rows[0]['host_gpu_snapshot'].update(sample_begin_ns=146885422339049,last_sample_ns=146901702225816,sample_end_ns=146905964141014)
+        with self.assertRaisesRegex(RuntimeError,'slow'):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
     def test_missing_rows(self):
         with self.assertRaises(RuntimeError):validate_native_idle(self.rows()[:-1],[1769]*8,self.helper(),'r','b')
     def test_retained_engine(self):

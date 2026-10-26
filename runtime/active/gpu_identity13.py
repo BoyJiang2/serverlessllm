@@ -1,4 +1,20 @@
 """Bind the one persistent Store CUDA helper to a live host/PID-namespace identity."""
+def require_monitor_sample(begin,mid,end,previous_begin=None,previous_mid=None):
+    if not all(type(value) is int for value in (begin,mid,end)) or not begin<=mid<=end or end-begin>5_000_000_000:
+        raise RuntimeError('slow or inconsistent monitor sample')
+    if (previous_begin is None)!=(previous_mid is None):raise RuntimeError('incomplete previous sample identity')
+    if previous_begin is not None:
+        if not 0<begin-previous_begin<=5_000_000_000:raise RuntimeError('monitor begin-to-begin gap')
+        if mid<=previous_mid:raise RuntimeError('nonmonotonic monitor')
+        if mid-previous_mid>5_000_000_000:raise RuntimeError('monitor coverage/cadence failed')
+
+
+def require_monitor_ready(snapshot,now_ns,run,boot):
+    require_monitor_sample(snapshot['sample_begin_ns'],snapshot['last_sample_ns'],snapshot['sample_end_ns'])
+    if snapshot['run_id']!=run or snapshot['boot_id']!=boot or snapshot['observers_ok'] is not True or snapshot['foreign_gpu_pids'] or snapshot['history_ok'] is not True or snapshot['first_monitor_error'] is not None or snapshot['sample_end_ns']>now_ns or not 0<=now_ns-snapshot['last_sample_ns']<=5_000_000_000:
+        raise RuntimeError('stale, unhealthy or wrong host monitor receipt')
+
+
 def store_identity(launch,service,processes,boot):
     matches=[]
     for process in processes:
@@ -12,7 +28,7 @@ def store_identity(launch,service,processes,boot):
     return matches[0] if matches else None
 
 def require_helper_only(snapshot,helper,now_ns,run,boot):
-    if snapshot['run_id']!=run or snapshot['boot_id']!=boot or not snapshot['observers_ok'] or not 0<=now_ns-snapshot['last_sample_ns']<=5_000_000_000: raise RuntimeError('stale or wrong host GPU identity receipt')
+    require_monitor_ready(snapshot,now_ns,run,boot)
     if not helper or snapshot['registered_store_helper']!=helper or helper['boot_id']!=boot: raise RuntimeError('Store helper birth/namespace identity changed')
     if snapshot['foreign_gpu_pids']: raise RuntimeError('external GPU process detected')
     if not set(snapshot['gpu_pids'])<={helper['host_pid']}: raise RuntimeError('GPU engine/unknown process retained')

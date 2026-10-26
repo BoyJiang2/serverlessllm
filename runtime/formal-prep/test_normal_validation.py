@@ -1,5 +1,5 @@
 """Reach normal lifecycle with audit flags absent; no GPU or HTTP operations."""
-import hashlib,importlib.util,json,pathlib,sys,tempfile,types,unittest
+import hashlib,importlib.util,json,pathlib,sys,tempfile,time,types,unittest
 from unittest.mock import patch
 
 class ReachedLifecycle(Exception):pass
@@ -24,7 +24,8 @@ class NormalValidation(unittest.TestCase):
             save(control/'run-manifest.json',manifest)
             save(out.parent/'store-numa-launch.json',{})
             save(control/((label or 'service13a')+'-identity.json'),{})
-            save(control/'monitor-v3-ready.json',dict(registered_store_helper={}))
+            stamp=time.monotonic_ns()
+            save(control/'monitor-v3-ready.json',dict(registered_store_helper={},run_id='test-run',boot_id='test-boot',observers_ok=True,foreign_gpu_pids=[],sample_begin_ns=stamp,last_sample_ns=stamp,sample_end_ns=stamp,history_ok=True,first_monitor_error=None))
             workspace=types.SimpleNamespace(run_root=lambda:control,manifest=lambda:manifest)
             real_path=pathlib.Path
             def redirect(value):return assets if str(value)=='/experiment' else real_path(value)

@@ -33,7 +33,7 @@ from formal_gate import verify_gate
 def run(out):
     gate = verify_gate()
     from sllm_store.client import SllmStoreClient
-    from gpu_identity13 import require_helper_binding,require_helper_only
+    from gpu_identity13 import require_helper_binding,require_helper_only,require_monitor_ready
     store_launch = json.loads((out/'store-numa-launch.json').read_text())
     store_pid,store_cpus = store_launch['pid'],store_launch['target_cpu_affinity']
     assert (out/'store-affinity-ready.json').is_file()
@@ -52,7 +52,8 @@ def run(out):
     (out/'autotune-log-baseline.log').write_bytes(read_mutable_log(ROOT/'native-home'))
     monitor_ready = ROOT/'monitor-v3-ready.json'
     assert monitor_ready.is_file(), 'whole-deployment isolation monitor unavailable'
-    assert time.monotonic_ns()-json.loads(monitor_ready.read_text())['last_sample_ns'] < 10*10**9
+    monitor_manifest=json.loads((ROOT/'run-manifest.json').read_text())
+    require_monitor_ready(json.loads(monitor_ready.read_text()),time.monotonic_ns(),monitor_manifest['run_id'],monitor_manifest['runtime_identity']['boot_id'])
     restored = json.loads((ASSETS/'validation/store-restore-validation.json').read_text())
     server_config = client.get_server_config()
     assert server_config == {'chunk_size':restored['chunk_bytes'],'mem_pool_size':restored['pool_bytes']}
@@ -73,7 +74,10 @@ def run(out):
         dispatch = json.loads((ROOT/(identity['spec']['name']+'-dispatch.json')).read_text())
         assert dispatch['boot_id'] == boot_id
     assert json.loads(monitor_ready.read_text())['boot_id'] == boot_id
-    def host_gpu():return json.loads(monitor_ready.read_text())
+    def host_gpu():
+        snapshot=json.loads(monitor_ready.read_text())
+        require_monitor_ready(snapshot,time.monotonic_ns(),run_id,boot_id)
+        return snapshot
     manifest=json.loads((ROOT/'run-manifest.json').read_text())
     stop=time.monotonic()+5;helper=None
     while time.monotonic()<stop:
@@ -269,7 +273,7 @@ def run(out):
             assert final_cache == frozen_cache, 'new or modified JIT artifacts; isolation failed'
             log_receipt = check_mutable_log_append(mutable_log_before,read_mutable_log(ROOT/'native-home'))
             (target/'autotune-log-append.json').write_text(json.dumps(log_receipt,indent=2))
-            assert time.monotonic_ns()-json.loads(monitor_ready.read_text())['last_sample_ns'] < 10*10**9
+            require_monitor_ready(host_gpu(),time.monotonic_ns(),run_id,boot_id)
             interference_file = ROOT/'interference-v3.jsonl'
             interference = [json.loads(line) for line in interference_file.read_text().splitlines()] if interference_file.exists() else []
             during = [row for row in interference if row['monotonic_ns'] >= record['preparation_begin_ns']]

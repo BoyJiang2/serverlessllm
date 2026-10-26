@@ -4,6 +4,7 @@ import datetime,json,pathlib,subprocess,time
 from resource_window_control13 import load_window
 from budget_control13 import require_budget
 from control_watchdog13 import supervise_child
+from gpu_identity13 import require_monitor_ready
 from workspace import SOURCE,run_root
 root=run_root()
 mode,label=sys.argv[1:]
@@ -15,8 +16,7 @@ record=dict(begin_ns=time.monotonic_ns(),status='failed',timeout_seconds=budget)
 def heartbeat():
     ready=json.loads((root/'monitor-v3-ready.json').read_text())
     manifest=json.loads((root/'run-manifest.json').read_text())
-    if ready['run_id']!=manifest['run_id'] or ready['boot_id']!=manifest['runtime_identity']['boot_id'] or not ready['observers_ok'] or ready['foreign_gpu_pids'] or not 0<=time.monotonic_ns()-ready['last_sample_ns']<=5_000_000_000:
-        raise RuntimeError('control stopped after monitor/observer heartbeat failure')
+    require_monitor_ready(ready,time.monotonic_ns(),manifest['run_id'],manifest['runtime_identity']['boot_id'])
 try:
     child=subprocess.Popen(['/experiment/.venv/bin/python','-u',str(SOURCE/script),label])
     record['child_pid']=child.pid

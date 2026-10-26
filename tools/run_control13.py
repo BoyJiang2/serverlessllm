@@ -64,9 +64,8 @@ def identity(name):
  return r,d
 def ready():
  r=json.loads((out/'monitor-v3-ready.json').read_text())
- assert r['run_id']==RUN and r['observers_ok'] and not r['foreign_gpu_pids']
- assert r['boot_id']==json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id']
- assert 0<=time.monotonic_ns()-r['last_sample_ns']<=5_000_000_000
+ from gpu_identity13 import require_monitor_ready
+ require_monitor_ready(r,time.monotonic_ns(),RUN,json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id'])
 manifest=json.loads((out/'run-manifest.json').read_text())
 if manifest.get('scope')=='monitor diagnostics only; no model or pool':
  assert PHASE in ('prepare','monitor-diagnostic'),'diagnostic run forbids G1 workers'
@@ -195,7 +194,8 @@ sys.path.insert(0,str(src))
 from preflight_control13 import check
 check(out,continuation=True)
 r=json.loads((out/'monitor-v3-ready.json').read_text())
-assert r['observers_ok'] and not r['foreign_gpu_pids'] and 0<=time.monotonic_ns()-r['last_sample_ns']<=5_000_000_000
+from gpu_identity13 import require_monitor_ready
+require_monitor_ready(r,time.monotonic_ns(),RUN,json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id'])
 name='monitor13' if PHASE=='prepare' else PHASE
 record=json.loads((out/(name+'-identity.json')).read_text())
 assert record['run_id']==RUN and record['code_commit']==CODE and record['manifest_sha256']==SHA

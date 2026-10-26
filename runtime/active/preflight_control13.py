@@ -1,6 +1,7 @@
 """Fail closed on node, booking, root-guard and monitoring identity drift."""
 import datetime,hashlib,json,os,pathlib,socket,stat,subprocess,sys,time
 from workspace import SOURCE
+from gpu_identity13 import require_monitor_ready
 
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden for verification code')
@@ -82,9 +83,7 @@ def check(root,monitor_required=True,continuation=False):
         current=current.parent
     if monitor_required:
         ready=json.loads((root/'monitor-v3-ready.json').read_text())
-        require(ready['run_id']==run and ready['boot_id']==expected['boot_id'],'monitor identity changed')
-        require(0<=time.monotonic_ns()-ready['last_sample_ns']<=5_000_000_000,'monitor not fresh')
-        require(ready['observers_ok'],'observer liveness failed')
+        require_monitor_ready(ready,time.monotonic_ns(),run,expected['boot_id'])
         for suffix in ['kernelobserver13','dockerobserver13']:
             unit=run+'-'+suffix+'.service'
             require(call('systemctl','is-active',unit)=='active','observer inactive: '+suffix)
