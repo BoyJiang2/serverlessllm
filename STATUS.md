@@ -319,3 +319,7 @@ ActualC14R1changes_required:missingAcomparisoncouldpassBC andunreapedcouldloseal
 ## canonical15 fullR1 approved, CPU actual pending
 
 Exact03b7e657/MF176a5a9e approvedlocalreadonlyR1 at18:56:36Z;61+8hashesmatch,146runtime/26operator(1POSIXskip)/3syntax. C14twofindingsandlateexitpartialclosed. OnlyCPUemptygrpcthreegroups,notStore/G1/R2/formal. Actualnew08:50guard/probe/observer/monitor/CPUphase/release pending. Latest02:52resource8GPU0/noGPUproc/sourceabsent/currentcontinuousbookingsuntil09. Formal5/4/31unchanged.
+
+## Actual C15 CPU grpc contrast completed and released
+
+SameimagePython3.12.13/grpc1.80: directwait SIGINT returns-2/stopCancelledError;shieldwait andeventstop return0/actualstopend. No forcedkill/timeouts/remaininglistener.45rawstrict5s rows pass,maxduration0.454074782/gap1.454322589.61point75.797408694release/rootindex/source61hasharchive passed,noownworkloads. Peak3624570880B/kernelnull. Supportsone-lineStorewaitshieldcandidate only,notrealStore/G1/R2/formalpass. Formal5/4/31 unchanged.
