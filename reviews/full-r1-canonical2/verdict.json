@@ -1,0 +1,131 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "approved",
+  "code_commit": "ef53e19273137d7ae98e0105c5d2893539aafff6",
+  "manifest_sha256": "a1dc0959486cb1274a1258850d3f6e660eff97e2889d43baf6e811f4dc1dd43c",
+  "static_source_approved": true,
+  "g1_status": "not_run_not_approved",
+  "r2_status": "not_reviewed_not_approved",
+  "prior_canonical1_binding": {
+    "code_commit": "5b01d7dc7f2f0e7d1fa1c774dba475312b232eb8",
+    "manifest_sha256": "cfa76d7d0d0b51eb1c6225c9a72b3eb0faeac5b994f2080c6e286a4fef9a40f4",
+    "status": "full R1 approved; does not approve canonical2 bytes"
+  },
+  "affected_diff": {
+    "run_alias": "/r",
+    "host_run_root": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261026T075854Z-e71cc109",
+    "container_run_root": "/r",
+    "readonly_inputs": "/experiment/... unchanged",
+    "new_run_id": "sllm-glm51fp8-20261026T075854Z-e71cc109",
+    "new_window": "10-18 + 18-21 contiguous; cleanup 20:50; timer 12:50 UTC",
+    "socket_regression": "old 154/158 bytes; new head/worker paths below 107; actual G1 still required",
+    "old_failed_run": "Ray head AF_UNIX>107; no Store/model/cache/formal; cleanup+75.822s release; source/evidence preserved; not retried"
+  },
+  "findings": [
+    {
+      "id": "C2-F01",
+      "severity": "low",
+      "status": "non_blocking_evidence",
+      "blocking_for_r1": false,
+      "title": "new two-booking window retains old overlay_created/snapshot timestamps",
+      "location": "runtime/active/resource-window-extension-v3.json:6-7,10-24,29-31; runtime/active/run-manifest.json:2; STATUS.md:169",
+      "evidence": "snapshot 2026-10-26T03:00:41Z and overlay_created 03:13:44Z predate the second booking bk-20261026T0607-546b6bd8 and the 14:46:58+08 query; bookings and overlay_sealed 08:08:34Z are new; load_window does not read these timestamps.",
+      "impact": "frozen window is accepted; the actual booking refresh timestamp is outside the window file, so the evidence chain is weaker; no false pass.",
+      "minimal_fix": "update snapshot/overlay_created or add booking_verified_utc (e.g. 2026-10-26T06:46Z) and require it in load_window/preflight; re-query booking immediately before dispatch."
+    },
+    {
+      "id": "C2-F02",
+      "severity": "low",
+      "status": "non_blocking_documentation",
+      "blocking_for_r1": false,
+      "title": "README and CANONICAL still describe 22/15 tests, 17:50 guard and one booking",
+      "location": "runtime/active/README.md:30-33; protocol/CANONICAL-WORKSPACE.md:25-26; runtime/active/run-manifest.json:8-9; runtime/active/resource-window-extension-v3.json:10-27; runtime/active/control-input-manifest.json:300-304",
+      "evidence": "current local validation is 94 CPU tests and the run window is 10-18+18-21 with 20:50 cleanup; README/CANONICAL are unchanged from canonical1.",
+      "impact": "documentation only; runtime uses run-manifest/resource-window.",
+      "minimal_fix": "update README to 94 and current /r/two-booking scope; annotate CANONICAL that 17:50 is the old canonical1 state and the current run is defined by run-manifest/window."
+    },
+    {
+      "id": "C2-F03",
+      "severity": "low",
+      "status": "non_blocking_verification",
+      "blocking_for_r1": false,
+      "title": "socket regression test covers head/plasma_store but not explicitly worker RAY_TMPDIR/raylet",
+      "location": "runtime/active/test_workspace.py:17-21; runtime/active/headray13a.json:42; runtime/active/headray13b.json:42; runtime/active/headservice13a.json:42; runtime/active/bootstrap_control13.py:45; runtime/active/ray_control13.py:25",
+      "evidence": "test path is /r/ray-head-<role>/session.../sockets/plasma_store <=107; worker RAY_TMPDIR=/r/ray-<label> is shorter; raylet/gcs_server are shorter than plasma_store.",
+      "impact": "test covers the maximum head form; actual G1 must still create the real sockets.",
+      "minimal_fix": "add worker RAY_TMPDIR and raylet/gcs_server to the test; use representative session names; record actual head/worker path lengths in G1."
+    },
+    {
+      "id": "C2-F04",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "blocking_for_r1": false,
+      "title": "head GCS TCP readiness and worker dispatch remain operator checks",
+      "location": "runtime/active/launch_control13.py:54-108; runtime/active/materialize_control13.py:23-29; runtime/active/ray_control13.py:56",
+      "evidence": "launch records container id/pid/cgroup; materialize inspects Running/labels/IP; no built-in GCS TCP 26530/26531/26532 check; ray.init fails if head not ready.",
+      "impact": "a head that is Running but GCS not ready could be dispatched too early; failure remains fail-closed in the Ray control.",
+      "minimal_fix": "add a bounded TCP connect to the head's GCS port after start, or keep operator verification and document exact order; no global Docker/BPF probe."
+    },
+    {
+      "id": "C2-F05",
+      "severity": "low",
+      "status": "non_blocking_metadata",
+      "blocking_for_r1": false,
+      "title": "run-manifest booking_id is the first booking while booking_ids contains both",
+      "location": "runtime/active/run-manifest.json:7,1472-1475; runtime/active/resource-window-extension-v3.json:10-24",
+      "evidence": "no Python code reads booking_id; load_window uses bookings; booking_ids contains both IDs.",
+      "impact": "metadata ambiguity only.",
+      "minimal_fix": "document booking_id as primary and booking_ids as the full window, or unify to an array."
+    },
+    {
+      "id": "C2-F06",
+      "severity": "low",
+      "status": "carried_non_blocking",
+      "blocking_for_r1": false,
+      "title": "writable /r run directory contains control metadata; accept uses the run-dir run-manifest",
+      "location": "runtime/active/workspace.py:66; runtime/active/deploy_control13.py:69-71; runtime/active/accept_control13.py:165-169; runtime/active/preflight_control13.py:26",
+      "evidence": "the single writable mount is the host run dir at /r; deploy copies run-manifest/control-input/window/cache-inputs there; preflight checks run-dir vs source before each launch, but accept does not re-check the run-dir run-manifest against the source.",
+      "impact": "low hardening gap; preflight catches drift before launches; accept has control-manifest and deployment hashes; same as canonical1 and not worsened by /r.",
+      "minimal_fix": "accept reads immutable fields from SOURCE/run-manifest or asserts the run-dir copy hash equals the control-input-manifest row."
+    },
+    {
+      "id": "C2-F07",
+      "severity": "carried_non_blocking",
+      "status": "carried",
+      "blocking_for_r1": false,
+      "title": "canonical1 non-blocking runtime conditions remain unchanged",
+      "location": "runtime/active/service13a-template.json:4; runtime/active/install_guard13.sh:19; runtime/active/launch_control13.py:43; runtime/active/supervise_control13.py:13; runtime/active/bootstrap_control13.py:79; runtime/active/accept_control13.py:184-205; runtime/active/release_control13.py:33-46",
+      "evidence": "1700G slice vs 1700g service plus head/monitor; exact 3600/510 second double admission; prepare_host baseline not guaranteed clean; host-local NextElapse string compare; staged release stop order; .venv/proto external; accept model-result independence. None changed in canonical2.",
+      "impact": "retained as runtime conditions, not re-opened as blocking; the prior canonical1 full R1 approved these as non-blocking.",
+      "minimal_fix": "keep the prior runtime checks; if any is to be removed, make a separate reviewed revision."
+    }
+  ],
+  "runtime_conditions": [
+    "new 20:50 guard/probe is not installed; old failed-run 17:50 guard is inactive and must not be reused",
+    "two bookings 10-18 and 18-21 are bound in resource-window; re-query the booking API immediately before dispatch; load_window only validates the frozen file",
+    "new run observers/monitor are not started; no observer-registration13.json, monitor-v3-ready.json or resource-monitor-v12.jsonl",
+    "new head/worker actual Unix sockets are not created; /r regression is CPU-only",
+    "after each head start, operator must verify Running and private GCS TCP port ready before dispatching the worker; stop only the recorded CID",
+    "two Ray controls must each pass and complete their own 60s release before the real service batch",
+    "real 716 GiB pool, 148/756 GB cache, four native lifecycles, 32 rank records, PSS, 61-row idle60 and release60 x3 are not run",
+    "root evidence index and final allstopped release are not produced for the new run",
+    "G1 and R2 are not run; formal ledger remains 5 success / 4 failed / 31 unstarted; store_pool_hit_03 only after G1 then R2 then formal admission",
+    "any failure stops new allocation, cleans this run, final 60s observation and root index; no overwrite and no formal retry",
+    "historical exit137 remains failed; dockerd stop/force mechanism known; upstream requester/reason unknown; not attributed to Ray/OOM",
+    "verify Asia/Shanghai host timezone, clean GPU baseline, 1700G/1700g composition, exact admission margins, staged release order, .venv/proto/grpc and actual /r paths",
+    "old failed run source/evidence retained; active code directory must be free for approved replacement; no reintroduction of old long path or second writable host asset"
+  ],
+  "limitations": [
+    "read-only review; no shell, SSH, resource command, file modification, credential read or subagent",
+    "SHA-256 values were compared from supplied/computed manifests and evidence; no independent full recomputation",
+    "host INDEX.json, full 1,142 parent manifest, 756 GB weights/Store payloads and host validation copies were not read",
+    "no actual guard, monitor, head/worker socket, cache, pool, native lifecycle, G1 or R2 was run",
+    "the actual socket limit conclusion is based on the real templates plus CPU regression, not a live Ray session",
+    "the unchanged accept/bootstrap/validation/monitor/cache/store/weight-contract logic relies on the prior canonical1 full R1 approval; canonical2 only re-reviewed the affected diff",
+    "README/CANONICAL remain stale for 22/15 and 17:50/one-booking; runtime uses run-manifest/resource-window",
+    "the new window snapshot/overlay timestamps are old draft values; the actual booking query is recorded in STATUS, not in the window file",
+    "the actual remote commit/manifest binding is as supplied by the caller and was not independently verified by git",
+    "no external human or institutional approval is claimed"
+  ]
+}
