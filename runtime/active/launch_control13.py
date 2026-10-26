@@ -27,7 +27,7 @@ for row in json.loads((root/'control-input-manifest.json').read_text())['files']
     path=(SOURCE/row['path']).resolve()
     assert path.is_relative_to(SOURCE)
     assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
-from materialize_control13 import validate_spec,validate_scope
+from materialize_control13 import validate_spec,validate_scope,verify_timeout_probe
 from resource_window_control13 import load_window
 spec = json.loads((root / sys.argv[1]).read_text())
 validate_spec(root, spec)
@@ -40,10 +40,11 @@ assert spec['name'].replace('_', '').isalnum()
 window = load_window(root)
 deadline = datetime.datetime.fromisoformat(window['cleanup_deadline'])
 from budget_control13 import require_budget
-require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=validate_scope(root,spec['name']))
+diagnostic=validate_scope(root,spec['name'])
+require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=diagnostic)
 
 def call(*args):
-    return subprocess.check_output(args, text=True).strip()
+    return subprocess.check_output(args, text=True, timeout=15).strip()
 
 assert call('systemctl', 'is-active', window['guard_timer']) == 'active'
 expected_next = deadline.strftime('%Y-%m-%d %H:%M:%S')
@@ -51,6 +52,9 @@ observed_next = call('systemctl', 'show', window['guard_timer'], '-p', 'NextElap
 assert expected_next in observed_next, (expected_next, observed_next)
 if spec.get('gpus') or spec['name'].startswith('head'):
     assert not call('nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader').strip(), 'GPU occupied'
+if diagnostic and spec['name']=='headservice13a':
+    monitor=json.loads((root/'monitor13-identity.json').read_text())
+    verify_timeout_probe(root,json.loads(call('docker','inspect',monitor['container_id']))[0])
 args = ['docker', 'create', '--network=' + spec.get('network', 'none'), '--memory=' + spec['memory'],
         '--cpus=' + str(spec['cpus']), '--shm-size=32g', '--ulimit=core=0', '--restart=no', '--cgroup-parent=' + run + '.slice',
         '--name=' + run + '-' + spec['name'], '--label=sllm.run_id=' + run,

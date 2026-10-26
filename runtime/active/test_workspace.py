@@ -78,7 +78,9 @@ class Workspace(unittest.TestCase):
         import materialize_control13 as m
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)
-            (root/'run-manifest.json').write_bytes((w.SOURCE/'run-manifest.json').read_bytes())
+            manifest=json.loads((w.SOURCE/'run-manifest.json').read_text())
+            manifest.update(scope='G1 independent untimed controls only; zero formal IDs',monitor_diagnostic_trace=False)
+            (root/'run-manifest.json').write_text(json.dumps(manifest))
             spec=json.loads((w.SOURCE/'headray13a.json').read_text());spec['argv'].append('--num-gpus=8')
             (root/'headray13a.json').write_text(json.dumps(spec))
             with self.assertRaises(AssertionError):m.validate_spec(root,spec)

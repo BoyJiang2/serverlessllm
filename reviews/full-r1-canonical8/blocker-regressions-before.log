@@ -1,0 +1,61 @@
+test_diagnostic_allows_only_monitor_and_bounded_cpu_head (test_control13.Admission.test_diagnostic_allows_only_monitor_and_bounded_cpu_head) ... FAIL
+test_timeout_receipt_requires_exact_live_own_monitor (test_control13.Admission.test_timeout_receipt_requires_exact_live_own_monitor) ... ERROR
+test_diagnostic_client_timeout_requests_cleanup_without_redispatch (test_control_transport13.Transport.test_diagnostic_client_timeout_requests_cleanup_without_redispatch) ... ERROR
+test_diagnostic_stale_pre_stop_sample_cannot_publish_completion (test_control_transport13.Transport.test_diagnostic_stale_pre_stop_sample_cannot_publish_completion) ... FAIL
+
+======================================================================
+ERROR: test_timeout_receipt_requires_exact_live_own_monitor (test_control13.Admission.test_timeout_receipt_requires_exact_live_own_monitor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_control13.py", line 80, in test_timeout_receipt_requires_exact_live_own_monitor
+    m.verify_timeout_probe(target,info)
+    ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'old_materialize' has no attribute 'verify_timeout_probe'
+
+======================================================================
+ERROR: test_diagnostic_client_timeout_requests_cleanup_without_redispatch (test_control_transport13.Transport.test_diagnostic_client_timeout_requests_cleanup_without_redispatch)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 35, in test_diagnostic_client_timeout_requests_cleanup_without_redispatch
+    rc,calls,_=self.exercise(diagnostic=True,client_timeout=True)
+               ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 31, in exercise
+    rc=operator.main([phase,code,sha,'reviews/verdict.json'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\run_control13.py", line 240, in main
+    payload=dict(error='bounded reconciliation timed out; state unknown')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 1167, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 1171, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 1232, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 20, in execute
+    if client_timeout:raise subprocess.TimeoutExpired(args,kwargs['timeout'])
+                                                           ~~~~~~^^^^^^^^^^^
+KeyError: 'timeout'
+
+======================================================================
+FAIL: test_diagnostic_allows_only_monitor_and_bounded_cpu_head (test_control13.Admission.test_diagnostic_allows_only_monitor_and_bounded_cpu_head)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_control13.py", line 56, in test_diagnostic_allows_only_monitor_and_bounded_cpu_head
+    with self.assertRaises(RuntimeError):require_budget('headservice13a',899.999,diagnostic=True)
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+AssertionError: RuntimeError not raised
+
+======================================================================
+FAIL: test_diagnostic_stale_pre_stop_sample_cannot_publish_completion (test_control_transport13.Transport.test_diagnostic_stale_pre_stop_sample_cannot_publish_completion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 181, in test_diagnostic_stale_pre_stop_sample_cannot_publish_completion
+    self.assertIsNotNone(error)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+AssertionError: unexpectedly None
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.036s
+
+FAILED (failures=2, errors=2)

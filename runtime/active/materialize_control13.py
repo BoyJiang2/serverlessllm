@@ -2,11 +2,11 @@ import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden')
 """Only observed head IP or the exact run slice may vary from reviewed templates."""
-import json,pathlib,subprocess,sys
+import hashlib,json,pathlib,subprocess,sys
 from workspace import SOURCE,run_root
 
 def call(*args):
-    return subprocess.check_output(args,text=True).strip()
+    return subprocess.check_output(args,text=True,timeout=15).strip()
 
 def validate_scope(root,name):
     manifest=json.loads((root/'run-manifest.json').read_text())
@@ -17,6 +17,20 @@ def validate_scope(root,name):
     elif manifest.get('monitor_diagnostic_trace',False):
         raise RuntimeError('trace requires diagnostic-only scope')
     return diagnostic
+
+
+def verify_timeout_probe(root,info):
+    manifest=json.loads((root/'run-manifest.json').read_text())
+    deployment=json.loads((root/'deployment.json').read_text())
+    identity=json.loads((root/'monitor13-identity.json').read_text())
+    proof=json.loads((root/'diagnostic-timeout-probe.json').read_text())
+    expected=dict(run_id=manifest['run_id'],code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'],boot_id=manifest['runtime_identity']['boot_id'],container_id=identity['container_id'],image_id=manifest['image_id'],argv=['/usr/bin/timeout','--version'],returncode=0)
+    if any(proof.get(k)!=v for k,v in expected.items()) or hashlib.sha256(proof['stdout'].encode()).hexdigest()!=proof['stdout_sha256'] or not proof['stdout'].startswith('timeout (GNU coreutils)'):
+        raise RuntimeError('timeout probe receipt differs')
+    labels=info['Config']['Labels']
+    if info['Id']!=identity['container_id'] or info['Image']!=manifest['image_id'] or labels.get('sllm.run_id')!=manifest['run_id'] or labels.get('sllm.uid')!='2147' or not info['State']['Running'] or info['State']['Pid']!=identity['pid']:
+        raise RuntimeError('timeout probe container identity changed')
+    return proof
 
 
 def expected_spec(root,name):

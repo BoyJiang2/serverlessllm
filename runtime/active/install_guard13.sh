@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
-run_id=sllm-glm51fp8-20261026T132344Z-a8efabb2
+run_id=sllm-glm51fp8-20261026T161004Z-817be4b6
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 test "$(stat -c %u "$base")" = 2147
-test "$(date -u +%s)" -ge 1793008800
+test "$(date -u +%s)" -ge 1793019600
 test "$(date -u +%s)" -lt 1793040600
 test ! -e "/run/$run_id/cleanup-v13.sh"
 install -d -m 0755 -o root -g root "/run/$run_id"

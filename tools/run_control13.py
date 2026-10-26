@@ -29,7 +29,7 @@ def load_context(code,sha,verdict_file):
     return run
 
 REMOTE=r'''
-import datetime,json,pathlib,socket,subprocess,time
+import datetime,hashlib,json,pathlib,socket,subprocess,time
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')
 src=root/'code/experiment'
 import sys
@@ -70,6 +70,7 @@ def ready():
 manifest=json.loads((out/'run-manifest.json').read_text())
 if manifest.get('scope')=='monitor diagnostics only; no model or pool':
  assert PHASE in ('prepare','monitor-diagnostic'),'diagnostic run forbids G1 workers'
+ assert datetime.datetime.fromisoformat(manifest['cleanup_deadline']).timestamp()-time.time()>=900,'insufficient diagnostic and release reserve'
 if PHASE!='prepare' or OBSERVE:
  from preflight_control13 import check
  check(out,continuation=OBSERVE)
@@ -85,6 +86,13 @@ if PHASE=='prepare' and not OBSERVE:
   if time.monotonic()>deadline:raise RuntimeError('monitor readiness timeout')
   time.sleep(.5)
  ready()
+ if manifest.get('scope')=='monitor diagnostics only; no model or pool':
+  monitor,info=identity('monitor13')
+  argv=['/usr/bin/timeout','--version']
+  output=call(['docker','exec',monitor['container_id'],*argv],timeout=10)
+  assert output.startswith('timeout (GNU coreutils)'), 'required GNU timeout unavailable'
+  proof=dict(run_id=RUN,code_commit=CODE,manifest_sha256=SHA,boot_id=manifest['runtime_identity']['boot_id'],container_id=monitor['container_id'],image_id=info['Image'],argv=argv,returncode=0,stdout=output,stdout_sha256=hashlib.sha256(output.encode()).hexdigest())
+  with (out/'diagnostic-timeout-probe.json').open('x') as stream:json.dump(proof,stream,indent=2)
 elif PHASE=='prepare':
  ready()
  proof=json.loads((out/'host-preparation.json').read_text());assert proof['code_commit']==CODE and proof['manifest_sha256']==SHA
@@ -102,6 +110,10 @@ else:
  if PHASE=='service13a':assert json.loads((out/'ray13b-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13b.json').is_file()
  head='headservice13a' if diagnostic else 'head'+PHASE
  if not OBSERVE:
+  if diagnostic:
+   from materialize_control13 import verify_timeout_probe
+   _,monitor_info=identity('monitor13')
+   verify_timeout_probe(out,monitor_info)
   launch(head)
   r,d=identity(head)
   argv=r['spec']['argv'];port=next(int(x.split('=',1)[1]) for x in argv if x.startswith('--port='))
@@ -140,12 +152,18 @@ print('CPU import preflight passed')"""
   ready()
   _,d=identity(head)
   if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
+  stop_ns=time.monotonic_ns()
   _,stopped=identity(head)
   assert not stopped['State']['Running'],'diagnostic head retained'
-  ready()
+  while True:
+   ready()
+   post_stop=json.loads((out/'monitor-v3-ready.json').read_text())
+   if post_stop['sample_begin_ns']>=stop_ns:break
+   if time.monotonic()>=diagnostic_end:raise TimeoutError('no post-stop sample within original diagnostic budget')
+   time.sleep(.2)
   if time.monotonic()>diagnostic_end:raise TimeoutError('original180s diagnostic budget expired')
   with (out/'monitor-diagnostic-result.json').open('x') as stream:
-   json.dump(dict(run_id=RUN,code_commit=CODE,manifest_sha256=SHA,status='CPU phase completed; trace and release still require review',head_container_id=r['container_id'],end_ns=time.monotonic_ns(),scope='no model or pool'),stream,indent=2)
+   json.dump(dict(run_id=RUN,code_commit=CODE,manifest_sha256=SHA,status='CPU phase completed; trace and release still require review',head_container_id=r['container_id'],stop_ns=stop_ns,post_stop_sample_begin_ns=post_stop['sample_begin_ns'],end_ns=time.monotonic_ns(),scope='no model or pool'),stream,indent=2)
  else:
   worker,state=identity(PHASE)
   budget=330 if PHASE.startswith('ray') else 3420
@@ -236,8 +254,14 @@ def main(argv=None):
     folder=REPO.parent/'outputs'/('g1-'+run);folder.mkdir(exist_ok=True)
     prefix=bound_prefix(run,phase,code,sha,observe,segment)
     path=folder/('operator-'+args.phase+'-'+segment+'-client.log')
+    diagnostic=json.loads((REPO/'runtime/active/run-manifest.json').read_text()).get('scope')=='monitor diagnostics only; no model or pool'
+    client_timeout=(300 if phase=='prepare' else 210) if diagnostic else None
     with path.open('x',encoding='utf-8') as stream:
-        result=subprocess.run(SSH,input=prefix+REMOTE,text=True,encoding='utf-8',stdout=stream,stderr=subprocess.STDOUT)
+        try:
+            result=subprocess.run(SSH,input=prefix+REMOTE,text=True,encoding='utf-8',stdout=stream,stderr=subprocess.STDOUT,timeout=client_timeout)
+        except subprocess.TimeoutExpired:
+            stream.write('bounded client SSH timeout; execution unknown; own cleanup required\n')
+            result=subprocess.CompletedProcess(SSH,124)
     print(json.dumps(dict(run_id=run,phase=args.phase,returncode=result.returncode,log=str(path))))
     if result.returncode==0:return 0
     if result.returncode==255:
