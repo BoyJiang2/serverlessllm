@@ -1,5 +1,5 @@
 """SSH failures must not restart or kill a verified healthy execution."""
-import contextlib,io,json,pathlib,subprocess,sys,tempfile,time,types,unittest
+import ast,contextlib,io,json,pathlib,subprocess,sys,tempfile,time,types,unittest
 from unittest.mock import patch
 import run_control13 as operator
 
@@ -176,6 +176,25 @@ class Transport(unittest.TestCase):
             self.assertIsInstance(error,AssertionError)
             self.assertEqual(calls,[])
             self.assertFalse(receipt)
+
+    def test_post_stop_uses_the_exact_snapshot_validated_by_ready(self):
+        good=dict(run_id='r',boot_id='b',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=1,sample_begin_ns=0,sample_end_ns=2,history_ok=True,first_monitor_error=None)
+        bad=dict(good,history_ok=False,first_monitor_error=dict(reason='new violation'))
+        reads=[]
+        class Root:
+            def __truediv__(self,name):
+                def read():
+                    if name=='run-manifest.json':return json.dumps(dict(runtime_identity=dict(boot_id='b')))
+                    reads.append(name)
+                    return json.dumps(good if len(reads)==1 else bad)
+                return types.SimpleNamespace(read_text=read)
+        tree=ast.parse(operator.REMOTE)
+        ready=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='ready')
+        loop=next(n for n in ast.walk(tree) if isinstance(n,ast.While) and any(isinstance(t,ast.Name) and t.id=='post_stop' for stmt in n.body if isinstance(stmt,ast.Assign) for t in stmt.targets))
+        scope=dict(json=json,time=types.SimpleNamespace(monotonic_ns=lambda:2),out=Root(),RUN='r',stop_ns=0)
+        exec(compile(ast.Module(body=[ready,loop],type_ignores=[]),'actual-ready-poststop-race','exec'),scope)
+        self.assertEqual(len(reads),1)
+        self.assertTrue(scope['post_stop']['history_ok'])
 
     def test_diagnostic_stale_pre_stop_sample_cannot_publish_completion(self):
         calls,error,receipt=self.diagnostic(post_sample=False)

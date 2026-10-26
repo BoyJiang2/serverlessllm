@@ -66,6 +66,7 @@ def ready():
  r=json.loads((out/'monitor-v3-ready.json').read_text())
  from gpu_identity13 import require_monitor_ready
  require_monitor_ready(r,time.monotonic_ns(),RUN,json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id'])
+ return r
 manifest=json.loads((out/'run-manifest.json').read_text())
 if manifest.get('scope')=='monitor diagnostics only; no model or pool':
  assert PHASE in ('prepare','monitor-diagnostic'),'diagnostic run forbids G1 workers'
@@ -155,8 +156,7 @@ print('CPU import preflight passed')"""
   _,stopped=identity(head)
   assert not stopped['State']['Running'],'diagnostic head retained'
   while True:
-   ready()
-   post_stop=json.loads((out/'monitor-v3-ready.json').read_text())
+   post_stop=ready()
    if post_stop['sample_begin_ns']>=stop_ns:break
    if time.monotonic()>=diagnostic_end:raise TimeoutError('no post-stop sample within original diagnostic budget')
    time.sleep(.2)
