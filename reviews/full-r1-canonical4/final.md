@@ -1,0 +1,82 @@
+```json
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "approved",
+  "code_commit": "e1e8851ad10a5ebabc5ce587eb8c6d54585d0833",
+  "manifest_sha256": "c0cb93c5c0cd3a7c7c5c448de24632582a8486c0974fac34e2f94692f38ccc89",
+  "findings": [
+    {
+      "id": "C4-F01",
+      "severity": "high",
+      "status": "closed",
+      "blocking_for_r1": false,
+      "title": "prepare_host now creates six empty cache groups and reuses zero compiled bytes",
+      "location": "runtime/active/prepare_host13.py:10-19,28-34; runtime/active/compilation_guard.py:5; runtime/active/test_prepare_host13.py:6-27; reviews/actual-controls/sllm-glm51fp8-20261026T092330Z-97af52ad/outcome.json:54-182,191; reviews/actual-controls/sllm-glm51fp8-20261026T092330Z-97af52ad/first-permission-error.txt:4-27; runtime/active/control-input-manifest.json:153-156,248-251,305-308",
+      "evidence": "prepare_home creates native-home and exactly the six CACHE_DIRECTORIES (inductor, triton, vllm, cuda, .cache, .tensorrt_llm), records cache_reused_bytes=0 and no relocated compiled artifacts, and performs no archive copy or generated-source rewrite. Three new CPU tests verify all six start empty, prior generated absolute-path files are not imported or modified, and an existing native-home is never overwritten. 98 tests pass in reviews/full-r1-canonical4/cpu-tests.log; the manifest records cpu_tests=98 and repository inputs reviews/full-r1-canonical4/cpu-tests.log and shell-syntax.json. The actual C3 outcome and first-permission-error show the old failure was a copied TorchInductor generated file embedding /experiment/native-home; the new empty cache removes that reuse path.",
+      "impact": "The observed C3 first-warmup PermissionError from a stale copied absolute path is closed in the affected source. Compilation/autotuning now occurs in the untimed G1 initialization only; no old cache is reused.",
+      "minimal_fix": "None for source; use fresh empty caches in G1."
+    },
+    {
+      "id": "C4-F02",
+      "severity": "runtime_condition",
+      "status": "accepted_non_blocking_risk",
+      "blocking_for_r1": false,
+      "title": "Fresh compile/autotune may exceed the unchanged service budget; it must fail honestly",
+      "location": "runtime/active/budget_control13.py:4; runtime/active/bootstrap_control13.py:80; runtime/active/control_watchdog13.py:4-34; runtime/active/prepare_host13.py:17-19; runtime/active/cache_state_control13.py:600s path",
+      "evidence": "The service budget remains 3420s with the 25s TERM/KILL reserve and 3300s bootstrap alarm; cache remains 600s; no extension or coverage reduction was added. With zero cache reuse, first warmup compile/autotune is now inside the same untimed G1 window. If it exceeds the alarm, bootstrap/supervisor fail closed; the code does not extend the budget or skip 32-rank/business/60s coverage.",
+      "impact": "The compile cost is unmeasured and G1 may honestly fail on the fixed budget. This is not a static source defect and does not require an unguarded pre-approval compile run. Formal timing remains separate and must freeze warm JIT caches under its own R2/v11 guard.",
+      "minimal_fix": "Run G1 with the unchanged budget; on overflow fail and retain the failure. Do not extend or delete coverage; freeze warm JIT caches only for separately reviewed formal timing/R2."
+    },
+    {
+      "id": "C4-F03",
+      "severity": "runtime_condition",
+      "status": "carried",
+      "blocking_for_r1": false,
+      "title": "Prior harness conditions remain unchanged and required",
+      "location": "runtime/active/service13a-template.json:4; runtime/active/install_guard13.sh:19; runtime/active/launch_control13.py:43; runtime/active/supervise_control13.py:13; runtime/active/bootstrap_control13.py:79; runtime/active/accept_control13.py:184-205; runtime/active/release_control13.py:33-46",
+      "evidence": "Same 1700G slice vs 1700g service plus head/monitor, exact 3600/510 second admission boundary, clean GPU baseline, Asia/Shanghai timer comparison, staged release stop order, .venv/proto/grpc, accept model-result independence, /r alias, two-booking 20:50 window and head GCS readiness. The current manifest keeps the same runtime templates and budgets.",
+      "impact": "Retained runtime conditions; canonical4 does not remove them.",
+      "minimal_fix": "Keep the prior checks and run them for the new canonical4 run."
+    },
+    {
+      "id": "C4-F04",
+      "severity": "low",
+      "status": "non_blocking",
+      "blocking_for_r1": false,
+      "title": "Actual C3 cleanup first client returned 1, automatic second returned 0; cause not inferred",
+      "location": "reviews/actual-controls/sllm-glm51fp8-20261026T092330Z-97af52ad/outcome.json:184-190; STATUS.md:189-193",
+      "evidence": "The closed C3 run records cleanup_client_first_returncode=1, automatic second returncode=0, raw root log retained, and final root index passed. The outcome explicitly says the first nonzero reason is not inferred; this is separate from historical exit137.",
+      "impact": "No source defect established; the new run must produce its own cleanup/root evidence and not reuse the C3 run credentials.",
+      "minimal_fix": "None for source; retain raw logs and repeat independent cleanup/release verification for canonical4."
+    },
+    {
+      "id": "C4-F05",
+      "severity": "low",
+      "status": "non_blocking_metadata",
+      "blocking_for_r1": false,
+      "title": "Prior window/README metadata caveats remain but do not affect the new manifest binding",
+      "location": "runtime/active/resource-window-extension-v3.json:6-7,29-31; runtime/active/run-manifest.json:7,1472-1475; runtime/active/README.md:30-33; protocol/CANONICAL-WORKSPACE.md:25-26; runtime/active/control-input-manifest.json:193-195,305-308",
+      "evidence": "The canonical4 run-manifest has candidate_revision=canonical4 and created_utc=2026-10-26T10:14:14.756754+00:00; the window original hash is c6e9d140..., matching the control-input-manifest run-manifest row. The control manifest records 98 tests and canonical4 repository inputs. The window still carries old overlay/snapshot draft timestamps and README/CANONICAL retain older path-stage/17:50 text; these are metadata/documentation, not runtime gates.",
+      "impact": "No manifest identity mismatch of C3-F01 type; the new code/manifest binding is consistent.",
+      "minimal_fix": "Retain/annotate the historical window/README timestamps; no runtime change required for this R1."
+    }
+  ],
+  "runtime_conditions": [
+    "The new canonical4 20:50 guard is not deployed; prior actual C2/C3 20:50 guards are cleaned inactive; 17:50 is the older C1; the new guard must be installed and probed separately.",
+    "Two contiguous boyjiang bookings 10-18 and 18-21 remain the window; re-query booking and refresh GPU/UUID/boot/memory/NUMA/disk immediately before dispatch.",
+    "prepare_host must create the six empty cache groups; all compile/autotune is untimed G1 initialization; fresh compile may exceed 3300s/3420s and must fail honestly, without extending the budget or dropping coverage.",
+    "After the new guard and head GCS readiness, the operator CPU-only verify_store_imports/version preflight may run in the exact own no-GPU head before the service worker; no serve/pool/model; proof under /r; failure stops; distinguish libglog/import-order failure from no-GPU libcuda absence; not G1.",
+    "Each head must be Running with private GCS TCP ready before worker dispatch; stop only the recorded CID.",
+    "Two Ray controls must pass with their 60s releases before the service batch; service remains 3420s, bootstrap 3300s, cache 600s.",
+    "Real G1 still requires the 716GiB pool, 148-input hot cache, four native lifecycles, 8-rank weight pipeline with 32 rank records, PSS, 61-row idle60, three 60s releases and root-owned evidence index.",
+    "The actual C3 run failed at first warmup on copied /experiment/native-home; business gold and 32-rank audit did not pass; cleanup 75.79s and root evidence passed. Canonical4 must produce its own new evidence and must not reuse C3 credentials.",
+    "The C3 cleanup first client returned 1 and the automatic second returned 0; raw logs are retained and no cause is inferred. The new run must repeat its own cleanup/root index.",
+    "No historical exit137 attribution is made; dockerd stop/force remains the known mechanism, upstream requester/reason unknown.",
+    "Formal ledger remains 5 success / 4 failed / 31 unstarted; no formal ID consumed; G1 and R2 are not passed.",
+    "runtime/formal-prep is an isolated incomplete draft, not in this G1 package, not admitted by this R1; formal timing/R2 requires separate review and frozen warm JIT caches.",
+    "Retain prior non-blocking conditions: 1700G/1700g composition, exact admission boundary, clean GPU baseline, Asia/Shanghai timer compare, staged release order, .venv/proto/grpc, accept model-result independence.",
+    "No new global Docker/BPF probe is required; the head CPU-only import check is bounded and target-specific."
+  ]
+}
+```
