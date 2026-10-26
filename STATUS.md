@@ -249,3 +249,7 @@ DeepSeek trace re-review approve_static_trace, bounded-plan changes_required(P1â
 ## Parallel formal preparation path correction
 
 Prepared collector/driver now read original canonical results/formal-trials/<ID>/result.json and SOURCE/initial-ledger.json; no asset copy or active-package change. Actual nested-layout regression gives7errors/9cases on old flat collector, all49preparedCPUtests pass after fix. Original5/4/31 and nextstore_pool_hit_03 preserved. Formal roles/mounts/host-admission/normal-flags/batch integration and completeG1/R2 remain pending. User selected local independent readonly subagent for fullcanonical8R1 after externalfullpackage approval rejection; no fullR1package was sent externally.
+
+## canonical8 local independent R1 approved, runtime not started
+
+User explicitly selected local readonly subagent for fullR1. /root/independent_readonly_review returnedapproved at16:22:21Z, boundcode4b455955c0fdba2a85efa1a79071ab489ca2cec1/MF52b75d7de761346564491f732fa91ac251d4261deb67cf7d2f6010c3568c248f;59runtime+8repoInput hashes match. Approval only diagnostic-only execution surface with mandatory actual guard/probe/resource/tool/strictsampling/cleanup/release conditions; notG1/R2/formal. Exact formal-history readonly refresh16:22:26Z verifies nine resultSHAs/31absentdirs, totals5/4/31,nextstore_pool_hit_03. Deployment and actualnew02:50guard still pending at this receipt.
