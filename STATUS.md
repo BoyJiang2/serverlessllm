@@ -299,3 +299,7 @@ Run182853Z-bbc012a6/MF8fb8ae8a473d23fd5971bcc1daa4cbd415c0b9fb5a8c22185b835237ec
 ## canonical12 rejected, canonical13 minimal admission fix
 
 ActualreadonlyR1C12changes_required:operator-onlySIGINTprobe couldbebypassedbydirectservice launcher. Original1e3dc8c/MF8fb8retained. Existingproducer nowbindsrun/headCID/image/boot/code/MF;poolservice launcher requiresliveexacthead/dispatch/successproofbeforeDockercreate. Missing/wrong/failed/stale/exitedhead/PIDreuse regressiontests. Newrun183147Z-b13fd994/MFfdb1e05604733e46f80f32b8c042f90b2b4a68f55588f2a65dc1a3c4c7637c81;145runtime/20operator(1POSIXskip)/3syntax. FullR1pending,no newguard/deployment/pool. Formal5/4/31unchanged.
+
+## canonical13 actual local fullR1 approved
+
+ReadonlyR1approved21d0c897/MFfdb1e056 at18:33:54Z;61+8hashes match. R1-C12-01closed. One nonblockingWindows-skippedLinuxunitfixtureissue retained R1-C13-T01; actualcompleteLinuxprobe mandatory beforepool. Fresh02:33snapshot8GPU0/noGPUproc/sourceabsent/current21-03+03-09booking. New08:50guard/deployment notyetdone. ApprovalonlyStore-onlydiagnostic; G1/R2/formal notpassed,5/4/31unchanged.
