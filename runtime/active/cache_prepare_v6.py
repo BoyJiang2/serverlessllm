@@ -1,0 +1,57 @@
+"""Eight bounded readers, with joins and NUMA/I/O receipts before admission."""
+import concurrent.futures
+import ctypes
+import os
+import pathlib
+import threading
+import time
+
+HOT_WORKERS = 8
+BUFFER_BYTES = 8*1024*1024
+_getcpu = ctypes.CDLL(None).sched_getcpu if os.name == 'posix' else None
+
+
+def numa_receipt():
+    return {'monotonic_ns':time.monotonic_ns(),
+            'cpu_affinity':sorted(os.sched_getaffinity(0)),
+            'status':pathlib.Path('/proc/self/status').read_text(),
+            'numa_maps':pathlib.Path('/proc/self/numa_maps').read_text(),
+            'node_meminfo':{path.parent.name:path.read_text() for path in sorted(
+                pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo'))},
+            'policy':'inherit allowed CPUs and Linux NUMA policy; no binding or policy change; node counters are global, not exact per-file page placement'}
+
+
+def read_one(path):
+    start_cpu = _getcpu() if _getcpu else None
+    size = 0
+    with path.open('rb') as stream:
+        while data := stream.read(BUFFER_BYTES):
+            size += len(data)
+    return {'file':str(path),'mode':'hot','bytes_read':size,
+            'native_thread_id':threading.get_native_id(),
+            'cpu_begin':start_cpu,'cpu_end':_getcpu() if _getcpu else None,
+            'complete_monotonic_ns':time.monotonic_ns()}
+
+
+def read_hot(paths):
+    baseline = {thread.ident for thread in threading.enumerate()}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=HOT_WORKERS) as executor:
+        rows = list(executor.map(read_one,paths))  # Exceptions propagate; context joins even on error.
+    assert {thread.ident for thread in threading.enumerate()} == baseline, 'reader thread remains alive'
+    return rows
+
+
+def wait_read_idle(deadline):
+    path = pathlib.Path('/sys/block/nvme1n1/inflight')
+    rows = []
+    consecutive = 0
+    stop = min(time.time()+30,deadline-120)
+    while time.time() < stop:
+        counts = list(map(int,path.read_text().split()))
+        rows.append({'monotonic_ns':time.monotonic_ns(),'read_inflight':counts[0],
+                     'write_inflight':counts[1]})
+        consecutive = consecutive+1 if counts[0]==0 else 0
+        if consecutive >= 2:
+            return rows
+        time.sleep(.1)
+    raise TimeoutError('local device still has in-flight reads after preparation')
