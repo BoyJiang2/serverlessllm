@@ -3,7 +3,7 @@ import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
 import gzip,hashlib,json,pathlib,stat
 from workspace import SOURCE,run_root,workspace,host_workspace
-from gpu_identity13 import require_helper_binding,require_helper_only,store_identity
+from gpu_identity13 import require_helper_binding,require_helper_only,store_identity,gpu_pids
 
 def require(value,message):
     if not value: raise RuntimeError(message)
@@ -33,6 +33,8 @@ def monitor_summary(path,gpu_context=None,expected_gpu=None):
                 require(row['registered_store_helper']==store_identity(launch,service,row['processes'],boot),'host monitor helper derivation differs')
                 for key in ('registered_store_helper','gpu_pids','foreign_gpu_pids'):
                     require(row[key]==expected[key],'GPU snapshot differs from raw host monitor: '+key)
+                for key in ('gpu','gpu_processes','sample_begin_ns'):
+                    require(row[key]==expected[key],'GPU snapshot raw field differs: '+key)
                 require(row['gpu_pids']==sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),'host NVML PID list differs')
                 found_gpu.add(row['monotonic_ns'])
             now=row['monotonic_ns']
@@ -137,14 +139,18 @@ def validate_native_idle(rows,baseline,helper,run,boot):
     require(len(rows)==61 and [row['second'] for row in rows]==list(range(61)),'native idle interval incomplete')
     require(rows[-1]['monotonic_ns']-rows[0]['monotonic_ns']>=60_000_000_000,'native idle shorter than60s')
     for row in rows:
-        require_helper_only(row['host_gpu_snapshot'],helper,row['monotonic_ns'],run,boot,allow_engine=row['second']<60)
+        snapshot=row['host_gpu_snapshot']
+        require_helper_only(snapshot,helper,row['monotonic_ns'],run,boot)
+        require(row['gpu_processes']==snapshot['gpu_processes'] and row['gpu']==snapshot['gpu'],'native GPU fields differ from exact host receipt')
+        require(gpu_pids(row['gpu_processes'])==snapshot['gpu_pids'],'native raw host NVML PID list differs')
+        require(snapshot['sample_begin_ns']>=rows[0]['delete_ack_ns'] and row['delete_ack_ns']==rows[0]['delete_ack_ns'],'GPU sample predates delete acknowledgement')
         require(row['memory_current']>=0 and row['shm_used_bytes']>=0 and int(row['pids_current'])>=0,'native resource counters invalid')
         memory={line.split()[0]:int(line.split()[1]) for line in row['memory_stat'].splitlines()}
         cpu={line.split()[0]:int(line.split()[1]) for line in row['cpu_stat'].splitlines()}
         require(all(key in memory and memory[key]>=0 for key in ('anon','file','shmem','unevictable')) and cpu.get('usage_usec',-1)>=0,'native resource accounting incomplete')
-        used=[int(line.split(',')[1].strip().split()[0]) for line in row['gpu'].splitlines()]
+        used=[int(line.split(',')[3].strip().split()[0]) for line in row['gpu'].splitlines()]
         require(len(used)==8 and all(value>=0 for value in used),'native GPU accounting incomplete')
-    final=[int(line.split(',')[1].strip().split()[0]) for line in rows[-1]['gpu'].splitlines()]
+    final=[int(line.split(',')[3].strip().split()[0]) for line in rows[-1]['gpu'].splitlines()]
     require(len(baseline)==8 and all(a<=b+1024 for a,b in zip(final,baseline)),'native model memory retained after60s')
 
 def expand_cpus(value):
@@ -198,6 +204,10 @@ def accept(root,sha,code_commit):
             require(pss['status']=='completed' and pss['end_ns']>=pss['begin_ns'] and any(v['pid']==pss['store_pid'] and v['smaps_rollup'] is not None for v in pss['processes']),'PSS sample incomplete')
     cache_proof=validate_cache(root)
     pool=load('service-bootstrap-service13a/pool-ready.json'); restored=json.loads((workspace()/'validation/store-restore-validation.json').read_text())
+    imports=load('service-bootstrap-service13a/runtime-imports.json')
+    require(imports['run_id']==run and imports['pid']==pool['store_pid'],'Store import process identity differs')
+    require({name:row['sha256'] for name,row in imports['modules'].items()}==manifest['store_import_sha256'],'loaded Store import hashes differ')
+    require(all(pathlib.PurePosixPath(row['path']).parent==pathlib.PurePosixPath('/experiment/code/Store-source-v7/sllm_store') for row in imports['modules'].values()),'Store import source differs')
     require(pool['pool_bytes']==restored['pool_bytes'] and pool['chunk_bytes']==restored['chunk_bytes'],'pool capacity differs')
     require(pool['rpc_config']==dict(mem_pool_size=pool['pool_bytes'],chunk_size=pool['chunk_bytes']) and pool['rss_bytes']>=pool['pool_bytes'],'real resident pool unproven')
     require(pool['listener']['pid']==pool['store_pid'] and pool['listener']['port']==8073 and pool['listener']['listening_sockets'],'pool listener differs')

@@ -96,7 +96,7 @@ try:
     (out/'ray-nodes.json').write_text(json.dumps(nodes,indent=2))
     ray.shutdown()
     store = launch('store',[python,'/experiment/code/experiment/store_numa_exec_v13.py',str(out/'store-numa-launch.json'),python,'-u','/experiment/code/experiment/run_store_server13.py','--storage-path',env['STORAGE_PATH'],
-                            '--pool-bytes',str(pool_bytes),'--chunk-bytes',str(chunk_bytes),'--host','0.0.0.0'])
+                            '--pool-bytes',str(pool_bytes),'--chunk-bytes',str(chunk_bytes),'--host','0.0.0.0','--identity-receipt',str(out/'runtime-imports.json')])
     def store_ready():
         with socket.create_connection(('127.0.0.1',8073),timeout=1): return True
     wait_ready(store_ready,1800 if validate_model else 30,store)

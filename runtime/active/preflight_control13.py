@@ -11,11 +11,16 @@ def require(value,message):
 def call(*args):
     return subprocess.check_output(args,text=True,timeout=15).strip()
 
-def validate_ancestor_values(values,is_root):
+def validate_ancestor_values(values,is_root,is_owned=False):
     for name in ('memory.max','memory.high'):
         value=values[name]
         if value is None: require(is_root,'missing non-root memory limit interface')
         else: require(value=='max' or int(value)>=1825361100800,'ancestor '+name+' below frozen budget')
+    swap=values.get('memory.swap.max')
+    if swap is None: require(is_root,'missing non-root swap limit interface')
+    else:
+        require(swap=='max' or int(swap)>=0,'invalid ancestor swap limit')
+        if is_owned: require(swap=='0','own slice must prohibit swap')
 
 def check(root,monitor_required=True):
     require((root/'run-manifest.json').read_bytes()==(SOURCE/'run-manifest.json').read_bytes(),'run registration differs from reviewed source')
@@ -29,6 +34,7 @@ def check(root,monitor_required=True):
     require(uuids==expected['gpu_uuids'],'GPU UUID order changed')
     require(os.getuid()==manifest['uid']==2147,'UID changed')
     memory=pathlib.Path('/proc/meminfo').read_text()
+    require(next(line.split()[1] for line in memory.splitlines() if line.startswith('SwapTotal:'))=='0','host swap configuration changed')
     available=int(next(line.split()[1] for line in memory.splitlines() if line.startswith('MemAvailable:')))*1024
     require(available>=768799145984+manifest['weight_bytes']+64*1024**3,'insufficient host memory for pool/checkpoint/working margin')
     from resource_window_control13 import load_window
@@ -59,7 +65,7 @@ def check(root,monitor_required=True):
     current=pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
     while True:
         values={name:(current/name).read_text().strip() if (current/name).exists() else None for name in ('memory.max','memory.high','memory.swap.max','memory.events')}
-        validate_ancestor_values(values,current==pathlib.Path('/sys/fs/cgroup'))
+        validate_ancestor_values(values,current==pathlib.Path('/sys/fs/cgroup'),current==pathlib.Path('/sys/fs/cgroup')/group.lstrip('/'))
         ancestors[str(current)]=values
         if current==pathlib.Path('/sys/fs/cgroup'): break
         current=current.parent

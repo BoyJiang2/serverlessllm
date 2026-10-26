@@ -1,0 +1,21 @@
+{
+  "scope": "local CPU validation environment only; not formal IDs or model runs",
+  "events": [
+    {
+      "kind": "temp_directory_permission",
+      "observed_tool_chunk": "950f55",
+      "tests": 53,
+      "errors": 26,
+      "failures": 0,
+      "reason": "Sandbox default temporary directory creation allowed but child file writes/removal denied; complete raw tool trace retained in task history",
+      "resolution": "use work/cpu-test-tmp; same53tests passed"
+    },
+    {
+      "kind": "MSYS_startup_denied",
+      "observed_tool_chunk": "022b42",
+      "returncode": 3221225794,
+      "error_excerpt": "NtCreateDirectoryObject BaseNamedObjects msys: 0xC0000022",
+      "resolution": "read-only bash -n outside sandbox approved and passed; no scripts executed"
+    }
+  ]
+}

@@ -105,7 +105,7 @@ with (output_root/log_name).open('x') as output:
         output.flush()
         ready_path=output_root/'monitor-v3-ready.json'
         temporary=ready_path.with_suffix('.tmp')
-        temporary.write_text(json.dumps(dict(last_sample_ns=row['monotonic_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign)))
+        temporary.write_text(json.dumps(dict(last_sample_ns=row['monotonic_ns'],sample_begin_ns=row['sample_begin_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu=row['gpu'],gpu_processes=row['gpu_processes'],gpu_pids=row['gpu_pids'],foreign_gpu_pids=foreign)))
         temporary.replace(ready_path)
         if interference:
             with (output_root/'interference-v3.jsonl').open('a') as events:

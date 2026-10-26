@@ -123,6 +123,7 @@ def run(out, audit_weights=True):
         event('native_delete_begin',cycle=cycle)
         assert http('/delete',{'model':model})['status'] == f'deleted model {model}'
         event('native_delete_complete',cycle=cycle)
+        delete_ack_ns=time.monotonic_ns()
         listed = http('/v1/models')
         (out/f'cycle{cycle}-models-after-delete.json').write_text(json.dumps(listed,indent=2))
         assert model not in {row['id'] for row in listed['models']}
@@ -130,13 +131,19 @@ def run(out, audit_weights=True):
         store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
         pss_log=(out/f'cycle{cycle}-pss.log').open('x')
         pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/code/experiment/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
+        # Wait for sample freshness, never for a desired GPU value.
+        fresh_deadline=time.monotonic()+5
+        while host_gpu()['sample_begin_ns']<delete_ack_ns:
+            assert time.monotonic()<fresh_deadline,'no post-delete host GPU sample within5s'
+            time.sleep(.1)
         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
             for second in range(61):
                 shm = os.statvfs('/dev/shm')
                 gpu_receipt=host_gpu(); observed_ns=time.monotonic_ns()
                 samples.write(json.dumps({'second':second,'monotonic_ns':observed_ns,
-                    'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
-                    'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
+                    'delete_ack_ns':delete_ack_ns,
+                    'gpu':gpu_receipt['gpu'],
+                    'gpu_processes':gpu_receipt['gpu_processes'],
                     'memory_current':int(pathlib.Path('/sys/fs/cgroup/memory.current').read_text()),
                     'pids_current':int(pathlib.Path('/sys/fs/cgroup/pids.current').read_text()),
                     'host_gpu_snapshot':gpu_receipt,
@@ -152,6 +159,9 @@ def run(out, audit_weights=True):
             while pss.poll() is None and time.monotonic()<stop: time.sleep(.1)
         pss_log.close()
         assert pss.poll()==0 and json.loads(pss_path.read_text())['status']=='completed', 'bounded PSS probe incomplete; no next lifecycle started'
+        from accept_control13 import validate_native_idle
+        idle_rows=[json.loads(line) for line in (out/f'cycle{cycle}-idle60.jsonl').read_text().splitlines()]
+        validate_native_idle(idle_rows,baseline,helper,manifest['run_id'],manifest['runtime_identity']['boot_id'])
         event('post_delete_observation_complete',cycle=cycle,seconds=60)
         remaining = [int(line) for line in subprocess.check_output(
             ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]
