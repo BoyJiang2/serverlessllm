@@ -10,10 +10,10 @@ def save(path,value):
 class NormalReference(unittest.TestCase):
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
-        self.root=pathlib.Path(self.tmp.name);self.reference=self.root/'validation/g1-reference'
-        self.acceptance=dict(status='G1 acceptance passed; no formal samples',code_commit='a'*40,
+        self.root=pathlib.Path(self.tmp.name);run='sllm-glm51fp8-20261026T000000Z-12345678';self.reference=self.root/'validation/controls'/run
+        self.acceptance=dict(status='G1 acceptance passed; no formal samples',run_id=run,code_commit='a'*40,
                             manifest_sha256='b'*64,ray_only_controls=2,native_lifecycles_per_format=2,pool_initializations=1)
-        self.config=dict(g1_reference_code_commit='a'*40,g1_reference_manifest_sha256='b'*64,
+        self.config=dict(g1_reference_run_id=run,g1_reference_code_commit='a'*40,g1_reference_manifest_sha256='b'*64,
                          g1_acceptance_sha256=save(self.reference/'G1-acceptance.json',self.acceptance),full_a4_proofs={})
         for kind in ('serverless_llm','safetensors'):
             name=kind+'/model-result.json'
@@ -33,6 +33,11 @@ class NormalReference(unittest.TestCase):
     def test_different_g1_manifest_rejected(self):
         self.config['g1_reference_manifest_sha256']='c'*64
         with self.assertRaisesRegex(ValueError,'actual complete G1'):
+            verify_normal_reference(self.config,self.root)
+
+    def test_reference_run_escape_rejected(self):
+        self.config['g1_reference_run_id']='../other-run'
+        with self.assertRaisesRegex(ValueError,'invalid G1 reference run'):
             verify_normal_reference(self.config,self.root)
 
     def test_missing_rank_rejected(self):

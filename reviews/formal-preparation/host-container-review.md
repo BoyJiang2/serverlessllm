@@ -1,0 +1,11 @@
+# Supplemental readonly review: prepared host/container admission
+
+Reviewer: existing user-authorized Codex subagent /root/independent_readonly_review. Files: runtime/formal-prep/formal_gate.py and tests, compared with active preflight_control13.py and launch_control13.py. No file changes, tests, remote/GPU or credential access by reviewer. This supplements preparation only; not DeepSeek R1/R2 or runtime approval.
+
+Reproduced and corrected the draft's container call to host-only preflight (hostname/UID/root guard namespace differ). A single CPU-only verify_admission now verifies reviewed files, R2, G1 reference and normal-flags proofs; actual host preflight remains a separate mandatory caller responsibility before Docker creation. Container verify_gate additionally validates Store imports, absent audit flags, formal environment and its exact host-dispatch boot/guard/source identity.
+
+Reviewer and main independently found missing root/source registration byte equality; fixed and before-failure evidence retained in run-registration-before.log. Full G1 reference validation is now called from formal admission too, rather than relying only on normal-smoke summaries. G1 reference uses canonical validation/controls/<bound-run> layout in both host and logical /experiment view; run/path confinement and proof hashes required. No broad evidence directory mount is needed.
+
+An identity publication race was identified from actual launcher ordering (start precedes identity write), not alleged as an observed GPU failure. Only missing/unfinished JSON waits up to5s, charged to existing supervisor budget; wrong identity fields immediately fail. Delayed publication, finite absence, changed boot/guard and path-injection CPU cases added. Latest prepared suite45tests passed; synthetic results do not prove host/container integration or GPU correctness.
+
+Final readonly review found no certain new blocker in these edits and closed both identified gaps. Actual shared host caller, readonly mounts, normal/formal roles, central budgets, warm-cache provenance, current-window guardian and final R2 admission remain unimplemented/unverified. No change to frozen canonical7 runtime or any formal ID. After actual G1 closure merge the prepared validator into one active implementation; do not retain duplicate maintained validation modules.

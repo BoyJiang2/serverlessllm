@@ -1,0 +1,23 @@
+test_container_gate_does_not_call_host_only_preflight (test_formal_gate.FormalGate.test_container_gate_does_not_call_host_only_preflight) ... ERROR
+
+======================================================================
+ERROR: test_container_gate_does_not_call_host_only_preflight (test_formal_gate.FormalGate.test_container_gate_does_not_call_host_only_preflight)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime/formal-prep\test_formal_gate.py", line 77, in test_container_gate_does_not_call_host_only_preflight
+    self.assertEqual(self.check(forbid_host_check=True)['code_commit'], self.code)
+                     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime/formal-prep\test_formal_gate.py", line 71, in check
+    return formal_gate.verify_gate()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime/formal-prep\formal_gate.py", line 98, in verify_gate
+    check(root)
+    ~~~~~^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime/formal-prep\test_formal_gate.py", line 60, in host_check
+    raise RuntimeError('host-only preflight called inside container gate')
+RuntimeError: host-only preflight called inside container gate
+
+----------------------------------------------------------------------
+Ran 1 test in 0.033s
+
+FAILED (errors=1)

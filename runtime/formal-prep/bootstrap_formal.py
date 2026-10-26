@@ -25,7 +25,7 @@ assert purpose in ('normal-flags-control','formal-measurement')
 normal_smoke=purpose=='normal-flags-control'
 if normal_smoke:
     assert config['scope']=='normal-flags controls only; zero formal IDs'
-    from formal_gate import verify_normal_reference
+    from formal_gate import verify_normal_reference,g1_reference_root
     verify_normal_reference(config,root)
 else:
     from formal_gate import verify_gate
@@ -128,7 +128,7 @@ try:
         os.environ['SLLM_NORMAL_FLAGS_SMOKE']='1'
         for weight_format in ('serverless_llm','safetensors'):
             row=config['full_a4_proofs'][weight_format]
-            proof_path=root/'validation/g1-reference'/row['path']
+            proof_path=g1_reference_root(config,root)/row['path']
             proof=checked_json(proof_path,row['sha256'])
             assert proof['status']=='A4 native HTTP lifecycle checks passed' and proof['cycles']==2
             assert proof['weight_format']==weight_format and proof['weight_audit_performed'] is True
