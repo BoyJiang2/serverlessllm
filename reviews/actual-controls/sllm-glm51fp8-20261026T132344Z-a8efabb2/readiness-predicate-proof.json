@@ -1,0 +1,19 @@
+{
+  "scope": "CPU evaluation of actual freshness predicate only; not complete host preflight or runtime admission",
+  "code_commit": "a7c5a2faf98562cdf8b3709423b4e41dc6c66238",
+  "source_path": "runtime/active/preflight_control13.py",
+  "source_sha256": "33908f6ca45b091b068ef5d004811415b7caf525f7f6e91a162a29f2f006b710",
+  "actual_predicate": "0 <= time.monotonic_ns() - ready['last_sample_ns'] <= 5000000000",
+  "inputs": {
+    "ready": {
+      "last_sample_ns": 146901702225816,
+      "sample_begin_ns": 146885422339049
+    },
+    "now_ns": 146905964141014
+  },
+  "freshness_predicate_accepts": true,
+  "age_seconds": 4.261915198,
+  "full_sample_duration_seconds": 20.541801965,
+  "strict_five_second_sample_duration_passes": false,
+  "interpretation": "Mid-sample row timestamp can appear fresh even after an invalid slow sample; ready also carries no sticky history of earlier invalid rows. This is a fail-early gap, not permission to accept C7."
+}
