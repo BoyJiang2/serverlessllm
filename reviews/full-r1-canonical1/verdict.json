@@ -1,0 +1,159 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "approved",
+  "code_commit": "5b01d7dc7f2f0e7d1fa1c774dba475312b232eb8",
+  "manifest_sha256": "cfa76d7d0d0b51eb1c6225c9a72b3eb0faeac5b994f2080c6e286a4fef9a40f4",
+  "static_source_approved": true,
+  "g1_status": "not_run_not_approved",
+  "r2_status": "not_reviewed_not_approved",
+  "path_boundary_review": "scoped only; not used as full R1 or deployment approval",
+  "prior_findings": {
+    "R1e-B01": "resolved: require_helper_only has no allow_engine; all 61 rows helper-only; second 0/59/60 negative tests",
+    "R1e-B02": "resolved: host ready carries raw GPU/process/sample_begin; native idle references it; accept parses PID and joins raw monitor rows",
+    "R1e-B03": "resolved: per-layer swap checked; own slice swap must be 0; root non-root-only interfaces allowed absent; non-root absence rejected; tests and official cgroup-v2 ABI",
+    "PB02": "retracted false positive; not restored",
+    "path_boundary_PB01_PB03_PB04_PB05": "preserved; not a full-R1 substitute"
+  },
+  "findings": [
+    {
+      "id": "R1-full-F01",
+      "severity": "low_medium",
+      "status": "non_blocking_runtime_condition",
+      "blocking_for_r1": false,
+      "title": "service container memory=1700g equals parent slice MemoryMax=1700G while head 8g and monitor 2g share the slice",
+      "location": "runtime/active/service13a-template.json:4; runtime/active/install_guard13.sh:19; runtime/active/preflight_control13.py:59; runtime/active/headservice13a.json:5; runtime/active/monitor13-template.json:10",
+      "evidence": "service 32 CPU/1700g; slice MemoryMax=1700G=1825361100800; head and monitor also use --cgroup-parent=run.slice. Sum of child limits exceeds parent.",
+      "impact": "parent slice enforces before the service reaches its declared limit; effective service ceiling about 1690 GiB. Planned anonymous peak (716 GiB pool plus engine/Ray) is below; page cache is reclaimable. No false pass; high peak OOMs fail-closed.",
+      "minimal_fix": "set service memory to 1690g or raise slice MemoryMax and update preflight/tests; alternatively require a sampled service peak plus head plus monitor below slice MemoryMax."
+    },
+    {
+      "id": "R1-full-F02",
+      "severity": "low",
+      "status": "non_blocking_fail_closed_boundary",
+      "blocking_for_r1": false,
+      "title": "double admission with elapsed-time drift at exact 3600/510 second boundary",
+      "location": "runtime/active/launch_control13.py:43; runtime/active/supervise_control13.py:13; runtime/active/bootstrap_control13.py:79; runtime/active/test_watchdog13.py:37-46",
+      "evidence": "outer check admits remaining>=budget+180; bootstrap rechecks a few seconds later with the same threshold; a launch exactly at the minimum is rejected by the child.",
+      "impact": "false rejection only; no unsafe admission; operator normally has hours of margin.",
+      "minimal_fix": "require budget+180+startup_slack at the outer check, or pass the supervisor's remaining to the child/remove the duplicate check; add a test with simulated elapsed seconds."
+    },
+    {
+      "id": "R1-full-F03",
+      "severity": "low",
+      "status": "non_blocking_runtime_condition",
+      "blocking_for_r1": false,
+      "title": "release GPU baseline comes from prepare_host and is not guaranteed clean",
+      "location": "runtime/active/prepare_host13.py:37; runtime/active/accept_control13.py:218-219; runtime/active/accept_control13.py:69-70",
+      "evidence": "prepare_host calls preflight(monitor_required=False), which does not assert empty nvidia-smi compute apps; launch does that later. A foreign GPU process during preparation raises the baseline.",
+      "impact": "the 61-second no-GPU-process check remains strict; only the memory-retention tolerance can be widened by a high baseline.",
+      "minimal_fix": "record the baseline after an explicit empty compute-apps check at prepare/launch and use that clean baseline; record its source."
+    },
+    {
+      "id": "R1-full-F04",
+      "severity": "low_medium",
+      "status": "non_blocking_verification_hardening",
+      "blocking_for_r1": false,
+      "title": "accept trusts model-result for business gold and weight equality instead of re-reading raw response and audit files",
+      "location": "runtime/active/accept_control13.py:184-205; runtime/active/validation_control13.py:99-121",
+      "evidence": "accept checks status/cycles/weight_format/16 coverage/contract counts/helper/PSS, but does not re-read cycleN-case.json or current/runtime-rankN.json; validation performs the equality.",
+      "impact": "independence gap; a false or incorrectly written model-result would not be caught by accept, although the raw evidence is retained.",
+      "minimal_fix": "accept re-reads the hash-pinned gold and rechecks three responses and the 32 rank files via weight_state (or records their SHA); retain raw evidence."
+    },
+    {
+      "id": "R1-full-F05",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "blocking_for_r1": false,
+      "title": "human-readable timer comparison depends on host timezone",
+      "location": "runtime/active/preflight_control13.py:58; runtime/active/launch_control13.py:49-51",
+      "evidence": "deadline from +08:00 is formatted without conversion and compared to systemctl NextElapseUSecRealtime, which is host-local. Asia/Shanghai works; UTC host would falsely reject.",
+      "impact": "false rejection only; no unsafe admission.",
+      "minimal_fix": "compare epoch via systemctl --timestamp=unix, or verify timedatectl and timer actual next elapse before launch."
+    },
+    {
+      "id": "R1-full-F06",
+      "severity": "low_documentation",
+      "status": "non_blocking",
+      "blocking_for_r1": false,
+      "title": "README still states 22 CPU tests and 15 container cases",
+      "location": "runtime/active/README.md:30-33; runtime/active/control-input-manifest.json:300-304; reviews/full-r1-canonical1/cpu-tests.log:95",
+      "evidence": "current local validation is 92 CPU tests; the 15 container cases are path-boundary v2 evidence, not the current full R1 run.",
+      "impact": "documentation only; no runtime.",
+      "minimal_fix": "update README to 92 CPU tests and current scope before deployment; keep path-boundary evidence separate."
+    },
+    {
+      "id": "R1-full-F07",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "blocking_for_r1": false,
+      "title": "staged release requires manual stop order and one-shot evidence files",
+      "location": "runtime/active/release_control13.py:33-46; runtime/active/accept_control13.py:219; runtime/active/cleanup_guard13.sh:19-35",
+      "evidence": "ray release stages allow only run-monitor13; allstopped requires pids.current 0; monitor and both observers must be stopped. No automatic stop helper; open('x') prevents rerunning a failed stage in the same run directory.",
+      "impact": "wrong order fails closed and needs a new run; no false pass.",
+      "minimal_fix": "document and execute the exact stop order; optionally add a bounded stop helper; never overwrite failed evidence."
+    },
+    {
+      "id": "R1-full-F08",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "blocking_for_r1": false,
+      "title": "sllm_store.proto/grpc/.venv are external to the 54-file package",
+      "location": "runtime/active/bootstrap_control13.py:105-108; runtime/active/service13a-template.json:19; runtime/active/workspace.py:52-64",
+      "evidence": "bootstrap imports grpc and sllm_store.proto in the service process; those are bound by the 1,142 parent audit and .venv/Store-source-v7, not by the 54-file control manifest.",
+      "impact": "if the venv/proto is absent or mismatched, G1 fails at control-plane readiness; not a static source defect.",
+      "minimal_fix": "at G1 preflight, import the proto/grpc and record versions/paths; verify the venv and Store-source-v7 proto."
+    }
+  ],
+  "fp8_semantics": {
+    "model_revision": "f396cf805182f4ca10fa675e1a99815b3ca384db unchanged",
+    "official_weights_and_scales": "unchanged; no dtype conversion or dequantization-to-BF16 code",
+    "torch_dtype": "bfloat16 is the official mixed-precision compute dtype, not a saved weight conversion",
+    "load_paths": "serverless_llm uses STORAGE_PATH/vllm/model; safetensors uses load_format=safetensors with /experiment/checkpoint",
+    "audit_counts": "5814 weight/scale/derived references per rank; 234 DSA top-k scratch excluded; 156 KV runtime excluded",
+    "g1_requirement": "actual 32 rank equality and business/gold results are not run and remain G1"
+  },
+  "budget_composition": {
+    "ray": "2 controls, 330 s budget each, supervisor 25 s reserve, child alarm 240 s, 61x2 s stability",
+    "service": "3420 s total, 25 s TERM/KILL reserve, bootstrap alarm 3300 s, 180 s admission margin",
+    "cache": "600 s, 8 readers, 64 GiB NUMA margin, max 2 repairs, 148 inputs, initial 0, final full mincore, read-idle",
+    "release": "three independent 61-sample 60 s releases; each delete retains 60 s",
+    "pool": "716 GiB public pool; 8 H20; TP8; utilization 0.9; context 2048; seq 1; MTP off; eager; 256 KV blocks"
+  },
+  "store_binding": {
+    "receipt": "run_store_server13.py verifies four imported modules by path and SHA before pool creation and records torch/vllm/CUDA versions",
+    "canonical_path": "/experiment/code/Store-source-v7/sllm_store; bundled ServerlessLLM extension is not substituted",
+    "checkpoint_extension_sha256": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096",
+    "scope": "Store process only; not per-Ray-worker import proof; 8 rank weights/business audits remain G1"
+  },
+  "historical": {
+    "success": 5,
+    "failed": 4,
+    "unstarted": 31,
+    "next_id": "store_pool_hit_03",
+    "formal_ids_consumed_by_this_review": 0,
+    "exit137": "dockerd stop timeout/forced exit mechanism known; upstream requester/reason unknown; not attributed to Ray/OOM; not declared resolved"
+  },
+  "runtime_conditions": [
+    "17:50 guard/probe, slice, sentinel and root-private evidence are not installed or executed",
+    "observer registration, monitor-v3-ready and resource-monitor-v12.jsonl are not produced for this run",
+    "real 148-input/756 GB cache with 8 readers, 600 s, 64 GiB margin and up to 2 repairs is not run",
+    "real 716 GiB pool and four native lifecycles with 32 rank records, PSS and 61-row idle60 are not run",
+    "release60-ray13a, release60-ray13b, release60-allstopped, root-evidence-index13.json and G1-acceptance.json do not exist",
+    "G1 and R2 are not run; this R1 approval does not imply either",
+    "refresh booking bk-20261026T0248-fd6bea51 10-18, 17:50 cleanup, GPU UUID/boot/machine-id, NUMA node0/1, MemAvailable, /data space, host timezone, docker access, .venv and proto/grpc",
+    "new guard protects the independent G1 identity only; the original formal run still needs its own new guard/gate",
+    "formal ledger remains 5 success / 4 failed / 31 unstarted; store_pool_hit_03 only after G1 then R2 then formal admission",
+    "historical exit137 remains failed; no retry/replacement and no attribution to Ray or OOM",
+    "no new global Docker/BPF probe is required; any future probe must be target-TGID/cgroup filtered, untimed and independently bounded"
+  ],
+  "limitations": [
+    "read-only review; no shell, SSH, resource command, file modification, credential read or subagent",
+    "SHA-256 values were compared from supplied/precomputed manifests and evidence; no independent full recomputation",
+    "host INDEX.json, protocol/historical-review-manifest-v11.json full content, 756 GB weights/Store payloads and host validation copies were not read",
+    "no actual guard, monitor, cache, pool, native lifecycle, release or G1/R2 was run",
+    "path-boundary approval remains scoped and is not a substitute for this full R1",
+    "the actual remote git commit/manifest binding is as supplied by the caller and was not independently verified by git",
+    "no external human or institutional approval is claimed"
+  ]
+}
