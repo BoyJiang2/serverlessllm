@@ -1,0 +1,47 @@
+"""Synthetic host/container identity regressions; no CUDA/remote operations."""
+import copy,json,pathlib,tempfile,unittest
+from gpu_identity13 import store_identity,require_helper_only,require_helper_binding
+from accept_control13 import monitor_summary
+
+class GPUIdentity(unittest.TestCase):
+    def fixture(self):
+        launch=dict(pid=1124,pid_namespace='pid:[42]',start_ticks='333',boot_id='b')
+        service=dict(container_id='c'*64,cgroup='0::/own/container\n')
+        process=dict(pid=9001,status='Uid:\t2147 2147 2147 2147\nNSpid:\t9001 1124\n',stat='9001 (python) '+' '.join(['S']+['0']*18+['333']+['0']*10),cgroup=service['cgroup'],pid_namespace=launch['pid_namespace'])
+        helper=store_identity(launch,service,[process],'b')
+        snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=0,registered_store_helper=helper,gpu_pids=[9001],foreign_gpu_pids=[])
+        return launch,service,process,helper,snapshot
+    def test_exact_store_helper_allowed(self):
+        launch,service,process,helper,snapshot=self.fixture();require_helper_binding(helper,launch,service,'b');require_helper_only(snapshot,helper,1,'r','b')
+    def test_engine_in_same_run_rejected(self):
+        *_,helper,snapshot=self.fixture();snapshot['gpu_pids'].append(9002)
+        with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,1,'r','b')
+    def test_external_gpu_even_during_cleanup_rejected(self):
+        *_,helper,snapshot=self.fixture();snapshot['foreign_gpu_pids']=[9999]
+        with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,1,'r','b',allow_engine=True)
+    def test_stale_receipt(self):
+        *_,helper,snapshot=self.fixture()
+        with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,5_000_000_001,'r','b')
+    def test_pid_reuse_or_namespace_change(self):
+        launch,service,process,helper,snapshot=self.fixture()
+        for key,value in [('start_ticks','334'),('pid_namespace','pid:[43]'),('container_id','other')]:
+            changed=dict(helper);changed[key]=value
+            with self.subTest(key=key),self.assertRaises(RuntimeError):require_helper_binding(changed,launch,service,'b')
+    def test_mapping_rejects_other_namespace_and_uid(self):
+        launch,service,process,helper,snapshot=self.fixture()
+        for key,value in [('pid_namespace','pid:[43]'),('cgroup','0::/other\n'),('status','Uid:\t0 0 0 0\nNSpid:\t9001 1124\n')]:
+            changed=dict(process);changed[key]=value
+            with self.subTest(key=key):self.assertIsNone(store_identity(launch,service,[changed],'b'))
+    def monitor(self,corrupt=False):
+        launch,service,process,helper,snapshot=self.fixture()
+        rows=[dict(monotonic_ns=n*10**9,sample_begin_ns=n*10**9,sample_end_ns=n*10**9+1,observers=[{'ok':True},{'ok':True}],registered_store_helper=helper,processes=[process],gpu_pids=[9001],foreign_gpu_pids=[],gpu_processes='9001, python, 322 MiB') for n in range(3)]
+        expected=copy.deepcopy(snapshot);expected['last_sample_ns']=2_000_000_000
+        if corrupt:rows[-1]['gpu_pids']=[9002]
+        with tempfile.TemporaryDirectory() as directory:
+            path=pathlib.Path(directory)/'monitor.jsonl';path.write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
+            return monitor_summary(path,gpu_context=(launch,service,'b'),expected_gpu={expected['last_sample_ns']:expected})
+    def test_gpu_receipt_matches_raw_host_monitor(self):self.assertEqual(self.monitor()['samples'],3)
+    def test_changed_raw_gpu_receipt_rejected(self):
+        with self.assertRaises(RuntimeError):self.monitor(True)
+
+if __name__=='__main__':unittest.main()

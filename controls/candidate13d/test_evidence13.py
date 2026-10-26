@@ -1,0 +1,36 @@
+"""Synthetic metadata rejection checks; no remote access or resource operations."""
+import pathlib,tempfile,unittest
+from package_inventory13 import reviewed_files
+from preflight_control13 import validate_ancestor_values
+from accept_control13 import validate_native_idle
+
+class Package(unittest.TestCase):
+    def test_bytecode_excluded_but_unexpected_source_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory)
+            for name in ('a.py','control-input-manifest.json','REVIEW-PROMPT.md'):(root/name).write_text('x')
+            cache=root/'__pycache__';cache.mkdir();(cache/'a.pyc').write_bytes(b'ignored local bytecode')
+            rows=[dict(path='a.py')];self.assertEqual(len(reviewed_files(root,rows)),3)
+            (root/'unexpected.py').write_text('x')
+            with self.assertRaises(RuntimeError):reviewed_files(root,rows)
+    def test_ancestor_root_missing_interface_is_explicit(self):validate_ancestor_values({'memory.max':None,'memory.high':None},True)
+    def test_nonroot_missing_limit_rejected(self):
+        with self.assertRaises(RuntimeError):validate_ancestor_values({'memory.max':None,'memory.high':'max'},False)
+    def test_ancestor_high_rejected(self):
+        with self.assertRaises(RuntimeError):validate_ancestor_values({'memory.max':'max','memory.high':'1024'},False)
+
+class NativeIdle(unittest.TestCase):
+    def helper(self):return dict(host_pid=9001,namespace_pid=1124,pid_namespace='pid:[42]',start_ticks='333',boot_id='b',container_id='c'*64,cgroup='0::/own/container\n',uid=2147)
+    def rows(self):
+        return [dict(second=n,monotonic_ns=n*10**9,memory_current=1,pids_current=3,shm_used_bytes=0,memory_stat='anon 0\nfile 1\nshmem 0\nunevictable 0',cpu_stat='usage_usec 0',gpu='\n'.join(f'{i}, 1769 MiB, 0 %' for i in range(8)),gpu_processes='1124, python, 322 MiB',host_gpu_snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=n*10**9,registered_store_helper=self.helper(),gpu_pids=[9001],foreign_gpu_pids=[])) for n in range(61)]
+    def test_valid_persistent_helper(self):validate_native_idle(self.rows(),[1769]*8,self.helper(),'r','b')
+    def test_missing_rows(self):
+        with self.assertRaises(RuntimeError):validate_native_idle(self.rows()[:-1],[1769]*8,self.helper(),'r','b')
+    def test_retained_engine(self):
+        rows=self.rows();rows[-1]['host_gpu_snapshot']['gpu_pids']=[9001,9002]
+        with self.assertRaises(RuntimeError):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
+    def test_negative_resource(self):
+        rows=self.rows();rows[1]['memory_current']=-1
+        with self.assertRaises(RuntimeError):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
+
+if __name__=='__main__':unittest.main()
