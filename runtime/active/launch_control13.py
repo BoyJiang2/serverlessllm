@@ -56,7 +56,7 @@ if spec.get('gpus') or spec['name'].startswith('head'):
 if (diagnostic or pool_diagnostic) and spec['name']=='headservice13a':
     monitor=json.loads((root/'monitor13-identity.json').read_text())
     verify_timeout_probe(root,json.loads(call('docker','inspect',monitor['container_id']))[0])
-if pool_diagnostic and spec['name']=='service13a':
+if spec['name']=='service13a':
     from materialize_control13 import verify_sigint_probe
     head=json.loads((root/'headservice13a-identity.json').read_text())
     verify_sigint_probe(root,json.loads(call('docker','inspect',head['container_id']))[0],sys.argv[3],sys.argv[2])

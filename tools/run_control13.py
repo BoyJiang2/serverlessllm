@@ -35,17 +35,17 @@ src=root/'code/experiment'
 import sys
 sys.path.insert(0,str(src))
 out=root/'validation/controls'/RUN
+from budget_control13 import G1_PHASE_BUDGETS,g1_required_window
 diagnostic=PHASE=='monitor-diagnostic'
-diagnostic_end=time.monotonic()+180 if diagnostic else None
+diagnostic_end=time.monotonic()+(180 if diagnostic else G1_PHASE_BUDGETS[PHASE])
 log=(out/('operator-'+('observe-' if OBSERVE else '')+PHASE+'-'+SEGMENT+'.jsonl')).open('x',buffering=1)
 def event(**row):
  row.update(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),monotonic_ns=time.monotonic_ns())
  log.write(json.dumps(row)+'\n');print(json.dumps(row),flush=True)
 def call(args,timeout=120):
  event(command=args)
- if diagnostic or pool_diagnostic:
-  timeout=min(timeout,diagnostic_end-time.monotonic())
-  if timeout<=0:raise TimeoutError('original diagnostic phase budget expired')
+ timeout=min(timeout,diagnostic_end-time.monotonic())
+ if timeout<=0:raise TimeoutError('original control phase budget expired')
  p=subprocess.run(args,capture_output=True,text=True,timeout=timeout)
  event(returncode=p.returncode,stdout=p.stdout,stderr=p.stderr)
  if p.returncode:raise RuntimeError('command failed: '+str(args))
@@ -81,6 +81,7 @@ if PHASE!='prepare' or OBSERVE:
  from preflight_control13 import check
  check(out,continuation=OBSERVE)
 if PHASE=='prepare' and not OBSERVE:
+ if manifest['scope']!='monitor diagnostics only; no model or pool' and not pool_diagnostic:assert datetime.datetime.fromisoformat(manifest['cleanup_deadline']).timestamp()-time.time()>=g1_required_window('prepare'),'insufficient complete G1 and release budget'
  assert call(['timedatectl','show','-p','Timezone','--value'])=='Asia/Shanghai'
  assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader,nounits'])
  assert [int(x) for x in call(['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits']).splitlines()]==[0]*8
@@ -106,7 +107,7 @@ elif PHASE=='prepare':
 else:
  ready()
  deadline=datetime.datetime.fromisoformat(json.loads((out/'run-manifest.json').read_text())['cleanup_deadline']).timestamp()
- required={'ray13a':4740,'ray13b':4230,'service13a':3600,'monitor-diagnostic':900}[PHASE]
+ required=900 if diagnostic else g1_required_window(PHASE)
  manifest=json.loads((out/'run-manifest.json').read_text())
  if diagnostic:
   assert not OBSERVE,'interrupted diagnostic must be cleaned up, never redispatched'
@@ -345,7 +346,8 @@ def main(argv=None):
     diagnostic=json.loads((REPO/'runtime/active/run-manifest.json').read_text()).get('scope')=='monitor diagnostics only; no model or pool'
     from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET,POOL_DIAGNOSTIC_PHASE_BUDGET,POOL_DIAGNOSTIC_WINDOW
     pool_diagnostic=json.loads((REPO/'runtime/active/run-manifest.json').read_text()).get('scope')==POOL_DIAGNOSTIC_SCOPE
-    client_timeout=(300 if phase=='prepare' else (POOL_DIAGNOSTIC_PHASE_BUDGET+30 if pool_diagnostic else 210)) if diagnostic or pool_diagnostic else None
+    from budget_control13 import G1_PHASE_BUDGETS
+    client_timeout=(300 if phase=='prepare' else (POOL_DIAGNOSTIC_PHASE_BUDGET+30 if pool_diagnostic else 210)) if diagnostic or pool_diagnostic else G1_PHASE_BUDGETS[phase]+30
     with path.open('x',encoding='utf-8') as stream:
         try:
             result=subprocess.run(SSH,input=prefix+REMOTE,text=True,encoding='utf-8',stdout=stream,stderr=subprocess.STDOUT,timeout=client_timeout)

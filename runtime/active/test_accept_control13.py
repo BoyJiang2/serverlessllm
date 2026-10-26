@@ -1,6 +1,6 @@
 """Synthetic metadata failure cases, never substitutes for real G1 evidence."""
 import json,pathlib,tempfile,unittest
-from accept_control13 import monitor_summary,validate_release
+from accept_control13 import monitor_summary,validate_release,validate_store_teardown
 from budget_control13 import require_budget
 
 class EvidenceTests(unittest.TestCase):
@@ -39,5 +39,34 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(RuntimeError): require_budget('service13a',3599)
         self.assertEqual(require_budget('ray13a',510),330)
         self.assertEqual(require_budget('service13a',3600),3420)
+
+class StoreTeardownEvidence(unittest.TestCase):
+    def fixture(self):
+        common=dict(run_id='r',boot_id='b',container_id='c',pid_namespace='pid:[42]',namespace_pid=12)
+        rows=[dict(common,stage=stage,monotonic_ns=stamp) for stage,stamp in [('interrupt_begin',1000),('interrupt_sent',2000),('wait_begin',3000),('wait_end',4000),('children_reaped',5000)]]
+        rows[0]['signal']=2;rows[1].update(signal=2,sent_ns=1900,grace_deadline_ns=240000001900);rows[3]['returncode']=0;rows[4].update(namespace_pid=None,children=[dict(pid=12,returncode=0)])
+        launch=dict(pid=12,pid_namespace='pid:[42]');service=dict(container_id='c')
+        server=dict(path='/experiment/code/Store-source-v7/sllm_store/server.py',serve_code_filename='/experiment/code/Store-source-v7/sllm_store/server.py',serve_source_code_match=True)
+        return rows,launch,service,dict(run_id='r',pid=12,modules={'sllm_store.server':server})
+
+    def test_exact_store_zero_exit_and_execution_proof(self):
+        rows,launch,service,imports=self.fixture();validate_store_teardown(rows,launch,service,'r','b',imports)
+
+    def test_nonzero_forced_missing_and_identity_changes_rejected(self):
+        for kind in ('nonzero','kill','missing_tail','pid','cid','boot','namespace','grace_reset','late','cpu_proof','bytecode','filename'):
+            rows,launch,service,imports=self.fixture()
+            if kind=='nonzero':rows[3]['returncode']=1
+            elif kind=='kill':rows[2]['stage']='kill_sent'
+            elif kind=='missing_tail':rows.pop()
+            elif kind=='pid':rows[3]['namespace_pid']=99
+            elif kind=='cid':rows[2]['container_id']='foreign'
+            elif kind=='boot':rows[2]['boot_id']='old'
+            elif kind=='namespace':rows[2]['pid_namespace']='pid:[99]'
+            elif kind=='grace_reset':rows[1]['grace_deadline_ns']+=1000
+            elif kind=='late':rows[3]['monotonic_ns']=rows[1]['grace_deadline_ns']+1;rows[4]['monotonic_ns']=rows[3]['monotonic_ns']+1
+            elif kind=='cpu_proof':imports['pid']=99
+            elif kind=='bytecode':imports['modules']['sllm_store.server']['serve_source_code_match']=False
+            else:imports['modules']['sllm_store.server']['serve_code_filename']='old/source.py'
+            with self.subTest(kind=kind),self.assertRaises(RuntimeError):validate_store_teardown(rows,launch,service,'r','b',imports)
 
 if __name__=='__main__': unittest.main()

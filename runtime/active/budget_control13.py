@@ -2,9 +2,15 @@
 POOL_DIAGNOSTIC_SCOPE='monitor diagnostics with resident Store only; no checkpoint or model'
 POOL_DIAGNOSTIC_BUDGET=900
 POOL_DIAGNOSTIC_WORK_BUDGET=540
-POOL_DIAGNOSTIC_STORE_GRACE=240
+STORE_SHUTDOWN_GRACE=240
+G1_SERVICE_WORK_BUDGET=3060
 POOL_DIAGNOSTIC_PHASE_BUDGET=1200
 POOL_DIAGNOSTIC_WINDOW=2400
+G1_PHASE_BUDGETS={'prepare':300,'ray13a':720,'ray13b':720,'service13a':3900}
+
+def g1_required_window(phase):
+    phases=tuple(G1_PHASE_BUDGETS)
+    return sum(G1_PHASE_BUDGETS[name] for name in phases[phases.index(phase):])+180
 
 def require_budget(name,remaining,diagnostic=False,pool_diagnostic=False):
     if diagnostic and pool_diagnostic:raise RuntimeError('conflicting diagnostic scopes')

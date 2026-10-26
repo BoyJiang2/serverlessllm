@@ -50,6 +50,29 @@ def monitor_summary(path,gpu_context=None,expected_gpu=None):
     if expected_gpu is not None: require(found_gpu==set(expected_gpu),'GPU snapshot missing from raw host monitor')
     return dict(samples=count,first_ns=first,last_ns=last,max_gap_seconds=max_gap,max_sample_duration_seconds=max_duration,partial_final_row=partial)
 
+def validate_store_teardown(rows,launch,service,run,boot,imports):
+    from budget_control13 import STORE_SHUTDOWN_GRACE
+    require(imports['run_id']==run and imports['pid']==launch['pid'],'actual Store process proof differs')
+    server=imports['modules']['sllm_store.server']
+    require(server.get('serve_source_code_match') is True and server.get('serve_code_filename')==server.get('path')=='/experiment/code/Store-source-v7/sllm_store/server.py','actual Store execution proof differs')
+    require(bool(rows) and rows[-1]['stage']=='children_reaped','Store teardown incomplete')
+    require(all(a['monotonic_ns']<b['monotonic_ns'] for a,b in zip(rows,rows[1:])),'teardown events out of order')
+    for row in rows:
+        require(row['run_id']==run and row['boot_id']==boot and row['container_id']==service['container_id'] and row['pid_namespace']==launch['pid_namespace'],'teardown identity differs')
+    owned=[row for row in rows if row['namespace_pid']==launch['pid']]
+    require(not any(row['stage'].startswith('kill') for row in owned),'Store forced kill')
+    def one(stage):
+        selected=[row for row in owned if row['stage']==stage]
+        require(len(selected)==1,'missing or duplicate Store '+stage)
+        return selected[0]
+    begin,sent,wait,end=[one(stage) for stage in ('interrupt_begin','interrupt_sent','wait_begin','wait_end')]
+    require(sent['signal']==2 and begin['monotonic_ns']<=sent['sent_ns']<=sent['monotonic_ns']<=wait['monotonic_ns']<end['monotonic_ns'],'Store shutdown signal/wait order differs')
+    require(sent['grace_deadline_ns']==sent['sent_ns']+STORE_SHUTDOWN_GRACE*1000000000 and end['monotonic_ns']<=sent['grace_deadline_ns'],'Store grace budget exceeded/reset')
+    require(end['returncode']==0,'Store nonzero exit')
+    children=[row for row in rows[-1]['children'] if row['pid']==launch['pid']]
+    require(len(children)==1 and children[0]['returncode']==0,'Store reap proof differs')
+
+
 def validate_release(rows,stage,run,baseline):
     require(len(rows)==61 and [v['second'] for v in rows]==list(range(61)),'release interval incomplete')
     require(rows[-1]['monotonic_ns']-rows[0]['monotonic_ns']>=60_000_000_000,'release shorter than60s')
@@ -205,6 +228,9 @@ def accept(root,sha,code_commit):
     imports=load('service-bootstrap-service13a/runtime-imports.json')
     require(imports['run_id']==run and imports['pid']==pool['store_pid'],'Store import process identity differs')
     require({name:row['sha256'] for name,row in imports['modules'].items()}==manifest['store_import_sha256'],'loaded Store import hashes differ')
+    launch=load('service-bootstrap-service13a/store-numa-launch.json')
+    require(launch['pid']==pool['store_pid'],'pool Store PID differs from launch')
+    validate_store_teardown(load('service-bootstrap-service13a/service-teardown.json'),launch,load('service13a-identity.json'),run,boot,imports)
     require(all(pathlib.PurePosixPath(row['path']).parent==pathlib.PurePosixPath('/experiment/code/Store-source-v7/sllm_store') for row in imports['modules'].values()),'Store import source differs')
     require(pool['pool_bytes']==restored['pool_bytes'] and pool['chunk_bytes']==restored['chunk_bytes'],'pool capacity differs')
     require(pool['rpc_config']==dict(mem_pool_size=pool['pool_bytes'],chunk_size=pool['chunk_bytes']) and pool['rss_bytes']>=pool['pool_bytes'],'real resident pool unproven')

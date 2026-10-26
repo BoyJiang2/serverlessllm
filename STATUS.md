@@ -335,3 +335,7 @@ Exact8f43bd74/MFf0476112 approvedlocalreadonly at19:08:40Z;63+8hashesmatch. One-
 ## Actual C16 real resident Store shield component passed
 
 Real716GiB/RPC/RSS/helperonly+actualROoverlay/serverb22a/fullservecode match/originalhostc0de passed. SIGINTStore0 after27.56609707s/noKILL/completeteardown,supervisor/operator0.256allrawstrict5s pass(maxduration1.767505022/gap2.768793197);peak776679178240B/kernelnull.61point75.828972926srelease/rootindex/63sourcehasharchivepassed,sourceabsent/noownworkload. Onlycomponent,notcompleteG1/R2/formal;nextreviewG1cleanupintegrationandfullactualcontrols. Historical137/C7earlyunknown,5/4/31unchanged.
+
+## canonical17 complete G1 repair frozen pending exact R1
+
+Run193424Z-685d6426/MF9ac4e071bed9b913ebb185fe2b20286ae76e834c4b16f593b65f33dba1677cdf;63runtime/155CPU/28operator(1POSIXskip)/3syntax. ReuseC16verifiedStoreoverlay,extendexactStoreSIGINT240fromsend/cancelbodyalarm/postkill5/durableteardownandactualStoreexecution/PID/CID/ns/zero/noKILLacceptance toG1. G1body3060 withworker3420;explicitclientphase300/720/720/3900+30/suffixwindow5820/5520/4800/4080 includesrelease. WIPreadonlyno confirmedblocker. ExactfullR1/new08:50guard/whole2Ray+pool/cache/native/rank/business/idle/fullrawG1 stillpending;nodeploy/newcompute. Formal5/4/31unchanged,old137/C7earlyunknown.

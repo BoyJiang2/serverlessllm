@@ -82,7 +82,7 @@ class PoolDiagnostic(unittest.TestCase):
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
             index=next(i for i,n in enumerate(body.body) if isinstance(n,ast.If) and isinstance(n.test,ast.Name) and n.test.id=='pool_diagnostic')
             mini=ast.Try(body=body.body[index:index+2],handlers=[],orelse=[],finalbody=body.finalbody)
-            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),POOL_DIAGNOSTIC_STORE_GRACE=240,pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
+            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
             scope['store']=scope['processes'][0]
             with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
             if not (extra_gpu or missing_gpu):self.assertEqual(error.exception.code,0)
@@ -104,7 +104,7 @@ class PoolDiagnostic(unittest.TestCase):
                 def terminate(self):self.returncode=0
             def fail(*args,**kwargs):raise RuntimeError('interrupted Ray cleanup')
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
-            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),POOL_DIAGNOSTIC_STORE_GRACE=240,pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
+            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
             with self.assertRaisesRegex(RuntimeError,'interrupted Ray'):exec(compile(ast.Module(body=body.finalbody,type_ignores=[]),'actual-finally-partial','exec'),scope)
             events=[json.loads(line) for line in (out/'pool-diagnostic-teardown.jsonl').read_text().splitlines()]
             self.assertEqual(events[-1]['stage'],'ray_stop_begin')
@@ -114,7 +114,7 @@ class PoolDiagnostic(unittest.TestCase):
             self.assertIsNone(events[0]['container_id'])  # Unavailable, never fabricated.
 
 class GracefulPoolTeardown(unittest.TestCase):
-    def execute(self,store_timeout=False,store_rc=0,interrupted=False):
+    def execute(self,store_timeout=False,store_rc=0,interrupted=False,pool=True):
         import subprocess
         temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
         out=pathlib.Path(temporary.name);calls=[]
@@ -136,7 +136,7 @@ class GracefulPoolTeardown(unittest.TestCase):
             return types.SimpleNamespace(returncode=0)
         # Clock advances during Ray stop: remaining grace cannot restart at wait.
         times=iter([1000000000,2000000000,3000000000,4000000000,5000000000,6000000000,7000000000,8000000000,9000000000,10000000000,11000000000,12000000000,13000000000,14000000000,15000000000,16000000000,17000000000,18000000000,19000000000,20000000000])
-        scope=dict(store=store,pool_diagnostic=True,POOL_DIAGNOSTIC_STORE_GRACE=240,signal=types.SimpleNamespace(SIGINT=signal.SIGINT,alarm=lambda n:calls.append(('alarm',n))),out=out,control=out,manifest=dict(run_id='run',runtime_identity=dict(boot_id='boot')),time=types.SimpleNamespace(monotonic_ns=lambda:next(times)),json=json,processes=[worker,store],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=ray_stop,TimeoutExpired=subprocess.TimeoutExpired))
+        scope=dict(store=store,pool_diagnostic=pool,STORE_SHUTDOWN_GRACE=240,signal=types.SimpleNamespace(SIGINT=signal.SIGINT,alarm=lambda n:calls.append(('alarm',n))),out=out,control=out,manifest=dict(run_id='run',runtime_identity=dict(boot_id='boot')),time=types.SimpleNamespace(monotonic_ns=lambda:next(times)),json=json,processes=[worker,store],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=ray_stop,TimeoutExpired=subprocess.TimeoutExpired))
         tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
         try:exec(compile(ast.fix_missing_locations(ast.Module(body=body.finalbody,type_ignores=[])),'actual-teardown','exec'),scope)
         except RuntimeError:
@@ -166,11 +166,35 @@ class GracefulPoolTeardown(unittest.TestCase):
         self.assertFalse((out/'pool-diagnostic-teardown.json').exists())
         self.assertIn('interrupt_sent',(out/'pool-diagnostic-teardown.jsonl').read_text())
 
+    def test_g1_reuses_exact_store_sigint_and_durable_teardown(self):
+        calls,out=self.execute(pool=False)
+        self.assertIn(('signal',1,signal.SIGINT),calls)
+        self.assertEqual(json.loads((out/'service-teardown.json').read_text())[-1]['stage'],'children_reaped')
+        self.assertFalse((out/'pool-diagnostic-teardown.json').exists())
+
+    def test_full_g1_phase_and_suffix_budget_include_release(self):
+        from budget_control13 import G1_PHASE_BUDGETS,g1_required_window
+        self.assertEqual(G1_PHASE_BUDGETS,dict(prepare=300,ray13a=720,ray13b=720,service13a=3900))
+        self.assertEqual([g1_required_window(name) for name in G1_PHASE_BUDGETS],[5820,5520,4800,4080])
+        self.assertGreater(G1_PHASE_BUDGETS['service13a'],3420+45+90+5+5+60)
+
+    def test_g1_alarm_uses_frozen_work_budget_with_cleanup_reserve(self):
+        from budget_control13 import G1_SERVICE_WORK_BUDGET,STORE_SHUTDOWN_GRACE,POOL_DIAGNOSTIC_WORK_BUDGET
+        self.assertEqual(G1_SERVICE_WORK_BUDGET,3060)
+        self.assertLess(G1_SERVICE_WORK_BUDGET+STORE_SHUTDOWN_GRACE+30+20+15+20,3420-25)
+        tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text())
+        assignment=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='work_deadline' for x in n.targets))
+        alarm=next(n for n in tree.body if isinstance(n,ast.Expr) and ast.unparse(n).startswith('signal.alarm('))
+        for pool,budget in [(False,3060),(True,540)]:
+            observed=[];scope=dict(time=types.SimpleNamespace(monotonic=lambda:100),signal=types.SimpleNamespace(alarm=observed.append),pool_diagnostic=pool,POOL_DIAGNOSTIC_WORK_BUDGET=POOL_DIAGNOSTIC_WORK_BUDGET,G1_SERVICE_WORK_BUDGET=G1_SERVICE_WORK_BUDGET)
+            exec(compile(ast.Module(body=[assignment,alarm],type_ignores=[]),'actual-work-deadline','exec'),scope)
+            self.assertEqual(observed,[budget]);self.assertEqual(scope['work_deadline'],100+budget)
+
     def test_work_and_cleanup_fit_outer_work_deadline(self):
-        from budget_control13 import POOL_DIAGNOSTIC_WORK_BUDGET,POOL_DIAGNOSTIC_STORE_GRACE
-        self.assertLess(POOL_DIAGNOSTIC_WORK_BUDGET+POOL_DIAGNOSTIC_STORE_GRACE+30+10+5+20,POOL_DIAGNOSTIC_BUDGET-25)
+        from budget_control13 import POOL_DIAGNOSTIC_WORK_BUDGET,STORE_SHUTDOWN_GRACE
+        self.assertLess(POOL_DIAGNOSTIC_WORK_BUDGET+STORE_SHUTDOWN_GRACE+30+10+5+20,POOL_DIAGNOSTIC_BUDGET-25)
         source=(SOURCE/'bootstrap_control13.py').read_text()
-        self.assertIn('min(480,work_deadline-time.monotonic())',source)
+        self.assertIn('min(480 if pool_diagnostic else 1800,work_deadline-time.monotonic())',source)
 
 class SigintAdmission(unittest.TestCase):
     def fixture(self):

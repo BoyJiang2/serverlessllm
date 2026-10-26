@@ -19,6 +19,7 @@ class Transport(unittest.TestCase):
                 if len(calls)==1:
                     if client_timeout:raise subprocess.TimeoutExpired(args,kwargs['timeout'])
                     if diagnostic:self.assertEqual(kwargs['timeout'],210)
+                    else:self.assertEqual(kwargs['timeout'],3930)
                     return types.SimpleNamespace(returncode=initial_rc)
                 if args[0]=='ssh':
                     if query_timeout:raise subprocess.TimeoutExpired(args,25)
@@ -30,6 +31,18 @@ class Transport(unittest.TestCase):
                  patch.object(operator.subprocess,'run',side_effect=execute),contextlib.redirect_stdout(io.StringIO()):
                 rc=operator.main([phase,code,sha,'reviews/verdict.json'])
             return rc,calls,[p.name for p in folder.iterdir()]
+
+    def test_prepare_full_g1_budget_does_not_apply_to_cpu_or_pool_scope(self):
+        tree=ast.parse(operator.REMOTE)
+        branch=next(n for n in tree.body if isinstance(n,ast.If) and ast.unparse(n.test)=="PHASE == 'prepare' and (not OBSERVE)")
+        predicate=compile(ast.Expression(branch.body[0].test),'actual-prepare-budget-scope','eval')
+        for scope,pool,expected in [('monitor diagnostics only; no model or pool',False,False),('pool',True,False),('G1',False,True)]:
+            self.assertEqual(eval(predicate,dict(manifest=dict(scope=scope),pool_diagnostic=pool)),expected)
+
+    def test_g1_client_timeout_is_finite_and_requests_cleanup(self):
+        rc,calls,_=self.exercise(client_timeout=True)
+        self.assertEqual(rc,1);self.assertEqual(len(calls),2)
+        self.assertEqual(calls[-1][4],'cleanup')
 
     def test_diagnostic_client_timeout_requests_cleanup_without_redispatch(self):
         rc,calls,_=self.exercise(diagnostic=True,client_timeout=True)
