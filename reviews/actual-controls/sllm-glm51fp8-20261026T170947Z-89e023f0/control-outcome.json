@@ -1,0 +1,144 @@
+{
+  "status": "failed monitor freshness during Store teardown; real pool initialization component evidence only",
+  "run_id": "sllm-glm51fp8-20261026T170947Z-89e023f0",
+  "code_commit": "a294d2bab2001d92646ee655db45c4bb27a25610",
+  "manifest_sha256": "e29a392a3af6610128278a0a9483015650f0aff7e5fded72798ddb476d983f62",
+  "formal_ids_consumed": 0,
+  "supervisor": {
+    "begin_ns": 159885623967335,
+    "status": "failed",
+    "timeout_seconds": 900,
+    "child_pid": 929,
+    "error": "RuntimeError('stale, unhealthy or wrong host monitor receipt')",
+    "end_ns": 160107677524831,
+    "child_alive_at_end": false,
+    "cleanup_reserve_seconds": 25,
+    "total_budget_seconds": 900
+  },
+  "pool": {
+    "monotonic_ns": 160086690801580,
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "store_pid": 2155,
+    "listener": {
+      "pid": 2155,
+      "port": 8073,
+      "listening_sockets": [
+        {
+          "fd": 199,
+          "inode": "69305518"
+        }
+      ],
+      "scope": "private container network/PID namespace; current child ownership required"
+    },
+    "rpc_config": {
+      "mem_pool_size": 768799145984,
+      "chunk_size": 536870912
+    },
+    "rss_bytes": 770294251520
+  },
+  "pool_component_ready": {
+    "status": "resident pool initialization checked; teardown/release still required",
+    "run_id": "sllm-glm51fp8-20261026T170947Z-89e023f0",
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "helper": {
+      "host_pid": 2711942,
+      "namespace_pid": 2155,
+      "pid_namespace": "pid:[4026541140]",
+      "start_ticks": "15988959",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "container_id": "4317f73220caca11a6a0a69854ccf74ab174c56efed1d5705863f05ea04d40e8",
+      "cgroup": "0::/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261026T170947Z.slice/sllm-glm51fp8-20261026T170947Z-89e023f0.slice/docker-4317f73220caca11a6a0a69854ccf74ab174c56efed1d5705863f05ea04d40e8.scope\n",
+      "uid": 2147
+    },
+    "sample_begin_ns": 160088649342789,
+    "ready_ns": 160089388186639,
+    "checkpoint_read": false,
+    "model_registered": false
+  },
+  "teardown_receipt_available": false,
+  "monitor": {
+    "samples": 218,
+    "acceptance_error": "slow or inconsistent monitor sample",
+    "max_duration_seconds": 10.270403002,
+    "max_gap_seconds": 11.270949763
+  },
+  "trace": {
+    "events": 81791,
+    "paired": 40895,
+    "slow_operations": [
+      {
+        "sequence": 40488,
+        "operation": "gpu.query-gpu",
+        "pid": null,
+        "start_ticks": null,
+        "target": null,
+        "expected_start_ticks": null,
+        "event": "end",
+        "begin_ns": 160103391408754,
+        "end_ns": 160113490113256,
+        "duration_ns": 10098704502,
+        "thread_cpu_ns": 305403,
+        "child_cpu_ns": 169743000,
+        "begin_trace_io_ns": 10066,
+        "outcome": "ok",
+        "error": null
+      }
+    ],
+    "pending": [
+      {
+        "sequence": 40896,
+        "operation": "sample.sleep",
+        "pid": null,
+        "start_ticks": null,
+        "target": null,
+        "expected_start_ticks": null,
+        "event": "begin",
+        "event_ns": 160118704500139,
+        "end_ns": null,
+        "outcome": "pending",
+        "previous_trace_io_ns": 5038
+      }
+    ]
+  },
+  "resource": {
+    "sampled_cgroup_peak_bytes": 776717864960,
+    "kernel_peak_bytes": null
+  },
+  "release": {
+    "points": 61,
+    "span_seconds": 75.730315863
+  },
+  "root_index_sha256": "459545c7d51766f1da84c7e882b6146d471a2f3100c80df3b59f81318e93b555",
+  "files": {
+    "monitor-diagnostic-trace.jsonl": {
+      "bytes": 22560849,
+      "sha256": "48fa9443281c223282afb2e350628d3afd1d26a1f73ae768bbc85ca3edfb188a"
+    },
+    "resource-monitor-v12.jsonl": {
+      "bytes": 21359110,
+      "sha256": "5a2c73c29692c5b3fbaddc1ab21d66dcb8fa4518c14785e14306f834785b28ab"
+    },
+    "release60-allstopped.json": {
+      "bytes": 191166,
+      "sha256": "6b7e4d716c75465fe78c9e9e96d77700f00b66dfd7d7288ba21c46ece0e10202"
+    },
+    "service13a-supervisor-result.json": {
+      "bytes": 302,
+      "sha256": "9d19ab390fee3313966d5df1da754102295df13c5b45d1f48bc5f63ac6b50e37"
+    },
+    "service-bootstrap-service13a/pool-ready.json": {
+      "bytes": 473,
+      "sha256": "26d16565e6a149ce935eca639f760c2437869f75ec542909a7dcf95ddd314bf7"
+    },
+    "service-bootstrap-service13a/pool-diagnostic-result.json": {
+      "bytes": 843,
+      "sha256": "cf8158682e94ef89d2cf2fa4a9b1a0a62469ee7ee84bf0874d715df183bd98a4"
+    }
+  },
+  "interpretation": "combined nvidia-smi wallstall confirmed; subfield/NVMLinternalreason,C7earlydelay,historical137unknown; noG1/R2/formalapproval",
+  "source_archive": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261026T170947Z-89e023f0/executed-source-a294d2b",
+  "source_files_verified": 61,
+  "closed_utc": "2026-10-26T17:41:19.714724+00:00"
+}

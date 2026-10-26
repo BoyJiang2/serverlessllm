@@ -1,0 +1,15 @@
+# C10 actual resident Store diagnostic: failed monitoring, released
+
+Actual codea294d2bab2001d92646ee655db45c4bb27a25610/MFe29a392a3af6610128278a0a9483015650f0aff7e5fded72798ddb476d983f62; local independentR1approved. Actualnew02:50rootguard/probe/observers/monitor/GNUtimeout/CPUimports passed. Fullpool768799145984B/chunk536870912B actualRPC matched, RSS770294251520B; freshboundhelper-only proof succeeded before SystemExit→finally. EmptyownStore andregistration_required; no model/checkpoint/Storepayload/cache/nativebusiness/formalIDs.
+
+Control FAILED: supervisor recorded stale/unhealthyready, actualunchanged strictacceptor rejectsrawmonitor sloworinconsistent.218completerows,maxsample10.270403002s,maxgap11.270949763s. Source-ownedfirsterrorhistory remainssticky; failureisnotrewrittensuccess.
+
+Fieldtrace81791events/40895paired operations identifies one operation>5s: gpu.query-gpu sequence40488,begin160103391408754,end160113490113256,wall10.098704502s,threadCPU0.000305403s,childCPU0.169743s,outcomeok. Command is combined nvidia-smi --query-gpu=index,uuid,memory.total,memory.used,utilization.gpu --format=csv,noheader. It happened after poolready160086690801580/componentready160089388186639 in the exitpath. This localizes the blocked COMBINED CLI call, not a particular NVMLAPI/utilization/memory/internaldrivercause. LowCPUdoesnotprovewhatitwaitedfor. C7earlier16s remainsuncovered; lateC7similaritydoesnotproveitsrootcause. Originalhistorical137upstreamunknown.
+
+TeardownsummaryABSENT: finallykeptstageevents onlyinmemoryuntilitsend, andbootstrapwasterminatedbeforewrite. Missingeventsaredatanotavailable, notzero/completedteardown. Nextrevisionmustappend/flushstageeventsasoccur(noextraobserver/framework). Lasttracependingissample.sleep AFTERsupervisorphase, interruptedbyexplicitrootcleanup.
+
+Automaticexactrootcleanupreturned0;61point75.730315863sallstoppedreleasepassed,eightGPUbaseline/emptyowncgroup/containers;rootprivateindexconfirmedtimer/observersstopped.61executedfilehashesverifiedbefore/afteratomicarchiveatthisrun/executed-source-a294d2b;canonicalcode/experimentnowabsent. Maximumobservedcgroup776717864960B,kernelmemory.peakunavailable(null). Source/root/rawproofsindexed; rawtrace/monitor retainedserverwithSHAincontrol-outcome.json,notlargeGitlogs. InitialclosurepackagingSyntaxErrorattemptdidnotexecuteanyremoteaction; correctedclosurepassedandretainsoriginalfailureloglocally.
+
+Controlcost/failureledgerwritten canonicalresults/control-costs/run.json. Realinitproof,failedteardownmonitoring,andactualreleasearedistinct. NoG1/R2/formaladmission.5success/4failed/31unstarted,nextstore_pool_hit_03.
+
+Next: disambiguate actual GPU query phases within SAMEmonitor, allGPUmemory/process/helper/freshness5srulespreserved. PersistentpinnedNVMLorCLI split requires actualdependency/sourcebinding, CPUregressions/localindependentR1, freshguard/resource/window and boundedloadedcontrol. Nofakeasyncheartbeat,zero/emptyunknown,thresholdincrease,automaticunboundedretry orhistoricalreclassification.

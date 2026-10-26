@@ -1,6 +1,6 @@
 # GLM-5.1 FP8 experiment status
 
-Current update: 2026-10-27 00:40, Asia/Shanghai. Stage: **canonical8 bounded CPU diagnostic checked and released; C7 remains rejected; readiness fix and loaded-state diagnostic next; G1/R2/formal pending.** The dated sections below retain historical states; current work uses main.
+Current update: 2026-10-27 01:45, Asia/Shanghai. Stage: **C10 real716GiB pool initialized, monitor failed on10.099s combinedGPUquery during exit; resources released and61sourcehashes archived; field/API disambiguation next; G1/R2/formal pending.** The dated sections below retain historical states; current work uses main.
 
 LatestexecutedC7:codea7c5a2faf98562cdf8b3709423b4e41dc6c66238/MFd95ab4a15155138f8a10c7ad11421a4cd72085c22b490b44373a2dd6ecbcade2, run sllm-glm51fp8-20261026T132344Z-a8efabb2. Four native lifecycles/32rank audits/12goldresponses/fouridle60 passed, but monitoring gaps caused actualG1 rejection. Automaticcleanup,final61point75.7569srelease/rootindexpassed; all58executedsourcehashes reverified and source preserved under executed-source-a7c5a2f. Guard inactive, no experimentStore/model remains. Current local monitor diagnostic draft is unsealed and not deployable through the olda7/d95gate. Formal5success/4failed/31unstarted; nextstore_pool_hit_03 only after all gates. Current work usesmain; old branch/window sections below are historical snapshots.
 
@@ -273,3 +273,7 @@ C9fullreadonlyreviewchanges_required: noextraownGPU PID whitelistatpoolready (no
 ## canonical10 local full R1 approved, deployment next
 
 ActualindependentreadonlyR1approved at17:19:49Z codea294d2bab2001d92646ee655db45c4bb27a25610/MFe29a392a3af6610128278a0a9483015650f0aff7e5fded72798ddb476d983f62,61+8hashesmatched,R1-C9-01closed. ApprovalonlyonefullsizeStorecomponentdiagnosticwithactualguard/resource/tool/strictmonitor/teardown/releaseconditions;noG1/R2/formal. Actual17:20:43Zreadonlyrefresh8GPU0/noprocess/bootunchanged/localresources/valid21-03 and03-09bookings;5355sremainbeforeproposed02:50deadline,>2400required. Noactualnewguard/deployment atthisentry.
+
+## Actual C10 direct call evidence and closure
+
+Run170947Z-89e023f0 codea294d2b/MFe29:real716GiBpool/RPC/RSS770294251520B/helperonlyfreshproofpassed;beforeanySLLM/cache/model. Exitmonitorfailed,supervisorstoppedcontrol. Trace81791events/40895pairs provescombinednvidia-smiGPUquerywall10.098704502s(parentCPU0.000305s/childCPU0.169743s);notyetindividualNVMLfield/internalcause.218rowsmaxduration10.270403002/gap11.270949763,strictacceptorfails;preservedfailed. Missingteardownsummarydueend-onlybufferrecording acknowledged. Autoowncleanup0,61point75.730315863srelease/rootindexpassed;61sourcehashesverified/archiveexecuted-source-a294d2b,canonicalsourceabsent. Peakcgroup776717864960B,kernelpeaknull. NoformalID,5/4/31unchanged,C7earlydelay/historical137unknown. Nextsame-monitorquerydisambiguationandreal-timeappendteardownrecords,notthresholdrelax/fakeheartbeat. Seeactual-controls/run/OBSERVATIONS.md.
