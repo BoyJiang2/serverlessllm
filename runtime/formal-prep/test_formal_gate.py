@@ -27,16 +27,28 @@ class FormalGate(unittest.TestCase):
         self.root = pathlib.Path(self.tmp.name)
         self.source = self.root / 'source'
         self.source.mkdir()
+        self.assets=self.root/'assets'
+        repo=pathlib.Path(__file__).resolve().parents[2]
+        (self.assets/'protocol').mkdir(parents=True)
+        (self.assets/'validation').mkdir()
+        (self.assets/'protocol/measurement-preregistration.json').write_bytes((repo/'protocol/measurement-preregistration.json').read_bytes())
+        (self.assets/'validation/native-gold.json').write_bytes((repo/'evidence/reference/native-gold.json').read_bytes())
+        for original in (repo/'evidence/formal-history').glob('*--result.json'):
+            target=self.assets/'results/formal-trials'/original.name.removesuffix('--result.json')
+            target.mkdir(parents=True)
+            (target/'result.json').write_bytes(original.read_bytes())
         self.code = 'a' * 40
         config = dict(run_id='own-formal-run',scope='formal continuation of original forty IDs',
                       store_import_sha256={},formal_required_env={},runtime_identity=dict(boot_id='test-boot'))
         required = ('formal_trials.py', 'formal_gate.py', 'attempt_state.py',
-                    'bootstrap_formal.py', 'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh')
+                    'bootstrap_formal.py', 'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json')
         rows = []
         for name in required:
             path = self.source / name
             if name=='run-manifest.json':
                 save(path,config)
+            elif name=='initial-ledger.json':
+                path.write_bytes((repo/'runtime/active/initial-ledger.json').read_bytes())
             else:
                 path.write_bytes(name.encode())
             rows.append(dict(path=name, sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
@@ -56,7 +68,7 @@ class FormalGate(unittest.TestCase):
         self.gate = dict(decision='approved', scope='formal-runtime', code_commit=self.code,
                          source_manifest_sha256=self.manifest_sha,
                          preregistration_sha256=formal_gate.PREREG_SHA, gold_sha256=formal_gate.GOLD_SHA,
-                         execution_run_id='own-formal-run', worker_label='formal13',
+                         execution_run_id='own-formal-run', worker_label='formal13', prior_execution_roots=[],
                          r2_approval_sha256=r2_sha, normal_flags_proofs=proofs)
 
     def check(self, extra_env=None, forbid_host_check=False, admission_only=False, reference_error=None):
@@ -65,7 +77,7 @@ class FormalGate(unittest.TestCase):
                    SLLM_FORMAL_SOURCE_MANIFEST_SHA256=self.manifest_sha)
         env.update(extra_env or {})
         workspace = types.SimpleNamespace(SOURCE=self.source, run_root=lambda: self.root,
-                                          workspace=lambda: pathlib.Path('/experiment'))
+                                          workspace=lambda: self.assets)
         def host_check(root):
             if forbid_host_check:
                 raise RuntimeError('host-only preflight called inside container gate')
@@ -93,9 +105,28 @@ class FormalGate(unittest.TestCase):
                 patch('formal_gate.verify_normal_reference', side_effect=reference), \
                 patch.object(pathlib.Path,'read_text',autospec=True,side_effect=text):
             if admission_only:
-                return formal_gate.verify_admission(self.root,self.source,pathlib.Path('/experiment'),
+                return formal_gate.verify_admission(self.root,self.source,self.assets,
                                                      self.code,self.manifest_sha,sha)
             return formal_gate.verify_gate()
+
+    def test_changed_original_result_blocks_even_host_admission(self):
+        path=self.assets/'results/formal-trials/store_pool_hit_01/result.json'
+        path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(ValueError,'changed frozen input'):self.check(admission_only=True)
+
+    def test_incomplete_current_attempt_blocks_even_host_admission(self):
+        path=self.root/'formal-trials/store_pool_hit_03';path.mkdir(parents=True)
+        save(path/'origin.json',dict(attempt_id='store_pool_hit_03'))
+        with self.assertRaisesRegex(ValueError,'consumed attempt'):self.check(admission_only=True)
+
+    def test_missing_declared_prior_root_cannot_mean_no_attempts(self):
+        self.gate['prior_execution_roots']=['validation/controls/sllm-glm51fp8-20261026T000000Z-12345678/formal-trials']
+        with self.assertRaisesRegex(ValueError,'declared execution root'):self.check(admission_only=True)
+
+    def test_absolute_or_escaped_prior_root_rejected(self):
+        for value in ('/other/formal-trials','../other','results/formal-trials'):
+            self.gate['prior_execution_roots']=[value]
+            with self.subTest(path=value),self.assertRaises(ValueError):self.check(admission_only=True)
 
     def test_complete_synthetic_gate_reaches_stubbed_preflight(self):
         self.assertEqual(self.check()['code_commit'], self.code)

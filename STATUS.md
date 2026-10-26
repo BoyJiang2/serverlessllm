@@ -285,3 +285,9 @@ Run175702Z-59e71e6e/MF534af6ebc1436156222faae5f4fd3e564760a3c0147c0e05b8094a3e88
 ## canonical11 full R1 approved; actual new guard next
 
 LocalindependentR1 approved0b3993b/534af6eb at18:01:32Z,61+8hashesmatch,136/18/3recordedCPUchecks. Actual02:02snapshot8GPU0/noGPUpid/identityunchanged,existingcontiguousbookingsuntil09,24470sremainbeforeproposednew08:50guard. Notyetdeployed/guarded/actualC11run;approvalonlyStore-onlydiagnostic;C10failedunchanged,noG1/R2/formal,5/4/31.
+
+## Actual C11 resident-pool diagnostic failed, released
+
+Real716GiB pool/helper-only init passed. Mandatory compute-apps CLI9.929817547s;210samples maxduration10.171592539/gap11.172147183 fails unchanged5s. Flushteardown records TERM/10swait/KILL then query stall; finalsummary absent, no rootcause claim. Owncleanup0;61point75.907224018srelease/rootindex/source61hasharchive passed; no own live workload. Next minimal diagnostic-only SIGINT/grace test, not fullG1 blind retry. Formal5/4/31 unchanged, historical137unknown.
+
+Isolated formal-prep admission now validates original nine result hashes and explicit prior execution roots before admitting future launch;53CPUtests pass. Actual host launcher integration, fullG1/normalflags/R2/formal gate still absent; this draft grants no execution.

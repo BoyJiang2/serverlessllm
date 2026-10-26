@@ -27,7 +27,7 @@ ASSETS = pathlib.Path('/experiment')
 PREREG_SHA = '90d4c91bf8b0c9495e0cb95376a55f84d17351308541414d58dd650d8e2dd37c'
 
 
-from formal_gate import verify_gate
+from formal_gate import verify_gate,execution_roots
 
 
 def run(out):
@@ -116,7 +116,7 @@ def run(out):
     signal.signal(signal.SIGALRM, timeout_handler)
     state = collect(ASSETS/'protocol/measurement-preregistration.json',
                     SOURCE/'initial-ledger.json', ASSETS/'results/formal-trials',
-                    [pathlib.Path(value) for value in gate['prior_execution_roots']] + [base])
+                    execution_roots(gate,ASSETS,ROOT))
     initial = {row['attempt_id']: row for row in state}
     (out/'continuation-ledger.json').write_text(json.dumps(state,indent=2))
     for attempt in prereg['attempts']:

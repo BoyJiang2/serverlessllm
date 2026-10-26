@@ -7,7 +7,7 @@ import re
 import sys
 import time
 
-from attempt_state import PREREG_SHA, checked_json
+from attempt_state import PREREG_SHA, checked_json, collect
 
 GOLD_SHA = '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
 
@@ -49,6 +49,20 @@ def verify_normal_reference(config, assets):
     return acceptance
 
 
+def execution_roots(gate,assets,root):
+    roots=[]
+    for value in gate['prior_execution_roots']:
+        relative=pathlib.PurePosixPath(value)
+        parts=relative.parts
+        if relative.is_absolute() or relative.as_posix()!=value or len(parts)!=4 or parts[:2]!=('validation','controls') or parts[3]!='formal-trials' or not re.fullmatch(r'sllm-glm51fp8-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}',parts[2]) or parts[2]==gate['execution_run_id']:
+            raise ValueError('invalid declared execution root')
+        prior=pathlib.Path(assets)/relative
+        if not prior.is_dir() or prior.is_symlink() or not prior.resolve().is_relative_to(pathlib.Path(assets).resolve()):
+            raise ValueError('declared execution root unavailable or escaped')
+        roots.append(prior)
+    return roots+[pathlib.Path(root)/'formal-trials']
+
+
 def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
     """CPU-only shared admission; caller must also perform actual host preflight."""
     if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
@@ -82,7 +96,7 @@ def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
             raise ValueError('formal source differs: ' + row['path'])
         checked.add(row['path'])
     if not {'formal_trials.py', 'formal_gate.py', 'attempt_state.py', 'bootstrap_formal.py',
-            'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh'} <= checked:
+            'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json'} <= checked:
         raise ValueError('incomplete formal entry manifest')
     checked_json(assets / 'protocol/measurement-preregistration.json', PREREG_SHA)
     checked_json(assets / 'validation/native-gold.json', GOLD_SHA)
@@ -99,6 +113,8 @@ def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
         formats.add(proof['weight_format'])
     if formats != {'serverless_llm', 'safetensors'} or len(gate['normal_flags_proofs']) != 2:
         raise ValueError('both normal-flags formats required')
+    collect(assets/'protocol/measurement-preregistration.json',source/'initial-ledger.json',
+            assets/'results/formal-trials',execution_roots(gate,assets,root))
     return gate
 
 

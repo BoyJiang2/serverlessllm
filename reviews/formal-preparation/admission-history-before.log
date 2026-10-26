@@ -1,0 +1,66 @@
+test_changed_original_result_blocks_even_host_admission (test_formal_gate.FormalGate.test_changed_original_result_blocks_even_host_admission) ... FAIL
+test_incomplete_current_attempt_blocks_even_host_admission (test_formal_gate.FormalGate.test_incomplete_current_attempt_blocks_even_host_admission) ... FAIL
+test_missing_declared_prior_root_cannot_mean_no_attempts (test_formal_gate.FormalGate.test_missing_declared_prior_root_cannot_mean_no_attempts) ... FAIL
+test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) ... 
+  test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='/other/formal-trials') ... FAIL
+  test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='../other') ... FAIL
+  test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='results/formal-trials') ... FAIL
+
+======================================================================
+FAIL: test_changed_original_result_blocks_even_host_admission (test_formal_gate.FormalGate.test_changed_original_result_blocks_even_host_admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 115, in test_changed_original_result_blocks_even_host_admission
+    with self.assertRaisesRegex(ValueError,'changed frozen input'):self.check(admission_only=True)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_incomplete_current_attempt_blocks_even_host_admission (test_formal_gate.FormalGate.test_incomplete_current_attempt_blocks_even_host_admission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 120, in test_incomplete_current_attempt_blocks_even_host_admission
+    with self.assertRaisesRegex(ValueError,'consumed attempt'):self.check(admission_only=True)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_missing_declared_prior_root_cannot_mean_no_attempts (test_formal_gate.FormalGate.test_missing_declared_prior_root_cannot_mean_no_attempts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 124, in test_missing_declared_prior_root_cannot_mean_no_attempts
+    with self.assertRaisesRegex(ValueError,'declared execution root'):self.check(admission_only=True)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='/other/formal-trials')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 129, in test_absolute_or_escaped_prior_root_rejected
+    with self.subTest(path=value),self.assertRaises(ValueError):self.check(admission_only=True)
+                                  ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='../other')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 129, in test_absolute_or_escaped_prior_root_rejected
+    with self.subTest(path=value),self.assertRaises(ValueError):self.check(admission_only=True)
+                                  ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_absolute_or_escaped_prior_root_rejected (test_formal_gate.FormalGate.test_absolute_or_escaped_prior_root_rejected) (path='results/formal-trials')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_formal_gate.py", line 129, in test_absolute_or_escaped_prior_root_rejected
+    with self.subTest(path=value),self.assertRaises(ValueError):self.check(admission_only=True)
+                                  ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.244s
+
+FAILED (failures=6)
