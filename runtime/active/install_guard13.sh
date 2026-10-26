@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-run_id=sllm-glm51fp8-20261026T123417Z-b1692e12
+run_id=sllm-glm51fp8-20261026T132344Z-a8efabb2
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"

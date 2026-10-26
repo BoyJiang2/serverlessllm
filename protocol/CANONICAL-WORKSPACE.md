@@ -101,3 +101,13 @@ Neither simplification nor path migration changes TP8, utilization0.9, context20
 seq1, MTPoff, eager, 256 KV blocks, official FP8 values/scales or the public Store
 pool semantics. Historical exit137 remains failed: daemon escalation is observed;
 the upstream stop requester/reason is unknown. No formal ID has been consumed.
+
+Canonical7 imports only the missing2232-byte tensor_audit.py from the immutable
+original-run archive into runtime/active. Bytes SHA256
+069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff
+match the pinned1142-file historical manifest. Its source is unchanged; the
+existing readonly active-source mount/PYTHONPATH makes it visible to backend and
+vLLM workers. No broad archive mount or alias is introduced. The existing own-head
+CPU preflight now checks its actual origin/hash, lazy distributed import and
+cloudpickle callback roundtrip before service allocation. This is dependency
+proof only; actual32rank audits and native business remain required.

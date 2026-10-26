@@ -105,7 +105,20 @@ else:
     time.sleep(1)
   event(head_running_gcs_tcp_ready=True)
   if PHASE=='service13a':
-   probe="import json,pathlib;from run_store_server13 import verify_store_imports;from workspace import manifest,run_root;rows=verify_store_imports(manifest()['store_import_sha256']);import torch,vllm;p=run_root()/'cpu-import-preflight.json';f=p.open('x');json.dump(dict(modules=rows,torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2);f.close();print('CPU import preflight passed')"
+   probe="""import json,pathlib,hashlib
+from run_store_server13 import verify_store_imports
+from workspace import SOURCE,manifest,run_root
+rows=verify_store_imports(manifest()['store_import_sha256'])
+import torch,vllm,cloudpickle,tensor_audit
+from tensor_audit import audit_model
+from vllm.distributed import get_tensor_model_parallel_rank
+path=pathlib.Path(tensor_audit.__file__).resolve()
+assert path==SOURCE/'tensor_audit.py', 'audit helper origin differs'
+assert hashlib.sha256(path.read_bytes()).hexdigest()=='069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff', 'audit helper hash differs'
+assert cloudpickle.loads(cloudpickle.dumps(audit_model)) is audit_model, 'audit callback module import differs'
+with (run_root()/'cpu-import-preflight.json').open('x') as f:
+ json.dump(dict(modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)
+print('CPU import preflight passed')"""
    call(['docker','exec',r['container_id'],'/experiment/.venv/bin/python','-c',probe],timeout=90)
   launch(PHASE)
  else:

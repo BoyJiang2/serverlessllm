@@ -10,6 +10,7 @@ out=repo/'reviews'/('full-r1-'+revision)
 out.mkdir(exist_ok=True)
 identity=json.loads((source/'CONTROL-IDENTITY.json').read_text())
 if any(identity[key]!=config[key] for key in ('run_id','cleanup_deadline','workspace_root')):raise RuntimeError('control identity differs')
+if "\nrun='"+config['run_id']+"'\n" not in (source/'snapshot_root13.py').read_text():raise RuntimeError('root snapshot identity differs')
 deadline=datetime.datetime.fromisoformat(config['cleanup_deadline'])
 for name in ('install_guard13.sh','cleanup_guard13.sh','install_observers13.sh'):
     if '\nrun_id='+config['run_id']+'\n' not in (source/name).read_text():raise RuntimeError('guard run identity differs: '+name)
