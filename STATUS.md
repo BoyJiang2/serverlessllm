@@ -281,3 +281,7 @@ Run170947Z-89e023f0 codea294d2b/MFe29:real716GiBpool/RPC/RSS770294251520B/helper
 ## canonical11 GPU subquery diagnostic frozen pending R1
 
 Run175702Z-59e71e6e/MF534af6ebc1436156222faae5f4fd3e564760a3c0147c0e05b8094a3e88eb8865,136CPU/18operator/3syntaxpassed,61runtime+8repoInputs. Existingmonitorseparatesmemory+identity/utilization/appswithargv/rc/UUIDjoin;same5s/sticky/readyafterall;noasync/fakevalues. Existingbootstrapteardownappendflushperstage/identity;partialbeginpersistedifkilled. NoNVMLpackageinstalled/changed. Newindependent08:50guardplannedusingactualcontiguousalreadyowned21-09bookings,oldC10guardclosedunchanged. Unexecuted/unapproved;actualrefresh/guard/probe/fullR1stillneeded;fullG1/R2/formalpending,5/4/31unchanged.
+
+## canonical11 full R1 approved; actual new guard next
+
+LocalindependentR1 approved0b3993b/534af6eb at18:01:32Z,61+8hashesmatch,136/18/3recordedCPUchecks. Actual02:02snapshot8GPU0/noGPUpid/identityunchanged,existingcontiguousbookingsuntil09,24470sremainbeforeproposednew08:50guard. Notyetdeployed/guarded/actualC11run;approvalonlyStore-onlydiagnostic;C10failedunchanged,noG1/R2/formal,5/4/31.
