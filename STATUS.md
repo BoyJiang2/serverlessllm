@@ -339,3 +339,7 @@ Real716GiB/RPC/RSS/helperonly+actualROoverlay/serverb22a/fullservecode match/ori
 ## canonical17 complete G1 repair frozen pending exact R1
 
 Run193424Z-685d6426/MF9ac4e071bed9b913ebb185fe2b20286ae76e834c4b16f593b65f33dba1677cdf;63runtime/155CPU/28operator(1POSIXskip)/3syntax. ReuseC16verifiedStoreoverlay,extendexactStoreSIGINT240fromsend/cancelbodyalarm/postkill5/durableteardownandactualStoreexecution/PID/CID/ns/zero/noKILLacceptance toG1. G1body3060 withworker3420;explicitclientphase300/720/720/3900+30/suffixwindow5820/5520/4800/4080 includesrelease. WIPreadonlyno confirmedblocker. ExactfullR1/new08:50guard/whole2Ray+pool/cache/native/rank/business/idle/fullrawG1 stillpending;nodeploy/newcompute. Formal5/4/31unchanged,old137/C7earlyunknown.
+
+## canonical17 complete-G1 fullR1 approved; actual admission next
+
+Exactdefc412a/MF9ac4e071 approvedlocalreadonly at19:36:50Z;63+8hashesmatch,155runtime/28operator(1skip)/3syntax. ScopeonecompleteuntimedG1,notnormalflags/R2/formal. Actualnew08:50guard/completecontrols stillpending.03:35fresh8GPU0/noGPUproc/sourceabsent/current03-09booking,>5820remaining. Formal5/4/31unchanged.
