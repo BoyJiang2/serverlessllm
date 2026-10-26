@@ -9,10 +9,11 @@ import json
 import pathlib
 
 def verify_store_imports(expected,package_root=pathlib.Path('/experiment/code/Store-source-v7/sllm_store')):
-    names={'sllm_store','sllm_store.server','sllm_store._C','sllm_store._checkpoint_store'}
-    if set(expected)!=names:raise RuntimeError('unexpected Store import set')
+    # server imports torch and preloads bundled libglog before native extensions.
+    names=('sllm_store','sllm_store.server','sllm_store._C','sllm_store._checkpoint_store')
+    if set(expected)!=set(names):raise RuntimeError('unexpected Store import set')
     rows={}
-    for name in sorted(names):
+    for name in names:
         module=importlib.import_module(name)
         path=pathlib.Path(module.__file__).resolve()
         if path.parent!=package_root.resolve():raise RuntimeError('Store import origin differs: '+name)

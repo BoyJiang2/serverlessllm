@@ -16,6 +16,16 @@ class ImportIdentity(unittest.TestCase):
             root=pathlib.Path(directory);modules,expected=self.fixture(root)
             with patch('run_store_server13.importlib.import_module',side_effect=modules.get):
                 self.assertEqual({k:v['sha256'] for k,v in verify_store_imports(expected,root).items()},expected)
+    def test_server_preloads_native_dependencies_before_direct_extensions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);modules,expected=self.fixture(root);loaded=[]
+            def loader(name):
+                if name in ('sllm_store._C','sllm_store._checkpoint_store') and 'sllm_store.server' not in loaded:
+                    raise ImportError('libglog.so.1 requires the existing server preload')
+                loaded.append(name)
+                return modules[name]
+            with patch('run_store_server13.importlib.import_module',side_effect=loader):
+                self.assertEqual(set(verify_store_imports(expected,root)),set(expected))
     def test_changed_binary_refused(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory);modules,expected=self.fixture(root);pathlib.Path(modules['sllm_store._checkpoint_store'].__file__).write_bytes(b'changed binary metadata')
