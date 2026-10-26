@@ -73,7 +73,8 @@ class MonitorTrace(unittest.TestCase):
         begin,end=self.events(scope)
         self.assertIsNone(begin['end_ns'])
         self.assertEqual(end['outcome'],'error')
-        self.assertIn('controlled query failure',end['error'])
+        self.assertEqual(end['error'],'TimeoutError')
+        self.assertNotIn(b'controlled query failure',scope['trace_output'].getvalue())
         self.assertEqual(end['duration_ns'],10_000_000_000)
         self.assertNotIn('gpu_pids',end)
 
@@ -86,6 +87,10 @@ class MonitorTrace(unittest.TestCase):
         scope['trace_output']=SlowOutput()
         scope['measured']('proc.stat',lambda:'value')
         begin,end=self.events(scope)
+        self.assertIsNone(begin['previous_trace_io_ns'])
+        self.assertIn('event_ns',begin)
+        self.assertNotIn('begin_ns',begin)
+        self.assertEqual(end['begin_ns'],6_000_000_000)
         self.assertEqual(end['duration_ns'],0)
         self.assertEqual(end['begin_trace_io_ns'],6_000_000_000)
         scope['measured']('next.operation',lambda:None)
@@ -107,6 +112,89 @@ class MonitorTrace(unittest.TestCase):
             scope['measured']('gpu.query-gpu',action,child_cpu=True)
         end=self.events(scope)[1]
         self.assertEqual((end['thread_cpu_ns'],end['child_cpu_ns']),(100_000_000,1_000_000_000))
+
+    def test_observer_expected_birth_is_not_reported_as_observed(self):
+        scope,_=recorder()
+        stat='17 (observer) '+' '.join(['S']+['0']*18+['200'])
+        class Proc:
+            def __truediv__(self,name):return self
+            def joinpath(self,name):
+                return types.SimpleNamespace(read_text=lambda:stat if name=='stat' else 'own-group')
+        scope.update(pathlib=types.SimpleNamespace(Path=lambda value:Proc()),
+                     registration=dict(observers=[dict(pid=17,start_ticks='100',cgroup='own-group',unit='observer.service')]),
+                     observer_states=[])
+        tree=ast.parse(pathlib.Path(__file__).with_name('monitor_control13.py').read_text())
+        loop=next(n for n in ast.walk(tree) if isinstance(n,ast.For)
+                  and isinstance(n.target,ast.Name) and n.target.id=='registered')
+        exec(compile(ast.Module(body=[loop],type_ignores=[]),'<actual-observer-loop>','exec'),scope)
+        events=self.events(scope)
+        self.assertIsNone(events[1]['start_ticks'])
+        self.assertEqual(events[1]['expected_start_ticks'],'100')
+        self.assertEqual(events[3]['start_ticks'],'200')
+        self.assertEqual(events[3]['expected_start_ticks'],'100')
+        self.assertFalse(scope['observer_states'][0]['ok'])
+
+    def test_action_error_survives_end_trace_write_failure(self):
+        class FailSecondWrite(io.BytesIO):
+            calls=0
+            def write(self,value):
+                self.calls+=1
+                if self.calls==2:raise OSError('controlled recorder failure')
+                return super().write(value)
+        scope,_=recorder(FailSecondWrite());original=TimeoutError('original action error')
+        def failed():raise original
+        with self.assertRaises(TimeoutError) as caught:scope['measured']('gpu.query-gpu',failed)
+        self.assertIs(caught.exception,original)
+        self.assertEqual(len(self.events(scope)),1)
+        self.assertEqual(self.events(scope)[0]['outcome'],'pending')
+
+    def test_successful_action_cannot_hide_end_trace_write_failure(self):
+        class FailSecondWrite(io.BytesIO):
+            calls=0
+            def write(self,value):
+                self.calls+=1
+                if self.calls==2:raise OSError('controlled recorder failure')
+                return super().write(value)
+        scope,_=recorder(FailSecondWrite())
+        with self.assertRaises(OSError):scope['measured']('proc.stat',lambda:'value')
+
+    def test_action_error_survives_child_counter_failure(self):
+        scope,_=recorder();original=TimeoutError('original action error')
+        def failed():raise original
+        calls=[]
+        def usage(who):
+            calls.append(who)
+            if len(calls)==2:raise OSError('counter unavailable')
+            return types.SimpleNamespace(ru_utime=0.,ru_stime=0.)
+        with patch.dict(sys.modules,{'resource':types.SimpleNamespace(RUSAGE_CHILDREN=1,getrusage=usage)}), \
+                self.assertRaises(TimeoutError) as caught:
+            scope['measured']('gpu.query-gpu',failed,child_cpu=True)
+        self.assertIs(caught.exception,original)
+
+    def test_error_payload_is_not_copied(self):
+        scope,_=recorder()
+        def failed():raise ValueError('unlogged-payload-'+'x'*100000)
+        with self.assertRaises(ValueError):scope['measured']('helper.derive',failed)
+        self.assertEqual(self.events(scope)[1]['error'],'ValueError')
+        self.assertNotIn(b'unlogged-payload',scope['trace_output'].getvalue())
+        self.assertLess(len(scope['trace_output'].getvalue()),4096)
+
+    def test_disabled_cgroup_scan_remains_lazy(self):
+        scope,_=recorder();scope['trace_output']=None;visited=[]
+        def scan(pattern):
+            visited.append(True)
+            yield pathlib.Path('/own/cgroup.procs')
+        scope['cgroup']=types.SimpleNamespace(rglob=scan)
+        tree=ast.parse(pathlib.Path(__file__).with_name('monitor_control13.py').read_text())
+        assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign)
+                        and any(isinstance(t,ast.Name) and t.id=='paths' for t in n.targets))
+        conditional=next(n for n in ast.walk(tree) if isinstance(n,ast.If)
+                         and any(isinstance(t,ast.Name) and t.id=='paths'
+                                 for a in n.body if isinstance(a,ast.Assign) for t in a.targets))
+        exec(compile(ast.Module(body=[assignment,conditional],type_ignores=[]),'<actual-scan-prelude>','exec'),scope)
+        self.assertFalse(visited)
+        self.assertEqual(len(list(scope['paths'])),1)
+        self.assertTrue(visited)
 
 
 if __name__=='__main__':unittest.main()

@@ -11,7 +11,7 @@ import time
 
 trace_output=None
 trace_sequence=0
-trace_io_ns=0
+trace_io_ns=None
 TRACE_LIMIT=256*1024**2
 
 def trace_event(event):
@@ -24,13 +24,13 @@ def trace_event(event):
     trace_output.flush()
     trace_io_ns=time.monotonic_ns()-begin
 
-def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=None):
+def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=None,expected_start_ticks=None):
     """Diagnostic only: record locations, never substitute values or change gates."""
     global trace_sequence
     if trace_output is None:return action()
     trace_sequence+=1
-    identity=dict(sequence=trace_sequence,operation=operation,pid=pid,start_ticks=start_ticks,target=target)
-    trace_event(dict(identity,event='begin',begin_ns=time.monotonic_ns(),end_ns=None,
+    identity=dict(sequence=trace_sequence,operation=operation,pid=pid,start_ticks=start_ticks,target=target,expected_start_ticks=expected_start_ticks)
+    trace_event(dict(identity,event='begin',event_ns=time.monotonic_ns(),end_ns=None,
                      outcome='pending',previous_trace_io_ns=trace_io_ns))
     begin_write_ns=trace_io_ns
     if child_cpu:
@@ -38,21 +38,25 @@ def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=N
         usage=resource.getrusage(resource.RUSAGE_CHILDREN)
         child_begin=usage.ru_utime+usage.ru_stime
     begin=time.monotonic_ns();cpu=time.thread_time_ns()
-    outcome='ok';error=None
+    outcome='ok';error=None;action_failure=None
     try:
         return action()
     except BaseException as failure:
-        outcome='error';error=repr(failure)
+        action_failure=failure
+        outcome='error';error=type(failure).__name__[:128]
         raise
     finally:
-        end=time.monotonic_ns();cpu_end=time.thread_time_ns()
-        child_ns=None
-        if child_cpu:
-            usage=resource.getrusage(resource.RUSAGE_CHILDREN)
-            child_ns=int((usage.ru_utime+usage.ru_stime-child_begin)*1e9)
-        trace_event(dict(identity,event='end',begin_ns=begin,end_ns=end,
-                         duration_ns=end-begin,thread_cpu_ns=cpu_end-cpu,child_cpu_ns=child_ns,
-                         begin_trace_io_ns=begin_write_ns,outcome=outcome,error=error))
+        try:
+            end=time.monotonic_ns();cpu_end=time.thread_time_ns()
+            child_ns=None
+            if child_cpu:
+                usage=resource.getrusage(resource.RUSAGE_CHILDREN)
+                child_ns=int((usage.ru_utime+usage.ru_stime-child_begin)*1e9)
+            trace_event(dict(identity,event='end',begin_ns=begin,end_ns=end,
+                             duration_ns=end-begin,thread_cpu_ns=cpu_end-cpu,child_cpu_ns=child_ns,
+                             begin_trace_io_ns=begin_write_ns,outcome=outcome,error=error))
+        except BaseException:
+            if action_failure is None:raise
 # CONTROL COPY (v11): the v1 overlay deadline (2026-10-25T05:50) has passed; this monitor
 # reads the v2 additive window instead so it keeps sampling until the v2 deadline.
 from resource_window_control13 import load_window
@@ -71,8 +75,7 @@ output_root = root
 trace_enabled=manifest.get('monitor_diagnostic_trace',False)
 if type(trace_enabled) is not bool:raise RuntimeError('diagnostic trace flag must be boolean')
 if trace_enabled:
-    assert manifest['scope'] in ('monitor diagnostics only; no model or pool',
-                                 'G1 independent untimed controls only; zero formal IDs')
+    assert manifest['scope']=='monitor diagnostics only; no model or pool'
     trace_output=(output_root/'monitor-diagnostic-trace.jsonl').open('xb')
 log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
 assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')
@@ -86,7 +89,9 @@ with (output_root/log_name).open('x') as output:
         current = int(measured('cgroup.memory.current',lambda:(cgroup/'memory.current').read_text()))
         sampled_peak = max(sampled_peak,current)
         pids = set()
-        for path in measured('cgroup.procs.scan',lambda:list(cgroup.rglob('cgroup.procs'))):
+        paths=cgroup.rglob('cgroup.procs')
+        if trace_output is not None:paths=measured('cgroup.procs.scan',lambda:list(paths))
+        for path in paths:
             try: pids.update(map(int,measured('cgroup.procs.read',lambda:path.read_text(),target=str(path)).split()))
             except FileNotFoundError: pass
         processes = []
@@ -116,8 +121,9 @@ with (output_root/log_name).open('x') as output:
         for registered in registration['observers']:
             try:
                 proc=pathlib.Path('/proc')/str(registered['pid'])
-                same_start=measured('observer.stat',lambda:proc.joinpath('stat').read_text(),pid=registered['pid'],start_ticks=registered['start_ticks']).rpartition(')')[2].split()[19]==registered['start_ticks']
-                same_group=measured('observer.cgroup',lambda:proc.joinpath('cgroup').read_text(),pid=registered['pid'],start_ticks=registered['start_ticks'])==registered['cgroup']
+                observed_birth=measured('observer.stat',lambda:proc.joinpath('stat').read_text(),pid=registered['pid'],expected_start_ticks=registered['start_ticks']).rpartition(')')[2].split()[19]
+                same_start=observed_birth==registered['start_ticks']
+                same_group=measured('observer.cgroup',lambda:proc.joinpath('cgroup').read_text(),pid=registered['pid'],start_ticks=observed_birth,expected_start_ticks=registered['start_ticks'])==registered['cgroup']
                 observer_states.append(dict(unit=registered['unit'],pid=registered['pid'],ok=same_start and same_group))
             except (FileNotFoundError,ProcessLookupError,PermissionError):
                 observer_states.append(dict(unit=registered['unit'],pid=registered['pid'],ok=False))

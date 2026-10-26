@@ -1,0 +1,11 @@
+# Static trace review remediation
+
+Prior review: initial-static-review.md / initial-static-receipt.json, actual DeepSeek sourcee8bb907, changes_required. This remediation remains a local unsealed diagnostic draft, not R1/execution admission.
+
+- B1: observer.stat now records unknown observed birth and separately expected_start_ticks. The observed stat birth is passed to the following cgroup event. An actual-observer-loop CPU test simulates expected100/observed200 and confirms observerokfalse and correct trace provenance.
+- B2: begin-event marker uses event_ns; begin_ns is reserved for the actual operation start in the end event. Slow trace-write test confirms operation duration excludes recorderIO and initial previous-write age isNone, not0.
+- B3: all final recording/counter operations are guarded so an active action exception survives secondary recorder/counter errors. If the action succeeds but recording fails, recording failure still propagates. Tests cover both branches and child-counter failure.
+
+Nits adopted: diagnostic-only scope(noG1 tracing), error type only(max128chars; no exception message/document payload), disabled cgroup scan stays lazy, initial no-previous-write isNone. Result data is never copied to trace. Expected proc-exit races still follow the original outer exception handling; compulsory failures are not substituted withzero/emptyvalues. Helper subreads remain grouped until evidence identifies that stage as slow. Missing birth before an observed stat read, foreignPID birth and the final end-event recorder latency remain explicitly unavailable; no claim of complete PID provenance or final traceIO measurement.
+
+New12 CPU recorder tests run against immutablee8bb907 source yielded4failures/3errors(as expected), retained in trace-regressions-before.log. Current full115runtime CPU tests pass; nine operator tests retain their last actual pass (operator code unchanged). No thresholds/timestamps/acceptance/manifest/window or remote resources changed. Currentd95manifest is stale by design against the edited monitor and cannot authorize deployment. Next trace-only re-review, then a separate exact bounded diagnostic plan and full bound admission before containerized execution. C7 remains failed, rawnative32/12 proof retained, formal5/4/31 unchanged.
