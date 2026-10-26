@@ -315,3 +315,7 @@ No newpool. ExistingCPUmonitor-diagnostic headrunc scope nowrecords three sameim
 ## canonical14 R1 corrections / canonical15 CPU-only frozen
 
 ActualC14R1changes_required:missingAcomparisoncouldpassBC andunreapedcouldloseallbufferedresults. Fixedcommon3groupspredicate plusdurableheader/pergroupflush/unreapedabort;WIPreviewconfirmed anotherlateexit-timeoutpartialcasefixed/tested. Newrun185540Z-f24e1ed4/MF176a5a9eb85e6b14e3d421c088befe16eecf51e454da99b084231ba6b3f210dd;146runtime/26operator(1POSIXskip)/3syntax. NewfullR1pending/no deploy/guard/newcompute; noStorepool/model/formalallowed. Formal5/4/31,historical137unknown.
+
+## canonical15 fullR1 approved, CPU actual pending
+
+Exact03b7e657/MF176a5a9e approvedlocalreadonlyR1 at18:56:36Z;61+8hashesmatch,146runtime/26operator(1POSIXskip)/3syntax. C14twofindingsandlateexitpartialclosed. OnlyCPUemptygrpcthreegroups,notStore/G1/R2/formal. Actualnew08:50guard/probe/observer/monitor/CPUphase/release pending. Latest02:52resource8GPU0/noGPUproc/sourceabsent/currentcontinuousbookingsuntil09. Formal5/4/31unchanged.
