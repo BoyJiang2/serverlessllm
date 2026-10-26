@@ -311,3 +311,7 @@ Real716GiBpool andactualboundLinuxprobe passed. StoreSIGINT entersgRPCstop butst
 ## canonical14 CPU grpc diagnosis frozen, R1 pending
 
 No newpool. ExistingCPUmonitor-diagnostic headrunc scope nowrecords three sameimage emptygrpc direct/shield/event shutdown children, trueSIGINT/stopreturned/rc/sourcehashes/rawlogs/ownboundedcleanup. Newrun185029Z-ef39e9cf/MF61808da183091cfe93b9c56c84eb8da95d4c0e3607eed5c185d21ac74b5d4d84;146runtime/22operator(1WindowsPOSIXskip)/3syntax. PriorLinuxunitfixtureboundaryfixed; initialG1fixtureCPUflagerrorsretained/corrected. LocalR1/actualguard/CPUcontrol pending; no newremotecompute; sourceabsentafterC13archive. Formal5/4/31 unchanged.
+
+## canonical14 R1 corrections / canonical15 CPU-only frozen
+
+ActualC14R1changes_required:missingAcomparisoncouldpassBC andunreapedcouldloseallbufferedresults. Fixedcommon3groupspredicate plusdurableheader/pergroupflush/unreapedabort;WIPreviewconfirmed anotherlateexit-timeoutpartialcasefixed/tested. Newrun185540Z-f24e1ed4/MF176a5a9eb85e6b14e3d421c088befe16eecf51e454da99b084231ba6b3f210dd;146runtime/26operator(1POSIXskip)/3syntax. NewfullR1pending/no deploy/guard/newcompute; noStorepool/model/formalallowed. Formal5/4/31,historical137unknown.

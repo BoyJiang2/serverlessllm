@@ -1,0 +1,37 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "changes_required",
+  "reviewed_at_utc": "2026-10-26T18:52:05Z",
+  "reviewer": "user-authorized local readonly /root/independent_readonly_review",
+  "code_commit": "71d21cac0af6523a9e3e228b662a7de52e42a369",
+  "manifest_sha256": "61808da183091cfe93b9c56c84eb8da95d4c0e3607eed5c185d21ac74b5d4d84",
+  "run_id": "sllm-glm51fp8-20261026T185029Z-ef39e9cf",
+  "verification": {
+    "package_files_hashed": 61,
+    "repository_inputs_hashed": 8,
+    "mismatches": [],
+    "tests_executed_by_reviewer": false
+  },
+  "blockers": [
+    {
+      "id": "R1-C14-01",
+      "finding": "Direct group readiness/signal/collection failure could pass final comparison with B/C success",
+      "minimal_fix": "Common three-group validready/SIGINT/collection/cleanup before candidate B/C zero+stop"
+    },
+    {
+      "id": "R1-C14-02",
+      "finding": "Final-only write loses completed/current groups on unreaped child",
+      "minimal_fix": "Header plus per-group appendflush; persist partial and stop before next group if unreaped"
+    }
+  ],
+  "not_approved": [
+    "any execution until fixed/newbinding/review"
+  ],
+  "limitations": [
+    "static only",
+    "formal5/4/31",
+    "historical137unknown"
+  ],
+  "record_provenance": "Structured transcription of actual readonly reviewer result retained in chat"
+}

@@ -169,23 +169,35 @@ if manifest().get('grpc_shutdown_probe') is True:
  assert manifest()['scope']=='monitor diagnostics only; no model or pool'
  import grpc,grpc.aio._server,grpc._cython.cygrpc,socket
  grpc_child_code="import asyncio,grpc,json,sys\\nmode=sys.argv[1]\\ndef event(stage,**values):print(json.dumps(dict(stage=stage,**values)),flush=True)\\nasync def main():\\n server=grpc.aio.server()\\n port=server.add_insecure_port('127.0.0.1:0')\\n assert port>0\\n await server.start()\\n waiter=asyncio.create_task(server.wait_for_termination())\\n stop_event=asyncio.Event()\\n if mode=='event':\\n  import signal\\n  asyncio.get_running_loop().add_signal_handler(signal.SIGINT,lambda:(event('signal_received'),stop_event.set()))\\n await asyncio.sleep(.1)\\n event('ready',port=port,mode=mode)\\n try:\\n  if mode=='event':await stop_event.wait()\\n  elif mode=='shield':await asyncio.shield(waiter)\\n  else:await waiter\\n except asyncio.CancelledError:\\n  event('cancelled',cancelling=asyncio.current_task().cancelling(),waiter_cancelled=waiter.cancelled())\\n event('stop_begin')\\n try:await server.stop(.1)\\n except BaseException as error:\\n  event('stop_error',error=type(error).__name__)\\n  raise\\n event('stop_end')\\n await waiter\\n event('waiter_end')\\nasyncio.run(main())\\n"
+ grpc_sources={str(pathlib.Path(module.__file__).resolve()):hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest() for module in (grpc,grpc.aio._server,grpc._cython.cygrpc)}
+ grpc_trace=(run_root()/'grpc-shutdown-probe.jsonl').open('x')
+ grpc_trace.write(json.dumps(dict(stage='header',binding={key:sigint_proof[key] for key in ('run_id','head_container_id','image_id','boot_id','code_commit','manifest_sha256')},python=sys.version,grpc_version=grpc.__version__,child_source=grpc_child_code,child_source_sha256=hashlib.sha256(grpc_child_code.encode()).hexdigest(),sources=grpc_sources))+'\\n');grpc_trace.flush()
  grpc_rows=[]
  for mode in ('direct','shield','event'):
   process=subprocess.Popen([sys.executable,'-u','-c',grpc_child_code,mode],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
-  prefix='';stdout='';stderr='';forced=False;timed_out=False;port=None;failure=None;sent_ns=None;begin_ns=time.monotonic_ns()
+  prefix='';stdout='';stderr='';forced=False;timed_out=False;port=None;failure=None;sent_ns=None;unreaped=False;begin_ns=time.monotonic_ns()
   try:
    assert select.select([process.stdout],[],[],5)[0], 'grpc readiness timeout'
    prefix=process.stdout.readline()
    first=json.loads(prefix);assert first['stage']=='ready'
    port=first['port'];process.send_signal(signal.SIGINT);sent_ns=time.monotonic_ns()
    try:stdout,stderr=process.communicate(timeout=10)
-   except subprocess.TimeoutExpired:
-    timed_out=True;forced=True;process.kill();stdout,stderr=process.communicate(timeout=2)
+   except subprocess.TimeoutExpired as error:
+    timed_out=True;failure=repr(error)
+    stdout=error.stdout or '';stderr=error.stderr or ''
+    if isinstance(stdout,bytes):stdout=stdout.decode(errors='replace')
+    if isinstance(stderr,bytes):stderr=stderr.decode(errors='replace')
   except Exception as error:
    failure=repr(error)
   finally:
    if process.poll() is None:
-    forced=True;process.kill();stdout,stderr=process.communicate(timeout=2)
+    forced=True;process.kill()
+    try:stdout,stderr=process.communicate(timeout=2)
+    except subprocess.TimeoutExpired as error:
+     unreaped=True;failure=repr(error)
+     stdout=error.stdout or '';stderr=error.stderr or ''
+     if isinstance(stdout,bytes):stdout=stdout.decode(errors='replace')
+     if isinstance(stderr,bytes):stderr=stderr.decode(errors='replace')
   try:events=[json.loads(line) for line in (prefix+stdout).splitlines()]
   except ValueError:events=[];failure=failure or 'malformed child event output'
   listening=True
@@ -194,9 +206,13 @@ if manifest().get('grpc_shutdown_probe') is True:
    with socket.create_connection(('127.0.0.1',port),timeout=1):pass
   except OSError:listening=False
   grpc_rows.append(dict(mode=mode,pid=process.pid,signal=signal.SIGINT,signal_sent_ns=sent_ns,begin_ns=begin_ns,end_ns=time.monotonic_ns(),returncode=process.returncode,forced_kill=forced,timed_out=timed_out,failure=failure,events=events,stdout=prefix+stdout,stderr=stderr,listener_remaining=listening,stop_returned=any(row['stage']=='stop_end' for row in events)))
- grpc_sources={str(pathlib.Path(module.__file__).resolve()):hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest() for module in (grpc,grpc.aio._server,grpc._cython.cygrpc)}
+  grpc_trace.write(json.dumps(dict(stage='group_result',**grpc_rows[-1],unreaped=unreaped))+'\\n');grpc_trace.flush()
+  if unreaped:raise RuntimeError('grpc child unreaped; stop control and request own cleanup')
+
  with (run_root()/'grpc-shutdown-probe.json').open('x') as stream:
   json.dump(dict(binding={key:sigint_proof[key] for key in ('run_id','head_container_id','image_id','boot_id','code_commit','manifest_sha256')},python=sys.version,grpc_version=grpc.__version__,child_source=grpc_child_code,child_source_sha256=hashlib.sha256(grpc_child_code.encode()).hexdigest(),sources=grpc_sources,rows=grpc_rows,scope='CPU empty gRPC server only; no Store/model/CUDA pool'),stream,indent=2)
+ grpc_trace.close()
+ assert len(grpc_rows)==3 and all(row['failure'] is None and row['signal_sent_ns'] is not None and any(event['stage']=='ready' for event in row['events']) and not row['forced_kill'] and not row['listener_remaining'] for row in grpc_rows), 'incomplete grpc comparison'
  assert all(row['failure'] is None and row['returncode']==0 and row['stop_returned'] and not row['forced_kill'] and not row['listener_remaining'] for row in grpc_rows if row['mode'] in ('shield','event')), 'grpc candidate controls failed'
 with (run_root()/'cpu-import-preflight.json').open('x') as f:
  json.dump(dict(sigint_probe=sigint_proof,modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)

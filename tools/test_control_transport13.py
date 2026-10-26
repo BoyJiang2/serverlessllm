@@ -264,28 +264,67 @@ class SigintPreflight(unittest.TestCase):
         self.assertIn('communicate(timeout=10)',text)
         self.assertIn("'stop_returned'",text)
 
-    def test_actual_grpc_parent_keeps_direct_failure_and_runs_other_groups(self):
+    def grpc_parent(self,direct_not_ready=False,unreaped_mode=None,exited_after_timeout_mode=None):
         tree=ast.parse(operator.REMOTE)
         text=next(n.value.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='probe' for x in n.targets))
         branch=next(n for n in ast.walk(ast.parse(text)) if isinstance(n,ast.If) and ast.unparse(n.test)=="manifest().get('grpc_shutdown_probe') is True")
         loop=next(n for n in branch.body if isinstance(n,ast.For))
-        predicate=branch.body[-1]
+        predicates=branch.body[-2:]
         seen=[]
         class Process:
             def __init__(self,args,**kw):
-                self.mode=args[-1];seen.append(self.mode);self.pid=10;self.returncode=1 if self.mode=='direct' else 0
+                self.mode=args[-1];seen.append(self.mode);self.pid=10;self.returncode=None if self.mode==unreaped_mode else (1 if self.mode=='direct' else 0)
                 self.stdout=io.StringIO(json.dumps(dict(stage='ready',port=9999))+'\n')
             def send_signal(self,n):pass
-            def communicate(self,timeout):return ('' if self.mode=='direct' else json.dumps(dict(stage='stop_end'))+'\n','direct cancellation' if self.mode=='direct' else '')
+            def communicate(self,timeout):
+                if self.mode==unreaped_mode:raise subprocess.TimeoutExpired('grpc',timeout,output=b'',stderr=b'reap timeout')
+                if self.mode==exited_after_timeout_mode:raise subprocess.TimeoutExpired('grpc',timeout,output=(json.dumps(dict(stage='partial_output'))+'\n').encode(),stderr=b'partial stderr')
+                return ('' if self.mode=='direct' else json.dumps(dict(stage='stop_end'))+'\n','direct cancellation' if self.mode=='direct' else '')
             def poll(self):return self.returncode
-            def kill(self):raise AssertionError('unexpected kill')
+            def kill(self):
+                if self.mode!=unreaped_mode:raise AssertionError('unexpected kill')
         def closed(*a,**kw):raise OSError('listener closed')
-        scope=dict(grpc_rows=[],grpc_child_code='bound-child',subprocess=types.SimpleNamespace(Popen=Process,PIPE=subprocess.PIPE,TimeoutExpired=subprocess.TimeoutExpired),select=types.SimpleNamespace(select=lambda readers,*a:(readers,[],[])),signal=types.SimpleNamespace(SIGINT=2),sys=sys,json=json,time=time,socket=types.SimpleNamespace(create_connection=closed))
-        exec(compile(ast.Module(body=[loop,predicate],type_ignores=[]),'actual-grpc-parent-loop','exec'),scope)
-        self.assertEqual(seen,['direct','shield','event'])
+        def ready(readers,*a):return ([],[],[]) if direct_not_ready and seen[-1]=='direct' else (readers,[],[])
+        scope=dict(grpc_trace=io.StringIO(),grpc_rows=[],grpc_child_code='bound-child',subprocess=types.SimpleNamespace(Popen=Process,PIPE=subprocess.PIPE,TimeoutExpired=subprocess.TimeoutExpired),select=types.SimpleNamespace(select=ready),signal=types.SimpleNamespace(SIGINT=2),sys=sys,json=json,time=time,socket=types.SimpleNamespace(create_connection=closed))
+        error=None
+        try:exec(compile(ast.Module(body=[loop,*predicates],type_ignores=[]),'actual-grpc-parent-loop','exec'),scope)
+        except (AssertionError,RuntimeError) as caught:error=caught
+        return scope,seen,error,predicates
+
+    def test_actual_grpc_parent_keeps_direct_failure_and_runs_other_groups(self):
+        scope,seen,error,_=self.grpc_parent()
+        self.assertIsNone(error);self.assertEqual(seen,['direct','shield','event'])
         self.assertEqual([r['returncode'] for r in scope['grpc_rows']],[1,0,0])
         self.assertFalse(scope['grpc_rows'][0]['stop_returned'])
         self.assertTrue(scope['grpc_rows'][1]['stop_returned'])
+
+    def test_direct_missing_ready_refuses_complete_comparison(self):
+        scope,seen,error,_=self.grpc_parent(direct_not_ready=True)
+        self.assertIsInstance(error,AssertionError);self.assertEqual(seen,['direct','shield','event'])
+        self.assertIsNone(scope['grpc_rows'][0]['signal_sent_ns'])
+        self.assertIsNotNone(scope['grpc_rows'][0]['failure'])
+        self.assertEqual(len(scope['grpc_trace'].getvalue().splitlines()),3)
+
+    def test_timeout_followed_by_exit_preserves_partial_output(self):
+        scope,seen,error,_=self.grpc_parent(exited_after_timeout_mode='direct')
+        self.assertIsInstance(error,AssertionError)
+        self.assertEqual(seen,['direct','shield','event'])
+        rows=[json.loads(line) for line in scope['grpc_trace'].getvalue().splitlines()]
+        self.assertIn('partial_output',rows[0]['stdout']);self.assertEqual(rows[0]['stderr'],'partial stderr')
+        self.assertFalse(rows[0]['forced_kill']);self.assertTrue(rows[0]['timed_out'])
+
+    def test_missing_sent_signal_rejected_even_with_zero_exit(self):
+        scope,seen,error,predicates=self.grpc_parent()
+        scope['grpc_rows'][0]['signal_sent_ns']=None
+        with self.assertRaises(AssertionError):exec(compile(ast.Module(body=predicates,type_ignores=[]),'actual-comparison-acceptance','exec'),scope)
+
+    def test_later_reap_timeout_persists_prior_and_current_then_stops(self):
+        scope,seen,error,_=self.grpc_parent(unreaped_mode='shield')
+        self.assertIsInstance(error,RuntimeError);self.assertEqual(seen,['direct','shield'])
+        rows=[json.loads(line) for line in scope['grpc_trace'].getvalue().splitlines()]
+        self.assertEqual([row['mode'] for row in rows],['direct','shield'])
+        self.assertFalse(rows[0]['unreaped']);self.assertTrue(rows[1]['unreaped'])
+        self.assertIn('reap timeout',rows[1]['stderr'])
 
     @unittest.skipUnless(sys.platform=='linux','POSIX SIGINT delivery; mandatory actual Linux preallocation probe')
     def test_real_asyncio_sigint_cleans_up(self):
