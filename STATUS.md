@@ -416,3 +416,8 @@ Prior C19formal-trials readonly mount preserves5/5/30,next safetensors_disk_cold
 ## canonical20 complete R1 rejected; no deployment
 
 Actual local full readonly review verified80+9 hashes and full gate/phase/budget/cache/cleanup chain. Sole confirmed R1-C20-01: C19 prior terminal result not compared with frozen SHA, allowing changed success field to be accepted by state collection. Independent regression reproduced ValueError not raised after successflip. C20 retained frozen at1014e18,not deployed/no guard/pool/ID. Next C21 binds complete prior result+origin hash set in shared admission; original seed unchanged. Other probe/normal phase auxiliary review found no additional confirmed blocker. Counts5/5/30 unchanged.
+
+
+## canonical21 prior terminal hash binding frozen for full R1
+
+Newrun sllm-glm51fp8-20261026T225201Z-02cd4cdc / manifest6f456dfaaaca5bc3011ba217e481a7c107ff7186722084a1640a8472e76a4ef0.80runtime+9repositoryinputs;258CPU/35operator(34pass1WindowsPOSIXskip)/3syntax passed. Config pins exact C19 result+origin SHA; shared host/container/driver execution_roots inventories complete prior terminal set and rehashes before collect. Missing/extra/result/origin drift/successflip reject through both actual shared admission entries; original seed untouched. C20 retained rejected/notdeployed. C20 timing/probe chain retained. Exact new independent R1/currentresources/newactual08:50guard/CPUprobes/normal4phase control/R2/formal admission pending. No candidatecompute or ID;5success5failed30unstarted,next safetensors_disk_cold_03.

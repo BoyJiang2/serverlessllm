@@ -119,6 +119,18 @@ def execution_roots(gate,assets,root):
         if not prior.is_dir() or prior.is_symlink() or not prior.resolve().is_relative_to(pathlib.Path(assets).resolve()):
             raise ValueError('declared execution root unavailable or escaped')
         roots.append(prior)
+    config=json.loads((pathlib.Path(root)/'run-manifest.json').read_text())
+    pinned=config.get('formal_prior_file_sha256',{})
+    actual={}
+    for prior in roots:
+        for attempt in prior.iterdir():
+            if not attempt.is_dir() or attempt.is_symlink():raise ValueError('prior terminal directory differs')
+            for name in ('result.json','origin.json'):
+                path=attempt/name
+                if not path.is_file() or path.is_symlink():raise ValueError('prior terminal file missing or symlink')
+                actual[path.relative_to(pathlib.Path(assets)).as_posix()]=path
+    if set(actual)!=set(pinned):raise ValueError('prior terminal file set differs')
+    for relative,path in actual.items():checked_json(path,pinned[relative])
     return roots+[pathlib.Path(root)/'formal-trials']
 
 

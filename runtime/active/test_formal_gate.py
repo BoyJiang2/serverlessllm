@@ -134,6 +134,49 @@ class FormalGate(unittest.TestCase):
     def test_complete_synthetic_gate_reaches_stubbed_preflight(self):
         self.assertEqual(self.check()['code_commit'], self.code)
 
+    def install_prior(self):
+        relative='validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials'
+        path=self.assets/relative/'store_pool_hit_03'
+        pinned={}
+        for name,value in [('result.json',dict(attempt_id='store_pool_hit_03',success=False)),('origin.json',dict(attempt_id='store_pool_hit_03'))]:
+            pinned[relative+'/store_pool_hit_03/'+name]=save(path/name,value)
+        config=json.loads((self.source/'run-manifest.json').read_text())
+        config.update(formal_prior_execution_roots=[relative],formal_prior_file_sha256=pinned)
+        save(self.root/'run-manifest.json',config);sha=save(self.source/'run-manifest.json',config)
+        manifest=json.loads((self.source/'control-input-manifest.json').read_text())
+        next(row for row in manifest['files'] if row['path']=='run-manifest.json')['sha256']=sha
+        self.manifest_sha=save(self.source/'control-input-manifest.json',manifest)
+        self.gate.update(source_manifest_sha256=self.manifest_sha,prior_execution_roots=[relative])
+        r2=json.loads((self.root/'r2-approval.json').read_text());r2['manifest_sha256']=self.manifest_sha
+        self.gate['r2_approval_sha256']=save(self.root/'r2-approval.json',r2)
+        identity=json.loads((self.root/'formal13-identity.json').read_text());identity['manifest_sha256']=self.manifest_sha
+        save(self.root/'formal13-identity.json',identity)
+        return path
+
+    def test_frozen_prior_failure_passes_both_shared_admission_entries(self):
+        self.install_prior()
+        for host in (True,False):
+            with self.subTest(host=host):self.assertEqual(self.check(admission_only=host)['code_commit'],self.code)
+
+    def test_prior_drift_missing_extra_or_successflip_rejects_both_entries(self):
+        for host in (True,False):
+            for defect in ('result-drift','origin-drift','missing-result','missing-origin','extra','successflip'):
+                # Each subcase restores the same immutable prior binding first.
+                path=self.install_prior()
+                extra=path.parent/'safetensors_disk_cold_03'
+                if extra.exists():
+                    for file in extra.iterdir():file.unlink()
+                    extra.rmdir()
+                if defect.endswith('-drift'):
+                    file=path/('origin.json' if defect.startswith('origin') else 'result.json')
+                    file.write_bytes(file.read_bytes()+b' ')
+                elif defect.startswith('missing-'):(path/(defect.removeprefix('missing-')+'.json')).unlink()
+                elif defect=='successflip':save(path/'result.json',dict(attempt_id='store_pool_hit_03',success=True))
+                else:
+                    save(extra/'result.json',dict(attempt_id=extra.name,success=True));save(extra/'origin.json',dict(attempt_id=extra.name))
+                with self.subTest(host=host,defect=defect),self.assertRaisesRegex(ValueError,'prior terminal|changed frozen input'):self.check(admission_only=host)
+                self.assertFalse((self.root/'formal-trials').exists())
+
     def test_container_gate_does_not_call_host_only_preflight(self):
         self.assertEqual(self.check(forbid_host_check=True)['code_commit'], self.code)
 
