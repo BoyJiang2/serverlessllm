@@ -388,3 +388,8 @@ Actual independent fullR1 C18changes_required R1-C18-01: target cold0mincore fol
 ## canonical19 frozen pending exact full R1
 
 Run212500Z-7e6912e2/MFe98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b;80runtime files/252CPU/35operator(34pass1WindowsPOSIXskip)/3shellsyntax passed. C18reject and actualdriver CPUnegative retained. Targetfinal-full-mincore order and explicitprepreparation otherasset label; Linuxofficial-smallmetadata oldcold-invalidated/fixedcold probe code bound and directlaunch mandatorybeforepool. ActualLinuxcontrol notyetexecuted; no newguard/deploy/pool/model/ID. FullindependentR1pending; oldG1 reference not runtime admission. Formal5/4/31,nextstore_pool_hit_03.
+
+
+## canonical19 exact local full R1 approved
+
+3ff30fa645f4790df2fe63357308e7ca0f8b7e8b/MFe98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b approvedfull-runtime localreadonly;80+8hashesmatch,252CPU35operator1skip3syntaxrecorded. R1-C18-01closed in source. Approval permits currentnormal onlyafterfreshresources/newactual08:50guard/identity/CPUimports/SIGINT/atomic/coldboundary probes; notnormal/R2/formal result. Rawprobevectors additional checks plannedbeforeR2, currentgatecountsfromsameboundarrays. No newrun deployed/computation atthisrecord;5/4/31unchanged.
