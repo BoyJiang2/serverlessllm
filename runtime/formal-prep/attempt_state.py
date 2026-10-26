@@ -38,7 +38,7 @@ def collect(prereg_file, baseline_file, history_dir, execution_roots):
         if initial['status'] != 'unstarted':
             if found:
                 raise ValueError('original terminal ID was rerun: ' + name)
-            path = pathlib.Path(history_dir) / (name + '--result.json')
+            path = pathlib.Path(history_dir) / name / 'result.json'
             result = checked_json(path, initial['result_sha256'])
             status = initial['status']
         elif found:

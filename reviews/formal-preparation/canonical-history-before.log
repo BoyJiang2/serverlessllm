@@ -1,0 +1,166 @@
+test_changed_original_failure_blocks (test_attempt_state.Continuity.test_changed_original_failure_blocks) ... ERROR
+test_changed_prereg_blocks (test_attempt_state.Continuity.test_changed_prereg_blocks) ... ok
+test_duplicate_attempt_across_runs_blocks (test_attempt_state.Continuity.test_duplicate_attempt_across_runs_blocks) ... ERROR
+test_duplicate_execution_roots_block (test_attempt_state.Continuity.test_duplicate_execution_roots_block) ... ok
+test_empty_execution_skips_all_nine_original_terminals (test_attempt_state.Continuity.test_empty_execution_skips_all_nine_original_terminals) ... ERROR
+test_interrupted_attempt_cannot_be_reused (test_attempt_state.Continuity.test_interrupted_attempt_cannot_be_reused) ... ERROR
+test_new_failure_consumes_id (test_attempt_state.Continuity.test_new_failure_consumes_id) ... ERROR
+test_origin_identity_mismatch_blocks (test_attempt_state.Continuity.test_origin_identity_mismatch_blocks) ... ERROR
+test_original_terminal_cannot_be_rerun (test_attempt_state.Continuity.test_original_terminal_cannot_be_rerun) ... ERROR
+
+======================================================================
+ERROR: test_changed_original_failure_blocks (test_attempt_state.Continuity.test_changed_original_failure_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 72, in test_changed_original_failure_blocks
+    self.read()
+    ~~~~~~~~~^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmpn5gamwcr\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_duplicate_attempt_across_runs_blocks (test_attempt_state.Continuity.test_duplicate_attempt_across_runs_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 84, in test_duplicate_attempt_across_runs_blocks
+    self.read([self.execution, other])
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmp9dqpdgv6\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_empty_execution_skips_all_nine_original_terminals (test_attempt_state.Continuity.test_empty_execution_skips_all_nine_original_terminals)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 43, in test_empty_execution_skips_all_nine_original_terminals
+    rows = self.read()
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmpnxjd2gq5\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_interrupted_attempt_cannot_be_reused (test_attempt_state.Continuity.test_interrupted_attempt_cannot_be_reused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 61, in test_interrupted_attempt_cannot_be_reused
+    self.read()
+    ~~~~~~~~~^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmpue5t7b2_\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_new_failure_consumes_id (test_attempt_state.Continuity.test_new_failure_consumes_id)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 53, in test_new_failure_consumes_id
+    rows = self.read()
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmpyl6egh_e\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_origin_identity_mismatch_blocks (test_attempt_state.Continuity.test_origin_identity_mismatch_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 90, in test_origin_identity_mismatch_blocks
+    self.read()
+    ~~~~~~~~~^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmpel7971w4\\history\\safetensors_disk_hot_01--result.json'
+
+======================================================================
+ERROR: test_original_terminal_cannot_be_rerun (test_attempt_state.Continuity.test_original_terminal_cannot_be_rerun)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 66, in test_original_terminal_cannot_be_rerun
+    self.read()
+    ~~~~~~~~~^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\test_attempt_state.py", line 31, in read
+    return collect(self.prereg, self.baseline, self.history,
+                   [self.execution] if roots is None else roots)
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 42, in collect
+    result = checked_json(path, initial['result_sha256'])
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\formal-prep\attempt_state.py", line 11, in checked_json
+    data = pathlib.Path(path).read_bytes()
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_abc.py", line 625, in read_bytes
+    with self.open(mode='rb') as f:
+         ~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Documents\\codex\\2026-10-24\\new-chat\\work\\cpu-test-tmp\\tmp245aesrr\\history\\safetensors_disk_hot_01--result.json'
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.180s
+
+FAILED (errors=7)

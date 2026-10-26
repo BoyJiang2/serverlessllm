@@ -20,7 +20,7 @@ from resource_window_control13 import load_window
 from store_numa_exec_v13 import audit_store_threads
 from compilation_guard_v6 import artifact_snapshot, read_mutable_log, check_mutable_log_append
 
-from workspace import run_root
+from workspace import SOURCE, run_root
 from attempt_state import collect
 ROOT = run_root()
 ASSETS = pathlib.Path('/experiment')
@@ -111,7 +111,7 @@ def run(out):
 
     signal.signal(signal.SIGALRM, timeout_handler)
     state = collect(ASSETS/'protocol/measurement-preregistration.json',
-                    ASSETS/'protocol/initial-ledger.json', ASSETS/'validation/formal-history',
+                    SOURCE/'initial-ledger.json', ASSETS/'results/formal-trials',
                     [pathlib.Path(value) for value in gate['prior_execution_roots']] + [base])
     initial = {row['attempt_id']: row for row in state}
     (out/'continuation-ledger.json').write_text(json.dumps(state,indent=2))

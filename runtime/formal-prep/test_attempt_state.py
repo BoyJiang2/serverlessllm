@@ -21,7 +21,9 @@ class Continuity(unittest.TestCase):
         self.history = self.root / 'history'
         self.history.mkdir()
         for path in (REPO / 'evidence/formal-history').glob('*--result.json'):
-            (self.history / path.name).write_bytes(path.read_bytes())
+            directory=self.history/path.name.removesuffix('--result.json')
+            directory.mkdir()
+            (directory/'result.json').write_bytes(path.read_bytes())
         self.execution = self.root / 'formal-trials'
         self.execution.mkdir()
 
@@ -64,7 +66,7 @@ class Continuity(unittest.TestCase):
             self.read()
 
     def test_changed_original_failure_blocks(self):
-        path = self.history / 'store_pool_hit_01--result.json'
+        path = self.history / 'store_pool_hit_01/result.json'
         path.write_bytes(path.read_bytes() + b' ')
         with self.assertRaisesRegex(ValueError, 'changed frozen input'):
             self.read()
