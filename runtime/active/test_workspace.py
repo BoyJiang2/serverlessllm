@@ -82,7 +82,8 @@ class InputLayout(unittest.TestCase):
         ranks.append(dict(rank='inactive_mtp',partition_bytes=[1]))
         (self.store/'raw-disk-verification.json').write_text(json.dumps(dict(ranks=ranks)))
         references={}
-        for relative in ('validation/native-gold.json','code/weight_contract.py','store/tp8/raw-disk-verification.json'):
+        for relative in ('validation/native-gold.json','validation/native-weight-contract.json',
+                         'validation/store-restore-validation.json','code/weight_contract.py','store/tp8/raw-disk-verification.json'):
             path=self.root/relative;path.parent.mkdir(parents=True,exist_ok=True)
             if not path.exists():path.write_bytes(b'{}')
             references[path.name]=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -110,5 +111,33 @@ class InputLayout(unittest.TestCase):
     def test_changed_gold_rejected(self):
         (self.root/'validation/native-gold.json').write_bytes(b'changed')
         with self.assertRaises(RuntimeError):w.verify_input_layout()
+    def test_changed_valid_restore_json_rejected(self):
+        (self.root/'validation/store-restore-validation.json').write_text('{"pool_bytes":1}')
+        with self.assertRaises(RuntimeError):w.verify_input_layout()
+    def test_missing_weight_contract_rejected(self):
+        (self.root/'validation/native-weight-contract.json').unlink()
+        with self.assertRaises((OSError,RuntimeError)):w.verify_input_layout()
+    def test_rank_directory_symlink_rejected(self):
+        original=pathlib.Path.is_symlink
+        with patch.object(pathlib.Path,'is_symlink',lambda p:p==self.store/'rank_7' or original(p)),self.assertRaises(RuntimeError):
+            w.verify_input_layout()
+
+class ExecutionScope(unittest.TestCase):
+    def test_historical_mapping_is_host_only(self):
+        with patch.dict(w.os.environ,{'SLLM_CONTROL_WORKSPACE':'/experiment'}),self.assertRaisesRegex(RuntimeError,'host-only'):
+            w.historical_path('run-manifest.json')
+    def test_acceptance_is_host_only(self):
+        from accept_control13 import accept
+        with patch.dict(w.os.environ,{'SLLM_CONTROL_WORKSPACE':'/experiment'}),self.assertRaisesRegex(RuntimeError,'host-only'):
+            accept(pathlib.Path('/unused'),'sha','commit')
+    def test_deployment_requires_full_r1_scope(self):
+        from package_inventory13 import require_full_r1
+        verdict=dict(verdict='approved',gate='R1',scope='full-runtime',code_commit='c'*40,manifest_sha256='a'*64)
+        require_full_r1(verdict,'c'*40,'a'*64)
+        for changes in ({'scope':'path-boundary'},{'gate':'R2'},{'verdict':'approved_for_path_boundary'},
+                        {'scope':None},{'code_commit':'d'*40},{'manifest_sha256':'b'*64},
+                        {'not_a_full_r1':True},{'approved_for_path_boundary':True}):
+            with self.subTest(changes=changes),self.assertRaises(RuntimeError):
+                require_full_r1(dict(verdict,**changes),'c'*40,'a'*64)
 
 if __name__=='__main__':unittest.main()

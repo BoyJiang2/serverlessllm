@@ -25,11 +25,16 @@ def run_root():
 def archive():
     return workspace()/'archive/original-run'
 
+def host_workspace():
+    root=workspace()
+    if root==pathlib.Path('/experiment'):raise RuntimeError('operation is host-only')
+    return root
+
 def historical_path(relative):
     name=pathlib.PurePosixPath(relative)
     if name.is_absolute() or '..' in name.parts:
         raise RuntimeError('invalid historical reference')
-    root=workspace();data=(root/'INDEX.json').read_bytes()
+    root=host_workspace();data=(root/'INDEX.json').read_bytes()
     if hashlib.sha256(data).hexdigest()!=manifest()['canonical_index_sha256']:
         raise RuntimeError('canonical mapping changed')
     index=json.loads(data);old=index['old_path_compatibility_only'].rstrip('/')+'/'
@@ -66,6 +71,8 @@ def verify_input_layout():
     paths=frozen_paths(root/'checkpoint',SOURCE/'cache-inputs13.json')
     store=root/('store/vllm/glm51-fp8' if str(root)=='/experiment' else 'store/tp8')
     references={'native-gold.json':root/'validation/native-gold.json',
+                'native-weight-contract.json':root/'validation/native-weight-contract.json',
+                'store-restore-validation.json':root/'validation/store-restore-validation.json',
                 'weight_contract.py':root/'code/weight_contract.py',
                 'raw-disk-verification.json':store/'raw-disk-verification.json'}
     for name,path in references.items():
@@ -80,6 +87,8 @@ def verify_input_layout():
         raise RuntimeError('Store rank layout differs')
     for row in rows:
         rank=store/f"rank_{row['rank']}";sizes=row['partition_bytes']
+        if rank.is_symlink() or not rank.is_dir() or not rank.resolve().is_relative_to(store.resolve()):
+            raise RuntimeError('Store rank type/path differs: '+rank.name)
         if len(sizes)!=10 or {p.name for p in rank.glob('tensor.data_*')}!={f'tensor.data_{i}' for i in range(10)}:
             raise RuntimeError('Store partition layout differs: '+rank.name)
         for number,size in enumerate(sizes):

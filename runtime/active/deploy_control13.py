@@ -5,7 +5,8 @@ repo=pathlib.Path(__file__).resolve().parents[2]
 package=repo/'runtime/active'
 sha,reviewed_commit,verdict_file=sys.argv[1:]
 verdict=json.loads(pathlib.Path(verdict_file).read_text())
-if verdict.get('verdict')!='approved' or verdict.get('code_commit')!=reviewed_commit or verdict.get('manifest_sha256')!=sha: raise RuntimeError('current bound R1 approval required')
+from package_inventory13 import require_full_r1
+require_full_r1(verdict,reviewed_commit,sha)
 origin=subprocess.check_output(['git','remote','get-url','origin'],cwd=repo,text=True).strip()
 if origin!='https://github.com/BoyJiang2/serverlessllm-glm51-fp8.git': raise RuntimeError('wrong origin')
 if subprocess.check_output(['git','branch','--show-current'],cwd=repo,text=True).strip()!='main': raise RuntimeError('main branch required')

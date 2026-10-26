@@ -2,7 +2,7 @@
 import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
 import gzip,hashlib,json,pathlib,stat
-from workspace import SOURCE,run_root,workspace
+from workspace import SOURCE,run_root,workspace,host_workspace
 from gpu_identity13 import require_helper_binding,require_helper_only,store_identity
 
 def require(value,message):
@@ -154,6 +154,7 @@ def expand_cpus(value):
     return result
 
 def accept(root,sha,code_commit):
+    host_workspace()
     load=lambda name:json.loads((root/name).read_text())
     require(digest(root/'control-input-manifest.json')==sha,'input manifest changed')
     for row in load('control-input-manifest.json')['files']:
