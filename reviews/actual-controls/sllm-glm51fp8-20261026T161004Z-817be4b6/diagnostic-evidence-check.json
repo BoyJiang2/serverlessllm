@@ -1,0 +1,118 @@
+{
+  "status": "bounded CPU diagnostic evidence checked; not G1 or loaded-pool stability",
+  "run_id": "sllm-glm51fp8-20261026T161004Z-817be4b6",
+  "code_commit": "4b455955c0fdba2a85efa1a79071ab489ca2cec1",
+  "manifest_sha256": "52b75d7de761346564491f732fa91ac251d4261deb67cf7d2f6010c3568c248f",
+  "monitor": {
+    "samples": 57,
+    "first_ns": 156410613481204,
+    "last_ns": 156481193314456,
+    "max_gap_seconds": 1.343838327,
+    "max_sample_duration_seconds": 0.341706455,
+    "partial_final_row": null
+  },
+  "trace": {
+    "events": 5923,
+    "paired_operations": 2961,
+    "pending_after_phase": [
+      {
+        "sequence": 2962,
+        "operation": "sample.sleep",
+        "pid": null,
+        "start_ticks": null,
+        "target": null,
+        "expected_start_ticks": null,
+        "event": "begin",
+        "event_ns": 156481447503553,
+        "end_ns": null,
+        "outcome": "pending",
+        "previous_trace_io_ns": 4897
+      }
+    ],
+    "handled_namespace_unavailable": 57,
+    "handled_error_counts": {
+      "proc.ns.pid:PermissionError": 57
+    },
+    "max_operation_seconds": {
+      "sample.sleep": 1.000093306,
+      "gpu.query-gpu": 0.21085227,
+      "gpu.query-compute-apps": 0.127712228,
+      "cgroup.memory.stat": 0.002448422,
+      "cgroup.procs.scan": 0.000604931,
+      "cgroup.cpu.stat": 0.000603473,
+      "ready.write": 0.000395287,
+      "log.write": 0.000179391,
+      "json.encode": 0.000166703,
+      "cgroup.memory.current": 0.000145772,
+      "observed.interference": 0.000140527,
+      "cgroup.procs.read": 0.000132971,
+      "proc.stat": 0.000117509,
+      "observer.stat": 7.6926e-05,
+      "proc.meminfo": 7.6389e-05,
+      "cgroup.pids.current": 6.3784e-05,
+      "proc.status": 5.5738e-05,
+      "proc.cgroup": 5.5304e-05,
+      "cgroup.memory.events.local.exists": 4.1323e-05,
+      "proc.cmdline": 4.0577e-05,
+      "cgroup.memory.peak.exists": 3.6703e-05,
+      "ready.rename": 3.5776e-05,
+      "proc.ns.pid": 3.3518e-05,
+      "numa.meminfo": 2.896e-05,
+      "cgroup.memory.events": 2.591e-05,
+      "cgroup.memory.events.local": 2.384e-05,
+      "observer.cgroup": 2.2368e-05,
+      "ready.encode": 1.3913e-05,
+      "log.budget": 8.608e-06,
+      "log.flush": 9.84e-07
+    }
+  },
+  "phase": {
+    "run_id": "sllm-glm51fp8-20261026T161004Z-817be4b6",
+    "code_commit": "4b455955c0fdba2a85efa1a79071ab489ca2cec1",
+    "manifest_sha256": "52b75d7de761346564491f732fa91ac251d4261deb67cf7d2f6010c3568c248f",
+    "status": "CPU phase completed; trace and release still require review",
+    "head_container_id": "d0023ce92468f99961bd7480c13c6ee89d298c94b3adec7a90af4afadb04f049",
+    "stop_ns": 156448756251382,
+    "post_stop_sample_begin_ns": 156449753457273,
+    "end_ns": 156450176647975,
+    "scope": "no model or pool"
+  },
+  "head_dispatch_to_phase_end_seconds": 13.5665192,
+  "release": {
+    "points": 61,
+    "span_seconds": 75.720532165
+  },
+  "source_files_verified": 59,
+  "files": {
+    "monitor-diagnostic-trace.jsonl": {
+      "bytes": 1754518,
+      "sha256": "98b75675bd1ed81dba33b0472a083c19177f67d81263e3b952c864fea3194100"
+    },
+    "resource-monitor-v12.jsonl": {
+      "bytes": 865114,
+      "sha256": "6808d653402868643c78ff9a7e6eefd6d4fc757ec8641163be0c6fbe02f556ac"
+    },
+    "monitor-diagnostic-result.json": {
+      "bytes": 511,
+      "sha256": "08c8d1cfd7750eeee6b8f88cfb8fb6735675e5f07ab97f34acdde3977e7e6cdd"
+    },
+    "diagnostic-timeout-probe.json": {
+      "bytes": 926,
+      "sha256": "c51cabb17ecc7b6652f86fb81f63c790279db459ddf18d3e37f2d211c3a1fd76"
+    },
+    "cpu-import-preflight.json": {
+      "bytes": 1227,
+      "sha256": "c20d4e0e2cc7e9237449c5714c8d95c932142a246b337c0ea2a8368d8efa8cb4"
+    },
+    "release60-allstopped.json": {
+      "bytes": 190659,
+      "sha256": "f643ce4611c0264f88a31e1c18a26da4004d859cef3c5c3d2e790f5bf04db569"
+    },
+    "root-evidence-index13.json": {
+      "bytes": 1606,
+      "sha256": "8ffb4660fcea1b28a5aa4a12fd93e2e92e76e861d3f6743f26799539bb7b14f8"
+    }
+  },
+  "verification_correction": "initial derived checker over-rejected existing handled namespace PermissionError; its failure log retained locally; no raw data or5s standard changed",
+  "scope": "CPU-only one head/import/stop; C7/historical137 causes remain unknown; formal5/4/31 unchanged"
+}
