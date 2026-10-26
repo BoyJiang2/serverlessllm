@@ -1,0 +1,229 @@
+--- candidate13e/accept_control13.py
++++ unpublished13f/accept_control13.py
+@@ -2,7 +2,7 @@
+ import sys,os
+ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
+ import gzip,hashlib,json,pathlib,stat
+-from gpu_identity13 import require_helper_binding,require_helper_only,store_identity
++from gpu_identity13 import require_helper_binding,require_helper_only,store_identity,gpu_pids
+ 
+ def require(value,message):
+     if not value: raise RuntimeError(message)
+@@ -32,6 +32,8 @@
+                 require(row['registered_store_helper']==store_identity(launch,service,row['processes'],boot),'host monitor helper derivation differs')
+                 for key in ('registered_store_helper','gpu_pids','foreign_gpu_pids'):
+                     require(row[key]==expected[key],'GPU snapshot differs from raw host monitor: '+key)
++                for key in ('gpu','gpu_processes','sample_begin_ns'):
++                    require(row[key]==expected[key],'GPU snapshot raw field differs: '+key)
+                 require(row['gpu_pids']==sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),'host NVML PID list differs')
+                 found_gpu.add(row['monotonic_ns'])
+             now=row['monotonic_ns']
+@@ -136,14 +138,18 @@
+     require(len(rows)==61 and [row['second'] for row in rows]==list(range(61)),'native idle interval incomplete')
+     require(rows[-1]['monotonic_ns']-rows[0]['monotonic_ns']>=60_000_000_000,'native idle shorter than60s')
+     for row in rows:
+-        require_helper_only(row['host_gpu_snapshot'],helper,row['monotonic_ns'],run,boot,allow_engine=row['second']<60)
++        snapshot=row['host_gpu_snapshot']
++        require_helper_only(snapshot,helper,row['monotonic_ns'],run,boot)
++        require(row['gpu_processes']==snapshot['gpu_processes'] and row['gpu']==snapshot['gpu'],'native GPU fields differ from exact host receipt')
++        require(gpu_pids(row['gpu_processes'])==snapshot['gpu_pids'],'native raw host NVML PID list differs')
++        require(snapshot['sample_begin_ns']>=rows[0]['delete_ack_ns'] and row['delete_ack_ns']==rows[0]['delete_ack_ns'],'GPU sample predates delete acknowledgement')
+         require(row['memory_current']>=0 and row['shm_used_bytes']>=0 and int(row['pids_current'])>=0,'native resource counters invalid')
+         memory={line.split()[0]:int(line.split()[1]) for line in row['memory_stat'].splitlines()}
+         cpu={line.split()[0]:int(line.split()[1]) for line in row['cpu_stat'].splitlines()}
+         require(all(key in memory and memory[key]>=0 for key in ('anon','file','shmem','unevictable')) and cpu.get('usage_usec',-1)>=0,'native resource accounting incomplete')
+-        used=[int(line.split(',')[1].strip().split()[0]) for line in row['gpu'].splitlines()]
++        used=[int(line.split(',')[3].strip().split()[0]) for line in row['gpu'].splitlines()]
+         require(len(used)==8 and all(value>=0 for value in used),'native GPU accounting incomplete')
+-    final=[int(line.split(',')[1].strip().split()[0]) for line in rows[-1]['gpu'].splitlines()]
++    final=[int(line.split(',')[3].strip().split()[0]) for line in rows[-1]['gpu'].splitlines()]
+     require(len(baseline)==8 and all(a<=b+1024 for a,b in zip(final,baseline)),'native model memory retained after60s')
+ 
+ def expand_cpus(value):
+--- candidate13e/gpu_identity13.py
++++ unpublished13f/gpu_identity13.py
+@@ -11,12 +11,15 @@
+     if len(matches)>1: raise RuntimeError('ambiguous Store helper identity')
+     return matches[0] if matches else None
+ 
+-def require_helper_only(snapshot,helper,now_ns,run,boot,allow_engine=False):
++def require_helper_only(snapshot,helper,now_ns,run,boot):
+     if snapshot['run_id']!=run or snapshot['boot_id']!=boot or not snapshot['observers_ok'] or not 0<=now_ns-snapshot['last_sample_ns']<=5_000_000_000: raise RuntimeError('stale or wrong host GPU identity receipt')
+     if not helper or snapshot['registered_store_helper']!=helper or helper['boot_id']!=boot: raise RuntimeError('Store helper birth/namespace identity changed')
+     if snapshot['foreign_gpu_pids']: raise RuntimeError('external GPU process detected')
+-    if not allow_engine and not set(snapshot['gpu_pids'])<={helper['host_pid']}: raise RuntimeError('GPU engine/unknown process retained')
++    if not set(snapshot['gpu_pids'])<={helper['host_pid']}: raise RuntimeError('GPU engine/unknown process retained')
+ 
+ def require_helper_binding(helper,launch,service,boot):
+     expected=dict(namespace_pid=launch['pid'],pid_namespace=launch['pid_namespace'],start_ticks=launch['start_ticks'],boot_id=boot,container_id=service['container_id'],cgroup=service['cgroup'],uid=2147)
+     if not helper or helper.get('host_pid',0)<=0 or any(helper.get(key)!=value for key,value in expected.items()): raise RuntimeError('helper differs from Store/container birth registration')
++
++def gpu_pids(raw):
++    return sorted({int(line.split(',',1)[0]) for line in raw.splitlines()})
+--- candidate13e/monitor_control13.py
++++ unpublished13f/monitor_control13.py
+@@ -104,7 +104,7 @@
+         output.flush()
+         ready_path=output_root/'monitor-v3-ready.json'
+         temporary=ready_path.with_suffix('.tmp')
+-        temporary.write_text(json.dumps(dict(last_sample_ns=row['monotonic_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign)))
++        temporary.write_text(json.dumps(dict(last_sample_ns=row['monotonic_ns'],sample_begin_ns=row['sample_begin_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu=row['gpu'],gpu_processes=row['gpu_processes'],gpu_pids=row['gpu_pids'],foreign_gpu_pids=foreign)))
+         temporary.replace(ready_path)
+         if interference:
+             with (output_root/'interference-v3.jsonl').open('a') as events:
+--- candidate13e/preflight_control13.py
++++ unpublished13f/preflight_control13.py
+@@ -10,11 +10,16 @@
+ def call(*args):
+     return subprocess.check_output(args,text=True,timeout=15).strip()
+ 
+-def validate_ancestor_values(values,is_root):
++def validate_ancestor_values(values,is_root,is_owned=False):
+     for name in ('memory.max','memory.high'):
+         value=values[name]
+         if value is None: require(is_root,'missing non-root memory limit interface')
+         else: require(value=='max' or int(value)>=1825361100800,'ancestor '+name+' below frozen budget')
++    swap=values.get('memory.swap.max')
++    if swap is None: require(is_root,'missing non-root swap limit interface')
++    else:
++        require(swap=='max' or int(swap)>=0,'invalid ancestor swap limit')
++        if is_owned: require(swap=='0','own slice must prohibit swap')
+ 
+ def check(root,monitor_required=True):
+     manifest=json.loads((root/'run-manifest.json').read_text())
+@@ -27,6 +32,7 @@
+     require(uuids==expected['gpu_uuids'],'GPU UUID order changed')
+     require(os.getuid()==manifest['uid']==2147,'UID changed')
+     memory=pathlib.Path('/proc/meminfo').read_text()
++    require(next(line.split()[1] for line in memory.splitlines() if line.startswith('SwapTotal:'))=='0','host swap configuration changed')
+     available=int(next(line.split()[1] for line in memory.splitlines() if line.startswith('MemAvailable:')))*1024
+     require(available>=768799145984+manifest['weight_bytes']+64*1024**3,'insufficient host memory for pool/checkpoint/working margin')
+     from resource_window_control13 import load_window
+@@ -57,7 +63,7 @@
+     current=pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
+     while True:
+         values={name:(current/name).read_text().strip() if (current/name).exists() else None for name in ('memory.max','memory.high','memory.swap.max','memory.events')}
+-        validate_ancestor_values(values,current==pathlib.Path('/sys/fs/cgroup'))
++        validate_ancestor_values(values,current==pathlib.Path('/sys/fs/cgroup'),current==pathlib.Path('/sys/fs/cgroup')/group.lstrip('/'))
+         ancestors[str(current)]=values
+         if current==pathlib.Path('/sys/fs/cgroup'): break
+         current=current.parent
+--- candidate13e/test_evidence13.py
++++ unpublished13f/test_evidence13.py
+@@ -18,17 +18,42 @@
+         with self.assertRaises(RuntimeError):validate_ancestor_values({'memory.max':None,'memory.high':'max'},False)
+     def test_ancestor_high_rejected(self):
+         with self.assertRaises(RuntimeError):validate_ancestor_values({'memory.max':'max','memory.high':'1024'},False)
++    def test_nonroot_missing_swap_rejected(self):
++        with self.assertRaisesRegex(RuntimeError,'swap limit'):validate_ancestor_values({'memory.max':'max','memory.high':'max'},False)
++    def test_own_slice_swap_must_be_zero(self):
++        for swap in ('max','1','-1'):
++            with self.subTest(swap=swap),self.assertRaises(RuntimeError):validate_ancestor_values({'memory.max':'max','memory.high':'max','memory.swap.max':swap},False,True)
++        validate_ancestor_values({'memory.max':'max','memory.high':'max','memory.swap.max':'0'},False,True)
++    def test_parent_max_swap_is_not_effective_child_permission(self):validate_ancestor_values({'memory.max':'max','memory.high':'max','memory.swap.max':'max'},False)
+ 
+ class NativeIdle(unittest.TestCase):
+     def helper(self):return dict(host_pid=9001,namespace_pid=1124,pid_namespace='pid:[42]',start_ticks='333',boot_id='b',container_id='c'*64,cgroup='0::/own/container\n',uid=2147)
+     def rows(self):
+-        return [dict(second=n,monotonic_ns=n*10**9,memory_current=1,pids_current=3,shm_used_bytes=0,memory_stat='anon 0\nfile 1\nshmem 0\nunevictable 0',cpu_stat='usage_usec 0',gpu='\n'.join(f'{i}, 1769 MiB, 0 %' for i in range(8)),gpu_processes='1124, python, 322 MiB',host_gpu_snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=n*10**9,registered_store_helper=self.helper(),gpu_pids=[9001],foreign_gpu_pids=[])) for n in range(61)]
++        gpu='\n'.join(f'{i}, GPU-{i}, 143771 MiB, 1769 MiB, 0 %' for i in range(8))
++        raw='9001, python, 322 MiB'
++        return [dict(second=n,monotonic_ns=n*10**9,delete_ack_ns=0,memory_current=1,pids_current=3,shm_used_bytes=0,memory_stat='anon 0\nfile 1\nshmem 0\nunevictable 0',cpu_stat='usage_usec 0',gpu=gpu,gpu_processes=raw,host_gpu_snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=n*10**9,sample_begin_ns=n*10**9,registered_store_helper=self.helper(),gpu=gpu,gpu_processes=raw,gpu_pids=[9001],foreign_gpu_pids=[])) for n in range(61)]
+     def test_valid_persistent_helper(self):validate_native_idle(self.rows(),[1769]*8,self.helper(),'r','b')
+     def test_missing_rows(self):
+         with self.assertRaises(RuntimeError):validate_native_idle(self.rows()[:-1],[1769]*8,self.helper(),'r','b')
+     def test_retained_engine(self):
+         rows=self.rows();rows[-1]['host_gpu_snapshot']['gpu_pids']=[9001,9002]
+         with self.assertRaises(RuntimeError):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
++    def test_engine_at_first_and59_rejected(self):
++        for second in (0,59):
++            rows=self.rows();rows[second]['host_gpu_snapshot']['gpu_pids'].append(9002)
++            with self.subTest(second=second),self.assertRaises(RuntimeError):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
++    def test_native_raw_pid_mismatch_rejected(self):
++        rows=self.rows();rows[0]['gpu_processes']='99999, python, 122000 MiB'
++        with self.assertRaisesRegex(RuntimeError,'GPU fields differ'):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
++    def test_host_raw_pid_mismatch_rejected(self):
++        rows=self.rows();rows[0]['gpu_processes']=rows[0]['host_gpu_snapshot']['gpu_processes']='99999, python, 122000 MiB'
++        with self.assertRaisesRegex(RuntimeError,'NVML PID list differs'):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
++    def test_predelete_sample_rejected(self):
++        rows=self.rows();rows[0]['host_gpu_snapshot']['sample_begin_ns']=-1
++        with self.assertRaisesRegex(RuntimeError,'predates delete'):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
++    def test_unequal_host_gpu_memory_rejected(self):
++        rows=self.rows();rows[0]['gpu']='changed-memory'
++        with self.assertRaisesRegex(RuntimeError,'GPU fields differ'):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
+     def test_negative_resource(self):
+         rows=self.rows();rows[1]['memory_current']=-1
+         with self.assertRaises(RuntimeError):validate_native_idle(rows,[1769]*8,self.helper(),'r','b')
+--- candidate13e/test_gpu_identity13.py
++++ unpublished13f/test_gpu_identity13.py
+@@ -9,7 +9,7 @@
+         service=dict(container_id='c'*64,cgroup='0::/own/container\n')
+         process=dict(pid=9001,status='Uid:\t2147 2147 2147 2147\nNSpid:\t9001 1124\n',stat='9001 (python) '+' '.join(['S']+['0']*18+['333']+['0']*10),cgroup=service['cgroup'],pid_namespace=launch['pid_namespace'])
+         helper=store_identity(launch,service,[process],'b')
+-        snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=0,registered_store_helper=helper,gpu_pids=[9001],foreign_gpu_pids=[])
++        snapshot=dict(run_id='r',boot_id='b',observers_ok=True,last_sample_ns=0,sample_begin_ns=0,gpu='host GPU accounting',gpu_processes='9001, python, 322 MiB',registered_store_helper=helper,gpu_pids=[9001],foreign_gpu_pids=[])
+         return launch,service,process,helper,snapshot
+     def test_exact_store_helper_allowed(self):
+         launch,service,process,helper,snapshot=self.fixture();require_helper_binding(helper,launch,service,'b');require_helper_only(snapshot,helper,1,'r','b')
+@@ -18,7 +18,7 @@
+         with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,1,'r','b')
+     def test_external_gpu_even_during_cleanup_rejected(self):
+         *_,helper,snapshot=self.fixture();snapshot['foreign_gpu_pids']=[9999]
+-        with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,1,'r','b',allow_engine=True)
++        with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,1,'r','b')
+     def test_stale_receipt(self):
+         *_,helper,snapshot=self.fixture()
+         with self.assertRaises(RuntimeError):require_helper_only(snapshot,helper,5_000_000_001,'r','b')
+@@ -34,8 +34,8 @@
+             with self.subTest(key=key):self.assertIsNone(store_identity(launch,service,[changed],'b'))
+     def monitor(self,corrupt=False):
+         launch,service,process,helper,snapshot=self.fixture()
+-        rows=[dict(monotonic_ns=n*10**9,sample_begin_ns=n*10**9,sample_end_ns=n*10**9+1,observers=[{'ok':True},{'ok':True}],registered_store_helper=helper,processes=[process],gpu_pids=[9001],foreign_gpu_pids=[],gpu_processes='9001, python, 322 MiB') for n in range(3)]
+-        expected=copy.deepcopy(snapshot);expected['last_sample_ns']=2_000_000_000
++        rows=[dict(monotonic_ns=n*10**9,sample_begin_ns=n*10**9,sample_end_ns=n*10**9+1,observers=[{'ok':True},{'ok':True}],registered_store_helper=helper,processes=[process],gpu_pids=[9001],foreign_gpu_pids=[],gpu='host GPU accounting',gpu_processes='9001, python, 322 MiB') for n in range(3)]
++        expected=copy.deepcopy(snapshot);expected['last_sample_ns']=expected['sample_begin_ns']=2_000_000_000
+         if corrupt:rows[-1]['gpu_pids']=[9002]
+         with tempfile.TemporaryDirectory() as directory:
+             path=pathlib.Path(directory)/'monitor.jsonl';path.write_text('\n'.join(json.dumps(row) for row in rows)+'\n')
+--- candidate13e/validation_control13.py
++++ unpublished13f/validation_control13.py
+@@ -122,6 +122,7 @@
+         event('native_delete_begin',cycle=cycle)
+         assert http('/delete',{'model':model})['status'] == f'deleted model {model}'
+         event('native_delete_complete',cycle=cycle)
++        delete_ack_ns=time.monotonic_ns()
+         listed = http('/v1/models')
+         (out/f'cycle{cycle}-models-after-delete.json').write_text(json.dumps(listed,indent=2))
+         assert model not in {row['id'] for row in listed['models']}
+@@ -129,13 +130,19 @@
+         store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
+         pss_log=(out/f'cycle{cycle}-pss.log').open('x')
+         pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
++        # Wait only for a sample begun after delete, never wait for a desired GPU value.
++        fresh_deadline=time.monotonic()+5
++        while host_gpu()['sample_begin_ns']<delete_ack_ns:
++            assert time.monotonic()<fresh_deadline,'no post-delete host GPU sample within5s'
++            time.sleep(.1)
+         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
+             for second in range(61):
+                 shm = os.statvfs('/dev/shm')
+                 gpu_receipt=host_gpu(); observed_ns=time.monotonic_ns()
+                 samples.write(json.dumps({'second':second,'monotonic_ns':observed_ns,
+-                    'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
+-                    'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
++                    'delete_ack_ns':delete_ack_ns,
++                    'gpu':gpu_receipt['gpu'],
++                    'gpu_processes':gpu_receipt['gpu_processes'],
+                     'memory_current':int(pathlib.Path('/sys/fs/cgroup/memory.current').read_text()),
+                     'pids_current':int(pathlib.Path('/sys/fs/cgroup/pids.current').read_text()),
+                     'host_gpu_snapshot':gpu_receipt,
+@@ -151,6 +158,9 @@
+             while pss.poll() is None and time.monotonic()<stop: time.sleep(.1)
+         pss_log.close()
+         assert pss.poll()==0 and json.loads(pss_path.read_text())['status']=='completed', 'bounded PSS probe incomplete; no next lifecycle started'
++        from accept_control13 import validate_native_idle
++        idle_rows=[json.loads(line) for line in (out/f'cycle{cycle}-idle60.jsonl').read_text().splitlines()]
++        validate_native_idle(idle_rows,baseline,helper,manifest['run_id'],manifest['runtime_identity']['boot_id'])
+         event('post_delete_observation_complete',cycle=cycle,seconds=60)
+         remaining = [int(line) for line in subprocess.check_output(
+             ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]
