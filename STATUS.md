@@ -331,3 +331,7 @@ ActualC15CPUcontrast supports shieldcandidate. Storeoriginal8943B/c0de→active8
 ## canonical16 fullR1 approved, actual pool validation next
 
 Exact8f43bd74/MFf0476112 approvedlocalreadonly at19:08:40Z;63+8hashesmatch. One-lineStoreoverlaysource/executedbytecodeproof accepted;150runtime/26operator(1skip)/3syntax. Actualnew08:50guard/readonlymount/importproof/pool/zeroexit/release stillpending.03:06freshsnapshot8GPU0/noGPUproc/current03-09booking/sourceabsent. NotG1/R2/formalpass,5/4/31unchanged.
+
+## Actual C16 real resident Store shield component passed
+
+Real716GiB/RPC/RSS/helperonly+actualROoverlay/serverb22a/fullservecode match/originalhostc0de passed. SIGINTStore0 after27.56609707s/noKILL/completeteardown,supervisor/operator0.256allrawstrict5s pass(maxduration1.767505022/gap2.768793197);peak776679178240B/kernelnull.61point75.828972926srelease/rootindex/63sourcehasharchivepassed,sourceabsent/noownworkload. Onlycomponent,notcompleteG1/R2/formal;nextreviewG1cleanupintegrationandfullactualcontrols. Historical137/C7earlyunknown,5/4/31unchanged.

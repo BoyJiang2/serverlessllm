@@ -1,0 +1,272 @@
+{
+  "status": "resident Store shield component control passed including release; not G1 or model service",
+  "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+  "code_commit": "8f43bd74dc11c6adb29d7d852a27ecc5b1162653",
+  "manifest_sha256": "f047611221902cf65e4580f969436944f19a0d9594d4dbe8b00e989281ad6942",
+  "formal_ids_consumed": 0,
+  "supervisor": {
+    "begin_ns": 166300600641590,
+    "status": "passed including cleanup",
+    "timeout_seconds": 900,
+    "child_pid": 930,
+    "error": null,
+    "end_ns": 166536647883919,
+    "child_alive_at_end": false,
+    "cleanup_reserve_seconds": 25,
+    "total_budget_seconds": 900
+  },
+  "pool": {
+    "monotonic_ns": 166505671576475,
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "store_pid": 2156,
+    "listener": {
+      "pid": 2156,
+      "port": 8073,
+      "listening_sockets": [
+        {
+          "fd": 199,
+          "inode": "70331102"
+        }
+      ],
+      "scope": "private container network/PID namespace; current child ownership required"
+    },
+    "rpc_config": {
+      "mem_pool_size": 768799145984,
+      "chunk_size": 536870912
+    },
+    "rss_bytes": 770293403648
+  },
+  "component_ready": {
+    "status": "resident pool initialization checked; teardown/release still required",
+    "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "helper": {
+      "host_pid": 2901025,
+      "namespace_pid": 2156,
+      "pid_namespace": "pid:[4026541142]",
+      "start_ticks": "16630457",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "cgroup": "0::/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261026T190735Z.slice/sllm-glm51fp8-20261026T190735Z-ccbf6f33.slice/docker-494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4.scope\n",
+      "uid": 2147
+    },
+    "sample_begin_ns": 166507197915945,
+    "ready_ns": 166508396912671,
+    "checkpoint_read": false,
+    "model_registered": false
+  },
+  "actual_store_imports": {
+    "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+    "pid": 2156,
+    "modules": {
+      "sllm_store": {
+        "path": "/experiment/code/Store-source-v7/sllm_store/__init__.py",
+        "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59"
+      },
+      "sllm_store.server": {
+        "path": "/experiment/code/Store-source-v7/sllm_store/server.py",
+        "sha256": "b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f",
+        "serve_code_filename": "/experiment/code/Store-source-v7/sllm_store/server.py",
+        "serve_source_code_match": true,
+        "serve_bytecode_sha256": "4b4b6b3ddddd8e83d60d039eea95e43acf6b4b31b1563372532600fec015b102"
+      },
+      "sllm_store._C": {
+        "path": "/experiment/code/Store-source-v7/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "69d6de4f051eb74d292248c79ff989160bcc3209ac0ae256da1bc7d3e69cf9f4"
+      },
+      "sllm_store._checkpoint_store": {
+        "path": "/experiment/code/Store-source-v7/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096"
+      }
+    },
+    "backend_reference": {
+      "torch": {
+        "path": "/usr/local/lib/python3.12/dist-packages/torch/__init__.py",
+        "version": "2.10.0+cu130",
+        "sha256": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e"
+      },
+      "vllm": {
+        "path": "/usr/local/lib/python3.12/dist-packages/vllm/__init__.py",
+        "version": "0.19.1.dev1+g43a9b1afb",
+        "sha256": "fd3708e5a13abe98c566afd79a6b1987cef70c0548bb19c1218ff6a7f9d43346"
+      }
+    },
+    "python": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "cuda": "13.0",
+    "scope": "actual imports in Store process before pool creation; not per-Ray-worker import proof"
+  },
+  "actual_readonly_overlay": {
+    "Type": "bind",
+    "Source": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/store_server13.py",
+    "Destination": "/experiment/code/Store-source-v7/sllm_store/server.py",
+    "Mode": "",
+    "RW": false,
+    "Propagation": "rprivate"
+  },
+  "original_host_server_sha256": "c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c",
+  "teardown": [
+    {
+      "stage": "interrupt_begin",
+      "monotonic_ns": 166508397279759,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 2156,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "signal": 2
+    },
+    {
+      "stage": "interrupt_sent",
+      "monotonic_ns": 166508397376658,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 2156,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "signal": 2,
+      "sent_ns": 166508397372261,
+      "grace_deadline_ns": 166748397372261
+    },
+    {
+      "stage": "term_begin",
+      "monotonic_ns": 166508397425282,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 931,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]"
+    },
+    {
+      "stage": "term_sent",
+      "monotonic_ns": 166508397461682,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 931,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]"
+    },
+    {
+      "stage": "ray_stop_begin",
+      "monotonic_ns": 166508397484574,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": null,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]"
+    },
+    {
+      "stage": "ray_stop_end",
+      "monotonic_ns": 166509963508823,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": null,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "returncode": 0
+    },
+    {
+      "stage": "wait_begin",
+      "monotonic_ns": 166509963659621,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 931,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]"
+    },
+    {
+      "stage": "wait_end",
+      "monotonic_ns": 166509963778528,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 931,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "returncode": 1
+    },
+    {
+      "stage": "wait_begin",
+      "monotonic_ns": 166509963813426,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 2156,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]"
+    },
+    {
+      "stage": "wait_end",
+      "monotonic_ns": 166535963469331,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": 2156,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "returncode": 0
+    },
+    {
+      "stage": "children_reaped",
+      "monotonic_ns": 166535963724671,
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "namespace_pid": null,
+      "container_id": "494250c21ad3a6f599897a1e0d394358b4caec6adb11e2ff01b8824e1026a1c4",
+      "pid_namespace": "pid:[4026541142]",
+      "children": [
+        {
+          "pid": 931,
+          "returncode": 1
+        },
+        {
+          "pid": 2156,
+          "returncode": 0
+        }
+      ]
+    }
+  ],
+  "store_exit_seconds": 27.56609707,
+  "store_returncode": 0,
+  "forced_store_kill": false,
+  "monitor": {
+    "samples": 256,
+    "first_ns": 166288402293160,
+    "last_ns": 166637615425094,
+    "max_gap_seconds": 2.768793197,
+    "max_sample_duration_seconds": 1.767505022,
+    "partial_final_row": null
+  },
+  "resource": {
+    "sampled_cgroup_peak_bytes": 776679178240,
+    "kernel_peak_bytes": null
+  },
+  "release": {
+    "points": 61,
+    "span_seconds": 75.828972926
+  },
+  "files": {
+    "monitor-diagnostic-trace.jsonl": {
+      "bytes": 25040451,
+      "sha256": "7013113b3ce732cd75e372f39cb434eafbfde1731e7d30148ed85d1c26f9b405"
+    },
+    "resource-monitor-v12.jsonl": {
+      "bytes": 21003810,
+      "sha256": "281c154bda1b238dee38897a6cb81de11b6e1cf6ae81e7f0e65b490e3d58a973"
+    },
+    "release60-allstopped.json": {
+      "bytes": 191059,
+      "sha256": "cdc687f2035d60548fd824152acee4c687e8fd5bc231d773349b3b7fd664429c"
+    },
+    "service-bootstrap-service13a/store.log": {
+      "bytes": 1817,
+      "sha256": "01c18d262c6195acf9101f8f300e8cf309c0f669cc3432975271d8242bec1408"
+    },
+    "service-bootstrap-service13a/pool-diagnostic-teardown.jsonl": {
+      "bytes": 3586,
+      "sha256": "7063c48906e862ba75f98061aec6c6e49942762970c464434cc0709f2bbd034f"
+    }
+  },
+  "source_archive": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261026T190735Z-ccbf6f33/executed-source-8f43bd7",
+  "source_files_verified": 63,
+  "interpretation": "Actual one bounded residentpool lifecycle now zeroexit/no forcedkill/strictmonitor under reviewed shield overlay; not historical137rootcause, fullG1/R2/formal/model inference",
+  "closed_utc": "2026-10-26T19:21:10.499307+00:00"
+}
