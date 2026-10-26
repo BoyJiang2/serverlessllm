@@ -1,0 +1,40 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "canonical": 20,
+  "recorded_at_utc": "2026-10-26T22:51:05.829483+00:00",
+  "reviewer": "user-authorized local independent readonly Codex /root/independent_readonly_review",
+  "code_commit": "1014e18b0cb2104878846edbe966ce99858ec6d0",
+  "manifest_sha256": "6dddd794b614a4e7ccf163bd4b3094ed9be555203a68bfb8eb385f35c3580a0c",
+  "run_id": "sllm-glm51fp8-20261026T224526Z-5aa0303e",
+  "verdict": "changes_required",
+  "verification": {
+    "runtime_files_verified": 80,
+    "repository_inputs_verified": 9,
+    "hash_or_size_mismatches": 0,
+    "recorded_tests": {
+      "runtime_cpu_passed": 256,
+      "operator_passed": 34,
+      "operator_windows_posix_skipped": 1,
+      "shell_syntax_passed": 3,
+      "independently_rerun": false
+    }
+  },
+  "blockers": [
+    {
+      "id": "R1-C20-01",
+      "finding": "New prior C19 result is readonly-mounted but not compared against frozen SHA during host/container admission. collect recomputes SHA and accepts changed success value; frozen repository ledger is not consumed in runtime verification.",
+      "minimal_fix": "Bind exact complete prior terminal result and origin hashes in reviewed config; verify prior file-set and hashes in shared execution_roots before collect. Preserve seed ledger; test missing/extra/drift/successflip."
+    }
+  ],
+  "review_conclusion": [
+    "Full event chain, real source/bytecode tracer probe, four normal summaries and raw recomputation/seal/R2/formal reviewed; no second confirmed blocker.",
+    "Absolute budgets/cache-last/own guard and cleanup scope reviewed.",
+    "No deployment or computation permitted for C20; approval cannot transfer to next revision."
+  ],
+  "limitations": [
+    "Readonly static/hash review; reviewer did not execute tests/SSH/external sends.",
+    "Not actual G1/R2 or formal results."
+  ],
+  "record_provenance": "Structured transcription of actual independent reviewer messages in current chat; full response may add detail without changing this rejection."
+}
