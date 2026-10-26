@@ -1,3 +1,6 @@
+import sys,os
+if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
+    raise RuntimeError('optimized Python is forbidden')
 """B only: native HTTP trials on explicitly charged shared infrastructure."""
 import datetime
 import hashlib
@@ -16,7 +19,6 @@ from phase_summary import summarize
 from resource_window_control13 import load_window
 from store_numa_exec_v13 import audit_store_threads
 from compilation_guard_v6 import artifact_snapshot, read_mutable_log, check_mutable_log_append
-from sllm_store.client import SllmStoreClient
 
 from workspace import run_root
 from attempt_state import collect
@@ -30,6 +32,8 @@ from formal_gate import verify_gate
 
 def run(out):
     gate = verify_gate()
+    from sllm_store.client import SllmStoreClient
+    from gpu_identity13 import require_helper_binding,require_helper_only
     store_launch = json.loads((out/'store-numa-launch.json').read_text())
     store_pid,store_cpus = store_launch['pid'],store_launch['target_cpu_affinity']
     assert (out/'store-affinity-ready.json').is_file()
@@ -69,6 +73,17 @@ def run(out):
         dispatch = json.loads((ROOT/(identity['spec']['name']+'-dispatch.json')).read_text())
         assert dispatch['boot_id'] == boot_id
     assert json.loads(monitor_ready.read_text())['boot_id'] == boot_id
+    def host_gpu():return json.loads(monitor_ready.read_text())
+    manifest=json.loads((ROOT/'run-manifest.json').read_text())
+    stop=time.monotonic()+5;helper=None
+    while time.monotonic()<stop:
+        candidate=host_gpu()['registered_store_helper']
+        if candidate is not None:
+            require_helper_binding(candidate,store_launch,worker_identity,boot_id)
+            helper=candidate;break
+        time.sleep(.1)
+    assert helper is not None,'Store helper registration unavailable'
+    (out/'helper-gpu-identity.json').write_text(json.dumps(helper,indent=2))
     ready = time.monotonic_ns()
     origin = min(worker_identity['dispatch_monotonic_ns'],head_identity['dispatch_monotonic_ns'])
     (out/'shared-initialization.json').write_text(json.dumps({
@@ -107,11 +122,14 @@ def run(out):
             continue
         if target.exists():
             raise RuntimeError('ID appeared after admission: '+name)
-        if time.time() >= deadline-prereg['attempt_timeout_seconds']-180:
+        if time.time() >= deadline-prereg['attempt_timeout_seconds']-prereg['post_delete_observation_seconds']-180:
             (out/'deadline-admission-stop.json').write_text(json.dumps({'next_unstarted_attempt':name}))
             break
+        require_helper_only(host_gpu(),helper,time.monotonic_ns(),run_id,boot_id)
         target.mkdir(exist_ok=False)
         record = {**attempt, 'status':'started', 'success':False, 'bootstrap_directory':str(out),
+                  'execution_run_id':gate['execution_run_id'],'code_commit':gate['code_commit'],
+                  'source_manifest_sha256':gate['source_manifest_sha256'],'preregistration_sha256':PREREG_SHA,
                   'protocol_revision':gate['protocol_revision'],'resource_window_revision':gate['resource_window_revision'],'preparation_revision':gate['preparation_revision'],
                   'preparation_begin_ns':time.monotonic_ns(),
                   'memory_events_before':pathlib.Path('/sys/fs/cgroup/memory.events').read_text()}
@@ -202,28 +220,39 @@ def run(out):
             record['delete_command_ns'] = time.monotonic_ns()
             assert http('/delete',{'model':'glm51-fp8'})['status'] == 'deleted model glm51-fp8'
             record['delete_complete_ns'] = time.monotonic_ns()
+            delete_ack_ns=record['delete_complete_ns']
             listed = http('/v1/models')
             (target/'models-after-delete.json').write_text(json.dumps(listed))
             assert 'glm51-fp8' not in {row['id'] for row in listed['models']}
+            pss_path=target/'pss.json';pss_log=(target/'pss.log').open('x')
+            pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/code/experiment/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
+            fresh_deadline=time.monotonic()+5
+            while host_gpu()['sample_begin_ns']<delete_ack_ns:
+                assert time.monotonic()<fresh_deadline,'no post-delete sample within5s'
+                time.sleep(.1)
+            record['idle_observation_begin_ns']=time.monotonic_ns()
             with (target/'idle60.jsonl').open('x') as samples:
-                start = time.monotonic()
-                record['idle_observation_begin_ns'] = time.monotonic_ns()
+                start=time.monotonic()
                 for second in range(61):
-                    shm = os.statvfs('/dev/shm')
-                    row = {'second':second,'monotonic_ns':time.monotonic_ns(),
-                           'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
-                           'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
-                           'cpu_stat':pathlib.Path('/sys/fs/cgroup/cpu.stat').read_text(),
-                           'memory_stat':pathlib.Path('/sys/fs/cgroup/memory.stat').read_text(),
-                           'memory_current':int(pathlib.Path('/sys/fs/cgroup/memory.current').read_text()),
-                           'memory_events':pathlib.Path('/sys/fs/cgroup/memory.events').read_text(),
-                           'shm_used_bytes':(shm.f_blocks-shm.f_bfree)*shm.f_frsize}
-                    samples.write(json.dumps(row)+'\n')
+                    shm=os.statvfs('/dev/shm');snapshot=host_gpu();now=time.monotonic_ns()
+                    samples.write(json.dumps(dict(second=second,monotonic_ns=now,delete_ack_ns=delete_ack_ns,
+                        gpu=snapshot['gpu'],gpu_processes=snapshot['gpu_processes'],host_gpu_snapshot=snapshot,
+                        memory_current=int(pathlib.Path('/sys/fs/cgroup/memory.current').read_text()),
+                        pids_current=int(pathlib.Path('/sys/fs/cgroup/pids.current').read_text()),
+                        memory_events=pathlib.Path('/sys/fs/cgroup/memory.events').read_text(),
+                        memory_stat=pathlib.Path('/sys/fs/cgroup/memory.stat').read_text(),
+                        cpu_stat=pathlib.Path('/sys/fs/cgroup/cpu.stat').read_text(),
+                        shm_used_bytes=(shm.f_blocks-shm.f_bfree)*shm.f_frsize))+'\n')
                     samples.flush()
-                    if second < 60:
-                        time.sleep(max(0,start+second+1-time.monotonic()))
-                record['idle_observation_seconds'] = time.monotonic()-start
-                assert record['idle_observation_seconds'] >= 60
+                    if second<60:time.sleep(1)
+                record['idle_observation_seconds']=time.monotonic()-start
+            if pss.poll() is None:
+                pss.kill();pss.wait(timeout=5)
+            pss_log.close()
+            assert pss.returncode==0 and json.loads(pss_path.read_text())['status']=='completed','PSS probe incomplete'
+            from accept_control13 import validate_native_idle
+            idle_rows=[json.loads(line) for line in (target/'idle60.jsonl').read_text().splitlines()]
+            validate_native_idle(idle_rows,auxiliary_gpu,helper,run_id,boot_id)
             remaining = [int(line) for line in subprocess.check_output(
                 ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]
             record['post_delete_gpu_MiB'] = remaining

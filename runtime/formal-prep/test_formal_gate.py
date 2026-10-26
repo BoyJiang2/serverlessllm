@@ -33,7 +33,7 @@ class FormalGate(unittest.TestCase):
             path = self.source / name
             path.write_bytes(name.encode())
             rows.append(dict(path=name, sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
-        self.manifest_sha = save(self.source / 'formal-input-manifest.json', dict(files=rows))
+        self.manifest_sha = save(self.source / 'control-input-manifest.json', dict(files=rows))
         save(self.root / 'run-manifest.json', dict(run_id='own-formal-run',
              scope='formal continuation of original forty IDs', store_import_sha256={}, formal_required_env={}))
         r2_sha = save(self.root / 'r2-approval.json', dict(gate='R2', scope='formal-runtime',

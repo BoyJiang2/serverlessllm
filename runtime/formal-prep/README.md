@@ -19,10 +19,16 @@ body and uses the verified baseline instead of directory absence to select IDs.
 `source-provenance.json` records the two necessary historical dependencies that
 were absent from the active source; common active dependencies are reused.
 
-Remaining implementation: canonical formal bootstrap/cache entry,
-formal monitor identity mapping, complete JIT-cache provenance and guard,
-bounded initialization, complete driver idle-resource integration and per-attempt
-admission, normal-flags validation,
+The bootstrap and cache entry drafts are now present. Store cache coverage is
+exactly 80 parts plus 28 required metadata paths, with 22 Store metadata hashes
+collected without payload reads. The prepared `validation_control13.py` is a
+temporary replacement for the shared active module: it fixes the reproduced
+normal-flags audit-environment error and selects its declared identity. Before
+R2 it must become the one active imported module; do not maintain two variants.
+
+Remaining integration: formal monitor/role/budget/template mapping, complete
+warm-JIT provenance, bounded initialization and per-attempt admission,
+actual normal-flags validation,
 full source/binary/mount manifest and current R2 gate. Reuse the existing reviewed
 primitives rather than add switches to the G1-only entry. All four conditions
 retain the common Store pool. Validation and public initialization costs remain

@@ -11,6 +11,32 @@ from attempt_state import PREREG_SHA, checked_json
 GOLD_SHA = '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
 
 
+def verify_normal_reference(config, assets):
+    reference = pathlib.Path(assets) / 'validation/g1-reference'
+    acceptance = checked_json(reference / 'G1-acceptance.json', config['g1_acceptance_sha256'])
+    if any(acceptance.get(k) != v for k, v in dict(
+            status='G1 acceptance passed; no formal samples',
+            code_commit=config['g1_reference_code_commit'],
+            manifest_sha256=config['g1_reference_manifest_sha256'],
+            ray_only_controls=2, native_lifecycles_per_format=2, pool_initializations=1).items()):
+        raise ValueError('actual complete G1 reference required')
+    if set(config['full_a4_proofs']) != {'serverless_llm', 'safetensors'}:
+        raise ValueError('both full A4 formats required')
+    for kind, row in config['full_a4_proofs'].items():
+        path = (reference / row['path']).resolve()
+        if not path.is_relative_to(reference.resolve()):
+            raise ValueError('A4 reference escaped evidence root')
+        proof = checked_json(path, row['sha256'])
+        if any(proof.get(k) != v for k, v in dict(status='A4 native HTTP lifecycle checks passed',
+                cycles=2, weight_format=kind, weight_audit_performed=True).items()):
+            raise ValueError('full audited A4 reference required')
+        coverage = proof['rank_coverage']
+        if len(coverage) != 16 or {(r['cycle'], r['rank']) for r in coverage} != {
+                (cycle, rank) for cycle in (1, 2) for rank in range(8)}:
+            raise ValueError('full two-cycle eight-rank coverage required')
+    return acceptance
+
+
 def verify_gate():
     if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
         raise RuntimeError('optimized Python is forbidden')
@@ -32,7 +58,7 @@ def verify_gate():
     if any(r2.get(k) != v for k, v in dict(gate='R2', scope='formal-runtime', verdict='approved',
                                           code_commit=code, manifest_sha256=manifest_sha).items()):
         raise ValueError('current independent R2 approval required')
-    source_manifest = checked_json(SOURCE / 'formal-input-manifest.json', manifest_sha)
+    source_manifest = checked_json(SOURCE / 'control-input-manifest.json', manifest_sha)
     checked = set()
     for row in source_manifest['files']:
         path = (SOURCE / row['path']).resolve()
