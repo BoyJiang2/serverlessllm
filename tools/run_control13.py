@@ -1,0 +1,214 @@
+"""Run or observe the existing guarded G1; SSH loss is not a model verdict."""
+import argparse,hashlib,json,pathlib,re,subprocess,sys,uuid
+
+REPO=pathlib.Path(__file__).resolve().parents[1]
+SSH=['ssh','-o','StrictHostKeyChecking=yes','-o','ConnectTimeout=10',
+     '-o','ServerAliveInterval=15','-o','ServerAliveCountMax=4','qjhs003','python3','-']
+
+def load_context(code,sha,verdict_file):
+    if not re.fullmatch('[0-9a-f]{40}',code) or not re.fullmatch('[0-9a-f]{64}',sha):raise RuntimeError('exact review binding required')
+    source=REPO/'runtime/active'
+    data=(source/'control-input-manifest.json').read_bytes()
+    if hashlib.sha256(data).hexdigest()!=sha:raise RuntimeError('manifest differs')
+    verdict_path=(REPO/verdict_file).resolve()
+    if not verdict_path.is_relative_to((REPO/'reviews').resolve()):raise RuntimeError('review outside repository')
+    sys.path.insert(0,str(source))
+    from package_inventory13 import require_full_r1,reviewed_files
+    require_full_r1(json.loads(verdict_path.read_text()),code,sha)
+    manifest=json.loads(data);reviewed_files(source,manifest['files'])
+    for row in manifest['files']:
+        path=(source/row['path']).resolve()
+        if not path.is_relative_to(source.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:raise RuntimeError('runtime input differs')
+    names={row['path'] for row in manifest['repository_inputs']}
+    if not {'tools/run_control13.py','tools/root_control13.py'}<=names:raise RuntimeError('operator code is not review-bound')
+    for row in manifest['repository_inputs']:
+        path=(REPO/row['path']).resolve()
+        if not path.is_relative_to(REPO.resolve()) or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']:raise RuntimeError('repository review input differs')
+    run=json.loads((source/'run-manifest.json').read_text())['run_id']
+    if not re.fullmatch(r'sllm-glm51fp8-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}',run):raise RuntimeError('invalid run')
+    return run
+
+REMOTE=r'''
+import datetime,json,pathlib,socket,subprocess,time
+root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')
+src=root/'code/experiment'
+out=root/'validation/controls'/RUN
+log=(out/('operator-'+('observe-' if OBSERVE else '')+PHASE+'-'+SEGMENT+'.jsonl')).open('x',buffering=1)
+def event(**row):
+ row.update(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),monotonic_ns=time.monotonic_ns())
+ log.write(json.dumps(row)+'\n');print(json.dumps(row),flush=True)
+def call(args,timeout=120):
+ event(command=args)
+ p=subprocess.run(args,capture_output=True,text=True,timeout=timeout)
+ event(returncode=p.returncode,stdout=p.stdout,stderr=p.stderr)
+ if p.returncode:raise RuntimeError('command failed: '+str(args))
+ return p.stdout.strip()
+def invoke(name,*args,timeout=120):return call(['python3',str(src/name),*args],timeout)
+def launch(name):
+ invoke('materialize_control13.py',name)
+ invoke('launch_control13.py',name+'.json',SHA,CODE)
+def identity(name):
+ r=json.loads((out/(name+'-identity.json')).read_text())
+ assert r['run_id']==RUN and r['code_commit']==CODE and r['manifest_sha256']==SHA
+ d=json.loads(call(['docker','inspect',r['container_id']]))[0]
+ assert d['Config']['Labels']['sllm.run_id']==RUN and d['Config']['Labels']['sllm.uid']=='2147'
+ assert d['Image']==json.loads((out/'run-manifest.json').read_text())['image_id']
+ if d['State']['Running']:assert d['State']['Pid']==r['pid']
+ return r,d
+def ready():
+ r=json.loads((out/'monitor-v3-ready.json').read_text())
+ assert r['run_id']==RUN and r['observers_ok'] and not r['foreign_gpu_pids']
+ assert r['boot_id']==json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id']
+ assert 0<=time.monotonic_ns()-r['last_sample_ns']<=5_000_000_000
+if PHASE!='prepare' or OBSERVE:
+ from preflight_control13 import check
+ check(out,continuation=OBSERVE)
+if PHASE=='prepare' and not OBSERVE:
+ assert call(['timedatectl','show','-p','Timezone','--value'])=='Asia/Shanghai'
+ assert not call(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader,nounits'])
+ assert [int(x) for x in call(['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits']).splitlines()]==[0]*8
+ invoke('prepare_host13.py',SHA,CODE)
+ assert json.loads((out/'host-preparation.json').read_text())['gpu_baseline_mib']==[0]*8
+ launch('monitor13')
+ deadline=time.monotonic()+20
+ while not (out/'monitor-v3-ready.json').exists():
+  if time.monotonic()>deadline:raise RuntimeError('monitor readiness timeout')
+  time.sleep(.5)
+ ready()
+elif PHASE=='prepare':
+ ready()
+ proof=json.loads((out/'host-preparation.json').read_text());assert proof['code_commit']==CODE and proof['manifest_sha256']==SHA
+ event(phase_passed=PHASE)
+else:
+ ready()
+ deadline=datetime.datetime.fromisoformat(json.loads((out/'run-manifest.json').read_text())['cleanup_deadline']).timestamp()
+ required={'ray13a':4740,'ray13b':4230,'service13a':3600}[PHASE]
+ if not OBSERVE:assert deadline-time.time()>=required,'insufficient full remaining budget'
+ if PHASE=='ray13b':assert json.loads((out/'ray13a-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13a.json').is_file()
+ if PHASE=='service13a':assert json.loads((out/'ray13b-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13b.json').is_file()
+ head='head'+PHASE
+ if not OBSERVE:
+  launch(head)
+  r,d=identity(head)
+  argv=r['spec']['argv'];port=next(int(x.split('=',1)[1]) for x in argv if x.startswith('--port='))
+  deadline_ready=time.monotonic()+45
+  while True:
+   d=json.loads(call(['docker','inspect',r['container_id']]))[0]
+   assert d['State']['Running'],'head exited before GCS ready'
+   try:
+    with socket.create_connection((d['NetworkSettings']['Networks']['bridge']['IPAddress'],port),timeout=1):pass
+    break
+   except OSError:
+    if time.monotonic()>deadline_ready:raise RuntimeError('GCS TCP readiness timeout')
+    time.sleep(1)
+  event(head_running_gcs_tcp_ready=True)
+  if PHASE=='service13a':
+   probe="import json,pathlib;from run_store_server13 import verify_store_imports;from workspace import manifest,run_root;rows=verify_store_imports(manifest()['store_import_sha256']);import torch,vllm;p=run_root()/'cpu-import-preflight.json';f=p.open('x');json.dump(dict(modules=rows,torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2);f.close();print('CPU import preflight passed')"
+   call(['docker','exec',r['container_id'],'/experiment/.venv/bin/python','-c',probe],timeout=90)
+  launch(PHASE)
+ else:
+  r,_=identity(head)
+ worker,state=identity(PHASE)
+ budget=330 if PHASE.startswith('ray') else 3420
+ remaining=budget-(time.monotonic_ns()-worker['dispatch_monotonic_ns'])/1e9
+ if state['State']['Running']:
+  assert remaining>0 and deadline-time.time()>=remaining+180,'original budget expired'
+  exit_code=call(['docker','wait',worker['container_id']],timeout=remaining+20)
+ else:exit_code=str(state['State']['ExitCode'])
+ assert exit_code=='0','worker exit '+exit_code
+ assert json.loads((out/(PHASE+'-supervisor-result.json')).read_text())['status']=='passed including cleanup'
+ if PHASE.startswith('ray'):assert json.loads((out/('ray-only-'+PHASE)/'result.json').read_text())['status']=='passed'
+ _,d=identity(head)
+ if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
+ if PHASE.startswith('ray'):
+  release=out/('release60-'+PHASE+'.json')
+  if not release.exists():invoke('release_control13.py',PHASE,timeout=180)
+  from accept_control13 import validate_release
+  validate_release(json.loads(release.read_text()),PHASE,RUN,json.loads((out/'host-preparation.json').read_text())['gpu_baseline_mib'])
+ event(phase_passed=PHASE)
+'''
+
+RECONCILE=r'''
+import pathlib,json,hashlib,subprocess,time
+root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8');src=root/'code/experiment';out=root/'validation/controls'/RUN
+assert hashlib.sha256((src/'control-input-manifest.json').read_bytes()).hexdigest()==SHA
+import sys
+sys.path.insert(0,str(src))
+from preflight_control13 import check
+check(out,continuation=True)
+r=json.loads((out/'monitor-v3-ready.json').read_text())
+assert r['observers_ok'] and not r['foreign_gpu_pids'] and 0<=time.monotonic_ns()-r['last_sample_ns']<=5_000_000_000
+name='monitor13' if PHASE=='prepare' else PHASE
+record=json.loads((out/(name+'-identity.json')).read_text())
+assert record['run_id']==RUN and record['code_commit']==CODE and record['manifest_sha256']==SHA
+info=json.loads(subprocess.check_output(['docker','inspect',record['container_id']],text=True,timeout=10))[0]
+assert info['Config']['Labels']['sllm.run_id']==RUN and info['Config']['Labels']['sllm.uid']=='2147'
+assert info['Image']==json.loads((out/'run-manifest.json').read_text())['image_id']
+if info['State']['Running']:assert info['State']['Pid']==record['pid']
+if PHASE=='prepare':
+    proof=json.loads((out/'host-preparation.json').read_text());assert proof['code_commit']==CODE and proof['manifest_sha256']==SHA
+    assert info['State']['Running'];status='completed_verified'
+else:
+    proof_path=out/(PHASE+'-supervisor-result.json')
+    proof=json.loads(proof_path.read_text()) if proof_path.exists() else None
+    if info['State']['Running']:
+        budget=330 if PHASE.startswith('ray') else 3420
+        assert (time.monotonic_ns()-record['dispatch_monotonic_ns'])/1e9<budget
+        assert proof is None or proof['status']=='passed including cleanup'
+        status='running_verified'
+    elif info['State']['ExitCode']==0 and proof and proof['status']=='passed including cleanup':status='completed_verified'
+    else:status='failed_verified'
+print(json.dumps(dict(kind='control_reconciliation',run_id=RUN,phase=PHASE,code_commit=CODE,manifest_sha256=SHA,status=status,container_id=record['container_id'],state=info['State'])))
+'''
+
+def bound_prefix(run,phase,code,sha,observe,segment):
+    return '\n'.join(k+'='+repr(v) for k,v in dict(RUN=run,PHASE=phase,CODE=code,SHA=sha,OBSERVE=observe,SEGMENT=segment).items())+'\n'
+
+def probe_existing(prefix,run,phase,code,sha,folder,segment):
+    path=folder/('transport-reconciliation-'+phase+'-'+segment+'.json')
+    try:
+        result=subprocess.run(SSH,input=prefix+RECONCILE,text=True,encoding='utf-8',capture_output=True,timeout=25)
+        payload=dict(returncode=result.returncode,stdout=result.stdout,stderr=result.stderr)
+        rows=[]
+        for line in result.stdout.splitlines():
+            try:row=json.loads(line)
+            except ValueError:continue
+            if isinstance(row,dict) and row.get('kind')=='control_reconciliation':rows.append(row)
+        if result.returncode==0 and len(rows)==1:
+            row=rows[0]
+            if all(row.get(k)==v for k,v in dict(run_id=run,phase=phase,code_commit=code,manifest_sha256=sha).items()):
+                payload['verified_status']=row.get('status')
+    except subprocess.TimeoutExpired:
+        payload=dict(error='bounded reconciliation timed out; state unknown')
+    with path.open('x',encoding='utf-8') as stream:json.dump(payload,stream,indent=2)
+    return payload.get('verified_status','unknown')
+
+def main(argv=None):
+    parser=argparse.ArgumentParser(description=__doc__)
+    phases=('prepare','ray13a','ray13b','service13a')
+    parser.add_argument('phase',choices=phases+tuple('observe-'+p for p in phases))
+    parser.add_argument('code_commit');parser.add_argument('manifest_sha256');parser.add_argument('verdict')
+    args=parser.parse_args(argv)
+    code,sha=args.code_commit,args.manifest_sha256
+    run=load_context(code,sha,args.verdict)
+    observe=args.phase.startswith('observe-');phase=args.phase.removeprefix('observe-')
+    segment=uuid.uuid4().hex[:12]
+    folder=REPO.parent/'outputs'/('g1-'+run);folder.mkdir(exist_ok=True)
+    prefix=bound_prefix(run,phase,code,sha,observe,segment)
+    path=folder/('operator-'+args.phase+'-'+segment+'-client.log')
+    with path.open('x',encoding='utf-8') as stream:
+        result=subprocess.run(SSH,input=prefix+REMOTE,text=True,encoding='utf-8',stdout=stream,stderr=subprocess.STDOUT)
+    print(json.dumps(dict(run_id=run,phase=args.phase,returncode=result.returncode,log=str(path))))
+    if result.returncode==0:return 0
+    if result.returncode==255:
+        status=probe_existing(prefix,run,phase,code,sha,folder,segment)
+        if status in ('running_verified','completed_verified'):
+            print(json.dumps(dict(status='transport interrupted; existing execution verified; observe only',next_phase='observe-'+phase,formal_or_G1_pass=False)))
+            return 75
+    # No confirmed safe continuation: request exact-owned cleanup; never call it release evidence.
+    if not (folder/'cleanup-requested').exists():
+        cleanup=subprocess.run([sys.executable,'-X','utf8',str(REPO/'tools/root_control13.py'),'cleanup',code,sha,args.verdict])
+        if cleanup.returncode:return cleanup.returncode
+    return 1
+
+if __name__=='__main__':raise SystemExit(main())

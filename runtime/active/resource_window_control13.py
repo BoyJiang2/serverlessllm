@@ -20,7 +20,7 @@ def load_window(root):
     rows = window['bookings']
     now_ms=datetime.datetime.now(datetime.timezone.utc).timestamp()*1000
     assert rows[0]['start_ms']<=now_ms<rows[-1]['end_ms'], 'outside authorized booking window'
-    assert [row['id'] for row in rows] == ['bk-20261026T0248-fd6bea51','bk-20261026T0607-546b6bd8']
+    assert [row['id'] for row in rows] == ['bk-20261026T0607-546b6bd8','bk-20261026T1014-d9d26872']
     assert [row['user'] for row in rows]==['boyjiang','boyjiang'] and all(row['resource_id']=='h20/qjhs003' for row in rows)
     assert all(row['start_ms'] < row['end_ms'] for row in rows)
     assert all(left['end_ms']==right['start_ms'] for left,right in zip(rows,rows[1:]))

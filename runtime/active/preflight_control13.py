@@ -22,7 +22,13 @@ def validate_ancestor_values(values,is_root,is_owned=False):
         require(swap=='max' or int(swap)>=0,'invalid ancestor swap limit')
         if is_owned: require(swap=='0','own slice must prohibit swap')
 
-def check(root,monitor_required=True):
+def validate_memory_budget(available,weight_bytes,owned_anon=0):
+    require(available>=64*1024**3,'insufficient uncommitted working margin')
+    require(owned_anon>=0,'invalid owned anonymous memory')
+    require(available+owned_anon>=768799145984+weight_bytes+64*1024**3,'insufficient host memory for pool/checkpoint/working margin')
+
+
+def check(root,monitor_required=True,continuation=False):
     require((root/'run-manifest.json').read_bytes()==(SOURCE/'run-manifest.json').read_bytes(),'run registration differs from reviewed source')
     manifest=json.loads((root/'run-manifest.json').read_text())
     run=manifest['run_id']
@@ -36,7 +42,6 @@ def check(root,monitor_required=True):
     memory=pathlib.Path('/proc/meminfo').read_text()
     require(next(line.split()[1] for line in memory.splitlines() if line.startswith('SwapTotal:'))=='0','host swap configuration changed')
     available=int(next(line.split()[1] for line in memory.splitlines() if line.startswith('MemAvailable:')))*1024
-    require(available>=768799145984+manifest['weight_bytes']+64*1024**3,'insufficient host memory for pool/checkpoint/working margin')
     from resource_window_control13 import load_window
     window=load_window(root)
     guard=pathlib.Path('/run')/run
@@ -61,6 +66,12 @@ def check(root,monitor_required=True):
         require(call('systemctl','show',run+'.slice','-p',key,'--value')==value,'slice limit changed: '+key)
     group=call('systemctl','show',run+'.slice','-p','ControlGroup','--value')
     require(pathlib.PurePosixPath(group).name==run+'.slice','slice identity changed')
+    # Observation allocates nothing: credit only existing anon in this verified slice.
+    owned_anon=0
+    if continuation:
+        values=(pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')/'memory.stat').read_text()
+        owned_anon=int(next(line.split()[1] for line in values.splitlines() if line.startswith('anon ')))
+    validate_memory_budget(available,manifest['weight_bytes'],owned_anon)
     ancestors={}
     current=pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
     while True:
@@ -79,4 +90,4 @@ def check(root,monitor_required=True):
             require(call('systemctl','is-active',unit)=='active','observer inactive: '+suffix)
             observer_group=call('systemctl','show',unit,'-p','ControlGroup','--value')
             require(observer_group.startswith(group+'/'),'observer escaped run slice')
-    return dict(run_id=run,checked_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),boot_id=expected['boot_id'],gpu_uuids=uuids,guard_script_sha256=proof['cleanup_sha256'],control_group=group,monitor_required=monitor_required,host_meminfo=memory,available_memory_bytes=available,ancestor_limits=ancestors)
+    return dict(run_id=run,checked_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),boot_id=expected['boot_id'],gpu_uuids=uuids,guard_script_sha256=proof['cleanup_sha256'],control_group=group,monitor_required=monitor_required,host_meminfo=memory,available_memory_bytes=available,continuation=continuation,credited_owned_anon_bytes=owned_anon,ancestor_limits=ancestors)

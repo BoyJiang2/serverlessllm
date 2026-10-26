@@ -1,0 +1,82 @@
+{
+  "run_id": "sllm-glm51fp8-20261026T101414Z-b7e048db",
+  "code_commit": "e1e8851ad10a5ebabc5ce587eb8c6d54585d0833",
+  "manifest_sha256": "c0cb93c5c0cd3a7c7c5c448de24632582a8486c0974fac34e2f94692f38ccc89",
+  "status": "G1 failed/incomplete after SSH connection reset and operator-triggered owned cleanup",
+  "formal_ids_consumed": 0,
+  "formal_counts": {
+    "success": 5,
+    "failed": 4,
+    "unstarted": 31
+  },
+  "ray_controls_passed": 2,
+  "cpu_import_preflight_passed": true,
+  "pool_ready": {
+    "monotonic_ns": 136862613702591,
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "store_pid": 2154,
+    "listener": {
+      "pid": 2154,
+      "port": 8073,
+      "listening_sockets": [
+        {
+          "fd": 199,
+          "inode": "57138138"
+        }
+      ],
+      "scope": "private container network/PID namespace; current child ownership required"
+    },
+    "rpc_config": {
+      "mem_pool_size": 768799145984,
+      "chunk_size": 536870912
+    },
+    "rss_bytes": 770294366208
+  },
+  "cache_control": {
+    "passed": true,
+    "files": 148,
+    "repair_passes": 0,
+    "sha256": "dc14eda0f9cb801d7db95af735eae883a974351213006a8cc91ef75b63ac720e"
+  },
+  "completed_weight_pipeline_ranks": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "rank_audits_written": 0,
+  "business_gold_verified": false,
+  "service_final_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 137,
+    "Error": "",
+    "StartedAt": "2026-10-26T10:58:58.408533659Z",
+    "FinishedAt": "2026-10-26T11:19:34.230795862Z"
+  },
+  "transport_error": "client_loop send disconnect Connection reset; SSH return255",
+  "cleanup_first_started": "2026-10-26T19:19:09+08:00",
+  "cleanup_first_end": "2026-10-26T19:19:25+08:00",
+  "cleanup_first_returncode": 1,
+  "cleanup_first_reason": "Docker stop15s request context canceled; service stillrunning in inspect; remaining nonempty",
+  "cleanup_final_passed": true,
+  "attribution": "local operator explicitly requested SIGKILL/stop following SSH reset; final service137 compatible with that cleanup; exact signal delivery/network reset origin not proven",
+  "historical_exit137_upstream_cause": "unknown; separate original event unchanged",
+  "release_samples": 61,
+  "release_seconds": 75.737320287,
+  "release_sha256": "afacac3d422a8cdfca2018916f07101db21d2e9c82a361b707b6df41daccdbd9",
+  "root_index_sha256": "af86a1020ddef19e3b07418287c043bf9196a150a0ee36058f153ffc098f909b",
+  "executed_source": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261026T101414Z-b7e048db/executed-source-e1e8851",
+  "source_hashes_reverified": true,
+  "closed_utc": "2026-10-26T11:29:36.606179+00:00"
+}

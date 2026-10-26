@@ -18,15 +18,15 @@ class Window(unittest.TestCase):
                 clock.now.return_value.timestamp.return_value=epoch
                 clock.fromisoformat.side_effect=parse_time
                 return load_window(target)
-    def test_exact_start_accepted(self):self.assertEqual(self.check_at(1792980000)['bookings'][0]['id'],'bk-20261026T0248-fd6bea51')
+    def test_exact_start_accepted(self):self.assertEqual(self.check_at(1793008800)['bookings'][0]['id'],'bk-20261026T0607-546b6bd8')
     def test_before_start_rejected(self):
-        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1792979999)
+        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793008799)
     def test_exact_end_rejected(self):
-        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793019600)
+        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793041200)
     def test_different_guard_rejected(self):
-        with self.assertRaises(AssertionError):self.check_at(1792980000,lambda w:w.update(cleanup_deadline='2026-10-26T17:49:00+08:00'))
+        with self.assertRaises(AssertionError):self.check_at(1793008800,lambda w:w.update(cleanup_deadline='2026-10-27T02:49:00+08:00'))
     def test_wrong_booking_rejected(self):
         def change(w):w['bookings'][0]['id']='old-expired-booking'
-        with self.assertRaises(AssertionError):self.check_at(1792980000,change)
+        with self.assertRaises(AssertionError):self.check_at(1793008800,change)
 
 if __name__=='__main__':unittest.main()
