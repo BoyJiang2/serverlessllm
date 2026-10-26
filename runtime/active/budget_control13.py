@@ -1,5 +1,15 @@
 """Fixed control budgets, including cleanup margin; no formal IDs."""
-def require_budget(name,remaining,diagnostic=False):
+POOL_DIAGNOSTIC_SCOPE='monitor diagnostics with resident Store only; no checkpoint or model'
+POOL_DIAGNOSTIC_BUDGET=900
+POOL_DIAGNOSTIC_PHASE_BUDGET=1200
+POOL_DIAGNOSTIC_WINDOW=2400
+
+def require_budget(name,remaining,diagnostic=False,pool_diagnostic=False):
+    if diagnostic and pool_diagnostic:raise RuntimeError('conflicting diagnostic scopes')
+    if pool_diagnostic:
+        if name not in ('monitor13','headservice13a','service13a'):raise RuntimeError('pool diagnostic forbids this identity')
+        if remaining<POOL_DIAGNOSTIC_WINDOW:raise RuntimeError('insufficient pool diagnostic and release reserve')
+        return 0 if name=='monitor13' else POOL_DIAGNOSTIC_BUDGET
     if diagnostic:
         if name not in ('monitor13','headservice13a'):raise RuntimeError('diagnostic scope forbids this budget')
         if remaining<900:raise RuntimeError('insufficient window for diagnostic and release reserve')

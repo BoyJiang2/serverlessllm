@@ -62,6 +62,7 @@ def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=N
 from resource_window_control13 import load_window
 from compilation_guard import TOOLS, observed_interference
 from gpu_identity13 import require_monitor_sample
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE
 
 from workspace import run_root
 root = run_root()
@@ -77,7 +78,7 @@ output_root = root
 trace_enabled=manifest.get('monitor_diagnostic_trace',False)
 if type(trace_enabled) is not bool:raise RuntimeError('diagnostic trace flag must be boolean')
 if trace_enabled:
-    assert manifest['scope']=='monitor diagnostics only; no model or pool'
+    assert manifest['scope'] in ('monitor diagnostics only; no model or pool',POOL_DIAGNOSTIC_SCOPE)
     trace_output=(output_root/'monitor-diagnostic-trace.jsonl').open('xb')
 log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
 assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')

@@ -261,3 +261,7 @@ Run sllm-glm51fp8-20261026T161004Z-817be4b6,code4b45595/MF52b75d7:actual02:50gua
 ## Shared monitor early-fail draft complete locally
 
 Existinggpu_identity13 purefunctions now validatecomplete5s samples/gaps and readyidentity/history. Producerfirsterrorsticky inclobserver; allpreflight/supervisor/operator/reconcile/nativeidle/validation/preparedformal callersupdated; offlineacceptance stillrescansraw andendbinding. C7actualbad20.5418s/midage4.2619s rejected atall extractedcallerboundaries.125runtime/15operator/49preparedCPUtests pass. No latencycauseclaim, no remote deployment; old52bMF intentionallystale/rejected. Source stillneedsnewloadedcontrolscope/budget/identity/guard/fullR1 beforeanycompute. FullG1/R2/formalpending;5/4/31unchanged.
+
+## canonical9 loadedStore-only diagnostic frozen pending local R1
+
+Newrun170947Z-89e023f0 MFb1cde23a73b970ed2fc75530ffd0f325826dd4d70d0f09a18cc36b1282daa1fe,61runtime/8repoInputs,129CPU+18operator+3shellchecks pass. Reusesexistingservice/supervisor/bootstrap;716GiBpoolonly/emptyownstorage/realCUDAhelper, SystemExit throughfinallybeforeSLLM/cache/model. Budget900child/1200phase/1230client,40minminimumwindow,1195TERM+5KILLCPUhead separateclock. CPU-onlyscopeunchanged. ReadinessstaticreviewTOCTOUclosedreadyreturnsvalidatedframe,negativeoldtestretained. New02:50guard/resource/tool/probe/fullR1notyetdone; sourceunexecuted. C8closedcomponentpassed, C7stillfailed,nativefunctional32/12proofretained. NoG1/R2/formal;5/4/31,nextstore_pool_hit_03.

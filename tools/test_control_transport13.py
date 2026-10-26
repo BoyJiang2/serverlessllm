@@ -120,29 +120,35 @@ class Transport(unittest.TestCase):
             self.assertEqual(len(validated),1)
             self.assertEqual(len(validated[0][0]),61)
 
-    def diagnostic(self,trace=True,observe=False,expire=False,post_sample=True):
+    def diagnostic(self,trace=True,observe=False,expire=False,post_sample=True,pool_mode=False):
         with tempfile.TemporaryDirectory() as directory:
             node=pathlib.Path(directory);run='test-run';code='a'*40;sha='b'*64
             out=node/'validation/controls'/run;out.mkdir(parents=True)
             def save(name,value):(out/name).write_text(json.dumps(value))
-            save('run-manifest.json',dict(run_id=run,image_id='frozen-image',scope='monitor diagnostics only; no model or pool',monitor_diagnostic_trace=trace,cleanup_deadline='2099-01-01T00:00:00+00:00',runtime_identity=dict(boot_id='boot')))
-            save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=100_000_000_000,sample_begin_ns=100_000_000_000,sample_end_ns=100_000_000_000,history_ok=True,first_monitor_error=None))
+            save('run-manifest.json',dict(run_id=run,image_id='frozen-image',scope='monitor diagnostics with resident Store only; no checkpoint or model' if pool_mode else 'monitor diagnostics only; no model or pool',monitor_diagnostic_trace=trace,cleanup_deadline='2099-01-01T00:00:00+00:00',runtime_identity=dict(boot_id='boot')))
+            save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=100_000_000_000,sample_begin_ns=100_000_000_000,sample_end_ns=100_000_000_000,history_ok=True,first_monitor_error=None,registered_store_helper=None,gpu_pids=[]))
             save('monitor13-identity.json',dict(run_id=run,code_commit=code,manifest_sha256=sha,container_id='own-monitor',pid=1))
+            if pool_mode:
+                save('service13a-identity.json',dict(run_id=run,code_commit=code,manifest_sha256=sha,container_id='own-worker',pid=1,dispatch_monotonic_ns=100_000_000_000))
+                save('service13a-supervisor-result.json',dict(status='passed including cleanup'))
+                (out/'service-bootstrap-service13a').mkdir()
+                save('service-bootstrap-service13a/pool-diagnostic-result.json',dict(run_id=run,pool_bytes=768799145984,chunk_bytes=536870912,checkpoint_read=False,model_registered=False))
+                save('service-bootstrap-service13a/pool-diagnostic-teardown.json',[dict(stage='children_reaped')])
             save('headservice13a-identity.json',dict(run_id=run,code_commit=code,manifest_sha256=sha,container_id='own-head',pid=1,spec=dict(argv=['--port=26532'])))
             calls=[];clock=[100.0];running=[True]
             def command(args,**kwargs):
                 calls.append((args,kwargs.get('timeout')))
                 if args[:2]==['docker','inspect']:
-                    info=dict(Image='frozen-image',Config=dict(Labels={'sllm.run_id':run,'sllm.uid':'2147'}),State=dict(Running=running[0],Pid=1),NetworkSettings=dict(Networks=dict(bridge=dict(IPAddress='172.17.0.2'))))
+                    info=dict(Image='frozen-image',Config=dict(Labels={'sllm.run_id':run,'sllm.uid':'2147'}),State=dict(Running=False if args[-1]=='own-worker' else running[0],Pid=1,ExitCode=0),NetworkSettings=dict(Networks=dict(bridge=dict(IPAddress='172.17.0.2'))))
                     stdout=json.dumps([info])
                 else:stdout=''
                 if args[:2]==['docker','stop']:
                     running[0]=False
                     clock[0]+=.1
-                    if post_sample:save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None))
+                    if post_sample:save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None,registered_store_helper=None,gpu_pids=[]))
                 if args[:2]==['docker','exec'] and expire:
                     clock[0]=281.0
-                    save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None))
+                    save('monitor-v3-ready.json',dict(run_id=run,boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=int(clock[0]*1e9),sample_begin_ns=int(clock[0]*1e9),sample_end_ns=int(clock[0]*1e9),history_ok=True,first_monitor_error=None,registered_store_helper=None,gpu_pids=[]))
                 return types.SimpleNamespace(returncode=0,stdout=stdout,stderr='')
             actual_path=pathlib.Path
             def redirect(value):return node if str(value)=='/data/brick1/boyjiang/glm5.1-fp8' else actual_path(value)
@@ -151,7 +157,7 @@ class Transport(unittest.TestCase):
                          socket=types.SimpleNamespace(create_connection=lambda *args,**kwargs:contextlib.nullcontext()),
                          materialize_control13=types.SimpleNamespace(verify_timeout_probe=lambda *args:None),
                          time=types.SimpleNamespace(monotonic=lambda:clock[0],monotonic_ns=lambda:int(clock[0]*1e9),time=time.time,sleep=lambda seconds:clock.__setitem__(0,clock[0]+seconds)))
-            scope=dict(RUN=run,PHASE='monitor-diagnostic',CODE=code,SHA=sha,OBSERVE=observe,SEGMENT='test')
+            scope=dict(RUN=run,PHASE='service13a' if pool_mode else 'monitor-diagnostic',CODE=code,SHA=sha,OBSERVE=observe,SEGMENT='test')
             error=None
             with patch.dict(sys.modules,modules),contextlib.redirect_stdout(io.StringIO()):
                 try:exec(compile(operator.REMOTE,'diagnostic-actual-remote','exec'),scope)
@@ -176,6 +182,19 @@ class Transport(unittest.TestCase):
             self.assertIsInstance(error,AssertionError)
             self.assertEqual(calls,[])
             self.assertFalse(receipt)
+
+    def test_pool_actual_operator_only_launches_head_and_service(self):
+        calls,error,receipt=self.diagnostic(pool_mode=True)
+        self.assertIsNone(error)
+        self.assertFalse(receipt)  # Not a CPU-only phase receipt or G1 acceptance.
+        names=[args[-1] for args,_ in calls if len(args)>1 and 'materialize_control13.py' in args[1]]
+        self.assertEqual(names,['headservice13a','service13a'])
+        self.assertFalse(any(args[:2]==['docker','wait'] for args,_ in calls))
+
+    def test_pool_observe_cannot_allocate(self):
+        calls,error,receipt=self.diagnostic(pool_mode=True,observe=True)
+        self.assertIsInstance(error,AssertionError)
+        self.assertEqual(calls,[])
 
     def test_post_stop_uses_the_exact_snapshot_validated_by_ready(self):
         good=dict(run_id='r',boot_id='b',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=1,sample_begin_ns=0,sample_end_ns=2,history_ok=True,first_monitor_error=None)
@@ -212,6 +231,7 @@ class Transport(unittest.TestCase):
             node=pathlib.Path(directory);source=node/'code/experiment';source.mkdir(parents=True)
             (node/'validation/controls/test-run').mkdir(parents=True)
             (node/'validation/controls/test-run/run-manifest.json').write_text(json.dumps(dict(scope='G1 independent untimed controls only; zero formal IDs')))
+            (source/'budget_control13.py').write_bytes((operator.REPO/'runtime/active/budget_control13.py').read_bytes())
             (source/'preflight_control13.py').write_text("raise RuntimeError('BOUND_SOURCE_PREFLIGHT_REACHED')\n")
             program=operator.REMOTE.replace("pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')",'pathlib.Path('+repr(str(node))+')')
             prefix=operator.bound_prefix('test-run','ray13a','a'*40,'b'*64,False,'import-test')

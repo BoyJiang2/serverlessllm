@@ -16,7 +16,10 @@ import datetime
 from workspace import run_root,verify_input_layout
 root = pathlib.Path('/experiment')
 control = run_root()
-verify_input_layout()
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET
+manifest=json.loads((control/'run-manifest.json').read_text())
+pool_diagnostic=manifest['scope']==POOL_DIAGNOSTIC_SCOPE
+if not pool_diagnostic:verify_input_layout()
 label = sys.argv[1] if len(sys.argv)>1 else 'probe'
 assert label.isalnum()
 out = control/('service-bootstrap-'+label)
@@ -25,7 +28,9 @@ env = os.environ.copy()
 validate_model = os.environ.get('SLLM_VALIDATE_FULL_MODEL') == '1'
 formal = bool(os.environ.get('SLLM_FORMAL_GATE_FILE'))
 normal_smoke = os.environ.get('SLLM_NORMAL_FLAGS_SMOKE') == '1'
-if not validate_model or formal or normal_smoke:
+if pool_diagnostic:
+    if env.get('SLLM_POOL_DIAGNOSTIC')!='1' or validate_model or formal or normal_smoke or label!='service13a':raise RuntimeError('invalid pool-only diagnostic flags')
+elif not validate_model or formal or normal_smoke:
     raise RuntimeError('G1 permits only full real-weight untimed validation')
 if formal:
     assert validate_model
@@ -33,17 +38,20 @@ if formal:
     verify_gate()  # Before private Ray worker, Store pool, or formal trial dispatch.
 pool_bytes = 67108864
 chunk_bytes = 32*1024*1024
-if validate_model:
+if validate_model or pool_diagnostic:
     restored = json.loads((root/'validation/store-restore-validation.json').read_text())
     assert restored['status'] == 'full Store component restore validation passed'
     pool_bytes, chunk_bytes = restored['pool_bytes'], restored['chunk_bytes']
-    if env.get('SLLM_SERVICE_WEIGHT_FORMAT') == 'safetensors' and not (
+    if not pool_diagnostic and env.get('SLLM_SERVICE_WEIGHT_FORMAT') == 'safetensors' and not (
             formal or env.get('SLLM_USE_COMMON_POOL') == '1'):
         pool_bytes = 67108864
         chunk_bytes = 32*1024*1024
 env.update(STORAGE_PATH=str(root/'store' if validate_model else out/'store'),
            RAY_TMPDIR=str(control/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
 pathlib.Path(env['STORAGE_PATH']).mkdir(exist_ok=True)
+if pool_diagnostic:
+    assert pool_bytes==768799145984 and chunk_bytes==536870912
+    assert not list(pathlib.Path(env['STORAGE_PATH']).iterdir()), 'pool diagnostic storage must be empty'
 python = '/experiment/.venv/bin/python'
 ip = socket.gethostbyname(socket.gethostname())
 address = os.environ['SLLM_PRIVATE_RAY_ADDRESS']
@@ -76,8 +84,8 @@ signal.signal(signal.SIGALRM,expired)
 from resource_window_control13 import load_window
 deadline = datetime.datetime.fromisoformat(load_window(control)['cleanup_deadline']).timestamp()
 from budget_control13 import require_budget
-require_budget(label,deadline-time.time())
-signal.alarm(3300)
+require_budget(label,deadline-time.time(),pool_diagnostic=pool_diagnostic)
+signal.alarm(POOL_DIAGNOSTIC_BUDGET-120 if pool_diagnostic else 3300)
 
 try:
     worker = launch('ray-worker',[python,'-m','ray.scripts.scripts','start','--address='+address,'--node-ip-address='+ip,
@@ -99,7 +107,7 @@ try:
                             '--pool-bytes',str(pool_bytes),'--chunk-bytes',str(chunk_bytes),'--host','0.0.0.0','--identity-receipt',str(out/'runtime-imports.json')])
     def store_ready():
         with socket.create_connection(('127.0.0.1',8073),timeout=1): return True
-    wait_ready(store_ready,1800 if validate_model else 30,store)
+    wait_ready(store_ready,POOL_DIAGNOSTIC_BUDGET-180 if pool_diagnostic else (1800 if validate_model else 30),store)
     from listener_control13 import listener
     store_listener=listener(store.pid,8073)
     import grpc
@@ -115,6 +123,23 @@ try:
     from store_numa_exec_v13 import audit_store_threads
     target = json.loads((out/'store-numa-launch.json').read_text())['target_cpu_affinity']
     (out/'store-affinity-ready.json').write_text(json.dumps(audit_store_threads(store.pid,target),indent=2))
+    if pool_diagnostic:
+        from gpu_identity13 import require_monitor_ready,require_helper_binding
+        launch_receipt=json.loads((out/'store-numa-launch.json').read_text())
+        service_identity=json.loads((control/'service13a-identity.json').read_text())
+        pool_ready=json.loads((out/'pool-ready.json').read_text())
+        stop=time.monotonic()+15
+        while True:
+            snapshot=json.loads((control/'monitor-v3-ready.json').read_text())
+            require_monitor_ready(snapshot,time.monotonic_ns(),manifest['run_id'],manifest['runtime_identity']['boot_id'])
+            helper=snapshot['registered_store_helper']
+            if helper is not None and snapshot['sample_begin_ns']>=pool_ready['monotonic_ns']:
+                require_helper_binding(helper,launch_receipt,service_identity,manifest['runtime_identity']['boot_id'])
+                break
+            if time.monotonic()>=stop:raise TimeoutError('resident pool helper fresh sample unavailable')
+            time.sleep(.1)
+        (out/'pool-diagnostic-result.json').write_text(json.dumps(dict(status='resident pool initialization checked; teardown/release still required',run_id=manifest['run_id'],pool_bytes=pool_bytes,chunk_bytes=chunk_bytes,helper=helper,sample_begin_ns=snapshot['sample_begin_ns'],ready_ns=time.monotonic_ns(),checkpoint_read=False,model_registered=False),indent=2))
+        raise SystemExit(0)
     server = launch('sllm',[python,'-u','-c','from sllm.cli._cli_utils import start_server; start_server(host="127.0.0.1",port=8343)'])
     def healthy():
         with urllib.request.urlopen('http://127.0.0.1:8343/health',timeout=2) as response:
@@ -145,15 +170,22 @@ try:
                 validation_out.mkdir(exist_ok=False)
                 run(validation_out)
 finally:
+    teardown=[]
+    if pool_diagnostic:teardown.append(dict(stage='term_begin',monotonic_ns=time.monotonic_ns()))
     for process in reversed(processes):
         if process.poll() is None: process.terminate()
     # Private PID/network namespace: these Ray processes belong only to this run.
+    if pool_diagnostic:teardown.append(dict(stage='ray_stop_begin',monotonic_ns=time.monotonic_ns()))
     subprocess.run([python,'-m','ray.scripts.scripts','stop','--force'],env=env,timeout=30)
+    if pool_diagnostic:teardown.append(dict(stage='ray_stop_end',monotonic_ns=time.monotonic_ns()))
     for process in processes:
         try: process.wait(timeout=10)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
     for output in logs: output.close()
+    if pool_diagnostic:
+        teardown.append(dict(stage='children_reaped',monotonic_ns=time.monotonic_ns(),children=[dict(pid=p.pid,returncode=p.returncode) for p in processes]))
+        (out/'pool-diagnostic-teardown.json').write_text(json.dumps(teardown,indent=2))
 
 

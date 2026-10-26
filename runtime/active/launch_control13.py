@@ -39,9 +39,10 @@ assert os.getuid() == manifest['uid'] == 2147
 assert spec['name'].replace('_', '').isalnum()
 window = load_window(root)
 deadline = datetime.datetime.fromisoformat(window['cleanup_deadline'])
-from budget_control13 import require_budget
+from budget_control13 import require_budget,POOL_DIAGNOSTIC_SCOPE
 diagnostic=validate_scope(root,spec['name'])
-require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=diagnostic)
+pool_diagnostic=manifest['scope']==POOL_DIAGNOSTIC_SCOPE
+require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=diagnostic,pool_diagnostic=pool_diagnostic)
 
 def call(*args):
     return subprocess.check_output(args, text=True, timeout=15).strip()
@@ -52,7 +53,7 @@ observed_next = call('systemctl', 'show', window['guard_timer'], '-p', 'NextElap
 assert expected_next in observed_next, (expected_next, observed_next)
 if spec.get('gpus') or spec['name'].startswith('head'):
     assert not call('nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader').strip(), 'GPU occupied'
-if diagnostic and spec['name']=='headservice13a':
+if (diagnostic or pool_diagnostic) and spec['name']=='headservice13a':
     monitor=json.loads((root/'monitor13-identity.json').read_text())
     verify_timeout_probe(root,json.loads(call('docker','inspect',monitor['container_id']))[0])
 args = ['docker', 'create', '--network=' + spec.get('network', 'none'), '--memory=' + spec['memory'],

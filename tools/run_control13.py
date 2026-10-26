@@ -43,9 +43,9 @@ def event(**row):
  log.write(json.dumps(row)+'\n');print(json.dumps(row),flush=True)
 def call(args,timeout=120):
  event(command=args)
- if diagnostic:
+ if diagnostic or pool_diagnostic:
   timeout=min(timeout,diagnostic_end-time.monotonic())
-  if timeout<=0:raise TimeoutError('original180s diagnostic budget expired')
+  if timeout<=0:raise TimeoutError('original diagnostic phase budget expired')
  p=subprocess.run(args,capture_output=True,text=True,timeout=timeout)
  event(returncode=p.returncode,stdout=p.stdout,stderr=p.stderr)
  if p.returncode:raise RuntimeError('command failed: '+str(args))
@@ -67,7 +67,13 @@ def ready():
  from gpu_identity13 import require_monitor_ready
  require_monitor_ready(r,time.monotonic_ns(),RUN,json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id'])
  return r
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET,POOL_DIAGNOSTIC_PHASE_BUDGET,POOL_DIAGNOSTIC_WINDOW
 manifest=json.loads((out/'run-manifest.json').read_text())
+pool_diagnostic=manifest.get('scope')==POOL_DIAGNOSTIC_SCOPE
+if pool_diagnostic:
+ diagnostic_end=time.monotonic()+POOL_DIAGNOSTIC_PHASE_BUDGET
+ assert PHASE in ('prepare','service13a') and not OBSERVE,'pool diagnostic cannot redispatch/observe or launch other roles'
+ assert datetime.datetime.fromisoformat(manifest['cleanup_deadline']).timestamp()-time.time()>=POOL_DIAGNOSTIC_WINDOW,'insufficient pool diagnostic and release reserve'
 if manifest.get('scope')=='monitor diagnostics only; no model or pool':
  assert PHASE in ('prepare','monitor-diagnostic'),'diagnostic run forbids G1 workers'
  assert datetime.datetime.fromisoformat(manifest['cleanup_deadline']).timestamp()-time.time()>=900,'insufficient diagnostic and release reserve'
@@ -86,7 +92,7 @@ if PHASE=='prepare' and not OBSERVE:
   if time.monotonic()>deadline:raise RuntimeError('monitor readiness timeout')
   time.sleep(.5)
  ready()
- if manifest.get('scope')=='monitor diagnostics only; no model or pool':
+ if manifest.get('scope')=='monitor diagnostics only; no model or pool' or pool_diagnostic:
   monitor,info=identity('monitor13')
   argv=['/usr/bin/timeout','--version']
   output=call(['docker','exec',monitor['container_id'],*argv],timeout=10)
@@ -105,12 +111,13 @@ else:
  if diagnostic:
   assert not OBSERVE,'interrupted diagnostic must be cleaned up, never redispatched'
   assert manifest['scope']=='monitor diagnostics only; no model or pool' and manifest.get('monitor_diagnostic_trace') is True
+ if pool_diagnostic:required=POOL_DIAGNOSTIC_WINDOW
  if not OBSERVE:assert deadline-time.time()>=required,'insufficient full remaining budget'
  if PHASE=='ray13b':assert json.loads((out/'ray13a-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13a.json').is_file()
- if PHASE=='service13a':assert json.loads((out/'ray13b-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13b.json').is_file()
+ if PHASE=='service13a' and not pool_diagnostic:assert json.loads((out/'ray13b-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13b.json').is_file()
  head='headservice13a' if diagnostic else 'head'+PHASE
  if not OBSERVE:
-  if diagnostic:
+  if diagnostic or pool_diagnostic:
    from materialize_control13 import verify_timeout_probe
    _,monitor_info=identity('monitor13')
    verify_timeout_probe(out,monitor_info)
@@ -165,7 +172,7 @@ print('CPU import preflight passed')"""
    json.dump(dict(run_id=RUN,code_commit=CODE,manifest_sha256=SHA,status='CPU phase completed; trace and release still require review',head_container_id=r['container_id'],stop_ns=stop_ns,post_stop_sample_begin_ns=post_stop['sample_begin_ns'],end_ns=time.monotonic_ns(),scope='no model or pool'),stream,indent=2)
  else:
   worker,state=identity(PHASE)
-  budget=330 if PHASE.startswith('ray') else 3420
+  budget=POOL_DIAGNOSTIC_BUDGET if pool_diagnostic else (330 if PHASE.startswith('ray') else 3420)
   remaining=budget-(time.monotonic_ns()-worker['dispatch_monotonic_ns'])/1e9
   if state['State']['Running']:
    assert remaining>0 and deadline-time.time()>=remaining+180,'original budget expired'
@@ -176,6 +183,19 @@ print('CPU import preflight passed')"""
   if PHASE.startswith('ray'):assert json.loads((out/('ray-only-'+PHASE)/'result.json').read_text())['status']=='passed'
   _,d=identity(head)
   if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
+  if pool_diagnostic:
+   pool_proof=json.loads((out/'service-bootstrap-service13a/pool-diagnostic-result.json').read_text())
+   assert pool_proof['run_id']==RUN and pool_proof['pool_bytes']==768799145984 and pool_proof['chunk_bytes']==536870912 and not pool_proof['checkpoint_read'] and not pool_proof['model_registered']
+   teardown=json.loads((out/'service-bootstrap-service13a/pool-diagnostic-teardown.json').read_text())
+   assert teardown[-1]['stage']=='children_reaped'
+   stopped_ns=time.monotonic_ns();fresh_limit=time.monotonic()+5
+   while True:
+    post_stop=ready()
+    if post_stop['sample_begin_ns']>=stopped_ns and post_stop['registered_store_helper'] is None and not post_stop['gpu_pids']:break
+    if time.monotonic()>=fresh_limit:raise TimeoutError('no fresh post-pool teardown sample')
+    time.sleep(.1)
+   if time.monotonic()>diagnostic_end:raise TimeoutError('original pool phase budget expired')
+   event(pool_teardown_sample_begin_ns=post_stop['sample_begin_ns'],stopped_ns=stopped_ns)
   if PHASE.startswith('ray'):
    release=out/('release60-'+PHASE+'.json')
    if not release.exists():invoke('release_control13.py',PHASE,timeout=180)
@@ -188,9 +208,10 @@ RECONCILE=r'''
 import pathlib,json,hashlib,subprocess,time
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8');src=root/'code/experiment';out=root/'validation/controls'/RUN
 assert hashlib.sha256((src/'control-input-manifest.json').read_bytes()).hexdigest()==SHA
-if PHASE=='monitor-diagnostic':raise RuntimeError('interrupted diagnostic requires own cleanup; never redispatch')
 import sys
 sys.path.insert(0,str(src))
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE
+if PHASE=='monitor-diagnostic' or json.loads((out/'run-manifest.json').read_text()).get('scope')==POOL_DIAGNOSTIC_SCOPE:raise RuntimeError('interrupted diagnostic requires own cleanup; never redispatch')
 from preflight_control13 import check
 check(out,continuation=True)
 r=json.loads((out/'monitor-v3-ready.json').read_text())
@@ -255,7 +276,9 @@ def main(argv=None):
     prefix=bound_prefix(run,phase,code,sha,observe,segment)
     path=folder/('operator-'+args.phase+'-'+segment+'-client.log')
     diagnostic=json.loads((REPO/'runtime/active/run-manifest.json').read_text()).get('scope')=='monitor diagnostics only; no model or pool'
-    client_timeout=(300 if phase=='prepare' else 210) if diagnostic else None
+    from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET,POOL_DIAGNOSTIC_PHASE_BUDGET,POOL_DIAGNOSTIC_WINDOW
+    pool_diagnostic=json.loads((REPO/'runtime/active/run-manifest.json').read_text()).get('scope')==POOL_DIAGNOSTIC_SCOPE
+    client_timeout=(300 if phase=='prepare' else (POOL_DIAGNOSTIC_PHASE_BUDGET+30 if pool_diagnostic else 210)) if diagnostic or pool_diagnostic else None
     with path.open('x',encoding='utf-8') as stream:
         try:
             result=subprocess.run(SSH,input=prefix+REMOTE,text=True,encoding='utf-8',stdout=stream,stderr=subprocess.STDOUT,timeout=client_timeout)

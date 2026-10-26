@@ -4,6 +4,7 @@ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
 """Only observed head IP or the exact run slice may vary from reviewed templates."""
 import hashlib,json,pathlib,subprocess,sys
 from workspace import SOURCE,run_root
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_PHASE_BUDGET
 
 def call(*args):
     return subprocess.check_output(args,text=True,timeout=15).strip()
@@ -11,7 +12,9 @@ def call(*args):
 def validate_scope(root,name):
     manifest=json.loads((root/'run-manifest.json').read_text())
     diagnostic=manifest['scope']=='monitor diagnostics only; no model or pool'
-    if diagnostic:
+    if manifest['scope']==POOL_DIAGNOSTIC_SCOPE:
+        if manifest.get('monitor_diagnostic_trace') is not True or name not in ('monitor13','headservice13a','service13a'):raise RuntimeError('pool diagnostic forbids this launch')
+    elif diagnostic:
         if manifest.get('monitor_diagnostic_trace') is not True or name not in ('monitor13','headservice13a'):
             raise RuntimeError('diagnostic scope forbids this launch')
     elif manifest.get('monitor_diagnostic_trace',False):
@@ -35,11 +38,14 @@ def verify_timeout_probe(root,info):
 
 def expected_spec(root,name):
     diagnostic=validate_scope(root,name)
-    run=json.loads((root/'run-manifest.json').read_text())['run_id']
+    config=json.loads((root/'run-manifest.json').read_text())
+    pool_diagnostic=config['scope']==POOL_DIAGNOSTIC_SCOPE
+    run=config['run_id']
     if name in ('headray13a','headray13b','headservice13a'):
         spec=json.loads((SOURCE/(name+'.json')).read_text())
-        if diagnostic:
-            spec['argv']=['/usr/bin/timeout','--signal=TERM','--kill-after=5s','175s',*spec['argv']]
+        if diagnostic or pool_diagnostic:
+            ttl=str(POOL_DIAGNOSTIC_PHASE_BUDGET-5)+'s' if pool_diagnostic else '175s'
+            spec['argv']=['/usr/bin/timeout','--signal=TERM','--kill-after=5s',ttl,*spec['argv']]
         return spec
     if name=='monitor13':
         spec=json.loads((SOURCE/'monitor13-template.json').read_text())
@@ -48,6 +54,11 @@ def expected_spec(root,name):
         return spec
     assert name in ('ray13a','ray13b','service13a')
     spec=json.loads((SOURCE/(name+'-template.json')).read_text())
+    if pool_diagnostic:
+        spec['phase_trace']=False
+        for key in ('SLLM_VALIDATE_FULL_MODEL','SLLM_SERVICE_WEIGHT_FORMAT','SLLM_VERIFY_WEIGHTS','VLLM_ALLOW_INSECURE_SERIALIZATION','SLLM_SERVICE_WEIGHT_AUDIT_DIR','SLLM_EVENT_DIR'):spec['env'].pop(key,None)
+        spec['env']['SLLM_POOL_DIAGNOSTIC']='1'
+        spec['env']['STORAGE_PATH']='/r/service-bootstrap-service13a/store'
     head=run+'-head'+name
     info=json.loads(call('docker','inspect',head))[0]
     assert info['State']['Running'] and info['Config']['Labels']['sllm.run_id']==run

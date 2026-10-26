@@ -39,8 +39,8 @@ class Watchdog(unittest.TestCase):
         node=next(v.value for v in ast.parse(source.read_text()).body if isinstance(v,ast.Expr) and isinstance(v.value,ast.Call) and isinstance(v.value.func,ast.Name) and v.value.func.id=='require_budget')
         expression=compile(ast.Expression(node),'actual bootstrap budget','eval')
         for remaining in (3600,3720,3721):
-            self.assertEqual(eval(expression,dict(require_budget=require_budget,label='service13a',deadline=remaining,time=types.SimpleNamespace(time=lambda:0))),3420)
-        with self.assertRaises(RuntimeError):eval(expression,dict(require_budget=require_budget,label='service13a',deadline=3599,time=types.SimpleNamespace(time=lambda:0)))
+            self.assertEqual(eval(expression,dict(require_budget=require_budget,pool_diagnostic=False,label='service13a',deadline=remaining,time=types.SimpleNamespace(time=lambda:0))),3420)
+        with self.assertRaises(RuntimeError):eval(expression,dict(require_budget=require_budget,pool_diagnostic=False,label='service13a',deadline=3599,time=types.SimpleNamespace(time=lambda:0)))
     def test_service_boundary(self):
         for value in (3600,3720,3721):self.assertEqual(require_budget('service13a',value),3420)
         with self.assertRaises(RuntimeError):require_budget('service13a',3599)
