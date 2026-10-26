@@ -102,13 +102,13 @@ try:
     import grpc
     from sllm_store.proto import storage_pb2,storage_pb2_grpc
     with grpc.insecure_channel('127.0.0.1:8073') as channel:
-        config=storage_pb2_grpc.StorageStub(channel).GetServerConfig(storage_pb2.GetServerConfigRequest(),timeout=5)
-    assert config.mem_pool_size==pool_bytes and config.chunk_size==chunk_bytes
+        pool_config=storage_pb2_grpc.StorageStub(channel).GetServerConfig(storage_pb2.GetServerConfigRequest(),timeout=5)
+    assert pool_config.mem_pool_size==pool_bytes and pool_config.chunk_size==chunk_bytes
     status=pathlib.Path(f'/proc/{store.pid}/status').read_text()
     rss=int(next(line.split()[1] for line in status.splitlines() if line.startswith('VmRSS:')))*1024
     assert rss>=pool_bytes, 'real pool not resident'
     assert 'Memory pool created with 716GB' in (out/'store.log').read_text()
-    (out/'pool-ready.json').write_text(json.dumps(dict(monotonic_ns=time.monotonic_ns(),pool_bytes=pool_bytes,chunk_bytes=chunk_bytes,store_pid=store.pid,listener=store_listener,rpc_config=dict(mem_pool_size=config.mem_pool_size,chunk_size=config.chunk_size),rss_bytes=rss),indent=2))
+    (out/'pool-ready.json').write_text(json.dumps(dict(monotonic_ns=time.monotonic_ns(),pool_bytes=pool_bytes,chunk_bytes=chunk_bytes,store_pid=store.pid,listener=store_listener,rpc_config=dict(mem_pool_size=pool_config.mem_pool_size,chunk_size=pool_config.chunk_size),rss_bytes=rss),indent=2))
     from store_numa_exec_v13 import audit_store_threads
     target = json.loads((out/'store-numa-launch.json').read_text())['target_cpu_affinity']
     (out/'store-affinity-ready.json').write_text(json.dumps(audit_store_threads(store.pid,target),indent=2))

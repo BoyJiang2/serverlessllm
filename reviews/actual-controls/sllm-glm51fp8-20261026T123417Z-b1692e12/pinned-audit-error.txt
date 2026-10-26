@@ -1,0 +1,30 @@
+topkeys ['run_id', 'created_utc', 'protocol_revision', 'preparation_revision', 'resource_window_revision', 'baseline_revision', 'deadline_source', 'notes', 'change_scope', 'unchanged_scope', 'formal_attempts_started', 'formal_results', 'unstarted_count', 'next_unstarted_attempt', 'unstarted_attempts', 'hot_control', 'residency_evidence', 'previous_manifest_sha256', 'previous_gate', 'status', 'files']
+pinned audit rows [{'path': 'tensor_audit.py', 'bytes': 2232, 'sha256': '069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff'}]
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP7 pid=2569) 2026-10-26 13:13:18,643 - INFO - autotuner.py:268 - flashinfer.jit: [Autotuner]: Autotuning process ends
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP6 pid=2568) 2026-10-26 13:13:18,643 - INFO - autotuner.py:268 - flashinfer.jit: [Autotuner]: Autotuning process ends
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2566) 2026-10-26 13:13:18,643 - INFO - autotuner.py:268 - flashinfer.jit: [Autotuner]: Autotuning process ends
+[36m(RoundRobinRouter pid=1125, ip=172.17.0.2)[0m INFO 10-26 13:13:22 roundrobin_router.py:347] glm51-fp8: 1 instances,need 1 instances[32m [repeated 12x across cluster][0m
+[36m(RoundRobinRouter pid=1125, ip=172.17.0.2)[0m INFO 10-26 13:13:23 roundrobin_router.py:310] [][32m [repeated 12x across cluster][0m
+[36m(RoundRobinRouter pid=1125)[0m INFO 10-26 13:13:27 roundrobin_router.py:347] glm51-fp8: 1 instances,need 1 instances[32m [repeated 10x across cluster][0m
+[36m(RoundRobinRouter pid=1125, ip=172.17.0.2)[0m INFO 10-26 13:13:28 roundrobin_router.py:310] [][32m [repeated 10x across cluster][0m
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (EngineCore pid=2544) INFO 10-26 13:13:29 [core.py:283] init engine (profile, create kv cache, warmup model) took 388.23 seconds
+[36m(RoundRobinRouter pid=1125)[0m Task exception was never retrieved
+[36m(RoundRobinRouter pid=1125)[0m future: <Task finished name='Task-9' coro=<RoundRobinRouter._start_instance() done, defined at /experiment/serving-deps/ray/util/tracing/tracing_helper.py:481> exception=RayTaskError(ModuleNotFoundError)(ModuleNotFoundError("No module named 'tensor_audit'"))>
+[36m(RoundRobinRouter pid=1125)[0m Traceback (most recent call last):
+[36m(RoundRobinRouter pid=1125)[0m   File "/experiment/serving-deps/ray/util/tracing/tracing_helper.py", line 493, in _resume_span
+[36m(RoundRobinRouter pid=1125)[0m     return await method(self, *_args, **_kwargs)
+[36m(RoundRobinRouter pid=1125)[0m            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[36m(RoundRobinRouter pid=1125)[0m   File "/experiment/code/ServerlessLLM/sllm/routers/roundrobin_router.py", line 459, in _start_instance
+[36m(RoundRobinRouter pid=1125)[0m     await instance.backend_instance.init_backend.remote()
+[36m(RoundRobinRouter pid=1125)[0m ray.exceptions.RayTaskError(ModuleNotFoundError): [36mray::VllmBackend.init_backend()[39m (pid=1224, ip=172.17.0.3, actor_id=9bee842bdd71fe54390d5e9b02000000, repr=<sllm.backends.vllm_backend.VllmBackend object at 0x7f536ff15f10>)
+[36m(RoundRobinRouter pid=1125)[0m   File "/usr/lib/python3.12/concurrent/futures/_base.py", line 456, in result
+[36m(RoundRobinRouter pid=1125)[0m     return self.__get_result()
+[36m(RoundRobinRouter pid=1125)[0m            ^^^^^^^^^^^^^^^^^^^
+[36m(RoundRobinRouter pid=1125)[0m   File "/usr/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+[36m(RoundRobinRouter pid=1125)[0m     raise self._exception
+[36m(RoundRobinRouter pid=1125)[0m            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[36m(RoundRobinRouter pid=1125)[0m   File "/experiment/code/ServerlessLLM/sllm/backends/vllm_backend.py", line 223, in init_backend
+[36m(RoundRobinRouter pid=1125)[0m     from tensor_audit import audit_model
+[36m(RoundRobinRouter pid=1125)[0m ModuleNotFoundError: No module named 'tensor_audit'
+[36m(VllmBackend pid=1224)[0m (Worker_TP2 pid=2564) 2026-10-26 13:13:18,364 - INFO - autotuner.py:262 - flashinfer.jit: [Autotuner]: Autotuning process starts ...[32m [repeated 11x across cluster][0m
+[36m(VllmBackend pid=1224)[0m 
