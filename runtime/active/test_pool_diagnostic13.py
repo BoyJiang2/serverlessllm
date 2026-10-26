@@ -86,4 +86,22 @@ class PoolDiagnostic(unittest.TestCase):
 
     def test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up(self):self.ready_branch(missing_gpu=True)
 
+    def test_interrupted_finally_keeps_flushed_begin_without_fake_end(self):
+        with tempfile.TemporaryDirectory() as directory:
+            out=pathlib.Path(directory)
+            class Process:
+                pid=123;returncode=None
+                def poll(self):return self.returncode
+                def terminate(self):self.returncode=0
+            def fail(*args,**kwargs):raise RuntimeError('interrupted Ray cleanup')
+            tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
+            scope=dict(pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
+            with self.assertRaisesRegex(RuntimeError,'interrupted Ray'):exec(compile(ast.Module(body=body.finalbody,type_ignores=[]),'actual-finally-partial','exec'),scope)
+            events=[json.loads(line) for line in (out/'pool-diagnostic-teardown.jsonl').read_text().splitlines()]
+            self.assertEqual(events[-1]['stage'],'ray_stop_begin')
+            self.assertFalse(any(e['stage']=='ray_stop_end' for e in events))
+            self.assertFalse((out/'pool-diagnostic-teardown.json').exists())
+            self.assertEqual(events[0]['namespace_pid'],123)
+            self.assertIsNone(events[0]['container_id'])  # Unavailable, never fabricated.
+
 if __name__=='__main__':unittest.main()

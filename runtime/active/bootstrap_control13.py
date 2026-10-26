@@ -172,21 +172,38 @@ try:
                 run(validation_out)
 finally:
     teardown=[]
-    if pool_diagnostic:teardown.append(dict(stage='term_begin',monotonic_ns=time.monotonic_ns()))
+    teardown_identity={}
+    teardown_namespace={}
+    if pool_diagnostic:
+        identity_file=control/'service13a-identity.json'
+        namespace_file=out/'store-numa-launch.json'
+        if identity_file.exists():teardown_identity=json.loads(identity_file.read_text())
+        if namespace_file.exists():teardown_namespace=json.loads(namespace_file.read_text())
+    def teardown_event(stage,process=None,**values):
+        if not pool_diagnostic:return
+        row=dict(stage=stage,monotonic_ns=time.monotonic_ns(),run_id=manifest['run_id'],boot_id=manifest['runtime_identity']['boot_id'],namespace_pid=process.pid if process is not None else None,container_id=teardown_identity.get('container_id'),pid_namespace=teardown_namespace.get('pid_namespace'),**values)
+        teardown.append(row)
+        with (out/'pool-diagnostic-teardown.jsonl').open('a') as stream:
+            stream.write(json.dumps(row)+'\n');stream.flush()
     for process in reversed(processes):
-        if process.poll() is None: process.terminate()
+        if process.poll() is None:
+            teardown_event('term_begin',process)
+            process.terminate()
+            teardown_event('term_sent',process)
     # Private PID/network namespace: these Ray processes belong only to this run.
-    if pool_diagnostic:teardown.append(dict(stage='ray_stop_begin',monotonic_ns=time.monotonic_ns()))
-    subprocess.run([python,'-m','ray.scripts.scripts','stop','--force'],env=env,timeout=30)
-    if pool_diagnostic:teardown.append(dict(stage='ray_stop_end',monotonic_ns=time.monotonic_ns()))
+    teardown_event('ray_stop_begin')
+    ray_stop=subprocess.run([python,'-m','ray.scripts.scripts','stop','--force'],env=env,timeout=30)
+    teardown_event('ray_stop_end',returncode=getattr(ray_stop,'returncode',None))
     for process in processes:
+        teardown_event('wait_begin',process)
         try: process.wait(timeout=10)
         except subprocess.TimeoutExpired:
+            teardown_event('kill_begin',process)
             process.kill()
+            teardown_event('kill_sent',process)
             process.wait()
+        teardown_event('wait_end',process,returncode=process.returncode)
     for output in logs: output.close()
     if pool_diagnostic:
-        teardown.append(dict(stage='children_reaped',monotonic_ns=time.monotonic_ns(),children=[dict(pid=p.pid,returncode=p.returncode) for p in processes]))
+        teardown_event('children_reaped',children=[dict(pid=p.pid,returncode=p.returncode) for p in processes])
         (out/'pool-diagnostic-teardown.json').write_text(json.dumps(teardown,indent=2))
-
-

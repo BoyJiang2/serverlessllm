@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-run_id=sllm-glm51fp8-20261026T170947Z-89e023f0
+run_id=sllm-glm51fp8-20261026T175702Z-59e71e6e
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 test "$(stat -c %u "$base")" = 2147
 test "$(systemctl is-active "$run_id-deadline-v13.timer")" = active
-remaining=$((1793040600-$(date +%s)))
+remaining=$((1793062200-$(date +%s)))
 test "$remaining" -gt 120
 systemd-run --unit="$run_id-kernelobserver13" --slice="$run_id.slice" --property="RuntimeMaxSec=$remaining" --property=UMask=0077 --property=MemoryMax=256M --property=CPUQuota=100% --property="StandardOutput=append:$base/root-evidence-private13/kernel-private.jsonl" --property="StandardError=append:$base/root-evidence-private13/kernel-error.log" /usr/bin/stdbuf -oL /usr/bin/journalctl -k --since=now --follow --output=json
 systemd-run --unit="$run_id-dockerobserver13" --slice="$run_id.slice" --uid=2147 --property="RuntimeMaxSec=$remaining" --property=UMask=0077 --property=MemoryMax=256M --property=CPUQuota=100% --property="StandardOutput=append:$base/docker-events13.jsonl" --property="StandardError=append:$base/docker-events13-error.log" /usr/bin/docker events --since=0s --filter="label=sllm.run_id=$run_id" --format='{{json .}}'

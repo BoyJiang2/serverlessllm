@@ -24,12 +24,12 @@ def trace_event(event):
     trace_output.flush()
     trace_io_ns=time.monotonic_ns()-begin
 
-def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=None,expected_start_ticks=None):
+def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=None,expected_start_ticks=None,argv=None):
     """Diagnostic only: record locations, never substitute values or change gates."""
     global trace_sequence
     if trace_output is None:return action()
     trace_sequence+=1
-    identity=dict(sequence=trace_sequence,operation=operation,pid=pid,start_ticks=start_ticks,target=target,expected_start_ticks=expected_start_ticks)
+    identity=dict(sequence=trace_sequence,operation=operation,pid=pid,start_ticks=start_ticks,target=target,expected_start_ticks=expected_start_ticks,argv=argv)
     trace_event(dict(identity,event='begin',event_ns=time.monotonic_ns(),end_ns=None,
                      outcome='pending',previous_trace_io_ns=trace_io_ns))
     begin_write_ns=trace_io_ns
@@ -52,11 +52,25 @@ def measured(operation,action,pid=None,start_ticks=None,child_cpu=False,target=N
             if child_cpu:
                 usage=resource.getrusage(resource.RUSAGE_CHILDREN)
                 child_ns=int((usage.ru_utime+usage.ru_stime-child_begin)*1e9)
-            trace_event(dict(identity,event='end',begin_ns=begin,end_ns=end,
+            returncode=getattr(action_failure,'returncode',None) if action_failure is not None else (0 if argv is not None else None)
+            if type(returncode) is not int:returncode=None
+            trace_event(dict(identity,event='end',begin_ns=begin,end_ns=end,returncode=returncode,
                              duration_ns=end-begin,thread_cpu_ns=cpu_end-cpu,child_cpu_ns=child_ns,
                              begin_trace_io_ns=begin_write_ns,outcome=outcome,error=error))
         except BaseException:
             if action_failure is None:raise
+def query_gpu(expected_uuids):
+    memory_argv=['nvidia-smi','--query-gpu=index,uuid,memory.total,memory.used','--format=csv,noheader']
+    utilization_argv=['nvidia-smi','--query-gpu=uuid,utilization.gpu','--format=csv,noheader']
+    memory=measured('gpu.query-memory',lambda:subprocess.check_output(memory_argv,text=True,timeout=15),child_cpu=True,argv=memory_argv)
+    utilization=measured('gpu.query-utilization',lambda:subprocess.check_output(utilization_argv,text=True,timeout=15),child_cpu=True,argv=utilization_argv)
+    rows=[[field.strip() for field in line.split(',')] for line in memory.splitlines()]
+    util_rows=[[field.strip() for field in line.split(',')] for line in utilization.splitlines()]
+    if any(len(row)!=4 for row in rows) or any(len(row)!=2 for row in util_rows):raise RuntimeError('GPU query shape differs')
+    if [row[1] for row in rows]!=expected_uuids or len({row[0] for row in util_rows})!=len(util_rows) or {row[0] for row in util_rows}!=set(expected_uuids):raise RuntimeError('GPU query UUID identity differs')
+    by_uuid=dict(util_rows)
+    return '\n'.join(', '.join([*row,by_uuid[row[1]]]) for row in rows)+'\n'
+
 # CONTROL COPY (v11): the v1 overlay deadline (2026-10-25T05:50) has passed; this monitor
 # reads the v2 additive window instead so it keeps sampling until the v2 deadline.
 from resource_window_control13 import load_window
@@ -140,8 +154,8 @@ with (output_root/log_name).open('x') as output:
                'memory_events_local':measured('cgroup.memory.events.local',lambda:(cgroup/'memory.events.local').read_text()) if measured('cgroup.memory.events.local.exists',lambda:(cgroup/'memory.events.local').exists()) else None,
                'memory_events':measured('cgroup.memory.events',lambda:(cgroup/'memory.events').read_text()),'host_meminfo':measured('proc.meminfo',lambda:pathlib.Path('/proc/meminfo').read_text()),
                'numa_meminfo':{str(p):measured('numa.meminfo',lambda:p.read_text(),target=str(p)) for p in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo')},
-               'gpu':measured('gpu.query-gpu',lambda:subprocess.check_output(['nvidia-smi','--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu','--format=csv,noheader'],text=True),child_cpu=True),
-               'gpu_processes':measured('gpu.query-compute-apps',lambda:subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),child_cpu=True),
+               'gpu':query_gpu(manifest['runtime_identity']['gpu_uuids']),
+               'gpu_processes':measured('gpu.query-compute-apps',lambda:subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True,timeout=15),child_cpu=True,argv=['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader']),
                'processes':processes,'observers':observer_states,'sample_begin_ns':sample_begin_ns,'sample_end_ns':time.monotonic_ns(),
                'sampling_scope':'non-atomic field reads bounded by begin/end; UTC is not a simultaneous snapshot'}
         interference = measured('observed.interference',lambda:observed_interference(processes))

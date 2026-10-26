@@ -20,8 +20,8 @@ def load_window(root):
     rows = window['bookings']
     now_ms=datetime.datetime.now(datetime.timezone.utc).timestamp()*1000
     assert rows[0]['start_ms']<=now_ms<rows[-1]['end_ms'], 'outside authorized booking window'
-    assert [row['id'] for row in rows] == ['bk-20261026T1014-d9d26872']
-    assert [row['user'] for row in rows]==['boyjiang'] and all(row['resource_id']=='h20/qjhs003' for row in rows)
+    assert [row['id'] for row in rows] == ['bk-20261026T1014-d9d26872','bk-20261026T1248-ae6148f9']
+    assert [row['user'] for row in rows]==['boyjiang','boyjiang'] and all(row['resource_id']=='h20/qjhs003' for row in rows)
     assert all(row['start_ms'] < row['end_ms'] for row in rows)
     assert all(left['end_ms']==right['start_ms'] for left,right in zip(rows,rows[1:]))
     deadline = datetime.datetime.fromisoformat(window['cleanup_deadline']).timestamp()

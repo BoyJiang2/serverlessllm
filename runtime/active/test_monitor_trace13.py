@@ -197,4 +197,51 @@ class MonitorTrace(unittest.TestCase):
         self.assertTrue(visited)
 
 
+
+class GPUQuerySplit(unittest.TestCase):
+    def query(self,slow=None,fail=False,duplicate=False):
+        scope,clock=recorder();source=pathlib.Path(__file__).with_name('monitor_control13.py')
+        node=next(n for n in ast.parse(source.read_text()).body if isinstance(n,ast.FunctionDef) and n.name=='query_gpu')
+        exec(compile(ast.Module(body=[node],type_ignores=[]),str(source),'exec'),scope)
+        calls=[]
+        def command(argv,**kwargs):
+            calls.append(argv);self.assertEqual(kwargs['timeout'],15)
+            memory='memory.total' in argv[1]
+            if slow==('memory' if memory else 'utilization'):clock.now+=6_000_000_000
+            if fail and not memory:raise __import__('subprocess').CalledProcessError(7,argv)
+            if memory:return '0, GPU-a, 100 MiB, 2 MiB\n1, GPU-b, 100 MiB, 3 MiB\n'
+            return 'GPU-a, 20 %\nGPU-a, 10 %\n' if duplicate else 'GPU-b, 20 %\nGPU-a, 10 %\n'
+        scope['subprocess']=types.SimpleNamespace(check_output=command)
+        fake=types.SimpleNamespace(RUSAGE_CHILDREN=0,getrusage=lambda *args:types.SimpleNamespace(ru_utime=0,ru_stime=0))
+        error=None;result=None
+        with patch.dict(sys.modules,dict(resource=fake)):
+            try:result=scope['query_gpu'](['GPU-a','GPU-b'])
+            except BaseException as failure:error=failure
+        records=[json.loads(line) for line in scope['trace_output'].getvalue().splitlines()]
+        return result,error,records,clock,calls
+
+    def test_uuid_join_preserves_output_schema_and_query_provenance(self):
+        result,error,records,clock,calls=self.query()
+        self.assertIsNone(error);self.assertEqual(result,'0, GPU-a, 100 MiB, 2 MiB, 10 %\n1, GPU-b, 100 MiB, 3 MiB, 20 %\n')
+        end=[e for e in records if e['event']=='end']
+        self.assertEqual([e['operation'] for e in end],['gpu.query-memory','gpu.query-utilization'])
+        self.assertEqual([e['argv'] for e in end],calls);self.assertEqual([e['returncode'] for e in end],[0,0])
+
+    def test_each_split_delay_remains_visible_and_fails_five_seconds(self):
+        from gpu_identity13 import require_monitor_sample
+        for stage in ('memory','utilization'):
+            result,error,records,clock,calls=self.query(slow=stage)
+            end=next(e for e in records if e['event']=='end' and e['operation']=='gpu.query-'+stage)
+            self.assertEqual(end['duration_ns'],6_000_000_000)
+            with self.assertRaises(RuntimeError):require_monitor_sample(0,0,clock.now)
+
+    def test_query_error_preserves_returncode_no_empty_success(self):
+        result,error,records,clock,calls=self.query(fail=True)
+        self.assertIsNone(result);self.assertIsInstance(error,__import__('subprocess').CalledProcessError)
+        self.assertEqual(records[-1]['returncode'],7);self.assertEqual(records[-1]['outcome'],'error')
+
+    def test_duplicate_uuid_is_rejected(self):
+        result,error,*_=self.query(duplicate=True)
+        self.assertIsNone(result);self.assertIsInstance(error,RuntimeError)
+
 if __name__=='__main__':unittest.main()

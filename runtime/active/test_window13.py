@@ -22,9 +22,9 @@ class Window(unittest.TestCase):
     def test_before_start_rejected(self):
         with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793019599)
     def test_exact_end_rejected(self):
-        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793041200)
+        with self.assertRaisesRegex(AssertionError,'outside authorized'):self.check_at(1793062800)
     def test_different_guard_rejected(self):
-        with self.assertRaises(AssertionError):self.check_at(1793019600,lambda w:w.update(cleanup_deadline='2026-10-27T02:49:00+08:00'))
+        with self.assertRaises(AssertionError):self.check_at(1793019600,lambda w:w.update(cleanup_deadline='2026-10-27T08:49:00+08:00'))
     def test_wrong_booking_rejected(self):
         def change(w):w['bookings'][0]['id']='old-expired-booking'
         with self.assertRaises(AssertionError):self.check_at(1793019600,change)

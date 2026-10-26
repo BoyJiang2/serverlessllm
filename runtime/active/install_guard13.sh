@@ -1,12 +1,12 @@
 #!/bin/bash
 set -euo pipefail
-run_id=sllm-glm51fp8-20261026T170947Z-89e023f0
+run_id=sllm-glm51fp8-20261026T175702Z-59e71e6e
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 test "$(stat -c %u "$base")" = 2147
 test "$(date -u +%s)" -ge 1793019600
-test "$(date -u +%s)" -lt 1793040600
+test "$(date -u +%s)" -lt 1793062200
 test ! -e "/run/$run_id/cleanup-v13.sh"
 install -d -m 0755 -o root -g root "/run/$run_id"
 test ! -L "$base/root-evidence-private13"
@@ -25,7 +25,7 @@ systemctl start "$run_id.slice"
 test "$(systemctl show "$run_id.slice" -p MemoryMax --value)" = 1825361100800
 test "$(systemctl show "$run_id.slice" -p MemorySwapMax --value)" = 0
 test "$(systemctl show "$run_id.slice" -p TasksMax --value)" = 8192
-systemd-run --unit="$run_id-deadline-v13" --on-calendar='2026-10-26 18:50:00 UTC' --timer-property=AccuracySec=1s --property=TimeoutStartSec=300 /bin/bash "/run/$run_id/cleanup-v13.sh" "$run_id" main
+systemd-run --unit="$run_id-deadline-v13" --on-calendar='2026-10-27 00:50:00 UTC' --timer-property=AccuracySec=1s --property=TimeoutStartSec=300 /bin/bash "/run/$run_id/cleanup-v13.sh" "$run_id" main
 test "$(systemctl is-active "$run_id-deadline-v13.timer")" = active
 target="$run_id-guard-v13-probe"
 docker run -d --network=none --runtime=runc --memory=256m --cpus=1 --cgroup-parent="$target.slice" --name="$target" --label="sllm.run_id=$target" --label=sllm.uid=2147 --user=2147:2147 --entrypoint=/bin/sleep aa161e380035 120
