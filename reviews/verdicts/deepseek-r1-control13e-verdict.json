@@ -1,0 +1,113 @@
+{
+  "stage": "R1e",
+  "verdict": "changes_required",
+  "code_commit": "ebc42c805b439c2b14a880b0c8e2d34ebaedc773",
+  "manifest_sha256": "706c0ce691eaf83911f79c354f0f7948c5b5c6ff89b9e7d3a0420a517a99a99a",
+  "scope": "R1e static review of window guard, cleanup/forensics, cache control, native 60s/PSS/release and GPU helper identity; R2 and formal G1 not reviewed",
+  "r2_status": "not_reviewed_not_approved",
+  "g1_status": "not_run_not_approved",
+  "blocking_findings": [
+    "R1e-B01",
+    "R1e-B02"
+  ],
+  "prior_findings": {
+    "R1c-B01": "resolved: package_inventory excludes __pycache__; deploy stages only allowed files",
+    "R1c-B02": "resolved: bootstrap uses require_budget 330/3420+180; control_watchdog 25s reserve; boundary tests",
+    "R1c-B03": "resolved: cache excludes Store node0, requires node1 and CPU disjoint; accept checks",
+    "R1c-B04": "resolved: accept verifies initial scan, initial reads, repair selection/reads/summary, read-idle, final vectors",
+    "R1c-B05": "resolved: monitor begin/end, duration and begin-to-begin enforced",
+    "R1c-B06": "partial: root and memory.high included; memory.swap.max and root missing interface not fail-closed",
+    "R1c-B07": "resolved: overlay_created/sealed after run-manifest; hashes match",
+    "R1c-B08": "resolved: initial bytes and hot-placement-final checked",
+    "R1c-B09": "resolved: LFS double evidence official+verified checked",
+    "R1c-B10": "resolved: validate_native_idle reads 61 rows per cycle",
+    "R1c-B11": "resolved: release processes/memory/VmRSS/VmLck/Threads/PSS checked",
+    "R1c-B12": "runtime: exact origin .git and branch must be confirmed"
+  },
+  "findings": [
+    {
+      "id": "R1e-B01",
+      "severity": "high",
+      "status": "changes_required",
+      "title": "allow_engine permits any same-run GPU engine for 59s after delete",
+      "location": "gpu_identity13.py:14-18; validation_control13.py:135-147; accept_control13.py:135-147; test_gpu_identity13.py:16-18; test_evidence13.py:25-31",
+      "evidence": "require_helper_only skips the gpu_pids subset check when allow_engine=True; validate_native_idle passes allow_engine=second<60; only second=60 is helper-only; tests only cover final row",
+      "impact": "per-cycle 60s observation can pass with a model engine retaining GPU context for 59s, contrary to only-registered-helper requirement",
+      "verification": "set allow_engine=False for all rows or define explicit bounded engine transition; add engine at second 0 and 59 negative tests"
+    },
+    {
+      "id": "R1e-B02",
+      "severity": "high_medium",
+      "status": "changes_required",
+      "title": "native idle raw gpu_processes not cross-bound to host monitor/gpu_pids",
+      "location": "validation_control13.py:132-145; accept_control13.py:135-147; test_evidence13.py:25",
+      "evidence": "idle rows write raw gpu_processes and host_gpu_snapshot; validate_native_idle only checks host_gpu_snapshot and ignores raw gpu_processes; test fixture has gpu_processes=1124 while gpu_pids=[9001] and passes",
+      "impact": "raw NVML can show an engine while host monitor ready is helper-only; accept can pass an inconsistent per-cycle GPU receipt",
+      "verification": "parse idle gpu_processes PIDs and require equality/subset with host_gpu_snapshot.gpu_pids and helper; update fixture and add negative test"
+    },
+    {
+      "id": "R1e-B03",
+      "severity": "low_medium",
+      "status": "changes_required",
+      "title": "ancestor memory.swap.max not validated; root missing interface allowed",
+      "location": "preflight_control13.py:13-17,56-63; test_evidence13.py:16-20",
+      "evidence": "values include memory.swap.max but validate_ancestor_values only loops memory.max/high; root None is explicitly accepted",
+      "impact": "ancestor swap or root interface absence does not fail preflight; current SwapTotal=0 lowers risk but the all-ancestor swap claim is incomplete",
+      "verification": "validate memory.swap.max and root interfaces; add tests for swap>0 and missing root interface"
+    },
+    {
+      "id": "R1e-B04",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "title": "deploy origin .git and exact branch must match",
+      "location": "deploy_control13.py:7-9",
+      "evidence": "origin requires .git URL; branch exact experiment/glm51-fp8-takeover-20261025",
+      "impact": "actual remote/branch mismatch fails closed; user URL is written without .git",
+      "verification": "record git remote get-url origin and branch before deploy; normalize if needed"
+    },
+    {
+      "id": "R1e-B05",
+      "severity": "runtime_condition",
+      "status": "runtime_condition",
+      "title": "current-* snapshots predate sealed candidate and must be refreshed",
+      "location": "evidence/current-resource.json; evidence/current-source-audit.json; evidence/current-booking.json; run-manifest.json:1472; resource-window-extension-v3.json:6",
+      "evidence": "current-resource 02:51:50Z, current-source 02:56:01Z, current-booking 02:51:51Z; run-manifest 03:12:33Z, overlay 03:13:44Z",
+      "impact": "snapshot-only evidence cannot be G1 admission; GPU/NUMA/memory/booking must be refreshed",
+      "verification": "recollect current GPU/UUID/NUMA/MemAvailable/disk/booking/time before runtime"
+    },
+    {
+      "id": "R1e-B06",
+      "severity": "low",
+      "status": "runtime_condition",
+      "title": "static-tests-wip.log is an extra local WIP log",
+      "location": "static-tests.log; static-tests-wip.log; seal_candidate13.py:30-32",
+      "evidence": "final log 58 tests; WIP log 53 tests; both are CPU synthetic, not G1",
+      "impact": "no runtime approval; possible confusion about final test count",
+      "verification": "treat static-tests.log as final local evidence; remove or mark WIP superseded"
+    }
+  ],
+  "runtime_conditions": [
+    "New guard/probe/sentinel, root-private evidence and snapshot_root13 not executed; 17:50 timer not installed.",
+    "New install_observers13/monitor not executed; no observer-registration13.json, monitor-v3-ready.json or resource-monitor-v12.jsonl.",
+    "Real cache 148/756GB, initial 0, final 100%, 8 readers, 600s, 64GiB, 2 repairs not executed.",
+    "Four native lifecycles, PSS, 61-row idle60, 16 rank records and 8-rank audit not executed; R2 not passed.",
+    "release60-ray13a/ray13b/allstopped, root-evidence-index13.json and G1-acceptance.json not produced.",
+    "58 CPU tests, Python compile and 3 bash -n are local checks only, not G1.",
+    "Current GPU/NUMA/memory/booking/time must be refreshed; current-* are 02:51/02:56 snapshots; 10-18 booking and 17:50 guard not yet deployed.",
+    "Historical exit137 remains failed; dockerd stop/force known; upstream caller/reason unknown; no absolute OOM exclusion; no Ray attribution.",
+    "9 terminal and 31 unstarted formal IDs unchanged; zero formal consumed; store_pool_hit_03 after G1/R2/gate.",
+    "No Node8 wait/shared lock; no new signal/BPF/global Docker probe required for R1e."
+  ],
+  "limitations": [
+    "No shell; cannot recompute all SHA256; bound to code_commit ebc42c... and manifest_sha256 706c0c...; cross-checked actual files, manifest, current-* and parent audit.",
+    "Read key candidate13e source, diffs, templates, tests and evidence; did not rehash all 1,142 parent files or 756GB weights; did not run G1/R2.",
+    "current-resource is a single large JSON line; full GPU/NUMA/disk values must be refreshed at runtime.",
+    "Did not access qjhs003 or other nodes; no remote commands; no file modification; no credentials; no agents.",
+    "Historical evidence read from CURRENT-BOUNDARY, target-journal files, joint receipt and daemon reports; did not re-run investigation.",
+    "R2/FP8 correctness, bfloat16 semantics, memory_pool=[] lifecycle semantics, formal timing and statistics not reviewed.",
+    "R1e changes_required does not approve G1 or R2; G1 success would not solve historical exit137.",
+    "GPU occupancy/resource status is runtime, not a code verdict; revalidate after actual release."
+  ],
+  "signal_probe_recommendation": "No new signal/BPF/global Docker probe for R1e. The historical dockerd stop/force is recorded; a new probe cannot recover the upstream caller. Any future probe should be target-TGID/cgroup-filtered, untimed, independently deadline-bounded, and only after R1 controls.",
+  "global_gap_impact": "Global Docker daemon/audit journals are not continuously exported; bounded own-cgroup/GPU observation is possible, but host-global actor/OOM exclusion is not. No external-SIGKILL/OOM-exclusion or historical-root-cause-solved claim is allowed."
+}
