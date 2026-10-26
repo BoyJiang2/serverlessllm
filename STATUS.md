@@ -393,3 +393,14 @@ Run212500Z-7e6912e2/MFe98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1
 ## canonical19 exact local full R1 approved
 
 3ff30fa645f4790df2fe63357308e7ca0f8b7e8b/MFe98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b approvedfull-runtime localreadonly;80+8hashesmatch,252CPU35operator1skip3syntaxrecorded. R1-C18-01closed in source. Approval permits currentnormal onlyafterfreshresources/newactual08:50guard/identity/CPUimports/SIGINT/atomic/coldboundary probes; notnormal/R2/formal result. Rawprobevectors additional checks plannedbeforeR2, currentgatecountsfromsameboundarrays. No newrun deployed/computation atthisrecord;5/4/31unchanged.
+
+
+## Actual canonical19 normal / R2, formal failure and release
+
+Runtime3ff30fa645f4790df2fe63357308e7ca0f8b7e8b / manifest e98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b. Local R1 and actual normal Store/Safetensors two cycles each passed:12 gold responses,four fixed32 tests,four native delete/60s observations. R2 approved current source; R2SHA0160fedcef4c696e95f4dc48e84087b2ab10dae2c219d4e89d8ebb73afb97772 and gate549cd3753bc4f2cf53bee0131b2430355b4543f3edb2ab06f5ca9cb6f338b093. No approval transfers to a new revision.
+
+store_pool_hit_03 is terminal failed: strict phase summary lacked router_instance_published. Correct arithmetic observed before assertion; translation/fixed32/native per-ID delete/idle not reached; no valid formal metrics. CPU head lacked SLLM_EVENT_DIR while worker had it; actual router uses existing event_trace. No observed OOM or foreign GPU process. Do not retry,replace or reclassify. Ledger now5 success/5 failed/30 unstarted,next safetensors_disk_cold_03.
+
+Own Store exited0 after27.919340449s SIGINT,no forced kill. Own root cleanup plus61-point75.889007191s allstopped release passed. All2180 monitor samples satisfy5s(maxgap3.191266323s,maxduration2.190271235s);sampled cgroup peak799625519104B,kernelpeak unavailable,not whole-host cache cost. Monitor233134638B SHA048a7f53c0ea0846edb1b978c870aa6c57fe1d413fc090259a57538aab0a1332 retained remotely. Guard inactive after cleanup;new actual guard required. All80 source files verified and archived as executed-source-3ff30fa;canonical code/experiment absent. Closure22:36:51Z.
+
+Costs include normal common pool/cache/JIT/approval idle,fresh formal pool/init/preparation/failedattempt/cleanup/release. Historical exit137 remains unknown. Next fix must propagate head events and require full normal phase evidence through seal/admission,then fresh R1/control/R2. Exact small evidence and original-path/hash map retained under reviews/actual-controls/sllm-glm51fp8-20261026T212500Z-7e6912e2. Long original paths flattened only in local evidence copies;bytes unchanged.

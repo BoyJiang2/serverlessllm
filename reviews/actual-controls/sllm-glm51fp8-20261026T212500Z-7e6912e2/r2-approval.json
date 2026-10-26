@@ -1,0 +1,170 @@
+{
+  "gate": "R2",
+  "scope": "formal-runtime",
+  "verdict": "approved",
+  "reviewed_at_utc": "2026-10-26T22:12:30Z",
+  "reviewer": "user-authorized independent local readonly Codex /root/independent_readonly_review",
+  "run_id": "sllm-glm51fp8-20261026T212500Z-7e6912e2",
+  "code_commit": "3ff30fa645f4790df2fe63357308e7ca0f8b7e8b",
+  "manifest_sha256": "e98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b",
+  "normal_flags_proofs": [
+    {
+      "path": "service-bootstrap-service13a/serverless_llm/model-result.json",
+      "sha256": "83bda61b734b77ef8e5d57aa05db61874ca2dcf3a348eb115f7d91ee6b45cdd0"
+    },
+    {
+      "path": "service-bootstrap-service13a/safetensors/model-result.json",
+      "sha256": "b71773e8dc6c4788faeac5943e5b9ca00ff749c045e492497e31287bd09804c7"
+    }
+  ],
+  "jit_cache_proof_sha256": "ec91bbf68d9f2f5f6cf0e164abf6bac146f22ff2b30ed6d8b2ea21106d062185",
+  "blockers": [],
+  "protocol_revision": "v13-canonical19-formal-continuation",
+  "preparation_revision": "v13-canonical19-target-cache-last",
+  "resource_window_revision": "v3-current-03-09-guard0850",
+  "verified_evidence": {
+    "source_inventory": {
+      "runtime_files": 80,
+      "repository_inputs": 8,
+      "hash_or_size_mismatches": 0
+    },
+    "complete_local_evidence_inventory": {
+      "path": "outputs/g1-sllm-glm51fp8-20261026T212500Z-7e6912e2/normal-exact-index.json",
+      "sha256": "d7757301cc18ea5ac504baeb9df7175da562a406dee40c074fe7307435aed604",
+      "files": 52,
+      "hash_or_size_mismatches": 0
+    },
+    "raw_recheck": {
+      "checker_sha256": "813bf724371b02732b847f0f32dbbde3a12e8eb932753c9289574c52fa2d0a61",
+      "stdout_sha256": "496f1ab4968896487b20559f324855efbe9051a7be914d284c857cff7f0c1594",
+      "receipt_sha256": "bcda8534077effdf95e1d76d523e1360ee2687f110d1f4dc6205957cfa317379",
+      "returncode": 0,
+      "artifact_receipts_verified": 50,
+      "captured_ready_bytes_verified": true
+    },
+    "normal_lifecycles": {
+      "formats": 2,
+      "cycles_per_format": 2,
+      "raw_business_responses": 12,
+      "independently_checked_gold_and_finite_logprobs": true,
+      "fixed32_responses": 4,
+      "native_idle_observations": 4,
+      "points_per_idle": 61,
+      "idle_span_seconds": [
+        60.078890785,
+        60.076423714,
+        60.08030335,
+        60.056677372
+      ],
+      "pss_completed_with_actual_store_rollup": true,
+      "weight_audit_performed": false,
+      "new_rank_audit_claim": false
+    },
+    "store_and_cleanup": {
+      "pool_bytes": 768799145984,
+      "chunk_bytes": 536870912,
+      "rss_bytes": 770293563392,
+      "actual_store_namespace_pid": 2156,
+      "module_hashes_paths_and_serve_code_proof_match": true,
+      "rpc_listener_pid_and_affinity_match": true,
+      "store_exit_code": 0,
+      "store_shutdown_seconds": 27.466057216,
+      "store_forced_kill": false,
+      "worker_supervisor_passed": true,
+      "head_supervisor_passed": true,
+      "head_controlled_stop": true,
+      "head_raw_child_returncode": 1,
+      "head_forced_kill": false
+    },
+    "cpu_probes": {
+      "actual_sigint_cleanup_passed": true,
+      "exclusive_local_publication_passed": true,
+      "official_metadata_bytes": 35871,
+      "mincore_pages": 9,
+      "resident_counts": [
+        0,
+        9,
+        0
+      ],
+      "cleanup_complete": true
+    },
+    "jit_artifacts": {
+      "immutable_entries": 583,
+      "qualification_bound_to_successful_current_worker_and_head": true
+    },
+    "remote_monitor_recomputation_receipt": {
+      "prefix_bytes": 182056298,
+      "prefix_sha256": "09681bbeb26885cc05fa0adf93967277a004481e69d619178f29bed6d60a6c48",
+      "samples": 1317,
+      "maximum_sample_seconds": 2.190271235,
+      "maximum_gap_seconds": 3.191266323,
+      "excluded_partial_bytes": 0,
+      "post_head_release_samples": 233,
+      "post_head_release_span_seconds": 319.680216862,
+      "reported_foreign_gpu_and_oom_checks_passed": true
+    },
+    "actual_guard_log_sha256": "5a94a5447e2788b309957469c78f2a36659c2598c95d9acb85deab181c7ebcc2"
+  },
+  "g1_reference": {
+    "run_id": "sllm-glm51fp8-20261026T193424Z-685d6426",
+    "code_commit": "defc412a0351b0e3d20454e8f37151f55443d6e7",
+    "manifest_sha256": "9ac4e071bed9b913ebb185fe2b20286ae76e834c4b16f593b65f33dba1677cdf",
+    "acceptance_sha256": "b8e5958c340b05af188fcc8b4fcae00dd30a175b262a259b27efa31f40fb7f89",
+    "scope": "Previously reviewed complete untimed G1,32 rank-cycle-format audits/12 business responses; current exact three reference hashes reverified"
+  },
+  "allowed_scope": {
+    "host": "qjhs3 only",
+    "worker_label": "formal13",
+    "head_label": "headformal13",
+    "original_attempts": 40,
+    "existing_successes": 5,
+    "existing_failures": 4,
+    "unstarted": 31,
+    "next_attempt_id": "store_pool_hit_03",
+    "retries_or_replacements": false,
+    "model": "zai-org/GLM-5.1-FP8",
+    "revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+    "tensor_parallel_size": 8,
+    "context_limit": 2048,
+    "concurrency": 1,
+    "mtp_enabled": false,
+    "common_pool_required_for_all_conditions": true
+  },
+  "budget_constraints": {
+    "cleanup_deadline": "2026-10-27T08:50:00+08:00",
+    "head_maximum_seconds": 14400,
+    "clip_head_to_resource_deadline_minus_release": true,
+    "initialization_seconds": 900,
+    "evidence_seconds": 180,
+    "normal_cleanup_seconds": 330,
+    "worker_emergency_seconds": 25,
+    "head_stop_seconds": 10,
+    "final_release_reserve_seconds": 180,
+    "minimum_first_head_window_seconds": 3065,
+    "minimum_remaining_per_new_attempt_seconds": 1440,
+    "original_attempt_timeout_seconds": 1200,
+    "post_delete_observation_seconds": 60,
+    "observe_renews_deadline": false
+  },
+  "remaining_admission_conditions": [
+    "Before formal head creation refresh actual booking authorization,physical/boot/GPU identity,occupation,local storage/memory,current source hashes and active independent guard.",
+    "Recheck exact normal JIT artifact snapshot; compilation/artifact changes invalidate qualification.",
+    "Re-enumerate original terminal results and applicable execution roots; preserve5/4/31/order; unknown or consumed-unclosed IDs block.",
+    "Write R2 first then final formal-admission referencing its SHA; no R2/final-gate hash cycle.",
+    "Host verify_admission before formal head/worker create; container/driver verification mandatory.",
+    "New formal head produces own current-bound Linux imports/SIGINT/publication/cold-boundary probes before new pool; no normal head identity reuse.",
+    "Rebuild/verify full common pool and eight Store registrations within original issued initialization deadline.",
+    "Each attempt requires original full remaining budget before directory creation; failure stops batch, no retry/replacement/renewal/relaxedcache.",
+    "All raw monitoring unchanged5s rules; target final complete mincore last before startup; other evidencepre-preparation.",
+    "Charge common initialization/preparation/compilation/approvalwaiting/rebuilds/idle separately; not whole-nodecoldboot trials.",
+    "End/failure exactowncleanup/final61point>=60release/rootindex/executedsourcearchive."
+  ],
+  "limitations": [
+    "Reviewer read/hashed local evidence and recomputed smallresponse/idle/PSS bindings; no experiment or remote access.",
+    "182056298B remote monitor assessed via reviewed checker/hash-bound receipt/capturedready, not independent reviewer reading every remote row.",
+    "Normal has no new rank audit; weight/scale mathematical qualification remains separately bound C17.",
+    "Approval permits gated continuation; no remaining formalcondition/ID has passed.",
+    "Historical failures unchanged; oldexit137/C7earlylatency upstreamcauses unknown."
+  ],
+  "record_provenance": "Structured transcription of actual independent R2 reviewer response retained in chat; no final-admission hash is referenced."
+}
