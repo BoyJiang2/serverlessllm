@@ -245,13 +245,47 @@ class SigintPreflight(unittest.TestCase):
         tree=ast.parse(operator.REMOTE)
         text=next(n.value.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='probe' for x in n.targets))
         compile(text,'actual-cpu-import-probe','exec')
-        return text[text.index('import select,signal,subprocess,sys,time'):text.index("with (run_root()/'cpu-import-preflight.json')")]
+        return text[text.index('import select,signal,subprocess,sys,time'):text.index("head_identity=json.loads")]
 
     def test_actual_generated_probe_and_child_compile(self):
         probe=self.probe();tree=ast.parse(probe)
         child=next(n.value.value for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='child_code' for x in n.targets))
         compile(child,'actual-asyncio-child','exec')
         self.assertIn('communicate(timeout=5)',probe)
+
+    def test_actual_generated_grpc_child_compiles_and_scope_is_cpu_only(self):
+        tree=ast.parse(operator.REMOTE)
+        text=next(n.value.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='probe' for x in n.targets))
+        parsed=ast.parse(text)
+        child=next(n.value.value for n in ast.walk(parsed) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='grpc_child_code' for x in n.targets))
+        compile(child,'actual-grpc-child','exec')
+        self.assertNotIn('torch',child);self.assertNotIn('sllm_store',child)
+        self.assertIn("assert manifest()['scope']=='monitor diagnostics only; no model or pool'",text)
+        self.assertIn('communicate(timeout=10)',text)
+        self.assertIn("'stop_returned'",text)
+
+    def test_actual_grpc_parent_keeps_direct_failure_and_runs_other_groups(self):
+        tree=ast.parse(operator.REMOTE)
+        text=next(n.value.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='probe' for x in n.targets))
+        branch=next(n for n in ast.walk(ast.parse(text)) if isinstance(n,ast.If) and ast.unparse(n.test)=="manifest().get('grpc_shutdown_probe') is True")
+        loop=next(n for n in branch.body if isinstance(n,ast.For))
+        predicate=branch.body[-1]
+        seen=[]
+        class Process:
+            def __init__(self,args,**kw):
+                self.mode=args[-1];seen.append(self.mode);self.pid=10;self.returncode=1 if self.mode=='direct' else 0
+                self.stdout=io.StringIO(json.dumps(dict(stage='ready',port=9999))+'\n')
+            def send_signal(self,n):pass
+            def communicate(self,timeout):return ('' if self.mode=='direct' else json.dumps(dict(stage='stop_end'))+'\n','direct cancellation' if self.mode=='direct' else '')
+            def poll(self):return self.returncode
+            def kill(self):raise AssertionError('unexpected kill')
+        def closed(*a,**kw):raise OSError('listener closed')
+        scope=dict(grpc_rows=[],grpc_child_code='bound-child',subprocess=types.SimpleNamespace(Popen=Process,PIPE=subprocess.PIPE,TimeoutExpired=subprocess.TimeoutExpired),select=types.SimpleNamespace(select=lambda readers,*a:(readers,[],[])),signal=types.SimpleNamespace(SIGINT=2),sys=sys,json=json,time=time,socket=types.SimpleNamespace(create_connection=closed))
+        exec(compile(ast.Module(body=[loop,predicate],type_ignores=[]),'actual-grpc-parent-loop','exec'),scope)
+        self.assertEqual(seen,['direct','shield','event'])
+        self.assertEqual([r['returncode'] for r in scope['grpc_rows']],[1,0,0])
+        self.assertFalse(scope['grpc_rows'][0]['stop_returned'])
+        self.assertTrue(scope['grpc_rows'][1]['stop_returned'])
 
     @unittest.skipUnless(sys.platform=='linux','POSIX SIGINT delivery; mandatory actual Linux preallocation probe')
     def test_real_asyncio_sigint_cleans_up(self):

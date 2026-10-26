@@ -26,6 +26,7 @@ def verify_sigint_probe(root,info,code,sha):
 def validate_scope(root,name):
     manifest=json.loads((root/'run-manifest.json').read_text())
     diagnostic=manifest['scope']=='monitor diagnostics only; no model or pool'
+    if manifest.get('grpc_shutdown_probe') and not diagnostic:raise RuntimeError('grpc probe requires CPU-only diagnostic scope')
     if manifest['scope']==POOL_DIAGNOSTIC_SCOPE:
         if manifest.get('monitor_diagnostic_trace') is not True or name not in ('monitor13','headservice13a','service13a'):raise RuntimeError('pool diagnostic forbids this launch')
     elif diagnostic:

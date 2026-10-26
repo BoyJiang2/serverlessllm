@@ -79,7 +79,7 @@ class Workspace(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)
             manifest=json.loads((w.SOURCE/'run-manifest.json').read_text())
-            manifest.update(scope='G1 independent untimed controls only; zero formal IDs',monitor_diagnostic_trace=False)
+            manifest.update(scope='G1 independent untimed controls only; zero formal IDs',monitor_diagnostic_trace=False,grpc_shutdown_probe=False)
             (root/'run-manifest.json').write_text(json.dumps(manifest))
             spec=json.loads((w.SOURCE/'headray13a.json').read_text());spec['argv'].append('--num-gpus=8')
             (root/'headray13a.json').write_text(json.dumps(spec))

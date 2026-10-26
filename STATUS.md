@@ -307,3 +307,7 @@ ReadonlyR1approved21d0c897/MFfdb1e056 at18:33:54Z;61+8hashes match. R1-C12-01clo
 ## Actual C13 graceful exit diagnostic failed, strict monitor passed
 
 Real716GiBpool andactualboundLinuxprobe passed. StoreSIGINT entersgRPCstop butstop(5)CancelledError→KeyboardInterrupt,returns1 after27.415694966s,noKILL;controlfailed. All193rawmonitorrows strict5spass,maxduration1.129075532/maxgap2.129016853s;noaction>5s.61point75.930499736srelease/rootindex/source61hasharchive passed,sourceabsent,noownworkload. Derivedpeak0field-error preserved withadditivecorrection776676474880B/nullkernel. Nextsame-imageCPUgrpcA/B/Cprobe, notnewpool/fullG1blindretry. Formal5/4/31,historical137unknown.
+
+## canonical14 CPU grpc diagnosis frozen, R1 pending
+
+No newpool. ExistingCPUmonitor-diagnostic headrunc scope nowrecords three sameimage emptygrpc direct/shield/event shutdown children, trueSIGINT/stopreturned/rc/sourcehashes/rawlogs/ownboundedcleanup. Newrun185029Z-ef39e9cf/MF61808da183091cfe93b9c56c84eb8da95d4c0e3607eed5c185d21ac74b5d4d84;146runtime/22operator(1WindowsPOSIXskip)/3syntax. PriorLinuxunitfixtureboundaryfixed; initialG1fixtureCPUflagerrorsretained/corrected. LocalR1/actualguard/CPUcontrol pending; no newremotecompute; sourceabsentafterC13archive. Formal5/4/31 unchanged.

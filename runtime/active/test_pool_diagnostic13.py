@@ -8,6 +8,13 @@ from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET,requir
 SOURCE=pathlib.Path(__file__).resolve().parent
 
 class PoolDiagnostic(unittest.TestCase):
+    def test_grpc_probe_flag_is_rejected_outside_cpu_scope(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory)
+            for scope in (POOL_DIAGNOSTIC_SCOPE,'G1 independent untimed controls only; zero formal IDs'):
+                (root/'run-manifest.json').write_text(json.dumps(dict(scope=scope,grpc_shutdown_probe=True)))
+                with self.assertRaisesRegex(RuntimeError,'CPU-only'):materialize.validate_scope(root,'service13a')
+
     def test_only_fixed_roles_and_real_budget_derived(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory);run='test-run'
