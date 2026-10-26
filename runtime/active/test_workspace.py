@@ -35,7 +35,7 @@ class Workspace(unittest.TestCase):
     def test_escaped_identity_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)
-            for value in ('../archive','sllm-glm51fp8-20261026T115129Z-d1cb0879/../archive','other-run'):
+            for value in ('../archive','sllm-glm51fp8-20261026T123417Z-b1692e12/../archive','other-run'):
                 (root/'run-manifest.json').write_text(json.dumps({'run_id':value}))
                 with self.subTest(value=value),patch.object(w,'SOURCE',root),self.assertRaises(RuntimeError):w.run_root()
 

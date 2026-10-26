@@ -32,6 +32,8 @@ REMOTE=r'''
 import datetime,json,pathlib,socket,subprocess,time
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')
 src=root/'code/experiment'
+import sys
+sys.path.insert(0,str(src))
 out=root/'validation/controls'/RUN
 log=(out/('operator-'+('observe-' if OBSERVE else '')+PHASE+'-'+SEGMENT+'.jsonl')).open('x',buffering=1)
 def event(**row):

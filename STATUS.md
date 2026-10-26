@@ -197,3 +197,9 @@ Canonical4 prepares six empty cache groups instead of reusing nonportable genera
 C4 fullR1 e1e8851/C0cb93 ran under verified20:50guard. TwoRaycontrols/releases, realpool,148input hotcache0repair passed; all8weightpipelines completed, engine KV/warmup no fatal logged, no business/32rank pass. SSH reset255 triggered local workoperator SIGKILL/stop cleanup19:19:09; firststop15s timedout/remaining nonempty, serviceexited137/falseOOM19:19:34. Exactsignal/networkreset origin unproven; oldOct25failure unchanged. Finalcleanupretry,61pointrelease/rootindex passed; immutable executed source and cost ledger retained. Formal5/4/31.
 
 Canonical5 binds a single tracked operator and root entry into review manifest, explicitSSHkeepalive, boundedread-only reconciliation and observe-only originalCID/budget. Continuation memory credits onlyverified ownslice anon; newallocation checkunchanged. Newrun sllm-glm51fp8-20261026T115129Z-d1cb0879, existing18-21+21-03 bookingoverlay, proposedindependent02:50Oct27guard, NOT installed/approvedyet. Isolatedformal-prep has34CPU tests passed; sharednormal-validation missingaudit-env bug reproduced thenfixed only in prepared replacement. No formal/R2 admission.
+
+## 2026-10-26 canonical5 closure / canonical6 stdin fix
+
+C5 actual02:50guard/probe/preparation passed; beforefirstRay hoststdin operator lacked source sys.path for preflight_control13. No Ray/pool/model started. Cleanup61samples/rootindex passed; runtime56hashes/executedsource preserved. Formal5/4/31 unchanged.
+
+Canonical6 two-line import fix plus real isolated stdin regression (failed first then passed). Actual qjhs003 hostprobe imported11modules, compiled runtime/generated programs, validated7actor parameter derivations with simulatedinspect; oldguard correctly refused. These CPU probes are not G1. New run sllm-glm51fp8-20261026T123417Z-b1692e12 pendingR1; same02:50Oct27deadline, no FP8/budget/gold/history changes.

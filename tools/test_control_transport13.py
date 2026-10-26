@@ -101,4 +101,16 @@ class Transport(unittest.TestCase):
             self.assertEqual(len(validated),1)
             self.assertEqual(len(validated[0][0]),61)
 
+    def test_real_isolated_stdin_imports_preflight_from_bound_source(self):
+        with tempfile.TemporaryDirectory() as directory:
+            node=pathlib.Path(directory);source=node/'code/experiment';source.mkdir(parents=True)
+            (node/'validation/controls/test-run').mkdir(parents=True)
+            (source/'preflight_control13.py').write_text("raise RuntimeError('BOUND_SOURCE_PREFLIGHT_REACHED')\n")
+            program=operator.REMOTE.replace("pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')",'pathlib.Path('+repr(str(node))+')')
+            prefix=operator.bound_prefix('test-run','ray13a','a'*40,'b'*64,False,'import-test')
+            result=subprocess.run([sys.executable,'-I','-'],input=prefix+program,text=True,capture_output=True,timeout=10)
+            self.assertNotEqual(result.returncode,0)  # Deliberate stop before allocation.
+            self.assertIn('BOUND_SOURCE_PREFLIGHT_REACHED',result.stderr)
+            self.assertNotIn('ModuleNotFoundError',result.stderr)
+
 if __name__=='__main__':unittest.main()

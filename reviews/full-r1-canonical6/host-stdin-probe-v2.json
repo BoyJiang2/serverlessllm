@@ -1,0 +1,310 @@
+{
+  "utc": "2026-10-26T12:27:53.744499+00:00",
+  "python": "3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0]",
+  "run_reference": "sllm-glm51fp8-20261026T115129Z-d1cb0879",
+  "imported_modules": {
+    "workspace": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/workspace.py",
+      "sha256": "9e18d13abd61e31c2c6685dac937feabbd9ac8ed771867b4ef57d694cd403d19"
+    },
+    "preflight_control13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/preflight_control13.py",
+      "sha256": "33908f6ca45b091b068ef5d004811415b7caf525f7f6e91a162a29f2f006b710"
+    },
+    "resource_window_control13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/resource_window_control13.py",
+      "sha256": "ff869d7cd636cc52a0b2436a3df8013bfd5891cd603b8eae1a6a5565b6aa0f47"
+    },
+    "materialize_control13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/materialize_control13.py",
+      "sha256": "f4f20757a6233abf1d11ef451d2e685dd1fa06e60c433e1e2588489c902cdd5f"
+    },
+    "budget_control13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/budget_control13.py",
+      "sha256": "6f4a40a9f03ec4af31c7b4b0aca8eda3e08c8c937872fcebed956c138e4581cf"
+    },
+    "package_inventory13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/package_inventory13.py",
+      "sha256": "bdb038c27bb7e0d0c533e4d1359f9eacb1265b60df24e8bcf4c522c92cff7a69"
+    },
+    "cache_contract13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/cache_contract13.py",
+      "sha256": "b38449da1f15ad3f862f636fbef7b815fe4d731b5084a96dd43385b5a2b1a37f"
+    },
+    "gpu_identity13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/gpu_identity13.py",
+      "sha256": "aa0a5ab29d4c8a7c48530253ee050789b070066fc8b219e8881f01d5a214e17b"
+    },
+    "accept_control13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/accept_control13.py",
+      "sha256": "a8c67a0b6535db8afc8a0215d568dcbc303e42c9fe4742a524b3448697ffd444"
+    },
+    "prepare_host13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/prepare_host13.py",
+      "sha256": "730f4d604df22d07654a78ae87a46a5e704b846e821750cda4330aa2eaac7c6c"
+    },
+    "run_store_server13": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/run_store_server13.py",
+      "sha256": "67cc92c5dd271cff195e317f68467c6744a3d506f347b50d213e56911886f575"
+    }
+  },
+  "generated_programs_compiled": {
+    "REMOTE": "d7209c43a4493f999738345ea14363aabdbba55b1e1d413e378323a72ca537bf",
+    "RECONCILE": "1dd357a73a904d83442f02e0005187faa3a76f6099ccedc6fbb50cfab1157335"
+  },
+  "old_guard_state": "inactive",
+  "expected_refusal": "deadline service command changed",
+  "materialization_dry_run": {
+    "monitor13": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-u",
+        "/experiment/code/experiment/monitor_control13.py"
+      ],
+      "name": "monitor13",
+      "env_keys": [
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_GROUP",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MONITOR_LOG_NAME"
+      ],
+      "sha256": "e7edb13450270c2729d757f4b94b776a1551f3a2a9ceb91a4b3377491289b20c"
+    },
+    "headray13a": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-m",
+        "ray.scripts.scripts",
+        "start",
+        "--head",
+        "--port=26530",
+        "--num-cpus=4",
+        "--num-gpus=0",
+        "--resources={\"control_node\":1}",
+        "--object-store-memory=268435456",
+        "--include-dashboard=false",
+        "--disable-usage-stats",
+        "--temp-dir=/r/ray-head-ray13a",
+        "--block"
+      ],
+      "name": "headray13a",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MODEL_REVISION",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "93e0844984ddbbf53c95533b0a406dab7b513af33b7ea55a27fc11a4b16f101a"
+    },
+    "headray13b": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-m",
+        "ray.scripts.scripts",
+        "start",
+        "--head",
+        "--port=26531",
+        "--num-cpus=4",
+        "--num-gpus=0",
+        "--resources={\"control_node\":1}",
+        "--object-store-memory=268435456",
+        "--include-dashboard=false",
+        "--disable-usage-stats",
+        "--temp-dir=/r/ray-head-ray13b",
+        "--block"
+      ],
+      "name": "headray13b",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MODEL_REVISION",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "9d26154bcec25d8b7339752e4859b8825a8be40ecdaf8ba16a1e4b753240734f"
+    },
+    "headservice13a": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-m",
+        "ray.scripts.scripts",
+        "start",
+        "--head",
+        "--port=26532",
+        "--num-cpus=4",
+        "--num-gpus=0",
+        "--resources={\"control_node\":1}",
+        "--object-store-memory=268435456",
+        "--include-dashboard=false",
+        "--disable-usage-stats",
+        "--temp-dir=/r/ray-head-service13a",
+        "--block"
+      ],
+      "name": "headservice13a",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MODEL_REVISION",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "4e75b2abcc2dd94f0e88f9e94c991557a3652a9bc992b531aa06de144e9f625b"
+    },
+    "ray13a": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-u",
+        "/experiment/code/experiment/supervise_control13.py",
+        "ray",
+        "ray13a"
+      ],
+      "name": "ray13a",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MODEL_REVISION",
+        "SLLM_PRIVATE_RAY_ADDRESS",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "7d0b5d4c8d0a34e7e1cdcc31a2c5b5b56b334d59aaba0f10d5476813ec53f780"
+    },
+    "ray13b": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-u",
+        "/experiment/code/experiment/supervise_control13.py",
+        "ray",
+        "ray13b"
+      ],
+      "name": "ray13b",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_MODEL_REVISION",
+        "SLLM_PRIVATE_RAY_ADDRESS",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "4b07dcebdc9cb2b01ad148ddf8c32483fee40a0aa365ec10a005f13cc4bd3949"
+    },
+    "service13a": {
+      "argv": [
+        "/experiment/.venv/bin/python",
+        "-u",
+        "/experiment/code/experiment/supervise_control13.py",
+        "service",
+        "service13a"
+      ],
+      "name": "service13a",
+      "env_keys": [
+        "CUDA_CACHE_PATH",
+        "CUDA_HOME",
+        "HF_HOME",
+        "HF_HUB_OFFLINE",
+        "HOME",
+        "MAX_JOBS",
+        "OMP_NUM_THREADS",
+        "PATH",
+        "PYTHONDONTWRITEBYTECODE",
+        "PYTHONPATH",
+        "SLLM_CONTROL_WORKSPACE",
+        "SLLM_EVENT_DIR",
+        "SLLM_MODEL_REVISION",
+        "SLLM_PRIVATE_RAY_ADDRESS",
+        "SLLM_SERVICE_WEIGHT_AUDIT_DIR",
+        "SLLM_SERVICE_WEIGHT_FORMAT",
+        "SLLM_VALIDATE_FULL_MODEL",
+        "SLLM_VERIFY_WEIGHTS",
+        "STORAGE_PATH",
+        "TORCHINDUCTOR_CACHE_DIR",
+        "TORCH_CUDA_ARCH_LIST",
+        "TRANSFORMERS_OFFLINE",
+        "TRITON_CACHE_DIR",
+        "VLLM_ALLOW_INSECURE_SERIALIZATION",
+        "VLLM_CACHE_ROOT",
+        "VLLM_NO_USAGE_STATS",
+        "VLLM_USE_DEEP_GEMM_E8M0"
+      ],
+      "sha256": "177b350faa99fbe049a8e07eaa5eaa4b129ee933d3734e914bd9d090c870ba0e"
+    }
+  },
+  "scope": "actual host stdin imports/compile; simulated inspect-only derivation; no Docker create/start, Store, weight load or G1 pass"
+}
