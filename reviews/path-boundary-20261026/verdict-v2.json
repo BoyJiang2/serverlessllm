@@ -1,0 +1,366 @@
+{
+  "verdict": "approved_for_path_boundary",
+  "approved_for_path_boundary": true,
+  "runtime_deployment_approved": false,
+  "not_a_full_r1": true,
+  "scope": "canonical path/input boundary v2 only; not full R1, native imports, guard/G1/R2, formal admission, or payload verification",
+  "code_commit": "bd25defb403cf71bbb07c1bd5d407c2bb24cefe8",
+  "manifest_sha256": "951e80c52f71b72fed3ad1d5c041321828c91edbb138c009b4265f43de9f41c9",
+  "manifest_path": "reviews/path-boundary-20261026/file-manifest-v2.json",
+  "deployment_note": "This is not a deployment verdict. deploy_control13 requires a separate current R1 verdict with verdict='approved', gate='R1', scope='full-runtime', matching code_commit, and the matching runtime/active/control-input-manifest.json SHA.",
+  "answers": {
+    "PB01": "closed; store-restore-validation.json and native-weight-contract.json are now hash-bound in workspace.py and verified by the shared helper before bootstrap output creation.",
+    "PB02": "retracted; v1 finding was a false positive. The immutable original container-cases.json bootstrap docker_args contain --env=SLLM_CONTROL_WORKSPACE=/experiment at line 563, and all 15 v2 cases record workspace_env_explicit=true.",
+    "PB03": "closed; symlinked/non-directory/out-of-store rank directories are rejected in workspace.py:90, with CPU and actual container evidence.",
+    "PB04": "closed; historical_path and final accept call host_workspace() before file reads; INDEX.json and formal results remain host-only.",
+    "PB05": "closed; package_inventory13.require_full_r1 requires approved/gate R1/scope full-runtime plus matching code and manifest, and rejects path-only/partial markers; deploy_control13 uses it.",
+    "PB06": "reasonable to keep; the two-line fresh native-gold hash check reuses the same run-manifest reference and is defense-in-depth after startup, with no separate rule or helper.",
+    "helper_reached_before_creation": "verified; bootstrap_control13.py calls verify_input_layout() at line 19, before out.mkdir() at line 23, Ray worker at line 83, and Store at line 98. launch_control13.py calls the same helper before docker create/start (unchanged hash and prior line 36).",
+    "readonly_mounts": "qualified yes for the current in-container call graph; checkpoint, Store payload, source, Store-source, ServerlessLLM, weight_contract, .venv, serving-deps, runtime-metadata, buildtools, protocol/run-manifest, native-gold, native-weight-contract, store-restore, and native_repeat7/8 are readonly; only the run output is a writable bind. No broad archive/root mount.",
+    "checkpoint_reuse": "yes; cache_contract13.frozen_paths remains the single checkpoint closure check, used by workspace.verify_input_layout and cache_state_control13.",
+    "payload_verification": "not performed; this check hashes named metadata/reference files and stats checkpoint/Store payload sizes only, not full weight/Store payload SHA-256 and not G1."
+  },
+  "findings": [
+    {
+      "id": "PB-01",
+      "status": "closed",
+      "severity": "high",
+      "verification": [
+        "workspace.py:73-81 now includes native-weight-contract.json and store-restore-validation.json in the reference dictionary and checks both against run-manifest reference_sha256.",
+        "run-manifest.json:1494-1498 now contains reference_sha256 entries e400fb42... for store-restore-validation.json and 1c847039... for native-weight-contract.json, in addition to raw-disk-verification.json, native-gold.json, and weight_contract.py.",
+        "bootstrap_control13.py:19 invokes verify_input_layout before out.mkdir at :23; the helper therefore hashes restore/weight-contract before output creation, before Ray at :83, and before Store at :98.",
+        "container-cases-v2 omit_restore, empty_restore, changed_restore, omit_weight_contract, empty_weight_contract, and changed_weight_contract all exit 1 with expected input errors.",
+        "The complete case exits 0 with checkpoint_inputs 148, store_ranks 8, store_parts 80, proving the new hashes match the official mounted inputs used by the probe."
+      ],
+      "residual_note": "bootstrap reads the store-restore JSON semantically at line 37 after output creation, but the file is hashed by the shared helper first and mounted readonly. This is not a path-boundary failure; a future hardening could move the semantic read before output creation."
+    },
+    {
+      "id": "PB-02",
+      "status": "retracted_v1_false_positive",
+      "severity": "info",
+      "verification": [
+        "The immutable original evidence/canonical-transition/path-boundary/container-cases.json bootstrap case contains --env=SLLM_CONTROL_WORKSPACE=/experiment at line 563.",
+        "container-cases-v2 records workspace_env_explicit=true for all 15 cases.",
+        "The v2 bootstrap_missing_checkpoint case adds a writable sentinel mount and records sentinel_output_entries=[]; because out.mkdir would have created service-bootstrap-service13a in that mount, the empty sentinel proves the failure occurred before output creation.",
+        "v1 PB-02 is withdrawn; no code or evidence repair was required for the environment claim."
+      ]
+    },
+    {
+      "id": "PB-03",
+      "status": "closed",
+      "severity": "medium",
+      "verification": [
+        "workspace.py:90 rejects rank.is_symlink(), non-directory rank entries, and rank.resolve() outside store.resolve().",
+        "test_workspace.py:120-123 adds test_rank_directory_symlink_rejected.",
+        "container-cases-v2 symlinked_store_rank is an actual Linux symlink escape attempt: it exits 1 at workspace.py:91 with 'Store rank type/path differs: rank_7'.",
+        "Leaf payload symlink, non-file, zero-size, and size mismatch checks remain in place at workspace.py:94-97."
+      ]
+    },
+    {
+      "id": "PB-04",
+      "status": "closed",
+      "severity": "medium",
+      "verification": [
+        "workspace.py:28-31 adds host_workspace(), rejecting the logical /experiment path.",
+        "workspace.py:37 makes historical_path host-only before reading INDEX.json.",
+        "accept_control13.py:157 calls host_workspace() before reading run files or results.",
+        "test_workspace.py:125-132 adds ExecutionScope tests rejecting historical_path and accept under /experiment.",
+        "INDEX.json and results/formal-trials remain intentionally host-only and are not added as broader container mounts."
+      ]
+    },
+    {
+      "id": "PB-05",
+      "status": "closed",
+      "severity": "medium",
+      "verification": [
+        "package_inventory13.py:2-6 adds require_full_r1(), requiring verdict='approved', gate='R1', scope='full-runtime', matching code_commit, and matching manifest_sha256; it rejects not_a_full_r1 and approved_for_path_boundary.",
+        "deploy_control13.py:8-9 imports and calls require_full_r1 before origin/branch/manifest deployment checks.",
+        "test_workspace.py:133-141 provides one positive full-R1 schema and eight negative mutations covering path scope, wrong gate, path-only verdict, missing scope, wrong code/manifest, not_a_full_r1, and approved_for_path_boundary.",
+        "Residual note: require_full_r1 enforces the requested explicit marker fields but does not itself inspect a remaining_gates list or a runtime_deployment_approved flag; it is not a substitute for the full R1 process."
+      ]
+    },
+    {
+      "id": "PB-06",
+      "status": "accepted_no_change",
+      "severity": "low",
+      "verification": [
+        "validation_control13.py retains the two-line native-gold SHA-256 check against the same run-manifest reference used by the shared boundary.",
+        "The check is a fresh post-startup defense and does not introduce a separate rule, duplicated configuration, or new helper.",
+        "Keeping it is reasonable; no change is required for path-boundary approval."
+      ]
+    }
+  ],
+  "container_case_verification": [
+    {
+      "case": "complete",
+      "exit_code": 0,
+      "passed": true,
+      "expected_error": null,
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; official inputs; 148 checkpoint inputs, 8 Store ranks, 80 Store parts."
+    },
+    {
+      "case": "empty_checkpoint",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "weight input closure differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; empty /experiment/checkpoint fails in cache_contract13.py:9."
+    },
+    {
+      "case": "missing_official_manifest",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "/experiment/protocol/run-manifest.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; missing official manifest fails in cache_contract13.py:12."
+    },
+    {
+      "case": "truncated_checkpoint_shard",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "input identity/size differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; truncated shard fails in cache_contract13.py:24."
+    },
+    {
+      "case": "missing_store_rank_payload",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "Store partition layout differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; empty rank_7 fails at workspace.py:93."
+    },
+    {
+      "case": "truncated_store_part",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "Store partition size/type differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; empty tensor.data_9 fails at workspace.py:97."
+    },
+    {
+      "case": "changed_gold",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "reference hash differs: native-gold.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; changed native-gold fails at workspace.py:81."
+    },
+    {
+      "case": "bootstrap_missing_checkpoint",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "weight input closure differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": [],
+      "container_released": true,
+      "assessment": "Valid; bootstrap calls verify at line 19 before out.mkdir at line 23; writable sentinel remains empty."
+    },
+    {
+      "case": "omit_restore",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "store-restore-validation.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; missing restore mount fails at workspace.py:80 before output creation."
+    },
+    {
+      "case": "empty_restore",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "reference hash differs: store-restore-validation.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; empty restore fails at workspace.py:81."
+    },
+    {
+      "case": "changed_restore",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "reference hash differs: store-restore-validation.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; changed valid JSON restore fails at workspace.py:81."
+    },
+    {
+      "case": "omit_weight_contract",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "native-weight-contract.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; missing native-weight contract fails at workspace.py:80."
+    },
+    {
+      "case": "empty_weight_contract",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "reference hash differs: native-weight-contract.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; empty native-weight contract fails at workspace.py:81."
+    },
+    {
+      "case": "changed_weight_contract",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "reference hash differs: native-weight-contract.json",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; changed valid JSON native-weight contract fails at workspace.py:81."
+    },
+    {
+      "case": "symlinked_store_rank",
+      "exit_code": 1,
+      "passed": true,
+      "expected_error": "Store rank type/path differs",
+      "workspace_env_explicit": true,
+      "sentinel_output_entries": null,
+      "container_released": true,
+      "assessment": "Valid; actual Linux rank_7 symlink to /experiment/escaped-store-rank fails at workspace.py:91."
+    }
+  ],
+  "source_hash_comparison": {
+    "container_cases_v2_source_files": [
+      {
+        "path": "bootstrap_control13.py",
+        "bytes": 8236,
+        "sha256": "b8270fc1a5a12ae9891a1fce0b0576257bdbcfa13805a4347e4098c6a8a8fa93",
+        "matches_file_manifest_v2": true
+      },
+      {
+        "path": "cache_contract13.py",
+        "bytes": 2284,
+        "sha256": "b38449da1f15ad3f862f636fbef7b815fe4d731b5084a96dd43385b5a2b1a37f",
+        "matches_file_manifest_v2": true
+      },
+      {
+        "path": "cache-inputs13.json",
+        "bytes": 39797,
+        "sha256": "a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473",
+        "matches_file_manifest_v2": true
+      },
+      {
+        "path": "run-manifest.json",
+        "bytes": 48398,
+        "sha256": "6fbc3d3c3703ce83719646e63b73b681037b12977d5d3751370d5f02c6a6e550",
+        "matches_file_manifest_v2": true
+      },
+      {
+        "path": "workspace.py",
+        "bytes": 5979,
+        "sha256": "c57a9434f7a955b8bb2f54dabf0cf41d12c893a334c103e6e06010abd0c726a0",
+        "matches_file_manifest_v2": true
+      }
+    ],
+    "changed_files_not_in_container_snapshot": [
+      {
+        "path": "accept_control13.py",
+        "bytes": 19792,
+        "sha256": "c121845dede1fd32d663802bebfc16da62241e9a525180e38f550c2a8d5c03ae",
+        "matches_file_manifest_v2": true,
+        "container_probe": false
+      },
+      {
+        "path": "deploy_control13.py",
+        "bytes": 5377,
+        "sha256": "21a4eef93f44275f92f0f531cace14e8d906dd742460076745c220f537243d11",
+        "matches_file_manifest_v2": true,
+        "container_probe": false
+      },
+      {
+        "path": "package_inventory13.py",
+        "bytes": 998,
+        "sha256": "bdb038c27bb7e0d0c533e4d1359f9eacb1265b60df24e8bcf4c522c92cff7a69",
+        "matches_file_manifest_v2": true,
+        "container_probe": false
+      },
+      {
+        "path": "test_workspace.py",
+        "bytes": 9784,
+        "sha256": "948a19eadad354bd10bf3f19c2fcdedab43203c471a5a9460fb1841e0a10bb47",
+        "matches_file_manifest_v2": true,
+        "container_probe": false
+      }
+    ],
+    "line_number_consistency": "Current workspace.py line 102 (print), line 71 (frozen_paths), line 80-81 (reference hash), line 91 (rank path), line 93 (partition layout), and line 97 (partition size) match the v2 stderr references. bootstrap_control13.py:19 and accept_control13.py:157 also match their cited behavior.",
+    "independent_byte_hash": "Not recomputed; the review was read-only and no hashing/shell tool was used. The comparison is recorded-evidence/manifest consistency plus source line consistency, not an independent SHA-256 recomputation.",
+    "source_snapshot_scope": "source_snapshot_matches_current=true is limited to the five probe source files; accept_control13.py, deploy_control13.py, package_inventory13.py, and test_workspace.py were exercised by the 22 CPU tests, not by the container probe."
+  },
+  "reviewed_files": [
+    "reviews/path-boundary-20261026/response-v1.md",
+    "reviews/path-boundary-20261026/verdict-v1.json",
+    "reviews/path-boundary-20261026/file-manifest-v2.json",
+    "runtime/active/workspace.py",
+    "runtime/active/test_workspace.py",
+    "runtime/active/package_inventory13.py",
+    "runtime/active/deploy_control13.py",
+    "runtime/active/bootstrap_control13.py",
+    "runtime/active/accept_control13.py",
+    "evidence/canonical-transition/path-boundary/validation-summary-v2.json",
+    "evidence/canonical-transition/path-boundary/container-cases-v2.json",
+    "evidence/canonical-transition/path-boundary/cpu-tests-v2.log"
+  ],
+  "targeted_inspections": [
+    {
+      "path": "runtime/active/run-manifest.json",
+      "fields": ["run_id", "workspace_root", "canonical_index_sha256", "reference_sha256"],
+      "result": "Five reference hashes present: store-restore-validation.json e400fb42..., native-weight-contract.json 1c847039..., raw-disk-verification.json dcc2d3c6..., native-gold.json 9a2db690..., weight_contract.py ed03317a...."
+    },
+    {
+      "path": "evidence/canonical-transition/path-boundary/container-cases.json",
+      "fields": ["bootstrap_missing_checkpoint docker_args"],
+      "result": "Targeted re-read confirms --env=SLLM_CONTROL_WORKSPACE=/experiment at line 563; v1 PB-02 was a display/reading error, not a missing field."
+    }
+  ],
+  "non_blocking_notes": [
+    "The negative restore and weight-contract cases execute workspace.py --check-inputs rather than bootstrap_control13.py. The shared helper is the same and bootstrap calls it before output creation, but a future evidence pass could add bootstrap-level negative restore/weight cases.",
+    "The writable sentinel proof covers missing checkpoint, not missing restore/weight; code inspection establishes the shared ordering for all inputs.",
+    "require_full_r1 enforces the explicitly requested approved/gate R1/scope full-runtime and identity fields; it does not itself establish that every remaining gate is complete, and it is not the full R1 verdict.",
+    "/experiment/store is created as a parent directory in the container writable overlay; the Store payload mount itself is readonly. This is unchanged and not a broad host mount.",
+    "The container probe uses a five-file source snapshot under migration/runtime-repair and official readonly input mounts; it does not execute deploy, accept, package inventory, or the full container_mounts() launch plan."
+  ],
+  "remaining_gates": [
+    "Full current R1 verdict explicitly carrying verdict='approved', gate='R1', scope='full-runtime', matching code_commit, and the separate runtime/active/control-input-manifest.json SHA",
+    "Actual native and transitive imports under a guarded approved deployment",
+    "Actual root guard/probe/identity and monitor verification",
+    "Bounded G1 with the real 716 GiB pool and four native lifecycles",
+    "R2 and formal admission; no formal ID may be consumed by this path review",
+    "Full checkpoint/Store payload SHA-256 and readback verification; this review did not hash payloads",
+    "Execution of the actual container_mounts()/launch mount plan with the deployed code/experiment source",
+    "No old gate approval; this verdict must not be used as the deployment verdict"
+  ],
+  "limitations": [
+    "Read-only review; no shell, file modification, git, docker, subagent, remote resource, or test execution was used.",
+    "SHA-256 values were compared as recorded by file-manifest-v2 and container-cases-v2; actual bytes were not independently hashed.",
+    "Did not read raw review JSONL files or unrelated histories.",
+    "Did not read the contents of native-gold.json, native-weight-contract.json, store-restore-validation.json, checkpoint/VERIFIED.json, raw-disk-verification.json, or checkpoint/Store payloads; only their recorded hashes and the probe results were reviewed.",
+    "Did not read the deployed /experiment sources or execute the actual mount plan; the container cases are isolated readonly CPU probes with a five-file source snapshot.",
+    "Container probes use official inputs with readonly masking and no GPU/inference; synthetic CPU fixtures are metadata-only layout tests.",
+    "source_snapshot_matches_current=true is limited to the five container source files; the other changed files are CPU-tested, not container-probed.",
+    "v1 PB-02 is withdrawn as a false positive; this correction is based on the immutable original evidence and the v2 sentinel/workspace_env_explicit fields.",
+    "This review does not establish full runtime readiness, native imports, guard behavior, G1, R2, formal admission, or payload integrity."
+  ]
+}
