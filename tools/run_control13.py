@@ -108,6 +108,8 @@ if registration.get('execution_purpose')=='formal-continuation':
  else:raise RuntimeError('atomic publication replaced existing request')
  published.unlink();temporary.unlink();probe_dir.rmdir()
  sigint_proof['atomic_publication']=dict(local_same_filesystem=True,exclusive_collision_rejected=collision_rejected,temporary_removed=True)
+ from cache_contract13 import probe_cold_boundary
+ sigint_proof['cold_boundary_probe']=probe_cold_boundary(run_root()/(label+'-cold-boundary-probe'),pathlib.Path('/experiment/checkpoint/config.json'))
 deployment=json.loads((run_root()/'deployment.json').read_text())
 sigint_proof.update(run_id=registration['run_id'],head_container_id=head_identity['container_id'],image_id=registration['image_id'],boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'])
 if manifest().get('grpc_shutdown_probe') is True:

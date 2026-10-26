@@ -18,6 +18,10 @@ def verify_sigint_probe(root,info,code,sha,label='service13a'):
     expected=dict(run_id=manifest['run_id'],head_container_id=head['container_id'],image_id=manifest['image_id'],boot_id=manifest['runtime_identity']['boot_id'],code_commit=code,manifest_sha256=sha)
     if any(proof.get(k)!=v for k,v in expected.items()):raise RuntimeError('SIGINT preallocation proof binding differs')
     if manifest.get('execution_purpose')=='formal-continuation' and proof.get('atomic_publication')!=dict(local_same_filesystem=True,exclusive_collision_rejected=True,temporary_removed=True):raise RuntimeError('actual exclusive local publication probe required')
+    if manifest.get('execution_purpose')=='formal-continuation':
+        cold=proof.get('cold_boundary_probe',{})
+        if cold.get('version')!=1 or cold.get('metadata_sha256')!=manifest['metadata']['config.json']['sha256'] or type(cold.get('pages')) is not int or not cold['pages']>0 or type(cold.get('old_order_resident_pages')) is not int or not 0<cold['old_order_resident_pages']<=cold['pages'] or cold.get('initial_resident_pages')!=0 or cold.get('fixed_order_resident_pages')!=0 or cold.get('cleanup_complete') is not True:
+            raise RuntimeError('actual Linux cold-boundary negative and fixed control required')
     if head['run_id']!=manifest['run_id'] or head['code_commit']!=code or head['manifest_sha256']!=sha or dispatch['boot_id']!=expected['boot_id']:raise RuntimeError('SIGINT head identity differs')
     if info['Id']!=head['container_id'] or info['Image']!=manifest['image_id'] or not info['State']['Running'] or info['State']['Pid']!=head['pid']:raise RuntimeError('SIGINT probe head no longer active')
     if info['Config']['Labels'].get('sllm.run_id')!=manifest['run_id'] or info['Config']['Labels'].get('sllm.uid')!='2147':raise RuntimeError('SIGINT head ownership differs')

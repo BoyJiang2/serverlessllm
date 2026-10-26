@@ -214,12 +214,19 @@ class SigintAdmission(unittest.TestCase):
 
     def test_formal_native_role_requires_actual_atomic_publication_probe(self):
         root,proof,info=self.fixture()
-        path=root/'run-manifest.json';config=json.loads(path.read_text());config['execution_purpose']='formal-continuation';path.write_text(json.dumps(config))
+        path=root/'run-manifest.json';config=json.loads(path.read_text());config['execution_purpose']='formal-continuation';config['metadata']={'config.json':{'sha256':'metadata'}};path.write_text(json.dumps(config))
         target=root/'service13a-cpu-import-preflight.json';target.write_text(json.dumps(dict(sigint_probe=proof)))
         with self.assertRaisesRegex(RuntimeError,'publication probe'):materialize.verify_sigint_probe(root,info,'code','sha')
         proof['atomic_publication']=dict(local_same_filesystem=True,exclusive_collision_rejected=True,temporary_removed=True)
         target.write_text(json.dumps(dict(sigint_probe=proof)))
+        with self.assertRaisesRegex(RuntimeError,'cold-boundary'):materialize.verify_sigint_probe(root,info,'code','sha')
+        proof['cold_boundary_probe']=dict(version=1,metadata_sha256='metadata',pages=9,old_order_resident_pages=9,initial_resident_pages=0,fixed_order_resident_pages=0,cleanup_complete=True)
+        target.write_text(json.dumps(dict(sigint_probe=proof)))
         materialize.verify_sigint_probe(root,info,'code','sha')
+        for field,value in [('old_order_resident_pages',0),('fixed_order_resident_pages',1),('metadata_sha256','other'),('cleanup_complete',False)]:
+            changed=json.loads(json.dumps(proof));changed['cold_boundary_probe'][field]=value
+            target.write_text(json.dumps(dict(sigint_probe=changed)))
+            with self.subTest(field=field),self.assertRaisesRegex(RuntimeError,'cold-boundary'):materialize.verify_sigint_probe(root,info,'code','sha')
 
     def test_missing_probe_blocks_direct_launcher(self):
         root,proof,info=self.fixture();(root/'cpu-import-preflight.json').unlink()

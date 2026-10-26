@@ -172,12 +172,13 @@ def run(out,batch_budget):
             mode = 'check' if condition == 'store_pool_hit' else ('hot' if condition.endswith('_hot') else 'cold')
             record['cache_evidence'] = 'cache_'+name
             with (target/'cache-preparation.log').open('x') as log:
+                other_kind = 'safetensors_inputs' if kind == 'store_inputs' else 'store_inputs'
+                subprocess.run(['/experiment/.venv/bin/python',str(pathlib.Path(__file__).with_name('cache_state_formal.py')),'check',other_kind,name+'_other_pre_preparation'],
+                               stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
+                # Shared metadata reads must finish before target eviction and final mincore.
                 subprocess.run(['/experiment/.venv/bin/python',str(pathlib.Path(__file__).with_name('cache_state_formal.py')),mode,kind,name],
                                stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
-                other_kind = 'safetensors_inputs' if kind == 'store_inputs' else 'store_inputs'
-                subprocess.run(['/experiment/.venv/bin/python',str(pathlib.Path(__file__).with_name('cache_state_formal.py')),'check',other_kind,name+'_other_before'],
-                               stdout=log,stderr=subprocess.STDOUT,check=True,timeout=600)
-            record['other_asset_cache_before'] = 'cache_'+name+'_other_before'
+            record['other_asset_cache_pre_preparation'] = 'cache_'+name+'_other_pre_preparation'
             record['preparation_complete_ns'] = time.monotonic_ns()
             backend = dict(gold['engine_config'])
             backend.pop('model')

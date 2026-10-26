@@ -378,3 +378,13 @@ Newrun sllm-glm51fp8-20261026T210338Z-db12e2fe; prepared27files folded into one 
 ## canonical18 complete source frozen, exact R1 pending
 
 Run210338Z-db12e2fe/MF2674f4534f0a5cbb798599c107c9d83b17d3651b97758c02e802290055909a4e;80runtime files,250CPU/35operator(34pass1WindowsPOSIXskip)/3syntax. Sourceconsolidation removes27prepared duplicate entries; oneactive bootstrap/supervisor/operator. Verifiedsamebatch stop-request collision is reusable after identity check, foreign collision fails and own temp is removed; late GCSsuccess rejects. ActualLinux exclusive-publication and cancellation probe mandatory beforepool; Windowsstub notproof. Current05:07resources8GPU0/no computePID/sourceabsent/current03-09booking; actualnew08:50guard notinstalled. CompleteR1/normal/R2/formal pending, original5/4/31,nextstore_pool_hit_03.
+
+
+## canonical18 R1 rejected; canonical19 cache-boundary correction
+
+Actual independent fullR1 C18changes_required R1-C18-01: target cold0mincore followed by otherhelper metadatahashing reheated shared input pages. CPU actualdriver negative reproduces order defect; C18neverdeployed. Newrun sllm-glm51fp8-20261026T212500Z-7e6912e2 separates other pre-preparation observation and puts target prepare/finalcomplete mincore last. Same officialsmallmetadata-copy Linux read-invalidates-cold/fixedreevict0 probe added to existingCPUpreallocation path; exactsourcehash/counters/cleanup required by directlauncher beforepool, rawvectorsretained. Models/gold/commonpool/targetthresholds/40IDs unchanged. New freeze/R1 and actualLinuxprobe pending; formal5/4/31.
+
+
+## canonical19 frozen pending exact full R1
+
+Run212500Z-7e6912e2/MFe98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b;80runtime files/252CPU/35operator(34pass1WindowsPOSIXskip)/3shellsyntax passed. C18reject and actualdriver CPUnegative retained. Targetfinal-full-mincore order and explicitprepreparation otherasset label; Linuxofficial-smallmetadata oldcold-invalidated/fixedcold probe code bound and directlaunch mandatorybeforepool. ActualLinuxcontrol notyetexecuted; no newguard/deploy/pool/model/ID. FullindependentR1pending; oldG1 reference not runtime admission. Formal5/4/31,nextstore_pool_hit_03.

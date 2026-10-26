@@ -1,0 +1,62 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "canonical": 18,
+  "reviewed_at_utc": "2026-10-26T21:21:18Z",
+  "reviewer": "user-authorized local independent readonly Codex /root/independent_readonly_review",
+  "code_commit": "9484b1b5711c42e54319f01aa4db49e3d8cda979",
+  "manifest_sha256": "2674f4534f0a5cbb798599c107c9d83b17d3651b97758c02e802290055909a4e",
+  "run_id": "sllm-glm51fp8-20261026T210338Z-db12e2fe",
+  "verdict": "changes_required",
+  "verification": {
+    "runtime_files": 80,
+    "repository_inputs": 8,
+    "hash_or_size_mismatches": 0,
+    "working_tree_clean": true,
+    "recorded_tests": {
+      "runtime_cpu_passed": 250,
+      "operator_passed": 34,
+      "operator_windows_posix_skipped": 1,
+      "shell_syntax_passed": 3,
+      "independently_rerun": false
+    }
+  },
+  "blockers": [
+    {
+      "id": "R1-C18-01",
+      "priority": "P1",
+      "title": "Shared metadata re-read after target cold admission",
+      "locations": [
+        "runtime/active/formal_trials.py:175-180",
+        "runtime/active/cache_state_formal.py:27-41",
+        "runtime/active/workspace.py:87-91",
+        "runtime/active/cache_contract13.py:27",
+        "runtime/active/store_cache_inputs.py:5-6,43-47"
+      ],
+      "evidence": "Target cold helper completes full zero mincore, then other_kind check reads shared six checkpoint metadata files again through verify_input_layout/frozen_paths, without target revalidation before register.",
+      "minimum_fix": "Other check before target preparation, explicitly pre-preparation observation; all target metadata reads before eviction, final full mincore last before register.",
+      "required_validation": "Actual Linux metadata negative control shows stale cold evidence invalidated by read and fixed order restores fullzero; actual driver order/receipt label CPU regressions."
+    }
+  ],
+  "other_confirmed_blockers": [],
+  "findings": [
+    "single bootstrap and normal/formal gates/issuedbudget/observe/headstop/imports/Store cleanup reviewed; no second confirmed blocker",
+    "C17 actual G1 supports fixed mathematical/loading reference, not current new normal/budget/cache qualification",
+    "original5/4/31,nextstore_pool_hit_03"
+  ],
+  "runtime_conditions": [
+    "candidate must not deploy; new commit/MF/R1 after fix",
+    "fresh current node/boot/GPU/resource/owned booking/new08:50 root guard and real CPU cleanup probe before computation",
+    "actual normal bothformats two nativecycles/gold/fouridle60/continuous strict5s/import and worker/head cleanup mandatory",
+    "actual Linux probes cannot be replaced by Windows skip",
+    "R2 and exactformal admission before formalhead/worker",
+    "retain originalIDs/order/failuredenominator/cachethresholds/commonpool/costs andissueddeadlines",
+    "finalowncleanup/61point>=60release/rootindex/sourcearchive mandatory"
+  ],
+  "limitations": [
+    "local readonly static/hash review only; no tests/SSH/GPU",
+    "not normal/R2/formal result approval",
+    "historical137/C7early unknown"
+  ],
+  "record_provenance": "structured transcription of actual independent reviewer response retained in chat"
+}

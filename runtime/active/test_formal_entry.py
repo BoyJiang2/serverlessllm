@@ -216,4 +216,35 @@ class NormalQualification(unittest.TestCase):
             with self.subTest(role=role),self.assertRaises(ValueError):module.verify_normal_cache(root,root,root,sha)
 
 
+class ColdBoundary(unittest.TestCase):
+    def test_actual_driver_finishes_target_after_shared_metadata_reads(self):
+        source=pathlib.Path(__file__).with_name('formal_trials.py')
+        tree=ast.parse(source.read_text())
+        block=next(node for node in ast.walk(tree) if isinstance(node,ast.With) and any(isinstance(child,ast.Constant) and child.value=='cache-preparation.log' for child in ast.walk(node)))
+        for kind in ('safetensors_inputs','store_inputs'):
+            resident=[0];calls=[]
+            def helper(argv,**kwargs):
+                mode,asset=argv[2:4];calls.append((mode,asset,argv[4]))
+                resident[0]=1  # Any helper reads shared metadata before its own mode.
+                if mode=='cold':resident[0]=0
+            with tempfile.TemporaryDirectory() as directory:
+                namespace=dict(target=pathlib.Path(directory),subprocess=types.SimpleNamespace(run=helper,STDOUT=-2),
+                    pathlib=pathlib,__file__=str(source),mode='cold',kind=kind,name='unstarted_cpu_fixture')
+                exec(compile(ast.Module(body=[block],type_ignores=[]),'actual-driver-cache-order','exec'),namespace)
+            self.assertEqual(resident[0],0)
+            self.assertEqual(calls[-1][:2],('cold',kind))
+            self.assertTrue(calls[0][2].endswith('_other_pre_preparation'))
+        self.assertIn("record['other_asset_cache_pre_preparation']",source.read_text())
+        self.assertNotIn("record['other_asset_cache_before']",source.read_text())
+
+    def test_linux_probe_refuses_empty_or_model_sized_input(self):
+        from cache_contract13 import probe_cold_boundary
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);source=root/'metadata';target=root/'probe'
+            for data in (b'',b'x'*(1024**2)):
+                source.write_bytes(data)
+                with self.assertRaisesRegex(RuntimeError,'small metadata'):probe_cold_boundary(target,source)
+                self.assertFalse(target.exists())
+
+
 if __name__=='__main__':unittest.main()
