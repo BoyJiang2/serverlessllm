@@ -291,3 +291,7 @@ LocalindependentR1 approved0b3993b/534af6eb at18:01:32Z,61+8hashesmatch,136/18/3
 Real716GiB pool/helper-only init passed. Mandatory compute-apps CLI9.929817547s;210samples maxduration10.171592539/gap11.172147183 fails unchanged5s. Flushteardown records TERM/10swait/KILL then query stall; finalsummary absent, no rootcause claim. Owncleanup0;61point75.907224018srelease/rootindex/source61hasharchive passed; no own live workload. Next minimal diagnostic-only SIGINT/grace test, not fullG1 blind retry. Formal5/4/31 unchanged, historical137unknown.
 
 Isolated formal-prep admission now validates original nine result hashes and explicit prior execution roots before admitting future launch;53CPUtests pass. Actual host launcher integration, fullG1/normalflags/R2/formal gate still absent; this draft grants no execution.
+
+## canonical12 graceful Store diagnostic frozen, R1 pending
+
+Run182853Z-bbc012a6/MF8fb8ae8a473d23fd5971bcc1daa4cbd415c0b9fb5a8c22185b835237ecb38d30;141runtime,20operator(1WindowsPOSIXskip),3syntax. Diagnostic-onlyexactStoreSIGINT240sfromsend/body540absolute/readinesscapped/cancelbodyalarm/postkill5/forcednonzeroerror;actualLinuxasyncSIGINTproofbeforelargepool. Allmandatoryqueries/5sstickyunchanged. Independentreadonlypre-review no confirmedblocker, fullcommit/MF R1 pending. No newguard/deploy/compute; fresh02:28snapshot8GPU0/noGPUproc/valid21-09bookings,sourceabsent. Formal5/4/31 unchanged.

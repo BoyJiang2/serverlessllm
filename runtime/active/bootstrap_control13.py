@@ -16,7 +16,7 @@ import datetime
 from workspace import run_root,verify_input_layout
 root = pathlib.Path('/experiment')
 control = run_root()
-from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_BUDGET
+from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_WORK_BUDGET,POOL_DIAGNOSTIC_STORE_GRACE
 manifest=json.loads((control/'run-manifest.json').read_text())
 pool_diagnostic=manifest['scope']==POOL_DIAGNOSTIC_SCOPE
 if not pool_diagnostic:verify_input_layout()
@@ -58,6 +58,7 @@ address = os.environ['SLLM_PRIVATE_RAY_ADDRESS']
 env['RAY_ADDRESS'] = address
 os.environ.update(RAY_TMPDIR=env['RAY_TMPDIR'],RAY_ADDRESS=address,RAY_USAGE_STATS_ENABLED='0')
 processes, logs = [], []
+store = None
 
 def launch(name, args):
     output = (out/(name+'.log')).open('x')
@@ -85,7 +86,8 @@ from resource_window_control13 import load_window
 deadline = datetime.datetime.fromisoformat(load_window(control)['cleanup_deadline']).timestamp()
 from budget_control13 import require_budget
 require_budget(label,deadline-time.time(),pool_diagnostic=pool_diagnostic)
-signal.alarm(POOL_DIAGNOSTIC_BUDGET-120 if pool_diagnostic else 3300)
+work_deadline=time.monotonic()+POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else None
+signal.alarm(POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else 3300)
 
 try:
     worker = launch('ray-worker',[python,'-m','ray.scripts.scripts','start','--address='+address,'--node-ip-address='+ip,
@@ -107,7 +109,7 @@ try:
                             '--pool-bytes',str(pool_bytes),'--chunk-bytes',str(chunk_bytes),'--host','0.0.0.0','--identity-receipt',str(out/'runtime-imports.json')])
     def store_ready():
         with socket.create_connection(('127.0.0.1',8073),timeout=1): return True
-    wait_ready(store_ready,POOL_DIAGNOSTIC_BUDGET-180 if pool_diagnostic else (1800 if validate_model else 30),store)
+    wait_ready(store_ready,max(0,min(480,work_deadline-time.monotonic())) if pool_diagnostic else (1800 if validate_model else 30),store)
     from listener_control13 import listener
     store_listener=listener(store.pid,8073)
     import grpc
@@ -171,6 +173,9 @@ try:
                 validation_out.mkdir(exist_ok=False)
                 run(validation_out)
 finally:
+    if pool_diagnostic:signal.alarm(0)  # Outer supervisor and root guard still bound cleanup.
+    store_grace_deadline=None
+    store_forced=False
     teardown=[]
     teardown_identity={}
     teardown_namespace={}
@@ -187,23 +192,35 @@ finally:
             stream.write(json.dumps(row)+'\n');stream.flush()
     for process in reversed(processes):
         if process.poll() is None:
-            teardown_event('term_begin',process)
-            process.terminate()
-            teardown_event('term_sent',process)
+            if pool_diagnostic and process is store:
+                teardown_event('interrupt_begin',process,signal=signal.SIGINT)
+                process.send_signal(signal.SIGINT)
+                sent_ns=time.monotonic_ns()
+                store_grace_deadline=sent_ns+POOL_DIAGNOSTIC_STORE_GRACE*1000000000
+                teardown_event('interrupt_sent',process,signal=signal.SIGINT,sent_ns=sent_ns,grace_deadline_ns=store_grace_deadline)
+            else:
+                teardown_event('term_begin',process)
+                process.terminate()
+                teardown_event('term_sent',process)
     # Private PID/network namespace: these Ray processes belong only to this run.
     teardown_event('ray_stop_begin')
     ray_stop=subprocess.run([python,'-m','ray.scripts.scripts','stop','--force'],env=env,timeout=30)
     teardown_event('ray_stop_end',returncode=getattr(ray_stop,'returncode',None))
     for process in processes:
         teardown_event('wait_begin',process)
-        try: process.wait(timeout=10)
+        wait_seconds=max(0,(store_grace_deadline-time.monotonic_ns())/1e9) if pool_diagnostic and process is store and store_grace_deadline is not None else 10
+        try: process.wait(timeout=wait_seconds)
         except subprocess.TimeoutExpired:
+            if pool_diagnostic and process is store:store_forced=True
             teardown_event('kill_begin',process)
             process.kill()
             teardown_event('kill_sent',process)
-            process.wait()
+            process.wait(timeout=5) if pool_diagnostic else process.wait()
         teardown_event('wait_end',process,returncode=process.returncode)
     for output in logs: output.close()
     if pool_diagnostic:
         teardown_event('children_reaped',children=[dict(pid=p.pid,returncode=p.returncode) for p in processes])
         (out/'pool-diagnostic-teardown.json').write_text(json.dumps(teardown,indent=2))
+
+        if store is None or store_forced or store.returncode!=0:
+            raise RuntimeError('resident Store did not exit gracefully')

@@ -147,8 +147,22 @@ path=pathlib.Path(tensor_audit.__file__).resolve()
 assert path==SOURCE/'tensor_audit.py', 'audit helper origin differs'
 assert hashlib.sha256(path.read_bytes()).hexdigest()=='069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff', 'audit helper hash differs'
 assert cloudpickle.loads(cloudpickle.dumps(audit_model)) is audit_model, 'audit callback module import differs'
+# Actual Linux interpreter cancellation proof, before any large pool allocation.
+import select,signal,subprocess,sys,time
+child_code="import asyncio\\nasync def main():\\n print('ready',flush=True)\\n try: await asyncio.Event().wait()\\n except asyncio.CancelledError: print('cleanup',flush=True)\\nasyncio.run(main())\\n"
+child=subprocess.Popen([sys.executable,'-u','-c',child_code],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+try:
+ assert select.select([child.stdout],[],[],5)[0], 'SIGINT probe readiness timeout'
+ assert child.stdout.readline().strip()=='ready'
+ child.send_signal(signal.SIGINT)
+ stdout,stderr=child.communicate(timeout=5)
+ assert child.returncode==0 and stdout.strip()=='cleanup', 'asyncio cancellation cleanup failed'
+ sigint_proof=dict(pid=child.pid,signal=signal.SIGINT,returncode=child.returncode,cleanup_marker=stdout.strip(),interpreter=sys.executable,version=sys.version,monotonic_ns=time.monotonic_ns())
+finally:
+ if child.poll() is None:
+  child.kill();child.communicate(timeout=5)
 with (run_root()/'cpu-import-preflight.json').open('x') as f:
- json.dump(dict(modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)
+ json.dump(dict(sigint_probe=sigint_proof,modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)
 print('CPU import preflight passed')"""
    call(['docker','exec',r['container_id'],'/experiment/.venv/bin/python','-c',probe],timeout=90)
   if not diagnostic:launch(PHASE)

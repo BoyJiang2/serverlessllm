@@ -1,6 +1,8 @@
 """Fixed control budgets, including cleanup margin; no formal IDs."""
 POOL_DIAGNOSTIC_SCOPE='monitor diagnostics with resident Store only; no checkpoint or model'
 POOL_DIAGNOSTIC_BUDGET=900
+POOL_DIAGNOSTIC_WORK_BUDGET=540
+POOL_DIAGNOSTIC_STORE_GRACE=240
 POOL_DIAGNOSTIC_PHASE_BUDGET=1200
 POOL_DIAGNOSTIC_WINDOW=2400
 

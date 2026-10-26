@@ -240,4 +240,23 @@ class Transport(unittest.TestCase):
             self.assertIn('BOUND_SOURCE_PREFLIGHT_REACHED',result.stderr)
             self.assertNotIn('ModuleNotFoundError',result.stderr)
 
+class SigintPreflight(unittest.TestCase):
+    def probe(self):
+        tree=ast.parse(operator.REMOTE)
+        text=next(n.value.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='probe' for x in n.targets))
+        compile(text,'actual-cpu-import-probe','exec')
+        return text[text.index('import select,signal,subprocess,sys,time'):text.index("with (run_root()/'cpu-import-preflight.json')")]
+
+    def test_actual_generated_probe_and_child_compile(self):
+        probe=self.probe();tree=ast.parse(probe)
+        child=next(n.value.value for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='child_code' for x in n.targets))
+        compile(child,'actual-asyncio-child','exec')
+        self.assertIn('communicate(timeout=5)',probe)
+
+    @unittest.skipUnless(sys.platform=='linux','POSIX SIGINT delivery; mandatory actual Linux preallocation probe')
+    def test_real_asyncio_sigint_cleans_up(self):
+        scope={};exec(self.probe(),scope)
+        self.assertEqual(scope['sigint_proof']['returncode'],0)
+        self.assertEqual(scope['sigint_proof']['cleanup_marker'],'cleanup')
+
 if __name__=='__main__':unittest.main()

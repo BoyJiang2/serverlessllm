@@ -1,5 +1,5 @@
 """Execute loaded-pool admission/prefix/exit on CPU fixtures; never allocate a pool."""
-import ast,json,pathlib,tempfile,time,types,unittest
+import ast,json,pathlib,tempfile,time,types,unittest,signal
 import urllib.request
 from unittest.mock import patch
 import materialize_control13 as materialize
@@ -69,12 +69,14 @@ class PoolDiagnostic(unittest.TestCase):
                 pid=123;returncode=None
                 def poll(self):return self.returncode
                 def terminate(self):self.returncode=0
+                def send_signal(self,signum):self.returncode=0
                 def wait(self,**kwargs):return self.returncode
                 def kill(self):self.returncode=-9
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
             index=next(i for i,n in enumerate(body.body) if isinstance(n,ast.If) and isinstance(n.test,ast.Name) and n.test.id=='pool_diagnostic')
             mini=ast.Try(body=body.body[index:index+2],handlers=[],orelse=[],finalbody=body.finalbody)
-            scope=dict(pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
+            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),POOL_DIAGNOSTIC_STORE_GRACE=240,pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
+            scope['store']=scope['processes'][0]
             with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
             if not (extra_gpu or missing_gpu):self.assertEqual(error.exception.code,0)
             stages=json.loads((out/'pool-diagnostic-teardown.json').read_text());self.assertEqual(stages[-1]['stage'],'children_reaped')
@@ -95,7 +97,7 @@ class PoolDiagnostic(unittest.TestCase):
                 def terminate(self):self.returncode=0
             def fail(*args,**kwargs):raise RuntimeError('interrupted Ray cleanup')
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
-            scope=dict(pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
+            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),POOL_DIAGNOSTIC_STORE_GRACE=240,pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
             with self.assertRaisesRegex(RuntimeError,'interrupted Ray'):exec(compile(ast.Module(body=body.finalbody,type_ignores=[]),'actual-finally-partial','exec'),scope)
             events=[json.loads(line) for line in (out/'pool-diagnostic-teardown.jsonl').read_text().splitlines()]
             self.assertEqual(events[-1]['stage'],'ray_stop_begin')
@@ -103,5 +105,64 @@ class PoolDiagnostic(unittest.TestCase):
             self.assertFalse((out/'pool-diagnostic-teardown.json').exists())
             self.assertEqual(events[0]['namespace_pid'],123)
             self.assertIsNone(events[0]['container_id'])  # Unavailable, never fabricated.
+
+class GracefulPoolTeardown(unittest.TestCase):
+    def execute(self,store_timeout=False,store_rc=0,interrupted=False):
+        import subprocess
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
+        out=pathlib.Path(temporary.name);calls=[]
+        class Process:
+            def __init__(self,pid):self.pid=pid;self.returncode=None
+            def poll(self):return self.returncode
+            def terminate(self):calls.append(('term',self.pid));self.returncode=1
+            def send_signal(self,n):calls.append(('signal',self.pid,n))
+            def wait(self,timeout=None):
+                calls.append(('wait',self.pid,timeout))
+                if self.pid==1 and store_timeout and self.returncode is None:raise subprocess.TimeoutExpired('store',timeout)
+                if self.pid==1 and self.returncode is None:self.returncode=store_rc
+                return self.returncode
+            def kill(self):calls.append(('kill',self.pid));self.returncode=-9
+        store=Process(1);worker=Process(2)
+        def ray_stop(*a,**kw):
+            calls.append(('ray_stop',kw['timeout']))
+            if interrupted:raise RuntimeError('interrupted')
+            return types.SimpleNamespace(returncode=0)
+        # Clock advances during Ray stop: remaining grace cannot restart at wait.
+        times=iter([1000000000,2000000000,3000000000,4000000000,5000000000,6000000000,7000000000,8000000000,9000000000,10000000000,11000000000,12000000000,13000000000,14000000000,15000000000,16000000000,17000000000,18000000000,19000000000,20000000000])
+        scope=dict(store=store,pool_diagnostic=True,POOL_DIAGNOSTIC_STORE_GRACE=240,signal=types.SimpleNamespace(SIGINT=signal.SIGINT,alarm=lambda n:calls.append(('alarm',n))),out=out,control=out,manifest=dict(run_id='run',runtime_identity=dict(boot_id='boot')),time=types.SimpleNamespace(monotonic_ns=lambda:next(times)),json=json,processes=[worker,store],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=ray_stop,TimeoutExpired=subprocess.TimeoutExpired))
+        tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
+        try:exec(compile(ast.fix_missing_locations(ast.Module(body=body.finalbody,type_ignores=[])),'actual-teardown','exec'),scope)
+        except RuntimeError:
+            if not (store_timeout or interrupted or store_rc):raise
+        else:self.assertFalse(store_timeout or interrupted or store_rc,'failure promoted to success')
+        return calls,out
+
+    def test_sigint_exact_store_cancel_alarm_and_grace_from_send(self):
+        calls,out=self.execute()
+        self.assertEqual(calls[0],('alarm',0));self.assertIn(('signal',1,signal.SIGINT),calls)
+        self.assertIn(('term',2),calls);self.assertNotIn(('term',1),calls)
+        waits=[row for row in calls if row[:2]==('wait',1)]
+        self.assertGreater(waits[0][2],0);self.assertLess(waits[0][2],240)
+        rows=json.loads((out/'pool-diagnostic-teardown.json').read_text())
+        sent=next(r for r in rows if r['stage']=='interrupt_sent')
+        self.assertEqual(sent['grace_deadline_ns']-sent['sent_ns'],240000000000)
+        self.assertEqual(rows[-1]['stage'],'children_reaped')
+
+    def test_grace_expiry_kill_bounded_and_not_success(self):
+        calls,out=self.execute(store_timeout=True)
+        self.assertIn(('kill',1),calls);self.assertIn(('wait',1,5),calls)
+
+    def test_nonzero_store_exit_not_success(self):self.execute(store_rc=1)
+
+    def test_interrupted_ray_keeps_partial_record(self):
+        calls,out=self.execute(interrupted=True)
+        self.assertFalse((out/'pool-diagnostic-teardown.json').exists())
+        self.assertIn('interrupt_sent',(out/'pool-diagnostic-teardown.jsonl').read_text())
+
+    def test_work_and_cleanup_fit_outer_work_deadline(self):
+        from budget_control13 import POOL_DIAGNOSTIC_WORK_BUDGET,POOL_DIAGNOSTIC_STORE_GRACE
+        self.assertLess(POOL_DIAGNOSTIC_WORK_BUDGET+POOL_DIAGNOSTIC_STORE_GRACE+30+10+5+20,POOL_DIAGNOSTIC_BUDGET-25)
+        source=(SOURCE/'bootstrap_control13.py').read_text()
+        self.assertIn('min(480,work_deadline-time.monotonic())',source)
 
 if __name__=='__main__':unittest.main()
