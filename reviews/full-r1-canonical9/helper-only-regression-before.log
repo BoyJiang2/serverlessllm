@@ -1,0 +1,33 @@
+test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up (test_pool_diagnostic13.PoolDiagnostic.test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up) ... ERROR
+test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up (test_pool_diagnostic13.PoolDiagnostic.test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up) ... ERROR
+
+======================================================================
+ERROR: test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up (test_pool_diagnostic13.PoolDiagnostic.test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_pool_diagnostic13.py", line 85, in test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up
+    def test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up(self):self.ready_branch(extra_gpu=True)
+                                                                           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_pool_diagnostic13.py", line 78, in ready_branch
+    with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
+                                                                                                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-pool-ready-finally", line 142, in <module>
+SystemExit: 0
+
+======================================================================
+ERROR: test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up (test_pool_diagnostic13.PoolDiagnostic.test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_pool_diagnostic13.py", line 87, in test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up
+    def test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up(self):self.ready_branch(missing_gpu=True)
+                                                                              ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_pool_diagnostic13.py", line 78, in ready_branch
+    with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
+                                                                                                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "actual-pool-ready-finally", line 142, in <module>
+SystemExit: 0
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.022s
+
+FAILED (errors=2)

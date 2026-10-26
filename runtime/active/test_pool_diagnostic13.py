@@ -56,13 +56,14 @@ class PoolDiagnostic(unittest.TestCase):
         with self.assertRaises(RuntimeError):self.prefix(flag='0')
         with self.assertRaises(AssertionError):self.prefix(pool_bytes=67108864)
 
-    def test_actual_ready_branch_exits_through_finally_before_sllm(self):
+    def ready_branch(self,extra_gpu=False,missing_gpu=False):
         with tempfile.TemporaryDirectory() as directory:
             control=pathlib.Path(directory);out=control/'service-bootstrap-service13a';out.mkdir()
             launch=dict(pid=1124,pid_namespace='pid:[42]',start_ticks='333',boot_id='boot')
             service=dict(container_id='c'*64,cgroup='0::/own/container\n')
             helper=dict(host_pid=9001,namespace_pid=1124,pid_namespace='pid:[42]',start_ticks='333',boot_id='boot',container_id='c'*64,cgroup=service['cgroup'],uid=2147)
-            stamp=time.monotonic_ns();snapshot=dict(run_id='test-run',boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=stamp,sample_begin_ns=stamp,sample_end_ns=stamp,history_ok=True,first_monitor_error=None,registered_store_helper=helper)
+            stamp=time.monotonic_ns();snapshot=dict(run_id='test-run',boot_id='boot',observers_ok=True,foreign_gpu_pids=[],last_sample_ns=stamp,sample_begin_ns=stamp,sample_end_ns=stamp,history_ok=True,first_monitor_error=None,registered_store_helper=helper,gpu_pids=[9001,9002] if extra_gpu else [9001])
+            if missing_gpu:del snapshot['gpu_pids']
             for path,value in [(out/'store-numa-launch.json',launch),(control/'service13a-identity.json',service),(out/'pool-ready.json',dict(monotonic_ns=stamp-1)),(control/'monitor-v3-ready.json',snapshot)]:path.write_text(json.dumps(value))
             class Process:
                 pid=123;returncode=None
@@ -74,9 +75,15 @@ class PoolDiagnostic(unittest.TestCase):
             index=next(i for i,n in enumerate(body.body) if isinstance(n,ast.If) and isinstance(n.test,ast.Name) and n.test.id=='pool_diagnostic')
             mini=ast.Try(body=body.body[index:index+2],handlers=[],orelse=[],finalbody=body.finalbody)
             scope=dict(pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
-            with self.assertRaises(SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
-            self.assertEqual(error.exception.code,0)
+            with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
+            if not (extra_gpu or missing_gpu):self.assertEqual(error.exception.code,0)
             stages=json.loads((out/'pool-diagnostic-teardown.json').read_text());self.assertEqual(stages[-1]['stage'],'children_reaped')
-            self.assertTrue((out/'pool-diagnostic-result.json').is_file())
+            self.assertEqual((out/'pool-diagnostic-result.json').is_file(),not (extra_gpu or missing_gpu))
+
+    def test_actual_ready_branch_exits_through_finally_before_sllm(self):self.ready_branch()
+
+    def test_extra_own_gpu_pid_blocks_completion_and_still_cleans_up(self):self.ready_branch(extra_gpu=True)
+
+    def test_missing_gpu_pid_list_blocks_completion_and_still_cleans_up(self):self.ready_branch(missing_gpu=True)
 
 if __name__=='__main__':unittest.main()

@@ -1,0 +1,31 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "changes_required",
+  "reviewer": "user-authorized local independent readonly Codex subagent /root/independent_readonly_review",
+  "reviewed_at_utc": "2026-10-26T17:14:55Z",
+  "code_commit": "0b778fd4d3e8baf04ea9cb35366cc43ac1909231",
+  "manifest_sha256": "b1cde23a73b970ed2fc75530ffd0f325826dd4d70d0f09a18cc36b1282daa1fe",
+  "run_id": "sllm-glm51fp8-20261026T170947Z-89e023f0",
+  "verification": {
+    "package_files_hashed": 61,
+    "repository_inputs_hashed": 8,
+    "mismatches": [],
+    "tests_executed_by_reviewer": false,
+    "recorded_tests": {
+      "runtime": 129,
+      "operator": 18,
+      "shell": 3
+    }
+  },
+  "blockers": [
+    {
+      "id": "R1-C9-01",
+      "file": "runtime/active/bootstrap_control13.py",
+      "finding": "pool-ready verifies helper binding and foreignGPU but does not reject another own GPU PID or missing gpu_pids; actual occurrence not alleged",
+      "minimal_fix": "call existing require_helper_only before success; actual branch negative extra own PID/missing PID list, finally still required"
+    }
+  ],
+  "unchanged_conditions": "All other full source/hash/role/pool/flow/budget/guard/cleanup/release constraints confirmed; actual runtime still required; no G1/R2/formal admission",
+  "record_provenance": "structured transcription of actual reviewer response in chat; original response retained there"
+}

@@ -124,7 +124,7 @@ try:
     target = json.loads((out/'store-numa-launch.json').read_text())['target_cpu_affinity']
     (out/'store-affinity-ready.json').write_text(json.dumps(audit_store_threads(store.pid,target),indent=2))
     if pool_diagnostic:
-        from gpu_identity13 import require_monitor_ready,require_helper_binding
+        from gpu_identity13 import require_monitor_ready,require_helper_binding,require_helper_only
         launch_receipt=json.loads((out/'store-numa-launch.json').read_text())
         service_identity=json.loads((control/'service13a-identity.json').read_text())
         pool_ready=json.loads((out/'pool-ready.json').read_text())
@@ -135,6 +135,7 @@ try:
             helper=snapshot['registered_store_helper']
             if helper is not None and snapshot['sample_begin_ns']>=pool_ready['monotonic_ns']:
                 require_helper_binding(helper,launch_receipt,service_identity,manifest['runtime_identity']['boot_id'])
+                require_helper_only(snapshot,helper,time.monotonic_ns(),manifest['run_id'],manifest['runtime_identity']['boot_id'])
                 break
             if time.monotonic()>=stop:raise TimeoutError('resident pool helper fresh sample unavailable')
             time.sleep(.1)
