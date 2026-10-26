@@ -1,0 +1,28 @@
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/utils.py", line 3220, in run
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     out = model(new_inputs)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]           ^^^^^^^^^^^^^^^^^
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/r/native-home/inductor/kf/ckffmi73j4gv7xvtmwh6kzfsm7rvhgeeyh7ju46l3nmah5zsfsie.py", line 148, in call
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_ge_lt_mul_sub_0.run(arg1_1, buf0, buf1, s90, s87, s68, s53, s88, s45, stream=stream4)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/triton_heuristics.py", line 1379, in run
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self.autotune_to_one_config(*args, **kwargs)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/triton_heuristics.py", line 1129, in autotune_to_one_config
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self.save_cache_hook(
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/autotune_cache.py", line 301, in save
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     cache.put(key, data)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/remote_cache.py", line 195, in put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self._put(key, value, sample)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/autotune_cache.py", line 642, in _put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     super()._put(key, value, sample)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/remote_cache.py", line 230, in _put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self._backend_put(key, data)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/remote_cache.py", line 236, in _backend_put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self.backend.put(key, data)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/remote_cache.py", line 94, in put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     self._put(key, data)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/autotune_cache.py", line 609, in _put
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]     os.makedirs(os.path.dirname(key), exist_ok=True)
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "<frozen os>", line 215, in makedirs
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "<frozen os>", line 215, in makedirs
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949]   File "<frozen os>", line 225, in makedirs
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949] PermissionError: [Errno 13] Permission denied: '/experiment/native-home'
+[36m(VllmBackend pid=1224, ip=172.17.0.2)[0m (Worker_TP4 pid=2555) ERROR 10-26 10:00:08 [multiproc_executor.py:949] Traceback (most recent call last):

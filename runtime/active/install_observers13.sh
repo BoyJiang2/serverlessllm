@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-run_id=sllm-glm51fp8-20261026T092330Z-97af52ad
+run_id=sllm-glm51fp8-20261026T101414Z-b7e048db
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
