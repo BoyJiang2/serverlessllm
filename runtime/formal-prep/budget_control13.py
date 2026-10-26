@@ -92,3 +92,27 @@ def load_formal_batch(root,label):
     expected=formal_batch_budget(dispatch['dispatch_monotonic_ns'],observed['wall_anchor_ns'],resource_ns,'normal' if label=='service13a' else 'formal')
     if observed!=expected:raise ValueError('formal batch deadline differs from issued constraints')
     return expected
+
+
+def head_stop_requested(root,label):
+    import json,pathlib
+    path=root/('head'+label+'-stop-request.json')
+    if not path.exists():return False
+    request=json.loads(path.read_text())
+    head=json.loads((root/('head'+label+'-identity.json')).read_text())
+    dispatch=json.loads((root/('head'+label+'-dispatch.json')).read_text())
+    worker=json.loads((root/(label+'-supervisor-result.json')).read_text())
+    expected={key:head[key] for key in ('run_id','code_commit','manifest_sha256','container_id','pid')}
+    expected.update(boot_id=dispatch['boot_id'],head_dispatch_monotonic_ns=dispatch['dispatch_monotonic_ns'])
+    budget=load_formal_batch(root,label)
+    if request.get('identity')!=expected or not dispatch['dispatch_monotonic_ns']<=request['requested_ns']<budget['head_end_ns']-FORMAL_HEAD_STOP_SECONDS*1000000000:
+        raise ValueError('controlled head stop request identity or deadline differs')
+    if worker['status']!='passed including cleanup' or worker['child_alive_at_end'] or worker['absolute_end_ns']!=budget['total_end_ns'] or worker['end_ns']>request['requested_ns']:
+        raise ValueError('controlled stop requires completed own worker within issued deadline')
+    return True
+
+
+def require_batch_start(batch):
+    import time
+    if time.monotonic_ns()>=batch['initialization_end_ns'] or time.time_ns()>=batch['resource_deadline_ns']:
+        raise TimeoutError('issued batch expired before new process creation')

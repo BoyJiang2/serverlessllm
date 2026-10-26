@@ -363,3 +363,8 @@ G1 only. Normal-flags/R2/formal admission remain pending. Formal5 success/4 fail
 ## Isolated absolute formal-budget draft milestone
 
 Prepared driver/common bootstrap now share issued monotonic batch cutoffs: independent180s attempt evidence,330s normal cleanup,25s emergency cleanup,10s head stop,180s release; initialization capped900s. Late zero exit/deadline extension/ID creation without full attempt budget reject. One prepared bootstrap_control13 replaces obsolete separate bootstrap_formal, retaining full common pool. All69 prepared CPU tests pass with active shared modules on PYTHONPATH. A first ad-hoc runner omitted active test dependencies and produced5 import errors; corrected runner passes without changing implementation. This remains isolated draft, not deployable formal admission: host/materializer/head-stop/JIT/monitor integration pending. No runtime or formal ID launched.
+
+
+## Prepared normal/formal entry integration — CPU milestone only
+
+Finite native head/worker roles, precreate formal gate, issued absolute budget, controlled head stop, completed-normal/JIT/R2 binding and live two-role helper selection drafted in isolated formal-prep.94CPUtests pass including actual boundary no-create/no-Popen after expiry. Independent readonly advisor three confirmed gaps fixed/rechecked; no overall R1. Existing operator still needs integration and frozen new config/MF/review; no new remote runtime.04:54 readonly qjhs003 eightGPU0/no computePID; G1source archived/canonical source absent. Original5/4/31 unchanged. See reviews/formal-preparation/entry-integration.md.

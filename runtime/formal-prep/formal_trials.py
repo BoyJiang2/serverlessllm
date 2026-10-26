@@ -50,7 +50,9 @@ def run(out,batch_budget):
     (out/'review-admission.json').write_text(json.dumps(gate,indent=2))
     client = SllmStoreClient()
     frozen_cache = artifact_snapshot(ROOT/'native-home')
-    assert frozen_cache
+    from formal_gate import verify_normal_cache
+    cache_proof=verify_normal_cache(ROOT,SOURCE,ASSETS,gate['jit_cache_proof_sha256'])
+    assert frozen_cache==cache_proof['artifacts']
     (out/'jit-cache-baseline.json').write_text(json.dumps(frozen_cache,indent=2))
     (out/'autotune-log-baseline.log').write_bytes(read_mutable_log(ROOT/'native-home'))
     monitor_ready = ROOT/'monitor-v3-ready.json'

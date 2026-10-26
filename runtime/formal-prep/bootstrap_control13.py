@@ -184,6 +184,8 @@ try:
                 os.environ['SLLM_SERVICE_WEIGHT_FORMAT']=weight_format
                 target=out/weight_format;target.mkdir(exist_ok=False)
                 run(target,audit_weights=False)
+            from formal_gate import seal_normal_cache
+            seal_normal_cache(control,pathlib.Path(__file__).resolve().parent,root)
         else:
             from formal_trials import run
             run(out,batch_budget)

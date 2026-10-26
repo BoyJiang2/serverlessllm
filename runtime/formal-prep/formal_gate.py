@@ -49,6 +49,59 @@ def verify_normal_reference(config, assets):
     return acceptance
 
 
+
+def seal_normal_cache(root,source,assets):
+    from compilation_guard_v6 import artifact_snapshot
+    config=json.loads((root/'run-manifest.json').read_text())
+    deployment=json.loads((root/'deployment.json').read_text())
+    from budget_control13 import load_formal_batch
+    budget=load_formal_batch(root,'service13a')
+    proofs=[]
+    for kind in ('serverless_llm','safetensors'):
+        relative='service-bootstrap-service13a/'+kind+'/model-result.json'
+        path=root/relative;data=path.read_bytes();proof=json.loads(data)
+        if proof.get('status')!='normal-flags gold smoke lifecycle checks passed' or proof.get('cycles')!=2 or proof.get('weight_format')!=kind or proof.get('weight_audit_performed') is not False:
+            raise ValueError('complete normal native lifecycle required before JIT seal')
+        proofs.append(dict(path=relative,sha256=hashlib.sha256(data).hexdigest()))
+    artifacts=artifact_snapshot(root/'native-home')
+    if not artifacts:raise ValueError('normal runtime compiled artifact set empty')
+    end=time.monotonic_ns()
+    if end>=budget['work_end_ns']:raise TimeoutError('normal cache qualification exceeded issued deadline')
+    receipt=dict(status='normal native lifecycle and warm artifact qualification',run_id=config['run_id'],boot_id=config['runtime_identity']['boot_id'],image_id=config['image_id'],code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'],g1_acceptance_sha256=config['g1_acceptance_sha256'],gold_sha256=GOLD_SHA,preregistration_sha256=PREREG_SHA,normal_flags_proofs=proofs,artifacts=artifacts,qualified_ns=end,batch_budget=budget)
+    with (root/'normal-jit-qualification.json').open('x') as stream:json.dump(receipt,stream,indent=2)
+    return receipt
+
+
+def verify_normal_cache(root,source,assets,expected_sha):
+    from compilation_guard_v6 import artifact_snapshot
+    proof=checked_json(root/'normal-jit-qualification.json',expected_sha)
+    config=json.loads((root/'run-manifest.json').read_text())
+    deployment=json.loads((root/'deployment.json').read_text())
+    expected=dict(status='normal native lifecycle and warm artifact qualification',run_id=config['run_id'],boot_id=config['runtime_identity']['boot_id'],image_id=config['image_id'],code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'],g1_acceptance_sha256=config['g1_acceptance_sha256'],gold_sha256=GOLD_SHA,preregistration_sha256=PREREG_SHA)
+    if any(proof.get(k)!=v for k,v in expected.items()):raise ValueError('normal JIT qualification identity differs')
+    from budget_control13 import load_formal_batch
+    if proof['batch_budget']!=load_formal_batch(root,'service13a') or not proof['batch_budget']['begin_ns']<=proof['qualified_ns']<proof['batch_budget']['work_end_ns']:
+        raise ValueError('normal qualification outside issued batch')
+    for role in ('service13a','headservice13a'):
+        supervisor=json.loads((root/(role+'-supervisor-result.json')).read_text())
+        dispatch=json.loads((root/(role+'-dispatch.json')).read_text())
+        expected={key:dispatch[key] for key in ('run_id','code_commit','manifest_sha256','boot_id','dispatch_monotonic_ns')}
+        if any(supervisor.get(key)!=value for key,value in expected.items()) or any(dispatch[key]!=value for key,value in dict(run_id=config['run_id'],code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'],boot_id=config['runtime_identity']['boot_id']).items()):
+            raise ValueError('normal completed batch identity differs')
+        end=proof['batch_budget']['head_end_ns'] if role.startswith('head') else proof['batch_budget']['total_end_ns']
+        if supervisor['status']!='passed including cleanup' or supervisor['child_alive_at_end'] or supervisor['absolute_end_ns']!=end or supervisor['end_ns']>end:
+            raise ValueError('normal batch cleanup not successfully completed')
+        if role.startswith('head') and (supervisor.get('controlled_stop') is not True or supervisor.get('forced_kill') is not False or supervisor.get('terminate_sent_ns') is None or supervisor.get('child_returncode') not in (0,1,-15)):
+            raise ValueError('normal head controlled stop not proven')
+    if not proof['artifacts'] or artifact_snapshot(root/'native-home')!=proof['artifacts']:
+        raise ValueError('normal JIT cache changed or is empty')
+    for row in proof['normal_flags_proofs']:
+        path=(root/row['path']).resolve()
+        if not path.is_relative_to(root.resolve()):raise ValueError('normal cache proof escaped run')
+        checked_json(path,row['sha256'])
+    return proof
+
+
 def execution_roots(gate,assets,root):
     roots=[]
     for value in gate['prior_execution_roots']:
@@ -113,8 +166,14 @@ def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
         formats.add(proof['weight_format'])
     if formats != {'serverless_llm', 'safetensors'} or len(gate['normal_flags_proofs']) != 2:
         raise ValueError('both normal-flags formats required')
+    roots=execution_roots(gate,assets,root)
+    cache=verify_normal_cache(root,source,assets,gate['jit_cache_proof_sha256'])
+    if r2.get('jit_cache_proof_sha256')!=gate['jit_cache_proof_sha256'] or r2.get('normal_flags_proofs')!=gate['normal_flags_proofs'] or cache['normal_flags_proofs']!=gate['normal_flags_proofs']:
+        raise ValueError('R2/normal cache and lifecycle evidence differ')
+    if gate['prior_execution_roots']!=config['formal_prior_execution_roots']:
+        raise ValueError('formal prior execution roots differ from reviewed mount list')
     collect(assets/'protocol/measurement-preregistration.json',source/'initial-ledger.json',
-            assets/'results/formal-trials',execution_roots(gate,assets,root))
+            assets/'results/formal-trials',roots)
     return gate
 
 

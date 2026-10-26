@@ -39,7 +39,7 @@ class FormalGate(unittest.TestCase):
             (target/'result.json').write_bytes(original.read_bytes())
         self.code = 'a' * 40
         config = dict(run_id='own-formal-run',scope='formal continuation of original forty IDs',
-                      store_import_sha256={},formal_required_env={},runtime_identity=dict(boot_id='test-boot'))
+                      formal_prior_execution_roots=[],store_import_sha256={},formal_required_env={},runtime_identity=dict(boot_id='test-boot'))
         required = ('formal_trials.py', 'formal_gate.py', 'attempt_state.py',
                     'bootstrap_control13.py', 'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json')
         rows = []
@@ -69,7 +69,10 @@ class FormalGate(unittest.TestCase):
                          source_manifest_sha256=self.manifest_sha,
                          preregistration_sha256=formal_gate.PREREG_SHA, gold_sha256=formal_gate.GOLD_SHA,
                          execution_run_id='own-formal-run', worker_label='formal13', prior_execution_roots=[],
-                         r2_approval_sha256=r2_sha, normal_flags_proofs=proofs)
+                         r2_approval_sha256=r2_sha, normal_flags_proofs=proofs,jit_cache_proof_sha256='e'*64)
+        save(self.root/'r2-approval.json',dict(gate='R2',scope='formal-runtime',verdict='approved',code_commit=self.code,manifest_sha256=self.manifest_sha,jit_cache_proof_sha256='e'*64,normal_flags_proofs=proofs))
+        self.gate['r2_approval_sha256']=hashlib.sha256((self.root/'r2-approval.json').read_bytes()).hexdigest()
+        patcher=patch.object(formal_gate,'verify_normal_cache',return_value=dict(normal_flags_proofs=proofs));patcher.start();self.addCleanup(patcher.stop)
 
     def check(self, extra_env=None, forbid_host_check=False, admission_only=False, reference_error=None):
         sha = save(self.root / 'formal-admission.json', self.gate)
