@@ -10,7 +10,7 @@ import os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden')
 
-from workspace import SOURCE,HOST,run_root,historical_path,container_mounts,verify_input_layout
+from workspace import SOURCE,HOST,RUN_ALIAS,run_root,historical_path,container_mounts,verify_input_layout
 root = run_root()
 manifest = json.loads((root/'run-manifest.json').read_text())
 assert manifest['workspace_root']==str(HOST)
@@ -73,7 +73,8 @@ if spec.get('raw_export_hook') or spec.get('phase_trace'):
     args += ['--mount=type=bind,src=' + str(HOST / 'archive/original-run/patches/base_loader.py')
              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py,readonly']
 if spec.get('phase_trace'):
-    assert spec['env'].get('SLLM_EVENT_DIR', '').startswith('/experiment/')
+    event_path=pathlib.PurePosixPath(spec['env'].get('SLLM_EVENT_DIR',''))
+    assert event_path.is_relative_to(RUN_ALIAS) and '..' not in event_path.parts
     args += ['--mount=type=bind,src=' + str(HOST / 'archive/original-run/patches/gpu_worker.py')
              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py,readonly']
 if spec.get('host_monitor'):

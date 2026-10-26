@@ -1,9 +1,24 @@
 """Canonical path boundary regressions; no filesystem writes outside temp space."""
-import hashlib,json,pathlib,tempfile,unittest
+import ast,hashlib,json,pathlib,tempfile,unittest
 from unittest.mock import patch
 import workspace as w
 
 class Workspace(unittest.TestCase):
+    def test_actual_phase_trace_guard_accepts_only_run_alias(self):
+        tree=ast.parse((w.SOURCE/'launch_control13.py').read_text())
+        node=next(n for n in tree.body if isinstance(n,ast.If) and ast.unparse(n.test)=="spec.get('phase_trace')")
+        code=compile(ast.Module(body=[node],type_ignores=[]),'actual phase trace guard','exec')
+        for value,allowed in [('/r/events',True),('/experiment/events',False),('/r/../etc',False),('/r2/events',False)]:
+            context=dict(spec={'phase_trace':True,'env':{'SLLM_EVENT_DIR':value}},pathlib=pathlib,RUN_ALIAS=w.RUN_ALIAS,HOST=w.HOST,args=[])
+            with self.subTest(value=value):
+                if allowed:exec(code,context)
+                else:
+                    with self.assertRaises(AssertionError):exec(code,context)
+    def test_ray_socket_paths_fit_unix_limit(self):
+        with patch.dict(w.os.environ,{'SLLM_CONTROL_WORKSPACE':'/experiment'}):
+            for role in ('ray13a','ray13b','service13a'):
+                path=w.run_root()/('ray-head-'+role)/'session_2026-10-26_07-13-16_771823_4294967295'/'sockets/plasma_store'
+                with self.subTest(role=role):self.assertLessEqual(len(path.as_posix().encode()),107)
     def test_cache_official_manifest_is_mounted_readonly(self):
         mounts={row['destination']:row for row in w.container_mounts()}
         self.assertEqual(mounts.get('/experiment/protocol/run-manifest.json'),dict(
@@ -12,7 +27,7 @@ class Workspace(unittest.TestCase):
     def test_host_and_container_paths(self):
         for value in (str(w.HOST),'/experiment'):
             with self.subTest(value=value),patch.dict(w.os.environ,{'SLLM_CONTROL_WORKSPACE':value}):
-                self.assertEqual(w.run_root(),pathlib.Path(value)/'validation/controls'/w.manifest()['run_id'])
+                self.assertEqual(w.run_root(),pathlib.Path(str(w.RUN_ALIAS)) if value=='/experiment' else pathlib.Path(value)/'validation/controls'/w.manifest()['run_id'])
                 self.assertFalse(w.run_root().is_relative_to(w.archive()))
     def test_old_root_and_arbitrary_override_rejected(self):
         for value in ('/tmp/test','/data/brick1/boyjiang/sllm-glm51fp8-20261024T051606Z-deb76e57','/experiment/../archive'):
@@ -20,13 +35,13 @@ class Workspace(unittest.TestCase):
     def test_escaped_identity_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory)
-            for value in ('../archive','sllm-glm51fp8-20261026T030041Z-5b688078/../archive','other-run'):
+            for value in ('../archive','sllm-glm51fp8-20261026T075854Z-e71cc109/../archive','other-run'):
                 (root/'run-manifest.json').write_text(json.dumps({'run_id':value}))
                 with self.subTest(value=value),patch.object(w,'SOURCE',root),self.assertRaises(RuntimeError):w.run_root()
 
     def test_only_current_output_is_writable(self):
         rows=w.container_mounts();writable=[r for r in rows if not r['readonly']]
-        self.assertEqual(writable,[dict(source=str(w.HOST/'validation/controls'/w.manifest()['run_id']),destination='/experiment/validation/controls/'+w.manifest()['run_id'],readonly=False)])
+        self.assertEqual(writable,[dict(source=str(w.HOST/'validation/controls'/w.manifest()['run_id']),destination=str(w.RUN_ALIAS),readonly=False)])
         for row in rows:
             self.assertTrue(pathlib.PurePosixPath(row['source']).is_relative_to(w.HOST))
             self.assertNotIn('/sllm-glm51fp8-',row['source'].split('/glm5.1-fp8')[0])
@@ -38,7 +53,7 @@ class Workspace(unittest.TestCase):
         self.assertTrue(rows['/experiment/validation/native_repeat7']['readonly'])
 
     def test_configured_writes_use_current_run_output(self):
-        prefix='/experiment/validation/controls/'+w.manifest()['run_id']+'/'
+        prefix=str(w.RUN_ALIAS)+'/'
         for path in w.SOURCE.glob('*.json'):
             config=json.loads(path.read_text());env=config.get('env',{})
             if not env:continue

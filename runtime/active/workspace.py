@@ -6,6 +6,7 @@ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
 
 HOST=pathlib.PurePosixPath('/data/brick1/boyjiang/glm5.1-fp8')
 SOURCE=pathlib.Path(__file__).resolve().parent
+RUN_ALIAS=pathlib.PurePosixPath('/r')
 
 def workspace():
     value=os.environ.get('SLLM_CONTROL_WORKSPACE',str(HOST))
@@ -20,7 +21,8 @@ def manifest():
     return value
 
 def run_root():
-    return workspace()/'validation/controls'/manifest()['run_id']
+    run=manifest()['run_id'];root=workspace()
+    return pathlib.Path(str(RUN_ALIAS)) if root==pathlib.Path('/experiment') else root/'validation/controls'/run
 
 def archive():
     return workspace()/'archive/original-run'
@@ -61,7 +63,7 @@ def container_mounts():
     # Frozen gold uses underscores, while canonical navigation links use hyphens.
     readonly += [(root/'validation'/('native-repeat'+n),'validation/native_repeat'+n) for n in ('7','8')]
     rows=[dict(source=str(source),destination='/experiment/'+dest,readonly=True) for source,dest in readonly]
-    rows.append(dict(source=str(root/'validation/controls'/run),destination='/experiment/validation/controls/'+run,readonly=False))
+    rows.append(dict(source=str(root/'validation/controls'/run),destination=str(RUN_ALIAS),readonly=False))
     return rows
 
 def verify_input_layout():

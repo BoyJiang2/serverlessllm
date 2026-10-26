@@ -1,3 +1,7 @@
+本次canonical2是已实际完整R1批准5b01d7d的受影响修订，请优先实际审阅本次差异，不重复已完成无关整理。上轮reviews/full-r1-canonical1/verdict.json为完整approved，但真实G1第一Ray head因Unix socket路径超过107字节失败，未启动Store/model，已完整清理/61样本75.82s释放。旧失败run证据和实际执行源码均保留，正式5成功4失败31未开始不变。
+本修订只将同一个host run目录的容器内唯一可写挂载改为短别名/r，所有host源仍在canonical新根，readonly输入挂载/共享verify_input_layout与host-only guard保持。workspace.run_root在容器返回/r、host仍原新根下validation/controls/run。核对全部head/worker临时目录socket最大长度回归、缓存/事件/审计输出路径。没有第二个可写host资产、没有恢复旧长路径。新run_id，不重写旧控制失败或正式ID。
+另绑定已实际确认的连续boyjiang10–18与18–21两段booking，新独立guard20:50；旧run17:50guard已清理inactive。不得用旧R1批准这些新字节。请返回gate=R1,scope=full-runtime,verdict=approved或changes_required，绑定本次实际commit与manifest。G1/R2尚未通过。下方保留完整审阅范围供引用。
+
 请作为 DeepSeek Harness 只读 AI 审阅者完成当前单一 runtime/active 的**完整 R1**。仅 read/search，不运行 shell/SSH/资源命令，不改文件，不读取凭据，不派代理。调用会附实际 clean code commit 和 control-input-manifest SHA。不能用路径专项批准代替完整 R1，也不能把尚未运行的 G1/R2 说成通过。
 
 先读当前 STATUS.md 尾部、protocol/CANONICAL-WORKSPACE.md、runtime/active/README.md、run-manifest.json、control-input-manifest.json。实际读取完整运行源码、配置、测试和必要外部引用；不要只审摘要。核对全部入口/传递依赖、预算、FP8/scale/混精引用、Store初始化、Ray创建、原生HTTP业务/删除/再拉起、缓存、监控和释放的组合正确性。模板的派生约束、镜像/源码/二进制与实际执行的绑定均在范围内。冻结1142源码/二进制清单与已存在的旧源代码证据可按需读取，不重新复制或下载模型。
@@ -14,6 +18,8 @@
 
 必须审完整时间/资源组合：Ray2×330秒，service总3420秒含watchdog25秒TERM/KILL reserve与bootstrap3300秒alarm；cache子任务600秒/8reader/64GiB NUMA余量/最多2repair/完整148输入初始0末次100% mincore及read-idle。pgsteal只解释。准入剩余时间>=整轮最大+180秒，保留每次删除60秒与独立最终释放。公共716GiB池同批保留，单机8H20-3e，TP8/utilization0.9/context2048/seq1/MTPoff/eager/256KVblocks不改。容器资源按本受审模板，不套旧2CPU/2GB到服务。init/cache/编译/失败/控制/闲置成本保留；选取的kernel cache初始化有逐文件hash与上限，不复制全环境/模型/Store。不得凭GPU空闲或旧金标跳过实际守护/监控。
 
-当前元数据窗口是qjhs003 booking bk-20261026T0248-fd6bea51，10–18，计划新run17:50清理，尚未部署。真实GPU/NUMA/内存/磁盘/授权时间必须在运行前refresh；静态批准可列运行条件。新guard只保护独立G1身份，原始正式run还需自己的新guard/gate。当前没有真实pool/model/cache新控制或正式ID消费。历史5成功4失败31未开始，下一store_pool_hit_03必须先G1→R2→正式准入；不重试/替换终态。历史exit137只已知dockerd stop超时升级强制退出，上游请求者/原因未知，不能归因Ray/OOM或宣称已解决。
+当前元数据窗口为qjhs003连续boyjiang10–18与18–21两段预约；本次全新run的计划guard20:50，尚未安装。当前窗口和资源在执行前重新核验；旧失败run已经清理，不能复用其运行凭证。
 
 请逐项核验发现的事实，给实际文件/函数/证据/影响/最小修正或验证。区分确定bug、推测和运行前置条件，避免以未执行G1/R2本身否决静态源码；但不能忽略真正的组合/预算/释放缺口。若需要额外信号探针，论证有界收益，不能建议全局Docker/BPF设置。完成最终结论，JSON至少包括 gate="R1", scope="full-runtime", verdict="approved"|"changes_required"|"blocked", code_commit, manifest_sha256, findings, runtime_conditions, limitations。不返回approved_for_path_boundary作为完整结论。
+
+操作顺序不变：每个head启动后由操作者核验其仍Running且对应私有GCS TCP端口ready，再派发worker；只按已记录CID停止自有head。两个Ray控制分别成功并完成60s释放后才派发真实服务批次。任何失败立即停止新分配，清理本run并最终60s观察/root索引，不覆写失败或重试正式ID。

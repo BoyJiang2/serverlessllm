@@ -3,7 +3,9 @@ import datetime,hashlib,json,pathlib,sys,tempfile,unittest
 
 repo=pathlib.Path(__file__).resolve().parents[1]
 source=repo/'runtime/active'
-out=repo/'reviews/full-r1-canonical1'
+revision=json.loads((source/'run-manifest.json').read_text())['candidate_revision']
+if not __import__('re').fullmatch(r'canonical[1-9][0-9]*',revision):raise RuntimeError('invalid review revision')
+out=repo/'reviews'/('full-r1-'+revision)
 out.mkdir(exist_ok=True)
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def save(path,value):path.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8',newline='\n')

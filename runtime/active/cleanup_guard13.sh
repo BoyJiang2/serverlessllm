@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-run_id=sllm-glm51fp8-20261026T030041Z-5b688078
+run_id=sllm-glm51fp8-20261026T075854Z-e71cc109
 test "$(id -u)" = 0
 test "$1" = "$run_id"
 case "$2" in

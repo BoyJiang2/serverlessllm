@@ -1,7 +1,7 @@
 """Root-only final evidence index; raw kernel output remains private on local disk."""
 import datetime,hashlib,json,os,pathlib,subprocess,sys
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python forbidden')
-run='sllm-glm51fp8-20261026T030041Z-5b688078'
+run='sllm-glm51fp8-20261026T075854Z-e71cc109'
 if os.getuid()!=0 or sys.argv[1:]!=[run]: raise RuntimeError('wrong root identity')
 base=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'validation/controls'/run
 private=base/'root-evidence-private13'
