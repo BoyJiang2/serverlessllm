@@ -1,0 +1,57 @@
+INFO 10-26 18:37:21 server.py:40] StorageServicer: storage_path=/r/service-bootstrap-service13a/store, mem_pool_size=768799145984, num_thread=4, chunk_size=536870912, registration_required=True
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20261026 18:37:24.250044  2158 checkpoint_store.cpp:41] Number of GPUs: 8
+I20261026 18:37:24.250103  2158 checkpoint_store.cpp:43] I/O threads: 4, chunk size: 512MB
+I20261026 18:37:24.250109  2158 checkpoint_store.cpp:45] Storage path: "/r/service-bootstrap-service13a/store"
+I20261026 18:37:24.501389  2158 checkpoint_store.cpp:71] GPU 0 UUID: 901a39d6-debb-a126-3079-f1e2f9d4fc81
+I20261026 18:37:24.640465  2158 checkpoint_store.cpp:71] GPU 1 UUID: a3baf382-35c8-8748-626a-f69745aab5f8
+I20261026 18:37:24.761484  2158 checkpoint_store.cpp:71] GPU 2 UUID: 1e269bc5-8466-4c75-a1b5-2fe52da4b771
+I20261026 18:37:24.884150  2158 checkpoint_store.cpp:71] GPU 3 UUID: fa6a72c0-dc98-2006-973f-a38e93672cbb
+I20261026 18:37:25.046452  2158 checkpoint_store.cpp:71] GPU 4 UUID: 7e6158f3-be3a-4b12-5698-ab008c6f5f8e
+I20261026 18:37:25.167551  2158 checkpoint_store.cpp:71] GPU 5 UUID: 151684e8-c7ba-a20a-6955-e1f765940536
+I20261026 18:37:25.295500  2158 checkpoint_store.cpp:71] GPU 6 UUID: af5f5c7a-0dce-f291-99be-2c844225cec6
+I20261026 18:37:25.424182  2158 checkpoint_store.cpp:71] GPU 7 UUID: 4b71a43c-50f7-bb0e-4775-1ee12d73c700
+I20261026 18:37:25.424238  2158 pinned_memory_pool.cpp:29] Creating PinnedMemoryPool with 1432 buffers of 536870912 bytes
+I20261026 18:40:37.197110  2158 checkpoint_store.cpp:83] Memory pool created with 716GB
+INFO 10-26 18:40:37 server.py:244] Starting gRPC server on 0.0.0.0:8073
+INFO 10-26 18:40:40 server.py:250] Shutting down gRPC server
+Traceback (most recent call last):
+  File "/experiment/code/Store-source-v7/sllm_store/server.py", line 248, in serve
+    await server.wait_for_termination()
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 187, in wait_for_termination
+    return await self._server.wait_for_termination(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1095, in wait_for_termination
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/experiment/code/Store-source-v7/sllm_store/server.py", line 251, in serve
+    await server.stop(5)
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 162, in stop
+    await self._server.shutdown(grace)
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1077, in shutdown
+  File "/usr/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/experiment/code/experiment/run_store_server13.py", line 46, in <module>
+    asyncio.run(serve(host=args.host, port=8073, storage_path=args.storage_path,
+  File "/usr/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+I20261026 18:40:40.872136  2158 checkpoint_store.cpp:296] All models unloaded from memory

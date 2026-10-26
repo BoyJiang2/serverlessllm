@@ -303,3 +303,7 @@ ActualreadonlyR1C12changes_required:operator-onlySIGINTprobe couldbebypassedbydi
 ## canonical13 actual local fullR1 approved
 
 ReadonlyR1approved21d0c897/MFfdb1e056 at18:33:54Z;61+8hashes match. R1-C12-01closed. One nonblockingWindows-skippedLinuxunitfixtureissue retained R1-C13-T01; actualcompleteLinuxprobe mandatory beforepool. Fresh02:33snapshot8GPU0/noGPUproc/sourceabsent/current21-03+03-09booking. New08:50guard/deployment notyetdone. ApprovalonlyStore-onlydiagnostic; G1/R2/formal notpassed,5/4/31unchanged.
+
+## Actual C13 graceful exit diagnostic failed, strict monitor passed
+
+Real716GiBpool andactualboundLinuxprobe passed. StoreSIGINT entersgRPCstop butstop(5)CancelledError→KeyboardInterrupt,returns1 after27.415694966s,noKILL;controlfailed. All193rawmonitorrows strict5spass,maxduration1.129075532/maxgap2.129016853s;noaction>5s.61point75.930499736srelease/rootindex/source61hasharchive passed,sourceabsent,noownworkload. Derivedpeak0field-error preserved withadditivecorrection776676474880B/nullkernel. Nextsame-imageCPUgrpcA/B/Cprobe, notnewpool/fullG1blindretry. Formal5/4/31,historical137unknown.
