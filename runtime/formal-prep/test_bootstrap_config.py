@@ -8,7 +8,7 @@ import unittest
 
 class BootstrapConfig(unittest.TestCase):
     def test_pool_rpc_does_not_replace_run_manifest(self):
-        tree = ast.parse(pathlib.Path(__file__).with_name('bootstrap_formal.py').read_text())
+        tree = ast.parse(pathlib.Path(__file__).with_name('bootstrap_control13.py').read_text())
         statement = next(node for node in ast.walk(tree) if isinstance(node, ast.With)
                          and ast.unparse(node.items[0].context_expr).startswith('grpc.insecure_channel('))
         rpc = types.SimpleNamespace(mem_pool_size=716, chunk_size=512)

@@ -41,7 +41,7 @@ class FormalGate(unittest.TestCase):
         config = dict(run_id='own-formal-run',scope='formal continuation of original forty IDs',
                       store_import_sha256={},formal_required_env={},runtime_identity=dict(boot_id='test-boot'))
         required = ('formal_trials.py', 'formal_gate.py', 'attempt_state.py',
-                    'bootstrap_formal.py', 'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json')
+                    'bootstrap_control13.py', 'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json')
         rows = []
         for name in required:
             path = self.source / name

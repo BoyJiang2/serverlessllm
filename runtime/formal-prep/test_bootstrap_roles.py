@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 class BootstrapRoles(unittest.TestCase):
     def exercise(self,label,purpose='formal-continuation'):
-        source=pathlib.Path(__file__).with_name('bootstrap_formal.py')
+        source=pathlib.Path(__file__).with_name('bootstrap_control13.py')
         body=ast.parse(source.read_text()).body
         stop=next(i for i,n in enumerate(body) if isinstance(n,ast.Assign)
                   and any(isinstance(t,ast.Name) and t.id=='env' for t in n.targets))
@@ -24,7 +24,7 @@ class BootstrapRoles(unittest.TestCase):
                 verify_input_layout=lambda:calls.append('layout')),
                 formal_gate=types.SimpleNamespace(verify_normal_reference=lambda *a:calls.append('normal-reference'),
                     g1_reference_root=lambda *a:control,verify_gate=lambda:calls.append('formal-gate')))
-            with patch.dict(sys.modules,modules),patch.object(sys,'argv',['bootstrap_formal.py',label]):
+            with patch.dict(sys.modules,modules),patch.object(sys,'argv',['bootstrap_control13.py',label]):
                 exec(compile(ast.Module(body=body[:stop],type_ignores=[]),str(source),'exec'),{})
             self.assertTrue((control/('service-bootstrap-'+label)).is_dir())
             return calls

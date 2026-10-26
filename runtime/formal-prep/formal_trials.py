@@ -28,10 +28,13 @@ PREREG_SHA = '90d4c91bf8b0c9495e0cb95376a55f84d17351308541414d58dd650d8e2dd37c'
 
 
 from formal_gate import verify_gate,execution_roots
+from budget_control13 import arm_formal_timer,formal_attempt_fits,load_formal_batch,FORMAL_ATTEMPT_EVIDENCE_SECONDS
 
 
-def run(out):
+def run(out,batch_budget):
     gate = verify_gate()
+    if batch_budget!=load_formal_batch(ROOT,gate['worker_label']):raise ValueError('formal worker batch budget differs')
+    work_end_ns=batch_budget['work_end_ns']
     from sllm_store.client import SllmStoreClient
     from gpu_identity13 import require_helper_binding,require_helper_only,require_monitor_ready
     store_launch = json.loads((out/'store-numa-launch.json').read_text())
@@ -73,6 +76,7 @@ def run(out):
     for identity in (worker_identity,head_identity):
         dispatch = json.loads((ROOT/(identity['spec']['name']+'-dispatch.json')).read_text())
         assert dispatch['boot_id'] == boot_id
+        assert dispatch['batch_budget']==batch_budget,'worker/head budget origin differs'
     assert json.loads(monitor_ready.read_text())['boot_id'] == boot_id
     def host_gpu():
         snapshot=json.loads(monitor_ready.read_text())
@@ -96,6 +100,9 @@ def run(out):
         'elapsed_seconds':(ready-origin)/1e9,'auxiliary_gpu_MiB':auxiliary_gpu,
         'head_identity':head_identity,'worker_identity':worker_identity,
         'scope':'shared private Ray/control plane/Store/pool and registration; retained across trials; not ten node cold boots'},indent=2))
+
+    if ready>=batch_budget['initialization_end_ns']:raise TimeoutError('formal shared initialization exceeded original budget')
+    arm_formal_timer(work_end_ns)
 
     def http(path, body=None, timeout=1200):
         request = urllib.request.Request('http://127.0.0.1:8343'+path,
@@ -126,8 +133,8 @@ def run(out):
             continue
         if target.exists():
             raise RuntimeError('ID appeared after admission: '+name)
-        if time.time() >= deadline-prereg['attempt_timeout_seconds']-prereg['post_delete_observation_seconds']-180:
-            (out/'deadline-admission-stop.json').write_text(json.dumps({'next_unstarted_attempt':name}))
+        if not formal_attempt_fits(prereg,work_end_ns,deadline):
+            (out/'deadline-admission-stop.json').write_text(json.dumps({'next_unstarted_attempt':name,'work_end_ns':work_end_ns,'observed_ns':time.monotonic_ns(),'resource_deadline':deadline}))
             break
         require_helper_only(host_gpu(),helper,time.monotonic_ns(),run_id,boot_id)
         target.mkdir(exist_ok=False)
@@ -137,10 +144,13 @@ def run(out):
                   'protocol_revision':gate['protocol_revision'],'resource_window_revision':gate['resource_window_revision'],'preparation_revision':gate['preparation_revision'],
                   'preparation_begin_ns':time.monotonic_ns(),
                   'memory_events_before':pathlib.Path('/sys/fs/cgroup/memory.events').read_text()}
-        with (target/'origin.json').open('x') as stream:
-            json.dump(record,stream,indent=2)
-        signal.alarm(prereg['attempt_timeout_seconds'])
+        attempt_end_ns=min(work_end_ns,record['preparation_begin_ns']+prereg['attempt_timeout_seconds']*1000000000)
+        record['attempt_deadline_ns']=attempt_end_ns
+        record['batch_work_end_ns']=work_end_ns
         try:
+            with (target/'origin.json').open('x') as stream:
+                json.dump(record,stream,indent=2)
+            arm_formal_timer(attempt_end_ns)
             (target/'store-affinity-before.json').write_text(json.dumps(audit_store_threads(store_pid,store_cpus),indent=2))
             assert artifact_snapshot(ROOT/'native-home') == frozen_cache, 'JIT cache changed since baseline'
             mutable_log_before = read_mutable_log(ROOT/'native-home')
@@ -279,6 +289,7 @@ def run(out):
             during = [row for row in interference if row['monotonic_ns'] >= record['preparation_begin_ns']]
             (target/'observed-interference.json').write_text(json.dumps(during,indent=2))
             assert not during, 'observed compiler/download job; isolation failed'
+            if time.monotonic_ns()>=attempt_end_ns:raise TimeoutError('late formal response/observation exceeded original attempt deadline')
             record.update(status='success',success=True,complete_ns=time.monotonic_ns())
         except BaseException as error:
             failed_ns = time.monotonic_ns()
@@ -292,11 +303,24 @@ def run(out):
                           traceback=traceback.format_exc())
             raise  # Fresh guarded infrastructure is required before remaining IDs can continue.
         finally:
-            signal.alarm(0)
+            original_failure=sys.exception()
+            now_ns=time.monotonic_ns()
+            evidence_end_ns=min(now_ns+FORMAL_ATTEMPT_EVIDENCE_SECONDS*1000000000,batch_budget['evidence_end_ns'])
+            if now_ns<work_end_ns:evidence_end_ns=min(evidence_end_ns,work_end_ns)
+            try:arm_formal_timer(evidence_end_ns)
+            except TimeoutError as error:
+                raise TimeoutError('terminal evidence incomplete: issued evidence deadline exhausted') from (original_failure if original_failure is not None else error)
             record['memory_events_after'] = pathlib.Path('/sys/fs/cgroup/memory.events').read_text()
             with (target/'result.json').open('x') as stream:
                 json.dump(record,stream,indent=2)
-            print(json.dumps({'attempt_id':name,'status':record['status']}),flush=True)
+            evidence_complete_ns=time.monotonic_ns()
+            print(json.dumps({'attempt_id':name,'status':record['status'],'terminal_evidence_begin_ns':now_ns,'terminal_evidence_complete_ns':evidence_complete_ns,'terminal_evidence_deadline_ns':evidence_end_ns}),flush=True)
+            if evidence_complete_ns>evidence_end_ns:
+                raise TimeoutError('terminal evidence exceeded issued deadline') from original_failure
+            try:arm_formal_timer(work_end_ns)  # Restore the issued deadline, never a fresh batch budget.
+            except TimeoutError as error:
+                if original_failure is not None:raise error from original_failure
+                raise
 
 
 

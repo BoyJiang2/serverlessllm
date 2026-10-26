@@ -95,7 +95,7 @@ def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
         if hashlib.sha256(path.read_bytes()).hexdigest() != row['sha256']:
             raise ValueError('formal source differs: ' + row['path'])
         checked.add(row['path'])
-    if not {'formal_trials.py', 'formal_gate.py', 'attempt_state.py', 'bootstrap_formal.py',
+    if not {'formal_trials.py', 'formal_gate.py', 'attempt_state.py', 'bootstrap_control13.py',
             'cache_state_formal.py', 'run-manifest.json', 'cleanup_guard13.sh', 'initial-ledger.json'} <= checked:
         raise ValueError('incomplete formal entry manifest')
     checked_json(assets / 'protocol/measurement-preregistration.json', PREREG_SHA)
