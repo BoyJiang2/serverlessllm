@@ -7,6 +7,7 @@ import hashlib
 import importlib
 import json
 import pathlib
+import types
 
 def verify_store_imports(expected,package_root=pathlib.Path('/experiment/code/Store-source-v7/sllm_store')):
     # server imports torch and preloads bundled libglog before native extensions.
@@ -20,6 +21,12 @@ def verify_store_imports(expected,package_root=pathlib.Path('/experiment/code/St
         digest=hashlib.sha256(path.read_bytes()).hexdigest()
         if digest!=expected[name]:raise RuntimeError('Store import hash differs: '+name)
         rows[name]=dict(path=str(path),sha256=digest)
+        if name=='sllm_store.server':
+            compiled=compile(path.read_bytes(),str(path),'exec')
+            expected_code=next(value for value in compiled.co_consts if isinstance(value,types.CodeType) and value.co_name=='serve')
+            actual_code=module.serve.__code__
+            if actual_code!=expected_code or actual_code.co_filename!=str(path):raise RuntimeError('Store serve bytecode differs from reviewed source')
+            rows[name].update(serve_code_filename=actual_code.co_filename,serve_source_code_match=True,serve_bytecode_sha256=hashlib.sha256(actual_code.co_code).hexdigest())
     return rows
 
 if __name__=='__main__':

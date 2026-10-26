@@ -323,3 +323,7 @@ Exact03b7e657/MF176a5a9e approvedlocalreadonlyR1 at18:56:36Z;61+8hashesmatch,146
 ## Actual C15 CPU grpc contrast completed and released
 
 SameimagePython3.12.13/grpc1.80: directwait SIGINT returns-2/stopCancelledError;shieldwait andeventstop return0/actualstopend. No forcedkill/timeouts/remaininglistener.45rawstrict5s rows pass,maxduration0.454074782/gap1.454322589.61point75.797408694release/rootindex/source61hasharchive passed,noownworkloads. Peak3624570880B/kernelnull. Supportsone-lineStorewaitshieldcandidate only,notrealStore/G1/R2/formalpass. Formal5/4/31 unchanged.
+
+## canonical16 one-line Store cancellation fix frozen
+
+ActualC15CPUcontrast supports shieldcandidate. Storeoriginal8943B/c0de→active8959B/b22a withsingleawaitshield;fixedROfileoverlaykeepssamepackageentry/originalhost/1142MF/binaries. Importchecksfullactualservecodeobject+filename againstreviewedsource beforepool, rejectsoldpyc. Newrun190735Z-ccbf6f33/MFf047611221902cf65e4580f969436944f19a0d9594d4dbe8b00e989281ad6942,63files/150runtime/26operator(1skip)/3syntax. WIPreadonlynoblocker, exactR1pending/nodeploy/guard/pool.03:06snapshot8GPU0/noproc/current03-09ownedbooking;new08:50guardrequired. NoG1/R2/formalpass,5/4/31unchanged.

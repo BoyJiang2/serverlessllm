@@ -1,0 +1,13 @@
+{
+  "base_path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/server.py",
+  "base_sha256": "c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c",
+  "base_bytes": 8943,
+  "patched_path": "runtime/active/store_server13.py",
+  "patched_sha256": "b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f",
+  "patched_bytes": 8959,
+  "changes": 1,
+  "container_readonly_target": "/experiment/code/Store-source-v7/sllm_store/server.py",
+  "diff": "--- official frozen Store server\n+++ reviewed single-line overlay\n@@ -245,7 +245,7 @@\n     await server.start()\n \n     try:\n-        await server.wait_for_termination()\n+        await asyncio.shield(server.wait_for_termination())\n     except (KeyboardInterrupt, asyncio.CancelledError):\n         logger.info(\"Shutting down gRPC server\")\n         await server.stop(5)\n",
+  "reason": "C13actual grpc cancellation failure and C15same-image CPU direct/shield/event contrast; realpoolfix pending",
+  "unchanged": "original host files,1142historicalmanifest,other3Storemodulehashes,C++/weights/scales/metadata"
+}

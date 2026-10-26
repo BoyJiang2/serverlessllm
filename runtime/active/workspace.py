@@ -57,6 +57,7 @@ def container_mounts():
     readonly=[(root/'checkpoint','checkpoint'),(root/'store/tp8','store/vllm/glm51-fp8'),
               (root/'code/experiment','code/experiment'),(root/'code/ServerlessLLM','code/ServerlessLLM'),
               (root/'code/Store-source-v7','code/Store-source-v7'),(root/'code/weight_contract.py','code/weight_contract.py')]
+    readonly += [(root/'code/experiment/store_server13.py','code/Store-source-v7/sllm_store/server.py')]
     readonly += [(old/name,name) for name in ('.venv','serving-deps','runtime-metadata','buildtools')]
     readonly += [(root/'protocol/run-manifest.json','protocol/run-manifest.json')]
     readonly += [(root/'validation'/name,'validation/'+name) for name in ('native-gold.json','native-weight-contract.json','store-restore-validation.json')]
