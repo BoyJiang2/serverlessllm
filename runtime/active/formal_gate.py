@@ -133,12 +133,16 @@ def verify_admission(root, source, assets, code, manifest_sha, gate_sha):
     config = json.loads(registration)
     if gate['execution_run_id'] != config['run_id'] or config['scope'] != 'formal continuation of original forty IDs':
         raise ValueError('formal execution identity differs')
+    for key in ('protocol_revision','preparation_revision','resource_window_revision'):
+        if gate.get(key)!=config[key]:raise ValueError('formal gate revision differs: '+key)
     if gate.get('worker_label') != 'formal13':
         raise ValueError('formal worker identity differs')
     r2 = checked_json(root / 'r2-approval.json', gate['r2_approval_sha256'])
     if any(r2.get(k) != v for k, v in dict(gate='R2', scope='formal-runtime', verdict='approved',
                                           code_commit=code, manifest_sha256=manifest_sha).items()):
         raise ValueError('current independent R2 approval required')
+    for key in ('protocol_revision','preparation_revision','resource_window_revision'):
+        if r2.get(key)!=config[key]:raise ValueError('R2 revision differs: '+key)
     source_manifest = checked_json(source / 'control-input-manifest.json', manifest_sha)
     checked = set()
     for row in source_manifest['files']:

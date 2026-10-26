@@ -345,4 +345,89 @@ class SigintPreflight(unittest.TestCase):
         self.assertEqual(scope['sigint_proof']['returncode'],0)
         self.assertEqual(scope['sigint_proof']['cleanup_marker'],'cleanup')
 
+class FormalOperator(unittest.TestCase):
+    def exercise(self,observe=True,already_issued=False,worker_running=False,head_running=True,bad_worker=False,link_collision=None):
+        tree=ast.parse(operator.REMOTE)
+        branch=next(n for n in tree.body if isinstance(n,ast.If) and ast.unparse(n.test)=='formal_entry')
+        with tempfile.TemporaryDirectory() as directory:
+            out=pathlib.Path(directory);stamp=time.monotonic_ns()
+            batch=dict(begin_ns=stamp-10_000_000_000,total_end_ns=stamp+1000_000_000_000,
+                head_end_ns=stamp+1010_000_000_000,initialization_end_ns=stamp+100_000_000_000)
+            if already_issued:(out/'headformal13-dispatch.json').write_text('{}')
+            proof=dict(status='failed' if bad_worker else 'passed including cleanup',child_alive_at_end=False,
+                absolute_end_ns=batch['total_end_ns'])
+            (out/'formal13-supervisor-result.json').write_text(json.dumps(proof))
+            head=dict(status='passed including cleanup',controlled_stop=True,forced_kill=False,
+                terminate_sent_ns=stamp,child_returncode=1,child_alive_at_end=False,absolute_end_ns=batch['head_end_ns'])
+            (out/'headformal13-supervisor-result.json').write_text(json.dumps(head))
+            config=dict(scope='formal continuation of original forty IDs',runtime_identity=dict(boot_id='b'))
+            calls=[];states={'headformal13':head_running,'formal13':worker_running}
+            def identity(name):
+                row=dict(run_id='r',code_commit='c',manifest_sha256='m',container_id=name,pid=42,
+                    dispatch_monotonic_ns=batch['begin_ns']+1)
+                return row,dict(State=dict(Running=states[name],ExitCode=0),NetworkSettings=dict(Networks=dict(bridge=dict(IPAddress='172.17.0.2'))))
+            def call(argv,**kwargs):
+                calls.append(argv)
+                if argv[:2]==['docker','wait']:states[argv[2]]=False
+                return '0'
+            def stop_request(root,label):
+                target=root/('head'+label+'-stop-request.json')
+                if not target.exists():return False
+                return json.loads(target.read_text())['identity']['container_id']=='headformal13'
+            def publish(src,dst):
+                if link_collision is not None:
+                    request=json.loads(src.read_text())
+                    if link_collision=='invalid':request['identity']['container_id']='other-batch'
+                    dst.write_text(json.dumps(request))
+                    raise FileExistsError('synthetic concurrent publisher')
+                dst.write_bytes(src.read_bytes())
+            scope=dict(formal_entry=True,manifest=config,PHASE='formal13',OBSERVE=observe,out=out,src=out,root=out,
+                SEGMENT='test',json=json,time=time,socket=types.SimpleNamespace(create_connection=lambda *a,**k:contextlib.nullcontext()),
+                identity=identity,call=call,event=lambda **kwargs:None,ready=lambda:None,
+                launch=lambda name:calls.append(['launch',name]),cpu_imports=lambda *args:calls.append(['probe']),
+                invoke=lambda *args:None,CODE='c',SHA='m',hashlib=__import__('hashlib'))
+            modules=dict(budget_control13=types.SimpleNamespace(load_formal_batch=lambda *args:batch,head_stop_requested=stop_request),
+                preflight_control13=types.SimpleNamespace(check=lambda *args,**kwargs:None))
+            error=None
+            # Publication syscall is exercised on Linux; this fixture checks control flow.
+            with patch.dict(sys.modules,modules),patch('os.link',side_effect=publish):
+                try:exec(compile(ast.Module(body=[branch],type_ignores=[]),'actual-formal-operator','exec'),scope)
+                except BaseException as caught:error=caught
+            self.assertFalse(list(out.glob('*.tmp')),'own publication temporary must be removed even on collision')
+            request=json.loads((out/'headformal13-stop-request.json').read_text()) if (out/'headformal13-stop-request.json').exists() else None
+            return error,calls,request
+
+    def test_observe_completed_worker_stops_head_without_redispatch(self):
+        error,calls,request=self.exercise()
+        self.assertIsInstance(error,SystemExit);self.assertEqual(error.code,0)
+        self.assertEqual(calls,[['docker','wait','headformal13']])
+        self.assertEqual(request['identity']['container_id'],'headformal13')
+
+    def test_valid_concurrent_publication_reused_without_launch(self):
+        error,calls,_=self.exercise(link_collision='valid')
+        self.assertIsInstance(error,SystemExit);self.assertEqual(error.code,0)
+        self.assertEqual(calls,[['docker','wait','headformal13']])
+
+    def test_invalid_concurrent_publication_rejected(self):
+        error,calls,_=self.exercise(link_collision='invalid')
+        self.assertIsInstance(error,AssertionError);self.assertEqual(calls,[])
+
+    def test_observe_live_worker_consumes_existing_batch(self):
+        error,calls,_=self.exercise(worker_running=True)
+        self.assertIsInstance(error,SystemExit);self.assertEqual(error.code,0)
+        self.assertEqual(calls,[['docker','wait','formal13'],['docker','wait','headformal13']])
+
+    def test_issued_batch_cannot_be_started_again(self):
+        error,calls,request=self.exercise(observe=False,already_issued=True)
+        self.assertIsInstance(error,AssertionError);self.assertEqual(calls,[]);self.assertIsNone(request)
+
+    def test_failed_worker_never_gets_controlled_stop_request(self):
+        error,calls,request=self.exercise(bad_worker=True)
+        self.assertIsInstance(error,AssertionError);self.assertEqual(calls,[]);self.assertIsNone(request)
+
+    def test_stopped_head_without_owned_request_cannot_pass(self):
+        error,calls,request=self.exercise(head_running=False)
+        self.assertIsInstance(error,AssertionError);self.assertEqual(calls,[]);self.assertIsNone(request)
+
+
 if __name__=='__main__':unittest.main()

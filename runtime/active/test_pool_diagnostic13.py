@@ -82,7 +82,7 @@ class PoolDiagnostic(unittest.TestCase):
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
             index=next(i for i,n in enumerate(body.body) if isinstance(n,ast.If) and isinstance(n.test,ast.Name) and n.test.id=='pool_diagnostic')
             mini=ast.Try(body=body.body[index:index+2],handlers=[],orelse=[],finalbody=body.finalbody)
-            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
+            scope=dict(label='service13a',store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=control,manifest=dict(run_id='test-run',runtime_identity=dict(boot_id='boot')),json=json,time=time,pool_bytes=768799145984,chunk_bytes=536870912,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=lambda *args,**kwargs:None),launch=lambda *args:(_ for _ in ()).throw(AssertionError('native SLLM service reached')))
             scope['store']=scope['processes'][0]
             with self.assertRaises((RuntimeError,KeyError) if extra_gpu or missing_gpu else SystemExit) as error:exec(compile(ast.fix_missing_locations(ast.Module(body=[mini],type_ignores=[])),'actual-pool-ready-finally','exec'),scope)
             if not (extra_gpu or missing_gpu):self.assertEqual(error.exception.code,0)
@@ -104,7 +104,7 @@ class PoolDiagnostic(unittest.TestCase):
                 def terminate(self):self.returncode=0
             def fail(*args,**kwargs):raise RuntimeError('interrupted Ray cleanup')
             tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
-            scope=dict(store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
+            scope=dict(label='service13a',store=None,signal=types.SimpleNamespace(alarm=lambda n:None,SIGINT=signal.SIGINT),STORE_SHUTDOWN_GRACE=240,pool_diagnostic=True,out=out,control=out,manifest=dict(run_id='r',runtime_identity=dict(boot_id='b')),time=time,json=json,processes=[Process()],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=fail))
             with self.assertRaisesRegex(RuntimeError,'interrupted Ray'):exec(compile(ast.Module(body=body.finalbody,type_ignores=[]),'actual-finally-partial','exec'),scope)
             events=[json.loads(line) for line in (out/'pool-diagnostic-teardown.jsonl').read_text().splitlines()]
             self.assertEqual(events[-1]['stage'],'ray_stop_begin')
@@ -136,7 +136,7 @@ class GracefulPoolTeardown(unittest.TestCase):
             return types.SimpleNamespace(returncode=0)
         # Clock advances during Ray stop: remaining grace cannot restart at wait.
         times=iter([1000000000,2000000000,3000000000,4000000000,5000000000,6000000000,7000000000,8000000000,9000000000,10000000000,11000000000,12000000000,13000000000,14000000000,15000000000,16000000000,17000000000,18000000000,19000000000,20000000000])
-        scope=dict(store=store,pool_diagnostic=pool,STORE_SHUTDOWN_GRACE=240,signal=types.SimpleNamespace(SIGINT=signal.SIGINT,alarm=lambda n:calls.append(('alarm',n))),out=out,control=out,manifest=dict(run_id='run',runtime_identity=dict(boot_id='boot')),time=types.SimpleNamespace(monotonic_ns=lambda:next(times)),json=json,processes=[worker,store],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=ray_stop,TimeoutExpired=subprocess.TimeoutExpired))
+        scope=dict(label='service13a',store=store,pool_diagnostic=pool,STORE_SHUTDOWN_GRACE=240,signal=types.SimpleNamespace(SIGINT=signal.SIGINT,alarm=lambda n:calls.append(('alarm',n))),out=out,control=out,manifest=dict(run_id='run',runtime_identity=dict(boot_id='boot')),time=types.SimpleNamespace(monotonic_ns=lambda:next(times)),json=json,processes=[worker,store],logs=[],env={},python='fixture',subprocess=types.SimpleNamespace(run=ray_stop,TimeoutExpired=subprocess.TimeoutExpired))
         tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text());body=next(n for n in tree.body if isinstance(n,ast.Try))
         try:exec(compile(ast.fix_missing_locations(ast.Module(body=body.finalbody,type_ignores=[])),'actual-teardown','exec'),scope)
         except RuntimeError:
@@ -183,8 +183,8 @@ class GracefulPoolTeardown(unittest.TestCase):
         self.assertEqual(G1_SERVICE_WORK_BUDGET,3060)
         self.assertLess(G1_SERVICE_WORK_BUDGET+STORE_SHUTDOWN_GRACE+30+20+15+20,3420-25)
         tree=ast.parse((SOURCE/'bootstrap_control13.py').read_text())
-        assignment=next(n for n in tree.body if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='work_deadline' for x in n.targets))
-        alarm=next(n for n in tree.body if isinstance(n,ast.Expr) and ast.unparse(n).startswith('signal.alarm('))
+        assignment=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='work_deadline' for x in n.targets) and 'G1_SERVICE_WORK_BUDGET' in ast.unparse(n.value))
+        alarm=next(n for n in ast.walk(tree) if isinstance(n,ast.Expr) and ast.unparse(n).startswith('signal.alarm('))
         for pool,budget in [(False,3060),(True,540)]:
             observed=[];scope=dict(time=types.SimpleNamespace(monotonic=lambda:100),signal=types.SimpleNamespace(alarm=observed.append),pool_diagnostic=pool,POOL_DIAGNOSTIC_WORK_BUDGET=POOL_DIAGNOSTIC_WORK_BUDGET,G1_SERVICE_WORK_BUDGET=G1_SERVICE_WORK_BUDGET)
             exec(compile(ast.Module(body=[assignment,alarm],type_ignores=[]),'actual-work-deadline','exec'),scope)
@@ -211,6 +211,15 @@ class SigintAdmission(unittest.TestCase):
 
     def test_bound_current_probe_admits(self):
         root,proof,info=self.fixture();materialize.verify_sigint_probe(root,info,'code','sha')
+
+    def test_formal_native_role_requires_actual_atomic_publication_probe(self):
+        root,proof,info=self.fixture()
+        path=root/'run-manifest.json';config=json.loads(path.read_text());config['execution_purpose']='formal-continuation';path.write_text(json.dumps(config))
+        target=root/'service13a-cpu-import-preflight.json';target.write_text(json.dumps(dict(sigint_probe=proof)))
+        with self.assertRaisesRegex(RuntimeError,'publication probe'):materialize.verify_sigint_probe(root,info,'code','sha')
+        proof['atomic_publication']=dict(local_same_filesystem=True,exclusive_collision_rejected=True,temporary_removed=True)
+        target.write_text(json.dumps(dict(sigint_probe=proof)))
+        materialize.verify_sigint_probe(root,info,'code','sha')
 
     def test_missing_probe_blocks_direct_launcher(self):
         root,proof,info=self.fixture();(root/'cpu-import-preflight.json').unlink()

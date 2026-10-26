@@ -167,12 +167,8 @@ with (output_root/log_name).open('x') as output:
             except (FileNotFoundError,ProcessLookupError): pass
             except PermissionError: foreign.append(pid)
         interference += [{'pid':pid,'scope':'GPU process outside experiment cgroup or ownership unavailable'} for pid in foreign]
-        helper=None
-        launch_path=output_root/'service-bootstrap-service13a/store-numa-launch.json'
-        identity_path=output_root/'service13a-identity.json'
-        if launch_path.exists() and identity_path.exists():
-            module=measured('import.gpu_identity13',lambda:__import__('gpu_identity13'))
-            helper=measured('helper.derive',lambda:module.store_identity(json.loads(launch_path.read_text()),json.loads(identity_path.read_text()),processes,manifest['runtime_identity']['boot_id']))
+        module=measured('import.gpu_identity13',lambda:__import__('gpu_identity13'))
+        helper=measured('helper.derive',lambda:module.registered_store_identity(output_root,processes,manifest['runtime_identity']['boot_id']))
         row.update(registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign,sample_end_ns=time.monotonic_ns())
         try:
             require_monitor_sample(row['sample_begin_ns'],row['monotonic_ns'],row['sample_end_ns'],previous_begin,previous_mid)

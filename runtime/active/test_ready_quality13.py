@@ -53,7 +53,7 @@ class ReadyQuality(unittest.TestCase):
             manifest=dict(run_id='r',runtime_identity=dict(boot_id='b'));(root/'run-manifest.json').write_text(json.dumps(manifest))
             clock=types.SimpleNamespace(monotonic_ns=lambda:146905964141014)
             base=dict(require_monitor_ready=require_monitor_ready,json=json,time=clock,root=root,out=root,control=root,manifest=manifest,run_id='r',run='r',boot_id='b',RUN='r',expected=dict(boot_id='b'),monitor_required=True,monitor_ready=root/'monitor-v3-ready.json')
-            paths=[(active/'supervise_control13.py','heartbeat'),(active/'validation_control13.py','host_gpu'),(repo/'runtime/formal-prep/validation_control13.py','host_gpu'),(repo/'runtime/formal-prep/formal_trials.py','host_gpu')]
+            paths=[(active/'supervise_control13.py','heartbeat'),(active/'validation_control13.py','host_gpu'),(active/'formal_trials.py','host_gpu')]
             for path,name in paths:
                 tree=ast.parse(path.read_text());fn=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name==name)
                 scope=dict(base);exec(compile(ast.Module(body=[fn],type_ignores=[]),str(path),'exec'),scope)

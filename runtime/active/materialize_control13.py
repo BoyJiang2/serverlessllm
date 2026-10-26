@@ -9,14 +9,15 @@ from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_PHASE_BUDGET
 def call(*args):
     return subprocess.check_output(args,text=True,timeout=15).strip()
 
-def verify_sigint_probe(root,info,code,sha):
+def verify_sigint_probe(root,info,code,sha,label='service13a'):
     import time
     manifest=json.loads((root/'run-manifest.json').read_text())
-    head=json.loads((root/'headservice13a-identity.json').read_text())
-    dispatch=json.loads((root/'headservice13a-dispatch.json').read_text())
-    proof=json.loads((root/'cpu-import-preflight.json').read_text())['sigint_probe']
+    head=json.loads((root/('head'+label+'-identity.json')).read_text())
+    dispatch=json.loads((root/('head'+label+'-dispatch.json')).read_text())
+    proof=json.loads((root/((label+'-' if json.loads((root/'run-manifest.json').read_text()).get('execution_purpose')=='formal-continuation' else '')+'cpu-import-preflight.json')).read_text())['sigint_probe']
     expected=dict(run_id=manifest['run_id'],head_container_id=head['container_id'],image_id=manifest['image_id'],boot_id=manifest['runtime_identity']['boot_id'],code_commit=code,manifest_sha256=sha)
     if any(proof.get(k)!=v for k,v in expected.items()):raise RuntimeError('SIGINT preallocation proof binding differs')
+    if manifest.get('execution_purpose')=='formal-continuation' and proof.get('atomic_publication')!=dict(local_same_filesystem=True,exclusive_collision_rejected=True,temporary_removed=True):raise RuntimeError('actual exclusive local publication probe required')
     if head['run_id']!=manifest['run_id'] or head['code_commit']!=code or head['manifest_sha256']!=sha or dispatch['boot_id']!=expected['boot_id']:raise RuntimeError('SIGINT head identity differs')
     if info['Id']!=head['container_id'] or info['Image']!=manifest['image_id'] or not info['State']['Running'] or info['State']['Pid']!=head['pid']:raise RuntimeError('SIGINT probe head no longer active')
     if info['Config']['Labels'].get('sllm.run_id')!=manifest['run_id'] or info['Config']['Labels'].get('sllm.uid')!='2147':raise RuntimeError('SIGINT head ownership differs')
@@ -25,6 +26,10 @@ def verify_sigint_probe(root,info,code,sha):
 
 def validate_scope(root,name):
     manifest=json.loads((root/'run-manifest.json').read_text())
+    if manifest.get('execution_purpose')=='formal-continuation' or manifest['scope']=='formal continuation of original forty IDs':
+        if manifest.get('execution_purpose')!='formal-continuation' or manifest['scope']!='formal continuation of original forty IDs' or manifest.get('monitor_diagnostic_trace',False) or name not in ('monitor13','headservice13a','service13a','headformal13','formal13'):
+            raise RuntimeError('formal scope forbids this launch')
+        return False
     diagnostic=manifest['scope']=='monitor diagnostics only; no model or pool'
     if manifest.get('grpc_shutdown_probe') and not diagnostic:raise RuntimeError('grpc probe requires CPU-only diagnostic scope')
     if manifest['scope']==POOL_DIAGNOSTIC_SCOPE:
@@ -56,6 +61,32 @@ def expected_spec(root,name):
     config=json.loads((root/'run-manifest.json').read_text())
     pool_diagnostic=config['scope']==POOL_DIAGNOSTIC_SCOPE
     run=config['run_id']
+    formal_purpose=config.get('execution_purpose')=='formal-continuation'
+    if formal_purpose and name!='monitor13':
+        head=name.startswith('head');label=name.removeprefix('head') if head else name
+        spec=json.loads((SOURCE/('headservice13a.json' if head else 'service13a-template.json')).read_text())
+        spec['name']=name
+        for key in ('SLLM_VALIDATE_FULL_MODEL','SLLM_VERIFY_WEIGHTS','SLLM_SERVICE_WEIGHT_AUDIT_DIR','SLLM_EXPORT_RAW_STORE','VLLM_ALLOW_INSECURE_SERIALIZATION','SLLM_POOL_DIAGNOSTIC','SLLM_NORMAL_FLAGS_SMOKE'):
+            spec['env'].pop(key,None)
+        spec['raw_export_hook']=False
+        if head:
+            spec['argv']=['/experiment/.venv/bin/python','-u',str(SOURCE/'supervise_control13.py'),'head',label]
+            # SOURCE is a host path here; container argv is always canonical.
+            spec['argv'][2]='/experiment/code/experiment/supervise_control13.py'
+        else:
+            spec['argv'][-1]=label
+            spec['env']['SLLM_EVENT_DIR']='/r/events-'+label
+            spec['env']['SLLM_HEAD_IDENTITY_FILE']='/r/head'+label+'-identity.json'
+            if label=='formal13':
+                deployment=json.loads((root/'deployment.json').read_text())
+                spec['env'].update(SLLM_FORMAL_GATE_FILE='/r/formal-admission.json',SLLM_FORMAL_GATE_SHA256=hashlib.sha256((root/'formal-admission.json').read_bytes()).hexdigest(),SLLM_FORMAL_CODE_COMMIT=deployment['code_commit'],SLLM_FORMAL_SOURCE_MANIFEST_SHA256=deployment['input_manifest_sha256'])
+            info=json.loads(call('docker','inspect',run+'-head'+label))[0]
+            assert info['State']['Running'] and info['Config']['Labels']['sllm.run_id']==run and info['Config']['Labels']['sllm.uid']=='2147'
+            ip=info['NetworkSettings']['Networks']['bridge']['IPAddress']
+            import ipaddress
+            assert ipaddress.ip_address(ip).is_private
+            spec['env']['SLLM_PRIVATE_RAY_ADDRESS']=ip+(':'+str(26533 if label=='formal13' else 26532))
+        return spec
     if name in ('headray13a','headray13b','headservice13a'):
         spec=json.loads((SOURCE/(name+'.json')).read_text())
         if diagnostic or pool_diagnostic:

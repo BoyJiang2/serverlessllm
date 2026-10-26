@@ -368,3 +368,13 @@ Prepared driver/common bootstrap now share issued monotonic batch cutoffs: indep
 ## Prepared normal/formal entry integration — CPU milestone only
 
 Finite native head/worker roles, precreate formal gate, issued absolute budget, controlled head stop, completed-normal/JIT/R2 binding and live two-role helper selection drafted in isolated formal-prep.94CPUtests pass including actual boundary no-create/no-Popen after expiry. Independent readonly advisor three confirmed gaps fixed/rechecked; no overall R1. Existing operator still needs integration and frozen new config/MF/review; no new remote runtime.04:54 readonly qjhs003 eightGPU0/no computePID; G1source archived/canonical source absent. Original5/4/31 unchanged. See reviews/formal-preparation/entry-integration.md.
+
+
+## canonical18 source integration, before freeze/R1
+
+Newrun sllm-glm51fp8-20261026T210338Z-db12e2fe; prepared27files folded into one active entry, old frozen C17git/source archive unchanged. Maintained operator shares CPU import/SIGINT and actual Linux atomic publication probe, consumes issued head budget on observe, controlled head stop after completed worker.33operator tests(1WindowsPOSIXskip) passed; integration caught fixture scope/oldpaths/AST assumptions plus missing formal config metadata fields, corrected without weakening cache/budget/gold checks. Current complete freeze/tests/R1 stillpending, no deploy/guard/compute.05:07fresh8GPU0/noGPUprocess/current03-09 booking; currentrun guard inactive/sourceabsent. Original18smallhistory files/nine result hashes unchanged,31absent. G1completed; normal/R2/formal notpassed.
+
+
+## canonical18 complete source frozen, exact R1 pending
+
+Run210338Z-db12e2fe/MF2674f4534f0a5cbb798599c107c9d83b17d3651b97758c02e802290055909a4e;80runtime files,250CPU/35operator(34pass1WindowsPOSIXskip)/3syntax. Sourceconsolidation removes27prepared duplicate entries; oneactive bootstrap/supervisor/operator. Verifiedsamebatch stop-request collision is reusable after identity check, foreign collision fails and own temp is removed; late GCSsuccess rejects. ActualLinux exclusive-publication and cancellation probe mandatory beforepool; Windowsstub notproof. Current05:07resources8GPU0/no computePID/sourceabsent/current03-09booking; actualnew08:50guard notinstalled. CompleteR1/normal/R2/formal pending, original5/4/31,nextstore_pool_hit_03.

@@ -24,29 +24,39 @@ label = sys.argv[1] if len(sys.argv)>1 else 'probe'
 assert label.isalnum()
 out = control/('service-bootstrap-'+label)
 out.mkdir(exist_ok=False)
-env = os.environ.copy()
 validate_model = os.environ.get('SLLM_VALIDATE_FULL_MODEL') == '1'
 formal = bool(os.environ.get('SLLM_FORMAL_GATE_FILE'))
 normal_smoke = os.environ.get('SLLM_NORMAL_FLAGS_SMOKE') == '1'
-if pool_diagnostic:
-    if env.get('SLLM_POOL_DIAGNOSTIC')!='1' or validate_model or formal or normal_smoke or label!='service13a':raise RuntimeError('invalid pool-only diagnostic flags')
-elif not validate_model or formal or normal_smoke:
+formal_purpose=manifest.get('execution_purpose')=='formal-continuation'
+if formal_purpose or manifest['scope']=='formal continuation of original forty IDs':
+    assert formal_purpose and manifest['scope']=='formal continuation of original forty IDs'
+    assert label in ('service13a','formal13')
+    normal_smoke=label=='service13a'
+    if normal_smoke:
+        from formal_gate import verify_normal_reference,g1_reference_root
+        verify_normal_reference(manifest,root)
+    else:
+        from formal_gate import verify_gate
+        verify_gate()
+elif pool_diagnostic:
+    if os.environ.get('SLLM_POOL_DIAGNOSTIC')!='1' or validate_model or formal or normal_smoke or label!='service13a':raise RuntimeError('invalid pool-only diagnostic flags')
+elif manifest['scope']!='G1 independent untimed controls only; zero formal IDs' or not validate_model or formal or normal_smoke:
     raise RuntimeError('G1 permits only full real-weight untimed validation')
-if formal:
-    assert validate_model
-    from formal_trials_v11 import verify_gate
-    verify_gate()  # Before private Ray worker, Store pool, or formal trial dispatch.
+env = os.environ.copy()
+if formal_purpose:
+    for key in ('SLLM_VERIFY_WEIGHTS','SLLM_SERVICE_WEIGHT_AUDIT_DIR','SLLM_EXPORT_RAW_STORE','VLLM_ALLOW_INSECURE_SERIALIZATION'):
+        assert not env.get(key),key+' must be absent'
 pool_bytes = 67108864
 chunk_bytes = 32*1024*1024
-if validate_model or pool_diagnostic:
+if validate_model or pool_diagnostic or formal_purpose:
     restored = json.loads((root/'validation/store-restore-validation.json').read_text())
     assert restored['status'] == 'full Store component restore validation passed'
     pool_bytes, chunk_bytes = restored['pool_bytes'], restored['chunk_bytes']
-    if not pool_diagnostic and env.get('SLLM_SERVICE_WEIGHT_FORMAT') == 'safetensors' and not (
+    if not pool_diagnostic and not formal_purpose and env.get('SLLM_SERVICE_WEIGHT_FORMAT') == 'safetensors' and not (
             formal or env.get('SLLM_USE_COMMON_POOL') == '1'):
         pool_bytes = 67108864
         chunk_bytes = 32*1024*1024
-env.update(STORAGE_PATH=str(root/'store' if validate_model else out/'store'),
+env.update(STORAGE_PATH=str(root/'store' if validate_model or formal_purpose else out/'store'),
            RAY_TMPDIR=str(control/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
 pathlib.Path(env['STORAGE_PATH']).mkdir(exist_ok=True)
 if pool_diagnostic:
@@ -68,7 +78,7 @@ def launch(name, args):
     return process
 
 def wait_ready(check, seconds, process):
-    stop = time.monotonic()+seconds
+    stop = min(time.monotonic()+seconds,work_deadline)
     while time.monotonic()<stop:
         if process.poll() is not None:
             raise RuntimeError(f'process {process.pid} exited {process.returncode}')
@@ -84,10 +94,15 @@ def expired(signum, frame):
 signal.signal(signal.SIGALRM,expired)
 from resource_window_control13 import load_window
 deadline = datetime.datetime.fromisoformat(load_window(control)['cleanup_deadline']).timestamp()
-from budget_control13 import require_budget
-require_budget(label,deadline-time.time(),pool_diagnostic=pool_diagnostic)
-work_deadline=time.monotonic()+(POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else G1_SERVICE_WORK_BUDGET)
-signal.alarm(POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else G1_SERVICE_WORK_BUDGET)
+from budget_control13 import require_budget,load_formal_batch,arm_formal_timer
+if formal_purpose:
+    batch_budget=load_formal_batch(control,label)
+    work_deadline=batch_budget['initialization_end_ns']/1000000000
+    arm_formal_timer(batch_budget['initialization_end_ns'])
+else:
+    require_budget(label,deadline-time.time(),pool_diagnostic=pool_diagnostic)
+    work_deadline=time.monotonic()+(POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else G1_SERVICE_WORK_BUDGET)
+    signal.alarm(POOL_DIAGNOSTIC_WORK_BUDGET if pool_diagnostic else G1_SERVICE_WORK_BUDGET)
 
 try:
     worker = launch('ray-worker',[python,'-m','ray.scripts.scripts','start','--address='+address,'--node-ip-address='+ip,
@@ -115,13 +130,13 @@ try:
     import grpc
     from sllm_store.proto import storage_pb2,storage_pb2_grpc
     with grpc.insecure_channel('127.0.0.1:8073') as channel:
-        config=storage_pb2_grpc.StorageStub(channel).GetServerConfig(storage_pb2.GetServerConfigRequest(),timeout=5)
-    assert config.mem_pool_size==pool_bytes and config.chunk_size==chunk_bytes
+        pool_config=storage_pb2_grpc.StorageStub(channel).GetServerConfig(storage_pb2.GetServerConfigRequest(),timeout=5)
+    assert pool_config.mem_pool_size==pool_bytes and pool_config.chunk_size==chunk_bytes
     status=pathlib.Path(f'/proc/{store.pid}/status').read_text()
     rss=int(next(line.split()[1] for line in status.splitlines() if line.startswith('VmRSS:')))*1024
     assert rss>=pool_bytes, 'real pool not resident'
     assert 'Memory pool created with 716GB' in (out/'store.log').read_text()
-    (out/'pool-ready.json').write_text(json.dumps(dict(monotonic_ns=time.monotonic_ns(),pool_bytes=pool_bytes,chunk_bytes=chunk_bytes,store_pid=store.pid,listener=store_listener,rpc_config=dict(mem_pool_size=config.mem_pool_size,chunk_size=config.chunk_size),rss_bytes=rss),indent=2))
+    (out/'pool-ready.json').write_text(json.dumps(dict(monotonic_ns=time.monotonic_ns(),pool_bytes=pool_bytes,chunk_bytes=chunk_bytes,store_pid=store.pid,listener=store_listener,rpc_config=dict(mem_pool_size=pool_config.mem_pool_size,chunk_size=pool_config.chunk_size),rss_bytes=rss),indent=2))
     from store_numa_exec_v13 import audit_store_threads
     target = json.loads((out/'store-numa-launch.json').read_text())['target_cpu_affinity']
     (out/'store-affinity-ready.json').write_text(json.dumps(audit_store_threads(store.pid,target),indent=2))
@@ -153,16 +168,34 @@ try:
         'ray_logical_roles':2,'gpus':8,'model_registered':False,'inference_performed':False,
         'entrypoint':'sllm.cli._cli_utils.start_server + native FastAPI /health'},indent=2))
     print('native_control_plane_healthy_no_model_registered',flush=True)
-    if validate_model:
+    if formal_purpose:
+        if normal_smoke:arm_formal_timer(batch_budget['work_end_ns'])
+        if normal_smoke:
+            from attempt_state import checked_json
+            from validation_control13 import run
+            os.environ['SLLM_NORMAL_FLAGS_SMOKE']='1'
+            for weight_format in ('serverless_llm','safetensors'):
+                row=manifest['full_a4_proofs'][weight_format]
+                proof_path=g1_reference_root(manifest,root)/row['path']
+                proof=checked_json(proof_path,row['sha256'])
+                assert proof['status']=='A4 native HTTP lifecycle checks passed' and proof['cycles']==2
+                assert proof['weight_format']==weight_format and proof['weight_audit_performed'] is True
+                os.environ['SLLM_FULL_A4_PROOF_FILE']=str(proof_path)
+                os.environ['SLLM_SERVICE_WEIGHT_FORMAT']=weight_format
+                target=out/weight_format;target.mkdir(exist_ok=False)
+                run(target,audit_weights=False)
+            from formal_gate import seal_normal_cache
+            seal_normal_cache(control,pathlib.Path(__file__).resolve().parent,root)
+        else:
+            from formal_trials import run
+            run(out,batch_budget)
+    elif validate_model:
         # Independent untimed full-cache control; does not label later lifecycle cache state.
         cache_log=(out/'hot-cache-control.log').open('x')
         try:
             subprocess.run([python,str(pathlib.Path(__file__).resolve().parent/'cache_state_control13.py'),'hot','safetensors_inputs','g1hot13'],stdout=cache_log,stderr=subprocess.STDOUT,env=env,timeout=600,check=True)
         finally: cache_log.close()
-        if formal:
-            from formal_trials_v11 import run
-        else:
-            from validation_control13 import run
+        from validation_control13 import run
         if normal_smoke:
             run(out,audit_weights=False)
         else:
@@ -179,7 +212,7 @@ finally:
     teardown=[]
     teardown_identity={}
     teardown_namespace={}
-    identity_file=control/'service13a-identity.json'
+    identity_file=control/(label+'-identity.json')
     namespace_file=out/'store-numa-launch.json'
     if identity_file.exists():teardown_identity=json.loads(identity_file.read_text())
     if namespace_file.exists():teardown_namespace=json.loads(namespace_file.read_text())

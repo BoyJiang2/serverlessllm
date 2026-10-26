@@ -63,7 +63,24 @@ def container_mounts():
     readonly += [(root/'validation'/name,'validation/'+name) for name in ('native-gold.json','native-weight-contract.json','store-restore-validation.json')]
     # Frozen gold uses underscores, while canonical navigation links use hyphens.
     readonly += [(root/'validation'/('native-repeat'+n),'validation/native_repeat'+n) for n in ('7','8')]
-    rows=[dict(source=str(source),destination='/experiment/'+dest,readonly=True) for source,dest in readonly]
+    config=manifest()
+    if config.get('execution_purpose')=='formal-continuation':
+        readonly.append((root/'protocol/measurement-preregistration.json','protocol/measurement-preregistration.json'))
+        baseline=json.loads((SOURCE/'initial-ledger.json').read_text())['attempts']
+        readonly.extend((root/'results/formal-trials'/row['attempt_id']/'result.json','results/formal-trials/'+row['attempt_id']+'/result.json') for row in baseline if row['status']!='unstarted')
+        from formal_gate import g1_reference_root
+        reference=g1_reference_root(config,pathlib.Path(str(root)))
+        names=['G1-acceptance.json']+[row['path'] for row in config['full_a4_proofs'].values()]
+        for name in names:
+            relative=pathlib.PurePosixPath(name)
+            if relative.is_absolute() or '..' in relative.parts:raise RuntimeError('G1 proof mount escaped')
+            source=reference/relative
+            readonly.append((source,source.relative_to(pathlib.Path(str(root))).as_posix()))
+        for name in config['formal_prior_execution_roots']:
+            relative=pathlib.PurePosixPath(name)
+            if relative.is_absolute() or '..' in relative.parts:raise RuntimeError('prior result mount escaped')
+            readonly.append((root/relative,name))
+    rows=[dict(source=source.as_posix(),destination='/experiment/'+dest,readonly=True) for source,dest in readonly]
     rows.append(dict(source=str(root/'validation/controls'/run),destination=str(RUN_ALIAS),readonly=False))
     return rows
 

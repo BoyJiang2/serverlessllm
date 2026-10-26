@@ -49,7 +49,9 @@ def run(out, audit_weights=True):
     control=run_root()
     manifest=json.loads((control/'run-manifest.json').read_text())
     launch=json.loads((out.parent/'store-numa-launch.json').read_text())
-    service=json.loads((control/'service13a-identity.json').read_text())
+    service_label=manifest.get('service_worker_label','service13a')
+    assert service_label in ('service13a','normal13','formal13')
+    service=json.loads((control/(service_label+'-identity.json')).read_text())
     def host_gpu():
         snapshot=json.loads((control/'monitor-v3-ready.json').read_text())
         require_monitor_ready(snapshot,time.monotonic_ns(),manifest['run_id'],manifest['runtime_identity']['boot_id'])
@@ -79,8 +81,8 @@ def run(out, audit_weights=True):
             assert response.status == 200
             return json.load(response)
 
-    audit_root = pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR'])
-    known_audits = set(audit_root.iterdir()) if audit_root.exists() else set()
+    audit_root = pathlib.Path(os.environ['SLLM_SERVICE_WEIGHT_AUDIT_DIR']) if audit_weights else None
+    known_audits = set(audit_root.iterdir()) if audit_root is not None and audit_root.exists() else set()
     baseline_audits = len(known_audits)
     coverage=[]
     for cycle in [1,2]:

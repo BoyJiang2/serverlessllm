@@ -39,10 +39,22 @@ assert os.getuid() == manifest['uid'] == 2147
 assert spec['name'].replace('_', '').isalnum()
 window = load_window(root)
 deadline = datetime.datetime.fromisoformat(window['cleanup_deadline'])
-from budget_control13 import require_budget,POOL_DIAGNOSTIC_SCOPE
+from budget_control13 import require_budget,POOL_DIAGNOSTIC_SCOPE,formal_batch_budget,load_formal_batch,iso_time_ns,require_batch_start
 diagnostic=validate_scope(root,spec['name'])
 pool_diagnostic=manifest['scope']==POOL_DIAGNOSTIC_SCOPE
-require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=diagnostic,pool_diagnostic=pool_diagnostic)
+formal_purpose=manifest.get('execution_purpose')=='formal-continuation'
+batch=None
+if formal_purpose:
+    from formal_gate import verify_normal_reference,verify_admission
+    verify_normal_reference(manifest,pathlib.Path(str(HOST)))
+    if spec['name'] in ('headformal13','formal13'):
+        gate_sha=hashlib.sha256((root/'formal-admission.json').read_bytes()).hexdigest()
+        verify_admission(root,SOURCE,pathlib.Path(str(HOST)),sys.argv[3],sys.argv[2],gate_sha)
+    if spec['name'] in ('service13a','formal13'):
+        batch=load_formal_batch(root,spec['name'])
+        assert time.monotonic_ns()<batch['initialization_end_ns'],'issued initialization budget expired'
+else:
+    require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=diagnostic,pool_diagnostic=pool_diagnostic)
 
 def call(*args):
     return subprocess.check_output(args, text=True, timeout=15).strip()
@@ -56,10 +68,10 @@ if spec.get('gpus') or spec['name'].startswith('head'):
 if (diagnostic or pool_diagnostic) and spec['name']=='headservice13a':
     monitor=json.loads((root/'monitor13-identity.json').read_text())
     verify_timeout_probe(root,json.loads(call('docker','inspect',monitor['container_id']))[0])
-if spec['name']=='service13a':
+if spec['name']=='service13a' or (formal_purpose and spec['name']=='formal13'):
     from materialize_control13 import verify_sigint_probe
-    head=json.loads((root/'headservice13a-identity.json').read_text())
-    verify_sigint_probe(root,json.loads(call('docker','inspect',head['container_id']))[0],sys.argv[3],sys.argv[2])
+    head=json.loads((root/('head'+spec['name']+'-identity.json')).read_text())
+    verify_sigint_probe(root,json.loads(call('docker','inspect',head['container_id']))[0],sys.argv[3],sys.argv[2],spec['name'])
 args = ['docker', 'create', '--network=' + spec.get('network', 'none'), '--memory=' + spec['memory'],
         '--cpus=' + str(spec['cpus']), '--shm-size=32g', '--ulimit=core=0', '--restart=no', '--cgroup-parent=' + run + '.slice',
         '--name=' + run + '-' + spec['name'], '--label=sllm.run_id=' + run,
@@ -95,13 +107,21 @@ dispatch_monotonic_ns = time.monotonic_ns()
 deployment=json.loads((root/'deployment.json').read_text())
 assert deployment['run_id']==run and deployment['input_manifest_sha256']==sys.argv[2] and deployment['code_commit']==sys.argv[3]
 assert len(deployment['code_commit'])==40 and all(c in '0123456789abcdef' for c in deployment['code_commit'])
-dispatch_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+wall_anchor_ns=time.time_ns()
+dispatch_utc=datetime.datetime.fromtimestamp(wall_anchor_ns//1000000000,datetime.timezone.utc).replace(microsecond=(wall_anchor_ns%1000000000)//1000).isoformat()
+if formal_purpose and spec['name'] in ('headservice13a','headformal13'):
+    batch=formal_batch_budget(dispatch_monotonic_ns,wall_anchor_ns,iso_time_ns(window['cleanup_deadline']),'normal' if spec['name']=='headservice13a' else 'formal')
+    # Normal smoke cannot be shortened; formal needs initialization and one full round.
+    minimum=3900+180 if spec['name']=='headservice13a' else 3065
+    assert deadline.timestamp()-time.time()>=minimum,'insufficient complete batch minimum and release reserve'
 with (root / (spec['name'] + '-dispatch.json')).open('x') as output:
     json.dump({'run_id':run,'spec':spec,'uid':os.getuid(),
                'dispatch_monotonic_ns':dispatch_monotonic_ns,'dispatch_utc':dispatch_utc,'preflight':preflight,'code_commit':deployment['code_commit'],
-               'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()},output,indent=2)
+               'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'manifest_sha256':sys.argv[2],**({'batch_budget':batch} if batch is not None else {})},output,indent=2)
+if formal_purpose and batch is not None:require_batch_start(batch)
 cid = call(*args)
 create_complete_ns = time.monotonic_ns()
+if formal_purpose and batch is not None:require_batch_start(batch)
 call('docker', 'start', cid)
 start_complete_ns = time.monotonic_ns()
 pid = int(call('docker', 'inspect', cid, '--format={{.State.Pid}}'))

@@ -36,7 +36,7 @@ class Watchdog(unittest.TestCase):
         result,child=self.run_case(ignore_term=True,ignore_kill=True);self.assertEqual(result['status'],'failed');self.assertTrue(result['child_alive_at_end']);self.assertLessEqual(result['end_ns'],330*10**9)
     def test_actual_bootstrap_uses_identical_admission(self):
         source=pathlib.Path(__file__).with_name('bootstrap_control13.py')
-        node=next(v.value for v in ast.parse(source.read_text()).body if isinstance(v,ast.Expr) and isinstance(v.value,ast.Call) and isinstance(v.value.func,ast.Name) and v.value.func.id=='require_budget')
+        node=next(v.value for v in ast.walk(ast.parse(source.read_text())) if isinstance(v,ast.Expr) and isinstance(v.value,ast.Call) and isinstance(v.value.func,ast.Name) and v.value.func.id=='require_budget')
         expression=compile(ast.Expression(node),'actual bootstrap budget','eval')
         for remaining in (3600,3720,3721):
             self.assertEqual(eval(expression,dict(require_budget=require_budget,pool_diagnostic=False,label='service13a',deadline=remaining,time=types.SimpleNamespace(time=lambda:0))),3420)

@@ -39,3 +39,16 @@ def require_helper_binding(helper,launch,service,boot):
 
 def gpu_pids(raw):
     return sorted({int(line.split(',',1)[0]) for line in raw.splitlines()})
+
+
+def registered_store_identity(output_root,processes,boot):
+    import json
+    matches=[]
+    for label in ('service13a','formal13'):
+        launch=output_root/('service-bootstrap-'+label)/'store-numa-launch.json'
+        identity=output_root/(label+'-identity.json')
+        if launch.exists() and identity.exists():
+            helper=store_identity(json.loads(launch.read_text()),json.loads(identity.read_text()),processes,boot)
+            if helper is not None:matches.append(helper)
+    if len(matches)>1:raise RuntimeError('multiple live Store helpers across native batches')
+    return matches[0] if matches else None

@@ -11,7 +11,7 @@ class Admission(unittest.TestCase):
         directory=tempfile.TemporaryDirectory();self.addCleanup(directory.cleanup)
         self.control_root=pathlib.Path(directory.name)
         manifest=json.loads((root/'run-manifest.json').read_text())
-        manifest.update(scope='G1 independent untimed controls only; zero formal IDs',monitor_diagnostic_trace=False,grpc_shutdown_probe=False)
+        manifest.update(scope='G1 independent untimed controls only; zero formal IDs',execution_purpose='G1',monitor_diagnostic_trace=False,grpc_shutdown_probe=False)
         (self.control_root/'run-manifest.json').write_text(json.dumps(manifest))
 
     def info(self,uid='2147',address='172.17.0.2'):
