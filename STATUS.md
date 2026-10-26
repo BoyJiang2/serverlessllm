@@ -421,3 +421,8 @@ Actual local full readonly review verified80+9 hashes and full gate/phase/budget
 ## canonical21 prior terminal hash binding frozen for full R1
 
 Newrun sllm-glm51fp8-20261026T225201Z-02cd4cdc / manifest6f456dfaaaca5bc3011ba217e481a7c107ff7186722084a1640a8472e76a4ef0.80runtime+9repositoryinputs;258CPU/35operator(34pass1WindowsPOSIXskip)/3syntax passed. Config pins exact C19 result+origin SHA; shared host/container/driver execution_roots inventories complete prior terminal set and rehashes before collect. Missing/extra/result/origin drift/successflip reject through both actual shared admission entries; original seed untouched. C20 retained rejected/notdeployed. C20 timing/probe chain retained. Exact new independent R1/currentresources/newactual08:50guard/CPUprobes/normal4phase control/R2/formal admission pending. No candidatecompute or ID;5success5failed30unstarted,next safetensors_disk_cold_03.
+
+
+## canonical21 exact local full R1 approved; fresh actual guard next
+
+16e40e9/MF6f456dfa approvedfull-runtime at22:53:27Z;80+9match,R1-C20-01closed. No otherconfirmedblocker.258CPU35operator1skip3syntax recorded,not rerun byreviewer.06:54actual8GPU0/no computePID/sourceabsent/current03–09booking;priorguardinactive. Exactnewguard/identity/Linuxprobes/normalfourfullphases/R2/formal pending. No candidatecompute orID;5/5/30,nextsafetensors_disk_cold_03. REVIEW-PROMPT staleC20title explicitlyexcludedfromapprovalidentity; exactC21code/MF/config/PLAN bind review.
