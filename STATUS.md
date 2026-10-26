@@ -327,3 +327,7 @@ SameimagePython3.12.13/grpc1.80: directwait SIGINT returns-2/stopCancelledError;
 ## canonical16 one-line Store cancellation fix frozen
 
 ActualC15CPUcontrast supports shieldcandidate. Storeoriginal8943B/c0de→active8959B/b22a withsingleawaitshield;fixedROfileoverlaykeepssamepackageentry/originalhost/1142MF/binaries. Importchecksfullactualservecodeobject+filename againstreviewedsource beforepool, rejectsoldpyc. Newrun190735Z-ccbf6f33/MFf047611221902cf65e4580f969436944f19a0d9594d4dbe8b00e989281ad6942,63files/150runtime/26operator(1skip)/3syntax. WIPreadonlynoblocker, exactR1pending/nodeploy/guard/pool.03:06snapshot8GPU0/noproc/current03-09ownedbooking;new08:50guardrequired. NoG1/R2/formalpass,5/4/31unchanged.
+
+## canonical16 fullR1 approved, actual pool validation next
+
+Exact8f43bd74/MFf0476112 approvedlocalreadonly at19:08:40Z;63+8hashesmatch. One-lineStoreoverlaysource/executedbytecodeproof accepted;150runtime/26operator(1skip)/3syntax. Actualnew08:50guard/readonlymount/importproof/pool/zeroexit/release stillpending.03:06freshsnapshot8GPU0/noGPUproc/current03-09booking/sourceabsent. NotG1/R2/formalpass,5/4/31unchanged.
