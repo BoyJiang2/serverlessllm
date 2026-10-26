@@ -13,7 +13,8 @@ import sys
 import time
 import traceback
 
-root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')
+from workspace import run_root
+root = run_root()
 label = sys.argv[1]
 assert label.isalnum()
 out = root/('ray-only-'+label)

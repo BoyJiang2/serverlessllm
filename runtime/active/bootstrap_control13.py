@@ -13,10 +13,13 @@ import time
 import urllib.request
 import datetime
 
+from workspace import run_root,verify_input_layout
 root = pathlib.Path('/experiment')
+control = run_root()
+verify_input_layout()
 label = sys.argv[1] if len(sys.argv)>1 else 'probe'
 assert label.isalnum()
-out = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')/('service-bootstrap-'+label)
+out = control/('service-bootstrap-'+label)
 out.mkdir(exist_ok=False)
 env = os.environ.copy()
 validate_model = os.environ.get('SLLM_VALIDATE_FULL_MODEL') == '1'
@@ -31,7 +34,7 @@ if formal:
 pool_bytes = 67108864
 chunk_bytes = 32*1024*1024
 if validate_model:
-    restored = json.loads((root/'store-restore-validation.json').read_text())
+    restored = json.loads((root/'validation/store-restore-validation.json').read_text())
     assert restored['status'] == 'full Store component restore validation passed'
     pool_bytes, chunk_bytes = restored['pool_bytes'], restored['chunk_bytes']
     if env.get('SLLM_SERVICE_WEIGHT_FORMAT') == 'safetensors' and not (
@@ -39,7 +42,7 @@ if validate_model:
         pool_bytes = 67108864
         chunk_bytes = 32*1024*1024
 env.update(STORAGE_PATH=str(root/'store' if validate_model else out/'store'),
-           RAY_TMPDIR=str(pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
+           RAY_TMPDIR=str(control/('ray-'+label)), RAY_USAGE_STATS_ENABLED='0')
 pathlib.Path(env['STORAGE_PATH']).mkdir(exist_ok=True)
 python = '/experiment/.venv/bin/python'
 ip = socket.gethostbyname(socket.gethostname())
@@ -71,7 +74,7 @@ def expired(signum, frame):
 
 signal.signal(signal.SIGALRM,expired)
 from resource_window_control13 import load_window
-deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
+deadline = datetime.datetime.fromisoformat(load_window(control)['cleanup_deadline']).timestamp()
 from budget_control13 import require_budget
 require_budget(label,deadline-time.time())
 signal.alarm(3300)
@@ -92,7 +95,7 @@ try:
     assert sum(node['Resources'].get('GPU',0) for node in nodes)==8
     (out/'ray-nodes.json').write_text(json.dumps(nodes,indent=2))
     ray.shutdown()
-    store = launch('store',[python,'/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/store_numa_exec_v13.py',str(out/'store-numa-launch.json'),python,'-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/run_store_server13.py','--storage-path',env['STORAGE_PATH'],
+    store = launch('store',[python,'/experiment/code/experiment/store_numa_exec_v13.py',str(out/'store-numa-launch.json'),python,'-u','/experiment/code/experiment/run_store_server13.py','--storage-path',env['STORAGE_PATH'],
                             '--pool-bytes',str(pool_bytes),'--chunk-bytes',str(chunk_bytes),'--host','0.0.0.0'])
     def store_ready():
         with socket.create_connection(('127.0.0.1',8073),timeout=1): return True

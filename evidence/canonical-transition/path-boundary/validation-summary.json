@@ -1,0 +1,65 @@
+{
+  "scope": "canonical path/input fail-closed boundary only; not full R1/runtime deployment approval",
+  "utc": "2026-10-26T05:22:20.770470+00:00",
+  "cpu_tests": 16,
+  "python_compile_files": 30,
+  "bash_syntax_files": 3,
+  "container_cases": [
+    {
+      "case": "complete",
+      "exit_code": 0,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "empty_checkpoint",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "missing_official_manifest",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "truncated_checkpoint_shard",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "missing_store_rank_payload",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "truncated_store_part",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "changed_gold",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    },
+    {
+      "case": "bootstrap_missing_checkpoint",
+      "exit_code": 1,
+      "passed": true,
+      "container_released": true
+    }
+  ],
+  "source_snapshot_matches_current_files": true,
+  "no_model_pool_or_formal_ids_started": true,
+  "remaining": [
+    "complete runtime package sealing and actual full R1",
+    "actual imports under guarded approved deployment",
+    "guard/probe, G1, R2 and formal admission"
+  ],
+  "initial_control_failure": "initial-checker-failure.json; inactive MTP record initially miscounted as active rank; corrected without modifying frozen receipt"
+}

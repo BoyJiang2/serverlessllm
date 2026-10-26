@@ -4,7 +4,8 @@ import datetime,json,pathlib,subprocess,time
 from resource_window_control13 import load_window
 from budget_control13 import require_budget
 from control_watchdog13 import supervise_child
-root=pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')
+from workspace import SOURCE,run_root
+root=run_root()
 mode,label=sys.argv[1:]
 assert (mode=='ray' and label in ('ray13a','ray13b')) or (mode=='service' and label=='service13a')
 script='ray_control13.py' if mode=='ray' else 'bootstrap_control13.py'
@@ -17,7 +18,7 @@ def heartbeat():
     if ready['run_id']!=manifest['run_id'] or ready['boot_id']!=manifest['runtime_identity']['boot_id'] or not ready['observers_ok'] or ready['foreign_gpu_pids'] or not 0<=time.monotonic_ns()-ready['last_sample_ns']<=5_000_000_000:
         raise RuntimeError('control stopped after monitor/observer heartbeat failure')
 try:
-    child=subprocess.Popen(['/experiment/.venv/bin/python','-u',str(root/script),label])
+    child=subprocess.Popen(['/experiment/.venv/bin/python','-u',str(SOURCE/script),label])
     record['child_pid']=child.pid
     record.update(supervise_child(child,record['begin_ns'],budget,heartbeat))
 except BaseException as error:

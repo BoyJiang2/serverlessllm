@@ -4,7 +4,7 @@ umask 077
 run_id=sllm-glm51fp8-20261026T030041Z-5b688078
 test "$(id -u)" = 0
 test "$1" = "$run_id"
-base="/data/brick1/boyjiang/$run_id"
+base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 test "$(stat -c %u "$base")" = 2147
 test "$(systemctl is-active "$run_id-deadline-v13.timer")" = active
 remaining=$((1793008200-$(date +%s)))
@@ -23,7 +23,7 @@ for suffix in ['kernelobserver13','dockerobserver13']:
     pid=int(subprocess.check_output(['systemctl','show',unit,'-p','MainPID','--value'],text=True))
     proc=pathlib.Path('/proc')/str(pid)
     rows.append(dict(unit=unit,pid=pid,start_ticks=proc.joinpath('stat').read_text().rpartition(')')[2].split()[19],cgroup=proc.joinpath('cgroup').read_text()))
-path=pathlib.Path('/data/brick1/boyjiang')/run/'observer-registration13.json'
+path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'validation/controls'/run/'observer-registration13.json'
 with path.open('x') as stream: json.dump(dict(run_id=run,boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),observers=rows),stream,indent=2)
 path.chmod(0o444)
 PY

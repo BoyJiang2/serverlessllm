@@ -1,4 +1,5 @@
 """Isolated, untimed G1 launch using reviewed inputs and booking-derived window v3."""
+import hashlib
 import datetime
 import json
 import pathlib
@@ -9,25 +10,22 @@ import os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden')
 
-root = pathlib.Path(__file__).resolve().parent
-manifest = json.loads((root / 'run-manifest.json').read_text())
-asset_root = pathlib.Path(manifest['parent_asset_root'])
-assert str(asset_root) == '/data/brick1/boyjiang/sllm-glm51fp8-20261024T051606Z-deb76e57'
-import hashlib
-assert hashlib.sha256((asset_root/'run-manifest.json').read_bytes()).hexdigest() == manifest['parent_manifest_sha256']
-parent_manifest=asset_root/'review-input-manifest-v11.json'
+from workspace import SOURCE,HOST,run_root,historical_path,container_mounts,verify_input_layout
+root = run_root()
+manifest = json.loads((root/'run-manifest.json').read_text())
+assert manifest['workspace_root']==str(HOST)
+parent_manifest=pathlib.Path(str(HOST))/'protocol/historical-review-manifest-v11.json'
 assert hashlib.sha256(parent_manifest.read_bytes()).hexdigest()=='da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4'
 for row in json.loads(parent_manifest.read_text())['files']:
-    path=(asset_root/row['path']).resolve()
-    assert path.is_relative_to(asset_root)
-    assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
+    path=historical_path(row['path'])
+    assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'],row['path']
 
 run = manifest['run_id']
 assert pathlib.Path(sys.argv[1]).name == sys.argv[1]
 assert len(sys.argv)==4 and hashlib.sha256((root/'control-input-manifest.json').read_bytes()).hexdigest()==sys.argv[2], 'review manifest SHA required'
 for row in json.loads((root/'control-input-manifest.json').read_text())['files']:
-    path=(root/row['path']).resolve()
-    assert path.is_relative_to(root)
+    path=(SOURCE/row['path']).resolve()
+    assert path.is_relative_to(SOURCE)
     assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
 from materialize_control13 import validate_spec
 from resource_window_control13 import load_window
@@ -35,7 +33,8 @@ spec = json.loads((root / sys.argv[1]).read_text())
 validate_spec(root, spec)
 from preflight_control13 import check
 preflight=check(root,monitor_required=spec['name']!='monitor13')
-assert root == pathlib.Path('/data/brick1/boyjiang') / run
+preflight['input_layout']=verify_input_layout()
+assert root == pathlib.Path(str(HOST))/'validation/controls'/run
 assert os.getuid() == manifest['uid'] == 2147
 assert spec['name'].replace('_', '').isalnum()
 window = load_window(root)
@@ -56,12 +55,12 @@ args = ['docker', 'create', '--network=' + spec.get('network', 'none'), '--memor
         '--cpus=' + str(spec['cpus']), '--shm-size=32g', '--ulimit=core=0', '--restart=no', '--cgroup-parent=' + run + '.slice',
         '--name=' + run + '-' + spec['name'], '--label=sllm.run_id=' + run,
         '--label=sllm.uid=2147', '--user=2147:2147',
-        '--env=USER=boyjiang', '--env=LOGNAME=boyjiang', '--env=HOME=/experiment/home',
-        '--mount=type=bind,src=' + str(asset_root) + ',dst=/experiment,readonly',
-        '--mount=type=bind,src=' + str(root/'native-home') + ',dst=/experiment/native-home',
-        '--mount=type=bind,src=' + str(root) + ',dst=/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078',
-        '--mount=type=bind,src=' + str(root/'run-manifest.json') + ',dst=/experiment/run-manifest.json,readonly',
-        '--mount=type=bind,src=' + str(root/'resource-window-extension-v3.json') + ',dst=/experiment/resource-window-extension-v3.json,readonly']
+        '--env=USER=boyjiang', '--env=LOGNAME=boyjiang']
+for mount in container_mounts():
+    path=pathlib.Path(mount['source'])
+    assert path.exists() and path.resolve().is_relative_to(pathlib.Path(str(HOST))), 'invalid canonical mount'
+    args += ['--mount=type=bind,src='+mount['source']+',dst='+mount['destination']+(',readonly' if mount['readonly'] else '')]
+
 if spec.get('gpus'):
     args += ['--gpus=all']
 else:
@@ -71,11 +70,11 @@ if spec.get('cuda_toolkit'):
 if spec.get('raw_export_hook') or spec.get('phase_trace'):
     if spec.get('raw_export_hook'):
         assert spec['env'].get('SLLM_EXPORT_RAW_STORE') == '/experiment/store/vllm/glm51-fp8'
-    args += ['--mount=type=bind,src=' + str(asset_root / 'patches/base_loader.py')
+    args += ['--mount=type=bind,src=' + str(HOST / 'archive/original-run/patches/base_loader.py')
              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py,readonly']
 if spec.get('phase_trace'):
     assert spec['env'].get('SLLM_EVENT_DIR', '').startswith('/experiment/')
-    args += ['--mount=type=bind,src=' + str(asset_root / 'patches/gpu_worker.py')
+    args += ['--mount=type=bind,src=' + str(HOST / 'archive/original-run/patches/gpu_worker.py')
              + ',dst=/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py,readonly']
 if spec.get('host_monitor'):
     args += ['--pid=host', '--cgroupns=host']

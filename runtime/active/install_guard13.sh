@@ -3,7 +3,7 @@ set -euo pipefail
 run_id=sllm-glm51fp8-20261026T030041Z-5b688078
 test "$(id -u)" = 0
 test "$1" = "$run_id"
-base="/data/brick1/boyjiang/$run_id"
+base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 test "$(stat -c %u "$base")" = 2147
 test "$(date -u +%s)" -ge 1792980000
 test "$(date -u +%s)" -lt 1793008200
@@ -11,7 +11,7 @@ test ! -e "/run/$run_id/cleanup-v13.sh"
 install -d -m 0755 -o root -g root "/run/$run_id"
 test ! -L "$base/root-evidence-private13"
 install -d -m 0700 -o root -g root "$base/root-evidence-private13"
-install -m 0700 -o root -g root "$base/cleanup_guard13.sh" "/run/$run_id/cleanup-v13.sh"
+install -m 0700 -o root -g root "/data/brick1/boyjiang/glm5.1-fp8/code/experiment/cleanup_guard13.sh" "/run/$run_id/cleanup-v13.sh"
 cat > "/run/systemd/system/$run_id.slice" <<EOF
 [Unit]
 Description=Independent untimed GLM FP8 controls $run_id
@@ -67,13 +67,13 @@ proof=dict(run_id=run,probe_pid=int(os.environ['CONTROL13_PROBE_PID']),sentinel_
     service_exec=call('systemctl','show',run+'-deadline-v13.service','-p','ExecStart','--value'),
     timer_state=call('systemctl','show',run+'-deadline-v13.timer','-p','ActiveState','-p','NextElapseUSecRealtime'),
     slice=call('systemctl','show',run+'.slice','-p','MemoryMax','-p','MemorySwapMax','-p','TasksMax','-p','ControlGroup'),
-    probe_log=(pathlib.Path('/data/brick1/boyjiang')/run/'root-evidence-private13/cleanup-v13-probe.log').read_text())
+    probe_log=(pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'validation/controls'/run/'root-evidence-private13/cleanup-v13-probe.log').read_text())
 if not proof['probe_passed'] or 'failed=0' not in proof['probe_log']: raise RuntimeError('cleanup probe failed')
-assert proof['cleanup_sha256']==hashlib.sha256((pathlib.Path('/data/brick1/boyjiang')/run/'cleanup_guard13.sh').read_bytes()).hexdigest()
+assert proof['cleanup_sha256']==hashlib.sha256((pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'code/experiment/cleanup_guard13.sh').read_bytes()).hexdigest()
 record=root/'guard-verification.json'
 record.write_text(json.dumps(proof,indent=2))
 record.chmod(0o444)
-archive=pathlib.Path('/data/brick1/boyjiang')/run/'root-evidence-private13/guard-verification.json'
+archive=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'validation/controls'/run/'root-evidence-private13/guard-verification.json'
 archive.write_bytes(record.read_bytes())
 archive.chmod(0o600)
 for path in root.glob('cleanup-v13-*.log'): path.chmod(0o600)

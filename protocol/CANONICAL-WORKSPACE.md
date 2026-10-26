@@ -1,4 +1,4 @@
-# Canonical workspace transition — implementation pending, no runtime approval
+# Canonical workspace transition — input boundary verified, no runtime approval
 
 The sole SSH entry is `qjhs003`. The server workspace is
 `/data/brick1/boyjiang/glm5.1-fp8`. The human explicitly moved Git work to `main`;
@@ -70,7 +70,9 @@ Required path changes cover deploy, source verification, manifest/reference read
 materialization, container arguments/PYTHONPATH, root guard/probe, observers,
 fast monitor, cache helpers, native audits, PSS and final acceptance/release.
 All future writes must resolve inside the canonical workspace, outside `archive/`;
-the compatibility symlink remains until actual launch/dependency verification.
+the old compatibility symlink was removed after the limited dependency review
+and pre/post asset verification. Historical mapping strings remain immutable;
+they are not filesystem dependencies.
 
 ## Separate changes and validation
 

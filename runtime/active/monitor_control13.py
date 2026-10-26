@@ -13,7 +13,8 @@ import time
 from resource_window_control13 import load_window
 from compilation_guard import TOOLS, observed_interference
 
-root = pathlib.Path('/experiment')
+from workspace import run_root
+root = run_root()
 manifest = json.loads((root/'run-manifest.json').read_text())
 control = pathlib.Path(os.environ['SLLM_CONTROL_GROUP'])
 assert control.is_absolute() and control.name == manifest['run_id']+'.slice'
@@ -21,7 +22,7 @@ cgroup = pathlib.Path('/sys/fs/cgroup')/str(control).lstrip('/')
 assert cgroup.is_dir()
 deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
 sampled_peak = 0
-output_root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')
+output_root = root
 log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
 assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')
 registration_path=output_root/'observer-registration13.json'

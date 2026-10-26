@@ -1,5 +1,6 @@
 """Fail closed on node, booking, root-guard and monitoring identity drift."""
 import datetime,hashlib,json,os,pathlib,socket,stat,subprocess,sys,time
+from workspace import SOURCE
 
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden for verification code')
@@ -17,6 +18,7 @@ def validate_ancestor_values(values,is_root):
         else: require(value=='max' or int(value)>=1825361100800,'ancestor '+name+' below frozen budget')
 
 def check(root,monitor_required=True):
+    require((root/'run-manifest.json').read_bytes()==(SOURCE/'run-manifest.json').read_bytes(),'run registration differs from reviewed source')
     manifest=json.loads((root/'run-manifest.json').read_text())
     run=manifest['run_id']
     expected=manifest['runtime_identity']
@@ -41,7 +43,7 @@ def check(root,monitor_required=True):
     current=script.stat()
     require(all(getattr(current,key)==value for key,value in proof['script_stat'].items()),'root cleanup script metadata changed')
     require(current.st_uid==0 and stat.S_IMODE(current.st_mode)==0o700,'cleanup must be root-only')
-    require(proof['cleanup_sha256']==hashlib.sha256((root/'cleanup_guard13.sh').read_bytes()).hexdigest(),'installed cleanup differs from reviewed source')
+    require(proof['cleanup_sha256']==hashlib.sha256((SOURCE/'cleanup_guard13.sh').read_bytes()).hexdigest(),'installed cleanup differs from reviewed source')
     service=run+'-deadline-v13.service'
     observed_exec=call('systemctl','show',service,'-p','ExecStart','--value')
     require(observed_exec==proof['service_exec'] and f'/bin/bash {script} {run} main' in observed_exec,'deadline service command changed')

@@ -3,6 +3,7 @@ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden')
 """Only observed head IP or the exact run slice may vary from reviewed templates."""
 import json,pathlib,subprocess,sys
+from workspace import SOURCE,run_root
 
 def call(*args):
     return subprocess.check_output(args,text=True).strip()
@@ -10,14 +11,14 @@ def call(*args):
 def expected_spec(root,name):
     run=json.loads((root/'run-manifest.json').read_text())['run_id']
     if name in ('headray13a','headray13b','headservice13a'):
-        return json.loads((root/(name+'.json')).read_text())
+        return json.loads((SOURCE/(name+'.json')).read_text())
     if name=='monitor13':
-        spec=json.loads((root/'monitor13-template.json').read_text())
+        spec=json.loads((SOURCE/'monitor13-template.json').read_text())
         spec['env']['SLLM_CONTROL_GROUP']=call('systemctl','show',run+'.slice','-p','ControlGroup','--value')
         assert pathlib.PurePosixPath(spec['env']['SLLM_CONTROL_GROUP']).name==run+'.slice'
         return spec
     assert name in ('ray13a','ray13b','service13a')
-    spec=json.loads((root/(name+'-template.json')).read_text())
+    spec=json.loads((SOURCE/(name+'-template.json')).read_text())
     head=run+'-head'+name
     info=json.loads(call('docker','inspect',head))[0]
     assert info['State']['Running'] and info['Config']['Labels']['sllm.run_id']==run
@@ -32,7 +33,7 @@ def validate_spec(root,spec):
     assert spec==expected_spec(root,spec['name']), 'derived configuration differs from reviewed constraints'
 
 if __name__=='__main__':
-    root=pathlib.Path(__file__).resolve().parent
+    root=run_root()
     name=sys.argv[1]
     spec=expected_spec(root,name)
     validate_spec(root,spec)

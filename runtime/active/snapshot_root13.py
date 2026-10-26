@@ -3,7 +3,7 @@ import datetime,hashlib,json,os,pathlib,subprocess,sys
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python forbidden')
 run='sllm-glm51fp8-20261026T030041Z-5b688078'
 if os.getuid()!=0 or sys.argv[1:]!=[run]: raise RuntimeError('wrong root identity')
-base=pathlib.Path('/data/brick1/boyjiang')/run
+base=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8')/'validation/controls'/run
 private=base/'root-evidence-private13'
 if private.is_symlink() or private.stat().st_uid!=0: raise RuntimeError('untrusted archive')
 def call(*args): return subprocess.check_output(args,text=True,timeout=15).strip()

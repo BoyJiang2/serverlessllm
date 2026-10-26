@@ -45,10 +45,11 @@ def audit_store_threads(pid, target_cpus):
 
 
 if __name__ == '__main__':
-    root = pathlib.Path('/experiment')
+    from workspace import run_root
+    root = run_root()
     path = pathlib.Path(sys.argv[1]).resolve()
     assert path.is_relative_to(root) and path.parent.name.startswith('service-bootstrap-')
-    assert sys.argv[2:5] == ['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/run_store_server13.py']
+    assert sys.argv[2:5] == ['/experiment/.venv/bin/python','-u','/experiment/code/experiment/run_store_server13.py']
     original = set(os.sched_getaffinity(0))
     sysfs = pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()
     target = original & cpu_list(sysfs)

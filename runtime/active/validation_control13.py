@@ -15,8 +15,9 @@ from gpu_identity13 import require_helper_binding,require_helper_only
 
 
 def run(out, audit_weights=True):
+    from workspace import run_root,manifest as run_manifest
     root = pathlib.Path('/experiment')
-    assert json.loads((root/'store-restore-validation.json').read_text())['status'] == 'full Store component restore validation passed'
+    assert json.loads((root/'validation/store-restore-validation.json').read_text())['status'] == 'full Store component restore validation passed'
     if not audit_weights:
         assert os.environ.get('SLLM_NORMAL_FLAGS_SMOKE') == '1'
         proof = json.loads(pathlib.Path(os.environ['SLLM_FULL_A4_PROOF_FILE']).read_text())
@@ -24,8 +25,8 @@ def run(out, audit_weights=True):
         assert proof['weight_format'] == os.environ.get('SLLM_SERVICE_WEIGHT_FORMAT','serverless_llm')
         assert all(not os.environ.get(key) for key in ('SLLM_VERIFY_WEIGHTS',
             'SLLM_SERVICE_WEIGHT_AUDIT_DIR','VLLM_ALLOW_INSECURE_SERIALIZATION'))
-    data = (root/'native-gold.json').read_bytes()
-    assert hashlib.sha256(data).hexdigest() == (root/'native-gold.sha256').read_text().strip()
+    data = (root/'validation/native-gold.json').read_bytes()
+    assert hashlib.sha256(data).hexdigest() == run_manifest()['reference_sha256']['native-gold.json']
     gold = json.loads(data)
     model = 'glm51-fp8'
     backend = dict(gold['engine_config'])
@@ -45,7 +46,7 @@ def run(out, audit_weights=True):
         ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]
     assert len(baseline) == 8
     (out/'auxiliary-gpu-baseline.json').write_text(json.dumps(baseline))
-    control=pathlib.Path(__file__).resolve().parent
+    control=run_root()
     manifest=json.loads((control/'run-manifest.json').read_text())
     launch=json.loads((out.parent/'store-numa-launch.json').read_text())
     service=json.loads((control/'service13a-identity.json').read_text())
@@ -113,7 +114,7 @@ def run(out, audit_weights=True):
             known_audits = audits
             for rank in range(8):
                 actual = weight_state(json.loads((current/f'runtime-rank{rank}.json').read_text()))
-                reference = weight_state(json.loads((root/gold['repeat_evidence'][0]/f'runtime-rank{rank}.json').read_text()))
+                reference = weight_state(json.loads((root/'validation'/gold['repeat_evidence'][0]/f'runtime-rank{rank}.json').read_text()))
                 assert actual['tensors'] == reference['tensors'], f'native service rank {rank} differs from gold'
                 assert actual['kv_runtime_excluded'] == reference['kv_runtime_excluded']
                 coverage.append(dict(cycle=cycle,rank=rank,weight_scale_derived_references=len(actual['tensors']),
@@ -128,7 +129,7 @@ def run(out, audit_weights=True):
         pss_path=out/f'cycle{cycle}-pss.json'
         store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
         pss_log=(out/f'cycle{cycle}-pss.log').open('x')
-        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
+        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/code/experiment/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
             for second in range(61):
                 shm = os.statvfs('/dev/shm')

@@ -9,7 +9,7 @@ case "$2" in
   probe) target="$run_id-guard-v13-probe" ;;
   *) exit 2 ;;
 esac
-base="/data/brick1/boyjiang/$run_id"
+base="/data/brick1/boyjiang/glm5.1-fp8/validation/controls/$run_id"
 private="$base/root-evidence-private13"
 test ! -L "$private"
 test "$(stat -c %u "$private")" = 0

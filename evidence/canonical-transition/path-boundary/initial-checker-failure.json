@@ -1,0 +1,99 @@
+{
+  "scope": "actual workspace.py --check-inputs in readonly no-GPU container; source snapshot mounted for probe only, not deployed control code",
+  "image": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+  "source_files": [
+    {
+      "path": "cache_contract13.py",
+      "bytes": 2284,
+      "sha256": "b38449da1f15ad3f862f636fbef7b815fe4d731b5084a96dd43385b5a2b1a37f"
+    },
+    {
+      "path": "cache-inputs13.json",
+      "bytes": 39797,
+      "sha256": "a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473"
+    },
+    {
+      "path": "run-manifest.json",
+      "bytes": 48154,
+      "sha256": "19931666ec32fe2555e0d65fe508343e4492bf95120719b4f4b74cb0afda39c7"
+    },
+    {
+      "path": "workspace.py",
+      "bytes": 5324,
+      "sha256": "52396d9b3be3a9cc836a4c8aafe7784c76069b656839097c4be9a0d7b6b141f0"
+    }
+  ],
+  "results": [
+    {
+      "case": "complete",
+      "started_utc": "2026-10-26T05:14:42.693924+00:00",
+      "finished_utc": "2026-10-26T05:14:43.068656+00:00",
+      "exit_code": 1,
+      "expected_error": null,
+      "passed": false,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"/experiment/code/experiment/workspace.py\", line 92, in <module>\n    print(json.dumps(verify_input_layout(),indent=2))\n                     ^^^^^^^^^^^^^^^^^^^^^\n  File \"/experiment/code/experiment/workspace.py\", line 77, in verify_input_layout\n    raise RuntimeError('Store rank receipt differs')\nRuntimeError: Store rank receipt differs\n",
+      "container_released": true,
+      "docker_args": [
+        "docker",
+        "run",
+        "--rm",
+        "--name",
+        "sllm-input-boundary-b01e42ec86",
+        "--label",
+        "sllm.path_probe_id=sllm-input-boundary-b01e42ec86",
+        "--runtime=runc",
+        "--network=none",
+        "--read-only",
+        "--cap-drop=ALL",
+        "--security-opt=no-new-privileges",
+        "--cpus=1",
+        "--memory=512m",
+        "--memory-swap=512m",
+        "--pids-limit=64",
+        "--user=2147:2147",
+        "--env=NVIDIA_VISIBLE_DEVICES=void",
+        "--env=PYTHONDONTWRITEBYTECODE=1",
+        "--env=SLLM_CONTROL_WORKSPACE=/experiment",
+        "--entrypoint=/experiment/.venv/bin/python",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/checkpoint,dst=/experiment/checkpoint,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/store/tp8,dst=/experiment/store/vllm/glm51-fp8,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/migration/runtime-repair/input-boundary-source,dst=/experiment/code/experiment,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM,dst=/experiment/code/ServerlessLLM,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7,dst=/experiment/code/Store-source-v7,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/code/weight_contract.py,dst=/experiment/code/weight_contract.py,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv,dst=/experiment/.venv,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps,dst=/experiment/serving-deps,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata,dst=/experiment/runtime-metadata,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/buildtools,dst=/experiment/buildtools,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/protocol/run-manifest.json,dst=/experiment/protocol/run-manifest.json,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json,dst=/experiment/validation/native-gold.json,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/validation/native-weight-contract.json,dst=/experiment/validation/native-weight-contract.json,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/validation/store-restore-validation.json,dst=/experiment/validation/store-restore-validation.json,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/validation/native-repeat7,dst=/experiment/validation/native_repeat7,readonly",
+        "--mount",
+        "type=bind,src=/data/brick1/boyjiang/glm5.1-fp8/validation/native-repeat8,dst=/experiment/validation/native_repeat8,readonly",
+        "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+        "-S",
+        "-B",
+        "/experiment/code/experiment/workspace.py",
+        "--check-inputs"
+      ]
+    }
+  ]
+}

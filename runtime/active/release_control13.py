@@ -3,7 +3,8 @@ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
     raise RuntimeError('optimized Python is forbidden')
 """Read-only 60-second final release receipt; run after own workloads stop."""
 import datetime,json,pathlib,subprocess,time,sys
-root=pathlib.Path(__file__).resolve().parent
+from workspace import run_root
+root=run_root()
 stage=sys.argv[1]
 if stage not in ('ray13a','ray13b','allstopped'): raise RuntimeError('unknown release stage')
 run=json.loads((root/'run-manifest.json').read_text())['run_id']

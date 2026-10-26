@@ -16,16 +16,17 @@ from cache_repair_v9 import repair_hot
 from cache_prepare_v8 import prepare_hot_placement, numa_receipt
 from cache_prepare_v6 import read_hot, wait_read_idle, HOT_WORKERS, BUFFER_BYTES
 
+from workspace import SOURCE,run_root
 root = pathlib.Path('/experiment')
-manifest = json.loads((root/'run-manifest.json').read_text())
-deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
+control = run_root()
+manifest = json.loads((control/'run-manifest.json').read_text())
+deadline = datetime.datetime.fromisoformat(load_window(control)['cleanup_deadline']).timestamp()
 mode, kind, label = sys.argv[1:]
 assert mode in ('cold', 'hot', 'check') and kind in ('weights', 'metadata', 'safetensors_inputs', 'store_inputs')
 assert label.replace('_', '').isalnum()
 base = root/'checkpoint'
 assert mode == 'hot' and kind == 'safetensors_inputs' and label == 'g1hot13', 'only frozen G1 control allowed'
-control = pathlib.Path(__file__).resolve().parent
-paths = frozen_paths(base, control/'cache-inputs13.json')
+paths = frozen_paths(base, SOURCE/'cache-inputs13.json')
 dest = control / ('cache_' + label)
 dest.mkdir(exist_ok=False)
 libc = ctypes.CDLL(None, use_errno=True)
@@ -112,7 +113,7 @@ if mode == 'hot':
 verification_complete_ns = repair_history[-1]['verification_complete_ns'] if repair_history else initial_verification_complete_ns
 passed = all(row['resident_pages'] == (0 if mode == 'cold' else row['pages']) for row in rows) if mode != 'check' else None
 summary = {'mode': mode, 'kind': kind, 'files': rows, 'cache_condition_passed': passed,
-           'protocol_revision':'G1-candidate13e','resource_window_revision':'v3','input_manifest_sha256':hashlib.sha256((control/'cache-inputs13.json').read_bytes()).hexdigest(),'preparation_revision':'store_node0_hot_bounded_repair_10','hot_placement':placement,
+           'protocol_revision':'G1-candidate13e','resource_window_revision':'v3','input_manifest_sha256':hashlib.sha256((SOURCE/'cache-inputs13.json').read_bytes()).hexdigest(),'preparation_revision':'store_node0_hot_bounded_repair_10','hot_placement':placement,
            'repair_history':repair_history,'repair_passes':len(repair_history),'initial_preparation_complete_ns':initial_preparation_complete_ns,
            'hot_workers':HOT_WORKERS,'read_buffer_bytes_per_worker':BUFFER_BYTES,
            'read_threads_joined_ns':read_threads_joined_ns,'read_idle_receipt':read_idle_receipt,

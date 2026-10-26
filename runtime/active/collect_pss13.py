@@ -2,7 +2,8 @@
 import sys,os
 if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
 import json,pathlib,signal,time
-root=pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')
+from workspace import run_root
+root=run_root()
 output=pathlib.Path(sys.argv[1]).resolve()
 if not output.is_relative_to(root): raise RuntimeError('PSS output outside own control')
 if not pathlib.Path('/.dockerenv').exists() or 'supervise_control13.py' not in pathlib.Path('/proc/1/cmdline').read_bytes().replace(b'\0',b' ').decode(): raise RuntimeError('requires own private service PID namespace')

@@ -2,7 +2,9 @@
   "env": {
     "SLLM_CONTROL_GROUP": "PENDING_EXACT_RUN_SLICE",
     "SLLM_MONITOR_LOG_NAME": "resource-monitor-v12.jsonl",
-    "PYTHONPATH": "/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078:/experiment"
+    "PYTHONPATH": "/experiment/code/experiment:/experiment/code:/experiment",
+    "SLLM_CONTROL_WORKSPACE": "/experiment",
+    "PYTHONDONTWRITEBYTECODE": "1"
   },
   "cpus": 1,
   "memory": "2g",
@@ -10,7 +12,7 @@
   "argv": [
     "/experiment/.venv/bin/python",
     "-u",
-    "/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/monitor_control13.py"
+    "/experiment/code/experiment/monitor_control13.py"
   ],
   "gpus": true,
   "host_monitor": true

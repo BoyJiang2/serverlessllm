@@ -7,10 +7,11 @@ def frozen_paths(base,manifest):
     if len(names)!=148 or len(set(names))!=148: raise RuntimeError('cache input count differs')
     weights={name for name in names if name.endswith('.safetensors')}
     if len(weights)!=142 or weights!={p.name for p in base.glob('model-*.safetensors')}: raise RuntimeError('weight input closure differs')
-    official_path=manifest.parent/'evidence/run-manifest.json'
+    from workspace import workspace
+    official_path=workspace()/'protocol/run-manifest.json'
     if hashlib.sha256(official_path.read_bytes()).hexdigest()!=data['source_manifest_sha256']: raise RuntimeError('official source manifest differs')
     official={r['rfilename']:r for r in json.loads(official_path.read_text())['weight_files']}
-    verified_path=manifest.parent/'evidence/checkpoint-VERIFIED.json'
+    verified_path=base/'VERIFIED.json'
     if hashlib.sha256(verified_path.read_bytes()).hexdigest()!=data['verified_manifest_sha256']: raise RuntimeError('historical verification receipt differs')
     verified={r[0]:r for r in json.loads(verified_path.read_text())['hashes']}
     for row in rows:
