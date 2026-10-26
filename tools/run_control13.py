@@ -161,6 +161,10 @@ try:
 finally:
  if child.poll() is None:
   child.kill();child.communicate(timeout=5)
+head_identity=json.loads((run_root()/'headservice13a-identity.json').read_text())
+registration=manifest()
+deployment=json.loads((run_root()/'deployment.json').read_text())
+sigint_proof.update(run_id=registration['run_id'],head_container_id=head_identity['container_id'],image_id=registration['image_id'],boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),code_commit=deployment['code_commit'],manifest_sha256=deployment['input_manifest_sha256'])
 with (run_root()/'cpu-import-preflight.json').open('x') as f:
  json.dump(dict(sigint_probe=sigint_proof,modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)
 print('CPU import preflight passed')"""

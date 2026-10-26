@@ -295,3 +295,7 @@ Isolated formal-prep admission now validates original nine result hashes and exp
 ## canonical12 graceful Store diagnostic frozen, R1 pending
 
 Run182853Z-bbc012a6/MF8fb8ae8a473d23fd5971bcc1daa4cbd415c0b9fb5a8c22185b835237ecb38d30;141runtime,20operator(1WindowsPOSIXskip),3syntax. Diagnostic-onlyexactStoreSIGINT240sfromsend/body540absolute/readinesscapped/cancelbodyalarm/postkill5/forcednonzeroerror;actualLinuxasyncSIGINTproofbeforelargepool. Allmandatoryqueries/5sstickyunchanged. Independentreadonlypre-review no confirmedblocker, fullcommit/MF R1 pending. No newguard/deploy/compute; fresh02:28snapshot8GPU0/noGPUproc/valid21-09bookings,sourceabsent. Formal5/4/31 unchanged.
+
+## canonical12 rejected, canonical13 minimal admission fix
+
+ActualreadonlyR1C12changes_required:operator-onlySIGINTprobe couldbebypassedbydirectservice launcher. Original1e3dc8c/MF8fb8retained. Existingproducer nowbindsrun/headCID/image/boot/code/MF;poolservice launcher requiresliveexacthead/dispatch/successproofbeforeDockercreate. Missing/wrong/failed/stale/exitedhead/PIDreuse regressiontests. Newrun183147Z-b13fd994/MFfdb1e05604733e46f80f32b8c042f90b2b4a68f55588f2a65dc1a3c4c7637c81;145runtime/20operator(1POSIXskip)/3syntax. FullR1pending,no newguard/deployment/pool. Formal5/4/31unchanged.

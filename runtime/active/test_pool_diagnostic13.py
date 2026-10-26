@@ -165,4 +165,42 @@ class GracefulPoolTeardown(unittest.TestCase):
         source=(SOURCE/'bootstrap_control13.py').read_text()
         self.assertIn('min(480,work_deadline-time.monotonic())',source)
 
+class SigintAdmission(unittest.TestCase):
+    def fixture(self):
+        temp=tempfile.TemporaryDirectory();self.addCleanup(temp.cleanup);root=pathlib.Path(temp.name)
+        stamp=time.monotonic_ns();cid='c'*64
+        manifest=dict(run_id='r',image_id='image',runtime_identity=dict(boot_id='boot'))
+        head=dict(run_id='r',container_id=cid,code_commit='code',manifest_sha256='sha',pid=100)
+        dispatch=dict(boot_id='boot',dispatch_monotonic_ns=stamp-1000)
+        proof=dict(run_id='r',head_container_id=cid,image_id='image',boot_id='boot',code_commit='code',manifest_sha256='sha',signal=2,returncode=0,cleanup_marker='cleanup',interpreter='/experiment/.venv/bin/python',monotonic_ns=stamp)
+        for name,data in [('run-manifest.json',manifest),('headservice13a-identity.json',head),('headservice13a-dispatch.json',dispatch),('cpu-import-preflight.json',dict(sigint_probe=proof))]:
+            (root/name).write_text(json.dumps(data))
+        info=dict(Id=cid,Image='image',State=dict(Running=True,Pid=100),Config=dict(Labels={'sllm.run_id':'r','sllm.uid':'2147'}))
+        return root,proof,info
+
+    def test_bound_current_probe_admits(self):
+        root,proof,info=self.fixture();materialize.verify_sigint_probe(root,info,'code','sha')
+
+    def test_missing_probe_blocks_direct_launcher(self):
+        root,proof,info=self.fixture();(root/'cpu-import-preflight.json').unlink()
+        with self.assertRaises(FileNotFoundError):materialize.verify_sigint_probe(root,info,'code','sha')
+        tree=ast.parse((SOURCE/'launch_control13.py').read_text())
+        gate=next(i for i,n in enumerate(tree.body) if isinstance(n,ast.If) and any(isinstance(x,ast.Name) and x.id=='verify_sigint_probe' for x in ast.walk(n)))
+        create=next(i for i,n in enumerate(tree.body) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='args' for x in n.targets))
+        self.assertLess(gate,create)
+
+    def test_wrong_bindings_and_failed_markers_reject(self):
+        for key,value in dict(run_id='other',head_container_id='d'*64,image_id='other',boot_id='other',code_commit='other',manifest_sha256='other',signal=15,returncode=1,cleanup_marker='ready',interpreter='/usr/bin/python',monotonic_ns=0).items():
+            with self.subTest(key=key):
+                root,proof,info=self.fixture();proof[key]=value;(root/'cpu-import-preflight.json').write_text(json.dumps(dict(sigint_probe=proof)))
+                with self.assertRaises(RuntimeError):materialize.verify_sigint_probe(root,info,'code','sha')
+
+    def test_head_exit_pid_reuse_and_foreign_labels_reject(self):
+        for kind in ('stopped','pid','labels'):
+            root,proof,info=self.fixture()
+            if kind=='stopped':info['State']['Running']=False
+            elif kind=='pid':info['State']['Pid']=101
+            else:info['Config']['Labels']['sllm.run_id']='other'
+            with self.subTest(kind=kind),self.assertRaises(RuntimeError):materialize.verify_sigint_probe(root,info,'code','sha')
+
 if __name__=='__main__':unittest.main()

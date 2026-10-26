@@ -1,0 +1,30 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "verdict": "changes_required",
+  "reviewed_at_utc": "2026-10-26T18:30:01Z",
+  "reviewer": "user-authorized local independent readonly Codex /root/independent_readonly_review",
+  "code_commit": "1e3dc8c7b3876469b42074a5d4c30bf76fa3ef1f",
+  "manifest_sha256": "8fb8ae8a473d23fd5971bcc1daa4cbd415c0b9fb5a8c22185b835237ecb38d30",
+  "run_id": "sllm-glm51fp8-20261026T182853Z-bbc012a6",
+  "verification": {
+    "package_files_hashed": 61,
+    "repository_inputs_hashed": 8,
+    "mismatches": [],
+    "tests_executed_by_reviewer": false
+  },
+  "blockers": [
+    {
+      "id": "R1-C12-01",
+      "finding": "Direct pool service launcher bypasses operator-only Linux SIGINT proof; unbound receipt",
+      "minimal_fix": "Bind run/headCID/image/boot/code/MF and require exact livehead/dispatch success before Dockercreate",
+      "priority": "P2"
+    }
+  ],
+  "limitations": [
+    "static only; no execution admitted",
+    "C11failed/C7earlydelay/historical137unknown",
+    "formal5/4/31 unchanged"
+  ],
+  "record_provenance": "Structured transcription of actual readonly reviewer response retained in chat"
+}

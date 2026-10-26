@@ -9,6 +9,20 @@ from budget_control13 import POOL_DIAGNOSTIC_SCOPE,POOL_DIAGNOSTIC_PHASE_BUDGET
 def call(*args):
     return subprocess.check_output(args,text=True,timeout=15).strip()
 
+def verify_sigint_probe(root,info,code,sha):
+    import time
+    manifest=json.loads((root/'run-manifest.json').read_text())
+    head=json.loads((root/'headservice13a-identity.json').read_text())
+    dispatch=json.loads((root/'headservice13a-dispatch.json').read_text())
+    proof=json.loads((root/'cpu-import-preflight.json').read_text())['sigint_probe']
+    expected=dict(run_id=manifest['run_id'],head_container_id=head['container_id'],image_id=manifest['image_id'],boot_id=manifest['runtime_identity']['boot_id'],code_commit=code,manifest_sha256=sha)
+    if any(proof.get(k)!=v for k,v in expected.items()):raise RuntimeError('SIGINT preallocation proof binding differs')
+    if head['run_id']!=manifest['run_id'] or head['code_commit']!=code or head['manifest_sha256']!=sha or dispatch['boot_id']!=expected['boot_id']:raise RuntimeError('SIGINT head identity differs')
+    if info['Id']!=head['container_id'] or info['Image']!=manifest['image_id'] or not info['State']['Running'] or info['State']['Pid']!=head['pid']:raise RuntimeError('SIGINT probe head no longer active')
+    if info['Config']['Labels'].get('sllm.run_id')!=manifest['run_id'] or info['Config']['Labels'].get('sllm.uid')!='2147':raise RuntimeError('SIGINT head ownership differs')
+    if proof.get('signal')!=2 or proof.get('returncode')!=0 or proof.get('cleanup_marker')!='cleanup' or proof.get('interpreter')!='/experiment/.venv/bin/python' or not dispatch['dispatch_monotonic_ns']<=proof['monotonic_ns']<=time.monotonic_ns():raise RuntimeError('SIGINT cancellation proof failed or stale')
+
+
 def validate_scope(root,name):
     manifest=json.loads((root/'run-manifest.json').read_text())
     diagnostic=manifest['scope']=='monitor diagnostics only; no model or pool'
