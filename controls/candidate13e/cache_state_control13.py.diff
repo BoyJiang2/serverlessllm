@@ -1,0 +1,33 @@
+--- candidate13c/cache_state_control13.py
++++ candidate13e/cache_state_control13.py
+@@ -39,8 +39,19 @@
+ preparation_begin_ns = time.monotonic_ns()
+ numa_before = numa_receipt()
+ (dest/'before-placement.json').write_text(json.dumps(numa_before,indent=2))
+-placement = prepare_hot_placement(paths,root,numa_before['node_meminfo'],dest) if mode == 'hot' else None
+-parallel_rows = read_hot(paths) if mode == 'hot' else []
++store_placement=json.loads((control/'service-bootstrap-service13a/store-numa-launch.json').read_text())
++assert store_placement['node']=='node0'
++cache_nodes={name:value for name,value in numa_before['node_meminfo'].items() if name!=store_placement['node']}
++placement = prepare_hot_placement(paths,root,cache_nodes,dest)
++assert placement['node']=='node1' and not set(placement['reader_cpu_affinity']) & set(store_placement['target_cpu_affinity'])
++placement['excluded_store_cpu_node']=store_placement['node']
++# Preserve the helper's initial placement receipt and add its completed eviction fields.
++(dest/'hot-placement-final.json').write_text(json.dumps(placement,indent=2))
++parallel_rows = read_hot(paths)
++(dest/'initial-reads.json').write_text(json.dumps(parallel_rows,indent=2))
++assert len(parallel_rows)==len(paths) and {row['file'] for row in parallel_rows}=={str(path) for path in paths}
++assert all(row['bytes_read']==pathlib.Path(row['file']).stat().st_size for row in parallel_rows)
++
+ if placement is not None:
+     assert all(row['cpu_begin'] in placement['reader_cpu_affinity'] and row['cpu_end'] in placement['reader_cpu_affinity'] for row in parallel_rows)
+ read_threads_joined_ns = time.monotonic_ns()
+@@ -101,7 +112,7 @@
+ verification_complete_ns = repair_history[-1]['verification_complete_ns'] if repair_history else initial_verification_complete_ns
+ passed = all(row['resident_pages'] == (0 if mode == 'cold' else row['pages']) for row in rows) if mode != 'check' else None
+ summary = {'mode': mode, 'kind': kind, 'files': rows, 'cache_condition_passed': passed,
+-           'protocol_revision':'G1-candidate13c','resource_window_revision':'v3','input_manifest_sha256':hashlib.sha256((control/'cache-inputs13.json').read_bytes()).hexdigest(),'preparation_revision':'store_node0_hot_bounded_repair_10','hot_placement':placement,
++           'protocol_revision':'G1-candidate13e','resource_window_revision':'v3','input_manifest_sha256':hashlib.sha256((control/'cache-inputs13.json').read_bytes()).hexdigest(),'preparation_revision':'store_node0_hot_bounded_repair_10','hot_placement':placement,
+            'repair_history':repair_history,'repair_passes':len(repair_history),'initial_preparation_complete_ns':initial_preparation_complete_ns,
+            'hot_workers':HOT_WORKERS,'read_buffer_bytes_per_worker':BUFFER_BYTES,
+            'read_threads_joined_ns':read_threads_joined_ns,'read_idle_receipt':read_idle_receipt,

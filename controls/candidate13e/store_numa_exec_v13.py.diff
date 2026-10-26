@@ -1,0 +1,29 @@
+--- candidate13c/store_numa_exec_v13.py
++++ candidate13e/store_numa_exec_v13.py
+@@ -48,7 +48,7 @@
+     root = pathlib.Path('/experiment')
+     path = pathlib.Path(sys.argv[1]).resolve()
+     assert path.is_relative_to(root) and path.parent.name.startswith('service-bootstrap-')
+-    assert sys.argv[2:5] == ['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1/run_store_server13.py']
++    assert sys.argv[2:5] == ['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/run_store_server13.py']
+     original = set(os.sched_getaffinity(0))
+     sysfs = pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()
+     target = original & cpu_list(sysfs)
+@@ -56,10 +56,14 @@
+     before = numa_receipt()
+     os.sched_setaffinity(0,target)
+     assert set(os.sched_getaffinity(0)) == target
+-    record = dict(pid=os.getpid(),monotonic_ns=time.monotonic_ns(),node='node0',
++    record = dict(pid=os.getpid(),pid_namespace=pathlib.Path('/proc/self/ns/pid').readlink().as_posix(),
++                  start_ticks=pathlib.Path('/proc/self/stat').read_text().rpartition(')')[2].split()[19],
++                  boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),monotonic_ns=time.monotonic_ns(),node='node0',
+                   prior_cpu_affinity=sorted(original),target_cpu_affinity=sorted(target),
+                   sysfs_cpu_list=sysfs,before=before,after=numa_receipt(),
+                   scope='only native Store exec and inherited threads; no parent/engine affinity or memory-policy changes')
+-    with path.open('x') as stream:
+-        json.dump(record,stream,indent=2)
++    assert not path.exists()
++    temporary=path.with_suffix('.tmp')
++    with temporary.open('x') as stream: json.dump(record,stream,indent=2)
++    temporary.replace(path)
+     os.execv(sys.argv[2],sys.argv[2:])

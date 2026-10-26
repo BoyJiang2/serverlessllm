@@ -1,0 +1,56 @@
+--- candidate13c/deploy_control13.py
++++ candidate13e/deploy_control13.py
+@@ -1,15 +1,15 @@
+ """Copy reviewed metadata/source from a clean commit to qjhs003; never start compute."""
+-import hashlib,json,pathlib,re,subprocess,sys,os
++import hashlib,json,pathlib,re,subprocess,sys,os,shutil,tempfile
+ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
+ repo=pathlib.Path(__file__).resolve().parents[2]
+-package=repo/'controls/candidate13c'
++package=repo/'controls/candidate13e'
+ sha,reviewed_commit=sys.argv[1:]
+ origin=subprocess.check_output(['git','remote','get-url','origin'],cwd=repo,text=True).strip()
+ if origin!='https://github.com/BoyJiang2/serverlessllm-glm51-fp8.git': raise RuntimeError('wrong origin')
+ if subprocess.check_output(['git','branch','--show-current'],cwd=repo,text=True).strip()!='experiment/glm51-fp8-takeover-20261025': raise RuntimeError('wrong experiment branch')
+ if not re.fullmatch('[0-9a-f]{40}',reviewed_commit): raise RuntimeError('full reviewed commit required')
+ subprocess.run(['git','merge-base','--is-ancestor',reviewed_commit,'HEAD'],cwd=repo,check=True)
+-subprocess.run(['git','diff','--exit-code',reviewed_commit,'HEAD','--','controls/candidate13c'],cwd=repo,check=True)
++subprocess.run(['git','diff','--exit-code',reviewed_commit,'HEAD','--','controls/candidate13e'],cwd=repo,check=True)
+ head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=repo,text=True).strip()
+ if subprocess.check_output(['git','status','--porcelain'],cwd=repo,text=True).strip(): raise RuntimeError('deployment requires a clean committed checkout')
+ if hashlib.sha256((package/'control-input-manifest.json').read_bytes()).hexdigest()!=sha: raise RuntimeError('review manifest changed')
+@@ -17,11 +17,10 @@
+ run=manifest['run_id']
+ if not re.fullmatch(r'sllm-glm51fp8-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}',run): raise RuntimeError('invalid identity')
+ rows=json.loads((package/'control-input-manifest.json').read_text())['files']
+-allowed={row['path'] for row in rows}|{'control-input-manifest.json','REVIEW-PROMPT.md'}
+-actual={p.relative_to(package).as_posix() for p in package.rglob('*') if p.is_file()}
+-if actual!=allowed: raise RuntimeError('unexpected or missing package files')
+-tracked=set(subprocess.check_output(['git','ls-files','--','controls/candidate13c'],cwd=repo,text=True).splitlines())
+-if any('controls/candidate13c/'+name not in tracked for name in allowed): raise RuntimeError('uncommitted package file')
++from package_inventory13 import reviewed_files
++allowed=reviewed_files(package,rows)
++tracked=set(subprocess.check_output(['git','ls-files','--','controls/candidate13e'],cwd=repo,text=True).splitlines())
++if any('controls/candidate13e/'+name not in tracked for name in allowed): raise RuntimeError('uncommitted package file')
+ for row in rows:
+     path=(package/row['path']).resolve()
+     if not path.is_relative_to(package) or hashlib.sha256(path.read_bytes()).hexdigest()!=row['sha256']: raise RuntimeError('input mismatch: '+row['path'])
+@@ -40,8 +39,16 @@
+ p.mkdir(mode=0o700)
+ """%(json.dumps(manifest),destination)
+ subprocess.run(['ssh','-o','StrictHostKeyChecking=yes','qjhs003','python3','-'],input=init,text=True,check=True)
+-subprocess.run(['scp','-q','-o','StrictHostKeyChecking=yes','-r',str(package)+r'/.','qjhs003:'+destination+'/'],check=True)
+-receipt=dict(code_commit=reviewed_commit,repository_metadata_commit=head,input_manifest_sha256=sha,run_id=run,origin='https://github.com/BoyJiang2/serverlessllm-glm51-fp8',repository_prefix='controls/candidate13c')
++# Copy exactly reviewed files through one bytecode-free local staging directory.
++work=repo.parent/'work'
++with tempfile.TemporaryDirectory(prefix='r1e-deploy-',dir=work) as temporary:
++    staging=pathlib.Path(temporary).resolve()
++    if not staging.is_relative_to(work.resolve()): raise RuntimeError('staging escaped workspace')
++    for name in sorted(allowed):
++        target=staging/name; target.parent.mkdir(parents=True,exist_ok=True)
++        shutil.copyfile(package/name,target)
++    subprocess.run(['scp','-q','-o','StrictHostKeyChecking=yes','-r',str(staging)+r'/.','qjhs003:'+destination+'/'],check=True)
++receipt=dict(code_commit=reviewed_commit,repository_metadata_commit=head,input_manifest_sha256=sha,run_id=run,origin='https://github.com/BoyJiang2/serverlessllm-glm51-fp8',repository_prefix='controls/candidate13e')
+ verify="""import hashlib,json,pathlib,sys,os
+ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'): raise RuntimeError('optimized Python is forbidden')
+ p=pathlib.Path(%r)

@@ -1,0 +1,30 @@
+--- candidate13c/preflight_control13.py
++++ candidate13e/preflight_control13.py
+@@ -9,6 +9,12 @@
+ 
+ def call(*args):
+     return subprocess.check_output(args,text=True,timeout=15).strip()
++
++def validate_ancestor_values(values,is_root):
++    for name in ('memory.max','memory.high'):
++        value=values[name]
++        if value is None: require(is_root,'missing non-root memory limit interface')
++        else: require(value=='max' or int(value)>=1825361100800,'ancestor '+name+' below frozen budget')
+ 
+ def check(root,monitor_required=True):
+     manifest=json.loads((root/'run-manifest.json').read_text())
+@@ -49,10 +55,11 @@
+     require(pathlib.PurePosixPath(group).name==run+'.slice','slice identity changed')
+     ancestors={}
+     current=pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
+-    while current!=pathlib.Path('/sys/fs/cgroup'):
+-        values={name:(current/name).read_text().strip() for name in ('memory.max','memory.high','memory.events')}
+-        require(values['memory.max']=='max' or int(values['memory.max'])>=1825361100800,'ancestor memory limit below frozen budget')
++    while True:
++        values={name:(current/name).read_text().strip() if (current/name).exists() else None for name in ('memory.max','memory.high','memory.swap.max','memory.events')}
++        validate_ancestor_values(values,current==pathlib.Path('/sys/fs/cgroup'))
+         ancestors[str(current)]=values
++        if current==pathlib.Path('/sys/fs/cgroup'): break
+         current=current.parent
+     if monitor_required:
+         ready=json.loads((root/'monitor-v3-ready.json').read_text())

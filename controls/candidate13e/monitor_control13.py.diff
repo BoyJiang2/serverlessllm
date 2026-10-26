@@ -1,0 +1,75 @@
+--- candidate13c/monitor_control13.py
++++ candidate13e/monitor_control13.py
+@@ -21,7 +21,7 @@
+ assert cgroup.is_dir()
+ deadline = datetime.datetime.fromisoformat(load_window(root)['cleanup_deadline']).timestamp()
+ sampled_peak = 0
+-output_root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1')
++output_root = pathlib.Path('/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078')
+ log_name = os.environ.get('SLLM_MONITOR_LOG_NAME','resource-monitor-v3.jsonl')
+ assert log_name in ('resource-monitor-v3.jsonl','resource-monitor-v4.jsonl','resource-monitor-v12.jsonl')
+ registration_path=output_root/'observer-registration13.json'
+@@ -50,8 +50,10 @@
+                     processes.append({'pid':pid,'uid':uid,'cgroup':process_cgroup,
+                                       'identity_anomaly':'details excluded; not experiment user'})
+                     continue
+-                row = {'pid':pid,'status':status,'stat':proc.joinpath('stat').read_text(),
++                row = {'pid':pid,'status':status,'cgroup':process_cgroup,'stat':proc.joinpath('stat').read_text(),
+                        'cmdline':proc.joinpath('cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')}
++                try: row['pid_namespace']=proc.joinpath('ns/pid').readlink().as_posix()
++                except PermissionError: row['pid_namespace_error']='permission denied; helper cannot be whitelisted'
+                 row['pss_collection']='separate bounded after-delete collector; excluded from fast heartbeat'
+                 processes.append(row)
+             except (FileNotFoundError,ProcessLookupError):
+@@ -79,31 +81,32 @@
+                'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
+                'processes':processes,'observers':observer_states,'sample_begin_ns':sample_begin_ns,'sample_end_ns':time.monotonic_ns(),
+                'sampling_scope':'non-atomic field reads bounded by begin/end; UTC is not a simultaneous snapshot'}
++        interference = observed_interference(processes)
++        foreign=[]
++        for line in row['gpu_processes'].splitlines():
++            pid=int(line.split(',',1)[0])
++            try:
++                if str(control)+'/' not in pathlib.Path(f'/proc/{pid}/cgroup').read_text(): foreign.append(pid)
++            except (FileNotFoundError,ProcessLookupError): pass
++            except PermissionError: foreign.append(pid)
++        interference += [{'pid':pid,'scope':'GPU process outside experiment cgroup or ownership unavailable'} for pid in foreign]
++        helper=None
++        launch_path=output_root/'service-bootstrap-service13a/store-numa-launch.json'
++        identity_path=output_root/'service13a-identity.json'
++        if launch_path.exists() and identity_path.exists():
++            from gpu_identity13 import store_identity
++            helper=store_identity(json.loads(launch_path.read_text()),json.loads(identity_path.read_text()),processes,manifest['runtime_identity']['boot_id'])
++        row.update(registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign,sample_end_ns=time.monotonic_ns())
+         encoded=json.dumps(row)+'\n'
+         if output.tell()+len(encoded.encode())>4*1024**3:
+             raise RuntimeError('finite control monitor exceeded4GiB log budget')
+         output.write(encoded)
+         output.flush()
+-        ready_path = output_root/'monitor-v3-ready.json'
+-        temporary = ready_path.with_suffix('.tmp')
+-        temporary.write_text(json.dumps({'last_sample_ns':row['monotonic_ns'],
+-                                         'run_id':manifest['run_id'],'observers_ok':all(item['ok'] for item in observer_states),
+-                                         'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()}))
++        ready_path=output_root/'monitor-v3-ready.json'
++        temporary=ready_path.with_suffix('.tmp')
++        temporary.write_text(json.dumps(dict(last_sample_ns=row['monotonic_ns'],run_id=manifest['run_id'],observers_ok=all(item['ok'] for item in observer_states),boot_id=manifest['runtime_identity']['boot_id'],registered_store_helper=helper,gpu_pids=sorted({int(line.split(',',1)[0]) for line in row['gpu_processes'].splitlines()}),foreign_gpu_pids=foreign)))
+         temporary.replace(ready_path)
+-        interference = observed_interference(processes)
+-        # Only names and PIDs are read outside the experiment; never record
+-        # other users' command arguments or act on their processes.
+-        for line in row['gpu_processes'].splitlines():
+-            pid = int(line.split(',',1)[0])
+-            try:
+-                if str(control)+'/' not in pathlib.Path(f'/proc/{pid}/cgroup').read_text():
+-                    interference.append({'pid':pid,'scope':'GPU process outside experiment cgroup'})
+-            except (FileNotFoundError,ProcessLookupError):
+-                pass
+-            except PermissionError:
+-                interference.append({'pid':pid,'scope':'GPU ownership could not be verified'})
+         if interference:
+             with (output_root/'interference-v3.jsonl').open('a') as events:
+-                events.write(json.dumps({'monotonic_ns':row['monotonic_ns'],
+-                                         'processes':interference})+'\n')
++                events.write(json.dumps({'monotonic_ns':row['monotonic_ns'],'processes':interference})+'\n')
+         time.sleep(1)

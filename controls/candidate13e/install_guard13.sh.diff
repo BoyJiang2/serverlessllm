@@ -1,0 +1,27 @@
+--- candidate13c/install_guard13.sh
++++ candidate13e/install_guard13.sh
+@@ -1,12 +1,12 @@
+ #!/bin/bash
+ set -euo pipefail
+-run_id=sllm-glm51fp8-20261025T145409Z-0b3a25a1
++run_id=sllm-glm51fp8-20261026T030041Z-5b688078
+ test "$(id -u)" = 0
+ test "$1" = "$run_id"
+ base="/data/brick1/boyjiang/$run_id"
+ test "$(stat -c %u "$base")" = 2147
+-test "$(date -u +%s)" -ge 1792929600
+-test "$(date -u +%s)" -lt 1792972200
++test "$(date -u +%s)" -ge 1792980000
++test "$(date -u +%s)" -lt 1793008200
+ test ! -e "/run/$run_id/cleanup-v13.sh"
+ install -d -m 0755 -o root -g root "/run/$run_id"
+ test ! -L "$base/root-evidence-private13"
+@@ -25,7 +25,7 @@
+ test "$(systemctl show "$run_id.slice" -p MemoryMax --value)" = 1825361100800
+ test "$(systemctl show "$run_id.slice" -p MemorySwapMax --value)" = 0
+ test "$(systemctl show "$run_id.slice" -p TasksMax --value)" = 8192
+-systemd-run --unit="$run_id-deadline-v13" --on-calendar='2026-10-26 00:50:00 UTC' --timer-property=AccuracySec=1s --property=TimeoutStartSec=300 /bin/bash "/run/$run_id/cleanup-v13.sh" "$run_id" main
++systemd-run --unit="$run_id-deadline-v13" --on-calendar='2026-10-26 09:50:00 UTC' --timer-property=AccuracySec=1s --property=TimeoutStartSec=300 /bin/bash "/run/$run_id/cleanup-v13.sh" "$run_id" main
+ test "$(systemctl is-active "$run_id-deadline-v13.timer")" = active
+ target="$run_id-guard-v13-probe"
+ docker run -d --network=none --runtime=runc --memory=256m --cpus=1 --cgroup-parent="$target.slice" --name="$target" --label="sllm.run_id=$target" --label=sllm.uid=2147 --user=2147:2147 --entrypoint=/bin/sleep aa161e380035 120

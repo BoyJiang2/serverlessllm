@@ -1,0 +1,16 @@
+--- candidate13c/release_control13.py
++++ candidate13e/release_control13.py
+@@ -21,10 +21,9 @@
+                 if group+'/' not in (proc/'cgroup').read_text(): continue
+                 status=(proc/'status').read_text()
+                 row=dict(pid=int(pid),uid=next(line.split()[1] for line in status.splitlines() if line.startswith('Uid:')))
+-                if row['uid']=='2147':
+-                    row.update(status=status,stat=(proc/'stat').read_text())
+-                    try: row['smaps_rollup']=(proc/'smaps_rollup').read_text()
+-                    except PermissionError: row['PSS_unavailable']='permission denied'
++                row.update(status=status,stat=(proc/'stat').read_text())
++                try: row['smaps_rollup']=(proc/'smaps_rollup').read_text()
++                except PermissionError: row['PSS_unavailable']='permission denied; never zero'
+                 processes.append(row)
+             except (FileNotFoundError,ProcessLookupError): pass
+     records.append(dict(second=second,utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),monotonic_ns=time.monotonic_ns(),

@@ -1,0 +1,14 @@
+--- candidate13c/package_inventory13.py
++++ candidate13e/package_inventory13.py
+@@ -0,0 +1,11 @@
++"""Exact source package inventory; bytecode stays local and never goes to SCP."""
++def reviewed_files(root,rows):
++    allowed={row['path'] for row in rows}|{'control-input-manifest.json','REVIEW-PROMPT.md'}
++    actual=set()
++    for path in root.rglob('*'):
++        relative=path.relative_to(root)
++        if '__pycache__' in relative.parts: continue
++        if path.is_symlink(): raise RuntimeError('source package symlink')
++        if path.is_file(): actual.add(relative.as_posix())
++    if actual!=allowed: raise RuntimeError('unexpected or missing package files')
++    return allowed

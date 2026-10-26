@@ -1,0 +1,64 @@
+--- candidate13c/validation_control13.py
++++ candidate13e/validation_control13.py
+@@ -11,6 +11,7 @@
+ import time
+ import urllib.request
+ from weight_contract import weight_state
++from gpu_identity13 import require_helper_binding,require_helper_only
+ 
+ 
+ def run(out, audit_weights=True):
+@@ -44,6 +45,22 @@
+         ['nvidia-smi','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True).splitlines()]
+     assert len(baseline) == 8
+     (out/'auxiliary-gpu-baseline.json').write_text(json.dumps(baseline))
++    control=pathlib.Path(__file__).resolve().parent
++    manifest=json.loads((control/'run-manifest.json').read_text())
++    launch=json.loads((out.parent/'store-numa-launch.json').read_text())
++    service=json.loads((control/'service13a-identity.json').read_text())
++    def host_gpu(): return json.loads((control/'monitor-v3-ready.json').read_text())
++    stop=time.monotonic()+5
++    helper=None
++    while time.monotonic()<stop:
++        candidate=host_gpu()['registered_store_helper']
++        if candidate is not None:
++            require_helper_binding(candidate,launch,service,manifest['runtime_identity']['boot_id'])
++            helper=candidate
++            break
++        time.sleep(.1)
++    assert helper is not None, 'Store helper host/PID-namespace registration unavailable'
++    (out/'helper-gpu-identity.json').write_text(json.dumps(helper,indent=2))
+     events = (out/'model-events.jsonl').open('x')
+ 
+     def event(name,**values):
+@@ -63,6 +80,9 @@
+     baseline_audits = len(known_audits)
+     coverage=[]
+     for cycle in [1,2]:
++        snapshot=host_gpu(); observed_ns=time.monotonic_ns()
++        require_helper_only(snapshot,helper,observed_ns,manifest['run_id'],manifest['runtime_identity']['boot_id'])
++        (out/f'cycle{cycle}-gpu-before.json').write_text(json.dumps(dict(monotonic_ns=observed_ns,host_gpu_snapshot=snapshot),indent=2))
+         event('native_register_begin',cycle=cycle)
+         assert http('/register',config) == {'status':'ok'}
+         event('native_register_complete',cycle=cycle)
+@@ -108,14 +128,18 @@
+         pss_path=out/f'cycle{cycle}-pss.json'
+         store_pid=json.loads((out.parent/'store-numa-launch.json').read_text())['pid']
+         pss_log=(out/f'cycle{cycle}-pss.log').open('x')
+-        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261025T145409Z-0b3a25a1/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
++        pss=subprocess.Popen(['/experiment/.venv/bin/python','-u','/experiment/controls/sllm-glm51fp8-20261026T030041Z-5b688078/collect_pss13.py',str(pss_path),str(store_pid)],stdout=pss_log,stderr=subprocess.STDOUT)
+         with (out/f'cycle{cycle}-idle60.jsonl').open('x') as samples:
+             for second in range(61):
+                 shm = os.statvfs('/dev/shm')
+-                samples.write(json.dumps({'second':second,'monotonic_ns':time.monotonic_ns(),
++                gpu_receipt=host_gpu(); observed_ns=time.monotonic_ns()
++                samples.write(json.dumps({'second':second,'monotonic_ns':observed_ns,
+                     'gpu':subprocess.check_output(['nvidia-smi','--query-gpu=index,memory.used,utilization.gpu','--format=csv,noheader'],text=True),
+                     'gpu_processes':subprocess.check_output(['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader'],text=True),
+                     'memory_current':int(pathlib.Path('/sys/fs/cgroup/memory.current').read_text()),
++                    'pids_current':int(pathlib.Path('/sys/fs/cgroup/pids.current').read_text()),
++                    'host_gpu_snapshot':gpu_receipt,
++                    'memory_events':pathlib.Path('/sys/fs/cgroup/memory.events').read_text(),
+                     'cpu_stat':pathlib.Path('/sys/fs/cgroup/cpu.stat').read_text(),
+                     'shm_used_bytes':(shm.f_blocks-shm.f_bfree)*shm.f_frsize,
+                     'memory_stat':pathlib.Path('/sys/fs/cgroup/memory.stat').read_text()})+'\n')
