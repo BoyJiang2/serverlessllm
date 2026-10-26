@@ -1,0 +1,53 @@
+{
+  "status": "local identity/source checks passed; NOT independent review or formal admission",
+  "created_utc": "2026-10-26T08:58:19.173782+00:00",
+  "base_commit": "8a633aa0a58b577481841fb77f5f51b3b0225363",
+  "files": [
+    {
+      "path": "protocol/EXECUTION-IDENTITY.md",
+      "sha256": "d1bc210f2435bb21dcac7703e0735a5c936afbc1207821c87ae01cc383e9a702"
+    },
+    {
+      "path": "protocol/execution-contract.json",
+      "sha256": "4c039b613935345f82dfe76974829132afcca4b41d1e50f8944fd5b69455f56f"
+    },
+    {
+      "path": "tools/check_execution_contract.py",
+      "sha256": "393f92550f589419c7c13a48182657957f96bba64216d6845bc4e90e4cc5339e"
+    },
+    {
+      "path": "tools/test_execution_contract.py",
+      "sha256": "8a52ca98a406a743abbfb01497c8725e8bf95fecdf92a253f1a77f8b20d45ec9"
+    }
+  ],
+  "tests": {
+    "count": 8,
+    "passed": true,
+    "output": "test_changed_control_source_rejected (test_execution_contract.ExecutionContract.test_changed_control_source_rejected) ... ok\ntest_changed_preregistration_rejected (test_execution_contract.ExecutionContract.test_changed_preregistration_rejected) ... ok\ntest_control_cannot_claim_formal_scope (test_execution_contract.ExecutionContract.test_control_cannot_claim_formal_scope) ... ok\ntest_missing_guard_manifest_entry_rejected (test_execution_contract.ExecutionContract.test_missing_guard_manifest_entry_rejected) ... ok\ntest_missing_historical_driver_rejected (test_execution_contract.ExecutionContract.test_missing_historical_driver_rejected) ... ok\ntest_resealed_wrong_guard_identity_rejected (test_execution_contract.ExecutionContract.test_resealed_wrong_guard_identity_rejected) ... ok\ntest_terminal_result_replacement_rejected (test_execution_contract.ExecutionContract.test_terminal_result_replacement_rejected) ... ok\ntest_valid_control_does_not_authorize_formal (test_execution_contract.ExecutionContract.test_valid_control_does_not_authorize_formal) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 1.212s\n\nOK\n"
+  },
+  "identity_audit": {
+    "identity_audit": "passed",
+    "experiment_id": "sllm-glm51fp8-20261024T051606Z-deb76e57",
+    "control_run_id": "sllm-glm51fp8-20261026T075854Z-e71cc109",
+    "baseline_counts": {
+      "failed": 4,
+      "success": 5,
+      "unstarted": 31
+    },
+    "next_original_id": "store_pool_hit_03",
+    "formal_ready": false,
+    "blockers": [
+      "New canonical formal runner and bootstrap must be implemented and frozen; historical-v11 is not an executable canonical entry.",
+      "Actual G1 acceptance, normal-flags evidence and independent R2 approval must bind the actual code commit and complete manifest.",
+      "Formal gate must bind original preregistration hash, forty-ID order, gold, preserved terminal result hashes, fresh remote ledger and a distinct execution identity.",
+      "Actual formal window, owned guard/probe, monitors, resource envelope, derived mounts and per-round remaining budget must be verified; G1 guard is not formal authorization."
+    ],
+    "scope": "repository baseline only; not current remote ledger, deployment or runtime proof"
+  },
+  "formal_cli_exit": 2,
+  "limitations": [
+    "Initial test run failed because sandbox default temporary directory denied fixture writes; tests rerun in existing workspace CPU temp directory.",
+    "No remote inspection, deployment, model execution, guard installation, formal runner migration or independent approval.",
+    "These additive files are not part of the active G1 reviewed source manifest."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "experiment_id": "sllm-glm51fp8-20261024T051606Z-deb76e57",
+  "scope": "additive source and identity audit; not a launch gate",
+  "pinned_files": [
+    {
+      "path": "protocol/measurement-preregistration.json",
+      "sha256": "90d4c91bf8b0c9495e0cb95376a55f84d17351308541414d58dd650d8e2dd37c"
+    },
+    {
+      "path": "runtime/active/initial-ledger.json",
+      "sha256": "46fff94b59eec2f1365a7fc056508f953c8b040c6ae810d12daea790bfa70860"
+    },
+    {
+      "path": "runtime/historical-v11/formal_trials_v11.py",
+      "sha256": "e0fca9f0d9327469901b6a26a2f7a18a64ecaafbe22d2d8b74521ff7c68f9234"
+    }
+  ],
+  "control_files": [
+    "run-manifest.json",
+    "initial-ledger.json",
+    "launch_control13.py",
+    "supervise_control13.py",
+    "validation_control13.py",
+    "resource_window_control13.py",
+    "control_watchdog13.py",
+    "install_guard13.sh",
+    "cleanup_guard13.sh"
+  ],
+  "original_filename_provenance": {
+    "measure_py": "not established; do not assert byte-equivalent rename",
+    "window_guard_py": "not established; do not assert byte-equivalent rename"
+  },
+  "formal_blockers": [
+    "New canonical formal runner and bootstrap must be implemented and frozen; historical-v11 is not an executable canonical entry.",
+    "Actual G1 acceptance, normal-flags evidence and independent R2 approval must bind the actual code commit and complete manifest.",
+    "Formal gate must bind original preregistration hash, forty-ID order, gold, preserved terminal result hashes, fresh remote ledger and a distinct execution identity.",
+    "Actual formal window, owned guard/probe, monitors, resource envelope, derived mounts and per-round remaining budget must be verified; G1 guard is not formal authorization."
+  ]
+}
