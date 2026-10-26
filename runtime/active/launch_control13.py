@@ -27,7 +27,7 @@ for row in json.loads((root/'control-input-manifest.json').read_text())['files']
     path=(SOURCE/row['path']).resolve()
     assert path.is_relative_to(SOURCE)
     assert hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'], row['path']
-from materialize_control13 import validate_spec
+from materialize_control13 import validate_spec,validate_scope
 from resource_window_control13 import load_window
 spec = json.loads((root / sys.argv[1]).read_text())
 validate_spec(root, spec)
@@ -40,7 +40,7 @@ assert spec['name'].replace('_', '').isalnum()
 window = load_window(root)
 deadline = datetime.datetime.fromisoformat(window['cleanup_deadline'])
 from budget_control13 import require_budget
-require_budget(spec['name'],deadline.timestamp()-time.time())
+require_budget(spec['name'],deadline.timestamp()-time.time(),diagnostic=validate_scope(root,spec['name']))
 
 def call(*args):
     return subprocess.check_output(args, text=True).strip()

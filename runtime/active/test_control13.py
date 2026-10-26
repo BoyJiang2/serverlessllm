@@ -34,6 +34,30 @@ class Admission(unittest.TestCase):
         spec=json.loads((root/'headray13a.json').read_text())
         spec['argv'].append('--num-gpus=8')
         with self.assertRaises(AssertionError): m.validate_spec(root,spec)
+    def test_diagnostic_allows_only_monitor_and_bounded_cpu_head(self):
+        from budget_control13 import require_budget
+        with tempfile.TemporaryDirectory() as directory:
+            target=pathlib.Path(directory)
+            (target/'run-manifest.json').write_text(json.dumps(dict(run_id=run,scope='monitor diagnostics only; no model or pool',monitor_diagnostic_trace=True)))
+            self.assertTrue(m.validate_scope(target,'monitor13'))
+            with patch.object(m,'SOURCE',root):
+                head=m.expected_spec(target,'headservice13a')
+            self.assertEqual(head['argv'][:4],['/usr/bin/timeout','--signal=TERM','--kill-after=5s','175s'])
+            self.assertFalse(head['gpus'])
+            self.assertEqual((head['cpus'],head['memory']),(4,'8g'))
+            self.assertEqual(require_budget('headservice13a',360,diagnostic=True),180)
+            with self.assertRaises(RuntimeError):require_budget('headservice13a',359.999,diagnostic=True)
+            for name in ('ray13a','ray13b','headray13a','headray13b','service13a','otherjob'):
+                with self.subTest(name=name):
+                    with self.assertRaisesRegex(RuntimeError,'diagnostic scope forbids'):m.expected_spec(target,name)
+                    with self.assertRaises(RuntimeError):require_budget(name,10000,diagnostic=True)
+            config=json.loads((target/'run-manifest.json').read_text());config['monitor_diagnostic_trace']=False
+            (target/'run-manifest.json').write_text(json.dumps(config))
+            with self.assertRaises(RuntimeError):m.expected_spec(target,'headservice13a')
+            config.update(scope='G1 independent untimed controls only; zero formal IDs',monitor_diagnostic_trace=True)
+            (target/'run-manifest.json').write_text(json.dumps(config))
+            with self.assertRaises(RuntimeError):m.expected_spec(target,'headservice13a')
+
     def test_optimized_rejected(self):
         for name in ['materialize_control13.py','bootstrap_control13.py','monitor_control13.py','supervise_control13.py','launch_control13.py','ray_control13.py','validation_control13.py','release_control13.py','accept_control13.py','prepare_host13.py','deploy_control13.py','snapshot_root13.py','store_numa_exec_v13.py','run_store_server13.py','collect_pss13.py','cache_state_control13.py']:
             with self.subTest(entry=name):

@@ -1,0 +1,35 @@
+# Bounded monitor diagnostic plan (draft, no admission)
+
+Source base: main65e8c73. C7 remains failed; formal5success/4failed/31unstarted. No changes to gold, preregistration, cache criteria, model or TP. This draft neither grants resources nor authorizes old gates for new code.
+
+## Success and limits
+
+Collect operation begin/end/pending evidence from the actual existing monitor while an own CPU-only Ray head starts, runs existing CPU import preflight and stops. The question is where time is spent, not whether a lightweight control proves large-pool/model behavior. Preserve raw strict5s sample/delta failures; a missing end is unknown. A clean short control does not explain C7's scheduling/proc/GPU delays or historical137. No Store server, pool, checkpoint/cache payload read, CUDA context, model or formal IDs. NVML queries remain read-only. Compilation is forbidden in the probe; import only, no JIT/warmup.
+
+## Reuse and exact scope
+
+Reuse tools/run_control13.py, root_control13.py, materialize/launch/preflight, monitor13 and headservice13a templates. No additional monitor, operator, wrapper, generic stage framework or candidate source tree. The unsealed local diagnostic phase now reuses the existing operator head readiness and CPU import code; it is not admitted/deployed. The manifest scope must be exactly `monitor diagnostics only; no model or pool`, with monitor_diagnostic_trace=true. The launcher must reject every name except monitor13/headservice13a before Docker create when this scope is selected. The ordinary G1 service entry must be rejected in this scope even if called directly. The head stays runc,4CPU/8GiB,0GPU; monitor stays existing1CPU/2GiB with read-only NVML exposure and no CUDA work. The head's256MiB Ray object store is an explicit small allocation. No arbitrary commands or extra run IDs accepted.
+
+## Bounded sequence
+
+1. Freeze a NEW run identity, exact source/manifest and current booking overlay. Do not edit/redeploy executedC7. Obtain full bound R1 for the diagnostic launch surface. A static trace approval alone is insufficient.
+2. Recheck physical identity/boot, GPU processes/VRAM, NUMA/host memory, local disk, actual authorization and remaining window. Install/probe this new run's independent root guard; verify script hash/UID/mode, exact units/time/cgroup, probe and persistent receipt before monitor/head. Never reuse C7 guard; never target other containers/jobs.
+3. Existing prepare phase creates only its small private empty writable directories, registers observers, launches monitor and verifies fresh identity. Trace is bounded256MiB; resource log retains existing4GiB cap.
+4. Diagnostic phase max180s from its original dispatch, including GCS wait(max45s), existing CPU import preflight(max90s) and exact head stop(max25s). Do not add a separate unbounded wait. Include a short post-stop monitor interval only within that same remaining budget. Any over-budget, missing/stale identity or observer error stops allocation and requests own cleanup. Do not reinterpret SSH loss as probe failure or restart anything: this minimal diagnostic deliberately takes the existing unknown-state cleanup path after its bounded query; observe-diagnostic is rejected. It never redispatches imports/head. Other G1 reconciliation remains unchanged.
+5. Stop own monitor/head/observers using existing exact-ID root cleanup; preserve diagnostic trace even if pending/error. Run existing allstopped release collector:61points spanning>=60s and strict own empty cgroup/container checks plus eight-GPU baseline. Root snapshot/index; verify source hashes then archive this executed source once closed. Cleanup max300s and release/snapshot max240s, charged separately. Preliminary conservative launch admission:>=900s remaining, no fixed wallclock shortcut. Every actual stage retains its own fixed timeout.
+6. CPU tests: reject forbidden service/pool/worker before Docker create; reject wrong scope or missing trace flag;180s inclusive boundary and original dispatch after transport interruption; missing/pending trace is not success; exact identity mismatches fail; full preexisting tests. Preserve actual records and control costs whether diagnostic locates a cause or not.
+
+## Open before freeze
+
+- Local operator branch and scope allowlist implemented and CPU-tested; not executable through the stale manifest/gate. The original preflight still requires full memory/ancestor budget even for this small probe; conservative, not a promise of smaller reservation. No fresh run identity/window/guard/R1 has been created.
+- Choose a conservative fixed NEW guard cutoff within freshly verified booking; current resource_window requires end-600s. Any earlier-cutoff allowance must be explicitly reviewed and boundary-tested, not silently patched. A later full G1 requires its own manifest/window/identity and trace-disabled source.
+- The current readiness predicate has a proven early-fail gap: it checks mid-sample age without sticky previous invalid samples. A separate minimal shared readiness check should reject actual full durations/begin-to-begin gaps>5s and stale whole-sample start, retaining last_sample_ns meaning. It must not reanchor timestamps or accept C7. All callers and fixture schemas must be updated/tested together before a production G1.
+- Lightweight diagnostics cannot validate716GiB teardown; only if actual trace points to a missing loaded-state operation, submit a separately bounded and reviewed component control. No blind full G1 retry.
+
+## Implementation checks (local only)
+
+Runtime116 tests and operator12 tests pass. Four new diagnostic regressions against immutable65e8c73 give3failures/1error, as expected. Actual REMOTE string is executed against fake inspection/process APIs: only head is materialized, CPU import executes, exact own head stops; bad flag and observe reject before allocation, exhausted original phase budget cannot publish success. Existing isolated-stdin source-import regression remains intact after its fixture adds the newly read manifest. No remote CPU/container/model probe was run.
+
+Independent readonly subagent confirms reuse/scope and flags two distinct clocks. Operator180s begins at remote phase entry and bounds each blocking command by its original remaining budget; the diagnostic-only derived head uses /usr/bin/timeout --signal=TERM --kill-after=5s175s, whose180s maximum starts at container start. Their start instants differ; do not claim a single180s resource lifetime. The root guard remains separate. /usr/bin/timeout availability has not been verified in this image: R1 must include an actual bounded own probe/verification before head; missing tool fails container start, never authorizes fallback to unbounded Ray.
+
+The branch records only CPU-phase completion, not G1 or diagnostic acceptance; sidecar trace, strict cadence, root cleanup and60srelease remain separately required. No automatic repeated diagnostic. This implementation still needs full exact-source review, actual guard/identity evidence and current resource admission.

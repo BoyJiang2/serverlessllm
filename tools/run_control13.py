@@ -35,12 +35,17 @@ src=root/'code/experiment'
 import sys
 sys.path.insert(0,str(src))
 out=root/'validation/controls'/RUN
+diagnostic=PHASE=='monitor-diagnostic'
+diagnostic_end=time.monotonic()+180 if diagnostic else None
 log=(out/('operator-'+('observe-' if OBSERVE else '')+PHASE+'-'+SEGMENT+'.jsonl')).open('x',buffering=1)
 def event(**row):
  row.update(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),monotonic_ns=time.monotonic_ns())
  log.write(json.dumps(row)+'\n');print(json.dumps(row),flush=True)
 def call(args,timeout=120):
  event(command=args)
+ if diagnostic:
+  timeout=min(timeout,diagnostic_end-time.monotonic())
+  if timeout<=0:raise TimeoutError('original180s diagnostic budget expired')
  p=subprocess.run(args,capture_output=True,text=True,timeout=timeout)
  event(returncode=p.returncode,stdout=p.stdout,stderr=p.stderr)
  if p.returncode:raise RuntimeError('command failed: '+str(args))
@@ -62,6 +67,9 @@ def ready():
  assert r['run_id']==RUN and r['observers_ok'] and not r['foreign_gpu_pids']
  assert r['boot_id']==json.loads((out/'run-manifest.json').read_text())['runtime_identity']['boot_id']
  assert 0<=time.monotonic_ns()-r['last_sample_ns']<=5_000_000_000
+manifest=json.loads((out/'run-manifest.json').read_text())
+if manifest.get('scope')=='monitor diagnostics only; no model or pool':
+ assert PHASE in ('prepare','monitor-diagnostic'),'diagnostic run forbids G1 workers'
 if PHASE!='prepare' or OBSERVE:
  from preflight_control13 import check
  check(out,continuation=OBSERVE)
@@ -84,11 +92,15 @@ elif PHASE=='prepare':
 else:
  ready()
  deadline=datetime.datetime.fromisoformat(json.loads((out/'run-manifest.json').read_text())['cleanup_deadline']).timestamp()
- required={'ray13a':4740,'ray13b':4230,'service13a':3600}[PHASE]
+ required={'ray13a':4740,'ray13b':4230,'service13a':3600,'monitor-diagnostic':900}[PHASE]
+ manifest=json.loads((out/'run-manifest.json').read_text())
+ if diagnostic:
+  assert not OBSERVE,'interrupted diagnostic must be cleaned up, never redispatched'
+  assert manifest['scope']=='monitor diagnostics only; no model or pool' and manifest.get('monitor_diagnostic_trace') is True
  if not OBSERVE:assert deadline-time.time()>=required,'insufficient full remaining budget'
  if PHASE=='ray13b':assert json.loads((out/'ray13a-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13a.json').is_file()
  if PHASE=='service13a':assert json.loads((out/'ray13b-supervisor-result.json').read_text())['status']=='passed including cleanup' and (out/'release60-ray13b.json').is_file()
- head='head'+PHASE
+ head='headservice13a' if diagnostic else 'head'+PHASE
  if not OBSERVE:
   launch(head)
   r,d=identity(head)
@@ -104,7 +116,7 @@ else:
     if time.monotonic()>deadline_ready:raise RuntimeError('GCS TCP readiness timeout')
     time.sleep(1)
   event(head_running_gcs_tcp_ready=True)
-  if PHASE=='service13a':
+  if PHASE=='service13a' or diagnostic:
    probe="""import json,pathlib,hashlib
 from run_store_server13 import verify_store_imports
 from workspace import SOURCE,manifest,run_root
@@ -120,26 +132,38 @@ with (run_root()/'cpu-import-preflight.json').open('x') as f:
  json.dump(dict(modules=rows,audit_helper=dict(path=str(path),sha256=hashlib.sha256(path.read_bytes()).hexdigest(),callback_module=audit_model.__module__,callback_roundtrip=True),torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda,scope='CPU-only own head import proof; no pool, serve or model'),f,indent=2)
 print('CPU import preflight passed')"""
    call(['docker','exec',r['container_id'],'/experiment/.venv/bin/python','-c',probe],timeout=90)
-  launch(PHASE)
+  if not diagnostic:launch(PHASE)
  else:
   r,_=identity(head)
- worker,state=identity(PHASE)
- budget=330 if PHASE.startswith('ray') else 3420
- remaining=budget-(time.monotonic_ns()-worker['dispatch_monotonic_ns'])/1e9
- if state['State']['Running']:
-  assert remaining>0 and deadline-time.time()>=remaining+180,'original budget expired'
-  exit_code=call(['docker','wait',worker['container_id']],timeout=remaining+20)
- else:exit_code=str(state['State']['ExitCode'])
- assert exit_code=='0','worker exit '+exit_code
- assert json.loads((out/(PHASE+'-supervisor-result.json')).read_text())['status']=='passed including cleanup'
- if PHASE.startswith('ray'):assert json.loads((out/('ray-only-'+PHASE)/'result.json').read_text())['status']=='passed'
- _,d=identity(head)
- if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
- if PHASE.startswith('ray'):
-  release=out/('release60-'+PHASE+'.json')
-  if not release.exists():invoke('release_control13.py',PHASE,timeout=180)
-  from accept_control13 import validate_release
-  validate_release(json.loads(release.read_text()),PHASE,RUN,json.loads((out/'host-preparation.json').read_text())['gpu_baseline_mib'])
+ if diagnostic:
+  # Keep the original dispatch budget, including head start/import/stop.
+  ready()
+  _,d=identity(head)
+  if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
+  _,stopped=identity(head)
+  assert not stopped['State']['Running'],'diagnostic head retained'
+  ready()
+  if time.monotonic()>diagnostic_end:raise TimeoutError('original180s diagnostic budget expired')
+  with (out/'monitor-diagnostic-result.json').open('x') as stream:
+   json.dump(dict(run_id=RUN,code_commit=CODE,manifest_sha256=SHA,status='CPU phase completed; trace and release still require review',head_container_id=r['container_id'],end_ns=time.monotonic_ns(),scope='no model or pool'),stream,indent=2)
+ else:
+  worker,state=identity(PHASE)
+  budget=330 if PHASE.startswith('ray') else 3420
+  remaining=budget-(time.monotonic_ns()-worker['dispatch_monotonic_ns'])/1e9
+  if state['State']['Running']:
+   assert remaining>0 and deadline-time.time()>=remaining+180,'original budget expired'
+   exit_code=call(['docker','wait',worker['container_id']],timeout=remaining+20)
+  else:exit_code=str(state['State']['ExitCode'])
+  assert exit_code=='0','worker exit '+exit_code
+  assert json.loads((out/(PHASE+'-supervisor-result.json')).read_text())['status']=='passed including cleanup'
+  if PHASE.startswith('ray'):assert json.loads((out/('ray-only-'+PHASE)/'result.json').read_text())['status']=='passed'
+  _,d=identity(head)
+  if d['State']['Running']:call(['docker','stop','--time=5',r['container_id']],timeout=25)
+  if PHASE.startswith('ray'):
+   release=out/('release60-'+PHASE+'.json')
+   if not release.exists():invoke('release_control13.py',PHASE,timeout=180)
+   from accept_control13 import validate_release
+   validate_release(json.loads(release.read_text()),PHASE,RUN,json.loads((out/'host-preparation.json').read_text())['gpu_baseline_mib'])
  event(phase_passed=PHASE)
 '''
 
@@ -147,6 +171,7 @@ RECONCILE=r'''
 import pathlib,json,hashlib,subprocess,time
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8');src=root/'code/experiment';out=root/'validation/controls'/RUN
 assert hashlib.sha256((src/'control-input-manifest.json').read_bytes()).hexdigest()==SHA
+if PHASE=='monitor-diagnostic':raise RuntimeError('interrupted diagnostic requires own cleanup; never redispatch')
 import sys
 sys.path.insert(0,str(src))
 from preflight_control13 import check
@@ -200,7 +225,7 @@ def probe_existing(prefix,run,phase,code,sha,folder,segment):
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
-    phases=('prepare','ray13a','ray13b','service13a')
+    phases=('prepare','ray13a','ray13b','service13a','monitor-diagnostic')
     parser.add_argument('phase',choices=phases+tuple('observe-'+p for p in phases))
     parser.add_argument('code_commit');parser.add_argument('manifest_sha256');parser.add_argument('verdict')
     args=parser.parse_args(argv)

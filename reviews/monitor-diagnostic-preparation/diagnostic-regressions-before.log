@@ -1,0 +1,45 @@
+test_diagnostic_allows_only_monitor_and_bounded_cpu_head (test_control13.Admission.test_diagnostic_allows_only_monitor_and_bounded_cpu_head) ... ERROR
+test_diagnostic_actual_branch_never_launches_worker_or_pool (test_control_transport13.Transport.test_diagnostic_actual_branch_never_launches_worker_or_pool) ... FAIL
+test_diagnostic_invalid_scope_or_observe_cannot_allocate (test_control_transport13.Transport.test_diagnostic_invalid_scope_or_observe_cannot_allocate) ... FAIL
+test_diagnostic_does_not_reset_budget_after_import (test_control_transport13.Transport.test_diagnostic_does_not_reset_budget_after_import) ... FAIL
+
+======================================================================
+ERROR: test_diagnostic_allows_only_monitor_and_bounded_cpu_head (test_control13.Admission.test_diagnostic_allows_only_monitor_and_bounded_cpu_head)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\runtime\active\test_control13.py", line 42, in test_diagnostic_allows_only_monitor_and_bounded_cpu_head
+    self.assertTrue(m.validate_scope(target,'monitor13'))
+                    ^^^^^^^^^^^^^^^^
+AttributeError: module 'old_materialize' has no attribute 'validate_scope'. Did you mean: 'validate_spec'?
+
+======================================================================
+FAIL: test_diagnostic_actual_branch_never_launches_worker_or_pool (test_control_transport13.Transport.test_diagnostic_actual_branch_never_launches_worker_or_pool)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 139, in test_diagnostic_actual_branch_never_launches_worker_or_pool
+    self.assertIsNone(error)
+    ~~~~~~~~~~~~~~~~~^^^^^^^
+AssertionError: KeyError('monitor-diagnostic') is not None
+
+======================================================================
+FAIL: test_diagnostic_invalid_scope_or_observe_cannot_allocate (test_control_transport13.Transport.test_diagnostic_invalid_scope_or_observe_cannot_allocate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 150, in test_diagnostic_invalid_scope_or_observe_cannot_allocate
+    self.assertIsInstance(error,AssertionError)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: KeyError('monitor-diagnostic') is not an instance of <class 'AssertionError'>
+
+======================================================================
+FAIL: test_diagnostic_does_not_reset_budget_after_import (test_control_transport13.Transport.test_diagnostic_does_not_reset_budget_after_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-10-24\new-chat\serverlessllm-glm51-fp8\tools\test_control_transport13.py", line 156, in test_diagnostic_does_not_reset_budget_after_import
+    self.assertIsInstance(error,TimeoutError)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: KeyError('monitor-diagnostic') is not an instance of <class 'TimeoutError'>
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.031s
+
+FAILED (failures=3, errors=1)
