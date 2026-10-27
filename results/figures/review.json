@@ -1,0 +1,29 @@
+{
+  "verdict": "PASS",
+  "reviewer": "user-authorized local independent readonly agent /root/independent_readonly_review",
+  "source_sha256": "ffc2cd18cde144e225da136d48261b95c9a588d4fe81f22651ab1ff26a7b3397",
+  "manifest_sha256": "149ffd2f6b688c929f81636dc0eaba20baf50b40e7d887ec6e3de1ffae45e8c6",
+  "verified": {
+    "input_hashes": 60,
+    "tracked_output_hashes": 14,
+    "binary_output_hashes": 8,
+    "all_match": true
+  },
+  "closed_finding": "Initial candidate used output.iterdir and included stale QA PNGs. Final source explicitly enumerates seven figure PNGs and one PDF; all eight match. No data changes required.",
+  "statistical_checks": [
+    "Primary all26 C23, condition n7/7/6/6; historical revisions excluded.",
+    "64 protocol metric rows,26 full-metric rows,12 descriptive baseline ratios,12 matched-six supplement rows and7 hot rows independently recomputed.",
+    "Matched-six confidence intervals not applied to all26 main means.",
+    "Disjoint preparation intervals; overlapping startup phases not summed.",
+    "Worker idle, common pool/helper and final deployment exit scopes separated.",
+    "Timeline uses actual host monotonic origin and head dispatch initialization start.",
+    "Hot endpoint and global counters do not establish continuous residency, two causal cache states or a NUMA root cause."
+  ],
+  "primary_agent_verification": {
+    "tests": "python -X utf8 -m unittest discover -s tools -p test_plot_results.py -v:4 passed",
+    "visual": "All7 PDF pages rendered with Poppler and visually inspected. Fixed clipped labels/legend overlap; latest page2 re-rendered after short preparation-label adjustment. PDF7pages,892.8x504pt,64011bytes.",
+    "remote_activity": "None. No new GPU/model/Store/cache-control execution. Original40 IDs and raw artifacts unchanged."
+  },
+  "remaining_issues": [],
+  "scope": "Postrun visualization and interpretation supplement. Does not replace prior R1/G1/R2 or formal evidence review. Any source/output change requires rebind and recheck."
+}
