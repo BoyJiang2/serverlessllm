@@ -1,0 +1,59 @@
+{
+  "scope": "local CPU synthetic cache-vector acceptance only; not remote runtime",
+  "cases": [
+    {
+      "case": "valid",
+      "expected": "pass",
+      "actual": "pass",
+      "error": null
+    },
+    {
+      "case": "sha",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector full bytes/hash"
+    },
+    {
+      "case": "truncated",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector full bytes/hash"
+    },
+    {
+      "case": "coverage",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache complete input closure"
+    },
+    {
+      "case": "resident",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector resident count"
+    },
+    {
+      "case": "mode",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache mode/pass"
+    },
+    {
+      "case": "bytes",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache shape"
+    },
+    {
+      "case": "order",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache boundary order"
+    },
+    {
+      "case": "escape",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector escaped"
+    }
+  ]
+}

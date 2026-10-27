@@ -1,0 +1,45 @@
+{
+  "scope": "measured intervals only; overlapping/nested stages not additive; no hidden paid-ahead resources",
+  "run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+  "normal_head_supervised_seconds": 1428.863469008,
+  "normal_worker_supervised_seconds": 1416.382884447,
+  "normal_cleanup_to_formal_head_dispatch_seconds": 611.801780236,
+  "waiting_scope": "post-normal observation, raw validation, evidence transfer, independent R2, final gate and precreate admission included as idle/setup cost",
+  "formal_head_supervised_seconds": 2265.08705977,
+  "formal_worker_supervised_seconds": 2252.575539051,
+  "formal_common_initialization_seconds": 239.671165906,
+  "whole_monitor_span_seconds": 4693.288435983,
+  "formal_attempt_intervals": [
+    {
+      "attempt_id": "safetensors_disk_cold_03",
+      "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+      "begin_ns": 182447577865853,
+      "end_ns": 183055756087391,
+      "total_seconds": 608.178221538
+    },
+    {
+      "attempt_id": "store_disk_cold_03",
+      "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+      "begin_ns": 183055756439799,
+      "end_ns": 183332305178562,
+      "total_seconds": 276.548738763
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_04",
+      "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+      "begin_ns": 183332305554171,
+      "end_ns": 183859942970770,
+      "total_seconds": 527.637416599
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_04",
+      "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+      "begin_ns": 183859943339535,
+      "end_ns": 184441622605727,
+      "total_seconds": 581.679266192
+    }
+  ],
+  "normal_compilation_scope": "583 immutable JIT artifacts produced during actualnormal; compile work included in normal cost, not formal load latency",
+  "guard_cpu_probe_scope": "root own cleanup sentinel/container beforecompute; no dummy model weights",
+  "previous_cost_scope": "prior control/failure cost ledgers preserved; not pooled into current successful per-instance latency"
+}

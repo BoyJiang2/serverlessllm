@@ -1,0 +1,105 @@
+{
+  "gate": "postrun-evidence",
+  "verdict": "approved",
+  "scope": "C21 four completed formal attempts/resource closure; no new execution permission",
+  "reviewed_at_utc": "2026-10-27T00:30:40Z",
+  "reviewer": "user-authorized local independent readonly /root/independent_readonly_review",
+  "run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+  "code_commit": "16e40e9d3a627d9c60079c7f5a56f7d012c363de",
+  "manifest_sha256": "6f456dfaaaca5bc3011ba217e481a7c107ff7186722084a1640a8472e76a4ef0",
+  "blockers": [],
+  "evidence_binding": {
+    "exact_index_sha256": "bae64520ee75edcbb0ffa133deee9a31899ab24ad85848f58286856dfe6f2b75",
+    "files_independently_hashed": 117,
+    "total_bytes": 4142041,
+    "mismatches": 0,
+    "auditor_sha256": "7f0d5de990233fd6499d17d592c2bcb1972bb3e2a5ce54ad14ea0ceecc1c7762",
+    "stdout_sha256": "8624ad6ca51b62881ebc09e63234860429bf9d810749cad2ceaa3c2d2425b044",
+    "returncode": 0,
+    "stderr_bytes": 0,
+    "gate_sha256": "7762a10b58f3747af2e0feac3622503ede8c802953fcffe6fba11075a1e9c8ae"
+  },
+  "independent_checks": {
+    "raw_responses": 12,
+    "fixed32": 4,
+    "gold_finite_logprobs": true,
+    "phase_summaries": 4,
+    "independent_event_rows_in_windows": 492,
+    "phase_raw_jsonl_match": true,
+    "seven_stage_eight_rank": true,
+    "current_process_boot": true,
+    "request_windows_metrics": true,
+    "idle_observations": 4,
+    "points_each": 61,
+    "idle_span_seconds": [
+      60.063105186,
+      60.057009191,
+      60.075254928,
+      60.072655059
+    ],
+    "pss_actual_store_complete": true,
+    "cache_summaries": 16,
+    "sf_inputs": 148,
+    "store_inputs": 108,
+    "target_kinds_match": true,
+    "cold_zero_hot_complete": true,
+    "vector_receipts_link_summary_rows": true
+  },
+  "budget_ledger": {
+    "success": 9,
+    "failed": 5,
+    "unstarted": 26,
+    "next_id": "store_disk_cold_04",
+    "remaining_work_seconds": 1351.225080341,
+    "required_seconds": 1440,
+    "next_id_notcreated": true,
+    "no_historical_failure_rejudgment": true,
+    "current_protocol_counts": {
+      "safetensors_disk_cold": 2,
+      "store_disk_cold": 1,
+      "safetensors_disk_hot": 1,
+      "store_pool_hit": 0
+    }
+  },
+  "resources": {
+    "shared_initialization_seconds": 239.671165906,
+    "idle_helper_gpu_MiB_each": 1769,
+    "store_namespace_pid": 2154,
+    "store_exit0": true,
+    "store_sigint_seconds": 27.270924387,
+    "no_forced_kill": true,
+    "worker_head_passed": true,
+    "head_controlled_raw_child_rc": 1,
+    "finalrelease_points": 61,
+    "finalrelease_seconds": 75.789196786,
+    "independently_checked_gpu0_noGPU_orownedprocess": true,
+    "rootcleanup_passed": true,
+    "deadline_timer_inactive": true,
+    "sampled_owned_peak_bytes": 1554038214656,
+    "kernel_peak_bytes": null,
+    "peak_gpu_MiB_each": 99291
+  },
+  "remote_recomputation": {
+    "full_final_vectors": 2048,
+    "repeated_page_positions": 2965482304,
+    "monitor_samples": 3427,
+    "maxduration_seconds": 2.084312235,
+    "maxgap_seconds": 3.085068272,
+    "partial": null,
+    "normal_prefix_rehash_same": true,
+    "formal_idle_correlated": true,
+    "reviewer_read_all_remote_vectors_or_monitor_rows": false
+  },
+  "nonblocking_findings": [
+    "Executed auditor cache helper lacks explicit kind-to-condition assertion; reviewer independently checked all four actual target kinds correct. Supplementary target-kind-postcheck.json now records all4 and2cross-kind negatives without changing executed auditor.",
+    "Source archive/final cost ledger were main-thread pending at review; independent review does not assert their completion."
+  ],
+  "reporting_constraints": [
+    "nativeformalresults; no currentpoolhitformal sample; normal and historical variants do not fill it",
+    "node/code/protocolstrata, no v8 pooling; original40IDs/fivefailures/26unstarted retained",
+    "allsharedinit/pool/prep/compile/approvalwait/idle/failed/release costs remain; nested stages not additive",
+    "ownsampledpeaknotwholehostcache; no newpayloadtensor audit; C17reference retained",
+    "historicalexit137unknown; not wholeexperimentcomplete or newrunpermission"
+  ],
+  "record_provenance": "Structured transcription of actual final independent readonly response"
+}

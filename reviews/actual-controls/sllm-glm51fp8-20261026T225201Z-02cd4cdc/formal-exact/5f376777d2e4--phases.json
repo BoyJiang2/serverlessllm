@@ -1,0 +1,1312 @@
+{
+  "scope": "host function boundaries; nested/overlapping spans are not additive; no precise CUDA kernel timings",
+  "request_id": "store_disk_cold_03-business_arithmetic",
+  "begin_ns": 183067883306441,
+  "end_ns": 183246051014962,
+  "first_token_observed_ns": 183245751742629,
+  "origin_to_first_token_observed_seconds": 177.868436188,
+  "origin_to_response_window_end_seconds": 178.167708521,
+  "phases": {
+    "device_setup_including_communication": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183106872168758,
+          "end_ns": 183113717941867,
+          "host_seconds": 6.845773109
+        },
+        "1": {
+          "begin_ns": 183106878979241,
+          "end_ns": 183113740216113,
+          "host_seconds": 6.861236872
+        },
+        "2": {
+          "begin_ns": 183106026498184,
+          "end_ns": 183113733913770,
+          "host_seconds": 7.707415586
+        },
+        "3": {
+          "begin_ns": 183106335988624,
+          "end_ns": 183113740445848,
+          "host_seconds": 7.404457224
+        },
+        "4": {
+          "begin_ns": 183106990455667,
+          "end_ns": 183113771587007,
+          "host_seconds": 6.78113134
+        },
+        "5": {
+          "begin_ns": 183106971129385,
+          "end_ns": 183113771608536,
+          "host_seconds": 6.800479151
+        },
+        "6": {
+          "begin_ns": 183106977550162,
+          "end_ns": 183113777790880,
+          "host_seconds": 6.800240718
+        },
+        "7": {
+          "begin_ns": 183106884596613,
+          "end_ns": 183113752852215,
+          "host_seconds": 6.868255602
+        }
+      },
+      "min_begin_to_max_end_seconds": 7.751292696
+    },
+    "communication_groups": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183107507786042,
+          "end_ns": 183113311700758,
+          "host_seconds": 5.803914716
+        },
+        "1": {
+          "begin_ns": 183108514233570,
+          "end_ns": 183113311486795,
+          "host_seconds": 4.797253225
+        },
+        "2": {
+          "begin_ns": 183106370355809,
+          "end_ns": 183113311446786,
+          "host_seconds": 6.941090977
+        },
+        "3": {
+          "begin_ns": 183106712306054,
+          "end_ns": 183113311466473,
+          "host_seconds": 6.599160419
+        },
+        "4": {
+          "begin_ns": 183108628757066,
+          "end_ns": 183113311460925,
+          "host_seconds": 4.682703859
+        },
+        "5": {
+          "begin_ns": 183108633767167,
+          "end_ns": 183113311679523,
+          "host_seconds": 4.677912356
+        },
+        "6": {
+          "begin_ns": 183108592774657,
+          "end_ns": 183113311723561,
+          "host_seconds": 4.718948904
+        },
+        "7": {
+          "begin_ns": 183108528139475,
+          "end_ns": 183113311777845,
+          "host_seconds": 4.78363837
+        }
+      },
+      "min_begin_to_max_end_seconds": 6.941422036
+    },
+    "weights_pipeline_including_allocation": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183113718150490,
+          "end_ns": 183232229011982,
+          "host_seconds": 118.510861492
+        },
+        "1": {
+          "begin_ns": 183113740417018,
+          "end_ns": 183210817877256,
+          "host_seconds": 97.077460238
+        },
+        "2": {
+          "begin_ns": 183113734130305,
+          "end_ns": 183232746109501,
+          "host_seconds": 119.011979196
+        },
+        "3": {
+          "begin_ns": 183113740673969,
+          "end_ns": 183235848635561,
+          "host_seconds": 122.107961592
+        },
+        "4": {
+          "begin_ns": 183113771836786,
+          "end_ns": 183216773862622,
+          "host_seconds": 103.002025836
+        },
+        "5": {
+          "begin_ns": 183113771812075,
+          "end_ns": 183237025786700,
+          "host_seconds": 123.253974625
+        },
+        "6": {
+          "begin_ns": 183113777987648,
+          "end_ns": 183236124412551,
+          "host_seconds": 122.346424903
+        },
+        "7": {
+          "begin_ns": 183113753057629,
+          "end_ns": 183231790892381,
+          "host_seconds": 118.037834752
+        }
+      },
+      "min_begin_to_max_end_seconds": 123.30763621
+    },
+    "weight_ingestion": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183115252783683,
+          "end_ns": 183231701096518,
+          "host_seconds": 116.448312835
+        },
+        "1": {
+          "begin_ns": 183116030572014,
+          "end_ns": 183210353013094,
+          "host_seconds": 94.32244108
+        },
+        "2": {
+          "begin_ns": 183116137215621,
+          "end_ns": 183232196444376,
+          "host_seconds": 116.059228755
+        },
+        "3": {
+          "begin_ns": 183116153439688,
+          "end_ns": 183235361957861,
+          "host_seconds": 119.208518173
+        },
+        "4": {
+          "begin_ns": 183115790719183,
+          "end_ns": 183216257025004,
+          "host_seconds": 100.466305821
+        },
+        "5": {
+          "begin_ns": 183116153261050,
+          "end_ns": 183236456760778,
+          "host_seconds": 120.303499728
+        },
+        "6": {
+          "begin_ns": 183116091658791,
+          "end_ns": 183235658431432,
+          "host_seconds": 119.566772641
+        },
+        "7": {
+          "begin_ns": 183116136665283,
+          "end_ns": 183231270988915,
+          "host_seconds": 115.134323632
+        }
+      },
+      "min_begin_to_max_end_seconds": 121.203977095
+    },
+    "quantization_postprocess": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183231701392130,
+          "end_ns": 183231791816350,
+          "host_seconds": 0.09042422
+        },
+        "1": {
+          "begin_ns": 183210353283797,
+          "end_ns": 183210437019755,
+          "host_seconds": 0.083735958
+        },
+        "2": {
+          "begin_ns": 183232196729490,
+          "end_ns": 183232282793762,
+          "host_seconds": 0.086064272
+        },
+        "3": {
+          "begin_ns": 183235362229718,
+          "end_ns": 183235462264041,
+          "host_seconds": 0.100034323
+        },
+        "4": {
+          "begin_ns": 183216257293025,
+          "end_ns": 183216349138831,
+          "host_seconds": 0.091845806
+        },
+        "5": {
+          "begin_ns": 183236457036428,
+          "end_ns": 183236571652147,
+          "host_seconds": 0.114615719
+        },
+        "6": {
+          "begin_ns": 183235658696333,
+          "end_ns": 183235745497305,
+          "host_seconds": 0.086800972
+        },
+        "7": {
+          "begin_ns": 183231271272215,
+          "end_ns": 183231380308168,
+          "host_seconds": 0.109035953
+        }
+      },
+      "min_begin_to_max_end_seconds": 26.21836835
+    },
+    "kv_cache_allocation": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183241099014047,
+          "end_ns": 183241181850641,
+          "host_seconds": 0.082836594
+        },
+        "1": {
+          "begin_ns": 183241098997927,
+          "end_ns": 183241184393465,
+          "host_seconds": 0.085395538
+        },
+        "2": {
+          "begin_ns": 183241099051501,
+          "end_ns": 183241179709554,
+          "host_seconds": 0.080658053
+        },
+        "3": {
+          "begin_ns": 183241098980551,
+          "end_ns": 183241185228484,
+          "host_seconds": 0.086247933
+        },
+        "4": {
+          "begin_ns": 183241098966544,
+          "end_ns": 183241179539523,
+          "host_seconds": 0.080572979
+        },
+        "5": {
+          "begin_ns": 183241099062930,
+          "end_ns": 183241182417566,
+          "host_seconds": 0.083354636
+        },
+        "6": {
+          "begin_ns": 183241099014911,
+          "end_ns": 183241184945468,
+          "host_seconds": 0.085930557
+        },
+        "7": {
+          "begin_ns": 183241099036084,
+          "end_ns": 183241185559325,
+          "host_seconds": 0.086523241
+        }
+      },
+      "min_begin_to_max_end_seconds": 0.086592781
+    },
+    "compile_graph_and_warmup": {
+      "ranks": {
+        "0": {
+          "begin_ns": 183241186165542,
+          "end_ns": 183243006368772,
+          "host_seconds": 1.82020323
+        },
+        "1": {
+          "begin_ns": 183241186135498,
+          "end_ns": 183243022393883,
+          "host_seconds": 1.836258385
+        },
+        "2": {
+          "begin_ns": 183241186129241,
+          "end_ns": 183243039392158,
+          "host_seconds": 1.853262917
+        },
+        "3": {
+          "begin_ns": 183241186157157,
+          "end_ns": 183243025358843,
+          "host_seconds": 1.839201686
+        },
+        "4": {
+          "begin_ns": 183241186146549,
+          "end_ns": 183243001913544,
+          "host_seconds": 1.815766995
+        },
+        "5": {
+          "begin_ns": 183241186154678,
+          "end_ns": 183243023459076,
+          "host_seconds": 1.837304398
+        },
+        "6": {
+          "begin_ns": 183241186145047,
+          "end_ns": 183243009920904,
+          "host_seconds": 1.823775857
+        },
+        "7": {
+          "begin_ns": 183241186127530,
+          "end_ns": 183243032556172,
+          "host_seconds": 1.846428642
+        }
+      },
+      "min_begin_to_max_end_seconds": 1.853264628
+    }
+  },
+  "control_events": {
+    "backend_engine_create_begin": {
+      "name": "backend_engine_create_begin",
+      "monotonic_ns": 183081312476754,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219,
+      "process_start_ticks": 18222249,
+      "clock_ticks_per_second": 100,
+      "boottime_minus_monotonic_ns": -516,
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553"
+    },
+    "backend_engine_ready": {
+      "name": "backend_engine_ready",
+      "monotonic_ns": 183244711489986,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219
+    },
+    "router_instance_published": {
+      "name": "router_instance_published",
+      "monotonic_ns": 183244713282555,
+      "container_hostname": "7eb64a0bb44b",
+      "pid": 1259,
+      "model": "glm51-fp8",
+      "instance_id": "glm51-fp8_25ae663a-48be-4dcd-854e-e332b35e0d14"
+    }
+  },
+  "backend_process_creation": {
+    "start_monotonic_ns_estimate": 182222490000516,
+    "clock_resolution_seconds": 0.01,
+    "start_to_engine_construct_begin_seconds": 858.822476238,
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "scope": "backend actor process creation from proc stat; includes interpreter/import/actor scheduling; may predate register if Ray reuses a worker"
+  },
+  "raw_event_sha256": "141109eb401d52c577b048093f0e2b6a30ac859b25c14a9f1e0b961b29b92ab4",
+  "raw_events": [
+    {
+      "name": "backend_engine_create_begin",
+      "monotonic_ns": 183081312476754,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219,
+      "process_start_ticks": 18222249,
+      "clock_ticks_per_second": 100,
+      "boottime_minus_monotonic_ns": -516,
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553"
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106026498184,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106335988624,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183106370355809,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183106712306054,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106872168758,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106878979241,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106884596613,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106971129385,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106977550162,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "device_setup_including_communication_begin",
+      "monotonic_ns": 183106990455667,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183107507786042,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183108514233570,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183108528139475,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183108592774657,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183108628757066,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "communication_groups_begin",
+      "monotonic_ns": 183108633767167,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311446786,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311460925,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311466473,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311486795,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311679523,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311700758,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311723561,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "communication_groups_end",
+      "monotonic_ns": 183113311777845,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113717941867,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113718150490,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113733913770,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113734130305,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113740216113,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113740417018,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113740445848,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113740673969,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113752852215,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113753057629,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113771587007,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113771608536,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113771812075,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113771836786,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "device_setup_including_communication_end",
+      "monotonic_ns": 183113777790880,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "weights_pipeline_including_allocation_begin",
+      "monotonic_ns": 183113777987648,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113894177363,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113944202943,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113948932844,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113949560445,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113952441077,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113965935445,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113975734855,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615
+    },
+    {
+      "name": "raw_skeleton_allocation_begin",
+      "monotonic_ns": 183113977215554,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114879543345,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114933503694,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114944905661,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114950733131,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114955356430,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114962953846,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183114999090374,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616
+    },
+    {
+      "name": "raw_skeleton_allocation_end",
+      "monotonic_ns": 183115004178732,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183115252394380,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183115252783683,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183115790494932,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183115790719183,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116030331828,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116030572014,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116091417717,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116091658791,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116136422388,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116136665283,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116136934950,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116137215621,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": null
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116153012033,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616
+    },
+    {
+      "name": "raw_skeleton_storage_released",
+      "monotonic_ns": 183116153193004,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116153261050,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": null
+    },
+    {
+      "name": "weight_ingestion_begin",
+      "monotonic_ns": 183116153439688,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": null
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183210353013094,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183210353283797,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183210437019755,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183210817877256,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183216257025004,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183216257293025,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183216349138831,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183216773862622,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183231270988915,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183231271272215,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183231380308168,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183231701096518,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183231701392130,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183231790892381,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183231791816350,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183232196444376,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183232196729490,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183232229011982,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183232282793762,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183232746109501,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183235361957861,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183235362229718,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183235462264041,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183235658431432,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183235658696333,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183235745497305,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183235848635561,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183236124412551,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "weight_ingestion_end",
+      "monotonic_ns": 183236456760778,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": null
+    },
+    {
+      "name": "quantization_postprocess_begin",
+      "monotonic_ns": 183236457036428,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616
+    },
+    {
+      "name": "quantization_postprocess_end",
+      "monotonic_ns": 183236571652147,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616
+    },
+    {
+      "name": "weights_pipeline_including_allocation_end",
+      "monotonic_ns": 183237025786700,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241098966544,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241098980551,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241098997927,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241099014047,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241099014911,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241099036084,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241099051501,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "kv_cache_allocation_begin",
+      "monotonic_ns": 183241099062930,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241179539523,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241179709554,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241181850641,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241182417566,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241184393465,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241184945468,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241185228484,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "kv_cache_allocation_end",
+      "monotonic_ns": 183241185559325,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186127530,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186129241,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186135498,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186145047,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186146549,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186154678,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186157157,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "compile_graph_and_warmup_begin",
+      "monotonic_ns": 183241186165542,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243001913544,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5615,
+      "rank": 4
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243006368772,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5611,
+      "rank": 0
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243009920904,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5617,
+      "rank": 6
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243022393883,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5612,
+      "rank": 1
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243023459076,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5616,
+      "rank": 5
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243025358843,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5614,
+      "rank": 3
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243032556172,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5618,
+      "rank": 7
+    },
+    {
+      "name": "compile_graph_and_warmup_end",
+      "monotonic_ns": 183243039392158,
+      "container_hostname": "973b3afd2d93",
+      "pid": 5613,
+      "rank": 2
+    },
+    {
+      "name": "backend_engine_ready",
+      "monotonic_ns": 183244711489986,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219
+    },
+    {
+      "name": "router_instance_published",
+      "monotonic_ns": 183244713282555,
+      "container_hostname": "7eb64a0bb44b",
+      "pid": 1259,
+      "model": "glm51-fp8",
+      "instance_id": "glm51-fp8_25ae663a-48be-4dcd-854e-e332b35e0d14"
+    },
+    {
+      "name": "backend_first_token_observed",
+      "monotonic_ns": 183245751742629,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219,
+      "request_id": "store_disk_cold_03-business_arithmetic"
+    },
+    {
+      "name": "backend_generation_complete",
+      "monotonic_ns": 183246037264993,
+      "container_hostname": "973b3afd2d93",
+      "pid": 1219,
+      "request_id": "store_disk_cold_03-business_arithmetic"
+    }
+  ]
+}
