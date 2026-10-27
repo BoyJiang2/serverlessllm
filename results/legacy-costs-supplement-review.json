@@ -1,0 +1,30 @@
+{
+  "gate": "legacy-cost-recovery",
+  "verdict": "approved",
+  "reviewer": "/root/sigkill_joint_investigation",
+  "source_sha256": "7a88ac2dea1043a402bc02e06155ce9f728bc677ae6f1e455f66e92ea1e63bf2",
+  "output_sha256": "58b9d22e36b46eaf4426d560156fde68552fe1b955a1f1313673275dbabc40d7",
+  "test_source_sha256": "aab8990d9f3e14308fe58d63c629f25ccc8efffbd401c8fba64bae1dab132af3",
+  "verified": {
+    "inputs": 19,
+    "unique_container_states": 121,
+    "original_attempts": 9,
+    "shared_initializations": 4,
+    "probe_gpu_count": 8,
+    "probe_allocation_bytes_each": 107374182400,
+    "probe_max_free_deficit_bytes": 58720256,
+    "probe_tolerance_bytes": 67108864,
+    "probe_container_wall_s": 7.715256434,
+    "probe_to_first_formal_worker_gap_s": 1887.189268547
+  },
+  "blockers": [],
+  "limitations": [
+    "LatestState, not complete restart history; limits are not resource consumption.",
+    "Intervals overlap and cannot be added to complete totalcost.",
+    "Historicalprobe is not currentGPU availability, zero drivercache or all-historyrelease proof.",
+    "Exit137+OOMKilledFalse does not prove upstream cause.",
+    "SFhot01 legacy startup_censor_s213.357665536 matches raw, but rawright_censored remainsFalse; failurecost only."
+  ],
+  "nonblocking_note": "Reader does not separatelyassert startup_censor_s against raw field. Reviewer independently confirmed actualvalue; frozeninput/outputSHA binds this version. No change needed for this fixed snapshot; future altered inputs require new review.",
+  "reviewer_activity": "Local readonly parsing/hashes/arithmetic; no tests/SSH/Git/experiment."
+}
