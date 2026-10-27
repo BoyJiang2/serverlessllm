@@ -1,15 +1,14 @@
 {
-  "recorded_utc": "2026-10-27T07:33:54.144175+00:00",
-  "scope": "Requirement evidence map; entiregoal completion NOT established.",
+  "recorded_utc": "2026-10-27T08:36:16.007380+00:00",
+  "scope": "Original requirement coverage and retained experimental limitations; final completion still requires independent handoff audit and latest publication verification.",
   "execution_code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
   "analysis_baseline_commit": "4acc581d3045f279f4a6bd3c56fb787d9f4c7b9b",
-  "goal_complete": false,
   "checks": [
     {
       "requirement": "A1 resource/local-disk budget",
       "status": "proved within historical snapshots",
       "evidence": "results/report.md",
-      "sha256": "59f1799320e8ee097c48a18dd5802e4ee5c402c63e681bdd378296ead646b1af",
+      "sha256": "a0314c656a160a5905c8b4b943f31e23f03ead583a7036d5490382f54f79b0ed",
       "note": "Existing localXFS assets and initialdirectI/O probe; no new availability promise."
     },
     {
@@ -132,18 +131,18 @@
       "note": "16prioroutcomes plusC23; knownC13correction; unknownnotzero."
     },
     {
-      "requirement": "Pure conversion time/full historical resource cost",
-      "status": "unresolved",
-      "evidence": "results/historical-costs.json",
-      "sha256": "e33c04d0c431cd2a7dc54cd857ef36c76c9d049c9ebaca74d4d8e7af938b7cf5",
-      "note": "No separate savebrackets or complete historical resourceintegral; 505.467s exportcontainer supplement does not fill this."
+      "requirement": "Initialization, conversion, preparation, control, idle and failure costs retained",
+      "status": "proved within disclosed cost scope",
+      "evidence": "results/legacy-costs-supplement-review.json",
+      "sha256": "f67c4597c281f6d2f5dcf31ddcb4022ea9c82324201e594a36ddef63050360d1",
+      "note": "C21/C23 nonadditive wholedeployment/instance intervals, historicalcost inventory and121 retainedlegacy intervals are preserved; complete resourceintegrals/independentpure-save were not explicit goal requirements."
     },
     {
-      "requirement": "Historical exit137 upstream cause",
-      "status": "unresolved documented",
+      "requirement": "Historical failures and unknown attribution preserved",
+      "status": "proved disclosure, cause unknown",
       "evidence": "results/report.md",
-      "sha256": "59f1799320e8ee097c48a18dd5802e4ee5c402c63e681bdd378296ead646b1af",
-      "note": "No retroactive attribution fromRay/grpcfix or later successes."
+      "sha256": "a0314c656a160a5905c8b4b943f31e23f03ead583a7036d5490382f54f79b0ed",
+      "note": "No failure reclassification or causal claim from laterRay/grpcfix/success."
     },
     {
       "requirement": "Path-boundary fixes/runtime preservation",
@@ -161,15 +160,31 @@
     },
     {
       "requirement": "Commit cadence",
-      "status": "partial historical deviation",
+      "status": "documented historical process deviation",
       "evidence": "results/postrun-git-verification.json",
       "sha256": "1f9ce152005a6cefea72054e2e2e9f385d6739448e4dbda8a95eb20e295eead9",
-      "note": "Observed localcommit gap09ff14:13\u21924acc15:08 exceeds30min; not a formalmeasurement interval. Current work checkpointed; no historyrewrite."
+      "note": "14:13\u219215:08 gap exceeds30min; disclosed without timestamp/historyrewrite; no formal/observation interval involved."
+    },
+    {
+      "requirement": "Independent GPU reclaim probe isolated from formal timing",
+      "status": "proved historical evidence; no rerun",
+      "evidence": "results/legacy-costs-supplement-review.json",
+      "sha256": "f67c4597c281f6d2f5dcf31ddcb4022ea9c82324201e594a36ddef63050360d1",
+      "note": "100GiB\u00d78 sequential,56MiB deficit within64MiB tolerance;7.715256434s container ended1887.189268547s beforeformal1."
     }
   ],
   "remaining": [
-    "Historical pure-save/resource-cost coverage gaps remain explicit; inspect any retained exact evidence before concluding no further recovery.",
-    "Keep unresolved and limited statements in final handoff; do not fabricate missing costs or rerun originalIDs."
+    "Independent final handoff audit of these edits.",
+    "Commit/push all checked delivery edits and verify latestremoteSHA/worktree."
   ],
-  "publication_update": "Prior push blocker resolved by independently verified direct main publication; see receipt."
+  "publication_update": "Prior push blocker resolved by independently verified direct main publication; see receipt.",
+  "completion_decision": "ready for final independent handoff audit; no new model experiment indicated",
+  "evidence_limits": [
+    "No isolated pure-save timestamp or complete historical CPU/GPU/energy integral; report unknown, not zero. These were not separate original completion requirements.",
+    "Historical137 upstream cause unknown; all5failures retained.",
+    "Kernelpeak unknown where unavailable; sampledowned-cgroup peak is not wholehostpeak.",
+    "Opaque allocations/storagepadding and perlayerhelperbooleanflags lack directfullcoverage; declared scope retained.",
+    "Oldformal metadata unknowns remainnull; stratified/exploratory intervals not10currentcode successes.",
+    "Known historicalcommitcadence deviation disclosed without rewritinghistory."
+  ]
 }
