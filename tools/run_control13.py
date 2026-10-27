@@ -95,6 +95,8 @@ finally:
   child.kill();child.communicate(timeout=5)
 head_identity=json.loads((run_root()/'headservice13a-identity.json').read_text())
 registration=manifest()
+if registration.get('jit_seed_runtime_versions'):
+ assert registration['jit_seed_runtime_versions']==dict(torch=str(torch.__version__),vllm=str(vllm.__version__),cuda=torch.version.cuda), 'JIT seed actual runtime dependency versions differ'
 if registration.get('execution_purpose')=='formal-continuation':
  import os
  label=head_identity['spec']['name'].removeprefix('head')

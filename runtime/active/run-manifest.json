@@ -1,12 +1,12 @@
 {
-  "run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+  "run_id": "sllm-glm51fp8-20261027T004531Z-020be55e",
   "host": "qjhs3",
   "ssh_user": "boyjiang",
   "uid": 2147,
   "resource_id": "h20/qjhs003",
-  "booking_id": "bk-20261026T1248-ae6148f9",
-  "booking_end": "2026-10-27T09:00:00+08:00",
-  "cleanup_deadline": "2026-10-27T08:50:00+08:00",
+  "booking_id": "bk-20261027T0011-576c391d",
+  "booking_end": "2026-10-27T14:00:00+08:00",
+  "cleanup_deadline": "2026-10-27T13:50:00+08:00",
   "model": "zai-org/GLM-5.1-FP8",
   "revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
   "metadata": {
@@ -1459,19 +1459,19 @@
   "max_model_len": 2048,
   "max_num_seqs": 1,
   "speculative_config": null,
-  "status": "pending independent full R1; normal timing-chain qualification mandatory before R2",
+  "status": "pending exact independent R1; renewed window/history/immutable JIT seed; no computation",
   "selected_vllm_commit": "43a9b1afbb7ed88e63ebeefeb55df8d445aa1992",
   "selected_sllm_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
   "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
   "required_env": {
     "VLLM_USE_DEEP_GEMM_E8M0": "0"
   },
-  "parent_manifest_sha256": "6dddd794b614a4e7ccf163bd4b3094ed9be555203a68bfb8eb385f35c3580a0c",
+  "parent_manifest_sha256": "6f456dfaaaca5bc3011ba217e481a7c107ff7186722084a1640a8472e76a4ef0",
   "scope": "formal continuation of original forty IDs",
-  "created_utc": "2026-10-26T22:52:01.231120+00:00",
+  "created_utc": "2026-10-27T00:45:31.441568+00:00",
   "booking_ids": [
-    "bk-20261026T1014-d9d26872",
-    "bk-20261026T1248-ae6148f9"
+    "bk-20261026T1248-ae6148f9",
+    "bk-20261027T0011-576c391d"
   ],
   "runtime_identity": {
     "hostname": "qjhs3",
@@ -1488,7 +1488,7 @@
       "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700"
     ]
   },
-  "candidate_revision": "canonical21",
+  "candidate_revision": "canonical22",
   "workspace_root": "/data/brick1/boyjiang/glm5.1-fp8",
   "canonical_index_sha256": "037b347e22c589b06883a20ca7ccb8805101324f7bdd7001e28497bf837d9978",
   "reference_sha256": {
@@ -1508,7 +1508,8 @@
   "grpc_shutdown_probe": false,
   "execution_purpose": "formal-continuation",
   "formal_prior_execution_roots": [
-    "validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials"
+    "validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials"
   ],
   "g1_reference_run_id": "sllm-glm51fp8-20261026T193424Z-685d6426",
   "g1_reference_code_commit": "defc412a0351b0e3d20454e8f37151f55443d6e7",
@@ -1541,12 +1542,26 @@
   },
   "store_metadata_sha256": "888fd5cf5f277f275de865b2ac0fd269295b8836f5d871e7e3ae0d6ca9e45734",
   "formal_worker_label": "formal13",
-  "protocol_revision": "v13-canonical21-complete-phase-and-history-chain",
-  "preparation_revision": "v13-canonical21-target-cache-last",
-  "resource_window_revision": "v3-current-03-09-guard0850",
+  "protocol_revision": "v13-canonical22-qualified-disk-jit-seed",
+  "preparation_revision": "v13-canonical22-target-cache-last",
+  "resource_window_revision": "v4-current03-14-guard1350",
   "event_trace_sha256": "e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c",
   "formal_prior_file_sha256": {
     "validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials/store_pool_hit_03/origin.json": "580fdf905e34e499d829558716bcfb03f2a7708fc00cacd3cbb6727fcffa4249",
-    "validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials/store_pool_hit_03/result.json": "6a722075c6aeaeb94161da8b6555d6b047d5c88f9e98dbd860e2f4c9765bc2e7"
+    "validation/controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/formal-trials/store_pool_hit_03/result.json": "6a722075c6aeaeb94161da8b6555d6b047d5c88f9e98dbd860e2f4c9765bc2e7",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_cold_03/result.json": "bc11e8931072e556958ee55a94a76776e2bd687d4caa891e693d198b0fc01cf2",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_cold_03/origin.json": "1ccb237e2e0fc233f9a0c321068d28639c863c6caf94eda5b150774d93606e4c",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/store_disk_cold_03/result.json": "468d88e5553aa04b01a4dcdb93c8b21f361e811d32a531c403a30382408a8f76",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/store_disk_cold_03/origin.json": "fad2f29af1c2e28c77278f0f64d3f50c5c05d9a84091e57301d979129da345da",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_hot_04/result.json": "1005fdc1d20bd82e05080eb9b515c8082cbd5af810c8d450b726c297debae6f8",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_hot_04/origin.json": "8681f094e00daa73b330932270912d9ac911f502334c13ce1e7b6fed168648d3",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_cold_04/result.json": "785db88c1164bb1c2c11bdd7a4f98ed8af3c8b659d726c6db9ca2b99a0f0c269",
+    "validation/controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/formal-trials/safetensors_disk_cold_04/origin.json": "84102205a5f91fac8913bf23115df9643a0e7c28de3d6c30fa98bd64666cbe55"
+  },
+  "jit_seed_contract_sha256": "0fe1f64ae6698c4cffe1806945305f6dbb6b2346d06889022e08c27091ebec5a",
+  "jit_seed_runtime_versions": {
+    "torch": "2.10.0+cu130",
+    "vllm": "0.19.1.dev1+g43a9b1afb",
+    "cuda": "13.0"
   }
 }

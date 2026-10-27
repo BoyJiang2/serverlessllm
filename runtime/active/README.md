@@ -1,3 +1,3 @@
-# Single active canonical21 runtime
+# Single active canonical22 runtime
 
-See reviews/full-r1-canonical21/PLAN.md. Full R1 → fresh actual guard/identity/probes → affected normal phase control → R2 → formal admission. No current candidate compute yet. C19 failed store_pool_hit_03 remains terminal; next original safetensors_disk_cold_03.
+See reviews/full-r1-canonical22/PLAN.md. Renewed03–14window/new13:50guard, complete prior terminal hashes and immutable JIT disk seed. Currentnormal/newseal/R2 andformal admission remain mandatory. Next originalstore_disk_cold_04;9success5failed26unstarted. No currentcandidate computation.
