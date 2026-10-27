@@ -46,3 +46,7 @@ Generated 2026-10-27T05:29:57.089087+00:00. **35 success /5 failed /0 running /0
 | 38 | safetensors_disk_cold_10 | success | v13-canonical23-qualified-disk-jit-seed / v13-canonical23-target-cache-last | f176e05607d0 | [local raw snapshot](../reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-terminal-snapshots/safetensors_disk_cold_10/result.json) SHA f19596e75331 |
 | 39 | store_pool_hit_10 | success | v13-canonical23-qualified-disk-jit-seed / v13-canonical23-target-cache-last | f176e05607d0 | [local raw snapshot](../reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-terminal-snapshots/store_pool_hit_10/result.json) SHA 84bc3947ee84 |
 | 40 | safetensors_disk_hot_10 | success | v13-canonical23-qualified-disk-jit-seed / v13-canonical23-target-cache-last | f176e05607d0 | [local raw snapshot](../reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-terminal-snapshots/safetensors_disk_hot_10/result.json) SHA 945117c43cb3 |
+
+[Final stratified statistics and limitations](statistics.md) includes the independently reviewed numerical output, all40 raw outcomes, and separate C23 exploratory six-block intervals. Total deployment costs remain under reconciliation.
+
+[C23 cost and idle resources](c23-costs.json), [independent cost review](c23-costs-review.json):26 trials,83 direct input receipts. Overlapping spans are not additive. Final processes/GPU released;756,964,155,392 bytes of reclaimable file cache remained charged in the owned slice. Historical cost consolidation is still pending.

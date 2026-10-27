@@ -1,0 +1,36 @@
+{
+  "gate": "c23-cost-results",
+  "verdict": "approved",
+  "reviewer": "/root/independent_readonly_review",
+  "scope": "C23 cost and26 post-delete idle observations only; not all-history total costs",
+  "source_sha256": "ab4c6f9de4f513e7bec861d2c6339b51ce2a35c07f637b3df093e822052421cd",
+  "output_sha256": "336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce",
+  "independent_checks": {
+    "direct_raw_inputs": 83,
+    "idle_observations": 26,
+    "idle_points": 1586,
+    "pss_snapshots": 26,
+    "common_initialization_s": 238.771219657,
+    "seed_copy_s": 0.16921188,
+    "seed_files": 583,
+    "seed_bytes": 18661429,
+    "host_preparation_begin_to_final_release_s": 13253.930347667,
+    "final_release_s": 75.982432416,
+    "final_owned_tasks": 0,
+    "final_owned_anon_bytes": 0,
+    "final_owned_shmem_bytes": 0,
+    "final_owned_memory_current_bytes": 758745911296,
+    "final_owned_file_bytes": 756964155392
+  },
+  "blockers": [],
+  "limitations": [
+    "Overlapping or included wall intervals must not be added; totalelapsed is not continuousGPU occupancy.",
+    "Worker idle excludeshead/host; sampled deployment cgroup peak is not wholehost peak; kernel peak unknown.",
+    "pids.current counts tasks including threads.",
+    "PSS is a non-atomic snapshot; RSS sum double counts shared mappings; Locked is not fullCUDA pin accounting.",
+    "memory.stat file includes shmem; do not add.",
+    "Processes/GPU released while reclaimable file cache and disk assets remain charged.",
+    "83direct raw inputs exclude transitive ledger/sharedmodule/audit dependencies separately hash-reviewed.",
+    "All historical download/conversion/validation/compiler/priorbatch costs require consolidation. Reviewer ran no tests/experiments."
+  ]
+}

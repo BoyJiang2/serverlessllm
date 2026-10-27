@@ -1,0 +1,2643 @@
+{
+  "schema": "sllm-c23-costs-v1",
+  "run_id": "sllm-glm51fp8-20261027T011726Z-28c92313",
+  "code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
+  "scope": "C23 actual costs only. Historical controls, conversion and prior batches remain separate and not zero.",
+  "status": "Candidate cost output; independent numerical and scope review required.",
+  "source_sha256": "ab4c6f9de4f513e7bec861d2c6339b51ce2a35c07f637b3df093e822052421cd",
+  "exact_index_sha256": "d73b0cd9a01fc320d05054417b5c553553981cd18fe4a768565a03b5db0bf3b0",
+  "inputs": {
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/host-preparation.json": {
+      "local_path": "formal-exact/7ee830785b2e--host-preparation.json",
+      "bytes": 4740,
+      "sha256": "fa77c7e30e6acdf0c2495954ad63a00a088b623a0c77c373868b8540ae1a7b62"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/service-bootstrap-formal13/shared-initialization.json": {
+      "local_path": "formal-exact/e619c8b104e0--shared-initialization.json",
+      "bytes": 13851,
+      "sha256": "22d8b60733a60037efac5b84da875695bc3cb84b1a4410f9aa1088a4ddb9a033"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/release60-allstopped.json": {
+      "local_path": "formal-exact/5fd401d2c5b7--release60-allstopped.json",
+      "bytes": 196961,
+      "sha256": "cc142b267328eab2b93f448ca12a58fc3e5629e411f4f72f9a8a9ada48277dc6"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal13-supervisor-result.json": {
+      "local_path": "formal-exact/7ec17b6d1b66--formal13-supervisor-result.json",
+      "bytes": 710,
+      "sha256": "1fc2922fcc50377af3196a156cdc2dad80a953016f6bb6baffdb1f1c103a7fa6"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/headformal13-supervisor-result.json": {
+      "local_path": "formal-exact/c1e94219c654--headformal13-supervisor-result.json",
+      "bytes": 718,
+      "sha256": "c03f0da9ef7c95a9a40981e10e0b3d4e91c0e8483ab4db3bea4bca86c274e7f8"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_04/result.json": {
+      "local_path": "formal-exact/b46fc430b217--result.json",
+      "bytes": 2682,
+      "sha256": "ae2256ebe31b0bbfe08784406b62936a6e07079b73e22daae7007fcd12e37f0c"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_04/idle60.jsonl": {
+      "local_path": "formal-exact/4226a28a8688--idle60.jsonl",
+      "bytes": 243210,
+      "sha256": "7585f20274adaf3e905c2f54adfcc255e5787eb141137340b7d78881499617dd"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_04/pss.json": {
+      "local_path": "formal-exact/40c58a966cb6--pss.json",
+      "bytes": 19945,
+      "sha256": "bcf27685757c51cd35c88f06a44cc04eb8eab02afa0ff9af3a593e3911f1b304"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_04/result.json": {
+      "local_path": "formal-exact/2754ff9799e0--result.json",
+      "bytes": 2664,
+      "sha256": "61bdca8ab57bb49fce0cf67bc869e7f9a5f5af9e6f69fd29fbcdcdc81f92c4ff"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_04/idle60.jsonl": {
+      "local_path": "formal-exact/80f1b8c2b922--idle60.jsonl",
+      "bytes": 243471,
+      "sha256": "f5b50da9405bc1a538222a8bd2896c679738df4b155dfbb04cb234e6c4251ec4"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_04/pss.json": {
+      "local_path": "formal-exact/cccb16885e57--pss.json",
+      "bytes": 19123,
+      "sha256": "d1c205f97dc23640f62571363d336c08179f54fb285b370b99dd5e95a3a6aa72"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_05/result.json": {
+      "local_path": "formal-exact/7b5212e174b7--result.json",
+      "bytes": 2683,
+      "sha256": "0e54771e24ca738d5ab308e5a15df0ffcf670dbba6ddb5d985de06a83105968b"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_05/idle60.jsonl": {
+      "local_path": "formal-exact/cf538cca2e2a--idle60.jsonl",
+      "bytes": 243486,
+      "sha256": "f0255f791dd1a814e5459b3db834efa89500ee82b278639960383f7fc674072f"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_05/pss.json": {
+      "local_path": "formal-exact/93d4b99cba66--pss.json",
+      "bytes": 18302,
+      "sha256": "287216c26c25dbf3b9b74ac9ed638b8774552bd5dfdb640f2ec035b8ccc7f505"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_05/result.json": {
+      "local_path": "formal-exact/a4e365079998--result.json",
+      "bytes": 2662,
+      "sha256": "2d8e2686b5c496fa2816306b0c2058e4270eb575a0718a868369c65870051905"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_05/idle60.jsonl": {
+      "local_path": "formal-exact/4d1f32263fa4--idle60.jsonl",
+      "bytes": 243640,
+      "sha256": "fb75639e2b4092e18fc26c20c9422a5a81e9c107f68fb8b55baec8f961220dcc"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_05/pss.json": {
+      "local_path": "formal-exact/d8bab02a4253--pss.json",
+      "bytes": 17480,
+      "sha256": "9fc80e83b715113614d0de5694c8d4205007a1bf92f4e1e2c80db02bea6d24bc"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_05/result.json": {
+      "local_path": "formal-exact/25ef1eb94c68--result.json",
+      "bytes": 2717,
+      "sha256": "46cf89c1db7c8671121660a6c823df770329ea3d00f04beb18f981d98aece812"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_05/idle60.jsonl": {
+      "local_path": "formal-exact/da74bd65c3af--idle60.jsonl",
+      "bytes": 244979,
+      "sha256": "284e5fff04e29c7c8d0638ba454e3bd7ce6c067bfed60325a274b4d8020553ee"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_05/pss.json": {
+      "local_path": "formal-exact/95648f694302--pss.json",
+      "bytes": 16658,
+      "sha256": "2e9f3b4e1b61730e4fac7fd6f207832976059f14ae67cf0ab332bd0cacfc0bb5"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_05/result.json": {
+      "local_path": "formal-exact/aef141095d77--result.json",
+      "bytes": 2714,
+      "sha256": "3dd7da26cabda4b2f73e9b290635b53ff398fdf8270e148512d2f22e1994ecad"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_05/idle60.jsonl": {
+      "local_path": "formal-exact/f01e5163eb6a--idle60.jsonl",
+      "bytes": 245523,
+      "sha256": "2a7c7fd0921dcb80eeb60c387b16f8141fe8304660cc11689e1b0a9bd7e42c0a"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_05/pss.json": {
+      "local_path": "formal-exact/74bf377d335a--pss.json",
+      "bytes": 15836,
+      "sha256": "b56932859eb39f0b7ca14d13518273447882dd586fddffb77a3e096e43385527"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_06/result.json": {
+      "local_path": "formal-exact/22a0604542cb--result.json",
+      "bytes": 2666,
+      "sha256": "469c371a898185e468f80e2df25743cff3b8ad8b1c30b82307c8e3727b12ee79"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_06/idle60.jsonl": {
+      "local_path": "formal-exact/f2d53bc57918--idle60.jsonl",
+      "bytes": 245578,
+      "sha256": "e0b37ce86e7c221b47ebddf5ea57ef11c08d8dbc9fb195e8273fa68a0f69a802"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_06/pss.json": {
+      "local_path": "formal-exact/d2d81cd4740f--pss.json",
+      "bytes": 15014,
+      "sha256": "ea221d2fd326014332cea02a0b17a6cab559b3b176ca8a1a3684241209d7039e"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_06/result.json": {
+      "local_path": "formal-exact/fbe037b36234--result.json",
+      "bytes": 2713,
+      "sha256": "9cfcdd2381f4c7768a22794cc282c80383caba3204f6c5aba0cbe512ac8215a2"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_06/idle60.jsonl": {
+      "local_path": "formal-exact/4c74526fc436--idle60.jsonl",
+      "bytes": 245565,
+      "sha256": "48ba0ddf08d7ecef7811056221cd6c1d3087d5fc055cc969fe9a94599e86a237"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_06/pss.json": {
+      "local_path": "formal-exact/11cb3dfd96de--pss.json",
+      "bytes": 14192,
+      "sha256": "b7e7803350902501e948f476d886cce8efd4805069835083a9680d5653e90a75"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_06/result.json": {
+      "local_path": "formal-exact/85ede1da955b--result.json",
+      "bytes": 2712,
+      "sha256": "a062ed63b35d6b6bac6c32cfb9cf5e92c112eec2116097ae9d0f46e81b4bce2e"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_06/idle60.jsonl": {
+      "local_path": "formal-exact/7cbaa3fbce24--idle60.jsonl",
+      "bytes": 245649,
+      "sha256": "51712990ca8a19aa1f449edc2c09c3cb9e8d037742df8f980b331b9687192b15"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_06/pss.json": {
+      "local_path": "formal-exact/ba305e6d9ac4--pss.json",
+      "bytes": 13370,
+      "sha256": "4d52dbb351fb3642110d55bd0fe9b447ec4a6bd34a09299ee2e930aa5df6bea0"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_06/result.json": {
+      "local_path": "formal-exact/48401b3952bd--result.json",
+      "bytes": 2683,
+      "sha256": "33f6be264cf2ca9f98a3f2d000bfbbb922834daed4b2247904666d9b41efcc68"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_06/idle60.jsonl": {
+      "local_path": "formal-exact/330610e52511--idle60.jsonl",
+      "bytes": 245575,
+      "sha256": "0bfb5d603f92bc5fe50549e6bc4d2a7116c06e3c231982ea6b061773614d393d"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_06/pss.json": {
+      "local_path": "formal-exact/f51b07b583ad--pss.json",
+      "bytes": 12548,
+      "sha256": "9b8f82e70ae472e81f0d0b9fcc769f337462eb9215294b51234deb649c0e1f4c"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_07/result.json": {
+      "local_path": "formal-exact/d2370f26b15c--result.json",
+      "bytes": 2663,
+      "sha256": "24bbad0133ef851cd75dd0c281eda4768a03995b040f62f9803703f983339838"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_07/idle60.jsonl": {
+      "local_path": "formal-exact/2ecb2fd44ed4--idle60.jsonl",
+      "bytes": 245771,
+      "sha256": "5dd7570b8076fe31e35d004d5f61ec0d045b12bd3868088b137e01c3129ca5bf"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_07/pss.json": {
+      "local_path": "formal-exact/2b812817eb46--pss.json",
+      "bytes": 11726,
+      "sha256": "f4f9b7c486447a710214bb0c59331da4b56de6a749a0705fb2ca6986f0316557"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_07/result.json": {
+      "local_path": "formal-exact/ae596183fe5e--result.json",
+      "bytes": 2684,
+      "sha256": "86818cbead1ecbbbed19009471ca89ebb955d2093391ba220049b5c680713a1c"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_07/idle60.jsonl": {
+      "local_path": "formal-exact/33ca126cf417--idle60.jsonl",
+      "bytes": 245737,
+      "sha256": "ead2dc016820829f6b5e1727d3c02d6ee6b5cb6019554f896d569ec3ea6a97ff"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_07/pss.json": {
+      "local_path": "formal-exact/7ec195be1810--pss.json",
+      "bytes": 10904,
+      "sha256": "6b821da683ddfc04d901a6702951bca520170ae94a078e8d6f867b63f8963c77"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_07/result.json": {
+      "local_path": "formal-exact/cd5cf3da23a5--result.json",
+      "bytes": 2717,
+      "sha256": "0b23ef18a87307c54834acf0907e7a370998b386eb3d24d0abc78817f0186b49"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_07/idle60.jsonl": {
+      "local_path": "formal-exact/1fc5621efc06--idle60.jsonl",
+      "bytes": 247825,
+      "sha256": "c4bb69a35eef14d5f3e68aca47f6d506f63ad68e45d923130e5917b308d4e2ca"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_07/pss.json": {
+      "local_path": "formal-exact/64b787b9b65d--pss.json",
+      "bytes": 10082,
+      "sha256": "e04ea20217d28c1c8f9a92f33f22972382584ba13334ab6907a91e9bd3d72b7f"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_07/result.json": {
+      "local_path": "formal-exact/afbabee087c7--result.json",
+      "bytes": 2715,
+      "sha256": "4ba5e24155452a9517ef25d7a2856edc1bcc8fc476dd3f909c89ff930fd63591"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_07/idle60.jsonl": {
+      "local_path": "formal-exact/d3c9075b8522--idle60.jsonl",
+      "bytes": 247795,
+      "sha256": "633ee0370e6a84dbe1df9c1bd4857e89002da9c9cf5d45b53e04b0d61df68792"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_07/pss.json": {
+      "local_path": "formal-exact/109c8912da6c--pss.json",
+      "bytes": 9260,
+      "sha256": "495ecd1ee2594a97237f127c45d6cc40a8c2967275432a7700ea45b20fff344c"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_08/result.json": {
+      "local_path": "formal-exact/aa14cae5c6c6--result.json",
+      "bytes": 2664,
+      "sha256": "9371a1cbc165a390e9e64ce41dae91b0d5eb383e9e1563eb140063f8f6a6d24a"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_08/idle60.jsonl": {
+      "local_path": "formal-exact/53be5ca7c48e--idle60.jsonl",
+      "bytes": 247647,
+      "sha256": "62ecb06bdca5ba8590d6ed2ae472660297ebf3989ff231011da370791b899979"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_08/pss.json": {
+      "local_path": "formal-exact/eed26f7ff8f8--pss.json",
+      "bytes": 9260,
+      "sha256": "835e3ee5179bcbbf90fa2710a09faaebf8518f868ec3c57076a0cc2cca4d887f"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_08/result.json": {
+      "local_path": "formal-exact/a542e7ee3491--result.json",
+      "bytes": 2711,
+      "sha256": "149abfe3a6efce7443a41481e8a177349f6dc48a99b615d5f6be6fac077f1c94"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_08/idle60.jsonl": {
+      "local_path": "formal-exact/86540a2f4c20--idle60.jsonl",
+      "bytes": 247794,
+      "sha256": "f6755acbe002a8390c78f3f13f67ed78312446a92ccdbcbbabd858c973869a53"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_08/pss.json": {
+      "local_path": "formal-exact/8a371acfa7ea--pss.json",
+      "bytes": 9260,
+      "sha256": "3d42aab3b6025adf435d6990a2dea0ca5a85c3a87d37fc1e76a98fbd82b1f957"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_08/result.json": {
+      "local_path": "formal-exact/80ce591f734d--result.json",
+      "bytes": 2682,
+      "sha256": "d837831470023f9f898310841a96fb41765f8eeb400e13377d163f970430afef"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_08/idle60.jsonl": {
+      "local_path": "formal-exact/bc1fade5d751--idle60.jsonl",
+      "bytes": 247718,
+      "sha256": "f4619bd837a7e14b3a0d41685527019112d20af571300c5f4b48eaab186c0266"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_08/pss.json": {
+      "local_path": "formal-exact/5cc2ff426a69--pss.json",
+      "bytes": 9260,
+      "sha256": "3ad834d11545b1d856317122a528c69e5c6a7275e16407721a0ab1a0526b5b62"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_08/result.json": {
+      "local_path": "formal-exact/c7b6dc2660e7--result.json",
+      "bytes": 2715,
+      "sha256": "4a209169f11cd6c951726a3ee22d88dc35cd9bf4af63f90be792fffbe7e99c4a"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_08/idle60.jsonl": {
+      "local_path": "formal-exact/75c251b80e9a--idle60.jsonl",
+      "bytes": 248050,
+      "sha256": "438d6c7e3d65461ed2aaeada964a2c889d1a687cc472b4ea5dd47b8b2a2c7d6b"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_08/pss.json": {
+      "local_path": "formal-exact/0a55d5270440--pss.json",
+      "bytes": 9260,
+      "sha256": "d1f2985653ae3fe262c3ab98b3d5ea45a45c04be3fe226d355142fdb00d9254b"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_09/result.json": {
+      "local_path": "formal-exact/e37d8d637abd--result.json",
+      "bytes": 2684,
+      "sha256": "8ca3ac2129c9b689f54a8b70af7673818ade1579ee41af16f5c3dca4ed872794"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_09/idle60.jsonl": {
+      "local_path": "formal-exact/1289cb80b145--idle60.jsonl",
+      "bytes": 248093,
+      "sha256": "9b7c0dbbfd58b92ee0481035578c233ce4d663fe7654f1c7378b48a5b8905ea6"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_09/pss.json": {
+      "local_path": "formal-exact/124dc1eb30c9--pss.json",
+      "bytes": 9260,
+      "sha256": "500007d7222b79b34605e32d03bac3c93793936704b09790e54ccbc4f5aea7d3"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_09/result.json": {
+      "local_path": "formal-exact/b1632251a699--result.json",
+      "bytes": 2714,
+      "sha256": "2d6cc242e2502efd701d79bc6d484a09d271f11d90897cecfbe01421ff5ccb72"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_09/idle60.jsonl": {
+      "local_path": "formal-exact/8872d5673e1b--idle60.jsonl",
+      "bytes": 247906,
+      "sha256": "7c27197ae56f97a3bcb0c6793e2efea33e97635d7713e1e0e71987b8df5af283"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_09/pss.json": {
+      "local_path": "formal-exact/aed7c13f67da--pss.json",
+      "bytes": 9260,
+      "sha256": "3a739cfa9986e1de0353a45a5a5ac7e703db3ae9fceb8767e7d9101fafd32851"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_09/result.json": {
+      "local_path": "formal-exact/e5fd5f0318ee--result.json",
+      "bytes": 2661,
+      "sha256": "ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_09/idle60.jsonl": {
+      "local_path": "formal-exact/4d86b80e0bed--idle60.jsonl",
+      "bytes": 248047,
+      "sha256": "837eb41b342fb0d83cb5e55dfe6e3afe8f48318d307171dd4d786a4416835364"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_09/pss.json": {
+      "local_path": "formal-exact/562dfc6140a5--pss.json",
+      "bytes": 9260,
+      "sha256": "e01fe64b37e022629e61e9d534d8f23af469c108000c5ee15d6310283358200f"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_09/result.json": {
+      "local_path": "formal-exact/bb85f3b1c75f--result.json",
+      "bytes": 2719,
+      "sha256": "e2ac9d9d606d24926d365e9c0f3594925293463d7718f7d026f7c2ff7e16b4ec"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_09/idle60.jsonl": {
+      "local_path": "formal-exact/12cff9a16eae--idle60.jsonl",
+      "bytes": 248246,
+      "sha256": "cf533a6e14b63e423c4329ad37ea45b67898d43211df857580a126dc7ecb9ff6"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_09/pss.json": {
+      "local_path": "formal-exact/1e36ee6ba6f7--pss.json",
+      "bytes": 9260,
+      "sha256": "8be5656488f59f2e7443d7662ceb44032c720b41668aa318a44483361b74d5b8"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_10/result.json": {
+      "local_path": "formal-exact/26f11741075d--result.json",
+      "bytes": 2683,
+      "sha256": "88535060aa901af2d2412b648db282fdf1cf4bf9f03cd9c154ee05d5d9188a90"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_10/idle60.jsonl": {
+      "local_path": "formal-exact/0757dc8e21c4--idle60.jsonl",
+      "bytes": 248232,
+      "sha256": "9abb6379593bf1fec71870a60cb61e9719f77035a93ea875e2ef0a5820dc9923"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_10/pss.json": {
+      "local_path": "formal-exact/07a141838609--pss.json",
+      "bytes": 9260,
+      "sha256": "a22898d411c5fbc9098525fc23db36b19a4ca9fce4e212ac0cbe0d3a46db3dde"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_10/result.json": {
+      "local_path": "formal-exact/a9fd936d434f--result.json",
+      "bytes": 2719,
+      "sha256": "f19596e7533121a7351e303c59474cd263743d03d394daf4ea7d5ae94b609f7f"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_10/idle60.jsonl": {
+      "local_path": "formal-exact/1888e233019d--idle60.jsonl",
+      "bytes": 248342,
+      "sha256": "9a53a1b011fb21a999b052bf421ad1b648fe2bc9de933ed207312eb19fd56ba0"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_10/pss.json": {
+      "local_path": "formal-exact/9d17ea586981--pss.json",
+      "bytes": 9260,
+      "sha256": "41bff442a2af85afd1ed6f694d93e61d8cf6db856a3847b35afb7e2029d5353e"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_10/result.json": {
+      "local_path": "formal-exact/36d9b84db9b1--result.json",
+      "bytes": 2662,
+      "sha256": "84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_10/idle60.jsonl": {
+      "local_path": "formal-exact/04ae282207ec--idle60.jsonl",
+      "bytes": 248351,
+      "sha256": "6b2fa90acdeb30455ac758a88c220809457f1c1998744a38cdc421ebb923124e"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_10/pss.json": {
+      "local_path": "formal-exact/b102fda4d2c5--pss.json",
+      "bytes": 9260,
+      "sha256": "e540555ca323fcea88afa96fb5fe38637296f154c8f305e77337e0f81439d083"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_10/result.json": {
+      "local_path": "formal-exact/d731307dc76b--result.json",
+      "bytes": 2714,
+      "sha256": "945117c43cb380459978880f2c3b955802cf14f2ed867058444675c193cabe7a"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_10/idle60.jsonl": {
+      "local_path": "formal-exact/fd110acc552d--idle60.jsonl",
+      "bytes": 248288,
+      "sha256": "9acf25d441d8698f3dc4727d2878973d6deb492aee3293bafb403f20e74dcd62"
+    },
+    "validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_10/pss.json": {
+      "local_path": "formal-exact/77ddf76f617e--pss.json",
+      "bytes": 9260,
+      "sha256": "b78a14d078bf13ca51e1ea17fb1d5148c11ac1efd90957633988843339f5f608"
+    }
+  },
+  "intervals_nonadditive": {
+    "host_preparation_s": 0.452745098,
+    "seed_copy_s": 0.16921188,
+    "host_preparation_end_to_formal_head_dispatch_s": 1871.359320335,
+    "formal_common_initialization_s": 238.771219657,
+    "formal_worker_supervisor_s": 11204.882661339,
+    "formal_head_supervisor_s": 11217.540113319,
+    "final_release_observation_s": 75.982432416,
+    "host_preparation_begin_to_final_release_s": 13253.930347667
+  },
+  "interval_warning": "Overlapping wall intervals; do not sum. Host preparation to release is elapsed wall time, not a claim of continuous GPU occupancy. Pre-formal gap includes normal qualification, review/approval idle and dispatch.",
+  "seed_copy": {
+    "bytes": 18661429,
+    "files": 583,
+    "scope": "source C21 compilation retained in its ledger; this copy and current normal initialization charged separately; no old readiness or Store pool proof reused"
+  },
+  "common_pool": {
+    "configured_bytes": 768799145984,
+    "retained_for_all_four_conditions": true,
+    "auxiliary_gpu_MiB": [
+      1769,
+      1769,
+      1769,
+      1769,
+      1769,
+      1769,
+      1769,
+      1769
+    ]
+  },
+  "sampled_cgroup_peak_bytes": 1553848774656,
+  "kernel_peak_bytes": null,
+  "peak_gpu_MiB": [
+    99293,
+    99293,
+    99293,
+    99293,
+    99293,
+    99293,
+    99293,
+    99293
+  ],
+  "trials": [
+    {
+      "attempt_id": "store_disk_cold_04",
+      "condition": "store_disk_cold",
+      "result_sha256": "ae2256ebe31b0bbfe08784406b62936a6e07079b73e22daae7007fcd12e37f0c",
+      "elapsed_preparation_begin_to_complete_s": 295.683209142,
+      "preparation_s": 13.16419739,
+      "startup_command_to_correct_business_s": 195.72658501,
+      "delete_request_to_ack_s": 4.817044886,
+      "idle_span_s": 60.065951036,
+      "idle_worker_cpu_seconds": 5.417442,
+      "idle_worker_average_cpu_cores": 0.09019156288315662,
+      "idle_worker_pids_current_range": [
+        1168,
+        1168
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 774297928955.8032,
+        "median": 774297657344,
+        "p90_nearest_rank": 774298546176,
+        "minimum": 774296379392,
+        "maximum": 774306361344
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772532028332.0656,
+        "median": 772531810304,
+        "p90_nearest_rank": 772532019200,
+        "minimum": 772531523584,
+        "maximum": 772538376192
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 109290747.80327868,
+        "median": 109236224,
+        "p90_nearest_rank": 109453312,
+        "minimum": 109084672,
+        "maximum": 109473792
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 24,
+        "readable_processes": 24,
+        "all_readable_sum": {
+          "Rss_bytes": 775212765184,
+          "Pss_bytes": 773466580992,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770306719744,
+          "Pss_bytes": 770073629696,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_04",
+      "condition": "store_pool_hit",
+      "result_sha256": "61bdca8ab57bb49fce0cf67bc869e7f9a5f5af9e6f69fd29fbcdcdc81f92c4ff",
+      "elapsed_preparation_begin_to_complete_s": 283.155883971,
+      "preparation_s": 133.725183417,
+      "startup_command_to_correct_business_s": 62.480303975,
+      "delete_request_to_ack_s": 4.834450576,
+      "idle_span_s": 60.078611475,
+      "idle_worker_cpu_seconds": 4.54719,
+      "idle_worker_average_cpu_cores": 0.07568733511579545,
+      "idle_worker_pids_current_range": [
+        1118,
+        1118
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 774294744617.9672,
+        "median": 774294536192,
+        "p90_nearest_rank": 774295212032,
+        "minimum": 774293241856,
+        "maximum": 774302457856
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772480010273.5737,
+        "median": 772479811584,
+        "p90_nearest_rank": 772480016384,
+        "minimum": 772479418368,
+        "maximum": 772486344704
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 159219644.852459,
+        "median": 159211520,
+        "p90_nearest_rank": 159387648,
+        "minimum": 159051776,
+        "maximum": 159428608
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 23,
+        "readable_processes": 23,
+        "all_readable_sum": {
+          "Rss_bytes": 775123464192,
+          "Pss_bytes": 773416514560,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770311217152,
+          "Pss_bytes": 770077900800,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_05",
+      "condition": "store_disk_cold",
+      "result_sha256": "0e54771e24ca738d5ab308e5a15df0ffcf670dbba6ddb5d985de06a83105968b",
+      "elapsed_preparation_begin_to_complete_s": 277.659076668,
+      "preparation_s": 12.743824019,
+      "startup_command_to_correct_business_s": 177.559881543,
+      "delete_request_to_ack_s": 5.278879862,
+      "idle_span_s": 60.077227407,
+      "idle_worker_cpu_seconds": 5.119748,
+      "idle_worker_average_cpu_cores": 0.08521944538678002,
+      "idle_worker_pids_current_range": [
+        1068,
+        1068
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 774204536261.2458,
+        "median": 774204284928,
+        "p90_nearest_rank": 774205214720,
+        "minimum": 774203363328,
+        "maximum": 774210101248
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772426342802.8853,
+        "median": 772426153984,
+        "p90_nearest_rank": 772426321920,
+        "minimum": 772425740288,
+        "maximum": 772432674816
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 123042027.01639344,
+        "median": 123052032,
+        "p90_nearest_rank": 123162624,
+        "minimum": 122834944,
+        "maximum": 123179008
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 22,
+        "readable_processes": 22,
+        "all_readable_sum": {
+          "Rss_bytes": 775032152064,
+          "Pss_bytes": 773362224128,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770314981376,
+          "Pss_bytes": 770081916928,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_05",
+      "condition": "store_pool_hit",
+      "result_sha256": "2d8e2686b5c496fa2816306b0c2058e4270eb575a0718a868369c65870051905",
+      "elapsed_preparation_begin_to_complete_s": 282.881809857,
+      "preparation_s": 133.99347275,
+      "startup_command_to_correct_business_s": 61.696562772,
+      "delete_request_to_ack_s": 5.152400851,
+      "idle_span_s": 60.075153405,
+      "idle_worker_cpu_seconds": 4.262534,
+      "idle_worker_average_cpu_cores": 0.07095336022305077,
+      "idle_worker_pids_current_range": [
+        1018,
+        1018
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 774200225254.8197,
+        "median": 774199980032,
+        "p90_nearest_rank": 774200971264,
+        "minimum": 774198509568,
+        "maximum": 774207664128
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772374300705.5737,
+        "median": 772374110208,
+        "p90_nearest_rank": 772374208512,
+        "minimum": 772373803008,
+        "maximum": 772380782592
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 172921772.06557378,
+        "median": 172974080,
+        "p90_nearest_rank": 173068288,
+        "minimum": 172716032,
+        "maximum": 173121536
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 21,
+        "readable_processes": 21,
+        "all_readable_sum": {
+          "Rss_bytes": 774943170560,
+          "Pss_bytes": 773308035072,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770318569472,
+          "Pss_bytes": 770085237760,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_05",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "46cf89c1db7c8671121660a6c823df770329ea3d00f04beb18f981d98aece812",
+      "elapsed_preparation_begin_to_complete_s": 567.860529735,
+      "preparation_s": 39.96230281,
+      "startup_command_to_correct_business_s": 441.212117636,
+      "delete_request_to_ack_s": 4.91752158,
+      "idle_span_s": 60.069674309,
+      "idle_worker_cpu_seconds": 4.548748,
+      "idle_worker_average_cpu_cores": 0.07572453242548177,
+      "idle_worker_pids_current_range": [
+        968,
+        968
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1522215043810.623,
+        "median": 1522215002112,
+        "p90_nearest_rank": 1522215460864,
+        "minimum": 1522213089280,
+        "maximum": 1522222280704
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772318004744.3934,
+        "median": 772317929472,
+        "p90_nearest_rank": 772318113792,
+        "minimum": 772317306880,
+        "maximum": 772324651008
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 746533102978.0984,
+        "median": 746533113856,
+        "p90_nearest_rank": 746533208064,
+        "minimum": 746532896768,
+        "maximum": 746533265408
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 20,
+        "readable_processes": 20,
+        "all_readable_sum": {
+          "Rss_bytes": 774849011712,
+          "Pss_bytes": 773250561024,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770318569472,
+          "Pss_bytes": 770085532672,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_05",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "3dd7da26cabda4b2f73e9b290635b53ff398fdf8270e148512d2f22e1994ecad",
+      "elapsed_preparation_begin_to_complete_s": 612.353769796,
+      "preparation_s": 325.357461138,
+      "startup_command_to_correct_business_s": 201.611374212,
+      "delete_request_to_ack_s": 4.993516607,
+      "idle_span_s": 60.081094898,
+      "idle_worker_cpu_seconds": 4.704826,
+      "idle_worker_average_cpu_cores": 0.07830792711063951,
+      "idle_worker_pids_current_range": [
+        918,
+        918
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1532017345519.2131,
+        "median": 1532016992256,
+        "p90_nearest_rank": 1532017958912,
+        "minimum": 1532015820800,
+        "maximum": 1532025421824
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772266324035.1476,
+        "median": 772266090496,
+        "p90_nearest_rank": 772266266624,
+        "minimum": 772265926656,
+        "maximum": 772272799744
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756366733379.1476,
+        "median": 756366725120,
+        "p90_nearest_rank": 756366884864,
+        "minimum": 756366569472,
+        "maximum": 756366917632
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 19,
+        "readable_processes": 19,
+        "all_readable_sum": {
+          "Rss_bytes": 774760669184,
+          "Pss_bytes": 773224972288,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770318569472,
+          "Pss_bytes": 770085548032,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_06",
+      "condition": "store_pool_hit",
+      "result_sha256": "469c371a898185e468f80e2df25743cff3b8ad8b1c30b82307c8e3727b12ee79",
+      "elapsed_preparation_begin_to_complete_s": 281.083431133,
+      "preparation_s": 132.304021218,
+      "startup_command_to_correct_business_s": 62.724767089,
+      "delete_request_to_ack_s": 5.247296013,
+      "idle_span_s": 60.058577649,
+      "idle_worker_cpu_seconds": 3.848658,
+      "idle_worker_average_cpu_cores": 0.06408173737467926,
+      "idle_worker_pids_current_range": [
+        868,
+        868
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531967717040.2622,
+        "median": 1531967434752,
+        "p90_nearest_rank": 1531968208896,
+        "minimum": 1531966201856,
+        "maximum": 1531975311360
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772211457645.1147,
+        "median": 772211253248,
+        "p90_nearest_rank": 772211359744,
+        "minimum": 772211052544,
+        "maximum": 772217942016
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756373495673.705,
+        "median": 756373504000,
+        "p90_nearest_rank": 756373606400,
+        "minimum": 756373278720,
+        "maximum": 756373635072
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 18,
+        "readable_processes": 18,
+        "all_readable_sum": {
+          "Rss_bytes": 774668369920,
+          "Pss_bytes": 773141265408,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770321510400,
+          "Pss_bytes": 770088264704,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_06",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "9cfcdd2381f4c7768a22794cc282c80383caba3204f6c5aba0cbe512ac8215a2",
+      "elapsed_preparation_begin_to_complete_s": 575.565976387,
+      "preparation_s": 39.975975728,
+      "startup_command_to_correct_business_s": 449.212737961,
+      "delete_request_to_ack_s": 4.649375868,
+      "idle_span_s": 60.065663744,
+      "idle_worker_cpu_seconds": 3.57343,
+      "idle_worker_average_cpu_cores": 0.059492058811336325,
+      "idle_worker_pids_current_range": [
+        818,
+        818
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1522069982560.5247,
+        "median": 1522069803008,
+        "p90_nearest_rank": 1522070364160,
+        "minimum": 1522068713472,
+        "maximum": 1522077786112
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772153840891.8032,
+        "median": 772153675776,
+        "p90_nearest_rank": 772153761792,
+        "minimum": 772153393152,
+        "maximum": 772160286720
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 746555595994.2295,
+        "median": 746555555840,
+        "p90_nearest_rank": 746555740160,
+        "minimum": 746555408384,
+        "maximum": 746555752448
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 17,
+        "readable_processes": 17,
+        "all_readable_sum": {
+          "Rss_bytes": 774573068288,
+          "Pss_bytes": 773083810816,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770321518592,
+          "Pss_bytes": 770088322048,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_06",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "a062ed63b35d6b6bac6c32cfb9cf5e92c112eec2116097ae9d0f46e81b4bce2e",
+      "elapsed_preparation_begin_to_complete_s": 605.380569782,
+      "preparation_s": 324.910321265,
+      "startup_command_to_correct_business_s": 195.072842666,
+      "delete_request_to_ack_s": 4.828220814,
+      "idle_span_s": 60.05789335,
+      "idle_worker_cpu_seconds": 4.081262,
+      "idle_worker_average_cpu_cores": 0.06795546384245593,
+      "idle_worker_pids_current_range": [
+        768,
+        768
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531868518836.459,
+        "median": 1531868291072,
+        "p90_nearest_rank": 1531868688384,
+        "minimum": 1531867439104,
+        "maximum": 1531875180544
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772097568633.705,
+        "median": 772097339392,
+        "p90_nearest_rank": 772097585152,
+        "minimum": 772097183744,
+        "maximum": 772103823360
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756389078804.9836,
+        "median": 756389101568,
+        "p90_nearest_rank": 756389203968,
+        "minimum": 756388904960,
+        "maximum": 756389228544
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 16,
+        "readable_processes": 16,
+        "all_readable_sum": {
+          "Rss_bytes": 774479306752,
+          "Pss_bytes": 773033068544,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770321518592,
+          "Pss_bytes": 770088508416,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_06",
+      "condition": "store_disk_cold",
+      "result_sha256": "33f6be264cf2ca9f98a3f2d000bfbbb922834daed4b2247904666d9b41efcc68",
+      "elapsed_preparation_begin_to_complete_s": 274.807581179,
+      "preparation_s": 11.32639918,
+      "startup_command_to_correct_business_s": 178.086193801,
+      "delete_request_to_ack_s": 4.934275429,
+      "idle_span_s": 60.080569098,
+      "idle_worker_cpu_seconds": 4.193731,
+      "idle_worker_average_cpu_cores": 0.06980178555165523,
+      "idle_worker_pids_current_range": [
+        718,
+        718
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531776572499.9343,
+        "median": 1531776245760,
+        "p90_nearest_rank": 1531776802816,
+        "minimum": 1531775062016,
+        "maximum": 1531784511488
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 772042878170.2295,
+        "median": 772042530816,
+        "p90_nearest_rank": 772042776576,
+        "minimum": 772042297344,
+        "maximum": 772049235968
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756352708406.5574,
+        "median": 756352704512,
+        "p90_nearest_rank": 756352864256,
+        "minimum": 756352557056,
+        "maximum": 756352901120
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 15,
+        "readable_processes": 15,
+        "all_readable_sum": {
+          "Rss_bytes": 774387359744,
+          "Pss_bytes": 772986564608,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770324598784,
+          "Pss_bytes": 770091607040,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_07",
+      "condition": "store_pool_hit",
+      "result_sha256": "24bbad0133ef851cd75dd0c281eda4768a03995b040f62f9803703f983339838",
+      "elapsed_preparation_begin_to_complete_s": 280.475353083,
+      "preparation_s": 132.189001092,
+      "startup_command_to_correct_business_s": 62.607350212,
+      "delete_request_to_ack_s": 5.023627211,
+      "idle_span_s": 60.109632332,
+      "idle_worker_cpu_seconds": 3.175994,
+      "idle_worker_average_cpu_cores": 0.05283668984129231,
+      "idle_worker_pids_current_range": [
+        668,
+        668
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531772268812.59,
+        "median": 1531771961344,
+        "p90_nearest_rank": 1531772649472,
+        "minimum": 1531771199488,
+        "maximum": 1531779543040
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771989967385.1803,
+        "median": 771989753856,
+        "p90_nearest_rank": 771989848064,
+        "minimum": 771989536768,
+        "maximum": 771996631040
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756402377442.6229,
+        "median": 756402384896,
+        "p90_nearest_rank": 756402491392,
+        "minimum": 756402196480,
+        "maximum": 756402532352
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 14,
+        "readable_processes": 14,
+        "all_readable_sum": {
+          "Rss_bytes": 774297276416,
+          "Pss_bytes": 772945405952,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770328002560,
+          "Pss_bytes": 770095031296,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_07",
+      "condition": "store_disk_cold",
+      "result_sha256": "86818cbead1ecbbbed19009471ca89ebb955d2093391ba220049b5c680713a1c",
+      "elapsed_preparation_begin_to_complete_s": 273.901364449,
+      "preparation_s": 11.240993703,
+      "startup_command_to_correct_business_s": 177.341258098,
+      "delete_request_to_ack_s": 4.846163551,
+      "idle_span_s": 60.068413967,
+      "idle_worker_cpu_seconds": 3.825301,
+      "idle_worker_average_cpu_cores": 0.06368240390201611,
+      "idle_worker_pids_current_range": [
+        618,
+        618
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531679859628.0657,
+        "median": 1531679125504,
+        "p90_nearest_rank": 1531681579008,
+        "minimum": 1531678121984,
+        "maximum": 1531689279488
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771935924224,
+        "median": 771935584256,
+        "p90_nearest_rank": 771935830016,
+        "minimum": 771935375360,
+        "maximum": 771942195200
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756365966218.4918,
+        "median": 756365950976,
+        "p90_nearest_rank": 756366086144,
+        "minimum": 756365803520,
+        "maximum": 756366118912
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 13,
+        "readable_processes": 13,
+        "all_readable_sum": {
+          "Rss_bytes": 774205288448,
+          "Pss_bytes": 772863582208,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770329677824,
+          "Pss_bytes": 770096731136,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_07",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "0b23ef18a87307c54834acf0907e7a370998b386eb3d24d0abc78817f0186b49",
+      "elapsed_preparation_begin_to_complete_s": 581.869535794,
+      "preparation_s": 39.967267551,
+      "startup_command_to_correct_business_s": 455.352240479,
+      "delete_request_to_ack_s": 4.914554461,
+      "idle_span_s": 60.068271336,
+      "idle_worker_cpu_seconds": 3.258597,
+      "idle_worker_average_cpu_cores": 0.054248223355265156,
+      "idle_worker_pids_current_range": [
+        568,
+        688
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1447515443065.7048,
+        "median": 1447511011328,
+        "p90_nearest_rank": 1447518650368,
+        "minimum": 1447509929984,
+        "maximum": 1447555620864
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771887461292.0656,
+        "median": 771883458560,
+        "p90_nearest_rank": 771890380800,
+        "minimum": 771883327488,
+        "maximum": 771922432000
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 672274935472.2623,
+        "median": 672274935808,
+        "p90_nearest_rank": 672275030016,
+        "minimum": 672274788352,
+        "maximum": 672275095552
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 12,
+        "readable_processes": 12,
+        "all_readable_sum": {
+          "Rss_bytes": 774024826880,
+          "Pss_bytes": 772794574848,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770305691648,
+          "Pss_bytes": 770092334080,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_07",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "4ba5e24155452a9517ef25d7a2856edc1bcc8fc476dd3f909c89ff930fd63591",
+      "elapsed_preparation_begin_to_complete_s": 604.942572401,
+      "preparation_s": 321.967347548,
+      "startup_command_to_correct_business_s": 197.205160137,
+      "delete_request_to_ack_s": 5.097272911,
+      "idle_span_s": 60.059801048,
+      "idle_worker_cpu_seconds": 3.222617,
+      "idle_worker_average_cpu_cores": 0.05365680444769495,
+      "idle_worker_pids_current_range": [
+        578,
+        578
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531672765221.7705,
+        "median": 1531672477696,
+        "p90_nearest_rank": 1531673268224,
+        "minimum": 1531671449600,
+        "maximum": 1531681263616
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771855681905.3115,
+        "median": 771855462400,
+        "p90_nearest_rank": 771855568896,
+        "minimum": 771855286272,
+        "maximum": 771862183936
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756448939696.2623,
+        "median": 756448940032,
+        "p90_nearest_rank": 756449067008,
+        "minimum": 756448792576,
+        "maximum": 756449107968
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773959028736,
+          "Pss_bytes": 772788801536,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770305691648,
+          "Pss_bytes": 770092585984,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_08",
+      "condition": "store_pool_hit",
+      "result_sha256": "9371a1cbc165a390e9e64ce41dae91b0d5eb383e9e1563eb140063f8f6a6d24a",
+      "elapsed_preparation_begin_to_complete_s": 281.88761714,
+      "preparation_s": 132.232183322,
+      "startup_command_to_correct_business_s": 64.522386634,
+      "delete_request_to_ack_s": 4.659316361,
+      "idle_span_s": 60.074624867,
+      "idle_worker_cpu_seconds": 3.243136,
+      "idle_worker_average_cpu_cores": 0.053985122789863796,
+      "idle_worker_pids_current_range": [
+        579,
+        579
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531683493921.5737,
+        "median": 1531683233792,
+        "p90_nearest_rank": 1531683758080,
+        "minimum": 1531682750464,
+        "maximum": 1531689902080
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771859651533.6394,
+        "median": 771859427328,
+        "p90_nearest_rank": 771859546112,
+        "minimum": 771859255296,
+        "maximum": 771866062848
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756455501286.8197,
+        "median": 756455505920,
+        "p90_nearest_rank": 756455604224,
+        "minimum": 756455333888,
+        "maximum": 756455641088
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773963079680,
+          "Pss_bytes": 772772145152,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770308509696,
+          "Pss_bytes": 770095404032,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_08",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "149abfe3a6efce7443a41481e8a177349f6dc48a99b615d5f6be6fac077f1c94",
+      "elapsed_preparation_begin_to_complete_s": 532.343312897,
+      "preparation_s": 324.065905408,
+      "startup_command_to_correct_business_s": 122.874042073,
+      "delete_request_to_ack_s": 4.703220903,
+      "idle_span_s": 60.057406893,
+      "idle_worker_cpu_seconds": 3.311813,
+      "idle_worker_average_cpu_cores": 0.05514412245437804,
+      "idle_worker_pids_current_range": [
+        580,
+        580
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531702005961.4426,
+        "median": 1531702427648,
+        "p90_nearest_rank": 1531703242752,
+        "minimum": 1531700199424,
+        "maximum": 1531708973056
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771866108844.0656,
+        "median": 771866750976,
+        "p90_nearest_rank": 771867148288,
+        "minimum": 771864563712,
+        "maximum": 771871576064
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756463541063.3442,
+        "median": 756463546368,
+        "p90_nearest_rank": 756463652864,
+        "minimum": 756463374336,
+        "maximum": 756463681536
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773968343040,
+          "Pss_bytes": 772797128704,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770308509696,
+          "Pss_bytes": 770095401984,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_08",
+      "condition": "store_disk_cold",
+      "result_sha256": "d837831470023f9f898310841a96fb41765f8eeb400e13377d163f970430afef",
+      "elapsed_preparation_begin_to_complete_s": 275.590039185,
+      "preparation_s": 11.242408054,
+      "startup_command_to_correct_business_s": 179.129208406,
+      "delete_request_to_ack_s": 4.602150159,
+      "idle_span_s": 60.061391802,
+      "idle_worker_cpu_seconds": 2.622133,
+      "idle_worker_average_cpu_cores": 0.04365754640925062,
+      "idle_worker_pids_current_range": [
+        581,
+        581
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531677656920.131,
+        "median": 1531677683712,
+        "p90_nearest_rank": 1531678105600,
+        "minimum": 1531675631616,
+        "maximum": 1531685318656
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771875672534.0328,
+        "median": 771876089856,
+        "p90_nearest_rank": 771876290560,
+        "minimum": 771874570240,
+        "maximum": 771881496576
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67121152,
+        "median": 67121152,
+        "p90_nearest_rank": 67121152,
+        "minimum": 67121152,
+        "maximum": 67121152
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756427079277.1147,
+        "median": 756427071488,
+        "p90_nearest_rank": 756427202560,
+        "minimum": 756426924032,
+        "maximum": 756427243520
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 8192,
+        "median": 8192,
+        "p90_nearest_rank": 8192,
+        "minimum": 8192,
+        "maximum": 8192
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773978353664,
+          "Pss_bytes": 772787496960,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770311225344,
+          "Pss_bytes": 770097902592,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_08",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "4a209169f11cd6c951726a3ee22d88dc35cd9bf4af63f90be792fffbe7e99c4a",
+      "elapsed_preparation_begin_to_complete_s": 585.521121581,
+      "preparation_s": 40.097748895,
+      "startup_command_to_correct_business_s": 457.389503039,
+      "delete_request_to_ack_s": 5.783576969,
+      "idle_span_s": 60.047437019,
+      "idle_worker_cpu_seconds": 2.61525,
+      "idle_worker_average_cpu_cores": 0.04355306620618115,
+      "idle_worker_pids_current_range": [
+        590,
+        590
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1465974745725.9016,
+        "median": 1465974308864,
+        "p90_nearest_rank": 1465975861248,
+        "minimum": 1465973448704,
+        "maximum": 1465983098880
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771876539878.8197,
+        "median": 771876225024,
+        "p90_nearest_rank": 771876597760,
+        "minimum": 771876032512,
+        "maximum": 771883253760
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 690740577666.0984,
+        "median": 690740576256,
+        "p90_nearest_rank": 690740695040,
+        "minimum": 690740432896,
+        "maximum": 690740727808
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773961756672,
+          "Pss_bytes": 772782702592,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770306912256,
+          "Pss_bytes": 770097127424,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_09",
+      "condition": "store_disk_cold",
+      "result_sha256": "8ca3ac2129c9b689f54a8b70af7673818ade1579ee41af16f5c3dca4ed872794",
+      "elapsed_preparation_begin_to_complete_s": 278.304147454,
+      "preparation_s": 12.319343089,
+      "startup_command_to_correct_business_s": 179.112278228,
+      "delete_request_to_ack_s": 4.919154513,
+      "idle_span_s": 60.068441171,
+      "idle_worker_cpu_seconds": 3.274446,
+      "idle_worker_average_cpu_cores": 0.05451191900716155,
+      "idle_worker_pids_current_range": [
+        591,
+        591
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1465944793826.623,
+        "median": 1465944461312,
+        "p90_nearest_rank": 1465944797184,
+        "minimum": 1465943650304,
+        "maximum": 1465953873920
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771879982801.836,
+        "median": 771879772160,
+        "p90_nearest_rank": 771879944192,
+        "minimum": 771879563264,
+        "maximum": 771886243840
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 690705694787.1476,
+        "median": 690705702912,
+        "p90_nearest_rank": 690705805312,
+        "minimum": 690705534976,
+        "maximum": 690705838080
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773964419072,
+          "Pss_bytes": 772786128896,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770308362240,
+          "Pss_bytes": 770098808832,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_09",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "2d6cc242e2502efd701d79bc6d484a09d271f11d90897cecfbe01421ff5ccb72",
+      "elapsed_preparation_begin_to_complete_s": 605.728138575,
+      "preparation_s": 322.563429294,
+      "startup_command_to_correct_business_s": 197.305160553,
+      "delete_request_to_ack_s": 4.915577916,
+      "idle_span_s": 60.067350695,
+      "idle_worker_cpu_seconds": 3.306619,
+      "idle_worker_average_cpu_cores": 0.055048524060763056,
+      "idle_worker_pids_current_range": [
+        592,
+        592
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531763350477.6394,
+        "median": 1531763290112,
+        "p90_nearest_rank": 1531763654656,
+        "minimum": 1531762106368,
+        "maximum": 1531769290752
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771886236655.2131,
+        "median": 771886186496,
+        "p90_nearest_rank": 771886391296,
+        "minimum": 771885301760,
+        "maximum": 771891929088
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756494274022.8197,
+        "median": 756494278656,
+        "p90_nearest_rank": 756494385152,
+        "minimum": 756494127104,
+        "maximum": 756494426112
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773970341888,
+          "Pss_bytes": 772806440960,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770308362240,
+          "Pss_bytes": 770098806784,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_09",
+      "condition": "store_pool_hit",
+      "result_sha256": "ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab",
+      "elapsed_preparation_begin_to_complete_s": 279.348951039,
+      "preparation_s": 132.35241812,
+      "startup_command_to_correct_business_s": 61.661301927,
+      "delete_request_to_ack_s": 4.753705039,
+      "idle_span_s": 60.080297504,
+      "idle_worker_cpu_seconds": 3.405521,
+      "idle_worker_average_cpu_cores": 0.056682825176977,
+      "idle_worker_pids_current_range": [
+        593,
+        593
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531790146778.2295,
+        "median": 1531789795328,
+        "p90_nearest_rank": 1531790602240,
+        "minimum": 1531789090816,
+        "maximum": 1531797774336
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771908746793.9672,
+        "median": 771908501504,
+        "p90_nearest_rank": 771908669440,
+        "minimum": 771908210688,
+        "maximum": 771915223040
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756500844946.8853,
+        "median": 756500865024,
+        "p90_nearest_rank": 756500959232,
+        "minimum": 756500709376,
+        "maximum": 756501012480
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773993439232,
+          "Pss_bytes": 772816340992,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770331262976,
+          "Pss_bytes": 770121705472,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_09",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "e2ac9d9d606d24926d365e9c0f3594925293463d7718f7d026f7c2ff7e16b4ec",
+      "elapsed_preparation_begin_to_complete_s": 573.989187331,
+      "preparation_s": 40.194082091,
+      "startup_command_to_correct_business_s": 447.170629809,
+      "delete_request_to_ack_s": 4.991009925,
+      "idle_span_s": 60.069884231,
+      "idle_worker_cpu_seconds": 2.801472,
+      "idle_worker_average_cpu_cores": 0.04663688029140993,
+      "idle_worker_pids_current_range": [
+        594,
+        594
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1484421444188.328,
+        "median": 1484421144576,
+        "p90_nearest_rank": 1484421894144,
+        "minimum": 1484420050944,
+        "maximum": 1484428742656
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771909232472.1311,
+        "median": 771909001216,
+        "p90_nearest_rank": 771909148672,
+        "minimum": 771908882432,
+        "maximum": 771915771904
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 709151143969.5737,
+        "median": 709151150080,
+        "p90_nearest_rank": 709151240192,
+        "minimum": 709150998528,
+        "maximum": 709151309824
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773983551488,
+          "Pss_bytes": 772813694976,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770328813568,
+          "Pss_bytes": 770121048064,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_disk_cold_10",
+      "condition": "store_disk_cold",
+      "result_sha256": "88535060aa901af2d2412b648db282fdf1cf4bf9f03cd9c154ee05d5d9188a90",
+      "elapsed_preparation_begin_to_complete_s": 278.155716794,
+      "preparation_s": 12.310358053,
+      "startup_command_to_correct_business_s": 179.16698304,
+      "delete_request_to_ack_s": 4.997740952,
+      "idle_span_s": 60.065220155,
+      "idle_worker_cpu_seconds": 3.510899,
+      "idle_worker_average_cpu_cores": 0.05845144646003171,
+      "idle_worker_pids_current_range": [
+        595,
+        595
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1484389102642.3606,
+        "median": 1484388802560,
+        "p90_nearest_rank": 1484389699584,
+        "minimum": 1484388208640,
+        "maximum": 1484397150208
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771912635845.2458,
+        "median": 771912491008,
+        "p90_nearest_rank": 771912622080,
+        "minimum": 771912327168,
+        "maximum": 771917242368
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 709116175074.6229,
+        "median": 709116186624,
+        "p90_nearest_rank": 709116289024,
+        "minimum": 709116018688,
+        "maximum": 709116329984
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773984980992,
+          "Pss_bytes": 772816307200,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770330259456,
+          "Pss_bytes": 770122747904,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_10",
+      "condition": "safetensors_disk_cold",
+      "result_sha256": "f19596e7533121a7351e303c59474cd263743d03d394daf4ea7d5ae94b609f7f",
+      "elapsed_preparation_begin_to_complete_s": 565.767809333,
+      "preparation_s": 38.71293915,
+      "startup_command_to_correct_business_s": 440.640925917,
+      "delete_request_to_ack_s": 4.58289985,
+      "idle_span_s": 60.066309804,
+      "idle_worker_cpu_seconds": 3.377013,
+      "idle_worker_average_cpu_cores": 0.056221416148576425,
+      "idle_worker_pids_current_range": [
+        596,
+        596
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1455407820934.2952,
+        "median": 1455407468544,
+        "p90_nearest_rank": 1455408021504,
+        "minimum": 1455407116288,
+        "maximum": 1455415828480
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771912353959.8689,
+        "median": 771912146944,
+        "p90_nearest_rank": 771912302592,
+        "minimum": 771911839744,
+        "maximum": 771919011840
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 680133249124.7213,
+        "median": 680133246976,
+        "p90_nearest_rank": 680133378048,
+        "minimum": 680133103616,
+        "maximum": 680133398528
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773952032768,
+          "Pss_bytes": 772811086848,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770322354176,
+          "Pss_bytes": 770121889792,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "store_pool_hit_10",
+      "condition": "store_pool_hit",
+      "result_sha256": "84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501",
+      "elapsed_preparation_begin_to_complete_s": 284.613638201,
+      "preparation_s": 133.451944562,
+      "startup_command_to_correct_business_s": 64.861103544,
+      "delete_request_to_ack_s": 4.702333564,
+      "idle_span_s": 60.063401819,
+      "idle_worker_cpu_seconds": 3.386664,
+      "idle_worker_average_cpu_cores": 0.05638481833256219,
+      "idle_worker_pids_current_range": [
+        597,
+        597
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1455418994150.8196,
+        "median": 1455418839040,
+        "p90_nearest_rank": 1455419068416,
+        "minimum": 1455417696256,
+        "maximum": 1455426060288
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771914220661.5082,
+        "median": 771914006528,
+        "p90_nearest_rank": 771914076160,
+        "minimum": 771913863168,
+        "maximum": 771920621568
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 680140880509.9016,
+        "median": 680140886016,
+        "p90_nearest_rank": 680140988416,
+        "minimum": 680140718080,
+        "maximum": 680141029376
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773953712128,
+          "Pss_bytes": 772808868864,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770323918848,
+          "Pss_bytes": 770123456512,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_10",
+      "condition": "safetensors_disk_hot",
+      "result_sha256": "945117c43cb380459978880f2c3b955802cf14f2ed867058444675c193cabe7a",
+      "elapsed_preparation_begin_to_complete_s": 607.584694461,
+      "preparation_s": 321.712955727,
+      "startup_command_to_correct_business_s": 200.457292833,
+      "delete_request_to_ack_s": 4.856944146,
+      "idle_span_s": 60.052212651,
+      "idle_worker_cpu_seconds": 2.983285,
+      "idle_worker_average_cpu_cores": 0.049678186170053165,
+      "idle_worker_pids_current_range": [
+        598,
+        598
+      ],
+      "idle_worker_memory_current_bytes": {
+        "n": 61,
+        "mean": 1531864514358.5574,
+        "median": 1531864219648,
+        "p90_nearest_rank": 1531864547328,
+        "minimum": 1531863703552,
+        "maximum": 1531872210944
+      },
+      "idle_worker_anon_bytes": {
+        "n": 61,
+        "mean": 771913661792.5245,
+        "median": 771913461760,
+        "p90_nearest_rank": 771913555968,
+        "minimum": 771913179136,
+        "maximum": 771920240640
+      },
+      "idle_worker_shmem_bytes": {
+        "n": 61,
+        "mean": 67231744,
+        "median": 67231744,
+        "p90_nearest_rank": 67231744,
+        "minimum": 67231744,
+        "maximum": 67231744
+      },
+      "idle_worker_file_bytes": {
+        "n": 61,
+        "mean": 756563214604.5902,
+        "median": 756563222528,
+        "p90_nearest_rank": 756563316736,
+        "minimum": 756563083264,
+        "maximum": 756563378176
+      },
+      "idle_container_shm_used_bytes": {
+        "n": 61,
+        "mean": 118784,
+        "median": 118784,
+        "p90_nearest_rank": 118784,
+        "minimum": 118784,
+        "maximum": 118784
+      },
+      "post_delete_gpu_MiB": [
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769,
+        1769
+      ],
+      "pss_snapshot": {
+        "process_count": 11,
+        "readable_processes": 11,
+        "all_readable_sum": {
+          "Rss_bytes": 773953134592,
+          "Pss_bytes": 772835582976,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67117056
+        },
+        "store": {
+          "Rss_bytes": 770323918848,
+          "Pss_bytes": 770123457536,
+          "Locked_bytes": 0,
+          "Pss_Shmem_bytes": 67108864
+        },
+        "scope": "Worker-container one snapshot; summed RSS double counts shared mappings. Linux Locked is not complete CUDA pinned-pool accounting."
+      }
+    }
+  ],
+  "final_release": {
+    "points": 61,
+    "pids_current": 0,
+    "memory_current_bytes": 758745911296,
+    "anon_bytes": 0,
+    "shmem_bytes": 0,
+    "file_bytes": 756964155392,
+    "scope": "Owned slice. Reclaimable file cache and disk assets retained; no global drop_caches."
+  },
+  "limitations": [
+    "Worker idle cgroup excludes head/host; complete deployment peak and final slice shown separately.",
+    "pids.current counts tasks including threads, not unique process count.",
+    "Linux Locked alone does not establish CUDA pinned bytes. Configured pool and actual pool proof are separate.",
+    "Disk asset bytes are reusable assets, not per-attempt new allocations. Historical cost consolidation pending."
+  ]
+}
