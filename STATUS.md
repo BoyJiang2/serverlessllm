@@ -460,3 +460,8 @@ Only affected execution logic is existingprepare_home optionalnormal-cache seedc
 ## canonical22 rejected before deployment; canonical23 observer-window fix frozen
 
 C22fullreadonlyR1 identified soleR1-C22-01: observer RuntimeMaxSec still old08:50 epoch. Seed/privacy/compatibility/normal/formalchain otherwise reviewed,81+9hashmatch. NoC22deploy/compute. C23 sllm-glm51fp8-20261027T011726Z-28c92313/MF3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9 syncsobserver to13:50epoch1793080200 and usesone sharedfreeze acceptance ofconfigdeadline/guardcalendar/guardepoch/observerepoch;three stale-clock negatives reject.263CPU/35operator(34pass1POSIXskip)/3syntax passed. Seed/gate/formal behavior unchanged;exactR1pending.09–14renewal confirmed,newguard/currentnormal qualification stillrequired;9success5failed26unstarted,nextstore_disk_cold_04.
+
+
+## canonical23 exact local R1 approved; actual renewed-window start next
+
+f176e056/MF3eac8c63 approvedfull-runtime01:20:49Z;81+9hashmatch,R1-C22-01closed,263CPU/35operator1skip/3syntax. No otherblocker. Currentguard/observer13:50/probes/seedcopy/normal/newR2/formal stillactualrequired. Old08:50guardinactive andC21sourcearchived/noactiveworkload. Renewed09–14bookingconfirmed,nextstore_disk_cold_04;9/5/26unchanged. Globalledger navigation/metadata provenance being clarified independently,doesnotblockrun.
