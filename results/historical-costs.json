@@ -1,0 +1,983 @@
+{
+  "schema": "sllm-historical-cost-inventory-v1",
+  "source_sha256": "cc1a357f8fbfc8942b5a8f40abb7f6b797ef0206ebc5a3c507a688beadfac037",
+  "scope": "Known stage costs and missingness; not a complete historical resource integral or fee total.",
+  "status": "Candidate evidence inventory; independent review required.",
+  "sources": {
+    "D:/Documents/codex/2026-10-24/new-chat/outputs/a1-evidence/download-workers4-complete-log.txt": {
+      "bytes": 26604,
+      "sha256": "bfc527575829baca788e888212fcb90606044772ae8d26e199de9e4189886c6e"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/outputs/a1-evidence/download16-complete.log": {
+      "bytes": 102824,
+      "sha256": "1b4447b5647cb40f1bca654575cd7345c1cb2fbdd534f0c24205287f1642b906"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/outputs/native-reference/native_repeat7/events.jsonl": {
+      "bytes": 3751,
+      "sha256": "5013908caa51c0ed5eec4f120e950452781f8d97d83b5f03ac06a6b1195f9b65"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/outputs/native-reference/native_repeat8/events.jsonl": {
+      "bytes": 3751,
+      "sha256": "a755d9c92d3a22a29803f322186c693199c35ed2a2a9ec8be0250c98de1885e0"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/outputs/store-evidence/store-validation-restoredraw3/events.jsonl": {
+      "bytes": 2735,
+      "sha256": "4e8ad8634a454fc0870c8e0204d6a393981dee9971aa72a51165245beec9eff1"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/evidence/cost-sources/rawexport-event-collection.json": {
+      "bytes": 20559,
+      "sha256": "f87475de51509da8829500d9c28a5a317db562f18e01a54a84613926bfa1b6a5"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T030041Z-5b688078/outcome.json": {
+      "bytes": 1007,
+      "sha256": "8b0935db52fc43e155f103f152ec1f2ec4c082433b4e7b29a7d5bdeea663de14"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T075854Z-e71cc109/outcome.json": {
+      "bytes": 2156,
+      "sha256": "48e90fc29ca51eb706b03130a9a416f366dbe8e815119bc7007d802a31487c65"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T092330Z-97af52ad/outcome.json": {
+      "bytes": 8374,
+      "sha256": "38cca0378592803d5def4a7248a58d94e9edcdf162ebaf82071d3ef1dc3d5cf4"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T101414Z-b7e048db/outcome.json": {
+      "bytes": 2792,
+      "sha256": "eff5a49d4095e62ff884b306ba5a9e6082b9d030dd268da736eaec0813818bc2"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T115129Z-d1cb0879/outcome.json": {
+      "bytes": 1275,
+      "sha256": "329f1270e88449bb330f3a0f9daab5c11b30dd2a069ff6e85bf57b3da81324f9"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T123417Z-b1692e12/outcome.json": {
+      "bytes": 2566,
+      "sha256": "193205896e786d203139eeb86ff4403be32c752f951cb5f9846daa882ad9352e"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T132344Z-a8efabb2/outcome.json": {
+      "bytes": 4452,
+      "sha256": "2120f3799d59a04df681f8f081a13126efce471a4b1c89752d245f0ffecc589a"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T161004Z-817be4b6/control-outcome.json": {
+      "bytes": 946,
+      "sha256": "16bb775de014b3db4466e2a7e345fe4a0f2157b4d70830892148d1ef1d279868"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T170947Z-89e023f0/control-outcome.json": {
+      "bytes": 4877,
+      "sha256": "24fc37ce3e25cf4530813c8671b6284e9d1646b3aceb8a86b4e82fddad682a23"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T175702Z-59e71e6e/control-outcome.json": {
+      "bytes": 8150,
+      "sha256": "a9452ede20a053701046b36e598c72d76c55633083444fd5e4ada8ae37d5f6a8"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T183147Z-b13fd994/control-outcome.json": {
+      "bytes": 7162,
+      "sha256": "3c2e69c0128461192a15f4c957f0af78be125b0639e787dae1580572e6c551f7"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T183147Z-b13fd994/resource-correction.json": {
+      "bytes": 612,
+      "sha256": "48a13e40766377f974a5fb9c41d6c7b3fcfa929040270b4d27f84f6870ada25d"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T185540Z-f24e1ed4/control-outcome.json": {
+      "bytes": 9378,
+      "sha256": "07e2239f6199f8107841c21dc05a9f4bde87daa896dcb2cfa4785f9c4453eea0"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T190735Z-ccbf6f33/control-outcome.json": {
+      "bytes": 10641,
+      "sha256": "0352aed67fa83cf0a8bd2604f6bd5770a100a2c832e757770c064c40981e7833"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T193424Z-685d6426/control-outcome.json": {
+      "bytes": 5497,
+      "sha256": "39c10ff0eb16fff32d476cf6ff5a13e11f07d753d7238102fdcfa05af2105ac6"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/control-outcome.json": {
+      "bytes": 3228,
+      "sha256": "6a847a3d648f2a25598769d61f32e5dbb518fdaa5e8e66dcd1f44cad2d89dc29"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/control-outcome.json": {
+      "bytes": 10106,
+      "sha256": "bdace35defb793d8554f37c480c1c0f84f8f90f2c99dc015948b1674bdba2825"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/reviews/actual-controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/cost-intervals.json": {
+      "bytes": 2196,
+      "sha256": "5de2f10ac9b2e5835344d1198bc8f4ff5cea91fb3d4e9073328959137ecb291c"
+    },
+    "D:/Documents/codex/2026-10-24/new-chat/serverlessllm-glm51-fp8/results/c23-costs.json": {
+      "bytes": 91200,
+      "sha256": "336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce"
+    }
+  },
+  "download": {
+    "first_begin_utc": "2026-10-24T05:27:36.706073+00:00",
+    "resumed_begin_utc": "2026-10-24T06:06:00.542312+00:00",
+    "all_verified_utc": "2026-10-24T07:09:11.566629+00:00",
+    "full_wall_s": 6094.860556,
+    "resumed_wall_s": 3791.024317,
+    "scope": "Resumed interval included in full interval. Includes retry, switching and verification, not pure network time."
+  },
+  "stable_native_references": [
+    {
+      "reference": "native_repeat7",
+      "scope": "Backend correctness reference; includes full tensor audit, not formal timing.",
+      "process_to_all_correct_s": 587.854954447,
+      "engine_create_to_ready_s": 452.006723562
+    },
+    {
+      "reference": "native_repeat8",
+      "scope": "Backend correctness reference; includes full tensor audit, not formal timing.",
+      "process_to_all_correct_s": 572.351133703,
+      "engine_create_to_ready_s": 447.960467114
+    }
+  ],
+  "component_restore": {
+    "scope": "A3 component only; does not prove native service.",
+    "engine_create_to_ready_s": 315.684640994,
+    "engine_create_to_checks_s": 468.694550277
+  },
+  "conversion": {
+    "run_id": "sllm-glm51fp8-20261024T051606Z-deb76e57",
+    "boot_id": "7ee98ba6-80f2-436a-badd-ee3f788e1ffc",
+    "ranks": [
+      {
+        "rank": 0,
+        "source_sha256": "c984015ba2768cf9c811f40c660a2e3ed0e44ae3ba3f78741535328024860b57",
+        "weights_pipeline_including_export_s": 345.848445357,
+        "gap_ingestion_end_to_postprocess_begin_s": 297.319044772
+      },
+      {
+        "rank": 1,
+        "source_sha256": "3bce160924ee806e5fe9f1c61f0a8b9b6963ab90727d773c1319a795f5b019a8",
+        "weights_pipeline_including_export_s": 347.396201454,
+        "gap_ingestion_end_to_postprocess_begin_s": 300.451752288
+      },
+      {
+        "rank": 2,
+        "source_sha256": "c73769ad59d64862f200ba09cf32adc5ead60521c417aa269cddd1ac3163d977",
+        "weights_pipeline_including_export_s": 345.338938834,
+        "gap_ingestion_end_to_postprocess_begin_s": 295.520256571
+      },
+      {
+        "rank": 3,
+        "source_sha256": "90b8445c6ab6e4adcdad9adb995b90af3b0e4cdc3203904c1c992f6e34eb1cff",
+        "weights_pipeline_including_export_s": 339.927717453,
+        "gap_ingestion_end_to_postprocess_begin_s": 293.661474252
+      },
+      {
+        "rank": 4,
+        "source_sha256": "4b29489127edda67264a6401902552def414a6d3c775adff7e180fa27ec30061",
+        "weights_pipeline_including_export_s": 307.390638118,
+        "gap_ingestion_end_to_postprocess_begin_s": 261.119047426
+      },
+      {
+        "rank": 5,
+        "source_sha256": "cc1ff69487c30ba8f5f57fc697b49735b16ec63865f14720c9bdbcac23e21045",
+        "weights_pipeline_including_export_s": 314.816697336,
+        "gap_ingestion_end_to_postprocess_begin_s": 265.502383345
+      },
+      {
+        "rank": 6,
+        "source_sha256": "db67ab71c27b32c79a3a3a4b0b80483e92a681acb1a6d3059b1fb36b47890cb9",
+        "weights_pipeline_including_export_s": 325.2297057,
+        "gap_ingestion_end_to_postprocess_begin_s": 276.175354046
+      },
+      {
+        "rank": 7,
+        "source_sha256": "0bf5693986891f689bf3dafd5e4f337969dd54323f95a5977c705a6175568531",
+        "weights_pipeline_including_export_s": 342.718175637,
+        "gap_ingestion_end_to_postprocess_begin_s": 297.03887323
+      }
+    ],
+    "dispatch_to_latest_recorded_warmup_end_s": 403.180093388,
+    "pure_save_s": null,
+    "scope": "Actual eight-rank export-run events. Gap includes unbracketed work; not a proven pure Store-save interval. Final process/cleanup cost not closed here."
+  },
+  "prior_control_outcomes": [
+    {
+      "run_id": "sllm-glm51fp8-20261026T030041Z-5b688078",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T030041Z-5b688078/outcome.json",
+      "code_commit": "5b01d7dc7f2f0e7d1fa1c774dba475312b232eb8",
+      "manifest_sha256": "cfa76d7d0d0b51eb1c6225c9a72b3eb0faeac5b994f2080c6e286a4fef9a40f4",
+      "status": "failed",
+      "recorded_cost_fields": {
+        "final_release_seconds": 75.822306157
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T075854Z-e71cc109",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T075854Z-e71cc109/outcome.json",
+      "code_commit": "ef53e19273137d7ae98e0105c5d2893539aafff6",
+      "manifest_sha256": "a1dc0959486cb1274a1258850d3f6e660eff97e2889d43baf6e811f4dc1dd43c",
+      "status": "G1 failed before Store pool creation",
+      "recorded_cost_fields": {
+        "ray_controls": {
+          "ray13a": {
+            "begin_ns": 130087858433923,
+            "status": "passed including cleanup",
+            "timeout_seconds": 330,
+            "child_pid": 927,
+            "error": null,
+            "end_ns": 130215886016441,
+            "child_alive_at_end": false,
+            "cleanup_reserve_seconds": 25,
+            "total_budget_seconds": 330
+          },
+          "ray13b": {
+            "begin_ns": 130347417515047,
+            "status": "passed including cleanup",
+            "timeout_seconds": 330,
+            "child_pid": 929,
+            "error": null,
+            "end_ns": 130475446337102,
+            "child_alive_at_end": false,
+            "cleanup_reserve_seconds": 25,
+            "total_budget_seconds": 330
+          }
+        },
+        "service_supervisor": {
+          "begin_ns": 130591599613600,
+          "status": "failed",
+          "timeout_seconds": 3420,
+          "child_pid": 925,
+          "error": "RuntimeError('control child failed: 1')",
+          "end_ns": 130599601608804,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 3420
+        },
+        "release_seconds": 75.855472886
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T092330Z-97af52ad",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T092330Z-97af52ad/outcome.json",
+      "code_commit": "ae4c5557894ff3b21a560d94315a2bd749ae9b67",
+      "manifest_sha256": "b352bf336c39efb2d08288c0bb724f8cf3f33b8ce3602c5102329733f01f3d63",
+      "status": "G1 failed: old absolute path inside reused TorchInductor code; no correct business response",
+      "recorded_cost_fields": {
+        "pool_ready": {
+          "monotonic_ns": 132511690738203,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2153,
+          "listener": {
+            "pid": 2153,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "55294356"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770285428736
+        },
+        "release_seconds": 75.791484381
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T101414Z-b7e048db",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T101414Z-b7e048db/outcome.json",
+      "code_commit": "e1e8851ad10a5ebabc5ce587eb8c6d54585d0833",
+      "manifest_sha256": "c0cb93c5c0cd3a7c7c5c448de24632582a8486c0974fac34e2f94692f38ccc89",
+      "status": "G1 failed/incomplete after SSH connection reset and operator-triggered owned cleanup",
+      "recorded_cost_fields": {
+        "pool_ready": {
+          "monotonic_ns": 136862613702591,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2154,
+          "listener": {
+            "pid": 2154,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "57138138"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770294366208
+        },
+        "service_final_state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 137,
+          "Error": "",
+          "StartedAt": "2026-10-26T10:58:58.408533659Z",
+          "FinishedAt": "2026-10-26T11:19:34.230795862Z"
+        },
+        "release_seconds": 75.737320287
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T115129Z-d1cb0879",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T115129Z-d1cb0879/outcome.json",
+      "code_commit": "538f0a26c79614afe25b80b0483b7ae9b775fd97",
+      "manifest_sha256": "4f62e0eb849baaf738af766ff8f74dc60c30b2505f48040c8f4d16c41e9c152e",
+      "status": "G1 stopped before first Ray: stdin operator source import path missing",
+      "recorded_cost_fields": {
+        "release_seconds": 75.823048062
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T123417Z-b1692e12",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T123417Z-b1692e12/outcome.json",
+      "code_commit": "953900f630d077ce67b053e9b0418a1e624a6bde",
+      "manifest_sha256": "99540f6e0ffcf632414e8f3a53206a51dc97f7560990d3abbb1ea4d5f80c5b29",
+      "status": "G1 failed: missing tensor_audit after real engine initialization",
+      "recorded_cost_fields": {
+        "pool_ready": {
+          "monotonic_ns": 143696417442589,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2155,
+          "listener": {
+            "pid": 2155,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "59719953"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770289307648
+        },
+        "engine_init_log_seconds": 388.23,
+        "service_final_state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 137,
+          "Error": "",
+          "StartedAt": "2026-10-26T12:52:55.214125585Z",
+          "FinishedAt": "2026-10-26T13:15:55.95212277Z"
+        },
+        "release_seconds": 75.755247601
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T132344Z-a8efabb2",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T132344Z-a8efabb2/outcome.json",
+      "code_commit": "a7c5a2faf98562cdf8b3709423b4e41dc6c66238",
+      "manifest_sha256": "d95ab4a15155138f8a10c7ad11421a4cd72085c22b490b44373a2dd6ecbcade2",
+      "status": "G1 failed: monitoring freshness gap during final native bootstrap cleanup; correctness components passed",
+      "recorded_cost_fields": {
+        "pool_ready": {
+          "monotonic_ns": 147116097225441,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2159,
+          "listener": {
+            "pid": 2159,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "61343943"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770293276672
+        },
+        "supervisor": {
+          "begin_ns": 146914901955404,
+          "status": "failed",
+          "timeout_seconds": 3420,
+          "child_pid": 933,
+          "error": "RuntimeError('control stopped after monitor/observer heartbeat failure')",
+          "end_ns": 149357499866561,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 3420
+        },
+        "monitor": {
+          "samples": 2391,
+          "partial_lines": 0,
+          "max_gap_s": 17.60155992,
+          "max_duration_s": 20.541801965,
+          "slow_samples": [
+            {
+              "monotonic_ns": 146901702225816,
+              "duration_s": 20.541801965,
+              "sample_begin_ns": 146885422339049,
+              "sample_end_ns": 146905964141014,
+              "observers": [
+                {
+                  "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-kernelobserver13.service",
+                  "pid": 2308670,
+                  "ok": true
+                },
+                {
+                  "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-dockerobserver13.service",
+                  "pid": 2308672,
+                  "ok": true
+                }
+              ],
+              "gpu_pids": [],
+              "foreign_gpu_pids": []
+            },
+            {
+              "monotonic_ns": 149353690368107,
+              "duration_s": 10.088831818,
+              "sample_begin_ns": 149353687637042,
+              "sample_end_ns": 149363776468860,
+              "observers": [
+                {
+                  "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-kernelobserver13.service",
+                  "pid": 2308670,
+                  "ok": true
+                },
+                {
+                  "unit": "sllm-glm51fp8-20261026T132344Z-a8efabb2-dockerobserver13.service",
+                  "pid": 2308672,
+                  "ok": true
+                }
+              ],
+              "gpu_pids": [],
+              "foreign_gpu_pids": []
+            }
+          ],
+          "interpretation": "All sampled observer flags in slow row true; no proof of continuous observer liveness during missing interval. Exact blocking call unknown; serial unbounded NVML queries are a candidate, not established cause."
+        },
+        "service_final_state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-10-26T13:49:55.90501076Z",
+          "FinishedAt": "2026-10-26T14:30:45.619535823Z"
+        },
+        "release_seconds": 75.756880602
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T161004Z-817be4b6",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T161004Z-817be4b6/control-outcome.json",
+      "code_commit": "4b455955c0fdba2a85efa1a79071ab489ca2cec1",
+      "manifest_sha256": "52b75d7de761346564491f732fa91ac251d4261deb67cf7d2f6010c3568c248f",
+      "status": "bounded CPU control closed; strict sampled evidence passed; no G1 or formal approval",
+      "recorded_cost_fields": {
+        "resource_release": {
+          "points": 61,
+          "span_seconds": 75.720532165
+        },
+        "monitor": {
+          "samples": 57,
+          "first_ns": 156410613481204,
+          "last_ns": 156481193314456,
+          "max_gap_seconds": 1.343838327,
+          "max_sample_duration_seconds": 0.341706455,
+          "partial_final_row": null
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T170947Z-89e023f0",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T170947Z-89e023f0/control-outcome.json",
+      "code_commit": "a294d2bab2001d92646ee655db45c4bb27a25610",
+      "manifest_sha256": "e29a392a3af6610128278a0a9483015650f0aff7e5fded72798ddb476d983f62",
+      "status": "failed monitor freshness during Store teardown; real pool initialization component evidence only",
+      "recorded_cost_fields": {
+        "supervisor": {
+          "begin_ns": 159885623967335,
+          "status": "failed",
+          "timeout_seconds": 900,
+          "child_pid": 929,
+          "error": "RuntimeError('stale, unhealthy or wrong host monitor receipt')",
+          "end_ns": 160107677524831,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 900
+        },
+        "pool": {
+          "monotonic_ns": 160086690801580,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2155,
+          "listener": {
+            "pid": 2155,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "69305518"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770294251520
+        },
+        "monitor": {
+          "samples": 218,
+          "acceptance_error": "slow or inconsistent monitor sample",
+          "max_duration_seconds": 10.270403002,
+          "max_gap_seconds": 11.270949763
+        },
+        "resource": {
+          "sampled_cgroup_peak_bytes": 776717864960,
+          "kernel_peak_bytes": null
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.730315863
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T175702Z-59e71e6e",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T175702Z-59e71e6e/control-outcome.json",
+      "code_commit": "0b3993b27926ddc547efbaa2dffe1220ae689cdb",
+      "manifest_sha256": "534af6ebc1436156222faae5f4fd3e564760a3c0147c0e05b8094a3e88eb8865",
+      "status": "failed strictmonitor during Store teardown; compute-apps query stalled",
+      "recorded_cost_fields": {
+        "supervisor": {
+          "begin_ns": 162368275324161,
+          "status": "failed",
+          "timeout_seconds": 900,
+          "child_pid": 927,
+          "error": "RuntimeError('stale, unhealthy or wrong host monitor receipt')",
+          "end_ns": 162592328399614,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 900
+        },
+        "pool": {
+          "monotonic_ns": 162571352313819,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2153,
+          "listener": {
+            "pid": 2153,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "69820801"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770293518336
+        },
+        "monitor": {
+          "samples": 210,
+          "acceptance_error": "slow or inconsistent monitor sample",
+          "max_duration_seconds": 10.171592539,
+          "max_gap_seconds": 11.172147183
+        },
+        "resource": {
+          "sampled_cgroup_peak_bytes": 776740843520,
+          "kernel_peak_bytes": null
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.907224018
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T183147Z-b13fd994",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T183147Z-b13fd994/control-outcome.json",
+      "code_commit": "21d0c897ac29844d2ef6e26c1cdf7249105dc5f2",
+      "manifest_sha256": "fdb1e05604733e46f80f32b8c042f90b2b4a68f55588f2a65dc1a3c4c7637c81",
+      "status": "failed: real Store SIGINT cleanup ended rc1; strict monitor passed",
+      "recorded_cost_fields": {
+        "supervisor": {
+          "begin_ns": 164151865528562,
+          "status": "failed",
+          "timeout_seconds": 900,
+          "child_pid": 932,
+          "error": "RuntimeError('control child failed: 1')",
+          "end_ns": 164387914163231,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 900
+        },
+        "pool": {
+          "monotonic_ns": 164355834941051,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2158,
+          "listener": {
+            "pid": 2158,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "70150255"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770295599104
+        },
+        "store_exit_seconds": 27.415694966,
+        "monitor": {
+          "samples": 193,
+          "first_ns": 164127057038314,
+          "last_ns": 164388715996926,
+          "max_gap_seconds": 2.129016853,
+          "max_sample_duration_seconds": 1.129075532,
+          "partial_final_row": null
+        },
+        "resource": {
+          "sampled_cgroup_peak_bytes": 0,
+          "kernel_peak_bytes": null
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.930499736
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times.",
+      "effective_resource_correction": {
+        "run_id": "sllm-glm51fp8-20261026T183147Z-b13fd994",
+        "correction_of": "control-outcome.json.resource and results/control-costs/sllm-glm51fp8-20261026T183147Z-b13fd994.json.resource",
+        "reason": "Derived closure used nonexistent nested cgroup.memory.current key and wrongly defaulted zero; original derived report preserved, use actual raw top-level cgroup_memory_current",
+        "sampled_cgroup_peak_bytes": 776676474880,
+        "kernel_peak_bytes": null,
+        "samples": 193,
+        "raw_sha256": "301ecd70fcd71dab53303e07237dfe4f1eacf6b3926aa71e9b50a238d27f956c",
+        "utc": "2026-10-26T18:46:15.864104+00:00"
+      },
+      "superseded_resource_note": "Original sampled peak0 retained in source fields; use appended776676474880B correction, kernel peak still null."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T185540Z-f24e1ed4",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T185540Z-f24e1ed4/control-outcome.json",
+      "code_commit": "03b7e657d8042e1dc51a608c675e29c980e3fabc",
+      "manifest_sha256": "176a5a9eb85e6b14e3d421c088befe16eecf51e454da99b084231ba6b3f210dd",
+      "status": "CPU comparison completed; direct failed; shield/event normal stop; no Store validation",
+      "recorded_cost_fields": {
+        "phase": {
+          "run_id": "sllm-glm51fp8-20261026T185540Z-f24e1ed4",
+          "code_commit": "03b7e657d8042e1dc51a608c675e29c980e3fabc",
+          "manifest_sha256": "176a5a9eb85e6b14e3d421c088befe16eecf51e454da99b084231ba6b3f210dd",
+          "status": "CPU phase completed; trace and release still require review",
+          "head_container_id": "f83df17b5e9818513c2d9dc735354f5046e9fccd7149bd7d6d5c07761dd21fed",
+          "stop_ns": 165495361348767,
+          "post_stop_sample_begin_ns": 165496732660665,
+          "end_ns": 165497184981614,
+          "scope": "no model or pool"
+        },
+        "monitor": {
+          "samples": 45,
+          "first_ns": 165480070984516,
+          "last_ns": 165540939961335,
+          "max_gap_seconds": 1.454322589,
+          "max_sample_duration_seconds": 0.454074782,
+          "partial_final_row": null
+        },
+        "resource": {
+          "sampled_cgroup_peak_bytes": 3624570880,
+          "kernel_peak_bytes": null
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.797408694
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T190735Z-ccbf6f33",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T190735Z-ccbf6f33/control-outcome.json",
+      "code_commit": "8f43bd74dc11c6adb29d7d852a27ecc5b1162653",
+      "manifest_sha256": "f047611221902cf65e4580f969436944f19a0d9594d4dbe8b00e989281ad6942",
+      "status": "resident Store shield component control passed including release; not G1 or model service",
+      "recorded_cost_fields": {
+        "supervisor": {
+          "begin_ns": 166300600641590,
+          "status": "passed including cleanup",
+          "timeout_seconds": 900,
+          "child_pid": 930,
+          "error": null,
+          "end_ns": 166536647883919,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 900
+        },
+        "pool": {
+          "monotonic_ns": 166505671576475,
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 536870912,
+          "store_pid": 2156,
+          "listener": {
+            "pid": 2156,
+            "port": 8073,
+            "listening_sockets": [
+              {
+                "fd": 199,
+                "inode": "70331102"
+              }
+            ],
+            "scope": "private container network/PID namespace; current child ownership required"
+          },
+          "rpc_config": {
+            "mem_pool_size": 768799145984,
+            "chunk_size": 536870912
+          },
+          "rss_bytes": 770293403648
+        },
+        "store_exit_seconds": 27.56609707,
+        "monitor": {
+          "samples": 256,
+          "first_ns": 166288402293160,
+          "last_ns": 166637615425094,
+          "max_gap_seconds": 2.768793197,
+          "max_sample_duration_seconds": 1.767505022,
+          "partial_final_row": null
+        },
+        "resource": {
+          "sampled_cgroup_peak_bytes": 776679178240,
+          "kernel_peak_bytes": null
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.828972926
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T193424Z-685d6426",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T193424Z-685d6426/control-outcome.json",
+      "code_commit": "defc412a0351b0e3d20454e8f37151f55443d6e7",
+      "manifest_sha256": "9ac4e071bed9b913ebb185fe2b20286ae76e834c4b16f593b65f33dba1677cdf",
+      "status": "complete G1 passed actual acceptor and independent raw recomputation; no formal samples",
+      "recorded_cost_fields": {
+        "service_supervisor": {
+          "begin_ns": 168564395842017,
+          "status": "passed including cleanup",
+          "timeout_seconds": 3420,
+          "child_pid": 928,
+          "error": null,
+          "end_ns": 171026992220546,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 3420
+        },
+        "service_seconds": 2462.596378529,
+        "store_exit_seconds": 27.364314295,
+        "resource": {
+          "sampled_cgroup_peak_bytes": 1560127901696,
+          "kernel_peak_bytes": null,
+          "min_host_memavailable_bytes": 1185788502016,
+          "host_memory_scope": "global context, not owned release proof",
+          "per_gpu_peak_used_mib": [
+            99291,
+            99291,
+            99291,
+            99289,
+            99289,
+            99291,
+            99291,
+            99291
+          ]
+        },
+        "release": {
+          "points": 61,
+          "span_seconds": 75.81295502
+        }
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T212500Z-7e6912e2",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T212500Z-7e6912e2/control-outcome.json",
+      "code_commit": "3ff30fa645f4790df2fe63357308e7ca0f8b7e8b",
+      "manifest_sha256": "e98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b",
+      "status": "formal batch failed at first original ID; normal control passed; fully released",
+      "recorded_cost_fields": {
+        "monitor": {
+          "status": "all complete raw samples passed",
+          "samples": 2180,
+          "first_ns": 174888454856145,
+          "last_ns": 177870407562410,
+          "max_gap_seconds": 3.191266323,
+          "max_sample_duration_seconds": 2.190271235,
+          "partial_final_row": null
+        },
+        "sampled_cgroup_peak_bytes": 799625519104,
+        "kernel_peak_bytes": null,
+        "formal_supervisor": {
+          "begin_ns": 177395169829163,
+          "status": "failed",
+          "timeout_seconds": 14400,
+          "run_id": "sllm-glm51fp8-20261026T212500Z-7e6912e2",
+          "code_commit": "3ff30fa645f4790df2fe63357308e7ca0f8b7e8b",
+          "manifest_sha256": "e98063205048a6da76c307fda113b54ee46e8860204c88f1beab4831a1bba07b",
+          "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+          "dispatch_monotonic_ns": 177393778931531,
+          "child_pid": 929,
+          "error": "RuntimeError('control child failed: 1')",
+          "end_ns": 177867289301598,
+          "child_alive_at_end": false,
+          "cleanup_reserve_seconds": 25,
+          "total_budget_seconds": 14400,
+          "absolute_end_ns": 186327847951322,
+          "controlled_stop": false,
+          "forced_kill": false,
+          "child_returncode": 1,
+          "terminate_sent_ns": null
+        },
+        "store_shutdown_seconds": 27.919340449,
+        "release": {
+          "points": 61,
+          "span_seconds": 75.889007191
+        },
+        "cost_scope": "normal common pool/JIT/cache/idle approval wait plus new formal pool/init/preparation/failedattempt/cleanup/release; do not fold into successful per-instance latency"
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    },
+    {
+      "run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+      "source": "reviews/actual-controls/sllm-glm51fp8-20261026T225201Z-02cd4cdc/control-outcome.json",
+      "code_commit": "16e40e9d3a627d9c60079c7f5a56f7d012c363de",
+      "manifest_sha256": "6f456dfaaaca5bc3011ba217e481a7c107ff7186722084a1640a8472e76a4ef0",
+      "status": "four formal original IDs passed; budget admission stopped; fully released and source archived",
+      "recorded_cost_fields": {
+        "whole_monitor": {
+          "samples": 3427,
+          "first_ns": 179812821668958,
+          "last_ns": 184506110104941,
+          "max_gap_seconds": 3.085068272,
+          "max_sample_duration_seconds": 2.084312235,
+          "partial_final_row": null
+        },
+        "sampled_cgroup_peak_bytes": 1554038214656,
+        "kernel_peak_bytes": null,
+        "formal_common_initialization_seconds": 239.671165906,
+        "formal_store_sigint_zero_exit_seconds": 27.270924387,
+        "final_release": {
+          "points": 61,
+          "span_seconds": 75.789196786
+        },
+        "cost_scope": "allnormal/Ray/commonpool/JIT/cache/preparation/R2approvalidle/formalrebuild/failedhistoricalcontrols/cleanup/release retained; per-instance latencies exclude prepaidsharedinfra; costs not whole-nodecoldboot"
+      },
+      "missing_fields": "Unknown, never zero; original source remains authoritative. Budgets inside raw supervisor records are not actual elapsed times."
+    }
+  ],
+  "c21_nonadditive_intervals": {
+    "scope": "measured intervals only; overlapping/nested stages not additive; no hidden paid-ahead resources",
+    "run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+    "normal_head_supervised_seconds": 1428.863469008,
+    "normal_worker_supervised_seconds": 1416.382884447,
+    "normal_cleanup_to_formal_head_dispatch_seconds": 611.801780236,
+    "waiting_scope": "post-normal observation, raw validation, evidence transfer, independent R2, final gate and precreate admission included as idle/setup cost",
+    "formal_head_supervised_seconds": 2265.08705977,
+    "formal_worker_supervised_seconds": 2252.575539051,
+    "formal_common_initialization_seconds": 239.671165906,
+    "whole_monitor_span_seconds": 4693.288435983,
+    "formal_attempt_intervals": [
+      {
+        "attempt_id": "safetensors_disk_cold_03",
+        "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+        "begin_ns": 182447577865853,
+        "end_ns": 183055756087391,
+        "total_seconds": 608.178221538
+      },
+      {
+        "attempt_id": "store_disk_cold_03",
+        "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+        "begin_ns": 183055756439799,
+        "end_ns": 183332305178562,
+        "total_seconds": 276.548738763
+      },
+      {
+        "attempt_id": "safetensors_disk_hot_04",
+        "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+        "begin_ns": 183332305554171,
+        "end_ns": 183859942970770,
+        "total_seconds": 527.637416599
+      },
+      {
+        "attempt_id": "safetensors_disk_cold_04",
+        "scope": "prep through full service/delete/idle/cache/JIT verification; not nested-stage sum",
+        "begin_ns": 183859943339535,
+        "end_ns": 184441622605727,
+        "total_seconds": 581.679266192
+      }
+    ],
+    "normal_compilation_scope": "583 immutable JIT artifacts produced during actualnormal; compile work included in normal cost, not formal load latency",
+    "guard_cpu_probe_scope": "root own cleanup sentinel/container beforecompute; no dummy model weights",
+    "previous_cost_scope": "prior control/failure cost ledgers preserved; not pooled into current successful per-instance latency"
+  },
+  "c23_costs": {
+    "path": "results/c23-costs.json",
+    "intervals_nonadditive": {
+      "host_preparation_s": 0.452745098,
+      "seed_copy_s": 0.16921188,
+      "host_preparation_end_to_formal_head_dispatch_s": 1871.359320335,
+      "formal_common_initialization_s": 238.771219657,
+      "formal_worker_supervisor_s": 11204.882661339,
+      "formal_head_supervisor_s": 11217.540113319,
+      "final_release_observation_s": 75.982432416,
+      "host_preparation_begin_to_final_release_s": 13253.930347667
+    }
+  },
+  "total_cost": null,
+  "total_cost_reason": "Overlapping intervals, different boots, incomplete early failure/compile/idle/cleanup telemetry. No defensible complete sum.",
+  "unresolved": [
+    "Full pure-save interval and conversion resource peaks/integrals.",
+    "Earlier native/Store failed attempts, compiler and approval idle lack closed common timelines.",
+    "CPU seconds, host/GPU memory-time and energy not comprehensively recorded.",
+    "Assets are reusable; do not charge checkpoint/Store capacity as new allocation on every trial.",
+    "All original40 formal attempts including failures remain in formal-ledger.json; original9 per-ID raw timings remain separate from current costs."
+  ]
+}

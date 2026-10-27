@@ -1,8 +1,8 @@
-# C23 current qualification and live formal evidence
+# C23 closed qualification and formal evidence
 
 Runtime code `f176e05607d04999ab28e8ea8cd49b41270cb528`; input manifest `3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9`.
 
-At 2026-10-27 13:10 CST the original formal batch has ended with exit0; own root cleanup and independent allstopped release passed. 26 new durable raw terminal successes are listed below. Global live state: 35 success, 5 failed, 0 running (), 0 unstarted. These are raw statuses; full post-run cache/vector/gold/event/monitor/release recomputation and independent result review remain pending. Historical failures and original order remain unchanged. No Git operation occurs during timing or release observations.
+At 2026-10-27 13:10 CST the original formal batch has ended with exit0; own root cleanup and independent allstopped release passed. 26 new durable raw terminal successes are listed below. Global live state: 35 success, 5 failed, 0 running (), 0 unstarted. These original raw statuses have since passed full post-run cache/vector/gold/event/monitor/release recomputation and independent result review (postrun-evidence-review.json). Historical failures and original order remain unchanged. No Git operation occurs during timing or release observations.
 
 ## Completed qualification and admission
 
@@ -12,9 +12,9 @@ Current normal entry completed both native formats with two cycles each:12 gold 
 
 Current independent R2 approved01:50:48Z, SHA `2c81506fecf34edc31e4c062f9fba6937ac2ec0f0de7a30099c7443650b68c0b`. Formal gate SHA `ee0b27724e756b76b7872d47a75c96707f8a1a8ecf00eb228343e197c358268d`. Actual host precreate passed01:54:40Z with8GPU0/currentboot/source/seed/prior-result identities and14119s remaining before the approved deadline. Actual replacement booking `bk-20261027T0136-0b37a39b`09:00-17:00 covers the unchanged13:50 cleanup ceiling; its coverage receipt is bound to R2/gate. Neither the frozen source window nor guard is extended to17:00.
 
-New formal head and worker started01:57:36Z/01:57:44Z. Their own probes and fresh716GiB Store pool preceded all new IDs. The shared pool remains charged across Safetensors conditions. Per-ID delete leaves the persistent helper baseline; it does not prove full deployment exit. Final own cleanup and independent final release are still pending.
+New formal head and worker started01:57:36Z/01:57:44Z. Their own probes and fresh716GiB Store pool preceded all new IDs. The shared pool remains charged across Safetensors conditions. Per-ID delete leaves the persistent helper baseline; it does not prove full deployment exit. Final own root cleanup and independent61-point75.982432416s allstopped release passed; full deployment GPU/own processes were released. Reclaimable file cache and disk assets remain charged.
 
-## Raw successful terminal metadata (not final R3)
+## Original successful terminal metadata (subsequently accepted by postrun R3)
 
 Times below are seconds from raw result.json. Preparation is additional charged work; startup→response is not whole-node deployment cost. The first-token timestamp is the backend `backend_first_token_observed` event, not a client wire streaming measurement. Stage intervals are host function boundaries; nested/overlapping spans must not be summed as disjoint time. Backend process creation is estimated from proc stat clock ticks and may precede registration if Ray reuses a worker; persistent control-plane, pool and approval idle costs remain separate.
 
@@ -54,3 +54,7 @@ Exact terminal result/origin bytes and their remote paths/SHA are preserved in `
 `formal-raw-audit.py` SHA `07a9ea940711272b792c795eb8112d335bb1651b8d3efefbca011469604899cf` has local independent code approval and44 actual-AST synthetic CPU checks. It reuses the prior strict raw gold/phase/full-mincore/idle/PSS/monitor checks, adds explicit input kind and pool-hit `check` semantics/8strict-boolean rank confirmations, verifies frozen prereg fields and original dispatch-derived attempt/batch/stop budgets, and permits historical rechecking after window/boot changes using recorded evidence and pure budget functions.
 
 Scope is a nonempty all-success continuous original prefix. A legitimate failed ID or zero-round stop requires separate failure/control audit, with all original records preserved. Auditor rejection is not itself a model failure. Final fullraw evidence acceptance, full cost/ledger/release/source archive and Git commit/push remain pending.
+
+## Post-run closure
+
+postrun-evidence-review.json approves the exact793-file package and full remote audit receipt; independent review distinguishes receipt-supported full vectors/monitor from its local raw checks. executed-source-archive.json and its separate review bind the same81 files andMF before/after same-filesystem archive. The current source entry is absent, and old runtime credentials are not reused. Final stratified statistics and C23 costs are in ../../../results/ with separate numerical reviews. All-history costs/final report remain in progress; historical exit137 upstream cause remains unknown.

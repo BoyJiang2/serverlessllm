@@ -50,3 +50,5 @@ Generated 2026-10-27T05:29:57.089087+00:00. **35 success /5 failed /0 running /0
 [Final stratified statistics and limitations](statistics.md) includes the independently reviewed numerical output, all40 raw outcomes, and separate C23 exploratory six-block intervals. Total deployment costs remain under reconciliation.
 
 [C23 cost and idle resources](c23-costs.json), [independent cost review](c23-costs-review.json):26 trials,83 direct input receipts. Overlapping spans are not additive. Final processes/GPU released;756,964,155,392 bytes of reclaimable file cache remained charged in the owned slice. Historical cost consolidation is still pending.
+
+[Historical cost inventory](historical-costs.json) and [independent scope review](historical-costs-review.json) retain16 prior actual control outcomes, downloads, stable backend references, component restore and8-rank export traces. Pure Store-save time and complete historical total remain unknown; no missing cost is set to zero.
