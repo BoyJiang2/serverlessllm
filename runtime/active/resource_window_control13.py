@@ -28,3 +28,14 @@ def load_window(root):
     assert deadline == rows[-1]['end_ms']/1000-600
     assert window['guard_timer'] == original['run_id']+'-deadline-v13.timer'
     return window
+
+
+def require_guard_deadlines(source, cleanup_deadline):
+    deadline=datetime.datetime.fromisoformat(cleanup_deadline)
+    epoch=int(deadline.timestamp())
+    calendar=deadline.astimezone(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    guard=(source/'install_guard13.sh').read_text()
+    observer=(source/'install_observers13.sh').read_text()
+    assert "--on-calendar='"+calendar+"'" in guard, 'guard calendar differs from window'
+    assert 'test "$(date -u +%s)" -lt '+str(epoch) in guard, 'guard epoch differs from window'
+    assert 'remaining=$((%d-$(date +%%s)))'%epoch in observer, 'observer epoch differs from window'

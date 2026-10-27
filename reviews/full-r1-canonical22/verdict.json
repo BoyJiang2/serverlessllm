@@ -1,0 +1,31 @@
+{
+  "gate": "R1",
+  "scope": "full-runtime",
+  "canonical": 22,
+  "reviewed_at_utc": "2026-10-27T01:15:36Z",
+  "code_commit": "866fc2e53873fd7454b951533622c8819ddb03c2",
+  "manifest_sha256": "a816248a58b6dbc26a2493923e9323996ae1cc46d0bffc0d9660e4e42652c33a",
+  "run_id": "sllm-glm51fp8-20261027T004531Z-020be55e",
+  "verdict": "changes_required",
+  "blockers": [
+    {
+      "id": "R1-C22-01",
+      "file": "install_observers13.sh",
+      "finding": "observer RuntimeMaxSec uses old08:50 epoch1793062200 while window/guard13:50 epoch1793080200",
+      "minimum_fix": "sync observer epoch and regression for guardcalendar/epoch/window/observer consistency"
+    }
+  ],
+  "other_confirmed_blockers": [],
+  "verification": {
+    "runtime_files": 81,
+    "repository_inputs": 9,
+    "mismatches": 0,
+    "recorded_cpu": 262,
+    "recorded_operator_pass": 34,
+    "posix_skip": 1,
+    "syntax": 3,
+    "reviewer_executed_tests": false
+  },
+  "unchanged_review": "seed privacy/qualification/hash/compatibility and unchangednormal/formal gate chain reviewed; no other confirmed blocker",
+  "record_provenance": "structured transcription of actual local readonly review; C22neverdeployed"
+}

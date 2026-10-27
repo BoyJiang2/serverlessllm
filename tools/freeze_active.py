@@ -14,8 +14,9 @@ if "\nrun='"+config['run_id']+"'\n" not in (source/'snapshot_root13.py').read_te
 deadline=datetime.datetime.fromisoformat(config['cleanup_deadline'])
 for name in ('install_guard13.sh','cleanup_guard13.sh','install_observers13.sh'):
     if '\nrun_id='+config['run_id']+'\n' not in (source/name).read_text():raise RuntimeError('guard run identity differs: '+name)
-calendar=deadline.astimezone(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-if "--on-calendar='"+calendar+"'" not in (source/'install_guard13.sh').read_text():raise RuntimeError('guard calendar differs')
+sys.path.insert(0,str(source))
+from resource_window_control13 import require_guard_deadlines
+require_guard_deadlines(source,config['cleanup_deadline'])
 def digest(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def save(path,value):path.write_text(json.dumps(value,indent=2)+'\n',encoding='utf-8',newline='\n')
 window=json.loads((source/'resource-window-extension-v3.json').read_text())

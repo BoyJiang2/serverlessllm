@@ -29,4 +29,20 @@ class Window(unittest.TestCase):
         def change(w):w['bookings'][0]['id']='old-expired-booking'
         with self.assertRaises(AssertionError):self.check_at(1793041200,change)
 
+class GuardDeadlines(unittest.TestCase):
+    def test_guard_window_observer_agree_and_each_old_clock_rejects(self):
+        from resource_window_control13 import require_guard_deadlines
+        config=json.loads((root/'run-manifest.json').read_text())
+        require_guard_deadlines(root,config['cleanup_deadline'])
+        for defect in ('observer','guardepoch','calendar'):
+            with tempfile.TemporaryDirectory() as directory:
+                target=pathlib.Path(directory)
+                for name in ('install_guard13.sh','install_observers13.sh'):(target/name).write_bytes((root/name).read_bytes())
+                name='install_observers13.sh' if defect=='observer' else 'install_guard13.sh'
+                text=(target/name).read_text()
+                text=text.replace('05:50:00 UTC','00:50:00 UTC') if defect=='calendar' else text.replace('1793080200','1793062200')
+                (target/name).write_text(text)
+                with self.subTest(defect=defect),self.assertRaisesRegex(AssertionError,'differs from window'):require_guard_deadlines(target,config['cleanup_deadline'])
+
+
 if __name__=='__main__':unittest.main()
