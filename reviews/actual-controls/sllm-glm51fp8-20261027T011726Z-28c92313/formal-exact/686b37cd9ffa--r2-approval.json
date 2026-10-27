@@ -1,0 +1,145 @@
+{
+  "gate": "R2",
+  "scope": "formal-runtime",
+  "verdict": "approved",
+  "reviewed_at_utc": "2026-10-27T01:50:48Z",
+  "reviewer": "user-authorized local independent readonly /root/independent_readonly_review",
+  "run_id": "sllm-glm51fp8-20261027T011726Z-28c92313",
+  "code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
+  "manifest_sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9",
+  "protocol_revision": "v13-canonical23-qualified-disk-jit-seed",
+  "preparation_revision": "v13-canonical23-target-cache-last",
+  "resource_window_revision": "v4-current03-14-guard1350",
+  "normal_flags_proofs": [
+    {
+      "path": "service-bootstrap-service13a/serverless_llm/model-result.json",
+      "sha256": "483b1575ea454cda4c829d8078f9ee5b01fd0df89504b55ddf12fe9c7e3c0b9f"
+    },
+    {
+      "path": "service-bootstrap-service13a/safetensors/model-result.json",
+      "sha256": "3ceac7411fb59b88fd23d467d69efe60ec9285000a4473d4d94b776462efc17f"
+    }
+  ],
+  "jit_cache_proof_sha256": "c06a1a58e62ead465a6e2e16969a219e4c8d420e2e7dd8ccebcdcebf22042531",
+  "blockers": [],
+  "verified_evidence": {
+    "runtime_files": 81,
+    "repo_inputs": 9,
+    "mismatches": 0,
+    "exact_files": 95,
+    "exact_bytes": 1879279,
+    "index_sha256": "fbcd864b5452eb061629c7feb5a0dbd86355292839497d050f8d988071af067b",
+    "checker_sha256": "dd5ceab6b9fd6032296923295ad26b8fe839f5d120e85550b2fbdcf7c2e22ae6",
+    "stdout_sha256": "5665ce1a13458a6aa3c0914644879d7a0969388e3902dc91f0f9334bbde3365c",
+    "returncode": 0,
+    "stderr_bytes": 0,
+    "raw_gold_responses_checked": 12,
+    "fixed32": 4,
+    "gold_finite_logprobs": true,
+    "phase_summaries": 4,
+    "independent_raw_events_in_windows": 516,
+    "raw_phase_lifecycle_windows_order": true,
+    "seven_stages_eight_ranks": true,
+    "current_process_boot": true,
+    "idle_observations": 4,
+    "points_each": 61,
+    "idle_span_seconds": [
+      60.097472856,
+      60.085730638,
+      60.073048531,
+      60.083513865
+    ],
+    "pss_actual_store_complete": true
+  },
+  "seed_current_qualification": {
+    "source_run_id": "sllm-glm51fp8-20261026T225201Z-02cd4cdc",
+    "source_qualification_sha256": "ad2e3de378765405c2ee9923fccdd207c698b3e10f3b7387d16a84b2fc38d5dd",
+    "actual_private_copy_files": 583,
+    "actual_private_copy_bytes": 18661429,
+    "current_seal_entries": 583,
+    "path_size_hash_mismatches": 0,
+    "actualdriverdeps_verified": true,
+    "new_empty_mutable_log": true,
+    "old_readiness_engine_group_pool_reused": false
+  },
+  "actual_pool_cleanup": {
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "rss_bytes": 770290769920,
+    "store_namespace_pid": 2158,
+    "store_exit_code": 0,
+    "sigint_to_exit_seconds": 27.36658334,
+    "forced_kill": false,
+    "children_reaped": true,
+    "worker_head_supervisor_passed": true,
+    "worker_child_returncode": 0,
+    "head_controlled_raw_child_returncode": 1,
+    "original_dispatch_deadlines_retained": true,
+    "transport": "SSH255 but verified originalrunningcontainer; observe-only0 with no materialize/launch command"
+  },
+  "monitor_receipt": {
+    "prefix_bytes": 108387309,
+    "prefix_sha256": "deb32624282ab0772a9c90f2674747d15db5da3b699f1b6967cd0c1a88345573",
+    "samples": 876,
+    "maxduration_seconds": 1.843566928,
+    "maxgap_seconds": 2.844606855,
+    "partial_bytes": 0,
+    "posthead_samples": 76,
+    "posthead_seconds": 103.33820826,
+    "reported_no_helper_foreign_gpu_or_oom": true,
+    "owned_sampled_peak_bytes": 916779737088,
+    "postnormal_filecache_bytes": 121332297728
+  },
+  "resource_authorization": {
+    "snapshot_sha256": "fb620b53a6ad6a1e0812e4698574d4e1b83f0752fe82f94ff4b82eba08629d7e",
+    "coverage_receipt_sha256": "5e2c1aaa82fbe3ab232d9c7f6e048b9a46b694a071bc415375749ed5aaf81da0",
+    "actual_booking_id": "bk-20261027T0136-0b37a39b",
+    "owner": "boyjiang",
+    "resource": "h20/qjhs003",
+    "actual_window": "2026-10-27T09:00\u201317:00+08:00",
+    "retained_approved_deadline": "2026-10-27T13:50:00+08:00",
+    "interpretation": "replacement authorization covers unchangedapprovedinterval; no source/guard expansion"
+  },
+  "measurement_equivalence": {
+    "verified_invariants": [
+      "sameofficialFP8/revision/image/deps/TP8/context2048/concurrency1/MTPoff/gold",
+      "same583immutableJITpathsizeSHA",
+      "unchangedformalloadermath/commonfullpool/targetcachepredicates/timingdefinitions"
+    ],
+    "not_equivalent_cost_scope": "C23copysprepaidJIT;C21generatedit; preserveinitialization/amortizedcompiler costs",
+    "statistical_pooling_approved": false,
+    "reporting_rule": "keepnode/run/code/protocol/prep strata untilfinalstatistical/costreview"
+  },
+  "allowed_scope": {
+    "host": "qjhs3 only",
+    "head_label": "headformal13",
+    "worker_label": "formal13",
+    "existing_success": 9,
+    "existing_failed": 5,
+    "unstarted": 26,
+    "next_id": "store_disk_cold_04",
+    "retry_or_replacement": false
+  },
+  "remaining_admission_conditions": [
+    "writeexactR2 first; finalgatereferencesSHA nocycle",
+    "bindactualauthorizationcoverage receipt/freshownerresourcecoverage;retain13:50guard",
+    "rechecksourceconfig/583JIT/currentnormal/GPUboot/resources/observers/guardbeforecreate",
+    "rehashpriorC19/C21complete10pins/original9/currentledger;9/5/26/order",
+    "hostprecreate/container/driver admissionallpass",
+    "newformalheadownCPUimports/SIGINT/atomic/cold/isolatedtracebeforefreshcompletepool; no stoppednormalheadidentityreuse",
+    "max14400head clippedguardminus180release;init900/evidence180/cleanup330/emergency25/headstop10 unchanged",
+    "eachID complete1440beforemkdir; observecannotrenew; failuresstop/no retries",
+    "targetlastfullmincore/originalcoldhot/strict5s/JITdownloadisolation",
+    "keepC21compiler/currentseedcopy/normal/pool/prep/approvalidle/failure/releasecosts",
+    "endowncleanup/final61point>=60/rootindex/sourcearchive"
+  ],
+  "limitations": [
+    "local95fileshash/rawgold/phase/lifecycle/seedseal independentlychecked; no tests/SSH/experiments",
+    "full108387309monitorprefixremote; reviewedchecker/exactreceipts,notreviewerallrowread",
+    "postnormalGPUhelperreleasedbut121332297728Bfilecacheretained",
+    "no newpayloadtensor audit; separateC17reference",
+    "approvalnotclaimremaining26pass/fit",
+    "historicalfailures/unknownexit137 preserved"
+  ],
+  "record_provenance": "structured transcription of actual final independent local R2 response"
+}

@@ -1,0 +1,101 @@
+{
+  "sigint_probe": {
+    "pid": 599,
+    "signal": 2,
+    "returncode": 0,
+    "cleanup_marker": "cleanup",
+    "interpreter": "/experiment/.venv/bin/python",
+    "version": "3.12.13 (main, Mar  4 2026, 09:23:07) [GCC 11.4.0]",
+    "monotonic_ns": 190580413339443,
+    "atomic_publication": {
+      "local_same_filesystem": true,
+      "exclusive_collision_rejected": true,
+      "temporary_removed": true
+    },
+    "cold_boundary_probe": {
+      "version": 1,
+      "metadata_sha256": "69b4e81fafca7389fa1e102046ea13aa1c6ec9ed64a9a00f2056fe402034c8ec",
+      "metadata_bytes": 35871,
+      "pages": 9,
+      "initial_resident_pages": 0,
+      "old_order_resident_pages": 9,
+      "fixed_order_resident_pages": 0,
+      "mincore_vectors_hex": [
+        "000000000000000000",
+        "010101010101010101",
+        "000000000000000000"
+      ],
+      "cleanup_complete": true
+    },
+    "event_trace_probe": {
+      "source": {
+        "path": "/experiment/code/Store-source-v7/sllm_store/event_trace.py",
+        "sha256": "e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c",
+        "source_code_match": true
+      },
+      "measurement_event_dir": "/r/events-formal13",
+      "probe_event_dir": "/r/formal13-event-trace-probe",
+      "raw_events": [
+        {
+          "name": "backend_engine_create_begin",
+          "monotonic_ns": 190580417465450,
+          "container_hostname": "db370c323a91",
+          "pid": 266,
+          "probe": true,
+          "process_start_ticks": 19057655,
+          "clock_ticks_per_second": 100,
+          "boottime_minus_monotonic_ns": -514,
+          "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553"
+        },
+        {
+          "name": "router_instance_published",
+          "monotonic_ns": 190580417636797,
+          "container_hostname": "db370c323a91",
+          "pid": 266,
+          "probe": true
+        }
+      ],
+      "raw_sha256": "55e05f61927844efa0ce7ad4484d4d110fe2d4f06ad653e96a60a313b178e67c",
+      "original_env_verified": true,
+      "isolated": true,
+      "environment_restored": true
+    },
+    "run_id": "sllm-glm51fp8-20261027T011726Z-28c92313",
+    "head_container_id": "db370c323a914a912bd7bfe9835693ceca00a8a9bd75cf510201ac2d276141ca",
+    "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
+    "manifest_sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9"
+  },
+  "modules": {
+    "sllm_store": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/__init__.py",
+      "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59"
+    },
+    "sllm_store.server": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/server.py",
+      "sha256": "b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f",
+      "serve_code_filename": "/experiment/code/Store-source-v7/sllm_store/server.py",
+      "serve_source_code_match": true,
+      "serve_bytecode_sha256": "4b4b6b3ddddd8e83d60d039eea95e43acf6b4b31b1563372532600fec015b102"
+    },
+    "sllm_store._C": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "69d6de4f051eb74d292248c79ff989160bcc3209ac0ae256da1bc7d3e69cf9f4"
+    },
+    "sllm_store._checkpoint_store": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096"
+    }
+  },
+  "audit_helper": {
+    "path": "/experiment/code/experiment/tensor_audit.py",
+    "sha256": "069ab4d8cfdc3f57819358222b6c1a1e8973c795df2131974eb0a3b9161bbcff",
+    "callback_module": "tensor_audit",
+    "callback_roundtrip": true
+  },
+  "torch": "2.10.0+cu130",
+  "vllm": "0.19.1.dev1+g43a9b1afb",
+  "cuda": "13.0",
+  "scope": "CPU-only own head import proof; no pool, serve or model"
+}

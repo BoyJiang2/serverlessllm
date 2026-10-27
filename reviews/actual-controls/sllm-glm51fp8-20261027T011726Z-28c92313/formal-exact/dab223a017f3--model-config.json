@@ -1,0 +1,38 @@
+{
+  "model": "glm51-fp8",
+  "backend": "vllm",
+  "num_gpus": 8,
+  "backend_config": {
+    "tokenizer": "/experiment/checkpoint",
+    "dtype": "bfloat16",
+    "tensor_parallel_size": 8,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "gpu_memory_utilization": 0.9,
+    "enable_prefix_caching": false,
+    "distributed_executor_backend": "mp",
+    "moe_backend": "deep_gemm",
+    "num_gpu_blocks_override": 256,
+    "enforce_eager": true,
+    "seed": 20261024,
+    "speculative_config": null,
+    "pretrained_model_name_or_path": "/experiment/checkpoint",
+    "torch_dtype": "bfloat16",
+    "load_format": "safetensors"
+  },
+  "placement_config": {
+    "local_disk": [
+      "0"
+    ],
+    "memory_pool": []
+  },
+  "auto_scaling_config": {
+    "metric": "concurrency",
+    "target": 1,
+    "min_instances": 0,
+    "max_instances": 1,
+    "keep_alive": 3600
+  },
+  "router_config": {}
+}

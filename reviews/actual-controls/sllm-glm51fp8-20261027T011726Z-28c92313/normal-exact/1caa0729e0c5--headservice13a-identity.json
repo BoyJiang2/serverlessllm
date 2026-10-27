@@ -1,0 +1,112 @@
+{
+  "run_id": "sllm-glm51fp8-20261027T011726Z-28c92313",
+  "spec": {
+    "name": "headservice13a",
+    "cpus": 4,
+    "memory": "8g",
+    "gpus": false,
+    "network": "bridge",
+    "env": {
+      "HOME": "/r/native-home",
+      "HF_HOME": "/r/native-home/hf",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "VLLM_NO_USAGE_STATS": "1",
+      "VLLM_USE_DEEP_GEMM_E8M0": "0",
+      "CUDA_HOME": "/host-cuda",
+      "PATH": "/experiment/serving-deps/bin:/experiment/buildtools/ninja/data/bin:/host-cuda/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "TORCH_CUDA_ARCH_LIST": "9.0",
+      "OMP_NUM_THREADS": "4",
+      "MAX_JOBS": "8",
+      "PYTHONPATH": "/experiment/code/experiment:/experiment/code:/experiment/code/Store-source-v7:/experiment/serving-deps:/experiment/runtime-metadata:/experiment/code/ServerlessLLM:/experiment/code/ServerlessLLM/sllm_store:/experiment/buildtools:/experiment",
+      "SLLM_MODEL_REVISION": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+      "STORAGE_PATH": "/experiment/store",
+      "TORCHINDUCTOR_CACHE_DIR": "/r/native-home/inductor",
+      "TRITON_CACHE_DIR": "/r/native-home/triton",
+      "VLLM_CACHE_ROOT": "/r/native-home/vllm",
+      "CUDA_CACHE_PATH": "/r/native-home/cuda",
+      "SLLM_CONTROL_WORKSPACE": "/experiment",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "SLLM_EVENT_DIR": "/r/events-service13a"
+    },
+    "argv": [
+      "/experiment/.venv/bin/python",
+      "-u",
+      "/experiment/code/experiment/supervise_control13.py",
+      "head",
+      "service13a"
+    ],
+    "cuda_toolkit": true,
+    "phase_trace": false,
+    "raw_export_hook": false
+  },
+  "container_id": "f8d3dd3cd6c1d52a3456909c494a27016b51d1198120098a771fbd05e635480d",
+  "pid": 3637722,
+  "cgroup": "0::/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261027T011726Z.slice/sllm-glm51fp8-20261027T011726Z-28c92313.slice/docker-f8d3dd3cd6c1d52a3456909c494a27016b51d1198120098a771fbd05e635480d.scope\n",
+  "code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
+  "manifest_sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9",
+  "dispatch_monotonic_ns": 188725548652191,
+  "dispatch_utc": "2026-10-27T01:26:47.700700+00:00",
+  "preflight": {
+    "run_id": "sllm-glm51fp8-20261027T011726Z-28c92313",
+    "checked_utc": "2026-10-27T01:26:47.535994+00:00",
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "gpu_uuids": [
+      "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81",
+      "GPU-a3baf382-35c8-8748-626a-f69745aab5f8",
+      "GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771",
+      "GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb",
+      "GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e",
+      "GPU-151684e8-c7ba-a20a-6955-e1f765940536",
+      "GPU-af5f5c7a-0dce-f291-99be-2c844225cec6",
+      "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700"
+    ],
+    "guard_script_sha256": "93e238d77748aafdd9d793bfc54e306d04c7a747bfc7cc736fd20e616a139e3b",
+    "control_group": "/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261027T011726Z.slice/sllm-glm51fp8-20261027T011726Z-28c92313.slice",
+    "monitor_required": true,
+    "host_meminfo": "MemTotal:       2016708628 kB\nMemFree:        1334268852 kB\nMemAvailable:   1973993784 kB\nBuffers:           81032 kB\nCached:         646551008 kB\nSwapCached:            0 kB\nActive:         264805640 kB\nInactive:       383450652 kB\nActive(anon):       2840 kB\nInactive(anon):  1660136 kB\nActive(file):   264802800 kB\nInactive(file): 381790516 kB\nUnevictable:      231368 kB\nMlocked:          229832 kB\nSwapTotal:             0 kB\nSwapFree:              0 kB\nDirty:              1108 kB\nWriteback:             0 kB\nAnonPages:       1805576 kB\nMapped:           391240 kB\nShmem:              5204 kB\nKReclaimable:    2987612 kB\nSlab:            7384320 kB\nSReclaimable:    2987612 kB\nSUnreclaim:      4396708 kB\nKernelStack:       71952 kB\nPageTables:        31916 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    1008354312 kB\nCommitted_AS:   22301496 kB\nVmallocTotal:   13743895347199 kB\nVmallocUsed:      667020 kB\nVmallocChunk:          0 kB\nPercpu:           767040 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:   1003520 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:    92529364 kB\nDirectMap2M:    1867255808 kB\nDirectMap1G:    91226112 kB\n",
+    "available_memory_bytes": 2021369634816,
+    "continuation": false,
+    "credited_owned_anon_bytes": 0,
+    "ancestor_limits": {
+      "/sys/fs/cgroup/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261027T011726Z.slice/sllm-glm51fp8-20261027T011726Z-28c92313.slice": {
+        "memory.max": "1825361100800",
+        "memory.high": "max",
+        "memory.swap.max": "0",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0"
+      },
+      "/sys/fs/cgroup/sllm.slice/sllm-glm51fp8.slice/sllm-glm51fp8-20261027T011726Z.slice": {
+        "memory.max": "max",
+        "memory.high": "max",
+        "memory.swap.max": "max",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0"
+      },
+      "/sys/fs/cgroup/sllm.slice/sllm-glm51fp8.slice": {
+        "memory.max": "max",
+        "memory.high": "max",
+        "memory.swap.max": "max",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0"
+      },
+      "/sys/fs/cgroup/sllm.slice": {
+        "memory.max": "max",
+        "memory.high": "max",
+        "memory.swap.max": "max",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0"
+      },
+      "/sys/fs/cgroup": {
+        "memory.max": null,
+        "memory.high": null,
+        "memory.swap.max": null,
+        "memory.events": null
+      }
+    },
+    "input_layout": {
+      "checkpoint_inputs": 148,
+      "store_ranks": 8,
+      "store_parts": 80
+    }
+  },
+  "docker_create_complete_ns": 188725572510090,
+  "docker_start_complete_ns": 188725914930725,
+  "launch_utc": "2026-10-27T01:26:48.098138+00:00"
+}

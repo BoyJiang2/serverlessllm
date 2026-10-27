@@ -1,0 +1,25 @@
+{
+  "scope": "statistical interpretation only; not implementation or actual result approval",
+  "reviewer": "/root/independent_readonly_review",
+  "verdict": "approved scope",
+  "plan_sha256": "c7034b1dcf35b006dba43d8cbb4681dc659ed41ee13949aff452f9db6f641482",
+  "recorded_utc": "2026-10-27T03:31:27.339593+00:00",
+  "mandatory_constraints": [
+    "six-block inference exploratory and conditional, specified during collection; original10-block missingness remains",
+    "n6/7 nearest-rankP90 equals samplemaximum; permetric marginal nominal intervals, not simultaneousfour-way95coverage; serialdependence/smalln unchanged by10000replicates",
+    "orderedblocks5..10, one shared actual draw table for everycondition/metric/statistic; preserve reconstructible indices/digest/source/Pythonversion",
+    "rawsuccess/evidencevalidation and acceptance numerator explicit; unfinished notfailure; historicalmixedrevisionWilson descriptive only"
+  ],
+  "proposed_exact_draw_rule": "rng=random.Random(20261024); ordered_blocks=[5,6,7,8,9,10]; draws=[[rng.randrange(6) for _ in range(6)] for _ in range(10000)]; preserve actual index table, little integer values0..5",
+  "full_result_or_runtime_approved": false,
+  "reviewer_executed_tests": false,
+  "withdrawn_supplemental_finding": {
+    "subject": "C21 interim metrics serialized as strings",
+    "decision": "withdrawn by reviewer after actual-byte verification",
+    "actual_file_sha256": "a6b2b2d78ed9e667b4f31e62b9953ec6ab2d47a318a1932cd2c4d499f1364793",
+    "evidence": "no @{ or System.Object literal;3metrics objects/12childobjects",
+    "cause": "reviewer PowerShell ConvertTo-Json -Depth3 display artifact; source file unchanged",
+    "required_changes": "none"
+  },
+  "provenance": "structured transcription of actual independent readonly responses and explicit withdrawal"
+}

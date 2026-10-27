@@ -1,0 +1,27 @@
+{
+  "status": "normal-flags gold smoke lifecycle checks passed",
+  "weight_audit_performed": false,
+  "rank_coverage": [],
+  "phase_evidence": [
+    {
+      "cycle": 1,
+      "path": "cycle1-phases.json",
+      "sha256": "591deb5ed7fb914b7d168c4cf94b8fcf3b7340bbc9eb0c1d8c4fda4b59ade4c8"
+    },
+    {
+      "cycle": 2,
+      "path": "cycle2-phases.json",
+      "sha256": "da38d043c9f270cb86e7f570ef92113a9361baad1a9c6bd8e8bad1600ab24bd4"
+    }
+  ],
+  "exclusions": "234 DSA top-k scratch references per rank are not checkpoint weights/scales; fixed count, dtype, shape and byte size checked, scratch values not compared. KV runtime and opaque kernel allocations are excluded from weight equality.",
+  "weight_format": "safetensors",
+  "cycles": 2,
+  "tests_per_cycle": [
+    "natural-EOS arithmetic",
+    "natural-EOS translation",
+    "greedy fixed32"
+  ],
+  "timing_phase": "correctness only; no B attempt consumed",
+  "host_process_resources": "resource-monitor*.jsonl; align by monotonic_ns"
+}

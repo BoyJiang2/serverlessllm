@@ -1,0 +1,262 @@
+{
+  "status": "local CPU fixture checks passed",
+  "source_sha256": "07a9ea940711272b792c795eb8112d335bb1651b8d3efefbca011469604899cf",
+  "cases": 44,
+  "passed": 44,
+  "checks": [
+    {
+      "case": "check permits partial residency with full vector",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "cold all pages absent",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "hot all pages present",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "wrong target kind",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "target input kind differs"
+    },
+    {
+      "case": "wrong target mode",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache mode/pass"
+    },
+    {
+      "case": "check cannot claim pass",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache mode/pass"
+    },
+    {
+      "case": "missing input",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache complete input closure"
+    },
+    {
+      "case": "wrong resident count",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector resident count"
+    },
+    {
+      "case": "wrong source size",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache shape"
+    },
+    {
+      "case": "wrong vector SHA",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector full bytes/hash"
+    },
+    {
+      "case": "cache boundary order",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "cache boundary order"
+    },
+    {
+      "case": "escaped vector",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "vector escaped"
+    },
+    {
+      "case": "cold rejects resident page",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "declared cache condition"
+    },
+    {
+      "case": "hot rejects absent page",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "declared cache condition"
+    },
+    {
+      "case": "all eight pool confirmations",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "missing pool rank",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "all eight pool ranks required"
+    },
+    {
+      "case": "false pool rank",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "all eight pool ranks required"
+    },
+    {
+      "case": "extra pool rank",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "all eight pool ranks required"
+    },
+    {
+      "case": "truthy nonbool pool rank",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "all eight pool ranks required"
+    },
+    {
+      "case": "original prefix",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "skipped first ID",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "executed original prefix"
+    },
+    {
+      "case": "nonprefix later ID",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "executed original prefix"
+    },
+    {
+      "case": "extra unknown ID",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "executed original prefix"
+    },
+    {
+      "case": "empty batch",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "executed original prefix"
+    },
+    {
+      "case": "host container path translation only",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "initial ledger status drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "batch initial ledger identity/status/hash; host/container paths differ"
+    },
+    {
+      "case": "initial ledger result_sha256 drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "batch initial ledger identity/status/hash; host/container paths differ"
+    },
+    {
+      "case": "initial ledger attempt_id drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "batch initial ledger identity/status/hash; host/container paths differ"
+    },
+    {
+      "case": "issued attempt budget and prereg fields",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "extended selfreported attempt deadline",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "issued single attempt deadline differs"
+    },
+    {
+      "case": "replaced batch deadline",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "issued batch work deadline differs"
+    },
+    {
+      "case": "condition drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "preregistered attempt fields differ: condition"
+    },
+    {
+      "case": "block drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "preregistered attempt fields differ: block"
+    },
+    {
+      "case": "origin immutable drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "origin immutable field differs: code_commit"
+    },
+    {
+      "case": "single deadline clipped to issued batch",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "stop bound to issued work end",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "stop work_end_ns drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "budget stop"
+    },
+    {
+      "case": "stop resource_deadline drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "budget stop"
+    },
+    {
+      "case": "stop next_unstarted_attempt drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "budget stop"
+    },
+    {
+      "case": "historical issued budget",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "valid historical budget after window/current boot changed",
+      "expected": "pass",
+      "actual": "pass"
+    },
+    {
+      "case": "recorded boot mismatch",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "dispatch recorded identity differs"
+    },
+    {
+      "case": "recorded batch extension",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "batch differs from originally issued constraints"
+    },
+    {
+      "case": "recorded wall timestamp drift",
+      "expected": "reject",
+      "actual": "reject",
+      "error": "dispatch wall anchor differs"
+    }
+  ],
+  "scope": "synthetic fixtures only; no remote read or measurement acceptance"
+}
