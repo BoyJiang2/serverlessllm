@@ -10,6 +10,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LogNorm
 import numpy as np
@@ -19,7 +20,7 @@ from final_statistics import ROOT, RUN, CONDITIONS, checked_json, describe, load
 PROTOCOL = 'v13-canonical23-qualified-disk-jit-seed'
 OLD_RUN = 'sllm-glm51fp8-20261026T225201Z-02cd4cdc'
 DEST = ROOT/'results/figures'
-LABELS = ['Store pool hit', 'Store local cold', 'Safetensors cold', 'Safetensors hot']
+LABELS = ['Store 内存池命中', 'Store 本地盘冷读', 'Safetensors 冷读', 'Safetensors 热读']
 COLORS = ['#167d8d', '#64aeb9', '#d38140', '#765eac']
 METRICS = ['weight_ingestion_span_s', 'command_to_first_token_s',
            'command_to_correct_business_response_s', 'preparation_s']
@@ -121,13 +122,13 @@ def foot(fig, text):
 def dots(ax, groups, metric):
     for i, group in enumerate(groups):
         values = [r['metrics'][metric] for r in group]
-        mean = statistics.mean(values)
-        ax.bar(i, mean, color=COLORS[i], width=.65, alpha=.8, zorder=2)
+        median = statistics.median(values)
+        ax.bar(i, median, color=COLORS[i], width=.65, alpha=.8, zorder=2)
         ax.scatter(i+np.linspace(-.16, .16, len(values)), values,
                    s=27, color='#142d3c', edgecolors='white', linewidth=.5, zorder=3)
-        ax.annotate(f'{mean:.1f}', (i, max(values)), xytext=(0, 8), textcoords='offset points', ha='center', fontsize=10)
-    ax.set_xticks(range(4), ['Pool\nhit', 'Store\ncold', 'SF\ncold', 'SF\nhot'])
-    ax.set_ylabel('Seconds')
+        ax.annotate(f'{median:.1f}', (i, max(values)), xytext=(0, 8), textcoords='offset points', ha='center', fontsize=10)
+    ax.set_xticks(range(4), ['池命中', 'Store\n冷读', 'SF\n冷读', 'SF\n热读'])
+    ax.set_ylabel('秒')
     ax.set_ylim(0, ax.get_ylim()[1]*1.12)
     ax.grid(axis='y', alpha=.18, zorder=0)
 
@@ -135,7 +136,8 @@ def dots(ax, groups, metric):
 def main(output):
     DEST.mkdir(parents=True, exist_ok=True)
     output.mkdir(parents=True, exist_ok=True)
-    plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 11,
+    font_manager.fontManager.addfont('C:/Windows/Fonts/msyh.ttc')
+    plt.rcParams.update({'font.family': 'Microsoft YaHei', 'font.size': 11, 'axes.unicode_minus': False,
                          'axes.spines.top': False, 'axes.spines.right': False,
                          'svg.hashsalt': 'glm51fp8-c23-figures-v1', 'pdf.fonttype': 42})
     rows = load_rows()
@@ -201,107 +203,109 @@ def main(output):
     hot = hot_evidence(rows)
     write_csv('hot-seven-residency.csv', hot)
     figs = []
-    fig, axs = figure('01  |  Four native service paths',
-                     'PRIMARY: canonical23, all 26 successes. Pool / Store cold n=7; Safetensors cold / hot n=6.\n'
-                     'Official FP8 checkpoint, TP=8, same native service stack and persistent 716 GiB pool.', 3)
-    for ax, metric, title in zip(axs, METRICS[:3], ['Weight ingestion', 'Command to first token', 'Command to correct response']):
+    fig, axs = figure('01  |  四条原生服务路径：中位数与逐次观测',
+                     '主分析：canonical23 全部26次成功；池命中 / Store冷读各7次，Safetensors冷 / 热读各6次。\n'
+                     '相同官方FP8模型、TP=8及原生服务栈；四种条件均保留716 GiB公共池。', 3)
+    for ax, metric, title in zip(axs, METRICS[:3], ['权重载入', '启动指令到首token', '启动指令到正确业务响应']):
         dots(ax, groups, metric)
         ax.set_title(title, fontsize=12, pad=18)
-    foot(fig, 'Bars = arithmetic means; dots = every observed attempt. Descriptive all-observed sample, no confidence bars.\n'
-              'First token is a backend event, not a client wire byte. Historical revisions are excluded from this comparison.')
+    foot(fig, '柱及数字为中位数，散点保留全部观测；热读的单次低值可见，不用均值掩盖差异。历史修订不混算。\n'
+              '首token取后端事件，非客户端网络首字节；无置信区间柱，中位数也不是对任一次观测的替代。')
     figs.append(('01-latency-baseline', fig))
 
-    fig, (ax,) = figure('02  |  Preparing a condition is a real cost',
-                       'PRIMARY: all 26 C23 attempts. Disjoint per-attempt intervals; arithmetic means in seconds.')
+    fig, (ax,) = figure('02  |  条件准备同样需要付出成本',
+                       'canonical23 全部26项；本页使用算术均值，两个时间区间互不重叠，单位：秒。')
     prep, after = [], []
     for group in groups:
         raws = [read(ROOT/r['local_result_path']) for r in group]
         prep.append(statistics.mean((r['preparation_complete_ns']-r['preparation_begin_ns'])/1e9 for r in raws))
         after.append(statistics.mean((r['correct_business_response_ns']-r['preparation_complete_ns'])/1e9 for r in raws))
-    ax.barh(range(4), prep, color='#cbd8df', label='Condition preparation')
-    ax.barh(range(4), after, left=prep, color=COLORS, label='Preparation complete to first correct response')
+    ax.barh(range(4), prep, color='#cbd8df', label='条件准备')
+    ax.barh(range(4), after, left=prep, color='#167d8d', label='准备完成到首个正确业务响应')
     for i, (p, a) in enumerate(zip(prep, after)):
         if p < 30:
-            ax.text(p+4, i, f'prep {p:.1f}', ha='left', va='center', fontsize=8, color='white')
+            ax.text(p+4, i, f'准备 {p:.1f}', ha='left', va='center', fontsize=8, color='white')
         else:
             ax.text(p/2, i, f'{p:.1f}', ha='center', va='center', fontsize=10)
         ax.text(p+a/2, i, f'{a:.1f}', ha='center', va='center', color='white')
         ax.text(p+a+5, i, f'{p+a:.1f}', va='center')
-    ax.set_yticks(range(4), LABELS); ax.invert_yaxis(); ax.set_xlabel('Seconds'); ax.set_xlim(0, max(np.array(prep)+after)*1.12)
+    ax.set_yticks(range(4), LABELS); ax.invert_yaxis(); ax.set_xlabel('秒'); ax.set_xlim(0, max(np.array(prep)+after)*1.12)
     ax.legend(loc='upper left', bbox_to_anchor=(0, 1.15), ncol=2, frameon=False, fontsize=8)
-    foot(fig, 'Public initialization: 238.77 s once for this batch, kept separate from per-attempt intervals.\n'
-              'These bars are not the entire deployment cost: qualification, approval idle, later requests, deletion and release remain separate.')
+    foot(fig, '本批公共初始化238.77秒，单独记账，不分摊后隐藏；颜色只表示阶段，四行使用相同的两种颜色。\n'
+              '以上不是完整部署成本；资格验证、审批闲置、后续请求、删除和释放仍需另计。')
     figs.append(('02-preparation-cost', fig))
 
-    fig, (ax,) = figure('03  |  Where startup time is observed',
-                       'C23 means, all 26 attempts. Each cell is its own measured span; overlapping spans MUST NOT be summed.')
+    fig, (ax,) = figure('03  |  启动阶段：权重载入占据主要差异',
+                       'canonical23 全部26项的算术均值；每格是独立事件区间，存在嵌套，不得相加。')
     phase_keys = ['phase_device_setup_including_communication_span_s', 'phase_communication_groups_span_s',
                   'weight_ingestion_span_s', 'phase_quantization_postprocess_span_s', 'phase_kv_cache_allocation_span_s',
                   'phase_compile_graph_and_warmup_span_s', 'backend_construct_s', 'command_to_route_publication_s']
     matrix = np.array([[statistics.mean(r['metrics'][k] for r in g) for k in phase_keys] for g in groups])
     image = ax.imshow(matrix, cmap='YlGnBu', norm=LogNorm(vmin=.05, vmax=500), aspect='auto')
     ax.set_yticks(range(4), LABELS)
-    ax.set_xticks(range(8), ['Device incl.\ncommunication', 'Communication\nonly', 'Weight\ningestion', 'FP8\npostprocess', 'KV\nallocation', 'Graph /\nwarmup', 'Backend\nconstruction', 'Command to\nroute publish'], fontsize=8)
+    ax.set_xticks(range(8), ['设备初始化\n含通信', '通信组\n初始化', '权重\n载入', 'FP8\n后处理', 'KV池\n分配', '图编译 /\n预热', '后端\n构建', '指令到\n路由发布'], fontsize=9)
     for i in range(4):
         for j in range(8):
             ax.text(j, i, f'{matrix[i,j]:.2f}', ha='center', va='center', color='white' if matrix[i,j]>20 else '#183444', fontsize=10)
-    fig.colorbar(image, ax=ax, pad=.02, label='Seconds (log color scale)', shrink=.9)
-    foot(fig, 'Device span includes communication; backend construction contains several displayed subphases.\n'
-              'Route publication is relative to command start. This is a phase map, not an additive breakdown.')
+    fig.colorbar(image, ax=ax, pad=.02, label='秒（对数色阶）', shrink=.9)
+    foot(fig, '设备初始化包含通信组；后端构建包含多项子阶段；路由发布相对于启动指令。此图不是可相加的分解。\n'
+              'Store冷读的FP8后处理反而更慢：7.13秒 vs 0.58秒，不能用“省掉后处理”解释其优势。')
     figs.append(('03-startup-phases', fig))
 
-    fig, axs = figure('04  |  Deleting an instance leaves a public pool',
-                     'C23, after each instance deletion: 60-second observation; whole-deployment exit is shown separately.', 3)
+    fig, axs = figure('04  |  删除实例之后：公共池仍然驻留',
+                     'canonical23 每次删除后观察60秒；worker匿名内存与整批退出后的可回收文件缓存是不同口径。', 3)
     trial_groups = [[t for t in costs['trials'] if t['condition'] == c] for c in CONDITIONS]
     anon = [[t['idle_worker_anon_bytes']['mean']/2**30 for t in g] for g in trial_groups]
     cpu = [[t['idle_worker_average_cpu_cores'] for t in g] for g in trial_groups]
-    for ax, values, title, unit in [(axs[0], anon, 'Worker anonymous memory', 'GiB'),
-                                   (axs[1], cpu, 'Worker idle CPU', 'Average CPU cores')]:
-        for i, vals in enumerate(values):
-            ax.bar(i, statistics.mean(vals), color=COLORS[i], alpha=.8)
-            ax.scatter(i+np.linspace(-.15, .15, len(vals)), vals, color='#153345', s=16)
-        ax.set_xticks(range(4), ['Pool', 'Store', 'SF cold', 'SF hot'], rotation=20)
-        ax.set_title(title, fontsize=12); ax.set_ylabel(unit); ax.grid(axis='y', alpha=.15)
-    axs[0].axhline(716, color='#7b8790', ls='--', lw=1)
+    all_anon = [x for g in anon for x in g]
+    axs[0].axis('off')
+    axs[0].text(.5, .88, 'worker 匿名内存', ha='center', transform=axs[0].transAxes, fontsize=12)
+    axs[0].text(.5, .61, f'≈{statistics.mean(all_anon):.0f} GiB', ha='center', transform=axs[0].transAxes, fontsize=28, color='#167d8d', weight='bold')
+    axs[0].text(.5, .36, f'四条件均保留公共池\n逐次60秒均值范围\n{min(all_anon):.2f}–{max(all_anon):.2f} GiB\n配置池容量：716 GiB', ha='center', transform=axs[0].transAxes, fontsize=11, linespacing=1.8)
+    for i, vals in enumerate(cpu):
+        axs[1].bar(i, statistics.mean(vals), color=COLORS[i], alpha=.8)
+        axs[1].scatter(i+np.linspace(-.15, .15, len(vals)), vals, color='#153345', s=16)
+    axs[1].set_xticks(range(4), ['池命中', 'Store', 'SF冷', 'SF热'])
+    axs[1].set_title('worker 闲置CPU', fontsize=12); axs[1].set_ylabel('平均占用核数'); axs[1].grid(axis='y', alpha=.15)
     axs[2].bar([0, 1], [1769/1024, 0], color=['#167d8d', '#cbd8df'])
-    axs[2].set_xticks([0, 1], ['Instance\ndeleted', 'Entire batch\nexited'])
-    axs[2].set_title('GPU memory per card', fontsize=12); axs[2].set_ylabel('GiB, all 8 cards identical')
-    foot(fig, f'Worker cgroup excludes head and host. Sampled deployment cgroup peak: {costs["sampled_cgroup_peak_bytes"]/2**30:.1f} GiB (not a kernel peak).\n'
-              f'Whole exit: owned tasks / anonymous / shmem = 0; {costs["final_release"]["file_bytes"]/2**30:.1f} GiB reclaimable file cache retained. Disk assets retained.')
+    axs[2].set_xticks([0, 1], ['删除\n单个实例', '整个批次\n退出'])
+    axs[2].set_title('每卡GPU显存', fontsize=12); axs[2].set_ylabel('GiB，8张卡数值相同')
+    foot(fig, f'worker口径不含head与宿主；完整部署cgroup采样峰值为{costs["sampled_cgroup_peak_bytes"]/2**30:.1f} GiB，不是内核峰值。\n'
+              f'整批退出：自有任务 / 匿名 / shmem均为0；仍保留{costs["final_release"]["file_bytes"]/2**30:.1f} GiB可回收文件缓存及磁盘资产。')
     figs.append(('04-idle-resources', fig))
 
-    fig, (ax,) = figure('05  |  All 40 original IDs remain visible',
-                       '35 raw successes / 5 failures / 0 unstarted. Mixed historical revisions are not current-code reliability.')
+    fig, (ax,) = figure('05  |  原始成功35次，其中当前代码26次',
+                       '当前canonical23：26成功 / 0失败；此前修订合计：9成功 / 5失败。原40个ID均已终态，无未开始项。')
     for r in rows:
         i = CONDITIONS.index(r['condition'])
         ax.scatter(r['order'], i, color=COLORS[i] if r['status']=='success' else '#be3e42',
                    marker='o' if r['status']=='success' else 'X', s=95, zorder=3)
     for boundary in [9.5, 10.5, 14.5]:
         ax.axvline(boundary, color='#91a1a8', ls='--', lw=1)
-    ax.set_yticks(range(4), LABELS); ax.invert_yaxis(); ax.set_xticks(range(1, 41, 2)); ax.set_xlabel('Original preregistered execution order')
+    ax.set_yticks(range(4), LABELS); ax.invert_yaxis(); ax.set_xticks(range(1, 41, 2)); ax.set_xlabel('原始预登记执行顺序')
     ax.set_xlim(.3, 40.7); ax.grid(axis='x', alpha=.12)
-    foot(fig, 'Order 1-9: original revisions (including unknown raw metadata); 10: C19 failure; 11-14: C21; 15-40: C23.\n'
-              'Red X = failure, retained in the denominator. No failed ID retried, replaced, or silently reclassified.')
+    foot(fig, '顺序1–9：初始修订（含原始metadata未知）；10：C19失败；11–14：C21；15–40：C23。\n'
+              '红叉为失败，保留在分母；未重试、替换或改判。混合历史完成率不是当前代码的可靠性估计。')
     figs.append(('05-all40-outcomes', fig))
 
-    fig, axs = figure('06  |  Hot-read timing split survives residency checks',
-                     'Seven successful hot IDs are shown individually: C21 #04 is historical; C23 #05-10 belong to the primary cohort.', 2)
+    fig, axs = figure('06  |  热读耗时分组与完整驻留端点',
+                     '七次成功热读逐项展示：04属于历史C21，05–10属于当前C23；不混合两修订建立双峰分布。', 2)
     x = np.arange(7)
-    axs[0].bar(x, [r['weight_s'] for r in hot], color=['#a6b3bc']+[COLORS[3]]*6, label='Weight ingestion')
-    axs[0].plot(x, [r['business_s'] for r in hot], 'o-', color='#153345', label='Command to correct response')
-    axs[0].set_ylabel('Seconds'); axs[0].legend(fontsize=8, frameon=False, loc='upper center', bbox_to_anchor=(.5, 1.15))
-    for field, marker, label in [('pre_resident_fraction', 'o', 'Before startup'), ('post_resident_fraction', 'x', 'After deletion')]:
+    axs[0].bar(x, [r['weight_s'] for r in hot], color=['#a6b3bc']+[COLORS[3]]*6, label='权重载入')
+    axs[0].plot(x, [r['business_s'] for r in hot], 'o-', color='#153345', label='启动到正确业务响应')
+    axs[0].set_ylabel('秒'); axs[0].legend(fontsize=8, frameon=False, loc='upper center', bbox_to_anchor=(.5, 1.15))
+    for field, marker, label in [('pre_resident_fraction', 'o', '启动前'), ('post_resident_fraction', 'x', '删除后')]:
         axs[1].plot(x, [100*r[field] for r in hot], marker=marker, ls='--', label=label)
-    axs[1].set_ylim(95, 101); axs[1].set_ylabel('Manifest page residency (%)'); axs[1].legend(fontsize=9, frameon=False, loc='lower right')
+    axs[1].set_ylim(95, 101); axs[1].set_ylabel('冻结清单页驻留率（%）'); axs[1].legend(fontsize=9, frameon=False, loc='lower right')
     for ax in axs:
         ax.set_xticks(x, ['04\nC21']+[f'{i:02}\nC23' for i in range(5, 11)])
         ax.grid(axis='y', alpha=.15)
-    foot(fig, 'Each scan covers 148 frozen input files; every file and every listed page is 100% resident at both endpoints.\n'
-              'No endpoint partial-residency contamination found. Endpoints do not prove continuous residency or two causal cache states.')
+    foot(fig, '每份扫描覆盖148个冻结输入文件；每文件及所有列出页前后均100%驻留，未发现端点部分驻留污染。\n'
+              'C23仅一次低值、五次高值；端点不证明连续驻留，亦不足以证明总体双峰或两种因果缓存状态。')
     figs.append(('06-hot-residency', fig))
 
-    fig, (ax,) = figure('07  |  Deployment wall time is larger than loading',
-                       'C23 host preparation to final release: 220.90 minutes. Overlapping rows are not additive or continuous GPU occupancy.')
+    fig, (ax,) = figure('07  |  完整部署成本不止权重加载',
+                       'C23从宿主准备到最终释放共220.90分钟；各行存在重叠，不得相加，也不代表GPU始终占用。')
     rawcurrent = [read(ROOT/r['local_result_path']) for r in current]
     host = exact(RUN, '/host-preparation.json')
     # The full host-to-release span and gaps are from the independently recomputed cost ledger.
@@ -314,20 +318,52 @@ def main(output):
     last = max(r['complete_ns'] for r in rawcurrent)
     # Align trial times to actual host monotonic origin, not sums of overlapping spans.
     host_start = host['begin_ns']
-    spans = [('Entire observed deployment', 0, total, '#cbd8df'),
-             ('Host preparation', 0, pre, '#657f8c'),
-             ('Qualification / review / dispatch gap', pre, gap, '#e4b77d'),
-             ('Common initialization', pre+gap, init, '#167d8d'),
-             ('26 complete attempt cycles', (first-host_start)/1e9, (last-first)/1e9, '#765eac'),
-             ('Final release observation', total-intervals['final_release_observation_s'], intervals['final_release_observation_s'], '#64aeb9')]
+    spans = [('完整观察区间', 0, total, '#cbd8df'),
+             ('宿主准备', 0, pre, '#657f8c'),
+             ('资格验证 / 审批 / 派发间隔', pre, gap, '#e4b77d'),
+             ('公共初始化', pre+gap, init, '#167d8d'),
+             ('26次完整尝试周期', (first-host_start)/1e9, (last-first)/1e9, '#765eac'),
+             ('最终释放观察', total-intervals['final_release_observation_s'], intervals['final_release_observation_s'], '#64aeb9')]
     for i, (label, start, duration, color) in enumerate(spans):
         ax.barh(i, duration/60, left=start/60, color=color, height=.62)
-        ax.text((start+duration)/60+1, i, f'{duration/60:.2f} min', va='center', fontsize=9)
-    ax.set_yticks(range(len(spans)), [s[0] for s in spans], fontsize=9); ax.invert_yaxis(); ax.set_xlabel('Minutes from host preparation begin'); ax.set_xlim(0, total/60+31)
+        ax.text((start+duration)/60+1, i, f'{duration/60:.2f} 分钟', va='center', fontsize=9)
+    ax.set_yticks(range(len(spans)), [s[0] for s in spans], fontsize=9); ax.invert_yaxis(); ax.set_xlabel('距宿主准备开始的分钟数'); ax.set_xlim(0, total/60+31)
     fig.subplots_adjust(left=.28)
-    foot(fig, 'Source / compilation seed copy: 18.66 MB, 583 files, 0.169 s within host preparation. Its original creation cost is historical.\n'
-              'All four conditions retained the common pool. Resource waiting, public initialization and release are not removed from costs.')
+    foot(fig, '源码 / 编译种子复制：18.66 MB、583文件、0.169秒，属于宿主准备；最初创建成本记入历史账。\n'
+              '四条件均保留公共池，资源等待、公共初始化及释放没有从成本中消失。')
     figs.append(('07-deployment-timeline', fig))
+
+    cold_inputs = []
+    for condition, group in ((CONDITIONS[1], groups[1]), (CONDITIONS[2], groups[2])):
+        for row in group:
+            d = exact(RUN, f"cache_{row['attempt_id']}/summary.json")
+            files = d['files']
+            assert all(x['resident_pages'] == 0 for x in files)
+            cold_inputs.append(dict(attempt_id=row['attempt_id'], condition=condition,
+                                    input_files=len(files), input_bytes=sum(x['bytes'] for x in files),
+                                    weight_ingestion_s=row['metrics']['weight_ingestion_span_s'],
+                                    postprocess_s=row['metrics']['phase_quantization_postprocess_span_s'],
+                                    business_s=row['metrics']['command_to_correct_business_response_s'],
+                                    physical_disk_read_bytes='NOT_MEASURED'))
+    write_csv('cold-loading-evidence.csv', cold_inputs)
+    by_cold = [[r for r in cold_inputs if r['condition'] == c] for c in (CONDITIONS[1], CONDITIONS[2])]
+    assert all(len({r['input_bytes'] for r in g}) == 1 for g in by_cold)
+    fig, axs = figure('08  |  Store冷读快在哪里：已有证据与缺口',
+                      '同一修订、TP=8；冷读准入扫描输入均零驻留。资产大小、时间和物理磁盘读量是不同概念。', 3)
+    columns = [('冻结输入总大小', 'input_bytes', 1e9, 'GB（十进制）'),
+               ('权重载入时间', 'weight_ingestion_s', 1, '秒，算术均值'),
+               ('FP8后处理时间', 'postprocess_s', 1, '秒，算术均值')]
+    for ax, (title, field, divisor, unit) in zip(axs, columns):
+        vals = [statistics.mean(r[field] for r in g)/divisor for g in by_cold]
+        ax.bar([0, 1], vals, color=[COLORS[1], COLORS[2]], width=.6)
+        ax.set_xticks([0, 1], ['Store冷读', 'SF冷读']); ax.set_title(title, fontsize=12); ax.set_ylabel(unit)
+        ax.set_ylim(0, max(vals)*1.22)
+        for i, value in enumerate(vals):
+            ax.text(i, value, f'{value:.2f}', ha='center', va='bottom')
+        ax.grid(axis='y', alpha=.15)
+    foot(fig, 'Store冻结输入略大，且FP8后处理更慢；主要时间差体现在权重载入事件，不能据此归因具体机制。\n'
+              '未采集可归属的物理读取字节或吞吐；文件大小不是实际I/O量，预分片的贡献仍需独立验证。')
+    figs.append(('08-cold-mechanism-evidence', fig))
 
     with PdfPages(output/'glm51-fp8-results.pdf', metadata={'Title': 'GLM-5.1 FP8 - C23 stratified results',
                                                         'Author': 'ServerlessLLM extension experiment',
@@ -369,11 +405,20 @@ def main(output):
                '差异主要落在权重ingestion；设备/通信和graph预热未出现对应约75秒差异。前后驻留均100%，没有准入时部分驻留污染的证据。准备区间及准备后至删除/观察后区间，global pgscan/pgsteal kswapd/direct增量均0。',
                '全局major-fault、file-refault、NUMA-migration有增量，但不能归属本模型/worker；reader CPU亲和性不证明文件页物理NUMA位置。完整mincore是约6秒的逐文件扫描窗口，非全模型同一瞬间快照。端点不能证明加载全程连续驻留，也不能证明两种真实缓存状态。根因未确定，保留hot08，不剔除、不改判、不补跑。',
                '逐次时刻、repair、计数器及阶段数据见[hot-seven-residency.csv](hot-seven-residency.csv)。进一步定因需要独立非计时控制中的按文件/worker实际磁盘读量、NUMA物理页和连续驻留归属证据；本次没有新增计算或改变正式记录。', '',
-               '## 图集', '']
-    for name, _ in figs:
-        report += [f'![{name}]({name}.svg)', '']
+               '## 分图解读', '']
+    explanations = [
+        ('01-latency-baseline', '四条路径的中位数', '柱表示中位数，散点是全部26项。热读存在一个明显低值，故不以均值柱掩盖样本差异。所有样本来自相同C23修订；每个柱的样本量分别为7、7、6、6。'),
+        ('02-preparation-cost', '准备和启动成本', '两种固定颜色分别代表条件准备以及准备完成到首个正确业务响应，区间互不重叠；本图使用均值。公共初始化238.77秒另计，审批、后续请求、删除及释放也不包含在柱内。'),
+        ('03-startup-phases', '启动阶段', '权重载入、设备、通信、后处理和预热的事件区间存在嵌套，不得将热图各格相加。Store冷读的FP8后处理均值为7.13秒，Safetensors冷读为0.58秒，因此差异不能解释为省去后处理。'),
+        ('04-idle-resources', '实例删除后的资源', '四种条件的worker匿名内存逐次60秒均值约719 GiB（范围718.85–719.48 GiB）；716 GiB是公共池配置值，不是worker总匿名内存。删除实例后每卡保留1769 MiB辅助显存。整个部署退出后自有任务、匿名内存和共享内存为零，但约705 GiB可回收文件缓存仍保留。'),
+        ('05-all40-outcomes', '全部预登记尝试', '40项中35项原始成功、5项失败，当前C23贡献26项成功；其余历史修订有9成功和5失败。混合修订的35/40不能作为当前代码可靠性。失败没有重试或改判。'),
+        ('06-hot-residency', '热读分组与驻留', '七次前后端点均完整驻留，C23仅一次低值和五次高值，历史C21低值单列。逐文件扫描不是同一瞬间或连续跟踪，无法据此确认总体双峰及其物理原因。'),
+        ('07-deployment-timeline', '整体部署时间', '从宿主准备到最终释放为220.90分钟，其中包含资格验证与审批等待；阶段互相重叠，不能逐行相加，也不表示GPU连续占用。公共初始化和闲置成本单独保留。'),
+        ('08-cold-mechanism-evidence', '冷读差异的证据边界', '冻结输入清单为Store 762.117 GB、Safetensors 756.209 GB，Store并不更小。权重载入均值121.455秒对391.671秒；FP8后处理均值7.13秒对0.58秒。实际服务响应均值180.875秒对448.496秒，约2.48倍。时间差主要落在权重载入事件，但各事件可能嵌套，不能相减拼成因果分解。Store已有按TP rank保存的布局；它可能改变读取和张量处理路径，其独立贡献未测量。现有记录缺少可归属的物理读取字节、设备吞吐及CPU/H2D分解，文件大小除以耗时不能称为磁盘吞吐，因此无法证明具体加速机制。后续需独立控制并记录各进程/cgroup的磁盘读量、CPU、H2D及阶段时间。')]
+    for name, title, explanation in explanations:
+        report += [f'### {title}', '', explanation, '', f'![{title}]({name}.svg)', '']
     report += ['## 复现与边界', '',
-               '运行：`python -X utf8 tools/plot_results.py --output ../outputs/glm51-fp8-figures-20261027`。需Python、matplotlib、numpy；PDF由同一图形矢量导出，不依赖额外排版包。',
+               '运行：`python -X utf8 tools/plot_results.py --output ../outputs/glm51-fp8-figures-v2`。需Python、matplotlib、numpy和微软雅黑字体；PDF由同一图形矢量导出。',
                'SVG/CSV/源码/输入及输出hash纳入Git；PDF/PNG在本机outputs目录，避免违反仓库二进制与单文件大小限制。manifest记录两类输出hash。',
                '阶段区间有嵌套，不能相加；worker闲置统计不等于整个部署。删除实例保留公共池及每卡1769 MiB辅助显存；整个批次退出后自有任务/匿名/shmem为0，可回收文件缓存约705 GiB和磁盘资产保留。',
                '本材料是ServerlessLLM在GLM-5.1官方FP8上的扩展实验，不声称复现论文原始模型或全部评测。历史exit137仍原因未知。']
