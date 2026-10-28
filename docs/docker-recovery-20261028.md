@@ -1,5 +1,11 @@
 # Docker环境恢复与P1进展
 
+## 后续策略：启动时从备份恢复，不留常驻锚容器
+
+用户明确选择此策略。新启动前置候选为`tools/restore_original_image.py`，已接入CPU调试入口，未远端部署或重新导入；模型入口尚待接线。参数错误先拒绝，镜像确认缺失才校验固定备份SHA并load，成功后立即create/start；初始化及失败耗时单独记账。5项恢复测试与9项CPU生命周期测试通过，限定静态只读复审PASS。不修改全局清理配置，不再创建anchor。
+
+时间表补充核验：Docker事件已确认19:49:59 container prune、19:50:01 image prune，以及20:20:01的container/image prune，见`prune-events-1950-2020.txt`。约30分钟间隔支持周期性清理的推测，但事件未识别调用者、具体命令或调度来源，不能确认定时任务归属。DaoCloud原拉取日志中3.44GB层只有Pulling记录，不能称全部层下载完成；context canceled来自本实验预设截止结束。
+
 ## 19:53 检查：GPU空闲，镜像及引用容器被删除
 
 八卡均0MiB、无GPU计算进程，主机MemAvailable约1983906639872字节。但原镜像和created引用容器均不再存在；7.602GB远端备份仍在。没有启动模型或重复导入。

@@ -112,6 +112,17 @@ def up(spec, receipt, seconds):
         raise
 
 
+def up_with_image(spec, receipt, seconds):
+    bounded_spec(spec,seconds)  # Reject invalid work before any image I/O.
+    if receipt.exists():
+        raise FileExistsError('debug identity already registered')
+    from restore_original_image import restore_with_receipt
+    initialization=restore_with_receipt(receipt.with_name(spec['role']+'-image-init.json'))
+    result=up(spec,receipt,seconds)
+    result['image_initialization']=initialization
+    return result
+
+
 def down(identity, receipt):
     identity = recover_identity(identity)
     inspect_owned(identity)
@@ -149,7 +160,8 @@ if __name__ == '__main__':
     args=parser.parse_args()
     spec=json.loads(args.spec.read_text())
     receipt=receipt_path(spec,create=args.action=='up')
-    if args.action=='up': result=up(spec,receipt,args.seconds)
+    if args.action=='up':
+        result=up_with_image(spec,receipt,args.seconds)
     else:
         identity=json.loads(receipt.read_text())
         if identity['run_id']!=spec['run_id'] or identity['role']!=spec['role']:

@@ -8,7 +8,15 @@ python3 docker_debug.py status probe.json
 python3 docker_debug.py down probe.json
 ```
 
-需在qjhs003授权UID2147的Linux环境运行，`docker_plan.py`与`docker_debug.py`在同一目录。状态文件位于规范根`debug/<run_id>/<role>-identity.json`。`docs/docker-debug-probe.example.json`展示JSON格式，每次实际调用需使用新的debug run_id；已存在身份文件不复用。
+需在qjhs003授权UID2147的Linux环境运行，`docker_plan.py`、`docker_debug.py`与`restore_original_image.py`在同一目录。状态文件位于规范根`debug/<run_id>/<role>-identity.json`。`docs/docker-debug-probe.example.json`展示JSON格式，每次实际调用需使用新的debug run_id；已存在身份文件不复用。
+
+## 用户选择的启动时恢复策略（新候选）
+
+不再创建常驻锚容器。`up`先验证参数及身份，再检查原镜像ID；确认镜像缺失时，从固定远端备份流式校验SHA256，执行最多600秒的Docker load并再次核验ID，随后立即进入create/start。已有精确镜像直接核验复用，未知daemon错误不当作镜像缺失。没有自动拉取网络镜像或循环重试。
+
+同run的`<role>-image-init.json`单独记录初始化起止时刻、校验字节和导入情况；失败也保留起止与错误类型，不覆盖旧初始化。实际create/start使用`--pull=never`；若期间镜像再次消失，失败关闭，不偷偷切换镜像。这是CPU-only入口的新前置候选，还未部署到历史`docker-debug-0825203`目录，也未证明模型入口完成。旧CPU实测不追认为本候选实测。
+
+归档校验尚无独立墙钟上限；600秒仅限制load客户端，客户端超时不能证明daemon导入已结束。模型入口必须把这一初始化及失败成本纳入完整预算和独立守护。已观察到:20/:50的prune事件，不保证其他时间安全，不靠猜测清理时刻替代身份与准入验证。
 
 ## 本版边界
 
