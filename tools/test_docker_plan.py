@@ -1,6 +1,6 @@
 import copy
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from docker_plan import IMAGE, ROOT, compile_spec, preflight
 
 
@@ -48,6 +48,24 @@ class PlanTests(unittest.TestCase):
         with patch('docker_plan.os.getuid', return_value=2147, create=True), patch('docker_plan.subprocess.check_output', return_value=IMAGE) as docker:
             self.assertEqual(preflight(self.spec)['image_id'], IMAGE)
             self.assertEqual(docker.call_args.args[0][:3], ['docker', 'image', 'inspect'])
+
+    def test_preflight_rejects_symlink_before_stat(self):
+        path, resolved = Mock(), Mock()
+        path.resolve.return_value = resolved
+        with patch('docker_plan.os.getuid', return_value=2147, create=True), \
+             patch('docker_plan.subprocess.check_output', return_value=IMAGE), \
+             patch('docker_plan.Path', return_value=path):
+            with self.assertRaises(ValueError): preflight(self.spec)
+        path.stat.assert_not_called()
+
+    def test_preflight_rejects_missing_mount(self):
+        path = Mock()
+        path.resolve.side_effect = FileNotFoundError('missing source')
+        with patch('docker_plan.os.getuid', return_value=2147, create=True), \
+             patch('docker_plan.subprocess.check_output', return_value=IMAGE), \
+             patch('docker_plan.Path', return_value=path):
+            with self.assertRaises(FileNotFoundError): preflight(self.spec)
+        path.stat.assert_not_called()
 
 
 if __name__ == '__main__': unittest.main()
