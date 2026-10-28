@@ -51,3 +51,13 @@
 修正后的任务 `kimi-download-20261028T171334Z` 于2026-10-29 01:13:36+08:00开始，运行代码commit `6f28f68611e8824113ce7018e75d3fde79deb7fa`；远端实际编译与9项CPU测试通过，timeout PID3735195及boot/starttime已独立核验。硬截止07:13:36+08:00，最晚KILL07:14:06；无自动延期/重启。资产目录为`/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb`。
 
 首份进度仅证明进程已启动、正在请求首个小文件，尚无完成文件，不代表权重传输或完整性成功。最新原始状态以远端downloads目录registration、events、exit/failure/complete为准；本机证据快照明确带采集时间。
+
+### 服务器直下载传输修订
+
+上述HF任务在首个请求30秒后因URLError退出1：0文件、0权重、0partial；两个登记进程均已退出，失败计入资产获取记录，不覆盖或重新标成功。远端HF、hf-mirror具体配置文件IPv4 HEAD也失败。用户随后授权必要时本机透传，但要求优先服务器下载。
+
+服务器可直连官方ModelScope仓库。核对其API文件清单：64权重尺寸与官方HF LFS SHA全部一致；另外32小文件实际从冻结HF版本取回计算SHA，31项与ModelScope一致，仅`.gitattributes`不同。新增传输清单固定95项的各自ModelScope文件commit与HF内容SHA；不使用master动态下载，不获取ModelScope额外文件。`.gitattributes`仅1643B从冻结HF原件经SSH部署，校验SHA后写入。
+
+这保持同一个冻结HF checkpoint的全部96项字节身份，不是换模型或换权重修订。每项完整SHA才算成功。服务器已实际GET正确config（5416B，原SHA一致）、GET权重首1MiB范围并丢弃，以及HEAD完整首分片（200，995001888B，cdn-lfs-cn-1.modelscope.cn）；样本只验证传输入口，不计为完整分片验证。本机未建立大权重透传或保存权重文件。
+
+新任务沿用单流32MiB/s、低优先级、6小时硬预算、失败无自动重试；新run登记新代码，不续旧截止。旧空checkpoint树先核实仅为空目录、无文件/symlink，再rename入旧run保存；不删除资产。传输清单联合篡改官方与mirror SHA拒绝测试已加入，当前10项CPU测试通过。模型运行和Store门槛不变。

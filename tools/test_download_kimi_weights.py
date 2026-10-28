@@ -59,6 +59,20 @@ class DownloadTests(unittest.TestCase):
                 self.transfer(directory, b'fixture', 7, None)
             self.assertEqual(target.read_bytes(), b'preserve')
 
+    def test_mirror_manifest_matches_all_frozen_inputs(self):
+        root = Path(__file__).resolve().parent.parent
+        evidence = root / 'evidence' / 'followup-kimi-k26'
+        if not evidence.exists():
+            evidence = Path(__file__).resolve().parent
+        manifest = json.loads((evidence / 'official-metadata.json').read_text())
+        transport = json.loads((evidence / 'modelscope-transport-manifest.json').read_text())
+        self.assertEqual(len(subject.mirror_entries(manifest, transport)), 96)
+        # Corrupt both mirror declarations: the independent official weight digest must reject it.
+        item = next(x for x in transport['files'] if x['path'].endswith('.safetensors'))
+        item.update(sha256='0' * 64, modelscope_sha256='0' * 64, match=True)
+        with self.assertRaises(ValueError):
+            subject.mirror_entries(manifest, transport)
+
     def test_supervisor_records_deadline_and_timeout_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             run = Path(directory)

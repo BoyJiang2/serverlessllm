@@ -6,11 +6,33 @@ from pathlib import Path
 import shutil
 import time
 import urllib.request
+import urllib.parse
 
 ROOT = Path('/data/brick1/boyjiang/kimi-k2.6')
 REVISION = '7eb5002f6aadc958aed6a9177b7ed26bb94011bb'
 RATE = 32 * 1024**2
 RESERVE = (800 + 300) * 1024**3  # Future Store allowance + disk safety margin.
+
+
+def mirror_entries(manifest, transport):
+    if transport['hf_revision'] != REVISION or transport['model'] != manifest['model']:
+        raise ValueError('mirror source identity mismatch')
+    rows = {row['path']: row for row in transport['files']}
+    if len(rows) != len(transport['files']) or set(rows) != {r['path'] for r in manifest['all_files']}:
+        raise ValueError('mirror file set mismatch')
+    weights = {row['path']: row['lfs_sha256'] for row in manifest['weight_files']}
+    weights['config.json'] = manifest['config_sha256']
+    weights['model.safetensors.index.json'] = '00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3'
+    for row in manifest['all_files']:
+        item = rows[row['path']]
+        if item['bytes'] != row['bytes'] or len(item['sha256']) != 64:
+            raise ValueError('mirror size or digest missing')
+        if row['path'] in weights and item['sha256'] != weights[row['path']]:
+            raise ValueError('mirror differs from frozen official digest')
+        if row['path'] != '.gitattributes' and (
+                not item['match'] or item['modelscope_sha256'] != item['sha256']):
+            raise ValueError('mirror content mismatch')
+    return rows
 
 
 def fetch_file(url, target, size, expected_sha=None):
@@ -58,6 +80,7 @@ def download(run):
     if manifest['model'] != 'moonshotai/Kimi-K2.6' or manifest['revision'] != REVISION:
         raise ValueError('unfrozen model input')
     files = manifest['all_files']
+    transport = mirror_entries(manifest, json.loads((run / 'modelscope-transport-manifest.json').read_text()))
     paths = [Path(row['path']) for row in files]
     if len(set(paths)) != len(paths) or any(p.is_absolute() or '..' in p.parts for p in paths):
         raise ValueError('unsafe or duplicate manifest paths')
@@ -81,13 +104,20 @@ def download(run):
                 raise ValueError('disk reserve exhausted by concurrent usage')
             events.write(json.dumps({'event': 'begin', 'path': name, 'utc_epoch': time.time()}) + '\n')
             events.flush()
-            expected = weights.get(name)
-            if name == 'config.json':
-                expected = manifest['config_sha256']
-            if name == 'model.safetensors.index.json':
-                expected = '00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3'
-            result = fetch_file('https://huggingface.co/moonshotai/Kimi-K2.6/resolve/'
-                                + REVISION + '/' + name, target, row['bytes'], expected)
+            item = transport[name]
+            expected = item['sha256']
+            if name == '.gitattributes':
+                data = (run / 'hf-original-gitattributes').read_bytes()
+                if len(data) != row['bytes'] or hashlib.sha256(data).hexdigest() != expected:
+                    raise ValueError('original HF metadata digest mismatch')
+                with target.open('xb') as stream:
+                    stream.write(data)
+                result = dict(path=name, bytes=len(data), sha256=expected,
+                              expected_sha256=expected, source='frozen HF small asset')
+            else:
+                url = 'https://modelscope.cn/api/v1/models/moonshotai/Kimi-K2.6/repo?' + urllib.parse.urlencode(
+                    dict(Revision=item['modelscope_revision'], FilePath=name))
+                result = fetch_file(url, target, row['bytes'], expected)
             events.write(json.dumps({'event': 'complete', **result, 'relative_path': name}) + '\n')
             events.flush()
     (run / 'complete.json').write_text(json.dumps({'revision': REVISION, 'files': len(files),

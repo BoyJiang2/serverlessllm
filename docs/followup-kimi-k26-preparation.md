@@ -2,6 +2,8 @@
 
 更新：2026-10-29，Asia/Shanghai。状态：**元数据与预算初查完成，未通过运行准入**。
 
+本文保留首轮只读准备快照。后续下载授权、实际失败及服务器ModelScope逐字节等价传输修订见[kimi-k26-download-admission.md](kimi-k26-download-admission.md)；下文“未创建目录/未读取数据区”仅描述首轮准备时点，不是后续任务实时状态。
+
 本轮只做本机轻量分析和 qjhs003 只读核验；未创建远端目录、下载完整权重、转换 Store、读取权重数据区、建池或启动模型。GLM Docker 重构仍由 Claude 继续，GLM 的 runtime/active、金标、40 个正式 ID、35 成功/5 失败及结果均不修改。先完成 GLM 实际验证，再依次做 Kimi 原生 vLLM 参考、Store 正确性、ServerlessLLM 原生完整服务。此文是后续实验准备，不是新测量协议或执行批准。
 
 ## 1. 模型和输入冻结
