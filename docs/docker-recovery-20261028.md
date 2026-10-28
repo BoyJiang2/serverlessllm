@@ -1,5 +1,9 @@
 # Docker环境恢复与P1进展
 
+## 最新结果：传输超时，尚未恢复
+
+2026-10-28 16:58 +08:00：1ms源1800秒、DaoCloud源1200秒均达到预设截止，日志以`context canceled`结束。多数层已经下载/校验，但完整image ID仍不可inspect；CPU容器验证及镜像备份均未执行。失败日志摘要及SHA见`evidence/image-recovery-20261028/failure.json`。不延长旧截止或自动重复拉取，保留缓存层；恢复监控停用。需要新的可用大层传输方案后再继续。下文描述的是此前计划和已完成的元数据/源码整改，不代表环境恢复成功。
+
 ## 原镜像已找到可恢复来源
 
 官方vLLM说明公开使用`vllm/vllm-openai:glm51-cu130`：https://docs.vllm.ai/projects/recipes/en/stable/GLM/GLM5.html 。此前“可能仅为本地标签”的猜测撤回。
