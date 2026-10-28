@@ -1,11 +1,14 @@
 import hashlib
 import io
+import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import download_kimi_weights as subject
+import supervise_kimi_download as supervisor
 
 
 class DownloadTests(unittest.TestCase):
@@ -55,6 +58,81 @@ class DownloadTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 self.transfer(directory, b'fixture', 7, None)
             self.assertEqual(target.read_bytes(), b'preserve')
+
+    def test_supervisor_records_deadline_and_timeout_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run = Path(directory)
+            (run / 'download_kimi_weights.py').write_bytes(b'fixture')
+            (run / 'launch.json').write_text(json.dumps({
+                'source_sha256': hashlib.sha256(b'fixture').hexdigest()}))
+            original_read = Path.read_text
+            def read_identity(path):
+                if path.name == 'boot_id':
+                    return 'boot'
+                if path.name == 'stat':
+                    return '1 (test) ' + ' '.join(['0'] * 20)
+                return original_read(path)
+            with patch.object(supervisor, '__file__', str(run / 'supervise.py')), \
+                 patch.object(supervisor.subprocess, 'Popen') as spawn, \
+                 patch.object(supervisor.Path, 'read_text', autospec=True,
+                              side_effect=read_identity):
+                spawn.return_value.pid = os.getpid()
+                spawn.return_value.wait.return_value = 124
+                supervisor.main()
+            record = json.loads((run / 'registration.json').read_text())
+            self.assertEqual(record['deadline_epoch'] - record['start_epoch'], 21600)
+            self.assertIn('--kill-after=30', record['command'])
+            self.assertEqual(record['command'][4:10],
+                             ['/usr/bin/nice', '-n', '19', '/usr/bin/ionice', '-c', '3'])
+            self.assertEqual(json.loads((run / 'exit.json').read_text())['exit_code'], 124)
+
+    def test_supervisor_rejects_changed_source_before_spawn(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run = Path(directory)
+            (run / 'download_kimi_weights.py').write_bytes(b'changed')
+            (run / 'launch.json').write_text(json.dumps({'source_sha256': '0' * 64}))
+            with patch.object(supervisor, '__file__', str(run / 'supervise.py')), \
+                 patch.object(supervisor.subprocess, 'Popen') as spawn:
+                with self.assertRaises(AssertionError):
+                    supervisor.main()
+                spawn.assert_not_called()
+
+    def test_existing_registration_prevents_spawn(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run = Path(directory)
+            (run / 'download_kimi_weights.py').write_bytes(b'fixture')
+            (run / 'launch.json').write_text(json.dumps({
+                'source_sha256': hashlib.sha256(b'fixture').hexdigest()}))
+            (run / 'registration.json').write_text('{}')
+            with patch.object(supervisor, '__file__', str(run / 'supervise.py')), \
+                 patch.object(supervisor.subprocess, 'Popen') as spawn:
+                with self.assertRaises(FileExistsError):
+                    supervisor.main()
+                spawn.assert_not_called()
+
+    def test_identity_failure_reaps_own_group(self):
+        with tempfile.TemporaryDirectory() as directory:
+            run = Path(directory)
+            (run / 'download_kimi_weights.py').write_bytes(b'fixture')
+            (run / 'launch.json').write_text(json.dumps({
+                'source_sha256': hashlib.sha256(b'fixture').hexdigest()}))
+            original_read = Path.read_text
+            def fail_identity(path):
+                if path.name == 'stat':
+                    raise PermissionError('fixture')
+                return original_read(path)
+            with patch.object(supervisor, '__file__', str(run / 'supervise.py')), \
+                 patch.object(supervisor.subprocess, 'Popen') as spawn, \
+                 patch.object(supervisor.Path, 'read_text', autospec=True, side_effect=fail_identity), \
+                 patch.object(supervisor.os, 'killpg', create=True) as kill:
+                spawn.return_value.pid = 42
+                spawn.return_value.poll.return_value = None
+                with self.assertRaises(PermissionError):
+                    supervisor.main()
+                kill.assert_called_once_with(42, supervisor.signal.SIGTERM)
+                spawn.return_value.wait.assert_called_once_with(timeout=5)
+            self.assertEqual(json.loads((run / 'exit.json').read_text())['status'],
+                             'identity publication failed')
 
 
 if __name__ == '__main__':

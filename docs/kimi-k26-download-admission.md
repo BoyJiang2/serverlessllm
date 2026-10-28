@@ -40,6 +40,8 @@
 
 ## 本地验证
 
-`python -X utf8 -m unittest discover -s tools -p test_download_kimi_weights.py -v`：5项通过，覆盖SHA成功发布、SHA错误保留partial、短响应、禁止覆盖成品、禁止覆盖partial。测试为下载I/O单元测试，不是模型权重正确性或服务通过证明。
+`python -X utf8 -m unittest discover -s tools -p test_download_kimi_weights.py -v`：9项通过，覆盖SHA成功发布、SHA错误保留partial、短响应、禁止覆盖成品、禁止覆盖partial、supervisor的截止/退出码记录及源SHA拒绝、重复登记拒绝、身份发布失败回收自身进程组。测试为下载I/O单元测试，不是模型权重正确性或服务通过证明。
+
+首次启动包装器因内联字符串转义错误在Python解析阶段失败，未创建下载子进程、registration或checkpoint，原run与日志保留。这不是传输失败后自动重试。修正为受版本控制的独立`tools/supervise_kimi_download.py`，部署前先实际py_compile与CPU测试，通过后才创建下载进程；失败记录单独入账。
 
 新源码、审阅与部署身份入证据；GLM runtime/active、历史40ID和金标不修改。下载完成后仍需独立复核远端64文件的收据和哈希覆盖，才能进入下一阶段。
