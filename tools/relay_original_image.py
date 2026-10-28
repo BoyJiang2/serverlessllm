@@ -14,7 +14,10 @@ REMOTE = r'''
 import datetime,hashlib,json,pathlib,subprocess,sys
 p=pathlib.Path(sys.argv[1]); expected=sys.argv[2]; image=sys.argv[3]; run=p.name
 archive=p/'original-image.docker.tar.partial'
-with archive.open('rb') as f: observed=hashlib.file_digest(f,'sha256').hexdigest()
+h=hashlib.sha256()
+with archive.open('rb') as f:
+ for block in iter(lambda:f.read(8*1024*1024),b''):h.update(block)
+observed=h.hexdigest()
 if observed!=expected:raise RuntimeError('relay archive hash mismatch')
 final=p/'original-image.docker.tar'
 if final.exists():raise RuntimeError('backup target exists')

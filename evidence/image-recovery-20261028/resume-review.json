@@ -1,0 +1,19 @@
+{
+  "verdict": "PASS",
+  "reviewer": "authorized local independent readonly agent",
+  "relay_sha256": "997392fc3618ec06f3c45177354fa8d0a935ceefdfab518a274e756a65467ddc",
+  "resume_sha256": "a728009f2b81b0d726f2e9532ac8bda74cb9a7560f2a30107d124ea128c5311b",
+  "scope": "Registered single authorized resume and CPU image validation only; no GPU admission",
+  "blockers": [],
+  "verified": [
+    "Host Python3.10-compatible streaming archive SHA256 preserves complete hash gate.",
+    "SFTP reput only after remote partial hash equals same-length local prefix.",
+    "Full remote archive SHA, exact image ID, CPU version probe and cleanup still required.",
+    "Prior failure evidence preserved; no automatic retry or local deletion."
+  ],
+  "limitations": [
+    "Prefix-stage exceptions precede try and may lack resume-failure.json; monitor actual process exit as well. Current prefix already passed.",
+    "SSH timeout does not prove remote work stopped; require actual startup/release evidence.",
+    "Review did not independently access remote host or inspect transferred bytes."
+  ]
+}
