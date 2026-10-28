@@ -21,14 +21,20 @@ sys.path.insert(0, str(TREE/'tools'))
 import debug_plan as plan
 
 HOST = pathlib.Path(str(plan.HOST))
-ACTIVE = TREE/'runtime/active'
+SOURCE_TREE = re.compile(r'source-debug-([0-9a-f]{12})-([0-9a-f]{12})')
+SOURCE_RECEIPT = 'deploy-tree.json'
+GUARD_SCRIPT = pathlib.Path('/usr/local/lib/sllm-debug-guard/debug_guard.py')
+GUARD_TIMER = 'sllm-debug-guard.timer'
+GUARD_SERVICE = 'sllm-debug-guard.service'
+GUARD_HEARTBEAT = pathlib.Path('/var/lib/sllm-debug-guard/heartbeat.json')
+GUARD_FRESH_SECONDS = 180  # the timer sweeps every 60 s
 UID = 2147
 BOOKING_MARGIN_SECONDS = 600
 BORROW_MAX_SECONDS = 2400
 HEAD_READY_SECONDS = 120
 HEAD_READY_MARK = 'Ray runtime started.'
 STOP_SECONDS = dict(head=70, worker=320)  # TERM reaches the entry through timeout; worker needs the Store grace
-TOOLS = (HERE/'debug_plan.py', HERE/'debug_stack.py', HERE/'debug_service.py',
+TOOLS = (HERE/'debug_plan.py', HERE/'debug_stack.py', HERE/'debug_service.py', HERE/'debug_guard.py',
          TREE/'controls/service_smoke_v1/docker_args.py', TREE/'tools/restore_original_image.py', TREE/'tools/docker_plan.py')
 
 
@@ -87,18 +93,104 @@ def gpu_authority(borrow, booking_id, booking_end, seconds, now=None):
                 scope='GPUs idle and no formal or debug containers when up ran; not a reservation')
 
 
-def deploy_source(run_root):
-    """Frozen runtime/active files plus the debug entry; never the formal run identity."""
+def guard_problems(timer_state, exec_start, script_stat, parent_stat, script_sha256, expected_sha256, heartbeat_stat, heartbeat_age):
+    problems = []
+    if timer_state != 'active':
+        problems.append('timer %s is %s' % (GUARD_TIMER, timer_state or 'absent'))
+    if str(GUARD_SCRIPT) not in exec_start:
+        problems.append('%s does not run %s' % (GUARD_SERVICE, GUARD_SCRIPT))
+    for name, stat in (('script', script_stat), ('directory', parent_stat), ('heartbeat', heartbeat_stat)):
+        if stat is None or stat.st_uid != 0 or stat.st_mode & 0o022:
+            problems.append('guard %s must exist, be root-owned and not group/world writable' % name)
+    if script_sha256 != expected_sha256:
+        problems.append('installed guard differs from this tool version')
+    if heartbeat_age is None or not 0 <= heartbeat_age <= GUARD_FRESH_SECONDS:
+        problems.append('guard has not completed a sweep in the last %d s (%s)' % (GUARD_FRESH_SECONDS, GUARD_HEARTBEAT))
+    return problems
+
+
+def guard_state():
+    """The independent host guard: a root timer that removes expired debug containers even if timeout, the entry
+    or the SSH session fail. Model runs refuse to start without it; head-only runs only record its state."""
+    def stat(path):
+        try:
+            return None if path.is_symlink() else path.stat()
+        except OSError:
+            return None
+    show = lambda *args: subprocess.run(['systemctl', *args], capture_output=True, text=True, timeout=15).stdout.strip()
+    script, heartbeat = stat(GUARD_SCRIPT), stat(GUARD_HEARTBEAT)
+    try:
+        age = time.time()-json.loads(GUARD_HEARTBEAT.read_text())['unix'] if heartbeat else None
+    except (OSError, ValueError, KeyError, TypeError):
+        age = None
+    problems = guard_problems(show('is-active', GUARD_TIMER), show('show', GUARD_SERVICE, '-p', 'ExecStart', '--value'),
+                              script, stat(GUARD_SCRIPT.parent), sha256(GUARD_SCRIPT) if script else None, sha256(HERE/'debug_guard.py'),
+                              heartbeat, age)
+    return dict(timer=GUARD_TIMER, script=str(GUARD_SCRIPT), active=not problems, problems=problems,
+                heartbeat_age_seconds=None if age is None else round(age, 1),
+                checked_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+
+
+def configuration(weight_format, query, gpu):
+    """What this run is, stated against C23: a debug configuration, never a formal-equivalent measurement."""
+    import debug_service
+    restored = json.loads((HOST/'validation/store-restore-validation.json').read_text())
+    pool, chunk = debug_service.pool_for(weight_format, restored)
+    differences = ['identity and directories: sllm-debug run id, DEBUG-UNREVIEWED labels, debug/<run>/ code tree and /r',
+                   'worker entry: debug_service.py instead of supervise_control13 + bootstrap_control13 '
+                   '(no monitor heartbeat, admission gates, budget phases or preregistered trial protocol)',
+                   'lifetime: timeout in argv plus the debug host guard instead of the formal root deadline guard',
+                   'switches: the 7 formal13-dropped switches removed, SLLM_DEBUG_WEIGHT_FORMAT/SLLM_DEBUG_QUERY added']
+    if gpu and weight_format == 'safetensors':
+        differences.append('Store pool: %d bytes instead of the %d-byte pool C23 kept resident through every trial' % (pool, restored['pool_bytes']))
+    elif gpu:
+        differences.append('Store pool: created by this run, not the one shared pool C23 kept across all trials')
+    differences.append('requests: one gold request' if gpu and query else 'requests: none')
+    return dict(weight_format=weight_format if gpu else None, pool_bytes=pool if gpu else None, chunk_bytes=chunk if gpu else None,
+                c23_pool_bytes=restored['pool_bytes'], differs_from_formal=differences, comparable_to_formal_measurements=False)
+
+
+def tree_files(root, skip=()):
+    files = {}
+    for path in sorted(root.rglob('*')):
+        relative = path.relative_to(root).as_posix()
+        if path.is_symlink():
+            raise ValueError('symlink in source tree: '+relative)
+        if path.is_file() and relative not in skip:
+            data = path.read_bytes()
+            files[relative] = (len(data), hashlib.sha256(data).hexdigest())
+    return files
+
+
+def verified_source(tree):
+    """A debug tree pushed by tools/deploy_tree.py: exactly its receipt's files, from one commit, no formal identity."""
+    tree = pathlib.Path(tree)
+    match = SOURCE_TREE.fullmatch(tree.name)
+    if match is None or tree.parent != HOST/'code' or tree.is_symlink() or not tree.is_dir():
+        raise ValueError('--source-tree must be a deploy_tree push under %s' % (HOST/'code'))
+    receipt = json.loads((tree/SOURCE_RECEIPT).read_text())
+    rows = receipt['files']
+    if (receipt.get('kind') != 'debug' or receipt['code_commit'][:12] != match[1] or receipt['tree_sha256'][:12] != match[2]
+            or hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest() != receipt['tree_sha256']):
+        raise ValueError('source tree name, kind or file list does not match its receipt')
+    expected = {r['path']: (r['bytes'], r['sha256']) for r in rows}
+    if tree_files(tree, skip=(SOURCE_RECEIPT,)) != expected:
+        raise ValueError('source tree differs from its receipt')
+    if 'run-manifest.json' in expected or 'debug_service.py' not in expected:
+        raise ValueError('debug source must carry the debug entry and no formal run identity')
+    return receipt
+
+
+def copy_source(tree, run_root, receipt):
+    """The run keeps its own verified copy, so later changes to the pushed tree cannot alter what it ran."""
     source = run_root/'source'
     source.mkdir(mode=0o700)
-    rows = []
-    for path in sorted(ACTIVE.iterdir()):
-        if path.is_file() and path.name != 'run-manifest.json':
-            shutil.copyfile(path, source/path.name)
-            rows.append(dict(path=path.name, sha256=sha256(source/path.name)))
-    shutil.copyfile(HERE/'debug_service.py', source/'debug_service.py')
-    rows.append(dict(path='debug_service.py', sha256=sha256(source/'debug_service.py')))
-    return rows
+    for row in receipt['files']:
+        (source/row['path']).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(pathlib.Path(tree)/row['path'], source/row['path'])
+    if tree_files(source) != {r['path']: (r['bytes'], r['sha256']) for r in receipt['files']}:
+        raise RuntimeError('copied source differs from the verified tree')
+    return dict(tree=str(tree), code_commit=receipt['code_commit'], tree_sha256=receipt['tree_sha256'], files=len(receipt['files']))
 
 
 def owned(info, state, role):
@@ -167,6 +259,13 @@ def up(args):
     gpu = not args.head_only
     refuse_shared_state(gpu)
     booking = gpu_authority(args.borrow, args.booking_id, args.booking_end, args.seconds) if gpu else None
+    source_receipt = verified_source(args.source_tree)
+    guard = guard_state()
+    if gpu and not guard['active']:
+        raise RuntimeError('independent host guard not ready (%s); install once: sudo bash install_debug_guard.sh'
+                           % '; '.join(guard['problems']))
+    config = configuration(args.weight_format, not args.no_query, gpu)
+    deadline = int(time.time())+args.seconds+plan.DEADLINE_GRACE
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     run_id = 'sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8]
     holder = uuid.uuid4().hex
@@ -177,23 +276,29 @@ def up(args):
     run_root = debug_root/run_id
     run_root.mkdir(mode=0o700)
     state = dict(run_id=run_id, holder=holder, purpose=plan.PURPOSE, image_id=plan.IMAGE, mode='head-only' if args.head_only else 'gpu',
-                 lifetime_seconds=args.seconds, weight_format=args.weight_format, query=not args.no_query, booking=booking,
+                 lifetime_seconds=args.seconds, deadline_unix=deadline, weight_format=args.weight_format, query=not args.no_query,
+                 booking=booking, guard=guard, configuration=config,
                  tool_sha256={str(p.relative_to(TREE)): sha256(p) for p in TOOLS}, status='deploying source')
     receipt = run_root/'stack.json'
     with receipt.open('x') as stream:
         json.dump(state, stream, indent=2)
     try:
-        state['source_manifest'] = deploy_source(run_root)
+        state['source'] = copy_source(args.source_tree, run_root, source_receipt)
+        active = run_root/'source'  # templates come from the same commit as the code the containers run
         from restore_original_image import restore_with_receipt
-        state['image'] = restore_with_receipt(run_root/'image-init.json')
-        # Only a running container protects the image from the node's scheduled prune: start at once.
-        head = create_and_start(plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP')['head']['docker_argv'], 'head', state, receipt)
+        # The image is verified, and restored from the archive if absent, right before each create; nothing here
+        # relies on a running container keeping it or on when the node removes images.
+        state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
+        head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', active=active, deadline_unix=deadline)['head']
+        head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
             raise RuntimeError('head address is not private')
         state.update(head_ip=ip, status='head running', head_ready_seconds=wait_head_ready(head['Id']))
         if gpu:
-            worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query)['worker']
+            state['image']['worker'] = restore_with_receipt(run_root/'image-init-worker.json')
+            worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
+                               active=active, deadline_unix=deadline)['worker']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -253,6 +358,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Debug-only GPU stack lifecycle on qjhs003; never formal.')
     sub = parser.add_subparsers(dest='action', required=True)
     start = sub.add_parser('up')
+    start.add_argument('--source-tree', required=True, help='a debug tree pushed by tools/deploy_tree.py push')
     start.add_argument('--seconds', type=int, default=3600)
     start.add_argument('--head-only', action='store_true', help='CPU-only Ray head; no GPU, no booking needed')
     start.add_argument('--weight-format', choices=plan.WEIGHT_FORMATS, default='safetensors')

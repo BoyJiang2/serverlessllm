@@ -5,13 +5,15 @@ import importlib.util
 import json
 from pathlib import Path, PurePosixPath
 import sys
+import tempfile
 import types
 import unittest
 from docker_args import docker_create_args, HOST, RUN_ALIAS
 
 ROOT=Path(__file__).resolve().parents[2]
-ACTIVE=ROOT/'runtime/active'
 PACKET=ROOT/'reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313'
+sys.path.insert(0,str(ROOT/'tools'))
+import c23_regression  # frozen C23 sources come from git, so later formal-code edits cannot move the baseline
 
 
 class MetadataPath:
@@ -27,6 +29,8 @@ class ArgRegressionTests(unittest.TestCase):
     def setUpClass(cls):
         receipt=json.loads((PACKET/'executed-source-archive.json').read_text())
         cls.source_hashes={x['path']:x['sha256'] for x in receipt['files_checked_before_and_after']}
+        directory=tempfile.TemporaryDirectory();cls.addClassCleanup(directory.cleanup)
+        ACTIVE=c23_regression.frozen_tree(Path(directory.name))
         for name in ('workspace.py','launch_control13.py','run-manifest.json','initial-ledger.json','formal_gate.py','attempt_state.py'):
             assert hashlib.sha256((ACTIVE/name).read_bytes()).hexdigest()==cls.source_hashes[name], name
         sys.path.insert(0,str(ACTIVE))

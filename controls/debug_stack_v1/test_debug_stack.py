@@ -9,7 +9,9 @@ from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parents[1]/'tools'))
 import debug_stack as d
+import deploy_tree
 
 UTC = datetime.timezone.utc
 STATE = dict(run_id='sllm-debug-20261028T120000Z-0123abcd', holder='a'*32)
@@ -72,16 +74,66 @@ class Booking(unittest.TestCase):
 
 
 class Source(unittest.TestCase):
-    def test_formal_identity_never_copied(self):
-        with tempfile.TemporaryDirectory() as directory:
-            active, run_root = Path(directory)/'active', Path(directory)/'run'
-            active.mkdir(); run_root.mkdir()
-            (active/'run-manifest.json').write_text('{"run_id": "sllm-glm51fp8-x"}')
-            (active/'workspace.py').write_text('x = 1\n')
-            with patch.object(d, 'ACTIVE', active):
-                rows = d.deploy_source(run_root)
-            self.assertEqual(sorted(p.name for p in (run_root/'source').iterdir()), ['debug_service.py', 'workspace.py'])
-            self.assertEqual([r['path'] for r in rows], ['workspace.py', 'debug_service.py'])
+    """--source-tree accepts only an intact deploy_tree push and runs from a verified per-run copy."""
+    @classmethod
+    def setUpClass(cls):
+        cls.tree, cls.receipt = deploy_tree.build('HEAD', 'debug')
+
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.host = Path(directory.name)
+        (self.host/'code').mkdir()
+        patcher = patch.object(d, 'HOST', self.host)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def push(self, tree=None, receipt=None, name=None):
+        tree = dict(self.tree) if tree is None else tree
+        receipt = dict(self.receipt) if receipt is None else receipt
+        root = self.host/'code'/(name or 'source-debug-%s-%s' % (receipt['code_commit'][:12], receipt['tree_sha256'][:12]))
+        for path, data in tree.items():
+            (root/path).parent.mkdir(parents=True, exist_ok=True)
+            (root/path).write_bytes(data)
+        (root/d.SOURCE_RECEIPT).write_text(json.dumps(receipt))
+        return root
+
+    def test_intact_push_is_copied_byte_for_byte(self):
+        root = self.push()
+        receipt = d.verified_source(root)
+        run_root = self.host/'debug'/STATE['run_id']
+        run_root.mkdir(parents=True)
+        provenance = d.copy_source(root, run_root, receipt)
+        self.assertEqual((provenance['code_commit'], provenance['tree_sha256'], provenance['files']),
+                         (self.receipt['code_commit'], self.receipt['tree_sha256'], len(self.tree)))
+        self.assertEqual({p: (run_root/'source'/p).read_bytes() for p in self.tree}, self.tree)
+        self.assertFalse((run_root/'source'/'run-manifest.json').exists())
+
+    def test_changed_or_extra_files_are_refused(self):
+        root = self.push()
+        (root/'workspace.py').write_bytes(self.tree['workspace.py']+b'\n')
+        with self.assertRaisesRegex(ValueError, 'differs'):
+            d.verified_source(root)
+        (root/'workspace.py').write_bytes(self.tree['workspace.py'])
+        (root/'stray.py').write_bytes(b'x = 1\n')
+        with self.assertRaisesRegex(ValueError, 'differs'):
+            d.verified_source(root)
+
+    def test_consistent_tree_with_formal_identity_is_refused(self):
+        tree = dict(self.tree, **{'run-manifest.json': b'{"run_id": "sllm-glm51fp8-x"}'})
+        rows = deploy_tree.inventory(tree)
+        receipt = dict(self.receipt, files=rows, tree_sha256=deploy_tree.sha256(json.dumps(rows, sort_keys=True).encode()))
+        with self.assertRaisesRegex(ValueError, 'formal run identity'):
+            d.verified_source(self.push(tree, receipt))
+
+    def test_location_name_and_kind_must_match(self):
+        with self.assertRaisesRegex(ValueError, 'deploy_tree push'):
+            d.verified_source(self.host/'elsewhere'/self.push().name)
+        with self.assertRaisesRegex(ValueError, 'does not match'):
+            d.verified_source(self.push(name='source-debug-%s-%s' % ('0'*12, self.receipt['tree_sha256'][:12])))
+        formal = dict(self.receipt, kind='formal', code_commit='1'*40)
+        with self.assertRaisesRegex(ValueError, 'does not match'):
+            d.verified_source(self.push(receipt=formal))
 
 
 class Ownership(unittest.TestCase):

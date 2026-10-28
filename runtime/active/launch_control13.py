@@ -65,6 +65,8 @@ observed_next = call('systemctl', 'show', window['guard_timer'], '-p', 'NextElap
 assert expected_next in observed_next, (expected_next, observed_next)
 if spec.get('gpus') or spec['name'].startswith('head'):
     assert not call('nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader').strip(), 'GPU occupied'
+# A debug stack shares GPUs, page cache and pinned memory: never launch any formal container next to one.
+assert not call('docker', 'ps', '-q', '--filter', 'label=sllm.purpose=DEBUG-UNREVIEWED'), 'debug stack running; formal launch refused'
 if (diagnostic or pool_diagnostic) and spec['name']=='headservice13a':
     monitor=json.loads((root/'monitor13-identity.json').read_text())
     verify_timeout_probe(root,json.loads(call('docker','inspect',monitor['container_id']))[0])

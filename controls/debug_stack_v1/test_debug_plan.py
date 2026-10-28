@@ -15,11 +15,12 @@ import debug_plan as p
 ROOT = HERE.parents[1]
 ACTIVE = ROOT/'runtime/active'
 PACKET = ROOT/'reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313'
-FROZEN = ('workspace.py', 'materialize_control13.py', 'launch_control13.py', 'headservice13a.json',
-          'service13a-template.json', 'run-manifest.json')
+# launch_control13.py is pinned by tools/test_c23_regression.py, which compares it with the C23 commit directly.
+FROZEN = ('workspace.py', 'materialize_control13.py', 'headservice13a.json', 'service13a-template.json', 'run-manifest.json')
 RUN = 'sllm-debug-20261028T120000Z-0123abcd'
 HOLDER = 'f'*32
 IP = '172.17.0.2'
+DEADLINE = 1793200000
 
 
 def load(name, path):
@@ -74,7 +75,7 @@ class FrozenDerivation(unittest.TestCase):
 
 class DebugOverlay(unittest.TestCase):
     def setUp(self):
-        self.plan = p.plan(RUN, HOLDER, 3600, IP)
+        self.plan = p.plan(RUN, HOLDER, 3600, IP, deadline_unix=DEADLINE)
 
     def test_only_whitelisted_fields_change(self):
         for role, base in (('head', p.head_spec()), ('worker', p.worker_spec(IP))):
@@ -111,8 +112,9 @@ class DebugOverlay(unittest.TestCase):
             args = self.plan[role]['docker_argv']
             base = p.docker_create_args(self.plan[role]['spec'], RUN, p.nonformal_mounts(source, p.debug_run_root(RUN)), p.IMAGE)
             with self.subTest(role=role):
-                self.assertEqual(args[:2]+args[5:], base)
-                self.assertEqual(args[2:5], ['--pull=never', '--label=sllm.purpose=DEBUG-UNREVIEWED', '--label=sllm.holder='+HOLDER])
+                self.assertEqual(args[:2]+args[6:], base)
+                self.assertEqual(args[2:6], ['--pull=never', '--label=sllm.purpose=DEBUG-UNREVIEWED', '--label=sllm.holder='+HOLDER,
+                                             '--label=sllm.deadline_unix=%d' % DEADLINE])
                 self.assertIn('--name='+RUN+'-'+self.plan[role]['spec']['name'], args)
                 argv = self.plan[role]['spec']['argv']
                 self.assertEqual(args[-len(argv)-1:-len(argv)+1], ['--entrypoint='+argv[0], p.IMAGE])
@@ -143,6 +145,15 @@ class DebugOverlay(unittest.TestCase):
         for seconds in (299, 7201, 3600.0):
             with self.subTest(seconds=seconds), self.assertRaises(ValueError):
                 p.plan(RUN, HOLDER, seconds, IP)
+
+    def test_guard_deadline_label(self):
+        for bad in (0, -1, 1793200000.0, '1793200000'):
+            with self.subTest(deadline=bad), self.assertRaises(ValueError):
+                p.plan(RUN, HOLDER, 3600, IP, deadline_unix=bad)
+        before = int(p.time.time())
+        default = p.plan(RUN, HOLDER, 3600, IP)['deadline_unix']
+        self.assertTrue(before+3600+p.DEADLINE_GRACE <= default <= int(p.time.time())+3600+p.DEADLINE_GRACE)
+        self.assertGreater(p.DEADLINE_GRACE, int(p.KILL_AFTER['worker'].rstrip('s')))
 
 
 if __name__ == '__main__':

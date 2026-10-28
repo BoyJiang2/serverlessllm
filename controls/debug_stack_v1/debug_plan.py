@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path, PurePosixPath
 import re
+import time
 
 HERE = Path(__file__).resolve().parent
 ACTIVE = HERE.parents[1]/'runtime/active'
@@ -20,6 +21,8 @@ FORMAL_DROPPED_ENV = ('SLLM_VALIDATE_FULL_MODEL', 'SLLM_VERIFY_WEIGHTS', 'SLLM_S
 MIN_LIFETIME, MAX_LIFETIME = 300, 7200
 # The worker must outlive the Store's 240 s SIGINT grace (budget_control13.STORE_SHUTDOWN_GRACE).
 KILL_AFTER = dict(head='60s', worker='300s')
+# The host guard (debug_guard.py) removes a container once lifetime + kill grace + teardown margin have passed.
+DEADLINE_GRACE = 600
 DEBUG_ENTRY = '/experiment/code/experiment/debug_service.py'
 DEBUG_ENV_ADDED = ('SLLM_DEBUG_WEIGHT_FORMAT', 'SLLM_DEBUG_QUERY')
 WEIGHT_FORMATS = ('safetensors', 'serverless_llm')
@@ -95,25 +98,30 @@ def overlay(spec, role, seconds, weight_format='safetensors', query=True):
     return result
 
 
-def debug_args(spec, run_id, holder, source):
+def debug_args(spec, run_id, holder, source, deadline_unix):
     if not re.fullmatch(RUN_PATTERN, run_id):
         raise ValueError('debug run identity required; formal identities are rejected')
     if not re.fullmatch('[0-9a-f]{32}', holder):
         raise ValueError('32-hex holder token required')
+    if type(deadline_unix) is not int or deadline_unix <= 0:
+        raise ValueError('integer guard deadline required')
     args = docker_create_args(spec, run_id, nonformal_mounts(source, debug_run_root(run_id)), IMAGE)
-    args[2:2] = ['--pull=never', '--label=sllm.purpose='+PURPOSE, '--label=sllm.holder='+holder]
+    args[2:2] = ['--pull=never', '--label=sllm.purpose='+PURPOSE, '--label=sllm.holder='+holder,
+                 '--label=sllm.deadline_unix=%d' % deadline_unix]
     return args
 
 
-def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE):
+def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE, deadline_unix=None):
     """The worker half needs the head's observed bridge IP, so `up` re-plans after the head starts."""
     source = debug_run_root(run_id)/'source'
     head = overlay(head_spec(active), 'head', seconds)
     worker = overlay(worker_spec(head_ip, active), 'worker', seconds, weight_format, query)
-    return dict(run_id=run_id, purpose=PURPOSE, image_id=IMAGE, lifetime_seconds=seconds,
+    if deadline_unix is None:
+        deadline_unix = int(time.time())+seconds+DEADLINE_GRACE
+    return dict(run_id=run_id, purpose=PURPOSE, image_id=IMAGE, lifetime_seconds=seconds, deadline_unix=deadline_unix,
                 run_root=str(debug_run_root(run_id)), source=str(source),
-                head=dict(spec=head, docker_argv=debug_args(head, run_id, holder, source)),
-                worker=dict(spec=worker, docker_argv=debug_args(worker, run_id, holder, source)))
+                head=dict(spec=head, docker_argv=debug_args(head, run_id, holder, source, deadline_unix)),
+                worker=dict(spec=worker, docker_argv=debug_args(worker, run_id, holder, source, deadline_unix)))
 
 
 if __name__ == '__main__':

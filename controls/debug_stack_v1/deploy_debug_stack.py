@@ -9,7 +9,8 @@ import tarfile
 REPO = pathlib.Path(__file__).resolve().parents[2]
 REMOTE_ROOT = '/data/brick1/boyjiang/glm5.1-fp8/code'
 TOOL_FILES = ('controls/debug_stack_v1/debug_plan.py', 'controls/debug_stack_v1/debug_stack.py',
-              'controls/debug_stack_v1/debug_service.py', 'controls/service_smoke_v1/docker_args.py',
+              'controls/debug_stack_v1/debug_service.py', 'controls/debug_stack_v1/debug_guard.py',
+              'controls/debug_stack_v1/install_debug_guard.sh', 'controls/service_smoke_v1/docker_args.py',
               'tools/restore_original_image.py', 'tools/docker_plan.py')
 VERIFY = """import hashlib,json,pathlib
 root=pathlib.Path(%r)
