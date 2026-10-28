@@ -1,5 +1,19 @@
 # Docker环境恢复与P1进展
 
+## 18:12 实际资源检查：服务启动被GPU占用阻断
+
+原镜像仍在。八卡显存均约103259MiB，实际GPU计算进程存在（本次未归属为本实验），没有启动本实验模型或Store池，也没有停止其他任务。准确快照见`evidence/image-recovery-20261028/resources-20261028T1811.json`，内部UTC为10:12:30，以实际时间字段为准。
+
+新增只读入口：`python -X utf8 tools/docker_status.py`。它仅通过固定SSH入口qjhs003读取镜像及GPU/内存元数据，报告BLOCKED或RESOURCE_SNAPSHOT_ONLY；即使资源空闲也始终`admission=false`。三项CPU测试覆盖占用、镜像缺失、卡身份不完整及空闲不等于准入。它不是共享锁，也不授予停止其他任务的权限。
+
+### 下一步最小服务控制的修改闭包（尚未实现/批准）
+
+新建非计时原生服务smoke身份，不消耗或改写原40ID。仅Store格式的一次注册、冻结业务响应/32-token验证、删除、60秒观察及完整释放；必须明确标注不等于完整G1或正式测量。复用既有原生服务、加载器、模型/Store和金标，不使用替代权重。
+
+需修改并完整复审的闭包：新run manifest与用户授权记录、资源window解析、guard/observer新截止及实际probe、预算scope、host操作器阶段白名单、bootstrap单格式分支、validation生命周期选择、materialize/launch模板及包清单。旧C23 run/window/R1/R2/ready不能授权新进程。保留Store SIGINT 240秒及60秒观察，不用缩短释放换取启动。
+
+若不新增smoke scope而直接复用完整G1，现有prepare阶段要求剩余5820秒，service阶段要求4080秒。当前只有“短时使用”的授权表述，不能把它机械解释为该长度的独占窗口；实际资源和完整最大预算不满足则不启动。新scope的预算需从完整初始化、真实校验及清理闭包明确推导后审阅，不在此先宣称已准入。
+
 ## 恢复成功：2026-10-28 17:42 +08:00
 
 原镜像已通过本机校验下载、SCP/SFTP断点中继和远端Docker load恢复。实际image ID为`sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f`，与历史环境一致。SSH实际启动无GPU、runc、无网络、UID2147的有界容器，取得vLLM `0.19.1.dev1+g43a9b1afb.cu130`、PyTorch `2.10.0+cu130`、Transformers `5.4.0`、Triton `3.6.0`，验证容器已释放。
