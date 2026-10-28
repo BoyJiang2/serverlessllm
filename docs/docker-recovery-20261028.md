@@ -1,6 +1,16 @@
 # Docker环境恢复与P1进展
 
-## 新网络中继：下载完成，授权断点续传进行中
+## 恢复成功：2026-10-28 17:42 +08:00
+
+原镜像已通过本机校验下载、SCP/SFTP断点中继和远端Docker load恢复。实际image ID为`sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f`，与历史环境一致。SSH实际启动无GPU、runc、无网络、UID2147的有界容器，取得vLLM `0.19.1.dev1+g43a9b1afb.cu130`、PyTorch `2.10.0+cu130`、Transformers `5.4.0`、Triton `3.6.0`，验证容器已释放。
+
+远端备份位于`/data/brick1/boyjiang/glm5.1-fp8/recovery/image-relay-20261028T091001Z/original-image.docker.tar`。该文件由官方已校验的config和压缩层组装为Docker-load格式，非docker save产物；Docker导入校验各层diffID并恢复原image ID。备份7602462720字节，SHA256为`15fc28ff7074bb1285fb80931245e6ed3671e943975060849d230fc3bd74c48b`。
+
+本节仅确认Docker原环境和SSH CPU启动能力恢复。模型服务、独立新run守护、实际GPU业务和P1完整up/down尚未验证，不能复用旧gate。归档输入、实际启动、独立复核及本地清理收据另存小型证据；历史传输失败保留。下节为此前过程记录。
+
+17:45独立复核远端归档SHA、原image ID及无CPU探针容器残留；17:46按用户要求删除本地blob目录和归档，共15204860541字节（约15.20 GB），仅保留小型JSON/log证据。远端备份保留。小型收据位于`evidence/image-recovery-20261028/local-relay/`，不包含镜像层或模型数据。
+
+## 过程记录：新网络下载及断点续传
 
 用户换网络后，官方镜像29个blob全部按大小和SHA256核验完成。Docker可导入归档7602462720字节，SHA256为`15fc28ff7074bb1285fb80931245e6ed3671e943975060849d230fc3bd74c48b`。本地归档及blob仅为临时恢复资产，用户要求远端验证成功后删除。
 
