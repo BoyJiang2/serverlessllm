@@ -8,7 +8,9 @@ from p1_snapshot import snapshot
 
 class SnapshotTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
+        output = Path(__file__).resolve().parents[2]/'outputs'
+        output.mkdir(exist_ok=True)
+        self.temp = tempfile.TemporaryDirectory(dir=output)
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.source = self.root/'source'
