@@ -1,0 +1,15 @@
+{
+  "run_id": "sllm-debug-20261028T113209Z-424c4b3b",
+  "role": "cpu-probe",
+  "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+  "memory": "2g",
+  "cpus": 2,
+  "env": {},
+  "mounts": [],
+  "argv": [
+    "python3",
+    "-u",
+    "-c",
+    "import glob,importlib.metadata as m,json,time; print(json.dumps(dict(versions={k:m.version(k) for k in [\"vllm\",\"torch\",\"transformers\",\"triton\"]},nvidia_devices=glob.glob(\"/dev/nvidia*\"))),flush=True); time.sleep(60)"
+  ]
+}

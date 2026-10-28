@@ -26,3 +26,13 @@ python3 docker_debug.py down probe.json
 ## 验证
 
 本地CPU单元测试覆盖参数边界、挂载/加载器保护、身份不符不删除、create超时的可信身份恢复及未知结果拒绝清理。真实无GPU探针另记录up、timeout退出124、版本及设备日志、down和实际无残留。即使探针通过，也只证明该CPU入口，不宣称完整P1或模型服务通过。
+
+## 本次实际验证
+
+执行源码commit `082520350304513a363ce0c154b54637bc174d32`，远端工具目录为`/data/brick1/boyjiang/glm5.1-fp8/code/docker-debug-0825203`。实际CPU验证为一次镜像缺失导致的preflight失败及一次新身份成功；失败不删除、不改判，不涉及原40项正式ID。
+
+成功探针` sllm-debug-20261028T113209Z-424c4b3b `实际经历up/status、3秒timeout返回124、版本日志、无`/dev/nvidia*`、精确down；从启动调用到等待退出约3.33秒。独立复查成功探针CID不存在。证据在`evidence/docker-debug-cpu-20261028/`。
+
+验证前原镜像ID再次缺失，具体原因未知；已从原SHA备份重新导入。新增镜像引用容器` sllm-image-anchor-20261028T113131Z `保持created、PID0、不启动、无GPU请求，用于保留镜像引用。这不是运行实例或资源锁，仍不能防止有权限者显式删除或全局system-prune；备份继续保留，未修改全局清理配置。
+
+Docker源代码前置单元测试9项通过；共用plan预检测试9项通过。运行后限定只读复核PASS见`evidence/docker-debug-cpu-20261028/postrun-review.json`。失败包保留了failed结果，但未保存该次具体preflight stderr；镜像缺失来自操作器另次只读诊断，不以目录名冒充独立根因证据。模型服务入口、网络/路由、独立模型截止守护和模型业务仍待后续整改、审阅及GPU实际验证。
