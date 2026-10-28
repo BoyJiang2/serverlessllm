@@ -45,3 +45,9 @@
 首次启动包装器因内联字符串转义错误在Python解析阶段失败，未创建下载子进程、registration或checkpoint，原run与日志保留。这不是传输失败后自动重试。修正为受版本控制的独立`tools/supervise_kimi_download.py`，部署前先实际py_compile与CPU测试，通过后才创建下载进程；失败记录单独入账。
 
 新源码、审阅与部署身份入证据；GLM runtime/active、历史40ID和金标不修改。下载完成后仍需独立复核远端64文件的收据和哈希覆盖，才能进入下一阶段。
+
+## 实际启动记录
+
+修正后的任务 `kimi-download-20261028T171334Z` 于2026-10-29 01:13:36+08:00开始，运行代码commit `6f28f68611e8824113ce7018e75d3fde79deb7fa`；远端实际编译与9项CPU测试通过，timeout PID3735195及boot/starttime已独立核验。硬截止07:13:36+08:00，最晚KILL07:14:06；无自动延期/重启。资产目录为`/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb`。
+
+首份进度仅证明进程已启动、正在请求首个小文件，尚无完成文件，不代表权重传输或完整性成功。最新原始状态以远端downloads目录registration、events、exit/failure/complete为准；本机证据快照明确带采集时间。
