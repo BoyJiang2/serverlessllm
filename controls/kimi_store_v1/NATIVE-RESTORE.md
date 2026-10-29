@@ -84,6 +84,14 @@ weight阶段检查全部已初始化张量设备，调用新的CUDA rank规范�
 
 新增九项CPU测试，总计159项通过：小型混合dtype状态实际流式写/发布/恢复，codec/alias、块引用释放、失败无索引；固定Default/Kimi函数执行但SF迭代器、AutoWeightsLoader、官方manifest/目标边界为明确fixture，验证原始packed/BF16位、遗漏/重复/错误target拒绝、方法恢复和无后处理的一次组件转换。不是595GB转换或真实vLLM/八rank通过。下一步是完整独立worker/守护/监控/预算和失败退出取证方案，再经审阅及实际资源核验运行。
 
+## worker 接线与实际预算缺口
+
+最新 `vllm_export_hook.py` 将转换接到固定Base weight边界，再由Base执行一次后处理；`loader_registry.py`复用官方注册API，使用独立export/native格式且拒绝外来覆盖。构造前默认获取已建立的TP/PP上下文及当前CUDA设备；转换只复制一份load config供原Default loader使用，保持engine原自定义格式不变。CPU成功控制仍mock设备/context/转换，实际多进程插件传播尚未部署。
+
+同时发现当前完整CUDA目标再native分配的双份驻留存在静态预算缺口；native工厂新增必需的device_memory_budget_bytes，并在初始化前用checkpoint-backed归档字节的双份下界拒绝超限。基于冻结配置、header统计及MLA复制源码的条件下界已超过历史H20容量，详见WORKER-PLAN.md及native-memory-lower-bound.json。CUDA native初始化策略必须先整改，不能以旧factory测试通过宣称可在该卡运行；这不改变或解释历史GLM失败。
+
+共167项CPU测试通过，包括导出/后处理顺序、rank上下文拒绝、注册冲突、预算写前拒绝及源码MLA复制分支。实际backend构造、CUDA峰值和完整worker准入均未通过。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。

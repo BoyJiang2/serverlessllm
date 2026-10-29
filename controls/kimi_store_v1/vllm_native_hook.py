@@ -23,8 +23,26 @@ def _require_rank_device(model, device):
         raise ValueError('online or meta quantization is unsupported')
 
 
+def _require_runtime_profile(vllm_config, model_config, device, platform):
+    import torch
+    load_device = vllm_config.load_config.device
+    if load_device is None:
+        load_device = vllm_config.device_config.device
+    parallel = vllm_config.parallel_config
+    if (not platform.is_cuda() or torch.device(load_device) != torch.device(device)
+            or parallel.tensor_parallel_size != 8 or parallel.pipeline_parallel_size != 1
+            or parallel.data_parallel_size != 1 or parallel.prefill_context_parallel_size != 1
+            or parallel.enable_expert_parallel is not False
+            or parallel.use_sequence_parallel_moe is not False
+            or model_config.use_mla is not True
+            or model_config.multimodal_config.mm_encoder_tp_mode != 'data'
+            or model_config.quantization != 'compressed-tensors' or model_config.dtype != torch.bfloat16
+            or vllm_config.speculative_config is not None):
+        raise ValueError('frozen native CUDA profile required before initialization')
+
+
 def make_native_store_loader(base_loader, native_module, *, call_options, config_raw,
-                             checkpoint_contract, profile, vllm_version):
+                             checkpoint_contract, profile, vllm_version, device_memory_budget_bytes):
     """Compose pinned Base loading with native call, raw audit and slot installation.
 
     This does not create a worker, enforce its authorization window, verify TP
@@ -35,7 +53,8 @@ def make_native_store_loader(base_loader, native_module, *, call_options, config
     keys = {'storage_path', 'model_path', 'expected_sidecar_sha256', 'rank', 'device_id',
             'max_allocation_bytes', 'timeout_seconds'}
     if (not isinstance(call_options, dict) or set(call_options) != keys or profile != PROFILE
-            or vllm_version != '0.19.1'):
+            or vllm_version != '0.19.1' or type(device_memory_budget_bytes) is not int
+            or device_memory_budget_bytes <= 0):
         raise ValueError('fixed native options, profile and ABI required')
     options = dict(call_options)
     for name in ('rank', 'device_id'):
@@ -56,6 +75,11 @@ def make_native_store_loader(base_loader, native_module, *, call_options, config
     allocation_bytes = sum(size for offset, size in {(row[0], row[1]) for row in index.values()})
     if not 0 < allocation_bytes <= options['max_allocation_bytes']:
         raise ValueError('rank source exceeds allocation budget before initialization')
+    # Full CUDA construction plus native allocation retains two checkpoint copies.
+    # This lower bound excludes buffers, scratch, CUDA context and postprocess workspace.
+    checkpoint_bytes = sum(size for offset, size in {(index[n][0], index[n][1]) for n in targets})
+    if checkpoint_bytes * 2 > device_memory_budget_bytes:
+        raise MemoryError('two-copy checkpoint floor exceeds device budget before initialization')
     original = _verify_function(base_loader.load_model, BASE_SHA256, 'BaseModelLoader')
     _verify_function(original.__globals__['process_weights_after_loading'], UTILS_SHA256)
     _verify_function(native_module.load_dict_non_blocking, TORCH_SHA)
@@ -76,25 +100,12 @@ def make_native_store_loader(base_loader, native_module, *, call_options, config
             raise ValueError('native Store loader only consumes authenticated existing assets')
 
         def load_model(self, vllm_config, model_config, prefix=''):
-            import torch
             if self.lifecycle_status != 'not_started' or self.weights_status != 'not_started':
                 raise ValueError('one-shot native lifecycle already attempted')
             self.lifecycle_status = 'loading'
             self.discard_worker_required = True
             try:
-                load_device = vllm_config.load_config.device
-                if load_device is None:
-                    load_device = vllm_config.device_config.device
-                parallel = vllm_config.parallel_config
-                if (not platform.is_cuda() or torch.device(load_device) != torch.device(device)
-                        or parallel.tensor_parallel_size != 8 or parallel.pipeline_parallel_size != 1
-                        or parallel.enable_expert_parallel is not False
-                        or parallel.use_sequence_parallel_moe is not False
-                        or model_config.use_mla is not True
-                        or model_config.multimodal_config.mm_encoder_tp_mode != 'data'
-                        or model_config.quantization != 'compressed-tensors' or model_config.dtype != torch.bfloat16
-                        or vllm_config.speculative_config is not None):
-                    raise ValueError('frozen native CUDA profile required before initialization')
+                _require_runtime_profile(vllm_config, model_config, device, platform)
                 model = super().load_model(vllm_config, model_config, prefix)
             except BaseException:
                 self.lifecycle_status = 'failed'

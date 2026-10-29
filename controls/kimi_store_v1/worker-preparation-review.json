@@ -1,0 +1,45 @@
+{
+  "recorded_utc": "2026-10-29T19:46:02.6094252Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "vllm_export_hook.py": "d6fcf04836d7e6797f61b4d8430ff146a3b3abf4c733438c7784da4a27e526f5",
+    "loader_registry.py": "f409693083b7401dc34d180c7ca6d970735246a4e13459ac07212a8a8851ba72",
+    "vllm_native_hook.py": "7ea667891fd22712dce16743ab3270fde703ae76616a8dfb22918ff71472c981",
+    "test_vllm_native_hook.py": "ee76072bf92d7a67901ce04b293c45ab56df4d79b196c8018a4eeff76119e08b",
+    "test_export_lifecycle.py": "61ab894885412f3793d0bb32866339c1b5064f01d464507c4bb773e29a4cd872",
+    "test_native_memory_budget.py": "a345092b5ab81b4872ddf3285e8e894cc07d2870c547a06b7479706f4f4d2c3d",
+    "fixtures/vllm_loader_init.py": "a8b9804eba44d4f20901db9528825aa69095fb159766f76079cf2db82095b3e4",
+    "fixtures/vllm_deepseek.py": "c0f27b22e0023d42861ed4763e2a23fe305d049c6c45f6bd3ac05299d8e76da2",
+    "native-memory-lower-bound.json": "149020cc1ba1bf9cb48620daaaa14d83888dec3a8a31c7ebd0fced90eeb4a489",
+    "WORKER-PLAN.md": "6b905afafc8091aff2d332102f76b0401e2f2ff7609611ccba5ae7b218b17c3b",
+    "NATIVE-RESTORE.md": "898ff07ef0a384c2e3b101c6baa664ba71936d4d6413272fec9a6a9af3241fde",
+    "NEXT.md": "20198c14d5e4129d3e22b8e3a52de3254aea4143459b550aa7da3ab9ca6ab8ac",
+    "README.md": "38cedb40f7a602e04bee6d1b39e49e8f5e63f22840c7266da640053abf58fdc3"
+  },
+  "tests": {
+    "scope": "Pinned Base/registry/constructor control fixtures; GPU and conversion boundaries mocked",
+    "count": 167,
+    "torch": "2.10.0+cpu",
+    "executor": "primary agent",
+    "seconds": 4.63
+  },
+  "verified": [
+    "Export at Base weight boundary before one postprocess; isolated source config",
+    "Unique registry names and foreign collision rejection preserve builtin safetensors",
+    "Conditional static MLA replication and two-copy lower-bound arithmetic audited",
+    "Device budget and DP1/PCP1 checks reject before initialization"
+  ],
+  "history": [
+    {
+      "resolution": "Two revised source/test files re-reviewed against their new hashes",
+      "verdict": "PASS before DP/PCP revision"
+    }
+  ],
+  "limitations": [
+    "Static review and arithmetic only; reviewer did not run tests",
+    "Historical device capacity; no fresh hardware snapshot or full header recomputation",
+    "Full CUDA target plus native copy remains blocked by conditional lower bound",
+    "Initialization remediation, worker/plugin propagation, guard and real runtime not implemented"
+  ]
+}

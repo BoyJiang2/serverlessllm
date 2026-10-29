@@ -1,0 +1,24 @@
+{
+  "scope": "conditional static lower bound; not runtime measurement",
+  "model": "moonshotai/Kimi-K2.6",
+  "revision": "7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+  "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+  "header_summary_sha256": "f01064b0e7463602b875b57e04fe79335775713fc56e3cd1049b3f61a6d35d4c",
+  "payload_bytes": 595148192736,
+  "excluded_source_shape_bytes": 552960,
+  "replicated_mla_A_source_bytes": 1846935552,
+  "rank_weight_lower_bound_bytes": 76009523580,
+  "two_copy_lower_bound_bytes": 152019047160,
+  "historical_card_bytes": 150754820096,
+  "historical_capacity_evidence": "2026-10-30T01:48:42+08:00 qjhs003 read-only nvidia-smi snapshot in chat",
+  "two_copy_fits_historical_capacity": false,
+  "two_copy_deficit_bytes": 1264227064,
+  "assumptions": [
+    "TP8/PP1/noEP/MLA/Marlin raw pre-postprocess layout",
+    "Other checkpoint payload is ideally evenly sharded; source shape metadata omitted conservatively",
+    "MLA A BF16 projection replicated by disable_tp=True; no tied embeddings",
+    "No context, vision/router replication overhead, scratch, KV or workspace included"
+  ],
+  "runtime_verified": false,
+  "requires_fresh_device_budget": true
+}

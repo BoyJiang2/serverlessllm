@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 最新vllm_export_hook/loader_registry已接固定Base转换边界与独立格式注册，167项CPU测试通过，当前审阅见worker-preparation-review.json。发现native完整CUDA目标+native块的条件静态下界141.58GiB/卡超历史140.40GiB；新增工厂device_memory_budget_bytes强制初始化前拒绝不足预算，不能沿用旧签名/审阅。详见WORKER-PLAN.md及native-memory-lower-bound.json；不是实际OOM，不解释历史exit137。
+- 下一项优先解决native双份驻留的初始化策略（CPU文本/官方CUDA视觉，或目标IPC写入，均须实际源码政策与CPU验证），再补独立worker/plugin传播、守护和监控闭包。当前仅准备了registry/factory，没有部署或启动。源转换/后端参考的一份模型路径仍可继续准备，不把native预算缺口扩写成所有CPU工作阻塞。
+
 - 最新device_export.py/checkpoint_export.py接已初始化源rank的本地SF加载→aux规范化→有界host块写/核验/索引发布，159项CPU测试通过，当前修订审阅见checkpoint-export-review.json。补量化DefaultLoader不做完整目标检查的缺口：源名逐一覆盖、目标集合审计；仅本实例临时方法且finally恢复。完整源代码fixture已冻结；SF迭代器/mapper/全量manifest/target边界仍是小夹具，不是全模型转换，Store资产尚未生成。下一项：完整独立worker的身份/预算/窗口/守护/监控/失败退出取证及执行入口审阅；不自动GPU、不恢复旧窗口。
 
 - 接续优先级澄清：Kimi完整Store尚未生成，不能先调用消费hook。下一轮先将device_state与有界主机块接入GPU源rank导出/原SF loader接线（仅源码与小CPU测试），再组合独立worker/当前窗口守护与取证。当前native factory只是消费候选，不是完整转换器或可运行服务。其已审实现不重写，原phase/目标不重置。

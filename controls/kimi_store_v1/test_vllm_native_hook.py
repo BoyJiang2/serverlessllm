@@ -15,7 +15,7 @@ import test_vllm_cpu_hook
 
 
 class NativeLifecycleTests(unittest.TestCase):
-    def setup_fixture(self, root, events, cap=1024):
+    def setup_fixture(self, root, events, cap=1024, device_budget=1024):
         helper = test_vllm_cpu_hook.LifecycleTests()
         base, namespace = helper.base(events)
         namespace['current_platform'].is_cuda = lambda: True
@@ -31,11 +31,12 @@ class NativeLifecycleTests(unittest.TestCase):
         with patch.object(hook, 'load_targets', return_value={'packed'}):
             cls = hook.make_native_store_loader(base, runtime, call_options=options,
                 config_raw=test_cpu_tensor_io.CONFIG, checkpoint_contract=b'fixture-boundary',
-                profile=PROFILE, vllm_version='0.19.1')
+                profile=PROFILE, vllm_version='0.19.1', device_memory_budget_bytes=device_budget)
         config, model_config = helper.configs()
         config.load_config.device = 'cuda:0'
         config.parallel_config = types.SimpleNamespace(tensor_parallel_size=8, pipeline_parallel_size=1,
-            enable_expert_parallel=False, use_sequence_parallel_moe=False)
+            enable_expert_parallel=False, use_sequence_parallel_moe=False,
+            data_parallel_size=1, prefill_context_parallel_size=1)
         config.speculative_config = None
         model_config.dtype = torch.bfloat16
         model_config.use_mla = True
@@ -70,12 +71,14 @@ class NativeLifecycleTests(unittest.TestCase):
                 loader.load_model(config, model_config)
 
     def test_wrong_profile_refused_before_initialization(self):
-        for kind in ('tp', 'pp', 'ep', 'sp', 'mla', 'encoder', 'mtp', 'dtype', 'platform'):
+        for kind in ('tp', 'pp', 'dp', 'pcp', 'ep', 'sp', 'mla', 'encoder', 'mtp', 'dtype', 'platform'):
             events = []
             with tempfile.TemporaryDirectory() as temp:
                 loader, config, model_config, namespace = self.setup_fixture(temp, events)
                 if kind == 'tp': config.parallel_config.tensor_parallel_size = 4
                 elif kind == 'pp': config.parallel_config.pipeline_parallel_size = 2
+                elif kind == 'dp': config.parallel_config.data_parallel_size = 2
+                elif kind == 'pcp': config.parallel_config.prefill_context_parallel_size = 2
                 elif kind == 'ep': config.parallel_config.enable_expert_parallel = True
                 elif kind == 'sp': config.parallel_config.use_sequence_parallel_moe = True
                 elif kind == 'mla': model_config.use_mla = False
@@ -120,6 +123,13 @@ class NativeLifecycleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaisesRegex(ValueError, 'budget before initialization'):
                 self.setup_fixture(temp, events, cap=1)
+        self.assertFalse(events)
+
+    def test_double_residency_floor_refused_before_initializer(self):
+        events = []
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(MemoryError, 'two-copy checkpoint floor'):
+                self.setup_fixture(temp, events, device_budget=1)
         self.assertFalse(events)
 
     def test_postprocess_failure_consumes_lifecycle_and_requires_worker_disposal(self):
