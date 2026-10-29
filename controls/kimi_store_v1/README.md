@@ -155,3 +155,16 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 分块上限不等于RSS上限：目标完整模型已经驻留；元数据、Torch allocator和源页缓存另占成本。入口先完整校验后再复制，存在双遍I/O，当前仅正确性组件，不是性能测量协议。尚未调用原生load_dict/CUDA、构造完整Kimi TP状态或实施scratch重建消费者；native_loader_verified和runtime_admitted始终为false。
 
 本轮独立初审发现：目标不同dtype/shape若重解释同一完整storage，原alias键不会把它们标为alias，逐项SHA可能通过但后写覆盖前写。已在任何复制前拒绝非空共享pointer但layout不同的目标，并增加I32[2]/BF16[4]真实共享存储负例，证明copy未调用且目标未变。旧初审changes_required保留，不以新测试抹去发现。
+
+
+## 显式Marlin辅助状态规范化（68项CPU测试及修订复审PASS）
+
+`marlin_aux.normalize_cpu_auxiliary()`是只针对单个官方routed expert层的CPU步骤：必须在checkpoint加载结束、原生后处理之前显式调用。它要求冻结config、TP8/PP1/noEP等条件、vLLM0.19.1、实际quant method类名/模块及其process方法所在文件完整SHA，且该对象backend=Marlin、actorder=None。四个scratch必须是注册的、requires_grad=False的完整CPU INT32存储，形状分别为[384,7168]或[384,256]；同其他注册参数/buffer共享storage时拒绝。
+
+完成所有预检后才替换四项为[384,0] INT32参数，返回原始layout、新layout、rank、层名、来源身份及阶段receipt。不会读取未初始化scratch字节，不改packed或scale，也不把非空零填充伪装成原始值。空参数的处理与固定原生后处理的no-actorder else分支一致；这里只将这一确定子步骤前移，不执行其余GPU repack或scale变换。重复规范化拒绝，避免无记录地接受已改写的输入。
+
+新增fixture是官方v0.19.1完整源文件（96755B，SHA在代码中冻结，保留许可）；测试仅AST隔离原方法并构造属性，另直接执行其空参数else分支比对metadata，未import/初始化实际vLLM。单层CPU scratch约21.75MiB、torch.empty不读内容；未构造完整模型。覆盖错误backend、group actorder、未知类、来源变化、错phase/profile/rank/ABI、payload别名和最后一项layout不符时写前拒绝。68项测试通过不代表实际backend或完整TP映射通过。
+
+receipt尚未绑定native index侧车，完整60层/八rank的编排及恢复消费者尚未接入，因此不能用此helper宣称完整Store转换。默认写入器继续拒绝未规范化的非空辅助项。opaque状态、视觉buffer、实际GPU后处理及原生服务仍需后续工作。
+
+本轮初审changes_required指出仅class/module/sourcefile SHA不能绑定实际方法；已从完整冻结源码compile提取精确方法code，与当前类方法code比较，并拒绝instance override。新增同路径改写方法及实例覆盖负例，68项测试通过；静态复审PASS见marlin-aux-review.json，旧发现及旧hash保留。

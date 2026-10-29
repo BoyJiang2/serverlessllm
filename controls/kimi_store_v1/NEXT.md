@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 新增marlin_aux.py/test_marlin_aux.py和完整固定源码fixture：68项CPU测试通过，单层显式Marlin/no-actorder scratch规范化为空、记录before/after且不读旧值。初审方法身份绑定缺口已修复，精确code比对及instance override负例通过；修订复审PASS见marlin-aux-review.json，不重复派发。不是完整转换器，receipt未绑定native sidecar。
+- 下一项应将规范化receipt绑定导出/恢复侧车与验证，防止无来源记录导出已改状态；完成60层编排再接真实vLLM接口。不得跳过opaque/视觉buffer政策，也不得把单层CPU源分支测试当实际backend证明。
+
 - 新增cpu_restore.py/test_cpu_restore.py：61项CPU测试通过，有界readinto恢复现有CPU模型，写前全量校验、复制时SHA复核；中途失败destination作废，不回滚。初审发现共享pointer不同layout覆盖问题，已修复并加真实回归；修订复审已返回PASS，两文件SHA核验一致，见cpu-restore-review.json；不重复派发。61项测试由主线程实际运行。不是native load_dict或完整Kimi转换。
 - 下一项转向scratch侧车/重建消费者与固定后端ABI接线；保持Flashinfer拒绝外推，所有未知状态不得静默省略。先明确真实构造/恢复各阶段可用的状态及native接口，不把微型CPU恢复当完整适配。
 

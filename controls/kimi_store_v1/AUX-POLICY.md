@@ -1,4 +1,4 @@
-# Marlin/no-actorder 辅助状态政策草案（未接入转换器）
+# Marlin/no-actorder 辅助状态政策（单层CPU步骤已实现，未接完整转换器）
 
 依据：vLLM v0.19.1 `compressed_tensors_moe.py` 的
 `CompressedTensorsWNA16MarlinMoEMethod.process_weights_after_loading`，本地固定源码
@@ -33,3 +33,7 @@ Marlin输入为float8时，后处理还原地改写packed值并将scale乘512，
 
 完整模型构造、所有必要状态清单、侧车消费者、原生load_dict、八rank实际kernel前后验证，
 以及原生服务金标均未通过。本政策草案和CPU测试不授予运行准入。
+
+## CPU实现更新
+
+`marlin_aux.py`现可在上述显式阶段对单层进行全部预检后，将四项前移规范化为空，返回来源与before/after receipt；不会读旧值。测试对照原source else分支。此实现尚未绑定导出侧车、整模型编排或恢复消费者；旧的非空项拒绝继续有效。详见README最新章节，不能把helper成功当作运行政策准入。

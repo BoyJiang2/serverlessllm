@@ -1,0 +1,33 @@
+{
+  "recorded_utc": "2026-10-29T08:40:35.614025+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "marlin_aux.py": "b458e0a4f624f3e0e4c98fca5191ed56e8a190549bef9a35f0fae62da42865cf",
+    "test_marlin_aux.py": "2e8ad89e9418f16c2e3bdee3fff1fcdd9cab293847c1d4a54f603d0c3a3b65a0",
+    "fixtures/vllm_w4a16_moe.py": "0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "marlin_aux.py": "2e316b6b76e4521aa780cf0a74f94de7c2c89b2eb2ceb60ac0abdbe6e85e03c3",
+        "test_marlin_aux.py": "e5c4a14deb2af1dc37ac479b7a92773401de6e828cb9cca696094802418d36a1"
+      },
+      "finding": "source filename and full file hash do not bind actual installed method code",
+      "resolution": "compare actual method code to precise method compiled from frozen source and reject instance override; negative tests retain original parameter bindings"
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 68,
+  "elapsed_seconds": 1.315,
+  "limitations": [
+    "static review and hashes only; tests run by main",
+    "isolated source-code CPU fixture, not imported or initialized vLLM backend",
+    "single-layer component; receipt not yet bound to full export or restoration",
+    "native Store, CUDA kernels and service not verified"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}
