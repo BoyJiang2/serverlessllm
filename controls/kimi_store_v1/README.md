@@ -36,3 +36,30 @@ CPU测试覆盖记录/分区对齐、非整块输入、特殊原始字节、零�
 当前共18项CPU测试通过。复审发现的负长度导致`read(-1)`风险已修复：读文件前要求长度、分区号和局部offset是非布尔非负整数，并用fstat拒绝超文件范围；回归覆盖拒绝发生在文件访问之前。候选把padding清零；native的记录padding未明确清零，因此仅承诺布局和有效payload一致，不能声称padding物理字节与native逐字节相同。
 
 下一步需要核实固定SLLM Python `save_dict/load_dict`索引schema，接入shape/stride/dtype、别名与量化sidecar，然后用原生Store读回该候选。尚未实现上述清单第3项所要求的完整GPU逐块导出/写入连接，不得据此开始全量转换。
+
+## 原生索引CPU闭环
+
+`native_index.py`按固定SLLM commit `9f50241baa5386e06a9321c51f19a9ef5f964c2b`的`save_dict()`生成`tensor_index.json`：`name: [offset, storage_bytes, shape, stride, dtype]`。保留原始官方`config.json`（包括嵌套量化配置），用独立Kimi sidecar绑定rank计划、数据记录和索引SHA。只接受零storage_offset、独占完整storage、canonical contiguous stride；非完整view/重叠别名明确拒绝，不能从contiguous标志推断其拥有底层allocation。
+
+先重算契约并读回数据SHA，检查物理分区和global/local偏移后发布。每个metadata文件使用独占partial+原子hardlink无覆盖发布，索引最后提交。hardlink成功即提交完成；后续临时文件清理失败通过返回值`cleanup_pending`报告，不把已发布误报成未发布。失败保留证据，不自动覆盖/重试。
+
+`read_index()`要求外部可信的sidecar SHA，验证sidecar、官方config、索引和payload，防止仅修改自描述hash后通过。不把“数据与给定记录SHA一致”宣称为已证明来自官方checkpoint或TP映射；这些仍需八rank原生参考。
+
+CPU测试实际从`fixtures/native_torch.py`提取并执行固定源文件的`save_dict()` AST，与候选索引比较。只替换其底层save_tensors回调和微型tensor元数据对象，未运行Torch/CUDA扩展，故**只是原始Python schema一致性，不是原生Store消费验证**。原文件完整保留Apache-2.0声明，SHA `a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9`；来源：`https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/sllm_store/torch.py`。
+
+当前24项CPU测试通过，含索引/sidecar/config/payload损坏、遗漏张量、storage view、错误offset、禁止覆盖、提交后清理失败。原生Store扩展读取、vLLM接线、GPU导出仍未完成。暂不生成模型服务ready或运行批准。
+
+## TP8融合形状源码分析
+
+从已冻结SHA的vLLM v0.19.1 `CompressedTensorsWNA16MarlinMoEMethod.get_weight_shape()`提取纯方法fixture，CPU直接执行两分支。假定纯TP8、无EP、SwiGLU、384专家、hidden7168、每rank intermediate256、group32、packed factor8：
+
+| 参数 | Marlin | Flashinfer |
+|---|---|---|
+| w13 packed | [384,896,512] | [384,512,896] |
+| w2 packed | [384,32,7168] | [384,7168,32] |
+| w13 scale | [384,224,512] | [384,512,224] |
+| w2 scale | [384,8,7168] | [384,7168,8] |
+
+在I32 packed和BF16 scale假设下，8rank×60MoE层字节和分别507343011840B、63417876480B，与官方checkpoint相应总量吻合；这只验证条件形状和字节守恒，不证明实际选中backend、专家编号/转置/切片顺序或原值映射。完整MoE模块源SHA `0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f`，纯方法fixture SHA `901a3061cdd00510ecd9998a84fa836286acecd30634df48fc502e3c6c4c23e2`。
+
+源码还会创建融合后的weight_shape/g_idx等参数，不能以原始Safetensors名称数量代替初始化后的清单；其中weight_shape创建未显式指定dtype，实际取决于默认dtype上下文。需要实测记录，不能假定继续是原checkpoint的I32。下一步是接通真实完整rank清单与读写入口，完成固定backend的映射审计设计；原始checkpoint及配置继续完整保留。
