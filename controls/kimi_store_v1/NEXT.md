@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 最新device_state.py及显式CUDA rank/Marlin辅助规范化候选已补齐，144项CPU测试通过；旧CPU入口/描述器保留，核心source规则和全60层先预检后变更共用。当前修订审阅见device-preparation-review.json。CPU parity/拒绝测试不是CUDA成功路径或真实模型验证；下一步连接固定vLLM Base生命周期与native_call/install，再补新worker及受控退出协议，不直接执行GPU。
+
 - 最新native_call.py接固定nonblocking函数的私有调用环境，记录同次PyCapsule base/bytes/offsets/replica、带剩余deadline的RPC和显式完成响应；139项CPU测试通过，当前审阅见native-call-review.json。source client成功confirm返回None，候选直接核RPC响应并在restore包装前确认，不沿用旧真值判据。失败明确保留cleanup未验证并要求worker/context受控退出，不主动free潜在DMA地址。下一项：新worker隔离/失败回收协议和vLLM生命周期组合；不能把此夹具调用或旧守护当真实运行准入。
 
 - 新增native_payload.py/native_install.py及小CPU测试，134项通过：已将可信侧车、角色/codec、目标预检、区间/实际字节摘要、引用锚和参数安装组合。测试仍为CPU frombuffer小状态，未调用native/CUDA/全模型；current修订复审见native-install-review.json。runtime_inventory新增显式indexed CUDA元数据设备匹配，默认CPU不变。下一项：固定native分配调用的同次allocation记录/完成确认与失败清理包装，再接已有vLLM生命周期；不能用CPU mock冒充真实调用或绕过新运行审阅。

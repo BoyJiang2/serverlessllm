@@ -1,4 +1,4 @@
-"""Explicit CPU-only normalization of source-proven no-actorder scratch.
+"""Explicit device-bound normalization of source-proven no-actorder scratch.
 
 Call with an explicit source-after-load or target-before-restore phase. This changes
 parameter bindings; only source-phase receipts may accompany a subsequent export.
@@ -22,8 +22,25 @@ PROFILE = dict(tp=8, pp=1, expert_parallel=False, sequence_parallel_moe=False,
 
 def _prepare_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
                            vllm_version, phase):
+    return _prepare_auxiliary(layer, name=name, rank=rank, profile=profile, config_raw=config_raw,
+                              vllm_version=vllm_version, phase=phase, device='cpu')
+
+
+def _prepare_cuda_auxiliary(layer, *, device, **context):
     import torch
-    from cpu_tensor_io import tensor_layout
+    expected = torch.device(device)
+    if expected.type != 'cuda' or expected.index is None:
+        raise ValueError('explicit indexed CUDA device required')
+    return _prepare_auxiliary(layer, device=expected, **context)
+
+
+def _prepare_auxiliary(layer, *, name, rank, profile, config_raw, vllm_version, phase, device):
+    import torch
+    from device_state import owned_device_layout
+    from cpu_tensor_io import tensor_layout as cpu_layout
+    expected_device = torch.device(device)
+    def tensor_layout(tensor):
+        return cpu_layout(tensor) if expected_device.type == 'cpu' else owned_device_layout(tensor, expected_device)
     config = validate_config(config_raw)['text_config']
     if (type(rank) is not int or rank not in range(8) or profile != PROFILE
             or vllm_version != '0.19.1' or phase not in ('checkpoint_loaded_before_postprocess', 'target_initialized_before_restore')):

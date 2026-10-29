@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新显式CUDA准备候选：新增device_state元数据/视图及CUDA rank/Marlin辅助入口，共用已绑定源分支和60层预检编排，旧CPU入口保留。144项CPU测试通过，审阅见device-preparation-review.json；CUDA成功分支未运行。当前仍没有经实际GPU验收的vLLM原生入口或完整转换器。
+
 最新 `native_call.py` 包装固定native nonblocking函数，在私有环境记录本次分配与offsets、显式检查完成RPC后才构造Tensor包装。139项CPU测试通过，修订审阅见native-call-review.json。真实native执行、worker隔离、失败context/Store退出及vLLM GPU生命周期仍未通过；未提供可直接启动的服务入口。
 
 最新组合候选：`native_install.py`已经连接可信元数据、逐块原字节校验、角色/codec恢复及引用锚，`native_payload.py`以至多8MiB主机块审计已返回张量。134项CPU测试通过，当前修订静态审阅见`native-install-review.json`。仍未接真实native分配/完成确认和vLLM GPU入口；CPU夹具不能作为运行准入，详见`NATIVE-RESTORE.md`。

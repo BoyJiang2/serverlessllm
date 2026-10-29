@@ -10,7 +10,7 @@ from auxiliary_manifest import validate_auxiliary_receipts
 from checkpoint_contract import load_targets
 from contract import REVISION, plan_rank
 from cpu_tensor_io import write_cpu_state
-from marlin_aux import NAMES, _prepare_cpu_auxiliary
+from marlin_aux import NAMES, _prepare_cpu_auxiliary, _prepare_cuda_auxiliary
 from native_index import publish_index
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
@@ -19,8 +19,27 @@ from state_bindings import collect_state_bindings
 
 
 def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=None, **context):
+    return _normalize_rank_auxiliary(model, checkpoint_contract=checkpoint_contract,
+        buffer_codecs=buffer_codecs, device='cpu', describe=encode_cpu_state,
+        prepare=_prepare_cpu_auxiliary, context=context)
+
+
+def normalize_rank_cuda_auxiliary(model, *, device, checkpoint_contract, buffer_codecs=None, **context):
+    import torch
+    from device_state import encode_device_state
+    expected = torch.device(device)
+    if expected.type != 'cuda' or expected.index is None:
+        raise ValueError('explicit indexed CUDA device required')
+    return _normalize_rank_auxiliary(model, checkpoint_contract=checkpoint_contract,
+        buffer_codecs=buffer_codecs, device=expected,
+        describe=lambda model, codecs: encode_device_state(model, device=expected, buffer_codecs=codecs),
+        prepare=lambda layer, **kwargs: _prepare_cuda_auxiliary(layer, device=expected, **kwargs),
+        context=context)
+
+
+def _normalize_rank_auxiliary(model, *, checkpoint_contract, buffer_codecs, device, describe, prepare, context):
     targets = load_targets(checkpoint_contract)
-    inventory = collect_inventory(model, targets)
+    inventory = collect_inventory(model, targets, device=device)
     collect_state_bindings(model)
     names = {f'language_model.model.layers.{i}.mlp.experts' for i in range(1, 61)}
     modules = dict(model.named_modules(remove_duplicate=False))
@@ -32,7 +51,7 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=No
         raise ValueError('incomplete rank auxiliary state')
     other = dict(inventory, tensors={n: r for n, r in inventory['tensors'].items() if n not in auxiliary})
     require_safe_byte_export(other)
-    named, layouts, _ = encode_cpu_state(model, buffer_codecs)
+    named, layouts, _ = describe(model, buffer_codecs)
     for layout in layouts.values():
         stride, step = [], 1
         for dim in reversed(layout['shape']):
@@ -51,7 +70,7 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=No
             seen[pointer] = name
     prepared, receipts = [], []
     for name in sorted(names, key=lambda n: int(n.split('.')[3])):
-        replacements, receipt = _prepare_cpu_auxiliary(modules[name], name=name, **context)
+        replacements, receipt = prepare(modules[name], name=name, **context)
         prepared.append((modules[name], replacements))
         receipts.append(receipt)
         for leaf, layout in receipt['after'].items():

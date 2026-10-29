@@ -52,6 +52,14 @@ inventory默认CPU行为保留，新增显式indexed CUDA设备的元数据匹�
 
 清理标志分别登记：`worker_cleanup_required`描述分配/worker风险，`store_request_attempted`与`store_cleanup_required`在发出首个加载RPC前置真。即使CPU请求失败、尚无GPU分配，Store也可能已有副作用；不能把worker标志为false解释为Store没有加载或资源已释放。调用方需隔离并核验本实验Store的退出，不对共享/他人Store执行卸载。
 
+## CUDA rank 准备的源代码候选
+
+接生命周期前发现原 `normalize_rank_cpu_auxiliary` / `_prepare_cpu_auxiliary` 必须拒绝CUDA，不能直接复用为GPU入口。保留CPU公开入口及其描述器，提取全60层预检/变更编排与固定Marlin源码分支；另增 `normalize_rank_cuda_auxiliary` / `_prepare_cuda_auxiliary`，要求显式 `cuda:N`，每个张量元数据必须匹配同设备。仍仅支持冻结Marlin/no-actorder及固定profile，不外推Flashinfer。
+
+`device_state.py` 描述初始化前置状态的全owned storage、canonical stride、原始dtype和显式complex编码；只有零复制dtype视图，没有D2H、数值cast或完整CPU副本。它不用于native返回的任意区间，不能替代native_spans。CPU路径继续用旧encode_cpu_state/tensor_layout，既有139项测试保留；新增五项CPU测试验证新描述器与CPU旧描述器的原位地址/metadata一致、拒绝不支持view/dtype/codec，并验证CUDA入口遇CPU张量时在任何GPU分配之前拒绝且不改绑定。
+
+共144项CPU测试通过，CUDA成功分支及GPU空aux创建尚未执行。不能以拒绝测试或CPU同构测试声称真实GPU准备已验证。下一步将这些新入口与native_call/native_install及固定vLLM Base生命周期组合；worker隔离、失败退出和运行准入仍待完成。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。
