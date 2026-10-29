@@ -24,3 +24,15 @@
 6. 对I32 packed值、BF16 scales/权重、F32路由参数和所有必要元数据做八rank全量校验；建立新原生金标。现有GLM格式和金标不得借用。
 
 本轮不连接服务器、不读595GB输入、不占GPU/Store池/页缓存；CPU通过后仍需镜像/完整适配审阅、有效资源窗口、独立守护与模型实际验证。先GLM实际验收及释放，再Kimi原生参考→Store正确性→完整服务。
+
+## 原始分区写入候选（后续CPU工作）
+
+`stream_writer.py`新增顺序CPU buffer写入及有界读回SHA校验。参考归档的`controls/candidate13e/evidence/runtime/source-v7/sllm_store/csrc/checkpoint/`中TensorWriter/AlignedBuffer：`tensor.data_N`，记录尾补齐8字节，分区尾补齐4096字节，默认10GiB阈值；与原实现一致，不跨分区拆一个大tensor。分块是同一记录的流式输入，不能对每一块重新加记录padding。
+
+每个输入buffer至多8MiB；调用者仍须避免自己预先生成整份CPU字典，buffer限制不等于进程RSS上限。顺序返回逻辑offset、分区号、分区内offset、长度及逐记录SHA。现阶段不做alias去重，单独重复存储，只会增加预计字节数。新目录独占创建，出错保留不完整目录；没有写入任何native索引、ready标志或成功Store收据，调用者不得把失败目录发布给服务。
+
+CPU测试覆盖记录/分区对齐、非整块输入、特殊原始字节、零长度与单记录超过阈值、SHA错误、截短/超长、重复名称、目标已存在、短写及读回损坏。测试目录使用微型字节夹具，不是模型权重；本轮未调用原生Store扩展或GPU loader，因此只证明此候选的CPU文件布局与字节往返，**不证明原生加载兼容性**。
+
+当前共18项CPU测试通过。复审发现的负长度导致`read(-1)`风险已修复：读文件前要求长度、分区号和局部offset是非布尔非负整数，并用fstat拒绝超文件范围；回归覆盖拒绝发生在文件访问之前。候选把padding清零；native的记录padding未明确清零，因此仅承诺布局和有效payload一致，不能声称padding物理字节与native逐字节相同。
+
+下一步需要核实固定SLLM Python `save_dict/load_dict`索引schema，接入shape/stride/dtype、别名与量化sidecar，然后用原生Store读回该候选。尚未实现上述清单第3项所要求的完整GPU逐块导出/写入连接，不得据此开始全量转换。
