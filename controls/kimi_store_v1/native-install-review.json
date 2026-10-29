@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-29T18:38:36.7270343Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "native_payload.py": "9c1ead1f52dc9fcf87d58350653e175b1f7d7d89c6c36a991c085dd29f46ec0c",
+    "native_install.py": "db6dfdbe25e86aec3285f1ce94b79e393b640a4022d32bf6772ffb471be29351",
+    "runtime_inventory.py": "d59ff5e332f35d3de19cede411bedcafdab2ce1ce1231122c96c14117dec4c72",
+    "test_native_payload.py": "ad5738e31922ecf9130d268d9f042dae7c3b888e0a13d50f782dd434b9284e14",
+    "test_native_install.py": "0cc50e4356ca1501d41db4c207a13c9849d1a9b2b97cc563a7b65099bc2c00ed",
+    "NATIVE-RESTORE.md": "150fdaecf6a209e6d960edeaf0901d295466f3c88558836fc707e033b38eb626",
+    "README.md": "22b2242aaed7040d5ad14dc1a886992a39b465ed865929723da2110faad528a1"
+  },
+  "tests": {
+    "scope": "tiny CPU fixtures; native allocation and CUDA runtime not executed",
+    "seconds": 3.592,
+    "count": 134,
+    "executor": "primary agent",
+    "torch": "2.10.0+cpu"
+  },
+  "verified": [
+    "Roles, target layouts and hidden tensors rejected before installation",
+    "Payload digest verification and complex views complete before anchor and bindings mutate",
+    "Bounded uint8 host copies preserve packed INT4 and scale bytes; no complete CPU state copy",
+    "Default CPU inventory behavior retained"
+  ],
+  "limitations": [
+    "Static review only; reviewer did not run tests",
+    "Actual allocation records, quiescence and completion confirmation are caller obligations",
+    "No proof of CUDA synchronization, native deleter lifetime, D2H peak or full model"
+  ]
+}

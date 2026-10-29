@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增native_payload.py/native_install.py及小CPU测试，134项通过：已将可信侧车、角色/codec、目标预检、区间/实际字节摘要、引用锚和参数安装组合。测试仍为CPU frombuffer小状态，未调用native/CUDA/全模型；current修订复审见native-install-review.json。runtime_inventory新增显式indexed CUDA元数据设备匹配，默认CPU不变。下一项：固定native分配调用的同次allocation记录/完成确认与失败清理包装，再接已有vLLM生命周期；不能用CPU mock冒充真实调用或绕过新运行审阅。
+
 - 2026-10-30：新增native_spans.py/test_native_spans.py，124项CPU测试通过。校验单次native分配的地址区间/alias、拒绝重叠和越界，并提供模型寿命的全部native Tensor引用保留。读C++后修正NATIVE-RESTORE.md：实际各tensor from_blob独立包装，只有一个offset0包装持cudaFree；不能误称统一大Storage或漏保留owner。当前仅CPU模拟地址/weakref，不是CUDA分配回收证明；未接真实native调用的allocation记录或安装入口。下一步接受信任的同次分配记录及有界payload验证，再组合角色/codec安装，仍需独立运行审阅和新守护。
 
 - 原生协议接点已补充 `NATIVE-RESTORE.md` 与固定源码 AST 的三项 CPU 协议测试，共117项CPU测试通过。客户端/CUDA边界全为Mock，不是native实测；确认返回值被旧Python包装器忽略、CUDA backing storage不能套CPU全storage校验等限制已显式列出。用户已允许空闲借用GPU，但仍须新窗口/资源/独立审阅/守护；下一步是CUDA消费者的区间与别名预检及必要CPU测试，不直接启动尚未实现的模型入口。

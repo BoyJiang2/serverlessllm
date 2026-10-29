@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新组合候选：`native_install.py`已经连接可信元数据、逐块原字节校验、角色/codec恢复及引用锚，`native_payload.py`以至多8MiB主机块审计已返回张量。134项CPU测试通过，当前修订静态审阅见`native-install-review.json`。仍未接真实native分配/完成确认和vLLM GPU入口；CPU夹具不能作为运行准入，详见`NATIVE-RESTORE.md`。
+
 最新native接点：`native_spans.py`提供单次分配区间/实际地址/alias预检和模型寿命的Tensor引用锚，124项CPU测试通过，修订复审见`native-spans-review.json`。C++逐tensor from_blob只有一个offset0包装器负责cudaFree；此源码寿命风险及原大Storage说明修正详见`NATIVE-RESTORE.md`。尚未接真实分配记录、CUDA消费者及payload验证，不能据此启动或宣称模型恢复成功。
 
 2026-10-30最新补充：CPU文件恢复支持显式codec还原非持久complex64视觉cache，保留原始位与存储别名；允许唯一已审名称在目标尚未登记时补建。全部源payload验证发生在新cache分配及任何目标字节写入之前，登记发生在全部copy成功之后；中途失败仍令整个目标作废，不回滚。直接恢复已有参数及有界读视图，不另建完整state副本。

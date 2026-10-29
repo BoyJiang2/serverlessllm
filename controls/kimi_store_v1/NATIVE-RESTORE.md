@@ -28,6 +28,16 @@
 
 本轮七项小 CPU 测试，总计124项通过；bytearray/frombuffer 夹具只模拟共同 allocation 上的不同 Storage 地址，未运行 native 扩展或 GPU。
 
+## 返回张量的校验与安装候选
+
+`native_payload.py` 对已返回、静止的张量做原始uint8视图，再以最多8MiB的块同步复制到主机并计算逐tensor SHA。即使是CPU夹具也走独立有界副本；不解包、不数值cast、不累积完整CPU状态，alias按已验证的共同区间去重复制但保留全部名称的摘要。消费者不得保留块；块上限不是RSS或CUDA allocation总上限。CPU weakref测试验证前块在下一次yield前释放；实际D2H同步/显存和锁页峰值仍待GPU验证。
+
+`native_install.install_native_state` 组合外部侧车SHA、原有配置/索引/payload校验、rank/阶段、完整角色、原始buffer编码、目标清单与aux receipt、native区间及实际返回值摘要。全部完成并预先构造解码视图后才建立模型引用锚和修改参数/buffer；保留Parameter对象/属性，按manifest恢复非持久buffer，仅允许特定lazy缓存补登记。修改失败目标整体作废，不回滚。默认无checkpoint contract时仍是组件覆盖；传入冻结完整contract才校验其名称范围。
+
+inventory默认CPU行为保留，新增显式indexed CUDA设备的元数据匹配入口，拒绝混设备；未执行GPU分支。原生allocation记录仍必须来自同次调用且经过调用方验证，源码/实际ABI、完成确认及生命周期入口尚未接齐。当前安装器不调用native loader，不执行后处理，也不发布路由。`native_loader_verified`、`runtime_admitted`与opaque policy均保持false。
+
+本轮五项payload与五项组合安装CPU测试，总计134项通过，覆盖混合位模式、alias、独立frombuffer包装、参数属性、缺席complex缓存、错误rank/角色/隐藏状态/损坏payload写前拒绝及持有锚禁止覆盖。不是完整checkpoint转换、CUDA模型或服务证据。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。

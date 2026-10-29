@@ -1,4 +1,4 @@
-"""Metadata-only CPU inventory; roles are review candidates, never exclusions."""
+"""Metadata-only rank inventory; defaults to CPU, with explicit device matching."""
 import re
 from collections import OrderedDict
 
@@ -12,8 +12,12 @@ def is_moe_auxiliary(name):
     return bool(match and int(match[1]) in range(1, 61))
 
 
-def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess'):
+def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess', device='cpu'):
     import torch
+    expected_device = torch.device(device)
+    if (expected_device.type not in ('cpu', 'cuda')
+            or (expected_device.type == 'cuda' and expected_device.index is None)):
+        raise ValueError('explicit CPU or indexed CUDA device required')
     if phase not in ('before_postprocess', 'after_postprocess'):
         raise ValueError('unknown inventory phase')
     expected = set(checkpoint_targets)
@@ -57,8 +61,8 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
     finally:
         del walk  # Break the recursive closure cycle, including on budget failure.
     for kind, name, tensor, persistent in named:
-        if name in rows or tensor.device.type != 'cpu' or tensor.layout != torch.strided:
-            raise ValueError('duplicate name or unsupported device/layout in CPU inventory')
+        if name in rows or tensor.device != expected_device or tensor.layout != torch.strided:
+            raise ValueError('duplicate name or unsupported device/layout in inventory')
         size = tensor.numel() * tensor.element_size()
         storage = tensor.untyped_storage()
         role = 'checkpoint' if name in expected else 'runtime_' + kind
