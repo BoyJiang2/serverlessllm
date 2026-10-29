@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 最新native_record_call.py已接逐记录allocator→多handle单次Store请求→确认→canonical恢复，183项CPU测试通过，当前复审见native-record-call-review.json。public入口绑定已编译补丁的build receipt和磁盘库身份，未编译ledger在全payload扫描前拒绝；预检计入同一deadline。成功core仅CPU allocator/IPC/RPC/restore回调，public真实ABI未通过，未接原工厂。MULTI-HANDLE-PRODUCER.md列明不能将磁盘hash当已映射/活跃Store证明。
+- 下一项接CPU文本/官方CUDA视觉及mm_projector混设备初始化和producer/独立安装，再补实际库构建/worker/守护与释放probe；原两份GPU预算拒绝保留，不直接开跑。
+
 - 新增独立native_patch/model.cpp关闭错误传播候选及实际ToGpu尾部的CPU C++编译故障测试，177项CPU测试通过，当前复审见ipc-close-review.json。旧片段在close/device故障仍报成功的控制已复现，新片段返回INTERRUPTED并在关闭尝试后通知。未构建完整Store、链接CUDA或部署；未改旧归档。下一项多handle producer需绑定该修订的实际库与RPC失败证据，再接混设备初始化及完整worker/guard；不能据Python SHA或布尔确认认定IPC已关闭。
 
 - 新增record_allocations与独立payload/install组件，175项CPU测试通过，当前复审见record-allocation-review.json。查明仅CPU初始化不能覆盖whole native块被锚保留时的重排峰值；新候选按记录canonical独立包装、alias共享Storage owner，CPU weakref证明可逐记录释放而非锚住全raw state。旧single-allocation分支与预算拒绝保留，当前native工厂未改成新模式。

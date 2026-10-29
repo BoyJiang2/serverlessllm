@@ -1,0 +1,25 @@
+# 逐记录多handle加载候选
+
+2026-10-30。`native_record_call.py` 连接已审分配计划、Store客户端、逐记录恢复与独立安装。这里只做本机CPU协议测试，未构建完整原生库、运行GPU或形成可启动worker。
+
+## 调用链与边界
+
+public入口先检查显式rank/device/时间及字节预算、目录边界和侧车SHA，再检查外部绑定的build receipt，随后执行既有索引/完整payload自校验。未编译的native_patch/ledger.json会在payload扫描前被拒绝，不能拿源码ledger当已部署证明。整个public调用共用绝对monotonic deadline，预检/文件校验耗时计入预算；Python不能中止文件或native阻塞，宿主独立守护仍必需。
+
+build receipt要求schema=kimi-independent-native-build-v1、实际compiled_native_store和当前model_source_sha256，记录checkpoint库SHA、Store库路径/SHA；receipt本身须由调用方给出外部SHA绑定。检查器核对固定Python source/code、四个native函数来自同一已导入extension对象及磁盘库hash。它不证明已映射字节、活跃Store进程或窗口/守护；mapped_library_bytes_verified、live_store_process_verified、runtime_admitted均保持false。当前没有可通过该生产绑定的真实build receipt。
+
+core先向本实验拥有的loopback Store请求host加载；每个非空canonical记录调用原生allocator一次，记录真实PyCapsule地址，检查对齐/重叠，再由既有scalar get_cuda_memory_handles获得64字节IPC handle。零字节scratch不分配。所有handle装入一次load_into_gpu请求，copy chunk保留源文件offset、目标offset为0、handle_idx指向对应分配；alias不重复写或分配。
+
+显式ConfirmModel响应通过后，按每个canonical单独恢复owner，alias共享同一Tensor，返回IndependentRecordState及同次分配收据。后续安装器可验证全部摘要并依赖各StorageImpl，而非全raw模型锚。该路径直接复用原生Store低层API，**没有调用原load_dict入口**，receipt明确load_dict_entry_used=false；不能冒充旧single-allocation路径或宣称等价服务时延。
+
+请求预算包括host请求、分配、IPC、GPU请求、确认及恢复；所有RPC均透传剩余deadline。失败保留阶段、分配尝试/地址/字节、replica、已构造state、Store与worker各自清理义务，不cudaFree或卸载共享Store。RPC超时不证明服务端DMA停止，关闭错误传播需要实际补丁库；失败worker/context须由本run守护受控退出并留证。字节cap只约束请求payload，不含原生分配粒度、上下文、工作区或全主机RSS。
+
+## 本轮验证
+
+新增六项CPU测试，总计183项通过。固定客户端代码在小CPU buffer上执行真实protobuf形状的序列化夹具：4个独立真实PyCapsule、4个handle、一次确认后4次canonical包装，随后真实独立payload/install验证packed/BF16位。allocator/IPC/transport/restore是明确CPU回调，不是实际CUDA或gRPC服务。
+
+覆盖CPU请求、部分分配、重叠、GPU请求、错误确认、模拟补丁关闭错误RPC和包装失败，均保留清理义务且确认前不构造owner；预算/非loopback拒绝发生在任何native请求前。public入口单独验证未编译ledger不能授权、预检超时不进入core。成功的core夹具没有绕过public二进制检查去宣称生产入口通过；public正向真实ABI仍待验证。
+
+## 尚未闭合
+
+新producer尚未接入vllm_native_hook，原native工厂的双份预算拒绝继续保留。接下来须核验/实现CPU文本与官方CUDA视觉/mm_projector混设备初始化、实际库构建/独立审阅/活跃Store身份、释放与峰值probe及完整worker/guard。旧GLM正式数据、金标与40ID不变；不启动R24或更改任何模型/量化/TP来绕开资源问题。

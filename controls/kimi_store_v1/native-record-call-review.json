@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-29T22:13:29.581852+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "native_record_call.py": "6e853caabe76a916d3c6c2740c82158015f3b024143c86b705841b7ad074c12a",
+    "test_native_record_call.py": "9a0851d2862697523c8138d4089b55a5ee557525517a2aa689bce7cff26b80a6",
+    "MULTI-HANDLE-PRODUCER.md": "9aad2fbcacbb29275df92631bfb6e790e35396ed287d130e1a478d08782da19f",
+    "NEXT.md": "2304ac3856e7b84eb99e2d377e5ba8ee9d40da758af729dbdb7cf523c22e63c6",
+    "README.md": "b389eeecce8c006b4b6f8810a6e3277a118aa70bf2cf89b38c1cdc1a60e60d4b"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 183,
+    "seconds": 6.42,
+    "scope": "Tiny CPU allocator/IPC/RPC/restore fixtures and full local CPU suite"
+  },
+  "verified": [
+    "Preflight included in same absolute deadline; RPCs use remaining budget",
+    "Canonical allocations, handle indices and single multi-handle Store request agree",
+    "Confirmation precedes Tensor restore; failures retain cleanup obligations",
+    "Pinned scalar pybind IPC handle interface matches caller"
+  ],
+  "limitations": [
+    "Reviewer performed static reading and hash checks only",
+    "Build receipt and disk hashes do not prove mapped libraries or live Store process identity",
+    "No positive public native ABI test; CPU core fixtures are not CUDA validation",
+    "Real DMA, IPC close, partial failure release and peak memory require guarded runtime validation",
+    "No GPU execution admission or worker integration"
+  ]
+}

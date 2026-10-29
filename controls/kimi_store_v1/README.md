@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新逐记录producer已连通多handle协议及独立安装CPU链，183项CPU测试通过，复审见native-record-call-review.json；public真实二进制绑定/活跃Store及CUDA仍未验证。详见MULTI-HANDLE-PRODUCER.md。未接混设备工厂，原GPU预算拒绝继续生效，没有实际GPU或完整转换。
+
 最新IPC错误传播候选：native_patch/model.cpp及实际源尾部的CPU编译故障控制已通过，总计177项CPU测试，复审见ipc-close-review.json。只是独立源码，未编译/部署完整Store或执行CUDA；下一步多handle加载必须核验实际库修订，不能沿用旧确认语义。
 
 最新逐记录寿命候选：record_allocations与独立payload/install分支已有175项CPU测试，复审见record-allocation-review.json。CPU小buffer证明alias最后使用后可释放该记录、其他记录仍活跃；未运行CUDA，未接多handle native producer或混设备工厂。详见ALLOCATION-LIFETIME.md，不能宣称显存问题已实际解决。
