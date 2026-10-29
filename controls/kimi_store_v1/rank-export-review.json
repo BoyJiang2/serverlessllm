@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-10-29T08:49:56.772632+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "rank_export.py": "a37787eee62b5184db849bda879770701d927969a1b1fd0aee07b53a7a06450c",
+    "test_rank_export.py": "ab565d7aa9309de262ac4815fa6bb81556fc36cb57d12032aaf301b9a1c1e240",
+    "marlin_aux.py": "10e3ccfec12a0ce634c74d11844bc7d414087a88e02b8dc2d684b6e0c4c01902"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "rank_export.py": "3377e038412d45bd6ea9aacac940e94f210d2a4d6ef2e2fef190618e09313316",
+        "test_rank_export.py": "ffcc4db6f1a360499c493577e4717cdfed96155816e510611683682aea3bdae0",
+        "marlin_aux.py": "10e3ccfec12a0ce634c74d11844bc7d414087a88e02b8dc2d684b6e0c4c01902"
+      },
+      "finding": "contiguous singleton with noncanonical stride could be rejected by publisher only after scratch mutation",
+      "resolution": "same canonical stride precheck as publisher before preparation; real singleton regression confirms unchanged bindings and no helper calls"
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 78,
+  "elapsed_seconds": 3.249,
+  "scope": "CPU rank preparation and export composition; six new controller tests",
+  "limitations": [
+    "reviewer static/hash review only; tests executed by main",
+    "new sixty-module tests mock helper and target boundaries, not full Kimi model verification",
+    "real frozen contract rejects tiny fixture",
+    "no actual TP payload, native Store or GPU runtime verification"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}

@@ -20,8 +20,8 @@ PROFILE = dict(tp=8, pp=1, expert_parallel=False, sequence_parallel_moe=False,
                use_mla=True, encoder_tp_mode='data')
 
 
-def normalize_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
-                            vllm_version, phase):
+def _prepare_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
+                           vllm_version, phase):
     import torch
     from cpu_tensor_io import tensor_layout
     config = validate_config(config_raw)['text_config']
@@ -70,12 +70,18 @@ def normalize_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
     for other, tensor in list(layer.named_parameters(remove_duplicate=False)) + list(layer.named_buffers(remove_duplicate=False)):
         if other not in NAMES and tensor.numel() and tensor.untyped_storage().data_ptr() in pointers:
             raise ValueError('auxiliary shares storage with other state')
-    for leaf, tensor in replacements.items():
-        setattr(layer, leaf, tensor)
-    return dict(layer=name, rank=rank, phase=phase, action='normalize_to_empty_before_postprocess',
+    receipt = dict(layer=name, rank=rank, phase=phase, action='normalize_to_empty_before_postprocess',
                 config_sha256=CONFIG_SHA256, method_module=METHOD_MODULE, method_class=METHOD_CLASS,
                 method_source_sha256=SOURCE_SHA256, kernel_backend='Marlin', actorder=None,
                 profile=dict(profile), vllm_version=vllm_version, before=before,
                 after={leaf: tensor_layout(tensor) for leaf, tensor in replacements.items()},
                 scratch_payload_read=False, actual_backend_initialized=False,
                 all_layers_verified=False, native_loader_verified=False, runtime_admitted=False)
+    return replacements, receipt
+
+
+def normalize_cpu_auxiliary(layer, **kwargs):
+    replacements, receipt = _prepare_cpu_auxiliary(layer, **kwargs)
+    for leaf, tensor in replacements.items():
+        setattr(layer, leaf, tensor)
+    return receipt

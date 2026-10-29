@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 本轮rank_export.py接入60层全预检再变更及CPU export/write/publish编排；78项CPU测试通过；初审canonical-stride预检缺口已修复，新增真实singleton stride负例。修订复审已返回PASS并核验三文件SHA，见rank-export-review.json；78项测试由主线程执行，不重复派发。新60层测试仅小控制流fixture，单层helper/目标边界有mock；真实冻结contract明确拒绝该fixture，不是全模型或转换通过。
+- 下一项：梳理并实现视觉非持久buffer/opaque状态的必要性与处理政策，再把真实vLLM构造/加载入口接到CPU导出接口（仅写代码/小测试，不执行全模型）。已存在rank_export不等于已可运行的完整转换器，native load_dict/实际八卡仍待验证。
+
 - 本轮auxiliary_manifest已绑定write_cpu_state/native publish/read与CPU restore来源/目标独立receipt；72项CPU测试通过。当前完整6文件静态审阅已返回PASS并核验SHA，见auxiliary-manifest-review.json；72项测试由主线程实际运行，不重复派发。旧“receipt未绑定”条目为历史断点。
 - 下一项：实现整rank 60层的显式处理编排及完整checkpoint目标/状态清单接线，代码可先写、仅小CPU夹具验证；不要构造完整模型/转换。查清视觉必要buffer、opaque及实际vLLM/native接口，当前仍非完整转换器。
 

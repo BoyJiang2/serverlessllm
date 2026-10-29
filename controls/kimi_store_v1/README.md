@@ -181,3 +181,16 @@ receipt尚未绑定native index侧车，完整60层/八rank的编排及恢复消
 新增单层CPU集成测试走normalize→有界写→native-schema发布→CPU恢复→原始指纹比较；仍不调用native load_dict、不构造完整60层模型、不触碰GPU。72项测试另覆盖缺失receipt写前拒绝、目标无receipt不变、重复/错rank/被改recipe拒绝、侧车缺receipt拒绝及拷贝隔离。
 
 receipt校验只证明记录与冻结规则、布局及外部SHA一致，不独立认证函数实际执行、phase真实性或backend初始化；这些必须由后续运行证据补齐。all_layers_verified、actual_backend_initialized、runtime_admitted继续false。尚需60层编排、完整对象状态/视觉buffer政策和真正vLLM/原生Store恢复入口。
+
+
+## 整rank预检与导出编排（78项CPU测试及修订复审PASS）
+
+`rank_export.normalize_rank_cpu_auxiliary()`先加载完整冻结目标清单，要求1–60层routed expert模块存在且各自独立；全部checkpoint目标缺失、直属未知Tensor、非CPU/非完整storage/未知dtype以及辅助存储跨状态共享会在任何绑定变更前拒绝。单层规范化已拆为非变更的_prepare与原public执行步骤，整rank先完成全部60层源码/布局预检并验证投影后的receipt清单，最后才统一替换240个辅助参数。此处的全层代码遍历不把实际backend初始化或完整模型正确性flag改成true。
+
+`export_rank_cpu()`仅接受调用方已构造并加载checkpoint的CPU模型，连接整rank准备→现有有界写→plan→native-schema发布，保留来源/目标限制，不构造模型、不下载、不加载CUDA、不绕过未知状态。接口实现不代表已授权执行完整转换。预检阶段的source_inputs只含元数据，临时named张量列表及时释放，避免替换前scratch引用跨越后续文件I/O。模型本体、规范化前scratch、allocator和其他驻留仍须另算RSS；这不是全模型内存峰值证明。
+
+新增6项测试使用约240个单元素参数的60模块控制流夹具，并mock已另测的单层source/helper和目标清单边界；只验证全部预检先于首个变更、最后层失败保持所有绑定、缺层/共用模块/跨状态共享拒绝、无效预算写前拒绝、预检列表不延长旧张量寿命。未mock的冻结完整contract明确拒绝该夹具，测试不输出假完整Store、不运行全模型，也不把mock过的来源/shape当实际权重证明。原有真实单层及分块组件测试继续运行，共78项。
+
+预检失败保证不变更；执行替换或I/O期间出现其他异常时，整个模型/输出目录作废，保留失败证据，不承诺事务回滚或自动重试。尚需完整对象/视觉buffer政策、真实模型构造与载入接线、原生load_dict和实际八rank后处理/业务验证。
+
+本轮初审发现size-1维的非canonical stride虽可is_contiguous/full-owned，但原发布器会拒绝，若不预检会在修改scratch后才失败。已把与publish_index一致的canonical stride检验前置，并补真实empty_strided((1,),(2,))负例，证明尚未调用单层prepare且所有原绑定未变；初审记录保留。

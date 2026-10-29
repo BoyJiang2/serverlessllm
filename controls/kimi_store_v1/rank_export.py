@@ -1,0 +1,90 @@
+"""Compose CPU rank preparation and raw export; never construct a model here.
+
+Only validation failures are guaranteed to precede mutation. Mutation/I/O failure
+invalidates the model/export directory; callers must keep failed evidence.
+Actual full-model execution is outside the present CPU microtest authorization.
+"""
+import re
+
+from auxiliary_manifest import validate_auxiliary_receipts
+from checkpoint_contract import load_targets
+from contract import REVISION, plan_rank
+from cpu_tensor_io import tensor_layout, write_cpu_state
+from marlin_aux import NAMES, _prepare_cpu_auxiliary
+from native_index import publish_index
+from runtime_inventory import collect_inventory, require_safe_byte_export
+from stream_writer import CHUNK_BYTES
+
+
+def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, **context):
+    targets = load_targets(checkpoint_contract)
+    inventory = collect_inventory(model, targets)
+    names = {f'language_model.model.layers.{i}.mlp.experts' for i in range(1, 61)}
+    modules = dict(model.named_modules(remove_duplicate=False))
+    actual = {n for n in modules if re.fullmatch(r'language_model\.model\.layers\.\d+\.mlp\.experts', n)}
+    if actual != names or len({id(modules[n]) for n in names}) != 60:
+        raise ValueError('expected sixty distinct routed expert modules')
+    auxiliary = {n + '.' + leaf for n in names for leaf in NAMES}
+    if not auxiliary <= inventory['tensors'].keys():
+        raise ValueError('incomplete rank auxiliary state')
+    other = dict(inventory, tensors={n: r for n, r in inventory['tensors'].items() if n not in auxiliary})
+    require_safe_byte_export(other)
+    named = list(model.named_parameters(remove_duplicate=False))
+    named.extend(model.named_buffers(remove_duplicate=False))
+    layouts = {n: tensor_layout(t) for n, t in named}
+    for layout in layouts.values():
+        stride, step = [], 1
+        for dim in reversed(layout['shape']):
+            stride.insert(0, step)
+            step *= max(dim, 1)
+        if layout['stride'] != stride:
+            raise ValueError('noncanonical stride requires explicit view support')
+    seen = {}
+    for name, tensor in named:
+        if layouts[name]['storage_bytes']:
+            pointer = tensor.untyped_storage().data_ptr()
+            if pointer in seen:
+                prior = seen[pointer]
+                if name in auxiliary or prior in auxiliary or layouts[name] != layouts[prior]:
+                    raise ValueError('unreviewed rank storage sharing')
+            seen[pointer] = name
+    prepared, receipts = [], []
+    for name in sorted(names, key=lambda n: int(n.split('.')[3])):
+        replacements, receipt = _prepare_cpu_auxiliary(modules[name], name=name, **context)
+        prepared.append((modules[name], replacements))
+        receipts.append(receipt)
+        for leaf, layout in receipt['after'].items():
+            layouts[name + '.' + leaf] = layout
+    validate_auxiliary_receipts(receipts, layouts, context['rank'])
+    # All sixty source checks and global metadata checks finished before mutation.
+    for layer, replacements in prepared:
+        for leaf, tensor in replacements.items():
+            setattr(layer, leaf, tensor)
+    return receipts
+
+
+def export_rank_cpu(directory, model, *, config_raw, checkpoint_contract, rank,
+                    profile, vllm_version, torch_version, phase, chunk_bytes=CHUNK_BYTES):
+    # Validate byte bounds and fixed ABI/config even before changing scratch bindings.
+    named = list(model.named_parameters(remove_duplicate=False))
+    named.extend(model.named_buffers(remove_duplicate=False))
+    source_inputs = {n: dict(shape=list(t.shape), dtype=str(t.dtype),
+                            bytes=t.numel() * t.element_size(), contiguous=t.is_contiguous()) for n, t in named}
+    del named
+    plan_rank(config_raw, rank=rank, tensor_parallel_size=8, revision=REVISION,
+              tensors=source_inputs,
+              vllm_version=vllm_version, torch_version=torch_version, chunk_bytes=chunk_bytes)
+    del source_inputs
+    if chunk_bytes > CHUNK_BYTES:
+        raise ValueError('CPU adapter block bound exceeded')
+    receipts = normalize_rank_cpu_auxiliary(model, checkpoint_contract=checkpoint_contract,
+        rank=rank, profile=profile, config_raw=config_raw, vllm_version=vllm_version, phase=phase)
+    records, layouts, info = write_cpu_state(directory, model, chunk_bytes,
+        checkpoint_contract=checkpoint_contract, auxiliary_receipts=receipts, rank=rank)
+    inputs = {n: dict(shape=r['shape'], dtype=r['dtype'], bytes=r['storage_bytes'], contiguous=True)
+              for n, r in layouts.items()}
+    plan = plan_rank(config_raw, rank=rank, tensor_parallel_size=8, revision=REVISION,
+                     tensors=inputs, vllm_version=vllm_version, torch_version=torch_version,
+                     chunk_bytes=chunk_bytes)
+    return publish_index(directory, plan, records, layouts, config_raw,
+                         aliases=info['alias_of'], auxiliary_receipts=info['auxiliary_receipts'])
