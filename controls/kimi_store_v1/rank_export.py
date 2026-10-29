@@ -9,14 +9,15 @@ import re
 from auxiliary_manifest import validate_auxiliary_receipts
 from checkpoint_contract import load_targets
 from contract import REVISION, plan_rank
-from cpu_tensor_io import tensor_layout, write_cpu_state
+from cpu_tensor_io import write_cpu_state
 from marlin_aux import NAMES, _prepare_cpu_auxiliary
 from native_index import publish_index
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
+from buffer_codec import encode_cpu_state
 
 
-def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, **context):
+def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=None, **context):
     targets = load_targets(checkpoint_contract)
     inventory = collect_inventory(model, targets)
     names = {f'language_model.model.layers.{i}.mlp.experts' for i in range(1, 61)}
@@ -29,9 +30,7 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, **context):
         raise ValueError('incomplete rank auxiliary state')
     other = dict(inventory, tensors={n: r for n, r in inventory['tensors'].items() if n not in auxiliary})
     require_safe_byte_export(other)
-    named = list(model.named_parameters(remove_duplicate=False))
-    named.extend(model.named_buffers(remove_duplicate=False))
-    layouts = {n: tensor_layout(t) for n, t in named}
+    named, layouts, _ = encode_cpu_state(model, buffer_codecs)
     for layout in layouts.values():
         stride, step = [], 1
         for dim in reversed(layout['shape']):
@@ -64,10 +63,9 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, **context):
 
 
 def export_rank_cpu(directory, model, *, config_raw, checkpoint_contract, rank,
-                    profile, vllm_version, torch_version, phase, chunk_bytes=CHUNK_BYTES):
+                    profile, vllm_version, torch_version, phase, chunk_bytes=CHUNK_BYTES, buffer_codecs=None):
     # Validate byte bounds and fixed ABI/config even before changing scratch bindings.
-    named = list(model.named_parameters(remove_duplicate=False))
-    named.extend(model.named_buffers(remove_duplicate=False))
+    named, _, _ = encode_cpu_state(model, buffer_codecs)
     source_inputs = {n: dict(shape=list(t.shape), dtype=str(t.dtype),
                             bytes=t.numel() * t.element_size(), contiguous=t.is_contiguous()) for n, t in named}
     del named
@@ -78,13 +76,15 @@ def export_rank_cpu(directory, model, *, config_raw, checkpoint_contract, rank,
     if chunk_bytes > CHUNK_BYTES:
         raise ValueError('CPU adapter block bound exceeded')
     receipts = normalize_rank_cpu_auxiliary(model, checkpoint_contract=checkpoint_contract,
+        buffer_codecs=buffer_codecs,
         rank=rank, profile=profile, config_raw=config_raw, vllm_version=vllm_version, phase=phase)
     records, layouts, info = write_cpu_state(directory, model, chunk_bytes,
-        checkpoint_contract=checkpoint_contract, auxiliary_receipts=receipts, rank=rank)
+        checkpoint_contract=checkpoint_contract, auxiliary_receipts=receipts, rank=rank, buffer_codecs=buffer_codecs)
     inputs = {n: dict(shape=r['shape'], dtype=r['dtype'], bytes=r['storage_bytes'], contiguous=True)
               for n, r in layouts.items()}
     plan = plan_rank(config_raw, rank=rank, tensor_parallel_size=8, revision=REVISION,
                      tensors=inputs, vllm_version=vllm_version, torch_version=torch_version,
                      chunk_bytes=chunk_bytes)
     return publish_index(directory, plan, records, layouts, config_raw,
-                         aliases=info['alias_of'], auxiliary_receipts=info['auxiliary_receipts'])
+                         aliases=info['alias_of'], auxiliary_receipts=info['auxiliary_receipts'],
+                         buffer_encodings=info['buffer_encodings'])

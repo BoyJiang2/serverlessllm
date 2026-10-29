@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 本轮complex64-int32-bits-v1 buffer codec已接CPU写/侧车/读回/指纹/rank包装；92项CPU测试通过。初审alias原始recipe交叉校验缺口已修复；7文件修订只读复审PASS并核验SHA，见buffer-codec-review.json，不重复派发。测试由主线程执行。旧“complex缓存完全不能编码”的历史断点被此更新覆盖；无显式codec仍拒绝。
+- 原生load_dict仍返回物理INT32，decode_cpu_buffers仅CPU视图消费者。下一项需把完整buffer类型/登记/持久性及参数角色绑定到真实vLLM/Store恢复入口，确保decode发生在赋值/后处理前；未运行CUDA/native消费者、完整模型或业务，不可声称全适配。
+
 - 本轮runtime_inventory已扫标准嵌套容器并拒绝container_tensor导出，循环/opaque/预算有证据；85CPU测试通过，5文件只读审阅已返回PASS并核验SHA，见vision-inventory-review.json；85项测试由主线程实际执行，不重复派发。
 - 视觉真实源码小CPU测试确认lazy freqs_cis为complex64，原生归档C++ dtype表没有该类型，warm视觉缓存仍明确不支持；time_weight必须保留且实际dtype受外层cast影响。见VISION-STATE.md。不要添加Python标签冒充原生兼容或丢弃缓存。
 - 下一项：实现可保留complex64完整原位模式的显式buffer编码/恢复侧车及消费者，或最小native dtype补丁，并用真实CPU位模式/别名/损坏负例验证；仍不执行全模型/完整转换。完整opaque政策与真实vLLM/native服务接线也未完。

@@ -205,3 +205,16 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 视觉状态证据见VISION-STATE.md：固定原始Rope类在2x3小网格实际生成lazy nonpersistent complex64缓存，现有dtype清单及归档native C++表均不支持它；存在该缓存时当前写入在文件创建前拒绝。不能仅给Python添加dtype名来冒称原生支持。time_weight虽nonpersistent仍须保留，外层视觉塔dtype转换会改变实际dtype；此次未运行NumPy构造或实际视觉业务。
 
 共85项CPU测试通过，未构造完整模型、512x512缓存或转换，也未访问远端/GPU。下一项应实现并审阅保留complex缓存完整位模式的编码/恢复规则及消费者，或适配原生dtype；还需明确opaque对象的必要状态，不能靠丢缓存/改模型来解决。
+
+
+## complex64 buffer原始位编码（92项CPU测试及修订复审PASS）
+
+`buffer_codec.py`新增显式`complex64-int32-bits-v1`：仅调用方指定的已注册CPU complex64 buffer可编码，必须canonical/full-owned且无lazy conjugate/negative。`reshape(-1).view(torch.int32)`借用同一storage，将完整real/imag位模式写入原生已支持的INT32物理记录，不做数值转换、不重算频率、不触碰官方packed参数或scale。侧车同时记录原complex dtype/shape/stride/storage bytes与平坦INT32布局。标量/空状态仍需同一layout规则；不支持一般view或跨dtype存储共享。
+
+调用方用`buffer_codecs={full_buffer_name: CODEC}`接入CPU写入、指纹、整rank导出与恢复；真实alias只有全部编码且原layout相同时可保留。publish必须接info['buffer_encodings']，read_index校验侧车recipe。固定视觉cache完整FQN出现时强制要求manifest，不能删record后把INT32当原状态。恢复比对来源及目标实际编码描述；原模型buffer绑定仍是complex64。`decode_cpu_buffers(state, encodings)`可将已读回的CPU INT32状态映射为共享storage的complex视图；标准原生load_dict本身仍只会给出物理INT32，实际CUDA消费者尚未接线/验证，不能跳过decode。
+
+92项测试含NaN payload、正负零及任意real/imag word的逐位保留、buffer alias、零复制decode、缺codec/参数codec/未知codec/partial/conjugate/crossdtype alias拒绝、侧车删改及payload损坏拒绝，以及固定原始Rope类的小网格生成→编码→CPU恢复。旧默认路径仍拒绝未声明complex buffer。没有生成512x512缓存、完整模型或Store池，没有GPU工作。
+
+这是CPU编码与恢复组件，不是原生complex dtype新增支持。原生GPU视图重建、目标buffer登记/持久性、完整vLLM消费和视觉输出验证仍待完成；runtime_admitted/native_loader_verified始终false。编码视图不克隆整个buffer，临时字节块上限仍8MiB；源/目的完整状态及缓存驻留成本依旧存在。
+
+本轮初审发现publisher/read缺alias两端原始recipe交叉校验：等字节但不同complex原shape或一端不编码可能被接受。已在发布/读取交叉核验，并让decode根据实际storage识别alias后核验；新增三入口拒绝负例。原发现与旧hash保留在buffer-codec-review.json，修订静态复审PASS。

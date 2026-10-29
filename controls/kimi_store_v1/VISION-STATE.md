@@ -27,3 +27,7 @@ time_weight仅测试原注册语法及Torch buffer dtype转换语义，没有仿
 发现其中Tensor时作为container_tensor记录并阻止导出；记录循环路径、未展开自定义对象类型，
 不读取Tensor值或输出字典键内容。仅标准容器扫描完成不等于完整opaque状态审计。
 递归深度32、节点100000超限直接拒绝，不把截断结果当成功清单。
+
+## 原始位编码进展（当前CPU候选）
+
+新增显式complex64-int32-bits-v1及布局侧车，保留complex完整位模式和相同布局alias；可完成CPU小buffer写入/读回/decode，不能把该成果当作C++新增complex支持。默认无codec仍拒绝现有缓存，真实CUDA消费者与视觉业务仍待接线验证。见README最新章节。

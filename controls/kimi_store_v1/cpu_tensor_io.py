@@ -6,6 +6,7 @@ from stream_writer import CHUNK_BYTES, write_records
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from checkpoint_contract import load_targets
 from auxiliary_manifest import validate_auxiliary_receipts
+from buffer_codec import encode_cpu_state
 
 
 def tensor_layout(tensor):
@@ -43,17 +44,14 @@ def iter_cpu_blocks(tensor, chunk_bytes=CHUNK_BYTES):
 
 
 def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_contract=None,
-                    auxiliary_receipts=(), rank=None):
+                    auxiliary_receipts=(), rank=None, buffer_codecs=None):
     import torch
     targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
     inventory = collect_inventory(model, checkpoint_targets=targets)
     require_safe_byte_export(inventory)
-    named = list(model.named_parameters(remove_duplicate=False))
-    named.extend(model.named_buffers(remove_duplicate=False))
-    tensors = dict(named)
-    if not tensors or len(tensors) != len(named):
-        raise ValueError('empty state or duplicate parameter/buffer name')
-    layouts = {name: tensor_layout(tensor) for name, tensor in named}
+    named, layouts, encodings = encode_cpu_state(model, buffer_codecs)
+    if not layouts:
+        raise ValueError('empty state')
     receipts = validate_auxiliary_receipts(auxiliary_receipts, layouts, rank)
     if (type(chunk_bytes) is not int or chunk_bytes > CHUNK_BYTES
             or chunk_bytes < max(DTYPE_BYTES[r['dtype']] for r in layouts.values())):
@@ -76,6 +74,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_con
         records[name] = dict(records[canonical])
     return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
                                   auxiliary_receipts=receipts,
+                                  buffer_encodings=encodings,
                                   alias_of=aliases, aliases_serialized_separately=False,
                                   inventory=inventory, inventory_policy_verified=False,
                                   checkpoint_name_coverage_verified=checkpoint_contract is not None,

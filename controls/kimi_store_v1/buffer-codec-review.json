@@ -1,0 +1,38 @@
+{
+  "recorded_utc": "2026-10-29T09:03:21.974119+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "buffer_codec.py": "4392ee0f0da7a5e98b7937ba52f9bf147adf54501db34607cafe50cbeb287b9e",
+    "test_buffer_codec.py": "e5ec380481fd692553346f6a39e56cf31ec427e758fe9745dfa0a8669ad6b843",
+    "cpu_tensor_io.py": "f0d1166347824b8a712a621175c28d0d2e788f17b694831dec4f7c167667659c",
+    "native_index.py": "b15c5695716ce4d5aadc6db1e650887c270478c345e04d02bf76286f5a726d55",
+    "cpu_restore.py": "72b2d87e8ab0e8fa8a73a2db139e08c6fe31304b1a1ac1507e638bd998967a1e",
+    "state_audit.py": "d4263e94e94fa3ffba292ccef98615695ff992678518384c79580f8ca9709ec8",
+    "rank_export.py": "3c0034cb208f1f1be1ef7d8c680ccc71e16a0d6664f6199257cd061a486758d5"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "buffer_codec.py": "79fd01e03b8db8d1680d3ffe2769eac294b78bf99767a9adc3ea4c9fb8056399",
+        "test_buffer_codec.py": "7fa843e55cd46924cb081a42365069e653a3649d8de42222908b49e6afd0c46b",
+        "native_index.py": "11732fbe799ba4060664836688d0cae0b86ede7247a41633daaedc96c9a4b807"
+      },
+      "finding": "index publisher/reader accepted alias endpoints with different original complex layouts or one-sided codec",
+      "resolution": "cross-check alias codec presence and full recipes at publish/read/decode; equal-byte canonical shape and one-sided codec regression cases"
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 92,
+  "elapsed_seconds": 4.796,
+  "scope": "CPU complex64 buffer raw INT32 view encoding/sidecar/restore/decode",
+  "limitations": [
+    "reviewer static/hash review only; tests run by main",
+    "explicit registered buffer codec only, no numerical cast or parameter conversion",
+    "no native load_dict, actual CUDA consumer, full model or service verification"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}

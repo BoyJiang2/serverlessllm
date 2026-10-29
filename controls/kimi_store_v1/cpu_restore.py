@@ -9,11 +9,12 @@ from pathlib import Path
 
 from checkpoint_contract import load_targets
 from contract import DTYPE_BYTES, plan_rank
-from cpu_tensor_io import iter_cpu_blocks, tensor_layout
+from cpu_tensor_io import iter_cpu_blocks
 from native_index import read_index
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
 from auxiliary_manifest import validate_auxiliary_receipts
+from buffer_codec import encode_cpu_state, validate_buffer_encodings
 
 
 def _restore_tensor(stream, tensor, chunk_bytes):
@@ -32,7 +33,7 @@ def _restore_tensor(stream, tensor, chunk_bytes):
 
 def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
                       checkpoint_contract=None, chunk_bytes=CHUNK_BYTES,
-                      destination_auxiliary_receipts=()):
+                      destination_auxiliary_receipts=(), buffer_codecs=None):
     directory = Path(directory)
     raw = (directory / 'kimi_raw_state.json').read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
@@ -41,9 +42,10 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
     targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
     inventory = collect_inventory(model, targets)
     require_safe_byte_export(inventory)
-    named = list(model.named_parameters(remove_duplicate=False))
-    named.extend(model.named_buffers(remove_duplicate=False))
-    layouts = {name: tensor_layout(tensor) for name, tensor in named}
+    named, layouts, encodings = encode_cpu_state(model, buffer_codecs)
+    if encodings != sidecar.get('buffer_encodings', {}):
+        raise ValueError('source/destination buffer encodings differ')
+    validate_buffer_encodings(encodings, layouts)
     receipts = validate_auxiliary_receipts(sidecar.get('auxiliary_receipts', []), layouts, rank)
     validate_auxiliary_receipts(destination_auxiliary_receipts, layouts, rank)
     if not layouts or (type(chunk_bytes) is not int or chunk_bytes > CHUNK_BYTES
@@ -92,6 +94,7 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
         restored_bytes += row['bytes']
     return dict(rank=rank, phase='before_postprocess', restored_payload_bytes=restored_bytes,
                 auxiliary_receipts=receipts,
+                buffer_encodings=encodings,
                 chunk_bytes=chunk_bytes, alias_of=aliases, cpu_payload_restored=True,
                 checkpoint_name_coverage_verified=checkpoint_contract is not None,
                 inventory_policy_verified=False, native_loader_verified=False, runtime_admitted=False)
