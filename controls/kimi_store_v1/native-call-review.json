@@ -1,0 +1,38 @@
+{
+  "recorded_utc": "2026-10-29T18:52:23.2390641Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "native_call.py": "a274f97c67b447291e1f27dc2dc51b939d635a022365288821b890168c7248e6",
+    "test_native_call.py": "4a5f056ae0e8f29e8dbcf3806378ec7b462fbf75eb2d089523aeb18e8c78d87a",
+    "fixtures/native_client.py": "e33fb8ca82969dada13ea4e2905530ec6e9741f83dfc6fc33ca067d750ab04c4",
+    "fixtures/native_device_map_utils.py": "d15e8888b8c04230f958d71c2f731acdaed97ea4d78dc1a2c7b0f4ec7238c4de",
+    "NATIVE-RESTORE.md": "b560364b7fdb3b78512626f44ba7f72147eab88b8c67002dbc8c7f3dd0ba8a18"
+  },
+  "tests": {
+    "torch": "2.10.0+cpu",
+    "executor": "primary agent",
+    "count": 139,
+    "seconds": 3.805,
+    "scope": "Pinned Python protocol with mocked RPC/allocator/IPC/restore and real CPU PyCapsules"
+  },
+  "verified": [
+    "Private call globals do not modify original native module",
+    "Same-call allocation base, bytes, offsets and replica recorded",
+    "RPC uses remaining deadline; completion response checked before tensor wrappers",
+    "Store request and worker allocation cleanup obligations separated"
+  ],
+  "history": [
+    {
+      "verdict": "PASS with limitation",
+      "resolution": "Separate Store request and cleanup flags, failure regressions and explicit documentation",
+      "finding": "Worker cleanup false does not imply no Store side effects"
+    }
+  ],
+  "limitations": [
+    "Reviewer did not execute tests",
+    "No native runtime or GPU ABI/DMA validation",
+    "Python deadline does not cancel native or filesystem blocks",
+    "Failure needs guarded worker/context and own Store disposal; no cleanup success claimed"
+  ]
+}

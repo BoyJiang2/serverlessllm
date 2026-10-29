@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 最新native_call.py接固定nonblocking函数的私有调用环境，记录同次PyCapsule base/bytes/offsets/replica、带剩余deadline的RPC和显式完成响应；139项CPU测试通过，当前审阅见native-call-review.json。source client成功confirm返回None，候选直接核RPC响应并在restore包装前确认，不沿用旧真值判据。失败明确保留cleanup未验证并要求worker/context受控退出，不主动free潜在DMA地址。下一项：新worker隔离/失败回收协议和vLLM生命周期组合；不能把此夹具调用或旧守护当真实运行准入。
+
 - 新增native_payload.py/native_install.py及小CPU测试，134项通过：已将可信侧车、角色/codec、目标预检、区间/实际字节摘要、引用锚和参数安装组合。测试仍为CPU frombuffer小状态，未调用native/CUDA/全模型；current修订复审见native-install-review.json。runtime_inventory新增显式indexed CUDA元数据设备匹配，默认CPU不变。下一项：固定native分配调用的同次allocation记录/完成确认与失败清理包装，再接已有vLLM生命周期；不能用CPU mock冒充真实调用或绕过新运行审阅。
 
 - 2026-10-30：新增native_spans.py/test_native_spans.py，124项CPU测试通过。校验单次native分配的地址区间/alias、拒绝重叠和越界，并提供模型寿命的全部native Tensor引用保留。读C++后修正NATIVE-RESTORE.md：实际各tensor from_blob独立包装，只有一个offset0包装持cudaFree；不能误称统一大Storage或漏保留owner。当前仅CPU模拟地址/weakref，不是CUDA分配回收证明；未接真实native调用的allocation记录或安装入口。下一步接受信任的同次分配记录及有界payload验证，再组合角色/codec安装，仍需独立运行审阅和新守护。

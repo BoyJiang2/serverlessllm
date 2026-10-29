@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新 `native_call.py` 包装固定native nonblocking函数，在私有环境记录本次分配与offsets、显式检查完成RPC后才构造Tensor包装。139项CPU测试通过，修订审阅见native-call-review.json。真实native执行、worker隔离、失败context/Store退出及vLLM GPU生命周期仍未通过；未提供可直接启动的服务入口。
+
 最新组合候选：`native_install.py`已经连接可信元数据、逐块原字节校验、角色/codec恢复及引用锚，`native_payload.py`以至多8MiB主机块审计已返回张量。134项CPU测试通过，当前修订静态审阅见`native-install-review.json`。仍未接真实native分配/完成确认和vLLM GPU入口；CPU夹具不能作为运行准入，详见`NATIVE-RESTORE.md`。
 
 最新native接点：`native_spans.py`提供单次分配区间/实际地址/alias预检和模型寿命的Tensor引用锚，124项CPU测试通过，修订复审见`native-spans-review.json`。C++逐tensor from_blob只有一个offset0包装器负责cudaFree；此源码寿命风险及原大Storage说明修正详见`NATIVE-RESTORE.md`。尚未接真实分配记录、CUDA消费者及payload验证，不能据此启动或宣称模型恢复成功。

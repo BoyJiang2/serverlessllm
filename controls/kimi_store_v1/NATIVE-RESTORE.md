@@ -38,6 +38,20 @@ inventory默认CPU行为保留，新增显式indexed CUDA设备的元数据匹�
 
 本轮五项payload与五项组合安装CPU测试，总计134项通过，覆盖混合位模式、alias、独立frombuffer包装、参数属性、缺席complex缓存、错误rank/角色/隐藏状态/损坏payload写前拒绝及持有锚禁止覆盖。不是完整checkpoint转换、CUDA模型或服务证据。
 
+## 同次 native 调用记录候选
+
+`native_call.load_native_return` 绑定固定 `load_dict_non_blocking`、device-map、native utils和client源码/函数code。使用私有globals执行固定函数，替换的仅是本次client工厂、分配/restore记录器及已认证索引读取；不改原模块globals、其他client或原生内核。记录从同一次实际allocator返回的PyCapsule取得base，保留原capsule传给native接口，绑定本次bytes/offsets及replica。先核验路径、侧车、rank/阶段、完整角色与allocation上限，RPC带剩余预算。
+
+新增完整client原件 `fixtures/native_client.py` SHA `e33fb8ca82969dada13ea4e2905530ec6e9741f83dfc6fc33ca067d750ab04c4`；device-map原件 SHA `d15e8888b8c04230f958d71c2f731acdaed97ea4d78dc1a2c7b0f4ec7238c4de`，均从本地Git对象的固定commit提取，保留许可证。client成功确认返回None，失败False，不能把 `if not client.confirm_model_loaded(...)` 当成功判断。候选直接检查有deadline的 `ConfirmModel` RPC响应model_path，在确认后才调用native restore构造deleter拥有者；不修改共享client实现。
+
+这与旧包装器“先restore后confirm”的顺序不同，是需实际验证的新修订。分配入口返回 `void*` 的pybind接口，CPU Torch捆绑header的caster返回PyCapsule；本轮用真实CPython capsule模拟该包装，不把整数假接口当真实ABI。实际远端pybind/ABI、同步与memoryhandles仍未验证。
+
+失败抛出 `NativeCallFailure`，保留阶段、raw分配信息、replica、已构造Tensor引用及cleanup未验证状态；**没有自动cudaFree或清除Store池**。尤其原native allocator后、restore前失败时没有Tensor owner，需受守护worker/context与本实验Store的受控退出和取证。RPC超时不证明服务端DMA停止，不能立即释放地址或复用失败进程。该候选不提供进程隔离/守护或服务端取消，尚不能作为完整运行入口。自有RPC channel会关闭，关闭错误保留并要求worker清理；不伪造释放成功。
+
+本轮五项协议/边界CPU测试，总计139项通过，执行固定Python代码、真实capsule和小CPU frombuffer，client stub、allocator、IPC、restore均为夹具；确认先于包装、失败不伪造cleanup、预检预算拒绝和原globals不变有证据。尚未将此调用与安装器接入实际vLLM/GPU生命周期。
+
+清理标志分别登记：`worker_cleanup_required`描述分配/worker风险，`store_request_attempted`与`store_cleanup_required`在发出首个加载RPC前置真。即使CPU请求失败、尚无GPU分配，Store也可能已有副作用；不能把worker标志为false解释为Store没有加载或资源已释放。调用方需隔离并核验本实验Store的退出，不对共享/他人Store执行卸载。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。
