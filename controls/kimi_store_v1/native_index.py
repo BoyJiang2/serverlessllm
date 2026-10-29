@@ -24,7 +24,7 @@ def _publish(directory, name, data):
     return True
 
 
-def publish_index(directory, plan, records, layouts, config_raw):
+def publish_index(directory, plan, records, layouts, config_raw, aliases=None):
     """Only full, owned contiguous storage is supported; views fail closed."""
     directory = Path(directory)
     validate_config(config_raw)
@@ -32,6 +32,14 @@ def publish_index(directory, plan, records, layouts, config_raw):
         raise FileExistsError('native index already exists')
     if set(records) != set(layouts) or set(records) != set(plan['tensors']):
         raise ValueError('incomplete tensor inventory')
+    aliases = {} if aliases is None else aliases
+    if not isinstance(aliases, dict):
+        raise ValueError('invalid alias map')
+    for name, canonical in aliases.items():
+        if (name not in records or not isinstance(canonical, str) or canonical not in records
+                or name == canonical or canonical in aliases
+                or records[name] != records[canonical] or layouts[name] != layouts[canonical]):
+            raise ValueError('alias must identify an identical complete canonical record')
     inputs, index = {}, {}
     for name, layout in layouts.items():
         shape, stride, dtype = layout['shape'], layout['stride'], layout['dtype']
@@ -62,7 +70,7 @@ def publish_index(directory, plan, records, layouts, config_raw):
         raise ValueError('changed or unreviewed rank contract')
     verify_records(directory, records)
     partition_sizes = {}
-    for row in records.values():
+    for name, row in records.items():
         number = row['partition']
         partition_sizes[number] = (directory / ('tensor.data_' + str(number))).stat().st_size
     if sorted(partition_sizes) != list(range(len(partition_sizes))):
@@ -77,18 +85,19 @@ def publish_index(directory, plan, records, layouts, config_raw):
         bases[number] = base
         base += size
     spans = []
-    for row in records.values():
+    for name, row in records.items():
         offset = row['offset']
         if (type(offset) is not int or offset < 0 or offset % 8
                 or offset != bases[row['partition']] + row['local_offset']):
             raise ValueError('global/local offset mismatch')
-        if row['bytes']:
+        if row['bytes'] and name not in aliases:
             spans.append((offset, offset + row['bytes']))
     spans.sort()
     if any(left[1] > right[0] for left, right in zip(spans, spans[1:])):
         raise ValueError('overlapping records need explicit alias support')
     encoded = json.dumps(index).encode('utf-8')
-    sidecar = dict(plan, records=records,
+    sidecar = dict(plan, records=records, alias_of=aliases, aliases_deduplicated=bool(aliases),
+                   written_payload_bytes=sum(r['bytes'] for n, r in records.items() if n not in aliases),
                    native_index_sha256=hashlib.sha256(encoded).hexdigest(),
                    payload_verified=True, tp_mapping_verified=False,
                    native_loader_verified=False, store_created=False, runtime_admitted=False)

@@ -1,4 +1,5 @@
 import gc
+import ast
 import hashlib
 from pathlib import Path
 import tempfile
@@ -36,7 +37,7 @@ class TensorIOTests(unittest.TestCase):
                       for n, r in layouts.items()}
             plan = contract.plan_rank(CONFIG, rank=0, tensor_parallel_size=8, revision=contract.REVISION,
                     tensors=inputs, vllm_version='0.19.1', torch_version='2.10.0')
-            native_index.publish_index(target, plan, records, layouts, CONFIG)
+            native_index.publish_index(target, plan, records, layouts, CONFIG, aliases=info['alias_of'])
             digest = hashlib.sha256((target / 'kimi_raw_state.json').read_bytes()).hexdigest()
             self.assertEqual(set(native_index.read_index(target, digest)), set(inputs))
             named = dict(model.named_parameters(remove_duplicate=False))
@@ -117,6 +118,41 @@ class TensorIOTests(unittest.TestCase):
         del block
         gc.collect()
         self.assertIsNone(reference())
+
+    def test_alias_shared_offset_with_actual_native_device_mapping(self):
+        source = Path(__file__).parent / 'fixtures/native_utils.py'
+        raw = source.read_bytes()
+        self.assertEqual(hashlib.sha256(raw).hexdigest(),
+                         'c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217')
+        wanted = {'calculate_device_memory', 'calculate_tensor_device_offsets'}
+        nodes = [n for n in ast.parse(raw).body if isinstance(n, ast.FunctionDef) and n.name in wanted]
+        namespace = {}
+        exec(compile(ast.Module(body=nodes, type_ignores=[]), str(source), 'exec'), namespace)
+        model = self.model()
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / 'rank'
+            records, layouts, info = cpu_tensor_io.write_cpu_state(target, model, chunk_bytes=7)
+            self.assertEqual(records['packed'], records['packed_alias'])
+            sizes = {name: (r['offset'], r['bytes']) for name, r in records.items()}
+            device_map = {name: 0 for name in records}
+            memory = namespace['calculate_device_memory'](device_map, sizes)
+            offsets, copies = namespace['calculate_tensor_device_offsets'](device_map, sizes)
+            self.assertEqual(memory[0], info['written_payload_bytes'])
+            self.assertEqual(offsets[0]['packed'], offsets[0]['packed_alias'])
+            self.assertEqual(sum(n for _, n, _, _ in copies[0]), info['written_payload_bytes'])
+            # Replay only native copy metadata onto a tiny CPU byte buffer, never CUDA.
+            storage = bytearray(memory[0])
+            for file_offset, size, destination, _ in copies[0]:
+                row = next(r for r in records.values() if r['offset'] == file_offset and r['bytes'] == size)
+                with (target / ('tensor.data_' + str(row['partition']))).open('rb') as stream:
+                    stream.seek(row['local_offset'])
+                    storage[destination:destination + size] = stream.read(size)
+            tensor = torch.frombuffer(storage, dtype=torch.int32, count=4, offset=offsets[0]['packed'])
+            alias = torch.frombuffer(storage, dtype=torch.int32, count=4, offset=offsets[0]['packed_alias'])
+            self.assertTrue(torch.equal(tensor, model.packed))
+            alias[0] = 42
+            self.assertEqual(tensor[0].item(), 42)
+            self.assertFalse(info['aliases_serialized_separately'])
 
 
 if __name__ == '__main__':

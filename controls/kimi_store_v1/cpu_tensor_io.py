@@ -62,10 +62,13 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES):
             else:
                 seen[pointer] = name
     entries = ((name, layouts[name]['storage_bytes'],
-                iter_cpu_blocks(tensor, chunk_bytes), None) for name, tensor in named)
+                iter_cpu_blocks(tensor, chunk_bytes), None) for name, tensor in named if name not in aliases)
     records = write_records(directory, entries)
+    for name, canonical in aliases.items():
+        records[name] = dict(records[canonical])
     return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
-                                  alias_of=aliases, aliases_serialized_separately=True,
+                                  alias_of=aliases, aliases_serialized_separately=False,
+                                  written_payload_bytes=sum(r['bytes'] for n, r in records.items() if n not in aliases),
                                   buffer_names=[name for name, _ in model.named_buffers(remove_duplicate=False)],
                                   chunk_bytes=chunk_bytes, native_loader_verified=False,
                                   runtime_admitted=False)

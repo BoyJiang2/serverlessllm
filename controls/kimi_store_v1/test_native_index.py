@@ -107,6 +107,32 @@ class IndexTests(unittest.TestCase):
             self.assertTrue((target / 'tensor_index.json').exists())
             native_index.read_index(target, self.digest(target))
 
+    def test_invalid_alias_declarations_rejected(self):
+        for aliases in [{'packed': 'packed'}, {'packed': 'scale'}, {'packed': 'absent'},
+                        {'packed': 'scale', 'scale': 'packed'}]:
+            with tempfile.TemporaryDirectory() as temp:
+                target = Path(temp) / 'candidate'
+                plan, records, layouts = self.prepare(target)
+                with self.assertRaises(ValueError):
+                    native_index.publish_index(target, plan, records, layouts, CONFIG, aliases=aliases)
+                self.assertFalse((target / 'tensor_index.json').exists())
+
+    def test_undeclared_overlap_cannot_be_published(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / 'candidate'
+            tensors = {n: dict(shape=[2], dtype='torch.int32', bytes=8, contiguous=True) for n in ['a', 'b']}
+            plan = contract.plan_rank(CONFIG, rank=0, tensor_parallel_size=8, revision=contract.REVISION,
+                tensors=tensors, vllm_version='0.19.1', torch_version='2.10.0')
+            records = stream_writer.write_records(target, [(n, 8, [bytes(8)], None) for n in tensors])
+            layouts = {n: dict(shape=[2], stride=[1], dtype='torch.int32', storage_offset=0,
+                              storage_bytes=8) for n in tensors}
+            records['b'] = dict(records['a'])
+            with self.assertRaises(ValueError):
+                native_index.publish_index(target, plan, records, layouts, CONFIG)
+            state = native_index.publish_index(target, plan, records, layouts, CONFIG, aliases={'b': 'a'})
+            self.assertTrue(state['aliases_deduplicated'])
+            self.assertEqual(state['written_payload_bytes'], 8)
+
 
 if __name__ == '__main__':
     unittest.main()

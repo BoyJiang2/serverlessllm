@@ -1,0 +1,34 @@
+{
+  "recorded_utc": "2026-10-29T07:57:26.469289+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "cpu_tensor_io.py": "3ebef786f8a2b3c90d700a08c54bbb3895cde4b250644e70eede299ebcc32d94",
+    "native_index.py": "5a274708f98c5b90b186f1ef455bfde3ab17cb8959c7c1d3ec84348822642708",
+    "test_cpu_tensor_io.py": "0a180c3a31d653d2368b2eabab9460b9711a5ed875c7de71620c62459b0a1572",
+    "test_native_index.py": "3be96b717240135121fd7187faa72b2c72e0d655cd078950b4e50b3e9e1054cb",
+    "fixtures/native_utils.py": "c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217"
+  },
+  "cpu_tests_passed_by_main": 35,
+  "elapsed_seconds": 0.513,
+  "scope": "full same-layout storage aliases on CPU, single rank/device only",
+  "blockers": [],
+  "checks": [
+    "single canonical payload write",
+    "explicit identical alias index offsets",
+    "reject cycles/chains/missing targets and undeclared overlap",
+    "actual pinned native allocation/copy metadata AST",
+    "real CPU buffer alias modification observed through both views"
+  ],
+  "limitations": [
+    "not cross-device alias proof",
+    "written_payload_bytes excludes padding",
+    "source cannot mutate/resize concurrently"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "native_loader_verified": false,
+  "tp_mapping_verified": false,
+  "runtime_admitted": false,
+  "full_conversion_performed": false
+}

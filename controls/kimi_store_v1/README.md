@@ -81,3 +81,15 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 32项通过，包含真实BF16/I32/F32逐bit保存读回、参数别名及非持久buffer枚举、view与lazy-negative拒绝、引用保活/释放；测试模型均为微型CPU夹具，不是Kimi权重或真实推理金标。没有NumPy依赖；Torch导入时可能提示缺NumPy，不影响这条ctypes字节路径。旧的schema AST测试仍是元数据单元测试，新增真实tensor测试也没有调用原生Store扩展。
 
 未完成：别名共享storage恢复、固定后端真实rank清单/参数映射、GPU有界staging、原生Store扩展消费验证、vLLM导出/恢复及业务金标。目标仍未完成，后续GPU步骤继续受预约/独立审阅/守护约束。本轮无远端连接、无模型下载、无完整转换。
+
+## 完整同布局别名CPU闭环（最新：35项测试）
+
+本节更新上一阶段“别名分别序列化”的状态。`write_cpu_state()`现在只写canonical参数一次，并为具有同一storage、完整且相同shape/stride/dtype的别名返回相同record。不同layout、部分view和lazy-negative/conjugate继续拒绝。
+
+`publish_index(..., aliases=info['alias_of'])`明确接收别名声明，验证canonical存在、不自指、不成链，layout及完整记录一致；只有声明的alias可共享范围，未声明重叠仍拒绝。索引里别名采用相同offset/size；sidecar记录alias_of及aliases_deduplicated。`planned_transfer_bytes`保留逻辑计划的保守计重复估计，`written_payload_bytes`仅为去重有效payload，不包含8字节记录padding和4096字节分区padding，不等于实际磁盘占用。
+
+从固定SLLM commit的`utils.py`提取并执行原始`calculate_device_memory()`和`calculate_tensor_device_offsets()` AST：单rank、单device图中，alias只分配一次、copy chunk只出现一次，设备offset相同。微型CPU buffer回放该copy metadata后，用真实torch.frombuffer重建两个同offset视图，修改一个可被另一个观察到。这验证CPU共享关系与原生映射函数的元数据语义，**没有调用CUDA恢复或原生Store服务**。
+
+源fixture：`fixtures/native_utils.py`，SHA `c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217`，完整保留Apache-2.0许可；来源 `https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/sllm_store/utils.py`。注意原函数的去重字典跨device共享，本测试绝不推广为跨device别名正确性；后续每rank索引仅映射到一个设备，其他安排需另审。
+
+最新35项真实Torch CPU测试及独立只读复审通过，见`alias-cpu-review.json`。此前review均仅绑定各自旧版本，不自动批准本次或未来GPU运行。仍待完成：固定后端真实rank清单与TP8参数/必要buffer映射、有界GPU staging、原生Store/CUDA消费及vLLM接线、真实模型金标。目标保持未完成；本轮没有远端连接、GPU、完整模型转换或下载。
