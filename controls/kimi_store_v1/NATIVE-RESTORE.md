@@ -92,6 +92,12 @@ weight阶段检查全部已初始化张量设备，调用新的CUDA rank规范�
 
 共167项CPU测试通过，包括导出/后处理顺序、rank上下文拒绝、注册冲突、预算写前拒绝及源码MLA复制分支。实际backend构造、CUDA峰值和完整worker准入均未通过。
 
+## 逐记录寿命整改的组件步骤
+
+CPU初始化不足以证明旧single-allocation在重排期间的峰值；新增record_allocations与独立payload/install组件，按canonical记录分别包装owner，alias共享同一StorageImpl。旧路径仍保留模型全state锚，新路径只在同次typed结果/索引/address/alias验证后依赖各绑定的Storage持有者，不增加全state锚。175项CPU测试通过，当前复审见record-allocation-review.json。
+
+目前没有逐记录native allocator/RPC producer或混设备工厂，不能据此运行Kimi或声称显存问题已实际解决。相关C++传输区间已与固定Git原件比较，归档host补丁与IPC关闭错误语义已列明，详见ALLOCATION-LIFETIME.md及independent-allocation-source.json。原native工厂预算拒绝与全部历史证据保持。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。

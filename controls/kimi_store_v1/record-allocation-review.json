@@ -1,0 +1,36 @@
+{
+  "recorded_utc": "2026-10-29T20:07:14.9750687Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "record_allocations.py": "383d519d5214d59ccd6e5477e54987ea1bc2273f0a402843c4ad1967521509fa",
+    "native_payload.py": "0a6aa1707ca14b08e174a435cc555fe5661325681d5b0d6d582fd7c71fed5f8a",
+    "native_install.py": "23fcf717beeeaefab59363c5406a3f29addfecec2aac7a94df73fa891e524350",
+    "test_record_allocations.py": "12e4b919a01510b1fdac4853bf29fc4c9eb7809625e970fd9e1b1b185d9432bf",
+    "test_independent_install.py": "6eee1d585c901edd4ded69ce652035ade17d65c02605d5cf4251989e87798100",
+    "ALLOCATION-LIFETIME.md": "b769ef7f4116b15df2349278025fc11fc11269f1255a5add863b231c64b39440",
+    "independent-allocation-source.json": "e1ffa91a323eea2a6da7dcfd0bd85686fb8b7298d9fc67c32d01f46e3ebc7d97",
+    "NATIVE-RESTORE.md": "54dbf0dd11924cd7d2efcb777a28b2c6b46387b24696eeb86288410919a39a3a",
+    "NEXT.md": "72bb794f97fa7d73308dd7647309884ed5b6d092e5160195759a7800b4d61086",
+    "README.md": "64a21b10b280cf27cdb27fe642cebee84c57735ed54cf372383543880232c8c1"
+  },
+  "tests": {
+    "count": 175,
+    "scope": "CPU buffer/StorageImpl lifetime fixtures; no native execution",
+    "seconds": 4.787,
+    "executor": "primary agent",
+    "torch": "2.10.0+cpu"
+  },
+  "verified": [
+    "One canonical wrapper per record; aliases share owning Tensor/StorageImpl",
+    "Independent target binding avoids global raw-state anchor; legacy path retains anchor",
+    "All record metadata/address/alias/digest checks precede target mutation",
+    "CPU last-alias replacement releases only that record while other record storage remains live"
+  ],
+  "limitations": [
+    "Reviewer performed static/hash review only; did not run tests or repeat Git comparison",
+    "Typed state and confirmation flag are not ownership/DMA proof for untrusted inputs",
+    "No actual allocator, multi-handle RPC, IPC close error propagation or GPU peak validation",
+    "Independent branch not connected to current native factory; not GPU admission"
+  ]
+}

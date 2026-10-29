@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新逐记录寿命候选：record_allocations与独立payload/install分支已有175项CPU测试，复审见record-allocation-review.json。CPU小buffer证明alias最后使用后可释放该记录、其他记录仍活跃；未运行CUDA，未接多handle native producer或混设备工厂。详见ALLOCATION-LIFETIME.md，不能宣称显存问题已实际解决。
+
 最新worker准备：导出factory/独立loader注册已接，167项CPU测试通过，复审见worker-preparation-review.json。native完整CUDA目标+native分配双份驻留的条件下界超过历史单卡容量，新增工厂设备预算拒绝；必须先改初始化策略，不能将旧CPU PASS当作可运行。详见WORKER-PLAN.md。当前无守护部署、插件多进程传播或GPU执行。
 
 最新 `checkpoint_export.convert_checkpoint_rank` 接固定本地官方SF加载到device_export流式写入：原始INT4/scale位、shape/角色/alias/codec保留，源名称及目标覆盖显式检查；159项CPU测试通过，审阅见checkpoint-export-review.json。完整manifest/mapper/SF迭代器仅fixture，未执行完整模型或实际GPU转换；此函数需要worker供应已初始化模型与loader，不是可直接运行的服务/转换CLI。

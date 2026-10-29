@@ -1,0 +1,41 @@
+{
+  "source_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+  "scope": "local source comparison only; no native execution",
+  "files": [
+    {
+      "path": "controls\\candidate13e\\evidence\\runtime\\source-v7\\sllm_store\\csrc\\sllm_store\\model.cpp",
+      "upstream_sha256": "0a8321380cc6f514e7704d7cd27890734577ccfc9c584bac08f41ae2725cff18",
+      "archived_sha256": "1d2d566e5c64bf513cf2c5096c05c5994535081efbfc9a5f4021ba0ab6fda719",
+      "compared_region": [
+        "int Model::ToGpu(",
+        "int Model::FreeHost("
+      ],
+      "relevant_region_equal_after_LF_normalization": true
+    },
+    {
+      "path": "controls\\candidate13e\\evidence\\runtime\\source-v7\\sllm_store\\csrc\\sllm_store\\checkpoint_store.cpp",
+      "upstream_sha256": "4289d49c1999ef1039056d08242c0398fca6c4c72b40c6a3a03cb46c749583d3",
+      "archived_sha256": "2ec03dd407e8f8f25fd6abd522b78892d633f46735264d102e27c4911e49ffdd",
+      "compared_region": [
+        "int CheckpointStore::LoadModelFromMem(",
+        "int CheckpointStore::WaitModelInGpu("
+      ],
+      "relevant_region_equal_after_LF_normalization": true
+    },
+    {
+      "path": "controls\\candidate13e\\evidence\\runtime\\source-v7\\sllm_store\\csrc\\checkpoint\\checkpoint_py.cpp",
+      "upstream_sha256": "0faa0dd95dc2f8026d71bb457dbf2ca545dd3b3698e9b0c24ae041fab7292521",
+      "archived_sha256": "8be8febaba4f78a125c64988a68681dc07d7ece7a2425b6543cc253d5b51d379",
+      "compared_region": [
+        null,
+        null
+      ],
+      "relevant_region_equal_after_LF_normalization": true
+    }
+  ],
+  "notes": [
+    "Archived model.cpp additionally notifies host cv; checkpoint_store.cpp adds WaitModelInHost",
+    "Relevant GPU load/wait/ownership regions unchanged; checkpoint_py.cpp differs only by line endings",
+    "Header/source identity does not establish loaded binary ABI or actual CUDA ownership"
+  ]
+}

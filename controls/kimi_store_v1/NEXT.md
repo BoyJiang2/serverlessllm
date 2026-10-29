@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 新增record_allocations与独立payload/install组件，175项CPU测试通过，当前复审见record-allocation-review.json。查明仅CPU初始化不能覆盖whole native块被锚保留时的重排峰值；新候选按记录canonical独立包装、alias共享Storage owner，CPU weakref证明可逐记录释放而非锚住全raw state。旧single-allocation分支与预算拒绝保留，当前native工厂未改成新模式。
+- 下一项补逐记录allocator/多IPC handle/RPC/完成及关闭证据producer，再接CPU文本/官方CUDA视觉和mm_projector的混设备初始化；需同时处理构造与重排寿命，不能只改单个device参数。ALLOCATION-LIFETIME.md列明源依据/未验证项；当前无GPU、守护或完整转换运行。历史exit137仍未知，不与本Kimi预算分析归因。
+
 - 最新vllm_export_hook/loader_registry已接固定Base转换边界与独立格式注册，167项CPU测试通过，当前审阅见worker-preparation-review.json。发现native完整CUDA目标+native块的条件静态下界141.58GiB/卡超历史140.40GiB；新增工厂device_memory_budget_bytes强制初始化前拒绝不足预算，不能沿用旧签名/审阅。详见WORKER-PLAN.md及native-memory-lower-bound.json；不是实际OOM，不解释历史exit137。
 - 下一项优先解决native双份驻留的初始化策略（CPU文本/官方CUDA视觉，或目标IPC写入，均须实际源码政策与CPU验证），再补独立worker/plugin传播、守护和监控闭包。当前仅准备了registry/factory，没有部署或启动。源转换/后端参考的一份模型路径仍可继续准备，不把native预算缺口扩写成所有CPU工作阻塞。
 

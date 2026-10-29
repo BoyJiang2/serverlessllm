@@ -1,0 +1,31 @@
+# 逐记录 native 分配与重排寿命候选
+
+2026-10-30。代码与CPU组件测试；未运行原生CUDA allocator/RPC，未改变现有native工厂默认路径，不授予GPU准入。
+
+## 为什么不能只改CPU初始化
+
+CPU文本初始化可以减少构造阶段的GPU副本，但原single-allocation native路径还由模型锚保留整个raw allocation。固定Marlin后处理会替换packed及scale参数；新重排结果与被锚保留的旧packed/scale同时存在。某些非专家权重仍需旧allocation，因此不能简单删除锚或在第一个owner参数被替换时释放整块。CPU初始化本身不能证明整个重排峰值满足预算，原先141.58GiB双份构造下界及初始化前拒绝仍保留。
+
+新方案使用Store已有多IPC handle/chunk handle_idx接口，每个非空canonical记录分配独立raw CUDA块，alias共用该块；文件布局、官方packed INT4原始位、scale、shape与量化配置不改变。
+
+## 本轮代码
+
+`record_allocations.plan_independent_records` 把认证后的原生索引与alias变成独立分配及copy chunks计划：源offset保持原值、目标offset为0、每个非空canonical一个handle；空scratch不创建raw分配。拒绝非法shape/stride/dtype、alias链和未声明源重叠。
+
+`restore_independent_records` 要求调用方提供同次分配的真实PyCapsule以及明确已完成的传输，先检查全部地址/范围无重叠，再对每个canonical单独调用RestoreTensors，alias使用同一个返回Tensor。固定C++在offset0的唯一包装器上安装cudaFree；单canonical调用避免为同一块产生多个相互独立的“一个owner、其他无owner”的Storage包装。CPU回调仅模拟此调用协议，不能证明实际deleter。
+
+`IndependentRecordState` 绑定逻辑索引摘要、计划、地址与Tensor对象；它是调用链证据容器，公开构造器/布尔标志不能作为不可信数据的所有权证明。实际producer仍须绑定受审native allocator及restore二进制。本轮没有实现此producer或多handle RPC。
+
+`verify_independent_payload` 在第一次主机复制前重新校验全部记录的metadata/address、alias对象共享及源digest清单，逐块验证全部payload摘要。`install_native_state(... independent_records=...)` 只接受同一结果对象的同一state与认证索引，保持Parameter对象及buffer语义，绑定后不增加旧全state锚；由各参数/buffer共享的canonical StorageImpl保活。它用独立marker消费目标，禁止再次安装；旧单allocation分支继续保留全state锚，不能拿新标志取消旧owner。
+
+这条独立安装分支仅是组件API，尚未接到native_call/vllm_native_hook。当前工厂仍有完整CUDA目标的预算阻断。尚需CPU文本/官方CUDA视觉与mm_projector的设备政策，以及逐记录allocator/handle/RPC/确认producer、预算和实际释放验证，才能形成可运行路径。
+
+## 原生源码依据与限制
+
+固定SLLM commit为9f50241baa5386e06a9321c51f19a9ef5f964c2b。比较证据见independent-allocation-source.json。仓库归档model.cpp与checkpoint_store.cpp有早先host-cv/WaitModelInHost改动，不能声称文件与上游逐字节一致；已从本地Git对象逐段比较本次相关GPU传输/等待区间，LF归一化后相同。checkpoint_py.cpp仅换行差异，原生多handle overload存在。未修改这些旧归档文件。
+
+Store按handle_idx写入目标地址列表；ToGpu等待拷贝任务，持mutex设置状态并尝试关闭IPC，再释放锁。WaitInGpu使用同一mutex，因此正常确认发生在拷贝完成和关闭循环之后。然而IPC close失败仅写日志，未必改变LOADED状态；不能把model_path响应当作“全部IPC已关闭”的强证明。真正多handle producer及运行准入必须补关闭错误传播/证据，失败不主动释放不明DMA地址，不伪造释放成功。
+
+## 本轮证据
+
+新增八项CPU测试，总计175项通过。小bytearray/frombuffer/PyCapsule夹具验证计划、确认前拒绝、源/地址重叠拒绝、alias共享canonical对象、已替换记录的buffer所有者在最后alias消失后释放，而其他记录仍可使用；组合安装保留原始packed/BF16位，损坏/元数据变动在目标修改前拒绝。真实CUDAMalloc释放、IPC关闭、GPU重排峰值、混设备初始化及八rank仍未验证，所有native/runtime/ownership验证标志保持false。

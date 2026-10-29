@@ -68,3 +68,35 @@ def verify_native_payload(index, state, records, *, chunk_bytes=CHUNK_BYTES, **a
     return dict(receipt, payload_verified=True, payload_device=str(next(iter(state.values())).device),
                 verified_digests=digests, host_payload_copy_bytes=transferred,
                 host_block_limit_bytes=chunk_bytes)
+
+
+def verify_independent_payload(index, result, records, *, chunk_bytes=CHUNK_BYTES):
+    from record_allocations import validate_independent_state
+    plan = validate_independent_state(result, index)
+    if (type(chunk_bytes) is not int or not 1 <= chunk_bytes <= CHUNK_BYTES
+            or not isinstance(records, dict) or set(records) != set(index)):
+        raise ValueError('complete bounded independent payload audit required')
+    for name, row in records.items():
+        if (type(row.get('bytes')) is not int or row['bytes'] != index[name][1]
+                or not isinstance(row.get('sha256'), str)
+                or re.fullmatch('[0-9a-f]{64}', row['sha256']) is None):
+            raise ValueError('invalid independent source record')
+    for name, root in plan['alias_of'].items():
+        if records[name]['sha256'] != records[root]['sha256']:
+            raise ValueError('independent alias digests differ')
+    digests, transferred = {}, 0
+    for record in plan['records']:
+        root = record['root']
+        digest = hashlib.sha256()
+        for block in iter_host_byte_blocks(result.tensors[root], chunk_bytes):
+            digest.update(block)
+            transferred += len(block)
+            del block
+        if digest.hexdigest() != records[root]['sha256']:
+            raise ValueError('independent payload digest differs: ' + root)
+        for name in record['names']:
+            digests[name] = digest.hexdigest()
+    return dict(payload_verified=True, payload_device=result.device, verified_digests=digests,
+                host_payload_copy_bytes=transferred, host_block_limit_bytes=chunk_bytes,
+                metadata_intervals_verified=True, allocation_ownership_verified=False,
+                native_loader_verified=False, runtime_admitted=False)
