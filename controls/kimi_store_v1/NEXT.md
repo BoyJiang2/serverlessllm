@@ -1,0 +1,25 @@
+# Kimi CPU接续断点
+
+2026-10-29。保持当前goal，不新建/重置阶段。原GLM40ID、金标、结果冻结；不启R24，不恢复取消的今晚探索脚本。
+
+## 当前实际状态
+
+- 上个已审/已push里程碑955dc5e：专家条件映射，38测试。
+- 当前候选新增nonexpert_mapping.py、test_nonexpert_mapping.py、fixtures/vllm_linear_loaders.py、nonexpert-name-audit.json。本机42CPU测试通过（0.642秒）；1190个非专家名字全覆盖，条件为MLA、无sequence-parallel MoE、encoder TP data。还不是完整模型TP映射证明。
+- 已向现有`/root/independent_readonly_review`发出一次这4个文件的只读审阅，优先收取已返回结果；若仍有活跃agent等待它，不重复派发。新turn若agent不可达，先检查持久review文件/对话返回，不能编造PASS。
+- Kimi96文件/64分片已下载并校验完成，禁止重复下载。远端qjhs003资产根/data/brick1/boyjiang/kimi-k2.6/。CPU接续无需SSH。
+- 专用测试解释器：`D:/Documents/codex/2026-10-24/new-chat/outputs/kimi-cpu-tests-env/Scripts/python.exe`，真实torch2.10.0+cpu；不修改GLM环境。命令：`<python> -X utf8 -m unittest discover -s controls/kimi_store_v1 -p 'test_*.py' -v`。
+
+## 下一项可验证产出
+
+1. 收尾nonexpert只读审阅，核实发现、必要时修复/加测试；保存准确source hash和结果，更新README。新候选未审前不能标运行ready。
+2. 梳理checkpoint之外的runtime parameter/buffer。固定MoE源create_weights会torch.empty创建4个g_idx/sort_indices数组（无actorder时Marlin后处理换成空数组；Flashinfer分支提前return），不能未经政策直接序列化未初始化scratch。视觉源码有time_weight和按需freqs_cis非持久buffer。先建立metadata-only清单与角色/待审项，未知项不得悄悄丢弃。
+3. 对接完整rank状态、后处理前后映射与CPU可验证的最小导出/读取入口。仍需原始shape侧车、必要buffer、ABI/布局状态和覆盖率；CPU片段通过不等于完整转换器。
+
+## 固定边界
+
+只做本机CPU源码/小测试/文档和审阅闭环。不启动模型、完整转换、大池、全量缓存或GPU，不争用Claude/alan，不操作全局设置/预约，不联系其他聊天。实际GPU运行另须独立审阅、有效预约、资源核验和新守护。定时任务不构成GPU授权。
+
+保护已有变更，显式stage本任务文件；每个核验里程碑commit/push并ls-remote核验远端SHA。持续有变更30分钟安全提交，无变化不空提交。不要重写历史review：旧review只绑定旧hash。无进展不得只重复计划；如有真实阻塞保留证据，不无限重试。
+
+用户因token不足要求定时接续：仅有意义进展/失败/完成/需决策时通知，无变化安静。调度器不能绕过账户额度、离线或客户端不可用，也不能替代远端实验守护。
