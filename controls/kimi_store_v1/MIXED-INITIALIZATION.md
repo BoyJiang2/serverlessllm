@@ -1,0 +1,9 @@
+# 混设备构造候选
+
+`mixed_device_init.py` 只补构造边界，不是可启动loader。固定vLLM Kimi构造器在CPU默认设备上下文构造language_model，仍由官方构造器显式把vision_tower和mm_projector移到当前CUDA设备；没有修改官方构造器或把INT4权重反量化。绑定构造器源码及code，要求当前平台/设备匹配、调用方已处于BF16默认dtype上下文（与固定Base现有上下文一致），不修改全局dtype。
+
+构造后逐个登记的参数/buffer按完整根名称检查设备，拒绝未知根、视觉仍在CPU、语言仍在CUDA、缺失任一分支。按设备及Storage地址/大小去重登记字节；这里只是登记storage体积，不含隐藏Tensor、临时副本、CUDA上下文、分配粒度或峰值，也不是完整inventory政策。构造/审计失败整worker作废，调用者不得重试或继续发布。
+
+新增4项CPU测试，合计187项通过：实际CPU上下文进入及异常恢复、无效设备和平台/dtype在构造前拒绝、真实CPU视觉状态拒绝。平台和source验证边界在构造测试中明确mock；没有CUDA成功路径、完整Kimi构造或真实ABI验证，不能宣称混设备模型已通过。
+
+下一步需要把混设备全状态inventory、Marlin CPU辅助参数规范化和独立native安装接齐，再由新loader替代构造调用。当前旧native工厂仍完整CUDA/单块路径，双份预算拒绝未改。Base目前依据load_device决定后处理target_device；新路径必须单独核验该语义，不能只改load_config.device就启动。逐记录producer也尚未接工厂。原GLM40ID/金标/历史失败冻结。

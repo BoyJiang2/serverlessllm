@@ -272,3 +272,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 新增7项控制测试执行完整固定源码编译出的Base类和utility函数（fixture保留许可），但框架依赖、initializer和quant/attention方法为微型控制标记，全rank准备与名称边界在正例中mock；CPU raw文件恢复实际执行。验证restore先于quant/attention且各一次、损坏时不进入后处理、设备/平台及重入在初始化前拒绝、初始化/后处理失败终态，以及target记录不可发布成source。不是实际quant kernel或完整Kimi测试。测试夹具首次类code执行/AST重编译不一致问题已用完整源码编译的class code与__build_class__解决，未放宽代码身份检查。
 
 当前hook仅接现有布局的CPU raw恢复，不调用原生SllmStoreClient/load_dict或CUDA；编码/lazy视觉buffer的完整生命周期连接、GPU状态校验、实际模型构造及服务验证仍待完成。之前CPU installer具备角色/解码组件并不等于此hook已经消费所有状态。独立复审发现的生命周期/phase问题与旧hash见vllm-cpu-hook-review.json；107项通过仍不授予运行准入。
+
+- 新增mixed_device_init.py源绑定混设备构造候选；187项CPU测试通过，复审见mixed-initialization-review.json。只验证CPU上下文/拒绝边界与登记设备政策，未做真实CUDA构造，未接native工厂；完整混设备inventory/aux/install及Base后处理目标语义仍待闭合。详见MIXED-INITIALIZATION.md。

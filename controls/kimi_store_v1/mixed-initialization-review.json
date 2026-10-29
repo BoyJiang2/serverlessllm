@@ -1,0 +1,31 @@
+{
+  "recorded_utc": "2026-10-29T23:09:13.452136+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "mixed_device_init.py": "f62110be6a0d747ebdd776d3fa4154e7b9ae9f0d3b8ec63d08d425518539b3c1",
+    "test_mixed_device_init.py": "f152db0f1a904d8ac7bb61b03fc249fec3a9f359f4234d84714578b9813a09c3",
+    "MIXED-INITIALIZATION.md": "2a947a57bd74d0608c436c968b1ac5909f2450e8b4a544878a962983019bafa1",
+    "NEXT.md": "500d5c5a9f840d9f2e24d90da07151098d93d403c3a2fe747c6a905ff5af9469",
+    "README.md": "167281fd24a3a97c20249a652f225425d1d6c92c31a0f1a0e6cae615f71e6f04"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 187,
+    "seconds": 6.479,
+    "scope": "Local CPU suite; new tests cover device-context restoration and rejection boundaries"
+  },
+  "verified": [
+    "Pinned Kimi constructor retains explicit vision_tower and mm_projector device moves",
+    "Device and active BF16 checks precede CPU construction context",
+    "Context restores on constructor failure; no global dtype mutation by candidate",
+    "Registered state policy requires all three branches on their specified devices"
+  ],
+  "limitations": [
+    "Reviewer did not execute tests",
+    "Constructor tests mock source verification and platform; no real Kimi or CUDA success execution",
+    "Hidden state, resource budgets, window, mixed inventory/aux/install and Base postprocessing integration incomplete",
+    "Not worker runtime admission; old factory and memory guard unchanged"
+  ]
+}
