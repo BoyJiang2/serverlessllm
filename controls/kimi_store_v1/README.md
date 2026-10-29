@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新native接点：`native_spans.py`提供单次分配区间/实际地址/alias预检和模型寿命的Tensor引用锚，124项CPU测试通过，修订复审见`native-spans-review.json`。C++逐tensor from_blob只有一个offset0包装器负责cudaFree；此源码寿命风险及原大Storage说明修正详见`NATIVE-RESTORE.md`。尚未接真实分配记录、CUDA消费者及payload验证，不能据此启动或宣称模型恢复成功。
+
 2026-10-30最新补充：CPU文件恢复支持显式codec还原非持久complex64视觉cache，保留原始位与存储别名；允许唯一已审名称在目标尚未登记时补建。全部源payload验证发生在新cache分配及任何目标字节写入之前，登记发生在全部copy成功之后；中途失败仍令整个目标作废，不回滚。直接恢复已有参数及有界读视图，不另建完整state副本。
 
 本轮114项CPU测试通过；固定vLLM Base/utility代码的小夹具验证已有及缺席cache都在后处理之前完成恢复。名称覆盖和rank准备边界仍有mock；codec转发测试不证明真实60层模型已执行。只读复审绑定文件SHA见lazy-restore-review.json，不代表native load_dict、CUDA、完整Kimi或服务准入。未启动GPU，也未修改GLM历史结果。

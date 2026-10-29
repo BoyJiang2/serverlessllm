@@ -16,9 +16,17 @@
 2. 每个 TP rank 只消费自己的归档，device map 约束为该 rank 的单一实际设备。固定 `native_utils.py` 的去重字典按 `(源offset, size)` 全局维护，不能未经分析将同一 alias 分配到多个设备；已有 CPU alias/offset 测试只证明同设备路径。
 3. native 返回的是物理编码张量。complex cache 必须在登记前从 INT32 原位视图解码；CPU decoder 的通过不能替代 CUDA dtype-view、offset、storage 生命周期和同步验证。
 4. 保留目标 Parameter 对象、子类及 loader 属性，只替换存储；buffer 按完整 manifest 恢复持久性、grad 及允许的缺席名称。不要对 packed INT4/scale 做统一 float cast。
-5. native backing storage 可由多个 Tensor 共享整块 allocation。CPU helper 要求每个 tensor 拥有完整 storage，不能直接用于该布局；CUDA 消费者需明确验证每个实际区间、重叠、别名和所有者，不能删掉检查以迁就它。
+5. 进一步核对固定 C++ `checkpoint.cpp`（SHA `eb731fab981dae01d752e0cd3a4539cbffeae415d50eabb030d0acb9f3de8099`）后修正原说明：各张量以各自偏移地址 `from_blob` 包装，并非统一暴露整块 PyTorch storage。底层仍是共同 allocation；同地址 alias 也可有不同 Storage 对象，所以要检查实际区间/地址，不能只比 Storage 身份。仅首个偏移为零的包装器持有 `cudaFree(base)` deleter，其他包装器的 deleter 为空。若后处理替换拥有者，其他张量可提前失效；必须保留整个 native 返回字典中所有 Tensor 的强引用，直到模型销毁且无外部借用。此项是源码风险分析，尚未做 CUDA 实测。
 6. 以有界 D2H 块在计时之外验证每 rank 的全部 packed/scale/必要 buffer，保留同步及内存峰值证据；后处理前后分开，不能把 Marlin 浮点 scale 变化视为单纯重排。失败目标整体作废。
 7. Store 分配、目标初始化、后处理额外显存可能同时驻留，须预算并验证。完成数据消费、一次后处理和独立八rank/业务正确性之后，才可进入原生服务验收。
+
+## 区间及寿命候选
+
+`native_spans.validate_native_spans` 仅元数据检查：显式单设备、同次分配的 base/bytes/offsets、全部名称/shape/stride/dtype、实际 data_ptr、越界/对齐、显式 alias 与未声明重叠。allocation及offset记录必须来自同次实际 native 调用；当前原生公共接口不返回这些记录，仍需受审接线，不能用任意声明替代。零字节张量没有可读取地址，不据其 data_ptr 认定区间。receipt 的 payload、ownership、native、runtime 标志均为 false。
+
+`retain_native_allocation` 在模型私有属性上保留所有返回 Tensor 的引用元组，不复制 payload，也不只挑选推测的 owner。CPU weakref 测试验证外部字典清空和 Parameter 替换后仍保留 Tensor，模型销毁后释放。它尚未接入真实 native 消费者，不证明 C++ deleter/CUDA 回收；不得提前删除锚或让外部张量借用活过模型。该私有容器将被现有 inventory 视为额外 Tensor 状态；恢复态再次导出仍应拒绝，直到有单独受审政策，不能静默跳过。
+
+本轮七项小 CPU 测试，总计124项通过；bytearray/frombuffer 夹具只模拟共同 allocation 上的不同 Storage 地址，未运行 native 扩展或 GPU。
 
 ## 当前执行限制
 

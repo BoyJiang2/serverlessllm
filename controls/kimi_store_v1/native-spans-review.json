@@ -1,0 +1,33 @@
+{
+  "recorded_utc": "2026-10-29T18:32:08.7604575Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "native_spans.py": "90f904443a95265594412a6351c653bf2933addcbe1fffe32928a55e8f6f4a5d",
+    "test_native_spans.py": "4abf729edb59d57d882ee5f2002c040a78224ad6077296263ae05dc9a7b85080",
+    "NATIVE-RESTORE.md": "c577782fc0510c0959a1eba496241e1bcbf4ae459fef93eea9ebe6f6955b9390"
+  },
+  "tests": {
+    "count": 124,
+    "torch": "2.10.0+cpu",
+    "seconds": 3.402,
+    "executor": "primary agent"
+  },
+  "verified": [
+    "Actual base plus offset and relative offset alignment checked",
+    "Native C++ separate from_blob wrappers and single cudaFree owner documented",
+    "CPU references remain anchored across parameter replacement; no payload copy"
+  ],
+  "history": [
+    {
+      "verdict": "changes_required",
+      "resolution": "Address alignment check and real unaligned frombuffer regression added",
+      "finding": "Actual base plus offset alignment missing"
+    }
+  ],
+  "limitations": [
+    "Static reviewer did not run tests",
+    "Allocation metadata not yet wired to real native call",
+    "No payload, actual CUDA ownership or runtime admission proof"
+  ]
+}
