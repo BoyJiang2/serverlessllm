@@ -2,6 +2,12 @@
 
 2026-10-29。保持当前goal，不新建/重置阶段。原GLM40ID、金标、结果冻结；不启R24，不恢复取消的今晚探索脚本。
 
+## 最新覆盖
+
+- nonexpert只读审阅已返回PASS并逐hash核验，结果见nonexpert-cpu-review.json；不要重复派发该审阅。42项测试是主线程证据，仍非运行R1。
+- 本聊天heartbeat `kimi-cpu-gpu` 已通过应用工具创建并view核对，ACTIVE，每小时仅推进本机CPU工作；不恢复任何GPU定时脚本。以下“尚未审阅”是此前断点，由本覆盖更新。
+- 下一步直接推进第2项runtime buffer/scratch清单和后处理边界。
+
 ## 当前实际状态
 
 - 上个已审/已push里程碑955dc5e：专家条件映射，38测试。
