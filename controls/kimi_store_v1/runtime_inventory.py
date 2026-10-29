@@ -49,10 +49,13 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
             opaque.append(dict(path=path, type=type(value).__module__ + '.' + type(value).__qualname__))
 
     # Registered state is already enumerated; do not recurse into its registries.
-    for prefix, module in model.named_modules(remove_duplicate=False):
-        for leaf, value in vars(module).items():
-            if leaf not in ('_parameters', '_buffers', '_modules'):
-                walk(value, (prefix + '.' if prefix else '') + leaf, set())
+    try:
+        for prefix, module in model.named_modules(remove_duplicate=False):
+            for leaf, value in vars(module).items():
+                if leaf not in ('_parameters', '_buffers', '_modules'):
+                    walk(value, (prefix + '.' if prefix else '') + leaf, set())
+    finally:
+        del walk  # Break the recursive closure cycle, including on budget failure.
     for kind, name, tensor, persistent in named:
         if name in rows or tensor.device.type != 'cpu' or tensor.layout != torch.strided:
             raise ValueError('duplicate name or unsupported device/layout in CPU inventory')

@@ -15,6 +15,7 @@ from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
 from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import encode_cpu_state, validate_buffer_encodings
+from state_bindings import collect_state_bindings, validate_state_bindings
 
 
 def _restore_tensor(stream, tensor, chunk_bytes):
@@ -43,6 +44,9 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
     inventory = collect_inventory(model, targets)
     require_safe_byte_export(inventory)
     named, layouts, encodings = encode_cpu_state(model, buffer_codecs)
+    bindings = validate_state_bindings(sidecar.get('state_bindings'), layouts, encodings)
+    if bindings is not None and bindings != collect_state_bindings(model):
+        raise ValueError('source/destination state binding roles differ')
     if encodings != sidecar.get('buffer_encodings', {}):
         raise ValueError('source/destination buffer encodings differ')
     validate_buffer_encodings(encodings, layouts)
@@ -95,6 +99,7 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
     return dict(rank=rank, phase='before_postprocess', restored_payload_bytes=restored_bytes,
                 auxiliary_receipts=receipts,
                 buffer_encodings=encodings,
+                state_bindings_verified=bindings is not None,
                 chunk_bytes=chunk_bytes, alias_of=aliases, cpu_payload_restored=True,
                 checkpoint_name_coverage_verified=checkpoint_contract is not None,
                 inventory_policy_verified=False, native_loader_verified=False, runtime_admitted=False)

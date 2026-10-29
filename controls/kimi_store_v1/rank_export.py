@@ -15,11 +15,13 @@ from native_index import publish_index
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
 from buffer_codec import encode_cpu_state
+from state_bindings import collect_state_bindings
 
 
 def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=None, **context):
     targets = load_targets(checkpoint_contract)
     inventory = collect_inventory(model, targets)
+    collect_state_bindings(model)
     names = {f'language_model.model.layers.{i}.mlp.experts' for i in range(1, 61)}
     modules = dict(model.named_modules(remove_duplicate=False))
     actual = {n for n in modules if re.fullmatch(r'language_model\.model\.layers\.\d+\.mlp\.experts', n)}
@@ -87,4 +89,4 @@ def export_rank_cpu(directory, model, *, config_raw, checkpoint_contract, rank,
                      chunk_bytes=chunk_bytes)
     return publish_index(directory, plan, records, layouts, config_raw,
                          aliases=info['alias_of'], auxiliary_receipts=info['auxiliary_receipts'],
-                         buffer_encodings=info['buffer_encodings'])
+                         buffer_encodings=info['buffer_encodings'], state_bindings=info['state_bindings'])

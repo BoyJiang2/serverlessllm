@@ -1,0 +1,42 @@
+{
+  "recorded_utc": "2026-10-29T09:15:01.414655+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "state_bindings.py": "a8e3341ea84a1b41790ad468ba56b0f6c5227a6f1b45ca1654754af4270cdd2b",
+    "install_state.py": "dd8d42e50f13115538728ae0e15a2694b263e4766a23489eef61db79ff5fb8b3",
+    "test_install_state.py": "f69f27e9c6631f0dfd9adbfabced9c44501ee7fe03de4d90dd0ab8e379bdec16",
+    "cpu_tensor_io.py": "6005573103eea2369df20c3d94c94827bd61ade13a1fb0fc00d537d7abb9d958",
+    "native_index.py": "ce0f26881f4ed22db3b59ced8fdde9dd646d089bedf5b3d6ae1ab6286e79c1b7",
+    "cpu_restore.py": "ef0f759147eeaf7d202e1e2f63d8c15ccb40f53bba00385ae453a7a881cfde7f",
+    "rank_export.py": "3b2a30a8a42b39cbe773cd8fd84de7ce266154f62eb77fe74c879f3a0c5bd7aa",
+    "test_buffer_codec.py": "dd6e4fbcd262676d208404c7da5c6ac462cf3fa0766ea7a9ca34a6ec3c0f4b62",
+    "runtime_inventory.py": "525a697c1a0c5ca7213fbe70356e019adcd74c1db17836038c9ae0ec2e6e63fd",
+    "test_runtime_inventory.py": "90deb17d781d7545c05d2ae5bdb8d36c24df29656318542e9cb2b6f49585cdb4"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "state_bindings.py": "166b66b3f066b35449d68a0e1c5871fc9509e727b55c0b2f2846f8a210fed821",
+        "install_state.py": "b04232d76f2e1858ab51a8d8c13bfc9aa5b164f59ca119bc49ccce509054e084",
+        "test_install_state.py": "da54d3e37e0941f2b21d8a84e8ad82314af92202f643709896c875c5a60f4c28"
+      },
+      "finding": "buffer installation could discard declared requires_grad=True from plain loaded tensors",
+      "resolution": "per-buffer detach view explicitly restores requires_grad; shared-storage aliases can keep distinct flags"
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 100,
+  "elapsed_seconds": 4.877,
+  "self_detected_fix": "recursive inventory closure retained source tensors until cyclic GC; finally deletes walk; weakref regression without gc.collect",
+  "scope": "CPU slot roles and decoded state installation, not native loader invocation",
+  "limitations": [
+    "reviewer static/hash review only; tests run by main",
+    "provided tiny CPU state mappings do not prove native Store loading",
+    "no complete Kimi model, CUDA, postprocess or service test"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}

@@ -8,6 +8,7 @@ from contract import DTYPE_BYTES, plan_rank, validate_config
 from stream_writer import verify_records
 from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import validate_buffer_encodings
+from state_bindings import validate_state_bindings
 
 
 def _publish(directory, name, data):
@@ -26,7 +27,7 @@ def _publish(directory, name, data):
     return True
 
 
-def publish_index(directory, plan, records, layouts, config_raw, aliases=None, auxiliary_receipts=(), buffer_encodings=None):
+def publish_index(directory, plan, records, layouts, config_raw, aliases=None, auxiliary_receipts=(), buffer_encodings=None, state_bindings=None):
     """Only full, owned contiguous storage is supported; views fail closed."""
     directory = Path(directory)
     validate_config(config_raw)
@@ -36,6 +37,7 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None, a
         raise ValueError('incomplete tensor inventory')
     receipts = validate_auxiliary_receipts(auxiliary_receipts, layouts, plan['rank'])
     encodings = validate_buffer_encodings({} if buffer_encodings is None else buffer_encodings, layouts, aliases)
+    bindings = validate_state_bindings(state_bindings, layouts, encodings)
     aliases = {} if aliases is None else aliases
     if not isinstance(aliases, dict):
         raise ValueError('invalid alias map')
@@ -103,6 +105,7 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None, a
     sidecar = dict(plan, records=records, alias_of=aliases, aliases_deduplicated=bool(aliases),
                    auxiliary_receipts=receipts,
                    buffer_encodings=encodings,
+                   state_bindings=bindings,
                    written_payload_bytes=sum(r['bytes'] for n, r in records.items() if n not in aliases),
                    native_index_sha256=hashlib.sha256(encoded).hexdigest(),
                    payload_verified=True, tp_mapping_verified=False,
@@ -137,5 +140,6 @@ def read_index(directory, expected_sidecar_sha256):
                for n, r in index.items()}
     validate_auxiliary_receipts(sidecar.get('auxiliary_receipts', []), layouts, sidecar['rank'])
     validate_buffer_encodings(sidecar.get('buffer_encodings', {}), layouts, sidecar.get('alias_of', {}))
+    validate_state_bindings(sidecar.get('state_bindings'), layouts, sidecar.get('buffer_encodings', {}))
     verify_records(directory, sidecar['records'])
     return index

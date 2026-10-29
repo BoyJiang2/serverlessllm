@@ -2,6 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 import types
+import weakref
 from unittest.mock import patch
 
 import torch
@@ -113,6 +114,16 @@ class InventoryTests(unittest.TestCase):
         with patch.object(inventory, 'MAX_CONTAINER_NODES', 2):
             with self.assertRaisesRegex(ValueError, 'budget exceeded'):
                 inventory.collect_inventory(model)
+
+    def test_metadata_audit_does_not_keep_tensor_references_until_gc(self):
+        model = torch.nn.Module()
+        model.weight = torch.nn.Parameter(torch.ones(2))
+        model.cache = [model.weight]
+        reference = weakref.ref(model.weight)
+        result = inventory.collect_inventory(model)
+        del model
+        self.assertIsNone(reference())
+        self.assertFalse(result['payload_read'])
 
 
 if __name__ == '__main__':

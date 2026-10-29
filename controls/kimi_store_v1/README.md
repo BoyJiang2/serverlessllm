@@ -218,3 +218,18 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 这是CPU编码与恢复组件，不是原生complex dtype新增支持。原生GPU视图重建、目标buffer登记/持久性、完整vLLM消费和视觉输出验证仍待完成；runtime_admitted/native_loader_verified始终false。编码视图不克隆整个buffer，临时字节块上限仍8MiB；源/目的完整状态及缓存驻留成本依旧存在。
 
 本轮初审发现publisher/read缺alias两端原始recipe交叉校验：等字节但不同complex原shape或一端不编码可能被接受。已在发布/读取交叉核验，并让decode根据实际storage识别alias后核验；新增三入口拒绝负例。原发现与旧hash保留在buffer-codec-review.json，修订静态复审PASS。
+
+
+## CPU状态角色与安装消费者（100项测试及修订复审PASS）
+
+`state_bindings.py`枚举参数/buffer槽位，包含persistent与requires_grad；CPU writer写前采集，rank准备变更前也检查，侧车发布/读取绑定该清单。编码buffer必须有完整角色清单，避免INT32物理记录丢失原buffer语义。旧无角色清单的普通layout组件仍可读取，但不能用于新安装入口；旧编码试验侧车若无角色清单将被拒绝，不自动追认或篡改旧证据。自定义buffer Python属性尚无保存政策，源/目标在任何写入或变更前拒绝；参数加载属性由既有构造对象保留。
+
+`install_state.install_cpu_loaded_state(directory, model, state, trusted_sha, rank=...)`检查外部侧车SHA、索引、原文件payload、传入CPU状态的layout/实际字节/alias，decode complex buffer后，完整预检目标角色、布局、原始codec形状、共享对象约束及辅助receipt，再安装。参数使用原Parameter对象.data赋值，保留子类/weight_loader等属性；buffer按声明persistent重新register_buffer，使用detach共享视图恢复requires_grad。不做浮点统一cast，不调用load_state_dict忽略非持久项，也不调用hf_quantizer重新量化。
+
+只有固定视觉cache FQN缺席、模块路径已存在、来源明确为encoded nonpersistent无grad buffer时，才允许新登记lazy cache；不创建模块、不替换其他同名属性、不补造权重。其余缺项/多项拒绝。模型和传入状态必须静止，且仅CPU；预检失败不修改目标，安装阶段异常使整个目标作废、不回滚。此入口不调用原生load_dict、CUDA、quant后处理或路由发布，不能据返回值宣称原生加载/服务通过。
+
+新增7项安装测试用真实小CPU状态字典，未调用native loader：混合位模式、Parameter子类和加载marker、alias、旧complex buffer引用释放、lazy cache非持久登记、错误角色/persistent/payload/tied对象/自定义buffer属性、缺角色清单及True/False共享存储grad标记。初审发现grad标记误通过后修复，旧发现/hash保留于state-install-review.json。
+
+安装释放测试另发现上轮inventory递归函数闭包自环会保留named Tensor列表直到GC，已用finally删除递归函数绑定；新增不调用gc.collect的weakref回归，成功路径即时释放引用，预算失败路径也断环。首次97项运行因此有一项旧buffer释放失败，已保留原因与修复记录。全套100项通过，未启动模型或完整转换。
+
+下一步仍需固定vLLM构造/加载生命周期及原生Store接口接线，尤其避免旧通用HF加载器的统一float cast/重新量化路径。完整模型、实际八rank后处理与业务gold仍未验证，所有运行准入flag继续false。

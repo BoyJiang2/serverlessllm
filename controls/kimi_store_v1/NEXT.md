@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 本轮state_bindings角色/持久性/grad清单已接写入/侧车/读取/CPU恢复；install_cpu_loaded_state消费完整CPU状态字典，decode后保留Parameter对象属性、登记buffer，仅特定lazy视觉cache可补登记。100项CPU测试通过，10文件修订复审PASS，见state-install-review.json，不重复派发。
+- 初审buffer requires_grad误通过已修复；测试发现inventory递归闭包保留旧Tensor，finally断环并weakref无GC回归通过。旧无角色清单的layout组件不得用于install；编码旧侧车无角色清单将拒绝，不修改旧证据。
+- 下一项：检查固定vLLM模型构造与load_weights/process_weights_after_loading调用链，并接最小原生Store恢复hook到现有CPU消费者；先写代码/小组件测试，不调用原生GPU loader或构造全模型。旧通用HF加载器有float统一cast/重建量化，不可直接沿用。实际八卡/完整checkpoint/业务验证未通过。
+
 - 本轮complex64-int32-bits-v1 buffer codec已接CPU写/侧车/读回/指纹/rank包装；92项CPU测试通过。初审alias原始recipe交叉校验缺口已修复；7文件修订只读复审PASS并核验SHA，见buffer-codec-review.json，不重复派发。测试由主线程执行。旧“complex缓存完全不能编码”的历史断点被此更新覆盖；无显式codec仍拒绝。
 - 原生load_dict仍返回物理INT32，decode_cpu_buffers仅CPU视图消费者。下一项需把完整buffer类型/登记/持久性及参数角色绑定到真实vLLM/Store恢复入口，确保decode发生在赋值/后处理前；未运行CUDA/native消费者、完整模型或业务，不可声称全适配。
 

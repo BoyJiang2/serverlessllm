@@ -7,6 +7,7 @@ from runtime_inventory import collect_inventory, require_safe_byte_export
 from checkpoint_contract import load_targets
 from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import encode_cpu_state
+from state_bindings import collect_state_bindings
 
 
 def tensor_layout(tensor):
@@ -49,6 +50,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_con
     targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
     inventory = collect_inventory(model, checkpoint_targets=targets)
     require_safe_byte_export(inventory)
+    bindings = collect_state_bindings(model)
     named, layouts, encodings = encode_cpu_state(model, buffer_codecs)
     if not layouts:
         raise ValueError('empty state')
@@ -75,6 +77,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_con
     return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
                                   auxiliary_receipts=receipts,
                                   buffer_encodings=encodings,
+                                  state_bindings=bindings,
                                   alias_of=aliases, aliases_serialized_separately=False,
                                   inventory=inventory, inventory_policy_verified=False,
                                   checkpoint_name_coverage_verified=checkpoint_contract is not None,

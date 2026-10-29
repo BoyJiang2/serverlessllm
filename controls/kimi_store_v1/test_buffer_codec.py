@@ -40,7 +40,7 @@ class BufferCodecTests(unittest.TestCase):
         plan = contract.plan_rank(test_cpu_tensor_io.CONFIG, rank=0, tensor_parallel_size=8,
             revision=contract.REVISION, tensors=inputs, vllm_version='0.19.1', torch_version='2.10.0')
         native_index.publish_index(directory, plan, records, layouts, test_cpu_tensor_io.CONFIG,
-            aliases=info['alias_of'], buffer_encodings=info['buffer_encodings'])
+            aliases=info['alias_of'], buffer_encodings=info['buffer_encodings'], state_bindings=info['state_bindings'])
         return hashlib.sha256((directory / 'kimi_raw_state.json').read_bytes()).hexdigest()
 
     def test_raw_bit_roundtrip_alias_and_zero_copy_decode(self):
@@ -145,10 +145,10 @@ class BufferCodecTests(unittest.TestCase):
                     del changed[alias]
                 with self.assertRaisesRegex(ValueError, 'alias buffer encoding'):
                     native_index.publish_index(directory, plan, records, layouts, test_cpu_tensor_io.CONFIG,
-                        aliases=info['alias_of'], buffer_encodings=changed)
+                        aliases=info['alias_of'], buffer_encodings=changed, state_bindings=info['state_bindings'])
                 self.assertFalse((directory / 'tensor_index.json').exists())
                 native_index.publish_index(directory, plan, records, layouts, test_cpu_tensor_io.CONFIG,
-                    aliases=info['alias_of'], buffer_encodings=info['buffer_encodings'])
+                    aliases=info['alias_of'], buffer_encodings=info['buffer_encodings'], state_bindings=info['state_bindings'])
                 path = directory / 'kimi_raw_state.json'
                 sidecar = json.loads(path.read_bytes())
                 sidecar['buffer_encodings'] = changed
