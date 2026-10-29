@@ -1,0 +1,31 @@
+{
+  "recorded_utc": "2026-10-29T08:35:05.177725+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "cpu_restore.py": "dbf1845a5291e5d82776ea65dd496153907768646197749af7984edb4df92107",
+    "test_cpu_restore.py": "40c4cd8685c3c67610f0ced8628053e84cf34724fcb0812a713e886bd1352883"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "cpu_restore.py": "0636a9b5d08b8f89d9f393c6d48bd4fc45275f7c89e796dd506e8a4ee2b5e089",
+        "test_cpu_restore.py": "7283c33722566e3d18060548df2fff52b88897be2c07d7e96fb375921a283d1d"
+      },
+      "finding": "different-layout destination tensors sharing storage could overwrite earlier restored payload yet return success",
+      "resolution": "pre-copy shared pointer/layout rejection; real I32/BF16 reinterpret regression proves no copy and unchanged destination"
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 61,
+  "elapsed_seconds": 1.062,
+  "limitations": [
+    "reviewer static/hash review; tests run by main",
+    "source and destination must be quiescent; partial-copy failure invalidates whole destination",
+    "no native Store, actual TP or CUDA verification"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}

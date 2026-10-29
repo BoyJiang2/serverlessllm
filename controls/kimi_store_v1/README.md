@@ -142,3 +142,16 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 新增测试使用既有真实CPU混合dtype夹具，八个rank标签分别从raw partition读回实际字节，验证NaN payload、负零、I32 packed值、alias与非持久buffer；同形状packed/scale/shape/router字节翻转会失败。这里的八rank是微型CPU夹具参数化，不是实际八卡权重核验；读回是测试内显式字节拷贝，不是原生load_dict。
 
 8MiB只是单次视图上限，不是进程RSS上限。完整模型本体/恢复目的张量、Torch allocator、元数据与其他驻留仍占内存；指纹不创建整模型副本，不证明真实峰值。尚需真正的有界恢复入口、辅助状态消费者、完整模型rank构造与原生Store/vLLM接线。
+
+
+## 有界CPU恢复入口（61项测试及修订复审PASS）
+
+`cpu_restore.restore_cpu_state(directory, model, expected_sidecar_sha256, rank=..., checkpoint_contract=..., chunk_bytes=...)`接收已构造、暂停写入的CPU推理模型及外部可信侧车SHA，不根据文件中的任意shape分配模型。它复用冻结config/plan、native index校验、完整源payload验证；在任何目标写入前要求名称、dtype/shape/stride、完整storage、alias拓扑、TP8 rank和before-postprocess状态匹配。可选官方名称契约继续仅证明条件名称覆盖。
+
+实际恢复用无缓冲文件readinto直接填充最多8MiB的CPU storage视图，支持短读，按目标dtype元素边界分块；不反量化、不cast、不克隆完整张量，alias只写canonical一次。复制期间再次算SHA防止初验后payload变化，成功才返回cpu_payload_restored。源目录和目标模型须保持独占静止；不是原子恢复，也不支持训练autograd语义。初验失败不改目标；复制开始后的任何失败都必须丢弃整个目标，不得继续推理，不能把异常前部分写入算成功。
+
+61项CPU测试覆盖真实INT32 packed/BF16 scale/INT32 shape/F32 buffer与空buffer、alias、八个rank标签的微型读回、错rank/shape/alias/块上限拒绝、后部损坏在写前拒绝、校验与复制之间变化拒绝、短读与EOF。首次测试断言误把夹具唯一payload写为48B，实为44B，已修正；这是测试预期错误，不涉及真实模型数据。
+
+分块上限不等于RSS上限：目标完整模型已经驻留；元数据、Torch allocator和源页缓存另占成本。入口先完整校验后再复制，存在双遍I/O，当前仅正确性组件，不是性能测量协议。尚未调用原生load_dict/CUDA、构造完整Kimi TP状态或实施scratch重建消费者；native_loader_verified和runtime_admitted始终为false。
+
+本轮独立初审发现：目标不同dtype/shape若重解释同一完整storage，原alias键不会把它们标为alias，逐项SHA可能通过但后写覆盖前写。已在任何复制前拒绝非空共享pointer但layout不同的目标，并增加I32[2]/BF16[4]真实共享存储负例，证明copy未调用且目标未变。旧初审changes_required保留，不以新测试抹去发现。
