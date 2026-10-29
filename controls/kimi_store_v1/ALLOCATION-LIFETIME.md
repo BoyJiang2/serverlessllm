@@ -28,4 +28,6 @@ Store按handle_idx写入目标地址列表；ToGpu等待拷贝任务，持mutex�
 
 ## 本轮证据
 
+后续覆盖：native_patch/model.cpp已新增关闭错误传播候选，不再仅用日志表示失败；实际源片段的CPU编译故障控制通过，总计177项CPU测试。未部署，旧已运行库并未改变；完整Store/CUDA故障与多handle producer仍未通过。见native_patch/README.md及ipc-close-review.json。
+
 新增八项CPU测试，总计175项通过。小bytearray/frombuffer/PyCapsule夹具验证计划、确认前拒绝、源/地址重叠拒绝、alias共享canonical对象、已替换记录的buffer所有者在最后alias消失后释放，而其他记录仍可使用；组合安装保留原始packed/BF16位，损坏/元数据变动在目标修改前拒绝。真实CUDAMalloc释放、IPC关闭、GPU重排峰值、混设备初始化及八rank仍未验证，所有native/runtime/ownership验证标志保持false。

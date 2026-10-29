@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新IPC错误传播候选：native_patch/model.cpp及实际源尾部的CPU编译故障控制已通过，总计177项CPU测试，复审见ipc-close-review.json。只是独立源码，未编译/部署完整Store或执行CUDA；下一步多handle加载必须核验实际库修订，不能沿用旧确认语义。
+
 最新逐记录寿命候选：record_allocations与独立payload/install分支已有175项CPU测试，复审见record-allocation-review.json。CPU小buffer证明alias最后使用后可释放该记录、其他记录仍活跃；未运行CUDA，未接多handle native producer或混设备工厂。详见ALLOCATION-LIFETIME.md，不能宣称显存问题已实际解决。
 
 最新worker准备：导出factory/独立loader注册已接，167项CPU测试通过，复审见worker-preparation-review.json。native完整CUDA目标+native分配双份驻留的条件下界超过历史单卡容量，新增工厂设备预算拒绝；必须先改初始化策略，不能将旧CPU PASS当作可运行。详见WORKER-PLAN.md。当前无守护部署、插件多进程传播或GPU执行。

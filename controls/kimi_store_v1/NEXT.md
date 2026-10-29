@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增独立native_patch/model.cpp关闭错误传播候选及实际ToGpu尾部的CPU C++编译故障测试，177项CPU测试通过，当前复审见ipc-close-review.json。旧片段在close/device故障仍报成功的控制已复现，新片段返回INTERRUPTED并在关闭尝试后通知。未构建完整Store、链接CUDA或部署；未改旧归档。下一项多handle producer需绑定该修订的实际库与RPC失败证据，再接混设备初始化及完整worker/guard；不能据Python SHA或布尔确认认定IPC已关闭。
+
 - 新增record_allocations与独立payload/install组件，175项CPU测试通过，当前复审见record-allocation-review.json。查明仅CPU初始化不能覆盖whole native块被锚保留时的重排峰值；新候选按记录canonical独立包装、alias共享Storage owner，CPU weakref证明可逐记录释放而非锚住全raw state。旧single-allocation分支与预算拒绝保留，当前native工厂未改成新模式。
 - 下一项补逐记录allocator/多IPC handle/RPC/完成及关闭证据producer，再接CPU文本/官方CUDA视觉和mm_projector的混设备初始化；需同时处理构造与重排寿命，不能只改单个device参数。ALLOCATION-LIFETIME.md列明源依据/未验证项；当前无GPU、守护或完整转换运行。历史exit137仍未知，不与本Kimi预算分析归因。
 

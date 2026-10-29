@@ -1,0 +1,19 @@
+{
+  "scope": "independent Kimi candidate source only; not deployed",
+  "base_path": "controls/candidate13e/evidence/runtime/source-v7/sllm_store/csrc/sllm_store/model.cpp",
+  "base_sha256": "1d2d566e5c64bf513cf2c5096c05c5994535081efbfc9a5f4021ba0ab6fda719",
+  "candidate_path": "controls/kimi_store_v1/native_patch/model.cpp",
+  "candidate_sha256": "c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c",
+  "changes": [
+    "Propagate cudaSetDevice or cudaIpcCloseMemHandle failure to INTERRUPTED",
+    "Notify only after IPC close attempts and final state",
+    "Preserve copy-failure status and attempt remaining valid closes"
+  ],
+  "not_changed": [
+    "No cudaFree or forced cleanup",
+    "No shared runtime, original archive or GLM result modified"
+  ],
+  "compiled_native_store": false,
+  "gpu_verified": false,
+  "runtime_admitted": false
+}
