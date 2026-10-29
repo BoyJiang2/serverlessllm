@@ -17,6 +17,8 @@ from marlin_aux import PROFILE
 import test_cpu_tensor_io
 import test_install_state
 import test_marlin_aux
+import test_buffer_codec
+from buffer_codec import CODEC, VISION_CACHE
 
 ROOT = Path(__file__).parent
 
@@ -124,6 +126,51 @@ class LifecycleTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'before initialization'):
                 cls(config.load_config).load_model(config, model_config)
             self.assertFalse(events)
+
+    def test_lazy_cache_restored_before_exact_base_postprocessing(self):
+        self.cache_lifecycle(existing=False)
+
+    def test_existing_cache_codec_forwarded_before_rank_preparation(self):
+        self.cache_lifecycle(existing=True)
+
+    def cache_lifecycle(self, existing):
+        events = []
+        base, namespace = self.base(events)
+        source = test_cpu_tensor_io.TensorIOTests().model()
+        source.vision_tower = test_buffer_codec.BufferCodecTests().model().vision_tower
+        del source.vision_tower.encoder.rope_2d.cache_alias
+        original_init = namespace['initialize_model']
+        def initialize(**kwargs):
+            model = original_init(**kwargs)
+            model.vision_tower = test_buffer_codec.BufferCodecTests().model().vision_tower
+            del model.vision_tower.encoder.rope_2d.cache_alias
+            if existing:
+                model.vision_tower.encoder.rope_2d.freqs_cis.view(torch.int32).zero_()
+            else:
+                del model.vision_tower.encoder.rope_2d.freqs_cis
+            return model
+        namespace['initialize_model'] = initialize
+        function = base.load_model.__globals__['process_weights_after_loading']
+        quant_class = function.__globals__['QuantizeMethodBase']
+        original_postprocess = quant_class.process_weights_after_loading
+        def postprocess(method, model):
+            self.assertTrue(torch.equal(model.vision_tower.encoder.rope_2d.freqs_cis.view(torch.int32),
+                source.vision_tower.encoder.rope_2d.freqs_cis.view(torch.int32)))
+            self.assertNotIn(VISION_CACHE, model.state_dict())
+            original_postprocess(method, model)
+        with tempfile.TemporaryDirectory() as temp:
+            directory = Path(temp) / 'rank'
+            _, digest = test_install_state.InstallTests().export(directory, source, {VISION_CACHE: CODEC})
+            config, model_config = self.configs()
+            loader = self.candidate(base, directory, digest)(config.load_config)
+            with patch.object(hook, 'normalize_rank_cpu_auxiliary', return_value=[]) as prepare, \
+                    patch.object(cpu_restore, 'load_targets', return_value=set(dict(source.named_parameters()))), \
+                    patch.object(quant_class, 'process_weights_after_loading', postprocess):
+                loader.load_model(config, model_config)
+            self.assertEqual(prepare.call_args.kwargs['buffer_codecs'],
+                {VISION_CACHE: CODEC} if existing else None)
+        self.assertEqual(events, ['initialize', 'quant_postprocess', 'attention_postprocess'])
+        self.assertEqual(loader.restore_receipt['created_lazy_buffers'], [] if existing else [VISION_CACHE])
 
     def test_corrupt_store_failure_never_reaches_postprocessing(self):
         events = []

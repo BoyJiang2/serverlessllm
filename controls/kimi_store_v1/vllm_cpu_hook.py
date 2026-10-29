@@ -9,6 +9,7 @@ from contract import validate_config
 from cpu_restore import restore_cpu_state
 from rank_export import normalize_rank_cpu_auxiliary
 from marlin_aux import PROFILE
+from buffer_codec import CODEC, VISION_CACHE
 
 BASE_SHA256 = 'd96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df'
 UTILS_SHA256 = '66e62df58d8f20e823a16cb042b939183f956df7df23d4b5d8fa6c5ce498ac02'
@@ -84,10 +85,12 @@ def make_cpu_store_loader(base_loader, *, directory, expected_sidecar_sha256, ra
                     raise ValueError('CPU/offline weight hook scope violated')
                 receipts = normalize_rank_cpu_auxiliary(model, checkpoint_contract=checkpoint_contract,
                     rank=rank, config_raw=config_raw, profile=profile, vllm_version=vllm_version,
-                    phase='target_initialized_before_restore')
+                    phase='target_initialized_before_restore',
+                    buffer_codecs={VISION_CACHE: CODEC} if VISION_CACHE in dict(
+                        model.named_buffers(remove_duplicate=False)) else None)
                 self.restore_receipt = restore_cpu_state(directory, model, expected_sidecar_sha256,
                     rank=rank, checkpoint_contract=checkpoint_contract,
-                    destination_auxiliary_receipts=receipts)
+                    destination_auxiliary_receipts=receipts, create_lazy_visual_cache=True)
                 self.weights_status = 'installed'  # Postprocessing still belongs to BaseModelLoader.
             except BaseException:
                 self.weights_status = 'failed'

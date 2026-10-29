@@ -1,5 +1,9 @@
 # Kimi INT4 Store CPU 适配候选
 
+2026-10-30最新补充：CPU文件恢复支持显式codec还原非持久complex64视觉cache，保留原始位与存储别名；允许唯一已审名称在目标尚未登记时补建。全部源payload验证发生在新cache分配及任何目标字节写入之前，登记发生在全部copy成功之后；中途失败仍令整个目标作废，不回滚。直接恢复已有参数及有界读视图，不另建完整state副本。
+
+本轮114项CPU测试通过；固定vLLM Base/utility代码的小夹具验证已有及缺席cache都在后处理之前完成恢复。名称覆盖和rank准备边界仍有mock；codec转发测试不证明真实60层模型已执行。只读复审绑定文件SHA见lazy-restore-review.json，不代表native load_dict、CUDA、完整Kimi或服务准入。未启动GPU，也未修改GLM历史结果。
+
 当前断点见文末最新章节；早期各节保留当时实现范围与审阅边界，不能当作全局实时状态。当前仍无完整转换或GPU运行准入。
 
 2026-10-29：本目录只有**导出前契约与字节分块规划**，不是可运行的Store导出器或vLLM loader，不提供启动入口。不修改GLM runtime/active。

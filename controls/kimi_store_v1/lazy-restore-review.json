@@ -1,0 +1,34 @@
+{
+  "recorded_utc": "2026-10-29T18:13:02.6081563Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "cpu_restore.py": "99f6a84db1c0f5ac87e361305cc4e58061e11f67d8a8ac85e5afc026c827d2c1",
+    "vllm_cpu_hook.py": "2fae40f80681f8923e643171b1377c34dafcae0ee35b5622f6028ee2093528f8",
+    "test_lazy_restore.py": "1134e2d797aa086c0105a55be4fcdc9dc9467fce028d021506de609c75d76578",
+    "test_vllm_cpu_hook.py": "44a5bdffbd0bcdbd8cb412f0cb5857c474966c8e3e9c41d84b9766c9c17dd019"
+  },
+  "tests": {
+    "count": 114,
+    "executor": "primary agent",
+    "seconds": 3.671,
+    "torch": "2.10.0+cpu"
+  },
+  "verified": [
+    "Source payload verified before lazy cache allocation or target copy",
+    "Register only after all copies succeed; preserve raw bits, aliases and Parameter objects",
+    "Existing fixed visual cache codec forwarded to rank preparation; absent cache created only by audited name"
+  ],
+  "limitations": [
+    "Static review only; reviewer did not run tests",
+    "Rank preparation and checkpoint-name boundaries mocked in lifecycle fixtures",
+    "No native load_dict, full conversion, GPU, full Kimi model or serving validation"
+  ],
+  "history": [
+    {
+      "verdict": "PASS with limitation",
+      "resolution": "Explicit fixed-name codec forwarding and existing/absent lifecycle tests added",
+      "finding": "Existing complex cache codec was not forwarded into rank preparation"
+    }
+  ]
+}

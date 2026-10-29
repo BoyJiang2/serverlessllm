@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-30：有界CPU文件恢复已接角色/complex原始位编码及唯一允许缺席的lazy视觉cache；先验证全部源payload，再分配必要cache，所有copy成功才登记非持久buffer。114项CPU测试通过，含已有alias复用、损坏写前拒绝、copy失败不登记及固定Base生命周期中已有/缺席cache。四文件当前修订复审状态见lazy-restore-review.json；旧审阅不得批准新hash。
+- 下一项：依据固定native load_dict返回的CUDA物理张量协议，设计保留Parameter对象/角色/别名的消费者与有界逐tensor校验接点；先做本机小CPU接口测试，不直接把CPU loader改名成GPU loader。完整转换、native CUDA恢复、八rank、后处理payload与业务仍未验证。当前GPU空闲快照不构成整机独占或运行准入，须重新核验有效窗口、共享I/O、独立审阅和新守护。
+
 - 本轮vllm_cpu_hook接固定Base/utility源码与CPU raw restore接点；107项CPU测试及10文件修订静态复审PASS，见vllm-cpu-hook-review.json，不重复派发。真实Base代码测试仍依赖微型框架/initializer与rank/name边界mock，未导入实际vLLM或运行Kimi。
 - source与target auxiliary phase已分开；export写前只准source，恢复/安装显式接受target。初审生命周期及target-export晚拒绝两项已修复，失败终态/one-shot回归通过。CPU候选构造前强制CPU platform，qjhs003 CUDA平台不能用它启动模型。
 - 下一项：将完整角色/编码/lazy buffer消费者接到文件恢复hook（避免完整state额外副本），并据固定native load_dict返回协议设计GPU候选的安装/分块校验接点；仅代码与小CPU测试，不调用native GPU loader、构造全模型或执行完整转换。实际平台、原生Store/服务和八rank仍未验证。
