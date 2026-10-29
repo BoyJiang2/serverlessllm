@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 本轮vllm_cpu_hook接固定Base/utility源码与CPU raw restore接点；107项CPU测试及10文件修订静态复审PASS，见vllm-cpu-hook-review.json，不重复派发。真实Base代码测试仍依赖微型框架/initializer与rank/name边界mock，未导入实际vLLM或运行Kimi。
+- source与target auxiliary phase已分开；export写前只准source，恢复/安装显式接受target。初审生命周期及target-export晚拒绝两项已修复，失败终态/one-shot回归通过。CPU候选构造前强制CPU platform，qjhs003 CUDA平台不能用它启动模型。
+- 下一项：将完整角色/编码/lazy buffer消费者接到文件恢复hook（避免完整state额外副本），并据固定native load_dict返回协议设计GPU候选的安装/分块校验接点；仅代码与小CPU测试，不调用native GPU loader、构造全模型或执行完整转换。实际平台、原生Store/服务和八rank仍未验证。
+
 - 本轮state_bindings角色/持久性/grad清单已接写入/侧车/读取/CPU恢复；install_cpu_loaded_state消费完整CPU状态字典，decode后保留Parameter对象属性、登记buffer，仅特定lazy视觉cache可补登记。100项CPU测试通过，10文件修订复审PASS，见state-install-review.json，不重复派发。
 - 初审buffer requires_grad误通过已修复；测试发现inventory递归闭包保留旧Tensor，finally断环并weakref无GC回归通过。旧无角色清单的layout组件不得用于install；编码旧侧车无角色清单将拒绝，不修改旧证据。
 - 下一项：检查固定vLLM模型构造与load_weights/process_weights_after_loading调用链，并接最小原生Store恢复hook到现有CPU消费者；先写代码/小组件测试，不调用原生GPU loader或构造全模型。旧通用HF加载器有float统一cast/重建量化，不可直接沿用。实际八卡/完整checkpoint/业务验证未通过。

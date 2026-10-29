@@ -1,0 +1,47 @@
+{
+  "recorded_utc": "2026-10-29T09:29:00.407819+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "vllm_cpu_hook.py": "b5fd9362ff2724db75960f2aeef09e6ae17c8f751429e563ead376a8b464c95d",
+    "test_vllm_cpu_hook.py": "390887ca860084d94d8cb7fe2138bda31b122898e2be9efeb4cb4584d02b3a8b",
+    "fixtures/vllm_base_loader.py": "d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df",
+    "fixtures/vllm_loader_utils.py": "66e62df58d8f20e823a16cb042b939183f956df7df23d4b5d8fa6c5ce498ac02",
+    "marlin_aux.py": "7c7108e96ab68115ef13d2f6ef6a6a4420e5312a542723686d1627c55ae96e0e",
+    "auxiliary_manifest.py": "77976230674a812d38326cb219fcb1a2484d49de9d3b89987ed97f1ffb6ad879",
+    "rank_export.py": "11cd982148dd461fbd9f2a6a87d4bac74873c740844654627e38bb0bcf5685d5",
+    "test_rank_export.py": "68688081cb59bce497c9fe6c6805d4133adcfc41a59c18e5771b1a95f2a38d08",
+    "cpu_restore.py": "2142b60182dd66db7c331359c4b0cb150e9056f2debde42c942464e1bb72ad40",
+    "install_state.py": "6e5fdf366051fa1b1928c618bbf9a6e7be3e90503dbccefab2f51e4143bdc88f"
+  },
+  "history": [
+    {
+      "verdict": "changes_required",
+      "sha256": {
+        "vllm_cpu_hook.py": "48a7f6f6e7473dd4f25b2a010e2ecb175da49257b32dc28e31b6839aac775103",
+        "rank_export.py": "7cbaf67eb07045dec1fa7d801248c6adfd1a0355ceead09bf4c2487612a1c743"
+      },
+      "findings": [
+        "initialization failure did not consume one-shot; postprocess failure left no lifecycle failed state",
+        "target-phase export could mutate bindings before writer rejected phase"
+      ],
+      "resolution": [
+        "independent lifecycle state covers complete Base call, failed on any exception, returned only on success",
+        "export phase checked before all preparation/mutation"
+      ]
+    }
+  ],
+  "blockers": [],
+  "cpu_tests_passed_by_main": 107,
+  "elapsed_seconds": 4.852,
+  "scope": "source-bound CPU vLLM lifecycle candidate and distinct source/target auxiliary phases",
+  "limitations": [
+    "reviewer static/hash review only; tests run by main",
+    "Base/utility code executed with stub framework dependencies, toy initializer and no real kernels",
+    "positive controller tests mock rank preparation and checkpoint name boundary",
+    "no actual vLLM import, complete model, native load_dict, GPU or service admission"
+  ],
+  "gpu_used": false,
+  "remote_connection": false,
+  "runtime_admitted": false
+}

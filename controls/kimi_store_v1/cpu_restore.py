@@ -51,7 +51,8 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
         raise ValueError('source/destination buffer encodings differ')
     validate_buffer_encodings(encodings, layouts)
     receipts = validate_auxiliary_receipts(sidecar.get('auxiliary_receipts', []), layouts, rank)
-    validate_auxiliary_receipts(destination_auxiliary_receipts, layouts, rank)
+    validate_auxiliary_receipts(destination_auxiliary_receipts, layouts, rank,
+        phases=('checkpoint_loaded_before_postprocess', 'target_initialized_before_restore'))
     if not layouts or (type(chunk_bytes) is not int or chunk_bytes > CHUNK_BYTES
             or chunk_bytes < max(DTYPE_BYTES[r['dtype']] for r in layouts.values())):
         raise ValueError('empty state or invalid block bound')

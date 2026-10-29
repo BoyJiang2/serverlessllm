@@ -56,7 +56,7 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=No
         receipts.append(receipt)
         for leaf, layout in receipt['after'].items():
             layouts[name + '.' + leaf] = layout
-    validate_auxiliary_receipts(receipts, layouts, context['rank'])
+    validate_auxiliary_receipts(receipts, layouts, context['rank'], phases=(context['phase'],))
     # All sixty source checks and global metadata checks finished before mutation.
     for layer, replacements in prepared:
         for leaf, tensor in replacements.items():
@@ -66,6 +66,8 @@ def normalize_rank_cpu_auxiliary(model, *, checkpoint_contract, buffer_codecs=No
 
 def export_rank_cpu(directory, model, *, config_raw, checkpoint_contract, rank,
                     profile, vllm_version, torch_version, phase, chunk_bytes=CHUNK_BYTES, buffer_codecs=None):
+    if phase != 'checkpoint_loaded_before_postprocess':
+        raise ValueError('export requires source-after-load phase before any mutation')
     # Validate byte bounds and fixed ABI/config even before changing scratch bindings.
     named, _, _ = encode_cpu_state(model, buffer_codecs)
     source_inputs = {n: dict(shape=list(t.shape), dtype=str(t.dtype),

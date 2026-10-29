@@ -11,7 +11,10 @@ def _layout(width):
                 storage_offset=0, storage_bytes=384 * width * 4)
 
 
-def validate_auxiliary_receipts(receipts, layouts, rank):
+def validate_auxiliary_receipts(receipts, layouts, rank, *, phases=('checkpoint_loaded_before_postprocess',)):
+    if (not isinstance(phases, (tuple, list)) or not phases
+            or not set(phases) <= {'checkpoint_loaded_before_postprocess', 'target_initialized_before_restore'}):
+        raise ValueError('unreviewed auxiliary receipt phase policy')
     expected_names = {n for n in layouts if is_moe_auxiliary(n)}
     if not receipts and not expected_names:
         return []
@@ -21,13 +24,15 @@ def validate_auxiliary_receipts(receipts, layouts, rank):
     normalized = json.loads(json.dumps(receipts))
     covered = set()
     for receipt in normalized:
+        if receipt['phase'] not in phases:
+            raise ValueError('auxiliary receipt phase differs')
         layer = receipt['layer']
         names = {layer + '.' + leaf for leaf in NAMES}
         if (not names <= expected_names or names & covered
                 or any(layouts[n] != _layout(0) for n in names)):
             raise ValueError('auxiliary receipt coverage/layout mismatch')
         before = {leaf: _layout(7168 if leaf.startswith('w13') else 256) for leaf in NAMES}
-        expected = dict(layer=layer, rank=rank, phase='checkpoint_loaded_before_postprocess',
+        expected = dict(layer=layer, rank=rank, phase=receipt['phase'],
                         action='normalize_to_empty_before_postprocess', config_sha256=CONFIG_SHA256,
                         method_module=METHOD_MODULE, method_class=METHOD_CLASS,
                         method_source_sha256=SOURCE_SHA256, kernel_backend='Marlin', actorder=None,

@@ -1,7 +1,7 @@
 """Explicit CPU-only normalization of source-proven no-actorder scratch.
 
-Call only after checkpoint loading, before native postprocessing. This changes
-parameter bindings; the returned receipt must accompany any subsequent export.
+Call with an explicit source-after-load or target-before-restore phase. This changes
+parameter bindings; only source-phase receipts may accompany a subsequent export.
 It neither executes nor validates the remaining quantization postprocessing.
 """
 import hashlib
@@ -26,7 +26,7 @@ def _prepare_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
     from cpu_tensor_io import tensor_layout
     config = validate_config(config_raw)['text_config']
     if (type(rank) is not int or rank not in range(8) or profile != PROFILE
-            or vllm_version != '0.19.1' or phase != 'checkpoint_loaded_before_postprocess'):
+            or vllm_version != '0.19.1' or phase not in ('checkpoint_loaded_before_postprocess', 'target_initialized_before_restore')):
         raise ValueError('unreviewed rank/profile/ABI/phase')
     match = re.fullmatch(r'language_model\.model\.layers\.(\d+)\.mlp\.experts', name)
     if not match or int(match[1]) not in range(1, 61):

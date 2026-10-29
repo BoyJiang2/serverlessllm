@@ -133,6 +133,16 @@ class RankPreparationTests(unittest.TestCase):
                 rank_export.normalize_rank_cpu_auxiliary(model, **self.context())
         self.assertTrue(all(dict(model.named_parameters())[n] is t for n, t in before.items()))
 
+    def test_target_phase_export_refused_before_preparation_or_binding_changes(self):
+        model = self.model()
+        before = dict(model.named_parameters())
+        context = self.context()
+        context['phase'] = 'target_initialized_before_restore'
+        with patch.object(rank_export, '_prepare_cpu_auxiliary', side_effect=AssertionError('unexpected preparation')):
+            with self.assertRaisesRegex(ValueError, 'source-after-load'):
+                rank_export.export_rank_cpu('unused', model, **context, torch_version='2.10.0')
+        self.assertTrue(all(dict(model.named_parameters())[n] is t for n, t in before.items()))
+
 
 if __name__ == '__main__':
     unittest.main()

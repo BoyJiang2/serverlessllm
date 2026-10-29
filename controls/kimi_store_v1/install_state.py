@@ -65,7 +65,8 @@ def install_cpu_loaded_state(directory, model, state, expected_sidecar_sha256, *
     target_named, target_layouts, target_encodings = encode_cpu_state(model, codecs)
     if target_encodings != {n: record for n, record in encodings.items() if n in target_bindings}:
         raise ValueError('target original buffer encoding differs')
-    validate_auxiliary_receipts(destination_auxiliary_receipts, target_layouts, rank)
+    validate_auxiliary_receipts(destination_auxiliary_receipts, target_layouts, rank,
+        phases=('checkpoint_loaded_before_postprocess', 'target_initialized_before_restore'))
     target_objects = dict(model.named_parameters(remove_duplicate=False))
     target_objects.update(model.named_buffers(remove_duplicate=False))
     seen_objects = {}
