@@ -1,0 +1,33 @@
+{
+  "recorded_utc": "2026-10-29T08:04:18.970052+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "expert_mapping.py": "ae930f768902957b5e8df5e0d926db5d94e05689a8b089736053b97bcd94ea17",
+    "test_expert_mapping.py": "4bd16a0b40aee598e46d891e34adf63267d603e909a2a74aae0cfbf731faf9b1",
+    "fixtures/vllm_expert_loader.py": "a9b8f29f9e0f67309e409c6ab5c44e1186c8ca75c8ce1379f060a23b0f61410b"
+  },
+  "source_fused_moe_sha256": "b47fe17d1f760f184b95140fc474259520fc60ff2ed4d68bb558eb6e23b1328a",
+  "scope": "CPU conditional expert loading and frozen index expert name mapping only",
+  "cpu_tests_passed_by_main": 38,
+  "elapsed_seconds": 0.39,
+  "blockers": [],
+  "checks": [
+    "five original loader/helper ASTs match pinned source",
+    "eight-rank gate/up/down split and merge values",
+    "I32 and BF16 special-bit preservation",
+    "weight_shape conditional value replication"
+  ],
+  "limitations": [
+    "quant_method interface name and identity expert map do not prove backend or EP selection",
+    "1190 nonexpert names not yet mapped",
+    "F32 weight_shape fixture does not prove arbitrary I32 lossless conversion",
+    "no real initialization or postprocess mapping validation"
+  ],
+  "tp_mapping_verified": false,
+  "native_loader_verified": false,
+  "runtime_admitted": false,
+  "remote_connection": false,
+  "gpu_used": false,
+  "full_conversion_performed": false
+}

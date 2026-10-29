@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+当前断点见文末最新章节；早期各节保留当时实现范围与审阅边界，不能当作全局实时状态。当前仍无完整转换或GPU运行准入。
+
 2026-10-29：本目录只有**导出前契约与字节分块规划**，不是可运行的Store导出器或vLLM loader，不提供启动入口。不修改GLM runtime/active。
 
 已实现：
@@ -93,3 +95,15 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 源fixture：`fixtures/native_utils.py`，SHA `c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217`，完整保留Apache-2.0许可；来源 `https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/sllm_store/utils.py`。注意原函数的去重字典跨device共享，本测试绝不推广为跨device别名正确性；后续每rank索引仅映射到一个设备，其他安排需另审。
 
 最新35项真实Torch CPU测试及独立只读复审通过，见`alias-cpu-review.json`。此前review均仅绑定各自旧版本，不自动批准本次或未来GPU运行。仍待完成：固定后端真实rank清单与TP8参数/必要buffer映射、有界GPU staging、原生Store/CUDA消费及vLLM接线、真实模型金标。目标保持未完成；本轮没有远端连接、GPU、完整模型转换或下载。
+
+## TP8专家切片/融合方法CPU验证（最新：38项）
+
+`expert_mapping.py`新增冻结模型专家名解析及checkpoint期望切片view，只作为CPU审计规则，不作为另一套模型loader。gate/up沿原始输出维分为8份，down沿原始输入维分为8份；Marlin分支转置，Flashinfer分支不转置。返回借用view，无解包、重数量化或clone；明确拒绝未知条件/dtype/lazy view。返回view可能非contiguous，不能直接交给只接受完整owned storage的写入器。
+
+测试fixture直接提取vLLM v0.19.1 FusedMoE原始`weight_loader`及四个helper方法和量化枚举，完整layer.py源SHA `b47fe17d1f760f184b95140fc474259520fc60ff2ed4d68bb558eb6e23b1328a`。`fixtures/vllm_expert_loader.py`经过AST结构复核，保留许可。测试仅设置quant_method接口名称、无EP identity expert map等分支条件；没有构建真实vLLM/FusedMoE对象或选择实际GPU kernel。
+
+在微型真实CPU张量上，逐8rank核对：gate的w1放在融合w13前半，up的w3在后半，down的w2分片，其他expert槽保持；拼回全部rank还原原始source bits。BF16 NaN payload/负零及I32符号位也逐字节保持。另验证weight_shape复制到指定F32夹具时原shape值不变；这不保证任意I32能无损转F32，官方原始I32 shape侧车仍必须保留。
+
+对本机已有、SHA固定的原始索引做完整**名字**扫描：208550项中207360个专家条目（packed/scale/shape各69120），无重复expert/shard槽；映射到360个融合目标参数名，每个w13目标有768个gate/up源项、w2目标384个down源项。其余1190个非专家参数未在这一步映射，见`expert-name-audit.json`。全量名字扫描不证明初始化后的参数/buffer完整性或真实payload映射。
+
+38项CPU测试及独立只读复审通过，见`expert-mapping-cpu-review.json`。仍待：实际backend/拓扑和必要buffer全清单、非专家参数、weight_shape原始值侧车与映射、后处理重排前后审计、原生Store/CUDA恢复及vLLM接线。当前目标继续保持未完成。本轮无远端连接、GPU、模型运行、完整转换或重复权重下载。
