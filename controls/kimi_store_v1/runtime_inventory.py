@@ -1,5 +1,9 @@
 """Metadata-only CPU inventory; roles are review candidates, never exclusions."""
 import re
+from collections import OrderedDict
+
+MAX_CONTAINER_NODES = 100_000
+MAX_CONTAINER_DEPTH = 32
 
 
 def is_moe_auxiliary(name):
@@ -19,11 +23,36 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
         prefix, _, leaf = name.rpartition('.')
         module = model.get_submodule(prefix) if prefix else model
         named.append(('buffer', name, tensor, leaf not in module._non_persistent_buffers_set))
-    # Direct Tensor attrs are not returned by named_parameters/named_buffers.
+    opaque, cycles, visited = [], [], 0
+
+    def walk(value, path, active, depth=0):
+        nonlocal visited
+        visited += 1
+        if visited > MAX_CONTAINER_NODES or depth > MAX_CONTAINER_DEPTH:
+            raise ValueError('container metadata audit budget exceeded')
+        if isinstance(value, torch.Tensor):
+            kind = 'unregistered_tensor' if depth == 0 else 'container_tensor'
+            named.append((kind, path, value, False))
+        elif type(value) in (dict, OrderedDict, list, tuple, set, frozenset):
+            if id(value) in active:
+                cycles.append(path)
+                return
+            active = active | {id(value)}
+            if type(value) in (dict, OrderedDict):
+                for i, (key, item) in enumerate(value.items()):
+                    walk(key, path + '.keys[' + str(i) + ']', active, depth + 1)
+                    walk(item, path + '.values[' + str(i) + ']', active, depth + 1)
+            else:
+                for i, item in enumerate(value):
+                    walk(item, path + '[' + str(i) + ']', active, depth + 1)
+        elif value is not None and type(value) not in (str, bytes, bool, int, float, complex):
+            opaque.append(dict(path=path, type=type(value).__module__ + '.' + type(value).__qualname__))
+
+    # Registered state is already enumerated; do not recurse into its registries.
     for prefix, module in model.named_modules(remove_duplicate=False):
-        for leaf, tensor in vars(module).items():
-            if isinstance(tensor, torch.Tensor):
-                named.append(('unregistered_tensor', (prefix + '.' if prefix else '') + leaf, tensor, False))
+        for leaf, value in vars(module).items():
+            if leaf not in ('_parameters', '_buffers', '_modules'):
+                walk(value, (prefix + '.' if prefix else '') + leaf, set())
     for kind, name, tensor, persistent in named:
         if name in rows or tensor.device.type != 'cpu' or tensor.layout != torch.strided:
             raise ValueError('duplicate name or unsupported device/layout in CPU inventory')
@@ -49,13 +78,15 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
         rows[name] = row
     return dict(phase=phase, tensors=rows, missing_checkpoint_targets=sorted(expected - rows.keys()),
                 source_torch_version=str(torch.__version__), payload_read=False,
+                builtin_container_audit_complete=True, uninspected_objects=opaque,
+                container_cycles=cycles, container_nodes_visited=visited,
                 opaque_container_audit_complete=False, runtime_admitted=False)
 
 
 def require_safe_byte_export(inventory):
     """Reject known unsafe metadata before any bytes are written; not runtime R1."""
     for name, row in inventory['tensors'].items():
-        if row['role'] == 'uninitialized_aux_candidate' or row['kind'] == 'unregistered_tensor':
+        if row['role'] == 'uninitialized_aux_candidate' or row['kind'] in ('unregistered_tensor', 'container_tensor'):
             raise ValueError('explicit initialization/recreation policy required: ' + name)
     if inventory['missing_checkpoint_targets']:
         raise ValueError('incomplete checkpoint-backed state')

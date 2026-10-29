@@ -1,6 +1,7 @@
 from pathlib import Path
 import tempfile
 import unittest
+import types
 from unittest.mock import patch
 
 import torch
@@ -68,6 +69,50 @@ class InventoryTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 cpu_tensor_io.write_cpu_state(target, model)
             self.assertFalse(target.exists())
+
+    def test_nested_container_tensor_and_alias_detected_without_payload_reads(self):
+        model = torch.nn.Module()
+        model.weight = torch.nn.Parameter(torch.ones(2))
+        model.cache = {'private-key-not-logged': [model.weight, (torch.zeros(3),)]}
+        with patch.object(torch.Tensor, 'tolist', side_effect=AssertionError('payload read')):
+            result = inventory.collect_inventory(model)
+        self.assertEqual(result['tensors']['cache.values[0][0]']['alias_of'], 'weight')
+        self.assertEqual(result['tensors']['cache.values[0][1][0]']['kind'], 'container_tensor')
+        self.assertTrue(result['builtin_container_audit_complete'])
+        self.assertFalse(result['payload_read'])
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / 'rank'
+            with self.assertRaises(ValueError):
+                cpu_tensor_io.write_cpu_state(target, model)
+            self.assertFalse(target.exists())
+
+    def test_cycles_and_opaque_objects_reported_without_claiming_full_audit(self):
+        model = torch.nn.Module()
+        model.weight = torch.nn.Parameter(torch.ones(2))
+        model.cache = []
+        model.cache.append(model.cache)
+        model.unknown = types.SimpleNamespace(hidden=torch.ones(2))
+        result = inventory.collect_inventory(model)
+        self.assertEqual(result['container_cycles'], ['cache[0]'])
+        self.assertIn(dict(path='unknown', type='types.SimpleNamespace'), result['uninspected_objects'])
+        self.assertFalse(result['opaque_container_audit_complete'])
+
+    def test_container_tensor_keys_and_metadata_budget(self):
+        model = torch.nn.Module()
+        model.weight = torch.nn.Parameter(torch.ones(2))
+        model.cache = {model.weight: None}
+        result = inventory.collect_inventory(model)
+        self.assertEqual(result['tensors']['cache.keys[0]']['kind'], 'container_tensor')
+        model.cache = []
+        node = model.cache
+        for _ in range(inventory.MAX_CONTAINER_DEPTH + 1):
+            node.append([])
+            node = node[0]
+        with self.assertRaisesRegex(ValueError, 'budget exceeded'):
+            inventory.collect_inventory(model)
+        with patch.object(inventory, 'MAX_CONTAINER_NODES', 2):
+            with self.assertRaisesRegex(ValueError, 'budget exceeded'):
+                inventory.collect_inventory(model)
 
 
 if __name__ == '__main__':

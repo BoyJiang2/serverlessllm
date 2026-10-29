@@ -194,3 +194,14 @@ receipt校验只证明记录与冻结规则、布局及外部SHA一致，不独�
 预检失败保证不变更；执行替换或I/O期间出现其他异常时，整个模型/输出目录作废，保留失败证据，不承诺事务回滚或自动重试。尚需完整对象/视觉buffer政策、真实模型构造与载入接线、原生load_dict和实际八rank后处理/业务验证。
 
 本轮初审发现size-1维的非canonical stride虽可is_contiguous/full-owned，但原发布器会拒绝，若不预检会在修改scratch后才失败。已把与publish_index一致的canonical stride检验前置，并补真实empty_strided((1,),(2,))负例，证明尚未调用单层prepare且所有原绑定未变；初审记录保留。
+
+
+## 嵌套运行态清单与视觉buffer证据（85项CPU测试及只读复审PASS）
+
+metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/set/frozenset，包含字典Tensor键；不重复遍历已单独枚举的_parameters/_buffers/_modules。发现嵌套Tensor即记录container_tensor、layout、alias并阻止写入，避免静默掉失。字典路径使用索引，不记录键的实际内容；循环路径可审计，未展开自定义对象只列类型/路径。深度32、节点100000超限拒绝；builtin_container_audit_complete不代表opaque_container_audit_complete，后者仍false。自定义对象、Tensor自身附加状态等仍需专门政策。
+
+新增真实CPU测试涵盖嵌套Tensor与注册参数alias、写前拒绝、Tensor字典键、循环、自定义opaque对象及深度/节点预算。不会读取Tensor数值或改变原模型。旧清单仅识别直属Tensor的历史断点已被此更新覆盖。
+
+视觉状态证据见VISION-STATE.md：固定原始Rope类在2x3小网格实际生成lazy nonpersistent complex64缓存，现有dtype清单及归档native C++表均不支持它；存在该缓存时当前写入在文件创建前拒绝。不能仅给Python添加dtype名来冒称原生支持。time_weight虽nonpersistent仍须保留，外层视觉塔dtype转换会改变实际dtype；此次未运行NumPy构造或实际视觉业务。
+
+共85项CPU测试通过，未构造完整模型、512x512缓存或转换，也未访问远端/GPU。下一项应实现并审阅保留complex缓存完整位模式的编码/恢复规则及消费者，或适配原生dtype；还需明确opaque对象的必要状态，不能靠丢缓存/改模型来解决。

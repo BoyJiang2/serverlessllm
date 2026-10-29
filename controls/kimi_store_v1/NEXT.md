@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 本轮runtime_inventory已扫标准嵌套容器并拒绝container_tensor导出，循环/opaque/预算有证据；85CPU测试通过，5文件只读审阅已返回PASS并核验SHA，见vision-inventory-review.json；85项测试由主线程实际执行，不重复派发。
+- 视觉真实源码小CPU测试确认lazy freqs_cis为complex64，原生归档C++ dtype表没有该类型，warm视觉缓存仍明确不支持；time_weight必须保留且实际dtype受外层cast影响。见VISION-STATE.md。不要添加Python标签冒充原生兼容或丢弃缓存。
+- 下一项：实现可保留complex64完整原位模式的显式buffer编码/恢复侧车及消费者，或最小native dtype补丁，并用真实CPU位模式/别名/损坏负例验证；仍不执行全模型/完整转换。完整opaque政策与真实vLLM/native服务接线也未完。
+
 - 本轮rank_export.py接入60层全预检再变更及CPU export/write/publish编排；78项CPU测试通过；初审canonical-stride预检缺口已修复，新增真实singleton stride负例。修订复审已返回PASS并核验三文件SHA，见rank-export-review.json；78项测试由主线程执行，不重复派发。新60层测试仅小控制流fixture，单层helper/目标边界有mock；真实冻结contract明确拒绝该fixture，不是全模型或转换通过。
 - 下一项：梳理并实现视觉非持久buffer/opaque状态的必要性与处理政策，再把真实vLLM构造/加载入口接到CPU导出接口（仅写代码/小测试，不执行全模型）。已存在rank_export不等于已可运行的完整转换器，native load_dict/实际八卡仍待验证。
 
