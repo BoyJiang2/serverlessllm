@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 原生协议接点已补充 `NATIVE-RESTORE.md` 与固定源码 AST 的三项 CPU 协议测试，共117项CPU测试通过。客户端/CUDA边界全为Mock，不是native实测；确认返回值被旧Python包装器忽略、CUDA backing storage不能套CPU全storage校验等限制已显式列出。用户已允许空闲借用GPU，但仍须新窗口/资源/独立审阅/守护；下一步是CUDA消费者的区间与别名预检及必要CPU测试，不直接启动尚未实现的模型入口。
+
 - 2026-10-30：有界CPU文件恢复已接角色/complex原始位编码及唯一允许缺席的lazy视觉cache；先验证全部源payload，再分配必要cache，所有copy成功才登记非持久buffer。114项CPU测试通过，含已有alias复用、损坏写前拒绝、copy失败不登记及固定Base生命周期中已有/缺席cache。四文件当前修订复审状态见lazy-restore-review.json；旧审阅不得批准新hash。
 - 下一项：依据固定native load_dict返回的CUDA物理张量协议，设计保留Parameter对象/角色/别名的消费者与有界逐tensor校验接点；先做本机小CPU接口测试，不直接把CPU loader改名成GPU loader。完整转换、native CUDA恢复、八rank、后处理payload与业务仍未验证。当前GPU空闲快照不构成整机独占或运行准入，须重新核验有效窗口、共享I/O、独立审阅和新守护。
 
