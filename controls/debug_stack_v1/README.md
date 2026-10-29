@@ -69,7 +69,7 @@ python3 <工具目录>/controls/debug_stack_v1/debug_stack.py down --run-id <run
 源码树完好、（GPU 模式）宿主守护就绪；然后复制源码树，起 head、读 IP、起 worker。每次 `docker create` 之前都核对镜像 ID，
 缺失时从存档恢复（`tools/restore_original_image.py`，head 与 worker 各留一份收据）。这里不假设运行中的容器能保住镜像，
 也不假设节点按固定周期清理：有确切时间的清理事件只观察到两次（2026-10-28 19:50:01、20:20:01），之后多次在 create 前
-发现镜像已被删除（最近一次在 2026-10-29 01:10:58 到 01:22:18 之间），来源和规律都未确定。
+发现镜像已被删除（包括 2026-10-29 01:10:58 到 01:22:18 之间，以及 05:43 之前），来源和规律都未确定。
 `down` 只删除持有者令牌一致的容器，并确认 GPU 进程清空。
 
 默认权重格式是 safetensors（64 MiB 池）；`serverless_llm` 会建 716 GB 的锁页池，请只在需要时使用。两者都是调试配置，见上一节。
@@ -108,13 +108,18 @@ python3 <工具目录>/controls/debug_stack_v1/debug_stack.py down --run-id <run
   `test_deploy_tree` 12 项与 `test_c23_regression` 6 项全部通过；`tools` 整体发现时另有 21 项在干净的 HEAD 导出上同样失败
   （`test_control_transport13` 17 项找不到 `runtime/active` 的模块，`test_execution_contract` 4 项仍按旧的 G1-only scope 校验
   `run-manifest.json`），与本次改动无关。
+- 2026-10-29 02:09，仓库所有者用 sudo 安装了宿主守护：定时器 active/enabled，安装时的同步扫描成功并写了心跳；已安装的脚本与
+  工具目录 `code/debug-stack-4061b0c838ce` 里的 `debug_guard.py` 哈希一致（`3d70fc4a…`），`guard_state()` 没有问题项。
+  05:44 用一个截止时间已过的 CPU 测试容器验证（调试标签、无 GPU、无网络，run `sllm-debug-20261028T214451Z-64330926`）：
+  守护在创建后约 36 秒 `docker stop`（返回 0）并删除，`/var/log/sllm-debug-guard.jsonl` 记录原因 `deadline label`，
+  心跳记下 1 次动作，之后没有调试容器残留；创建前镜像又一次不在，已从存档恢复。同一天本地对 commit `ad5b0b6`
+  `deploy_tree build`：调试树可以构建（83 个文件）；正式树被拒绝，原因是清单里的 `launch_control13.py` 仍是 C23 的哈希
+  （它是 C23 以来 `runtime/active` 唯一改动的文件）。
 
 ## 还没验证的
 
 - `--weight-format serverless_llm`（716 GB 锁页池）尚未在调试栈上跑过。
 - 预订只核对你给的 ID 和结束时间，没有调用预订 API；`--borrow` 只做空闲检查，不是预订。
-- 宿主守护还没安装（需要 root）；服务器上只验证了缺守护时 GPU 模式拒绝启动。守护真正停止并删除容器的路径只在模拟 docker 的
-  本地测试里跑过，安装后要在服务器上用一个截止时间已过的调试容器验证一次。2026-10-28 的两次 GPU 冒烟发生在守护实现之前，
-  当时只有容器内 `timeout`。
+- 装好守护之后还没跑过 GPU 模式的调试栈；2026-10-28 的两次 GPU 冒烟发生在守护实现之前，当时只有容器内 `timeout`。
 - 两侧互斥都是启动前检查，没有跨两侧的锁：两边几乎同时启动时，检查与 `docker create` 之间仍有窗口。
 - 正式侧的互斥检查只在本地测试和 C23 回归里验证过，还没有在正式启动中运行；正式使用前需要重新生成清单并通过 R1 审阅。
