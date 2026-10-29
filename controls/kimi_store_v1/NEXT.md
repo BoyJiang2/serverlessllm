@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 本轮新增state_audit.py与test_state_audit.py：55项真实CPU测试通过；分块SHA与同阶段读回比对，跨rank/phase/Torch上下文拒绝。AUX-POLICY.md是未实现的Marlin例外政策，原写入拒绝仍保留。当前只读审阅已返回PASS，三文件哈希核验一致，见state-audit-cpu-review.json；不重复派发。审阅未执行测试，55项测试由主线程实际运行。
+- 下一项：真正的有界CPU恢复入口（不仅测试内手工拷贝），复用已验证native index与payload边界、保持alias/混合dtype并验证恢复后的state_audit；然后处理scratch消费者与真实vLLM接线。完整转换器尚未完成。
+
 - 最新checkpoint_contract已接入可选写前检查：50真实CPU测试及只读复审PASS，见checkpoint-contract-cpu-review.json。完整source index重新派生目标artifact逐字节一致，1428条件目标名已硬绑定SHA；审阅已返回，不重复派发。
 - 仍不是完整转换器。接下来推进明确的Marlin/no-actorder scratch重建政策与pre/post流式payload指纹；Flashinfer和opaque状态不能套用Marlin规则。权威名称清单不证明shape/数值/实际profile。
 - 以下旧“尚未传targets”描述是历史断点：现在传checkpoint_contract时会传targets；不传仍仅组件模式且覆盖flag为false。

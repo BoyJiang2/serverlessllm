@@ -131,3 +131,14 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 目标清单是**来源固定、条件性的名称预期**，不是已观测的实际rank布局。尚未验证shape/dtype、选中参数类、运行态profile或已正确加载的值；实际初始化若不同，必须调查并修订/审阅，不能删除missing项凑通过。未提供contract的旧组件调用仍允许微型CPU测试，但明确checkpoint_name_coverage_verified=false、inventory_policy_verified=false、runtime_admitted=false，不能用于宣称完整Kimi导出。提供contract且无missing也只说明名称覆盖，其他flag继续false。
 
 仍待：明确的scratch初始化/重建政策、opaque缓存与必要buffer覆盖、pre/post实际payload校验、原生Store消费与vLLM导出恢复接线。当前仍不启动完整转换或GPU，不宣称目标完成。
+
+
+## 同阶段CPU字节指纹（55项测试及独立只读复审PASS）
+
+`state_audit.fingerprint_state()`逐个真实CPU参数与全部buffer，以最多8MiB视图计算原始SHA256，不转dtype、不克隆整张量。记录rank、phase、Torch版本、layout与metadata inventory；可传入冻结checkpoint contract。未初始化辅助项、直接未注册Tensor及缺失目标仍在读取payload前拒绝。调用者必须暂停状态写入；该函数不是并发一致的模型快照。
+
+`compare_restored_state()`仅比较同rank、同phase、同Torch版本及同名称覆盖模式的指纹，报告增加/缺失/改变的张量与inventory差异。pre/post跨阶段被拒绝；GPU后处理另需明确变换政策，见`AUX-POLICY.md`。普通opaque容器覆盖仍未完成，结果永远不授予runtime准入。
+
+新增测试使用既有真实CPU混合dtype夹具，八个rank标签分别从raw partition读回实际字节，验证NaN payload、负零、I32 packed值、alias与非持久buffer；同形状packed/scale/shape/router字节翻转会失败。这里的八rank是微型CPU夹具参数化，不是实际八卡权重核验；读回是测试内显式字节拷贝，不是原生load_dict。
+
+8MiB只是单次视图上限，不是进程RSS上限。完整模型本体/恢复目的张量、Torch allocator、元数据与其他驻留仍占内存；指纹不创建整模型副本，不证明真实峰值。尚需真正的有界恢复入口、辅助状态消费者、完整模型rank构造与原生Store/vLLM接线。
