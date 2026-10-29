@@ -1,0 +1,30 @@
+{
+  "recorded_utc": "2026-10-29T07:52:26.606951+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "cpu_tensor_io_sha256": "e916fc8d51abac91209078f9538d799afa7a676ad46d2a209c60cc240c208366",
+  "test_cpu_tensor_io_sha256": "4a50f0612b238b8bed98ddeb0c7ca9308cdbf241d6300dd7c915df42cbdd6a6d",
+  "stream_writer_sha256": "c7dc8395396e03a6146a7e0f4d7ecd1ad4a1261c7b69f522f30ed64221a30b67",
+  "test_stream_writer_sha256": "738fb9377aff06907e7a043f40ceec541a14e6ab921fd03200cf1e3cb95a24b3",
+  "cpu_tests_passed_by_main": 32,
+  "elapsed_seconds": 0.38,
+  "test_runtime": "Python3.13.1, torch2.10.0+cpu on Windows",
+  "torch_cuda_version": null,
+  "scope": "real CPU tensor byte adapter; not native Store/vLLM/GPU approval",
+  "blockers": [],
+  "closed_findings": [
+    "lazy-negative/conjugate view refusal",
+    "source storage lifetime owned by exported byte view",
+    "consumer releases buffer before next producer allocation"
+  ],
+  "limitations": [
+    "caller must not mutate or resize source concurrently",
+    "8MiB is not RSS bound",
+    "aliases detected but separately serialized, shared-storage restoration pending"
+  ],
+  "native_loader_verified": false,
+  "tp_mapping_verified": false,
+  "runtime_admitted": false,
+  "remote_connection": false,
+  "full_conversion_performed": false
+}

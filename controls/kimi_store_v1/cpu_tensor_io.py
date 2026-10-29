@@ -1,0 +1,71 @@
+"""Real PyTorch CPU state adapter; deliberately rejects CUDA and storage views."""
+import ctypes
+
+from contract import DTYPE_BYTES
+from stream_writer import CHUNK_BYTES, write_records
+
+
+def tensor_layout(tensor):
+    import torch
+    if not isinstance(tensor, torch.Tensor) or tensor.device.type != 'cpu':
+        raise ValueError('this entry only accepts real CPU tensors')
+    dtype = str(tensor.dtype)
+    if dtype not in DTYPE_BYTES or not tensor.is_contiguous():
+        raise ValueError('unreviewed dtype or noncontiguous tensor')
+    if tensor.is_neg() or tensor.is_conj():
+        raise ValueError('lazy negative or conjugate view needs explicit handling')
+    size = tensor.numel() * tensor.element_size()
+    storage = tensor.untyped_storage()
+    if tensor.storage_offset() != 0 or storage.nbytes() != size:
+        raise ValueError('tensor does not own its full storage range')
+    return dict(shape=list(tensor.shape), stride=list(tensor.stride()), dtype=dtype,
+                storage_offset=0, storage_bytes=size)
+
+
+def iter_cpu_blocks(tensor, chunk_bytes=CHUNK_BYTES):
+    layout = tensor_layout(tensor)
+    element = DTYPE_BYTES[layout['dtype']]
+    if type(chunk_bytes) is not int or not element <= chunk_bytes <= CHUNK_BYTES:
+        raise ValueError('invalid CPU byte block bound')
+    step = chunk_bytes // element * element
+    # ctypes exposes existing CPU storage without dtype casts or CPU clones.
+    # Keep tensor alive across each yield; caller must consume synchronously.
+    for offset in range(0, layout['storage_bytes'], step):
+        count = min(step, layout['storage_bytes'] - offset)
+        buffer = (ctypes.c_ubyte * count).from_address(tensor.data_ptr() + offset)
+        buffer._tensor_owner = tensor  # The exported memoryview owns this ctypes object.
+        view = memoryview(buffer).cast('B')
+        yield view
+        del view, buffer
+
+
+def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES):
+    import torch
+    named = list(model.named_parameters(remove_duplicate=False))
+    named.extend(model.named_buffers(remove_duplicate=False))
+    tensors = dict(named)
+    if not tensors or len(tensors) != len(named):
+        raise ValueError('empty state or duplicate parameter/buffer name')
+    layouts = {name: tensor_layout(tensor) for name, tensor in named}
+    if (type(chunk_bytes) is not int or chunk_bytes > CHUNK_BYTES
+            or chunk_bytes < max(DTYPE_BYTES[r['dtype']] for r in layouts.values())):
+        raise ValueError('invalid CPU byte block bound')
+    aliases, seen = {}, {}
+    for name, tensor in named:
+        if layouts[name]['storage_bytes']:
+            pointer = tensor.untyped_storage().data_ptr()
+            if pointer in seen:
+                prior = seen[pointer]
+                if layouts[name] != layouts[prior]:
+                    raise ValueError('shared storage with different tensor views needs review')
+                aliases[name] = prior
+            else:
+                seen[pointer] = name
+    entries = ((name, layouts[name]['storage_bytes'],
+                iter_cpu_blocks(tensor, chunk_bytes), None) for name, tensor in named)
+    records = write_records(directory, entries)
+    return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
+                                  alias_of=aliases, aliases_serialized_separately=True,
+                                  buffer_names=[name for name, _ in model.named_buffers(remove_duplicate=False)],
+                                  chunk_bytes=chunk_bytes, native_loader_verified=False,
+                                  runtime_admitted=False)

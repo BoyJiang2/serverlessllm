@@ -55,6 +55,8 @@ def write_records(directory, entries, partition_bytes=PARTITION_BYTES):
                 _write_all(stream, view)
                 digest.update(view)
                 received += len(view)
+                # Release consumer references before asking a staged producer for its next block.
+                del view, block
             if received != size or (expected is not None and digest.hexdigest() != expected):
                 raise ValueError('record length or SHA mismatch; incomplete directory retained')
             padding = (-size) % 8

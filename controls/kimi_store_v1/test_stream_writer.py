@@ -1,9 +1,11 @@
 import hashlib
+import gc
 import io
 from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+import weakref
 
 import stream_writer as writer
 
@@ -85,6 +87,22 @@ class StreamTests(unittest.TestCase):
             records['a']['bytes'] = 4097
             with self.assertRaises(ValueError):
                 writer.verify_records(target, records)
+
+    def test_consumed_buffer_released_before_next_producer_allocation(self):
+        class Buffer(bytearray):
+            pass
+        released = []
+        def chunks():
+            for _ in range(2):
+                block = Buffer(b'abcd')
+                reference = weakref.ref(block)
+                yield block
+                del block
+                gc.collect()
+                released.append(reference() is None)
+        with tempfile.TemporaryDirectory() as temp:
+            writer.write_records(Path(temp) / 'candidate', [('x', 8, chunks(), None)])
+        self.assertEqual(released, [True, True])
 
 
 if __name__ == '__main__':

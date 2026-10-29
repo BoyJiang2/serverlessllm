@@ -63,3 +63,21 @@ CPU测试实际从`fixtures/native_torch.py`提取并执行固定源文件的`sa
 在I32 packed和BF16 scale假设下，8rank×60MoE层字节和分别507343011840B、63417876480B，与官方checkpoint相应总量吻合；这只验证条件形状和字节守恒，不证明实际选中backend、专家编号/转置/切片顺序或原值映射。完整MoE模块源SHA `0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f`，纯方法fixture SHA `901a3061cdd00510ecd9998a84fa836286acecd30634df48fc502e3c6c4c23e2`。
 
 源码还会创建融合后的weight_shape/g_idx等参数，不能以原始Safetensors名称数量代替初始化后的清单；其中weight_shape创建未显式指定dtype，实际取决于默认dtype上下文。需要实测记录，不能假定继续是原checkpoint的I32。下一步是接通真实完整rank清单与读写入口，完成固定backend的映射审计设计；原始checkpoint及配置继续完整保留。
+
+## 真实PyTorch CPU字节入口（最新测试：32项）
+
+`cpu_tensor_io.write_cpu_state()`现可枚举真实CPU模型的`named_parameters(remove_duplicate=False)`及全部`named_buffers(remove_duplicate=False)`（含nonpersistent），提取实际shape/stride/dtype和storage范围，连接分块writer。拒绝非CPU、未知dtype、非连续/非完整storage、lazy-negative/conjugate以及不同layout共用storage；非法输入在目录创建前拒绝。此入口不初始化模型、不把CUDA tensor拷到CPU，不能拿它直接运行整模转换。
+
+I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做数值转换或整tensor clone。ctypes对象持有源tensor，保留的memoryview可在generator关闭后继续保活storage；writer消费后删除块引用，再请求下一块。调用者必须保证源不被并发写入或resize。每块8MiB只是交给writer的buffer限制，不是模型常驻、总RSS、锁页或GPU staging的峰值承诺。
+
+相同layout共享storage的参数别名已识别并返回`alias_of`，当前仍分别序列化，**没有恢复共享storage语义**；这一项仍是后续接线工作，不能把字节相同当成别名恢复已通过。所有buffers先保留，不按名称擅自删除scratch；哪些是必要状态仍需真实后端清单审计。
+
+本轮在仓库外独立环境`../outputs/kimi-cpu-tests-env`安装官方CPU版Torch2.10.0+cpu，`torch.version.cuda is None`；没有改变GLM环境。完整环境版本见`cpu-test-requirements.txt`。最新测试命令（PowerShell，从仓库根执行）：
+
+```powershell
+& '..\outputs\kimi-cpu-tests-env\Scripts\python.exe' -X utf8 -m unittest discover -s controls/kimi_store_v1 -p 'test_*.py' -v
+```
+
+32项通过，包含真实BF16/I32/F32逐bit保存读回、参数别名及非持久buffer枚举、view与lazy-negative拒绝、引用保活/释放；测试模型均为微型CPU夹具，不是Kimi权重或真实推理金标。没有NumPy依赖；Torch导入时可能提示缺NumPy，不影响这条ctypes字节路径。旧的schema AST测试仍是元数据单元测试，新增真实tensor测试也没有调用原生Store扩展。
+
+未完成：别名共享storage恢复、固定后端真实rank清单/参数映射、GPU有界staging、原生Store扩展消费验证、vLLM导出/恢复及业务金标。目标仍未完成，后续GPU步骤继续受预约/独立审阅/守护约束。本轮无远端连接、无模型下载、无完整转换。
