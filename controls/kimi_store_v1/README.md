@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新 `checkpoint_export.convert_checkpoint_rank` 接固定本地官方SF加载到device_export流式写入：原始INT4/scale位、shape/角色/alias/codec保留，源名称及目标覆盖显式检查；159项CPU测试通过，审阅见checkpoint-export-review.json。完整manifest/mapper/SF迭代器仅fixture，未执行完整模型或实际GPU转换；此函数需要worker供应已初始化模型与loader，不是可直接运行的服务/转换CLI。
+
 最新组合 `vllm_native_hook.py` 已连接源预算/配置预检、CUDA rank准备、native_call/install和固定Base后处理，一次生命周期/失败状态有CPU控制测试；150项CPU测试通过，复审见native-lifecycle-review.json。成功控制有明确设备/rank/native/install mocks；完整worker、守护、实际八rank与服务仍未验证，不提供可直接开跑的CLI。
 
 最新显式CUDA准备候选：新增device_state元数据/视图及CUDA rank/Marlin辅助入口，共用已绑定源分支和60层预检编排，旧CPU入口保留。144项CPU测试通过，审阅见device-preparation-review.json；CUDA成功分支未运行。当前仍没有经实际GPU验收的vLLM原生入口或完整转换器。

@@ -70,6 +70,20 @@ weight阶段检查全部已初始化张量设备，调用新的CUDA rank规范�
 
 六项新增CPU测试，总计150项通过。成功控制测试执行固定Base/utility源码，但明确Mock模型设备/peak APIs、名称边界、rank准备、native调用和安装；只证明调用顺序、一次后处理与生命周期状态，不证明真实CUDA数据消费。独立CPU组件测试覆盖安装/字节，实际设备拒绝测试未绕检查。待新worker完整审阅后才能进行真实八rank验证。
 
+## 源 rank 的有界导出及 SF 接线
+
+`device_export.write_device_state` 将已加载、静止的完整owned rank状态编码为原始视图，按最多8MiB主机块写入既有stream_writer；不累积完整CPU权重字典。alias只写一次，保留原shape/dtype/stride、角色及complex codec。`export_rank_device` 先检查phase/ABI/块预算/目标已存在，按设备执行已审aux规范化，随后写入、读回核SHA并最后发布索引；失败留partial目录，不覆盖或自动重试。仅收集元数据和Tensor引用，不对整份权重做CPU克隆；调用方必须保证源静止并验证实际CUDA同步。
+
+`checkpoint_export.convert_checkpoint_rank` 接受由独立worker初始化的真实模型和DefaultModelLoader，执行本地官方SF加载、全rank规范化、流式导出及发布；自身不构造模型、不执行后处理/推理、不启动worker。转换预算/元数据先检；成功/失败一次性状态保留在模型属性，失败目标不可复用。
+
+固定DefaultModelLoader对量化模型不检查完整loaded_weights，故源加载桥接显式跟踪全部208550个源名与冻结目标契约。默认SF loader和Kimi load_weights仍用原函数，临时截获仅本实例方法并在finally恢复；不改global/backend，不解包或重新量化。全部官方源名须恰好消费一次，返回集合须覆盖目标；仅允许单线程lazy Safetensors、固定revision和主源，metadata准备只返回已认证index列出的64个本地分片，不调用下载fallback或次级模型源。
+
+完整源原件 `fixtures/vllm_default_loader.py` SHA `e7252bc755341559c568bcc933225bd8ca855124fb553059b430000174a9feaa` 和 `fixtures/vllm_kimi_k25.py` SHA `72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba` 来自固定vLLM v0.19.1，保留许可证。config/index原字节身份受冻结SHA约束；本桥接不重新hash全部源权重文件，`checkpoint_payload_verified=false`，来源完整性仍需已有下载证据及实际运行时冻结/核验。文件系统是否本地盘、当前占用和权限仍由worker准入验证，不从“路径本地”推断物理I/O来源。
+
+原始buffer编码不增加整份CPU模型副本，但名字集合/模型元数据、迭代器/页缓存、writer和GPU源权重都另占资源；8MiB仅是一个host payload块的上限，不是rank或整机RSS上限。返回的transfer/source版本与覆盖证据必须由worker保存并绑定manifest；不能仅保存原生索引而丢掉来源证据。
+
+新增九项CPU测试，总计159项通过：小型混合dtype状态实际流式写/发布/恢复，codec/alias、块引用释放、失败无索引；固定Default/Kimi函数执行但SF迭代器、AutoWeightsLoader、官方manifest/目标边界为明确fixture，验证原始packed/BF16位、遗漏/重复/错误target拒绝、方法恢复和无后处理的一次组件转换。不是595GB转换或真实vLLM/八rank通过。下一步是完整独立worker/守护/监控/预算和失败退出取证方案，再经审阅及实际资源核验运行。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。

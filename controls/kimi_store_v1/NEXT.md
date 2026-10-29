@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 最新device_export.py/checkpoint_export.py接已初始化源rank的本地SF加载→aux规范化→有界host块写/核验/索引发布，159项CPU测试通过，当前修订审阅见checkpoint-export-review.json。补量化DefaultLoader不做完整目标检查的缺口：源名逐一覆盖、目标集合审计；仅本实例临时方法且finally恢复。完整源代码fixture已冻结；SF迭代器/mapper/全量manifest/target边界仍是小夹具，不是全模型转换，Store资产尚未生成。下一项：完整独立worker的身份/预算/窗口/守护/监控/失败退出取证及执行入口审阅；不自动GPU、不恢复旧窗口。
+
 - 接续优先级澄清：Kimi完整Store尚未生成，不能先调用消费hook。下一轮先将device_state与有界主机块接入GPU源rank导出/原SF loader接线（仅源码与小CPU测试），再组合独立worker/当前窗口守护与取证。当前native factory只是消费候选，不是完整转换器或可运行服务。其已审实现不重写，原phase/目标不重置。
 
 - 新增vllm_native_hook.py及六项CPU生命周期测试，150项CPU测试通过。候选已接构造前source预算/配置预检、CUDA rank准备、native调用与安装，再交固定Base后处理；native_call路径预检提取为共用helper防止两入口边界分叉。当前复审见native-lifecycle-review.json。成功测试明确mock CUDA/framework、rank/native/install边界；不是实际GPU/模型通过。下一项：受守护独立worker、当前run/window/monitor/失败清理完整闭包和实际运行审阅；不能把已有factory当service CLI或复用旧guard。

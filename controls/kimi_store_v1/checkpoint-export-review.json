@@ -1,0 +1,42 @@
+{
+  "recorded_utc": "2026-10-29T19:22:10.3485107Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "device_export.py": "c85cd617dfe43843b9e79d5deb57790b817beba435b5f562eb4cea4abad84cf4",
+    "checkpoint_export.py": "8e8011de45b4b9c6cc0a667407849fa57da8a74612c3dcbc97fbccd77f7d9b2f",
+    "test_device_export.py": "73e5bf2a83bcc1f8aa8da381a076ca09b6376883834f40240d00a34623fbc358",
+    "test_checkpoint_export.py": "43940b8590538ed5f31d8ef5b32f0b5cc6cbdd326f9f6e3666beb3fc4da4cdaf",
+    "fixtures/vllm_default_loader.py": "e7252bc755341559c568bcc933225bd8ca855124fb553059b430000174a9feaa",
+    "fixtures/vllm_kimi_k25.py": "72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba",
+    "NATIVE-RESTORE.md": "ae22df7bbb2ecf9a604ffb7f4361bb03e120352d172140d6152ecbd43a71cadc",
+    "README.md": "8a2f2acbf12055304156906cf2116667396dd46c8d18fd156ba3d4dbbf71341d",
+    "NEXT.md": "fe42b9a1e0ade692bafc33bb89f800310926b0610d87b8e5419009bf4c326a03"
+  },
+  "tests": {
+    "count": 159,
+    "executor": "primary agent",
+    "seconds": 4.396,
+    "scope": "Tiny CPU states; manifest/iterator/mapper/rank policy boundaries mocked",
+    "torch": "2.10.0+cpu"
+  },
+  "verified": [
+    "Fixed Default/Kimi functions reused with local-only metadata and instance method restoration",
+    "Complete source-name consumption and expected target coverage checked",
+    "Alias, roles, codec and bounded host buffers preserved through file publication/readback",
+    "Host block alignment matches plan_rank element-boundary accounting"
+  ],
+  "history": [
+    {
+      "resolution": "Per-tensor host bound aligned down to element_size; revised two-file review PASS",
+      "finding": "Primary agent found raw byte block bounds could disagree with element-aligned plan",
+      "verdict": "PASS before alignment revision"
+    }
+  ],
+  "limitations": [
+    "Static reviewer did not run tests",
+    "No official full checkpoint, actual CUDA or TP8 verification",
+    "Full shard payloads not rehashed by bridge; source integrity and quiescence need runtime evidence",
+    "8MiB is a host block limit, not iterator/page-cache/total RSS limit"
+  ]
+}
