@@ -121,3 +121,13 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 其他runtime parameter/buffer不自动排除，保留requires_policy_review；CPU helper的inventory_policy_verified仍为false。视觉源码的time_weight是非持久buffer，freqs_cis可能按需注册，不能仅凭checkpoint清单认定状态完整。清单当前不遍历opaque容器里的Tensor，明确opaque_container_audit_complete=false；不得当作全对象状态审计。
 
 `compare_inventory()`报告后处理前后added/removed/metadata-changed，只接受正确阶段顺序；不比较权重值、不认定后处理正确。新增真实CPU测试覆盖非持久buffer、直属未注册缓存、缺失源目标、alias、阻止未初始化辅助导出及空辅助重建的metadata差异，累计46项通过。仍待：明确初始化/重建政策、opaque状态审计、固定后端实际rank快照与pre/post payload校验、原生Store与vLLM接线。未启动任何远端任务或GPU。
+
+## 全索引来源绑定与写前名称完整性（最新：50项CPU测试）
+
+`checkpoint_contract.py`从精确SHA绑定的完整原始索引和config生成`checkpoint-targets.json`：208550源条目全部进入既有专家/非专家条件规则，得到1428个目标名及每目标源条目数，并记录revision、config/index SHA、mapper SHA和条件profile（TP8/PP1/MLA/no EP/no SP/encoder data）。重新派生得到逐字节相同的artifact，收据见`checkpoint-contract-derivation.json`。
+
+`load_targets()`硬绑定artifact SHA `52a4262b0f607f3dbb975a2408bafa0cfda1cb5a813a6992ae61e25daddc42ae`，拒绝被修改或不受审的来源清单。`write_cpu_state(..., checkpoint_contract=raw_bytes)`现将其目标名传入metadata inventory，missing checkpoint target在创建目录前拒绝。50项CPU测试包含artifact/源索引变更拒绝、完整条目计数、真实不完整CPU模型写前拒绝。
+
+目标清单是**来源固定、条件性的名称预期**，不是已观测的实际rank布局。尚未验证shape/dtype、选中参数类、运行态profile或已正确加载的值；实际初始化若不同，必须调查并修订/审阅，不能删除missing项凑通过。未提供contract的旧组件调用仍允许微型CPU测试，但明确checkpoint_name_coverage_verified=false、inventory_policy_verified=false、runtime_admitted=false，不能用于宣称完整Kimi导出。提供contract且无missing也只说明名称覆盖，其他flag继续false。
+
+仍待：明确的scratch初始化/重建政策、opaque缓存与必要buffer覆盖、pre/post实际payload校验、原生Store消费与vLLM导出恢复接线。当前仍不启动完整转换或GPU，不宣称目标完成。

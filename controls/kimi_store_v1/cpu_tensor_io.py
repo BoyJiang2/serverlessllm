@@ -4,6 +4,7 @@ import ctypes
 from contract import DTYPE_BYTES
 from stream_writer import CHUNK_BYTES, write_records
 from runtime_inventory import collect_inventory, require_safe_byte_export
+from checkpoint_contract import load_targets
 
 
 def tensor_layout(tensor):
@@ -40,9 +41,10 @@ def iter_cpu_blocks(tensor, chunk_bytes=CHUNK_BYTES):
         del view, buffer
 
 
-def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES):
+def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_contract=None):
     import torch
-    inventory = collect_inventory(model)
+    targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
+    inventory = collect_inventory(model, checkpoint_targets=targets)
     require_safe_byte_export(inventory)
     named = list(model.named_parameters(remove_duplicate=False))
     named.extend(model.named_buffers(remove_duplicate=False))
@@ -72,6 +74,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES):
     return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
                                   alias_of=aliases, aliases_serialized_separately=False,
                                   inventory=inventory, inventory_policy_verified=False,
+                                  checkpoint_name_coverage_verified=checkpoint_contract is not None,
                                   written_payload_bytes=sum(r['bytes'] for n, r in records.items() if n not in aliases),
                                   buffer_names=[name for name, _ in model.named_buffers(remove_duplicate=False)],
                                   chunk_bytes=chunk_bytes, native_loader_verified=False,
