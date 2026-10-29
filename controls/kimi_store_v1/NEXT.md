@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增vllm_native_hook.py及六项CPU生命周期测试，150项CPU测试通过。候选已接构造前source预算/配置预检、CUDA rank准备、native调用与安装，再交固定Base后处理；native_call路径预检提取为共用helper防止两入口边界分叉。当前复审见native-lifecycle-review.json。成功测试明确mock CUDA/framework、rank/native/install边界；不是实际GPU/模型通过。下一项：受守护独立worker、当前run/window/monitor/失败清理完整闭包和实际运行审阅；不能把已有factory当service CLI或复用旧guard。
+
 - 最新device_state.py及显式CUDA rank/Marlin辅助规范化候选已补齐，144项CPU测试通过；旧CPU入口/描述器保留，核心source规则和全60层先预检后变更共用。当前修订审阅见device-preparation-review.json。CPU parity/拒绝测试不是CUDA成功路径或真实模型验证；下一步连接固定vLLM Base生命周期与native_call/install，再补新worker及受控退出协议，不直接执行GPU。
 
 - 最新native_call.py接固定nonblocking函数的私有调用环境，记录同次PyCapsule base/bytes/offsets/replica、带剩余deadline的RPC和显式完成响应；139项CPU测试通过，当前审阅见native-call-review.json。source client成功confirm返回None，候选直接核RPC响应并在restore包装前确认，不沿用旧真值判据。失败明确保留cleanup未验证并要求worker/context受控退出，不主动free潜在DMA地址。下一项：新worker隔离/失败回收协议和vLLM生命周期组合；不能把此夹具调用或旧守护当真实运行准入。

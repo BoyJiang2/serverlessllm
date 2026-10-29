@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新组合 `vllm_native_hook.py` 已连接源预算/配置预检、CUDA rank准备、native_call/install和固定Base后处理，一次生命周期/失败状态有CPU控制测试；150项CPU测试通过，复审见native-lifecycle-review.json。成功控制有明确设备/rank/native/install mocks；完整worker、守护、实际八rank与服务仍未验证，不提供可直接开跑的CLI。
+
 最新显式CUDA准备候选：新增device_state元数据/视图及CUDA rank/Marlin辅助入口，共用已绑定源分支和60层预检编排，旧CPU入口保留。144项CPU测试通过，审阅见device-preparation-review.json；CUDA成功分支未运行。当前仍没有经实际GPU验收的vLLM原生入口或完整转换器。
 
 最新 `native_call.py` 包装固定native nonblocking函数，在私有环境记录本次分配与offsets、显式检查完成RPC后才构造Tensor包装。139项CPU测试通过，修订审阅见native-call-review.json。真实native执行、worker隔离、失败context/Store退出及vLLM GPU生命周期仍未通过；未提供可直接启动的服务入口。

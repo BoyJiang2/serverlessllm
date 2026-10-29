@@ -60,6 +60,16 @@ inventory默认CPU行为保留，新增显式indexed CUDA设备的元数据匹�
 
 共144项CPU测试通过，CUDA成功分支及GPU空aux创建尚未执行。不能以拒绝测试或CPU同构测试声称真实GPU准备已验证。下一步将这些新入口与native_call/native_install及固定vLLM Base生命周期组合；worker隔离、失败退出和运行准入仍待完成。
 
+## 固定 vLLM 生命周期组合
+
+`vllm_native_hook.make_native_store_loader` 先验证配置、完整目标契约、外部侧车SHA、rank/阶段和源归档分配预算，再构造独立Base子类，不注册插件或修改global。模型构造前检查显式CUDA设备与平台、TP8/PP1、禁EP/sequence-parallel MoE、MLA、encoder TP=data、compressed-tensors/BF16及关闭MTP；实际通信组和CUDA ABI仍须新worker准入核验。
+
+weight阶段检查全部已初始化张量设备，调用新的CUDA rank规范化、native_call，再将同次分配记录传给native_install。安装完释放loader自身的状态字典引用，模型锚继续保留原owner；之后由固定Base/utility执行一次量化与Attention/MLA后处理。每个loader只能尝试一次，初始化/加载/后处理异常均进入失败生命周期；native失败的receipt和已有Tensor引用保留在loader供受控退出，失败后禁止重试同实例。
+
+该工厂仍不是可运行worker或服务：无守护/window授权验证、进程隔离、Store停止/证明、运行gate或路由发布。`discard_worker_required`从进入生命周期开始保持true，返回模型也不表示资源已释放或整个部署通过；load_native的timeout仅覆盖其调用预算，模型初始化和后处理须纳入外部整体截止。拒绝项不得通过关闭检查赶进度。
+
+六项新增CPU测试，总计150项通过。成功控制测试执行固定Base/utility源码，但明确Mock模型设备/peak APIs、名称边界、rank准备、native调用和安装；只证明调用顺序、一次后处理与生命周期状态，不证明真实CUDA数据消费。独立CPU组件测试覆盖安装/字节，实际设备拒绝测试未绕检查。待新worker完整审阅后才能进行真实八rank验证。
+
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。

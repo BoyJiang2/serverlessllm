@@ -44,6 +44,19 @@ class NativeCallFailure(RuntimeError):
         self.native_state = state  # Retain any constructed owners until controlled disposal.
 
 
+def _store_directory(storage_path, model_path):
+    if not isinstance(model_path, str) or not model_path:
+        raise ValueError('relative Store identity required')
+    relative = PurePosixPath(model_path)
+    if relative.is_absolute() or '..' in relative.parts or '\\' in model_path or ':' in model_path:
+        raise ValueError('relative Store identity required')
+    root = Path(storage_path).resolve(strict=True)
+    directory = (root / model_path).resolve(strict=True)
+    if not directory.is_relative_to(root) or directory == root:
+        raise ValueError('Store identity escapes storage root')
+    return root, directory
+
+
 def load_native_return(native_module, *, storage_path, model_path, expected_sidecar_sha256,
                        rank, device_id, max_allocation_bytes, timeout_seconds):
     """Run the pinned nonblocking function in a private globals dictionary.
@@ -56,14 +69,7 @@ def load_native_return(native_module, *, storage_path, model_path, expected_side
             or device_id not in range(8) or type(max_allocation_bytes) is not int
             or max_allocation_bytes <= 0 or type(timeout_seconds) is not int or timeout_seconds <= 0):
         raise ValueError('explicit TP8 rank, device, memory cap and finite time budget required')
-    relative = PurePosixPath(model_path)
-    if (not isinstance(model_path, str) or not model_path or relative.is_absolute()
-            or '..' in relative.parts or '\\' in model_path or ':' in model_path):
-        raise ValueError('relative Store identity required')
-    root = Path(storage_path).resolve(strict=True)
-    directory = (root / model_path).resolve(strict=True)
-    if not directory.is_relative_to(root) or directory == root:
-        raise ValueError('Store identity escapes storage root')
+    root, directory = _store_directory(storage_path, model_path)
     started = time.monotonic()
     deadline = started + timeout_seconds
     def remaining():

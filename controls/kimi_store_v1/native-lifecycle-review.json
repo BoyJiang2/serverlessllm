@@ -1,0 +1,31 @@
+{
+  "recorded_utc": "2026-10-29T19:06:03.4387147Z",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "sha256": {
+    "vllm_native_hook.py": "23ea8cceb5c6807626e16add28c87d5e273cdb1c3255a2da10bea503a3d28a1d",
+    "test_vllm_native_hook.py": "9f1a9777828f95a15d490504ee83e66ee58fce1f941914d5908f952cb794dcef",
+    "native_call.py": "179e2f28bbc96d1d0bf7d7ce12556206acd2364ce0d4723f1e7fdf87beb9a0a8",
+    "NATIVE-RESTORE.md": "f86d39b5c5b18e7d9dce6c598d09e2dd38704e7b3503c9a65d256bd6636d7548",
+    "README.md": "6ed1eab636fb45ba60c9ae2281e2b078ea8ccb386331b28ca5a1e3264a31823e"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "scope": "Pinned Base/utility control tests with explicit native/CUDA boundary mocks",
+    "seconds": 4.136,
+    "count": 150,
+    "torch": "2.10.0+cpu"
+  },
+  "verified": [
+    "Source contract and allocation budget preflight before initialization",
+    "CUDA/profile checks before Base model construction",
+    "One-shot lifecycle retains native failure state and receipt",
+    "Installation precedes fixed Base postprocessing; model anchor retains owners"
+  ],
+  "limitations": [
+    "Static reviewer did not run tests",
+    "Successful control mocks devices, peak APIs, rank preparation, native loading and installation",
+    "No actual communication group, CUDA ABI, DMA, postprocess or release proof",
+    "Not worker, GPU or serving admission"
+  ]
+}
