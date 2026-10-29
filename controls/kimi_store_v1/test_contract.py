@@ -1,5 +1,8 @@
 import copy
+import hashlib
+import json
 from pathlib import Path
+import struct
 import unittest
 
 import contract
@@ -66,6 +69,50 @@ class ContractTests(unittest.TestCase):
             row.update(delta)
             with self.subTest(delta=delta), self.assertRaises(ValueError):
                 self.plan(tensors={'packed': row})
+
+    def test_bit_patterns_survive_unaligned_chunk_requests(self):
+        # Include signed packed words and floating-point special-value encodings.
+        # These are CPU byte fixtures, never model weights or inference inputs.
+        for element, raw in [
+                (4, struct.pack('<4I', 0, 0xffffffff, 0x87654321, 0x7fc00001)),
+                (2, struct.pack('<6H', 0, 0x8000, 0x7f80, 0xff80, 0x7fc1, 0xffff))]:
+            for cap in (element, 7, 19, 64):
+                digest = hashlib.sha256()
+                restored = bytearray()
+                for offset, count in contract.chunk_ranges(len(raw), element, cap):
+                    block = memoryview(raw)[offset:offset + count]
+                    digest.update(block)
+                    restored.extend(block)
+                self.assertEqual(bytes(restored), raw)
+                self.assertEqual(digest.digest(), hashlib.sha256(raw).digest())
+
+    def test_multi_gib_boundary_without_allocating_payload(self):
+        limit = contract.MAX_CHUNK_BYTES
+        self.assertEqual(list(contract.chunk_ranges(3 * limit + 4, 4, limit)),
+                         [(0, limit), (limit, limit), (2 * limit, limit), (3 * limit, 4)])
+
+    def test_scalar_empty_tensor_and_alias_budget_is_conservative(self):
+        scalar = dict(dtype='torch.float32', shape=[], bytes=4, contiguous=True)
+        empty = dict(dtype='torch.int32', shape=[0, 8], bytes=0, contiguous=True)
+        plan = self.plan(tensors={'scalar': scalar, 'same_view': scalar, 'empty': empty})
+        self.assertEqual(plan['planned_transfer_bytes'], 8)
+        self.assertEqual(plan['tensors']['empty']['chunk_count'], 0)
+        self.assertEqual(plan['tensors']['scalar']['chunk_count'], 1)
+        self.assertFalse(plan['aliases_deduplicated'])
+
+    def test_all_official_header_examples_have_consistent_byte_plans(self):
+        evidence = Path(__file__).resolve().parents[2] / 'evidence' / 'followup-kimi-k26'
+        header = json.loads((evidence / 'all-header-summary.json').read_text())
+        dtype = {'I32': 'torch.int32', 'BF16': 'torch.bfloat16', 'F32': 'torch.float32'}
+        self.assertEqual(len(header['rows']), 64)
+        for row in header['rows']:
+            # Header examples are original checkpoint metadata, not TP8 rank inventories.
+            tensors = {name: dict(dtype=dtype[t['dtype']], shape=t['shape'],
+                                  bytes=t['data_offsets'][1] - t['data_offsets'][0],
+                                  contiguous=True) for name, t in row['examples'].items()}
+            plan = self.plan(tensors=tensors, chunk_bytes=64 * 1024**2)
+            self.assertEqual(plan['planned_transfer_bytes'], sum(t['bytes'] for t in tensors.values()))
+            self.assertFalse(plan['tp_mapping_verified'])
 
 
 if __name__ == '__main__':

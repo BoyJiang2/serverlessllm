@@ -12,6 +12,8 @@
 
 验证：`python -X utf8 -m unittest discover -s controls/kimi_store_v1 -p test_contract.py -v`。使用微型元数据夹具验证拒绝与分块边界，不使用假权重进行模型推理，也不声称完成八rank权重校验。
 
+补充CPU测试共10项通过：增加packed整数/浮点特殊编码的逐字节与SHA保持、超过6GiB逻辑长度的分块边界（不分配大块内存）、标量/空张量/别名保守计费，以及全部64个官方分片文件头内**已保存样例**的shape/dtype/bytes一致性。样例检查不是208,550个张量全量权重检查，也不是TP8映射证明。另有下载器10项CPU回归通过；本轮没有服务器连接或GPU使用。`cpu-review.json`仍只绑定先前2f772a2版本的6项测试，不追认这次新增测试已获独立复审；生产contract.py未修改。
+
 ## 必须继续完成的接线
 
 1. 从冻结backend实际初始化后的rank状态生成完整清单，区分checkpoint参数、必要buffer、别名与scratch。当前I32/BF16/F32集合来自官方checkpoint；实际backend若出现其他dtype，先审查来源再扩展，不能直接删掉。
