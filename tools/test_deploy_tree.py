@@ -14,6 +14,7 @@ import deploy_tree as t
 REPO = HERE.parent
 C23 = REPO/'reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/executed-source-archive.json'
 C23_COMMIT = 'f176e05607d04999ab28e8ea8cd49b41270cb528'
+DEBUG_COMMIT = '2aec1686272572f6a6172bc754c25b9e24a49f42'
 
 
 def receipt():
@@ -88,14 +89,27 @@ class GitBytes(unittest.TestCase):
 
 class Kinds(unittest.TestCase):
     def test_debug_tree_drops_identity_and_adds_entry_from_same_commit(self):
-        tree, record = t.build('HEAD', 'debug')
-        formal, _ = t.build('HEAD', 'formal')
+        # First commit with the debug entry whose runtime inventory is still reviewed-exact.
+        tree, record = t.build(DEBUG_COMMIT, 'debug')
+        formal, _ = t.build(DEBUG_COMMIT, 'formal')
         self.assertNotIn(t.FORMAL_IDENTITY, tree)
-        self.assertEqual(tree['debug_service.py'], t.commit_file('HEAD', t.DEBUG_ENTRY))
+        self.assertEqual(tree['debug_service.py'], t.commit_file(DEBUG_COMMIT, t.DEBUG_ENTRY))
         self.assertEqual({p: d for p, d in tree.items() if p != 'debug_service.py'},
                          {p: d for p, d in formal.items() if p != t.FORMAL_IDENTITY})
         self.assertTrue(record['reviewed_inventory_exact'])
         self.assertTrue(t.destination_for(record).startswith(t.HOST+'/code/source-debug-'+record['code_commit'][:12]))
+
+    def test_head_debug_tree_tracks_committed_runtime_and_formal_fails_closed(self):
+        tree, record = t.build('HEAD', 'debug')
+        files = t.commit_files(t.resolve('HEAD'), t.ACTIVE)
+        self.assertEqual({p: d for p, d in tree.items() if p != 'debug_service.py'},
+                         {p: d for p, d in files.items()
+                          if p != t.FORMAL_IDENTITY and '__pycache__' not in pathlib.PurePosixPath(p).parts})
+        self.assertEqual(record['reviewed_inventory_exact'], t.reviewed_inventory_exact(files))
+        if not record['reviewed_inventory_exact']:
+            # Formal stays refused until control-input-manifest.json is regenerated and passes R1.
+            with self.assertRaisesRegex(ValueError, 'reviewed inventory'):
+                t.build('HEAD', 'formal')
 
     def test_formal_trees_are_never_pushed(self):
         _, record = t.build(C23_COMMIT, 'formal')
