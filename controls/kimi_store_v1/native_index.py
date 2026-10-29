@@ -6,6 +6,7 @@ from pathlib import Path
 
 from contract import DTYPE_BYTES, plan_rank, validate_config
 from stream_writer import verify_records
+from auxiliary_manifest import validate_auxiliary_receipts
 
 
 def _publish(directory, name, data):
@@ -24,7 +25,7 @@ def _publish(directory, name, data):
     return True
 
 
-def publish_index(directory, plan, records, layouts, config_raw, aliases=None):
+def publish_index(directory, plan, records, layouts, config_raw, aliases=None, auxiliary_receipts=()):
     """Only full, owned contiguous storage is supported; views fail closed."""
     directory = Path(directory)
     validate_config(config_raw)
@@ -32,6 +33,7 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None):
         raise FileExistsError('native index already exists')
     if set(records) != set(layouts) or set(records) != set(plan['tensors']):
         raise ValueError('incomplete tensor inventory')
+    receipts = validate_auxiliary_receipts(auxiliary_receipts, layouts, plan['rank'])
     aliases = {} if aliases is None else aliases
     if not isinstance(aliases, dict):
         raise ValueError('invalid alias map')
@@ -97,6 +99,7 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None):
         raise ValueError('overlapping records need explicit alias support')
     encoded = json.dumps(index).encode('utf-8')
     sidecar = dict(plan, records=records, alias_of=aliases, aliases_deduplicated=bool(aliases),
+                   auxiliary_receipts=receipts,
                    written_payload_bytes=sum(r['bytes'] for n, r in records.items() if n not in aliases),
                    native_index_sha256=hashlib.sha256(encoded).hexdigest(),
                    payload_verified=True, tp_mapping_verified=False,
@@ -127,5 +130,8 @@ def read_index(directory, expected_sidecar_sha256):
     index = json.loads(raw_index)
     if set(index) != set(sidecar['records']):
         raise ValueError('index tensor coverage mismatch')
+    layouts = {n: dict(storage_offset=0, storage_bytes=r[1], shape=r[2], stride=r[3], dtype=r[4])
+               for n, r in index.items()}
+    validate_auxiliary_receipts(sidecar.get('auxiliary_receipts', []), layouts, sidecar['rank'])
     verify_records(directory, sidecar['records'])
     return index

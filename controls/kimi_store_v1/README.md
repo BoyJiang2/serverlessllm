@@ -168,3 +168,16 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 receipt尚未绑定native index侧车，完整60层/八rank的编排及恢复消费者尚未接入，因此不能用此helper宣称完整Store转换。默认写入器继续拒绝未规范化的非空辅助项。opaque状态、视觉buffer、实际GPU后处理及原生服务仍需后续工作。
 
 本轮初审changes_required指出仅class/module/sourcefile SHA不能绑定实际方法；已从完整冻结源码compile提取精确方法code，与当前类方法code比较，并拒绝instance override。新增同路径改写方法及实例覆盖负例，68项测试通过；静态复审PASS见marlin-aux-review.json，旧发现及旧hash保留。
+
+
+## 辅助状态receipt绑定写入与恢复（72项CPU测试及只读复审PASS）
+
+`auxiliary_manifest.validate_auxiliary_receipts()`按冻结来源约束逐层核验：实际layout中每个完整FQN辅助参数必须被一个、且仅一个recipe覆盖，after必须为官方[384,0] INT32完整存储；before必须是固定来源的[384,7168]/[384,256]。rank、config/source SHA、method、backend、actorder、profile、阶段及保守flag均按精确JSON比对。深拷贝JSON防止调用者在校验后改写原receipt对象。实际layout缺项、额外/重复/错误receipt均拒绝。
+
+`write_cpu_state(..., auxiliary_receipts=[receipt], rank=rank)`在创建目录前校验；返回info携带隔离的receipt。发布时必须显式传`publish_index(..., auxiliary_receipts=info['auxiliary_receipts'])`，记录进入受外部SHA约束的kimi_raw_state.json。`read_index`按索引layout复核recipe，删掉receipt后即使重新提供侧车SHA也不能通过。无官方FQN辅助项的旧微型CPU组件仍可用空receipt；有这些项而无receipt的旧文件会被拒绝。
+
+恢复目标必须事先独立执行显式规范化，调用`restore_cpu_state(..., destination_auxiliary_receipts=[target_receipt])`；来源侧车和目标receipt均按目标layout及rank验证，然后才可能写入。恢复函数不代替目标构造/规范化，不把来源记录冒充目标执行证据。
+
+新增单层CPU集成测试走normalize→有界写→native-schema发布→CPU恢复→原始指纹比较；仍不调用native load_dict、不构造完整60层模型、不触碰GPU。72项测试另覆盖缺失receipt写前拒绝、目标无receipt不变、重复/错rank/被改recipe拒绝、侧车缺receipt拒绝及拷贝隔离。
+
+receipt校验只证明记录与冻结规则、布局及外部SHA一致，不独立认证函数实际执行、phase真实性或backend初始化；这些必须由后续运行证据补齐。all_layers_verified、actual_backend_initialized、runtime_admitted继续false。尚需60层编排、完整对象状态/视觉buffer政策和真正vLLM/原生Store恢复入口。

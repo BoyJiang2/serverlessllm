@@ -5,6 +5,7 @@ from contract import DTYPE_BYTES
 from stream_writer import CHUNK_BYTES, write_records
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from checkpoint_contract import load_targets
+from auxiliary_manifest import validate_auxiliary_receipts
 
 
 def tensor_layout(tensor):
@@ -41,7 +42,8 @@ def iter_cpu_blocks(tensor, chunk_bytes=CHUNK_BYTES):
         del view, buffer
 
 
-def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_contract=None):
+def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_contract=None,
+                    auxiliary_receipts=(), rank=None):
     import torch
     targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
     inventory = collect_inventory(model, checkpoint_targets=targets)
@@ -52,6 +54,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_con
     if not tensors or len(tensors) != len(named):
         raise ValueError('empty state or duplicate parameter/buffer name')
     layouts = {name: tensor_layout(tensor) for name, tensor in named}
+    receipts = validate_auxiliary_receipts(auxiliary_receipts, layouts, rank)
     if (type(chunk_bytes) is not int or chunk_bytes > CHUNK_BYTES
             or chunk_bytes < max(DTYPE_BYTES[r['dtype']] for r in layouts.values())):
         raise ValueError('invalid CPU byte block bound')
@@ -72,6 +75,7 @@ def write_cpu_state(directory, model, chunk_bytes=CHUNK_BYTES, *, checkpoint_con
     for name, canonical in aliases.items():
         records[name] = dict(records[canonical])
     return records, layouts, dict(source_torch_version=torch.__version__, source_device='cpu',
+                                  auxiliary_receipts=receipts,
                                   alias_of=aliases, aliases_serialized_separately=False,
                                   inventory=inventory, inventory_policy_verified=False,
                                   checkpoint_name_coverage_verified=checkpoint_contract is not None,

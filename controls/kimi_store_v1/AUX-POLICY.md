@@ -37,3 +37,7 @@ Marlin输入为float8时，后处理还原地改写packed值并将scale乘512，
 ## CPU实现更新
 
 `marlin_aux.py`现可在上述显式阶段对单层进行全部预检后，将四项前移规范化为空，返回来源与before/after receipt；不会读旧值。测试对照原source else分支。此实现尚未绑定导出侧车、整模型编排或恢复消费者；旧的非空项拒绝继续有效。详见README最新章节，不能把helper成功当作运行政策准入。
+
+## 侧车绑定更新
+
+receipt现已接入CPU写入、native-schema发布/读取及CPU恢复；来源和目标各提供记录，并与layout、rank、固定recipe匹配。有官方辅助FQN而缺记录时拒绝。完整60层编排与真正vLLM/native加载消费者仍未实现，不能沿用此前“receipt完全未绑定”的历史断点，也不能把结构校验当运行证明。

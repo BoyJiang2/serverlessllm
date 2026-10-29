@@ -11,7 +11,6 @@ import re
 import types
 
 from contract import CONFIG_SHA256, validate_config
-from cpu_tensor_io import tensor_layout
 
 SOURCE_SHA256 = '0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f'
 METHOD_MODULE = 'vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe'
@@ -24,6 +23,7 @@ PROFILE = dict(tp=8, pp=1, expert_parallel=False, sequence_parallel_moe=False,
 def normalize_cpu_auxiliary(layer, *, name, rank, profile, config_raw,
                             vllm_version, phase):
     import torch
+    from cpu_tensor_io import tensor_layout
     config = validate_config(config_raw)['text_config']
     if (type(rank) is not int or rank not in range(8) or profile != PROFILE
             or vllm_version != '0.19.1' or phase != 'checkpoint_loaded_before_postprocess'):

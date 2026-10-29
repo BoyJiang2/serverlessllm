@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 本轮auxiliary_manifest已绑定write_cpu_state/native publish/read与CPU restore来源/目标独立receipt；72项CPU测试通过。当前完整6文件静态审阅已返回PASS并核验SHA，见auxiliary-manifest-review.json；72项测试由主线程实际运行，不重复派发。旧“receipt未绑定”条目为历史断点。
+- 下一项：实现整rank 60层的显式处理编排及完整checkpoint目标/状态清单接线，代码可先写、仅小CPU夹具验证；不要构造完整模型/转换。查清视觉必要buffer、opaque及实际vLLM/native接口，当前仍非完整转换器。
+
 - 新增marlin_aux.py/test_marlin_aux.py和完整固定源码fixture：68项CPU测试通过，单层显式Marlin/no-actorder scratch规范化为空、记录before/after且不读旧值。初审方法身份绑定缺口已修复，精确code比对及instance override负例通过；修订复审PASS见marlin-aux-review.json，不重复派发。不是完整转换器，receipt未绑定native sidecar。
 - 下一项应将规范化receipt绑定导出/恢复侧车与验证，防止无来源记录导出已改状态；完成60层编排再接真实vLLM接口。不得跳过opaque/视觉buffer政策，也不得把单层CPU源分支测试当实际backend证明。
 
