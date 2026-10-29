@@ -107,3 +107,17 @@ I32/BF16/F32原始storage经ctypes只读使用约定暴露为memoryview，不做
 对本机已有、SHA固定的原始索引做完整**名字**扫描：208550项中207360个专家条目（packed/scale/shape各69120），无重复expert/shard槽；映射到360个融合目标参数名，每个w13目标有768个gate/up源项、w2目标384个down源项。其余1190个非专家参数未在这一步映射，见`expert-name-audit.json`。全量名字扫描不证明初始化后的参数/buffer完整性或真实payload映射。
 
 38项CPU测试及独立只读复审通过，见`expert-mapping-cpu-review.json`。仍待：实际backend/拓扑和必要buffer全清单、非专家参数、weight_shape原始值侧车与映射、后处理重排前后审计、原生Store/CUDA恢复及vLLM接线。当前目标继续保持未完成。本轮无远端连接、GPU、模型运行、完整转换或重复权重下载。
+
+## 非专家规则与运行态清单（最新：46项CPU测试）
+
+非专家条件规则已通过独立只读复审，见`nonexpert-cpu-review.json`。固定索引1190个剩余名字全部归类为norm245、router120、MLA A122/B122、attention output61、shared MLP180/dense MLP3、vocabulary2、projector6、vision329；融合后为1068个目标名字。`nonexpert_mapping.py`明确限制MLA、无sequence-parallel MoE和encoder TP data，不代表实际运行配置已选中。`mm_projector.proj.0/2`映射到linear_1/2；MLA q_a与kv_a合并为复制式fused_qkv_a_proj，不能误当TP切片矩阵。
+
+测试直接执行固定vLLM linear/vocab loader方法AST，验证条件下row/column、gate_up融合、复制MLA A以及词表补零。仅用真实BF16 Parameter；未选的量化参数类guard以占位类表示，不能用于声称其他量化分支通过。词表shard_indices是测试指定的条件输入，不证明真实构造器分区正确。源SHA见`nonexpert-name-audit.json`，fixture保留许可。
+
+`runtime_inventory.py`新增真实CPU模型的metadata-only清单：包含parameters、全部buffers（含nonpersistent）及直接挂在module上的未注册Tensor属性。收集shape/stride/dtype、logical bytes、storage范围、alias、lazy flags及持久性；不读取payload或序列化指针。按调用者提供的checkpoint目标名区分源权重与运行态待审项，缺失目标单列。
+
+固定MoE源创建的w13/w2 weight_g_idx和g_idx_sort_indices来自torch.empty；源码未证明它们在无actorder的preprocess阶段被填值，因此精确匹配的非空项标为uninitialized_aux_candidate。Marlin无actorder分支在后处理中重建为空；Flashinfer分支提前返回，不能把Marlin规则外推。`write_cpu_state()`已在文件创建前拦住这些非空候选和直接未注册Tensor，避免无政策时复制其内容。此举不构成已实现scratch省略/重建策略，真实转换仍被阻断。
+
+其他runtime parameter/buffer不自动排除，保留requires_policy_review；CPU helper的inventory_policy_verified仍为false。视觉源码的time_weight是非持久buffer，freqs_cis可能按需注册，不能仅凭checkpoint清单认定状态完整。清单当前不遍历opaque容器里的Tensor，明确opaque_container_audit_complete=false；不得当作全对象状态审计。
+
+`compare_inventory()`报告后处理前后added/removed/metadata-changed，只接受正确阶段顺序；不比较权重值、不认定后处理正确。新增真实CPU测试覆盖非持久buffer、直属未注册缓存、缺失源目标、alias、阻止未初始化辅助导出及空辅助重建的metadata差异，累计46项通过。仍待：明确初始化/重建政策、opaque状态审计、固定后端实际rank快照与pre/post payload校验、原生Store与vLLM接线。未启动任何远端任务或GPU。

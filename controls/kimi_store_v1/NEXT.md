@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 最新runtime_inventory元数据清单及写入前unsafe拒绝已实现，46真实CPU测试与只读审阅PASS，见runtime-inventory-cpu-review.json。审阅已返回，不重复派发。
+- 接下来把权威checkpoint目标清单接入导出前检查（当前write_cpu_state尚未传入targets，不能声称完整性验证），并推进明确的scratch重建政策与后处理payload校验；opaque状态覆盖仍未完成。以下旧步骤为历史断点，以此覆盖为准。
+
 - nonexpert只读审阅已返回PASS并逐hash核验，结果见nonexpert-cpu-review.json；不要重复派发该审阅。42项测试是主线程证据，仍非运行R1。
 - 本聊天heartbeat `kimi-cpu-gpu` 已通过应用工具创建并view核对，ACTIVE，每小时仅推进本机CPU工作；不恢复任何GPU定时脚本。以下“尚未审阅”是此前断点，由本覆盖更新。
 - 下一步直接推进第2项runtime buffer/scratch清单和后处理边界。

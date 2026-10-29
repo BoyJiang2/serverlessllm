@@ -1,0 +1,28 @@
+{
+  "recorded_utc": "2026-10-29T08:17:54.891619+00:00",
+  "source_sha256": {
+    "vllm-w4a16-moe.py": "0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f",
+    "vllm-vit.py": "2d4ff4817698cda5a8e3c9845c6c5e3e97fee8a78c7f1b4a5b05fb8ddd8c5a37",
+    "vllm-deepseek.py": "c0f27b22e0023d42861ed4763e2a23fe305d049c6c45f6bd3ac05299d8e76da2",
+    "vllm-kimi-k25.py": "72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba"
+  },
+  "observations": [
+    {
+      "source": "vllm-w4a16-moe.py",
+      "class": "CompressedTensorsWNA16MarlinMoEMethod",
+      "create_weights": "four g_idx/sort_indices parameters allocated with torch.empty",
+      "marlin_no_actorder": "replaces those parameters with [num_experts,0] I32 after loading",
+      "flashinfer": "early return; no Marlin recreation inference permitted"
+    },
+    {
+      "source": "vllm-vit.py",
+      "observed_buffers": [
+        "time_weight nonpersistent",
+        "freqs_cis lazily registered nonpersistent"
+      ]
+    }
+  ],
+  "scope": "source-level policy inputs, no actual runtime model inventory",
+  "payload_read": false,
+  "runtime_admitted": false
+}
