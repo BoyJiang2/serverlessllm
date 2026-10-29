@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 接续优先级澄清：Kimi完整Store尚未生成，不能先调用消费hook。下一轮先将device_state与有界主机块接入GPU源rank导出/原SF loader接线（仅源码与小CPU测试），再组合独立worker/当前窗口守护与取证。当前native factory只是消费候选，不是完整转换器或可运行服务。其已审实现不重写，原phase/目标不重置。
+
 - 新增vllm_native_hook.py及六项CPU生命周期测试，150项CPU测试通过。候选已接构造前source预算/配置预检、CUDA rank准备、native调用与安装，再交固定Base后处理；native_call路径预检提取为共用helper防止两入口边界分叉。当前复审见native-lifecycle-review.json。成功测试明确mock CUDA/framework、rank/native/install边界；不是实际GPU/模型通过。下一项：受守护独立worker、当前run/window/monitor/失败清理完整闭包和实际运行审阅；不能把已有factory当service CLI或复用旧guard。
 
 - 最新device_state.py及显式CUDA rank/Marlin辅助规范化候选已补齐，144项CPU测试通过；旧CPU入口/描述器保留，核心source规则和全60层先预检后变更共用。当前修订审阅见device-preparation-review.json。CPU parity/拒绝测试不是CUDA成功路径或真实模型验证；下一步连接固定vLLM Base生命周期与native_call/install，再补新worker及受控退出协议，不直接执行GPU。
