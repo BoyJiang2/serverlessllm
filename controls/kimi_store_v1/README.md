@@ -284,3 +284,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 - 新增vllm_mixed_hook独立loader，把构造/aux/逐记录producer/install/显式CUDA后处理串入冻结Base私有namespace；207项CPU测试通过，初次fixture错误保留，复审见mixed-lifecycle-review.json。仍保留保守2×checkpoint预算停止，真实模型不能据此开跑；完整峰值/主机驻留预算、实际构建身份及worker准入仍待完成。详见MIXED-LIFECYCLE.md。
 
 - 已用冻结完整索引+64分片header实算memory_floors，211项CPU测试通过，复审见memory-floors-review.json。mixed raw≥71.557GiB/卡，8rank CPU文本≥565.438GiB、Store有效payload≥572.458GiB；不是峰值上限。两类全缓存+CPU目标+pool假设共驻留约2264.656GiB，普通页可回收，不能直接称OOM。旧预算停止保留；下一项source单模型worker/插件与完整资源/构建/守护闭包。详见MEMORY-BUDGET.md。
+
+- 新增source_plugin只做export独立注册及私有distribution metadata，220项CPU测试通过，初审读取上限竞态已复现修复，复审见source-plugin-review.json。新CPU子进程已测标准entrypoint发现及spec身份继承，尚未执行真实vLLM general-plugin/TP8 worker。下一项source worker完整manifest/镜像ABI/预算/guard/监控及退出取证，仍不启动GPU。详见SOURCE-PLUGIN.md和RESERVATION-PLAN.md。

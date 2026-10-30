@@ -1,0 +1,37 @@
+{
+  "attempts": [
+    {
+      "scope": "full CPU suite before growth regression",
+      "count": 219,
+      "seconds": 11.743,
+      "result": "OK"
+    },
+    {
+      "scope": "new growth regression before fix",
+      "count": 9,
+      "seconds": 1.35,
+      "result": "FAILED",
+      "failures": 1,
+      "test": "test_growing_manifest_stream_has_a_hard_read_limit",
+      "error": "AssertionError: \"bounded\" does not match \"Expecting value: line 1 column 1 (char 0)\"",
+      "input": "Mock stat size=1, actual stream length=65537; old read_bytes reached JSON parsing before size rejection"
+    },
+    {
+      "scope": "full CPU suite after bounded read fix",
+      "count": 220,
+      "seconds": 10.503,
+      "result": "OK"
+    }
+  ],
+  "initial_review": {
+    "verdict": "changes_required",
+    "source_sha256": "0227711400c2a29e105adea8f6a8807d561c65c275b6f9971ac728d13af8895a",
+    "finding": "stat/read_bytes size TOCTOU; read was unbounded",
+    "minimal_source_reconstruction": {
+      "replace_in_current": "    if not source.is_absolute():\n        raise ValueError('bounded absolute spec path required')\n    with source.open('rb') as stream:\n        raw = stream.read(65537)\n    if len(raw) > 65536:\n        raise ValueError('bounded source spec exceeds 64KiB')",
+      "with_initial": "    if not source.is_absolute() or source.stat().st_size > 65536:\n        raise ValueError('bounded absolute spec path required')\n    raw = source.read_bytes()"
+    }
+  },
+  "gpu_used": false,
+  "actual_vllm_worker_verified": false
+}
