@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 已在原source_schedule.py接watchdog独立循环及guard CLI候选，绑定registration/plan/code/spec/原批次截止、host UID/boot/PID namespace与nonce；既有run目录独占小事件日志，未新建代码目录或复制资产。真实CPU两层进程证明launcher退出后子进程仍按2秒截止调用FakeDocker，非Linux/GPU守护证明。初审三项（wall shutdown预算、尾部迟到误成功、日志/等待失败漏清理）均修复并加负例；全套289项中288通过、1项POSIX FIFO在Windows跳过（28.011秒），当前两文件静态复审PASS。测试记录追加source-schedule-tests.json/source-schedule-review.json。下一项部署启动/实际probe与ready验收、monitor和60秒释放，不启动模型或远端任务。
+
 - 2026-10-31 在现有source_schedule.py追加宿主清理内核：完整container/image/Created+五项run身份+boot/UID校验、实际PID/cgroup寿命核验、累计预算inspect/stop/复核/rm/absence及本地socket；无PID信号、force/volume/image删除。Docker/proc/selector均CPU mock，尚无watchdog或部署CLI，不是实际守护PASS。初审selector初始化泄漏与close覆盖错误已修复并加复合故障回归；全套283项中282通过、1项POSIX FIFO因Windows跳过（26.619秒），当前两文件静态复审PASS，追加source-schedule-review.json/source-schedule-tests.json。下一项独立watchdog/实际host身份与probe/monitor/60秒释放，false资源标志保留。
 
 - 2026-10-31 source worker证据在现有source_plugin.py内接持久化：既有run_root独占journal、start/终态刷盘、64KiB单条/128KiB总读取界限；重复调用不覆盖证据，CPU子进程实际中断后读回incomplete。初审发现成功缺prompt/options及buffered close二次flush覆盖原错误，已补成功配置持久化与unbuffered写，并用真实BufferedWriter故障控制复现/回归。全套273项中272通过、1项POSIX FIFO因Windows跳过（24.897秒），当前两文件只读复审PASS；记录追加source-plugin-tests.json及source-plugin-review.json。未新增目录、未复制权重或环境。下一项仍是实际独立host guard/probe、精确容器/cgroup身份、monitor和60秒释放观察，日志中断用例不是guard通过。

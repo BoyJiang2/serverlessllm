@@ -83,6 +83,42 @@
         "No resources, pools, GPU, full conversion or actual 60-second release observation verified",
         "One POSIX FIFO test skipped on Windows"
       ]
+    },
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Independent watchdog candidate loop and source-bound host-only guard CLI; not deployed host/GPU admission",
+      "sha256": {
+        "source_schedule.py": "d93e05a2b91f7011d8d88d2fd4da62a68767740d1d57cc451ef7947a3c34c558",
+        "test_source_schedule.py": "c1ef2bc45ab2769b113c63360b76e21d19f6f60d6098f3a6ddb0c6e190e4051a"
+      },
+      "tests": {
+        "count": 289,
+        "passed": 288,
+        "skipped": 1,
+        "seconds": 28.011,
+        "executor": "primary agent"
+      },
+      "initial_findings_and_corrections": [
+        "Cleanup deadline initially used only monotonic mapping, ignoring current wall clock; now both wall and monotonic bound budget and final status",
+        "Late start within shutdown tail incorrectly returned normal completion; now always failed and never ready",
+        "Journal/wait failure after verified target omitted cleanup; now one bounded owned cleanup is attempted, without retrying already attempted cleanup or mutating unverified/foreign target"
+      ],
+      "verified": [
+        "Source code/spec/plan/registration hashes and same run binding in host-only guard CLI",
+        "Actual host-probe candidate obtains UID/boot/self PID-start/namespace; registered host namespace and target exclusion checked",
+        "Nonce and target immutable identity logged; original batch deadline is not rebased",
+        "CPU two-layer launcher exits before its child triggers two-second FakeDocker cleanup",
+        "Late emergency cleanup <=5 seconds is explicit failure cost and not computation extension"
+      ],
+      "limitations": [
+        "Actual Linux/Docker/namespace inputs remain CPU stand-ins in tests",
+        "No remote installation, systemd/SSH lifetime proof, actual guard challenge/probe or model admission",
+        "Ready log alone is insufficient for startup; actual independent guard readiness acceptance still required",
+        "No actual GPU/full conversion/resources or 60-second release observation",
+        "One POSIX FIFO test skipped on Windows"
+      ]
     }
   ]
 }

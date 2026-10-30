@@ -1,6 +1,6 @@
 # 源转换批次：完整预算与窗口预检
 
-`source_schedule.py`只做本机CPU配置/时间检查，不启动任何模型或进程，不安装守护，不改预约。输入是外部SHA绑定的≤64KiB计划、已有source spec与源码清单。计划的run_id/holder/code_commit/spec SHA/源码manifest SHA必须与verify_source_run结果一致；固定资源h20/qjhs003。booking_id只是声明，返回booking_verified=false，不能据配置文件自授授权。
+`source_schedule.py`默认入口只做配置/时间检查；新增guard子命令为独立宿主watchdog候选，可在完整绑定后调用Docker清理指定本实验容器。当前仅本地CPU/替身测试，未远端部署、启动模型、安装守护或改预约。输入是外部SHA绑定的≤64KiB计划、已有source spec与源码清单。计划的run_id/holder/code_commit/spec SHA/源码manifest SHA必须与verify_source_run结果一致；固定资源h20/qjhs003。booking_id只是声明，返回booking_verified=false，不能据配置文件自授授权。
 
 固定预算序列是preflight、image_restore、engine_initialize_and_export、fixed_token_business、natural_eos_business、worker_shutdown、release_observe、cleanup_evidence、safety_margin，全部正整数且有限。engine阶段包含TP/通信组初始化、SF加载、导出、后处理/KV/必要预热；preflight包含代码/输入与实际资源/守护检查的预算，镜像恢复及可能的编译/校验也必须明确归入相应上限，不从总成本里消失。这里只定义字段，未冻结生产秒数，测试内数值不作模型耗时估计。
 
@@ -28,7 +28,11 @@ python source_schedule.py --code <run/code> --manifest <run/source-code-manifest
 
 Docker适配器固定/usr/bin/docker与本地unix:///var/run/docker.sock，在子进程环境副本中移除DOCKER_HOST/CONTEXT/TLS相关覆盖，不改全局配置。POSIX selector按4KiB读取，每个stdout/stderr保留≤64KiB，超限只终止自己持有的Docker CLI子进程；不把CLI超时/结束当daemon取消。该输出缓冲上限不是Python、Docker进程或模型的RSS峰值。selector初始化失败也必须清理CLI及双pipe，关闭错误不覆盖原错误；这些故障已用CPU替身测试，未在Linux/Docker实际执行。返回container_absence_verified只代表该ID在一次可达daemon查询中不存在，resources_released/release_observation_verified/guard_deployed/runtime_admitted均false。
 
-下一项是将内核接入真正独立、带新run/窗口/源码绑定和持久事件的宿主watchdog及实际probe；仍须连续监控与60秒释放取证。当前main仍仅运行原预检，未开放清理CLI，也没有安装或运行任何远端守护。
+watchdog候选已接内核，独立guard CLI形态为`python -B <run>/code/source_schedule.py guard --registration <run>/source-guard-registration.json --registration-sha <SHA>`。它不启动模型。必须从该run的已核源码bundle执行、禁止优化和写pycache，核外部registration/plan SHA、完整code/spec及同run身份，随后才查询宿主和本地Docker。registration为精确schema kimi-source-watchdog-registration-v1，字段target（已有guard-target-v1）、plan_sha256、batch_entered_utc、host_pid_namespace、nonce；原plan固定在既有run/source-plan.json，batch_entered_utc不能晚于实际guard开始。UID2147、boot、实际/proc/self PID namespace/start ticks与外部登记相符，且guard cgroup不能在目标容器里；实际部署还须证明该源进程位于独立宿主服务，不依赖SSH或模型生命周期。
+
+guard在既有run目录独占创建source-watchdog-events.jsonl，单事件≤8KiB且无缓冲flush/fsync；记录registration/plan SHA、nonce、宿主PID/启动tick/namespace、目标完整ID/image/Created、ready或late_start以及清理结果/失败说明。fire始终是原批次累计截止，墙钟/单调时钟取更早；shutdown预算及最终完成判据也同时核两种时钟。迟到即使仍在shutdown尾部也整体失败，不发布ready。目标身份已验证后的ready/日志/等待异常仍尝试一次精确清理，未验证/foreign目标不动；清理已尝试不无限重试，原异常和清理错误一并留证。截止已耗尽时只额外尝试一次最多5秒的本实验紧急清理，记录emergency_cleanup_budget_seconds和失败，不能授予继续计算或追认准时完成。
+
+真实本地CPU两层进程控制验证：启动watchdog的launcher退出后，watchdog子进程仍按自己的2秒截止触发FakeDocker清理；子进程另有8秒测试自限并关闭证据文件后才清理临时目录。这仅证明CPU控制独立性，host/namespace/Docker仍为替身，不证明Linux宿主守护已安装或获得GPU准入。下一项实际安装/启动方案、就绪proof验收、连续监控、60秒释放观察和完整启动前R1仍待完成；单个ready日志不能替代这些条件。未安装或运行任何远端守护。
 
 CPU追加修订：phase_remaining_seconds复用批次最初的entered与累计monotonic elapsed，返回墙钟和单调时钟中较小的剩余秒数；恰好到期也拒绝启动下一操作。CLI核验使用该检查；NaN/Inf/bool、负耗时、无时区及墙钟倒退拒绝。后续worker必须沿用同一批次锚点，不能每阶段重新采集entered；此函数不强制终止子进程，也不是独立守护。4项新增测试覆盖时钟分歧、等值/超时、跨阶段累计及非法输入，全套250项CPU测试通过（28.437秒）。直接修改已有模块、测试和记录，未新增目录或模型副本。
 

@@ -8,6 +8,7 @@ import unittest
 from unittest.mock import patch, Mock
 import subprocess
 import sys
+import time
 import types
 
 import source_schedule as schedule_module
@@ -17,6 +18,195 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def watchdog_control(self,temp,kind='ok'):
+        target,info=self.guard_fixture()
+        plan,receipt=self.fixture()
+        receipt.update({key:target['identity'][key] for key in ('run_id','holder','code_commit','spec_sha256')},
+                       manifest_sha256=target['identity']['source_manifest_sha256'])
+        plan.update({key:receipt[key] for key in ('run_id','holder','code_commit','spec_sha256')},
+                    source_manifest_sha256=receipt['manifest_sha256'])
+        base=datetime.fromisoformat(plan['window_start'])
+        schedule=source_schedule(plan,receipt,now=base)
+        state=dict(elapsed=0.0,wall=0.0,running=True,present=True)
+        calls=[]
+        def docker(args,timeout):
+            calls.append(args)
+            if kind=='daemon':raise RuntimeError('CPU daemon fixture unavailable')
+            if args[0]=='inspect':
+                row=copy.deepcopy(info);row['State']=dict(Running=state['running'],Pid=54321 if state['running'] else 0)
+                if kind in ('late','late_tail') and len(calls)==1:state['elapsed']=181 if kind=='late' else 151
+                if kind=='foreign':row['Config']['Labels']['sllm.kimi.holder']='0'*32
+                text=json.dumps([row])
+            elif args[0]=='ps':text=target['container_id'] if state['present'] else ''
+            elif args[0]=='stop':
+                if kind=='stop_error':raise RuntimeError('CPU fixture stop failed')
+                state['running']=False;text=''
+            else:state['present']=False;text=''
+            return types.SimpleNamespace(returncode=0,stdout=text,stderr='')
+        def sleep(seconds):
+            state['elapsed']+=seconds
+            if kind=='backward':state['wall']=-10
+            elif kind=='forward':state['wall']=1000
+            elif kind=='wait_error':raise RuntimeError('CPU fixture wait failed')
+        host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=123,
+                  pid_namespace=42,cgroup='0::/user.slice/cpu-control\n')
+        if kind=='namespace':host['pid_namespace']=43
+        clock=Mock(wraps=datetime)
+        clock.now.side_effect=lambda *a:base+timedelta(seconds=state['elapsed']+state['wall'])
+        path=Path(temp)/'watchdog-events.jsonl'
+        options=dict(nonce='1'*32,host_pid_namespace=42,docker=docker,
+            process_probe=lambda row:dict(pid=row['State']['Pid'],start_ticks=111),host_probe=lambda:host)
+        return target,schedule,state,calls,sleep,clock,path,options
+
+    def test_watchdog_uses_frozen_deadline_and_records_cleanup_without_release_claim(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp)
+            with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']), \
+                    patch.object(schedule_module.time,'sleep',side_effect=sleep):
+                result=schedule_module.source_watchdog(target,schedule,events=events,**options)
+            self.assertEqual(state['elapsed'],150)
+            self.assertEqual([v[0] for v in calls],['inspect','ps','inspect','stop','inspect','rm','ps'])
+            rows=[json.loads(line) for line in path.read_bytes().splitlines()]
+            self.assertEqual([row['event'] for row in rows],['ready','cleanup_started','cleanup_returned'])
+            self.assertEqual(rows[0]['nonce'],'1'*32)
+            self.assertEqual(rows[0]['payload']['container_id'],target['container_id'])
+            self.assertEqual(rows[0]['payload']['image_id'],target['image_id'])
+            self.assertTrue(result['container_absence_verified'])
+            self.assertFalse(result['runtime_admitted'])
+            self.assertFalse(result['resources_released'])
+
+    def test_watchdog_rejects_wrong_namespace_and_initial_daemon_failure_without_mutation(self):
+        for kind in ('namespace','daemon','foreign'):
+            with tempfile.TemporaryDirectory() as temp:
+                target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp,kind)
+                with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']):
+                    with self.assertRaises((ValueError,RuntimeError)):
+                        schedule_module.source_watchdog(target,schedule,events=events,**options)
+                self.assertNotIn('stop',[v[0] for v in calls])
+                self.assertNotIn('"event": "ready"',path.read_text())
+
+    def test_watchdog_clock_failure_and_late_execution_cleanup_are_failures(self):
+        for kind in ('backward','late','late_tail','forward'):
+            with tempfile.TemporaryDirectory() as temp:
+                target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp,kind)
+                with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']), \
+                        patch.object(schedule_module.time,'sleep',side_effect=sleep):
+                    with self.assertRaises(TimeoutError) as caught:
+                        schedule_module.source_watchdog(target,schedule,events=events,**options)
+                self.assertFalse(state['present'])
+                self.assertFalse(caught.exception.guard_cleanup_receipt['resources_released'])
+                rows=[json.loads(line) for line in path.read_bytes().splitlines()]
+                self.assertEqual(rows[-1]['event'],'failed')
+                if kind=='late':
+                    self.assertNotIn('ready',[row['event'] for row in rows])
+                    self.assertTrue(caught.exception.guard_cleanup_receipt['deadline_missed'])
+                if kind=='late_tail':
+                    self.assertNotIn('ready',[row['event'] for row in rows])
+                    self.assertTrue(caught.exception.guard_cleanup_receipt['late_start'])
+                    self.assertFalse(caught.exception.guard_cleanup_receipt['deadline_missed'])
+                if kind=='forward':
+                    self.assertTrue(caught.exception.guard_cleanup_receipt['deadline_missed'])
+                    self.assertEqual(caught.exception.guard_cleanup_receipt['emergency_cleanup_budget_seconds'],5)
+
+    def test_watchdog_ready_or_wait_failure_still_cleans_only_the_verified_target_once(self):
+        for kind in ('ready_error','wait_error','cleanup_log_error','stop_error'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp,kind)
+                original=schedule_module._watchdog_event
+                def event(stream,identity,nonce,name,payload):
+                    if (kind=='ready_error' and name=='ready') or (kind=='cleanup_log_error' and name=='cleanup_started'):
+                        raise OSError('CPU fixture journal failed')
+                    return original(stream,identity,nonce,name,payload)
+                with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']), \
+                        patch.object(schedule_module.time,'sleep',side_effect=sleep), \
+                        patch.object(schedule_module,'_watchdog_event',side_effect=event):
+                    with self.assertRaises((OSError,RuntimeError)):
+                        schedule_module.source_watchdog(target,schedule,events=events,**options)
+                self.assertEqual(sum(row[0]=='stop' for row in calls),1)
+                self.assertEqual(state['present'],kind=='stop_error')
+                rows=[json.loads(line) for line in path.read_bytes().splitlines()]
+                self.assertEqual(rows[-1]['event'],'failed')
+
+    def test_watchdog_guard_cli_refuses_unbundled_source_before_docker_or_host_probe(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'registration.json';path.write_text('{}')
+            with patch.object(schedule_module,'_watchdog_host') as host, \
+                    patch.object(schedule_module,'_guard_docker') as docker:
+                with self.assertRaisesRegex(ValueError,'run source bundle'):
+                    schedule_module.watchdog_main(['--registration',str(path.resolve()),'--registration-sha','0'*64])
+            host.assert_not_called();docker.assert_not_called()
+
+    def test_cpu_watchdog_child_reaches_deadline_after_its_launcher_exits(self):
+        # All Docker/namespace/process inputs below are CPU stand-ins, never host admission.
+        with tempfile.TemporaryDirectory() as temp:
+            target,info=self.guard_fixture();path=Path(temp)/'events.jsonl';errors=Path(temp)/'child.err'
+            script='''import json,os,sys,threading
+from datetime import datetime,timedelta,timezone
+from pathlib import Path
+from types import SimpleNamespace
+import source_schedule as s
+threading.Timer(8,lambda:os._exit(124)).start()
+target,info,path=json.loads(sys.argv[1]),json.loads(sys.argv[2]),Path(sys.argv[3])
+state=dict(running=True,present=True)
+def docker(args,timeout):
+    if args[0]=='inspect':
+        info['State']=dict(Running=state['running'],Pid=54321 if state['running'] else 0)
+        text=json.dumps([info])
+    elif args[0]=='ps':text=target['container_id'] if state['present'] else ''
+    elif args[0]=='stop':state['running']=False;text=''
+    else:state['present']=False;text=''
+    return SimpleNamespace(returncode=0,stdout=text,stderr='')
+now=datetime.now(timezone.utc)
+schedule=dict(guard_fire_by_utc=(now+timedelta(seconds=2)).isoformat(),compute_max_seconds=2,
+    phase_deadlines_utc=dict(worker_shutdown=(now+timedelta(seconds=5)).isoformat()))
+host=dict(uid=2147,boot_id=target['boot_id'],pid=os.getpid(),start_ticks=1,pid_namespace=42,cgroup='cpu-only')
+try:
+    with path.open('xb',buffering=0) as events:
+        s.source_watchdog(target,schedule,nonce='1'*32,host_pid_namespace=42,events=events,
+            docker=docker,process_probe=lambda row:dict(pid=row['State']['Pid']),host_probe=lambda:host)
+except BaseException:
+    import traceback
+    traceback.print_exc()
+finally:
+    os.close(2)
+    (path.parent/'child.closed').write_text('CPU child files closed')
+os._exit(0)
+'''
+            command=[sys.executable,'-B','-X','utf8','-c',script,json.dumps(target),json.dumps(info),str(path)]
+            launcher=('import json,subprocess,sys; '
+                'from datetime import datetime,timezone; '
+                'err=open(sys.argv[2],"xb"); '
+                'p=subprocess.Popen(json.loads(sys.argv[1]),stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=err); '
+                'print(json.dumps(dict(pid=p.pid,utc=datetime.now(timezone.utc).isoformat())),flush=True)')
+            env=dict(schedule_module.os.environ,PYTHONPATH=str(Path(schedule_module.__file__).parent),
+                     PYTHONDONTWRITEBYTECODE='1')
+            try:
+                parent=subprocess.run([sys.executable,'-B','-X','utf8','-c',launcher,json.dumps(command),str(errors)],
+                    env=env,capture_output=True,text=True,timeout=5)
+                self.assertEqual(parent.returncode,0,parent.stderr)
+                stopped_parent=datetime.now(timezone.utc)
+                rows=[];deadline=time.monotonic()+10
+                while time.monotonic()<deadline:
+                    if path.exists():
+                        data=path.read_bytes()
+                        if data.endswith(b'\n'):
+                            rows=[json.loads(line) for line in data.splitlines()]
+                            if rows[-1]['event'] in ('cleanup_returned','failed'):break
+                    time.sleep(0.05)
+                self.assertTrue(rows,errors.read_text())
+                self.assertEqual(rows[-1]['event'],'cleanup_returned',errors.read_text())
+                self.assertGreater(datetime.fromisoformat(rows[-1]['utc']),stopped_parent)
+                self.assertFalse(rows[-1]['payload']['resources_released'])
+            finally:
+                # The bounded child closes stderr before this TemporaryDirectory is removed on Windows.
+                deadline=time.monotonic()+10
+                while errors.exists() and not (Path(temp)/'child.closed').exists() and time.monotonic()<deadline:
+                    time.sleep(0.05)
+
     def guard_fixture(self):
         identity=dict(run_id='kimi-export-20261031T000000Z-01234567',holder='a'*32,
             code_commit='b'*40,spec_sha256='c'*64,source_manifest_sha256='d'*64)

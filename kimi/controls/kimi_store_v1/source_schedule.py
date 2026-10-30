@@ -1,4 +1,4 @@
-"""Source-worker deadline arithmetic; never grants resource authorization."""
+"""Source budgets and owned-target watchdog candidate; no compute authorization."""
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import selectors
 import subprocess
+import sys
 import time
 
 PHASES = ('preflight', 'image_restore', 'engine_initialize_and_export', 'fixed_token_business',
@@ -253,6 +254,160 @@ def cleanup_guard_target(registration, *, boot_id, uid, timeout_seconds,
                 guard_deployed=False, runtime_admitted=False)
 
 
+def _watchdog_host():
+    if os.name != 'posix' or os.getuid() != 2147:
+        raise ValueError('watchdog requires authorized UID2147 on the Linux host')
+    root = Path('/proc/self')
+    started = int((root / 'stat').read_text().rsplit(')', 1)[1].split()[19])
+    return dict(uid=os.getuid(), boot_id=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+        pid=os.getpid(), start_ticks=started, pid_namespace=(root / 'ns/pid').stat().st_ino,
+        cgroup=(root / 'cgroup').read_text())
+
+
+def _watchdog_event(stream, identity, nonce, event, payload):
+    raw = (json.dumps(dict(identity, schema='kimi-source-watchdog-events-v1', nonce=nonce,
+        event=event, utc=datetime.now(timezone.utc).isoformat(), payload=payload), allow_nan=False)+'\n').encode()
+    if len(raw) > 8192:
+        raise ValueError('watchdog event exceeds 8KiB')
+    if stream.write(raw) != len(raw):
+        raise OSError('short watchdog event write')
+    stream.flush()
+    os.fsync(stream.fileno())
+
+
+def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
+                    docker=_guard_docker, process_probe=guard_process, host_probe=_watchdog_host):
+    """Independent loop candidate; caller binds source/plan and reserves its log."""
+    host = host_probe()
+    identity = _guard_identity(target, boot_id=host['boot_id'], uid=host['uid'])
+    if (not isinstance(nonce, str) or not re.fullmatch('[0-9a-f]{32}', nonce)
+            or type(host_pid_namespace) is not int or host_pid_namespace <= 0
+            or host['pid_namespace'] != host_pid_namespace or target['container_id'] in host['cgroup']):
+        raise ValueError('fresh nonce and host PID namespace outside target required')
+    anchored_utc, anchored_mono = datetime.now(timezone.utc), time.monotonic()
+    fire = _utc(schedule['guard_fire_by_utc'])
+    shutdown_end = _utc(schedule['phase_deadlines_utc']['worker_shutdown'])
+    original_wait = (fire-anchored_utc).total_seconds()
+    if anchored_utc < fire-timedelta(seconds=schedule['compute_max_seconds']):
+        raise ValueError('watchdog batch anchor is in the future')
+    shutdown_span = (shutdown_end-fire).total_seconds()
+    if not 0 < shutdown_span <= 86400:
+        raise ValueError('finite reviewed shutdown span required')
+    def query(*args):
+        response = docker(list(args), min(5, shutdown_span))
+        if response.returncode or len(response.stdout) > 65536 or len(response.stderr) > 65536:
+            raise RuntimeError('watchdog Docker query failed: '+args[0])
+        return response.stdout
+    verified, cleanup_attempted, late_start, cleanup_result = False, False, False, None
+    def cleanup_owned(check_absence):
+        nonlocal cleanup_attempted
+        present = query('ps', '-aq', '--no-trunc', '--filter', 'id='+target['container_id']) if check_absence else target['container_id']
+        budget = min(shutdown_span, (shutdown_end-datetime.now(timezone.utc)).total_seconds(),
+                     (shutdown_end-anchored_utc).total_seconds()-(time.monotonic()-anchored_mono))
+        missed = budget <= 0
+        cleanup_attempted = True
+        if present.strip():
+            # A missed deadline permits only one bounded emergency cleanup, never more computation.
+            result = cleanup_guard_target(target, boot_id=host['boot_id'], uid=host['uid'],
+                timeout_seconds=min(5, shutdown_span) if missed else budget,
+                docker=docker, process_probe=process_probe)
+        else:
+            result = dict(container_id=target['container_id'], container_absence_verified=True,
+                          resources_released=False, release_observation_verified=False,
+                          guard_deployed=False, runtime_admitted=False)
+        result['deadline_missed'] = (missed or datetime.now(timezone.utc) > shutdown_end
+            or time.monotonic()-anchored_mono > (shutdown_end-anchored_utc).total_seconds())
+        result['late_start'] = late_start
+        result['emergency_cleanup_budget_seconds'] = min(5, shutdown_span) if missed else 0
+        return result
+    try:
+        rows = json.loads(query('inspect', target['container_id']))
+        if not isinstance(rows, list) or len(rows) != 1:
+            raise ValueError('watchdog initial container identity missing')
+        guard_target(target, rows[0], boot_id=host['boot_id'], uid=host['uid'])
+        verified = True
+        process = process_probe(rows[0])
+        event = 'ready' if (original_wait > time.monotonic()-anchored_mono
+                            and datetime.now(timezone.utc) < fire) else 'late_start'
+        late_start = event == 'late_start'
+        _watchdog_event(events, identity, nonce, event, dict(host=host, target_process=process,
+            container_id=target['container_id'], image_id=target['image_id'], container_created=target['container_created'],
+            guard_fire_by_utc=fire.isoformat(), runtime_admitted=False))
+        reason = 'deadline'
+        while True:
+            now, elapsed = datetime.now(timezone.utc), time.monotonic()-anchored_mono
+            if now < anchored_utc or elapsed < 0:
+                reason = 'clock_regressed'
+                break
+            remaining = min((fire-now).total_seconds(), original_wait-elapsed)
+            if remaining <= 0:
+                break
+            time.sleep(min(1, remaining))
+        _watchdog_event(events, identity, nonce, 'cleanup_started', dict(reason=reason))
+        result = cleanup_result = cleanup_owned(True)
+        if result['deadline_missed'] or late_start or reason != 'deadline':
+            error = TimeoutError('watchdog deadline or clock failed; cleanup evidence retained')
+            error.guard_cleanup_receipt = result
+            raise error
+        _watchdog_event(events, identity, nonce, 'cleanup_returned', result)
+        return result
+    except BaseException as error:
+        if verified and not cleanup_attempted:
+            try:
+                cleanup_result = cleanup_owned(False)
+            except BaseException as cleanup_error:
+                error.__notes__ = list(getattr(error, '__notes__', ())) + ['watchdog cleanup also failed: '+repr(cleanup_error)]
+        if cleanup_result is not None:
+            error.guard_cleanup_receipt = cleanup_result
+        try:
+            description = repr(error)
+            notes = '\n'.join(getattr(error, '__notes__', ()))
+            _watchdog_event(events, identity, nonce, 'failed', dict(error=description[:2048],
+                error_truncated=len(description) > 2048, notes=notes[:2048], notes_truncated=len(notes) > 2048,
+                cleanup=getattr(error, 'guard_cleanup_receipt', None)))
+        except BaseException as log_error:
+            error.__notes__ = list(getattr(error, '__notes__', ())) + ['watchdog evidence failed: '+repr(log_error)]
+        raise
+
+
+def watchdog_main(argv):
+    """Host-only entry; source verification and target probe precede readiness."""
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('watchdog requires unoptimized python -B')
+    from source_bundle import verify_source_run
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--registration', required=True)
+    parser.add_argument('--registration-sha', required=True)
+    args = parser.parse_args(argv)
+    path = Path(args.registration)
+    if not path.is_absolute():
+        raise ValueError('absolute watchdog registration required')
+    root = path.resolve(strict=True).parent
+    if Path(__file__).resolve().parent != root/'code':
+        raise ValueError('watchdog must execute from this run source bundle')
+    registration = load_source_plan(path, args.registration_sha)
+    if (not isinstance(registration, dict) or set(registration) != {'schema', 'target', 'plan_sha256',
+            'batch_entered_utc', 'host_pid_namespace', 'nonce'}
+            or registration['schema'] != 'kimi-source-watchdog-registration-v1'):
+        raise ValueError('exact watchdog registration required')
+    plan = load_source_plan(root/'source-plan.json', registration['plan_sha256'])
+    receipt = verify_source_run(root/'code', root/'source-code-manifest.json', plan['source_manifest_sha256'],
+                                root/'source-spec.json', plan['spec_sha256'])
+    schedule = source_schedule(plan, receipt, now=_utc(registration['batch_entered_utc']))
+    expected = dict(run_id=receipt['run_id'], holder=receipt['holder'], code_commit=receipt['code_commit'],
+        spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
+    if registration['target']['identity'] != expected:
+        raise ValueError('watchdog target and verified source identity differ')
+    with (root/'source-watchdog-events.jsonl').open('xb', buffering=0) as events:
+        _watchdog_event(events, expected, registration['nonce'], 'inputs_verified', dict(
+            registration_sha256=args.registration_sha, plan_sha256=registration['plan_sha256'],
+            runtime_admitted=False))
+        result = source_watchdog(registration['target'], schedule, nonce=registration['nonce'],
+            host_pid_namespace=registration['host_pid_namespace'], events=events)
+    print(json.dumps(result, sort_keys=True))
+
+
 def main():
     import argparse
     from source_bundle import verify_source_run
@@ -276,4 +431,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:2] == ['guard']:
+        watchdog_main(sys.argv[2:])
+    else:
+        main()

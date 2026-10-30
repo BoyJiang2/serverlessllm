@@ -76,6 +76,47 @@
       "seconds": 26.619,
       "result": "OK",
       "scope": "Final complete CPU suite for current reviewed guard cleanup kernel hashes"
+    },
+    {
+      "count": 29,
+      "seconds": 1.81,
+      "result": "OK",
+      "scope": "Initial watchdog timing and CLI refusal CPU controls"
+    },
+    {
+      "count": 30,
+      "seconds": 1.812,
+      "result": "FAILED",
+      "errors": 1,
+      "cause": "New independent CPU test omitted import time; NameError followed by Windows TemporaryDirectory cleanup PermissionError while its bounded child still held stderr; specific child later checked absent",
+      "scope": "Test fixture only, no Docker/model/remote processes"
+    },
+    {
+      "count": 30,
+      "seconds": 3.948,
+      "result": "OK",
+      "scope": "Import fixed, independent child closes files and finally waits before temporary cleanup"
+    },
+    {
+      "count": 288,
+      "skipped": 1,
+      "seconds": 27.534,
+      "result": "OK",
+      "scope": "Intermediate full suite before watchdog review corrections"
+    },
+    {
+      "count": 31,
+      "seconds": 3.973,
+      "result": "OK",
+      "scope": "Wall-forward, late-tail, journal/wait failures and single owned-cleanup controls"
+    },
+    {
+      "count": 289,
+      "passed": 288,
+      "skipped": 1,
+      "seconds": 28.011,
+      "result": "OK",
+      "scope": "Final complete local CPU suite for reviewed watchdog hashes"
     }
   ],
   "gpu_used": false,
