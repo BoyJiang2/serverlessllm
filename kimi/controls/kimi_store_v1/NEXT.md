@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增source_schedule完整阶段预算与code/spec/plan CLI预检，246项CPU测试通过，复审见source-schedule-review.json。包含3721>3600拒绝、60秒最小观察+开销、每批自身guard/清理截止（不随11h预约拉长）、核验耗时计入且不重置；CLI时钟不可覆盖。仅时间配置预检，booking/guard/runtime均false，实际worker/独立守护仍待接齐。详见SOURCE-SCHEDULE.md。
+
 - 仓库已按用户要求迁至GitHub BoyJiang2/serverlessllm，后续本机工作区D:/Documents/codex/2026-10-24/new-chat/serverlessllm，Kimi位于kimi/controls/kimi_store_v1，GLM位于glm/。重组代码57db396、复审0ba1c50：2861旧文件映射，2854字节未变，2605 GLM冻结文件逐字节一致，7处必要路径/属性修改；旧checkout和服务器资产未移动。235 Kimi CPU、10下载、14 GLM历史、6 C23回归通过；初迁移3个测试fixture缺失已修正留证。旧包/审阅不审批新运行。
 - 新目录候选0ba1c50已实际成包169文件，真实code/run-spec门禁+标准entrypoint发现+固定registry源码在fresh CPU进程通过，缓存坏bundle SHA在runtime前拒绝；见source-startup-cpu-proof.json。runtime和模型factory明确mock，未执行vLLM真正general-plugin或模型，不能算GPU/完整worker通过。下一项source worker实际身份、完整预算、window/独立guard/probe/monitor及退出取证，仍不启动GPU或全量转换。
 

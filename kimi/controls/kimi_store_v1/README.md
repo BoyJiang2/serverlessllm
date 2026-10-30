@@ -290,3 +290,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 - 新增source_bundle源码对象生成/完整文件校验及source spec/run布局绑定，233项CPU测试通过，初审扫描错误误通过已复现修复，复审见source-bundle-review.json。复用固定SHA的既有Git读取器，blob读取前检查大小；独立CPU CLI已测。尚未接source worker/插件启动，未验证真实整包或GPU；下一项实际候选存证、启动来源/guard/预算与退出闭包。详见SOURCE-BUNDLE.md。
 
 - source_plugin现强制在runtime/factory之前verify_source_run（实际插件目录+run固定manifest+外部bundle SHA），cached注册也重查；235项CPU测试通过，复审见source-startup-review.json。旧f152680包冻结，必须按新代码提交成包；下一项新整包CPU接线验证和worker入口/实际身份/预算/guard闭包。尚无GPU/完整Store。
+
+- 新增source_schedule完整阶段预算与code/spec/plan CLI预检，246项CPU测试通过，复审见source-schedule-review.json。包含3721>3600拒绝、60秒最小观察+开销、每批自身guard/清理截止（不随11h预约拉长）、核验耗时计入且不重置；CLI时钟不可覆盖。仅时间配置预检，booking/guard/runtime均false，实际worker/独立守护仍待接齐。详见SOURCE-SCHEDULE.md。

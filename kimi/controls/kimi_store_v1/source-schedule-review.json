@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-30T10:53:06.283827+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "scope": "Source-window timing configuration and source-receipt binding only",
+  "sha256": {
+    "source_schedule.py": "3e6655d82b2244d09258ba28a5591e62cabe6168ac336a3894ec63f2fb5cf1f0",
+    "test_source_schedule.py": "65465c5cc2807a20064bf3d0929a752fb1b18785dfb11e083358a300960f7c89",
+    "SOURCE-SCHEDULE.md": "3988316c00d456c976d2d91117c0c21a1390d526c7fdf28bdf3749c30ed0579f",
+    "source-schedule-tests.json": "aa2eeff3fb853063c3233079408b22e1d904133bc4f04beeee3a415979e8413f",
+    "NEXT.md": "a7e23f2408bdd44a0398a9d5074ab50ef3dd0403472797b2efee9de21313c9f8",
+    "README.md": "457756d009666896510230da995dcd564fc7da03d6a6c464a6e5efe0adc15b99"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 246,
+    "seconds": 24.919,
+    "history": "source-schedule-tests.json"
+  },
+  "verified": [
+    "All nine phase maxima summed; observation cap >=60 and invalid/missing/bool values rejected",
+    "Window started and full batch fits before cleanup, which is >=10 minutes before booking end",
+    "Per-batch deadline not extended to full booking; guard tail includes shutdown/observation/evidence/margin",
+    "CLI captures time before checks and charges validation elapsed to preflight",
+    "Source receipt identities match plan; booking/guard/runtime flags remain false"
+  ],
+  "limitations": [
+    "Reviewer did not run tests or remote operations",
+    "Not proof that production maxima suffice or booking is valid",
+    "No actual guard installation, deadline enforcement, worker, model, GPU or Store approval"
+  ]
+}
