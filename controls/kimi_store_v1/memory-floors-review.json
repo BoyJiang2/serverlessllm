@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-30T04:18:11.536786+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "memory_floors.py": "b07c40636527dbcfcdc156c55aa71dad9c1879836b9b30bfa267cc2715c1378a",
+    "test_memory_floors.py": "84f410e6c57e4aaf5b3b9411a4c3eda26cedbf39f1aa8b52635c7c0849a53f95",
+    "mixed-memory-floors.json": "5dbc21eeb451af08139d14cb3d754522f6605d4aaea23f67d261501fdea3fd60",
+    "MEMORY-BUDGET.md": "d4c0071d5f7442971850d55c8af4558aa180d4d0836c1d2ce763dd9d22fcdd5b",
+    "NEXT.md": "36509e7b56cb07c1fa58c823a87c891984e1ccaf959005df498f8207880d89d6",
+    "README.md": "9483826ff92ed71748a1ffc5826e191cb2b1fe72d34c79523b6b5c2bda5f2907"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 211,
+    "seconds": 10.131,
+    "scope": "Local CPU arithmetic/refusal tests; actual frozen metadata execution separately generated the artifact"
+  },
+  "verified": [
+    "Reviewer independently rehashed all three real metadata inputs and matched frozen identities",
+    "Reviewer regrouped all official index names and 64 header counts; branch payload totals agree",
+    "Independent arithmetic: text rank 75891737600 B; raw rank 76834025440 B; hypothetical combined residency 2264.656402 GiB",
+    "Reclaimable file cache separated from locked pool and anonymous targets; no OOM conclusion"
+  ],
+  "limitations": [
+    "Reviewer did not execute candidate code or tests or read weight payload",
+    "Conditional metadata lower bounds only; no actual residency, pool configuration upper bound or complete peak",
+    "Current host/device resources not queried",
+    "Conservative memory stop retained; no runtime admission"
+  ]
+}

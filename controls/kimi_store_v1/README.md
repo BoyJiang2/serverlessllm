@@ -282,3 +282,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 - 新增initialize_mixed_vllm_rank保留官方quant/config/reload初始化上下文，mixed_postprocess显式最终CUDA target并限制一次后处理；202项CPU测试通过，复审见mixed-context-review.json。初始化/后处理真实CUDA边界仍mock，未组合完整新factory、无GPU运行。下一项连接构造/aux/producer/install及受审全峰值预算与worker。详见MIXED-CONTEXT.md。
 
 - 新增vllm_mixed_hook独立loader，把构造/aux/逐记录producer/install/显式CUDA后处理串入冻结Base私有namespace；207项CPU测试通过，初次fixture错误保留，复审见mixed-lifecycle-review.json。仍保留保守2×checkpoint预算停止，真实模型不能据此开跑；完整峰值/主机驻留预算、实际构建身份及worker准入仍待完成。详见MIXED-LIFECYCLE.md。
+
+- 已用冻结完整索引+64分片header实算memory_floors，211项CPU测试通过，复审见memory-floors-review.json。mixed raw≥71.557GiB/卡，8rank CPU文本≥565.438GiB、Store有效payload≥572.458GiB；不是峰值上限。两类全缓存+CPU目标+pool假设共驻留约2264.656GiB，普通页可回收，不能直接称OOM。旧预算停止保留；下一项source单模型worker/插件与完整资源/构建/守护闭包。详见MEMORY-BUDGET.md。

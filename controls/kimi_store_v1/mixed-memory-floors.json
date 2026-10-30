@@ -1,0 +1,32 @@
+{
+  "scope": "conditional metadata lower bounds; not actual peak or upper limits",
+  "revision": "7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+  "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+  "index_sha256": "00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3",
+  "header_summary_sha256": "f01064b0e7463602b875b57e04fe79335775713fc56e3cd1049b3f61a6d35d4c",
+  "source_branch_payload_bytes": {
+    "language_model": 594205904896,
+    "mm_projector": 108555776,
+    "vision_tower": 833732064
+  },
+  "excluded_shape_bytes": 552960,
+  "replicated_mla_source_bytes": 1846935552,
+  "text_rank_floor_bytes": 75891737600,
+  "visual_rank_floor_bytes": 942287840,
+  "raw_rank_floor_bytes": 76834025440,
+  "cpu_text_8rank_floor_bytes": 607133900800,
+  "cpu_initial_aux_8rank_bytes": 10947133440,
+  "store_8rank_payload_floor_bytes": 614672203520,
+  "sf_full_file_cache_bytes": 595177988208,
+  "store_full_file_cache_floor_bytes": 614672203520,
+  "mixed_gpu_load_floor_bytes": 77776313280,
+  "upper_bounds_known": false,
+  "peak_memory_verified": false,
+  "runtime_admitted": false,
+  "assumptions": [
+    "TP8 PP1 noEP MLA Marlin, ideal text partition except mandatory MLA A replication",
+    "Vision and projector BF16 are replicated by encoder data mode on all ranks",
+    "Other replicated text weights, extra buffers, allocator granularity and overhead omitted",
+    "Cache amounts mean hypothetical complete residency, not observed residency"
+  ]
+}
