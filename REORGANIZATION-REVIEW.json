@@ -1,0 +1,44 @@
+{
+  "recorded_utc": "2026-10-30T10:02:25.295222+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "scope": "Directory reorganization and necessary path adapters only",
+  "baseline_commit": "d95c85c5bac506a3f53cf21f5db8928088fd1f09",
+  "migration_commit": "57db396fee8348011b4a0976374b50e6f3468725",
+  "sha256": {
+    ".gitattributes": "2d8896cd075a2e980b5bdb48f39274c0f13651ec4a5b7383ad68ce4236e36f54",
+    ".gitignore": "d83d00939bc6bd9145498e50b473b70038d6a617d109a268b17f5eb9bee37dc5",
+    "glm/tools/deploy_tree.py": "1902a8de949bf29874bd55c93a5aa80fe0e454ab9652bcb13dfd08cb325879ce",
+    "glm/tools/test_deploy_tree.py": "dc444243ee193e5c36d69e1b66bc188844bd9c3ce4f9135f3c966410f889eebe",
+    "kimi/controls/kimi_store_v1/source_bundle.py": "e69582dd958ce299e6f178aa26a21457f936a1748640b4caa610b860d51678fc",
+    "kimi/controls/kimi_store_v1/test_ipc_close_patch.py": "e89030a94b21ff32cac2ffb18d5802bdfc474f7bd394ebc2ff89af3def8c3708",
+    "kimi/controls/kimi_store_v1/test_vision_state.py": "748c404543860d083e4edba8d27304cf47d07daac15a96dece7ee5cd262f23ab",
+    "REORGANIZATION.json": "da55ce5e5475b5b33a6412fe5c07f4f4932e640558a899d06c2962ae45bfdd86",
+    "README.md": "6fe4a305bdc1e3ae978263560a646dc879bc65a9832f96d6081e82adb94172b3",
+    "kimi/README.md": "d1dcb12696b909e41cc2913434f36ddbe39e04a989bfa706835f5ad45604c847"
+  },
+  "verified": {
+    "mapped": 2861,
+    "byte_identical": 2854,
+    "intentional_edits": 7,
+    "missing": 0,
+    "glm_frozen_byte_identical": 2605,
+    "original_kimi_git_reader_sha_preserved": true,
+    "cpp_baseline_copies_byte_identical": true
+  },
+  "tests": {
+    "executor": "primary agent",
+    "kimi_cpu": 235,
+    "kimi_download_cpu": 10,
+    "glm_git_history": 14,
+    "glm_c23_regression": 6,
+    "initial_migration_kimi_errors": 3,
+    "initial_errors_cause": "Two tests referenced GLM archive paths; copied exact baseline sources into Kimi fixtures and updated only test paths"
+  },
+  "limitations": [
+    "Reviewer independently compared local Git objects and bytes; did not run tests or remote operations",
+    "Old absolute paths and gate identities remain historical; new runtime candidates need fresh manifests/review",
+    "No GPU/model/Store run or remote-asset relocation",
+    "Publishing status verified separately after push"
+  ]
+}
