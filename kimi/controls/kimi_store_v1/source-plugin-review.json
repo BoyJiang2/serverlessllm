@@ -70,6 +70,40 @@
         "Core shutdown return does not prove resource release or 60s observation",
         "Not a stable gold or full native service result"
       ]
+    },
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Existing-run bounded exclusive journal and persistent source-reference results/failures; not host guard",
+      "sha256": {
+        "source_plugin.py": "e8dae9c2bb9b1ff83cd6c9f93f27362dd69d77f752772a8a302b105f9735ee43",
+        "test_source_plugin.py": "e2a7d27459811d0d33a75df5afd204c8a2163048a061063a5e5e09a83f74e977"
+      },
+      "tests": {
+        "count": 273,
+        "passed": 272,
+        "skipped": 1,
+        "seconds": 24.897,
+        "executor": "primary agent"
+      },
+      "initial_findings_and_corrections": [
+        "Success path initially omitted prompt/options while failures retained them; started now retains prompt/KV and success includes actual prompt/options, verified by readback",
+        "Buffered journal close could reflush failed data and replace original business exception; actual BufferedWriter/RawIO fault control reproduced this; unbuffered exclusive writer fixes it"
+      ],
+      "verified": [
+        "Existing isolated run root; journal collision rejects before engine factory",
+        "64KiB row and 128KiB read bounds; no-clobber; flush/fsync; short-write detection",
+        "Success and failures persist raw tokens, config and prior business evidence",
+        "Real CPU-only child interrupted by its test parent yields incomplete journal, no success or release claim"
+      ],
+      "limitations": [
+        "CPU child test is not an actual deployed independent host guard/probe",
+        "No GPU/model/full conversion or remote execution",
+        "One POSIX FIFO test skipped on Windows",
+        "Journal identity/hash does not prove actual container/cgroup ownership or resource release",
+        "Host controller, independent guard/monitor and 60-second release observation still incomplete"
+      ]
     }
   ]
 }

@@ -1,4 +1,5 @@
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -63,6 +64,15 @@ class SourcePluginTests(unittest.TestCase):
             self.assertFalse(result['gold_frozen'])
             self.assertFalse(result['resources_released'])
             self.assertFalse(result['full_service_verified'])
+            saved=plugin.read_reference_events(Path(options['spec']['run_root'])/'source-reference-events.jsonl',
+                options['identity'])
+            self.assertEqual(saved['status'],'reference_returned')
+            self.assertEqual(saved['records'][-1]['payload']['business'],result['business'])
+            self.assertEqual(saved['records'][-1]['payload']['engine_options'],factory.call_args.kwargs)
+            self.assertEqual(saved['records'][-1]['payload']['prompt_token_ids'],[1,2])
+            self.assertEqual(saved['records'][0]['payload']['kv_cache_memory_bytes'],4096)
+            self.assertEqual(saved['records'][0]['payload']['prompt_token_ids'],[1,2])
+            self.assertFalse(saved['resources_released'])
 
     def test_reference_business_failure_still_shuts_down_and_preserves_original_error(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -106,6 +116,119 @@ class SourcePluginTests(unittest.TestCase):
             self.assertEqual(evidence['business']['fixed_token_business']['token_ids'],[10,11]*16)
             self.assertTrue(evidence['engine_shutdown_returned'])
             self.assertFalse(evidence['resources_released'])
+            saved=plugin.read_reference_events(Path(options['spec']['run_root'])/'source-reference-events.jsonl',
+                options['identity'])
+            self.assertEqual(saved['status'],'failed')
+            self.assertEqual(saved['records'][-1]['payload']['evidence']['business'],evidence['business'])
+
+    def test_reference_journal_collision_never_restarts_or_overwrites(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp);factory=Mock()
+            path=Path(options['spec']['run_root'])/'source-reference-events.jsonl'
+            path.write_bytes(b'original evidence')
+            with self.assertRaises(FileExistsError):plugin._run_source_reference(factory,Mock(),**options)
+            factory.assert_not_called()
+            self.assertEqual(path.read_bytes(),b'original evidence')
+
+    def test_reference_failure_log_error_does_not_replace_original_failure(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp);original=plugin._write_reference_event
+            def write(stream,identity,event,payload):
+                if event=='failed':raise OSError('fixture evidence disk failure')
+                return original(stream,identity,event,payload)
+            with patch.object(plugin,'_write_reference_event',side_effect=write):
+                with self.assertRaisesRegex(RuntimeError,'constructor failure') as caught:
+                    plugin._run_source_reference(Mock(side_effect=RuntimeError('constructor failure')),Mock(),**options)
+            self.assertIn('evidence disk failure',caught.exception.__notes__[-1])
+            saved=plugin.read_reference_events(Path(options['spec']['run_root'])/'source-reference-events.jsonl',
+                options['identity'])
+            self.assertEqual(saved['status'],'incomplete')
+
+    def test_reference_event_size_bound_precedes_disk_write(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp);path=Path(temp)/'event'
+            with path.open('xb') as stream:
+                with self.assertRaisesRegex(ValueError,'64KiB'):
+                    plugin._write_reference_event(stream,options['identity'],'started',{'oversize':'x'*65536})
+            self.assertEqual(path.stat().st_size,0)
+
+    def test_real_buffered_flush_control_masks_error_but_unbuffered_journal_preserves_it(self):
+        class FailingRaw(io.RawIOBase):
+            def __init__(self,path):self.file=io.FileIO(path,'x');self.failed_writes=0
+            def writable(self):return True
+            def fileno(self):return self.file.fileno()
+            def write(self,data):
+                if b'"event": "failed"' in bytes(data):
+                    self.failed_writes+=1
+                    raise OSError('fixture ENOSPC')
+                return self.file.write(data)
+            def close(self):
+                try:super().close()
+                finally:self.file.close()
+        for buffered_control in (True,False):
+            with self.subTest(buffered_control=buffered_control),tempfile.TemporaryDirectory() as temp:
+                options=self.reference_fixture(temp);handles=[];original=Path.open
+                def open_journal(path,mode='r',*args,**kwargs):
+                    if path.name!='source-reference-events.jsonl':return original(path,mode,*args,**kwargs)
+                    raw=FailingRaw(path);handles.append(raw)
+                    if buffered_control:return io.BufferedWriter(raw)
+                    self.assertEqual(kwargs['buffering'],0)
+                    return raw
+                with patch.object(Path,'open',open_journal):
+                    if buffered_control:
+                        with self.assertRaisesRegex(OSError,'ENOSPC'):
+                            plugin._run_source_reference(Mock(side_effect=RuntimeError('constructor failure')),Mock(),**options)
+                    else:
+                        with self.assertRaisesRegex(RuntimeError,'constructor failure') as caught:
+                            plugin._run_source_reference(Mock(side_effect=RuntimeError('constructor failure')),Mock(),**options)
+                        self.assertIn('ENOSPC',caught.exception.__notes__[-1])
+                self.assertTrue(handles[0].closed)
+                self.assertEqual(handles[0].failed_writes,2 if buffered_control else 1)
+
+    def test_reference_reader_rejects_partial_stale_oversized_and_duplicate_records(self):
+        for kind in ('partial','stale','oversize','duplicate','clock'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                options=self.reference_fixture(temp);path=Path(temp)/'events'
+                with path.open('xb') as stream:
+                    plugin._write_reference_event(stream,options['identity'],'started',{})
+                raw=path.read_bytes()
+                if kind=='partial':path.write_bytes(raw[:-1])
+                elif kind=='stale':
+                    row=json.loads(raw);row['holder']='e'*32
+                    path.write_bytes((json.dumps(row)+'\n').encode())
+                elif kind=='oversize':path.write_bytes(b'x'*131073)
+                elif kind=='duplicate':path.write_bytes(raw*3)
+                else:
+                    row=json.loads(raw);row['monotonic_seconds']=float('nan')
+                    path.write_bytes((json.dumps(row)+'\n').encode())
+                with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])
+
+    def test_killed_cpu_only_child_keeps_incomplete_journal_without_completion_claim(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            serial=dict(options);serial.pop('entered');serial.pop('started')
+            script=('import json,sys,time; from datetime import datetime,timezone; import source_plugin as p; '
+                'o=json.loads(sys.argv[1]);o.update(entered=datetime.now(timezone.utc),started=time.monotonic()); '
+                'p._run_source_reference(lambda **kw:time.sleep(30),dict,**o)')
+            env=dict(os.environ,PYTHONPATH=str(ROOT),PYTHONDONTWRITEBYTECODE='1')
+            child=subprocess.Popen([sys.executable,'-B','-X','utf8','-c',script,json.dumps(serial)],
+                env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
+            path=Path(options['spec']['run_root'])/'source-reference-events.jsonl'
+            try:
+                deadline=time.monotonic()+10
+                while time.monotonic()<deadline and child.poll() is None:
+                    if path.exists() and path.stat().st_size:break
+                    time.sleep(0.05)
+                self.assertIsNone(child.poll())
+                self.assertTrue(path.exists())
+                child.kill()
+                child.communicate(timeout=5)
+                saved=plugin.read_reference_events(path,options['identity'])
+                self.assertEqual(saved['status'],'incomplete')
+                self.assertFalse(saved['runtime_admitted'])
+            finally:
+                if child.poll() is None:child.kill()
+                child.communicate(timeout=5)
 
     def test_reference_shutdown_failure_after_valid_business_is_failure_with_evidence(self):
         with tempfile.TemporaryDirectory() as temp:

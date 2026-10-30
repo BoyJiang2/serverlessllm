@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import time
+import traceback
 from datetime import datetime, timezone
 
 SPEC_ENV = 'SLLM_KIMI_SOURCE_SPEC'
@@ -148,7 +149,7 @@ def _reference_output(requests, prompt, *, fixed):
                 gold_verified=False)
 
 
-def _run_source_reference(engine_factory, sampling_factory, *, spec, identity, prompt_token_ids,
+def _source_reference_body(engine_factory, sampling_factory, *, spec, identity, prompt_token_ids,
                           kv_cache_memory_bytes, schedule, entered, started):
     """Internal worker body only; caller must first establish host guard/admission.
 
@@ -199,7 +200,8 @@ def _run_source_reference(engine_factory, sampling_factory, *, spec, identity, p
             requests = engine.generate([{'prompt_token_ids': list(prompt_token_ids)}], params, use_tqdm=False)
             business[name] = _reference_output(requests, prompt_token_ids, fixed=fixed)
             remaining(name)
-        result = dict(identity, ranks=ranks, business=business, reference_collected=True,
+        result = dict(identity, prompt_token_ids=list(prompt_token_ids), engine_options=options,
+            ranks=ranks, business=business, reference_collected=True,
             gold_frozen=False, runtime_admitted=False, native_loader_verified=False,
             full_service_verified=False, resources_released=False)
     except BaseException as error:
@@ -229,3 +231,95 @@ def _run_source_reference(engine_factory, sampling_factory, *, spec, identity, p
                     'engine shutdown also failed: ' + repr(cleanup_error)]
     result['engine_shutdown_returned'] = True
     return result
+
+
+def _write_reference_event(stream, identity, event, payload):
+    row = dict(identity, schema='kimi-source-reference-events-v1', event=event,
+        utc=datetime.now(timezone.utc).isoformat(), monotonic_seconds=time.monotonic(), payload=payload)
+    raw = (json.dumps(row, allow_nan=False) + '\n').encode('utf-8')
+    if len(raw) > 65536:
+        raise ValueError('reference event exceeds 64KiB evidence bound')
+    if stream.write(raw) != len(raw):
+        raise OSError('short reference evidence write')
+    stream.flush()
+    os.fsync(stream.fileno())
+
+
+def _run_source_reference(engine_factory, sampling_factory, **options):
+    """Reserve one existing-run journal before computation; never overwrite it."""
+    from vllm_export_hook import _source_identity
+    identity = _source_identity(options['identity'])
+    spec = options['spec']
+    root = Path(spec['run_root']).resolve(strict=True)
+    checkpoint = Path(spec['checkpoint_path']).resolve(strict=True)
+    output = Path(spec['output_root']).resolve(strict=True)
+    if (not root.is_dir() or not output.is_dir() or output == root or not output.is_relative_to(root)
+            or root.is_relative_to(checkpoint) or checkpoint.is_relative_to(root)
+            or any(identity[k] != spec[k] for k in ('run_id', 'holder', 'code_commit'))):
+        raise ValueError('existing isolated run directory required')
+    path = root / 'source-reference-events.jsonl'
+    with path.open('xb', buffering=0) as stream:
+        _write_reference_event(stream, identity, 'started', dict(
+            prompt_token_ids=list(options['prompt_token_ids']), kv_cache_memory_bytes=options['kv_cache_memory_bytes']))
+        try:
+            result = _source_reference_body(engine_factory, sampling_factory, **options)
+        except BaseException as error:
+            trace = ''.join(traceback.format_exception(type(error), error, error.__traceback__))
+            description = repr(error)
+            payload = dict(error_type=type(error).__name__, error_repr=description[:8192],
+                error_repr_truncated=len(description) > 8192,
+                traceback_tail=trace[-16384:], traceback_truncated=len(trace) > 16384,
+                evidence=getattr(error, 'source_reference_evidence', None))
+            try:
+                _write_reference_event(stream, identity, 'failed', payload)
+            except BaseException as evidence_error:
+                error.__notes__ = list(getattr(error, '__notes__', ())) + [
+                    'terminal evidence write failed: ' + repr(evidence_error)]
+            raise
+        try:
+            _write_reference_event(stream, identity, 'reference_returned', result)
+        except BaseException as error:
+            error.source_reference_evidence = result
+            raise
+    return result
+
+
+def read_reference_events(path, identity):
+    """Read bounded evidence; a missing terminal record proves no completion."""
+    from vllm_export_hook import _source_identity, _metadata_stream
+    identity = _source_identity(identity)
+    with _metadata_stream(Path(path)) as stream:
+        raw = stream.read(131073)
+    if len(raw) > 131072 or not raw.endswith(b'\n'):
+        raise ValueError('reference journal oversized or has a partial final line')
+    lines = raw.splitlines()
+    if any(len(line) + 1 > 65536 for line in lines):
+        raise ValueError('reference journal line exceeds 64KiB')
+    rows = [json.loads(line) for line in lines]
+    if not 1 <= len(rows) <= 2:
+        raise ValueError('one start and at most one terminal reference record required')
+    for row in rows:
+        if (not isinstance(row, dict)
+                or set(row) != set(identity) | {'schema', 'event', 'utc', 'monotonic_seconds', 'payload'}
+                or row.get('schema') != 'kimi-source-reference-events-v1'
+                or type(row['monotonic_seconds']) not in (int, float)
+                or not math.isfinite(row['monotonic_seconds']) or row['monotonic_seconds'] < 0
+                or any(row.get(k) != v for k, v in identity.items())):
+            raise ValueError('reference journal identity differs')
+        from source_schedule import _utc
+        _utc(row['utc'])
+    if rows[0]['event'] != 'started' or (len(rows) == 2 and rows[1]['event'] not in ('failed', 'reference_returned')):
+        raise ValueError('reference journal event order differs')
+    if rows[-1]['monotonic_seconds'] < rows[0]['monotonic_seconds']:
+        raise ValueError('reference journal monotonic clock regressed')
+    if len(rows) == 2 and rows[1]['event'] == 'reference_returned':
+        payload = rows[1]['payload']
+        if (not isinstance(payload, dict) or any(payload.get(k) != v for k, v in identity.items())
+                or payload.get('reference_collected') is not True
+                or payload.get('engine_shutdown_returned') is not True
+                or any(payload.get(k) is not False for k in ('runtime_admitted', 'gold_frozen',
+                    'native_loader_verified', 'full_service_verified', 'resources_released'))):
+            raise ValueError('reference result scope differs')
+    return dict(status='incomplete' if len(rows) == 1 else rows[1]['event'], records=rows,
+                journal_sha256=hashlib.sha256(raw).hexdigest(), resources_released=False,
+                runtime_admitted=False, full_service_verified=False)
