@@ -28,5 +28,47 @@
     "No positive public native ABI test; CPU core fixtures are not CUDA validation",
     "Real DMA, IPC close, partial failure release and peak memory require guarded runtime validation",
     "No GPU execution admission or worker integration"
+  ],
+  "followups": [
+    {
+      "recorded_utc": "2026-10-30T22:26:31.196976+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file static revision only",
+      "sha256": {
+        "native_record_call.py": "37cda074e9f2fc17f3f63d4fb6f6508d1c08fd349626eb7e1e857f60e7b6170d",
+        "test_native_record_call.py": "8584c95d05ffd33496e523958c8aa1c72390e4dc4595594bd6e54c22306cdded"
+      },
+      "regression_before": {
+        "source_sha256": "6e853caabe76a916d3c6c2740c82158015f3b024143c86b705841b7ad074c12a",
+        "tests": 7,
+        "failures": 2,
+        "seconds": 0.358,
+        "detail": "Close exception and simulated close deadline overrun incorrectly returned success; both expected NativeCallFailure but none was raised"
+      },
+      "tests": {
+        "executor": "primary agent",
+        "targeted_count": 9,
+        "targeted_seconds": 0.398,
+        "total_count": 302,
+        "passed": 301,
+        "skipped": 1,
+        "seconds": 29.475,
+        "skip_reason": "POSIX FIFO test on Windows"
+      },
+      "verified": [
+        "Channel close failure and elapsed time included before success",
+        "Close equality with absolute deadline is rejected",
+        "Earlier RPC failure stage/cause preserved; close error separately recorded",
+        "Restored native state retained for failure cleanup; no manual free or retry",
+        "Public return boundary uses original total budget"
+      ],
+      "limitations": [
+        "Reviewer read sources and hashes; no tests executed by reviewer",
+        "Allocator/IPC/RPC/restore and clocks are explicit tiny CPU fixtures",
+        "Synchronous close cannot be forcibly interrupted by Python; independent host guard still required",
+        "No real CUDA, mapped binary/live Store identity, peak memory or resource-release proof",
+        "No remote execution, full Store conversion or runtime admission"
+      ]
+    }
   ]
 }

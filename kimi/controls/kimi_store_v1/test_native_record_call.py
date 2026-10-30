@@ -18,6 +18,68 @@ import test_native_call
 
 
 class NativeRecordCallTests(unittest.TestCase):
+    def test_channel_close_error_or_overrun_cannot_return_success(self):
+        for kind in ('error','overrun','boundary'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                events=[]
+                _,index,sidecar,original,_=self.fixture(Path(temp)/'rank0',events)
+                channel=original['SllmStoreClient'].__init__.__globals__['grpc'].insecure_channel.return_value
+                clock=[0.0]
+                def close():
+                    events.append('close')
+                    if kind=='error':raise OSError('CPU channel close failed')
+                    clock[0]=30.0 if kind=='boundary' else 31.0
+                channel.close.side_effect=close
+                with patch.object(call.time,'monotonic',side_effect=lambda:clock[0]):
+                    with self.assertRaises(NativeCallFailure) as caught:
+                        self.run_core(original,index,sidecar)
+                receipt=caught.exception.receipt
+                self.assertEqual(receipt['stage'],'closing_channel')
+                self.assertTrue(receipt['confirmation_received'])
+                self.assertEqual(len(caught.exception.native_state.tensors),len(index))
+                self.assertFalse(receipt['cleanup_verified'])
+                self.assertTrue(receipt['worker_cleanup_required'])
+                self.assertEqual(channel.close.call_count,1)
+                if kind!='error':
+                    self.assertTrue(receipt['deadline_exceeded'])
+                    self.assertEqual(receipt['elapsed_seconds'],clock[0])
+                    self.assertEqual(receipt['channel_close_elapsed_seconds'],clock[0])
+
+    def test_channel_close_failure_does_not_replace_earlier_rpc_failure(self):
+        events=[]
+        with tempfile.TemporaryDirectory() as temp:
+            _,index,sidecar,original,_=self.fixture(Path(temp)/'rank0',events,fail='gpu')
+            channel=original['SllmStoreClient'].__init__.__globals__['grpc'].insecure_channel.return_value
+            def close():events.append('close');raise OSError('CPU close also failed')
+            channel.close.side_effect=close
+            with self.assertRaises(NativeCallFailure) as caught:self.run_core(original,index,sidecar)
+            self.assertEqual(caught.exception.receipt['stage'],'gpu_request')
+            self.assertEqual(caught.exception.receipt['channel_close_errors'],['OSError'])
+            self.assertNotIsInstance(caught.exception.__cause__,OSError)
+            self.assertFalse(caught.exception.receipt['channel_close_returned'])
+            self.assertNotIn('restore',events)
+            channel.close.assert_called_once()
+
+    def test_public_return_boundary_cannot_exceed_original_deadline(self):
+        events=[]
+        with tempfile.TemporaryDirectory() as temp:
+            runtime,index,sidecar,original,digest=self.fixture(Path(temp)/'rank0',events)
+            state=object()
+            receipt=dict(stage='returned',worker_cleanup_required=True,store_cleanup_required=True,cleanup_verified=False)
+            with patch.object(call,'_bound_runtime',return_value=(original,{})), \
+                    patch.object(call,'_load_records_core',return_value=(state,receipt)), \
+                    patch.object(call.time,'monotonic',side_effect=[0,0,30]):
+                with self.assertRaises(NativeCallFailure) as caught:
+                    call.load_native_records(runtime,storage_path=temp,model_path='rank0',
+                        expected_sidecar_sha256=digest,rank=0,device_id=0,max_allocation_bytes=1024,
+                        timeout_seconds=30,server_address='127.0.0.1:8073',build_receipt='CPU fixture',
+                        expected_build_sha256='CPU fixture')
+            self.assertIs(caught.exception.native_state,state)
+            self.assertEqual(caught.exception.receipt['stage'],'return_boundary')
+            self.assertEqual(caught.exception.receipt['total_elapsed_seconds'],30)
+            self.assertTrue(caught.exception.receipt['deadline_exceeded'])
+            self.assertFalse(events)  # Binary binding/core are explicit clock-boundary stand-ins here.
+
     def fixture(self, directory, events, fail=None):
         runtime, digest, original = test_native_call.NativeCallTests().runtime(directory, events)
         client_globals = original['SllmStoreClient'].__init__.__globals__
@@ -107,6 +169,9 @@ class NativeRecordCallTests(unittest.TestCase):
             self.assertFalse(receipt['load_dict_entry_used'])
             self.assertTrue(receipt['worker_cleanup_required'])
             self.assertTrue(receipt['store_cleanup_required'])
+            self.assertTrue(receipt['channel_close_attempted'])
+            self.assertTrue(receipt['channel_close_returned'])
+            self.assertGreaterEqual(receipt['elapsed_seconds'],receipt['channel_close_elapsed_seconds'])
 
     def test_failures_leave_cleanup_obligations_and_never_return_wrappers_before_confirmation(self):
         for mode in ('cpu', 'allocation', 'overlap', 'gpu', 'confirm', 'close_rpc', 'restore'):

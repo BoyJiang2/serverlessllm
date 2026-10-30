@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 native_record_call收尾真实缺陷已复现并修复：旧core关闭channel异常或超时仍返回成功，现统一关闭后判定、计入耗时/原绝对deadline，等值到期拒绝；已有失败stage/cause不被close覆盖，native_state保留给失败清理，public返回边界同样检查总预算。旧两项负例失败与当前9项目标测试、全套302项中301通过/1项Windows跳过（29.475秒）追加native-record-call-review.json，当前两文件独立静态复审PASS。同步close仍不可强制取消，不是CUDA/原生库/宿主守护验证；未新增目录、复制权重或环境。下一项仍在现有文件闭合宿主启动清单/unit归属、monitor/60秒释放及完整准入，native实际构建/身份与全峰值待验证，2×预算拒绝不改。
+
 - 2026-10-31 回到核心接口审计发现并复现真实bug：convert返回source/archive/transfer，但完成发布器误从顶层读hash/cleanup_pending；旧C746518源码在真实CPU返回值联动下KeyError，现修为读取archive。强化回归让同一CPU模型从Base初始化→固定source loader→真实转换/写入/index→Base后处理→completion，原packed/BF16位不变。另加metadata回执不持有CPU载荷及官方CPU后处理分支的逐记录/alias最后引用释放控制，无生产gc.collect，不冒充CUDA峰值；2×预算拒绝保留。全套299项中298通过、1项POSIX FIFO因Windows跳过（27.716秒），四文件当前静态复审PASS，完整测试及失败记录追加worker-preparation-review.json。尚无GPU/完整转换/原生服务，宿主unit/完整准入/monitor/60秒释放仍待接齐。
 
 - 2026-10-31 原source_schedule.py已补主动challenge就绪协议和probe CLI：Linux abstract UDS（不增文件/目录）、peer UID/PID+nonce/challenge+fresh PID寿命/namespace/boot+完整target/deadline，单绝对≤2秒与4/8KiB消息界限。guard仅armed循环响应，正常/异常清理前关闭端点；坏客户端不延长截止。Windows真实socketpair仅验证流协议，peer/proc替身与Linux endpoint未实际验证；probe success不授独立服务/部署/计算准入。全套297项中296通过、1项POSIX FIFO因Windows跳过（27.295秒），当前两文件静态复审PASS，异常关闭次序发现已修正，测试/哈希追加source-schedule记录。下一项独立宿主服务/启动清单及unit归属、完整preflight、monitor和60秒释放，保持CPU-only。

@@ -78,13 +78,14 @@ def _load_records_core(original, index, sidecar, *, model_path, server_address, 
         allocation_attempts=[], allocated_bytes=0, replica_uuid=None,
         confirmation_received=False, store_request_attempted=False,
         store_cleanup_required=False, worker_cleanup_required=False, cleanup_verified=False,
+        channel_close_attempted=False, channel_close_returned=False,
         load_dict_entry_used=False, native_loader_verified=False, runtime_admitted=False)
     def remaining():
         value = deadline - time.monotonic()
         if value <= 0:
             raise TimeoutError('multi-handle call deadline reached')
         return value
-    client, state = None, {}
+    client, state, failure = None, {}, None
     pointers, handles, address_spans = {}, [], []
     try:
         remaining()
@@ -154,21 +155,34 @@ def _load_records_core(original, index, sidecar, *, model_path, server_address, 
             restore_tensors=original['restore_tensors'], make_empty=lambda shape, dtype, device:
                 torch.empty(shape, dtype=getattr(torch, dtype.split('.')[1]), device=device))
         remaining()
-        receipt['stage'] = 'returned'
-        receipt['elapsed_seconds'] = time.monotonic() - begin
         receipt['allocation'] = dict(device=str(expected_device), alias_of=dict(plan['alias_of']))
-        return state, receipt
     except BaseException as error:
-        receipt['elapsed_seconds'] = time.monotonic() - begin
-        receipt['error_type'] = type(error).__name__
-        raise NativeCallFailure(receipt, state) from error
+        failure = error
     finally:
         if client is not None:
+            if failure is None:
+                receipt['stage'] = 'closing_channel'
+            close_started = time.monotonic()
+            receipt['channel_close_attempted'] = True
             try:
                 client.channel.close()
+                receipt['channel_close_returned'] = True
             except BaseException as error:
                 receipt.setdefault('channel_close_errors', []).append(type(error).__name__)
                 receipt['worker_cleanup_required'] = True
+                if failure is None:
+                    failure = error
+            receipt['channel_close_elapsed_seconds'] = time.monotonic()-close_started
+    finished = time.monotonic()
+    receipt['elapsed_seconds'] = finished-begin
+    receipt['deadline_exceeded'] = finished >= deadline
+    if failure is None and receipt['deadline_exceeded']:
+        failure = TimeoutError('multi-handle call deadline reached during channel close')
+    if failure is not None:
+        receipt['error_type'] = type(failure).__name__
+        raise NativeCallFailure(receipt, state) from failure
+    receipt['stage'] = 'returned'
+    return state, receipt
 
 
 def load_native_records(native_module, *, storage_path, model_path, expected_sidecar_sha256,
@@ -205,4 +219,7 @@ def load_native_records(native_module, *, storage_path, model_path, expected_sid
         raise
     receipt['binding'] = binding
     receipt.update(preflight_seconds=preflight, total_elapsed_seconds=time.monotonic() - started)
+    if receipt['total_elapsed_seconds'] >= timeout_seconds:
+        receipt.update(stage='return_boundary', error_type='TimeoutError', deadline_exceeded=True)
+        raise NativeCallFailure(receipt, result) from TimeoutError('native record public return deadline reached')
     return result, receipt

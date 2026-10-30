@@ -23,3 +23,9 @@ core先向本实验拥有的loopback Store请求host加载；每个非空canonic
 ## 尚未闭合
 
 新producer尚未接入vllm_native_hook，原native工厂的双份预算拒绝继续保留。接下来须核验/实现CPU文本与官方CUDA视觉/mm_projector混设备初始化、实际库构建/独立审阅/活跃Store身份、释放与峰值probe及完整worker/guard。旧GLM正式数据、金标与40ID不变；不启动R24或更改任何模型/量化/TP来绕开资源问题。
+
+## 2026-10-31 收尾预算修正
+
+旧core在try内return后才finally关闭客户端通道，关闭异常仅记日志，且关闭耗时未计入成功回执。故障回归先在旧源码复现两项未抛异常，现改为通道关闭后统一判定；关闭抛错、超过或恰好达到原绝对deadline均失败，已有RPC/恢复错误保留原stage和cause，关闭错误另记，已构造state仍留给失败清理。public返回边界也检查原总预算。没有主动free、卸载Store或自动重试。
+
+当前九项producer CPU测试通过；全套302项中301通过、1项POSIX FIFO因Windows跳过（29.475秒）。两文件独立静态复审PASS，精确hash和旧失败追加native-record-call-review.json。同步close依然不能由本函数强制中断；此修正不是实际CUDA/IPC释放、原生ABI或宿主守护通过。逐记录producer已有独立mixed-loader组合候选，但未注册切换旧native工厂，也无完整worker准入。
