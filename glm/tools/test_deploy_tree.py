@@ -155,5 +155,22 @@ class CommandLine(unittest.TestCase):
                 self.assertIn('usage:', result.stdout)
 
 
+
+
+class ModelNamespace(unittest.TestCase):
+    def test_new_glm_namespace_retains_logical_receipt_paths(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = pathlib.Path(temp)
+            subprocess.run(['git', 'init', '-q'], cwd=repo, check=True)
+            path = repo / 'glm/runtime/active/one.py'
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b'committed source\n')
+            subprocess.run(['git', 'add', '.'], cwd=repo, check=True)
+            subprocess.run(['git', '-c', 'user.name=CPU Fixture', '-c',
+                'user.email=cpu@example.invalid', '-c', 'commit.gpgsign=false',
+                'commit', '-qm', 'Namespaced fixture'], cwd=repo, check=True)
+            self.assertEqual(t.commit_files('HEAD', repo=repo), {'one.py': b'committed source\n'})
+
+
 if __name__ == '__main__':
     unittest.main()

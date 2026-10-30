@@ -9,7 +9,7 @@ import unittest
 
 
 ROOT = Path(__file__).parent
-BASE = ROOT.parents[0] / 'candidate13e/evidence/runtime/source-v7/sllm_store/csrc/sllm_store/model.cpp'
+BASE = ROOT / 'fixtures/native_model_base.cpp'
 PATCH = ROOT / 'native_patch/model.cpp'
 
 

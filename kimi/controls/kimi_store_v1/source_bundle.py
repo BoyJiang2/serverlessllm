@@ -7,7 +7,7 @@ from pathlib import Path, PurePosixPath
 import re
 import subprocess
 
-PREFIX = 'controls/kimi_store_v1'
+PREFIX = 'kimi/controls/kimi_store_v1'
 SCHEMA = 'kimi-source-code-bundle-v1'
 GIT_READER_SHA256 = '944d9c8abe9c2ddd2002ca2267915e263d43961f95da7261243a0ed992e8d819'
 MAX_FILE_BYTES = 2 * 1024**2

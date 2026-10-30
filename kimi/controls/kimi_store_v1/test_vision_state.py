@@ -69,7 +69,7 @@ class VisionStateTests(unittest.TestCase):
         self.assertIn('time_weight', collect_inventory(model)['tensors'])
 
     def test_archived_native_dtype_table_has_no_complex_support(self):
-        source = Path(__file__).resolve().parents[1] / 'candidate13e/evidence/runtime/source-v7/sllm_store/csrc/checkpoint/checkpoint.cpp'
+        source = Path(__file__).resolve().parent / 'fixtures/native_checkpoint_base.cpp'
         raw = source.read_bytes()
         self.assertEqual(hashlib.sha256(raw).hexdigest(),
                          'eb731fab981dae01d752e0cd3a4539cbffeae415d50eabb030d0acb9f3de8099')
