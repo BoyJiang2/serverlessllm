@@ -1,0 +1,9 @@
+# 混设备目标的Marlin辅助参数规范化
+
+新增 `normalize_rank_mixed_auxiliary`，仅接受target_initialized_before_restore。先按已审CPU文本/当前CUDA视觉与mm_projector政策检查实际登记设备，再生成完整名称设备声明；不能从实际Tensor位置倒推“预期”设备。未知根、视觉还在CPU或错误phase均在辅助参数变更前拒绝。
+
+复用现有整rank规范化主逻辑、固定Marlin/no-actorder源码政策及CPU辅助参数helper：60个language_model专家模块必须各不相同，全部登记/隐藏Tensor清单、layout、角色和共享storage审计、每层辅助参数来源和after清单通过后，才开始任何参数替换。视觉payload不搬移、不读取；文本scratch按原政策改成空INT32，并绑定target阶段receipt。Flashinfer/opaque未新增放宽。全局共享storage检查加入device身份，避免CPU/CUDA地址数值碰撞。
+
+新增3项CPU控制，总计195项测试通过：显式CPU device_map下60层全预检先于首次变更；最后一层失败不变更任何绑定；真实CPU视觉状态/错误phase在进入全rank helper前拒绝。前两项复用小控制流fixture，目标contract和单层方法边界明确mock；既有单层真实CPU源码测试继续覆盖Marlin规则。没有执行CUDA视觉成功路径、完整Kimi或原生库。
+
+仍未将构造、该规范化入口、逐记录producer和独立install接成新的factory/worker；Base后处理target_device语义需单独闭合。旧single-allocation工厂和双份预算拒绝保留，不能用本CPU测试宣称显存峰值已经解决。新window/独立guard、实际构建身份、服务业务与释放probe仍未完成。GLM历史及40个正式ID不变。

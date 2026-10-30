@@ -37,9 +37,23 @@ def normalize_rank_cuda_auxiliary(model, *, device, checkpoint_contract, buffer_
         context=context)
 
 
-def _normalize_rank_auxiliary(model, *, checkpoint_contract, buffer_codecs, device, describe, prepare, context):
+def normalize_rank_mixed_auxiliary(model, *, device, checkpoint_contract, buffer_codecs=None, **context):
+    from device_state import encode_device_state
+    from mixed_device_init import mixed_state_devices
+    if context.get('phase') != 'target_initialized_before_restore':
+        raise ValueError('mixed preparation only accepts target-before-restore phase')
+    devices = mixed_state_devices(model, device)
+    return _normalize_rank_auxiliary(model, checkpoint_contract=checkpoint_contract,
+        buffer_codecs=buffer_codecs, device='cpu', device_map=devices,
+        describe=lambda model, codecs: encode_device_state(model, device='cpu',
+            device_map=devices, buffer_codecs=codecs),
+        prepare=_prepare_cpu_auxiliary, context=context)
+
+
+def _normalize_rank_auxiliary(model, *, checkpoint_contract, buffer_codecs, device, describe, prepare,
+                              context, device_map=None):
     targets = load_targets(checkpoint_contract)
-    inventory = collect_inventory(model, targets, device=device)
+    inventory = collect_inventory(model, targets, device=device, device_map=device_map)
     collect_state_bindings(model)
     names = {f'language_model.model.layers.{i}.mlp.experts' for i in range(1, 61)}
     modules = dict(model.named_modules(remove_duplicate=False))
@@ -62,7 +76,7 @@ def _normalize_rank_auxiliary(model, *, checkpoint_contract, buffer_codecs, devi
     seen = {}
     for name, tensor in named:
         if layouts[name]['storage_bytes']:
-            pointer = tensor.untyped_storage().data_ptr()
+            pointer = (str(tensor.device), tensor.untyped_storage().data_ptr())
             if pointer in seen:
                 prior = seen[pointer]
                 if name in auxiliary or prior in auxiliary or layouts[name] != layouts[prior]:

@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增normalize_rank_mixed_auxiliary：CPU文本/官方CUDA视觉设备政策先核验，仅target-before-restore，复用60层全预检及CPU Marlin辅助规则；195项CPU测试通过，复审见mixed-auxiliary-review.json。未连接完整mixed factory、未运行真实CUDA；下一项构造/producer/install组合及Base后处理目标语义。详见MIXED-AUXILIARY.md。
+
 - 新增显式device_map元数据及独立target_device_map安装边界，192项CPU测试通过，复审见mixed-state-review.json；默认CPU结果保持一致，隐藏Tensor仍扫描，地址alias加入device维度。真实混设备/CUDA绑定未验证，CPU Marlin规范化及Base后处理/新工厂接线仍待完成。详见MIXED-STATE.md。
 
 - 新增mixed_device_init.py源绑定混设备构造候选；187项CPU测试通过，复审见mixed-initialization-review.json。只验证CPU上下文/拒绝边界与登记设备政策，未做真实CUDA构造，未接native工厂；完整混设备inventory/aux/install及Base后处理目标语义仍待闭合。详见MIXED-INITIALIZATION.md。

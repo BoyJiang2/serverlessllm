@@ -48,3 +48,13 @@ def initialize_mixed_rank(model_class, vllm_config, *, device, prefix=''):
         model = model_class(vllm_config=vllm_config, prefix=prefix)
     receipt = audit_mixed_registered_state(model, expected)
     return model, receipt
+
+
+def mixed_state_devices(model, device):
+    """Declare devices from the reviewed branch policy, never observed placement."""
+    import torch
+    audit_mixed_registered_state(model, device)
+    roots = {'language_model': torch.device('cpu'), 'vision_tower': torch.device(device),
+             'mm_projector': torch.device(device)}
+    return {name: roots[name.partition('.')[0]] for name, _ in
+            list(model.named_parameters(remove_duplicate=False)) + list(model.named_buffers(remove_duplicate=False))}
