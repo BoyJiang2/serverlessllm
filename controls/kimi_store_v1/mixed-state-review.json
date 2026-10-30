@@ -1,0 +1,35 @@
+{
+  "recorded_utc": "2026-10-30T00:08:03.273918+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "state_devices.py": "700ab580e547baaa4f8ddadb95de71abad36a9a62f4d43d113c8433b3a9a1bd2",
+    "test_state_devices.py": "b4ad99bcd29ff0763a18a5c5b98354c1ed844994b1b4acd3af281366fd91a250",
+    "runtime_inventory.py": "1b36b9dac69d6d875f40e0f60de3362b70af5f8026f39b785d0eda2b2e3d7b8c",
+    "device_state.py": "6ef216c9cec83d06ec5276ba45f0eb9201f90545e24682022393ec8162096b3c",
+    "native_install.py": "ac6d5373d4359fbc60eabd903a7b54d15abe5486bad6c2199dc27c60513111ef",
+    "MIXED-STATE.md": "06a63781029949a72319aa0ad4ade133a0323e07468c930bf419174e8b0bd8d8",
+    "NEXT.md": "782a456ce042a11c3cc2b3f4733bbf9dd2d9e5f638e25d5257569a4d874dfd07",
+    "README.md": "bc4c9cd8f20025d129bc6ef4efc1019bae49ab1425c8fbde9b3341a5701dae8c"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 192,
+    "seconds": 6.714,
+    "scope": "Tiny CPU state/bit-preserving independent installation and full local CPU suite"
+  },
+  "verified": [
+    "Explicit device map covers complete named-state set; hidden Tensor scan remains active",
+    "Storage alias identity includes device and address",
+    "Target device maps require independent native records",
+    "Target device validation precedes payload verification and binding; source stays constrained to one native device",
+    "Default CPU path retained"
+  ],
+  "limitations": [
+    "Reviewer performed static reading and hash verification only",
+    "No real CPU/CUDA cross-device Parameter.data or final-device validation",
+    "Mixed rank auxiliary preparation, Base lifecycle, factory and opaque policy incomplete",
+    "Not GPU or worker runtime admission"
+  ]
+}

@@ -20,7 +20,7 @@ from stream_writer import CHUNK_BYTES
 
 def install_native_state(directory, model, state, expected_sidecar_sha256, *, rank,
                          allocation, checkpoint_contract=None, destination_auxiliary_receipts=(),
-                         chunk_bytes=CHUNK_BYTES, independent_records=None):
+                         chunk_bytes=CHUNK_BYTES, independent_records=None, target_device_map=None):
     import torch
     directory = Path(directory)
     raw = (directory / 'kimi_raw_state.json').read_bytes()
@@ -38,7 +38,9 @@ def install_native_state(directory, model, state, expected_sidecar_sha256, *, ra
             or hasattr(model, '_kimi_independent_records_bound')):
         raise ValueError('complete roles, matching aliases and fresh target required')
     targets = () if checkpoint_contract is None else load_targets(checkpoint_contract)
-    inventory = collect_inventory(model, targets, device=allocation['device'])
+    if target_device_map is not None and independent_records is None:
+        raise ValueError('explicit target device map requires independent native records')
+    inventory = collect_inventory(model, targets, device=allocation['device'], device_map=target_device_map)
     require_safe_byte_export(inventory)
     target_bindings = collect_state_bindings(model)
     missing = set(bindings) - target_bindings.keys()

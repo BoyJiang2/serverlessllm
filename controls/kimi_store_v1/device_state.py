@@ -1,6 +1,7 @@
 """Owned rank-state metadata/views on an explicit device; no transfers or kernels."""
 from buffer_codec import CODEC, validate_buffer_encodings
 from contract import DTYPE_BYTES
+from state_devices import state_devices
 
 
 def _layout(tensor, device, allowed):
@@ -28,7 +29,7 @@ def owned_device_layout(tensor, device):
     return _layout(tensor, device, DTYPE_BYTES)
 
 
-def encode_device_state(model, *, device, buffer_codecs=None):
+def encode_device_state(model, *, device, buffer_codecs=None, device_map=None):
     """Physical zero-copy views; CPU codec/entry semantics remain unchanged."""
     import torch
     codecs = {} if buffer_codecs is None else buffer_codecs
@@ -37,20 +38,22 @@ def encode_device_state(model, *, device, buffer_codecs=None):
     if (not isinstance(codecs, dict) or not set(codecs) <= {n for n, _ in buffers}
             or set(codecs) & {n for n, _ in parameters}):
         raise ValueError('codec requires explicit registered buffer names')
+    expected_devices = state_devices(device, device_map, (n for n, _ in parameters + buffers))
     named, layouts, encodings, owners = [], {}, {}, {}
     for name, original in parameters + buffers:
+        expected_device = expected_devices[name]
         tensor = original
         if name in codecs:
             if codecs[name] != CODEC:
                 raise ValueError('unknown buffer codec')
-            before = _layout(original, device, {'torch.complex64': 8})
+            before = _layout(original, expected_device, {'torch.complex64': 8})
             tensor = original.reshape(-1).view(torch.int32)
-            encodings[name] = dict(codec=CODEC, original=before, encoded=owned_device_layout(tensor, device))
-        layout = owned_device_layout(tensor, device)
+            encodings[name] = dict(codec=CODEC, original=before, encoded=owned_device_layout(tensor, expected_device))
+        layout = owned_device_layout(tensor, expected_device)
         if name in layouts:
             raise ValueError('duplicate rank-state name')
         if layout['storage_bytes']:
-            pointer = original.untyped_storage().data_ptr()
+            pointer = (str(original.device), original.untyped_storage().data_ptr())
             if pointer in owners:
                 prior = owners[pointer]
                 if (layout != layouts[prior] or (name in codecs) != (prior in codecs)

@@ -2,6 +2,8 @@
 import re
 from collections import OrderedDict
 
+from state_devices import state_devices
+
 MAX_CONTAINER_NODES = 100_000
 MAX_CONTAINER_DEPTH = 32
 
@@ -12,12 +14,8 @@ def is_moe_auxiliary(name):
     return bool(match and int(match[1]) in range(1, 61))
 
 
-def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess', device='cpu'):
+def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess', device='cpu', device_map=None):
     import torch
-    expected_device = torch.device(device)
-    if (expected_device.type not in ('cpu', 'cuda')
-            or (expected_device.type == 'cuda' and expected_device.index is None)):
-        raise ValueError('explicit CPU or indexed CUDA device required')
     if phase not in ('before_postprocess', 'after_postprocess'):
         raise ValueError('unknown inventory phase')
     expected = set(checkpoint_targets)
@@ -60,8 +58,9 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
                     walk(value, (prefix + '.' if prefix else '') + leaf, set())
     finally:
         del walk  # Break the recursive closure cycle, including on budget failure.
+    expected_devices = state_devices(device, device_map, (n for _, n, _, _ in named))
     for kind, name, tensor, persistent in named:
-        if name in rows or tensor.device != expected_device or tensor.layout != torch.strided:
+        if name in rows or tensor.device != expected_devices[name] or tensor.layout != torch.strided:
             raise ValueError('duplicate name or unsupported device/layout in inventory')
         size = tensor.numel() * tensor.element_size()
         storage = tensor.untyped_storage()
@@ -76,7 +75,7 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
                    contiguous=tensor.is_contiguous(), lazy_negative=tensor.is_neg(),
                    lazy_conjugate=tensor.is_conj(), requires_policy_review=role != 'checkpoint')
         if size:
-            key = (storage.data_ptr(), storage.nbytes(), tensor.storage_offset(),
+            key = (str(tensor.device), storage.data_ptr(), storage.nbytes(), tensor.storage_offset(),
                    tuple(tensor.shape), tuple(tensor.stride()), tensor.dtype)
             if key in seen:
                 row['alias_of'] = seen[key]

@@ -274,3 +274,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 当前hook仅接现有布局的CPU raw恢复，不调用原生SllmStoreClient/load_dict或CUDA；编码/lazy视觉buffer的完整生命周期连接、GPU状态校验、实际模型构造及服务验证仍待完成。之前CPU installer具备角色/解码组件并不等于此hook已经消费所有状态。独立复审发现的生命周期/phase问题与旧hash见vllm-cpu-hook-review.json；107项通过仍不授予运行准入。
 
 - 新增mixed_device_init.py源绑定混设备构造候选；187项CPU测试通过，复审见mixed-initialization-review.json。只验证CPU上下文/拒绝边界与登记设备政策，未做真实CUDA构造，未接native工厂；完整混设备inventory/aux/install及Base后处理目标语义仍待闭合。详见MIXED-INITIALIZATION.md。
+
+- 新增显式device_map元数据及独立target_device_map安装边界，192项CPU测试通过，复审见mixed-state-review.json；默认CPU结果保持一致，隐藏Tensor仍扫描，地址alias加入device维度。真实混设备/CUDA绑定未验证，CPU Marlin规范化及Base后处理/新工厂接线仍待完成。详见MIXED-STATE.md。

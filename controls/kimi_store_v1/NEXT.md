@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增显式device_map元数据及独立target_device_map安装边界，192项CPU测试通过，复审见mixed-state-review.json；默认CPU结果保持一致，隐藏Tensor仍扫描，地址alias加入device维度。真实混设备/CUDA绑定未验证，CPU Marlin规范化及Base后处理/新工厂接线仍待完成。详见MIXED-STATE.md。
+
 - 新增mixed_device_init.py源绑定混设备构造候选；187项CPU测试通过，复审见mixed-initialization-review.json。只验证CPU上下文/拒绝边界与登记设备政策，未做真实CUDA构造，未接native工厂；完整混设备inventory/aux/install及Base后处理目标语义仍待闭合。详见MIXED-INITIALIZATION.md。
 
 - 最新native_record_call.py已接逐记录allocator→多handle单次Store请求→确认→canonical恢复，183项CPU测试通过，当前复审见native-record-call-review.json。public入口绑定已编译补丁的build receipt和磁盘库身份，未编译ledger在全payload扫描前拒绝；预检计入同一deadline。成功core仅CPU allocator/IPC/RPC/restore回调，public真实ABI未通过，未接原工厂。MULTI-HANDLE-PRODUCER.md列明不能将磁盘hash当已映射/活跃Store证明。
