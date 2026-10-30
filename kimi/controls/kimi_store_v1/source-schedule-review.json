@@ -153,5 +153,47 @@
         "No GPU/model/full conversion/service or release observation verified"
       ]
     }
+  ],
+  "followups": [
+    {
+      "recorded_utc": "2026-10-30T23:51:49.364911+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file static service-plan candidate only",
+      "sha256": {
+        "source_schedule.py": "a2a4f4d69ca5f23dd58376ea4d73f2d02de164b2059f62a7940b3f4441c0aa0e",
+        "test_source_schedule.py": "25e62cac4b6ccabdbe0a830000dcb5f0b97d5695f81c058960f891aff5f042da"
+      },
+      "scope": "Offline systemd-run argv generation behind existing registration/plan/code/spec checks; no deployment",
+      "tests": {
+        "executor": "primary agent",
+        "targeted_count": 45,
+        "targeted_seconds": 4.273,
+        "total_count": 324,
+        "passed": 320,
+        "skipped": 4,
+        "seconds": 29.6,
+        "skip_reason": "Four POSIX FIFO tests on Windows"
+      },
+      "verified": [
+        "Unique unit uses complete run and holder; fixed executable argv/no shell",
+        "Safe canonical Linux registration path rejects dollar/percent/whitespace/traversal before rendering",
+        "UID2147/system.slice/Type=exec/Restart=no and 256M/1CPU/64task resource proposal",
+        "Original cleanup budget reserves <=10s submission, 10s activation, 5s stop before floor runtime",
+        "Future or late batch/short budget refuses; rendering later reduces runtime",
+        "Actual fresh CPU Python -B -E -s process imports no Torch/vLLM and only renders",
+        "CLI uses shared source bindings then returns without watchdog or evidence file creation; gate/renderer explicit mocks in CLI branch test"
+      ],
+      "primary_references": [
+        "https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html",
+        "https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html"
+      ],
+      "limitations": [
+        "Reviewer performed static reads and hashes; no tests or remote commands",
+        "launch_before_utc must be enforced by future actual controller at submission; generated command is not reusable admission",
+        "No installed systemd unit, platform version/permissions, active service limits, PID/cgroup or startup-latency validation",
+        "Type=exec only proves executable start, not watchdog readiness; independent active probe still required",
+        "No model, Store, GPU, complete native conversion, monitor or 60-second resource-release proof"
+      ]
+    }
   ]
 }

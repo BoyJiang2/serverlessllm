@@ -4,7 +4,7 @@ import hashlib
 import json
 import math
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 import secrets
 import selectors
@@ -556,7 +556,48 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
                 failure.__notes__ = list(getattr(failure, '__notes__', ())) + ['watchdog probe close failed: '+repr(close_error)]
 
 
-def watchdog_main(argv, *, probe_only=False):
+def watchdog_service_plan(target, registration_path, registration_sha256, schedule, *, now):
+    """Render only; this is neither service installation nor runtime admission."""
+    identity = _guard_identity(target, boot_id=target['boot_id'], uid=target['uid'])
+    if not isinstance(registration_path, str):
+        raise ValueError('canonical safe absolute Linux registration path and SHA required')
+    path = PurePosixPath(registration_path)
+    if (not path.is_absolute() or registration_path.startswith('//')
+            or '..' in path.parts or not re.fullmatch(r'/[A-Za-z0-9_./-]+', registration_path)
+            or str(path) != registration_path or path.parent == PurePosixPath('/')
+            or not isinstance(registration_sha256, str) or not re.fullmatch('[0-9a-f]{64}', registration_sha256)):
+        raise ValueError('canonical safe absolute Linux registration path and SHA required')
+    if now.tzinfo is None or now.utcoffset() is None:
+        raise ValueError('timezone-qualified service plan time required')
+    now = now.astimezone(timezone.utc)
+    fire = _utc(schedule['guard_fire_by_utc'])
+    cleanup = _utc(schedule['cleanup_complete_by_utc'])
+    if not fire-timedelta(seconds=schedule['compute_max_seconds']) <= now < fire:
+        raise TimeoutError('service plan outside original batch compute window')
+    # Reserve a finite installation interval and systemd stop grace inside this batch.
+    latest_start = min(now+timedelta(seconds=10), fire)
+    runtime = math.floor((cleanup-latest_start).total_seconds())-10-5
+    if runtime <= 0:
+        raise TimeoutError('service plan lacks original cleanup budget')
+    root = path.parent
+    unit = identity['run_id']+'-guard-'+identity['holder']+'.service'
+    command = ['/usr/bin/systemd-run', '--system', '--unit='+unit, '--uid=2147',
+        '--property=Type=exec', '--property=Slice=system.slice', '--property=Restart=no',
+        '--property=KillMode=control-group', '--property=UMask=0077',
+        '--property=MemoryMax=256M', '--property=CPUQuota=100%', '--property=TasksMax=64',
+        '--property=TimeoutStartSec=10', '--property=TimeoutStopSec=5',
+        '--property=RuntimeMaxSec='+str(runtime), '--working-directory='+str(root),
+        '/usr/bin/python3', '-B', '-E', '-s', str(root/'code/source_schedule.py'), 'guard',
+        '--registration', str(path), '--registration-sha', registration_sha256]
+    return dict(schema='kimi-source-watchdog-service-plan-v1', identity=identity, unit=unit,
+        command=command, generated_utc=now.isoformat(), launch_before_utc=latest_start.isoformat(),
+        cleanup_complete_by_utc=cleanup.isoformat(), max_runtime_seconds=runtime,
+        startup_grace_seconds=10, stop_grace_seconds=5,
+        system_manager_authorization_required=True, deployment_performed=False,
+        independent_service_verified=False, guard_deployed=False, runtime_admitted=False)
+
+
+def watchdog_main(argv, *, probe_only=False, service_plan_only=False):
     """Host-only entry; source verification and target probe precede readiness."""
     import argparse
     if sys.flags.optimize or not sys.dont_write_bytecode:
@@ -585,6 +626,11 @@ def watchdog_main(argv, *, probe_only=False):
         spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
     if registration['target']['identity'] != expected:
         raise ValueError('watchdog target and verified source identity differ')
+    if service_plan_only:
+        result = watchdog_service_plan(registration['target'], str(path.resolve()), args.registration_sha,
+                                       schedule, now=datetime.now(timezone.utc))
+        print(json.dumps(result, sort_keys=True))
+        return
     if probe_only:
         ready = read_watchdog_ready(root/'source-watchdog-events.jsonl', registration['target'],
             nonce=registration['nonce'], registration_sha256=args.registration_sha,
@@ -625,7 +671,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] in (['guard'], ['probe']):
-        watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe')
+    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan']):
+        watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan')
     else:
         main()

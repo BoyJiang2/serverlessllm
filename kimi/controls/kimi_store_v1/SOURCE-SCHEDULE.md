@@ -45,3 +45,15 @@ CPU追加修订：phase_remaining_seconds复用批次最初的entered与累计mo
 新增11项CPU测试，总计246项通过；包含全预算精确边界/差1秒、3721对3600、过早/过期/时区/身份/缺阶段/bool/观察不足拒绝、观察预留开销、守护尾部、长预约不延长小批次、外部哈希/读取上限，以及CLI核验耗时不能重置。两个fresh CPU CLI用小Git/metadata夹具实际连接code→spec→plan；时间不足/窗口未到拒绝，时间可容纳仍返回runtime_admitted=false。夹具不是实际节点授权或模型，未运行vLLM/八卡。测试导入重名的初次失败保留source-schedule-tests.json。
 
 下一项是把此预检接进实际source worker/宿主控制器，核验真实UID/boot/容器/cgroup/授权、安装独立guard并probe、连续监控、实际ABI和完整内存峰值预算及退出取证。没有这些证据仍不启动计算。已预约时段仍按RESERVATION-PLAN.md提前评估，不占模型或大池等审批；本模块不批准P0/P1或任何GPU运行。GLM历史与40ID不变。
+
+## 独立宿主服务部署清单候选（2026-10-31）
+
+在原模块新增service-plan子命令，参数与guard相同：`python -B <run>/code/source_schedule.py service-plan --registration <run>/registration.json --registration-sha <SHA>`。先复用同run/code位置、registration/plan/code/spec验证，再只输出JSON内的systemd-run argv；不创建unit、目录或日志，不调用systemd，不获得计算准入。实际调用此入口仍须从该run的已核源码树执行，普通checkout不代替部署包。
+
+候选使用system manager的独立service，unit包含完整run_id与holder，User=2147、Type=exec、system.slice、Restart=no、KillMode=control-group；固定256M/100% CPU/64 tasks只是待实机核验的guard资源上限，不是模型容器资源。命令用固定/usr/bin/python3及-B -E -s，脚本在本run/code，参数绑定registration SHA；不用scope/pty/pipe或shell，路径拒绝空白、美元/百分号、换行及非canonical路径。授权操作系统manager可能需要管理员权限，本候选不申请或扩大权限。
+
+预算只从原batch cleanup倒推，预留最多10秒提交间隔、10秒激活和5秒停止，剩余运行秒数向下取整；未来/已到guard fire/预算不足即拒绝。launch_before_utc是未来实际控制器必须在提交时强制核验的期限；不能保存命令后晚些时候直接执行，也不能只凭相对RuntimeMaxSec代替guard内部原绝对截止。当前没有实现实际提交/单元接管或观测，不宣称截止守护已部署。
+
+实现依据为[systemd-run官方手册](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html)和[systemd.service官方手册](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html)：transient service由service manager作为父进程，Type=exec只保证exec已发生，不等于guard ready。下一步必须核当前节点systemd版本/权限、实际unit属性/命令/MainPID/cgroup/启动时间和同次主动challenge，再接monitor/60秒释放；所有独立服务/部署/runtime标志继续false。
+
+45项相关CPU测试通过；其中fresh CPU子进程真实使用-B -E -s确认没有Torch/vLLM导入，未调用systemd。CLI分支以显式code gate/renderer mock验证绑定失败先拒绝、不进入watchdog、不创建事件文件，不冒充真实部署包通过。全套324项中320通过、4POSIX FIFO因Windows跳过（29.600秒），当前两文件静态复审PASS，完整哈希及范围见source-schedule-review.json最新追加。

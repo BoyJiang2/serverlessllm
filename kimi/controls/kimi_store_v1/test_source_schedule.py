@@ -1,6 +1,7 @@
 import copy
 from datetime import datetime, timedelta, timezone
 import hashlib
+import io
 import json
 from pathlib import Path
 import tempfile
@@ -20,6 +21,107 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def service_plan_fixture(self):
+        target,_=self.guard_fixture();plan,receipt=self.fixture()
+        now=datetime.fromisoformat(plan['window_start'])
+        return target,source_schedule(plan,receipt,now=now),now
+
+    def test_service_plan_binds_unique_unit_and_original_cleanup_budget_without_execution(self):
+        target,schedule,now=self.service_plan_fixture()
+        with patch.object(schedule_module.subprocess,'Popen',side_effect=AssertionError('must not deploy')):
+            result=schedule_module.watchdog_service_plan(target,'/data/owned/run/registration.json','a'*64,
+                                                         schedule,now=now)
+        command=result['command']
+        self.assertEqual(command[:2],['/usr/bin/systemd-run','--system'])
+        self.assertIn(target['identity']['run_id'],result['unit'])
+        self.assertIn(target['identity']['holder'],result['unit'])
+        self.assertIn('--property=Type=exec',command)
+        self.assertIn('--property=Slice=system.slice',command)
+        self.assertIn('--property=MemoryMax=256M',command)
+        self.assertIn('--uid=2147',command)
+        self.assertIn('--property=Restart=no',command)
+        self.assertNotIn('--scope',command)
+        self.assertNotIn('--pty',command)
+        self.assertEqual(command[-10:],['/usr/bin/python3','-B','-E','-s','/data/owned/run/code/source_schedule.py',
+                                       'guard','--registration','/data/owned/run/registration.json',
+                                       '--registration-sha','a'*64])
+        self.assertEqual(command[-4:],['--registration','/data/owned/run/registration.json','--registration-sha','a'*64])
+        self.assertLessEqual(datetime.fromisoformat(result['launch_before_utc'])+timedelta(
+            seconds=result['startup_grace_seconds']+result['max_runtime_seconds']+result['stop_grace_seconds']),
+            datetime.fromisoformat(schedule['cleanup_complete_by_utc']))
+        for name in ('deployment_performed','independent_service_verified','guard_deployed','runtime_admitted'):
+            self.assertFalse(result[name])
+
+    def test_service_plan_refuses_noncanonical_paths_shell_expansion_and_bad_sha(self):
+        target,schedule,now=self.service_plan_fixture()
+        for path in (None,'relative','//data/run/reg','/reg','/data/../run/reg','/data/./run/reg',
+                     '/data/run a/reg','/data/$USER/reg','/data/%h/reg','/data/run\n/reg','D:/run/reg'):
+            with self.subTest(path=path),self.assertRaises(ValueError):
+                schedule_module.watchdog_service_plan(target,path,'a'*64,schedule,now=now)
+        for digest in (None,'a'*63,'A'*64):
+            with self.assertRaises(ValueError):
+                schedule_module.watchdog_service_plan(target,'/data/run/reg',digest,schedule,now=now)
+
+    def test_service_plan_rejects_future_late_or_too_short_original_window(self):
+        target,schedule,now=self.service_plan_fixture()
+        for when in (now-timedelta(seconds=1),datetime.fromisoformat(schedule['guard_fire_by_utc'])):
+            with self.assertRaises(TimeoutError):
+                schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=when)
+        with self.assertRaises(ValueError):
+            schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now.replace(tzinfo=None))
+        schedule['cleanup_complete_by_utc']=(now+timedelta(seconds=25)).isoformat()
+        with self.assertRaises(TimeoutError):
+            schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now)
+
+    def test_service_plan_new_holder_gets_separate_unit_and_later_render_reduces_runtime(self):
+        target,schedule,now=self.service_plan_fixture()
+        first=schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now)
+        target['identity']['holder']='b'*32
+        second=schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now+timedelta(seconds=1))
+        self.assertNotEqual(first['unit'],second['unit'])
+        self.assertEqual(first['max_runtime_seconds']-1,second['max_runtime_seconds'])
+
+    def test_service_plan_fresh_cpu_process_imports_no_torch_or_vllm(self):
+        target,schedule,now=self.service_plan_fixture()
+        script=('import sys,json;from datetime import datetime;sys.path.insert(0,sys.argv[1]);'
+            'import source_schedule as s;'
+            'r=s.watchdog_service_plan(json.loads(sys.argv[2]),"/data/run/reg","a"*64,'
+            'json.loads(sys.argv[3]),now=datetime.fromisoformat(sys.argv[4]));'
+            'assert "torch" not in sys.modules and "vllm" not in sys.modules;'
+            'print(json.dumps({"unit":r["unit"],"deployed":r["deployment_performed"]}))')
+        result=subprocess.run([sys.executable,'-B','-E','-s','-c',script,str(Path(__file__).parent.resolve()),
+            json.dumps(target),json.dumps(schedule),now.isoformat()],capture_output=True,text=True,timeout=15)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(json.loads(result.stdout),dict(unit=target['identity']['run_id']+'-guard-'+
+            target['identity']['holder']+'.service',deployed=False))
+
+    def test_service_plan_cli_preserves_source_binding_and_never_enters_watchdog(self):
+        target,_=self.guard_fixture();plan,receipt=self.fixture()
+        for key in ('run_id','holder','code_commit','spec_sha256'):receipt[key]=target['identity'][key];plan[key]=receipt[key]
+        receipt['manifest_sha256']=plan['source_manifest_sha256']=target['identity']['source_manifest_sha256']
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);path=root/'registration.json'
+            raw=json.dumps(plan).encode();(root/'source-plan.json').write_bytes(raw)
+            registration=dict(schema='kimi-source-watchdog-registration-v1',target=target,
+                plan_sha256=hashlib.sha256(raw).hexdigest(),batch_entered_utc=plan['window_start'],
+                host_pid_namespace=42,nonce='a'*32)
+            raw=json.dumps(registration).encode();path.write_bytes(raw)
+            args=['--registration',str(path.resolve()),'--registration-sha',hashlib.sha256(raw).hexdigest()]
+            import source_bundle
+            with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(source_bundle,'verify_source_run',return_value=receipt) as verify, \
+                    patch.object(schedule_module,'watchdog_service_plan',return_value={'deployment_performed':False}) as render, \
+                    patch.object(schedule_module,'source_watchdog',side_effect=AssertionError('unexpected launch')), \
+                    patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:
+                schedule_module.watchdog_main(args,service_plan_only=True)
+                self.assertEqual(json.loads(output.getvalue()),{'deployment_performed':False})
+                render.assert_called_once()
+                render.reset_mock();verify.side_effect=ValueError('unreviewed source')
+                with self.assertRaisesRegex(ValueError,'unreviewed source'):
+                    schedule_module.watchdog_main(args,service_plan_only=True)
+                render.assert_not_called()
+            self.assertFalse((root/'source-watchdog-events.jsonl').exists())
+
     def probe_pair(self,kind='ok'):
         target,info=self.guard_fixture();client,server=socket.socketpair()
         host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=123,pid_namespace=42,cgroup='cpu-only')
