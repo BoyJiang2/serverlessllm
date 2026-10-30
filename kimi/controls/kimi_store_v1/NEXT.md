@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 CPU追加：直接修改现有source_schedule.py/test_source_schedule.py，phase_remaining_seconds取累计单调时间与墙钟的更严格期限，CLI复用，等值到期拒绝；250项CPU测试通过（28.437秒）。不新建目录、不复制权重/环境/大池。本次仍无实际worker、独立守护或GPU运行，后续继续在现有文件内接执行闭包；静态审阅追加在source-schedule-review.json，旧审阅保留。
+
 - 新增source_schedule完整阶段预算与code/spec/plan CLI预检，246项CPU测试通过，复审见source-schedule-review.json。包含3721>3600拒绝、60秒最小观察+开销、每批自身guard/清理截止（不随11h预约拉长）、核验耗时计入且不重置；CLI时钟不可覆盖。仅时间配置预检，booking/guard/runtime均false，实际worker/独立守护仍待接齐。详见SOURCE-SCHEDULE.md。
 
 - 仓库已按用户要求迁至GitHub BoyJiang2/serverlessllm，后续本机工作区D:/Documents/codex/2026-10-24/new-chat/serverlessllm，Kimi位于kimi/controls/kimi_store_v1，GLM位于glm/。重组代码57db396、复审0ba1c50：2861旧文件映射，2854字节未变，2605 GLM冻结文件逐字节一致，7处必要路径/属性修改；旧checkout和服务器资产未移动。235 Kimi CPU、10下载、14 GLM历史、6 C23回归通过；初迁移3个测试fixture缺失已修正留证。旧包/审阅不审批新运行。

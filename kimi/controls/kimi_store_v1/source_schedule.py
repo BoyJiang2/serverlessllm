@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import math
 import re
 import time
 
@@ -67,6 +68,24 @@ def source_schedule(plan, source_receipt, *, now):
                 booking_verified=False, guard_verified=False, runtime_admitted=False)
 
 
+def phase_remaining_seconds(schedule, phase, *, entered, elapsed, now):
+    """Use the original batch anchor, never a new per-phase start time."""
+    if phase not in PHASES:
+        raise ValueError('unknown source phase')
+    if (type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0
+            or entered.tzinfo is None or entered.utcoffset() is None
+            or now.tzinfo is None or now.utcoffset() is None):
+        raise ValueError('finite elapsed time and timezone-qualified clocks required')
+    deadline = _utc(schedule['phase_deadlines_utc'][phase])
+    if now < entered:
+        raise TimeoutError('source wall clock regressed')
+    remaining = min((deadline - entered).total_seconds() - elapsed,
+                    (deadline - now).total_seconds())
+    if remaining <= 0:
+        raise TimeoutError('source phase deadline exhausted: ' + phase)
+    return remaining
+
+
 def main():
     import argparse
     from source_bundle import verify_source_run
@@ -81,9 +100,10 @@ def main():
     result = source_schedule(plan, receipt, now=entered)
     elapsed = time.monotonic() - started
     finished = datetime.now(timezone.utc)
-    if (elapsed > plan['seconds']['preflight'] or finished < entered
-            or finished > _utc(result['phase_deadlines_utc']['preflight'])):
-        raise TimeoutError('source verification consumed preflight budget or clock regressed')
+    try:
+        phase_remaining_seconds(result, 'preflight', entered=entered, elapsed=elapsed, now=finished)
+    except TimeoutError as error:
+        raise TimeoutError('source verification consumed preflight budget or clock regressed') from error
     result['validation_elapsed_seconds'] = elapsed
     print(json.dumps(dict(result, run_id=receipt['run_id'], holder=receipt['holder']), sort_keys=True))
 

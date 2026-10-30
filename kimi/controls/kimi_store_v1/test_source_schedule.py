@@ -16,6 +16,47 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def test_remaining_uses_stricter_wall_or_monotonic_clock(self):
+        plan,receipt=self.fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=source_schedule(plan,receipt,now=entered)
+        for elapsed,wall,expected in ((10,5,20),(5,10,20),(29.5,29,0.5)):
+            self.assertEqual(schedule_module.phase_remaining_seconds(schedule,'preflight',
+                entered=entered,elapsed=elapsed,now=entered+timedelta(seconds=wall)),expected)
+
+    def test_remaining_refuses_equality_overrun_and_backward_wall_clock(self):
+        plan,receipt=self.fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=source_schedule(plan,receipt,now=entered)
+        for elapsed,wall in ((30,0),(0,30),(31,5),(5,31),(1,-1)):
+            with self.assertRaises(TimeoutError):
+                schedule_module.phase_remaining_seconds(schedule,'preflight',entered=entered,
+                    elapsed=elapsed,now=entered+timedelta(seconds=wall))
+
+    def test_later_phase_does_not_restart_batch_clock(self):
+        plan,receipt=self.fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=source_schedule(plan,receipt,now=entered)
+        self.assertEqual(schedule_module.phase_remaining_seconds(schedule,'image_restore',
+            entered=entered,elapsed=45,now=entered+timedelta(seconds=40)),15)
+        with self.assertRaises(TimeoutError):
+            schedule_module.phase_remaining_seconds(schedule,'image_restore',entered=entered,
+                elapsed=60,now=entered+timedelta(seconds=40))
+
+    def test_remaining_rejects_nonfinite_or_ambiguous_inputs(self):
+        plan,receipt=self.fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=source_schedule(plan,receipt,now=entered)
+        for value in (True,-1,float('nan'),float('inf'),'1'):
+            with self.assertRaises(ValueError):
+                schedule_module.phase_remaining_seconds(schedule,'preflight',entered=entered,
+                    elapsed=value,now=entered)
+        for phase,start,end in (('other',entered,entered),
+                ('preflight',entered.replace(tzinfo=None),entered),
+                ('preflight',entered,entered.replace(tzinfo=None))):
+            with self.assertRaises(ValueError):
+                schedule_module.phase_remaining_seconds(schedule,phase,entered=start,elapsed=1,now=end)
+
     def fixture(self):
         # Arithmetic fixture only. These maxima are not production model estimates.
         receipt=dict(run_id='fixture', holder='holder', code_commit='a'*40,
