@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 原source_schedule.py已补主动challenge就绪协议和probe CLI：Linux abstract UDS（不增文件/目录）、peer UID/PID+nonce/challenge+fresh PID寿命/namespace/boot+完整target/deadline，单绝对≤2秒与4/8KiB消息界限。guard仅armed循环响应，正常/异常清理前关闭端点；坏客户端不延长截止。Windows真实socketpair仅验证流协议，peer/proc替身与Linux endpoint未实际验证；probe success不授独立服务/部署/计算准入。全套297项中296通过、1项POSIX FIFO因Windows跳过（27.295秒），当前两文件静态复审PASS，异常关闭次序发现已修正，测试/哈希追加source-schedule记录。下一项独立宿主服务/启动清单及unit归属、完整preflight、monitor和60秒释放，保持CPU-only。
+
 - 2026-10-31 已在原source_schedule.py接watchdog独立循环及guard CLI候选，绑定registration/plan/code/spec/原批次截止、host UID/boot/PID namespace与nonce；既有run目录独占小事件日志，未新建代码目录或复制资产。真实CPU两层进程证明launcher退出后子进程仍按2秒截止调用FakeDocker，非Linux/GPU守护证明。初审三项（wall shutdown预算、尾部迟到误成功、日志/等待失败漏清理）均修复并加负例；全套289项中288通过、1项POSIX FIFO在Windows跳过（28.011秒），当前两文件静态复审PASS。测试记录追加source-schedule-tests.json/source-schedule-review.json。下一项部署启动/实际probe与ready验收、monitor和60秒释放，不启动模型或远端任务。
 
 - 2026-10-31 在现有source_schedule.py追加宿主清理内核：完整container/image/Created+五项run身份+boot/UID校验、实际PID/cgroup寿命核验、累计预算inspect/stop/复核/rm/absence及本地socket；无PID信号、force/volume/image删除。Docker/proc/selector均CPU mock，尚无watchdog或部署CLI，不是实际守护PASS。初审selector初始化泄漏与close覆盖错误已修复并加复合故障回归；全套283项中282通过、1项POSIX FIFO因Windows跳过（26.619秒），当前两文件静态复审PASS，追加source-schedule-review.json/source-schedule-tests.json。下一项独立watchdog/实际host身份与probe/monitor/60秒释放，false资源标志保留。

@@ -6,7 +6,10 @@ import math
 import os
 from pathlib import Path
 import re
+import secrets
 import selectors
+import socket
+import struct
 import subprocess
 import sys
 import time
@@ -254,14 +257,167 @@ def cleanup_guard_target(registration, *, boot_id, uid, timeout_seconds,
                 guard_deployed=False, runtime_admitted=False)
 
 
-def _watchdog_host():
+def _watchdog_pid(pid):
     if os.name != 'posix' or os.getuid() != 2147:
         raise ValueError('watchdog requires authorized UID2147 on the Linux host')
-    root = Path('/proc/self')
-    started = int((root / 'stat').read_text().rsplit(')', 1)[1].split()[19])
-    return dict(uid=os.getuid(), boot_id=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
-        pid=os.getpid(), start_ticks=started, pid_namespace=(root / 'ns/pid').stat().st_ino,
+    if type(pid) is not int or pid <= 0:
+        raise ValueError('positive host PID required')
+    root = Path('/proc')/str(pid)
+    def start():return int((root/'stat').read_text().rsplit(')', 1)[1].split()[19])
+    started = start()
+    result = dict(uid=root.stat().st_uid, boot_id=Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+        pid=pid, start_ticks=started, pid_namespace=(root / 'ns/pid').stat().st_ino,
         cgroup=(root / 'cgroup').read_text())
+    if started != start():
+        raise ValueError('watchdog PID was reused during probe')
+    return result
+
+
+def _watchdog_host():
+    return _watchdog_pid(os.getpid())
+
+
+def _probe_peer(connection):
+    if not sys.platform.startswith('linux'):
+        raise ValueError('watchdog peer credentials require Linux')
+    pid, uid, _ = struct.unpack('3i', connection.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
+    return pid, uid
+
+
+def _probe_listener(nonce):
+    if not sys.platform.startswith('linux') or not re.fullmatch('[0-9a-f]{32}', nonce):
+        raise ValueError('Linux abstract socket and fresh nonce required')
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        listener.bind('\0sllm-kimi-'+nonce)
+        listener.listen(4)
+        return listener
+    except BaseException as error:
+        try:
+            listener.close()
+        except BaseException as close_error:
+            error.__notes__ = list(getattr(error, '__notes__', ())) + ['probe listener cleanup failed: '+repr(close_error)]
+        raise
+
+
+def _probe_receive(connection, deadline, limit):
+    raw = bytearray()
+    while True:
+        remaining = deadline-time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('watchdog probe deadline exhausted')
+        connection.settimeout(remaining)
+        block = connection.recv(min(1024, limit+1-len(raw)))
+        if not block:
+            raise ValueError('watchdog probe closed before complete message')
+        raw.extend(block)
+        if len(raw) > limit:
+            raise ValueError('watchdog probe message exceeds bound')
+        if b'\n' in raw:
+            if not raw.endswith(b'\n') or raw.count(b'\n') != 1:
+                raise ValueError('exactly one watchdog probe message required')
+            return json.loads(raw)
+
+
+def _serve_guard_probe(listener, target, host, nonce, fire, remaining, valid, *, peer_probe=_probe_peer):
+    deadline = time.monotonic()+min(0.25, remaining)
+    connection = None
+    try:
+        listener.settimeout(max(0, deadline-time.monotonic()))
+        connection, _ = listener.accept()
+        if peer_probe(connection)[1] != 2147:
+            return False
+        request = _probe_receive(connection, deadline, 4096)
+        if (not isinstance(request, dict) or set(request) != {'schema','nonce','challenge'}
+                or request['schema'] != 'kimi-watchdog-probe-request-v1' or request['nonce'] != nonce
+                or not isinstance(request['challenge'], str) or not re.fullmatch('[0-9a-f]{32}', request['challenge'])
+                or not valid()):
+            return False
+        response = dict(schema='kimi-watchdog-probe-response-v1', identity=target['identity'], nonce=nonce,
+            challenge=request['challenge'], host=host, container_id=target['container_id'],
+            image_id=target['image_id'], container_created=target['container_created'],
+            guard_fire_by_utc=fire.isoformat(), runtime_admitted=False)
+        raw = (json.dumps(response, allow_nan=False)+'\n').encode()
+        if len(raw) > 8192 or not valid() or time.monotonic() >= deadline:
+            return False
+        connection.settimeout(deadline-time.monotonic())
+        connection.sendall(raw)
+        return True
+    except (OSError, ValueError, struct.error):
+        return False  # Invalid/slow probe clients do not cancel or extend the guard.
+    finally:
+        if connection is not None:connection.close()
+
+
+def _exchange_guard_probe(connection, target, nonce, expected_host, fire, deadline, *,
+                          peer_probe=_probe_peer, pid_probe=_watchdog_pid):
+    challenge = secrets.token_hex(16)
+    peer_pid, peer_uid = peer_probe(connection)
+    if peer_uid != 2147 or peer_pid != expected_host['pid']:
+        raise ValueError('watchdog socket peer differs from registered host process')
+    remaining = deadline-time.monotonic()
+    if remaining <= 0:raise TimeoutError('watchdog probe deadline exhausted')
+    connection.settimeout(remaining)
+    request = dict(schema='kimi-watchdog-probe-request-v1', nonce=nonce, challenge=challenge)
+    connection.sendall((json.dumps(request)+'\n').encode())
+    response = _probe_receive(connection, deadline, 8192)
+    expected = dict(schema='kimi-watchdog-probe-response-v1', identity=target['identity'], nonce=nonce,
+        challenge=challenge, host=expected_host, container_id=target['container_id'], image_id=target['image_id'],
+        container_created=target['container_created'], guard_fire_by_utc=fire.isoformat(), runtime_admitted=False)
+    if response != expected or pid_probe(peer_pid) != expected_host:
+        raise ValueError('watchdog challenge, source/target or live PID lifetime differs')
+    if time.monotonic() >= deadline or datetime.now(timezone.utc) >= fire:
+        raise TimeoutError('watchdog probe or guard fire deadline exhausted')
+    return dict(response, probe_exchange_verified=True, independent_service_verified=False,
+                guard_deployed=False, resources_released=False)
+
+
+def probe_watchdog(target, *, nonce, expected_host, host_pid_namespace, guard_fire_by_utc, timeout_seconds=2):
+    if not sys.platform.startswith('linux'):
+        raise ValueError('watchdog active probe requires the Linux host')
+    _guard_identity(target, boot_id=expected_host['boot_id'], uid=expected_host['uid'])
+    if (not isinstance(nonce, str) or not re.fullmatch('[0-9a-f]{32}', nonce)
+            or type(host_pid_namespace) is not int or host_pid_namespace <= 0
+            or any(type(expected_host[k]) is not int or expected_host[k] <= 0 for k in ('pid', 'start_ticks'))
+            or expected_host['pid_namespace'] != host_pid_namespace or target['container_id'] in expected_host['cgroup']
+            or type(timeout_seconds) not in (int, float) or not math.isfinite(timeout_seconds) or not 0 < timeout_seconds <= 2):
+        raise ValueError('bounded fresh watchdog probe identity required')
+    fire = _utc(guard_fire_by_utc)
+    budget = min(timeout_seconds, (fire-datetime.now(timezone.utc)).total_seconds())
+    if budget <= 0:raise TimeoutError('watchdog guard already due')
+    deadline = time.monotonic()+budget
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+        connection.settimeout(budget)
+        connection.connect('\0sllm-kimi-'+nonce)
+        return _exchange_guard_probe(connection, target, nonce, expected_host, fire, deadline)
+
+
+def read_watchdog_ready(path, target, *, nonce, registration_sha256, plan_sha256, guard_fire_by_utc):
+    from vllm_export_hook import _metadata_stream
+    with _metadata_stream(Path(path)) as stream:
+        raw = stream.read(16385)
+    if len(raw) > 16384 or not raw.endswith(b'\n'):
+        raise ValueError('watchdog readiness is oversized or partial')
+    lines = raw.splitlines()
+    if len(lines) != 2 or any(len(line)+1 > 8192 for line in lines):
+        raise ValueError('watchdog is not exclusively in the ready state')
+    rows = [json.loads(line) for line in lines]
+    for row, event in zip(rows, ('inputs_verified', 'ready')):
+        if (not isinstance(row, dict) or row.get('schema') != 'kimi-source-watchdog-events-v1'
+                or row.get('nonce') != nonce or row.get('event') != event
+                or any(row.get(k) != v for k,v in target['identity'].items())):
+            raise ValueError('watchdog readiness identity differs')
+        _utc(row['utc'])
+    if rows[0]['payload'] != dict(registration_sha256=registration_sha256, plan_sha256=plan_sha256,
+                                  runtime_admitted=False):
+        raise ValueError('watchdog verified inputs differ')
+    ready = rows[1]['payload']
+    if (ready.get('container_id') != target['container_id'] or ready.get('image_id') != target['image_id']
+            or ready.get('container_created') != target['container_created']
+            or _utc(ready['guard_fire_by_utc']) != _utc(guard_fire_by_utc)
+            or ready.get('probe_endpoint') != '@sllm-kimi-'+nonce or ready.get('runtime_admitted') is not False):
+        raise ValueError('watchdog ready target or live probe differs')
+    return ready
 
 
 def _watchdog_event(stream, identity, nonce, event, payload):
@@ -276,7 +432,8 @@ def _watchdog_event(stream, identity, nonce, event, payload):
 
 
 def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
-                    docker=_guard_docker, process_probe=guard_process, host_probe=_watchdog_host):
+                    docker=_guard_docker, process_probe=guard_process, host_probe=_watchdog_host,
+                    probe_factory=None):
     """Independent loop candidate; caller binds source/plan and reserves its log."""
     host = host_probe()
     identity = _guard_identity(target, boot_id=host['boot_id'], uid=host['uid'])
@@ -299,6 +456,7 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
             raise RuntimeError('watchdog Docker query failed: '+args[0])
         return response.stdout
     verified, cleanup_attempted, late_start, cleanup_result = False, False, False, None
+    listener, failure = None, None
     def cleanup_owned(check_absence):
         nonlocal cleanup_attempted
         present = query('ps', '-aq', '--no-trunc', '--filter', 'id='+target['container_id']) if check_absence else target['container_id']
@@ -330,8 +488,13 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
         event = 'ready' if (original_wait > time.monotonic()-anchored_mono
                             and datetime.now(timezone.utc) < fire) else 'late_start'
         late_start = event == 'late_start'
+        if not late_start and probe_factory is not None:
+            listener = probe_factory(nonce)
+            if time.monotonic()-anchored_mono >= original_wait or datetime.now(timezone.utc) >= fire:
+                event, late_start = 'late_start', True
         _watchdog_event(events, identity, nonce, event, dict(host=host, target_process=process,
             container_id=target['container_id'], image_id=target['image_id'], container_created=target['container_created'],
+            probe_endpoint='@sllm-kimi-'+nonce if listener is not None else None,
             guard_fire_by_utc=fire.isoformat(), runtime_admitted=False))
         reason = 'deadline'
         while True:
@@ -342,7 +505,16 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
             remaining = min((fire-now).total_seconds(), original_wait-elapsed)
             if remaining <= 0:
                 break
-            time.sleep(min(1, remaining))
+            if listener is None:
+                time.sleep(min(1, remaining))
+            else:
+                def valid():
+                    wall, mono = datetime.now(timezone.utc), time.monotonic()-anchored_mono
+                    return anchored_utc <= wall < fire and 0 <= mono < original_wait
+                _serve_guard_probe(listener, target, host, nonce, fire, remaining, valid)
+        if listener is not None:
+            listener.close()
+            listener = None
         _watchdog_event(events, identity, nonce, 'cleanup_started', dict(reason=reason))
         result = cleanup_result = cleanup_owned(True)
         if result['deadline_missed'] or late_start or reason != 'deadline':
@@ -352,6 +524,13 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
         _watchdog_event(events, identity, nonce, 'cleanup_returned', result)
         return result
     except BaseException as error:
+        failure = error
+        if listener is not None:
+            try:
+                listener.close()
+                listener = None
+            except BaseException as close_error:
+                error.__notes__ = list(getattr(error, '__notes__', ())) + ['watchdog probe close before cleanup failed: '+repr(close_error)]
         if verified and not cleanup_attempted:
             try:
                 cleanup_result = cleanup_owned(False)
@@ -368,9 +547,16 @@ def source_watchdog(target, schedule, *, nonce, host_pid_namespace, events,
         except BaseException as log_error:
             error.__notes__ = list(getattr(error, '__notes__', ())) + ['watchdog evidence failed: '+repr(log_error)]
         raise
+    finally:
+        if listener is not None:
+            try:
+                listener.close()
+            except BaseException as close_error:
+                if failure is None:raise
+                failure.__notes__ = list(getattr(failure, '__notes__', ())) + ['watchdog probe close failed: '+repr(close_error)]
 
 
-def watchdog_main(argv):
+def watchdog_main(argv, *, probe_only=False):
     """Host-only entry; source verification and target probe precede readiness."""
     import argparse
     if sys.flags.optimize or not sys.dont_write_bytecode:
@@ -399,12 +585,20 @@ def watchdog_main(argv):
         spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
     if registration['target']['identity'] != expected:
         raise ValueError('watchdog target and verified source identity differ')
+    if probe_only:
+        ready = read_watchdog_ready(root/'source-watchdog-events.jsonl', registration['target'],
+            nonce=registration['nonce'], registration_sha256=args.registration_sha,
+            plan_sha256=registration['plan_sha256'], guard_fire_by_utc=schedule['guard_fire_by_utc'])
+        result = probe_watchdog(registration['target'], nonce=registration['nonce'], expected_host=ready['host'],
+            host_pid_namespace=registration['host_pid_namespace'], guard_fire_by_utc=schedule['guard_fire_by_utc'])
+        print(json.dumps(result, sort_keys=True))
+        return
     with (root/'source-watchdog-events.jsonl').open('xb', buffering=0) as events:
         _watchdog_event(events, expected, registration['nonce'], 'inputs_verified', dict(
             registration_sha256=args.registration_sha, plan_sha256=registration['plan_sha256'],
             runtime_admitted=False))
         result = source_watchdog(registration['target'], schedule, nonce=registration['nonce'],
-            host_pid_namespace=registration['host_pid_namespace'], events=events)
+            host_pid_namespace=registration['host_pid_namespace'], events=events, probe_factory=_probe_listener)
     print(json.dumps(result, sort_keys=True))
 
 
@@ -431,7 +625,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] == ['guard']:
-        watchdog_main(sys.argv[2:])
+    if sys.argv[1:2] in (['guard'], ['probe']):
+        watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe')
     else:
         main()

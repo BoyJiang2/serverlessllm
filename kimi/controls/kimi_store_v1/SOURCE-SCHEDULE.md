@@ -24,6 +24,12 @@ python source_schedule.py --code <run/code> --manifest <run/source-code-manifest
 
 ## 验证及剩余工作
 
+2026-10-31追加主动就绪探针：guard实际CLI在自己的armed循环创建Linux abstract AF_UNIX监听器，地址由本run随机nonce派生，不新建目录或socket文件。`probe`子命令使用与guard相同的registration/plan/code/spec验证后，先要求事件仅有inputs_verified+ready两条完整记录，再做新随机challenge往返；旧日志、已进入cleanup或没有主动端点均拒绝。请求≤4KiB、响应≤8KiB，connect/收发/实际PID核验共用最多2秒的单一绝对deadline，并检查未到guard fire。服务端单客户端≤0.25秒，只在armed且尚未到期时响应；坏/慢/错UID/错nonce客户端不取消或延长守护。正常与异常收尾都先尝试关闭listener，再执行owned cleanup，关闭错误不跳过清理或覆盖原错误。
+
+协议依据为[Linux unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html)：abstract socket的权限不由文件chmod保护，接口因此保留SO_PEERCRED的UID/PID核验；其凭据来自connect/listen/socketpair时的peer。client还必须把内核peer PID、ready PID/启动tick、fresh /proc双读启动tick、boot、PID namespace、cgroup，以及nonce/challenge/完整target身份/截止全部交叉核验。探针只返回probe_exchange_verified，independent_service_verified、guard_deployed、runtime_admitted和resources_released仍false：它不证明独立systemd/服务单元、预约、整机资源或完整服务准入。
+
+CLI形态为`python -B <run>/code/source_schedule.py probe --registration <run>/source-guard-registration.json --registration-sha <SHA>`，不覆盖或创建guard事件日志，也不启动模型。当前Windows测试使用真实socketpair及有界线程验证流协议，但Linux peer凭据、/proc和abstract endpoint仍为替身/未实测；不能据CPU结果宣称qjhs003 guard/probe实际通过。后续须接独立宿主服务启动/单元归属证明、完整preflight准入、监控及60秒释放验证。
+
 2026-10-31追加清理内核候选（尚无watchdog/部署CLI）：guard_target绑定完整64hex container ID、精确image ID/Created、run/holder/code/spec/manifest标签、UID2147、boot身份参数及禁止自动重启。cleanup_guard_target先验证，再inspect/proc核验，按单个累计剩余预算执行stop→再次inspect已停→rm（无force/volume/image）→本ID过滤ps核验absent；不能按名称或PID发信号，不处理其他目标。guard_process双读/proc/stat field22起始tick，核UID与含完整Docker ID的cgroup，拒绝PID复用/错误归属。boot/UID必须由未来独立守护实际采集；本机测试传入的模拟值不构成节点证明。
 
 Docker适配器固定/usr/bin/docker与本地unix:///var/run/docker.sock，在子进程环境副本中移除DOCKER_HOST/CONTEXT/TLS相关覆盖，不改全局配置。POSIX selector按4KiB读取，每个stdout/stderr保留≤64KiB，超限只终止自己持有的Docker CLI子进程；不把CLI超时/结束当daemon取消。该输出缓冲上限不是Python、Docker进程或模型的RSS峰值。selector初始化失败也必须清理CLI及双pipe，关闭错误不覆盖原错误；这些故障已用CPU替身测试，未在Linux/Docker实际执行。返回container_absence_verified只代表该ID在一次可达daemon查询中不存在，resources_released/release_observation_verified/guard_deployed/runtime_admitted均false。

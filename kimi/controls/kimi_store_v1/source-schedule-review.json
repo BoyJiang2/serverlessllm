@@ -119,6 +119,39 @@
         "No actual GPU/full conversion/resources or 60-second release observation",
         "One POSIX FIFO test skipped on Windows"
       ]
+    },
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Active watchdog challenge and bounded peer/PID readiness candidate, not deployed host admission",
+      "sha256": {
+        "source_schedule.py": "d720158c9d3612c16ca4c918db6cc19d7d2fc1af0dd22dca62b1e1b9eb8191c2",
+        "test_source_schedule.py": "5352d26c3eefbf9b9f06969ddc9b4f868c47d8ac12d4c7ca8809863079a3a188"
+      },
+      "tests": {
+        "count": 297,
+        "passed": 296,
+        "skipped": 1,
+        "seconds": 27.295,
+        "executor": "primary agent"
+      },
+      "finding_and_correction": "Exception path initially deferred listener closure until after owned cleanup; now closure attempted before cleanup on all paths; order regression added. Single-thread implementation had no demonstrated successful false response during cleanup.",
+      "verified": [
+        "Random challenge plus kernel peer UID/PID, nonce and source/target/deadline match",
+        "Fresh PID double starttime/boot/namespace/cgroup cross-check candidate",
+        "Single absolute <=2s connect/exchange/PID budget; 4KiB request and 8KiB response",
+        "Server answers only in armed loop; malformed/slow clients cannot extend deadline",
+        "Ready journal alone insufficient; probe CLI verifies source binding and performs live exchange",
+        "Probe output retains independent_service_verified, guard_deployed, runtime_admitted and resources_released false"
+      ],
+      "primary_reference": "https://man7.org/linux/man-pages/man7/unix.7.html",
+      "limitations": [
+        "Windows real socketpair stream tests use mocked Linux peer credentials and /proc identity",
+        "Actual Linux abstract socket, SO_PEERCRED and host PID/namespace behavior not tested",
+        "No remote systemd/independent host deployment or actual resource authorization",
+        "No GPU/model/full conversion/service or release observation verified"
+      ]
     }
   ]
 }

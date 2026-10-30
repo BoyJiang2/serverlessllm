@@ -7,8 +7,10 @@ import tempfile
 import unittest
 from unittest.mock import patch, Mock
 import subprocess
+import socket
 import sys
 import time
+import threading
 import types
 
 import source_schedule as schedule_module
@@ -18,6 +20,127 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def probe_pair(self,kind='ok'):
+        target,info=self.guard_fixture();client,server=socket.socketpair()
+        host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=123,pid_namespace=42,cgroup='cpu-only')
+        fire=datetime.now(timezone.utc)+timedelta(seconds=10);result={}
+        class Connection:
+            def settimeout(self,value):server.settimeout(value)
+            def recv(self,count):return server.recv(count)
+            def close(self):server.close()
+            def sendall(self,raw):
+                if kind=='replay':
+                    row=json.loads(raw);row['challenge']='0'*32;raw=(json.dumps(row)+'\n').encode()
+                server.sendall(raw)
+        class Listener:
+            def settimeout(self,value):pass
+            def accept(self):return Connection(),None
+        def serve():
+            result['served']=schedule_module._serve_guard_probe(Listener(),target,host,'1'*32,fire,1,
+                lambda:kind!='expired',peer_probe=lambda conn:(1000,2147))
+        thread=threading.Thread(target=serve,daemon=True);thread.start()
+        def pid_probe(pid):
+            if kind=='late_response':time.sleep(0.1)
+            return dict(host,start_ticks=124) if kind=='reuse' else dict(host)
+        try:
+            kwargs=dict(peer_probe=lambda conn:(999,0 if kind=='foreign' else 2147),pid_probe=pid_probe)
+            deadline=time.monotonic()+(0.05 if kind=='late_response' else 1)
+            proof=schedule_module._exchange_guard_probe(client,target,'2'*32 if kind=='nonce' else '1'*32,
+                                                        host,fire,deadline,**kwargs)
+            return proof,result
+        finally:
+            client.close();thread.join(timeout=2);server.close()
+            self.assertFalse(thread.is_alive())
+
+    def test_active_probe_real_socket_exchange_preserves_nonadmission_scope(self):
+        proof,result=self.probe_pair()
+        self.assertTrue(result['served'])
+        self.assertTrue(proof['probe_exchange_verified'])
+        self.assertFalse(proof['independent_service_verified'])
+        self.assertFalse(proof['guard_deployed'])
+        self.assertFalse(proof['runtime_admitted'])
+
+    def test_active_probe_refuses_replay_wrong_uid_nonce_reused_pid_and_expired_guard(self):
+        for kind in ('replay','foreign','nonce','reuse','expired','late_response'):
+            with self.subTest(kind=kind),self.assertRaises((ValueError,TimeoutError,OSError)):
+                self.probe_pair(kind)
+
+    def test_probe_slow_partial_message_does_not_reset_absolute_deadline(self):
+        connection=Mock();connection.recv.side_effect=[b'{',b'"',b'x']
+        with patch.object(schedule_module.time,'monotonic',side_effect=[0,0.4,0.8,1.2]):
+            with self.assertRaises(TimeoutError):schedule_module._probe_receive(connection,1,4096)
+        self.assertEqual(connection.recv.call_count,3)
+        self.assertEqual([row.args[0] for row in connection.settimeout.call_args_list],[1,0.6,0.19999999999999996])
+
+    def test_probe_oversize_is_rejected_before_retaining_more_than_cap(self):
+        connection=Mock();connection.recv.side_effect=[b'x'*1024]*4+[b'x']
+        with self.assertRaisesRegex(ValueError,'bound'):
+            schedule_module._probe_receive(connection,time.monotonic()+1,4096)
+        self.assertEqual(connection.recv.call_args.args[0],1)
+
+    def test_unresponsive_probe_clients_do_not_extend_watchdog_deadline(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp)
+            listener=Mock()
+            def serve(*args,**kwargs):state['elapsed']+=1;return False
+            with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']), \
+                    patch.object(schedule_module,'_serve_guard_probe',side_effect=serve):
+                schedule_module.source_watchdog(target,schedule,events=events,probe_factory=lambda nonce:listener,**options)
+            self.assertEqual(state['elapsed'],150)
+            listener.close.assert_called_once()
+            self.assertEqual(sum(row[0]=='stop' for row in calls),1)
+
+    def test_probe_listener_failure_triggers_only_owned_cleanup_and_no_ready(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp)
+            with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']):
+                with self.assertRaisesRegex(OSError,'bind failed'):
+                    schedule_module.source_watchdog(target,schedule,events=events,
+                        probe_factory=Mock(side_effect=OSError('CPU bind failed')),**options)
+            self.assertFalse(state['present'])
+            self.assertNotIn('"event": "ready"',path.read_text())
+
+    def test_probe_listener_is_closed_before_error_path_owned_stop(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp)
+            order=[];original=options['docker'];listener=Mock()
+            listener.close.side_effect=lambda:order.append('probe_close')
+            def docker(args,timeout):order.append(args[0]);return original(args,timeout)
+            options['docker']=docker
+            with path.open('xb',buffering=0) as events,patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:state['elapsed']), \
+                    patch.object(schedule_module,'_serve_guard_probe',side_effect=RuntimeError('CPU probe loop failed')):
+                with self.assertRaisesRegex(RuntimeError,'probe loop failed'):
+                    schedule_module.source_watchdog(target,schedule,events=events,
+                        probe_factory=lambda nonce:listener,**options)
+            self.assertLess(order.index('probe_close'),order.index('stop'))
+            listener.close.assert_called_once()
+            self.assertFalse(state['present'])
+
+    def test_ready_file_is_bounded_and_not_a_substitute_for_active_probe(self):
+        for kind in ('ok','stale','partial','cleanup','no_endpoint','hash'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                target,schedule,state,calls,sleep,clock,path,options=self.watchdog_control(temp)
+                nonce='1'*32;host=options['host_probe']()
+                with path.open('xb',buffering=0) as stream:
+                    schedule_module._watchdog_event(stream,target['identity'],nonce,'inputs_verified',dict(
+                        registration_sha256='2'*64,plan_sha256='3'*64,runtime_admitted=False))
+                    schedule_module._watchdog_event(stream,target['identity'],nonce,'ready',dict(host=host,
+                        container_id=target['container_id'],image_id=target['image_id'],
+                        container_created=target['container_created'],guard_fire_by_utc=schedule['guard_fire_by_utc'],
+                        probe_endpoint=None if kind=='no_endpoint' else '@sllm-kimi-'+nonce,runtime_admitted=False))
+                    if kind=='cleanup':schedule_module._watchdog_event(stream,target['identity'],nonce,'cleanup_started',{})
+                if kind=='partial':path.write_bytes(path.read_bytes()[:-1])
+                kwargs=dict(nonce='9'*32 if kind=='stale' else nonce,registration_sha256='9'*64 if kind=='hash' else '2'*64,
+                    plan_sha256='3'*64,guard_fire_by_utc=schedule['guard_fire_by_utc'])
+                if kind=='ok':
+                    row=schedule_module.read_watchdog_ready(path,target,**kwargs)
+                    self.assertNotIn('probe_exchange_verified',row)
+                else:
+                    with self.assertRaises(ValueError):schedule_module.read_watchdog_ready(path,target,**kwargs)
+
     def watchdog_control(self,temp,kind='ok'):
         target,info=self.guard_fixture()
         plan,receipt=self.fixture()
