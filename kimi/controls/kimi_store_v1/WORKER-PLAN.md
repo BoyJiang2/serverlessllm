@@ -18,6 +18,10 @@
 
 ## worker 必需的闭包
 
+内部源参考worker主体已补在现有source_plugin._run_source_reference：工厂对应vLLM.LLM/SamplingParams，固定TP8/PP1/DP1/PCP1、Marlin、compressed-tensors、BF16非量化张量、无MTP；短文本max_model_len=1024、单请求、显式KV字节预算、无CPU offload/公共Store池，保留视觉与projector构造但跳过多模态profile。调用前后的loader真实profile硬检查仍保留，不能从EngineArgs直接设置派生use_sequence_parallel_moe字段。先收8rank完成元数据，然后分别生成固定32原始token（忽略EOS/min32）和自然EOS（最多128，length截断不算完成）。结果保留raw IDs/文本/每个选中token的有限logprob；非退化检查只是初始参考质量门槛，不是语义正确或稳定金标，gold_frozen=false。全部调用前后使用原批次墙钟/单调预算；finally通过llm_engine.engine_core.shutdown(timeout=剩余预算)尝试退出，即使已到截止也以timeout=0尝试。保留业务原异常、退出附加错误，以及已完成请求的raw tokens/rank/配置证据供未来宿主控制器落盘；构造未返回时明确要求清理可能的partial进程。
+
+接口依据为固定v0.19.1官方源码：[LLM](https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/entrypoints/llm.py)、[EngineArgs](https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/engine/arg_utils.py)、[CoreClient.shutdown](https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/v1/engine/core_client.py)。候选无可直接启动的CLI，未接实际宿主准入；同步constructor/generate不能靠前后检查中断，实际独立guard必不可少。CPU测试的engine/sampling都是stand-in，真实vLLM多进程插件与完整模型尚未执行。shutdown返回也不证明GPU/RSS/cgroup释放；resources_released/full_service_verified仍false，60秒释放监控和完整host控制器继续待接。
+
 CPU接线追加（2026-10-31）：source_plugin向原有export factory传入run_id/holder/code/spec/manifest身份。每个rank只在固定Base.load_model含后处理返回后，向既有rank目录发布source-complete.json；记录sidecar/index SHA与load_model耗时，不包含张量，也不重复导出。父端collect_source_rank_receipts要求8份完整且身份一致、device唯一、实际文件哈希一致；任一缺失/旧身份/损坏/partial拒绝。元数据读回使用nonblocking/no-follow（平台支持时）打开并fstat实际fd为普通文件，completion限4KiB、sidecar/index各16MiB，避免FIFO无界阻塞及全文件内存拷贝。源archive cleanup_pending或completion unlink失败使loader失败，partial保留供取证。metadata_verified仅是本次文件集合，不是payload/TP映射/native/GPU服务验证，相关flag仍false。独立宿主守护、真实UID/cgroup/镜像/预算与进程退出仍未完成；本次不创建运行目录或启动worker。
 
 1. 新run_id/holder、UID2147、qjhs003与实际boot身份、代码SHA/完整文件清单、精确镜像及vLLM0.19.1/Torch2.10.0+cu129等实际ABI。不能沿用GLM的cu130镜像/旧gate当Kimi验证。checkpoint与输出挂载分别只读/独占新目录；先核磁盘容量和实际挂载来源，不重复下载。

@@ -36,5 +36,40 @@
     "No actual vLLM general-plugin or TP8 worker propagation, model load or conversion validation",
     "Node/holder/code commit in spec remain declarations; complete manifest, authorization, resource budgets and guard still required",
     "No GPU runtime admission"
+  ],
+  "followup_reviews": [
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Internal source-reference worker options, separate fixed32/natural-EOS, failure-preserving core shutdown; not host/GPU admission",
+      "sha256": {
+        "source_plugin.py": "e3028ee50681a482b412335c0f4296122c4b50620faa9e8f21af14e5314e4eed",
+        "test_source_plugin.py": "9c800f7aab51a763443ddfc2950909432de00727e15c08b943c0214feae3be03"
+      },
+      "tests": {
+        "count": 267,
+        "passed": 266,
+        "skipped": 1,
+        "seconds": 24.812,
+        "executor": "primary agent"
+      },
+      "corrections": [
+        "Official EngineArgs has no use_sequence_parallel_moe argument; removed; actual loader profile rejection retained",
+        "Final review repeated after failure-evidence additions; previous hashes do not approve current files"
+      ],
+      "official_sources": [
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/entrypoints/llm.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/engine/arg_utils.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/v1/engine/core_client.py"
+      ],
+      "limitations": [
+        "Factory/runtime stand-ins do not prove actual TP8/CUDA/general-plugin",
+        "Synchronous engine creation and generation require independent host deadline guard",
+        "Exception/return evidence is not yet persisted to disk",
+        "Core shutdown return does not prove resource release or 60s observation",
+        "Not a stable gold or full native service result"
+      ]
+    }
   ]
 }

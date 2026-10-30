@@ -7,6 +7,8 @@ import sys
 import tempfile
 import types
 import unittest
+from datetime import datetime, timedelta, timezone
+import time
 from unittest.mock import MagicMock, Mock, call, patch
 
 import source_plugin as plugin
@@ -18,6 +20,131 @@ ROOT = Path(__file__).parent.resolve()
 
 
 class SourcePluginTests(unittest.TestCase):
+    def reference_fixture(self, temp):
+        spec,path=self.fixture(temp)
+        identity=dict(run_id=spec['run_id'],holder=spec['holder'],code_commit=spec['code_commit'],
+            spec_sha256='c'*64,source_manifest_sha256='d'*64)
+        entered=datetime.now(timezone.utc)
+        phases=('engine_initialize_and_export','fixed_token_business','natural_eos_business','worker_shutdown')
+        schedule=dict(phase_deadlines_utc={name:(entered+timedelta(hours=1)).isoformat() for name in phases})
+        return dict(spec=spec,identity=identity,prompt_token_ids=[1,2],kv_cache_memory_bytes=4096,
+            schedule=schedule,entered=entered,started=time.monotonic())
+
+    def completion(self, fixed=True):
+        tokens=[10,11]*16 if fixed else [10,11]
+        output=types.SimpleNamespace(token_ids=tokens,text='CPU fixture',
+            logprobs=[{token:types.SimpleNamespace(logprob=-0.1)} for token in tokens],
+            finish_reason='length' if fixed else 'stop',stop_reason=None)
+        return [types.SimpleNamespace(finished=True,prompt_token_ids=[1,2],outputs=[output])]
+
+    def test_reference_body_collects_ranks_then_two_distinct_business_requests_and_shutdown(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp);events=[]
+            core=types.SimpleNamespace(shutdown=Mock(side_effect=lambda **kw:events.append('shutdown')))
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=[self.completion(),self.completion(False)]))
+            factory=Mock(side_effect=lambda **kw:(events.append('engine') or engine))
+            sampling=Mock(side_effect=lambda **kw:kw)
+            with patch.object(vllm_export_hook,'collect_source_rank_receipts',
+                    side_effect=lambda *a:(events.append('ranks') or {'completed_rank_count':8})):
+                result=plugin._run_source_reference(factory,sampling,**options)
+            self.assertEqual(events,['engine','ranks','shutdown'])
+            self.assertEqual(factory.call_args.kwargs['tensor_parallel_size'],8)
+            self.assertEqual(factory.call_args.kwargs['moe_backend'],'marlin')
+            self.assertNotIn('use_sequence_parallel_moe',factory.call_args.kwargs)
+            self.assertIsNone(factory.call_args.kwargs['speculative_config'])
+            self.assertFalse(factory.call_args.kwargs['language_model_only'])
+            self.assertEqual(factory.call_args.kwargs['kv_cache_memory_bytes'],4096)
+            self.assertTrue(sampling.call_args_list[0].kwargs['ignore_eos'])
+            self.assertFalse(sampling.call_args_list[1].kwargs['ignore_eos'])
+            self.assertEqual(sampling.call_args_list[0].kwargs['min_tokens'],32)
+            self.assertEqual(len(result['business']['fixed_token_business']['token_ids']),32)
+            self.assertTrue(result['engine_shutdown_returned'])
+            self.assertFalse(result['gold_frozen'])
+            self.assertFalse(result['resources_released'])
+            self.assertFalse(result['full_service_verified'])
+
+    def test_reference_business_failure_still_shuts_down_and_preserves_original_error(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            core=types.SimpleNamespace(shutdown=Mock(side_effect=OSError('cleanup failed')))
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=RuntimeError('business failed')))
+            with patch.object(vllm_export_hook,'collect_source_rank_receipts',return_value={}):
+                with self.assertRaisesRegex(RuntimeError,'business failed') as caught:
+                    plugin._run_source_reference(lambda **kw:engine,lambda **kw:kw,**options)
+            core.shutdown.assert_called_once()
+            self.assertIn('cleanup failed',caught.exception.__notes__[0])
+
+    def test_reference_expired_budget_refuses_constructor_without_restarting_clock(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            options['started']-=3601
+            factory=Mock()
+            with self.assertRaises(TimeoutError):
+                plugin._run_source_reference(factory,Mock(),**options)
+            factory.assert_not_called()
+
+    def test_reference_constructor_failure_leaves_explicit_host_cleanup_obligation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            with self.assertRaisesRegex(RuntimeError,'initialize failed') as caught:
+                plugin._run_source_reference(Mock(side_effect=RuntimeError('initialize failed')),Mock(),**options)
+            self.assertIn('partial processes',caught.exception.__notes__[0])
+            self.assertFalse(caught.exception.source_reference_evidence['resources_released'])
+
+    def test_reference_second_request_failure_preserves_first_raw_tokens(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            core=types.SimpleNamespace(shutdown=Mock())
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=[self.completion(),RuntimeError('natural EOS failed')]))
+            with patch.object(vllm_export_hook,'collect_source_rank_receipts',return_value={'fixture':True}):
+                with self.assertRaisesRegex(RuntimeError,'natural EOS failed') as caught:
+                    plugin._run_source_reference(lambda **kw:engine,lambda **kw:kw,**options)
+            evidence=caught.exception.source_reference_evidence
+            self.assertEqual(evidence['business']['fixed_token_business']['token_ids'],[10,11]*16)
+            self.assertTrue(evidence['engine_shutdown_returned'])
+            self.assertFalse(evidence['resources_released'])
+
+    def test_reference_shutdown_failure_after_valid_business_is_failure_with_evidence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            core=types.SimpleNamespace(shutdown=Mock(side_effect=OSError('shutdown failed')))
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=[self.completion(),self.completion(False)]))
+            with patch.object(vllm_export_hook,'collect_source_rank_receipts',return_value={}):
+                with self.assertRaisesRegex(OSError,'shutdown failed') as caught:
+                    plugin._run_source_reference(lambda **kw:engine,lambda **kw:kw,**options)
+            evidence=caught.exception.source_reference_evidence
+            self.assertEqual(len(evidence['business']),2)
+            self.assertFalse(evidence['engine_shutdown_returned'])
+
+    def test_reference_output_rejects_degenerate_nonfinite_eos_and_unfinished_results(self):
+        for kind in ('degenerate','nonfinite','early','unfinished','prompt','length','missing_logprob'):
+            with self.subTest(kind=kind):
+                requests=self.completion();output=requests[0].outputs[0]
+                if kind=='degenerate':output.token_ids=[10]*32
+                elif kind=='nonfinite':output.logprobs[0][10].logprob=float('nan')
+                elif kind=='early':output.token_ids=output.token_ids[:2]
+                elif kind=='unfinished':requests[0].finished=False
+                elif kind=='prompt':requests[0].prompt_token_ids=[3]
+                elif kind=='length':output.finish_reason='stop'
+                else:output.logprobs=None
+                with self.assertRaises(ValueError):plugin._reference_output(requests,[1,2],fixed=True)
+        requests=self.completion(False);requests[0].outputs[0].finish_reason='length'
+        with self.assertRaises(ValueError):plugin._reference_output(requests,[1,2],fixed=False)
+
+    def test_reference_rejects_unbounded_prompt_kv_or_identity_before_constructor(self):
+        for kind in ('prompt','kv','identity'):
+            with tempfile.TemporaryDirectory() as temp:
+                options=self.reference_fixture(temp);factory=Mock()
+                if kind=='prompt':options['prompt_token_ids']=[1]*897
+                elif kind=='kv':options['kv_cache_memory_bytes']=True
+                else:options['identity']['holder']='e'*32
+                with self.assertRaises(ValueError):plugin._run_source_reference(factory,Mock(),**options)
+                factory.assert_not_called()
+
     def setUp(self):
         environment = patch.dict(os.environ)
         environment.start()

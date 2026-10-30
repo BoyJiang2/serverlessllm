@@ -21,6 +21,33 @@
       "count": 220,
       "seconds": 10.503,
       "result": "OK"
+    },
+    {
+      "scope": "Reference worker body initial CPU stand-ins; not actual LLM/EngineArgs compatibility",
+      "count": 17,
+      "seconds": 2.01,
+      "result": "OK"
+    },
+    {
+      "scope": "Intermediate full CPU suite before final failure-evidence additions",
+      "count": 265,
+      "skipped": 1,
+      "seconds": 25.533,
+      "result": "OK"
+    },
+    {
+      "scope": "After removing unsupported EngineArgs keyword and preserving Python3.10 exception notes",
+      "count": 17,
+      "seconds": 1.467,
+      "result": "OK"
+    },
+    {
+      "scope": "Final full local CPU suite with partial business and shutdown failure evidence",
+      "count": 267,
+      "passed": 266,
+      "skipped": 1,
+      "seconds": 24.812,
+      "result": "OK"
     }
   ],
   "initial_review": {
@@ -33,5 +60,10 @@
     }
   },
   "gpu_used": false,
-  "actual_vllm_worker_verified": false
+  "actual_vllm_worker_verified": false,
+  "limitations": [
+    "All new reference engine/sampling execution is CPU stand-in, not actual vLLM or model",
+    "One POSIX FIFO test skipped on Windows",
+    "Internal worker body lacks actual host guard/admission and persistence controller"
+  ]
 }

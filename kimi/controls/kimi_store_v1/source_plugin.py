@@ -1,9 +1,12 @@
 """Private source-export plugin. Registration alone never admits computation."""
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
+import time
+from datetime import datetime, timezone
 
 SPEC_ENV = 'SLLM_KIMI_SOURCE_SPEC'
 SHA_ENV = 'SLLM_KIMI_SOURCE_SPEC_SHA256'
@@ -116,3 +119,113 @@ def materialize_plugin_metadata(directory):
         with (target / name).open('x', encoding='utf-8', newline='\n') as stream:
             stream.write(contents)
     return target
+
+
+def _reference_output(requests, prompt, *, fixed):
+    """Preserve raw IDs and sampled-token logprobs; not a frozen gold verifier."""
+    if (not isinstance(requests, list) or len(requests) != 1
+            or requests[0].finished is not True or list(requests[0].prompt_token_ids) != prompt
+            or len(requests[0].outputs) != 1):
+        raise ValueError('one completed reference request with unchanged prompt required')
+    output = requests[0].outputs[0]
+    tokens = list(output.token_ids)
+    if (not tokens or len(tokens) > (32 if fixed else 128)
+            or any(type(t) is not int or not 0 <= t < 163840 for t in tokens)
+            or len(set(tokens)) < 2 or not isinstance(output.text, str) or not output.text.strip()
+            or (fixed and (len(tokens) != 32 or output.finish_reason != 'length'))
+            or (not fixed and output.finish_reason != 'stop')):
+        raise ValueError('finite nondegenerate fixed32 or natural-stop reference required')
+    if output.logprobs is None or len(output.logprobs) != len(tokens):
+        raise ValueError('sampled-token logprobs required for every raw token')
+    values = []
+    for token, row in zip(tokens, output.logprobs):
+        value = row[token].logprob
+        if type(value) not in (int, float) or not math.isfinite(value):
+            raise ValueError('nonfinite sampled-token logprob')
+        values.append(value)
+    return dict(token_ids=tokens, text=output.text, sampled_logprobs=values,
+                finish_reason=output.finish_reason, stop_reason=output.stop_reason,
+                gold_verified=False)
+
+
+def _run_source_reference(engine_factory, sampling_factory, *, spec, identity, prompt_token_ids,
+                          kv_cache_memory_bytes, schedule, entered, started):
+    """Internal worker body only; caller must first establish host guard/admission.
+
+    Factories are vLLM.LLM and SamplingParams in a real admitted worker. No CLI
+    invokes this candidate; local tests supply explicit CPU-only stand-ins.
+    """
+    from contract import REVISION
+    from loader_registry import FORMATS
+    from source_schedule import phase_remaining_seconds
+    from vllm_export_hook import collect_source_rank_receipts, _source_identity
+    identity = _source_identity(identity)
+    if any(identity[k] != spec[k] for k in ('run_id', 'holder', 'code_commit')):
+        raise ValueError('worker spec and reference identity differ')
+    if (not isinstance(prompt_token_ids, list) or not 1 <= len(prompt_token_ids) <= 896
+            or any(type(t) is not int or not 0 <= t < 163840 for t in prompt_token_ids)
+            or type(kv_cache_memory_bytes) is not int or kv_cache_memory_bytes <= 0):
+        raise ValueError('bounded raw prompt and explicit reviewed KV byte budget required')
+    def remaining(phase):
+        return phase_remaining_seconds(schedule, phase, entered=entered,
+            elapsed=time.monotonic()-started, now=datetime.now(timezone.utc))
+    options = dict(model=str(spec['checkpoint_path']), tokenizer=str(spec['checkpoint_path']),
+        revision=REVISION, tokenizer_revision=REVISION, trust_remote_code=True,
+        dtype='bfloat16', quantization='compressed-tensors', load_format=FORMATS['export'],
+        tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1,
+        prefill_context_parallel_size=1, distributed_executor_backend='mp',
+        enable_expert_parallel=False, speculative_config=None,
+        moe_backend='marlin', mm_encoder_tp_mode='data', language_model_only=False,
+        skip_mm_profiling=True, mm_processor_cache_gb=0, cpu_offload_gb=0,
+        enforce_eager=True, enable_prefix_caching=False, enable_chunked_prefill=False,
+        seed=0, max_model_len=1024, max_num_seqs=1, max_num_batched_tokens=1024,
+        kv_cache_memory_bytes=kv_cache_memory_bytes, generation_config='vllm',
+        safetensors_load_strategy='lazy', model_loader_extra_config={'enable_multithread_load': False})
+    engine, failure = None, None
+    evidence = dict(identity, prompt_token_ids=list(prompt_token_ids), engine_options=options,
+        ranks=None, business={}, engine_shutdown_returned=False, resources_released=False)
+    try:
+        remaining('engine_initialize_and_export')
+        engine = engine_factory(**options)
+        ranks = collect_source_rank_receipts(spec['output_root'], identity)
+        evidence['ranks'] = ranks
+        remaining('engine_initialize_and_export')
+        business = evidence['business']
+        for name, fixed in (('fixed_token_business', True), ('natural_eos_business', False)):
+            remaining(name)
+            params = sampling_factory(n=1, temperature=0.0, top_p=1.0, top_k=-1, seed=0,
+                max_tokens=32 if fixed else 128, min_tokens=32 if fixed else 0,
+                ignore_eos=fixed, logprobs=1)
+            requests = engine.generate([{'prompt_token_ids': list(prompt_token_ids)}], params, use_tqdm=False)
+            business[name] = _reference_output(requests, prompt_token_ids, fixed=fixed)
+            remaining(name)
+        result = dict(identity, ranks=ranks, business=business, reference_collected=True,
+            gold_frozen=False, runtime_admitted=False, native_loader_verified=False,
+            full_service_verified=False, resources_released=False)
+    except BaseException as error:
+        failure = error
+        error.source_reference_evidence = evidence
+        if engine is None:
+            error.__notes__ = list(getattr(error, '__notes__', ())) + [
+                'engine constructor did not return; partial processes require host-guard cleanup']
+        raise
+    finally:
+        if engine is not None:
+            try:
+                # Core-client timeout is advisory; independent host guard is mandatory.
+                try:
+                    timeout = remaining('worker_shutdown')
+                except TimeoutError:
+                    timeout = 0.0
+                engine.llm_engine.engine_core.shutdown(timeout=timeout)
+                evidence['engine_shutdown_returned'] = True
+                remaining('worker_shutdown')
+            except BaseException as cleanup_error:
+                evidence['shutdown_error'] = repr(cleanup_error)
+                if failure is None:
+                    cleanup_error.source_reference_evidence = evidence
+                    raise
+                failure.__notes__ = list(getattr(failure, '__notes__', ())) + [
+                    'engine shutdown also failed: ' + repr(cleanup_error)]
+    result['engine_shutdown_returned'] = True
+    return result

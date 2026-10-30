@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 内部source参考worker主体已接在现有source_plugin.py：固定源导出engine参数、八rank收集、fixed32与自然EOS分开、raw tokens/有限logprobs、累计deadline和finally core-client退出；失败保留此前业务/rank/配置及cleanup错误。不是CLI/宿主准入，不启动实际vLLM/GPU。参数只读核官方v0.19.1后删不支持的use_sequence_parallel_moe构造参数，原实际profile硬拒绝仍保留。全套267项中266通过、1项POSIX FIFO因Windows跳过（24.812秒）；当前两文件静态复审PASS，记录追加在source-plugin-tests.json和source-plugin-review.json。下一项完整宿主控制器的实际身份、window、guard/probe/monitor、失败持久化与60秒释放；不能以内部主体通过代替这些门槛。
+
 - 2026-10-31 CPU推进八rank结果收集：在现有vllm_export_hook/source_plugin中接run身份及Base后处理返回后的compact完成记录，父端收齐八rank并核身份/device/metadata SHA；不是payload/TP/native验证。未新增源码目录或拷贝模型。初审发现archive.partial遗漏与FIFO阻塞风险，已补实际fd普通文件核验、四类partial拒绝与负例；全套259项中258通过、1项POSIX FIFO在Windows跳过（25.009秒），不冒充Linux通过。四文件静态复审PASS及失败历史追加在worker-preparation-review.json。实际worker、独立guard/probe及GPU运行仍待完成。
 
 - 2026-10-31 CPU追加：直接修改现有source_schedule.py/test_source_schedule.py，phase_remaining_seconds取累计单调时间与墙钟的更严格期限，CLI复用，等值到期拒绝；250项CPU测试通过（28.437秒）。不新建目录、不复制权重/环境/大池。本次仍无实际worker、独立守护或GPU运行，后续继续在现有文件内接执行闭包；静态审阅追加在source-schedule-review.json，旧审阅保留。
