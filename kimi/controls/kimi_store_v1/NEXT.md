@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 回到核心接口审计发现并复现真实bug：convert返回source/archive/transfer，但完成发布器误从顶层读hash/cleanup_pending；旧C746518源码在真实CPU返回值联动下KeyError，现修为读取archive。强化回归让同一CPU模型从Base初始化→固定source loader→真实转换/写入/index→Base后处理→completion，原packed/BF16位不变。另加metadata回执不持有CPU载荷及官方CPU后处理分支的逐记录/alias最后引用释放控制，无生产gc.collect，不冒充CUDA峰值；2×预算拒绝保留。全套299项中298通过、1项POSIX FIFO因Windows跳过（27.716秒），四文件当前静态复审PASS，完整测试及失败记录追加worker-preparation-review.json。尚无GPU/完整转换/原生服务，宿主unit/完整准入/monitor/60秒释放仍待接齐。
+
 - 2026-10-31 原source_schedule.py已补主动challenge就绪协议和probe CLI：Linux abstract UDS（不增文件/目录）、peer UID/PID+nonce/challenge+fresh PID寿命/namespace/boot+完整target/deadline，单绝对≤2秒与4/8KiB消息界限。guard仅armed循环响应，正常/异常清理前关闭端点；坏客户端不延长截止。Windows真实socketpair仅验证流协议，peer/proc替身与Linux endpoint未实际验证；probe success不授独立服务/部署/计算准入。全套297项中296通过、1项POSIX FIFO因Windows跳过（27.295秒），当前两文件静态复审PASS，异常关闭次序发现已修正，测试/哈希追加source-schedule记录。下一项独立宿主服务/启动清单及unit归属、完整preflight、monitor和60秒释放，保持CPU-only。
 
 - 2026-10-31 已在原source_schedule.py接watchdog独立循环及guard CLI候选，绑定registration/plan/code/spec/原批次截止、host UID/boot/PID namespace与nonce；既有run目录独占小事件日志，未新建代码目录或复制资产。真实CPU两层进程证明launcher退出后子进程仍按2秒截止调用FakeDocker，非Linux/GPU守护证明。初审三项（wall shutdown预算、尾部迟到误成功、日志/等待失败漏清理）均修复并加负例；全套289项中288通过、1项POSIX FIFO在Windows跳过（28.011秒），当前两文件静态复审PASS。测试记录追加source-schedule-tests.json/source-schedule-review.json。下一项部署启动/实际probe与ready验收、monitor和60秒释放，不启动模型或远端任务。

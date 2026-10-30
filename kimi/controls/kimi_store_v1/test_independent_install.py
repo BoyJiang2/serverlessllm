@@ -3,6 +3,7 @@ import json
 import math
 from pathlib import Path
 import tempfile
+import types
 import unittest
 import weakref
 from unittest.mock import patch
@@ -14,9 +15,61 @@ from native_install import install_native_state
 from record_allocations import plan_independent_records, restore_independent_records
 import test_cpu_tensor_io
 import test_install_state
+import test_vllm_cpu_hook
 
 
 class IndependentInstallTests(unittest.TestCase):
+    def test_pinned_cpu_postprocess_releases_record_owners_with_metadata_receipts_kept(self):
+        for anchor_control in (False,True):
+            with self.subTest(anchor_control=anchor_control),tempfile.TemporaryDirectory() as temp:
+                source,result,buffers,digest=self.fixture(Path(temp)/'rank')
+                target=test_cpu_tensor_io.TensorIOTests().model()
+                target.packed_alias=torch.nn.Parameter(target.packed.clone(),requires_grad=False)
+                owners={name:weakref.ref(buffers[name]) for name in ('packed','scale','router_bias')}
+                receipt=install_native_state(Path(temp)/'rank',target,result.tensors,digest,rank=0,
+                    allocation=dict(device='cpu',alias_of=result.plan['alias_of']),independent_records=result,
+                    chunk_bytes=3)
+                anchor=dict(result.tensors) if anchor_control else {}
+                del result
+                buffers.clear()
+                events=[]
+                _,namespace=test_vllm_cpu_hook.LifecycleTests().base(events)
+                process=namespace['process_weights_after_loading']
+                quant_base=process.__globals__['QuantizeMethodBase']
+                attention_base=process.__globals__['Attention']
+                check=self
+                class RepackControl(quant_base):
+                    def process_weights_after_loading(self,model):
+                        check.assertTrue(torch.equal(model.packed,source.packed))
+                        check.assertTrue(torch.equal(model.scale.view(torch.int16),source.scale.view(torch.int16)))
+                        model.packed.data=torch.zeros_like(model.packed)
+                        check.assertIsNotNone(owners['packed']())  # Distinct alias Parameter still owns storage.
+                        model.packed_alias.data=torch.zeros_like(model.packed_alias)
+                        if anchor_control:
+                            check.assertIsNotNone(owners['packed']())
+                            anchor.clear()  # Explicit retained-raw-table control, not production cleanup.
+                        check.assertIsNone(owners['packed']())
+                        check.assertIsNotNone(owners['scale']())
+                        model.scale.data=torch.zeros_like(model.scale)
+                        check.assertIsNone(owners['scale']())
+                        check.assertIsNotNone(owners['router_bias']())
+                        events.append('quant_cpu_control')
+                class AttentionControl(attention_base):
+                    def process_weights_after_loading(self,dtype):
+                        check.assertIsNone(owners['packed']())
+                        check.assertIsNone(owners['scale']())
+                        events.append('attention_cpu_control')
+                target.quant_method=RepackControl()
+                target.attention=AttentionControl()
+                # Actual pinned utility/device_loading_context CPU branch, no CUDA or Marlin kernel.
+                process(target,types.SimpleNamespace(dtype=torch.bfloat16,quantization='compressed-tensors'),torch.device('cpu'))
+                self.assertEqual(events,['quant_cpu_control','attention_cpu_control'])
+                self.assertTrue(receipt['canonical_storage_owners_bound'])
+                self.assertFalse(receipt['allocation_ownership_verified'])
+                json.dumps(receipt,allow_nan=False)
+                del target
+                self.assertIsNone(owners['router_bias']())
+
     def fixture(self, directory):
         source = test_cpu_tensor_io.TensorIOTests().model()
         _, digest = test_install_state.InstallTests().export(directory, source)

@@ -2,12 +2,15 @@ from pathlib import Path
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import types
 import unittest
 from unittest.mock import Mock, patch
 
 import torch
+import checkpoint_export as bridge
+import device_export
 
 from loader_registry import FORMATS, register_candidate_loader
 from marlin_aux import PROFILE
@@ -18,6 +21,44 @@ import vllm_export_hook as hook
 
 
 class ExportLifecycleTests(unittest.TestCase):
+    def test_actual_cpu_conversion_receipt_flows_into_bound_base_completion(self):
+        events=[]
+        with tempfile.TemporaryDirectory() as temp:
+            loader,config,model_config,base,output=self.fixture(temp,events,identity=self.identity())
+            _,source_model,source_config,source,module,patches=test_checkpoint_export.CheckpointExportTests().fixture(
+                Path(temp)/'checkpoint')
+            for field in ('model','revision','is_moe'):setattr(model_config,field,getattr(source_config,field))
+            config.load_config.safetensors_load_strategy='lazy'
+            config.load_config.use_tqdm_on_load=False
+            utility=base.load_model.__globals__['process_weights_after_loading']
+            source_model.quant_method=utility.__globals__['QuantizeMethodBase']()
+            source_model.attention=utility.__globals__['Attention']()
+            def initialize(**kwargs):events.append('initialize');return source_model
+            def convert(directory,source_loader,target,model_config,**kwargs):
+                # Explicit CUDA->CPU test boundary only. The same initialized model and
+                # actual pinned SF loader flow through converter, writer and consumer.
+                self.assertIs(target,source_model)
+                kwargs['device']='cpu'
+                return bridge.convert_checkpoint_rank(directory,source_loader,target,model_config,**kwargs)
+            with patch.multiple(bridge,**patches),patch.dict(sys.modules,{'vllm.config':module}), \
+                    patch.dict(base.load_model.__globals__,initialize_model=initialize), \
+                    patch.object(device_export,'normalize_rank_cpu_auxiliary',return_value=[]), \
+                    patch.object(device_export,'load_targets',return_value=set(source)), \
+                    patch.object(hook,'_require_rank_device'), \
+                    patch.object(hook,'convert_checkpoint_rank',side_effect=convert):
+                returned=loader.load_model(config,model_config)
+            self.assertIs(returned,source_model)
+            self.assertTrue(torch.equal(returned.packed,source['packed']))
+            self.assertTrue(torch.equal(returned.scale.view(torch.int16),source['scale'].view(torch.int16)))
+            receipt=loader.conversion_receipt
+            self.assertEqual(set(receipt),{'source','archive','transfer'})
+            self.assertEqual(receipt['transfer']['source_device'],'cpu')
+            row=json.loads((output/'rank-0/source-complete.json').read_bytes())
+            self.assertEqual(row['index_sha256'],receipt['archive']['native_index_sha256'])
+            self.assertEqual(row['sidecar_sha256'],hashlib.sha256((output/'rank-0/kimi_raw_state.json').read_bytes()).hexdigest())
+            self.assertFalse(row['runtime_admitted'])
+            self.assertEqual(loader.lifecycle_status,'returned')
+
     def identity(self):
         return dict(run_id='kimi-export-20261031T000000Z-01234567',holder='a'*32,
             code_commit='b'*40,spec_sha256='c'*64,source_manifest_sha256='d'*64)
@@ -52,7 +93,7 @@ class ExportLifecycleTests(unittest.TestCase):
                 (directory/'tensor_index.json').write_bytes(b'{}')
                 (directory/'kimi_raw_state.json').write_bytes(b'{}')
                 self.assertFalse((directory/'source-complete.json').exists())
-                return dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest())
+                return dict(archive=dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest()))
             with patch.object(hook,'_require_rank_device'), \
                     patch.object(hook,'convert_checkpoint_rank',side_effect=convert):
                 loader.load_model(config,model_config)
@@ -78,7 +119,7 @@ class ExportLifecycleTests(unittest.TestCase):
             def convert(directory,*args,**kwargs):
                 directory.mkdir()
                 (directory/'tensor_index.json').write_bytes(b'{}')
-                return dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest())
+                return dict(archive=dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest()))
             # Existing fixed Base fixture rejects packed[0] != -1 during postprocess.
             with patch.object(hook,'_require_rank_device'), \
                     patch.object(hook,'convert_checkpoint_rank',side_effect=convert):
@@ -151,7 +192,7 @@ class ExportLifecycleTests(unittest.TestCase):
             loader,config,model_config,_,output=self.fixture(temp,[],identity=self.identity())
             def convert(directory,source,model,*args,**kwargs):
                 directory.mkdir();model.packed.data[0]=-1
-                return dict(cleanup_pending=['config.json.partial'])
+                return dict(archive=dict(cleanup_pending=['config.json.partial']))
             with patch.object(hook,'_require_rank_device'), \
                     patch.object(hook,'convert_checkpoint_rank',side_effect=convert):
                 with self.assertRaisesRegex(ValueError,'cleanup pending'):
@@ -166,7 +207,7 @@ class ExportLifecycleTests(unittest.TestCase):
                 directory.mkdir();model.packed.data[0]=-1
                 (directory/'tensor_index.json').write_bytes(b'{}')
                 (directory/'kimi_raw_state.json').write_bytes(b'{}')
-                return dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest())
+                return dict(archive=dict(native_index_sha256=hashlib.sha256(b'{}').hexdigest()))
             original=Path.unlink
             def fail_partial(path,*args,**kwargs):
                 if path.name=='source-complete.json.partial':raise OSError('fixture unlink failure')

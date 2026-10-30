@@ -165,10 +165,11 @@ def make_checkpoint_export_loader(base_loader, default_loader, *, checkpoint_pat
                 model = super().load_model(vllm_config, model_config, prefix)
                 if identity is not None:
                     directory = outputs / ('rank-' + str(self.rank))
-                    if self.conversion_receipt.get('cleanup_pending'):
+                    archive = self.conversion_receipt['archive']
+                    if archive.get('cleanup_pending'):
                         raise ValueError('archive metadata partial cleanup pending')
                     index_sha = _metadata_sha(directory / 'tensor_index.json')
-                    if index_sha != self.conversion_receipt['native_index_sha256']:
+                    if index_sha != archive['native_index_sha256']:
                         raise ValueError('exported index changed before Base returned')
                     row = dict(identity, schema='kimi-source-rank-completion-v1', rank=self.rank,
                         device_id=context['device_id'], status='base_load_model_returned',

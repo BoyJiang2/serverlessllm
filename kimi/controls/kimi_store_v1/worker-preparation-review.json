@@ -95,6 +95,94 @@
         "Concurrent directory replacement and host identity/admission remain future runtime closure",
         "No GPU, full conversion, model, guard or remote execution performed"
       ]
+    },
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Actual nested source-conversion receipt contract and CPU owner lifetimes; no GPU/native admission",
+      "sha256": {
+        "vllm_export_hook.py": "cea86358c69efa0ef876082cceb4c8a176d1a73edaefbabe47d0dd2353cb5709",
+        "test_export_lifecycle.py": "2134d8250a8e5969a270970631fb4f43f700c02cf9c7940608108bd49dce1c51",
+        "test_checkpoint_export.py": "e72312be6e9707ae77adc18d7fec9f26bac594b960ae24b408619fb1a5ac0394",
+        "test_independent_install.py": "263e5dc29be1e32dcd43de78c9abd7e3315f6f10d67e7c0628a3792b95d7da0a"
+      },
+      "old_consumer_sha256": "c746518b08be89114a23ec962a4ce4b71e699a92a94f9a419a8d28484c2a356a",
+      "confirmed_defect": "convert_checkpoint_rank returns source/archive/transfer, but completion consumer read index hash and cleanup_pending at top level; prior simplified mocks used the wrong flat schema",
+      "test_attempts": [
+        {
+          "count": 15,
+          "seconds": 0.856,
+          "result": "FAILED",
+          "errors": 1,
+          "skipped": 1,
+          "scope": "New actual converter receipt regression before production fix",
+          "traceback_excerpt": "test_actual_cpu_conversion_receipt_flows_into_bound_base_completion -> loader.load_model -> vllm_export_hook.py:171: self.conversion_receipt['native_index_sha256']; KeyError: 'native_index_sha256'"
+        },
+        {
+          "count": 15,
+          "seconds": 0.935,
+          "result": "OK",
+          "skipped": 1,
+          "scope": "Correct nested archive contract and corrected mocks"
+        },
+        {
+          "count": 4,
+          "seconds": 0.123,
+          "result": "FAILED",
+          "failures": 1,
+          "scope": "Initial backing-owner lifetime assertion",
+          "cause": "Test normalize_rank_cpu_auxiliary Mock call_args strongly retained model; isolated referrer diagnostic and reset_mock established this was test instrumentation, not metadata payload retention"
+        },
+        {
+          "count": 4,
+          "seconds": 0.105,
+          "result": "OK",
+          "scope": "Conversion receipt lifetime after dropping test recorder references; no gc.collect"
+        },
+        {
+          "count": 4,
+          "seconds": 0.109,
+          "result": "OK",
+          "scope": "Independent install plus pinned CPU utility postprocess and retained-raw-table control"
+        },
+        {
+          "count": 15,
+          "seconds": 0.856,
+          "result": "OK",
+          "skipped": 1,
+          "scope": "Strengthened same-model Base -> source loader -> real convert/write/index -> Base post -> completion integration"
+        },
+        {
+          "count": 299,
+          "seconds": 27.766,
+          "result": "OK",
+          "skipped": 1,
+          "scope": "Intermediate complete suite before final strengthened test hash"
+        },
+        {
+          "count": 299,
+          "passed": 298,
+          "skipped": 1,
+          "seconds": 27.716,
+          "result": "OK",
+          "scope": "Final complete suite at current four reviewed source hashes"
+        }
+      ],
+      "verified": [
+        "Actual producer/consumer contract linked with same tiny CPU model; packed INT32 and BF16 bit patterns unchanged",
+        "cleanup_pending is consumed from canonical archive object",
+        "JSON-serializable metadata receipts do not retain CPU model backing buffers",
+        "After independent installation, actual fixed utility CPU branch permits record owner release after last alias replacement; explicit raw-table anchor control blocks until cleared",
+        "Untouched router bias owner remains until model deletion; no production gc added"
+      ],
+      "limitations": [
+        "Source shard/name/config-device/framework boundaries are explicit tiny CPU stand-ins, not full checkpoint/vLLM runtime",
+        "Quant replacement control is CPU and not actual Marlin repacking",
+        "CPU backing lifetime does not prove CUDA allocator/IPC ownership or GPU/host peak",
+        "Conservative 2x budget rejection unchanged; no actual full Store/model/native service",
+        "No GPU/remote computation or GLM history modification; one POSIX FIFO test skipped on Windows"
+      ]
     }
   ]
 }

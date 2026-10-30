@@ -7,6 +7,8 @@ import time
 import types
 import typing
 import unittest
+import weakref
+import json
 from unittest.mock import Mock, patch
 
 import torch
@@ -125,17 +127,31 @@ class CheckpointExportTests(unittest.TestCase):
     def test_component_conversion_writes_archive_without_postprocessing(self):
         with tempfile.TemporaryDirectory() as temp:
             loader, model, config, source, module, patches = self.fixture(temp)
+            class Payload(bytearray):pass
+            payloads={}
+            for name,parameter in model.named_parameters():
+                buffer=Payload(parameter.numel()*parameter.element_size())
+                parameter.data=torch.frombuffer(buffer,dtype=parameter.dtype).reshape(parameter.shape)
+                payloads[name]=buffer
+            del parameter,buffer
+            owners={name:weakref.ref(buffer) for name,buffer in payloads.items()}
             output = Path(temp) / 'rank'
             with patch.multiple(bridge, **patches), patch.dict(sys.modules, {'vllm.config': module}), \
-                    patch.object(device_export, 'normalize_rank_cpu_auxiliary', return_value=[]), \
+                    patch.object(device_export, 'normalize_rank_cpu_auxiliary', return_value=[]) as auxiliary, \
                     patch.object(device_export, 'load_targets', return_value=set(source)):
                 receipt = bridge.convert_checkpoint_rank(output, loader, model, config,
                     checkpoint_path=temp, config_raw=test_cpu_tensor_io.CONFIG, checkpoint_contract=b'fixture',
                     device='cpu', rank=0, profile=PROFILE, vllm_version='0.19.1', torch_version='2.10.0', chunk_bytes=7)
+            auxiliary.reset_mock()  # Drop the test recorder's model argument before checking production lifetimes.
             self.assertEqual(model._kimi_source_export_status, 'exported')
             self.assertTrue((output / 'tensor_index.json').is_file())
             self.assertFalse(receipt['source']['postprocessing_performed'])
             self.assertFalse(receipt['archive']['store_created'])
+            json.dumps(receipt,allow_nan=False)  # All returned state is metadata, never Tensor payload.
+            payloads.clear()
+            self.assertTrue(all(owner() is not None for owner in owners.values()))
+            del model
+            self.assertTrue(all(owner() is None for owner in owners.values()))
 
 
 if __name__ == '__main__':

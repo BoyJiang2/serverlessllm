@@ -2,6 +2,10 @@
 
 2026-10-30。代码与CPU组件测试；未运行原生CUDA allocator/RPC，未改变现有native工厂默认路径，不授予GPU准入。
 
+2026-10-31验证追加：真实CPU转换器的返回值为source/archive/transfer，完成发布器先前错误读取顶层index hash及cleanup_pending；已用实际转换器/写入器/索引与同一模型的固定Base/source loader联动回归复现KeyError并修正读取archive字段。此发现只涉及未运行的Kimi候选，不重判GLM历史结果或exit137。
+
+新增CPU owner寿命证据：保留JSON可序列化的转换/安装元数据回执时，删除模型可以释放其bytearray/frombuffer载荷所有者；不依赖gc.collect。安装独立记录后，经固定官方process_weights_after_loading及device_loading_context的真实CPU分支，明确的CPU替换控制在最后一个alias被替换时释放该记录，scale随后释放，未替换的router_bias仍由模型持有；显式保留raw-table的对照会阻止释放，清除该测试锚后才释放。源packed INT32/BF16位模式在替换前核对。这不是实际Marlin重排、cudaFree/IPC所有权、RSS峰值或全模型预算证明，保守2×预算拒绝保持。初次源模型寿命断言失败来自测试Mock自身的call_args持有模型，清除测试记录后通过；未以生产gc调用掩盖问题。当前证据/四文件复审见worker-preparation-review.json。
+
 ## 为什么不能只改CPU初始化
 
 CPU文本初始化可以减少构造阶段的GPU副本，但原single-allocation native路径还由模型锚保留整个raw allocation。固定Marlin后处理会替换packed及scale参数；新重排结果与被锚保留的旧packed/scale同时存在。某些非专家权重仍需旧allocation，因此不能简单删除锚或在第一个owner参数被替换时释放整块。CPU初始化本身不能证明整个重排峰值满足预算，原先141.58GiB双份构造下界及初始化前拒绝仍保留。

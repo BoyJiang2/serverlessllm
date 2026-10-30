@@ -6,7 +6,7 @@
 
 源转换入口现可由独立Base子类调用：固定Default loader只加载本地SF，rank导出发生在后处理之前，之后固定Base继续后处理，便于同一后端生成参考。`vllm_export_hook`默认读取已初始化的TP/PP组及当前CUDA设备；CPU测试的context callback是明确模拟。`loader_registry`复用固定官方注册函数，仅使用sllm_kimi_export_v1/sllm_kimi_native_v1独立名称；同类重复登记允许，其他类冲突拒绝，原safetensors不改。
 
-官方general plugin会在process0、engine core及worker中加载；独立worker需要把本run配置与注册回调通过同一插件入口传到每个进程。当前尚未生成插件distribution metadata、worker命令或执行注册；不能只在父进程注册后假定spawn子进程也已注册。依据：https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/plugins/__init__.py 。
+官方general plugin会在process0、engine core及worker中加载；独立worker需要把本run配置与注册回调通过同一插件入口传到每个进程。当前已实现source私有distribution metadata、注册/完整source绑定与内部参考worker、watchdog/主动probe候选并做CPU控制；实际vLLM多进程插件传播、独立宿主服务与全模型仍未运行，不能只在父进程注册后假定spawn子进程也已注册。依据：https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/plugins/__init__.py 。
 
 ## 必须先修正 native 双份驻留
 
@@ -17,6 +17,8 @@
 下一项先评估CPU文本初始化/官方CUDA视觉支路或直接目标IPC写入两种方案。前者须验证混设备元数据、Parameter属性保留、Base后处理设备语义和主机峰值；后者须验证PyTorch缓存分配器的实际IPC base/offset、所有者、事件及释放语义。未经实现、测试和审阅不选择性跳过检查，不改TP/量化格式以求运行。源转换与backend参考只保留一份模型，不受此特定双份下界直接阻断，但仍须完整worker准入。
 
 ## worker 必需的闭包
+
+2026-10-31核心修订：完成发布必须消费实际convert_checkpoint_rank返回的receipt['archive']，其中才包含native_index_sha256和cleanup_pending；不能让简化mock的扁平回执替代真实接口。已先用真实CPU转换器返回复现旧KeyError，再将同一微型CPU模型从固定Base初始化、固定Default/Kimi源加载、真实convert/write/index、固定Base后处理连到completion发布，并核packed与BF16原始位模式。设备、TP/name和framework配置为明确测试替身，非真实vLLM/CUDA/全模型。原归档partial拒绝与消费失败终态保持；全部Tensor所有权/峰值与八rank实际验证仍在计时之外完成，当前未开跑。
 
 内部worker现已在既有run_root中独占预留source-reference-events.jsonl，不新建目录。预留文件前核run/output与checkpoint互不包含、run身份相符；文件存在即在engine factory之前拒绝，不覆盖旧证据。开始及唯一终态分别flush+fsync，单行最多64KiB、完整读回最多128KiB；开始保留prompt/KV，成功及失败路径都持久化prompt/实际engine配置、raw tokens/有限logprobs及已完成的business/rank元数据，traceback/error摘要截断有显式标志。使用unbuffered独占写，避免日志flush失败后的close二次刷新覆盖原业务异常；CPU回归实际以io.BufferedWriter+写入失败的RawIO故障控制复现旧路径两次flush覆盖，再验证新路径仅一次失败写且原异常保留。证据写入失败保留业务原异常及附加说明；成功业务后终态写入失败也整体失败，异常仍携带结果供宿主补取。read_reference_events拒绝partial最后一行、旧身份、重复/错序事件、非有限/倒退monotonic以及冒充释放或服务通过的结果。只有started的文件标记incomplete，不推断进程还活着或资源已释放。CPU测试实际拉起一个仅sleep的小子进程，由测试父进程通过自己持有的Popen句柄终止，读回仍为incomplete；仅证明日志中断语义，不是宿主deadline guard、真实容器身份或资源回收验证。
 
