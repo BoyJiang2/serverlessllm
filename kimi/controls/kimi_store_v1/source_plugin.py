@@ -17,7 +17,7 @@ _registration = None
 
 def _load_spec(path, expected_sha):
     from contract import REVISION, validate_config
-    from checkpoint_contract import load_targets
+    from checkpoint_contract import load_targets, read_checkpoint_metadata
     from stream_writer import CHUNK_BYTES
     if not re.fullmatch('[0-9a-f]{64}', expected_sha):
         raise ValueError('explicit spec SHA256 required')
@@ -52,8 +52,8 @@ def _load_spec(path, expected_sha):
             or not source.resolve().is_relative_to(run)
             or checkpoint.is_relative_to(run) or run.is_relative_to(checkpoint)):
         raise ValueError('isolated run paths and separate read-only checkpoint required')
-    config_raw = (checkpoint / 'config.json').read_bytes()
-    contract_raw = contract.read_bytes()
+    config_raw = read_checkpoint_metadata(checkpoint / 'config.json', 'config')
+    contract_raw = read_checkpoint_metadata(contract, 'targets')
     validate_config(config_raw)
     load_targets(contract_raw)
     return spec, config_raw, contract_raw

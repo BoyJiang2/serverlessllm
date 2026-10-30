@@ -38,5 +38,85 @@
     "No official full checkpoint, actual CUDA or TP8 verification",
     "Full shard payloads not rehashed by bridge; source integrity and quiescence need runtime evidence",
     "8MiB is a host block limit, not iterator/page-cache/total RSS limit"
+  ],
+  "followups": [
+    {
+      "recorded_utc": "2026-10-30T23:24:27.651457+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current six-file static revision only",
+      "sha256": {
+        "checkpoint_contract.py": "01bbe956d145519c6b01578f6fe1fc62906f8ac751e52801037c8238807d753f",
+        "checkpoint_export.py": "55d9202d757c40f06545693acd208a95920e73f3cee7c3bb9b40289ca788ac53",
+        "source_plugin.py": "7bab2808676735fa87f08216e583015a83a38067d336210697b8ff17958662ff",
+        "test_checkpoint_contract.py": "fa768aa41de6a3499975ba4e36862c0bb7a6f1eedce27b934eaf8fc3dfbedd1d",
+        "test_checkpoint_export.py": "daeaa0c5140af8ab8b2ba27403164e471e162d77473ffcedb856701fcdd18ddd",
+        "test_source_plugin.py": "6ffbb61909441424a20c39a1d013b8fabdc5881c94eac73818d637271d21a2c8"
+      },
+      "regression_before": {
+        "source_plugin_sha256": "e8dae9c2bb9b1ff83cd6c9f93f27362dd69d77f752772a8a302b105f9735ee43",
+        "tests": 26,
+        "failures": 2,
+        "seconds": 1.663,
+        "detail": "Config/targets plus one whitespace byte rejected by old SHA validation but lacked earlier bounded read; expected frozen metadata length instead of old hash errors. No claim old invalid files were accepted."
+      },
+      "intermediate_attempt": {
+        "tests": 26,
+        "failures": 1,
+        "seconds": 1.634,
+        "detail": "Cached config test expected old hash error after length failure moved earlier. Corrected fixture to same-length byte mutation; original SHA check still required."
+      },
+      "tests": {
+        "executor": "primary agent",
+        "contract": {
+          "total": 8,
+          "passed": 7,
+          "skipped": 1,
+          "seconds": 0.018
+        },
+        "plugin": {
+          "total": 26,
+          "passed": 26,
+          "seconds": 1.623
+        },
+        "export": {
+          "total": 5,
+          "passed": 5,
+          "seconds": 0.105
+        },
+        "full": {
+          "total": 318,
+          "passed": 314,
+          "skipped": 4,
+          "seconds": 29.691,
+          "skip_reason": "Four POSIX FIFO tests on Windows"
+        }
+      },
+      "actual_metadata_execution": {
+        "executor": "primary agent",
+        "index_bytes": 23597438,
+        "index_sha256": "00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3",
+        "source_names": 208550,
+        "target_names": 1428,
+        "derived_contract_bytes": 95834,
+        "target_byte_identical": true,
+        "weights_read": false,
+        "weights_copied": false,
+        "gpu_used": false
+      },
+      "verified": [
+        "Config/index/targets length limits agree with frozen evidence",
+        "Actual fd regular-file checks, size+1 reads and finally close",
+        "Both source plugin and conversion manifest use bounded metadata helper",
+        "Original config/index/targets digests retained; same-length modified config still refused",
+        "Source index raw bytes released after parsing"
+      ],
+      "limitations": [
+        "Reviewer only read sources and hashes; execution evidence belongs to primary agent",
+        "Negative manifest integration isolates boundary with explicit validate_config mock",
+        "Linux FIFO and NOFOLLOW not verified on Windows",
+        "Raw metadata byte bounds are not JSON/RSS/serialization or hard I/O deadline bounds",
+        "Full source TP/shape/payload/native/GPU/worker service not proven"
+      ]
+    }
   ]
 }

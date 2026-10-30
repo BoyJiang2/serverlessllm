@@ -21,6 +21,18 @@ ROOT = Path(__file__).parent.resolve()
 
 
 class SourcePluginTests(unittest.TestCase):
+    def test_oversize_source_metadata_is_rejected_before_runtime_import(self):
+        for kind in ('config','targets'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                spec,path=self.fixture(temp);self.activate(spec,path)
+                file=(Path(spec['checkpoint_path'])/'config.json' if kind=='config'
+                      else Path(spec['checkpoint_contract_path']))
+                with file.open('ab') as stream:stream.write(b' ')
+                with patch.object(plugin,'_runtime') as runtime:
+                    with self.assertRaisesRegex(ValueError,'frozen metadata length'):
+                        plugin.register()
+                    runtime.assert_not_called()
+
     def reference_fixture(self, temp):
         spec,path=self.fixture(temp)
         identity=dict(run_id=spec['run_id'],holder=spec['holder'],code_commit=spec['code_commit'],
@@ -361,7 +373,9 @@ class SourcePluginTests(unittest.TestCase):
                     patch.object(plugin, '_runtime', return_value=(registry, base, object)), \
                     patch.object(vllm_export_hook, 'make_checkpoint_export_loader', return_value=candidate):
                 plugin.register()
-                (Path(spec['checkpoint_path']) / 'config.json').write_bytes(b'{}')
+                config=Path(spec['checkpoint_path']) / 'config.json'
+                original=config.read_bytes()
+                config.write_bytes(b'X'+original[1:])  # Same length still must fail frozen SHA.
                 with self.assertRaisesRegex(ValueError, 'config differs'): plugin.register()
 
     def test_disabled_or_partial_environment_cannot_register(self):

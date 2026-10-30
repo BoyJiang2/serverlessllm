@@ -31,6 +31,18 @@ def code_at(path, *names):
 
 
 class CheckpointExportTests(unittest.TestCase):
+    def test_manifest_rejects_wrong_metadata_lengths_before_json_or_loading(self):
+        for kind in ('config','index'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp)
+                (root/'config.json').write_bytes(test_cpu_tensor_io.CONFIG if kind=='index' else b'{}')
+                (root/'model.safetensors.index.json').write_bytes(b'{}')
+                with patch.object(bridge.json,'loads',side_effect=AssertionError('unexpected JSON parsing')):
+                    # validate_config parses the caller's valid frozen config first.
+                    with patch.object(bridge,'validate_config'):
+                        with self.assertRaisesRegex(ValueError,'frozen metadata length'):
+                            bridge._checkpoint_manifest(root,test_cpu_tensor_io.CONFIG)
+
     def fixture(self, root, mode=None):
         source = dict(packed=torch.tensor([-1, -2147483648], dtype=torch.int32),
                       scale=torch.tensor([0x8000, 0x7fc1], dtype=torch.uint16).view(torch.bfloat16))

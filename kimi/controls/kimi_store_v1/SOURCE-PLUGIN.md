@@ -33,3 +33,11 @@ spec.schema=kimi-source-worker-plugin-v1；mode仅export；node固定qjhs003；r
 register现在在_load_spec之后、_runtime/registry/factory之前强制调用verify_source_run。代码目录取实际插件文件所在目录，外部manifest固定为run_root/source-code-manifest.json，预期SHA由SLLM_KIMI_SOURCE_BUNDLE_SHA256提供，code_commit须与同一spec匹配。普通checkout或其他run目录不能作为该run的插件执行来源；同进程缓存返回前也重新核验，不能用已注册状态掩盖磁盘代码变化。
 
 本修订总计235项CPU测试通过；新增两项分别用真实gate拒绝错误物理run目录，并验证cached注册遇到gate失败时不会再导入runtime。旧正向registry测试明确mock代码gate、factory/runtime，未把它当真实模型加载。实际加载进内存的所有模块字节、当前UID/boot/预约/守护仍未证明；此改动只闭合源码文件+spec的启动前必要校验，不授予GPU运行。旧f152680候选保持冻结，修改后须使用新候选及新审阅绑定，不能沿用旧包启动。
+
+## 2026-10-31 冻结源元数据读取
+
+原checkpoint_contract.py新增read_checkpoint_metadata，仅按固定kind读取config（5416字节）、官方SF索引（23597438字节）和目标名称清单（95834字节）。长度依据现有冻结文件及budget-and-provenance.json的源索引记录；实际fd普通文件检查、平台nonblocking/no-follow与read(size+1)保证原始读取有界，短/长均拒绝并关闭fd。helper只核长度，原validate_config、INDEX_SHA256和load_targets摘要检查保留，等长改字节仍拒绝；不能用长度代替SHA。source_plugin和checkpoint_export均接入，源索引解析后释放raw字节临时引用。
+
+源索引实际大于Store索引16MiB上限，因此两类大小政策分开。主线程用既有23597438字节官方源索引通过新helper重新派生208550源名称到1428目标名称，结果与95834字节冻结清单逐字节相同；未读取或复制权重，未创建运行目录。这里只验证元数据契约，不证明shape、payload、真实TP切片或模型。CPU回归另覆盖精确长度/短长、真实NUL fd拒绝关闭、Linux FIFO（Windows跳过）、插件runtime前限长拒绝及转换器JSON前拒绝（后者显式mock validate_config以隔离此边界）。
+
+旧加1空白的config/target本来已被SHA拒绝，本修订增加的是在解析或原生runtime之前的读取边界，不声称修复了错误文件曾被接受的漏洞。缓存回归保持相同长度改字节，确认旧SHA检查仍有效。字节上限不等于JSON展开、序列化、整进程RSS或硬I/O截止；原独立守护及完整运行准入仍须实际核验。当前测试/失败及静态审阅SHA见checkpoint-export-review.json最新追加，旧记录不审批新hash。

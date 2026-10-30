@@ -3,7 +3,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from checkpoint_contract import INDEX_SHA256, load_targets
+from checkpoint_contract import INDEX_SHA256, load_targets, read_checkpoint_metadata
 from contract import REVISION, validate_config, plan_rank
 from device_export import export_rank_device
 from device_state import encode_device_state
@@ -18,12 +18,13 @@ KIMI_SHA = '72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba'
 def _checkpoint_manifest(path, config_raw):
     root = Path(path).resolve(strict=True)
     validate_config(config_raw)
-    if (root / 'config.json').read_bytes() != config_raw:
+    if read_checkpoint_metadata(root / 'config.json', 'config') != config_raw:
         raise ValueError('checkpoint config differs')
-    raw = (root / 'model.safetensors.index.json').read_bytes()
+    raw = read_checkpoint_metadata(root / 'model.safetensors.index.json', 'index')
     if hashlib.sha256(raw).hexdigest() != INDEX_SHA256:
         raise ValueError('checkpoint index differs from frozen official bytes')
     weights = json.loads(raw)['weight_map']
+    del raw
     files = sorted(set(weights.values()))
     if len(weights) != 208550 or len(files) != 64:
         raise ValueError('incomplete official checkpoint manifest')
