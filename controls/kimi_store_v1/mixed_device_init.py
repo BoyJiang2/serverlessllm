@@ -1,6 +1,6 @@
 """CPU text / official CUDA vision construction candidate, not a loader."""
 from checkpoint_export import KIMI_SHA
-from vllm_cpu_hook import _verify_function
+from vllm_cpu_hook import _verify_function, UTILS_SHA256
 
 
 def audit_mixed_registered_state(model, device):
@@ -31,7 +31,7 @@ def audit_mixed_registered_state(model, device):
                 native_loader_verified=False, peak_memory_verified=False)
 
 
-def initialize_mixed_rank(model_class, vllm_config, *, device, prefix=''):
+def _require_mixed_constructor(model_class, vllm_config, device):
     import torch
     expected = torch.device(device)
     if expected.type != 'cuda' or expected.index not in range(8):
@@ -44,6 +44,12 @@ def initialize_mixed_rank(model_class, vllm_config, *, device, prefix=''):
     if (vllm_config.model_config.dtype != torch.bfloat16
             or torch.get_default_dtype() != torch.bfloat16):
         raise ValueError('active BF16 default and model dtype required')
+    return expected
+
+
+def initialize_mixed_rank(model_class, vllm_config, *, device, prefix=''):
+    import torch
+    expected = _require_mixed_constructor(model_class, vllm_config, device)
     with torch.device('cpu'):
         model = model_class(vllm_config=vllm_config, prefix=prefix)
     receipt = audit_mixed_registered_state(model, expected)
@@ -58,3 +64,14 @@ def mixed_state_devices(model, device):
              'mm_projector': torch.device(device)}
     return {name: roots[name.partition('.')[0]] for name, _ in
             list(model.named_parameters(remove_duplicate=False)) + list(model.named_buffers(remove_duplicate=False))}
+
+
+def initialize_mixed_vllm_rank(initialize_model, model_class, vllm_config, *, device, prefix=''):
+    """Preserve official quant configuration, current-config scope and reload metadata."""
+    import torch
+    original = _verify_function(initialize_model, UTILS_SHA256)
+    expected = _require_mixed_constructor(model_class, vllm_config, device)
+    with torch.device('cpu'):
+        model = original(vllm_config=vllm_config, model_class=model_class,
+                         model_config=vllm_config.model_config, prefix=prefix)
+    return model, audit_mixed_registered_state(model, expected)

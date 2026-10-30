@@ -1,0 +1,32 @@
+{
+  "recorded_utc": "2026-10-30T02:06:00.256438+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "mixed_device_init.py": "29eac40601fc5a7c85261809c953c30bac4d068b0f487f5e602476f04027eddb",
+    "mixed_postprocess.py": "7cd96dcff55b059fdbf42c6cc3f9dbc592871b15d2ca02fbaf5e0479c50d4eb4",
+    "test_mixed_context.py": "ceead685a684296330b6d1681e500d01fe704f4670ad15191821ae15bde9baaa",
+    "MIXED-CONTEXT.md": "b035f0c703dd29becc91f04fc73419b6aafec43a47e9f9b3f2924e612f3061aa",
+    "NEXT.md": "1ad61f9f31024f6c2df2e0f09fda17498504eb02529f6b9a35e0df6aa2561ed2",
+    "README.md": "ca573df1ccf073898bcb76b15374425c58ab0829a27d1db8c3b66a0a4c7e65f3"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 202,
+    "seconds": 10.112,
+    "scope": "Pinned utility control flow with explicit tiny CPU framework and movement boundaries; full local CPU suite"
+  },
+  "verified": [
+    "Official quant configuration, current-config and reload utility flow retained",
+    "CPU construction device scope restored on failure",
+    "Postprocessing selects final CUDA target and rejects missing installation, UVA, wrong devices or legacy anchor",
+    "Pinned quant-before-Attention ordering and one-shot failure state preserved"
+  ],
+  "limitations": [
+    "Reviewer performed static reading and hash verification only",
+    "Model, quant callbacks, movement contexts or CUDA rank checks are explicit test mocks",
+    "No real CUDA success, cross-device Parameter.data, complete hidden-state, peak or release validation",
+    "No complete factory/worker integration or runtime admission"
+  ]
+}

@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增initialize_mixed_vllm_rank保留官方quant/config/reload初始化上下文，mixed_postprocess显式最终CUDA target并限制一次后处理；202项CPU测试通过，复审见mixed-context-review.json。初始化/后处理真实CUDA边界仍mock，未组合完整新factory、无GPU运行。下一项连接构造/aux/producer/install及受审全峰值预算与worker。详见MIXED-CONTEXT.md。
+
 - 新增normalize_rank_mixed_auxiliary：CPU文本/官方CUDA视觉设备政策先核验，仅target-before-restore，复用60层全预检及CPU Marlin辅助规则；195项CPU测试通过，复审见mixed-auxiliary-review.json。未连接完整mixed factory、未运行真实CUDA；下一项构造/producer/install组合及Base后处理目标语义。详见MIXED-AUXILIARY.md。
 
 - 新增显式device_map元数据及独立target_device_map安装边界，192项CPU测试通过，复审见mixed-state-review.json；默认CPU结果保持一致，隐藏Tensor仍扫描，地址alias加入device维度。真实混设备/CUDA绑定未验证，CPU Marlin规范化及Base后处理/新工厂接线仍待完成。详见MIXED-STATE.md。

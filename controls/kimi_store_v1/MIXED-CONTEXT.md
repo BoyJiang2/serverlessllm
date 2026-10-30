@@ -1,0 +1,9 @@
+# 官方构造上下文与恢复后CUDA后处理
+
+新增 `initialize_mixed_vllm_rank`，先绑定固定vLLM initialize_model源码/code及Kimi构造器，再在CPU默认设备上下文调用官方initialize_model，并显式传入固定模型类。保留官方configure_quant_config、set_current_vllm_config(check_compile=True,prefix)、record_metadata_for_reloading流程；不直接以裸构造器替代这些步骤。原initialize_mixed_rank仍是独立构造组件，不作为完整vLLM初始化入口。两者共用已有构造设备/BF16检查。BF16默认dtype上下文仍由上层Base或worker持有。
+
+新增 `process_restored_mixed_rank`：只有独立记录安装标记、无旧whole-allocation锚、compressed-tensors/BF16、全部登记state位于目标CUDA设备且无UVA offloading时才调用固定官方后处理。target_device显式设为最终CUDA设备，和构造期CPU上下文分开。官方函数继续先quant后Attention/MLA；不重写内核，不把Base的load_device改成CPU后盲目沿用CPU target。绑定device_loading_context源码，使用单次状态processing/failed/returned；后处理或最终设备核验失败整worker作废，不重试。标记仅约束可信内部调用，不是对不可信状态的所有权证明。
+
+新增7项CPU测试，总计202项通过。实际执行固定initialize_model函数code，量化配置/当前配置上下文/reload hook为显式小回调，模型类及构造设备边界为CPU夹具；核验顺序、prefix/check_compile、构造异常退出当前配置及CPU设备上下文。固定官方后处理函数控制流也执行，但设备移动context和rank-CUDA检查显式mock，Quant/Attention是控制标记，没有CUDA kernel。实际CPU rank不能通过CUDA前置检查，缺安装标记/UVA/旧锚拒绝，失败及成功后都不能第二次后处理。未知initialize_model源码在构造前拒绝。
+
+未将构造→mixed辅助规范化→逐记录producer→安装→该后处理组合成新factory，未新增worker或运行准入，也未改变旧工厂和双份预算拒绝。实际库/ABI、真实CPU到CUDA Parameter.data、GPU重排和峰值/释放仍待验证。完整预算必须包含CPU目标驻留、Store池/缓存与GPU视觉初始副本、重排workspace和初始化成本；当前组件不证明预算满足。GLM历史40ID/金标/失败冻结。
