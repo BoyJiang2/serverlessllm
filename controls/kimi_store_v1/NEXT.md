@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增source_bundle源码对象生成/完整文件校验及source spec/run布局绑定，233项CPU测试通过，初审扫描错误误通过已复现修复，复审见source-bundle-review.json。复用固定SHA的既有Git读取器，blob读取前检查大小；独立CPU CLI已测。尚未接source worker/插件启动，未验证真实整包或GPU；下一项实际候选存证、启动来源/guard/预算与退出闭包。详见SOURCE-BUNDLE.md。
+
 - 新增source_plugin只做export独立注册及私有distribution metadata，220项CPU测试通过，初审读取上限竞态已复现修复，复审见source-plugin-review.json。新CPU子进程已测标准entrypoint发现及spec身份继承，尚未执行真实vLLM general-plugin/TP8 worker。下一项source worker完整manifest/镜像ABI/预算/guard/监控及退出取证，仍不启动GPU。详见SOURCE-PLUGIN.md和RESERVATION-PLAN.md。
 
 - 已用冻结完整索引+64分片header实算memory_floors，211项CPU测试通过，复审见memory-floors-review.json。mixed raw≥71.557GiB/卡，8rank CPU文本≥565.438GiB、Store有效payload≥572.458GiB；不是峰值上限。两类全缓存+CPU目标+pool假设共驻留约2264.656GiB，普通页可回收，不能直接称OOM。旧预算停止保留；下一项source单模型worker/插件与完整资源/构建/守护闭包。详见MEMORY-BUDGET.md。

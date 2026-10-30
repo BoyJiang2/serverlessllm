@@ -1,0 +1,40 @@
+{
+  "recorded_utc": "2026-10-30T06:51:19.532188+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "source_bundle.py": "7c95d82db6ae2aa050852aad7d3487b275f6621dc32afe54bc23c7d8c299325f",
+    "test_source_bundle.py": "96a35aff094c5f934fa19d04eb90dc8fd1885769b3d2cd5f96c9725d2cbf1fb0",
+    "SOURCE-BUNDLE.md": "d75cffd70f355de0c32d26d23edbc11a01884a08e03891c0705a55c964c0b226",
+    "source-bundle-tests.json": "98a2261532fb0eccd974e3f1dd63837314b5d7446ebfa0af4c100d436e3f5e6b",
+    "NEXT.md": "3e2d0a46ac5b8e45023cf58c04e70a518f4a9b117d9fe2c998920c5aee739c4c",
+    "README.md": "d330bae720f64d666e431a51c2945b2e6b14aa334c30ca3c21627515899e7e75"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 233,
+    "seconds": 24.73,
+    "scope": "Tiny real Git-object trees, isolated CLI and injected metadata/scan failures; full local CPU suite",
+    "history": "source-bundle-tests.json"
+  },
+  "initial_review": {
+    "verdict": "changes_required",
+    "source_sha256": "a593dd0581c077e660a4adaf26b3b24fc80305bd913703755599054c56397775",
+    "finding": "Path.rglob could suppress child scan OSError and falsely verify a complete file set",
+    "resolution": "Explicit os.walk onerror re-raises, followlinks=False; fault reproduced with cached pathlib scanner and passes after fix"
+  },
+  "verified": [
+    "Reviewed Git-object reader SHA bound; no deployment/SSH called",
+    "Commit-only source bytes, blob-size preflight and exclusive output preserve worktree and old runs",
+    "External SHA, expected commit, complete file set and run/spec directory layout checked",
+    "Scan failure propagates and per-entry symlink/nonregular/count checks remain",
+    "Reviewer rehashed saved initial source and retained failed probes accurately"
+  ],
+  "limitations": [
+    "Reviewer did not execute tests",
+    "Tiny Git fixtures and injected scan faults are not full Kimi or real Linux permissions probes",
+    "No real candidate bundle generated during reviewed tests",
+    "No actual loaded-module, UID/boot, resource/window/guard or GPU admission proof"
+  ]
+}
