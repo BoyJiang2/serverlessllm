@@ -29,3 +29,5 @@ core先向本实验拥有的loopback Store请求host加载；每个非空canonic
 旧core在try内return后才finally关闭客户端通道，关闭异常仅记日志，且关闭耗时未计入成功回执。故障回归先在旧源码复现两项未抛异常，现改为通道关闭后统一判定；关闭抛错、超过或恰好达到原绝对deadline均失败，已有RPC/恢复错误保留原stage和cause，关闭错误另记，已构造state仍留给失败清理。public返回边界也检查原总预算。没有主动free、卸载Store或自动重试。
 
 当前九项producer CPU测试通过；全套302项中301通过、1项POSIX FIFO因Windows跳过（29.475秒）。两文件独立静态复审PASS，精确hash和旧失败追加native-record-call-review.json。同步close依然不能由本函数强制中断；此修正不是实际CUDA/IPC释放、原生ABI或宿主守护通过。逐记录producer已有独立mixed-loader组合候选，但未注册切换旧native工厂，也无完整worker准入。
+
+构建回执读取追加硬上限：外部SHA格式先验证，实际fd以nonblocking/no-follow（平台支持时）打开并fstat确认普通文件；最多read(65537)，超过65536字节在JSON/native核验前拒绝，finally关闭fd。64KiB精确边界、非法SHA不open、非普通fd拒绝/实际关闭均有CPU回归；Linux无writer FIFO用例在Windows明确跳过。旧源码超限解析负例已先失败，当前全套306项中304通过、2项平台跳过（27.885秒），当前两文件静态复审PASS。此上限只约束回执读取，不是整个进程RSS或阻塞I/O截止保证；其他侧车/旧入口仍有整文件metadata读取，不能宣称所有元数据已统一有界。

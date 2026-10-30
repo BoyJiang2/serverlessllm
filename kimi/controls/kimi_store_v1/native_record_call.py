@@ -2,7 +2,10 @@
 import hashlib
 import inspect
 import json
+import os
 from pathlib import Path
+import re
+import stat
 import time
 import types
 
@@ -25,7 +28,19 @@ def _file_digest(path):
 
 def _bound_runtime(native_module, build_receipt, expected_build_sha256):
     """Bind local checkpoint binary and reviewed Store build receipt, not live server identity."""
-    raw = Path(build_receipt).read_bytes()
+    if not isinstance(expected_build_sha256, str) or not re.fullmatch('[0-9a-f]{64}', expected_build_sha256):
+        raise ValueError('external Store build receipt SHA required')
+    flags = os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    fd = os.open(build_receipt, flags)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError('regular Store build receipt required')
+        with os.fdopen(fd, 'rb', closefd=False) as stream:
+            raw = stream.read(65537)
+    finally:
+        os.close(fd)
+    if len(raw) > 65536:
+        raise ValueError('Store build receipt length exceeds 64 KiB')
     if hashlib.sha256(raw).hexdigest() != expected_build_sha256:
         raise ValueError('Store build receipt digest differs')
     build = json.loads(raw)

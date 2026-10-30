@@ -2,6 +2,7 @@ import ctypes
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import tempfile
 import types
@@ -18,6 +19,44 @@ import test_native_call
 
 
 class NativeRecordCallTests(unittest.TestCase):
+    def test_build_receipt_has_a_hard_read_bound_before_json_or_native_checks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'build.json'
+            raw=b'{}'+b' '*(65537-2)
+            path.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError,'length'):
+                call._bound_runtime(object(),path,hashlib.sha256(raw).hexdigest())
+
+    def test_build_receipt_exact_bound_is_allowed_and_invalid_sha_precedes_open(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'build.json'
+            raw=b'{}'+b' '*(65536-2)
+            path.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError,'compiled IPC-close'):
+                call._bound_runtime(object(),path,hashlib.sha256(raw).hexdigest())
+            with patch.object(call.os,'open',side_effect=AssertionError('unexpected open')):
+                for digest in (None,True,'a'*63,'A'*64):
+                    with self.assertRaisesRegex(ValueError,'external Store'):
+                        call._bound_runtime(object(),path,digest)
+
+    def test_build_receipt_rejects_nonregular_fd_and_closes_it(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'build.json';path.write_bytes(b'{}')
+            original=call.os.fstat
+            with patch.object(call.os,'fstat',side_effect=lambda fd:types.SimpleNamespace(st_mode=0)), \
+                    patch.object(call.os,'close',wraps=os.close) as close:
+                with self.assertRaisesRegex(ValueError,'regular Store'):
+                    call._bound_runtime(object(),path,'0'*64)
+            close.assert_called_once()
+            with self.assertRaises(OSError):original(close.call_args.args[0])
+
+    @unittest.skipUnless(hasattr(os,'mkfifo'),'POSIX FIFO unavailable')
+    def test_build_receipt_fifo_is_rejected_without_waiting_for_writer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'build.fifo';os.mkfifo(path)
+            with self.assertRaisesRegex(ValueError,'regular Store'):
+                call._bound_runtime(object(),path,'0'*64)
+
     def test_channel_close_error_or_overrun_cannot_return_success(self):
         for kind in ('error','overrun','boundary'):
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:

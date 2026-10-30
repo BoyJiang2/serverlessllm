@@ -69,6 +69,47 @@
         "No real CUDA, mapped binary/live Store identity, peak memory or resource-release proof",
         "No remote execution, full Store conversion or runtime admission"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-30T22:45:12.763845+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file static revision only",
+      "sha256": {
+        "native_record_call.py": "827e5377c9ec1ee46020f59ef93cff60363b45f9a4d8efadadbc1c95c36b4a51",
+        "test_native_record_call.py": "6d3e34053c936a23ca0110c31feb1119eef8ad8d18595bc10c8aa74648b42f4b"
+      },
+      "regression_before": {
+        "source_sha256": "37cda074e9f2fc17f3f63d4fb6f6508d1c08fd349626eb7e1e857f60e7b6170d",
+        "tests": 10,
+        "failures": 1,
+        "seconds": 0.333,
+        "detail": "65537-byte valid JSON receipt parsed before compiled-build check instead of failing hard length bound"
+      },
+      "tests": {
+        "executor": "primary agent",
+        "targeted_count": 13,
+        "targeted_passed": 12,
+        "targeted_skipped": 1,
+        "targeted_seconds": 0.413,
+        "total_count": 306,
+        "passed": 304,
+        "skipped": 2,
+        "seconds": 27.885,
+        "skip_reason": "Two POSIX FIFO tests on Windows"
+      },
+      "verified": [
+        "Read at most 65537 bytes and reject receipt above 65536 before JSON/native validation",
+        "Exact 65536-byte boundary reaches existing compiled receipt validation",
+        "Invalid external SHA rejected before open",
+        "Actual fd file type checked and fd closed after rejection",
+        "Linux flags use NONBLOCK/NOFOLLOW where available"
+      ],
+      "limitations": [
+        "Static reviewer did not execute tests or remote commands",
+        "FIFO no-writer test skipped on Windows; not actual Linux evidence",
+        "64 KiB byte read bound is not process RSS, JSON allocation peak or synchronous I/O deadline bound",
+        "No new directory, weight/environment copy, model/Store/GPU execution or runtime admission"
+      ]
     }
   ]
 }
