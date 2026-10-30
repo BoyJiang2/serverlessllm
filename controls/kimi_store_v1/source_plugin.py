@@ -7,6 +7,7 @@ import re
 
 SPEC_ENV = 'SLLM_KIMI_SOURCE_SPEC'
 SHA_ENV = 'SLLM_KIMI_SOURCE_SPEC_SHA256'
+BUNDLE_SHA_ENV = 'SLLM_KIMI_SOURCE_BUNDLE_SHA256'
 _registration = None
 
 
@@ -66,14 +67,22 @@ def _runtime():
     return registry, BaseModelLoader, DefaultModelLoader
 
 
+def _verify_code_bundle(spec, path, digest, bundle_digest):
+    from source_bundle import verify_source_run
+    return verify_source_run(Path(__file__).resolve().parent,
+        spec['run_root'] / 'source-code-manifest.json', bundle_digest, path, digest)
+
+
 def register():
     global _registration
     path, digest = os.environ.get(SPEC_ENV), os.environ.get(SHA_ENV)
-    if path is None and digest is None:
+    bundle_digest = os.environ.get(BUNDLE_SHA_ENV)
+    if path is None and digest is None and bundle_digest is None:
         return None
-    if not path or not digest:
-        raise ValueError('source plugin needs both spec path and SHA')
+    if not path or not digest or not bundle_digest:
+        raise ValueError('source plugin needs both spec path/SHA and bundle SHA')
     spec, config_raw, contract_raw = _load_spec(path, digest)
+    _verify_code_bundle(spec, path, digest, bundle_digest)
     registry, base, default = _runtime()
     from loader_registry import FORMATS, register_candidate_loader
     from marlin_aux import PROFILE

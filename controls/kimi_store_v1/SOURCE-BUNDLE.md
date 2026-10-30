@@ -30,3 +30,5 @@ python controls/kimi_store_v1/source_bundle.py verify --directory <code目录> -
 当前尚未把该校验接到source_plugin/worker启动前；插件的code_commit仍只是声明，不能据本组件PASS声称已执行完整代码绑定。下一项需要实际源码候选包存证、worker启动检查/模块来源、容器与window/guard/probe/monitor、source全预算和退出取证，之后才申请运行准入。预约计划仍见RESERVATION-PLAN.md，未完成准备不占模型/大池等审批。native预算停止与原40ID保持。
 
 初审发现rglob可能抑制子目录扫描OSError。首次注入只patch os.scandir，未覆盖Python3.13缓存的pathlib扫描器，按真实结果保留为探针未命中；修正hook后旧实现确实误返回成功。现改os.walk(onerror=raise, followlinks=False)，子目录扫描失败必须退出；完整初审源码、hash、两次探针结果及最终测试保留source-bundle-tests.json。新回归是小本机故障注入，不冒充真实Linux权限probe。
+
+后续source-plugin修订已把verify_source_run接到_runtime/registry/factory之前，并要求外部bundle SHA，cached调用同样重查。原f152680候选保持冻结，新的代码必须重新成包；完整worker/实际导入内存/守护与运行准入仍缺，不能追认旧包已经包含本接线。

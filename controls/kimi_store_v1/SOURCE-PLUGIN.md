@@ -4,7 +4,7 @@
 
 ## 配置与进程传播
 
-`source_plugin.register` 是独立general-plugin回调。未设置SLLM_KIMI_SOURCE_SPEC和SLLM_KIMI_SOURCE_SPEC_SHA256时不导入Torch/vLLM、不注册；只设置一个则拒绝。启用时读取绝对路径下最多64KiB的spec，先核外部SHA，再验证固定schema/node/revision/mode、run_id/holder/code_commit格式、明确字节块上限及路径。checkpoint必须与run_root互不包含；spec和checkpoint contract必须位于run_root，output_root是run_root专属子目录。官方config与1428目标contract继续使用既有冻结校验。
+`source_plugin.register` 是独立general-plugin回调。SLLM_KIMI_SOURCE_SPEC、SLLM_KIMI_SOURCE_SPEC_SHA256、SLLM_KIMI_SOURCE_BUNDLE_SHA256三项都未设置时不导入Torch/vLLM、不注册；部分配置则拒绝。启用时读取绝对路径下最多64KiB的spec，先核外部SHA，再验证固定schema/node/revision/mode、run_id/holder/code_commit格式、明确字节块上限及路径。checkpoint必须与run_root互不包含；spec和checkpoint contract必须位于run_root，output_root是run_root专属子目录。官方config与1428目标contract继续使用既有冻结校验。
 
 spec.schema=kimi-source-worker-plugin-v1；mode仅export；node固定qjhs003；run_id格式kimi-export-YYYYMMDDTHHMMSSZ-8hex，holder为32hex，code_commit为40hex。配置只声明身份，**不证明实际SSH节点/boot、运行代码SHA、所有者授权、资源或有效窗口**；完整worker gate必须另核。这里不把配置中的commit字符串当作已验证完整code manifest。
 
@@ -16,7 +16,7 @@ spec.schema=kimi-source-worker-plugin-v1；mode仅export；node固定qjhs003；r
 
 `materialize_plugin_metadata(directory)`仅在调用方指定且已存在的私有目录中新增serverlessllm_kimi_source_candidate-0.1.0.dist-info，使用独占mkdir和文件x模式；不覆盖已有目录，不全局pip install，部分失败由调用者留证。entry point为vllm.general_plugins组的sllm_kimi_source_candidate=source_plugin:register。
 
-后续受守护容器需把完整受审候选源码和此metadata放入同一受控PYTHONPATH，并设置VLLM_PLUGINS=sllm_kimi_source_candidate及上述两个spec环境变量，确认它们实际传到engine/worker。此处只是接口约定，不是可直接执行的启动命令；尚未生成窗口/guard/容器/完整code manifest或安装metadata。挂载权重只读，输出归本run，worker负责原子run登记和精确清理。
+后续受守护容器需把完整受审候选源码和此metadata放入同一受控PYTHONPATH，并设置VLLM_PLUGINS=sllm_kimi_source_candidate及上述两个spec环境变量和SLLM_KIMI_SOURCE_BUNDLE_SHA256，确认它们实际传到engine/worker。此处只是接口约定，不是可直接执行的启动命令；尚未生成窗口/guard/容器/完整code manifest或安装metadata。挂载权重只读，输出归本run，worker负责原子run登记和精确清理。
 
 ## 已验证与未验证
 
@@ -27,3 +27,9 @@ spec.schema=kimi-source-worker-plugin-v1；mode仅export；node固定qjhs003；r
 下一项：完整source worker的代码与配置manifest、实际镜像/ABI、模型与导出总预算、独立窗口/guard/probe/监控、受控退出取证与八rank结果收集。实际GPU运行仍需单独完整审阅和资源核验；沿用RESERVATION-PLAN.md，避免占着预约等待审批。native补丁构建和完整峰值预算仍单独处理，保守停止不变。
 
 初审确认stat/read_bytes之间存在文件增长竞态；新增小回归在旧实现失败，新实现打开流后只请求65,537字节，超过64KiB即拒绝，再核SHA/解析。source-plugin-tests.json保留初审源码SHA、可重建原实现的精确片段、失败及最终测试记录；不以stat作为硬读取界限。
+
+## 启动前代码绑定修订
+
+register现在在_load_spec之后、_runtime/registry/factory之前强制调用verify_source_run。代码目录取实际插件文件所在目录，外部manifest固定为run_root/source-code-manifest.json，预期SHA由SLLM_KIMI_SOURCE_BUNDLE_SHA256提供，code_commit须与同一spec匹配。普通checkout或其他run目录不能作为该run的插件执行来源；同进程缓存返回前也重新核验，不能用已注册状态掩盖磁盘代码变化。
+
+本修订总计235项CPU测试通过；新增两项分别用真实gate拒绝错误物理run目录，并验证cached注册遇到gate失败时不会再导入runtime。旧正向registry测试明确mock代码gate、factory/runtime，未把它当真实模型加载。实际加载进内存的所有模块字节、当前UID/boot/预约/守护仍未证明；此改动只闭合源码文件+spec的启动前必要校验，不授予GPU运行。旧f152680候选保持冻结，修改后须使用新候选及新审阅绑定，不能沿用旧包启动。

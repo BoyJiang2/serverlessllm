@@ -288,3 +288,5 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 - 新增source_plugin只做export独立注册及私有distribution metadata，220项CPU测试通过，初审读取上限竞态已复现修复，复审见source-plugin-review.json。新CPU子进程已测标准entrypoint发现及spec身份继承，尚未执行真实vLLM general-plugin/TP8 worker。下一项source worker完整manifest/镜像ABI/预算/guard/监控及退出取证，仍不启动GPU。详见SOURCE-PLUGIN.md和RESERVATION-PLAN.md。
 
 - 新增source_bundle源码对象生成/完整文件校验及source spec/run布局绑定，233项CPU测试通过，初审扫描错误误通过已复现修复，复审见source-bundle-review.json。复用固定SHA的既有Git读取器，blob读取前检查大小；独立CPU CLI已测。尚未接source worker/插件启动，未验证真实整包或GPU；下一项实际候选存证、启动来源/guard/预算与退出闭包。详见SOURCE-BUNDLE.md。
+
+- source_plugin现强制在runtime/factory之前verify_source_run（实际插件目录+run固定manifest+外部bundle SHA），cached注册也重查；235项CPU测试通过，复审见source-startup-review.json。旧f152680包冻结，必须按新代码提交成包；下一项新整包CPU接线验证和worker入口/实际身份/预算/guard闭包。尚无GPU/完整Store。

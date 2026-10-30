@@ -22,7 +22,7 @@ class SourcePluginTests(unittest.TestCase):
         environment = patch.dict(os.environ)
         environment.start()
         self.addCleanup(environment.stop)
-        for name in (plugin.SPEC_ENV, plugin.SHA_ENV): os.environ.pop(name, None)
+        for name in (plugin.SPEC_ENV, plugin.SHA_ENV, plugin.BUNDLE_SHA_ENV): os.environ.pop(name, None)
         state = patch.object(plugin, '_registration', None)
         state.start()
         self.addCleanup(state.stop)
@@ -49,6 +49,7 @@ class SourcePluginTests(unittest.TestCase):
         path.write_bytes(raw)
         os.environ[plugin.SPEC_ENV] = str(path)
         os.environ[plugin.SHA_ENV] = hashlib.sha256(raw).hexdigest()
+        os.environ[plugin.BUNDLE_SHA_ENV] = 'd' * 64
 
     def registry(self):
         class Base: pass
@@ -67,7 +68,8 @@ class SourcePluginTests(unittest.TestCase):
             registry, base = self.registry()
             candidate = type('Candidate', (base,), {})
             builtin = registry._LOAD_FORMAT_TO_MODEL_LOADER['safetensors']
-            with patch.object(plugin, '_runtime', return_value=(registry, base, object)), \
+            with patch.object(plugin, '_verify_code_bundle', return_value={}), \
+                    patch.object(plugin, '_runtime', return_value=(registry, base, object)), \
                     patch.object(vllm_export_hook, 'make_checkpoint_export_loader', return_value=candidate) as factory:
                 self.assertEqual(plugin.register(), FORMATS['export'])
                 self.assertEqual(plugin.register(), FORMATS['export'])
@@ -102,7 +104,8 @@ class SourcePluginTests(unittest.TestCase):
             self.activate(spec, path)
             registry, base = self.registry()
             candidate = type('Candidate', (base,), {})
-            with patch.object(plugin, '_runtime', return_value=(registry, base, object)), \
+            with patch.object(plugin, '_verify_code_bundle', return_value={}), \
+                    patch.object(plugin, '_runtime', return_value=(registry, base, object)), \
                     patch.object(vllm_export_hook, 'make_checkpoint_export_loader', return_value=candidate):
                 plugin.register()
                 (Path(spec['checkpoint_path']) / 'config.json').write_bytes(b'{}')
@@ -168,3 +171,30 @@ class SourcePluginTests(unittest.TestCase):
                     hashlib.sha256(payload).hexdigest())
             self.assertEqual(stream.read.call_args, call(65537))
             runtime.assert_not_called()
+
+    def test_code_gate_failure_precedes_runtime_import_and_registration(self):
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = self.fixture(temp)
+            self.activate(spec, path)
+            with patch.object(plugin, '_runtime') as runtime:
+                # This checkout is not this spec's run_root/code: real gate refuses.
+                with self.assertRaisesRegex(ValueError, 'another run'):
+                    plugin.register()
+                runtime.assert_not_called()
+                self.assertIsNone(plugin._registration)
+
+    def test_code_gate_is_rechecked_on_cached_registration(self):
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = self.fixture(temp)
+            self.activate(spec, path)
+            registry, base = self.registry()
+            candidate = type('Candidate', (base,), {})
+            with patch.object(plugin, '_runtime', return_value=(registry, base, object)) as runtime, \
+                    patch.object(vllm_export_hook, 'make_checkpoint_export_loader', return_value=candidate), \
+                    patch.object(plugin, '_verify_code_bundle', return_value={}) as code_gate:
+                plugin.register()
+                code_gate.side_effect = ValueError('source bytes changed')
+                with self.assertRaisesRegex(ValueError, 'source bytes changed'):
+                    plugin.register()
+                self.assertEqual(runtime.call_count, 1)
+                self.assertEqual(code_gate.call_count, 2)

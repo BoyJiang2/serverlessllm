@@ -1,0 +1,31 @@
+{
+  "recorded_utc": "2026-10-30T08:12:40.397303+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "scope": "Source-plugin startup file gate only",
+  "sha256": {
+    "source_plugin.py": "9cf5afdd5d40d1ca9d6d912c50c1cbcadb02b141f309f06a5300a32e4f46ffa5",
+    "test_source_plugin.py": "ef81dbc0c612df23fa1e3d29079ba877fd69aadadef059f4881ada95a00e8bca",
+    "SOURCE-PLUGIN.md": "dbc99e9bd387002f0f63a373af19fc76d9796897ef1a12fd28163e2d8521c8e8",
+    "SOURCE-BUNDLE.md": "67f130a0e26b4f547f824e62a839799db488bff8b73635209a1a1affd9038463",
+    "NEXT.md": "cc76d2bab704420f7117ff6789892c2e08a52d899f7af103a90a4c3df5083fbb",
+    "README.md": "08cb6b956e46d4b1664f0ef39b56673b30e5577fd99c77dcd6d69281d20eada1"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 235,
+    "seconds": 27.732
+  },
+  "verified": [
+    "All three environment variables absent disables plugin; partial setup rejected",
+    "Source spec and actual plugin directory code manifest checked before runtime/registry/factory",
+    "Cached return rechecks file gate; refusal does not re-enter runtime"
+  ],
+  "limitations": [
+    "Reviewer did not run tests",
+    "Positive unit tests explicitly mock file gate/runtime/factory; real wrong-run layout refusal tested",
+    "Disk code hash is not loaded-memory code, actual UID/boot/window/guard proof",
+    "No GPU, model, Store conversion, full worker or runtime admission approval",
+    "Old frozen bundle does not inherit this review"
+  ]
+}

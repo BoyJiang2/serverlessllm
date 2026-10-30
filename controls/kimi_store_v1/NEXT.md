@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- source_plugin现强制在runtime/factory之前verify_source_run（实际插件目录+run固定manifest+外部bundle SHA），cached注册也重查；235项CPU测试通过，复审见source-startup-review.json。旧f152680包冻结，必须按新代码提交成包；下一项新整包CPU接线验证和worker入口/实际身份/预算/guard闭包。尚无GPU/完整Store。
+
 - 实际源码候选已从代码提交f152680生成：165文件、1,094,014B，包内独立CPU校验通过，manifest SHA=b5c41c55d6c6cf7b7f7833c25b3277f340652fde189bd26c0322b0719df067e8。小证据已提交f12a7a3，见source-bundle-materialization.json。候选源码仍冻结f152680；仓库后续文档/证据提交不是新的运行gate。未绑定实际run spec、导入来源/worker/守护或GPU。下一项将verify_source_run接到source启动前并完成实际身份/窗口/预算/guard闭包。
 
 - 新增source_bundle源码对象生成/完整文件校验及source spec/run布局绑定，233项CPU测试通过，初审扫描错误误通过已复现修复，复审见source-bundle-review.json。复用固定SHA的既有Git读取器，blob读取前检查大小；独立CPU CLI已测。尚未接source worker/插件启动，未验证真实整包或GPU；下一项实际候选存证、启动来源/guard/预算与退出闭包。详见SOURCE-BUNDLE.md。
