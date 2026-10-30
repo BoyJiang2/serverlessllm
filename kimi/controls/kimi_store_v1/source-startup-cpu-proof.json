@@ -1,0 +1,34 @@
+{
+  "recorded_utc": "2026-10-30T10:07:03.842390+00:00",
+  "code_commit": "0ba1c506ef678974c8b0ca7cead70ba67fb64f73",
+  "source_bundle_receipt": {
+    "code_commit": "0ba1c506ef678974c8b0ca7cead70ba67fb64f73",
+    "files_verified": 169,
+    "git_history_checked": false,
+    "manifest_sha256": "e8d799f54eb11aed9f1dd4b2ed8c15d7b68117f3c9d4ae04cd8cebd1661ae2ff",
+    "runtime_admitted": false,
+    "source_bytes_verified": true
+  },
+  "probe_sha256": "6575f86db1e2f837cc14386441261c0f1d235d5b3ad8cfebeb7c5f3a3cc741ba",
+  "probe_source": "\"\"\"CPU registration/code-binding probe; never constructs a model.\"\"\"\nimport hashlib\nimport importlib.metadata\nimport json\nimport os\nfrom pathlib import Path\nimport types\nfrom unittest.mock import Mock\n\nimport torch\nassert str(torch.__version__) == '2.10.0+cpu' and torch.version.cuda is None\nimport source_plugin as plugin\nimport vllm_export_hook\n\nclass FixtureBase: pass\nclass FixtureCandidate(FixtureBase): pass\npath = Path(plugin.__file__).parent / 'fixtures/vllm_loader_init.py'\ncode = compile(path.read_bytes(), str(path), 'exec', dont_inherit=True)\nnamespace = dict(_LOAD_FORMAT_TO_MODEL_LOADER={'safetensors': object()},\n                 BaseModelLoader=FixtureBase, logger=Mock())\nfor name in ('register_model_loader', 'get_model_loader'):\n    child = next(c for c in code.co_consts if isinstance(c, types.CodeType) and c.co_name == name)\n    namespace[name] = types.FunctionType(child, namespace)\nregistry = types.SimpleNamespace(**namespace)\ncalls = dict(runtime=0, factory=0)\ndef runtime():\n    calls['runtime'] += 1\n    return registry, FixtureBase, object\ndef factory(*args, **kwargs):\n    calls['factory'] += 1\n    return FixtureCandidate\nplugin._runtime = runtime  # Explicit CPU boundary; never claims real CUDA ABI.\nvllm_export_hook.make_checkpoint_export_loader = factory  # Never creates model.\nentries = [e for e in importlib.metadata.entry_points(group='vllm.general_plugins')\n           if e.name == 'sllm_kimi_source_candidate']\nassert len(entries) == 1\ncallback = entries[0].load()\nname = callback()\nassert name == 'sllm_kimi_export_v1' and callback() == name\nassert calls == dict(runtime=2, factory=1)\nos.environ[plugin.BUNDLE_SHA_ENV] = '0' * 64\ntry:\n    callback()\nexcept ValueError:\n    rejected = True\nelse:\n    rejected = False\nassert rejected and calls == dict(runtime=2, factory=1)\nprint(json.dumps(dict(code_binding_real=True, metadata_entrypoint_discovery_real=True,\n    registry_source_real=True, runtime_mocked=True, factory_mocked=True,\n    model_created=False, vllm_general_loader_executed=False,\n    cached_bad_bundle_rejected_before_runtime=True, gpu_used=False,\n    plugin_file=str(Path(plugin.__file__).resolve()), calls=calls)))\n",
+  "probe_result": {
+    "code_binding_real": true,
+    "metadata_entrypoint_discovery_real": true,
+    "registry_source_real": true,
+    "runtime_mocked": true,
+    "factory_mocked": true,
+    "model_created": false,
+    "vllm_general_loader_executed": false,
+    "cached_bad_bundle_rejected_before_runtime": true,
+    "gpu_used": false,
+    "plugin_file": "D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-source-startup-cpu-0ba1c50\\run\\code\\source_plugin.py",
+    "calls": {
+      "runtime": 2,
+      "factory": 1
+    }
+  },
+  "checkpoint_payload_present": false,
+  "actual_worker_or_gpu_verified": false,
+  "run_directory": "D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-source-startup-cpu-0ba1c50\\run",
+  "scope": "Real committed source bundle and real code/run-spec gate, explicit CPU runtime/factory mocks only"
+}

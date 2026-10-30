@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 仓库已按用户要求迁至GitHub BoyJiang2/serverlessllm，后续本机工作区D:/Documents/codex/2026-10-24/new-chat/serverlessllm，Kimi位于kimi/controls/kimi_store_v1，GLM位于glm/。重组代码57db396、复审0ba1c50：2861旧文件映射，2854字节未变，2605 GLM冻结文件逐字节一致，7处必要路径/属性修改；旧checkout和服务器资产未移动。235 Kimi CPU、10下载、14 GLM历史、6 C23回归通过；初迁移3个测试fixture缺失已修正留证。旧包/审阅不审批新运行。
+- 新目录候选0ba1c50已实际成包169文件，真实code/run-spec门禁+标准entrypoint发现+固定registry源码在fresh CPU进程通过，缓存坏bundle SHA在runtime前拒绝；见source-startup-cpu-proof.json。runtime和模型factory明确mock，未执行vLLM真正general-plugin或模型，不能算GPU/完整worker通过。下一项source worker实际身份、完整预算、window/独立guard/probe/monitor及退出取证，仍不启动GPU或全量转换。
+
 - source_plugin现强制在runtime/factory之前verify_source_run（实际插件目录+run固定manifest+外部bundle SHA），cached注册也重查；235项CPU测试通过，复审见source-startup-review.json。旧f152680包冻结，必须按新代码提交成包；下一项新整包CPU接线验证和worker入口/实际身份/预算/guard闭包。尚无GPU/完整Store。
 
 - 实际源码候选已从代码提交f152680生成：165文件、1,094,014B，包内独立CPU校验通过，manifest SHA=b5c41c55d6c6cf7b7f7833c25b3277f340652fde189bd26c0322b0719df067e8。小证据已提交f12a7a3，见source-bundle-materialization.json。候选源码仍冻结f152680；仓库后续文档/证据提交不是新的运行gate。未绑定实际run spec、导入来源/worker/守护或GPU。下一项将verify_source_run接到source启动前并完成实际身份/窗口/预算/guard闭包。
