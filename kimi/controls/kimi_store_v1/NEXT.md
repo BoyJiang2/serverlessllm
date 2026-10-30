@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 在现有source_schedule.py追加宿主清理内核：完整container/image/Created+五项run身份+boot/UID校验、实际PID/cgroup寿命核验、累计预算inspect/stop/复核/rm/absence及本地socket；无PID信号、force/volume/image删除。Docker/proc/selector均CPU mock，尚无watchdog或部署CLI，不是实际守护PASS。初审selector初始化泄漏与close覆盖错误已修复并加复合故障回归；全套283项中282通过、1项POSIX FIFO因Windows跳过（26.619秒），当前两文件静态复审PASS，追加source-schedule-review.json/source-schedule-tests.json。下一项独立watchdog/实际host身份与probe/monitor/60秒释放，false资源标志保留。
+
 - 2026-10-31 source worker证据在现有source_plugin.py内接持久化：既有run_root独占journal、start/终态刷盘、64KiB单条/128KiB总读取界限；重复调用不覆盖证据，CPU子进程实际中断后读回incomplete。初审发现成功缺prompt/options及buffered close二次flush覆盖原错误，已补成功配置持久化与unbuffered写，并用真实BufferedWriter故障控制复现/回归。全套273项中272通过、1项POSIX FIFO因Windows跳过（24.897秒），当前两文件只读复审PASS；记录追加source-plugin-tests.json及source-plugin-review.json。未新增目录、未复制权重或环境。下一项仍是实际独立host guard/probe、精确容器/cgroup身份、monitor和60秒释放观察，日志中断用例不是guard通过。
 
 - 2026-10-31 内部source参考worker主体已接在现有source_plugin.py：固定源导出engine参数、八rank收集、fixed32与自然EOS分开、raw tokens/有限logprobs、累计deadline和finally core-client退出；失败保留此前业务/rank/配置及cleanup错误。不是CLI/宿主准入，不启动实际vLLM/GPU。参数只读核官方v0.19.1后删不支持的use_sequence_parallel_moe构造参数，原实际profile硬拒绝仍保留。全套267项中266通过、1项POSIX FIFO因Windows跳过（24.812秒）；当前两文件静态复审PASS，记录追加在source-plugin-tests.json和source-plugin-review.json。下一项完整宿主控制器的实际身份、window、guard/probe/monitor、失败持久化与60秒释放；不能以内部主体通过代替这些门槛。

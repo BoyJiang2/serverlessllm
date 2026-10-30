@@ -24,6 +24,12 @@ python source_schedule.py --code <run/code> --manifest <run/source-code-manifest
 
 ## 验证及剩余工作
 
+2026-10-31追加清理内核候选（尚无watchdog/部署CLI）：guard_target绑定完整64hex container ID、精确image ID/Created、run/holder/code/spec/manifest标签、UID2147、boot身份参数及禁止自动重启。cleanup_guard_target先验证，再inspect/proc核验，按单个累计剩余预算执行stop→再次inspect已停→rm（无force/volume/image）→本ID过滤ps核验absent；不能按名称或PID发信号，不处理其他目标。guard_process双读/proc/stat field22起始tick，核UID与含完整Docker ID的cgroup，拒绝PID复用/错误归属。boot/UID必须由未来独立守护实际采集；本机测试传入的模拟值不构成节点证明。
+
+Docker适配器固定/usr/bin/docker与本地unix:///var/run/docker.sock，在子进程环境副本中移除DOCKER_HOST/CONTEXT/TLS相关覆盖，不改全局配置。POSIX selector按4KiB读取，每个stdout/stderr保留≤64KiB，超限只终止自己持有的Docker CLI子进程；不把CLI超时/结束当daemon取消。该输出缓冲上限不是Python、Docker进程或模型的RSS峰值。selector初始化失败也必须清理CLI及双pipe，关闭错误不覆盖原错误；这些故障已用CPU替身测试，未在Linux/Docker实际执行。返回container_absence_verified只代表该ID在一次可达daemon查询中不存在，resources_released/release_observation_verified/guard_deployed/runtime_admitted均false。
+
+下一项是将内核接入真正独立、带新run/窗口/源码绑定和持久事件的宿主watchdog及实际probe；仍须连续监控与60秒释放取证。当前main仍仅运行原预检，未开放清理CLI，也没有安装或运行任何远端守护。
+
 CPU追加修订：phase_remaining_seconds复用批次最初的entered与累计monotonic elapsed，返回墙钟和单调时钟中较小的剩余秒数；恰好到期也拒绝启动下一操作。CLI核验使用该检查；NaN/Inf/bool、负耗时、无时区及墙钟倒退拒绝。后续worker必须沿用同一批次锚点，不能每阶段重新采集entered；此函数不强制终止子进程，也不是独立守护。4项新增测试覆盖时钟分歧、等值/超时、跨阶段累计及非法输入，全套250项CPU测试通过（28.437秒）。直接修改已有模块、测试和记录，未新增目录或模型副本。
 
 新增11项CPU测试，总计246项通过；包含全预算精确边界/差1秒、3721对3600、过早/过期/时区/身份/缺阶段/bool/观察不足拒绝、观察预留开销、守护尾部、长预约不延长小批次、外部哈希/读取上限，以及CLI核验耗时不能重置。两个fresh CPU CLI用小Git/metadata夹具实际连接code→spec→plan；时间不足/窗口未到拒绝，时间可容纳仍返回runtime_admitted=false。夹具不是实际节点授权或模型，未运行vLLM/八卡。测试导入重名的初次失败保留source-schedule-tests.json。

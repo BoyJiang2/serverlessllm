@@ -48,6 +48,41 @@
         "Original batch anchor and trusted schedule remain caller obligations",
         "No subprocess termination, independent guard, resource authorization, CUDA or model verification"
       ]
+    },
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Guard target/owned-process checks and bounded Docker cleanup kernel only; not independent watchdog deployment",
+      "sha256": {
+        "source_schedule.py": "2a38d05b936b0f0785a56f6e0f4157823007f71cbc19686d62ef0edc8ac143b0",
+        "test_source_schedule.py": "6e0b664297144c5f22ced21ae87866af2ed148187644b9fd9a1568deab15c5c5"
+      },
+      "tests": {
+        "count": 283,
+        "passed": 282,
+        "skipped": 1,
+        "seconds": 26.619,
+        "executor": "primary agent"
+      },
+      "initial_findings_and_corrections": [
+        "Selector initialization outside try could leak already created CLI child; moved inside try",
+        "Selector or pipe close failure could skip other cleanup and mask original error; all closes now attempted and failures preserved as notes"
+      ],
+      "verified": [
+        "Full container/image ID, creation event, owner/run labels, UID/boot and no restart policy",
+        "PID starttime double read plus owned UID and exact cgroup; never raw PID/name signals",
+        "Same remaining budget across inspect, stop, stopped inspect, nonforce rm, exact-ID absence query",
+        "Local Unix Docker socket and sanitized child environment",
+        "Each pipe bounded to 64KiB before retaining additional output; initializer/close failure CPU controls"
+      ],
+      "limitations": [
+        "Docker/proc/selectors are CPU mocks; no Linux Docker or host guard deployed",
+        "Host must still obtain actual fresh boot/UID and verify complete runtime binding",
+        "Killing/timeout of CLI does not prove Docker daemon operation cancellation",
+        "No resources, pools, GPU, full conversion or actual 60-second release observation verified",
+        "One POSIX FIFO test skipped on Windows"
+      ]
     }
   ]
 }
