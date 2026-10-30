@@ -96,7 +96,9 @@ def register():
     cls = make_checkpoint_export_loader(base, default, checkpoint_path=spec['checkpoint_path'],
         output_root=spec['output_root'], config_raw=config_raw, checkpoint_contract=contract_raw,
         profile=PROFILE, vllm_version='0.19.1', torch_version='2.10.0+cu129',
-        chunk_bytes=spec['chunk_bytes'])
+        chunk_bytes=spec['chunk_bytes'], run_identity=dict(
+            run_id=spec['run_id'], holder=spec['holder'], code_commit=spec['code_commit'],
+            spec_sha256=digest, source_manifest_sha256=bundle_digest))
     name = register_candidate_loader(registry, cls, mode='export')
     _registration = digest, registry, cls
     return name

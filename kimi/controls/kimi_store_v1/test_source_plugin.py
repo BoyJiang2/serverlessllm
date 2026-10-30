@@ -75,6 +75,9 @@ class SourcePluginTests(unittest.TestCase):
                 self.assertEqual(plugin.register(), FORMATS['export'])
                 self.assertEqual(factory.call_count, 1)
                 self.assertEqual(factory.call_args.kwargs['torch_version'], '2.10.0+cu129')
+                self.assertEqual(factory.call_args.kwargs['run_identity'],dict(
+                    run_id=spec['run_id'],holder=spec['holder'],code_commit=spec['code_commit'],
+                    spec_sha256=os.environ[plugin.SHA_ENV],source_manifest_sha256=os.environ[plugin.BUNDLE_SHA_ENV]))
                 self.assertNotIn('rank_context', factory.call_args.kwargs)
                 registry._LOAD_FORMAT_TO_MODEL_LOADER[FORMATS['export']] = type('Foreign', (base,), {})
                 with self.assertRaisesRegex(ValueError, 'identity changed'): plugin.register()

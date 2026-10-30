@@ -18,6 +18,8 @@
 
 ## worker 必需的闭包
 
+CPU接线追加（2026-10-31）：source_plugin向原有export factory传入run_id/holder/code/spec/manifest身份。每个rank只在固定Base.load_model含后处理返回后，向既有rank目录发布source-complete.json；记录sidecar/index SHA与load_model耗时，不包含张量，也不重复导出。父端collect_source_rank_receipts要求8份完整且身份一致、device唯一、实际文件哈希一致；任一缺失/旧身份/损坏/partial拒绝。元数据读回使用nonblocking/no-follow（平台支持时）打开并fstat实际fd为普通文件，completion限4KiB、sidecar/index各16MiB，避免FIFO无界阻塞及全文件内存拷贝。源archive cleanup_pending或completion unlink失败使loader失败，partial保留供取证。metadata_verified仅是本次文件集合，不是payload/TP映射/native/GPU服务验证，相关flag仍false。独立宿主守护、真实UID/cgroup/镜像/预算与进程退出仍未完成；本次不创建运行目录或启动worker。
+
 1. 新run_id/holder、UID2147、qjhs003与实际boot身份、代码SHA/完整文件清单、精确镜像及vLLM0.19.1/Torch2.10.0+cu129等实际ABI。不能沿用GLM的cu130镜像/旧gate当Kimi验证。checkpoint与输出挂载分别只读/独占新目录；先核磁盘容量和实际挂载来源，不重复下载。
 2. 新有效授权窗口及不可延长的整体预算：镜像/ABI预检、分布式初始化、SF加载/转换、后处理、业务、60秒观察、模型/Store退出、取证和余量分别登记。各阶段上限尚待runtime方案冻结；未登记完整总和不得启动。所有预算包含编译和公共初始化，不只覆盖native_call timeout。
 3. 独立宿主守护在计算前安装并probe，绑定本run的完整容器ID、holder与cgroup，不按模糊进程名清理。独立监控覆盖8卡、NUMA/主机RSS/PSS/锁页/共享内存、CPU及共享I/O。新scope不修改旧GLM守护或其他任务。

@@ -41,5 +41,60 @@
     "Historical device capacity; no fresh hardware snapshot or full header recomputation",
     "Full CUDA target plus native copy remains blocked by conditional lower bound",
     "Initialization remediation, worker/plugin propagation, guard and real runtime not implemented"
+  ],
+  "followup_reviews": [
+    {
+      "recorded_date": "2026-10-31",
+      "reviewer": "independent local read-only Codex subagent deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "Run-bound rank completion metadata after Base postprocessing; parent eight-rank metadata collection only",
+      "sha256": {
+        "vllm_export_hook.py": "c746518b08be89114a23ec962a4ce4b71e699a92a94f9a419a8d28484c2a356a",
+        "source_plugin.py": "06cb60bcafa902e17f25f022bf83c9e148e9303ce634bbfd680cf8d08b6e20da",
+        "test_export_lifecycle.py": "91bee0c9f03e6b0279fc6aee4684c23c5e379e7103141eacea115758170687ed",
+        "test_source_plugin.py": "58237c0dc6437c24fe56cf11c2e46fe7236b74c9135dad3f823ad9f795b9a5e4"
+      },
+      "test_attempts": [
+        {
+          "count": 9,
+          "seconds": 0.646,
+          "result": "FAILED",
+          "failures": 1,
+          "cause": "New fixture omitted existing postprocess sentinel packed[0]=-1; corrected; separate negative postprocess regression retained"
+        },
+        {
+          "count": 255,
+          "seconds": 25.471,
+          "result": "OK",
+          "scope": "First completion and collection revision"
+        },
+        {
+          "count": 14,
+          "seconds": 0.825,
+          "result": "OK",
+          "skipped": 1,
+          "scope": "Revised partial/fd and publication failure controls"
+        },
+        {
+          "count": 259,
+          "passed": 258,
+          "skipped": 1,
+          "seconds": 25.009,
+          "result": "OK",
+          "scope": "Final complete local CPU suite"
+        }
+      ],
+      "initial_review_findings": [
+        "Archive cleanup_pending and config/index/sidecar partial files were not rejected; corrected and negative controls added",
+        "Bounded read alone could block on FIFO; actual fd nonblocking/no-follow plus fstat regular check added"
+      ],
+      "limitations": [
+        "POSIX FIFO test skipped on Windows, not Linux evidence",
+        "Runtime CUDA/default loader boundaries remain mocked in CPU lifecycle fixtures",
+        "Metadata hashes do not prove complete weight correctness or actual process ownership",
+        "Concurrent directory replacement and host identity/admission remain future runtime closure",
+        "No GPU, full conversion, model, guard or remote execution performed"
+      ]
+    }
   ]
 }
