@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 新增vllm_mixed_hook独立loader，把构造/aux/逐记录producer/install/显式CUDA后处理串入冻结Base私有namespace；207项CPU测试通过，初次fixture错误保留，复审见mixed-lifecycle-review.json。仍保留保守2×checkpoint预算停止，真实模型不能据此开跑；完整峰值/主机驻留预算、实际构建身份及worker准入仍待完成。详见MIXED-LIFECYCLE.md。
+
 - 新增initialize_mixed_vllm_rank保留官方quant/config/reload初始化上下文，mixed_postprocess显式最终CUDA target并限制一次后处理；202项CPU测试通过，复审见mixed-context-review.json。初始化/后处理真实CUDA边界仍mock，未组合完整新factory、无GPU运行。下一项连接构造/aux/producer/install及受审全峰值预算与worker。详见MIXED-CONTEXT.md。
 
 - 新增normalize_rank_mixed_auxiliary：CPU文本/官方CUDA视觉设备政策先核验，仅target-before-restore，复用60层全预检及CPU Marlin辅助规则；195项CPU测试通过，复审见mixed-auxiliary-review.json。未连接完整mixed factory、未运行真实CUDA；下一项构造/producer/install组合及Base后处理目标语义。详见MIXED-AUXILIARY.md。

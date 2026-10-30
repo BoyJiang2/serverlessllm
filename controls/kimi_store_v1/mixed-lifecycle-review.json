@@ -1,0 +1,34 @@
+{
+  "recorded_utc": "2026-10-30T03:14:30.411243+00:00",
+  "reviewer": "independent local read-only Codex subagent",
+  "verdict": "PASS",
+  "blockers": [],
+  "sha256": {
+    "vllm_mixed_hook.py": "6c85adc80d5a410eae02c194433206785fe95ae81f70ca7d8b89504b60982ba5",
+    "test_vllm_mixed_hook.py": "20ec3350a27f977db97071183a876587fb1fe06d1ddd8ccd272eb5dc1d453544",
+    "MIXED-LIFECYCLE.md": "2e101def0a4b6ff8b0afa150251cf3294e63c4851751104ff83372529b26acf7",
+    "mixed-lifecycle-tests.json": "0e793d455c750a3f108131b43605207e26910f4d7b19955a3c3f72b00da13e44",
+    "NEXT.md": "1a2337994bf064f50fdb17ccec02c45a0445c4c14e166a40dd7018e5c84f53d4",
+    "README.md": "6078bd8f240390a0f1fbc6079b22cd096f0b044a12414b044ffd600b91e35a41"
+  },
+  "tests": {
+    "executor": "primary agent",
+    "count": 207,
+    "seconds": 9.522,
+    "scope": "Frozen Base control-flow integration; explicit CPU framework/native/installation boundaries",
+    "history": "mixed-lifecycle-tests.json"
+  },
+  "verified": [
+    "Private Base callbacks do not replace official globals",
+    "Initializer and Base share one model config object",
+    "Loader releases its full raw-state reference after installation before postprocessing",
+    "Failure state, cleanup obligations, one-shot contract and conservative memory stop retained",
+    "Tracing span omission and mock boundaries disclosed"
+  ],
+  "limitations": [
+    "Reviewer performed static reading and hash verification only",
+    "No real CUDA full-chain, ABI/live Store, peak memory or release validation",
+    "Conservative two-copy stop remains, not a sufficient mixed-device peak plan",
+    "Full worker/window/guard and runtime admission still incomplete"
+  ]
+}
