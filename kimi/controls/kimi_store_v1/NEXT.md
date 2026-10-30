@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 Store元数据read_metadata已在原native_index内统一：config64KiB、index/sidecar各16MiB，实际fd普通文件与有界read(limit+1)、关闭及平台nonblocking/no-follow；7个CPU/native/mixed消费者已接，read_index解析后丢临时raw，writer三份metadata全预检后发布。旧有效侧车空白膨胀16MiB+1仍接受的负例已先复现。13项index测试12通过/1跳过；全套312项中309通过/3POSIX FIFO因Windows跳过（29.040秒），9文件当前静态复审PASS，哈希和旧失败追加native-record-call-review.json。只约束raw metadata，不是JSON/序列化/整进程RSS或CUDA峰值；source_plugin/checkpoint_export源config仍有整文件读取。原文件构建，无新目录/权重环境副本。下一项核源config与实际worker启动/monitor/60秒释放闭包，真实构建/全峰值/独立guard与准入仍缺，不启动GPU或完整转换。
+
 - 2026-10-31 原native_record_call的build receipt无界read_bytes已用65537字节有效JSON负例先复现，现限制64KiB，先核外部SHA、实际fd普通文件/nonblocking/no-follow，再有界读并关闭fd。13项目标测试中12通过/1Windows FIFO跳过；全套306项中304通过/2POSIX FIFO在Windows跳过（27.885秒），当前两文件独立静态复审PASS，旧失败及精确hash追加native-record-call-review.json。64KiB不是整个RSS或硬I/O deadline；其他metadata整文件读取仍待检查，不虚报全面有界。未新建目录或复制权重/环境。下一项继续实际组件契约与其他侧车读取边界，并接宿主启动/monitor/60秒释放；仍CPU-only，不启模型/Store/GPU，完整构建/峰值/准入未通过。
 
 - 2026-10-31 native_record_call收尾真实缺陷已复现并修复：旧core关闭channel异常或超时仍返回成功，现统一关闭后判定、计入耗时/原绝对deadline，等值到期拒绝；已有失败stage/cause不被close覆盖，native_state保留给失败清理，public返回边界同样检查总预算。旧两项负例失败与当前9项目标测试、全套302项中301通过/1项Windows跳过（29.475秒）追加native-record-call-review.json，当前两文件独立静态复审PASS。同步close仍不可强制取消，不是CUDA/原生库/宿主守护验证；未新增目录、复制权重或环境。下一项仍在现有文件闭合宿主启动清单/unit归属、monitor/60秒释放及完整准入，native实际构建/身份与全峰值待验证，2×预算拒绝不改。

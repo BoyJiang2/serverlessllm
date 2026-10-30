@@ -7,7 +7,7 @@ from checkpoint_contract import load_targets
 from contract import validate_config
 from marlin_aux import PROFILE
 from native_call import load_native_return, NativeCallFailure, TORCH_SHA, _store_directory
-from native_index import read_index
+from native_index import read_index, read_metadata
 from native_install import install_native_state
 from rank_export import normalize_rank_cuda_auxiliary
 from vllm_cpu_hook import _verify_function, BASE_SHA256, UTILS_SHA256
@@ -64,7 +64,7 @@ def make_native_store_loader(base_loader, native_module, *, call_options, config
         if type(options[name]) is not int or options[name] <= 0:
             raise ValueError('finite positive native budget required')
     _, directory = _store_directory(options['storage_path'], options['model_path'])
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != options['expected_sidecar_sha256']:
         raise ValueError('sidecar digest mismatch before initialization')
     sidecar = json.loads(raw)

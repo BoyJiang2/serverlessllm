@@ -10,7 +10,7 @@ from marlin_aux import PROFILE
 from mixed_device_init import initialize_mixed_vllm_rank, mixed_state_devices
 from mixed_postprocess import process_restored_mixed_rank
 from native_call import _store_directory, NativeCallFailure
-from native_index import read_index
+from native_index import read_index, read_metadata
 from native_install import install_native_state
 from native_record_call import load_native_records, _bound_runtime
 from rank_export import normalize_rank_mixed_auxiliary
@@ -37,7 +37,7 @@ def make_mixed_store_loader(base_loader, native_module, model_class, *, call_opt
         raise ValueError('explicit TP8 identity and finite budgets required')
     _bound_runtime(native_module, options['build_receipt'], options['expected_build_sha256'])
     _, directory = _store_directory(options['storage_path'], options['model_path'])
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != options['expected_sidecar_sha256']:
         raise ValueError('sidecar digest differs before initialization')
     sidecar = json.loads(raw)

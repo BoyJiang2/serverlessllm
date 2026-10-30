@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 import time
 import types
 
-from native_index import read_index
+from native_index import read_index, read_metadata
 from state_bindings import validate_state_bindings
 from vllm_cpu_hook import _verify_function
 
@@ -77,7 +77,7 @@ def load_native_return(native_module, *, storage_path, model_path, expected_side
         if value <= 0:
             raise TimeoutError('native call deadline reached')
         return value
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest mismatch')
     sidecar = json.loads(raw)
@@ -86,7 +86,7 @@ def load_native_return(native_module, *, storage_path, model_path, expected_side
     index = read_index(directory, expected_sidecar_sha256)
     if validate_state_bindings(sidecar.get('state_bindings'), index, sidecar.get('buffer_encodings', {})) is None:
         raise ValueError('complete state binding manifest required')
-    index_raw = (directory / 'tensor_index.json').read_bytes()
+    index_raw = read_metadata(directory, 'tensor_index.json')
     if hashlib.sha256(index_raw).hexdigest() != sidecar['native_index_sha256']:
         raise ValueError('index changed after preflight')
     function = _verify_function(native_module.load_dict_non_blocking, TORCH_SHA)

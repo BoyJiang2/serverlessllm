@@ -1,4 +1,5 @@
 import ast
+from contextlib import contextmanager
 import hashlib
 import json
 import os
@@ -17,6 +18,77 @@ CONFIG = (Path(__file__).resolve().parents[2] / 'evidence/followup-kimi-k26/conf
 
 
 class IndexTests(unittest.TestCase):
+    def test_metadata_exact_limit_and_single_bounded_read(self):
+        original=native_index.os.fdopen
+        reads=[]
+        @contextmanager
+        def tracked(*args,**kwargs):
+            with original(*args,**kwargs) as stream:
+                def read(count):
+                    reads.append(count)
+                    return stream.read(count)
+                yield types.SimpleNamespace(read=read)
+        with tempfile.TemporaryDirectory() as temp,patch.dict(native_index.METADATA_LIMITS,
+                {name:128 for name in native_index.METADATA_LIMITS}):
+            for name in native_index.METADATA_LIMITS:
+                path=Path(temp)/name;path.write_bytes(b' '*128)
+                with patch.object(native_index.os,'fdopen',side_effect=tracked):
+                    self.assertEqual(native_index.read_metadata(temp,name),b' '*128)
+                self.assertEqual(reads[-1],129)
+                path.write_bytes(b' '*129)
+                with self.assertRaisesRegex(ValueError,'metadata length'):
+                    native_index.read_metadata(temp,name)
+            self.assertEqual(len(reads),3)
+
+    def test_metadata_rejects_nonregular_actual_fd_and_closes_it(self):
+        fd=os.open(os.devnull,os.O_RDONLY)
+        with patch.object(native_index.os,'open',return_value=fd):
+            with self.assertRaisesRegex(ValueError,'regular metadata'):
+                native_index.read_metadata('unused','config.json')
+        with self.assertRaises(OSError):os.fstat(fd)
+
+    @unittest.skipUnless(hasattr(os,'mkfifo'),'POSIX FIFO unavailable')
+    def test_metadata_fifo_is_rejected_without_writer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            for name in native_index.METADATA_LIMITS:
+                os.mkfifo(Path(temp)/name)
+                with self.assertRaisesRegex(ValueError,'regular metadata'):
+                    native_index.read_metadata(temp,name)
+
+    def test_unknown_metadata_name_is_refused_before_open(self):
+        with patch.object(native_index.os,'open',side_effect=AssertionError('unexpected open')):
+            for name in ('../config.json','tensor.data_0','unreviewed.json'):
+                with self.assertRaises(KeyError):native_index.read_metadata('unused',name)
+
+    def test_writer_rejects_unreadable_metadata_before_any_metadata_publication(self):
+        for name in native_index.METADATA_LIMITS:
+            with self.subTest(name=name),tempfile.TemporaryDirectory() as temp:
+                target=Path(temp)/'candidate';prepared=self.prepare(target)
+                with patch.dict(native_index.METADATA_LIMITS,{name:1}):
+                    with self.assertRaisesRegex(ValueError,'metadata length'):
+                        native_index.publish_index(target,*prepared,CONFIG)
+                for path in native_index.METADATA_LIMITS:
+                    self.assertFalse((target/path).exists())
+                    self.assertFalse((target/(path+'.partial')).exists())
+                self.assertTrue((target/'tensor.data_0').is_file())  # Owned partial payload is retained.
+
+    def test_oversize_sidecar_is_rejected_before_payload_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target=Path(temp)/'candidate'
+            native_index.publish_index(target,*self.prepare(target),CONFIG)
+            path=target/'kimi_raw_state.json'
+            with path.open('ab') as stream:
+                remaining=16*1024**2+1-stream.tell()
+                while remaining:
+                    block=b' '*min(65536,remaining);stream.write(block);remaining-=len(block)
+            digest=hashlib.sha256()
+            with path.open('rb') as stream:
+                while block:=stream.read(65536):digest.update(block)
+            with patch.object(native_index,'verify_records') as verify:
+                with self.assertRaisesRegex(ValueError,'metadata length'):
+                    native_index.read_index(target,digest.hexdigest())
+            verify.assert_not_called()
+
     def prepare(self, target):
         tensors = {'packed': dict(shape=[2], dtype='torch.int32', bytes=8, contiguous=True),
                    'scale': dict(shape=[3], dtype='torch.bfloat16', bytes=6, contiguous=True)}

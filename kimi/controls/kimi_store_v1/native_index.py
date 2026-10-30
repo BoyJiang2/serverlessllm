@@ -3,12 +3,33 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import stat
 
 from contract import DTYPE_BYTES, plan_rank, validate_config
 from stream_writer import verify_records
 from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import validate_buffer_encodings
 from state_bindings import validate_state_bindings
+
+METADATA_LIMITS = {'config.json': 65536, 'tensor_index.json': 16 * 1024**2,
+                   'kimi_raw_state.json': 16 * 1024**2}
+
+
+def read_metadata(directory, name):
+    """Bound raw metadata bytes, not JSON expansion or whole-process RSS."""
+    limit = METADATA_LIMITS[name]
+    flags = os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    fd = os.open(Path(directory) / name, flags)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError('regular metadata file required')
+        with os.fdopen(fd, 'rb', closefd=False) as stream:
+            raw = stream.read(limit + 1)
+    finally:
+        os.close(fd)
+    if len(raw) > limit:
+        raise ValueError('metadata length exceeds limit: ' + name)
+    return raw
 
 
 def _publish(directory, name, data):
@@ -111,9 +132,14 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None, a
                    payload_verified=True, tp_mapping_verified=False,
                    native_loader_verified=False, store_created=False, runtime_admitted=False)
     cleanup = []
+    sidecar_raw = json.dumps(sidecar, indent=2).encode('utf-8')
+    for name, raw in (('config.json', config_raw), ('kimi_raw_state.json', sidecar_raw),
+                      ('tensor_index.json', encoded)):
+        if len(raw) > METADATA_LIMITS[name]:
+            raise ValueError('metadata length exceeds limit: ' + name)
     if not _publish(directory, 'config.json', config_raw):
         cleanup.append('config.json.partial')
-    if not _publish(directory, 'kimi_raw_state.json', json.dumps(sidecar, indent=2).encode('utf-8')):
+    if not _publish(directory, 'kimi_raw_state.json', sidecar_raw):
         cleanup.append('kimi_raw_state.json.partial')
     # Commit marker for the native schema is last; failure never publishes an index.
     if not _publish(directory, 'tensor_index.json', encoded):
@@ -124,16 +150,19 @@ def publish_index(directory, plan, records, layouts, config_raw, aliases=None, a
 def read_index(directory, expected_sidecar_sha256):
     """CPU audit with an external trusted sidecar digest; not load_dict."""
     directory = Path(directory)
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest mismatch')
     sidecar = json.loads(raw)
-    config_raw = (directory / 'config.json').read_bytes()
+    del raw
+    config_raw = read_metadata(directory, 'config.json')
     validate_config(config_raw)
-    raw_index = (directory / 'tensor_index.json').read_bytes()
+    del config_raw
+    raw_index = read_metadata(directory, 'tensor_index.json')
     if hashlib.sha256(raw_index).hexdigest() != sidecar['native_index_sha256']:
         raise ValueError('native index digest mismatch')
     index = json.loads(raw_index)
+    del raw_index
     if set(index) != set(sidecar['records']):
         raise ValueError('index tensor coverage mismatch')
     layouts = {n: dict(storage_offset=0, storage_bytes=r[1], shape=r[2], stride=r[3], dtype=r[4])

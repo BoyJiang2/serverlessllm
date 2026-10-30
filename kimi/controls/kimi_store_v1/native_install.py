@@ -10,7 +10,7 @@ from pathlib import Path
 from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import VISION_CACHE
 from checkpoint_contract import load_targets
-from native_index import read_index
+from native_index import read_index, read_metadata
 from native_payload import verify_native_payload, verify_independent_payload
 from native_spans import retain_native_allocation
 from runtime_inventory import collect_inventory, require_safe_byte_export
@@ -23,7 +23,7 @@ def install_native_state(directory, model, state, expected_sidecar_sha256, *, ra
                          chunk_bytes=CHUNK_BYTES, independent_records=None, target_device_map=None):
     import torch
     directory = Path(directory)
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest mismatch')
     sidecar = json.loads(raw)

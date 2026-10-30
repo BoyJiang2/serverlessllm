@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+当前接续以NEXT.md最新覆盖为准。2026-10-31已在原文件统一Store元数据有界读取并接7个现有消费者，writer发布前用同一上限预检；全套312项中309通过、3项Windows平台跳过，当前九文件静态审阅及失败回归见native-record-call-review.json。未执行GPU/完整Store转换或取得运行准入；以下早期章节保留各自历史范围，不代表当前全局状态。
+
 最新逐记录producer已连通多handle协议及独立安装CPU链，183项CPU测试通过，复审见native-record-call-review.json；public真实二进制绑定/活跃Store及CUDA仍未验证。详见MULTI-HANDLE-PRODUCER.md。未接混设备工厂，原GPU预算拒绝继续生效，没有实际GPU或完整转换。
 
 最新IPC错误传播候选：native_patch/model.cpp及实际源尾部的CPU编译故障控制已通过，总计177项CPU测试，复审见ipc-close-review.json。只是独立源码，未编译/部署完整Store或执行CUDA；下一步多handle加载必须核验实际库修订，不能沿用旧确认语义。

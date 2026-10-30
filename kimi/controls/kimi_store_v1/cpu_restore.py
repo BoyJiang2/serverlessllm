@@ -10,7 +10,7 @@ from pathlib import Path
 from checkpoint_contract import load_targets
 from contract import DTYPE_BYTES, plan_rank
 from cpu_tensor_io import iter_cpu_blocks, tensor_layout
-from native_index import read_index
+from native_index import read_index, read_metadata
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from stream_writer import CHUNK_BYTES
 from auxiliary_manifest import validate_auxiliary_receipts
@@ -39,7 +39,7 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
     if type(create_lazy_visual_cache) is not bool:
         raise ValueError('lazy buffer creation must be explicit')
     directory = Path(directory)
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest mismatch')
     sidecar = json.loads(raw)
@@ -89,7 +89,7 @@ def restore_cpu_state(directory, model, expected_sidecar_sha256, *, rank,
             seen[pointer] = name
     inputs = {n: dict(shape=r['shape'], dtype=r['dtype'], bytes=r['storage_bytes'], contiguous=True)
               for n, r in layouts.items()}
-    expected = plan_rank((directory / 'config.json').read_bytes(), rank=rank,
+    expected = plan_rank(read_metadata(directory, 'config.json'), rank=rank,
                         tensor_parallel_size=8, revision=sidecar['source_revision'],
                         tensors=inputs, vllm_version=sidecar['vllm_version'],
                         torch_version=sidecar['torch_version'], chunk_bytes=sidecar['chunk_bytes'])

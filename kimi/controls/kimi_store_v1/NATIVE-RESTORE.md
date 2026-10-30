@@ -101,3 +101,11 @@ CPU初始化不足以证明旧single-allocation在重排期间的峰值；新增
 ## 当前执行限制
 
 用户已允许空闲时借用 GPU，不再就是否开跑重复询问。2026-10-30 02:22 快照八卡为 0 MiB，但共享磁盘仍有读取；本轮预约查询 50 秒超时，没有核实新窗口。当前技术缺项仍是 CUDA 消费者及完整运行方案。实施、源码/预算复审、实际资源与授权窗口核验、新独立守护及 probe 均通过后，才启动有界非正式验证。旧 GLM 40 ID、金标及失败不变。
+
+## 2026-10-31 Store元数据读取边界
+
+在原native_index.py内统一read_metadata：仅接受config.json（64KiB）、tensor_index.json和kimi_raw_state.json（各16MiB），以实际fd的普通文件类型核验和平台支持的NONBLOCK/NOFOLLOW打开，最多读取上限加1字节后拒绝超限；finally关闭fd。native_index、CPU恢复/安装、原单块native调用与安装、逐记录调用、native/mixed工厂均复用该读取，原摘要、内容和量化校验保留。发布器在任何config/sidecar/index发布之前检查三个序列化结果同一上限，超限不产生元数据或commit marker；已写载荷保留供取证，不自动删除。
+
+旧read_index在有效JSON侧车附加空白至16MiB+1后仍接受，已先用真实小归档回归复现，再修正为payload核验前拒绝。测试还记录每次read的上限加1字节、精确边界/超限、真实NUL设备fd拒绝及关闭、未知文件名不open、各元数据超限写前拒绝。全套312项中309通过、3个POSIX FIFO在Windows跳过（29.040秒）；当前源码静态审阅及完整哈希见native-record-call-review.json最新追加记录。
+
+这是raw metadata读取上限，不是JSON对象/序列化、源模型、Store池、CUDA或整个进程的峰值上限。read_index在解析后释放原始字节临时引用，但调用方仍持有必要索引/侧车；未消除所有重复解析。此处不读写真实权重，也不授权运行。source_plugin/checkpoint_export的源checkpoint config读取仍需单独检查；Linux FIFO/no-follow、完整模型元数据规模、实际库与峰值须后续运行验证。

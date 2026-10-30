@@ -10,7 +10,7 @@ import time
 import types
 
 from native_call import TORCH_SHA, CLIENT_SHA, _capsule_address, _store_directory, NativeCallFailure
-from native_index import read_index
+from native_index import read_index, read_metadata
 from record_allocations import plan_independent_records, restore_independent_records
 from state_bindings import validate_state_bindings
 from vllm_cpu_hook import _verify_function
@@ -211,7 +211,7 @@ def load_native_records(native_module, *, storage_path, model_path, expected_sid
     started = time.monotonic()
     deadline = started + timeout_seconds
     _, directory = _store_directory(storage_path, model_path)
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest differs')
     sidecar = json.loads(raw)

@@ -110,6 +110,55 @@
         "64 KiB byte read bound is not process RSS, JSON allocation peak or synchronous I/O deadline bound",
         "No new directory, weight/environment copy, model/Store/GPU execution or runtime admission"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-30T22:59:36.936031+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current nine-file static revision only",
+      "sha256": {
+        "native_index.py": "9f739fcf4a40c6824d88dabf648de99d84a23a7e993ecec3d0279a507ebd63a0",
+        "test_native_index.py": "0616b812ae9fbe095a06efa1a5c567b6a307a8f8fa13b5d767eb686a8e307cb4",
+        "cpu_restore.py": "6536b581b68d3d10bd21e828cd769f0475388f52871d05c2c8bc1027edc477d7",
+        "install_state.py": "3c47d330a98ff08fc1cb8e7679e425d6ee1d270aac3602759760468aa93774da",
+        "native_call.py": "e645c2eadd55d87c0dc4175895e7d76c6f26eb16d9a5d9de9e62c6de14cd9d29",
+        "native_install.py": "02cd5acc83cc3895cdd978c5c495b86828b46e23bd6c62aa1f67f10bccf79fdf",
+        "native_record_call.py": "95add55959da9aacf723a96fd2565784094c55c7d9c1eb96ac9a1f34e39596eb",
+        "vllm_native_hook.py": "5a14037ed9c04a57ecfb5a12c592dea4361210acd02b15c5a358061a5d34512a",
+        "vllm_mixed_hook.py": "cda9687af8bbf73ad4b5dc1881bd7b9ef7c7f1f6d370f2be626f2464e68a243e"
+      },
+      "regression_before": {
+        "source_sha256": "ce0f26881f4ed22db3b59ced8fdde9dd646d089bedf5b3d6ae1ab6286e79c1b7",
+        "tests": 8,
+        "failures": 1,
+        "seconds": 0.18,
+        "detail": "Valid tiny archive sidecar padded with spaces to 16 MiB+1 and correctly SHA-bound was accepted instead of rejecting metadata length"
+      },
+      "tests": {
+        "executor": "primary agent",
+        "targeted_count": 13,
+        "targeted_passed": 12,
+        "targeted_skipped": 1,
+        "targeted_seconds": 0.231,
+        "total_count": 312,
+        "passed": 309,
+        "skipped": 3,
+        "seconds": 29.04,
+        "skip_reason": "Three POSIX FIFO tests on Windows"
+      },
+      "verified": [
+        "Fixed config/index/sidecar names and 64 KiB/16 MiB/16 MiB read caps",
+        "Single read limited to cap+1 and fd ordinary-file check/close",
+        "Writer checks all metadata sizes before any metadata publication; partial payload retained",
+        "Seven existing CPU/native/mixed consumers use same helper without new dependency cycle",
+        "Existing packed/scales/roles/alias/checksum and pinned schema regressions pass; read_index drops parsed raw byte temporaries"
+      ],
+      "limitations": [
+        "Static reviewer did not execute tests or remote commands",
+        "Linux FIFO and NOFOLLOW not actually validated on Windows",
+        "Read caps do not bound JSON expansion, serialization peak, full RSS or synchronous I/O deadline",
+        "Source checkpoint config in source_plugin/checkpoint_export still uses full-file reads",
+        "No actual full Kimi metadata-size, conversion, native library, CUDA or runtime admission proof"
+      ]
     }
   ]
 }

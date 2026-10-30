@@ -11,7 +11,7 @@ from auxiliary_manifest import validate_auxiliary_receipts
 from buffer_codec import CODEC, VISION_CACHE, decode_cpu_buffers, encode_cpu_state
 from checkpoint_contract import load_targets
 from cpu_tensor_io import iter_cpu_blocks, tensor_layout
-from native_index import read_index
+from native_index import read_index, read_metadata
 from runtime_inventory import collect_inventory, require_safe_byte_export
 from state_bindings import collect_state_bindings, validate_state_bindings
 
@@ -19,7 +19,7 @@ from state_bindings import collect_state_bindings, validate_state_bindings
 def install_cpu_loaded_state(directory, model, state, expected_sidecar_sha256, *, rank,
                              checkpoint_contract=None, destination_auxiliary_receipts=()):
     directory = Path(directory)
-    raw = (directory / 'kimi_raw_state.json').read_bytes()
+    raw = read_metadata(directory, 'kimi_raw_state.json')
     if hashlib.sha256(raw).hexdigest() != expected_sidecar_sha256:
         raise ValueError('sidecar digest mismatch')
     sidecar = json.loads(raw)
