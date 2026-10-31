@@ -87,9 +87,12 @@ def verify_records(directory, records):
             stream.seek(record['local_offset'])
             while remaining:
                 block = stream.read(min(CHUNK_BYTES, remaining))
-                if not block:
-                    raise ValueError('truncated record: ' + name)
-                digest.update(block)
-                remaining -= len(block)
+                try:
+                    if not block:
+                        raise ValueError('truncated record: ' + name)
+                    digest.update(block)
+                    remaining -= len(block)
+                finally:
+                    del block
         if digest.hexdigest() != record['sha256']:
             raise ValueError('corrupt record: ' + name)

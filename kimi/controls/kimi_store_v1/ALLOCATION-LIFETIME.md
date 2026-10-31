@@ -35,3 +35,11 @@ Store按handle_idx写入目标地址列表；ToGpu等待拷贝任务，持mutex�
 后续覆盖：native_patch/model.cpp已新增关闭错误传播候选，不再仅用日志表示失败；实际源片段的CPU编译故障控制通过，总计177项CPU测试。未部署，旧已运行库并未改变；完整Store/CUDA故障与多handle producer仍未通过。见native_patch/README.md及ipc-close-review.json。
 
 新增八项CPU测试，总计175项通过。小bytearray/frombuffer/PyCapsule夹具验证计划、确认前拒绝、源/地址重叠拒绝、alias共享canonical对象、已替换记录的buffer所有者在最后alias消失后释放，而其他记录仍可使用；组合安装保留原始packed/BF16位，损坏/元数据变动在目标修改前拒绝。真实CUDAMalloc释放、IPC关闭、GPU重排峰值、混设备初始化及八rank仍未验证，所有native/runtime/ownership验证标志保持false。
+
+## 2026-10-31 磁盘读回块的临时引用
+
+回查verify_records发现其read/hash循环在下一次read申请前仍持有上一块局部变量，正常分块可能出现新旧两个payload块重叠；摘要异常的consumer traceback也会保留当前块。已在每次消费的finally中del block，仍按原CHUNK_BYTES（8MiB）读取，摘要、布局、对齐及失败载荷保留不改。不增加生产gc.collect、整模型副本或新的缓存池。
+
+先在旧源码用真实12字节文件和4字节read wrapper复现：第二次read开始前旧Block(abcd)仍活。另用git show旧源码的私有函数命名空间重跑保留外层异常traceback的摘要故障控制，确认同样失败；不还原或覆盖checkout。修复后的两项新控制均通过：无GC也在下一次读取前释放consumer引用；fault callback明确先删除自身参数，故仅证明校验函数frame不再锚该块，不证明任意第三方异常栈均释放。
+
+当前11项流式测试通过；全套334项中330通过、4POSIX FIFO因Windows跳过（29.464秒），两文件静态复审PASS，完整旧失败/fixture修正/哈希追加cpu-tensor-io-review.json。减少payload临时引用重叠不等于8MiB RSS上限，不控制Python/IO分配器保留、页缓存、源模型、锁页池或CUDA工作区；原native 2×预算停止、完整峰值和真实释放验证仍未解除。

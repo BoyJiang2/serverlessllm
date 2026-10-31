@@ -26,5 +26,68 @@
   "tp_mapping_verified": false,
   "runtime_admitted": false,
   "remote_connection": false,
-  "full_conversion_performed": false
+  "full_conversion_performed": false,
+  "followups": [
+    {
+      "recorded_utc": "2026-10-31T00:54:56.441188+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file static buffer-lifetime revision only",
+      "sha256": {
+        "stream_writer.py": "fe0c9a245dc9c39bb660ae50e4aec3726b9940358abef57d91bfb686404a58ac",
+        "test_stream_writer.py": "0bb4383e9c855b42f16d0c3acab307e122b8f6bfaf0a660c76d40b441db20cb0"
+      },
+      "source_before_sha256": "c7dc8395396e03a6146a7e0f4d7ecd1ad4a1261c7b69f522f30ed64221a30b67",
+      "attempts": [
+        {
+          "tests": 10,
+          "errors": 1,
+          "seconds": 0.044,
+          "result": "FAILED",
+          "cause": "Initial Path.open Mock lost descriptor binding and interpreted rb as filename; corrected test patch to new=function"
+        },
+        {
+          "tests": 10,
+          "failures": 1,
+          "seconds": 0.044,
+          "result": "FAILED",
+          "cause": "Real 12-byte file, 4-byte reads: old verify_records retained prior Block(abcd) at next allocation"
+        },
+        {
+          "tests": 1,
+          "failures": 1,
+          "errors": 0,
+          "result": "EXPECTED OLD FAILURE",
+          "cause": "Recompiled git-show old source in private namespace with explicit CHUNK_BYTES=4; digest-error traceback retained Block(abcd) in consumer frame; checkout untouched"
+        },
+        {
+          "tests": 11,
+          "seconds": 0.059,
+          "result": "OK",
+          "scope": "Current stream writer tests"
+        },
+        {
+          "tests": 334,
+          "passed": 330,
+          "skipped": 4,
+          "seconds": 29.464,
+          "result": "OK",
+          "scope": "Complete CPU suite; four POSIX FIFO skips on Windows"
+        }
+      ],
+      "verified": [
+        "Consumed read block reference dropped in finally before next read",
+        "Success/truncation/hash failure execute same consumer cleanup",
+        "No gc.collect added; weakrefs checked before next real file read",
+        "Digest fault callback deletes its own argument to isolate consumer-frame reference; retained outer traceback no longer anchors the block",
+        "Read cap/digests/partition alignment/format/partial evidence unchanged"
+      ],
+      "limitations": [
+        "Reviewer only read files and hashes; no tests, modifications or remote access",
+        "Tiny real file and bytearray wrapper are CPU tests, not complete model/native verification",
+        "Producer or third-party traceback references may still retain payload; this fix only controls verify_records local reference",
+        "One payload read limit is not JSON/allocator RSS, locked pool, file cache or CUDA peak bound",
+        "No actual GPU, full Store conversion, runtime admission or resource-release probe"
+      ]
+    }
+  ]
 }

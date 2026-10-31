@@ -11,6 +11,54 @@ import stream_writer as writer
 
 
 class StreamTests(unittest.TestCase):
+    def tracked_reader(self):
+        class Block(bytearray):pass
+        references=[];requests=[]
+        original=Path.open
+        class Reader:
+            def __init__(self,stream):self.stream=stream
+            def __enter__(self):return self
+            def __exit__(self,*args):self.stream.close()
+            def fileno(self):return self.stream.fileno()
+            def seek(self,offset):return self.stream.seek(offset)
+            def read(self,count):
+                if references:self_test.assertIsNone(references[-1](),'prior read buffer still retained')
+                requests.append(count)
+                block=Block(self.stream.read(count));references.append(weakref.ref(block));return block
+        self_test=self
+        return references,requests,lambda path,*a,**kw:Reader(original(path,*a,**kw))
+
+    def test_verified_read_buffer_released_before_next_file_read(self):
+        references,requests,opened=self.tracked_reader()
+        with tempfile.TemporaryDirectory() as temp:
+            target=Path(temp)/'candidate'
+            records=writer.write_records(target,[self.entry('x',b'abcdefghijkl')])
+            with patch.object(Path,'open',new=opened), \
+                    patch.object(writer,'CHUNK_BYTES',4):
+                writer.verify_records(target,records)
+            self.assertEqual(requests,[4,4,4])
+            self.assertTrue(all(reference() is None for reference in references))
+
+    def test_digest_failure_traceback_does_not_retain_consumer_read_buffer(self):
+        references,requests,opened=self.tracked_reader()
+        class Digest:
+            def update(self,data):
+                del data  # Simulate a C-call error, without a Python callback argument anchor.
+                raise RuntimeError('digest fault control')
+        with tempfile.TemporaryDirectory() as temp:
+            target=Path(temp)/'candidate'
+            records=writer.write_records(target,[self.entry('x',b'abcdefgh')])
+            failure=None
+            with patch.object(Path,'open',new=opened),patch.object(writer,'CHUNK_BYTES',4), \
+                    patch.object(writer.hashlib,'sha256',return_value=Digest()):
+                try:writer.verify_records(target,records)
+                except RuntimeError as error:failure=error
+            self.assertIsNotNone(failure)
+            self.assertIsNotNone(failure.__traceback__)
+            self.assertEqual(requests,[4])
+            self.assertIsNone(references[0]())
+            self.assertTrue((target/'tensor.data_0').is_file())
+
     def entry(self, name, raw):
         return name, len(raw), (raw[i:i + 3] for i in range(0, len(raw), 3)), hashlib.sha256(raw).hexdigest()
 
