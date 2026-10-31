@@ -478,6 +478,54 @@
         "Blocking filesystem/system calls are checked after returning; actual dispatcher/guard limits still required before execution",
         "No permanent code directory, environment install, model/Store/cache/GPU work or GB asset copy"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-31T06:18:57.541376+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "source_schedule.py": "01e8801fb6a4634b784553d2dfa0113748059daf5db85efe00ba33da86da7127",
+        "test_source_schedule.py": "c8495d828c01e2f3a0db9445e764e14dd1a186432a00ffda9ef11ec0cf352993"
+      },
+      "scope": "P0 creation-result to host registration/service plan publication; metadata only",
+      "tests": {
+        "wsl_native": {
+          "python": "3.10.12",
+          "total": 71,
+          "passed": 71,
+          "skipped": 0,
+          "seconds": 3.812
+        },
+        "windows": {
+          "total": 367,
+          "passed": 355,
+          "skipped": 12,
+          "seconds": 43.182,
+          "skip_reasons": [
+            "4 POSIX FIFO tests",
+            "8 Linux create/registration tests, covered separately on WSL"
+          ]
+        },
+        "executor": "primary agent"
+      },
+      "verified": [
+        "External creation-journal SHA, bounded ordinary-file read, exactly two successful creation events and full source identity/times",
+        "Fresh boot/UID/host PID namespace plus two exact same stopped CID/Name/Created/profile inspections",
+        "Original batch/guard-setup <=30-second wall/mono budget is not renewed",
+        "Fresh nonce, no-overwrite hardlink publication of two inputs, directory fsync",
+        "Actual existing load_watchdog_inputs/load_source_plan readback checks published registration, schedule and service plan",
+        "Half publication retains already published artifact SHA; retained partial hardlink reported without rollback or overwrite",
+        "No Docker start/stop/rm or systemd submission; raw creation journal does not prove original CLI exit0"
+      ],
+      "limitations": [
+        "Read-only reviewer did not execute, modify or SSH",
+        "Linux tests use actual files/publication/consumer metadata reads but explicit frozen-code verifier, Docker and host substitutes",
+        "Successful CPU creator-to-registration path is not actual qjhs003 deployment or complete source-code R1",
+        "creation_cli_exit_verified/guard_deployed/runtime_abi_verified/runtime_admitted/resources_released remain false",
+        "Pending partial cleanup remains a cost/cleanup obligation, not a released-resource proof",
+        "Actual ABI/window/resources, guard submission/probe, compute launch, continuous monitoring and 60-second observation incomplete",
+        "No remote access, GPU, model, full Store/cache/pool, new environment/permanent directory or GB copy"
+      ]
     }
   ]
 }

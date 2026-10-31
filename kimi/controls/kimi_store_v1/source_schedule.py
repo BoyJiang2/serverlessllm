@@ -966,6 +966,151 @@ def create_p0_target(worker_input_path, worker_input_sha256, *, events,
         raise
 
 
+def materialize_p0_guard_inputs(worker_input_path, worker_input_sha256, create_events_sha256, *, events,
+                                docker=_guard_docker, host_probe=_watchdog_host):
+    """Publish guard inputs only after rechecking the stopped owned target."""
+    from source_bundle import verify_p0_worker_input
+    from vllm_export_hook import _metadata_stream
+    from native_index import _publish
+    entered,started = datetime.now(timezone.utc),time.monotonic()
+    state = dict(container_id=None,target_reverified=False,artifacts={},pending_partial_cleanup=[],
+        guard_deployed=False,creation_cli_exit_verified=False,runtime_abi_verified=False,
+        runtime_admitted=False,resources_released=False,cleanup_owed=True)
+    identity,nonce = None,None
+    try:
+        _,root,inputs,receipt,schedule,identity = verify_p0_worker_input(worker_input_path,worker_input_sha256)
+        if Path(__file__).resolve(strict=True) != root/'code/source_schedule.py':
+            raise ValueError('guard inputs must be prepared from this run verified source bundle')
+        if entered<_utc(inputs['batch_entered_utc']):
+            raise TimeoutError('P0 guard-input batch anchor is still in the future')
+        deadline = started + min(30,(_utc(schedule['phase_deadlines_utc']['guard_setup'])-entered).total_seconds())
+        def remaining():
+            now = datetime.now(timezone.utc)
+            if now<entered:
+                raise TimeoutError('P0 guard-input wall clock regressed')
+            value = min(deadline-time.monotonic(),(_utc(schedule['phase_deadlines_utc']['guard_setup'])-now).total_seconds())
+            if value<=0:
+                raise TimeoutError('P0 guard-input or original guard-setup deadline exhausted')
+            return value
+        remaining()
+        if not isinstance(create_events_sha256,str) or not re.fullmatch('[0-9a-f]{64}',create_events_sha256):
+            raise ValueError('external P0 creation-journal SHA required')
+        with _metadata_stream(root/'p0-create-events.jsonl') as stream:
+            raw = stream.read(16385)
+        remaining()
+        if len(raw)>16384 or not raw.endswith(b'\n') or hashlib.sha256(raw).hexdigest()!=create_events_sha256:
+            raise ValueError('P0 creation-journal length, completeness or SHA differs')
+        rows = [json.loads(line) for line in raw.splitlines()]
+        if len(rows)!=2:
+            raise ValueError('only the successful two-event creation path can prepare guard inputs')
+        for row,stage in zip(rows,('create_prepared','create_verified')):
+            if (row.get('schema')!='kimi-source-watchdog-events-v1' or row.get('event')!=stage
+                    or row.get('nonce')!=identity['holder'] or any(row.get(k)!=v for k,v in identity.items())):
+                raise ValueError('P0 creation-journal source identity or stages differ')
+        before,created = (row['payload'] for row in rows)
+        target = created['target']
+        state['container_id'] = target['container_id']
+        name = identity['run_id']+'-'+identity['holder']
+        if (before.get('create_attempted') is not False or created.get('create_attempted') is not True
+                or created.get('create_outcome')!='stopped_verified' or created.get('stopped_target_verified') is not True
+                or created.get('image_environment_verified') is not True or created.get('cleanup_owed') is not True
+                or created.get('runtime_admitted') is not False or created.get('resources_released') is not False
+                or target.get('identity')!=identity or target.get('image_id')!=receipt['image_id']
+                or target.get('gpu_uuid')!=receipt['gpu_uuid'] or target.get('run_root')!=str(root)
+                or target.get('worker_input_sha256')!=worker_input_sha256
+                or target.get('environment_sha256')!=receipt['environment_sha256']
+                or created.get('container_id')!=target['container_id'] or created.get('container_name')!=name
+                or not _utc(inputs['batch_entered_utc'])<=_utc(rows[0]['utc'])<=_utc(created['create_requested_utc'])
+                    <=_utc(target['container_created'])<=_utc(rows[1]['utc'])<=entered):
+            raise ValueError('P0 creation provenance, stopped target or original times differ')
+        outputs = ('registration.json','source-watchdog-service-plan.json')
+        if any((root/name).exists() or (root/name).is_symlink() for name in (*outputs,*(name+'.partial' for name in outputs))):
+            raise FileExistsError('guard inputs or retained partials already exist; no overwrite or retry')
+        host = host_probe()
+        remaining()
+        _guard_identity(target,boot_id=host['boot_id'],uid=host['uid'])
+        if (host['pid_namespace']!=created['host_pid_namespace'] or host['pid_namespace']!=before['host_pid_namespace']
+                or host['boot_id']!=before['boot_id'] or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])
+                or socket.gethostname() not in ('qjhs3','qjhs003')):
+            raise ValueError('P0 creation host boot or PID namespace no longer matches')
+        def recheck():
+            state['target_reverified'] = False
+            response = docker(['inspect',target['container_id']],min(5,remaining()))
+            remaining()
+            if response.returncode or len(response.stdout)>65536 or len(response.stderr)>65536:
+                raise RuntimeError('P0 guard-input target inspection failed')
+            found = json.loads(response.stdout)
+            if not isinstance(found,list) or len(found)!=1:
+                raise ValueError('exact P0 guard-input target required')
+            guard_target(target,found[0],boot_id=host['boot_id'],uid=host['uid'])
+            if found[0]['State']['Running'] or found[0].get('Name')!='/'+name:
+                raise ValueError('P0 guard inputs require the same stopped named target')
+            state['target_reverified'] = True
+        recheck()
+        nonce = secrets.token_hex(16)
+        registration = dict(schema='kimi-p0-watchdog-registration-v1',target=target,
+            plan_sha256=inputs['plan_sha256'],batch_entered_utc=inputs['batch_entered_utc'],
+            host_pid_namespace=host['pid_namespace'],nonce=nonce)
+        raw_registration = (json.dumps(registration,sort_keys=True,allow_nan=False)+'\n').encode()
+        registration_sha = hashlib.sha256(raw_registration).hexdigest()
+        plan = watchdog_service_plan(target,str(root/'registration.json'),registration_sha,schedule,now=datetime.now(timezone.utc))
+        raw_plan = (json.dumps(plan,sort_keys=True,allow_nan=False)+'\n').encode()
+        if len(raw_registration)>65536 or len(raw_plan)>65536:
+            raise ValueError('guard registration and service plan must each fit 64KiB')
+        _watchdog_event(events,identity,nonce,'guard_inputs_prepared',dict(state,create_events_sha256=create_events_sha256))
+        for filename,data in zip(outputs,(raw_registration,raw_plan)):
+            remaining()
+            cleaned = _publish(root,filename,data)
+            state['artifacts'][filename] = hashlib.sha256(data).hexdigest()
+            if not cleaned:state['pending_partial_cleanup'].append(filename+'.partial')
+            remaining()
+        fd = os.open(root,os.O_RDONLY|os.O_DIRECTORY)
+        try:os.fsync(fd)
+        finally:os.close(fd)
+        remaining()
+        _,_,verified,_,verified_schedule,_ = load_watchdog_inputs(root/'registration.json',registration_sha)
+        verified_plan = load_source_plan(root/'source-watchdog-service-plan.json',state['artifacts'][outputs[1]])
+        if (verified!=registration or verified_schedule!=schedule
+                or json.dumps(verified_plan,sort_keys=True,allow_nan=False)!=json.dumps(plan,sort_keys=True,allow_nan=False)):
+            raise ValueError('published guard input readback differs')
+        remaining()
+        recheck()
+        if datetime.now(timezone.utc)>=_utc(plan['launch_before_utc']):
+            raise TimeoutError('guard-input publication consumed the service submission window')
+        result = dict(state,registration_sha256=registration_sha,service_plan_sha256=state['artifacts'][outputs[1]],
+            nonce=nonce,registration_materialized=True,service_launch_before_utc=plan['launch_before_utc'])
+        _watchdog_event(events,identity,nonce,'guard_inputs_materialized',result)
+        remaining()
+        return result
+    except BaseException as error:
+        error.p0_registration_receipt = state
+        if identity is not None:
+            try:_watchdog_event(events,identity,nonce or identity['holder'],'guard_inputs_failed',
+                dict(state,error_type=type(error).__name__,error=str(error)[:1024]))
+            except BaseException as evidence_error:
+                error.p0_registration_evidence_error = dict(error_type=type(evidence_error).__name__,error=str(evidence_error)[:1024])
+        raise
+
+
+def p0_register_main(argv):
+    """Materialize metadata; does not install a service or start a container."""
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('P0 registration requires unoptimized python -B')
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ('worker-input','worker-input-sha','create-events-sha'):
+        parser.add_argument('--'+name,required=True)
+    args = parser.parse_args(argv)
+    path = Path(args.worker_input)
+    if not path.is_absolute():raise ValueError('absolute P0 worker input required')
+    root = path.resolve(strict=True).parent
+    if Path(__file__).resolve(strict=True)!=root/'code/source_schedule.py':
+        raise ValueError('guard inputs must be prepared from this run verified source bundle')
+    with (root/'p0-registration-events.jsonl').open('xb',buffering=0) as events:
+        result = materialize_p0_guard_inputs(args.worker_input,args.worker_input_sha,args.create_events_sha,events=events)
+    print(json.dumps(result,sort_keys=True))
+
+
 def p0_create_main(argv):
     """Explicit metadata-create entry, not a GPU/model execution gate."""
     import argparse
@@ -1204,6 +1349,8 @@ def main():
 if __name__ == '__main__':
     if sys.argv[1:2] == ['p0-create']:
         p0_create_main(sys.argv[2:])
+    elif sys.argv[1:2] == ['p0-register']:
+        p0_register_main(sys.argv[2:])
     elif sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe'], ['service-submit']):
         watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan',
                       service_probe_only=sys.argv[1] == 'service-probe', service_submit_only=sys.argv[1] == 'service-submit')

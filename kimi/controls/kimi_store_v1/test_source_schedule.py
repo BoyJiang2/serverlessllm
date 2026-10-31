@@ -57,7 +57,9 @@ class SourceScheduleTests(unittest.TestCase):
                 target['container_id']+'\n' if args[0]=='create' else json.dumps([info])
             return types.SimpleNamespace(returncode=0,stdout=value,stderr='')
         clock=Mock(wraps=datetime);clock.now.side_effect=lambda tz:entered+timedelta(seconds=ticks[0])
-        bound=(worker,root,dict(schema='kimi-p0-worker-input-v1',batch_entered_utc=entered.isoformat()),receipt,schedule,target['identity'])
+        raw=json.dumps(plan).encode();(root/'p0-plan.json').write_bytes(raw)
+        bound=(worker,root,dict(schema='kimi-p0-worker-input-v1',batch_entered_utc=entered.isoformat(),
+            plan_sha256=hashlib.sha256(raw).hexdigest(),environment_sha256=target['environment_sha256']),receipt,schedule,target['identity'])
         options=dict(docker=Mock(side_effect=docker),host_probe=Mock(return_value=host))
         return root,worker,target,info,image,ticks,clock,bound,options
 
@@ -164,6 +166,135 @@ class SourceScheduleTests(unittest.TestCase):
                 create.assert_called_once();create.reset_mock()
                 with self.assertRaises(FileExistsError):schedule_module.p0_create_main(args)
                 create.assert_not_called()
+
+    def registration_control(self,temp):
+        import source_bundle
+        root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+        with (root/'p0-create-events.jsonl').open('xb',buffering=0) as events, \
+                patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                patch.object(schedule_module,'datetime',clock), \
+                patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+            created=schedule_module.create_p0_target(str(worker),'f'*64,events=events,**options)
+        options['docker'].reset_mock()
+        digest=hashlib.sha256((root/'p0-create-events.jsonl').read_bytes()).hexdigest()
+        return root,worker,created['target'],info,ticks,clock,bound,options,digest
+
+    @unittest.skipUnless(os.name=='posix','Native WSL Python3.10 covers POSIX guard-input publication')
+    def test_p0_guard_registration_roundtrips_created_target_into_existing_consumer_without_deployment(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,ticks,clock,bound,options,digest=self.registration_control(temp)
+            with (root/'registration-events').open('xb',buffering=0) as events, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                    patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.secrets,'token_hex',return_value='9'*32), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                result=schedule_module.materialize_p0_guard_inputs(str(worker),'f'*64,digest,events=events,**options)
+                registration=schedule_module.load_source_plan(root/'registration.json',result['registration_sha256'])
+                plan=schedule_module.load_source_plan(root/'source-watchdog-service-plan.json',result['service_plan_sha256'])
+            self.assertEqual(registration['target'],target)
+            self.assertEqual(registration['batch_entered_utc'],bound[2]['batch_entered_utc'])
+            self.assertEqual(plan['command'][-3:], [str(root/'registration.json'),'--registration-sha',result['registration_sha256']])
+            self.assertTrue(result['registration_materialized']);self.assertTrue(result['target_reverified'])
+            self.assertEqual(result['pending_partial_cleanup'],[])
+            for key in ('creation_cli_exit_verified','guard_deployed','runtime_abi_verified','runtime_admitted','resources_released'):
+                self.assertFalse(result[key])
+            self.assertEqual([c.args[0] for c in options['docker'].call_args_list],[['inspect',target['container_id']]]*2)
+            self.assertFalse((root/'registration.json.partial').exists())
+
+    @unittest.skipUnless(os.name=='posix','Native WSL Python3.10 covers POSIX guard-input publication')
+    def test_p0_guard_registration_rejects_bad_creation_provenance_changed_target_host_or_clock(self):
+        import source_bundle
+        for kind in ('sha','failed_stage','identity','false_proof','future','expired','boot','running','created'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,worker,target,info,ticks,clock,bound,options,digest=self.registration_control(temp)
+                path=root/'p0-create-events.jsonl'
+                if kind=='sha':digest='0'*64
+                elif kind in ('failed_stage','identity','false_proof'):
+                    rows=[json.loads(line) for line in path.read_text().splitlines()]
+                    if kind=='failed_stage':rows[1]['event']='create_failed'
+                    elif kind=='identity':rows[0]['holder']='0'*32
+                    else:rows[1]['payload']['stopped_target_verified']=False
+                    path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                    digest=hashlib.sha256(path.read_bytes()).hexdigest()
+                elif kind=='future':ticks[0]=-1.
+                elif kind=='expired':ticks[0]=60.
+                elif kind=='boot':options['host_probe'].return_value['boot_id']='00000000-1234-1234-1234-123456789abc'
+                elif kind=='running':info['State']=dict(Running=True,Pid=123)
+                elif kind=='created':info['Created']=info['Created'].replace('000000000','000000001')
+                with (root/'registration-events').open('xb',buffering=0) as events, \
+                        patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                        patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                        patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                    with self.assertRaises((ValueError,TimeoutError)):
+                        schedule_module.materialize_p0_guard_inputs(str(worker),'f'*64,digest,events=events,**options)
+                self.assertFalse((root/'registration.json').exists())
+                self.assertFalse((root/'source-watchdog-service-plan.json').exists())
+
+    @unittest.skipUnless(os.name=='posix','Native WSL Python3.10 covers POSIX guard-input publication')
+    def test_p0_guard_registration_preserves_published_half_on_failure_and_refuses_overwrite(self):
+        import source_bundle,native_index
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,ticks,clock,bound,options,digest=self.registration_control(temp)
+            original=native_index._publish
+            def publish(directory,name,data):
+                if name=='source-watchdog-service-plan.json':raise OSError('controlled second publication failure')
+                return original(directory,name,data)
+            with (root/'registration-events').open('xb',buffering=0) as events, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                    patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                    patch.object(native_index,'_publish',side_effect=publish):
+                with self.assertRaisesRegex(OSError,'controlled second') as caught:
+                    schedule_module.materialize_p0_guard_inputs(str(worker),'f'*64,digest,events=events,**options)
+                raw=(root/'registration.json').read_bytes()
+                self.assertEqual(caught.exception.p0_registration_receipt['artifacts'],{'registration.json':hashlib.sha256(raw).hexdigest()})
+                options['docker'].reset_mock()
+                with self.assertRaises(FileExistsError):
+                    schedule_module.materialize_p0_guard_inputs(str(worker),'f'*64,digest,events=events,**options)
+                self.assertEqual(raw,(root/'registration.json').read_bytes())
+                options['docker'].assert_not_called()
+            self.assertFalse((root/'source-watchdog-service-plan.json').exists())
+
+    @unittest.skipUnless(os.name=='posix','Native WSL Python3.10 covers POSIX guard-input publication')
+    def test_p0_guard_registration_reports_retained_hardlink_and_cli_rejects_duplicate_journal(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,ticks,clock,bound,options,digest=self.registration_control(temp)
+            original=Path.unlink
+            def unlink(path,*args,**kwargs):
+                if path.name=='registration.json.partial':raise OSError('controlled partial unlink')
+                return original(path,*args,**kwargs)
+            with (root/'registration-events').open('xb',buffering=0) as events, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                    patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                    patch.object(Path,'unlink',unlink):
+                result=schedule_module.materialize_p0_guard_inputs(str(worker),'f'*64,digest,events=events,**options)
+            self.assertEqual(result['pending_partial_cleanup'],['registration.json.partial'])
+            self.assertEqual((root/'registration.json').stat().st_ino,(root/'registration.json.partial').stat().st_ino)
+            args=['--worker-input',str(worker),'--worker-input-sha','f'*64,'--create-events-sha',digest]
+            with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'materialize_p0_guard_inputs',return_value=dict(runtime_admitted=False)) as build, \
+                    patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO):
+                schedule_module.p0_register_main(args)
+                build.assert_called_once();build.reset_mock()
+                with self.assertRaises(FileExistsError):schedule_module.p0_register_main(args)
+                build.assert_not_called()
 
     def submit_control(self):
         plan,receipt,target,info=self.p0_fixture()

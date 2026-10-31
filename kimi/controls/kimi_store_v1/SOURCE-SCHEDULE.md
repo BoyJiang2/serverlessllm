@@ -124,3 +124,16 @@ guard_target同时核精确Cmd/entrypoint/workdir、全部挂载/读写性、run
 另在已有WSL原生Python3.10.12实际复现：旧_utc不能读Docker的九位小数Z或+00:00 Created时间，普通+00:00控制可读。现规范化Z及小数为Python可表示的微秒，与新版Python结果保持；Created身份核验仍比较完整原始字符串，差1ns也拒绝，并未把身份精度降为微秒。当前原生Linux 67相关控制全过3.649秒（Docker/宿主/verifier为明确替身，路径/文件/JSON/解析器实际执行），没有安装Linux Torch。Windows完整363项355通过8跳过52.418秒；其中4个新Linux创建控制已在WSL跑过，其余4个POSIX FIFO未在这个无Torch的Linux配置跑全。
 
 初审future-anchor及未登记Volumes两负例旧core先失败（1方法2失败0.044秒）并留旧hash/NEEDS_FIX；修订两文件静态复审PASS与最终测试追加原review/tests。不宣称真实Docker创建成功。下一项是将成功create返回的target物化为同run的宿主registration及service计划，再接经实际准入的start/monitor/至少60秒释放；先前ENV来源缺口已具备代码检查，但仍需要真实节点执行证据。
+
+
+## 创建结果到守护输入的物化（2026-10-31）
+
+新增 `python -B <run>/code/source_schedule.py p0-register --worker-input <run>/p0-worker-input.json --worker-input-sha <SHA> --create-events-sha <SHA>`，只准备元数据，不部署unit或启动容器。所有目录必须已存在；现有run根独占p0-registration-events.jsonl。core完整核worker/code、原batch起点和guard_setup绝对截止，wall/mono总预算至多30秒。
+
+从固定p0-create-events.jsonl普通文件有界读取最多16385字节并核外部SHA，只接受create_prepared/create_verified两条、同identity/holder、完整创建时序和停止状态来源。它不接受单独的布尔“已创建”声明。随后实际查询同CID，核fresh host boot/UID/PID namespace、Name/Created及全部v2 profile；写入后还要再查一次目标仍停止。CPU测试里的这些Docker/host查询是明确替身，生产默认使用既有local Unix socket，没有在本轮实际执行。
+
+fresh nonce及原plan SHA/batch anchor生成registration.json；同一target/registration SHA派生source-watchdog-service-plan.json。复用native_index._publish的exclusive .partial+hardlink不覆盖发布，并fsync目录；不改已有原生Store发布行为。已有final或partial即拒绝。第二份文件发布失败时保留第一份及其SHA，失败不回滚、不重试覆盖；临时hardlink删除失败则报告pending_partial_cleanup，不能隐藏其清理成本。最终真实调用既有load_watchdog_inputs/load_source_plan读回消费者，校验原schedule、两个文件SHA/内容及原service launch-before。
+
+返回registration_materialized只说明元数据物化。create日志不证明原创建CLI exit0，因此creation_cli_exit_verified=false；guard_deployed/runtime_abi_verified/runtime_admitted/resources_released也全部false。后续执行控制器仍须独立记录真实各CLI退出状态、重新核deadline及其他完整准入；pending partial必须保留记录并在本实验退出时归属清理。此入口没有start/stop/rm或systemd-run，不宣称计算已经开跑。
+
+WSL Python3.10原生71项全过3.812秒；新四个Linux控制在真实小文件上从实际create core事件走到原消费者读回，Docker/host/frozen-code verifier仍明确mock。覆盖错误SHA/stage/holder/停止证明、未来/过期/boot/运行/Created变化、半发布失败保留、原件拒覆盖、真实hardlink残留报告及CLI重复journal拒绝。Windows完整367项355过12跳过43.182秒，其中8个Linux创建/登记用例已在WSL覆盖，另外4个POSIX FIFO尚未在这个无Torch Linux环境跑全。当前两文件静态复审PASS/SHA保存在原source-schedule-review.json，不代表完整运行R1。下一项是把实际CLI exit0、真实guard提交/probe、当前有效窗口/资源与ABI、start/monitor/至少60秒释放串成完整执行闭包。
