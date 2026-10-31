@@ -21,6 +21,72 @@ ROOT = Path(__file__).parent.resolve()
 
 
 class SourcePluginTests(unittest.TestCase):
+    def worker_fixture(self,temp):
+        from test_source_bundle import SourceBundleTests
+        root,path,document=SourceBundleTests().source_worker_fixture(temp)
+        return root,path,document,hashlib.sha256(path.read_bytes()).hexdigest()
+
+    def test_bound_worker_consumes_frozen_business_and_records_input_sha(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document,digest=self.worker_fixture(temp)
+            core=types.SimpleNamespace(shutdown=Mock())
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=[self.completion(),self.completion(False)]))
+            factory=Mock(return_value=engine)
+            # Real metadata/file verifier on a tiny non-executable code fixture;
+            # loaded module origin and all engine/rank/CUDA boundaries are substitutes.
+            with patch.object(plugin,'__file__',str(root/'code/source_plugin.py')), \
+                    patch.object(vllm_export_hook,'collect_source_rank_receipts',return_value={'completed_rank_count':8}):
+                result=plugin._run_source_worker(factory,lambda **kw:kw,
+                    worker_input_path=path,worker_input_sha256=digest)
+                self.assertEqual(result['worker_input_sha256'],digest)
+                self.assertEqual(factory.call_args.kwargs['kv_cache_memory_bytes'],document['kv_cache_memory_bytes'])
+                self.assertEqual(engine.generate.call_args.args[0],[{'prompt_token_ids':document['prompt_token_ids']}])
+                saved=plugin.read_reference_events(root/'source-reference-events.jsonl',
+                    {k:result[k] for k in ('run_id','holder','code_commit','spec_sha256','source_manifest_sha256')})
+                self.assertEqual(saved['records'][0]['payload']['worker_input_sha256'],digest)
+                self.assertEqual(saved['records'][1]['payload']['worker_input_sha256'],digest)
+                self.assertFalse(result['gold_frozen'])
+                self.assertFalse(result['runtime_admitted'])
+                with self.assertRaises(FileExistsError):
+                    plugin._run_source_worker(factory,lambda **kw:kw,
+                        worker_input_path=path,worker_input_sha256=digest)
+            factory.assert_called_once()
+            core.shutdown.assert_called_once()
+
+    def test_bound_worker_rejects_wrong_module_future_anchor_and_consumed_budget_before_engine(self):
+        for mode in ('module','future','budget'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temp:
+                root,path,document,digest=self.worker_fixture(temp)
+                factory=Mock()
+                if mode=='future':
+                    document['batch_entered_utc']=(datetime.now(timezone.utc)+timedelta(seconds=30)).isoformat()
+                    path.write_bytes(json.dumps(document).encode())
+                    digest=hashlib.sha256(path.read_bytes()).hexdigest()
+                module=str(ROOT/'source_plugin.py') if mode=='module' else str(root/'code/source_plugin.py')
+                with patch.object(plugin,'__file__',module):
+                    if mode=='budget':
+                        with patch.object(plugin.time,'monotonic',side_effect=[100,200]):
+                            with self.assertRaises(TimeoutError):
+                                plugin._run_source_worker(factory,Mock(),worker_input_path=path,worker_input_sha256=digest)
+                    else:
+                        with self.assertRaises(ValueError if mode=='module' else TimeoutError):
+                            plugin._run_source_worker(factory,Mock(),worker_input_path=path,worker_input_sha256=digest)
+                factory.assert_not_called()
+                self.assertFalse((root/'source-reference-events.jsonl').exists())
+
+    def test_bound_worker_failure_journal_retains_input_digest_and_original_error(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document,digest=self.worker_fixture(temp)
+            with patch.object(plugin,'__file__',str(root/'code/source_plugin.py')):
+                with self.assertRaisesRegex(RuntimeError,'planned init failure'):
+                    plugin._run_source_worker(Mock(side_effect=RuntimeError('planned init failure')),Mock(),
+                        worker_input_path=path,worker_input_sha256=digest)
+            rows=[json.loads(line) for line in (root/'source-reference-events.jsonl').read_bytes().splitlines()]
+            self.assertEqual(rows[-1]['event'],'failed')
+            self.assertEqual(rows[-1]['payload']['worker_input_sha256'],digest)
+            self.assertEqual(rows[0]['payload']['prompt_token_ids'],document['prompt_token_ids'])
+
     def test_oversize_source_metadata_is_rejected_before_runtime_import(self):
         for kind in ('config','targets'):
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:

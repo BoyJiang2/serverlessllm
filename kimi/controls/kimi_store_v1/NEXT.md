@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 source真实输入接线CPU候选：新增verify_source_worker_input在原source_bundle中固定五字段schema/planSHA/声明原batchUTC/prompt<=896/KV正整数，regular nonblock <=64KiB读取input+plan，原完整code/spec/config/1428contract校验及source_schedule按固定锚派生deadline。source_plugin._run_source_worker内部API核实际目录root/code，启动前取wall/mono，验证耗时计入engine阶段且不重派batch；错module/未来锚/过期预算在engine前拒绝，复用已有body，inputSHA写start/成功/失败journal。没有新增可独立拉模型CLI；真实parent仍须把input SHA/anchor绑定实际启动清单/guard并做新窗口/全资源/ABI/预算准入，metadata不授计算权。
+- 7新增测试WSL原生3.10全过.571s无Torch导入，真实小非执行code树/实际SHA，module origin/engine/rank明确替身；Win plugin34过8.402s、bundle22项21过1FIFO skip25.944s，全404项380过24Windows skip50.798s，新FIFO另已原生覆盖。四源码只读静态复审PASS/SHA核验在source-plugin-review；原49b2 CPP/2×/GLM历史不动，无remote/GPU/新环境/GB复制。下一项在当前实际提交的小型完整源码包做CPU子进程链验证去掉module路径替身，仍用明确engine/rank替身，不读权重payload；之后再补真实parent source启动/guard绑定，不能重标为完整worker或金标通过。
+
 - 2026-10-31 已实际核完整本地构建链（不是继续泛化wrapper）：WSL配置有g++11.4/cmake，无nvcc/ninja/CUDA_HOME/标准CUDA头/Linux Torch；现存冻结Store快照34文件123821B且无CMakeLists/setup/pyproject。g++ -fsyntax-only候选+现有headers实际在model.h:35缺cuda_runtime.h退出1，原stderr/命令/工具与34文件SHA已追加native_patch/cpu-probe。此仅依赖预检，非完整项目build命令/CPP语法结果，其他依赖未核齐。Windows本机Docker CLI对两个显式local named pipes只读查询均missing，未取得镜像清单（不说镜像不存在），未启动Docker/拉镜像/装CUDA或环境/远端编译/GPU。初次probe Python单行quoting错误发生在Docker调用前，已改stdin脚本并留说明。当前CPU-only且禁止GB环境复制下，无已核可复用完整CUDA构建链；不伪造compiled=true。
 - active ledger迁移旧base/candidate路径已负例先FileNotFoundError（1项.041s），现仅补glm/kimi前缀并新增实际路径字节等BASE/PATCH断言；Win1项.043s、WSL原生1项.220s均通过。CPP49b2及生产loader不动，最近397项全套仍是af83ca3，不重跑/重标旧PASS。当前两文件复审另绑定SHA，旧审阅不审批新运行；GLM文件/40ID/金标不动。
 - 下一步需在已授权的现成CUDA构建环境完成真实native构建来源/ABI/活跃Store及全峰值与运行预算；当前本地缺口已经取证，不反复试同一编译错误、不装GB工具链、不新增目录、不越界远端计算。可继续必要CPU源码/证据闭环，但不要用重复工具/测试冒充目标完成；完整Store/八rank/模型/服务尚未通过，实际GPU门槛保持。

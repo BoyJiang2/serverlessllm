@@ -4,6 +4,8 @@
 
 ## 当前已接与尚未接
 
+2026-10-31 source参考worker内部入口增量：verify_source_worker_input冻结prompt/KV/plan SHA/声明的parent原锚，核代码/spec，_run_source_worker在验证来源目录和原剩余预算后调用既有body并持久化input SHA。七项原生CPU控制与完整404项测试已过，但父端实际创建命令、source guard target对新input SHA和anchor的绑定、完整资源/窗口/ABI/monitor准入仍缺。不能把新内部API当已部署model CLI，不借native完整编译缺口阻塞source必要准备，也不重复P0通用包装。
+
 2026-10-31 host-reader兼容修订：已复现旧ToHost至多拼两分区且不续正短读/EINTR；独立model.cpp新循环通过writer四个4KiB真实分区及4/6/16KiB读取、短读/中断/截断CPU控制，原close尾部保留。当前CPP SHA49b2b7fd…已绑定ledger/native入口，旧c057close-only候选保留历史且不能批准新代码。源码只编CPU片段，真实O_DIRECT/线程/锁页池/完整CUDA构建仍缺；不得复用旧compiled receipt或当作历史exit137修复。下一项应接完整实际构建身份和峰值/运行准入，不重复故障已闭环的读循环。
 
 2026-10-31库身份增量：native `_bound_runtime`现要求Linux self executable映射与同fd文件SHA/dev/inode/size/mtime/ctime一致，拒绝同字节未映射副本和旧库路径替换；原生WSL实际共享库控制通过。此为检查器的CPU证据，尚非实际Store checkpoint库或服务端身份通过；内存机器码/函数地址/live Store标志仍false。真实compiled receipt、活跃Store及全峰值/守护准入仍是下一项，不重复插件注册或凭磁盘SHA放行。

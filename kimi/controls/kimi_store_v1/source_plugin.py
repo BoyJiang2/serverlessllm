@@ -362,10 +362,33 @@ def _write_reference_event(stream, identity, event, payload):
     os.fsync(stream.fileno())
 
 
-def _run_source_reference(engine_factory, sampling_factory, **options):
+def _run_source_worker(engine_factory, sampling_factory, *, worker_input_path, worker_input_sha256):
+    """Internal admitted-parent API, not a standalone or guard-authorizing CLI."""
+    from source_bundle import verify_source_worker_input
+    from source_schedule import phase_remaining_seconds, _utc
+    entered, started = datetime.now(timezone.utc), time.monotonic()
+    root, document, spec, _, schedule, identity = verify_source_worker_input(
+        worker_input_path, worker_input_sha256)
+    if Path(__file__).resolve(strict=True).parent != root / 'code':
+        raise ValueError('must execute the verified source worker module')
+    now = datetime.now(timezone.utc)
+    if entered < _utc(document['batch_entered_utc']) or now < entered:
+        raise TimeoutError('source worker clock regressed or batch has not started')
+    # Deadlines derive from the frozen parent anchor, not this worker's startup.
+    phase_remaining_seconds(schedule, 'engine_initialize_and_export', entered=entered,
+                            elapsed=time.monotonic()-started, now=now)
+    return _run_source_reference(engine_factory, sampling_factory, spec=spec, identity=identity,
+        prompt_token_ids=document['prompt_token_ids'], kv_cache_memory_bytes=document['kv_cache_memory_bytes'],
+        schedule=schedule, entered=entered, started=started, worker_input_sha256=worker_input_sha256)
+
+
+def _run_source_reference(engine_factory, sampling_factory, *, worker_input_sha256=None, **options):
     """Reserve one existing-run journal before computation; never overwrite it."""
     from vllm_export_hook import _source_identity
     identity = _source_identity(options['identity'])
+    if worker_input_sha256 is not None and (not isinstance(worker_input_sha256, str)
+            or not re.fullmatch('[0-9a-f]{64}', worker_input_sha256)):
+        raise ValueError('external source worker input SHA required')
     spec = options['spec']
     root = Path(spec['run_root']).resolve(strict=True)
     checkpoint = Path(spec['checkpoint_path']).resolve(strict=True)
@@ -376,8 +399,11 @@ def _run_source_reference(engine_factory, sampling_factory, **options):
         raise ValueError('existing isolated run directory required')
     path = root / 'source-reference-events.jsonl'
     with path.open('xb', buffering=0) as stream:
-        _write_reference_event(stream, identity, 'started', dict(
-            prompt_token_ids=list(options['prompt_token_ids']), kv_cache_memory_bytes=options['kv_cache_memory_bytes']))
+        start = dict(prompt_token_ids=list(options['prompt_token_ids']),
+                     kv_cache_memory_bytes=options['kv_cache_memory_bytes'])
+        if worker_input_sha256 is not None:
+            start['worker_input_sha256'] = worker_input_sha256
+        _write_reference_event(stream, identity, 'started', start)
         try:
             result = _source_reference_body(engine_factory, sampling_factory, **options)
         except BaseException as error:
@@ -387,12 +413,16 @@ def _run_source_reference(engine_factory, sampling_factory, **options):
                 error_repr_truncated=len(description) > 8192,
                 traceback_tail=trace[-16384:], traceback_truncated=len(trace) > 16384,
                 evidence=getattr(error, 'source_reference_evidence', None))
+            if worker_input_sha256 is not None:
+                payload['worker_input_sha256'] = worker_input_sha256
             try:
                 _write_reference_event(stream, identity, 'failed', payload)
             except BaseException as evidence_error:
                 error.__notes__ = list(getattr(error, '__notes__', ())) + [
                     'terminal evidence write failed: ' + repr(evidence_error)]
             raise
+        if worker_input_sha256 is not None:
+            result['worker_input_sha256'] = worker_input_sha256
         try:
             _write_reference_event(stream, identity, 'reference_returned', result)
         except BaseException as error:

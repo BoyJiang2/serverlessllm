@@ -220,6 +220,46 @@ def verify_p0_run(directory, manifest_path, manifest_sha256, spec_path, spec_sha
 
 
 
+def verify_source_worker_input(path, expected_sha256):
+    """Bind business input and the original batch clock; this grants no execution."""
+    from source_plugin import _load_spec
+    from source_schedule import source_schedule, _utc
+    from vllm_export_hook import _metadata_stream
+    path = Path(path)
+    if not path.is_absolute():
+        raise ValueError('absolute source worker input required')
+    root = path.resolve(strict=True).parent
+    if path.resolve(strict=True) != root / 'source-worker-input.json':
+        raise ValueError('fixed source worker input layout required')
+
+    def read(path, digest):
+        if not isinstance(digest, str) or not re.fullmatch('[0-9a-f]{64}', digest):
+            raise ValueError('external source worker metadata SHA required')
+        with _metadata_stream(path) as stream:
+            raw = stream.read(65537)
+        if len(raw) > 65536 or hashlib.sha256(raw).hexdigest() != digest:
+            raise ValueError('source worker metadata length or SHA differs')
+        return json.loads(raw)
+
+    document = read(path, expected_sha256)
+    keys = {'schema', 'plan_sha256', 'batch_entered_utc', 'prompt_token_ids', 'kv_cache_memory_bytes'}
+    if (not isinstance(document, dict) or set(document) != keys
+            or document['schema'] != 'kimi-source-worker-input-v1'
+            or not isinstance(document['prompt_token_ids'], list)
+            or not 1 <= len(document['prompt_token_ids']) <= 896
+            or any(type(t) is not int or not 0 <= t < 163840 for t in document['prompt_token_ids'])
+            or type(document['kv_cache_memory_bytes']) is not int or document['kv_cache_memory_bytes'] <= 0):
+        raise ValueError('fixed source worker schema, raw prompt and explicit KV budget required')
+    plan = read(root / 'source-plan.json', document['plan_sha256'])
+    receipt = verify_source_run(root / 'code', root / 'source-code-manifest.json', plan['source_manifest_sha256'],
+                               root / 'source-spec.json', plan['spec_sha256'])
+    spec, _, _ = _load_spec(root / 'source-spec.json', plan['spec_sha256'])
+    schedule = source_schedule(plan, receipt, now=_utc(document['batch_entered_utc']))
+    identity = dict(run_id=receipt['run_id'], holder=receipt['holder'], code_commit=receipt['code_commit'],
+        spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
+    return root, document, spec, receipt, schedule, identity
+
+
 def verify_p0_worker_input(path, expected_sha256):
     """Freeze worker input before Docker assigns the host-only container ID."""
     from source_schedule import load_source_plan, p0_schedule, _utc

@@ -15,6 +15,88 @@ import test_source_plugin
 
 
 class SourceBundleTests(unittest.TestCase):
+    def source_worker_fixture(self, temp):
+        from datetime import datetime, timedelta, timezone
+        import source_schedule
+        repo, source, code, manifest, commit, receipt = self.fixture(temp)
+        spec, spec_path = test_source_plugin.SourcePluginTests().fixture(temp)
+        root = Path(spec['run_root'])
+        spec['code_commit'] = commit
+        code.rename(root / 'code')
+        manifest.rename(root / 'source-code-manifest.json')
+        spec_raw = json.dumps(spec).encode()
+        spec_path.write_bytes(spec_raw)
+        entered = datetime.now(timezone.utc) - timedelta(seconds=5)
+        seconds = dict.fromkeys(source_schedule.PHASES,30)
+        seconds['release_observe'] = 90
+        plan = dict(schema='kimi-source-window-v1',run_id=spec['run_id'],holder=spec['holder'],
+            code_commit=commit,spec_sha256=hashlib.sha256(spec_raw).hexdigest(),
+            source_manifest_sha256=receipt['manifest_sha256'],resource_id='h20/qjhs003',booking_id='bk-fixture',
+            window_start=(entered-timedelta(minutes=1)).isoformat(),
+            window_end=(entered+timedelta(hours=2)).isoformat(),
+            cleanup_complete_by=(entered+timedelta(hours=1)).isoformat(),seconds=seconds)
+        raw = json.dumps(plan).encode()
+        (root / 'source-plan.json').write_bytes(raw)
+        document = dict(schema='kimi-source-worker-input-v1',plan_sha256=hashlib.sha256(raw).hexdigest(),
+            batch_entered_utc=entered.isoformat(),prompt_token_ids=[1,2],kv_cache_memory_bytes=4096)
+        path = root / 'source-worker-input.json'
+        path.write_bytes(json.dumps(document).encode())
+        return root, path, document
+
+    def test_source_worker_input_binds_business_plan_and_real_file_inventory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document = self.source_worker_fixture(temp)
+            raw = path.read_bytes()
+            digest = hashlib.sha256(raw).hexdigest()
+            actual_root, inputs, spec, receipt, schedule, identity = bundle.verify_source_worker_input(path,digest)
+            self.assertEqual(actual_root,root)
+            self.assertEqual(inputs,document)
+            self.assertTrue(receipt['source_bytes_verified'])
+            self.assertEqual(identity['run_id'],spec['run_id'])
+            self.assertEqual(schedule['total_max_seconds'],330)
+            self.assertFalse(schedule['booking_verified'])
+            self.assertFalse(schedule['guard_verified'])
+            self.assertFalse(schedule['runtime_admitted'])
+            path.write_bytes(raw+b' ')
+            with self.assertRaisesRegex(ValueError,'length or SHA'):
+                bundle.verify_source_worker_input(path,digest)
+            path.write_bytes(raw)
+            plan = root/'source-plan.json'
+            plan.write_bytes(plan.read_bytes()+b' ')
+            with self.assertRaisesRegex(ValueError,'length or SHA'):
+                bundle.verify_source_worker_input(path,digest)
+
+    def test_source_worker_input_rejects_scope_business_and_code_changes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document = self.source_worker_fixture(temp)
+            for key,value in (('schema','kimi-p0-worker-input-v1'),('kv_cache_memory_bytes',True),
+                    ('kv_cache_memory_bytes',0),('prompt_token_ids',[]),('prompt_token_ids',[True]),
+                    ('prompt_token_ids',[163840]),('prompt_token_ids',[1]*897),('unexpected',0)):
+                with self.subTest(key=key,value=value):
+                    changed=dict(document,**{key:value})
+                    raw=json.dumps(changed).encode();path.write_bytes(raw)
+                    with self.assertRaises(ValueError):
+                        bundle.verify_source_worker_input(path,hashlib.sha256(raw).hexdigest())
+            raw=json.dumps(document).encode();path.write_bytes(raw)
+            (root/'code/source_plugin.py').write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError,'source bytes differ'):
+                bundle.verify_source_worker_input(path,hashlib.sha256(raw).hexdigest())
+
+    def test_source_worker_metadata_oversize_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document = self.source_worker_fixture(temp)
+            raw=b'x'*65537;path.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError,'length or SHA'):
+                bundle.verify_source_worker_input(path,hashlib.sha256(raw).hexdigest())
+
+    @unittest.skipUnless(hasattr(os,'mkfifo'),'POSIX FIFO unavailable')
+    def test_source_worker_plan_fifo_does_not_wait_for_writer(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,path,document = self.source_worker_fixture(temp)
+            plan=root/'source-plan.json';plan.unlink();os.mkfifo(plan)
+            with self.assertRaisesRegex(ValueError,'regular metadata'):
+                bundle.verify_source_worker_input(path,hashlib.sha256(path.read_bytes()).hexdigest())
+
     def test_native_uses_independent_spec_and_manifest_with_real_file_set_verification(self):
         with tempfile.TemporaryDirectory() as temp:
             spec, path = test_source_plugin.SourcePluginTests().native_fixture(temp)

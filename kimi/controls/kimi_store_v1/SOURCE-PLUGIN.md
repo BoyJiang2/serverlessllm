@@ -1,5 +1,15 @@
 # 源模型转换worker的独立插件候选
 
+## 2026-10-31：冻结source worker业务输入
+
+新增内部_run_source_worker接线，复用已有转换/参考body，不新增可独立启动模型的CLI，也不授予宿主资源或guard准入。输入固定为run_root/source-worker-input.json，schema=kimi-source-worker-input-v1，只有plan_sha256、batch_entered_utc、prompt_token_ids、kv_cache_memory_bytes及schema五项。prompt为1至896个合法原始token，KV是明确正整数声明，不能据此断言真实预算足够。
+
+worker input及source-plan.json经regular/nonblocking读取、64KiB上限和外部SHA校验；随后verify_source_run核实际完整文件清单、固定spec/config/1428contract，按输入声明的parent原时间锚派生原计划deadline。内部worker必须来自run_root/code，启动前记录wall/mono，验证耗时计入engine阶段且不重新派生批次；未来锚、错模块、耗尽预算均在engine前拒绝。input SHA写入开始及成功/失败journal；原未传input SHA的内部参考API保持旧行为。
+
+parent仍须独立把该input SHA及原锚绑定到受审启动清单/实际guard，核实际窗口、完整预算、image ABI及全资源；这里只验证所提供的冻结输入，不认证实际预约或活跃guard。_run_source_worker不是已完成的宿主launcher、模型CLI或完整服务入口，不能从metadata的timing_fits推出运行许可。
+
+七项新增控制已在WSL原生3.10通过0.571秒且未导入Torch，包括真实小非执行文件清单、prompt/KV/plan/code篡改、regular/FIFO、原预算/未来锚、journal输入SHA/失败与防重入；加载模块路径、engine和rank为明确替身。全404项CPU中380通过24个Windows跳过（50.798秒），新FIFO项另已原生执行。真实vLLM/TP8、完整Store、守护与金标仍未通过；精确源码SHA与只读复审见source-plugin-review.json。
+
 ## 2026-10-31：独立native候选入口
 
 在原文件内增加`register_native`，不改export schema或冒用其审批。三环境变量为`SLLM_KIMI_NATIVE_SPEC`、`SLLM_KIMI_NATIVE_SPEC_SHA256`、`SLLM_KIMI_NATIVE_BUNDLE_SHA256`。全缺失时禁用，部分配置或source/native同时激活时拒绝。`materialize_plugin_metadata(..., mode='native')`生成独立private metadata及`sllm_kimi_native_candidate=source_plugin:register_native`；默认export的原字节保持。
