@@ -22,5 +22,67 @@
   "full_native_store_compiled": false,
   "cuda_linked": false,
   "gpu_execution": false,
-  "runtime_admitted": false
+  "runtime_admitted": false,
+  "followup_controls": [
+    {
+      "recorded_utc": "2026-10-31T11:06:27.031585+00:00",
+      "sha256": {
+        "native_patch/model.cpp": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
+        "native_patch/ledger.json": "f5ea025147c8b4918b663117851feb7df4927ee744db85a3df9d2f32b9e4bdd3",
+        "native_record_call.py": "da1bc7c70465976f29fb4d188a7cd08534ace599d5bc60f312ac0a91beae4d7a",
+        "test_ipc_close_patch.py": "adf7c3f65b842f318663c0260b8f56cc21493d9a329f1ae3ac027f7911475c17"
+      },
+      "scope": "Actual native ToHost read fragment compiled with existing g++ and real writer files; CPU buffered pread only",
+      "attempts": [
+        {
+          "count": 1,
+          "seconds": 1.715,
+          "result": "FAILED",
+          "old_candidate_sha256": "c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c",
+          "observed": "baseline and close-only candidate fail a 16KiB host read across four physical 4KiB partitions; baseline also fails positive short reads and EINTR"
+        },
+        {
+          "count": 3,
+          "seconds": 3.088,
+          "result": "FAILED",
+          "failures": 1,
+          "cause": "Patch application added one EOF newline; strict outside-fragment equality correctly rejected it; original EOF restored without weakening test"
+        },
+        {
+          "count": 3,
+          "seconds": 3.447,
+          "result": "OK",
+          "scope": "WSL native Python3.10; actual source read fragment, existing IPC close controls, exact source/ledger/binder hashes and old compiled-receipt rejection"
+        },
+        {
+          "count": 395,
+          "passed": 372,
+          "skipped": 23,
+          "seconds": 49.604,
+          "result": "OK",
+          "scope": "Full suite via WSL bridge to existing Windows Torch CPU; new Linux-only read case separately executed above"
+        }
+      ],
+      "cases": {
+        "baseline_normal_4096_exit": 0,
+        "baseline_normal_16384_exit": 1,
+        "baseline_normal_6144_exit": 0,
+        "baseline_short_16384_exit": 1,
+        "baseline_eintr_16384_exit": 1,
+        "baseline_truncated_exit": 1,
+        "candidate_nontruncated_all_exit": 0,
+        "candidate_truncated_exit": 1,
+        "all_successful_candidate_bytes_sha_equal": true
+      },
+      "limitations": [
+        "No full Store build or CUDA link",
+        "Buffered pread controls do not prove target O_DIRECT alignment/performance, actual pinned pool, threads or cancellation deadlines",
+        "Small packed/scale/router special-bit controls are not complete Kimi weights or service gold",
+        "No attribution of historical exit137; no GPU/resource admission"
+      ],
+      "full_native_store_compiled": false,
+      "gpu_execution": false,
+      "runtime_admitted": false
+    }
+  ]
 }

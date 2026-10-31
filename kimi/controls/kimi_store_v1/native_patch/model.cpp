@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <cerrno>
 #include <condition_variable>
 #include <filesystem>
 #include <future>
@@ -171,36 +172,35 @@ int Model::ToHost(int num_threads) {
           return 0;
         }
 
-        int fd = file_descriptors[partition_id];
-        ssize_t ret =
-            pread(fd, (void*)host_buffers[chunk_idx], size, file_offset);
-        if (ret < 0) {
-          auto tensor_path = partition_paths_[partition_id];
-          LOG(ERROR) << "pread() failed for file: " << tensor_path
-                     << ", error: " << strerror(errno);
-          return -1;
-        } else if (ret != size) {
-          if (ret < size && partition_id + 1 < file_descriptors.size()) {
-            partition_id += 1;
+        size_t copied = 0;
+        while (copied < size) {
+          while (partition_id < partition_sizes_.size() &&
+                 file_offset == partition_sizes_[partition_id]) {
+            ++partition_id;
             file_offset = 0;
-            size_t remaining_size = size - ret;
-            int fd = file_descriptors[partition_id];
-            ret = pread(fd, (void*)(host_buffers[chunk_idx] + ret),
-                        remaining_size, file_offset);
-            if (ret != remaining_size) {
-              auto tensor_path = partition_paths_[partition_id];
-              LOG(ERROR) << "Failed to read file: " << tensor_path
-                         << " read: " << ret << " expected: " << remaining_size;
-              return -1;
-            }
-          } else {
-            auto tensor_path = partition_paths_[partition_id];
-            LOG(ERROR) << "Failed to read file: " << tensor_path
-                       << " read: " << ret << " expected: " << size;
+          }
+          if (partition_id >= partition_sizes_.size() ||
+              file_offset > partition_sizes_[partition_id]) {
+            LOG(ERROR) << "Partition bounds exceeded for " << model_path_;
             return -1;
           }
+          size_t requested = std::min(size - copied,
+                                      partition_sizes_[partition_id] - file_offset);
+          ssize_t ret = pread(file_descriptors[partition_id],
+                              (void*)(host_buffers[chunk_idx] + copied),
+                              requested, file_offset);
+          if (ret < 0 && errno == EINTR) {
+            continue;
+          }
+          if (ret <= 0 || static_cast<size_t>(ret) > requested) {
+            LOG(ERROR) << "pread() failed or truncated file: "
+                       << partition_paths_[partition_id] << " read: " << ret
+                       << " expected at most: " << requested;
+            return -1;
+          }
+          copied += ret;
+          file_offset += ret;
         }
-        file_offset += ret;
 
         host_ptr_vector_->enqueue(chunk_idx, Batch{chunk_idx, size});
       }

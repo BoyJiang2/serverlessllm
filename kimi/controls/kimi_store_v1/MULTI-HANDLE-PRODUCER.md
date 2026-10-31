@@ -1,5 +1,15 @@
 # 逐记录多handle加载候选
 
+## 2026-10-31：实际host读取片段与writer衔接
+
+核原生`Model::ToHost`发现旧读取块至多拼两个分区，且把正短读当作分区结束，`EINTR`直接报错。现有writer生成四个4KiB实际分区时，旧原始及close-only候选用16KiB块均失败；512字节短读与一次EINTR控制也失败。此是小CPU条件下的已证实缺口，不表示官方默认10GiB分区在当前模型一定触发，更不是历史exit137根因。
+
+只改独立native_patch/model.cpp的host读循环：按块和当前分区剩余长度读取，正短读留在当前文件、EINTR重试，到声明的分区末尾才推进并可跨任意多个分区；提前EOF、越界或异常读数失败。复制完成后原完整size才enqueue，既有IPC关闭错误传播保留。源码差异测试移除这两个片段及cerrno后须与冻结原始源码逐字节一致。模型原packed INT4值、scale、布局、TP和writer产物不改。
+
+CPU测试从当前实际CPP抽取host读片段，用真实writer文件和pread执行4KiB、6KiB、16KiB块、512字节短读、EINTR和截断控制；验证packed I32/BF16/F32特殊位及padding的完整字节SHA。WSL原生Python3.10/g++三项通过3.447秒，包括原IPC尾部故障控制和新哈希绑定；全395项CPU中372通过、23个Windows跳过（49.604秒），新Linux读取项另已执行。初次负例1项1.715秒失败、后续一次EOF换行严格检查失败均保留。
+
+新CPP SHA为49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353，ledger及native binder同步，旧close-only已编译声明也无法审批该新候选；旧候选SHA和Git commit保留。当前只编译了CPU片段，compiled_native_store/gpu_verified/runtime_admitted仍false。buffered pread与替身IPC尾部不证明实际O_DIRECT、锁页池、线程/取消期限、CUDA或完整Store，仍需独立完整构建/运行审阅。四文件只读复审及原始尝试记录见ipc-close-review.json、native_patch/cpu-probe.json。
+
 ## 2026-10-31：加载库的inode核验
 
 `_bound_runtime`现实际调用`_mapped_extension_identity`，不再仅凭checkpoint库磁盘SHA声称它是加载库。Linux内用nonblocking/no-follow fd读取普通文件（0<size<=2GiB），同一fd流式SHA并核设备/inode/size/mtime/ctime与路径前后相符；读取最多4MiB的`/proc/self/maps`，必须有同设备和inode的executable段，随后再次核路径身份。不读取checkpoint payload，不调用CUDA或Store，不为此复制环境。

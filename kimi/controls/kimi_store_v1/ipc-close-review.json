@@ -30,5 +30,40 @@
     "No complete native Store build, CUDA linking, real IPC or concurrency test",
     "Failed replica removal can still make Confirm wait to RPC deadline",
     "No deployment, resource release proof or GPU admission"
+  ],
+  "followup_reviews": [
+    {
+      "recorded_utc": "2026-10-31T11:06:27.031585+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "native_patch/model.cpp": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
+        "native_patch/ledger.json": "f5ea025147c8b4918b663117851feb7df4927ee744db85a3df9d2f32b9e4bdd3",
+        "native_record_call.py": "da1bc7c70465976f29fb4d188a7cd08534ace599d5bc60f312ac0a91beae4d7a",
+        "test_ipc_close_patch.py": "adf7c3f65b842f318663c0260b8f56cc21493d9a329f1ae3ac027f7911475c17"
+      },
+      "verified": [
+        "Host loop requests min(chunk remaining, current partition remaining); positive short reads stay in file, EINTR retries, boundaries advance and premature EOF fails",
+        "Successful enqueue retains full original chunk size; offsets bounded by requested",
+        "Only host read, previous IPC-close tail and cerrno differ from frozen original",
+        "Current CPP SHA propagates to ledger and binder; old close-only compiled receipt rejected"
+      ],
+      "tests": {
+        "native_wsl_count": 3,
+        "native_wsl_seconds": 3.447,
+        "full_cpu_count": 395,
+        "full_cpu_passed": 372,
+        "full_cpu_skipped": 23,
+        "full_cpu_seconds": 49.604
+      },
+      "limitations": [
+        "No full Store build or CUDA link",
+        "Buffered pread controls do not prove target O_DIRECT alignment/performance, actual pinned pool, threads or cancellation deadlines",
+        "Small packed/scale/router special-bit controls are not complete Kimi weights or service gold",
+        "No attribution of historical exit137; no GPU/resource admission",
+        "Reviewer only read/hash checked files; no code execution or SSH"
+      ],
+      "runtime_admitted": false
+    }
   ]
 }

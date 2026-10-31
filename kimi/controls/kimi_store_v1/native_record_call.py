@@ -17,7 +17,7 @@ from record_allocations import plan_independent_records, restore_independent_rec
 from state_bindings import validate_state_bindings
 from vllm_cpu_hook import _verify_function
 
-PATCH_SHA = 'c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c'
+PATCH_SHA = '49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353'
 
 
 def _p0_tensors():

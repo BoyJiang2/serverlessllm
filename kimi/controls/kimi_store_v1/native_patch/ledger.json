@@ -3,11 +3,12 @@
   "base_path": "controls/candidate13e/evidence/runtime/source-v7/sllm_store/csrc/sllm_store/model.cpp",
   "base_sha256": "1d2d566e5c64bf513cf2c5096c05c5994535081efbfc9a5f4021ba0ab6fda719",
   "candidate_path": "controls/kimi_store_v1/native_patch/model.cpp",
-  "candidate_sha256": "c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c",
+  "candidate_sha256": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
   "changes": [
     "Propagate cudaSetDevice or cudaIpcCloseMemHandle failure to INTERRUPTED",
     "Notify only after IPC close attempts and final state",
-    "Preserve copy-failure status and attempt remaining valid closes"
+    "Preserve copy-failure status and attempt remaining valid closes",
+    "Fill each ToHost chunk across all partitions; retry EINTR/positive short reads on current file, reject premature EOF; preserve full chunk enqueue size"
   ],
   "not_changed": [
     "No cudaFree or forced cleanup",
@@ -15,5 +16,13 @@
   ],
   "compiled_native_store": false,
   "gpu_verified": false,
-  "runtime_admitted": false
+  "runtime_admitted": false,
+  "previous_candidates": [
+    {
+      "candidate_sha256": "c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c",
+      "code_commit": "dd9afddc135514d90e409a002bed44cdc3b9f6d0",
+      "compiled_native_store": false,
+      "scope": "IPC close propagation candidate before ToHost multi-partition read fix"
+    }
+  ]
 }
