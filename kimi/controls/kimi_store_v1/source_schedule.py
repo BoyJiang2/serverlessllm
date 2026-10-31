@@ -290,17 +290,28 @@ def guard_process(info):
 
 def _guard_capture(command, timeout, environment):
     """POSIX host-only pipe reader: cap each output before retaining more bytes."""
+    if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:
+        raise ValueError('finite positive CLI capture budget required')
     deadline = time.monotonic() + timeout
+    work_deadline = deadline-min(0.25,timeout/4)
     process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, env=environment)
     buffers = [bytearray(), bytearray()]
-    selector, failure = None, None
+    selector, failure, code = None, None, None
+    def preserve_capture(error):
+        error.guard_capture_stdout = bytes(buffers[0])
+        error.guard_capture_stderr = bytes(buffers[1])
+        error.guard_capture_child_pid = getattr(process,'pid',None)
+        observed = getattr(process,'returncode',None)
+        if observed is None:observed=code
+        error.guard_capture_returncode = observed
+        error.guard_capture_child_exit_verified = observed is not None
     try:
         selector = selectors.DefaultSelector()
         for index, stream in enumerate((process.stdout, process.stderr)):
             selector.register(stream, selectors.EVENT_READ, index)
         while selector.get_map():
-            remaining = deadline - time.monotonic()
+            remaining = work_deadline - time.monotonic()
             if remaining <= 0:
                 raise subprocess.TimeoutExpired(command, timeout)
             for key, _ in selector.select(remaining):
@@ -311,7 +322,7 @@ def _guard_capture(command, timeout, environment):
                     raise ValueError('source guard Docker pipe exceeds 64KiB')
                 else:
                     buffers[key.data].extend(block)
-        remaining = deadline - time.monotonic()
+        remaining = work_deadline - time.monotonic()
         if remaining <= 0:
             raise subprocess.TimeoutExpired(command, timeout)
         code = process.wait(timeout=remaining)
@@ -320,10 +331,11 @@ def _guard_capture(command, timeout, environment):
         failure = error
         try:
             process.kill()  # The guard's Docker CLI child only; no model/container inference.
-            process.wait(timeout=max(0, min(1, deadline-time.monotonic())))
+            code=process.wait(timeout=max(0, min(1, deadline-time.monotonic())))
         except BaseException as cleanup_error:
             error.__notes__ = list(getattr(error, '__notes__', ())) + [
                 'Docker CLI child cleanup also failed: ' + repr(cleanup_error)]
+        preserve_capture(error)
         raise
     finally:
         closing_errors = []
@@ -335,6 +347,7 @@ def _guard_capture(command, timeout, environment):
                     closing_errors.append(close_error)
         if closing_errors:
             if failure is None:
+                preserve_capture(closing_errors[0])
                 raise closing_errors[0]
             failure.__notes__ = list(getattr(failure, '__notes__', ())) + [
                 'Docker CLI pipe cleanup failed: ' + repr(error) for error in closing_errors]
@@ -1092,6 +1105,177 @@ def materialize_p0_guard_inputs(worker_input_path, worker_input_sha256, create_e
         raise
 
 
+def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
+                 runner=_guard_capture, host_probe=_watchdog_host):
+    """Run metadata CLIs and collect real exit status; never start the GPU target."""
+    from source_bundle import verify_p0_worker_input
+    from vllm_export_hook import _metadata_stream
+    from native_index import _publish
+    entered,started = datetime.now(timezone.utc),time.monotonic()
+    state = dict(phase_exitcodes={},capture_cleanup={},artifacts={},pending_partial_cleanup=[],container_id=None,reported_container_id=None,
+        creation_cli_exit_verified=False,registration_cli_exit_verified=False,
+        service_submit_cli_exit_verified=False,service_probe_cli_exit_verified=False,
+        guard_deployed=False,resource_window_verified=False,runtime_abi_verified=False,
+        runtime_admitted=False,resources_released=False,cleanup_owed=False)
+    identity,phase = None,None
+    try:
+        _,root,inputs,receipt,schedule,identity = verify_p0_worker_input(worker_input_path,worker_input_sha256)
+        if Path(__file__).resolve(strict=True)!=root/'code/source_schedule.py':
+            raise ValueError('P0 setup must execute this run verified source bundle')
+        if entered<_utc(inputs['batch_entered_utc']):
+            raise TimeoutError('P0 setup batch anchor is still in the future')
+        def remaining(which):
+            now = datetime.now(timezone.utc)
+            if now<entered:raise TimeoutError('P0 setup wall clock regressed')
+            limit = _utc(schedule['phase_deadlines_utc']['preflight' if which=='create' else 'guard_setup'])
+            value = min((limit-entered).total_seconds()-(time.monotonic()-started),(limit-now).total_seconds())
+            if value<=0:raise TimeoutError('P0 setup original phase budget exhausted')
+            return value
+        remaining('create')
+        host = host_probe()
+        if (host['uid']!=2147 or type(host['uid']) is not int
+                or not re.fullmatch('[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}',host['boot_id'])
+                or type(host['pid_namespace']) is not int or host['pid_namespace']<=0
+                or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])
+                or socket.gethostname() not in ('qjhs3','qjhs003')):
+            raise ValueError('P0 setup requires the authorized Linux host')
+        stages = ('create','register','submit','probe')
+        names = [f'p0-setup-{stage}.{stream}.log' for stage in stages for stream in ('stdout','stderr')]
+        names += ['p0-create-events.jsonl','p0-registration-events.jsonl','registration.json',
+            'source-watchdog-service-plan.json','source-watchdog-submit-events.jsonl','source-watchdog-events.jsonl']
+        if any((root/name).exists() or (root/name).is_symlink() for name in (*names,*(name+'.partial' for name in names))):
+            raise FileExistsError('P0 setup has existing stage evidence; no automatic replay')
+        def record_streams(label,stdout,stderr):
+            for stream,data in (('stdout',stdout),('stderr',stderr)):
+                if data is None:data=b''
+                if isinstance(data,str):data=data.encode('utf-8')
+                if not isinstance(data,bytes) or len(data)>65536:
+                    raise ValueError('phase raw stream must fit 64KiB')
+                name=f'p0-setup-{label}.{stream}.log'
+                cleaned=_publish(root,name,data)
+                state['artifacts'][name]=hashlib.sha256(data).hexdigest()
+                if not cleaned:state['pending_partial_cleanup'].append(name+'.partial')
+        def recover_stdout(label,stdout):
+            if stdout is None:return None
+            raw=stdout.encode('utf-8') if isinstance(stdout,str) else stdout
+            if not isinstance(raw,bytes) or len(raw)>65536:
+                raise ValueError('phase stdout must fit 64KiB')
+            try:document=json.loads(raw)
+            except (TypeError,ValueError):document=None
+            if label=='create' and isinstance(document,dict):
+                reported=document.get('container_id')
+                if isinstance(reported,str) and re.fullmatch('[0-9a-f]{64}',reported):
+                    state['reported_container_id']=reported
+            return document
+        def run(label,subcommand,args):
+            nonlocal phase
+            phase=label
+            budget=min(30,remaining(label))
+            command=['/usr/bin/python3','-B','-E','-s','-X','utf8',str(root/'code/source_schedule.py'),subcommand,*args]
+            _watchdog_event(events,identity,identity['holder'],'phase_started',dict(phase=label,
+                command=command,timeout_seconds=budget,runtime_admitted=False))
+            budget=min(budget,remaining(label))
+            if label=='create':state['cleanup_owed']=True
+            try:
+                response=runner(command,budget,{'PATH':'/usr/bin:/bin','LC_ALL':'C','TZ':'UTC','SYSTEMD_COLORS':'0'})
+            except BaseException as error:
+                state['phase_exitcodes'][label]=getattr(error,'guard_capture_returncode',None)
+                state['capture_cleanup'][label]=dict(pid=getattr(error,'guard_capture_child_pid',None),
+                    direct_child_exit_verified=getattr(error,'guard_capture_child_exit_verified',False))
+                try:
+                    recover_stdout(label,getattr(error,'guard_capture_stdout',b''))
+                    record_streams(label,getattr(error,'guard_capture_stdout',b''),getattr(error,'guard_capture_stderr',b''))
+                except BaseException as capture_error:
+                    error.p0_setup_capture_error=dict(error_type=type(capture_error).__name__,error=str(capture_error)[:1024])
+                raise
+            state['phase_exitcodes'][label]=response.returncode
+            document=recover_stdout(label,response.stdout)
+            record_streams(label,response.stdout,response.stderr)
+            _watchdog_event(events,identity,identity['holder'],'phase_returned',dict(phase=label,
+                returncode=response.returncode,elapsed_seconds=time.monotonic()-started,
+                artifacts=dict(state['artifacts']),runtime_admitted=False))
+            remaining(label)
+            if type(response.returncode) is not int or response.returncode!=0:
+                raise RuntimeError('P0 phase returned nonzero: '+label)
+            if not isinstance(document,dict) or document.get('runtime_admitted') is not False:
+                raise ValueError('P0 phase output or runtime boundary differs')
+            return document
+        worker_args=['--worker-input',str(worker_input_path),'--worker-input-sha',worker_input_sha256]
+        created=run('create','p0-create',worker_args)
+        with _metadata_stream(root/'p0-create-events.jsonl') as stream:raw=stream.read(16385)
+        if len(raw)>16384 or not raw.endswith(b'\n'):
+            raise ValueError('P0 creation evidence is oversized or partial')
+        rows=[json.loads(line) for line in raw.splitlines()]
+        if (len(rows)!=2 or rows[-1].get('event')!='create_verified'
+                or json.dumps(rows[-1]['payload'],sort_keys=True,allow_nan=False)!=json.dumps(created,sort_keys=True,allow_nan=False)):
+            raise ValueError('create CLI output and retained creation event differ')
+        state['container_id']=state['reported_container_id']
+        if state['container_id'] is None:raise ValueError('create result lacks a complete container ID')
+        state['creation_cli_exit_verified']=True
+        registered=run('register','p0-register',worker_args+['--create-events-sha',hashlib.sha256(raw).hexdigest()])
+        if registered.get('registration_materialized') is not True or registered.get('pending_partial_cleanup')!=[]:
+            raise ValueError('P0 registration is incomplete or retains pending partials')
+        _,_,registration,_,verified_schedule,_=load_watchdog_inputs(root/'registration.json',registered['registration_sha256'])
+        service_plan=load_source_plan(root/'source-watchdog-service-plan.json',registered['service_plan_sha256'])
+        if (registration['target']['container_id']!=state['container_id'] or verified_schedule!=schedule
+                or registration['host_pid_namespace']!=host['pid_namespace'] or registration['target']['boot_id']!=host['boot_id']):
+            raise ValueError('P0 setup registration changed target, host or original schedule')
+        state['registration_cli_exit_verified']=True
+        guard_args=['--registration',str(root/'registration.json'),'--registration-sha',registered['registration_sha256'],
+                    '--service-plan-sha',registered['service_plan_sha256']]
+        submitted=run('submit','service-submit',guard_args)
+        if (submitted.get('guard_deployed') is not True or submitted.get('service_submission_deadline_verified') is not True
+                or submitted.get('container_id')!=state['container_id'] or submitted.get('identity')!=identity
+                or submitted.get('independent_service_verified') is not True
+                or submitted.get('nonce')!=registration['nonce'] or submitted.get('service_unit')!=service_plan['unit']
+                or not isinstance(submitted.get('service_invocation_id'),str)
+                or not re.fullmatch('[0-9a-f]{32}',submitted['service_invocation_id'])):
+            raise ValueError('P0 guard submission proof differs')
+        state['service_submit_cli_exit_verified']=True
+        probed=run('probe','service-probe',guard_args)
+        if (probed.get('independent_service_verified') is not True or probed.get('identity')!=identity
+                or probed.get('container_id')!=state['container_id'] or probed.get('nonce')!=registration['nonce']
+                or probed.get('service_invocation_id')!=submitted.get('service_invocation_id')
+                or probed.get('service_unit')!=service_plan['unit']
+                or probed.get('image_id')!=receipt['image_id']
+                or probed.get('container_created')!=registration['target']['container_created']
+                or probed.get('guard_fire_by_utc')!=schedule['guard_fire_by_utc']
+                or probed.get('host',{}).get('boot_id')!=host['boot_id']
+                or probed.get('host',{}).get('uid')!=2147
+                or probed.get('host',{}).get('pid_namespace')!=host['pid_namespace']):
+            raise ValueError('P0 fresh guard probe changed service identity')
+        state.update(service_probe_cli_exit_verified=True,guard_deployed=True,setup_cli_exit_verified=True)
+        result=dict(state,registration_sha256=registered['registration_sha256'],service_plan_sha256=registered['service_plan_sha256'])
+        _watchdog_event(events,identity,identity['holder'],'setup_returned',result)
+        remaining('probe')
+        return result
+    except BaseException as error:
+        error.p0_setup_receipt=state
+        if identity is not None:
+            try:_watchdog_event(events,identity,identity['holder'],'setup_failed',dict(state,phase=phase,error_type=type(error).__name__,error=str(error)[:1024]))
+            except BaseException as evidence_error:
+                error.p0_setup_evidence_error=dict(error_type=type(evidence_error).__name__,error=str(evidence_error)[:1024])
+        raise
+
+
+def p0_setup_main(argv):
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('P0 setup requires unoptimized python -B')
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--worker-input',required=True)
+    parser.add_argument('--worker-input-sha',required=True)
+    args=parser.parse_args(argv)
+    path=Path(args.worker_input)
+    if not path.is_absolute():raise ValueError('absolute P0 worker input required')
+    root=path.resolve(strict=True).parent
+    if Path(__file__).resolve(strict=True)!=root/'code/source_schedule.py':
+        raise ValueError('P0 setup must execute this run verified source bundle')
+    with (root/'p0-setup-events.jsonl').open('xb',buffering=0) as events:
+        result=run_p0_setup(args.worker_input,args.worker_input_sha,events=events)
+    print(json.dumps(result,sort_keys=True))
+
+
 def p0_register_main(argv):
     """Materialize metadata; does not install a service or start a container."""
     import argparse
@@ -1349,6 +1533,8 @@ def main():
 if __name__ == '__main__':
     if sys.argv[1:2] == ['p0-create']:
         p0_create_main(sys.argv[2:])
+    elif sys.argv[1:2] == ['p0-setup']:
+        p0_setup_main(sys.argv[2:])
     elif sys.argv[1:2] == ['p0-register']:
         p0_register_main(sys.argv[2:])
     elif sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe'], ['service-submit']):

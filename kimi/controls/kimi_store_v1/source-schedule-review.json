@@ -526,6 +526,105 @@
         "Actual ABI/window/resources, guard submission/probe, compute launch, continuous monitoring and 60-second observation incomplete",
         "No remote access, GPU, model, full Store/cache/pool, new environment/permanent directory or GB copy"
       ]
+    },
+    {
+      "scope": "Real local CPU phase capture cleanup pre-fix",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "7ef63a7f0c2372429a6e602e2d5d6e3754a8acc507a600c2d6575aeace16e14b",
+      "test_sha256": "9843e447df85eaf069aadc78868f1077a1e8245e7feebd4e5499b23e140108a1",
+      "initial": {
+        "total": 74,
+        "seconds": 5.384,
+        "result": "OK_WITH_WARNING",
+        "warning": "ResourceWarning subprocess 896 is still running"
+      },
+      "regression": {
+        "count": 1,
+        "seconds": 1.043,
+        "result": "FAILED",
+        "failures": 1,
+        "error": "cleanup child.wait(timeout=0): 0 not greater than 0"
+      },
+      "finding": "Pipe reading consumed full deadline, leaving no positive bounded wait for own killed CLI child",
+      "scope_limits": "Only a local tiny CPU child; not historical exit137, Docker or CUDA failure"
+    },
+    {
+      "scope": "P0 setup pre-fix capture/publication evidence controls",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "191c3b595ed1a7db1c35c841bf8b5fcf24f68408721d5c488f102f7eae0720eb",
+      "test_sha256": "a03288be933a5a466bb5880d48b2b12dfc8a821d336627fd7c61e34925072b3a",
+      "reviewer": "/root/deadline_readonly_review",
+      "controls": [
+        {
+          "count": 1,
+          "seconds": 0.197,
+          "result": "FAILED",
+          "failures": 2,
+          "subtests": [
+            "log",
+            "journal"
+          ],
+          "finding": "Reported CID lost on first log publish error, and unverified stdout CID promoted before journal consistency"
+        },
+        {
+          "count": 1,
+          "seconds": 0.007,
+          "result": "FAILED",
+          "errors": 1,
+          "finding": "Success-return finally close error lacked raw capture attrs and reaped exit state"
+        }
+      ],
+      "no_remote_or_gpu": true
+    },
+    {
+      "recorded_utc": "2026-10-31T08:05:12.262130+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "source_schedule.py": "1fc56e28a184b9f6dfe48b2efed96db6ab9300811627f9c71b40c582e5eabf8a",
+        "test_source_schedule.py": "dde59db0f770e6386eca0b5d383d98d8f2cc7e745ecd8fead39502aaa4f5fa9c"
+      },
+      "scope": "P0 setup metadata CLI exit collection and capture failure retention; not GPU launch",
+      "tests": {
+        "wsl_native": {
+          "python": "3.10.12",
+          "total": 75,
+          "passed": 75,
+          "skipped": 0,
+          "seconds": 4.793
+        },
+        "windows": {
+          "total": 371,
+          "passed": 355,
+          "skipped": 16,
+          "seconds": 42.794,
+          "skip_reasons": [
+            "4 POSIX FIFO tests",
+            "12 Linux create/register/setup/capture tests covered on WSL"
+          ]
+        },
+        "executor": "primary agent"
+      },
+      "verified": [
+        "Fixed host Python -B -E -s -X utf8 invokes create/register/submit/probe, actual exitcodes and bounded raw stdout/stderr retained",
+        "Zero exit alone insufficient: strict creation event equality, published metadata readback and fresh same-unit/InvocationID probe required",
+        "Existing phase artifacts refuse replay; partial/nonzero/late/log failures do not continue or Docker start",
+        "Reported CID recovered before first log publication; container_id confirmed only after creation journal consistency",
+        "Capture exceptions and successful-child close errors both retain raw streams, PID, known returncode and direct-child reap status",
+        "Within original capture timeout, reserve min(0.25s,timeout/4) for cleanup; no deadline extension or process-group kill",
+        "Real local tiny CPU child exit7/timeout retains exact early stdout/stderr and confirms own Popen returncode reaped"
+      ],
+      "limitations": [
+        "Read-only reviewer did not run code, modify files or access SSH",
+        "Positive setup integration executes real entry parsers/metadata functions but substitutes process transport, Docker, host, code verifier and unit proof",
+        "Real CPU child capture controls do not execute Docker/project service or prove CUDA/native ownership",
+        "Guard/setup exit markers are conditional upon actual default runner execution; external use of p0-setup CLI still requires its real exit0",
+        "Direct-child exit is not a guarantee all descendants exited or daemon operations were cancelled",
+        "resource_window_verified/runtime_abi_verified/runtime_admitted/resources_released remain false even when setup succeeds",
+        "Actual current window/resources/ABI, host execution, GPU start, monitoring and 60-second release still incomplete",
+        "Local controlled SIGKILL/exit7 tests do not explain historical exit137",
+        "No remote access, model/pool/full Store/cache, environment install, permanent new directory or GB asset copy"
+      ]
     }
   ]
 }

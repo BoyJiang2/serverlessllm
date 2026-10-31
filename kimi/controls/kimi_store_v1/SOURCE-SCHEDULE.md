@@ -137,3 +137,16 @@ fresh nonce及原plan SHA/batch anchor生成registration.json；同一target/reg
 返回registration_materialized只说明元数据物化。create日志不证明原创建CLI exit0，因此creation_cli_exit_verified=false；guard_deployed/runtime_abi_verified/runtime_admitted/resources_released也全部false。后续执行控制器仍须独立记录真实各CLI退出状态、重新核deadline及其他完整准入；pending partial必须保留记录并在本实验退出时归属清理。此入口没有start/stop/rm或systemd-run，不宣称计算已经开跑。
 
 WSL Python3.10原生71项全过3.812秒；新四个Linux控制在真实小文件上从实际create core事件走到原消费者读回，Docker/host/frozen-code verifier仍明确mock。覆盖错误SHA/stage/holder/停止证明、未来/过期/boot/运行/Created变化、半发布失败保留、原件拒覆盖、真实hardlink残留报告及CLI重复journal拒绝。Windows完整367项355过12跳过43.182秒，其中8个Linux创建/登记用例已在WSL覆盖，另外4个POSIX FIFO尚未在这个无Torch Linux环境跑全。当前两文件静态复审PASS/SHA保存在原source-schedule-review.json，不代表完整运行R1。下一项是把实际CLI exit0、真实guard提交/probe、当前有效窗口/资源与ABI、start/monitor/至少60秒释放串成完整执行闭包。
+
+
+## 四阶段 metadata setup 的真实退出收集（2026-10-31）
+
+新增 `python -B <run>/code/source_schedule.py p0-setup --worker-input <run>/p0-worker-input.json --worker-input-sha <SHA>`。现有run根独占p0-setup-events.jsonl；run_p0_setup按固定本机/usr/bin/python3 -B -E -s -X utf8依次执行p0-create、p0-register、service-submit、service-probe。源/code/输入验证、自路径及host/boot/ns/node后，所有阶段沿用原preflight/guard_setup wall和monotonic截止，不在每一步重开总预算。原root已有阶段证据或输出/partial时拒绝重放。
+
+每阶段保留真实returncode及stdout/stderr原始字节：p0-setup-<stage>.stdout.log和.stderr.log，每流最多64KiB，hardlink发布不覆盖；journal记录阶段、预算、输出SHA和失败。非零、partial JSON、超时、证据写入失败或已有文件均不进入下一阶段。创建输出的CID首先仅标reported_container_id，在首次持久化之前保留恢复线索；与原create journal严格一致后才升为container_id。登记文件继续走原消费者读回，guard提交及fresh probe必须同target/nonce/Unit/InvocationID/boot/ns；外层看到returncode=0也不等于阶段业务有效。
+
+_capture的新本地实际CPU故障控制发现：旧版本读取直到timeout后，kill自己的CLI时只剩wait(timeout=0)，曾出现ResourceWarning。现从原总预算内预留min(0.25秒,timeout/4)用于关闭/等待，不增加原总timeout；保存partial stdout/stderr、直接child PID、已知returncode和是否已wait回收。正常CLI退出后pipe/selector close失败同样保留这些信息，不再次kill已退出child。phase_exitcodes记录已知OS结果（受控超时子进程为-9）；即使OS exit0，capture关闭出错仍令阶段失败，禁止后续步骤。不能把直接child已退出当作其所有后代退出或daemon请求取消；无法确认时继续留清理义务，resources_released始终false。
+
+成功的setup_cli_exit_verified只表示内部四个CLI退出与输出条件均核过，不是对外层p0-setup进程未来exit0的自证。独立使用该CLI时，外部执行者仍须取得实际exit0。后续完整宿主driver应直接复用run_p0_setup函数及其异常/返回值，不另造一层自证包装；在同一driver内补真实ABI/有效窗口/资源准入后才可考虑start与连续监控/至少60秒观察。本候选没有Docker start，resource_window_verified/runtime_abi_verified/runtime_admitted/resources_released继续false，成功也不消除初始化/闲置/cleanup_owed成本。
+
+最终WSL Python3.10原生75项全过4.793秒，含真实小CPU子进程exit7/timeout的早期输出、直接Popen已回收；四阶段正向实际调用入口解析和metadata函数，但执行传输、Docker/host/code verifier/独立service证明仍为明确替身。Windows完整371项355通过16跳过42.794秒，12 Linux专属已在WSL覆盖，另4 FIFO尚未在这个无Torch Linux配置跑全。旧ResourceWarning、三组失败负例与精确SHA、当前两文件静态复审PASS均追加原review/tests。不代表真实qjhs003、Docker/systemd或GPU验证，也不解释历史exit137；没有新环境或权重副本。

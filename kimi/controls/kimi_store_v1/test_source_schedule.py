@@ -296,6 +296,196 @@ class SourceScheduleTests(unittest.TestCase):
                 with self.assertRaises(FileExistsError):schedule_module.p0_register_main(args)
                 build.assert_not_called()
 
+    def setup_control(self,temp):
+        root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+        create=schedule_module.create_p0_target;register=schedule_module.materialize_p0_guard_inputs
+        submit=schedule_module.submit_p0_watchdog
+        def create_call(*args,**kwargs):return create(*args,**kwargs,**options)
+        def register_call(*args,**kwargs):return register(*args,**kwargs,**options)
+        def ready_waiter(path,target,*,remaining,**kwargs):
+            remaining()
+            unit=target['identity']['run_id']+'-guard-'+target['identity']['holder']+'.service'
+            host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=123,pid_namespace=42,
+                cgroup='0::/system.slice/'+unit+'\n')
+            ready=dict(host=host,container_id=target['container_id'],image_id=target['image_id'],
+                container_created=target['container_created'],guard_fire_by_utc=kwargs['guard_fire_by_utc'],
+                probe_endpoint='@sllm-kimi-'+kwargs['nonce'],runtime_admitted=False)
+            with path.open('xb',buffering=0) as stream:
+                schedule_module._watchdog_event(stream,target['identity'],kwargs['nonce'],'inputs_verified',dict(
+                    registration_sha256=kwargs['registration_sha256'],plan_sha256=kwargs['plan_sha256'],runtime_admitted=False))
+                schedule_module._watchdog_event(stream,target['identity'],kwargs['nonce'],'ready',ready)
+            return schedule_module.read_watchdog_ready(path,target,**kwargs)
+        def probe(plan,target,ready,schedule,**kwargs):
+            return dict(host=ready['host'],identity=target['identity'],nonce=kwargs['nonce'],
+                container_id=target['container_id'],image_id=target['image_id'],container_created=target['container_created'],
+                guard_fire_by_utc=schedule['guard_fire_by_utc'],probe_exchange_verified=True,independent_service_verified=True,
+                service_unit=plan['unit'],service_invocation_id='b'*32,service_submission_deadline_verified=False,
+                guard_deployed=False,runtime_admitted=False,resources_released=False)
+        def submit_call(*args,**kwargs):
+            return submit(*args,**kwargs,**options,
+                runner=lambda *a:types.SimpleNamespace(returncode=0,stdout='created',stderr=''),
+                ready_waiter=ready_waiter,service_probe=probe)
+        # Only the process boundary is substituted; actual entry parsers and metadata functions run.
+        def runner(command,timeout,environment):
+            self.assertEqual(command[:6],['/usr/bin/python3','-B','-E','-s','-X','utf8'])
+            entry,args=command[7],command[8:]
+            with patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:
+                if entry=='p0-create':schedule_module.p0_create_main(args)
+                elif entry=='p0-register':schedule_module.p0_register_main(args)
+                else:schedule_module.watchdog_main(args,service_submit_only=entry=='service-submit',service_probe_only=entry=='service-probe')
+            return types.SimpleNamespace(returncode=0,stdout=output.getvalue(),stderr='')
+        return root,worker,ticks,clock,bound,options,create_call,register_call,submit_call,probe,runner
+
+    @unittest.skipUnless(os.name=='posix','Native WSL covers setup CLI integration and POSIX capture')
+    def test_p0_setup_runs_metadata_entries_and_reprobes_guard_without_gpu_admission(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,ticks,clock,bound,options,create,register,submit,probe,runner=self.setup_control(temp)
+            transport=Mock(side_effect=runner)
+            with (root/'setup-events').open('xb',buffering=0) as events, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                    patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                    patch.object(schedule_module.secrets,'token_hex',return_value='9'*32), \
+                    patch.object(schedule_module,'create_p0_target',side_effect=create), \
+                    patch.object(schedule_module,'materialize_p0_guard_inputs',side_effect=register), \
+                    patch.object(schedule_module,'submit_p0_watchdog',side_effect=submit), \
+                    patch.object(schedule_module,'probe_watchdog_service',side_effect=probe):
+                result=schedule_module.run_p0_setup(str(worker),'f'*64,events=events,runner=transport,host_probe=options['host_probe'])
+            self.assertEqual([c.args[0][7] for c in transport.call_args_list],['p0-create','p0-register','service-submit','service-probe'])
+            self.assertTrue(result['setup_cli_exit_verified']);self.assertTrue(result['guard_deployed'])
+            self.assertEqual(result['phase_exitcodes'],dict(create=0,register=0,submit=0,probe=0))
+            for key in ('runtime_admitted','runtime_abi_verified','resource_window_verified','resources_released'):self.assertFalse(result[key])
+            self.assertEqual(len(result['artifacts']),8)
+            self.assertFalse(any(c.args[0][0] in ('start','stop','rm') for c in options['docker'].call_args_list))
+
+    @unittest.skipUnless(os.name=='posix','Native WSL covers setup CLI integration and POSIX capture')
+    def test_p0_setup_rejects_phase_failures_partial_json_stale_deadline_and_changed_service(self):
+        import source_bundle,native_index
+        for kind in ('existing','nonzero','partial','late','log','journal','capture_close','register','submit','invocation'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,worker,ticks,clock,bound,options,create,register,submit,probe,original=self.setup_control(temp)
+                if kind=='existing':(root/'p0-setup-create.stdout.log').write_bytes(b'original')
+                def runner(command,timeout,environment):
+                    response=original(command,timeout,environment)
+                    entry=command[7]
+                    if kind=='nonzero' and entry=='p0-create':response.returncode=7
+                    elif kind=='partial' and entry=='p0-create':response.stdout='{"runtime_admitted":fal'
+                    elif kind=='late' and entry=='p0-create':ticks[0]=30.
+                    elif kind=='capture_close' and entry=='p0-create':
+                        error=OSError('controlled capture close after child exit0')
+                        error.guard_capture_stdout=response.stdout.encode();error.guard_capture_stderr=b''
+                        error.guard_capture_returncode=0;error.guard_capture_child_pid=321
+                        error.guard_capture_child_exit_verified=True
+                        raise error
+                    elif kind=='journal' and entry=='p0-create':
+                        path=root/'p0-create-events.jsonl'
+                        rows=[json.loads(line) for line in path.read_text().splitlines()]
+                        rows[-1]['payload']['container_id']='0'*64
+                        path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                    elif kind=='register' and entry=='p0-register':response.returncode=8
+                    elif kind=='submit' and entry=='service-submit':response.returncode=9
+                    elif kind=='invocation' and entry=='service-probe':
+                        data=json.loads(response.stdout);data['service_invocation_id']='c'*32;response.stdout=json.dumps(data)
+                    return response
+                transport=Mock(side_effect=runner)
+                original_publish=native_index._publish
+                def publish(directory,name,data):
+                    if kind=='log' and name=='p0-setup-create.stdout.log':raise OSError('controlled stdout publication')
+                    return original_publish(directory,name,data)
+                with (root/'setup-events').open('xb',buffering=0) as events, \
+                        patch.object(native_index,'_publish',side_effect=publish), \
+                        patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                        patch.object(source_bundle,'verify_p0_run',return_value=bound[3]), \
+                        patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                        patch.object(schedule_module.secrets,'token_hex',return_value='9'*32), \
+                        patch.object(schedule_module,'create_p0_target',side_effect=create), \
+                        patch.object(schedule_module,'materialize_p0_guard_inputs',side_effect=register), \
+                        patch.object(schedule_module,'submit_p0_watchdog',side_effect=submit), \
+                        patch.object(schedule_module,'probe_watchdog_service',side_effect=probe):
+                    with self.assertRaises((RuntimeError,ValueError,TimeoutError,OSError)) as caught:
+                        schedule_module.run_p0_setup(str(worker),'f'*64,events=events,runner=transport,host_probe=options['host_probe'])
+                state=caught.exception.p0_setup_receipt
+                self.assertFalse(state['guard_deployed']);self.assertFalse(state['runtime_admitted'])
+                expected=0 if kind=='existing' else 1 if kind in ('nonzero','partial','late','log','journal','capture_close') else 2 if kind=='register' else 3 if kind=='submit' else 4
+                self.assertEqual(transport.call_count,expected)
+                self.assertEqual((root/'p0-setup-create.stdout.log').exists(),kind!='log')
+                if kind in ('late','log','journal','capture_close'):self.assertEqual(state['reported_container_id'],'e'*64)
+                if kind in ('log','journal','capture_close'):self.assertIsNone(state['container_id'])
+                if kind=='existing':self.assertEqual((root/'p0-setup-create.stdout.log').read_bytes(),b'original')
+                if kind=='capture_close':self.assertEqual(state['phase_exitcodes']['create'],0)
+
+    @unittest.skipUnless(os.name=='posix','Native WSL covers real owned CPU child capture, no Docker')
+    def test_p0_setup_retains_real_nonzero_and_timeout_child_output_and_does_not_continue(self):
+        import source_bundle
+        for timeout_case in (False,True):
+            with self.subTest(timeout=timeout_case),tempfile.TemporaryDirectory() as temp:
+                root,worker,ticks,clock,bound,options,create,register,submit,probe,unused=self.setup_control(temp)
+                # This executes a tiny real CPU child, never the project/Docker CLI.
+                code='import sys,time; print("early",flush=True); print("diagnostic",file=sys.stderr,flush=True); '
+                code+='time.sleep(5)' if timeout_case else 'sys.exit(7)'
+                def runner(command,timeout,environment):
+                    return schedule_module._guard_capture(['/usr/bin/python3','-B','-c',code],1,environment)
+                transport=Mock(side_effect=runner)
+                original_popen=subprocess.Popen;children=[];waits=[]
+                def popen(*args,**kwargs):
+                    child=original_popen(*args,**kwargs);children.append(child);original_wait=child.wait
+                    def wait(*args,**kwargs):waits.append(kwargs.get('timeout'));return original_wait(*args,**kwargs)
+                    child.wait=wait
+                    return child
+                with (root/'setup-events').open('xb',buffering=0) as events, \
+                        patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                        patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.subprocess,'Popen',side_effect=popen), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                    with self.assertRaises((RuntimeError,subprocess.TimeoutExpired)) as caught:
+                        schedule_module.run_p0_setup(str(worker),'f'*64,events=events,runner=transport,host_probe=options['host_probe'])
+                self.assertEqual(transport.call_count,1)
+                self.assertEqual((root/'p0-setup-create.stdout.log').read_bytes(),b'early\n')
+                self.assertEqual((root/'p0-setup-create.stderr.log').read_bytes(),b'diagnostic\n')
+                self.assertEqual(caught.exception.p0_setup_receipt['phase_exitcodes'],dict(create=-9 if timeout_case else 7))
+                options['docker'].assert_not_called()
+                try:
+                    if timeout_case:
+                        self.assertGreater(waits[-1],0)
+                        self.assertEqual(caught.exception.p0_setup_receipt['capture_cleanup']['create'],
+                            dict(pid=children[0].pid,direct_child_exit_verified=True))
+                    self.assertIsNotNone(children[0].returncode)
+                finally:
+                    # Reap only this test's known child even when the old implementation fails.
+                    children[0].wait(timeout=2)
+
+    @unittest.skipUnless(os.name=='posix','Native WSL capture-close control')
+    def test_guard_capture_successful_child_close_failure_retains_output_and_exit_without_rekill(self):
+        class Selector:
+            def __init__(self):self.items={}
+            def register(self,stream,event,index):self.items[index]=types.SimpleNamespace(fd=index,fileobj=stream,data=index)
+            def get_map(self):return self.items
+            def select(self,timeout):return [(v,None) for v in self.items.values()]
+            def unregister(self,stream):
+                key=next(k for k,v in self.items.items() if v.fileobj is stream);del self.items[key]
+            def close(self):pass
+        child=types.SimpleNamespace(pid=321,stdout=Mock(),stderr=Mock(),kill=Mock(),wait=Mock(return_value=0),returncode=0)
+        child.stdout.close.side_effect=OSError('controlled close after real exit boundary')
+        chunks={0:[b'[]',b''],1:[b'diagnostic',b'']}
+        with patch.object(schedule_module.subprocess,'Popen',return_value=child), \
+                patch.object(schedule_module.selectors,'DefaultSelector',Selector), \
+                patch.object(schedule_module.os,'read',side_effect=lambda fd,size:chunks[fd].pop(0)):
+            with self.assertRaises(OSError) as caught:schedule_module._guard_capture(['CPU-close-fixture'],10,{})
+        self.assertEqual(caught.exception.guard_capture_stdout,b'[]')
+        self.assertEqual(caught.exception.guard_capture_stderr,b'diagnostic')
+        self.assertEqual(caught.exception.guard_capture_child_pid,321)
+        self.assertTrue(caught.exception.guard_capture_child_exit_verified)
+        self.assertEqual(caught.exception.guard_capture_returncode,0)
+        child.kill.assert_not_called();child.wait.assert_called_once()
+
     def submit_control(self):
         plan,receipt,target,info=self.p0_fixture()
         entered=datetime.fromisoformat(plan['window_start'])

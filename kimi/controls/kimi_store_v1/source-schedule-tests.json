@@ -409,6 +409,62 @@
       "seconds": 43.182,
       "result": "OK",
       "scope": "Final current hashes; 4 FIFO+8 Linux-only controls skipped, latter covered by native WSL suite"
+    },
+    {
+      "executor": "WSL Python3.10.12 native",
+      "count": 74,
+      "seconds": 5.384,
+      "result": "OK_WITH_WARNING",
+      "scope": "Initial setup integration; real child ResourceWarning exposed zero cleanup wait"
+    },
+    {
+      "executor": "WSL native",
+      "count": 1,
+      "seconds": 1.043,
+      "result": "FAILED",
+      "failures": 1,
+      "scope": "Real owned-child regression: wait(timeout=0), known child reaped in test finally"
+    },
+    {
+      "executor": "WSL native",
+      "count": 74,
+      "seconds": 4.785,
+      "result": "OK",
+      "scope": "Cleanup reserve and initial flow controls, before publication/close review corrections"
+    },
+    {
+      "executor": "WSL native",
+      "count": 1,
+      "seconds": 0.197,
+      "result": "FAILED",
+      "failures": 2,
+      "scope": "stdout publication lost reported CID; bad journal promoted unverified CID"
+    },
+    {
+      "executor": "WSL native",
+      "count": 1,
+      "seconds": 0.007,
+      "result": "FAILED",
+      "errors": 1,
+      "scope": "Successful child then close-error lacked raw capture attributes"
+    },
+    {
+      "executor": "WSL native Python3.10.12",
+      "count": 75,
+      "passed": 75,
+      "skipped": 0,
+      "seconds": 4.793,
+      "result": "OK",
+      "scope": "Final two-file hashes; real tiny child fault controls plus explicit metadata transport/Docker/unit substitutes"
+    },
+    {
+      "executor": "Windows CPU interpreter via WSL",
+      "count": 371,
+      "passed": 355,
+      "skipped": 16,
+      "seconds": 42.794,
+      "result": "OK",
+      "scope": "Final hashes, 12 Linux-specific controls separately covered; 4 FIFO not run on this no-Torch Linux configuration"
     }
   ],
   "gpu_used": false,
