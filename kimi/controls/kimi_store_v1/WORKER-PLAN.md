@@ -4,6 +4,8 @@
 
 ## 当前已接与尚未接
 
+2026-10-31 source宿主登记升级v2：load_watchdog_inputs强制worker_input_sha256，重用worker输入读取器比对root/plan/原锚/完整schedule和source/target identity；旧source startup v1拒绝，旧target v1仅保留归属/清理描述，P0登记不变。CPU真实元数据正反例与77项原生WSL控制通过。实际source container Cmd/Env/resource profile绑定及parent创建/启动仍未完成，亦未安装guard；a581实际源码包CPU证明不审批这轮新guard修订。
+
 2026-10-31 source参考worker内部入口增量：verify_source_worker_input冻结prompt/KV/plan SHA/声明的parent原锚，核代码/spec，_run_source_worker在验证来源目录和原剩余预算后调用既有body并持久化input SHA。七项原生CPU控制与完整404项测试已过，但父端实际创建命令、source guard target对新input SHA和anchor的绑定、完整资源/窗口/ABI/monitor准入仍缺。不能把新内部API当已部署model CLI，不借native完整编译缺口阻塞source必要准备，也不重复P0通用包装。
 
 2026-10-31 host-reader兼容修订：已复现旧ToHost至多拼两分区且不续正短读/EINTR；独立model.cpp新循环通过writer四个4KiB真实分区及4/6/16KiB读取、短读/中断/截断CPU控制，原close尾部保留。当前CPP SHA49b2b7fd…已绑定ledger/native入口，旧c057close-only候选保留历史且不能批准新代码。源码只编CPU片段，真实O_DIRECT/线程/锁页池/完整CUDA构建仍缺；不得复用旧compiled receipt或当作历史exit137修复。下一项应接完整实际构建身份和峰值/运行准入，不重复故障已闭环的读循环。

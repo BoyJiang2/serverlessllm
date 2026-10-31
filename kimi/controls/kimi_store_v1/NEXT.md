@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 source宿主登记/worker-input绑定缺口已先复现：旧source registration v1在有新worker-input时仍被load_watchdog_inputs接受，1项.873s失败（ValueError未抛）。现新source startup强制kimi-source-watchdog-registration-v2+worker_input_sha256，通过已有读取器核实际input SHA、root/plan SHA/原batch UTC字串/完整schedule/run holder commit spec manifest及target identity；receipt记录inputSHA。旧source startup v1在部署前拒绝，cleanup target描述v1保留，P0登记分支不变。原生WSL77项5.136s全过；Win全406项382过24skip53.863s，两源码只读静态PASS/SHA核验与旧失败追加source-schedule-review/tests。
+- 本轮只改原读取器与测试，未安装守护/创建或启动容器，无GPU/模型/Store/全缓存/remote/新环境/GB副本。实际source Cmd/Env/resource profile与输入的绑定、parent创建/启动/真实guard仍缺；不声称G1/完整服务，不用旧a581包或其CPU PASS批准当前新code。下一项继续核真正缺失的精确source target配置/启动闭包，先读已有接口再改，保留原budget/资源/R1门槛，不能以登记metadata等同实际消费或计算授权。
+
 - 当前源码候选a58113d973ac0d6a8bbd7de239983e7d79cdc469已实际Git对象成包175文件1777863B，manifest2a4a81afa3f2f8cd62a3f64e2acd5cf816e0848bca5c6ef79ec084e19e9367e9；fresh CPU子进程真实module origin及完整source/spec/plan/input验证→旧参考body/journal exit0，无Torch导入。此次去掉module/filegate替身，但engine/rank仍替身，不读权重payload，不是实际vLLM/转换/金标/guard通过。临时树已删除，不新增永久目录/GB数据；只保存input/journal SHA/child摘要和源码清单收据而非可重放测量档案，见source-startup-cpu-proof.bound_worker_followups。声明的node/booking/window仅CPU测试数据，不是有效资源票。代码首次push408后核远端仍410db62，再一次有界重试exit0成功；原失败留证，不force。
 - 下一项先核真正缺失的source parent启动清单、原anchor/inputSHA到实际target/guard的绑定及运行预算；不要重复已完成的worker-input和内部body，也不为绕本机CUDA构建缺口安装新GB环境或把组件控制冒充完整服务。全部实际准入前仍不启动GPU/模型/完整Store/大池/全缓存。
 

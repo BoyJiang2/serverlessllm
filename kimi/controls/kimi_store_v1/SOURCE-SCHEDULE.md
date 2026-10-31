@@ -1,5 +1,13 @@
 # 源转换批次：完整预算与窗口预检
 
+## 2026-10-31：source启动登记v2
+
+新source启动必须消费kimi-source-watchdog-registration-v2，字段在原schema/target/plan_sha256/batch_entered_utc/host_pid_namespace/nonce之外增加worker_input_sha256。load_watchdog_inputs读取器不再接受旧source登记v1；既有source cleanup target描述v1仍可用于精确归属检查，P0登记v1及分支不变。未部署旧source候选不因此追认或获得新准入，GLM冻结代码不变。
+
+读取器经verify_source_worker_input验证实际input SHA，并与宿主登记逐项比对run root、plan SHA、原batch UTC字符串、完整派生schedule、run/holder/commit/spec/manifest及target identity；回执包含已绑定input SHA。原时间锚不因启动/ready回调重新派生。旧登记在部署动作前拒绝；新输入、锚或target变化也拒绝。负例已先在旧实现复现ValueError未抛出（1项0.873秒），修后真实小文件清单控制通过。
+
+原生WSL77项控制测试5.136秒通过；Windows全406项382通过24平台跳过（53.863秒），两文件只读静态复审PASS及旧失败/SHA见source-schedule-review.json和source-schedule-tests.json。本轮不安装service或创建/启动容器，仅闭合登记/ready输入绑定。实际容器Cmd/Env/资源profile是否消费同一输入、source parent创建/启动、实际guard及全资源/ABI/窗口准入仍缺；不能据本轮声称G1或服务通过，也不能复用旧a581源码包批准新guard代码。
+
 `source_schedule.py`默认入口只做配置/时间检查；新增guard子命令为独立宿主watchdog候选，可在完整绑定后调用Docker清理指定本实验容器。当前仅本地CPU/替身测试，未远端部署、启动模型、安装守护或改预约。输入是外部SHA绑定的≤64KiB计划、已有source spec与源码清单。计划的run_id/holder/code_commit/spec SHA/源码manifest SHA必须与verify_source_run结果一致；固定资源h20/qjhs003。booking_id只是声明，返回booking_verified=false，不能据配置文件自授授权。
 
 固定预算序列是preflight、image_restore、engine_initialize_and_export、fixed_token_business、natural_eos_business、worker_shutdown、release_observe、cleanup_evidence、safety_margin，全部正整数且有限。engine阶段包含TP/通信组初始化、SF加载、导出、后处理/KV/必要预热；preflight包含代码/输入与实际资源/守护检查的预算，镜像恢复及可能的编译/校验也必须明确归入相应上限，不从总成本里消失。这里只定义字段，未冻结生产秒数，测试内数值不作模型耗时估计。

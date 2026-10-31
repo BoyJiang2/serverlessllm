@@ -22,6 +22,58 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def source_registration_fixture(self,temp):
+        root,worker_path,document=test_source_bundle.SourceBundleTests().source_worker_fixture(temp)
+        import source_bundle
+        digest=hashlib.sha256(worker_path.read_bytes()).hexdigest()
+        _,_,_,receipt,schedule,identity=source_bundle.verify_source_worker_input(worker_path,digest)
+        target,_=self.guard_fixture()
+        target['identity']=identity
+        registration=dict(schema='kimi-source-watchdog-registration-v2',target=target,
+            plan_sha256=document['plan_sha256'],batch_entered_utc=document['batch_entered_utc'],
+            host_pid_namespace=42,nonce='a'*32,worker_input_sha256=digest)
+        return root,registration,receipt,schedule
+
+    def test_source_startup_refuses_legacy_registration_without_worker_input_binding(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,registration,receipt,schedule=self.source_registration_fixture(temp)
+            registration['schema']='kimi-source-watchdog-registration-v1'
+            registration.pop('worker_input_sha256')
+            path=root/'registration.json';raw=json.dumps(registration).encode();path.write_bytes(raw)
+            with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')):
+                with self.assertRaisesRegex(ValueError,'exact watchdog registration'):
+                    schedule_module.load_watchdog_inputs(path,hashlib.sha256(raw).hexdigest())
+
+    def test_source_registration_consumes_real_bound_input_and_rejects_changed_anchor_sha_or_target(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,original,receipt,schedule=self.source_registration_fixture(temp)
+            path=root/'registration.json'
+            for mode in ('ok','anchor','input_sha','target','worker_changed'):
+                with self.subTest(mode=mode):
+                    registration=copy.deepcopy(original)
+                    worker=root/'source-worker-input.json';raw_worker=worker.read_bytes()
+                    if mode=='anchor':
+                        registration['batch_entered_utc']=(datetime.fromisoformat(
+                            registration['batch_entered_utc'])+timedelta(seconds=1)).isoformat()
+                    elif mode=='input_sha':registration['worker_input_sha256']='0'*64
+                    elif mode=='target':registration['target']['identity']['holder']='0'*32
+                    elif mode=='worker_changed':worker.write_bytes(raw_worker+b' ')
+                    raw=json.dumps(registration).encode();path.write_bytes(raw)
+                    try:
+                        with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')):
+                            if mode=='ok':
+                                _,_,actual,verified,bound_schedule,identity=schedule_module.load_watchdog_inputs(
+                                    path,hashlib.sha256(raw).hexdigest())
+                                self.assertEqual(actual,original)
+                                self.assertEqual(verified['worker_input_sha256'],original['worker_input_sha256'])
+                                self.assertEqual(bound_schedule,schedule)
+                                self.assertEqual(identity,original['target']['identity'])
+                                self.assertFalse(bound_schedule['runtime_admitted'])
+                            else:
+                                with self.assertRaises(ValueError):
+                                    schedule_module.load_watchdog_inputs(path,hashlib.sha256(raw).hexdigest())
+                    finally:worker.write_bytes(raw_worker)
+
     def test_docker_nanosecond_times_keep_same_microsecond_value_and_original_identity(self):
         self.assertEqual(schedule_module._utc('2026-10-31T00:00:00.123456789Z'),
                          datetime(2026,10,31,0,0,0,123456,tzinfo=timezone.utc))
@@ -843,14 +895,18 @@ class SourceScheduleTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);path=root/'registration.json'
             raw=json.dumps(plan).encode();(root/'source-plan.json').write_bytes(raw)
-            registration=dict(schema='kimi-source-watchdog-registration-v1',target=target,
+            registration=dict(schema='kimi-source-watchdog-registration-v2',target=target,
                 plan_sha256=hashlib.sha256(raw).hexdigest(),batch_entered_utc=plan['window_start'],
-                host_pid_namespace=42,nonce='a'*32)
+                host_pid_namespace=42,nonce='a'*32,worker_input_sha256='9'*64)
             raw=json.dumps(registration).encode();path.write_bytes(raw)
             args=['--registration',str(path.resolve()),'--registration-sha',hashlib.sha256(raw).hexdigest()]
             import source_bundle
             with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
                     patch.object(source_bundle,'verify_source_run',return_value=receipt) as verify, \
+                    patch.object(source_bundle,'verify_source_worker_input',return_value=(root,
+                        dict(plan_sha256=registration['plan_sha256'],batch_entered_utc=registration['batch_entered_utc']),
+                        {},receipt,source_schedule(plan,receipt,now=datetime.fromisoformat(plan['window_start'])),
+                        target['identity'])), \
                     patch.object(schedule_module,'watchdog_service_plan',return_value={'deployment_performed':False}) as render, \
                     patch.object(schedule_module,'source_watchdog',side_effect=AssertionError('unexpected launch')), \
                     patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:

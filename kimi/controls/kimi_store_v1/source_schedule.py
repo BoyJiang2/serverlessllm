@@ -1420,9 +1420,12 @@ def load_watchdog_inputs(registration_path, registration_sha256):
     if Path(__file__).resolve().parent != root/'code':
         raise ValueError('watchdog must execute from this run source bundle')
     registration = load_source_plan(path, registration_sha256)
-    if (not isinstance(registration, dict) or set(registration) != {'schema', 'target', 'plan_sha256',
-            'batch_entered_utc', 'host_pid_namespace', 'nonce'}
-            or registration['schema'] not in ('kimi-source-watchdog-registration-v1', 'kimi-p0-watchdog-registration-v1')):
+    source = isinstance(registration, dict) and registration.get('schema') == 'kimi-source-watchdog-registration-v2'
+    keys = {'schema', 'target', 'plan_sha256', 'batch_entered_utc', 'host_pid_namespace', 'nonce'}
+    if source:
+        keys.add('worker_input_sha256')
+    if (not isinstance(registration, dict) or set(registration) != keys
+            or registration['schema'] not in ('kimi-source-watchdog-registration-v2', 'kimi-p0-watchdog-registration-v1')):
         raise ValueError('exact watchdog registration required')
     p0 = registration['schema'] == 'kimi-p0-watchdog-registration-v1'
     prefix = 'p0' if p0 else 'source'
@@ -1447,6 +1450,18 @@ def load_watchdog_inputs(registration_path, registration_sha256):
                 or worker_schedule != schedule or worker_receipt['spec_sha256'] != receipt['spec_sha256']
                 or worker_receipt['environment_sha256'] != registration['target']['environment_sha256']):
             raise ValueError('P0 host registration differs from frozen worker input')
+    else:
+        from source_bundle import verify_source_worker_input
+        worker_root, worker_input, _, worker_receipt, worker_schedule, worker_identity = verify_source_worker_input(
+            root/'source-worker-input.json', registration['worker_input_sha256'])
+        if (worker_root != root or worker_input['plan_sha256'] != registration['plan_sha256']
+                or worker_input['batch_entered_utc'] != registration['batch_entered_utc']
+                or worker_schedule != schedule
+                or any(worker_receipt[k] != receipt[k] for k in
+                       ('run_id', 'holder', 'code_commit', 'spec_sha256', 'manifest_sha256'))
+                or worker_identity != registration['target']['identity']):
+            raise ValueError('source host registration differs from frozen worker input')
+        receipt['worker_input_sha256'] = registration['worker_input_sha256']
     expected = dict(run_id=receipt['run_id'], holder=receipt['holder'], code_commit=receipt['code_commit'],
         spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
     if registration['target']['identity'] != expected:

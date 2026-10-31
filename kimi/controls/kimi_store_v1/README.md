@@ -1,6 +1,6 @@
 # Kimi INT4 Store CPU 适配候选
 
-当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套404项中380通过、24个Windows平台跳过（50.798秒，WSL桥接既有Windows Torch）；新增source worker输入链7项已原生WSL通过0.571秒且无Torch，含新FIFO项。先前Linux库映射六项和Store读/关闭片段三项亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
+当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 完整本机构建已有实际预检阻塞：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
 
@@ -10,7 +10,7 @@
 | packed INT4保存/读取 | writer/index/restore/install保留packed及scale原始位/布局/alias/角色/配置；实际CPP读取片段与writer小文件衔接，跨多分区/短读/EINTR修复 | 真正完整native Store/O_DIRECT/CUDA、完整checkpoint及八rank逐项校验 |
 | 分块与临时引用 | 默认8MiB块；写入及两条读回摘要失败时释放自身view/CPU staging generator，保留原错误/partial，真实CPU弱引用不用GC控制通过 | 整进程RSS/锁页/页缓存/原模型和GPU工作区峰值；8MiB不是RSS上限 |
 | TP8与后处理 | 条件1428目标名、融合专家/非专家映射、角色/alias/必要buffer、固定Marlin辅助政策及一次Base后处理组件 | 实际8rank shape/value、真实Marlin重排/释放、真实混设备构造 |
-| worker与服务 | export/native独立回调；source业务输入SHA/plan/code/原时间锚接已有内部参考body；native deferred候选链 | 宿主对新输入的启动/guard绑定、实际vLLM spawn、真实构建/活跃Store/峰值、Kimi金标和完整服务 |
+| worker与服务 | source内部body绑定固定业务输入，宿主登记v2再核input SHA/原锚/plan/完整schedule；export/native独立插件候选 | 实际容器Cmd/Env/profile到输入的绑定、parent启动/实际guard、vLLM/真实构建/峰值、Kimi金标及服务 |
 
 本轮直接修复write_records写入失败后异常栈保留staging的问题：旧摘要故障与真实CPU张量两字节部分写先失败，当前writer在失败时丢弃自己的view并关闭Python staging generator；任意borrowed非generator迭代器不强关。源packed位与已写部分不变，不回滚、不发布成功。精确三个文件SHA、原失败和静态复审PASS见cpu-tensor-io-review.json；不是任意第三方栈/全RSS或CUDA所有权证明。
 

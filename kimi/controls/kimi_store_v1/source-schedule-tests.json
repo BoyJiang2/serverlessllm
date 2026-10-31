@@ -465,6 +465,30 @@
       "seconds": 42.794,
       "result": "OK",
       "scope": "Final hashes, 12 Linux-specific controls separately covered; 4 FIFO not run on this no-Torch Linux configuration"
+    },
+    {
+      "count": 1,
+      "seconds": 0.873,
+      "result": "FAILED",
+      "failures": 1,
+      "old_code_commit": "4608f9800166a99cd819c16c41428401ab62274f",
+      "old_source_schedule_sha256": "1fc56e28a184b9f6dfe48b2efed96db6ab9300811627f9c71b40c582e5eabf8a",
+      "test": "test_source_startup_refuses_legacy_registration_without_worker_input_binding",
+      "observed": "Old source v1 registration accepted without binding new worker input; ValueError not raised"
+    },
+    {
+      "count": 77,
+      "seconds": 5.136,
+      "result": "OK",
+      "scope": "Native WSL Python3.10 full source_schedule controls, actual metadata fixtures with explicit host/Docker substitutes"
+    },
+    {
+      "count": 406,
+      "passed": 382,
+      "skipped": 24,
+      "seconds": 53.863,
+      "result": "OK",
+      "scope": "Full CPU suite via WSL bridge to existing Windows Torch CPU"
     }
   ],
   "gpu_used": false,
