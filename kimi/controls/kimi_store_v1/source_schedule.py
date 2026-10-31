@@ -18,6 +18,8 @@ PHASES = ('preflight', 'image_restore', 'engine_initialize_and_export', 'fixed_t
           'natural_eos_business', 'worker_shutdown', 'release_observe', 'cleanup_evidence', 'safety_margin')
 TAIL = ('worker_shutdown', 'release_observe', 'cleanup_evidence', 'safety_margin')
 GUARD_PURPOSE = 'KIMI-SOURCE-UNREVIEWED'
+P0_PURPOSE = 'KIMI-CUDA-IPC-P0A-UNREVIEWED'
+P0_PHASES = ('preflight', 'guard_setup', 'component', *TAIL)
 
 
 def _utc(value):
@@ -38,10 +40,23 @@ def load_source_plan(path, expected_sha256):
 
 
 def source_schedule(plan, source_receipt, *, now):
+    return _window_schedule(plan, source_receipt, now=now, phases=PHASES,
+                            schema='kimi-source-window-v1')
+
+
+def p0_schedule(plan, receipt, *, now):
+    result = _window_schedule(plan, receipt, now=now, phases=P0_PHASES, schema='kimi-p0-window-v1')
+    if (result['total_max_seconds'] > 1800
+            or plan['seconds']['component'] != receipt['component_max_seconds']):
+        raise ValueError('P0 full batch must fit 1800 seconds and exact component budget')
+    return result
+
+
+def _window_schedule(plan, source_receipt, *, now, phases, schema):
     required = {'schema', 'run_id', 'holder', 'code_commit', 'spec_sha256', 'source_manifest_sha256',
                 'resource_id', 'booking_id', 'window_start', 'window_end', 'cleanup_complete_by', 'seconds'}
     if (not isinstance(plan, dict) or set(plan) != required
-            or plan['schema'] != 'kimi-source-window-v1' or plan['resource_id'] != 'h20/qjhs003'
+            or plan['schema'] != schema or plan['resource_id'] != 'h20/qjhs003'
             or not isinstance(plan['booking_id'], str) or not plan['booking_id'].startswith('bk-')):
         raise ValueError('exact source-window schema and node required')
     for name, receipt_name in (('run_id', 'run_id'), ('holder', 'holder'), ('code_commit', 'code_commit'),
@@ -49,7 +64,7 @@ def source_schedule(plan, source_receipt, *, now):
         if plan[name] != source_receipt[receipt_name]:
             raise ValueError('source window identity differs: ' + name)
     seconds = plan['seconds']
-    if (not isinstance(seconds, dict) or set(seconds) != set(PHASES)
+    if (not isinstance(seconds, dict) or set(seconds) != set(phases)
             or any(type(v) is not int or not 0 < v <= 86400 for v in seconds.values())
             or seconds['release_observe'] < 60):
         raise ValueError('all finite phase maxima and at least 60-second observation budget required')
@@ -67,7 +82,7 @@ def source_schedule(plan, source_receipt, *, now):
     run_cleanup = current + timedelta(seconds=total)
     guard_fire = run_cleanup - timedelta(seconds=sum(seconds[n] for n in TAIL))
     cursor, stages = current, {}
-    for name in PHASES:
+    for name in phases:
         cursor += timedelta(seconds=seconds[name])
         stages[name] = cursor.isoformat()
     return dict(total_max_seconds=total, compute_max_seconds=total-sum(seconds[n] for n in TAIL),
@@ -79,7 +94,7 @@ def source_schedule(plan, source_receipt, *, now):
 
 def phase_remaining_seconds(schedule, phase, *, entered, elapsed, now):
     """Use the original batch anchor, never a new per-phase start time."""
-    if phase not in PHASES:
+    if phase not in PHASES + P0_PHASES or phase not in schedule['phase_deadlines_utc']:
         raise ValueError('unknown source phase')
     if (type(elapsed) not in (int, float) or not math.isfinite(elapsed) or elapsed < 0
             or entered.tzinfo is None or entered.utcoffset() is None
@@ -97,11 +112,17 @@ def phase_remaining_seconds(schedule, phase, *, entered, elapsed, now):
 
 def _guard_identity(registration, *, boot_id, uid):
     from vllm_export_hook import _source_identity
+    from source_bundle import _p0_identity
+    p0 = isinstance(registration, dict) and registration.get('schema') == 'kimi-p0-guard-target-v1'
     keys = {'schema', 'identity', 'boot_id', 'uid', 'container_id', 'image_id', 'container_created'}
+    if p0: keys = keys | {'gpu_uuid'}
     if (not isinstance(registration, dict) or set(registration) != keys
-            or registration['schema'] != 'kimi-source-guard-target-v1'):
+            or registration['schema'] not in ('kimi-source-guard-target-v1', 'kimi-p0-guard-target-v1')):
         raise ValueError('exact source guard target schema required')
-    identity = _source_identity(registration['identity'])
+    identity = (_p0_identity if p0 else _source_identity)(registration['identity'])
+    if p0 and (not isinstance(registration['gpu_uuid'], str) or not re.fullmatch(
+            'GPU-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}', registration['gpu_uuid'])):
+        raise ValueError('one complete P0 GPU UUID required')
     if (type(uid) is not int or uid != 2147 or registration['uid'] != uid
             or type(registration['uid']) is not int
             or not isinstance(boot_id, str) or not re.fullmatch('[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}', boot_id)
@@ -121,7 +142,8 @@ def guard_target(registration, info, *, boot_id, uid):
     cid, image = registration['container_id'], registration['image_id']
     labels = info['Config']['Labels']
     expected = {'sllm.kimi.' + key: value for key, value in identity.items()}
-    expected['sllm.purpose'] = GUARD_PURPOSE
+    p0 = registration['schema'] == 'kimi-p0-guard-target-v1'
+    expected['sllm.purpose'] = P0_PURPOSE if p0 else GUARD_PURPOSE
     if (info['Id'] != cid or info['Image'] != image or info['Created'] != registration['container_created']
             or info['Config']['User'] not in ('2147', '2147:2147')
             or not isinstance(labels, dict) or any(labels.get(k) != v for k, v in expected.items())
@@ -131,6 +153,22 @@ def guard_target(registration, info, *, boot_id, uid):
             or (info['State']['Running'] and info['State']['Pid'] <= 0)
             or (not info['State']['Running'] and info['State']['Pid'] != 0)):
         raise ValueError('guard container identity, owner or restart policy differs')
+    if p0:
+        host = info['HostConfig']
+        requests = host.get('DeviceRequests')
+        if (not isinstance(requests, list) or len(requests) != 1
+                or requests[0].get('Driver') != 'nvidia' or requests[0].get('Count') != 0
+                or requests[0].get('DeviceIDs') != [registration['gpu_uuid']]
+                or requests[0].get('Capabilities') != [['gpu']]
+                or requests[0].get('Options') != {}
+                or type(host.get('Memory')) is not int or host['Memory'] != 4*1024**3
+                or type(host.get('NanoCpus')) is not int or host['NanoCpus'] != 2*10**9
+                or type(host.get('PidsLimit')) is not int or host['PidsLimit'] != 128
+                or type(host.get('ShmSize')) is not int or host['ShmSize'] != 64*1024**2
+                or host.get('NetworkMode') != 'none' or host.get('Privileged') is not False
+                or host.get('IpcMode') != 'private' or host.get('PidMode') != ''
+                or host.get('Devices') not in ([], None) or host.get('CapAdd') not in ([], None)):
+            raise ValueError('P0 one-GPU isolation or resource limits differ')
     return identity
 
 
@@ -713,36 +751,52 @@ def probe_watchdog_service(service_plan, target, ready, schedule, *, nonce, host
         guard_deployed=False, runtime_admitted=False, resources_released=False)
 
 
-def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_probe_only=False):
-    """Host-only entry; source verification and target probe precede readiness."""
-    import argparse
-    if sys.flags.optimize or not sys.dont_write_bytecode:
-        raise ValueError('watchdog requires unoptimized python -B')
-    from source_bundle import verify_source_run
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--registration', required=True)
-    parser.add_argument('--registration-sha', required=True)
-    parser.add_argument('--service-plan-sha')
-    args = parser.parse_args(argv)
-    path = Path(args.registration)
+def load_watchdog_inputs(registration_path, registration_sha256):
+    """Verify exact source or P0 scope, retaining the original batch anchor."""
+    from source_bundle import verify_source_run, verify_p0_run
+    path = Path(registration_path)
     if not path.is_absolute():
         raise ValueError('absolute watchdog registration required')
     root = path.resolve(strict=True).parent
     if Path(__file__).resolve().parent != root/'code':
         raise ValueError('watchdog must execute from this run source bundle')
-    registration = load_source_plan(path, args.registration_sha)
+    registration = load_source_plan(path, registration_sha256)
     if (not isinstance(registration, dict) or set(registration) != {'schema', 'target', 'plan_sha256',
             'batch_entered_utc', 'host_pid_namespace', 'nonce'}
-            or registration['schema'] != 'kimi-source-watchdog-registration-v1'):
+            or registration['schema'] not in ('kimi-source-watchdog-registration-v1', 'kimi-p0-watchdog-registration-v1')):
         raise ValueError('exact watchdog registration required')
-    plan = load_source_plan(root/'source-plan.json', registration['plan_sha256'])
-    receipt = verify_source_run(root/'code', root/'source-code-manifest.json', plan['source_manifest_sha256'],
-                                root/'source-spec.json', plan['spec_sha256'])
-    schedule = source_schedule(plan, receipt, now=_utc(registration['batch_entered_utc']))
+    p0 = registration['schema'] == 'kimi-p0-watchdog-registration-v1'
+    prefix = 'p0' if p0 else 'source'
+    target_schema = 'kimi-p0-guard-target-v1' if p0 else 'kimi-source-guard-target-v1'
+    if registration['target'].get('schema') != target_schema:
+        raise ValueError('watchdog and target scopes differ')
+    plan = load_source_plan(root/(prefix+'-plan.json'), registration['plan_sha256'])
+    verify = verify_p0_run if p0 else verify_source_run
+    receipt = verify(root/'code', root/'source-code-manifest.json', plan['source_manifest_sha256'],
+                     root/(prefix+'-spec.json'), plan['spec_sha256'])
+    schedule = (p0_schedule if p0 else source_schedule)(plan, receipt, now=_utc(registration['batch_entered_utc']))
+    if p0 and (registration['target']['image_id'] != receipt['image_id']
+               or registration['target']['gpu_uuid'] != receipt['gpu_uuid']):
+        raise ValueError('P0 target image or GPU differs from spec')
     expected = dict(run_id=receipt['run_id'], holder=receipt['holder'], code_commit=receipt['code_commit'],
         spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
     if registration['target']['identity'] != expected:
         raise ValueError('watchdog target and verified source identity differ')
+    return path, root, registration, receipt, schedule, expected
+
+
+def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_probe_only=False):
+    """Host-only entry; source verification and target probe precede readiness."""
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('watchdog requires unoptimized python -B')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--registration', required=True)
+    parser.add_argument('--registration-sha', required=True)
+    parser.add_argument('--service-plan-sha')
+    args = parser.parse_args(argv)
+    path, root, registration, receipt, schedule, expected = load_watchdog_inputs(
+        args.registration, args.registration_sha)
     if service_plan_only:
         result = watchdog_service_plan(registration['target'], str(path.resolve()), args.registration_sha,
                                        schedule, now=datetime.now(timezone.utc))

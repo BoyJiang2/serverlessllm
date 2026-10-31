@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 P0a spec/window/guard输入已接原source_bundle/source_schedule：专属kimi-p0 schema/purpose、完整代码清单、单GPU UUID/固定image/40B..1MiB/4..300s component、<=1800s完整批次及原截止/至少60秒观察/提前10分钟清理；原source测试保持。P0 guard profile候选2CPU4GiB/128PID/64MiB shm/network none/private IPC，非实际占用证明。349项CPU测试345过4跳过42.715秒，四文件静态复审PASS与精确SHA追加source-schedule-review，不是GPU运行R1。无新目录/环境/权重副本，无远端/GPU。下一项只补P0 worker CLI及宿主提交/monitor/60秒闭包，核合规既有runtime和实际协调窗口；禁止以旧source/GLM gate批准P0，旧native 2x停止保留。
+
 - 2026-10-31 最小P0a已在原native_record_call实现内部body：40确定性字节/packed I32+BF16/F32+alias+empty，单暴露GPU UUID、固定Torch2.10cu129无CPUfallback、spawn/Pipe消费者读后修改，父保留producer到实际子进程exit0再观察共享修改；原<=300s deadline预留3s owned清理，失败保留owner，不碰native/Store/模型。独立kimi-p0身份/PID仅worker命名空间；无CLI、当前P0 guard scope/monitor/60秒及实际准入，所以不是可开跑gate。343项最终339过4跳过（31.344秒），19相关18过1跳过；当前两文件静态复审PASS见native-record-call-review。用户说继续，已继续必要准备，未借alan资源。下一项只接P0最小入口/身份与预算/新guard和轻监控、复用合规已有runtime；不再扩CPU工具，不用旧source/GLM gate批准P0，不改native2x停止。
 
 - WSL偏好已实际核验并开始采用：现有Ubuntu22.04 WSL2能访问同一/mnt/d repo，LinuxPython3.10无torch/vllm/transformers，原生ssh缺qjhs003别名；Win ssh.exe -G可用。从WSL桥接现有WindowsCPU Python/同一cwd已跑19相关测试18过1skip（0.674秒），不是LinuxTorch通过；不复制仓库/资产、不装新环境。Linuxgit status在DrvFS10s超时且未重复，保留失败，Git写暂用WSL现有Windowsgit.exe顺序操作、filemodefalse，不更改配置/权限。

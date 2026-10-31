@@ -572,6 +572,95 @@ os._exit(0)
                 while errors.exists() and not (Path(temp)/'child.closed').exists() and time.monotonic()<deadline:
                     time.sleep(0.05)
 
+    def p0_fixture(self):
+        plan, receipt = self.fixture()
+        target, info = self.guard_fixture()
+        run_id = 'kimi-p0-20261031T000000Z-01234567'
+        for key in ('holder','code_commit','spec_sha256'):
+            plan[key] = receipt[key] = target['identity'][key]
+        receipt['manifest_sha256'] = plan['source_manifest_sha256'] = target['identity']['source_manifest_sha256']
+        plan['run_id'] = receipt['run_id'] = target['identity']['run_id'] = run_id
+        plan['schema'] = 'kimi-p0-window-v1'
+        plan['seconds'] = {name:30 for name in schedule_module.P0_PHASES}
+        plan['seconds']['release_observe'] = 90
+        receipt['component_max_seconds'] = plan['seconds']['component'] = 60
+        receipt['gpu_uuid'] = target['gpu_uuid'] = 'GPU-12345678-1234-1234-1234-123456789abc'
+        receipt['image_id'] = target['image_id']
+        target['schema'] = 'kimi-p0-guard-target-v1'
+        info['Config']['Labels']['sllm.kimi.run_id'] = run_id
+        info['Config']['Labels']['sllm.purpose'] = schedule_module.P0_PURPOSE
+        info['HostConfig'].update(DeviceRequests=[dict(Driver='nvidia',Count=0,
+            DeviceIDs=[target['gpu_uuid']],Capabilities=[['gpu']],Options={})],Memory=4*1024**3,
+            NanoCpus=2*10**9,PidsLimit=128,ShmSize=64*1024**2,NetworkMode='none',
+            Privileged=False,IpcMode='private',PidMode='',Devices=[],CapAdd=[])
+        return plan, receipt, target, info
+
+    def test_p0_budget_is_original_complete_batch_and_cannot_use_source_schema(self):
+        plan, receipt, _, _ = self.p0_fixture()
+        total = sum(plan['seconds'].values())
+        entered = datetime.fromisoformat(plan['cleanup_complete_by'])-timedelta(seconds=total)
+        result = schedule_module.p0_schedule(plan,receipt,now=entered)
+        self.assertEqual(result['total_max_seconds'],total)
+        self.assertEqual(set(result['phase_deadlines_utc']),set(schedule_module.P0_PHASES))
+        self.assertFalse(result['runtime_admitted'])
+        component = datetime.fromisoformat(result['guard_fire_by_utc'])
+        self.assertEqual(component,datetime.fromisoformat(result['phase_deadlines_utc']['component']))
+        with self.assertRaises(TimeoutError):
+            schedule_module.phase_remaining_seconds(result,'component',entered=entered,
+                elapsed=(component-entered).total_seconds(),now=component)
+        with self.assertRaises(TimeoutError): schedule_module.p0_schedule(plan,receipt,now=entered+timedelta(seconds=1))
+        with self.assertRaises(ValueError): schedule_module.source_schedule(plan,receipt,now=entered)
+        for key, value in (('component',61), ('safety_margin',1800), ('release_observe',59)):
+            altered=copy.deepcopy(plan);altered['seconds'][key]=value
+            with self.assertRaises((ValueError,TimeoutError)):schedule_module.p0_schedule(altered,receipt,now=entered)
+
+    def test_p0_target_requires_exact_one_gpu_caps_and_purpose(self):
+        _,_,target,info = self.p0_fixture()
+        self.assertEqual(schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147),target['identity'])
+        for key,value in (('Memory',0),('Memory',True),('NanoCpus',0),('PidsLimit',0),
+                ('ShmSize',1024**3),('NetworkMode','host'),('IpcMode','host'),('PidMode','host'),
+                ('Privileged',True),('Devices',[{'PathOnHost':'/dev/nvidia0'}]),('CapAdd',['SYS_ADMIN']),
+                ('DeviceRequests',[]),('DeviceRequests',[dict(Driver='nvidia',Count=-1,
+                    DeviceIDs=[],Capabilities=[['gpu']],Options={})])):
+            with self.subTest(key=key):
+                candidate=copy.deepcopy(info);candidate['HostConfig'][key]=value
+                with self.assertRaises(ValueError):schedule_module.guard_target(target,candidate,boot_id=target['boot_id'],uid=2147)
+        info['Config']['Labels']['sllm.purpose']=schedule_module.GUARD_PURPOSE
+        with self.assertRaises(ValueError):schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+        target['schema']='kimi-source-guard-target-v1'
+        with self.assertRaises(ValueError):schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+
+    def test_p0_service_cli_binds_separate_spec_plan_and_manifest_before_render(self):
+        plan,receipt,target,_ = self.p0_fixture()
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);path=root/'registration.json'
+            raw=json.dumps(plan).encode();(root/'p0-plan.json').write_bytes(raw)
+            registration=dict(schema='kimi-p0-watchdog-registration-v1',target=target,
+                plan_sha256=hashlib.sha256(raw).hexdigest(),batch_entered_utc=plan['window_start'],
+                host_pid_namespace=42,nonce='a'*32)
+            def write_registration():
+                raw=json.dumps(registration).encode();path.write_bytes(raw)
+                return ['--registration',str(path.resolve()),'--registration-sha',hashlib.sha256(raw).hexdigest()]
+            import source_bundle
+            with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(source_bundle,'verify_p0_run',return_value=receipt) as verify, \
+                    patch.object(source_bundle,'verify_source_run',side_effect=AssertionError('wrong scope')), \
+                    patch.object(schedule_module,'watchdog_service_plan',return_value={'deployment_performed':False}) as render, \
+                    patch.object(schedule_module,'source_watchdog',side_effect=AssertionError('unexpected launch')), \
+                    patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:
+                schedule_module.watchdog_main(write_registration(),service_plan_only=True)
+                self.assertEqual(json.loads(output.getvalue()),{'deployment_performed':False})
+                self.assertEqual(verify.call_args.args[3],root/'p0-spec.json')
+                render.assert_called_once();render.reset_mock()
+                target['gpu_uuid']='GPU-00000000-1234-1234-1234-123456789abc'
+                with self.assertRaisesRegex(ValueError,'GPU differs'):
+                    schedule_module.watchdog_main(write_registration(),service_plan_only=True)
+                render.assert_not_called()
+                target['schema']='kimi-source-guard-target-v1'
+                with self.assertRaisesRegex(ValueError,'scopes differ'):
+                    schedule_module.watchdog_main(write_registration(),service_plan_only=True)
+            self.assertFalse((root/'source-watchdog-events.jsonl').exists())
+
     def guard_fixture(self):
         identity=dict(run_id='kimi-export-20261031T000000Z-01234567',holder='a'*32,
             code_commit='b'*40,spec_sha256='c'*64,source_manifest_sha256='d'*64)

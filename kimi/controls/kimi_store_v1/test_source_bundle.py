@@ -44,6 +44,78 @@ class SourceBundleTests(unittest.TestCase):
         if digest is None: digest = hashlib.sha256(manifest.read_bytes()).hexdigest()
         return bundle.verify_source_bundle(target, manifest, digest, expected_code_commit=commit)
 
+    def p0_fixture(self, temp):
+        repo, source, target, manifest, _, _ = self.fixture(temp)
+        for name in ('native_record_call.py', 'source_schedule.py'):
+            (source/name).write_bytes(b'# P0 CPU inventory fixture, not executable runtime\n')
+        self.git(repo, 'add', '.')
+        self.git(repo, 'commit', '-qm', 'P0 inventory fixture')
+        commit = self.git(repo, 'rev-parse', 'HEAD').decode().strip()
+        # Reuse the existing temporary layout; no second asset/environment copy.
+        target.rename(Path(temp)/'code')
+        target = Path(temp)/'code'
+        for name in ('native_record_call.py', 'source_schedule.py'):
+            (target/name).write_bytes((source/name).read_bytes())
+        _, raw = bundle.build_source_inventory(commit, repo)
+        manifest.rename(Path(temp)/'source-code-manifest.json')
+        manifest = Path(temp)/'source-code-manifest.json'
+        manifest.write_bytes(raw)
+        spec = dict(schema='kimi-cuda-ipc-p0a-run-v1', node='qjhs003',
+            run_id='kimi-p0-20261031T000000Z-01234567', holder='a'*32, code_commit=commit,
+            run_root=str(Path(temp).resolve()), gpu_uuid='GPU-12345678-1234-1234-1234-123456789abc',
+            image_id='sha256:'+'f'*64, max_payload_bytes=40, component_max_seconds=60)
+        path = Path(temp)/'p0-spec.json'
+        path.write_text(json.dumps(spec), encoding='utf-8')
+        return target, manifest, path, spec
+
+    def p0_verify(self, target, manifest, path):
+        return bundle.verify_p0_run(target, manifest, hashlib.sha256(manifest.read_bytes()).hexdigest(),
+                                    path, hashlib.sha256(path.read_bytes()).hexdigest())
+
+    def test_p0_inventory_and_spec_bind_without_model_approval(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target, manifest, path, spec = self.p0_fixture(temp)
+            result = self.p0_verify(target, manifest, path)
+            self.assertEqual(result['run_id'], spec['run_id'])
+            self.assertEqual(result['component_max_seconds'], 60)
+            self.assertTrue(result['source_bytes_verified'])
+            self.assertFalse(result['runtime_admitted'])
+            self.assertTrue(result['identity_declared_only'])
+            (target/'native_record_call.py').write_bytes(b'changed')
+            with self.assertRaises(ValueError): self.p0_verify(target, manifest, path)
+
+    def test_p0_spec_rejects_scope_bounds_and_external_digest(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target, manifest, path, original = self.p0_fixture(temp)
+            for name, value in (('schema','kimi-source-run-v1'), ('node','qjhs2'),
+                    ('run_id','kimi-export-20261031T000000Z-01234567'), ('holder','a'),
+                    ('gpu_uuid','all'), ('image_id','vllm:latest'), ('max_payload_bytes', True),
+                    ('max_payload_bytes',39), ('max_payload_bytes',1024**2+1),
+                    ('component_max_seconds',3), ('component_max_seconds',301), ('run_root','relative')):
+                with self.subTest(name=name, value=value):
+                    spec = dict(original); spec[name] = value
+                    path.write_text(json.dumps(spec), encoding='utf-8')
+                    with self.assertRaises(ValueError): self.p0_verify(target, manifest, path)
+            path.write_text(json.dumps(original), encoding='utf-8')
+            with self.assertRaises(ValueError):
+                bundle.verify_p0_run(target, manifest, hashlib.sha256(manifest.read_bytes()).hexdigest(),path,'0'*64)
+            with self.assertRaises(ValueError):
+                bundle.verify_p0_run(target, manifest, hashlib.sha256(manifest.read_bytes()).hexdigest(),path,False)
+            path.write_bytes(path.read_bytes()+b' '*65536)
+            with self.assertRaises(ValueError): self.p0_verify(target, manifest, path)
+
+    def test_p0_wrong_layout_or_missing_component_is_not_approved(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target, manifest, path, spec = self.p0_fixture(temp)
+            moved = path.with_name('source-spec.json'); path.rename(moved)
+            with self.assertRaisesRegex(ValueError,'layout'): self.p0_verify(target, manifest, moved)
+            moved.rename(path)
+            document = json.loads(manifest.read_bytes())
+            document['files'] = [row for row in document['files'] if row['path']!='native_record_call.py']
+            (target/'native_record_call.py').unlink()
+            manifest.write_text(json.dumps(document), encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'entry absent'): self.p0_verify(target, manifest, path)
+
     def test_exact_committed_bytes_ignore_dirty_and_untracked_worktree(self):
         with tempfile.TemporaryDirectory() as temp:
             repo, source, target, manifest, commit, receipt = self.fixture(temp)

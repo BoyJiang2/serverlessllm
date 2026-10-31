@@ -149,6 +149,60 @@ def verify_source_run(directory, manifest_path, manifest_sha256, spec_path, spec
                 spec_sha256=spec_sha256, identity_declared_only=True)
 
 
+
+def _p0_identity(identity):
+    patterns = dict(run_id='kimi-p0-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}',
+        holder='[0-9a-f]{32}', code_commit='[0-9a-f]{40}',
+        spec_sha256='[0-9a-f]{64}', source_manifest_sha256='[0-9a-f]{64}')
+    if (not isinstance(identity, dict) or set(identity) != set(patterns)
+            or any(not isinstance(identity[k], str) or not re.fullmatch(pattern, identity[k])
+                   for k, pattern in patterns.items())):
+        raise ValueError('exact P0 run identity required')
+    return dict(identity)
+
+
+def verify_p0_run(directory, manifest_path, manifest_sha256, spec_path, spec_sha256):
+    """Bind the tiny Torch IPC component, without authorizing a model or Store."""
+    from vllm_export_hook import _metadata_stream
+    if not isinstance(spec_sha256, str) or not re.fullmatch('[0-9a-f]{64}', spec_sha256):
+        raise ValueError('external P0 spec SHA required')
+    with _metadata_stream(spec_path) as stream:
+        raw = stream.read(65537)
+    if len(raw) > 65536 or hashlib.sha256(raw).hexdigest() != spec_sha256:
+        raise ValueError('P0 spec length or SHA differs')
+    spec = json.loads(raw)
+    keys = {'schema', 'node', 'run_id', 'holder', 'code_commit', 'run_root', 'gpu_uuid',
+            'image_id', 'max_payload_bytes', 'component_max_seconds'}
+    if (not isinstance(spec, dict) or set(spec) != keys
+            or spec['schema'] != 'kimi-cuda-ipc-p0a-run-v1' or spec['node'] != 'qjhs003'):
+        raise ValueError('exact P0 component spec required')
+    identity = _p0_identity(dict(run_id=spec['run_id'], holder=spec['holder'], code_commit=spec['code_commit'],
+        spec_sha256=spec_sha256, source_manifest_sha256=manifest_sha256))
+    if (not isinstance(spec['gpu_uuid'], str)
+            or not re.fullmatch('GPU-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}', spec['gpu_uuid'])
+            or not isinstance(spec['image_id'], str) or not re.fullmatch('sha256:[0-9a-f]{64}', spec['image_id'])
+            or type(spec['max_payload_bytes']) is not int or not 40 <= spec['max_payload_bytes'] <= 1024**2
+            or type(spec['component_max_seconds']) is not int or not 4 <= spec['component_max_seconds'] <= 300):
+        raise ValueError('bounded P0 payload, lifetime, immutable image and one GPU UUID required')
+    if not isinstance(spec['run_root'], str) or not Path(spec['run_root']).is_absolute():
+        raise ValueError('absolute existing P0 run root required')
+    root = Path(spec['run_root']).resolve(strict=True)
+    if (not root.is_dir() or Path(directory).resolve(strict=True) != root/'code'
+            or Path(manifest_path).resolve(strict=True) != root/'source-code-manifest.json'
+            or Path(spec_path).resolve(strict=True) != root/'p0-spec.json'):
+        raise ValueError('P0 code, manifest and spec belong to another run layout')
+    receipt = verify_source_bundle(directory, manifest_path, manifest_sha256,
+                                   expected_code_commit=identity['code_commit'])
+    # The common inventory verifies bytes only; it grants no source-model approval.
+    for name in ('native_record_call.py', 'source_schedule.py'):
+        if not (root/'code'/name).is_file():
+            raise ValueError('P0 entry absent from verified code inventory: ' + name)
+    return dict(receipt, run_id=identity['run_id'], holder=identity['holder'], spec_sha256=spec_sha256,
+        run_root=str(root), gpu_uuid=spec['gpu_uuid'], image_id=spec['image_id'],
+        max_payload_bytes=spec['max_payload_bytes'], component_max_seconds=spec['component_max_seconds'],
+        identity_declared_only=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)

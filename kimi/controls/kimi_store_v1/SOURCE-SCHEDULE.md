@@ -69,3 +69,14 @@ CPU追加修订：phase_remaining_seconds复用批次最初的entered与累计mo
 全部条件成立时，函数仅证明这次service身份验收，返回conditional independent_service_verified；实际提交前截止尚未证明，service_submission_deadline_verified、guard_deployed、runtime_admitted和resources_released保持false。后续实际部署控制器必须先核launch_before再提交、保存提交/启动证据并确认上述unit/probe；本候选不能单独批准模型或GPU。
 
 53项相关CPU测试通过；systemctl/proc/active-probe均为明确替身。额外真实临时文件和hardlink核有界cmdline/最后NUL/exe inode，只有proc路径替换，不冒称Linux实测。初次UTC标记夹具失败、严格JSON类型负例失败及修正均保留source-schedule-tests.json；全套332项中328通过、4POSIX FIFO因Windows跳过（29.555秒），当前两文件静态复审PASS并核SHA。未查询远端服务、安装unit、启动模型或创建池；下一项仍是实际提交边界与monitor/60秒释放。
+
+
+## P0a 身份与守护输入接线候选（2026-10-31）
+
+复用原source_bundle的逐文件字节验证，但P0单独使用kimi-p0身份、kimi-cuda-ipc-p0a-run-v1 spec、kimi-p0-window-v1 plan、kimi-p0-watchdog-registration-v1 registration和kimi-p0-guard-target-v1 target。既有run根读取p0-spec.json/p0-plan.json/source-code-manifest.json，code清单必须包含native_record_call.py和source_schedule.py；不创建新树或环境。spec限定qjhs003、完整镜像ID和单GPU UUID、40字节至1MiB载荷、4至300秒组件上限。common code manifest和guard event/service-plan沿用格式名，不授予source模型审批。
+
+P0 phases为preflight/guard_setup/component及原shutdown/observe/cleanup/margin尾部。完整批次最多1800秒、component必须等于spec上限、观察至少60秒、最终清理至少预约终点前10分钟，仍由原batch anchor计算，不因验证或创建服务重置。所有booking/guard/runtime准入标志保持false。
+
+P0 target要求purpose KIMI-CUDA-IPC-P0A-UNREVIEWED；guard在不可变ID/Created/UID/五项身份核对之外要求一个指定UUID的nvidia DeviceRequest、2CPU/4GiB/128PID/64MiB shm、network none、private IPC、非privileged和无额外device/cap。它们是待实际准入核验的上限，不是实测占用。旧source schema/purpose或跨scope组合不能批准P0；source原行为和回归保持。load_watchdog_inputs由现有guard/service-plan/probe入口共享，尚无P0 worker CLI或实际宿主控制器。
+
+本次349项CPU测试345通过/4 Windows POSIX FIFO跳过（42.715秒），相关bundle16/schedule56通过。当前四文件静态复审PASS及精确SHA追加原source-schedule-review.json，不等于运行R1或guard/GPU通过。下一项只连接P0 worker命令、宿主启动/监控/60秒释放，以及有效窗口和可复用合规runtime；不以模型完整转换或native全编译作为这个Torch小组件的前提。

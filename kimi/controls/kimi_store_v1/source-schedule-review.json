@@ -245,6 +245,40 @@
         "Conditional independent_service_verified does not prove submission deadline; service_submission_deadline_verified/guard_deployed/runtime_admitted/resources_released remain false",
         "No model, Store, GPU, full conversion, continuous resource monitoring or 60-second release validation"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-31T03:42:08.305717+00:00",
+      "scope": "P0a exact spec/code manifest/window and owned guard input branch; not runtime admission",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "source_bundle.py": "1870f6ec145517a07ba43552e2b4d6bb2e03117c7febc1fd772b0448f0f343a2",
+        "source_schedule.py": "ebf349f112c110fee2fec86ba3b227e2cc2215a3e85eb2eaab84990e844bde4f",
+        "test_source_bundle.py": "a7a7db26fa1c3659eec74d3a439cb4bfc69c65af6384444b4ee7f3cd44f698d1",
+        "test_source_schedule.py": "d1c086d102fa8f558fec1d557b45136b69c35b1f79029a0d1cf8b02e18657c7d"
+      },
+      "tests": {
+        "total": 349,
+        "passed": 345,
+        "skipped": 4,
+        "seconds": 42.715,
+        "executor": "primary agent, WSL bridge to existing Windows CPU Python"
+      },
+      "verified": [
+        "Separate P0 run/spec/window/guard schemas and purpose reject source approval reuse",
+        "Existing bounded full code inventory verifies both P0 entries and declared image/GPU/payload",
+        "Original batch anchor and full <=1800 seconds include shutdown, >=60-second observation and cleanup",
+        "Exact one UUID, nvidia request, nonprivileged/private IPC/no network and 2 CPU/4 GiB caps",
+        "Existing source service-plan branch remains covered; all old source tests pass"
+      ],
+      "limitations": [
+        "Read-only reviewer ran no code, wrote no files, did not SSH",
+        "New positive CLI control uses explicit verification/render mocks; bundle tests use actual tiny temporary Git files",
+        "2 CPU/4 GiB are proposed P0 limits, not actual measured usage or permission",
+        "Worker CLI/controller/monitor/60-second release integration still incomplete",
+        "No new runtime, remote deployment, GPU, model or Store; declared identity is not booking/guard proof",
+        "Common source-named event/service-plan schemas are byte inventory/guard formats, not source-model approval"
+      ]
     }
   ]
 }
