@@ -22,6 +22,143 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def submit_control(self):
+        plan,receipt,target,info=self.p0_fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        # Use a Linux path for the pure renderer; filesystem is supplied only by the ready-wait test.
+        rendered=schedule_module.watchdog_service_plan(target,'/data/owned/run/registration.json','a'*64,
+                                                        schedule,now=entered)
+        info['State']=dict(Running=False,Pid=0)
+        host=dict(uid=2147,boot_id=target['boot_id'],pid_namespace=42,cgroup='0::/user.slice\n')
+        ticks=[0.]
+        clock=Mock(wraps=datetime);clock.now.side_effect=lambda tz:entered+timedelta(seconds=ticks[0])
+        runner=Mock(return_value=types.SimpleNamespace(returncode=0,stdout='unit created',stderr=''))
+        docker=Mock(side_effect=lambda *args:types.SimpleNamespace(returncode=0,stdout=json.dumps([info]),stderr=''))
+        ready=Mock(return_value=dict(host=host))
+        proof=dict(independent_service_verified=True,identity=target['identity'],container_id=target['container_id'],
+            service_invocation_id='b'*32,runtime_admitted=False,resources_released=False)
+        probe=Mock(return_value=proof)
+        options=dict(nonce='1'*32,host_pid_namespace=42,plan_sha256='c'*64,
+            runner=runner,docker=docker,host_probe=Mock(return_value=host),ready_waiter=ready,service_probe=probe)
+        return rendered,target,schedule,info,ticks,clock,options
+
+    def test_p0_submit_checks_original_deadline_stopped_target_and_live_service_without_compute(self):
+        with tempfile.TemporaryDirectory() as temp:
+            plan,target,schedule,info,ticks,clock,options=self.submit_control()
+            with (Path(temp)/'events').open('xb',buffering=0) as events, \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                result=schedule_module.submit_p0_watchdog(plan,target,schedule,events=events,**options)
+            self.assertTrue(result['guard_deployed']);self.assertTrue(result['service_submission_deadline_verified'])
+            self.assertFalse(result['runtime_admitted']);self.assertFalse(result['resources_released'])
+            options['runner'].assert_called_once()
+            argv,timeout,env=options['runner'].call_args.args
+            self.assertEqual(argv,plan['command']);self.assertIn('--no-ask-password',argv)
+            self.assertEqual(timeout,10)
+            self.assertEqual(options['docker'].call_count,2)
+            self.assertTrue(all(c.args[0]==['inspect',target['container_id']] for c in options['docker'].call_args_list))
+            rows=[json.loads(line) for line in (Path(temp)/'events').read_text().splitlines()]
+            self.assertEqual([row['event'] for row in rows],['submission_prepared','submission_verified'])
+
+    def test_p0_submit_refuses_scope_tamper_wrong_host_busy_target_and_late_before_submission(self):
+        for kind in ('scope','tamper','host','busy','late','future','log'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                plan,target,schedule,info,ticks,clock,options=self.submit_control()
+                if kind=='scope':target['schema']='kimi-source-guard-target-v1'
+                elif kind=='tamper':plan['deployment_performed']=0
+                elif kind=='host':options['host_probe'].return_value['pid_namespace']=43
+                elif kind=='busy':info['State']=dict(Running=True,Pid=123)
+                elif kind=='late':ticks[0]=10.
+                elif kind=='future':ticks[0]=-1.
+                with (Path(temp)/'events').open('xb',buffering=0) as events, \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                        patch.object(schedule_module,'_watchdog_event',side_effect=OSError('controlled log') if kind=='log' else schedule_module._watchdog_event):
+                    with self.assertRaises((ValueError,TimeoutError,OSError)) as caught:
+                        schedule_module.submit_p0_watchdog(plan,target,schedule,events=events,**options)
+                options['runner'].assert_not_called();options['service_probe'].assert_not_called()
+                self.assertFalse(caught.exception.guard_submission_receipt['submission_attempted'])
+
+    def test_p0_submission_failure_is_ambiguous_and_never_retried_or_compute_admitted(self):
+        for kind in ('timeout','nonzero','ready','probe','late_return','started','log_failure'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                plan,target,schedule,info,ticks,clock,options=self.submit_control()
+                if kind=='timeout':options['runner'].side_effect=subprocess.TimeoutExpired('owned-cli',10)
+                elif kind=='nonzero':options['runner'].return_value.returncode=1
+                elif kind=='ready':options['ready_waiter'].side_effect=TimeoutError('no ready')
+                elif kind=='probe':options['service_probe'].return_value['independent_service_verified']=False
+                elif kind=='late_return':
+                    def late(*args):ticks[0]=10.;return types.SimpleNamespace(returncode=0,stdout='',stderr='')
+                    options['runner'].side_effect=late
+                elif kind=='started':
+                    def started(*args,**kwargs):info['State']=dict(Running=True,Pid=123);return options['service_probe'].return_value
+                    options['service_probe'].side_effect=started
+                else:
+                    options['runner'].side_effect=RuntimeError('owned submit error')
+                original=schedule_module._watchdog_event
+                def event(*args):
+                    if kind=='log_failure' and args[3]=='submission_failed':raise OSError('secondary log')
+                    return original(*args)
+                with (Path(temp)/'events').open('xb',buffering=0) as events, \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                        patch.object(schedule_module,'_watchdog_event',side_effect=event):
+                    with self.assertRaises((ValueError,RuntimeError,TimeoutError,subprocess.TimeoutExpired)) as caught:
+                        schedule_module.submit_p0_watchdog(plan,target,schedule,events=events,**options)
+                options['runner'].assert_called_once()
+                receipt=caught.exception.guard_submission_receipt
+                self.assertTrue(receipt['submission_attempted']);self.assertFalse(receipt['guard_deployed'])
+                self.assertFalse(receipt['runtime_admitted'])
+                if kind in ('timeout','nonzero','late_return','log_failure'):
+                    self.assertEqual(receipt['submission_outcome'],'unknown')
+                if kind=='log_failure':self.assertEqual(caught.exception.guard_submission_evidence_error['error_type'],'OSError')
+
+    def test_p0_service_submit_cli_binds_bundle_and_service_sha_and_rejects_duplicate(self):
+        plan,target,schedule,info,ticks,clock,options=self.submit_control()
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);path=root/'registration.json';args=['--registration',str(path),'--registration-sha','a'*64,'--service-plan-sha','b'*64]
+            identity=target['identity']
+            reg=dict(target=target,nonce='1'*32,host_pid_namespace=42,plan_sha256='c'*64)
+            service=copy.deepcopy(plan);service['command'][-3]=str(path)
+            inputs=(path,root,reg,{},schedule,identity)
+            with patch.object(schedule_module,'load_watchdog_inputs',return_value=inputs) as verify, \
+                    patch.object(schedule_module,'load_source_plan',return_value=service) as load, \
+                    patch.object(schedule_module,'submit_p0_watchdog',return_value=dict(runtime_admitted=False)) as submit, \
+                    patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:
+                schedule_module.watchdog_main(args,service_submit_only=True)
+                verify.assert_called_once_with(str(path),'a'*64)
+                load.assert_called_once_with(root/'source-watchdog-service-plan.json','b'*64)
+                submit.assert_called_once()
+                self.assertEqual(json.loads(output.getvalue()),dict(runtime_admitted=False))
+                submit.reset_mock()
+                with self.assertRaises(FileExistsError):schedule_module.watchdog_main(args,service_submit_only=True)
+                submit.assert_not_called()
+                (root/'source-watchdog-submit-events.jsonl').unlink()
+                service['command'][-1]='d'*64
+                with self.assertRaises(ValueError):schedule_module.watchdog_main(args,service_submit_only=True)
+                submit.assert_not_called()
+
+    def test_p0_readiness_wait_uses_one_deadline_and_rejects_oversized_evidence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target,_=self.guard_fixture();path=Path(temp)/'ready';ticks=[0.]
+            def remaining():
+                if ticks[0]>=0.2:raise TimeoutError('CPU ready budget')
+                return 0.2-ticks[0]
+            def sleep(seconds):ticks[0]+=seconds
+            with patch.object(schedule_module.time,'sleep',side_effect=sleep):
+                with self.assertRaises(TimeoutError):schedule_module._await_watchdog_ready(path,target,remaining=remaining)
+            path.write_bytes(b'x'*16385)
+            with self.assertRaisesRegex(ValueError,'16KiB'):
+                schedule_module._await_watchdog_ready(path,target,remaining=lambda:1)
+            path.write_bytes(b'{}\n{}\n')
+            with self.assertRaises(ValueError):
+                schedule_module._await_watchdog_ready(path,target,remaining=lambda:1,
+                    nonce='a'*32,registration_sha256='b'*64,plan_sha256='c'*64,guard_fire_by_utc='2026-10-31T00:00:00Z')
+
     def service_probe_control(self):
         target,schedule,now=self.service_plan_fixture()
         plan=schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now)
@@ -549,10 +686,21 @@ os._exit(0)
                 'print(json.dumps(dict(pid=p.pid,utc=datetime.now(timezone.utc).isoformat())),flush=True)')
             env=dict(schedule_module.os.environ,PYTHONPATH=str(Path(schedule_module.__file__).parent),
                      PYTHONDONTWRITEBYTECODE='1')
+            child_wait=None
             try:
                 parent=subprocess.run([sys.executable,'-B','-X','utf8','-c',launcher,json.dumps(command),str(errors)],
                     env=env,capture_output=True,text=True,timeout=5)
                 self.assertEqual(parent.returncode,0,parent.stderr)
+                if os.name=='nt':
+                    import ctypes
+                    kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+                    kernel.OpenProcess.argtypes=[ctypes.c_ulong,ctypes.c_int,ctypes.c_ulong]
+                    kernel.OpenProcess.restype=ctypes.c_void_p
+                    kernel.WaitForSingleObject.argtypes=[ctypes.c_void_p,ctypes.c_ulong]
+                    kernel.CloseHandle.argtypes=[ctypes.c_void_p]
+                    handle=kernel.OpenProcess(0x00100000,False,json.loads(parent.stdout)['pid'])
+                    if handle:child_wait=(kernel,handle)
+                    else:self.assertEqual(ctypes.get_last_error(),87)  # Already exited, invalid PID.
                 stopped_parent=datetime.now(timezone.utc)
                 rows=[];deadline=time.monotonic()+10
                 while time.monotonic()<deadline:
@@ -567,7 +715,11 @@ os._exit(0)
                 self.assertGreater(datetime.fromisoformat(rows[-1]['utc']),stopped_parent)
                 self.assertFalse(rows[-1]['payload']['resources_released'])
             finally:
-                # The bounded child closes stderr before this TemporaryDirectory is removed on Windows.
+                # A marker can precede process exit and Windows inherited-handle release.
+                if child_wait is not None:
+                    kernel,handle=child_wait
+                    try:self.assertEqual(kernel.WaitForSingleObject(handle,10000),0)
+                    finally:kernel.CloseHandle(handle)
                 deadline=time.monotonic()+10
                 while errors.exists() and not (Path(temp)/'child.closed').exists() and time.monotonic()<deadline:
                     time.sleep(0.05)

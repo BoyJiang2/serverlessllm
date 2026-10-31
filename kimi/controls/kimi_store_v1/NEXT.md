@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 P0 service-submit候选已接原source_schedule：完整bundle/spec/plan/registration与service-plan SHA、P0精确重派生、UID/boot/ns/node、停止目标、原guard_setup<=30s及launch-before前后检查；一次noninteractive systemd-run，超时不视为取消、不重试，bounded ready等待后既有独立service/active probe再核目标仍停止。条件guard证明不授计算，必须实际CLI exit0，runtime/resources false。实际宿主启动/监控60秒仍缺，无远端部署。61相关通过5.276s，全356项352过4跳过44.065s，两文件静态复审PASS/SHA见source-schedule-review。保留重复Windows child.err WinError32，测试最小改为SYNCHRONIZE-only实际等待自有child退出，无kill；新timeout负例漏异常类型已修，旧失败保留。下一项只接P0目标创建/启动控制与监控/释放，以及既有runtime实际ABI和有效协调窗口；不新建环境/GB副本、不扩大CPU审计、不得重复已完成的submit/body审阅，不动native2x/GLM。
+
 - 2026-10-31 P0a内部worker CLI已接原native_record_call，不新建源码目录：专属registration+manifest验证、自文件绑定、原guard fire/spec cap双截止含验证与证据、独占既有run小journal；source gate拒用。复审3个取证缺口均负例先复现后修，error保留owner/receipt及已完成IPC结果；component_returned仍需实际worker exit0，不单看日志。最终351项347过4跳过41.230秒，两文件静态复审PASS且核SHA见native-record-call-review；保留旧full351一次Windows child.err删除WinError32，不冒充原生故障或抹失败。下一项仅宿主P0启动/guard实际提交验收/轻监控/60秒收口控制器，仍无运行准入。12:02只读SSH八卡0MiB、harbor-alan活跃；现有0202镜像Env CUDA12.9.1，Torch实际版本未知，可先核现有资产，不下载或建新环境。10–19 alan窗口未被“继续跑”转为抢占授权。native2x停止/GLM历史冻结不变。
 
 - 2026-10-31 P0a spec/window/guard输入已接原source_bundle/source_schedule：专属kimi-p0 schema/purpose、完整代码清单、单GPU UUID/固定image/40B..1MiB/4..300s component、<=1800s完整批次及原截止/至少60秒观察/提前10分钟清理；原source测试保持。P0 guard profile候选2CPU4GiB/128PID/64MiB shm/network none/private IPC，非实际占用证明。349项CPU测试345过4跳过42.715秒，四文件静态复审PASS与精确SHA追加source-schedule-review，不是GPU运行R1。无新目录/环境/权重副本，无远端/GPU。下一项只补P0 worker CLI及宿主提交/monitor/60秒闭包，核合规既有runtime和实际协调窗口；禁止以旧source/GLM gate批准P0，旧native 2x停止保留。

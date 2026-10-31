@@ -627,6 +627,8 @@ def watchdog_service_plan(target, registration_path, registration_sha256, schedu
         '--property=RuntimeMaxSec='+str(runtime), '--working-directory='+str(root),
         '/usr/bin/python3', '-B', '-E', '-s', str(root/'code/source_schedule.py'), 'guard',
         '--registration', str(path), '--registration-sha', registration_sha256]
+    if target['schema'] == 'kimi-p0-guard-target-v1':
+        command.insert(2, '--no-ask-password')
     return dict(schema='kimi-source-watchdog-service-plan-v1', identity=identity, unit=unit,
         command=command, generated_utc=now.isoformat(), launch_before_utc=latest_start.isoformat(),
         cleanup_complete_by_utc=cleanup.isoformat(), max_runtime_seconds=runtime,
@@ -751,6 +753,117 @@ def probe_watchdog_service(service_plan, target, ready, schedule, *, nonce, host
         guard_deployed=False, runtime_admitted=False, resources_released=False)
 
 
+def _await_watchdog_ready(path, target, *, remaining, **options):
+    from vllm_export_hook import _metadata_stream
+    while True:
+        remaining()
+        try:
+            with _metadata_stream(path) as stream:
+                raw = stream.read(16385)
+        except FileNotFoundError:
+            raw = b''
+        remaining()
+        if len(raw) > 16384:
+            raise ValueError('watchdog readiness exceeds 16KiB')
+        if raw.endswith(b'\n') and len(raw.splitlines()) >= 2:
+            return read_watchdog_ready(path, target, **options)
+        time.sleep(min(0.05, remaining()))
+
+
+def submit_p0_watchdog(service_plan, target, schedule, *, nonce, host_pid_namespace,
+                       plan_sha256, events, runner=_guard_capture, docker=_guard_docker,
+                       host_probe=_watchdog_host, ready_waiter=_await_watchdog_ready,
+                       service_probe=probe_watchdog_service):
+    """One owned P0 guard submission; no Docker start or compute authorization."""
+    entered, started = datetime.now(timezone.utc), time.monotonic()
+    state = dict(unit=service_plan['unit'], container_id=target['container_id'],
+        submission_attempted=False, submission_outcome='not_attempted', guard_deployed=False,
+        runtime_admitted=False, resources_released=False)
+    identity = target['identity']
+    try:
+        if target['schema'] != 'kimi-p0-guard-target-v1':
+            raise ValueError('guard submission only accepts P0 scope')
+        derived = watchdog_service_plan(target, service_plan['command'][-3], service_plan['command'][-1],
+                                        schedule, now=_utc(service_plan['generated_utc']))
+        if json.dumps(service_plan, sort_keys=True, allow_nan=False) != json.dumps(derived, sort_keys=True, allow_nan=False):
+            raise ValueError('exact re-derived P0 service plan required')
+        if (not isinstance(plan_sha256, str) or not re.fullmatch('[0-9a-f]{64}', plan_sha256)
+                or not isinstance(nonce, str) or not re.fullmatch('[0-9a-f]{32}', nonce)
+                or type(host_pid_namespace) is not int or host_pid_namespace <= 0):
+            raise ValueError('P0 plan SHA, nonce and host namespace required')
+        if entered < _utc(service_plan['generated_utc']):
+            raise TimeoutError('P0 service plan is from the future')
+        deadline = started + min(30, (_utc(schedule['phase_deadlines_utc']['guard_setup'])-entered).total_seconds())
+        def remaining(*, submitting=False):
+            now = datetime.now(timezone.utc)
+            if now < entered:
+                raise TimeoutError('P0 submit wall clock regressed')
+            limit = service_plan['launch_before_utc'] if submitting else schedule['phase_deadlines_utc']['guard_setup']
+            value = min(deadline-time.monotonic(), (_utc(limit)-now).total_seconds(),
+                        (_utc(schedule['guard_fire_by_utc'])-now).total_seconds())
+            if value <= 0:
+                raise TimeoutError('P0 submit or original guard-setup deadline exhausted')
+            return value
+        remaining(submitting=True)
+        host = host_probe()
+        remaining(submitting=True)
+        _guard_identity(target, boot_id=host['boot_id'], uid=host['uid'])
+        if (host['pid_namespace'] != host_pid_namespace
+                or re.search(r'/(docker/|docker-|kubepods)', host['cgroup'])
+                or socket.gethostname() not in ('qjhs3', 'qjhs003')):
+            raise ValueError('P0 submission must run on the registered qjhs003 host')
+        def stopped_target():
+            response = docker(['inspect', target['container_id']], min(5, remaining()))
+            remaining()
+            if response.returncode or len(response.stdout) > 65536 or len(response.stderr) > 65536:
+                raise RuntimeError('P0 target inspection failed')
+            rows = json.loads(response.stdout)
+            if not isinstance(rows, list) or len(rows) != 1:
+                raise ValueError('exact P0 target inspection required')
+            guard_target(target, rows[0], boot_id=host['boot_id'], uid=host['uid'])
+            if rows[0]['State']['Running']:
+                raise ValueError('P0 guard must be installed before starting the target')
+        stopped_target()
+        _watchdog_event(events, identity, nonce, 'submission_prepared', dict(state,
+            registration_sha256=service_plan['command'][-1], plan_sha256=plan_sha256))
+        timeout = min(10, remaining(submitting=True))
+        state.update(submission_attempted=True, submission_outcome='unknown',
+                     submitted_utc=datetime.now(timezone.utc).isoformat())
+        response = runner(service_plan['command'], timeout,
+            {'PATH':'/usr/bin:/bin', 'LC_ALL':'C', 'TZ':'UTC', 'SYSTEMD_COLORS':'0'})
+        remaining(submitting=True)
+        if response.returncode or len(response.stdout) > 65536 or len(response.stderr) > 65536:
+            raise RuntimeError('P0 system service submission failed; unit state must be inspected')
+        state.update(submission_outcome='client_returned_zero', submission_returned_utc=datetime.now(timezone.utc).isoformat())
+        remaining(submitting=True)
+        root = Path(service_plan['command'][-3]).parent
+        ready = ready_waiter(root/'source-watchdog-events.jsonl', target, remaining=remaining, nonce=nonce,
+            registration_sha256=service_plan['command'][-1], plan_sha256=plan_sha256,
+            guard_fire_by_utc=schedule['guard_fire_by_utc'])
+        proof = service_probe(service_plan, target, ready, schedule, nonce=nonce,
+            host_pid_namespace=host_pid_namespace, guard_fire_by_utc=schedule['guard_fire_by_utc'],
+            timeout_seconds=min(5, remaining()))
+        remaining()
+        if (proof.get('independent_service_verified') is not True or proof.get('runtime_admitted') is not False
+                or proof.get('identity') != identity or proof.get('container_id') != target['container_id']):
+            raise ValueError('P0 independent service proof differs')
+        stopped_target()
+        state.update(guard_deployed=True, service_submission_deadline_verified=True)
+        _watchdog_event(events, identity, nonce, 'submission_verified', dict(state,
+            service_invocation_id=proof['service_invocation_id']))
+        remaining()
+        return dict(proof, **state)
+    except BaseException as error:
+        # A timed-out CLI does not cancel the system manager's service creation.
+        error.guard_submission_receipt = state
+        try:
+            _watchdog_event(events, identity, nonce, 'submission_failed', dict(state,
+                error_type=type(error).__name__, error=str(error)[:1024]))
+        except BaseException as evidence_error:
+            error.guard_submission_evidence_error = dict(error_type=type(evidence_error).__name__, error=str(evidence_error)[:1024])
+        raise
+
+
 def load_watchdog_inputs(registration_path, registration_sha256):
     """Verify exact source or P0 scope, retaining the original batch anchor."""
     from source_bundle import verify_source_run, verify_p0_run
@@ -785,7 +898,8 @@ def load_watchdog_inputs(registration_path, registration_sha256):
     return path, root, registration, receipt, schedule, expected
 
 
-def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_probe_only=False):
+def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_probe_only=False,
+                  service_submit_only=False):
     """Host-only entry; source verification and target probe precede readiness."""
     import argparse
     if sys.flags.optimize or not sys.dont_write_bytecode:
@@ -797,6 +911,16 @@ def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_pr
     args = parser.parse_args(argv)
     path, root, registration, receipt, schedule, expected = load_watchdog_inputs(
         args.registration, args.registration_sha)
+    if service_submit_only:
+        service_plan = load_source_plan(root/'source-watchdog-service-plan.json', args.service_plan_sha)
+        if (service_plan['command'][-3] != str(path.resolve()) or service_plan['command'][-1] != args.registration_sha):
+            raise ValueError('service plan belongs to another registration')
+        with (root/'source-watchdog-submit-events.jsonl').open('xb', buffering=0) as events:
+            result = submit_p0_watchdog(service_plan, registration['target'], schedule,
+                nonce=registration['nonce'], host_pid_namespace=registration['host_pid_namespace'],
+                plan_sha256=registration['plan_sha256'], events=events)
+        print(json.dumps(result, sort_keys=True))
+        return
     if service_plan_only:
         result = watchdog_service_plan(registration['target'], str(path.resolve()), args.registration_sha,
                                        schedule, now=datetime.now(timezone.utc))
@@ -851,8 +975,8 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe']):
+    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe'], ['service-submit']):
         watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan',
-                      service_probe_only=sys.argv[1] == 'service-probe')
+                      service_probe_only=sys.argv[1] == 'service-probe', service_submit_only=sys.argv[1] == 'service-submit')
     else:
         main()

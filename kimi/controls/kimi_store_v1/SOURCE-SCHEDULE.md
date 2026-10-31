@@ -80,3 +80,18 @@ P0 phases为preflight/guard_setup/component及原shutdown/observe/cleanup/margin
 P0 target要求purpose KIMI-CUDA-IPC-P0A-UNREVIEWED；guard在不可变ID/Created/UID/五项身份核对之外要求一个指定UUID的nvidia DeviceRequest、2CPU/4GiB/128PID/64MiB shm、network none、private IPC、非privileged和无额外device/cap。它们是待实际准入核验的上限，不是实测占用。旧source schema/purpose或跨scope组合不能批准P0；source原行为和回归保持。load_watchdog_inputs由现有guard/service-plan/probe入口共享，尚无P0 worker CLI或实际宿主控制器。
 
 本次349项CPU测试345通过/4 Windows POSIX FIFO跳过（42.715秒），相关bundle16/schedule56通过。当前四文件静态复审PASS及精确SHA追加原source-schedule-review.json，不等于运行R1或guard/GPU通过。下一项只连接P0 worker命令、宿主启动/监控/60秒释放，以及有效窗口和可复用合规runtime；不以模型完整转换或native全编译作为这个Torch小组件的前提。
+
+
+## P0 独立守护一次性提交候选（2026-10-31）
+
+在现有模块增加service-submit命令，参数同service-probe（包括外部--service-plan-sha），仅接受P0 scope。原run/code与spec/manifest/registration/plan验证后，再核source-watchdog-service-plan.json的外部SHA及registration；在既有run根独占source-watchdog-submit-events.jsonl。重复文件即拒绝，不自动重新提交。此命令有真实提交能力，但本轮只完成本机CPU代码与测试，没有在远端执行；不得绕过完整运行审阅、窗口及资源授权使用。
+
+submit_p0_watchdog精确重派生计划，使用原guard_setup绝对截止及最多30秒monotonic总预算；提交前后均检查launch_before_utc。先核当前UID2147/boot/PID namespace/qjhs3或qjhs003宿主身份，再inspect不可变容器ID/Created/image/labels与P0隔离上限，并要求尚未运行。P0 systemd-run命令增加--no-ask-password，不触发交互认证或改变系统权限；此选项由[固定systemd v249源码](https://raw.githubusercontent.com/systemd/systemd/v249/src/run/run.c)核验。现有system manager是否授权仍未知，失败即拒绝，代码不安装polkit规则、不使用凭据或扩权。旧source renderer不变。
+
+systemd-run只调用一次；原提交期限内未返回、超时、非零或后续ready/probe失败均不启动计算。超时不能证明manager未创建service，错误附guard_submission_receipt，submission_outcome保留unknown或client_returned_zero；不得自动重试或取消未知unit。ready等待使用普通文件非阻塞有界读取，每次至多16385字节，缺失/未写完只在同一原预算内等待。取得两条完整就绪事件后调用既有严格身份/服务属性/进程/active challenge探针，再次inspect确认目标仍停止。最终证据写入也计入原总预算。
+
+成功仅条件性证明这次守护提交与独立服务验收，guard_deployed和service_submission_deadline_verified可为true，runtime_admitted/resources_released仍false。实际使用还必须同时要求真实CLI exit0及当前完整启动准入；仅一条submission_verified事件不足以批准GPU。错误证据写入失败不会替换原错误。这里没有Docker start、容器删除、unit停止或GPU调用；宿主完整启动、持续监控与60秒观察仍待接线。
+
+原Windows orphan-child CPU夹具曾再次在child.err清理时报WinError32，原因是文件关闭marker先于进程实际退出/原生继承handle释放。现在仅在测试中为launcher返回的自有child申请SYNCHRONIZE权限，使用[WaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject)等待实际退出后关闭句柄，不signal/kill进程，不改变生产guard。依据[OpenProcess官方说明](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess)，没有申请终止/写内存等权限。
+
+61项相关CPU测试通过5.276秒；完整356项352过4 Windows POSIX FIFO跳过44.065秒。systemd/Docker/proc均明确替身，ready用真实小文件和模拟时钟；WinAPI child等待在实际Windows执行。初始旧fixture失败、新TimeoutExpired测试异常类型修正及最终精确hash/只读复审PASS均追加原review/tests文件，历史失败不删除。没有远端unit、GPU或服务通过。
