@@ -48,6 +48,39 @@ class DeviceExportTests(unittest.TestCase):
         self.assertEqual(info['alias_of'], {'packed_alias': 'packed'})
         self.assertEqual(records['packed'], records['packed_alias'])
 
+    def test_partial_file_write_failure_releases_real_staging_copy_without_clearing_traceback(self):
+        source=test_cpu_tensor_io.TensorIOTests().model()
+        original_bits=bytes(source.packed.detach().view(torch.uint8).reshape(-1).tolist())
+        producers=[];owners=[]
+        real_blocks=device_export.iter_host_byte_blocks
+        def blocks(tensor,limit):
+            producer=real_blocks(tensor,limit);producers.append(producer);return producer
+        real_open=Path.open
+        class FailingFile:
+            def __init__(self,stream):self.stream=stream;self.calls=0
+            def __getattr__(self,name):return getattr(self.stream,name)
+            def write(self,data):
+                self.calls+=1
+                if self.calls==1:return self.stream.write(data[:2])
+                owners.append(weakref.ref(data.obj._tensor_owner))
+                del data  # The synthetic Python callback must not anchor the buffer itself.
+                raise OSError('controlled partial device export write')
+        def opened(path,*args,**kwargs):
+            stream=real_open(path,*args,**kwargs)
+            return FailingFile(stream) if path.name=='tensor.data_0' and args[0]=='xb' else stream
+        with tempfile.TemporaryDirectory() as temp:
+            target=Path(temp)/'rank';failure=None
+            with patch.object(device_export,'iter_host_byte_blocks',side_effect=blocks),patch.object(Path,'open',opened):
+                try:device_export.write_device_state(target,source,device='cpu',rank=0,chunk_bytes=8)
+                except OSError as error:failure=error
+            # Mock call_args records only the source tensor, not the produced staging block.
+            self.assertIsNotNone(failure);self.assertIsNotNone(failure.__traceback__)
+            self.assertEqual(len(owners),1);self.assertIsNone(owners[0]())
+            self.assertIsNone(producers[0].gi_frame)
+            self.assertEqual((target/'tensor.data_0').read_bytes(),original_bits[:2])
+            self.assertFalse((target/'tensor_index.json').exists())
+            self.assertEqual(bytes(source.packed.detach().view(torch.uint8).reshape(-1).tolist()),original_bits)
+
     def test_rank_export_publishes_and_restores_mixed_raw_bits(self):
         source = test_cpu_tensor_io.TensorIOTests().model()
         target = test_cpu_tensor_io.TensorIOTests().model()

@@ -1,6 +1,20 @@
 # Kimi INT4 Store CPU 适配候选
 
-当前接续以NEXT.md最新覆盖为准。2026-10-31已补Parameter/Tensor附加属性的有界状态扫描与写前拒绝；全套337项中333通过、4项Windows平台跳过，当前三文件静态审阅与原失败见runtime-inventory-cpu-review.json。当前优先最小单卡P0a，不继续扩展CPU工具；预约、运行时及准入缺项见RESERVATION-PLAN.md最新核验。尚无实际Kimi GPU/完整Store转换或服务通过；以下早期章节保留各自历史范围。
+当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。当前全套375项中359通过、16个Windows平台跳过（42.075秒）；这是组件/CPU控制，不是完整模型正确性或运行准入。
+
+| 目标 | 已有CPU证据/候选接口 | 仍未通过 |
+|---|---|---|
+| 审阅与版本 | 每次修订绑定源码SHA，故障负例/原失败及本地只读复审保留 | 完整实际运行manifest的R1、真实库/进程身份与准入 |
+| packed INT4保存/读取 | stream_writer/native_index/cpu_restore/native_install保留I32 packed、BF16/F32原始位、shape/stride、角色、alias、buffer codec及量化配置；CPU小状态写读回 | 真正native Store/CUDA加载、完整checkpoint及八rank逐项校验 |
+| 分块与临时引用 | 默认8MiB块；正常及写/hash失败时释放自身view/CPU staging generator，保留原异常与partial，弱引用不用GC控制通过 | 整进程RSS/锁页/页缓存/原模型和GPU工作区峰值；8MiB不是RSS上限 |
+| TP8与后处理 | 条件1428目标名、融合专家/非专家映射、角色/alias/必要buffer、固定Marlin辅助政策及一次Base后处理组件 | 实际8rank shape/value、真实Marlin重排/释放、真实混设备构造 |
+| worker与服务 | source_plugin仅export注册；mixed loader类工厂及独立producer/install存在，P0 metadata setup已有CPU链 | mixed native worker/plugin尚无调用入口；真实构建/活跃Store、Kimi金标及原生完整服务 |
+
+本轮直接修复write_records写入失败后异常栈保留staging的问题：旧摘要故障与真实CPU张量两字节部分写先失败，当前writer在失败时丢弃自己的view并关闭Python staging generator；任意borrowed非generator迭代器不强关。源packed位与已写部分不变，不回滚、不发布成功。精确三个文件SHA、原失败和静态复审PASS见cpu-tensor-io-review.json；不是任意第三方栈/全RSS或CUDA所有权证明。
+
+调用图已独立核验：loader_registry支持native名称不等于native已注册。source_plugin.register目前只走export，make_mixed_store_loader只有定义与测试引用。后续必要CPU接线应处理native worker的延迟rank/device上下文与已审mixed工厂，不继续叠加通用启动包装。原2×checkpoint预算停止继续生效；缺实际构建/峰值依据时不能填大预算或注册后跳过检查。实际GPU仍须新有效资源窗口、完整源码/配置审阅、实际资源和独立守护。没有实际Kimi完整Store转换、八卡或服务通过；GLM40ID/金标/历史保持冻结。
+
+以下保留各历史修订的证据边界。
 
 最新逐记录producer已连通多handle协议及独立安装CPU链，183项CPU测试通过，复审见native-record-call-review.json；public真实二进制绑定/活跃Store及CUDA仍未验证。详见MULTI-HANDLE-PRODUCER.md。未接混设备工厂，原GPU预算拒绝继续生效，没有实际GPU或完整转换。
 

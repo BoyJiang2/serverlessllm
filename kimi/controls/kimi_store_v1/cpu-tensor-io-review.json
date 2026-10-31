@@ -88,6 +88,78 @@
         "One payload read limit is not JSON/allocator RSS, locked pool, file cache or CUDA peak bound",
         "No actual GPU, full Store conversion, runtime admission or resource-release probe"
       ]
+    },
+    {
+      "scope": "Store writer failure staging retention pre-fix",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "fe0c9a245dc9c39bb660ae50e4aec3726b9940358abef57d91bfb686404a58ac",
+      "tests": [
+        {
+          "file": "test_stream_writer.py",
+          "count": 1,
+          "seconds": 0.008,
+          "result": "FAILED",
+          "finding": "Kept error traceback and generator retain Block(abcd)"
+        },
+        {
+          "file": "test_device_export.py",
+          "count": 1,
+          "seconds": 0.052,
+          "result": "FAILED",
+          "finding": "Real staged CPU uint8 tensor retained after two-byte partial disk write"
+        }
+      ],
+      "scope_limits": "Real tiny CPU payloads only, not CUDA/native DMA or whole-model memory peaks"
+    },
+    {
+      "recorded_utc": "2026-10-31T08:54:16.625331+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "stream_writer.py": "2cfb4f9367985a095d5608581d46cfa9e4baffb135475ae506cbfa72271e6175",
+        "test_stream_writer.py": "73c0b24d2d351792641b6211ed28525ec0569fda02f88e27227aaa95d6f6e7dd",
+        "test_device_export.py": "3da0e871a0c657ff0a817062c3f6774f8e4ddeeba38188729ea90e6a3d62f72d"
+      },
+      "scope": "Store write failure consumer/staging reference lifetime; no native/CUDA/RSS claim",
+      "tests": {
+        "stream_windows": {
+          "total": 14,
+          "seconds": 0.079
+        },
+        "device_windows": {
+          "total": 6,
+          "seconds": 0.095
+        },
+        "stream_wsl_native": {
+          "python": "3.10.12",
+          "total": 14,
+          "seconds": 0.032
+        },
+        "full_windows": {
+          "total": 375,
+          "passed": 359,
+          "skipped": 16,
+          "seconds": 42.075
+        },
+        "executor": "primary agent"
+      },
+      "verified": [
+        "Original write/hash failures reproduced while retaining primary traceback and generator itself",
+        "Per-block finally drops writer view/block and _write_all drops its buffer argument/remaining view",
+        "Failure closes only active Python GeneratorType staging producer, not arbitrary borrowed iterators",
+        "Generator/file secondary close errors retained as notes, not replacement of primary error",
+        "Actual tiny CPU torch staging owner released without gc.collect/traceback clearing; original packed bits unchanged",
+        "Two-byte partial file preserved without index or successful return, normal layout/padding/digest/alias unchanged",
+        "Read-only call graph confirms source_plugin only registers export; mixed factory has definition/tests but no worker/plugin call site"
+      ],
+      "limitations": [
+        "Read-only reviewer ran no tests, wrote no files and did not SSH",
+        "Synthetic Python write/hash fault callbacks explicitly delete their own argument so they do not anchor the buffer",
+        "Own consumer/staging references only; not arbitrary third-party traceback or caller-owned original model/iterator references",
+        "One host chunk bound is not process RSS, allocator/page-cache/pinned-pool/CUDA peak proof",
+        "No CUDA/native Store/full checkpoint conversion, eight-rank payload, post-repack owner or business validation",
+        "No model, pool/cache, remote, install, permanent new directory or GB copy; native 2x stop and GLM history unchanged"
+      ]
     }
   ]
 }

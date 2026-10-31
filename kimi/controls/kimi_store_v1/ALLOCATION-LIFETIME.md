@@ -43,3 +43,12 @@ Store按handle_idx写入目标地址列表；ToGpu等待拷贝任务，持mutex�
 先在旧源码用真实12字节文件和4字节read wrapper复现：第二次read开始前旧Block(abcd)仍活。另用git show旧源码的私有函数命名空间重跑保留外层异常traceback的摘要故障控制，确认同样失败；不还原或覆盖checkout。修复后的两项新控制均通过：无GC也在下一次读取前释放consumer引用；fault callback明确先删除自身参数，故仅证明校验函数frame不再锚该块，不证明任意第三方异常栈均释放。
 
 当前11项流式测试通过；全套334项中330通过、4POSIX FIFO因Windows跳过（29.464秒），两文件静态复审PASS，完整旧失败/fixture修正/哈希追加cpu-tensor-io-review.json。减少payload临时引用重叠不等于8MiB RSS上限，不控制Python/IO分配器保留、页缓存、源模型、锁页池或CUDA工作区；原native 2×预算停止、完整峰值和真实释放验证仍未解除。
+
+
+## 2026-10-31 写入失败时的暂存块引用
+
+write_records正常路径原已在下一次取块前del view/block，但写盘或digest.update抛错会跳过del，保留的异常栈及仍停在yield的generator共同持有暂存CPU块。真实小CPU张量先完成两字节文件写后报错，旧实现保留host uint8 Tensor；独立四字节Block摘要错误也复现。两项都保留原traceback和producer强引用，没有依靠GC消除问题。
+
+当前每块try/finally删除writer自己的view/block，_write_all也在finally删除自己的参数/remaining view。失败时仅close Python GeneratorType staging iterator，使本项目iter_host_byte_blocks的yield frame释放同步CPU copy；不任意close caller-owned非generator迭代器，不手动cudaFree/卸载Store，也不删除原模型。generator/file二次close错误附note，原异常和partial文件继续保留，不返回成功或重试覆盖。
+
+14项stream及6项device CPU控制通过；真实torch CPU测试保留异常栈后，弱引用的暂存Tensor不再存活，source packed原位和前两字节部分文件不变，index未发布。新增hash/copy fault callbacks会显式删除自己参数，故不声称能清任意第三方异常栈。当前全375项359通过16 Windows跳过42.075秒，三文件静态复审PASS与原失败hash见cpu-tensor-io-review.json；WSL原生3.10的14项stream通过0.032秒。8MiB仍只是单块上限，非RSS/host pool/cache/CUDA峰值；原2x预算停止和全部真实GPU/native验证缺项不变。

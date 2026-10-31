@@ -4,6 +4,8 @@
 
 ## 当前已接与尚未接
 
+2026-10-31调用图补充：`source_plugin.register`当前只调用export注册；`make_mixed_store_loader`只有定义与CPU测试引用，尚无实际native worker/general-plugin调用。`loader_registry`支持两个名称只表示接口能力，不代表两条路径均已接通。后续CPU工作优先补延迟rank/device的native worker接线，维持实际库/ABI拒绝及2x预算停止，不用工厂存在或本地测试冒充完整服务。
+
 源转换入口现可由独立Base子类调用：固定Default loader只加载本地SF，rank导出发生在后处理之前，之后固定Base继续后处理，便于同一后端生成参考。`vllm_export_hook`默认读取已初始化的TP/PP组及当前CUDA设备；CPU测试的context callback是明确模拟。`loader_registry`复用固定官方注册函数，仅使用sllm_kimi_export_v1/sllm_kimi_native_v1独立名称；同类重复登记允许，其他类冲突拒绝，原safetensors不改。
 
 官方general plugin会在process0、engine core及worker中加载；独立worker需要把本run配置与注册回调通过同一插件入口传到每个进程。当前已实现source私有distribution metadata、注册/完整source绑定与内部参考worker、watchdog/主动probe候选并做CPU控制；实际vLLM多进程插件传播、独立宿主服务与全模型仍未运行，不能只在父进程注册后假定spawn子进程也已注册。依据：https://raw.githubusercontent.com/vllm-project/vllm/v0.19.1/vllm/plugins/__init__.py 。
