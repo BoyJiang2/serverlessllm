@@ -349,6 +349,48 @@
       "seconds": 40.82,
       "result": "OK",
       "scope": "Final six reviewed source/test hashes; four Windows POSIX FIFO skips"
+    },
+    {
+      "executor": "WSL native Python3.10.12",
+      "count": 67,
+      "seconds": 3.601,
+      "result": "OK",
+      "scope": "Intermediate metadata-create controls before future-anchor review correction"
+    },
+    {
+      "executor": "Windows CPU interpreter",
+      "count": 363,
+      "passed": 355,
+      "skipped": 8,
+      "seconds": 41.692,
+      "result": "OK",
+      "scope": "Intermediate, not final hashes"
+    },
+    {
+      "executor": "WSL native Python3.10.12",
+      "count": 1,
+      "seconds": 0.044,
+      "result": "FAILED",
+      "failures": 2,
+      "scope": "future_anchor and image Volumes missing rejection; exact old hashes in NEEDS_FIX"
+    },
+    {
+      "executor": "WSL native Python3.10.12",
+      "count": 67,
+      "passed": 67,
+      "skipped": 0,
+      "seconds": 3.649,
+      "result": "OK",
+      "scope": "Final two-file hashes; Docker/host/verifier mocks, actual Linux metadata files and time parser"
+    },
+    {
+      "executor": "Windows CPU interpreter via WSL bridge",
+      "count": 363,
+      "passed": 355,
+      "skipped": 8,
+      "seconds": 52.418,
+      "result": "OK",
+      "scope": "Final current hashes; four FIFO plus four Linux-only create controls skipped, latter covered by native WSL run"
     }
   ],
   "gpu_used": false,

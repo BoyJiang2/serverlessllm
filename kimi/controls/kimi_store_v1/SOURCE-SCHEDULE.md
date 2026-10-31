@@ -111,3 +111,16 @@ guard_target同时核精确Cmd/entrypoint/workdir、全部挂载/读写性、run
 
 
 最终同时保留六项固定环境值校验，防止准备阶段自己把错误override冻结进合法摘要；错冻结CUDA_VISIBLE_DEVICES=all负例先失败1项0.006秒，修后通过。完整358项354通过4 Windows POSIX FIFO跳过40.820秒，62相关4.956秒；当前六文件静态只读复审PASS/SHA及全部中间失败追加原review/tests，模块specific ledger指向同一最终审阅。没有重标历史失败，没有实际创建或启动容器；不能据此声称本轮开始时计划中的monitor/60秒已完成。
+
+
+## P0 只创建入口与宿主 Python3.10 时间兼容（2026-10-31）
+
+原source_schedule增加p0-create命令：`python -B <run>/code/source_schedule.py p0-create --worker-input <run>/p0-worker-input.json --worker-input-sha <SHA>`。要求run/code与小输入已存在，不创建新的目录；现有根独占p0-create-events.jsonl，重复调用不会覆盖证据。core在原preflight wall截止和最多30秒monotonic预算内做完整输入/code验证及自身路径绑定，实际entered必须不早于冻结batch anchor。此候选有metadata create能力，但本轮没有远端执行，不得据此跳过整体运行审阅或资源授权。
+
+只查询本机Docker exact-name不存在和固定image ID配置，不替换已有名字。p0_image_environment_sha256现在由这个core消费真实image.Config.Env再核已冻结摘要；同时在create之前拒非空Config.Volumes，避免与既定六bind之外的卷及隐式副本。这个检查不读取镜像文件内容、下载或复制层；不证明Torch/CUDA ABI已实际加载，runtime_abi_verified继续false。
+
+仅一次Docker create，之后用完整CID inspect核固定Cmd/mount/ENV/profile、Name/Created和停止状态，返回给后续宿主registration/guard。源码没有start、stop、rm、volume删除或重试。timeout不等于daemon取消，state保留create_outcome unknown或id_returned、唯一name/image/workerSHA、cleanup_owed；如果ID已经返回，即使随后时间耗尽也先保留ID再拒绝。名字存在、镜像错误或提前调用等未执行create的失败不冒认清理所有权；取证错误不覆盖原错误。成功也仍然cleanup_owed，resources_released/runtime_admitted=false，不能当完整部署通过。
+
+另在已有WSL原生Python3.10.12实际复现：旧_utc不能读Docker的九位小数Z或+00:00 Created时间，普通+00:00控制可读。现规范化Z及小数为Python可表示的微秒，与新版Python结果保持；Created身份核验仍比较完整原始字符串，差1ns也拒绝，并未把身份精度降为微秒。当前原生Linux 67相关控制全过3.649秒（Docker/宿主/verifier为明确替身，路径/文件/JSON/解析器实际执行），没有安装Linux Torch。Windows完整363项355通过8跳过52.418秒；其中4个新Linux创建控制已在WSL跑过，其余4个POSIX FIFO未在这个无Torch的Linux配置跑全。
+
+初审future-anchor及未登记Volumes两负例旧core先失败（1方法2失败0.044秒）并留旧hash/NEEDS_FIX；修订两文件静态复审PASS与最终测试追加原review/tests。不宣称真实Docker创建成功。下一项是将成功create返回的target物化为同run的宿主registration及service计划，再接经实际准入的start/monitor/至少60秒释放；先前ENV来源缺口已具备代码检查，但仍需要真实节点执行证据。

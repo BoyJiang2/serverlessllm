@@ -394,6 +394,90 @@
         "No remote access, GPU, model, pool, full conversion, cache warming, environment install, permanent directory or GB asset copy",
         "Current static PASS does not approve a full running P0 manifest or authorize computation"
       ]
+    },
+    {
+      "scope": "P0 metadata-create pre-fix controls",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "d3b0cd0e572528e5a3cd0c0a6d43c7ab841c48215888e27ee93adf9093d13c1a",
+      "test_sha256": "00717eda3823a35b7d83b99fc3c9b2d5a4a6298912edda36c25d4e517e2a588e",
+      "reviewer": "/root/deadline_readonly_review (future anchor); primary agent (implicit image volumes)",
+      "test": {
+        "executor": "WSL Python3.10.12 native, Docker/verifier/host explicit mocks",
+        "count": 1,
+        "seconds": 0.044,
+        "result": "FAILED",
+        "failures": 2,
+        "subtests": [
+          "future_anchor",
+          "volumes"
+        ],
+        "error": "Expected ValueError/TimeoutError not raised"
+      },
+      "findings": [
+        "Declared future batch anchor passed arithmetic but actual create did not check earliest start",
+        "Image Config.Volumes was not rejected before create despite exact bind-only P0 profile"
+      ],
+      "no_remote_or_gpu": true
+    },
+    {
+      "recorded_utc": "2026-10-31T05:44:31.647903+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "source_schedule.py": "382a4c0c4e12e05d4fee905a81ca16fb27ca72efa817179604e3e944e8f100ea",
+        "test_source_schedule.py": "00717eda3823a35b7d83b99fc3c9b2d5a4a6298912edda36c25d4e517e2a588e"
+      },
+      "scope": "P0 stopped metadata-create entry and Python3.10 Docker timestamp compatibility; static candidate",
+      "tests": {
+        "wsl_native": {
+          "python": "3.10.12",
+          "total": 67,
+          "passed": 67,
+          "skipped": 0,
+          "seconds": 3.649
+        },
+        "windows": {
+          "total": 363,
+          "passed": 355,
+          "skipped": 8,
+          "seconds": 52.418,
+          "skip_reasons": [
+            "4 POSIX FIFO tests",
+            "4 Linux-only create controls executed separately on WSL"
+          ]
+        },
+        "executor": "primary agent; WSL native stdlib tests plus existing Windows CPU torch interpreter"
+      },
+      "timestamp_pre_fix": {
+        "source_commit": "c26d0cc",
+        "source_sha256": "3cdc036d450c5cb3a4306c84ec58aad81fe9b5e03339e245e2e6511c06906507",
+        "method": "Actual WSL Python3.10.12 import/calls, not a remote run",
+        "failed_values": [
+          "2026-10-31T00:00:00.000000000Z",
+          "2026-10-31T00:00:00.123456789+00:00"
+        ],
+        "failure": "ValueError Invalid isoformat string",
+        "control_passed": "2026-10-31T00:00:00+00:00"
+      },
+      "verified": [
+        "Core verifies complete frozen worker input before creating, binds its own executed source file",
+        "Actual request cannot precede declared batch anchor; original preflight wall/mono <=30 seconds bounds all full verification",
+        "UID/boot/PID namespace/node and exact name absence checked; never replaces or deletes an existing name",
+        "Pinned image.Id plus real Config.Env-derived digest checked, nonempty Config.Volumes rejected before create",
+        "Single Docker create, exact full CID/Name/Created/profile and stopped state verified after return",
+        "Late-returned CID retained before deadline refusal; timeout/partial failures keep cleanup_owed and known/unknown identity",
+        "No Docker start/stop/rm, retries, image pulls, volume deletion, credentials or global modifications",
+        "Python3.10 RFC3339Nano compatibility matches microsecond semantics; original Created string equality remains exact"
+      ],
+      "limitations": [
+        "Reviewer did not run code, write files or access SSH",
+        "Native WSL tests use actual filesystem/JSON/Python3.10 but explicit Docker/host/verifier substitutes",
+        "Image environment boolean is conditional function behavior, not an observed qjhs003 image/ABI proof",
+        "Create-timeout receipt is a cleanup obligation, not proof no container was created or resources released",
+        "No actual remote create, host registration materialization/guard deployment, start, continuous monitoring or 60-second release",
+        "Blocking filesystem/system calls are checked after returning; actual dispatcher/guard limits still required before execution",
+        "No permanent code directory, environment install, model/Store/cache/GPU work or GB asset copy"
+      ]
     }
   ]
 }

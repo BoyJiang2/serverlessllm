@@ -22,6 +22,149 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def test_docker_nanosecond_times_keep_same_microsecond_value_and_original_identity(self):
+        self.assertEqual(schedule_module._utc('2026-10-31T00:00:00.123456789Z'),
+                         datetime(2026,10,31,0,0,0,123456,tzinfo=timezone.utc))
+        self.assertEqual(schedule_module._utc('2026-10-31T08:00:00.123456789+08:00'),
+                         datetime(2026,10,31,0,0,0,123456,tzinfo=timezone.utc))
+        target,info=self.guard_fixture()
+        schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+        info['Created']=info['Created'].replace('000000000','000000001')
+        with self.assertRaises(ValueError):schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+
+    def create_control(self,temp):
+        plan,receipt,target,info=self.p0_fixture()
+        root=Path(temp);(root/'code').mkdir();(root/'code/source_schedule.py').write_text('# CPU code-path fixture')
+        worker=root/'p0-worker-input.json';worker.write_text('{}')
+        receipt.update(run_root=str(root),image_id=target['image_id'],gpu_uuid=target['gpu_uuid'],
+            worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
+        entered=datetime.fromisoformat(plan['window_start']);ticks=[0.]
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        command=schedule_module.p0_container_command(target['identity'],run_root=str(root),image_id=target['image_id'],
+            gpu_uuid=target['gpu_uuid'],worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
+        info['Config'].update(Cmd=command[command.index(target['image_id'])+1:],WorkingDir=str(root))
+        info['Mounts']=[dict(Type='bind',Source=source,Destination=source,RW=writable)
+            for source,writable in schedule_module._p0_mounts(str(root))]
+        info['State']=dict(Running=False,Pid=0)
+        info['Created']=entered.astimezone(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S')+'.000000000Z'
+        info['Name']='/'+target['identity']['run_id']+'-'+target['identity']['holder']
+        fixed=schedule_module._p0_environment(target['gpu_uuid'])
+        image=dict(Id=target['image_id'],Config=dict(Env=[row for row in info['Config']['Env'] if row.split('=',1)[0] not in fixed]))
+        host=dict(uid=2147,boot_id=target['boot_id'],pid_namespace=42,cgroup='0::/user.slice\n')
+        def docker(args,timeout):
+            self.assertTrue(0<timeout<=10)
+            value='' if args[0]=='ps' else json.dumps([image]) if args[:2]==['image','inspect'] else \
+                target['container_id']+'\n' if args[0]=='create' else json.dumps([info])
+            return types.SimpleNamespace(returncode=0,stdout=value,stderr='')
+        clock=Mock(wraps=datetime);clock.now.side_effect=lambda tz:entered+timedelta(seconds=ticks[0])
+        bound=(worker,root,dict(schema='kimi-p0-worker-input-v1',batch_entered_utc=entered.isoformat()),receipt,schedule,target['identity'])
+        options=dict(docker=Mock(side_effect=docker),host_probe=Mock(return_value=host))
+        return root,worker,target,info,image,ticks,clock,bound,options
+
+    @unittest.skipUnless(os.name=='posix','Linux metadata-create path; executed separately with existing WSL Python3.10')
+    def test_p0_create_metadata_binds_pinned_image_env_and_stopped_target_without_start(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+            with (root/'events').open('xb',buffering=0) as events, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'datetime',clock), \
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                result=schedule_module.create_p0_target(str(worker),'f'*64,events=events,**options)
+            self.assertEqual(result['container_id'],target['container_id'])
+            self.assertTrue(result['image_environment_verified']);self.assertTrue(result['stopped_target_verified'])
+            self.assertTrue(result['cleanup_owed'])
+            for key in ('runtime_abi_verified','runtime_admitted','resources_released'):self.assertFalse(result[key])
+            self.assertEqual([c.args[0][0] for c in options['docker'].call_args_list],['ps','image','create','inspect'])
+            self.assertEqual(result['target']['run_root'],str(root))
+            rows=[json.loads(line) for line in (root/'events').read_text().splitlines()]
+            self.assertEqual([r['event'] for r in rows],['create_prepared','create_verified'])
+
+    @unittest.skipUnless(os.name=='posix','Linux metadata-create path; executed separately with existing WSL Python3.10')
+    def test_p0_create_refuses_existing_name_image_env_wrong_bundle_host_or_expired_before_create(self):
+        import source_bundle
+        for kind in ('name','image','env','bundle','file','host','late','future_anchor','volumes'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+                verify=Mock(return_value=bound)
+                if kind=='image':image['Id']='sha256:'+'0'*64
+                elif kind=='env':image['Config']['Env'].append('LD_PRELOAD=/other.so')
+                elif kind=='bundle':verify.side_effect=ValueError('changed bundle')
+                elif kind=='file':(root/'other.py').write_text('# wrong entry')
+                elif kind=='host':options['host_probe'].return_value['uid']=0
+                elif kind=='late':ticks[0]=30.
+                elif kind=='future_anchor':bound[2]['batch_entered_utc']=(datetime.fromisoformat(bound[2]['batch_entered_utc'])+timedelta(seconds=1)).isoformat()
+                elif kind=='volumes':image['Config']['Volumes']={'/unregistered':{}}
+                else:options['docker'].side_effect=lambda *args:types.SimpleNamespace(returncode=0,stdout='e'*64,stderr='')
+                with (root/'events').open('xb',buffering=0) as events, \
+                        patch.object(source_bundle,'verify_p0_worker_input',verify), \
+                        patch.object(schedule_module,'__file__',str(root/'other.py' if kind=='file' else root/'code/source_schedule.py')), \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'):
+                    with self.assertRaises((ValueError,TimeoutError)) as caught:
+                        schedule_module.create_p0_target(str(worker),'f'*64,events=events,**options)
+                self.assertFalse(caught.exception.p0_create_receipt['create_attempted'])
+                self.assertFalse(caught.exception.p0_create_receipt['cleanup_owed'])
+                self.assertFalse(any(c.args[0][0]=='create' for c in options['docker'].call_args_list))
+
+    @unittest.skipUnless(os.name=='posix','Linux metadata-create path; executed separately with existing WSL Python3.10')
+    def test_p0_create_timeout_or_partial_failure_retains_exact_recovery_identity_and_never_retries(self):
+        import source_bundle
+        for kind in ('timeout','late_id','nonzero','short_id','inspect','running','owner','stale','log'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+                original=options['docker'].side_effect
+                def docker(args,timeout):
+                    if args[0]=='create':
+                        if kind in ('timeout','log'):raise subprocess.TimeoutExpired('owned-create',10)
+                        if kind=='late_id':ticks[0]=30.
+                        if kind=='nonzero':return types.SimpleNamespace(returncode=1,stdout='',stderr='error')
+                        if kind=='short_id':return types.SimpleNamespace(returncode=0,stdout='short',stderr='')
+                    elif args[0]=='inspect':
+                        if kind=='inspect':return types.SimpleNamespace(returncode=1,stdout='',stderr='error')
+                        if kind=='running':info['State']=dict(Running=True,Pid=123)
+                        if kind=='owner':info['Config']['User']='0'
+                        if kind=='stale':info['Created']='2020-01-01T00:00:00.000000000Z'
+                    return original(args,timeout)
+                options['docker'].side_effect=docker
+                write=schedule_module._watchdog_event
+                def event(*args):
+                    if kind=='log' and args[3]=='create_failed':raise OSError('secondary journal')
+                    return write(*args)
+                with (root/'events').open('xb',buffering=0) as events, \
+                        patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
+                        patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                        patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'), \
+                        patch.object(schedule_module,'_watchdog_event',side_effect=event):
+                    with self.assertRaises((ValueError,RuntimeError,TimeoutError,subprocess.TimeoutExpired)) as caught:
+                        schedule_module.create_p0_target(str(worker),'f'*64,events=events,**options)
+                state=caught.exception.p0_create_receipt
+                self.assertTrue(state['cleanup_owed']);self.assertFalse(state['stopped_target_verified'])
+                self.assertEqual(sum(c.args[0][0]=='create' for c in options['docker'].call_args_list),1)
+                self.assertFalse(any(c.args[0][0] in ('start','stop','rm') for c in options['docker'].call_args_list))
+                if kind in ('timeout','nonzero','short_id','log'):self.assertIsNone(state['container_id'])
+                else:self.assertEqual(state['container_id'],target['container_id'])
+                if kind=='log':self.assertEqual(caught.exception.p0_create_evidence_error['error_type'],'OSError')
+
+    @unittest.skipUnless(os.name=='posix','Linux metadata-create path; executed separately with existing WSL Python3.10')
+    def test_p0_create_cli_uses_existing_root_exclusive_journal_and_never_repeats_creation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+            args=['--worker-input',str(worker),'--worker-input-sha','f'*64]
+            with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
+                    patch.object(schedule_module,'create_p0_target',return_value=dict(runtime_admitted=False)) as create, \
+                    patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output:
+                schedule_module.p0_create_main(args)
+                self.assertEqual(json.loads(output.getvalue()),dict(runtime_admitted=False))
+                create.assert_called_once();create.reset_mock()
+                with self.assertRaises(FileExistsError):schedule_module.p0_create_main(args)
+                create.assert_not_called()
+
     def submit_control(self):
         plan,receipt,target,info=self.p0_fixture()
         entered=datetime.fromisoformat(plan['window_start'])

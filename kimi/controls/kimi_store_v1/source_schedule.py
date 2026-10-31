@@ -23,6 +23,13 @@ P0_PHASES = ('preflight', 'guard_setup', 'component', *TAIL)
 
 
 def _utc(value):
+    # Docker RFC3339Nano must also parse on the host's Python 3.10.
+    if not isinstance(value,str):
+        raise ValueError('timezone-qualified time required')
+    match = re.fullmatch(r'([0-9]{4}-[0-9]{2}-[0-9]{2}[Tt ][0-9]{2}:[0-9]{2}:[0-9]{2})(?:[.]([0-9]{1,9}))?(Z|[+-][0-9]{2}:[0-9]{2})',value)
+    if match:
+        base,fraction,offset = match.groups()
+        value = base + ('.'+fraction[:6].ljust(6,'0') if fraction else '') + ('+00:00' if offset=='Z' else offset)
     result = datetime.fromisoformat(value)
     if result.tzinfo is None or result.utcoffset() is None:
         raise ValueError('timezone-qualified time required')
@@ -859,6 +866,127 @@ def _await_watchdog_ready(path, target, *, remaining, **options):
         time.sleep(min(0.05, remaining()))
 
 
+def create_p0_target(worker_input_path, worker_input_sha256, *, events,
+                     docker=_guard_docker, host_probe=_watchdog_host):
+    """Create metadata only, never start. Timeout leaves an explicitly owed cleanup."""
+    from source_bundle import verify_p0_worker_input
+    entered,started = datetime.now(timezone.utc),time.monotonic()
+    state = dict(create_attempted=False,create_outcome='not_attempted',container_id=None,
+        stopped_target_verified=False,image_environment_verified=False,runtime_abi_verified=False,cleanup_owed=False,
+        runtime_admitted=False,resources_released=False)
+    identity = None
+    try:
+        _,root,inputs,receipt,schedule,identity = verify_p0_worker_input(worker_input_path,worker_input_sha256)
+        if entered<_utc(inputs['batch_entered_utc']):
+            raise TimeoutError('P0 create batch anchor is still in the future')
+        if Path(__file__).resolve(strict=True) != root/'code/source_schedule.py':
+            raise ValueError('create must execute this run verified source bundle')
+        deadline = started + min(30,(_utc(schedule['phase_deadlines_utc']['preflight'])-entered).total_seconds())
+        def remaining():
+            now = datetime.now(timezone.utc)
+            if now<entered:
+                raise TimeoutError('P0 create wall clock regressed')
+            value = min(deadline-time.monotonic(),(_utc(schedule['phase_deadlines_utc']['preflight'])-now).total_seconds())
+            if value<=0:
+                raise TimeoutError('P0 create or original preflight deadline exhausted')
+            return value
+        remaining()
+        host = host_probe()
+        remaining()
+        if (type(host['uid']) is not int or host['uid']!=2147
+                or not re.fullmatch('[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}',host['boot_id'])
+                or type(host['pid_namespace']) is not int or host['pid_namespace']<=0
+                or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])
+                or socket.gethostname() not in ('qjhs3','qjhs003')):
+            raise ValueError('P0 create requires this authorized Linux host identity')
+        command = p0_container_command(identity,run_root=str(root),image_id=receipt['image_id'],
+            gpu_uuid=receipt['gpu_uuid'],worker_input_sha256=worker_input_sha256,
+            environment_sha256=receipt['environment_sha256'])
+        name = identity['run_id']+'-'+identity['holder']
+        state.update(container_name=name,image_id=receipt['image_id'],worker_input_sha256=worker_input_sha256,
+                     environment_sha256=receipt['environment_sha256'])
+        def inspect(args):
+            response = docker(args,min(10,remaining()))
+            remaining()
+            if response.returncode or len(response.stdout)>65536 or len(response.stderr)>65536:
+                raise RuntimeError('P0 metadata query failed')
+            return response
+        response = inspect(['ps','--all','--no-trunc','--filter','name=^/'+name+'$','--format','{{.ID}}'])
+        if response.stdout.strip():
+            raise ValueError('P0 container name already exists; no replacement or deletion')
+        rows = json.loads(inspect(['image','inspect',receipt['image_id']]).stdout)
+        if not isinstance(rows,list) or len(rows)!=1 or rows[0].get('Id')!=receipt['image_id']:
+            raise ValueError('pinned P0 image identity differs')
+        if rows[0]['Config'].get('Volumes'):
+            raise ValueError('P0 image declares unregistered volumes; no implicit copies or volume allocation allowed')
+        actual_env = p0_image_environment_sha256(rows[0]['Config'].get('Env'),gpu_uuid=receipt['gpu_uuid'])
+        if actual_env!=receipt['environment_sha256']:
+            raise ValueError('actual pinned image environment differs from frozen worker input')
+        state['image_environment_verified'] = True
+        _watchdog_event(events,identity,identity['holder'],'create_prepared',dict(state,boot_id=host['boot_id'],
+            host_pid_namespace=host['pid_namespace'],original_preflight_deadline_utc=schedule['phase_deadlines_utc']['preflight']))
+        timeout = min(10,remaining())
+        state.update(create_attempted=True,create_outcome='unknown',cleanup_owed=True,create_requested_utc=datetime.now(timezone.utc).isoformat())
+        response = docker(command,timeout)
+        # Preserve a returned ID even when its client response exhausted preflight.
+        if response.returncode==0 and len(response.stdout)<=65536:
+            cid = response.stdout.strip()
+            if re.fullmatch('[0-9a-f]{64}',cid):
+                state.update(container_id=cid,create_outcome='id_returned')
+        remaining()
+        if response.returncode or len(response.stdout)>65536 or len(response.stderr)>65536:
+            raise RuntimeError('P0 create failed; exact name outcome requires inspection, never automatic retry')
+        cid = response.stdout.strip()
+        if not re.fullmatch('[0-9a-f]{64}',cid):
+            raise ValueError('P0 create did not return a complete container ID')
+        state.update(container_id=cid,create_outcome='id_returned')
+        rows = json.loads(inspect(['inspect',cid]).stdout)
+        if not isinstance(rows,list) or len(rows)!=1:
+            raise ValueError('exact created P0 container required')
+        info = rows[0]
+        target = dict(schema='kimi-p0-guard-target-v2',identity=identity,boot_id=host['boot_id'],uid=2147,
+            container_id=cid,image_id=receipt['image_id'],container_created=info['Created'],
+            gpu_uuid=receipt['gpu_uuid'],run_root=str(root),worker_input_sha256=worker_input_sha256,
+            environment_sha256=receipt['environment_sha256'])
+        guard_target(target,info,boot_id=host['boot_id'],uid=2147)
+        if (info['State']['Running'] or info.get('Name')!='/'+name
+                or not _utc(state['create_requested_utc'])<=_utc(info['Created'])<=datetime.now(timezone.utc)):
+            raise ValueError('created P0 target ran unexpectedly or has stale creation identity')
+        state.update(stopped_target_verified=True,create_outcome='stopped_verified')
+        result = dict(state,target=target,host_pid_namespace=host['pid_namespace'])
+        _watchdog_event(events,identity,identity['holder'],'create_verified',result)
+        remaining()
+        return result
+    except BaseException as error:
+        error.p0_create_receipt = state
+        if identity is not None:
+            try:_watchdog_event(events,identity,identity['holder'],'create_failed',dict(state,error_type=type(error).__name__,error=str(error)[:1024]))
+            except BaseException as evidence_error:
+                error.p0_create_evidence_error = dict(error_type=type(evidence_error).__name__,error=str(evidence_error)[:1024])
+        raise
+
+
+def p0_create_main(argv):
+    """Explicit metadata-create entry, not a GPU/model execution gate."""
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('P0 create requires unoptimized python -B')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--worker-input',required=True)
+    parser.add_argument('--worker-input-sha',required=True)
+    args = parser.parse_args(argv)
+    # Establish only the exclusive destination; the core budgets all verification.
+    path = Path(args.worker_input)
+    if not path.is_absolute():
+        raise ValueError('absolute P0 worker input required')
+    root = path.resolve(strict=True).parent
+    if Path(__file__).resolve(strict=True) != root/'code/source_schedule.py':
+        raise ValueError('create must execute this run verified source bundle')
+    with (root/'p0-create-events.jsonl').open('xb',buffering=0) as events:
+        result = create_p0_target(args.worker_input,args.worker_input_sha,events=events)
+    print(json.dumps(result,sort_keys=True))
+
+
 def submit_p0_watchdog(service_plan, target, schedule, *, nonce, host_pid_namespace,
                        plan_sha256, events, runner=_guard_capture, docker=_guard_docker,
                        host_probe=_watchdog_host, ready_waiter=_await_watchdog_ready,
@@ -1074,7 +1202,9 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe'], ['service-submit']):
+    if sys.argv[1:2] == ['p0-create']:
+        p0_create_main(sys.argv[2:])
+    elif sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe'], ['service-submit']):
         watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan',
                       service_probe_only=sys.argv[1] == 'service-probe', service_submit_only=sys.argv[1] == 'service-submit')
     else:
