@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import io
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -21,6 +22,145 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def service_probe_control(self):
+        target,schedule,now=self.service_plan_fixture()
+        plan=schedule_module.watchdog_service_plan(target,'/data/run/reg','a'*64,schedule,now=now)
+        unit=plan['unit'];stamp=(now.astimezone(timezone.utc)+timedelta(seconds=1)).strftime('%a %Y-%m-%d %H:%M:%S.%f UTC')
+        host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=123,pid_namespace=42,
+                  cgroup='0::/system.slice/'+unit+'\n')
+        properties=dict(Id=unit,LoadState='loaded',ActiveState='active',SubState='running',MainPID='999',Transient='yes',
+            ControlGroup='/system.slice/'+unit,User='2147',Type='exec',Restart='no',Slice='system.slice',
+            WorkingDirectory='/data/run',KillMode='control-group',UMask='0077',MemoryMax=str(256*1024**2),
+            CPUQuotaPerSecUSec='1s',TasksMax='64',TimeoutStartUSec='10s',TimeoutStopUSec='5s',
+            RuntimeMaxUSec=str(plan['max_runtime_seconds'])+'s',ExecMainStartTimestamp=stamp,
+            ActiveEnterTimestamp=stamp,InvocationID='b'*32)
+        command=dict(argv=plan['command'][-10:],executable_device=1,executable_inode=2)
+        proof=dict(host=host,identity=target['identity'],nonce='1'*32,container_id=target['container_id'],
+            image_id=target['image_id'],container_created=target['container_created'],
+            guard_fire_by_utc=schedule['guard_fire_by_utc'],probe_exchange_verified=True,runtime_admitted=False)
+        def query(unit,timeout):
+            self.assertTrue(0<timeout<=5)
+            return types.SimpleNamespace(returncode=0,stdout=''.join(k+'='+v+'\n' for k,v in properties.items()),stderr='')
+        options=dict(nonce='1'*32,host_pid_namespace=42,guard_fire_by_utc=schedule['guard_fire_by_utc'],
+            query=Mock(side_effect=query),pid_probe=Mock(side_effect=lambda pid:copy.deepcopy(host)),
+            command_probe=Mock(side_effect=lambda pid:copy.deepcopy(command)),active_probe=Mock(return_value=proof))
+        clock=Mock(wraps=datetime);clock.now.return_value=now+timedelta(seconds=2)
+        return plan,target,dict(host=host),schedule,properties,command,proof,options,clock
+
+    def test_service_probe_checks_owned_unit_process_limits_and_active_exchange(self):
+        plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+        with patch.object(schedule_module,'datetime',clock):
+            result=schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+        self.assertTrue(result['independent_service_verified'])  # Explicit systemd/proc/probe substitutes.
+        for name in ('guard_deployed','runtime_admitted','resources_released','service_submission_deadline_verified'):
+            self.assertFalse(result[name])
+        self.assertEqual(options['query'].call_count,2)
+        self.assertEqual(options['pid_probe'].call_count,2)
+        self.assertEqual(options['command_probe'].call_count,2)
+        options['active_probe'].assert_called_once()
+
+    def test_service_probe_refuses_foreign_inactive_or_weakened_service_before_socket(self):
+        for field,value in (('MainPID','1000'),('ControlGroup','/user.slice/other'),('User','root'),
+            ('Type','simple'),('Restart','always'),('ActiveState','inactive'),('MemoryMax','infinity'),
+            ('TasksMax','infinity'),('CPUQuotaPerSecUSec','infinity'),('TimeoutStopUSec','10s'),
+            ('RuntimeMaxUSec','1d'),('InvocationID','unknown')):
+            with self.subTest(field=field):
+                plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+                properties[field]=value
+                with patch.object(schedule_module,'datetime',clock),self.assertRaises(ValueError):
+                    schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+                options['active_probe'].assert_not_called()
+
+    def test_service_probe_refuses_late_activation_wrong_command_cgroup_and_stale_proof(self):
+        for kind in ('late','argv','cgroup','proof'):
+            with self.subTest(kind=kind):
+                plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+                if kind=='late':properties['ActiveEnterTimestamp']=(datetime.fromisoformat(plan['launch_before_utc'])+
+                    timedelta(seconds=11)).strftime('%a %Y-%m-%d %H:%M:%S.%f UTC')
+                elif kind=='argv':command['argv'][-1]='0'*64
+                elif kind=='cgroup':ready['host']['cgroup']='0::/system.slice/foreign.service\n'
+                else:proof['probe_exchange_verified']=False
+                with patch.object(schedule_module,'datetime',clock),self.assertRaises(ValueError):
+                    schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+
+    def test_service_probe_refuses_unit_restart_pid_reuse_or_command_change_during_exchange(self):
+        for kind in ('unit','pid','command'):
+            with self.subTest(kind=kind):
+                plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+                def exchange(*args,**kwargs):
+                    if kind=='unit':properties['InvocationID']='c'*32
+                    elif kind=='pid':ready['host']['start_ticks']+=1
+                    else:command['executable_inode']+=1
+                    return proof
+                options['active_probe'].side_effect=exchange
+                with patch.object(schedule_module,'datetime',clock),self.assertRaisesRegex(ValueError,'changed'):
+                    schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+
+    def test_service_probe_query_and_pid_time_consume_same_absolute_budget(self):
+        for kind in ('query','pid'):
+            with self.subTest(kind=kind):
+                plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+                ticks=[0.0];original=options[kind if kind=='query' else 'pid_probe'].side_effect
+                def delayed(*args):ticks[0]=5.0;return original(*args)
+                options[kind if kind=='query' else 'pid_probe'].side_effect=delayed
+                with patch.object(schedule_module,'datetime',clock), \
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        self.assertRaises(TimeoutError):
+                    schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+                options['active_probe'].assert_not_called()
+                options['command_probe'].assert_not_called()
+
+    def test_service_probe_rejects_tampered_plan_and_duplicate_properties_before_pid_reads(self):
+        for kind in ('plan','json_type','duplicate','missing','daemon'):
+            with self.subTest(kind=kind):
+                plan,target,ready,schedule,properties,command,proof,options,clock=self.service_probe_control()
+                original=options['query'].side_effect
+                if kind=='plan':plan['command'].insert(2,'--scope')
+                elif kind=='json_type':plan['deployment_performed']=0
+                elif kind=='missing':properties.pop('MemoryMax')
+                else:
+                    def query(*args):
+                        response=original(*args)
+                        if kind=='duplicate':response.stdout+='MainPID=999\n'
+                        else:response.returncode=1
+                        return response
+                    options['query'].side_effect=query
+                with patch.object(schedule_module,'datetime',clock),self.assertRaises((ValueError,RuntimeError)):
+                    schedule_module.probe_watchdog_service(plan,target,ready,schedule,**options)
+                options['pid_probe'].assert_not_called()
+                options['active_probe'].assert_not_called()
+
+    def test_service_duration_parser_and_systemctl_local_bounded_command(self):
+        self.assertEqual(schedule_module._service_seconds('1h 2min 3s'),3723)
+        for value in ('infinity','1.5s','1s garbage','1000000','1ms',''):
+            with self.assertRaises(ValueError):schedule_module._service_seconds(value)
+        with patch.object(schedule_module,'_guard_capture',return_value=object()) as capture:
+            schedule_module._guard_systemctl('owned.service',2)
+        argv,timeout,env=capture.call_args.args
+        self.assertEqual(argv[:4],['/usr/bin/systemctl','--system','--no-pager','--timestamp=us+utc'])
+        self.assertEqual(timeout,2)
+        self.assertEqual(env,{'PATH':'/usr/bin:/bin','LC_ALL':'C','TZ':'UTC','SYSTEMD_COLORS':'0'})
+
+    def test_command_reader_uses_bounded_raw_bytes_and_actual_executable_inode(self):
+        original=Path
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);proc=root/'42';proc.mkdir()
+            executable=root/'python3';executable.write_bytes(b'CPU inode fixture')
+            os.link(executable,proc/'exe')
+            command=proc/'cmdline';command.write_bytes(b'/usr/bin/python3\0-B\0script.py\0')
+            def mapped(path):return root if str(path)=='/proc' else executable if str(path)=='/usr/bin/python3' else original(path)
+            with patch.object(schedule_module,'Path',side_effect=mapped):
+                result=schedule_module._watchdog_command(42)
+                self.assertEqual(result['argv'],['/usr/bin/python3','-B','script.py'])
+                self.assertEqual(result['executable_inode'],executable.stat().st_ino)
+                for raw in (b'missing terminator',b'x'*4097):
+                    command.write_bytes(raw)
+                    with self.assertRaisesRegex(ValueError,'bounded watchdog'):
+                        schedule_module._watchdog_command(42)
+                command.write_bytes(b'python\0');(proc/'exe').unlink();(proc/'exe').write_bytes(b'other inode')
+                with self.assertRaisesRegex(ValueError,'executable differs'):
+                    schedule_module._watchdog_command(42)
+
     def service_plan_fixture(self):
         target,_=self.guard_fixture();plan,receipt=self.fixture()
         now=datetime.fromisoformat(plan['window_start'])

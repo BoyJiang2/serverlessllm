@@ -57,3 +57,15 @@ CPU追加修订：phase_remaining_seconds复用批次最初的entered与累计mo
 实现依据为[systemd-run官方手册](https://www.freedesktop.org/software/systemd/man/latest/systemd-run.html)和[systemd.service官方手册](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html)：transient service由service manager作为父进程，Type=exec只保证exec已发生，不等于guard ready。下一步必须核当前节点systemd版本/权限、实际unit属性/命令/MainPID/cgroup/启动时间和同次主动challenge，再接monitor/60秒释放；所有独立服务/部署/runtime标志继续false。
 
 45项相关CPU测试通过；其中fresh CPU子进程真实使用-B -E -s确认没有Torch/vLLM导入，未调用systemd。CLI分支以显式code gate/renderer mock验证绑定失败先拒绝、不进入watchdog、不创建事件文件，不冒充真实部署包通过。全套324项中320通过、4POSIX FIFO因Windows跳过（29.600秒），当前两文件静态复审PASS，完整哈希及范围见source-schedule-review.json最新追加。
+
+## 宿主服务只读验收候选（2026-10-31）
+
+新增service-probe分支：`python -B <run>/code/source_schedule.py service-probe --registration <run>/registration.json --registration-sha <SHA> --service-plan-sha <SHA>`。共享源码/配置和ready核验后，从既有run根读取source-watchdog-service-plan.json并核外部SHA和同一registration，再严格JSON比对由原schedule重派生的完整计划；不能用False与0的Python相等性混淆计划类型。该文件是未来部署控制器应保存的清单，本轮未创建实际run或部署文件。
+
+生产默认路径固定本机/usr/bin/systemctl --system --no-pager --timestamp=us+utc show，使用干净环境和既有有界capture，核Id/Transient/UID2147/Typeexec/system.slice/MainPID/ControlGroup/资源/超时/InvocationID及激活时间。仅接受所生成的整数秒时长政策。启动和激活时间必须位于本批计划界限，实际active+RuntimeMax+stop不得越过原cleanup。us+utc格式依据[systemctl官方手册](https://www.freedesktop.org/software/systemd/man/latest/systemctl.html)，文档标明从248支持；实际节点版本或输出不支持时拒绝，不能静默跳过。UID参数按[systemd v249官方源码](https://raw.githubusercontent.com/systemd/systemd/v249/src/run/run.c)传入User字符串；这只是源码依据，不声称节点运行v249。
+
+同时检查实际/proc的UID/boot/start_ticks/namespace/cgroup，读取最多4097字节并拒绝超过4096的cmdline，核argv与绑定的python -B -E -s命令逐项一致，以及/proc/PID/exe与/usr/bin/python3的dev/inode。主动challenge使用该PID/nonce/完整模型目标身份，前后再次检查服务属性、InvocationID、PID寿命和命令/可执行inode；一个最多5秒绝对预算包含计划重派生、查询、proc检查和最多2秒主动probe。同步文件读取仍不能强制中断，需要独立宿主边界兜底。
+
+全部条件成立时，函数仅证明这次service身份验收，返回conditional independent_service_verified；实际提交前截止尚未证明，service_submission_deadline_verified、guard_deployed、runtime_admitted和resources_released保持false。后续实际部署控制器必须先核launch_before再提交、保存提交/启动证据并确认上述unit/probe；本候选不能单独批准模型或GPU。
+
+53项相关CPU测试通过；systemctl/proc/active-probe均为明确替身。额外真实临时文件和hardlink核有界cmdline/最后NUL/exe inode，只有proc路径替换，不冒称Linux实测。初次UTC标记夹具失败、严格JSON类型负例失败及修正均保留source-schedule-tests.json；全套332项中328通过、4POSIX FIFO因Windows跳过（29.555秒），当前两文件静态复审PASS并核SHA。未查询远端服务、安装unit、启动模型或创建池；下一项仍是实际提交边界与monitor/60秒释放。

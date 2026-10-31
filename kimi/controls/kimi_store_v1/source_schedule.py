@@ -597,7 +597,123 @@ def watchdog_service_plan(target, registration_path, registration_sha256, schedu
         independent_service_verified=False, guard_deployed=False, runtime_admitted=False)
 
 
-def watchdog_main(argv, *, probe_only=False, service_plan_only=False):
+SERVICE_PROPERTIES = ('Id', 'LoadState', 'ActiveState', 'SubState', 'MainPID', 'ControlGroup', 'Transient',
+    'User', 'Type', 'Restart', 'Slice', 'WorkingDirectory', 'KillMode', 'UMask', 'MemoryMax',
+    'CPUQuotaPerSecUSec', 'TasksMax', 'TimeoutStartUSec', 'TimeoutStopUSec', 'RuntimeMaxUSec',
+    'ExecMainStartTimestamp', 'ActiveEnterTimestamp', 'InvocationID')
+
+
+def _guard_systemctl(unit, timeout):
+    return _guard_capture(['/usr/bin/systemctl', '--system', '--no-pager', '--timestamp=us+utc',
+        'show', unit, '--property='+','.join(SERVICE_PROPERTIES)], timeout,
+        {'PATH': '/usr/bin:/bin', 'LC_ALL': 'C', 'TZ': 'UTC', 'SYSTEMD_COLORS': '0'})
+
+
+def _watchdog_command(pid):
+    from vllm_export_hook import _metadata_stream
+    root = Path('/proc')/str(pid)
+    with _metadata_stream(root/'cmdline') as stream:
+        raw = stream.read(4097)
+    if len(raw) > 4096 or not raw.endswith(b'\0'):
+        raise ValueError('bounded watchdog command line required')
+    executable, expected = (root/'exe').stat(), Path('/usr/bin/python3').stat()
+    if (executable.st_dev, executable.st_ino) != (expected.st_dev, expected.st_ino):
+        raise ValueError('watchdog executable differs from host Python')
+    return dict(argv=[arg.decode('utf-8') for arg in raw[:-1].split(b'\0')],
+                executable_device=executable.st_dev, executable_inode=executable.st_ino)
+
+
+def _service_seconds(value):
+    compact = value.replace(' ', '')
+    parts = re.findall(r'([0-9]+)(min|d|h|s)', compact)
+    if not parts or ''.join(number+unit for number, unit in parts) != compact:
+        raise ValueError('unsupported finite integer-second systemd duration')
+    units = {'d': 86400, 'h': 3600, 'min': 60, 's': 1}
+    return sum(int(number)*units[unit] for number, unit in parts)
+
+
+def probe_watchdog_service(service_plan, target, ready, schedule, *, nonce, host_pid_namespace,
+                           guard_fire_by_utc, timeout_seconds=5, query=_guard_systemctl,
+                           pid_probe=_watchdog_pid, command_probe=_watchdog_command,
+                           active_probe=probe_watchdog):
+    """Read-only live service/PID/probe cross-check, never authorizes computation."""
+    if type(timeout_seconds) not in (int, float) or not math.isfinite(timeout_seconds) or not 0 < timeout_seconds <= 5:
+        raise ValueError('finite service probe budget at most five seconds required')
+    deadline = time.monotonic()+timeout_seconds
+    derived = watchdog_service_plan(target, service_plan['command'][-3], service_plan['command'][-1],
+                                    schedule, now=_utc(service_plan['generated_utc']))
+    if (json.dumps(service_plan, sort_keys=True, allow_nan=False) != json.dumps(derived, sort_keys=True, allow_nan=False)
+            or _utc(guard_fire_by_utc) != _utc(schedule['guard_fire_by_utc'])):
+        raise ValueError('derived service plan or original guard deadline differs')
+    def remaining():
+        value = min(deadline-time.monotonic(), (_utc(guard_fire_by_utc)-datetime.now(timezone.utc)).total_seconds())
+        if value <= 0:raise TimeoutError('service probe or original guard deadline exhausted')
+        return value
+    host, unit = ready['host'], service_plan['unit']
+    identity = _guard_identity(target, boot_id=host['boot_id'], uid=host['uid'])
+    if (service_plan['identity'] != identity
+            or unit != identity['run_id']+'-guard-'+identity['holder']+'.service'):
+        raise ValueError('source service plan identity differs')
+    root = str(PurePosixPath(service_plan['command'][-3]).parent)
+    expected = dict(Id=unit, LoadState='loaded', ActiveState='active', SubState='running',
+        User='2147', Type='exec', Restart='no', Slice='system.slice', WorkingDirectory=root,
+        KillMode='control-group', UMask='0077', MemoryMax=str(256*1024**2), TasksMax='64',
+        MainPID=str(host['pid']), ControlGroup='/system.slice/'+unit, Transient='yes')
+    def inspect_service():
+        response = query(unit, remaining())
+        remaining()
+        if response.returncode or len(response.stdout) > 65536 or len(response.stderr) > 65536:
+            raise RuntimeError('bounded system service query failed')
+        properties = {}
+        for line in response.stdout.splitlines():
+            name, separator, value = line.partition('=')
+            if not separator or name in properties:raise ValueError('duplicate or malformed service properties')
+            properties[name] = value
+        if (set(properties) != set(SERVICE_PROPERTIES)
+                or any(properties.get(k) != v for k, v in expected.items())
+                or not re.fullmatch('[0-9a-f]{32}', properties['InvocationID'])):
+            raise ValueError('actual system service identity, state or resources differ')
+        for field, seconds in (('CPUQuotaPerSecUSec', 1), ('TimeoutStartUSec', 10),
+                               ('TimeoutStopUSec', 5), ('RuntimeMaxUSec', service_plan['max_runtime_seconds'])):
+            if _service_seconds(properties[field]) != seconds:
+                raise ValueError('actual system service time or CPU limit differs')
+        def stamp(name):
+            return datetime.strptime(properties[name][4:], '%Y-%m-%d %H:%M:%S.%f UTC').replace(tzinfo=timezone.utc)
+        started, active = stamp('ExecMainStartTimestamp'), stamp('ActiveEnterTimestamp')
+        if (not _utc(service_plan['generated_utc']) <= started <= active <= datetime.now(timezone.utc)
+                or active > _utc(service_plan['launch_before_utc'])+timedelta(seconds=10)
+                or active+timedelta(seconds=service_plan['max_runtime_seconds']+5) > _utc(service_plan['cleanup_complete_by_utc'])):
+            raise ValueError('actual service activation exceeds original cleanup budget')
+        return properties
+    before = inspect_service()
+    process = pid_probe(host['pid'])
+    remaining()
+    command = command_probe(host['pid'])
+    remaining()
+    if (process != host or not any(line.split(':', 2)[-1] == expected['ControlGroup']
+            for line in process['cgroup'].splitlines()) or command['argv'] != service_plan['command'][-10:]):
+        raise ValueError('actual watchdog process, command or unit cgroup differs')
+    proof = active_probe(target, nonce=nonce, expected_host=host, host_pid_namespace=host_pid_namespace,
+        guard_fire_by_utc=guard_fire_by_utc, timeout_seconds=min(2, remaining()))
+    if (not isinstance(proof, dict) or proof.get('probe_exchange_verified') is not True
+            or proof.get('host') != host or proof.get('identity') != identity
+            or proof.get('nonce') != nonce or proof.get('container_id') != target['container_id']
+            or proof.get('image_id') != target['image_id'] or proof.get('container_created') != target['container_created']
+            or proof.get('guard_fire_by_utc') != guard_fire_by_utc or proof.get('runtime_admitted') is not False):
+        raise ValueError('active service probe proof differs')
+    after = inspect_service()
+    after_process = pid_probe(host['pid'])
+    remaining()
+    after_command = command_probe(host['pid'])
+    if after != before or after_process != process or after_command != command:
+        raise ValueError('system service or process changed during active probe')
+    remaining()
+    return dict(proof, service_unit=unit, service_invocation_id=before['InvocationID'],
+        independent_service_verified=True, service_submission_deadline_verified=False,
+        guard_deployed=False, runtime_admitted=False, resources_released=False)
+
+
+def watchdog_main(argv, *, probe_only=False, service_plan_only=False, service_probe_only=False):
     """Host-only entry; source verification and target probe precede readiness."""
     import argparse
     if sys.flags.optimize or not sys.dont_write_bytecode:
@@ -606,6 +722,7 @@ def watchdog_main(argv, *, probe_only=False, service_plan_only=False):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--registration', required=True)
     parser.add_argument('--registration-sha', required=True)
+    parser.add_argument('--service-plan-sha')
     args = parser.parse_args(argv)
     path = Path(args.registration)
     if not path.is_absolute():
@@ -631,12 +748,21 @@ def watchdog_main(argv, *, probe_only=False, service_plan_only=False):
                                        schedule, now=datetime.now(timezone.utc))
         print(json.dumps(result, sort_keys=True))
         return
-    if probe_only:
+    if probe_only or service_probe_only:
         ready = read_watchdog_ready(root/'source-watchdog-events.jsonl', registration['target'],
             nonce=registration['nonce'], registration_sha256=args.registration_sha,
             plan_sha256=registration['plan_sha256'], guard_fire_by_utc=schedule['guard_fire_by_utc'])
-        result = probe_watchdog(registration['target'], nonce=registration['nonce'], expected_host=ready['host'],
-            host_pid_namespace=registration['host_pid_namespace'], guard_fire_by_utc=schedule['guard_fire_by_utc'])
+        if service_probe_only:
+            service_plan = load_source_plan(root/'source-watchdog-service-plan.json', args.service_plan_sha)
+            if (service_plan['command'][-3] != str(path.resolve())
+                    or service_plan['command'][-1] != args.registration_sha):
+                raise ValueError('service plan belongs to another registration')
+            result = probe_watchdog_service(service_plan, registration['target'], ready, schedule,
+                nonce=registration['nonce'], host_pid_namespace=registration['host_pid_namespace'],
+                guard_fire_by_utc=schedule['guard_fire_by_utc'])
+        else:
+            result = probe_watchdog(registration['target'], nonce=registration['nonce'], expected_host=ready['host'],
+                host_pid_namespace=registration['host_pid_namespace'], guard_fire_by_utc=schedule['guard_fire_by_utc'])
         print(json.dumps(result, sort_keys=True))
         return
     with (root/'source-watchdog-events.jsonl').open('xb', buffering=0) as events:
@@ -671,7 +797,8 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan']):
-        watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan')
+    if sys.argv[1:2] in (['guard'], ['probe'], ['service-plan'], ['service-probe']):
+        watchdog_main(sys.argv[2:], probe_only=sys.argv[1] == 'probe', service_plan_only=sys.argv[1] == 'service-plan',
+                      service_probe_only=sys.argv[1] == 'service-probe')
     else:
         main()

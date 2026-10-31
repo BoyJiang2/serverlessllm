@@ -194,6 +194,57 @@
         "Type=exec only proves executable start, not watchdog readiness; independent active probe still required",
         "No model, Store, GPU, complete native conversion, monitor or 60-second resource-release proof"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-31T00:34:01.462037+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file static service-probe candidate only",
+      "sha256": {
+        "source_schedule.py": "51ed33a853e83c19ef1322f5f74f8c064fb94288781d36c77867e617a7458c38",
+        "test_source_schedule.py": "a9d475a784238b2523a2babfd015f0cdd36ec1e53a8df742f722dc5f8d13525b"
+      },
+      "intermediate_review": {
+        "verdict": "PASS for earlier static revision only",
+        "sha256": {
+          "source_schedule.py": "7f6ce48569c255166f81e14ff7efc057c9b516b11ca9fb6bcdb56e6e49ab9424",
+          "test_source_schedule.py": "8fe53bafb228cb132a3068b20c4a286ae35fa50867b04eaea80458d6e38c919b"
+        }
+      },
+      "tests": {
+        "executor": "primary agent",
+        "targeted_count": 53,
+        "targeted_seconds": 4.261,
+        "total_count": 332,
+        "passed": 328,
+        "skipped": 4,
+        "seconds": 29.555,
+        "skip_reason": "Four POSIX FIFO tests on Windows"
+      },
+      "closed_findings": [
+        "Initial CPU fixture formatted UTC+08 wall time with UTC label; converted timestamp to UTC",
+        "Read-only query/PID/argv and active probe share original <=5s absolute budget; checks before next operation",
+        "Post-review primary-agent negative test proved ordinary dict equality accepted deployment_performed=0 in place of False; strict canonical JSON comparison now rejects, deadline starts before re-derivation"
+      ],
+      "verified": [
+        "Production default queries local system manager with fixed executable, clean environment, bounded capture and fixed property list",
+        "Strict re-derived source service plan, same registration SHA and CLI code/spec/ready binding",
+        "Service state/transient unit/limits/activation times fit original cleanup; not submission-time proof",
+        "Live PID boot/UID/start-ticks/cgroup, raw argv <=4096, host Python dev/inode and active challenge cross-check",
+        "Repeat InvocationID/properties/PID/command before returning; restart/reuse/changed command rejected",
+        "Actual tiny temporary file/hardlink command-reader test uses mocked proc root; no actual Linux proc evidence"
+      ],
+      "primary_references": [
+        "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+        "https://raw.githubusercontent.com/systemd/systemd/v249/src/run/run.c"
+      ],
+      "limitations": [
+        "Reviewer executed no tests, modified no files and accessed no remote",
+        "Positive service checks are explicit systemctl/proc/active-probe CPU substitutes; not actual independent service proof",
+        "us+utc formatting requires supported systemd version (documented from 248); actual node version/output/permissions unverified",
+        "Synchronous proc/filesystem work can only be budget-checked after returning, not forcibly interrupted",
+        "Conditional independent_service_verified does not prove submission deadline; service_submission_deadline_verified/guard_deployed/runtime_admitted/resources_released remain false",
+        "No model, Store, GPU, full conversion, continuous resource monitoring or 60-second release validation"
+      ]
     }
   ]
 }
