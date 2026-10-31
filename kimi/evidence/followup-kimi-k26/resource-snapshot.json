@@ -35,5 +35,72 @@
     "booking",
     "pinned allocation limits"
   ],
-  "remote_mutations": []
+  "remote_mutations": [],
+  "followups": [
+    {
+      "observed_bjt": "2026-10-31T09:58:28+08:00",
+      "method": "Read-only SSH qjhs003; no container/model/Store launch or GPU computation",
+      "hostname": "qjhs3",
+      "uid": 2147,
+      "gid": 2147,
+      "gpu_count": 8,
+      "memory_total_mib_per_gpu": 143771,
+      "gpu_memory_used_mib": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "gpu_compute_process_rows": [],
+      "host_memory_total_bytes": 2065109635072,
+      "host_memory_available_bytes": 2018224427008,
+      "other_container_present": "harbor-alan",
+      "systemd_version": "249.11-0ubuntu3.12",
+      "cgroup_hierarchy": "unified",
+      "default_python_metadata": {
+        "torch": null,
+        "vllm": null,
+        "transformers": null,
+        "sllm-store": null
+      },
+      "untagged_candidate_image": "sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3",
+      "candidate_vendor_version_label": "24.04",
+      "candidate_runtime_abi_verified": false,
+      "all_existing_environments_audited": false
+    },
+    {
+      "observed_bjt": "2026-10-31T10:04:47.842741+08:00",
+      "method": "Read-only GPU Time Booking snapshot; no booking mutation",
+      "node": "qjhs003",
+      "old_booking_id": "bk-20261030T0301-4498ce8c",
+      "old_booking_present": false,
+      "bookings": [
+        {
+          "id": "bk-20261030T1707-4b75ebc3",
+          "owner": "azure",
+          "start": "2026-10-31T01:00:00+08:00",
+          "end": "2026-10-31T10:00:00+08:00"
+        },
+        {
+          "id": "bk-20261030T1553-839baf8f",
+          "owner": "alan",
+          "start": "2026-10-31T10:00:00+08:00",
+          "end": "2026-10-31T19:00:00+08:00"
+        },
+        {
+          "id": "bk-20261030T1544-6b09e5d7",
+          "owner": "azure",
+          "start": "2026-10-31T19:00:00+08:00",
+          "end": "2026-10-31T23:00:00+08:00",
+          "purpose": "RAM/RDMA; GPU coordination explicitly required"
+        }
+      ],
+      "current_kimi_window_verified": false,
+      "first_snapshot_attempt": "Helper stdout encoding failed; corrected with -X utf8, not an authorization failure"
+    }
+  ]
 }

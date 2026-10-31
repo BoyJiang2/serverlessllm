@@ -48,7 +48,13 @@ class InstallTests(unittest.TestCase):
             self.assertEqual(target.packed.data_ptr(), target.packed_alias.data_ptr())
             a = fingerprint_state(source, rank=0, phase='before_postprocess')
             b = fingerprint_state(target, rank=0, phase='before_postprocess')
-            self.assertTrue(compare_restored_state(a, b)['same_phase_cpu_bytes_equal'])
+            self.assertEqual(a['tensors'], b['tensors'])
+            comparison = compare_restored_state(a, b)
+            self.assertFalse(comparison['inventory_equal'])  # Target-only opaque loader marker is now visible.
+            self.assertFalse(comparison['same_phase_cpu_bytes_equal'])
+            self.assertIn(dict(path='packed.tensor_attrs.loader_marker', type='builtins.object'),
+                          b['inventory']['uninspected_objects'])
+            self.assertFalse(b['inventory']['opaque_container_audit_complete'])
             self.assertNotIn('empty_scratch', target.state_dict())
             self.assertFalse(receipt['postprocessing_performed'])
             self.assertFalse(receipt['runtime_admitted'])

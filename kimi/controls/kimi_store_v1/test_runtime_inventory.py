@@ -11,6 +11,49 @@ import runtime_inventory as inventory
 
 
 class InventoryTests(unittest.TestCase):
+    def test_tensor_object_attribute_cache_cannot_be_silently_omitted_from_export(self):
+        for kind in ('parameter','buffer'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                model=torch.nn.Module()
+                value=torch.ones(2,dtype=torch.int32)
+                if kind=='parameter':model.weight=torch.nn.Parameter(value,requires_grad=False)
+                else:model.register_buffer('weight',value,persistent=False)
+                model.weight.runtime_cache=[torch.ones(3)]
+                target=Path(temp)/'rank'
+                with self.assertRaises(ValueError):cpu_tensor_io.write_cpu_state(target,model)
+                self.assertFalse(target.exists())
+
+    def test_tensor_attributes_nested_tensors_aliases_and_opaque_objects_are_metadata_only(self):
+        model=torch.nn.Module();model.weight=torch.nn.Parameter(torch.ones(2))
+        cache=torch.ones(3);cache.extra=torch.ones(4)
+        model.weight.cache={'private-cache-key':[cache,model.weight]}
+        model.weight.backend=types.SimpleNamespace(hidden=torch.ones(5))
+        with patch.object(torch.Tensor,'tolist',side_effect=AssertionError('payload access')):
+            result=inventory.collect_inventory(model)
+        rows=result['tensors'];prefix='weight.tensor_attrs.cache.values[0]'
+        self.assertEqual(rows[prefix+'[0]']['kind'],'container_tensor')
+        self.assertEqual(rows[prefix+'[0].tensor_attrs.extra']['shape'],[4])
+        self.assertEqual(rows[prefix+'[1]']['alias_of'],'weight')
+        self.assertIn(prefix+'[1]',result['container_cycles'])
+        self.assertIn(dict(path='weight.tensor_attrs.backend',type='types.SimpleNamespace'),result['uninspected_objects'])
+        self.assertFalse(result['opaque_container_audit_complete'])
+        self.assertFalse(result['payload_read'])
+        model.weight.cache.clear()  # Remove this test's deliberate self-reference.
+
+    def test_tensor_attribute_walk_keeps_budget_and_does_not_retain_payload(self):
+        model=torch.nn.Module();model.weight=torch.nn.Parameter(torch.ones(2))
+        model.weight.cache=[torch.ones(3)]
+        weight_ref,cache_ref=weakref.ref(model.weight),weakref.ref(model.weight.cache[0])
+        result=inventory.collect_inventory(model)
+        del model
+        self.assertIsNone(weight_ref())
+        self.assertIsNone(cache_ref())
+        self.assertFalse(result['payload_read'])
+        model=torch.nn.Module();model.weight=torch.nn.Parameter(torch.ones(2))
+        model.weight.deep=[];node=model.weight.deep
+        for _ in range(inventory.MAX_CONTAINER_DEPTH+1):node.append([]);node=node[0]
+        with self.assertRaisesRegex(ValueError,'budget exceeded'):inventory.collect_inventory(model)
+
     def test_parameters_buffers_and_direct_tensor_attrs_are_all_visible(self):
         model = torch.nn.Module()
         model.weight = torch.nn.Parameter(torch.ones(4))

@@ -1,6 +1,6 @@
 # Kimi INT4 Store CPU 适配候选
 
-当前接续以NEXT.md最新覆盖为准。2026-10-31已在原文件统一Store元数据有界读取并接7个现有消费者，writer发布前用同一上限预检；全套312项中309通过、3项Windows平台跳过，当前九文件静态审阅及失败回归见native-record-call-review.json。未执行GPU/完整Store转换或取得运行准入；以下早期章节保留各自历史范围，不代表当前全局状态。
+当前接续以NEXT.md最新覆盖为准。2026-10-31已补Parameter/Tensor附加属性的有界状态扫描与写前拒绝；全套337项中333通过、4项Windows平台跳过，当前三文件静态审阅与原失败见runtime-inventory-cpu-review.json。当前优先最小单卡P0a，不继续扩展CPU工具；预约、运行时及准入缺项见RESERVATION-PLAN.md最新核验。尚无实际Kimi GPU/完整Store转换或服务通过；以下早期章节保留各自历史范围。
 
 最新逐记录producer已连通多handle协议及独立安装CPU链，183项CPU测试通过，复审见native-record-call-review.json；public真实二进制绑定/活跃Store及CUDA仍未验证。详见MULTI-HANDLE-PRODUCER.md。未接混设备工厂，原GPU预算拒绝继续生效，没有实际GPU或完整转换。
 
@@ -294,3 +294,9 @@ metadata inventory现扫描Module属性中的标准dict/OrderedDict/list/tuple/s
 - source_plugin现强制在runtime/factory之前verify_source_run（实际插件目录+run固定manifest+外部bundle SHA），cached注册也重查；235项CPU测试通过，复审见source-startup-review.json。旧f152680包冻结，必须按新代码提交成包；下一项新整包CPU接线验证和worker入口/实际身份/预算/guard闭包。尚无GPU/完整Store。
 
 - 新增source_schedule完整阶段预算与code/spec/plan CLI预检，246项CPU测试通过，复审见source-schedule-review.json。包含3721>3600拒绝、60秒最小观察+开销、每批自身guard/清理截止（不随11h预约拉长）、核验耗时计入且不重置；CLI时钟不可覆盖。仅时间配置预检，booking/guard/runtime均false，实际worker/独立守护仍待接齐。详见SOURCE-SCHEDULE.md。
+
+## 2026-10-31 Tensor对象附加状态检查
+
+清单现在也扫描注册Parameter/buffer对象的__dict__，沿现有node/depth预算递归内置容器和Tensor附加属性；隐藏Tensor、alias和cycle可见，opaque对象只记录路径/类型，未知仍不宣称完整。已复现旧Parameter.runtime_cache=[Tensor]会被write_cpu_state遗漏，新路径在目录创建前按原策略拒绝；buffer同类属性原先已有state_bindings拒绝，不能把它也误称为旧漏导出。没有为Kimi推测缓存重建或新增序列化豁免。
+
+11项相关CPU测试通过；首次全套因旧install测试把目标独有loader_marker也当完整清单相同而失败。现单列张量指纹相同、目标Parameter/marker身份保留和严格inventory比较失败，生产state_audit未放宽；最终337项中333通过、4POSIX FIFO因Windows跳过（32.023秒）。三文件当前静态复审PASS和原失败记录追加runtime-inventory-cpu-review.json。不是实际Kimi状态/全局reload metadata/异常栈或CUDA所有权已全面安全。

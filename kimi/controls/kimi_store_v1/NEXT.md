@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 已收尾Tensor.__dict__清单缺口：注册Parameter/buffer及隐藏Tensor附加属性沿原bounded walk扫描，已知隐藏Tensor在写目录前拒绝；旧Parameter缓存漏导出已复现，buffer原来已被state_bindings拒绝。337项最终333通过4跳过（32.023秒），三文件静态复审PASS；保留target-only opaque loader_marker导致严格清单不等的新可见事实，未放宽state_audit，失败追加runtime-inventory-cpu-review.json。用户催促后优先最小P0，不继续扩CPU工具：2026-10-31 10:04预约API已无旧boyjiang4498，10–19 alan，19–23 Azure用途RAM/RDMA且GPU需协调；09:58只读SSH八卡0MiB但harbor-alan仍在，systemd249、可用1.84TiB，默认host Python无torch/vllm，现有未标记镜像0202仅vendor24.04标签，不是合规runtime证明。详RESERVATION-PLAN最新。下一项P0a确定性小张量CUDA/IPC独立探针的最小源码/完整预算/R1/实际guard准入；不以source整模或native全编译作P0a前提，但实际窗口和合规现有runtime缺口先确认，不占8卡/池等审批、不新增环境/大资产，不启动GPU。
+
 - 2026-10-31 回到临时内存核心审计：verify_records旧read/hash循环持有上一块直到新read完成，且摘要异常consumer traceback锚块；真实12字节文件/4字节块弱引用负例先复现，旧源码私有namespace摘要故障也失败，现每块消费finally del block，无生产gc或新副本。11项stream测试通过，全套334项330通过4POSIX FIFO因Windows跳过（29.464秒），两文件静态复审PASS，初次Path.open测试descriptor错误/旧失败/哈希追加cpu-tensor-io-review.json。只证明consumer引用释放顺序，不是RSS/CUDA峰值或全部第三方traceback清理，原2×预算拒绝不变。原文件构建，无新目录/权重环境复制。下一项继续核完整转换/读回临时持有及worker提交/monitor/60秒释放闭包，真实native构建/八rank/服务仍缺，CPU-only不变。
 
 - 2026-10-31 source_schedule新增service-probe只读验收候选：共享source/ready后外部SHA绑定service-plan并严格JSON重派生，固定local systemctl属性/资源/激活期限、实际proc argv<=4096及python inode/cgroup，与同次主动challenge前后复核InvocationID/PID/命令。统一<=5s含重派生，source单元查询us+utc需节点支持（文档248起）；当前未实机验证。53相关CPU测试通过（明确systemctl/proc/probe替身，另真实tmp文件hardlink仅映射proc路径）；全套332项328通过4Windows跳过（29.555秒）。初次UTC夹具2error3fail及自查False/0负例失败保留，已修严格JSON并取得当前两文件复审PASS，追加source-schedule-review/tests。条件service身份通过仍不证明提交截止；submission/guard_deployed/runtime/resources false。无新目录/权重环境副本，无实际systemd/远端/GPU。下一项实际提交前deadline与unit/probe证据闭包，再monitor/60秒释放；native构建/全峰值/完整转换仍缺，CPU-only不变。

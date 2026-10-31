@@ -21,5 +21,70 @@
   "payload_read_by_inventory": false,
   "runtime_admitted": false,
   "gpu_used": false,
-  "remote_connection": false
+  "remote_connection": false,
+  "followups": [
+    {
+      "recorded_utc": "2026-10-31T02:07:21.767790+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current three-file static revision only",
+      "sha256": {
+        "runtime_inventory.py": "960bd0ce457bb5df7e496211ae8c3fdf87bb3850c2ff03c1bb30486fcee57111",
+        "test_runtime_inventory.py": "9b5b3750b616a4f4d07910f2566192d66ee3d2ff0156fc5216798407b8b4981b",
+        "test_install_state.py": "a603e930a3d8a4c41aab466adc1adcc56939a6bbc16694aba37391fbcb149351"
+      },
+      "source_before_sha256": "1b36b9dac69d6d875f40e0f60de3362b70af5f8026f39b785d0eda2b2e3d7b8c",
+      "attempts": [
+        {
+          "tests": 9,
+          "failures": 1,
+          "seconds": 0.023,
+          "result": "FAILED",
+          "cause": "Parameter.runtime_cache Tensor omitted from old inventory and exported without refusal; buffer case already refused by existing state_bindings custom-attribute policy"
+        },
+        {
+          "tests": 11,
+          "seconds": 0.021,
+          "result": "OK",
+          "scope": "New Tensor attribute metadata traversal and write-before-refusal controls"
+        },
+        {
+          "tests": 337,
+          "failures": 1,
+          "skipped": 4,
+          "seconds": 34.374,
+          "result": "FAILED",
+          "cause": "Old install test expected inventory equality although target-only opaque loader_marker is now visible; tensor fingerprints equal, strict comparison correctly false"
+        },
+        {
+          "tests": 7,
+          "seconds": 0.197,
+          "result": "OK",
+          "scope": "Install test now checks tensor fingerprint equality separately and preserves strict inventory/overall comparison failure for unknown target marker"
+        },
+        {
+          "tests": 337,
+          "passed": 333,
+          "skipped": 4,
+          "seconds": 32.023,
+          "result": "OK",
+          "scope": "Final full local CPU suite"
+        }
+      ],
+      "verified": [
+        "Registered parameter/buffer __dict__ contents inspected by existing bounded container walk",
+        "Hidden Tensor own attributes, alias/self-cycle and nested containers are visible",
+        "Known hidden Tensor state uses existing require_safe_byte_export refusal before output directory creation",
+        "Same node/depth budget, no policy bypass or opaque-object serialization",
+        "CPU normal-return weakrefs show inventory does not retain payload until GC",
+        "Parameter subclass/identity/loader marker and alias checks retained; state_audit production comparison unchanged"
+      ],
+      "limitations": [
+        "Static reviewer did not execute tests, modify files or access remote",
+        "No proof actual Kimi has this custom Tensor cache; demonstrated generic valid Parameter interface gap",
+        "Opaque classes, closures, framework global reload metadata and exceptional traceback lifetimes not fully audited",
+        "Mixed device maps missing newly found names conservatively fail; no automatic placement exemption",
+        "No native library, real CUDA, complete Kimi payload/TP or full Store/service validation"
+      ]
+    }
+  ]
 }

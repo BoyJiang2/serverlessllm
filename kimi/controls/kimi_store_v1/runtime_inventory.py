@@ -35,6 +35,11 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
         if isinstance(value, torch.Tensor):
             kind = 'unregistered_tensor' if depth == 0 else 'container_tensor'
             named.append((kind, path, value, False))
+            if id(value) in active:
+                cycles.append(path)
+                return
+            for leaf, item in vars(value).items():
+                walk(item, path + '.tensor_attrs.' + leaf, active | {id(value)}, depth + 1)
         elif type(value) in (dict, OrderedDict, list, tuple, set, frozenset):
             if id(value) in active:
                 cycles.append(path)
@@ -52,6 +57,9 @@ def collect_inventory(model, checkpoint_targets=(), *, phase='before_postprocess
 
     # Registered state is already enumerated; do not recurse into its registries.
     try:
+        for _, name, tensor, _ in tuple(named):
+            for leaf, value in vars(tensor).items():
+                walk(value, name + '.tensor_attrs.' + leaf, {id(tensor)}, 1)
         for prefix, module in model.named_modules(remove_duplicate=False):
             for leaf, value in vars(module).items():
                 if leaf not in ('_parameters', '_buffers', '_modules'):
