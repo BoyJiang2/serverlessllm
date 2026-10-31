@@ -30,5 +30,43 @@
     "No real CUDA full-chain, ABI/live Store, peak memory or release validation",
     "Conservative two-copy stop remains, not a sufficient mixed-device peak plan",
     "Full worker/window/guard and runtime admission still incomplete"
+  ],
+  "followup_reviews": [
+    {
+      "verdict": "NEEDS_FIX",
+      "reviewer": "local read-only subagent",
+      "sha256": {
+        "vllm_mixed_hook.py": "459c4728cedbba0c6e9f6f0e2bc610b3f16b5c5057b27319509f170e769661eb",
+        "test_vllm_mixed_hook.py": "fd2111722a3e491aebc1528b93c02a90e07b0c1585efab60dab562c803a61253"
+      },
+      "finding": "Unrestricted deepcopy of unvalidated rank option values can copy tensor payload or invoke opaque hooks at registration; require plain metadata before snapshot."
+    },
+    {
+      "recorded_utc": "2026-10-31T09:40:10.279420+00:00",
+      "verdict": "PASS",
+      "reviewer": "/root/deadline_readonly_review",
+      "sha256": {
+        "vllm_mixed_hook.py": "690d682cc3d98dd47f858d4189ca93a2882bc421cb261fcd20cc1342ac290007",
+        "test_vllm_mixed_hook.py": "679920c7cd8f8732615762d3533e2509f578bd88073cbfb1b292dabe1aec3d8c"
+      },
+      "verified": [
+        "Initial unbounded deepcopy finding closed with fixed plain metadata schema and shallow snapshot; CPU Tensor/opaque regression fails old source then passes new",
+        "Frozen registry retains builtin and rejects foreign native class",
+        "Actual rank selects asset, actual device selects frozen device budget; original mixed factory preserves ABI/sidecar/2x budget checks",
+        "One-shot failures retain delegate for owned worker cleanup"
+      ],
+      "tests": {
+        "count": 381,
+        "passed": 365,
+        "skipped": 16,
+        "seconds": 41.902,
+        "executor": "primary agent"
+      },
+      "limitations": [
+        "Static read/hash review only; reviewer ran no project or SSH",
+        "CUDA/ABI/native/install boundaries are CPU mocks",
+        "No native manifest/general-plugin spec, actual spawned worker, GPU or model runtime admission"
+      ]
+    }
   ]
 }

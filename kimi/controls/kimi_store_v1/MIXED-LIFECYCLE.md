@@ -1,5 +1,15 @@
 # 独立混设备loader生命周期候选
 
+## 2026-10-31：延迟rank的私有native注册接口
+
+`register_deferred_mixed_loader`现复用冻结registry，登记`sllm_kimi_native_v1`的Base子类。登记仅接收八份固定字段的纯字符串/整数元数据及八个设备预算，浅快照不复制Tensor载荷；不读取CUDA组、侧车或实际native ABI。内置格式不变，foreign native登记拒绝覆盖。
+
+仅在该实例`load_model`中调用既有`current_rank_context`，要求实际TP8/PP1及合法整数rank/device；权重按rank选，预算按device选，两者不要求相等。随后调用原`make_mixed_store_loader`，其实际build/侧车/完整目标、2×预算拒绝和官方Base上下文仍生效。失败保留delegate及其部分native状态，禁止同实例重试；不自行free、取消DMA或宣称释放，仍需guard负责worker退出取证。
+
+CPU控制执行冻结registry→deferred→原mixed factory→私有Base小模型链；CUDA、native ABI/IPC、安装边界仍明确mock。另测注册不查询context、rank≠device、配置快照、非法context、未初始化CUDA、预算及部分加载失败。独立审阅发现旧`deepcopy`可复制Tensor，负例先失败，现纯元数据预检后浅快照拒绝Tensor/opaque且不调用其copy钩子。
+
+这只是受控worker可调用的注册接口，不是已经完成native general-plugin配置/manifest或spawn传播。`source_plugin.register`仍只export；native调用者、实际ABI/活跃Store、峰值、八rank和服务门槛尚待完成。没有远端计算、完整转换或GPU通过。
+
 `vllm_mixed_hook.make_mixed_store_loader` 已把现有组件组合成独立BaseModelLoader子类，不注册、不部署worker、不改旧工厂或旧运行包。顺序为：受限源码/二进制绑定及侧车预检 → 官方Base dtype与目标设备上下文 → CPU文本/官方CUDA视觉构造（保留官方quant/current-config/reload）→ mixed Marlin辅助规范化 → 逐记录allocator/多handle请求/确认 → 独立全payload核验与按角色安装 → 放弃loader持有的全raw状态引用 → 显式最终CUDA target的官方quant/Attention后处理 → Base eval。
 
 执行冻结Base函数body时仅复制其globals到本类私有namespace，用两个本地callback连接混设备构造与后处理；不修改官方模块全局函数，也不重新实现Base body。源码校验使用unwrap后的body，因此此组件不保留外层Base tracing decorator的span；没有用于正式计时，后续测量必须明确事件来源，不冒充旧入口等价耗时。Base与initializer必须持有同一个model_config对象，避免两套配置分叉。

@@ -18,6 +18,77 @@ from vllm_cpu_hook import _verify_function, BASE_SHA256, UTILS_SHA256
 from vllm_native_hook import _require_runtime_profile
 
 
+def register_deferred_mixed_loader(registry, base_loader, native_module, model_class, *,
+        rank_options, device_memory_budgets, config_raw, checkpoint_contract, profile,
+        vllm_version, rank_context=None):
+    """Register a candidate without reading CUDA groups, payload or native ABI.
+
+    Registration is not runtime admission. The worker must retain this loader on
+    failure until its own guarded exit; the delegate may own partial native state.
+    """
+    from loader_registry import register_candidate_loader
+    strings = {'storage_path', 'model_path', 'expected_sidecar_sha256', 'server_address',
+               'build_receipt', 'expected_build_sha256'}
+    integers = {'max_allocation_bytes', 'timeout_seconds'}
+    if (not isinstance(rank_options, (tuple, list)) or len(rank_options) != 8
+            or not isinstance(device_memory_budgets, (tuple, list)) or len(device_memory_budgets) != 8
+            or any(type(n) is not int or n <= 0 for n in device_memory_budgets)
+            or any(type(row) is not dict or set(row) != strings | integers
+                   or any(type(row[k]) is not str for k in strings)
+                   or any(type(row[k]) is not int or row[k] <= 0 for k in integers)
+                   for row in rank_options)
+            or rank_context is not None and not callable(rank_context)):
+        raise ValueError('eight plain metadata rank options without guessed identities and eight device budgets required')
+    options = tuple(dict(row) for row in rank_options)
+    budgets = tuple(device_memory_budgets)
+
+    class DeferredMixedLoader(base_loader):
+        def __init__(self, load_config):
+            super().__init__(load_config)
+            self.lifecycle_status = 'not_started'
+            self.discard_worker_required = False
+            self.delegate = None
+            self.rank = self.device = None
+
+        def download_model(self, model_config):
+            raise ValueError('authenticated existing assets only')
+
+        def load_weights(self, model, model_config):
+            raise ValueError('deferred weights require the delegate Base lifecycle')
+
+        def load_model(self, vllm_config, model_config, prefix=''):
+            if self.lifecycle_status != 'not_started':
+                raise ValueError('one-shot deferred lifecycle already attempted')
+            self.lifecycle_status, self.discard_worker_required = 'loading', True
+            try:
+                if rank_context is None:
+                    from vllm_export_hook import current_rank_context
+                    context = current_rank_context()
+                else:
+                    context = rank_context()
+                if (not isinstance(context, dict) or set(context) != {'rank', 'tp_size', 'pp_size', 'device_id'}
+                        or any(type(v) is not int for v in context.values())
+                        or context['rank'] not in range(8) or context['device_id'] not in range(8)
+                        or context['tp_size'] != 8 or context['pp_size'] != 1):
+                    raise ValueError('actual TP8/PP1 rank context required before initialization')
+                self.rank, self.device = context['rank'], 'cuda:' + str(context['device_id'])
+                loader_class = make_mixed_store_loader(base_loader, native_module, model_class,
+                    call_options=dict(options[self.rank], rank=self.rank, device_id=context['device_id']),
+                    config_raw=config_raw, checkpoint_contract=checkpoint_contract, profile=profile,
+                    vllm_version=vllm_version,
+                    device_memory_budget_bytes=budgets[context['device_id']])
+                self.delegate = loader_class(self.load_config)
+                model = self.delegate.load_model(vllm_config, model_config, prefix)
+            except BaseException:
+                self.lifecycle_status = 'failed'
+                raise
+            self.lifecycle_status = 'returned'
+            return model
+
+    register_candidate_loader(registry, DeferredMixedLoader, mode='native')
+    return DeferredMixedLoader
+
+
 def make_mixed_store_loader(base_loader, native_module, model_class, *, call_options,
                             config_raw, checkpoint_contract, profile, vllm_version,
                             device_memory_budget_bytes):

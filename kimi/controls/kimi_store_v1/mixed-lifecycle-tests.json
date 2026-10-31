@@ -14,6 +14,36 @@
       "seconds": 9.522,
       "result": "OK",
       "errors": 0
+    },
+    {
+      "count": 380,
+      "seconds": 42.688,
+      "result": "OK",
+      "skipped": 16,
+      "scope": "Initial deferred native revision before payload-copy review fix; WSL bridge to existing Windows Torch CPU"
+    },
+    {
+      "count": 1,
+      "seconds": 0.027,
+      "result": "FAILED",
+      "failures": 1,
+      "test": "test_deferred_rejects_payload_and_opaque_before_copy_or_native",
+      "cause": "Old unrestricted deepcopy accepted CPU Tensor at registration; no ValueError",
+      "source_sha256": "459c4728cedbba0c6e9f6f0e2bc610b3f16b5c5057b27319509f170e769661eb"
+    },
+    {
+      "count": 11,
+      "seconds": 0.719,
+      "result": "OK",
+      "scope": "Deferred registry and existing mixed Base CPU fixture; CUDA/ABI/native/install are explicit mocks"
+    },
+    {
+      "count": 381,
+      "passed": 365,
+      "seconds": 41.902,
+      "result": "OK",
+      "skipped": 16,
+      "scope": "Final plain-metadata deferred revision; WSL bridge to existing Windows Torch CPU, not Linux CUDA"
     }
   ],
   "executor": "primary agent",

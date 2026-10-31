@@ -4,7 +4,7 @@
 
 ## 当前已接与尚未接
 
-2026-10-31调用图补充：`source_plugin.register`当前只调用export注册；`make_mixed_store_loader`只有定义与CPU测试引用，尚无实际native worker/general-plugin调用。`loader_registry`支持两个名称只表示接口能力，不代表两条路径均已接通。后续CPU工作优先补延迟rank/device的native worker接线，维持实际库/ABI拒绝及2x预算停止，不用工厂存在或本地测试冒充完整服务。
+2026-10-31调用图补充：已加`register_deferred_mixed_loader`私有native注册API，注册只快照固定纯元数据，load_model才取实际TP8/PP1 rank/device，按rank选资产、device选预算并调原mixed factory；保留delegate失败状态及2×拒绝。`source_plugin.register`仍只export，没有受控native general-plugin spec/manifest及实际spawn传播。该API不是完整worker或GPU准入；下一项接当前源码清单绑定的native插件调用者，不跳过实际build/ABI/峰值及guard。
 
 源转换入口现可由独立Base子类调用：固定Default loader只加载本地SF，rank导出发生在后处理之前，之后固定Base继续后处理，便于同一后端生成参考。`vllm_export_hook`默认读取已初始化的TP/PP组及当前CUDA设备；CPU测试的context callback是明确模拟。`loader_registry`复用固定官方注册函数，仅使用sllm_kimi_export_v1/sllm_kimi_native_v1独立名称；同类重复登记允许，其他类冲突拒绝，原safetensors不改。
 

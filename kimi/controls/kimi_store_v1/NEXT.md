@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 已在原vllm_mixed_hook加register_deferred_mixed_loader私有native注册API：注册仅固定八字段plain str/int浅快照，不读CUDA/ABI/Store；load_model才用既有current_rank_context核TP8/PP1，按rank选asset、device选budget（测试rank3/device5）。委托原mixed factory保留build/sidecar/2×停止及一次官方Base生命周期，失败保留delegate/清理义务且不重试。初审deepcopy可复制Tensor缺口已负例先失败1项.027s，再改纯元数据拒绝；旧NEEDS_FIX/源码SHA留mixed-lifecycle-review。最终11相关.719s；全381项365过16Windows skip41.902s（WSL桥接既有WindowsCPU Torch），当前两源码只读复审PASS且SHA核验。未新建环境/目录或GB副本，无远端计算/Store/GPU。
+- 下一项是把上述私有注册API接到绑定实际源码清单和独立native spec的general-plugin调用者，并核spawn传播/实际库身份；source_plugin仍仅export，本轮API不是可部署worker/真实native通过。禁止只改export spec的mode冒用其manifest，勿再扩通用P0包装。已有source转换与P0组件不重做；原2×拒绝、有效窗口/全资源与实际新guard门槛及GLM历史保持，完整Kimi Store/八rank/金标/服务尚未完成。
+
 - 2026-10-31 本轮回到goal五项CPU核心（不继续叠加通用启动包装）：发现stream_writer写/hash故障在保留traceback时持有CPU staging，旧四字节Block及真实torch两字节部分写分别先失败0.008/0.052s，旧hash留cpu-tensor-io-review NEEDS_FIX。现每block及_write_all finally丢own view/arg，失败仅close GeneratorType staging producer（不关任意borrowed iterator），generator/file二次关闭只note不盖原错，partial和原packed位保留、不返成功。14stream+6device控制通过，全375359过16skip42.075s，WSL原生3.10 stream14过.032s，当前三文件静态复审PASS/SHA已核；无GC/clear_frames/manual cudaFree，不称全RSS或GPU所有权。README首部已按五项目标区分CPU证明与缺项。
 - 已独立核调用图：source_plugin只export，mixed native factory只有定义/test引用，实际native worker/general-plugin尚未接，不被loader_registry提供native名称掩盖。下一项必要CPU工作优先补native延迟rank/device上下文到已有mixed factory的私有worker接线，保留实际build/ABI检查和2x停止，不把GPU/全转换阻塞当所有CPU阻塞；若进入P0实机阶段则直接复用已审setup，勿再造无穷包装。仍无remote/GPU/完整转换/大池/新环境/GB复制，GLM历史不动；真实库/峰值/八rank/金标/服务尚未通过。
 
