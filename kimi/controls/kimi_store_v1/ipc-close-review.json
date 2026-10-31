@@ -64,6 +64,49 @@
         "Reviewer only read/hash checked files; no code execution or SSH"
       ],
       "runtime_admitted": false
+    },
+    {
+      "recorded_utc": "2026-10-31T11:58:23.721037+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "native_patch/ledger.json": "a63ee702c157f69a1535b4fb4cab774c1fa9c43a5edc548e5f1f253749fd98cc",
+        "test_ipc_close_patch.py": "8475a5f5f6cb6f42972ba059e66e85f7a50f6f575a72520362785909ec78c1c5"
+      },
+      "scope": "Ledger repository-relative base/candidate paths and corresponding byte-equality assertions only",
+      "verified": [
+        "base_path resolves under glm and bytes match frozen BASE",
+        "candidate_path resolves under kimi and bytes match current CPP",
+        "Production CPP/loader, patch SHA and compiled/GPU/runtime flags unchanged"
+      ],
+      "tests": {
+        "executor": "primary agent",
+        "before": {
+          "count": 1,
+          "seconds": 0.041,
+          "result": "ERROR",
+          "error": "FileNotFoundError from stale base_path"
+        },
+        "after_windows": {
+          "count": 1,
+          "seconds": 0.043,
+          "result": "OK"
+        },
+        "after_native_wsl": {
+          "count": 1,
+          "seconds": 0.22,
+          "result": "OK"
+        },
+        "full_suite_rerun": false,
+        "last_full_suite_code_commit": "af83ca387c7b661e30e130f542efe9ed56ff994b"
+      },
+      "limitations": [
+        "Reviewer ran no code, changed no files and made no remote calls",
+        "Local toolchain and Docker preflight observations are primary-agent evidence in native_patch/cpu-probe.json, not an independent environment review",
+        "Full native build still missing configured CUDA toolchain and complete build project; CPU fragments cannot generate compiled_native_store=true receipt",
+        "No deployment, remote build, GPU/model/full Store conversion or runtime admission"
+      ],
+      "runtime_admitted": false
     }
   ]
 }

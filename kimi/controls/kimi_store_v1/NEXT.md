@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 2026-10-31 已实际核完整本地构建链（不是继续泛化wrapper）：WSL配置有g++11.4/cmake，无nvcc/ninja/CUDA_HOME/标准CUDA头/Linux Torch；现存冻结Store快照34文件123821B且无CMakeLists/setup/pyproject。g++ -fsyntax-only候选+现有headers实际在model.h:35缺cuda_runtime.h退出1，原stderr/命令/工具与34文件SHA已追加native_patch/cpu-probe。此仅依赖预检，非完整项目build命令/CPP语法结果，其他依赖未核齐。Windows本机Docker CLI对两个显式local named pipes只读查询均missing，未取得镜像清单（不说镜像不存在），未启动Docker/拉镜像/装CUDA或环境/远端编译/GPU。初次probe Python单行quoting错误发生在Docker调用前，已改stdin脚本并留说明。当前CPU-only且禁止GB环境复制下，无已核可复用完整CUDA构建链；不伪造compiled=true。
+- active ledger迁移旧base/candidate路径已负例先FileNotFoundError（1项.041s），现仅补glm/kimi前缀并新增实际路径字节等BASE/PATCH断言；Win1项.043s、WSL原生1项.220s均通过。CPP49b2及生产loader不动，最近397项全套仍是af83ca3，不重跑/重标旧PASS。当前两文件复审另绑定SHA，旧审阅不审批新运行；GLM文件/40ID/金标不动。
+- 下一步需在已授权的现成CUDA构建环境完成真实native构建来源/ABI/活跃Store及全峰值与运行预算；当前本地缺口已经取证，不反复试同一编译错误、不装GB工具链、不新增目录、不越界远端计算。可继续必要CPU源码/证据闭环，但不要用重复工具/测试冒充目标完成；完整Store/八rank/模型/服务尚未通过，实际GPU门槛保持。
+
 - 2026-10-31 两条读回摘要路径暂存寿命已修：旧verify_native_payload/verify_independent_payload的hash错误保留traceback时留CPU staging；真实Torch CPU3字节块弱ref、强保留错误+generator，旧1项两subtest均先失败.037s，故障callback先del data，不是替身自己锚。现共用_digest_tensor逐块finally del自身block，finally close/del自身暂存generator；二次关闭错误只note不盖原错，源packed位/metadata先检/alias去重/digest与bytecount不变。不GC/clear_frames/cudaFree、不释放原native owners。7相关测试.007s通过，全397项374过23Windows skip45.412s（既有WSL桥接WindowsTorchCPU），两源码只读静态PASS/SHA核验及原失败追加cpu-tensor-io-review。无remote/GPU/新环境/GB复制；默认8MiB不是RSS/锁页/allocator/GPU峰值或任意第三方栈清理证明，旧49b2 CPP/2×预算/GLM历史不动。
 - 下一项优先核完整native补丁构建来源和实际可用本地构建链、完整mixed峰值/运行预算；不把读回引用修复当完整Store/8rank/服务成功。已审writer/host reader/plugin/mapping不重复扩写；沿CPU授权推进真实缺项，实际GPU仍需有效窗口/全资源/完整R1/新guard与probe。
 

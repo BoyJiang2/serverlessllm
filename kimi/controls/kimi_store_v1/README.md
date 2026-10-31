@@ -1,6 +1,8 @@
 # Kimi INT4 Store CPU 适配候选
 
-当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。当前全套397项中374通过、23个Windows平台跳过（45.412秒，WSL桥接既有Windows Torch）；Linux库映射六项和Store读/关闭片段三项另已原生WSL通过（0.307/3.447秒，无Torch）。这是组件/CPU控制，不是完整模型正确性或运行准入。
+当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套为af83ca3的397项中374通过、23个Windows平台跳过（45.412秒，WSL桥接既有Windows Torch）；Linux库映射六项和Store读/关闭片段三项另已原生WSL通过（0.307/3.447秒，无Torch）。本轮仅修账本路径/新增断言，Win及WSL单项分别通过，未重跑该全套；这是组件/CPU控制，不是完整模型正确性或运行准入。
+
+完整本机构建已有实际预检阻塞：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
 
 | 目标 | 已有CPU证据/候选接口 | 仍未通过 |
 |---|---|---|

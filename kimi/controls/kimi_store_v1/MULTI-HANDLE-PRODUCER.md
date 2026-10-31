@@ -1,5 +1,13 @@
 # 逐记录多handle加载候选
 
+## 2026-10-31：完整本机构建预检
+
+本轮核对原仓库和现有WSL工具，不安装或复制环境。配置的Ubuntu22.04中有g++11.4和cmake，无nvcc/ninja、CUDA_HOME、标准CUDA头目录或Linux Torch；已有冻结Store快照34文件共123821字节，不含CMakeLists.txt/setup.py/pyproject.toml。用实际候选及现有headers执行g++ -std=c++17 -fsyntax-only，在model.h:35因缺cuda_runtime.h退出1。此是依赖预检，不是完整项目构建命令或CPP语法结论，后续依赖尚未全部核齐。
+
+本机Docker CLI对显式docker_engine及dockerDesktopLinuxEngine named pipe的只读image查询均失败（pipe不存在）；未取得镜像清单，不能据此断言镜像不存在。没有启动Docker服务、拉镜像、安装CUDA/Python、运行远端编译或使用GPU。完整CUDA Store编译本身可以不占GPU，但当前本机无已核可复用的构建链，不能生成compiled_native_store=true回执；应在后续获准且现成工具链齐备的环境验证，不用GB安装绕过本轮资源限制。
+
+同时发现active patch ledger仍有迁移前路径：旧断言实际FileNotFoundError，现base_path补glm/、candidate_path补kimi/，并断言实际路径内容与冻结BASE/当前PATCH逐字节相同。Windows单项0.043秒和WSL原生单项0.220秒通过；CPP49b2与loader生产代码未改，未重复运行或重标此前397项全套。预检原stderr、工具、34文件SHA清单及路径回归保存在native_patch/cpu-probe.json；当前两文件只读复审单独绑定新SHA，旧审阅不复用为新运行批准。
+
 ## 2026-10-31：实际host读取片段与writer衔接
 
 核原生`Model::ToHost`发现旧读取块至多拼两个分区，且把正短读当作分区结束，`EINTR`直接报错。现有writer生成四个4KiB实际分区时，旧原始及close-only候选用16KiB块均失败；512字节短读与一次EINTR控制也失败。此是小CPU条件下的已证实缺口，不表示官方默认10GiB分区在当前模型一定触发，更不是历史exit137根因。

@@ -199,6 +199,9 @@ class IpcClosePatchTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256(BASE.read_bytes()).hexdigest(), ledger['base_sha256'])
         self.assertEqual(hashlib.sha256(PATCH.read_bytes()).hexdigest(), ledger['candidate_sha256'])
         self.assertEqual(native_record_call.PATCH_SHA, ledger['candidate_sha256'])
+        repo = ROOT.resolve().parents[2]
+        self.assertEqual((repo / ledger['base_path']).read_bytes(), BASE.read_bytes())
+        self.assertEqual((repo / ledger['candidate_path']).read_bytes(), PATCH.read_bytes())
         old, old_tail = source_tail(BASE)
         new, new_tail = source_tail(PATCH)
         old = old.replace(old_tail, '<TAIL>').replace(source_host_read(BASE), '<HOST_READ>')
