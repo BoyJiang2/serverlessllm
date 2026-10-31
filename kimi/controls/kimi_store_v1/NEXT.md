@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/1 00:11实际CPU metadata探针已通过且独立复核释放：code feb8789、driver d99f6ed…/body7844122…，run kimi-cpu-toolchain-90cc42d1fac14c5e98ddcd94a61b3ea7，CID703ad7b…；启动前user timer active且ExecStart同固定socket/精确CID，目标exit0/PID0/约0.164秒/无nvidia设备，rm0/stop0/cleanup_owed false。另SSH同label空、timer inactive、harbor-alan仍Up23h、八卡0。原stdout和独立检查及限定只读实际复审在cpu-probe，PASS仅CPU版本与释放，不是完整R1/G1或ABI/build/model/Store/GPU。
+- 实际0202镜像Python3.12.3、Torch2.9.1+cu129、nvcc12.9.86/头文件、cmake3.28.3/g++13.3/ninja1.11.1存在，无vllm/sllm-store；与冻结Torch2.10.0+cu129合同不符，尚未执行ABI导入，不能称ABI调用失败，不用错版本编译目标库。另已有50.3GB镜像仅inspect声明CUDA13.0.3、实际包未知，未启动；自有/home缓存无pip/uv目录；自有GLM SDK归档存在但无.git、四关键文件原SHA与取源不同，未改动，不冒充同9f50241来源。下一必要工作是匹配运行时与源字节溯源/受审编译预算；不自动拉新大镜像或装GB依赖、不占GPU等待。之前“没有任何CUDA工具链”的本机结论被远端新证据细化为“有工具链但冻结环境合同不匹配”，原失败保持。
+
 - 11月1日新授权覆盖：用户明确允许ksqd/bk91c0cf95的qjhs003 CPU/内存，窗口10/31 23–11/1 10，只限CPU准备，不含GPU。23:50 API确认同预约；23:53宿主load0.30、可用2017973395456B、harbor-alan Up23h未操作、八卡0；宿主无Torch/nvcc，既有0202镜像26.6GB声明CUDA12.9.1，用户systemd running。只读取源通过远端网络取得冻结utils 13525B/SHA35d4bcfa…/blob2fac3d2…；没有安装或新环境。WSL实际原CMake macro四控制通过、临时文件已删：sm90→90-real、real+PTX→两项、无gencode明确失败、仅不支持arch则空结果但不报错，后续构建必须核最终target架构，不能以设置环境变量当已配置成功。
 - 现有cpu-probe.json内保存独立一次性CPU工具链探针候选（非通用新工具）：body7844122…、driver d99f6ed…，限定只查版本/工具/头文件不importTorch；固定0202镜像/runc/no GPU或mount/networknone/UID2147/1CPU2GiB，内60秒、宿主独立timer120秒清精确CID、累计300秒/09:50收口、外SSH观察330秒。两次NEEDS_FIX和旧候选/原失败保留：清理异常丢证、deadline未消费、daemon入口不一致及create超时误判释放均已最小修复；5+6项CPU拦截控制及unknown反例通过。当前静态只读PASS只准该CPU metadata候选，不是完整R1/G1或编译/GPU通过；实际执行前仍需fresh窗口/资源、同body注入及实际guard/释放取证，尚未执行容器。
 
