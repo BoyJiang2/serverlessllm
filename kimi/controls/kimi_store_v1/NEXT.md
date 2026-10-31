@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11月1日新授权覆盖：用户明确允许ksqd/bk91c0cf95的qjhs003 CPU/内存，窗口10/31 23–11/1 10，只限CPU准备，不含GPU。23:50 API确认同预约；23:53宿主load0.30、可用2017973395456B、harbor-alan Up23h未操作、八卡0；宿主无Torch/nvcc，既有0202镜像26.6GB声明CUDA12.9.1，用户systemd running。只读取源通过远端网络取得冻结utils 13525B/SHA35d4bcfa…/blob2fac3d2…；没有安装或新环境。WSL实际原CMake macro四控制通过、临时文件已删：sm90→90-real、real+PTX→两项、无gencode明确失败、仅不支持arch则空结果但不报错，后续构建必须核最终target架构，不能以设置环境变量当已配置成功。
+- 现有cpu-probe.json内保存独立一次性CPU工具链探针候选（非通用新工具）：body7844122…、driver d99f6ed…，限定只查版本/工具/头文件不importTorch；固定0202镜像/runc/no GPU或mount/networknone/UID2147/1CPU2GiB，内60秒、宿主独立timer120秒清精确CID、累计300秒/09:50收口、外SSH观察330秒。两次NEEDS_FIX和旧候选/原失败保留：清理异常丢证、deadline未消费、daemon入口不一致及create超时误判释放均已最小修复；5+6项CPU拦截控制及unknown反例通过。当前静态只读PASS只准该CPU metadata候选，不是完整R1/G1或编译/GPU通过；实际执行前仍需fresh窗口/资源、同body注入及实际guard/释放取证，尚未执行容器。
+
 - 2026-10-31 23:14阻塞复核：4e881f9/e906053及本轮连续三轮的相同关键阻塞是无已核可用的完整native CUDA构建链。既有WSL本轮原生Python3.10标准库探针再次实证无Torch/nvcc/ninja/CUDA_HOME及两标准cuda_runtime.h路径；cmake/g++存在，systemd用户会话警告不当失败原因。现有WSL网络对冻结utils原文单次请求Connection reset，未取得源码；追加cpu-probe.upstream_build_followups/build_prerequisite_rechecks。WindowsCPU Torch/片段g++不能替代完整库构建/ABI。未新装环境/新目录/远端计算/GPU；不循环重试。
 - 阻塞审计：原五项目标限定CPU证据和未证项见WORKER-PLAN/source-plugin-review.goal_coverage_audits，仍INCOMPLETE；本轮没有新确认可修的CPU核心格式缺陷，没有活编译/传输/审阅句柄等待，后续关键证明需外部工具链/来源或授权范围改变。不能靠继续添加通用启动包装制造目标进展。原scope、源码、96资产/64分片、GLM40ID/金标/失败和2×停止保持。后续恢复先取得可复用匹配构建环境/完整冻结来源及明确CPU内存使用范围，完成受审有界构建方案；不需先占GPU。完整native/CUDA/八rank/服务仍未通过，目标不能标complete。
 

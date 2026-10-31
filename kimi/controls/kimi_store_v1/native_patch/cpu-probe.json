@@ -465,6 +465,20 @@
       },
       "installed": false,
       "compiled_native_store": false
+    },
+    {
+      "recorded_utc": "2026-10-31T16:02:19.690204+00:00",
+      "scope": "one bounded remote CPU source-metadata fetch after explicit user authorization; no disk copy or install",
+      "returncode": 0,
+      "stderr": "",
+      "result": {
+        "url": "https://raw.githubusercontent.com/ServerlessLLM/ServerlessLLM/9f50241baa5386e06a9321c51f19a9ef5f964c2b/sllm_store/cmake/utils.cmake",
+        "status": "OK",
+        "bytes": 13525,
+        "sha256": "35d4bcfa32a53dd456c2c99c39d5e4b0c2693e47d15940851475c8dcc1237d80",
+        "git_blob_sha1": "2fac3d2af7ba521b5baf72c614a4469043c0de88",
+        "content_utf8": "# Adapted from https://github.com/vllm-project/vllm/blob/a1242324c99ff8b1e29981006dfb504da198c7c3/cmake/utils.cmake\n#\n# Attempt to find the python package that uses the same python executable as\n# `EXECUTABLE` and is one of the `SUPPORTED_VERSIONS`.\n#\nmacro (find_python_from_executable EXECUTABLE SUPPORTED_VERSIONS)\n  file(REAL_PATH ${EXECUTABLE} EXECUTABLE)\n  set(Python_EXECUTABLE ${EXECUTABLE})\n  find_package(Python COMPONENTS Interpreter Development.Module)\n  if (NOT Python_FOUND)\n    message(FATAL_ERROR \"Unable to find python matching: ${EXECUTABLE}.\")\n  endif()\n  set(_VER \"${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}\")\n  set(_SUPPORTED_VERSIONS_LIST ${SUPPORTED_VERSIONS} ${ARGN})\n  if (NOT _VER IN_LIST _SUPPORTED_VERSIONS_LIST)\n    message(FATAL_ERROR\n      \"Python version (${_VER}) is not one of the supported versions: \"\n      \"${_SUPPORTED_VERSIONS_LIST}.\")\n  endif()\n  message(STATUS \"Found python matching: ${EXECUTABLE}.\")\nendmacro()\n\n#\n# Run `EXPR` in python.  The standard output of python is stored in `OUT` and\n# has trailing whitespace stripped.  If an error is encountered when running\n# python, a fatal message `ERR_MSG` is issued.\n#\nfunction (run_python OUT EXPR ERR_MSG)\n  execute_process(\n    COMMAND\n    \"${Python_EXECUTABLE}\" \"-c\" \"${EXPR}\"\n    OUTPUT_VARIABLE PYTHON_OUT\n    RESULT_VARIABLE PYTHON_ERROR_CODE\n    ERROR_VARIABLE PYTHON_STDERR\n    OUTPUT_STRIP_TRAILING_WHITESPACE)\n\n  if(NOT PYTHON_ERROR_CODE EQUAL 0)\n    message(FATAL_ERROR \"${ERR_MSG}: ${PYTHON_STDERR}\")\n  endif()\n  set(${OUT} ${PYTHON_OUT} PARENT_SCOPE)\nendfunction()\n\n# Run `EXPR` in python after importing `PKG`. Use the result of this to extend\n# `CMAKE_PREFIX_PATH` so the torch cmake configuration can be imported.\nmacro (append_cmake_prefix_path PKG EXPR)\n  run_python(_PREFIX_PATH\n    \"import ${PKG}; print(${EXPR})\" \"Failed to locate ${PKG} path\")\n  list(APPEND CMAKE_PREFIX_PATH ${_PREFIX_PATH})\nendmacro()\n\n#\n# Add a target named `hipify${NAME}` that runs the hipify preprocessor on a set\n# of CUDA source files. The names of the corresponding \"hipified\" sources are\n# stored in `OUT_SRCS`.\n# ORIG_SRCS - List of original source files.\n# CXX_SRCS - List of C++ source files that should not be hipified. (e.g., no CUDA code)\n# CXX_SRCS are removed from the list of ORIG_SRCS, in order to fix issue #206.\n#\nfunction (hipify_sources_target OUT_SRCS NAME ORIG_SRCS CXX_SRCS)\n  #\n  # Split into C++ and non-C++ (i.e. CUDA) sources.\n  #\n  set(SRCS ${ORIG_SRCS})\n\n  # remove CXX_SRCS from the list of SRCS\n  foreach(CXX_SRC ${CXX_SRCS})\n    list(REMOVE_ITEM SRCS ${CXX_SRC})\n  endforeach(CXX_SRC ${CXX_SRCS})\n\n  #\n  # Generate ROCm/HIP source file names from CUDA file names.\n  # Since HIP files are generated code, they will appear in the build area\n  # `CMAKE_CURRENT_BINARY_DIR` directory rather than the original csrc dir.\n  #\n  set(HIP_SRCS)\n  foreach (SRC ${SRCS})\n    set(ORIGINAL_SRC ${SRC})\n    string(REGEX REPLACE \"\\.cu$\" \"\\.hip\" SRC ${SRC})\n    string(REGEX REPLACE \"cuda\" \"hip\" SRC ${SRC})\n    if(${SRC} STREQUAL ${ORIGINAL_SRC})\n      string(REGEX REPLACE \"\\.cpp$\" \"_hip\\.cpp\" SRC ${SRC})\n    endif()\n    list(APPEND HIP_SRCS \"${CMAKE_CURRENT_BINARY_DIR}/${SRC}\")\n  endforeach()\n\n  set(CSRC_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/csrc)\n  add_custom_target(\n    hipify${NAME}\n    COMMAND ${CMAKE_SOURCE_DIR}/cmake/hipify.py -p ${CMAKE_SOURCE_DIR}/csrc -o ${CSRC_BUILD_DIR} ${SRCS}\n    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/hipify.py ${SRCS}\n    BYPRODUCTS ${HIP_SRCS}\n    COMMENT \"Running hipify on ${NAME} extension source files.\")\n\n  # Swap out original extension sources with hipified sources.\n  list(APPEND HIP_SRCS ${CXX_SRCS})\n  set(${OUT_SRCS} ${HIP_SRCS} PARENT_SCOPE)\nendfunction()\n\n#\n# Get additional GPU compiler flags from torch.\n#\nfunction (get_torch_gpu_compiler_flags OUT_GPU_FLAGS GPU_LANG)\n  if (${GPU_LANG} STREQUAL \"CUDA\")\n    #\n    # Get common NVCC flags from torch.\n    #\n    run_python(GPU_FLAGS\n      \"from torch.utils.cpp_extension import COMMON_NVCC_FLAGS; print(';'.join(COMMON_NVCC_FLAGS))\"\n      \"Failed to determine torch nvcc compiler flags\")\n\n    if (CUDA_VERSION VERSION_GREATER_EQUAL 11.8)\n      list(APPEND GPU_FLAGS \"-DENABLE_FP8\")\n    endif()\n    if (CUDA_VERSION VERSION_GREATER_EQUAL 12.0)\n      list(REMOVE_ITEM GPU_FLAGS\n        \"-D__CUDA_NO_HALF_OPERATORS__\"\n        \"-D__CUDA_NO_HALF_CONVERSIONS__\"\n        \"-D__CUDA_NO_BFLOAT16_CONVERSIONS__\"\n        \"-D__CUDA_NO_HALF2_OPERATORS__\")\n    endif()\n\n  elseif(${GPU_LANG} STREQUAL \"HIP\")\n    #\n    # Get common HIP/HIPCC flags from torch.\n    #\n    run_python(GPU_FLAGS\n      \"import torch.utils.cpp_extension as t; print(';'.join(t.COMMON_HIP_FLAGS + t.COMMON_HIPCC_FLAGS))\"\n      \"Failed to determine torch nvcc compiler flags\")\n\n    list(APPEND GPU_FLAGS\n      \"-DUSE_ROCM\"\n      \"-DENABLE_FP8\"\n      \"-U__HIP_NO_HALF_CONVERSIONS__\"\n      \"-U__HIP_NO_HALF_OPERATORS__\"\n      \"-fno-gpu-rdc\")\n\n  endif()\n  set(${OUT_GPU_FLAGS} ${GPU_FLAGS} PARENT_SCOPE)\nendfunction()\n\n# Macro for converting a `gencode` version number to a cmake version number.\nmacro(string_to_ver OUT_VER IN_STR)\n  string(REGEX REPLACE \"\\([0-9]+\\)\\([0-9]\\)\" \"\\\\1.\\\\2\" ${OUT_VER} ${IN_STR})\nendmacro()\n\n#\n# Override the GPU architectures detected by cmake/torch and filter them by\n# `GPU_SUPPORTED_ARCHES`. Sets the final set of architectures in\n# `GPU_ARCHES`.\n#\n# Note: this is defined as a macro since it updates `CMAKE_CUDA_FLAGS`.\n#\nmacro(override_gpu_arches GPU_ARCHES GPU_LANG GPU_SUPPORTED_ARCHES)\n  set(_GPU_SUPPORTED_ARCHES_LIST ${GPU_SUPPORTED_ARCHES} ${ARGN})\n  message(STATUS \"${GPU_LANG} supported arches: ${_GPU_SUPPORTED_ARCHES_LIST}\")\n\n  if (${GPU_LANG} STREQUAL \"HIP\")\n    #\n    # `GPU_ARCHES` controls the `--offload-arch` flags.\n    # `CMAKE_HIP_ARCHITECTURES` is set up by torch and can be controlled\n    # via the `PYTORCH_ROCM_ARCH` env variable.\n    #\n\n    #\n    # Find the intersection of the supported + detected architectures to\n    # set the module architecture flags.\n    #\n    set(${GPU_ARCHES})\n    foreach (_ARCH ${CMAKE_HIP_ARCHITECTURES})\n      if (_ARCH IN_LIST _GPU_SUPPORTED_ARCHES_LIST)\n        list(APPEND ${GPU_ARCHES} ${_ARCH})\n      endif()\n    endforeach()\n\n    if(NOT ${GPU_ARCHES})\n      message(FATAL_ERROR\n        \"None of the detected ROCm architectures: ${CMAKE_HIP_ARCHITECTURES} is\"\n        \" supported. Supported ROCm architectures are: ${_GPU_SUPPORTED_ARCHES_LIST}.\")\n    endif()\n\n  elseif(${GPU_LANG} STREQUAL \"CUDA\")\n    #\n    # Setup/process CUDA arch flags.\n    #\n    # The torch cmake setup hardcodes the detected architecture flags in\n    # `CMAKE_CUDA_FLAGS`.  Since `CMAKE_CUDA_FLAGS` is a \"global\" variable, it\n    # can't modified on a per-target basis, e.g. for the `punica` extension.\n    # So, all the `-gencode` flags need to be extracted and removed from\n    # `CMAKE_CUDA_FLAGS` for processing so they can be passed by another method.\n    # Since it's not possible to use `target_compiler_options` for adding target\n    # specific `-gencode` arguments, the target's `CUDA_ARCHITECTURES` property\n    # must be used instead.  This requires repackaging the architecture flags\n    # into a format that cmake expects for `CUDA_ARCHITECTURES`.\n    #\n    # This is a bit fragile in that it depends on torch using `-gencode` as opposed\n    # to one of the other nvcc options to specify architectures.\n    #\n    # Note: torch uses the `TORCH_CUDA_ARCH_LIST` environment variable to override\n    # detected architectures.\n    #\n    message(DEBUG \"initial CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}\")\n\n    # Extract all `-gencode` flags from `CMAKE_CUDA_FLAGS`\n    string(REGEX MATCHALL \"-gencode arch=[^ ]+\" _CUDA_ARCH_FLAGS\n      ${CMAKE_CUDA_FLAGS})\n\n    # Remove all `-gencode` flags from `CMAKE_CUDA_FLAGS` since they will be modified\n    # and passed back via the `CUDA_ARCHITECTURES` property.\n    string(REGEX REPLACE \"-gencode arch=[^ ]+ *\" \"\" CMAKE_CUDA_FLAGS\n      ${CMAKE_CUDA_FLAGS})\n\n    # If this error is triggered, it might mean that torch has changed how it sets\n    # up nvcc architecture code generation flags.\n    if (NOT _CUDA_ARCH_FLAGS)\n      message(FATAL_ERROR\n        \"Could not find any architecture related code generation flags in \"\n        \"CMAKE_CUDA_FLAGS. (${CMAKE_CUDA_FLAGS})\")\n    endif()\n\n    message(DEBUG \"final CMAKE_CUDA_FLAGS: ${CMAKE_CUDA_FLAGS}\")\n    message(DEBUG \"arch flags: ${_CUDA_ARCH_FLAGS}\")\n\n    # Initialize the architecture lists to empty.\n    set(${GPU_ARCHES})\n\n    # Process each `gencode` flag.\n    foreach(_ARCH ${_CUDA_ARCH_FLAGS})\n      # For each flag, extract the version number and whether it refers to PTX\n      # or native code.\n      # Note: if a regex matches then `CMAKE_MATCH_1` holds the binding\n      # for that match.\n\n      string(REGEX MATCH \"arch=compute_\\([0-9]+a?\\)\" _COMPUTE ${_ARCH})\n      if (_COMPUTE)\n        set(_COMPUTE ${CMAKE_MATCH_1})\n      endif()\n\n      string(REGEX MATCH \"code=sm_\\([0-9]+a?\\)\" _SM ${_ARCH})\n      if (_SM)\n        set(_SM ${CMAKE_MATCH_1})\n      endif()\n\n      string(REGEX MATCH \"code=compute_\\([0-9]+a?\\)\" _CODE ${_ARCH})\n      if (_CODE)\n        set(_CODE ${CMAKE_MATCH_1})\n      endif()\n\n      # Make sure the virtual architecture can be matched.\n      if (NOT _COMPUTE)\n        message(FATAL_ERROR\n          \"Could not determine virtual architecture from: ${_ARCH}.\")\n      endif()\n\n      # One of sm_ or compute_ must exist.\n      if ((NOT _SM) AND (NOT _CODE))\n        message(FATAL_ERROR\n          \"Could not determine a codegen architecture from: ${_ARCH}.\")\n      endif()\n\n      if (_SM)\n        # -real suffix let CMake to only generate elf code for the kernels.\n        # we want this, otherwise the added ptx (default) will increase binary size.\n        set(_VIRT \"-real\")\n        set(_CODE_ARCH ${_SM})\n      else()\n        # -virtual suffix let CMake to generate ptx code for the kernels.\n        set(_VIRT \"-virtual\")\n        set(_CODE_ARCH ${_CODE})\n      endif()\n\n      # Check if the current version is in the supported arch list.\n      string_to_ver(_CODE_VER ${_CODE_ARCH})\n      if (NOT _CODE_VER IN_LIST _GPU_SUPPORTED_ARCHES_LIST)\n        message(STATUS \"discarding unsupported CUDA arch ${_VER}.\")\n        continue()\n      endif()\n\n      # Add it to the arch list.\n      list(APPEND ${GPU_ARCHES} \"${_CODE_ARCH}${_VIRT}\")\n    endforeach()\n  endif()\n  message(STATUS \"${GPU_LANG} target arches: ${${GPU_ARCHES}}\")\nendmacro()\n\n#\n# Define a target named `GPU_MOD_NAME` for a single extension. The\n# arguments are:\n#\n# DESTINATION <dest>         - Module destination directory.\n# LANGUAGE <lang>            - The GPU language for this module, e.g CUDA, HIP,\n#                              etc.\n# SOURCES <sources>          - List of source files relative to CMakeLists.txt\n#                              directory.\n#\n# Optional arguments:\n#\n# ARCHITECTURES <arches>     - A list of target GPU architectures in cmake\n#                              format.\n#                              Refer `CMAKE_CUDA_ARCHITECTURES` documentation\n#                              and `CMAKE_HIP_ARCHITECTURES` for more info.\n#                              ARCHITECTURES will use cmake's defaults if\n#                              not provided.\n# COMPILE_FLAGS <flags>      - Extra compiler flags passed to NVCC/hip.\n# INCLUDE_DIRECTORIES <dirs> - Extra include directories.\n# LIBRARIES <libraries>      - Extra link libraries.\n# WITH_SOABI                 - Generate library with python SOABI suffix name.\n# CXX_SRCS                   - List of C++ sources files to not be hipified.\n#                              Usually means they shouldn't contain CUDA code.\n#\n# Note: optimization level/debug info is set via cmake build type.\n#\nfunction (define_gpu_extension_target GPU_MOD_NAME)\n  cmake_parse_arguments(PARSE_ARGV 1\n    GPU\n    \"WITH_SOABI\"\n    \"DESTINATION;LANGUAGE\"\n    \"SOURCES;ARCHITECTURES;COMPILE_FLAGS;INCLUDE_DIRECTORIES;LIBRARIES;CXX_SRCS\"\n  )\n\n  # Add hipify preprocessing step when building with HIP/ROCm.\n  if (GPU_LANGUAGE STREQUAL \"HIP\")\n    hipify_sources_target(GPU_SOURCES ${GPU_MOD_NAME} \"${GPU_SOURCES}\" \"${GPU_CXX_SRCS}\")\n  endif()\n\n  if (GPU_WITH_SOABI)\n    set(GPU_WITH_SOABI WITH_SOABI)\n  else()\n    set(GPU_WITH_SOABI)\n  endif()\n\n  Python_add_library(${GPU_MOD_NAME} MODULE \"${GPU_SOURCES}\" ${GPU_WITH_SOABI})\n\n  if (GPU_LANGUAGE STREQUAL \"HIP\")\n    # Make this target dependent on the hipify preprocessor step.\n    add_dependencies(${GPU_MOD_NAME} hipify${GPU_MOD_NAME})\n  endif()\n\n  if (GPU_ARCHITECTURES)\n    set_target_properties(${GPU_MOD_NAME} PROPERTIES\n      ${GPU_LANGUAGE}_ARCHITECTURES \"${GPU_ARCHITECTURES}\")\n  endif()\n\n  set_property(TARGET ${GPU_MOD_NAME} PROPERTY CXX_STANDARD 17)\n\n  target_compile_options(${GPU_MOD_NAME} PRIVATE\n    $<$<COMPILE_LANGUAGE:${GPU_LANGUAGE}>:${GPU_COMPILE_FLAGS}>)\n\n  target_compile_definitions(${GPU_MOD_NAME} PRIVATE\n    \"-DTORCH_EXTENSION_NAME=${GPU_MOD_NAME}\")\n\n  target_include_directories(${GPU_MOD_NAME} PRIVATE csrc\n    ${GPU_INCLUDE_DIRECTORIES})\n\n  target_link_libraries(${GPU_MOD_NAME} PRIVATE torch ${torch_python_LIBRARY}\n    ${GPU_LIBRARIES})\n\n  # Don't use `TORCH_LIBRARIES` for CUDA since it pulls in a bunch of\n  # dependencies that are not necessary and may not be installed.\n  if (GPU_LANGUAGE STREQUAL \"CUDA\")\n    target_link_libraries(${GPU_MOD_NAME} PRIVATE ${CUDA_CUDA_LIB}\n      ${CUDA_LIBRARIES})\n  else()\n    target_link_libraries(${GPU_MOD_NAME} PRIVATE ${TORCH_LIBRARIES})\n  endif()\n\n  install(TARGETS ${GPU_MOD_NAME} LIBRARY DESTINATION ${GPU_DESTINATION})\nendfunction()\n"
+      }
     }
   ],
   "upstream_build_method_controls": [
@@ -564,6 +578,412 @@
       "stderr": "wsl: Failed to start the systemd user session for 'boyjiang'. See journalctl for more details.\n",
       "installed": false,
       "compiled_native_store": false
+    }
+  ],
+  "authorized_remote_cpu_prechecks": [
+    {
+      "recorded_utc": "2026-10-31T15:53:34.028056+00:00",
+      "scope": "read-only host metadata and image list; no container exec/start",
+      "returncode": 0,
+      "stderr": "",
+      "data": {
+        "python": "3.10.12 (main, Feb  4 2025, 14:57:36) [GCC 11.4.0]",
+        "uid": 2147,
+        "tools": {
+          "nvcc": null,
+          "cmake": "/usr/bin/cmake",
+          "ninja": "/usr/bin/ninja",
+          "g++": "/usr/bin/g++",
+          "docker": "/usr/bin/docker"
+        },
+        "host_packages": {
+          "torch": false,
+          "vllm": false,
+          "sllm_store": false
+        },
+        "asset_top": [
+          "downloads",
+          "checkpoint"
+        ],
+        "memory": {
+          "returncode": 0,
+          "stdout": "               total        used        free      shared  buff/cache   available\nMem:     2065109635072 36317564928 1153472073728    13959168 875319996416 2017973395456\nSwap:              0           0           0\n",
+          "stderr": ""
+        },
+        "cpu": {
+          "returncode": 0,
+          "stdout": " 23:53:33 up 6 days, 18:52,  4 users,  load average: 0.30, 0.49, 0.50\n",
+          "stderr": ""
+        },
+        "gpu": {
+          "returncode": 0,
+          "stdout": "0, 0 MiB, 0 %\n1, 0 MiB, 0 %\n2, 0 MiB, 0 %\n3, 0 MiB, 0 %\n4, 0 MiB, 0 %\n5, 0 MiB, 0 %\n6, 0 MiB, 0 %\n7, 0 MiB, 0 %\n",
+          "stderr": ""
+        },
+        "containers": {
+          "returncode": 0,
+          "stdout": "6a0547ef9b8a harbor-alan Up 23 hours\n",
+          "stderr": ""
+        },
+        "images": {
+          "returncode": 0,
+          "stdout": "sha256:ac6081bf472bdd3ba9cc42a804a956a2b02c40f6144d5ac41dffc15f3c8d1642 docker.1ms.run/radixark/miles:latest 50.3GB\nsha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3 <none>:<none> 26.6GB\nsha256:ec6eeb02cecf35faf5badd75646ab0dd2e02cab484638b413ccd4606a2e2ef7d docker.1ms.run/alexgshaw/git-multibranch:20251031 618MB\nsha256:ec6eeb02cecf35faf5badd75646ab0dd2e02cab484638b413ccd4606a2e2ef7d alexgshaw/git-multibranch:20251031 618MB\nsha256:daba7f4d626336854298dd6e021c4b85486844e34474b2928e261fc35c312547 docker.1ms.run/alexgshaw/prove-plus-comm:20251031 1.29GB\nsha256:14636c361ced3673ad2a80291343b30916af81c26d954567e6f3d9de04df3b76 docker.1ms.run/alexgshaw/overfull-hbox:20251031 312MB\nsha256:158e1425861e7daff35d76555db6bc9df63ac411a856b3b83c433ec331bee1cf docker.1ms.run/alexgshaw/path-tracing-reverse:20251031 406MB\nsha256:b041e51b3fd55da33dc43648fcfb28f4887374a8676c77b0836923422e7fde29 docker.1ms.run/alexgshaw/fix-git:20251031 310MB\nsha256:b041e51b3fd55da33dc43648fcfb28f4887374a8676c77b0836923422e7fde29 alexgshaw/fix-git:20251031 310MB\nsha256:748e8485201e72133a9400dc8f6f524eb20e9812655eef41b32a1cc21796bdef docker.1ms.run/alexgshaw/log-summary-date-ranges:20251031 126MB\nsha256:748e8485201e72133a9400dc8f6f524eb20e9812655eef41b32a1cc21796bdef alexgshaw/log-summary-date-ranges:20251031 126MB\nsha256:14e6e693be70ee0c7f07105dfc0f3cae71fd495cc0106042dd530fc5fbd8e637 docker.1ms.run/alexgshaw/cobol-modernization:20251031 424MB\nsha256:14e6e693be70ee0c7f07105dfc0f3cae71fd495cc0106042dd530fc5fbd8e637 alexgshaw/cobol-modernization:20251031 424MB\n",
+          "stderr": ""
+        },
+        "own_asset_disk": {
+          "returncode": 0,
+          "stdout": "Filesystem         1B-blocks          Used     Available Use% Mounted on\n/dev/nvme1n1   3838880616448 2273512734720 1565367881728  60% /data/brick1\n",
+          "stderr": ""
+        }
+      }
+    },
+    {
+      "recorded_utc": "2026-10-31T15:55:48.765126+00:00",
+      "scope": "image config and user service-manager read-only; no container create/start",
+      "returncode": 0,
+      "stderr": "",
+      "data": {
+        "image_returncode": 0,
+        "stderr": "",
+        "image": {
+          "Id": "sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3",
+          "Architecture": "amd64",
+          "Os": "linux",
+          "Size": 26593248861,
+          "RepoDigests": [],
+          "Entrypoint": [
+            "/opt/nvidia/nvidia_entrypoint.sh"
+          ],
+          "Cmd": [
+            "sleep",
+            "600"
+          ],
+          "User": "",
+          "WorkingDir": "/sgl-workspace/sglang",
+          "Volumes": null,
+          "Env": [
+            "PATH=/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/cuda/nvvm/bin",
+            "CUDA_VERSION=12.9.1",
+            "LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64",
+            "NVIDIA_VISIBLE_DEVICES=all",
+            "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+            "CUDA_HOME=/usr/local/cuda"
+          ]
+        },
+        "user_systemd": {
+          "returncode": 0,
+          "stdout": "running\n",
+          "stderr": ""
+        }
+      }
+    }
+  ],
+  "authorized_cpu_toolchain_probe_candidate": {
+    "recorded_utc": "2026-10-31T16:01:14.610751+00:00",
+    "status": "STATIC_REVIEW_PASS_NOT_EXECUTED",
+    "booking_id": "bk-20261031T1331-91c0cf95",
+    "window_end": "2026-11-01T10:00:00+08:00",
+    "body": "import importlib.metadata as md,json,os,subprocess,sys\nfrom pathlib import Path\nr={\"python\":sys.version,\"uid\":os.getuid(),\"packages\":{},\"device_nodes\":[str(p) for p in Path(\"/dev\").glob(\"nvidia*\")]}\nfor name in (\"torch\",\"vllm\",\"sglang\",\"sllm-store\",\"cmake\",\"ninja\"):\n try:r[\"packages\"][name]=md.version(name)\n except md.PackageNotFoundError:r[\"packages\"][name]=None\nfor name,argv in ((\"nvcc\",[\"/usr/local/cuda/bin/nvcc\",\"--version\"]),(\"cmake\",[\"cmake\",\"--version\"]),(\"gxx\",[\"g++\",\"--version\"]),(\"ninja\",[\"ninja\",\"--version\"])):\n try:\n  p=subprocess.run(argv,capture_output=True,text=True,timeout=5);r[name]={\"code\":p.returncode,\"stdout\":p.stdout[:2000],\"stderr\":p.stderr[:1000]}\n except Exception as e:r[name]={\"error\":repr(e)}\nr[\"cuda_header\"]=Path(\"/usr/local/cuda/include/cuda_runtime.h\").is_file()\nprint(json.dumps(r))\n",
+    "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3\"\nrun=\"kimi-cpu-toolchain-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-10-31T23:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-01T09:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+300\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<300:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 300s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=none\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=16m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"60s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or d[\"Mounts\"] or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=120s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=80,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:16000],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+    "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+    "host_driver_sha256": "d99f6ed9fd6c170c4d098043468b2c32bac6a26467b65b2ec331ef56b66594a4",
+    "bounds": {
+      "cpus": 1,
+      "memory_bytes": 2147483648,
+      "payload_timeout_seconds": 60,
+      "host_guard_seconds": 120,
+      "ssh_observation_timeout_seconds": 330,
+      "host_driver_total_seconds": 300
+    },
+    "limitations": [
+      "Version metadata only; does not import torch or prove linked ABI",
+      "No compiler build, checkpoint read, GPU exposure or model",
+      "No image pull, source checkout, dependency installation, permanent directory or volume mount",
+      "Fresh independent read-only review required before execution"
+    ],
+    "revision_notes": [
+      "Preserve original failure and emit receipt across individual cleanup errors",
+      "Enforce frozen original window with 10-minute cleanup margin and original 300s total bound before create/start",
+      "Bind all Docker actions and timer to /usr/bin/docker --host unix:///var/run/docker.sock with endpoint env removed",
+      "Actual host UID2147; no GPU device nodes required in successful body receipt",
+      "Create timeout plus empty queries remains unknown/unreleased/cleanup owed; only exact owned container observation or completed create permits release check"
+    ]
+  },
+  "cpu_toolchain_probe_controls": [
+    {
+      "recorded_utc": "2026-10-31T16:04:40.628514+00:00",
+      "candidate_host_sha256": "e962ba1d70fe0ffbe0a2d0448caebdd97538d6b3989c6f43de63250bd05e7654",
+      "case": "create timeout followed by cleanup inspect timeout must still emit original failure receipt",
+      "status": "FAIL_EXPECTED_PRE_FIX",
+      "observed_exception": "TimeoutExpired",
+      "receipt_emitted": false,
+      "all_commands_intercepted": true
+    },
+    {
+      "recorded_utc": "2026-10-31T16:06:20.358508+00:00",
+      "candidate_host_sha256": "81bd626828d255f355177c27038f79959fab3123cbff9abe448c088733bc6f78",
+      "cases": [
+        {
+          "case": "success",
+          "status": "PASS",
+          "target_started": true,
+          "released": true,
+          "probe_passed": true,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "create_and_cleanup_timeout",
+          "status": "PASS",
+          "target_started": false,
+          "released": false,
+          "probe_passed": false,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "expired",
+          "status": "PASS",
+          "target_started": false,
+          "released": true,
+          "probe_passed": false,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "guard_mismatch",
+          "status": "PASS",
+          "target_started": false,
+          "released": true,
+          "probe_passed": false,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "remove_timeout",
+          "status": "PASS",
+          "target_started": true,
+          "released": false,
+          "probe_passed": false,
+          "commands_intercepted_not_executed": true
+        }
+      ],
+      "count": 5,
+      "status": "PASS",
+      "scope": "standard-library intercepted driver control; no Linux/container/systemd execution"
+    },
+    {
+      "case": "create timeout plus empty inspect/ps must remain unknown",
+      "candidate_host_sha256": "81bd626828d255f355177c27038f79959fab3123cbff9abe448c088733bc6f78",
+      "status": "FAIL_EXPECTED_PRE_FIX",
+      "observed_released": true,
+      "commands_intercepted_not_executed": true
+    },
+    {
+      "case": "create timeout plus empty inspect/ps retains unknown, owed and guard",
+      "candidate_host_sha256": "d99f6ed9fd6c170c4d098043468b2c32bac6a26467b65b2ec331ef56b66594a4",
+      "status": "PASS",
+      "released": false,
+      "create_completion_unknown": true,
+      "commands_intercepted_not_executed": true
+    },
+    {
+      "recorded_utc": "2026-10-31T16:08:33.769846+00:00",
+      "candidate_host_sha256": "d99f6ed9fd6c170c4d098043468b2c32bac6a26467b65b2ec331ef56b66594a4",
+      "count": 6,
+      "cases": [
+        {
+          "case": "success",
+          "status": "PASS",
+          "probe_passed": true,
+          "released": true,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "expired",
+          "status": "PASS",
+          "probe_passed": false,
+          "released": true,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "guard_mismatch",
+          "status": "PASS",
+          "probe_passed": false,
+          "released": true,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "create_cleanup_timeout",
+          "status": "PASS",
+          "probe_passed": false,
+          "released": false,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "remove_timeout",
+          "status": "PASS",
+          "probe_passed": false,
+          "released": false,
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "case": "create_timeout_found",
+          "status": "PASS",
+          "probe_passed": false,
+          "released": true,
+          "commands_intercepted_not_executed": true
+        }
+      ],
+      "status": "PASS",
+      "scope": "standard-library mock driver controls only; no real Linux/container/systemd"
+    }
+  ],
+  "cpu_toolchain_probe_review_history": [
+    {
+      "recorded_utc": "2026-10-31T16:04:40.628517+00:00",
+      "reviewer": "local read-only deadline_readonly_review",
+      "verdict": "NEEDS_FIX",
+      "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+      "host_driver_sha256": "e962ba1d70fe0ffbe0a2d0448caebdd97538d6b3989c6f43de63250bd05e7654",
+      "blockers": [
+        "cleanup exceptions bypass receipt and mask original failure",
+        "window_end metadata not enforced in driver",
+        "SSH and user-systemd Docker endpoints not bound"
+      ],
+      "reviewer_executed_code": false
+    },
+    {
+      "reviewer": "local read-only deadline_readonly_review",
+      "verdict": "NEEDS_FIX",
+      "host_driver_sha256": "81bd626828d255f355177c27038f79959fab3123cbff9abe448c088733bc6f78",
+      "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+      "fixed": [
+        "cleanup receipt",
+        "frozen window",
+        "Docker endpoint"
+      ],
+      "blockers": [
+        "create timeout followed by empty queries incorrectly certifies release"
+      ],
+      "reviewer_executed_code": false
+    },
+    {
+      "recorded_utc": "2026-10-31T16:09:51.214741+00:00",
+      "reviewer": "local read-only deadline_readonly_review",
+      "verdict": "PASS_SCOPED_STATIC",
+      "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+      "host_driver_sha256": "d99f6ed9fd6c170c4d098043468b2c32bac6a26467b65b2ec331ef56b66594a4",
+      "blockers": [],
+      "scope": "CPU version metadata probe only; no build/model/Store/GPU approval",
+      "reviewer_executed_code": false,
+      "conditions": [
+        "fresh actual window/resources",
+        "same body SHA injected",
+        "actual host guard/probe and release evidence required"
+      ]
+    }
+  ],
+  "cpu_toolchain_probe_candidate_history": [
+    {
+      "recorded_utc": "2026-10-31T16:01:14.610751+00:00",
+      "status": "CANDIDATE_NOT_EXECUTED",
+      "booking_id": "bk-20261031T1331-91c0cf95",
+      "window_end": "2026-11-01T10:00:00+08:00",
+      "body": "import importlib.metadata as md,json,os,subprocess,sys\nfrom pathlib import Path\nr={\"python\":sys.version,\"uid\":os.getuid(),\"packages\":{},\"device_nodes\":[str(p) for p in Path(\"/dev\").glob(\"nvidia*\")]}\nfor name in (\"torch\",\"vllm\",\"sglang\",\"sllm-store\",\"cmake\",\"ninja\"):\n try:r[\"packages\"][name]=md.version(name)\n except md.PackageNotFoundError:r[\"packages\"][name]=None\nfor name,argv in ((\"nvcc\",[\"/usr/local/cuda/bin/nvcc\",\"--version\"]),(\"cmake\",[\"cmake\",\"--version\"]),(\"gxx\",[\"g++\",\"--version\"]),(\"ninja\",[\"ninja\",\"--version\"])):\n try:\n  p=subprocess.run(argv,capture_output=True,text=True,timeout=5);r[name]={\"code\":p.returncode,\"stdout\":p.stdout[:2000],\"stderr\":p.stderr[:1000]}\n except Exception as e:r[name]={\"error\":repr(e)}\nr[\"cuda_header\"]=Path(\"/usr/local/cuda/include/cuda_runtime.h\").is_file()\nprint(json.dumps(r))\n",
+      "host_driver": "import datetime,json,subprocess,time,uuid\nIMAGE=\"sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3\"\nrun=\"kimi-cpu-toolchain-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False\ndef cmd(argv,timeout=10,check=True):\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=none\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=16m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"60s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or d[\"Mounts\"] or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=120s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/docker\",\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=80,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:16000],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n # Recover exact CID only by this attempt's unpredictable name and labels if create observation failed.\n if creation_attempted:\n  p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n  if p.returncode==0:\n   d=json.loads(p.stdout)[0]\n   if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n    cid=d[\"Id\"];result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n   else:result[\"cleanup_identity_mismatch\"]=True\n  remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n  result[\"released\"]=remaining.returncode==0 and not remaining.stdout.strip()\n  if result[\"released\"]:\n   result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n print(json.dumps(result))\n",
+      "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+      "host_driver_sha256": "e962ba1d70fe0ffbe0a2d0448caebdd97538d6b3989c6f43de63250bd05e7654",
+      "bounds": {
+        "cpus": 1,
+        "memory_bytes": 2147483648,
+        "payload_timeout_seconds": 60,
+        "host_guard_seconds": 120,
+        "ssh_observation_timeout_seconds": 210
+      },
+      "limitations": [
+        "Version metadata only; does not import torch or prove linked ABI",
+        "No compiler build, checkpoint read, GPU exposure or model",
+        "No image pull, source checkout, dependency installation, permanent directory or volume mount",
+        "Fresh independent read-only review required before execution"
+      ]
+    },
+    {
+      "recorded_utc": "2026-10-31T16:01:14.610751+00:00",
+      "status": "REVISED_CANDIDATE_NOT_EXECUTED",
+      "booking_id": "bk-20261031T1331-91c0cf95",
+      "window_end": "2026-11-01T10:00:00+08:00",
+      "body": "import importlib.metadata as md,json,os,subprocess,sys\nfrom pathlib import Path\nr={\"python\":sys.version,\"uid\":os.getuid(),\"packages\":{},\"device_nodes\":[str(p) for p in Path(\"/dev\").glob(\"nvidia*\")]}\nfor name in (\"torch\",\"vllm\",\"sglang\",\"sllm-store\",\"cmake\",\"ninja\"):\n try:r[\"packages\"][name]=md.version(name)\n except md.PackageNotFoundError:r[\"packages\"][name]=None\nfor name,argv in ((\"nvcc\",[\"/usr/local/cuda/bin/nvcc\",\"--version\"]),(\"cmake\",[\"cmake\",\"--version\"]),(\"gxx\",[\"g++\",\"--version\"]),(\"ninja\",[\"ninja\",\"--version\"])):\n try:\n  p=subprocess.run(argv,capture_output=True,text=True,timeout=5);r[name]={\"code\":p.returncode,\"stdout\":p.stdout[:2000],\"stderr\":p.stderr[:1000]}\n except Exception as e:r[name]={\"error\":repr(e)}\nr[\"cuda_header\"]=Path(\"/usr/local/cuda/include/cuda_runtime.h\").is_file()\nprint(json.dumps(r))\n",
+      "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3\"\nrun=\"kimi-cpu-toolchain-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-10-31T23:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-01T09:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+300\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<300:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 300s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=none\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=16m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"60s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or d[\"Mounts\"] or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=120s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=80,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:16000],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+      "body_sha256": "7844122a45f2443b0fb5efc760ff80469d0ba5b367629d0ed58292b1b0ca09a3",
+      "host_driver_sha256": "81bd626828d255f355177c27038f79959fab3123cbff9abe448c088733bc6f78",
+      "bounds": {
+        "cpus": 1,
+        "memory_bytes": 2147483648,
+        "payload_timeout_seconds": 60,
+        "host_guard_seconds": 120,
+        "ssh_observation_timeout_seconds": 210
+      },
+      "limitations": [
+        "Version metadata only; does not import torch or prove linked ABI",
+        "No compiler build, checkpoint read, GPU exposure or model",
+        "No image pull, source checkout, dependency installation, permanent directory or volume mount",
+        "Fresh independent read-only review required before execution"
+      ],
+      "revision_notes": [
+        "Preserve original failure and emit receipt across individual cleanup errors",
+        "Enforce frozen original window with 10-minute cleanup margin and original 300s total bound before create/start",
+        "Bind all Docker actions and timer to /usr/bin/docker --host unix:///var/run/docker.sock with endpoint env removed",
+        "Actual host UID2147; no GPU device nodes required in successful body receipt",
+        "Create timeout plus empty queries remains unknown/unreleased/cleanup owed; only exact owned container observation or completed create permits release check"
+      ]
+    }
+  ],
+  "cmake_architecture_cpu_controls": [
+    {
+      "recorded_utc": "2026-10-31T16:07:18.122251+00:00",
+      "returncode": 0,
+      "stderr": "wsl: Failed to start the systemd user session for 'boyjiang'. See journalctl for more details.\n",
+      "result": {
+        "cases": [
+          {
+            "case": "sm90",
+            "flags": "-O2 -gencode arch=compute_90,code=sm_90",
+            "expected_arch": "90-real",
+            "returncode": 0,
+            "stdout": "-- CUDA supported arches: 9.0\n-- CUDA target arches: 90-real\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "case": "sm90_and_ptx",
+            "flags": "-gencode arch=compute_90,code=sm_90 -gencode arch=compute_90,code=compute_90",
+            "expected_arch": "90-real;90-virtual",
+            "returncode": 0,
+            "stdout": "-- CUDA supported arches: 9.0\n-- CUDA target arches: 90-real;90-virtual\n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "case": "unsupported_only",
+            "flags": "-gencode arch=compute_89,code=sm_89",
+            "expected_arch": "",
+            "returncode": 0,
+            "stdout": "-- CUDA supported arches: 9.0\n-- discarding unsupported CUDA arch .\n-- CUDA target arches: \n",
+            "stderr": "",
+            "passed": true
+          },
+          {
+            "case": "missing_gencode",
+            "flags": "-O2",
+            "expected_arch": "",
+            "returncode": 1,
+            "stdout": "-- CUDA supported arches: 9.0\n",
+            "stderr": "CMake Error at kimi/controls/kimi_store_v1/native_patch/.kimi-cmake-cpu-dwvw8u1e/utils.cmake:215 (message):\n  Could not find any architecture related code generation flags in\n  CMAKE_CUDA_FLAGS.  (-O2)\nCall Stack (most recent call first):\n  kimi/controls/kimi_store_v1/native_patch/.kimi-cmake-cpu-dwvw8u1e/probe.cmake:4 (override_gpu_arches)\n\n\n",
+            "passed": true
+          }
+        ],
+        "passed": true,
+        "scratch_removed": true,
+        "compiled_native_store": false,
+        "scope": "Actual original CMake macro CPU -P only; no Torch import, compiler or GPU"
+      }
     }
   ]
 }
