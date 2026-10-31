@@ -322,6 +322,78 @@
         "https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject",
         "https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess"
       ]
+    },
+    {
+      "scope": "Pre-fix P0 v2 environment review negative control",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "6da551afed8924c336f8b1ed859604b9b4261139d2f8aba35385599c9c12f9f7",
+      "test_sha256": "29608dee30c16ea9de99936a8411b46da794a7ad2317ce8577c4a0e0f205db15",
+      "reviewer": "/root/deadline_readonly_review",
+      "finding": "Required-env subset allowed added LD_PRELOAD; not complete environment binding",
+      "test": {
+        "count": 1,
+        "seconds": 0.004,
+        "result": "FAILED",
+        "failures": 1,
+        "subtest": "env_extra",
+        "error": "ValueError not raised"
+      },
+      "no_remote_or_gpu": true
+    },
+    {
+      "scope": "P0 profile guard negative, wrong frozen fixed override",
+      "verdict": "NEEDS_FIX",
+      "source_sha256": "6fe8cd9d6043ec6ea80a01a18946ed1c333fa65ae67e0be9878382bc4ccedb50",
+      "test_sha256": "6f023176678877d1b0567f7b329c9d8342e6a50367303208b9657866e106a622",
+      "reviewer": "/root/deadline_readonly_review",
+      "finding": "Complete digest alone accepted a wrongly frozen CUDA_VISIBLE_DEVICES=all profile",
+      "test": {
+        "count": 1,
+        "seconds": 0.006,
+        "result": "FAILED",
+        "failures": 1,
+        "subtest": "env_frozen_wrong",
+        "error": "ValueError not raised"
+      },
+      "no_remote_or_gpu": true
+    },
+    {
+      "recorded_utc": "2026-10-31T05:19:01.625015+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "scope": "P0 pre-create frozen worker input, pure create argv and target v2 binding",
+      "sha256": {
+        "source_bundle.py": "d004a5965fcbb4be4535ad723771550acc01484da17a4e043aca7824343a1e91",
+        "source_schedule.py": "3cdc036d450c5cb3a4306c84ec58aad81fe9b5e03339e245e2e6511c06906507",
+        "native_record_call.py": "9a3de4e7eb947e8d627bf37808aa7c9f8da8be142204cba7cb3bcf9ba32c820c",
+        "test_source_bundle.py": "36ef35320c90f2f510f426d33e2d1acd5a5b6d036d853461797b230e54b0d1e5",
+        "test_source_schedule.py": "6f023176678877d1b0567f7b329c9d8342e6a50367303208b9657866e106a622",
+        "test_native_record_call.py": "e47d5319f5fa41f0e522dfabfe46b3429dbc48727e6bfbbc91204862db9e44b7"
+      },
+      "tests": {
+        "total": 358,
+        "passed": 354,
+        "skipped": 4,
+        "seconds": 40.82,
+        "executor": "primary agent via WSL to existing Windows CPU Python"
+      },
+      "verified": [
+        "Static dependency analysis found old worker registration-SHA/CID/create cycle; not an observed Docker failure",
+        "Four-field worker input binds plan/code/spec/original anchor and complete environment SHA before CID exists",
+        "Post-create host target v2 binds CID, same worker input SHA, environment, spec and original schedule; old P0 v1 rejected",
+        "Pure Docker-create argv uses immutable image, one GPU, UID2147, reviewed caps, no pull, exact command and input mounts",
+        "Guard validates complete Env digest and duplicate keys plus six fixed GPU/thread values; -E/-s restrict Python environment",
+        "Actual tiny Git/metadata worker-input test passes without registration.json or any container ID",
+        "Source schema behavior and native conservative 2x budget rejection unchanged"
+      ],
+      "limitations": [
+        "Reviewer static only, no tests/writes/SSH",
+        "Expected image environment SHA must be derived from real pinned image.Config.Env by actual prepare controller; not yet verified",
+        "CPU Docker/host positives are explicit fixtures, not Docker acceptance, actual kernel/runtime, Store or model proofs",
+        "Creation argv only; actual create/start, full host controller, current window/resources/ABI, guard/probe/monitor/60 seconds incomplete",
+        "No remote access, GPU, model, pool, full conversion, cache warming, environment install, permanent directory or GB asset copy",
+        "Current static PASS does not approve a full running P0 manifest or authorize computation"
+      ]
     }
   ]
 }

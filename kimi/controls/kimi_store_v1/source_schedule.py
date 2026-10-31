@@ -113,11 +113,11 @@ def phase_remaining_seconds(schedule, phase, *, entered, elapsed, now):
 def _guard_identity(registration, *, boot_id, uid):
     from vllm_export_hook import _source_identity
     from source_bundle import _p0_identity
-    p0 = isinstance(registration, dict) and registration.get('schema') == 'kimi-p0-guard-target-v1'
+    p0 = isinstance(registration, dict) and registration.get('schema') == 'kimi-p0-guard-target-v2'
     keys = {'schema', 'identity', 'boot_id', 'uid', 'container_id', 'image_id', 'container_created'}
-    if p0: keys = keys | {'gpu_uuid'}
+    if p0: keys = keys | {'gpu_uuid', 'run_root', 'worker_input_sha256', 'environment_sha256'}
     if (not isinstance(registration, dict) or set(registration) != keys
-            or registration['schema'] not in ('kimi-source-guard-target-v1', 'kimi-p0-guard-target-v1')):
+            or registration['schema'] not in ('kimi-source-guard-target-v1', 'kimi-p0-guard-target-v2')):
         raise ValueError('exact source guard target schema required')
     identity = (_p0_identity if p0 else _source_identity)(registration['identity'])
     if p0 and (not isinstance(registration['gpu_uuid'], str) or not re.fullmatch(
@@ -136,13 +136,81 @@ def _guard_identity(registration, *, boot_id, uid):
     return identity
 
 
+def _p0_mounts(run_root):
+    if not isinstance(run_root, str):
+        raise ValueError('P0 run root must be text')
+    root = PurePosixPath(run_root)
+    if (not isinstance(run_root, str) or not root.is_absolute() or str(root) != run_root
+            or '..' in root.parts or root == PurePosixPath('/')
+            or not re.fullmatch(r'/[A-Za-z0-9_./-]+', run_root) or run_root.startswith('//')):
+        raise ValueError('canonical safe absolute P0 run root required')
+    return [(run_root, True)] + [(str(root/name), False) for name in
+        ('code','p0-spec.json','p0-plan.json','p0-worker-input.json','source-code-manifest.json')]
+
+
+def _p0_environment(gpu_uuid):
+    return dict(NVIDIA_VISIBLE_DEVICES=gpu_uuid,CUDA_VISIBLE_DEVICES='0',
+        NVIDIA_DRIVER_CAPABILITIES='compute,utility',PYTHONDONTWRITEBYTECODE='1',
+        OMP_NUM_THREADS='1',MKL_NUM_THREADS='1')
+
+
+def _environment_digest(rows, overrides):
+    if not isinstance(rows,list) or len(rows)>256:
+        raise ValueError('bounded complete environment list required')
+    env = {}
+    for row in rows:
+        if not isinstance(row,str) or len(row)>8192 or '=' not in row:
+            raise ValueError('bounded environment assignment required')
+        key,value = row.split('=',1)
+        if not re.fullmatch('[A-Za-z_][A-Za-z0-9_]*',key) or key in env:
+            raise ValueError('unique environment keys required')
+        env[key] = value
+    env.update(overrides)
+    return hashlib.sha256(json.dumps(env,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
+
+
+def p0_image_environment_sha256(image_env, *, gpu_uuid):
+    """Derive from the pinned image Config.Env, not a running container's env."""
+    if not isinstance(gpu_uuid,str) or not re.fullmatch('GPU-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}',gpu_uuid):
+        raise ValueError('one complete P0 GPU UUID required')
+    return _environment_digest(image_env,_p0_environment(gpu_uuid))
+
+
+def p0_container_command(identity, *, run_root, image_id, gpu_uuid, worker_input_sha256, environment_sha256):
+    """Pure Docker-create argv. No registration/container-ID circular dependency."""
+    from source_bundle import _p0_identity
+    identity = _p0_identity(identity)
+    if (not isinstance(image_id, str) or not re.fullmatch('sha256:[0-9a-f]{64}',image_id)
+            or not isinstance(gpu_uuid, str) or not re.fullmatch('GPU-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}',gpu_uuid)
+            or not isinstance(worker_input_sha256, str) or not re.fullmatch('[0-9a-f]{64}',worker_input_sha256)
+            or not isinstance(environment_sha256, str) or not re.fullmatch('[0-9a-f]{64}',environment_sha256)):
+        raise ValueError('immutable P0 image, GPU and worker input digest required')
+    mounts = _p0_mounts(run_root)
+    root = PurePosixPath(run_root)
+    command = ['create','--name',identity['run_id']+'-'+identity['holder'],'--pull=never',
+        '--runtime=nvidia','--gpus','driver=nvidia,device='+gpu_uuid,'--user=2147:2147',
+        '--restart=no','--network=none','--ipc=private','--memory=4g','--memory-swap=4g',
+        '--cpus=2','--pids-limit=128','--shm-size=64m','--cap-drop=ALL',
+        '--security-opt=no-new-privileges=true','--workdir',run_root,'--entrypoint=python3']
+    for key,value in dict(**{'sllm.kimi.'+key:value for key,value in identity.items()},
+                           **{'sllm.purpose':P0_PURPOSE,'sllm.kimi.environment_sha256':environment_sha256}).items():
+        command.extend(['--label',key+'='+value])
+    for key,value in _p0_environment(gpu_uuid).items():
+        command.extend(['--env',key+'='+value])
+    for source,writable in mounts:
+        command.extend(['--mount','type=bind,src='+source+',dst='+source+('' if writable else ',readonly')])
+    command.extend([image_id,'-B','-E','-s','-X','utf8',str(root/'code/native_record_call.py'),'p0a',
+        '--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha',worker_input_sha256])
+    return command
+
+
 def guard_target(registration, info, *, boot_id, uid):
     """Bind cleanup to an immutable Docker ID, creation event and owned labels."""
     identity = _guard_identity(registration, boot_id=boot_id, uid=uid)
     cid, image = registration['container_id'], registration['image_id']
     labels = info['Config']['Labels']
     expected = {'sllm.kimi.' + key: value for key, value in identity.items()}
-    p0 = registration['schema'] == 'kimi-p0-guard-target-v1'
+    p0 = registration['schema'] == 'kimi-p0-guard-target-v2'
     expected['sllm.purpose'] = P0_PURPOSE if p0 else GUARD_PURPOSE
     if (info['Id'] != cid or info['Image'] != image or info['Created'] != registration['container_created']
             or info['Config']['User'] not in ('2147', '2147:2147')
@@ -169,6 +237,27 @@ def guard_target(registration, info, *, boot_id, uid):
                 or host.get('IpcMode') != 'private' or host.get('PidMode') != ''
                 or host.get('Devices') not in ([], None) or host.get('CapAdd') not in ([], None)):
             raise ValueError('P0 one-GPU isolation or resource limits differ')
+        command = p0_container_command(identity, run_root=registration['run_root'], image_id=image,
+            gpu_uuid=registration['gpu_uuid'], worker_input_sha256=registration['worker_input_sha256'],
+            environment_sha256=registration['environment_sha256'])
+        if (info['Config'].get('Entrypoint') != ['python3']
+                or info['Config'].get('Cmd') != command[command.index(image)+1:]
+                or info['Config'].get('WorkingDir') != registration['run_root']
+                or host.get('Runtime') != 'nvidia' or host.get('MemorySwap') != 4*1024**3
+                or host.get('CapDrop') != ['ALL'] or host.get('SecurityOpt') != ['no-new-privileges=true']):
+            raise ValueError('P0 immutable worker command or privilege policy differs')
+        mounts = info.get('Mounts')
+        expected_mounts = {(source,source,writable) for source,writable in _p0_mounts(registration['run_root'])}
+        if (not isinstance(mounts, list) or len(mounts) != len(expected_mounts)
+                or any(row.get('Type') != 'bind' or type(row.get('RW')) is not bool for row in mounts)
+                or {(row.get('Source'),row.get('Destination'),row.get('RW')) for row in mounts} != expected_mounts):
+            raise ValueError('P0 exact run/code/input mounts required')
+        if (labels.get('sllm.kimi.environment_sha256') != registration['environment_sha256']
+                or _environment_digest(info['Config'].get('Env'),{}) != registration['environment_sha256']):
+            raise ValueError('P0 complete frozen container environment differs')
+        env = dict(row.split('=',1) for row in info['Config']['Env'])
+        if any(env.get(key)!=value for key,value in _p0_environment(registration['gpu_uuid']).items()):
+            raise ValueError('P0 fixed GPU and thread environment differs')
     return identity
 
 
@@ -627,7 +716,7 @@ def watchdog_service_plan(target, registration_path, registration_sha256, schedu
         '--property=RuntimeMaxSec='+str(runtime), '--working-directory='+str(root),
         '/usr/bin/python3', '-B', '-E', '-s', str(root/'code/source_schedule.py'), 'guard',
         '--registration', str(path), '--registration-sha', registration_sha256]
-    if target['schema'] == 'kimi-p0-guard-target-v1':
+    if target['schema'] == 'kimi-p0-guard-target-v2':
         command.insert(2, '--no-ask-password')
     return dict(schema='kimi-source-watchdog-service-plan-v1', identity=identity, unit=unit,
         command=command, generated_utc=now.isoformat(), launch_before_utc=latest_start.isoformat(),
@@ -781,7 +870,7 @@ def submit_p0_watchdog(service_plan, target, schedule, *, nonce, host_pid_namesp
         runtime_admitted=False, resources_released=False)
     identity = target['identity']
     try:
-        if target['schema'] != 'kimi-p0-guard-target-v1':
+        if target['schema'] != 'kimi-p0-guard-target-v2':
             raise ValueError('guard submission only accepts P0 scope')
         derived = watchdog_service_plan(target, service_plan['command'][-3], service_plan['command'][-1],
                                         schedule, now=_utc(service_plan['generated_utc']))
@@ -880,7 +969,7 @@ def load_watchdog_inputs(registration_path, registration_sha256):
         raise ValueError('exact watchdog registration required')
     p0 = registration['schema'] == 'kimi-p0-watchdog-registration-v1'
     prefix = 'p0' if p0 else 'source'
-    target_schema = 'kimi-p0-guard-target-v1' if p0 else 'kimi-source-guard-target-v1'
+    target_schema = 'kimi-p0-guard-target-v2' if p0 else 'kimi-source-guard-target-v1'
     if registration['target'].get('schema') != target_schema:
         raise ValueError('watchdog and target scopes differ')
     plan = load_source_plan(root/(prefix+'-plan.json'), registration['plan_sha256'])
@@ -888,9 +977,19 @@ def load_watchdog_inputs(registration_path, registration_sha256):
     receipt = verify(root/'code', root/'source-code-manifest.json', plan['source_manifest_sha256'],
                      root/(prefix+'-spec.json'), plan['spec_sha256'])
     schedule = (p0_schedule if p0 else source_schedule)(plan, receipt, now=_utc(registration['batch_entered_utc']))
-    if p0 and (registration['target']['image_id'] != receipt['image_id']
-               or registration['target']['gpu_uuid'] != receipt['gpu_uuid']):
-        raise ValueError('P0 target image or GPU differs from spec')
+    if p0:
+        from source_bundle import verify_p0_worker_input
+        _, worker_root, worker_input, worker_receipt, worker_schedule, _ = verify_p0_worker_input(
+            root/'p0-worker-input.json', registration['target']['worker_input_sha256'])
+        if (registration['target']['image_id'] != receipt['image_id']
+                or registration['target']['gpu_uuid'] != receipt['gpu_uuid']):
+            raise ValueError('P0 target image or GPU differs from spec')
+        if (worker_root != root or registration['target']['run_root'] != str(root)
+                or worker_input['plan_sha256'] != registration['plan_sha256']
+                or worker_input['batch_entered_utc'] != registration['batch_entered_utc']
+                or worker_schedule != schedule or worker_receipt['spec_sha256'] != receipt['spec_sha256']
+                or worker_receipt['environment_sha256'] != registration['target']['environment_sha256']):
+            raise ValueError('P0 host registration differs from frozen worker input')
     expected = dict(run_id=receipt['run_id'], holder=receipt['holder'], code_commit=receipt['code_commit'],
         spec_sha256=receipt['spec_sha256'], source_manifest_sha256=receipt['manifest_sha256'])
     if registration['target']['identity'] != expected:

@@ -29,26 +29,26 @@ class P0ComponentTests(unittest.TestCase):
     def test_worker_cli_binds_p0_input_and_original_budget_without_claiming_guard(self):
         import io
         from datetime import datetime, timedelta, timezone
-        import source_schedule
+        import source_bundle
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp); options=self.options()
             (root/'code').mkdir(); worker=root/'code/native_record_call.py';worker.write_text('# CPU CLI fixture')
             entered=datetime.now(timezone.utc)-timedelta(seconds=20)
             identity=dict(run_id=options['run_id'],holder=options['holder'],code_commit='a'*40,
                 spec_sha256='b'*64,source_manifest_sha256='c'*64)
-            registration=dict(schema='kimi-p0-watchdog-registration-v1',batch_entered_utc=entered.isoformat(),
+            registration=dict(schema='kimi-p0-worker-input-v1',batch_entered_utc=entered.isoformat(),
                 plan_sha256='d'*64)
             receipt=dict(identity,manifest_sha256='c'*64,gpu_uuid=options['gpu_uuid'],
                 image_id='sha256:'+'e'*64,component_max_seconds=60,max_payload_bytes=40)
             schedule=dict(guard_fire_by_utc=(entered+timedelta(seconds=30)).isoformat())
-            bound=(root/'registration.json',root,registration,receipt,schedule,identity)
+            bound=(root/'p0-worker-input.json',root,registration,receipt,schedule,identity)
             with patch.object(call,'__file__',str(worker)), \
-                    patch.object(source_schedule,'load_watchdog_inputs',return_value=bound) as verify, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound) as verify, \
                     patch.object(call,'run_cuda_ipc_component_probe',return_value=dict(torch_cuda_ipc_verified=True)) as component, \
                     patch('sys.stdout',new_callable=io.StringIO) as output:
                 started=time.monotonic()
-                call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
-                verify.assert_called_once_with(str(root/'registration.json'),'f'*64)
+                call.p0_main(['--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha','f'*64])
+                verify.assert_called_once_with(str(root/'p0-worker-input.json'),'f'*64)
                 remaining=component.call_args.kwargs['deadline_monotonic']-started
                 self.assertGreater(remaining,3);self.assertLess(remaining,11)
                 result=json.loads(output.getvalue())
@@ -58,17 +58,17 @@ class P0ComponentTests(unittest.TestCase):
                 self.assertEqual([row['stage'] for row in rows],['inputs_verified','component_returned'])
                 component.reset_mock()
                 with self.assertRaises(FileExistsError):
-                    call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
+                    call.p0_main(['--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha','f'*64])
                 component.assert_not_called()
                 (root/'p0-component-events.jsonl').unlink()
                 with patch.object(call.os,'fsync',side_effect=[None,OSError('terminal fsync')]):
                     with self.assertRaises(OSError) as caught:
-                        call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
+                        call.p0_main(['--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha','f'*64])
                 self.assertIs(caught.exception.p0_receipt,component.return_value)
 
     def test_worker_cli_refuses_source_or_expired_and_persists_owned_failure(self):
         from datetime import datetime,timedelta,timezone
-        import source_schedule
+        import source_bundle
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);options=self.options()
             (root/'code').mkdir(); worker=root/'code/native_record_call.py';worker.write_text('# CPU CLI fixture')
@@ -79,13 +79,13 @@ class P0ComponentTests(unittest.TestCase):
                 image_id='sha256:'+'e'*64,component_max_seconds=60,max_payload_bytes=40)
             schedule=dict(guard_fire_by_utc=(now+timedelta(seconds=30)).isoformat())
             identity={key:receipt[key] for key in ('run_id','holder','code_commit','spec_sha256')}
-            bound=(root/'registration.json',root,registration,receipt,schedule,identity)
+            bound=(root/'p0-worker-input.json',root,registration,receipt,schedule,identity)
             with patch.object(call,'__file__',str(worker)), \
-                    patch.object(source_schedule,'load_watchdog_inputs',return_value=bound), \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound), \
                     patch.object(call,'run_cuda_ipc_component_probe') as component:
-                args=['--registration',str(root/'registration.json'),'--registration-sha','f'*64]
+                args=['--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha','f'*64]
                 with self.assertRaisesRegex(ValueError,'source-model'):call.p0_main(args)
-                registration['schema']='kimi-p0-watchdog-registration-v1'
+                registration['schema']='kimi-p0-worker-input-v1'
                 schedule['guard_fire_by_utc']=(now-timedelta(seconds=1)).isoformat()
                 with self.assertRaises(TimeoutError):call.p0_main(args)
                 component.assert_not_called()

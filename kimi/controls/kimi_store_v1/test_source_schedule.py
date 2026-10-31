@@ -738,14 +738,74 @@ os._exit(0)
         receipt['component_max_seconds'] = plan['seconds']['component'] = 60
         receipt['gpu_uuid'] = target['gpu_uuid'] = 'GPU-12345678-1234-1234-1234-123456789abc'
         receipt['image_id'] = target['image_id']
-        target['schema'] = 'kimi-p0-guard-target-v1'
+        target['schema'] = 'kimi-p0-guard-target-v2'
+        target['run_root'] = '/data/owned/run'
+        target['worker_input_sha256'] = 'f'*64
+        image_env=['PATH=/usr/local/bin:/usr/bin:/bin','LD_LIBRARY_PATH=/usr/local/nvidia/lib64']
+        target['environment_sha256']=schedule_module.p0_image_environment_sha256(image_env,gpu_uuid=target['gpu_uuid'])
+        receipt['environment_sha256']=target['environment_sha256']
         info['Config']['Labels']['sllm.kimi.run_id'] = run_id
         info['Config']['Labels']['sllm.purpose'] = schedule_module.P0_PURPOSE
         info['HostConfig'].update(DeviceRequests=[dict(Driver='nvidia',Count=0,
             DeviceIDs=[target['gpu_uuid']],Capabilities=[['gpu']],Options={})],Memory=4*1024**3,
             NanoCpus=2*10**9,PidsLimit=128,ShmSize=64*1024**2,NetworkMode='none',
-            Privileged=False,IpcMode='private',PidMode='',Devices=[],CapAdd=[])
+            Privileged=False,IpcMode='private',PidMode='',Devices=[],CapAdd=[],Runtime='nvidia',
+            MemorySwap=4*1024**3,CapDrop=['ALL'],SecurityOpt=['no-new-privileges=true'])
+        command=schedule_module.p0_container_command(target['identity'],run_root=target['run_root'],
+            image_id=target['image_id'],gpu_uuid=target['gpu_uuid'],worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
+        info['Config']['Labels']['sllm.kimi.environment_sha256']=target['environment_sha256']
+        info['Config'].update(Entrypoint=['python3'],Cmd=command[command.index(target['image_id'])+1:],
+            WorkingDir=target['run_root'],Env=image_env+[command[i+1] for i,arg in enumerate(command) if arg=='--env'])
+        info['Mounts']=[dict(Type='bind',Source=source,Destination=source,RW=writable)
+            for source,writable in schedule_module._p0_mounts(target['run_root'])]
         return plan, receipt, target, info
+
+    def test_p0_create_command_is_frozen_before_container_id_and_guard_checks_entry_mounts(self):
+        _,_,target,info=self.p0_fixture()
+        options=dict(run_root=target['run_root'],image_id=target['image_id'],gpu_uuid=target['gpu_uuid'],
+                     worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
+        command=schedule_module.p0_container_command(target['identity'],**options)
+        self.assertEqual(command[0],'create')
+        self.assertIn('--pull=never',command)
+        self.assertNotIn(target['container_id'],command)
+        self.assertNotIn('--registration-sha',command)
+        self.assertIn('-E',command);self.assertIn('-s',command)
+        base=['PATH=/usr/bin','LD_LIBRARY_PATH=/usr/local/nvidia/lib64']
+        digest=schedule_module.p0_image_environment_sha256(base,gpu_uuid=target['gpu_uuid'])
+        self.assertEqual(digest,schedule_module.p0_image_environment_sha256(base[::-1],gpu_uuid=target['gpu_uuid']))
+        self.assertNotEqual(digest,schedule_module.p0_image_environment_sha256(base+['LD_PRELOAD=/unreviewed.so'],gpu_uuid=target['gpu_uuid']))
+        with self.assertRaises(ValueError):schedule_module.p0_image_environment_sha256(base+['PATH=/extra'],gpu_uuid=target['gpu_uuid'])
+        info['Config']['Env'].reverse()
+        schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+        self.assertEqual(command[-4:],['--worker-input','/data/owned/run/p0-worker-input.json','--worker-input-sha','f'*64])
+        for kind in ('entry','cmd','workdir','extra_mount','code_rw','input_rw','env','env_duplicate','env_extra','env_frozen_wrong','runtime','swap','caps','security','old_schema'):
+            with self.subTest(kind=kind):
+                candidate=copy.deepcopy(info);registration=copy.deepcopy(target)
+                if kind=='entry':candidate['Config']['Entrypoint']=['bash']
+                elif kind=='cmd':candidate['Config']['Cmd']=['-c','unapproved']
+                elif kind=='workdir':candidate['Config']['WorkingDir']='/other'
+                elif kind=='extra_mount':candidate['Mounts'].append(dict(Type='bind',Source='/etc',Destination='/etc',RW=True))
+                elif kind=='code_rw':candidate['Mounts'][1]['RW']=True
+                elif kind=='input_rw':candidate['Mounts'][4]['RW']=True
+                elif kind=='env':candidate['Config']['Env'][0]='NVIDIA_VISIBLE_DEVICES=all'
+                elif kind=='env_duplicate':candidate['Config']['Env'].append(candidate['Config']['Env'][0])
+                elif kind=='env_extra':candidate['Config']['Env'].append('LD_PRELOAD=/unreviewed.so')
+                elif kind=='env_frozen_wrong':
+                    candidate['Config']['Env']=[row if not row.startswith('CUDA_VISIBLE_DEVICES=') else 'CUDA_VISIBLE_DEVICES=all'
+                        for row in candidate['Config']['Env']]
+                    registration['environment_sha256']=schedule_module._environment_digest(candidate['Config']['Env'],{})
+                    candidate['Config']['Labels']['sllm.kimi.environment_sha256']=registration['environment_sha256']
+                elif kind=='runtime':candidate['HostConfig']['Runtime']='runc'
+                elif kind=='swap':candidate['HostConfig']['MemorySwap']=-1
+                elif kind=='caps':candidate['HostConfig']['CapDrop']=[]
+                elif kind=='security':candidate['HostConfig']['SecurityOpt']=[]
+                else:registration['schema']='kimi-p0-guard-target-v1'
+                with self.assertRaises(ValueError):
+                    schedule_module.guard_target(registration,candidate,boot_id=target['boot_id'],uid=2147)
+        for key,value in (('run_root','/data/run,src=/etc'),('run_root','/data/../root'),
+                ('worker_input_sha256','mutable'),('image_id','vllm:latest')):
+            candidate=dict(options);candidate[key]=value
+            with self.assertRaises(ValueError):schedule_module.p0_container_command(target['identity'],**candidate)
 
     def test_p0_budget_is_original_complete_batch_and_cannot_use_source_schema(self):
         plan, receipt, _, _ = self.p0_fixture()
@@ -786,6 +846,7 @@ os._exit(0)
         plan,receipt,target,_ = self.p0_fixture()
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);path=root/'registration.json'
+            target['run_root']=str(root)
             raw=json.dumps(plan).encode();(root/'p0-plan.json').write_bytes(raw)
             registration=dict(schema='kimi-p0-watchdog-registration-v1',target=target,
                 plan_sha256=hashlib.sha256(raw).hexdigest(),batch_entered_utc=plan['window_start'],
@@ -796,6 +857,9 @@ os._exit(0)
             import source_bundle
             with patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')), \
                     patch.object(source_bundle,'verify_p0_run',return_value=receipt) as verify, \
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=(root/'p0-worker-input.json',root,
+                        dict(plan_sha256=registration['plan_sha256'],batch_entered_utc=registration['batch_entered_utc']),
+                        receipt,schedule_module.p0_schedule(plan,receipt,now=datetime.fromisoformat(plan['window_start'])),target['identity'])), \
                     patch.object(source_bundle,'verify_source_run',side_effect=AssertionError('wrong scope')), \
                     patch.object(schedule_module,'watchdog_service_plan',return_value={'deployment_performed':False}) as render, \
                     patch.object(schedule_module,'source_watchdog',side_effect=AssertionError('unexpected launch')), \
@@ -806,6 +870,11 @@ os._exit(0)
                 render.assert_called_once();render.reset_mock()
                 target['gpu_uuid']='GPU-00000000-1234-1234-1234-123456789abc'
                 with self.assertRaisesRegex(ValueError,'GPU differs'):
+                    schedule_module.watchdog_main(write_registration(),service_plan_only=True)
+                render.assert_not_called()
+                target['gpu_uuid']=receipt['gpu_uuid']
+                target['environment_sha256']='0'*64
+                with self.assertRaisesRegex(ValueError,'frozen worker input'):
                     schedule_module.watchdog_main(write_registration(),service_plan_only=True)
                 render.assert_not_called()
                 target['schema']='kimi-source-guard-target-v1'

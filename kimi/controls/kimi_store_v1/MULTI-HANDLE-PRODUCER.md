@@ -54,3 +54,8 @@ WSL另报告boyjiang用户systemd会话启动失败，当前仅确认shell、同
 仅在既有run根独占创建p0-component-events.jsonl，记录inputs_verified及failed/component_returned元数据；无模型、Store或权重路径。失败日志write/fsync错误记入原异常p0_evidence_error，保留原p0_receipt/p0_owners；成功组件结果在返回超时或终态证据故障时也保留。component_returned只表示组件当时返回，之后证据/进程仍可能失败，未来收集端必须同时核真实worker exit0与独立释放证据，不能按单条日志追认成功。打印的guard_verified/runtime_admitted/resources_released仍false。
 
 21项相关CPU测试20过1Windows跳过，正向CLI的verifier/body是明确mock；最终全套351项347通过4跳过41.230秒。初审自文件绑定/错误覆盖/成功终态fsync缺口先用负例复现并修复，最终两文件只读复审PASS与hash、所有失败追加native-record-call-review.json。一次完整suite在旧Windows orphan-child夹具删除child.err时WinError32，实际进程列表已无Python，后续完整suite通过，旧失败保留。以上不是真实CUDA、独立宿主守护、监控或60秒释放通过。
+
+
+### P0 worker 创建前输入覆盖（2026-10-31）
+
+上节host registration参数已被新worker-input接口替代，原因是registration包含创建后CID，不能预先放进Docker create Cmd。当前命令只读p0-worker-input.json及外部SHA，schema为kimi-p0-worker-input-v1，四字段包含原plan SHA、原batch anchor及完整环境SHA。实际code/spec/window仍全部核验，自文件/原预算/错误owner及receipt保存行为保持。host target v2另核同输入SHA、plan、anchor和ENV；纯创建argv不引用CID，不执行Docker。详见SOURCE-SCHEDULE.md最新覆盖。原生Store代码与保守2x预算停止不变，没有实际CUDA/Store/完整Kimi通过。

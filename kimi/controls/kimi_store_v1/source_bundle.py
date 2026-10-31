@@ -203,6 +203,34 @@ def verify_p0_run(directory, manifest_path, manifest_sha256, spec_path, spec_sha
         identity_declared_only=True)
 
 
+
+def verify_p0_worker_input(path, expected_sha256):
+    """Freeze worker input before Docker assigns the host-only container ID."""
+    from source_schedule import load_source_plan, p0_schedule, _utc
+    path = Path(path)
+    if not path.is_absolute():
+        raise ValueError('absolute P0 worker input required')
+    root = path.resolve(strict=True).parent
+    if path.resolve(strict=True) != root/'p0-worker-input.json':
+        raise ValueError('fixed P0 worker input layout required')
+    document = load_source_plan(path, expected_sha256)
+    if (not isinstance(document, dict) or set(document) != {'schema','plan_sha256','batch_entered_utc','environment_sha256'}
+            or document['schema'] != 'kimi-p0-worker-input-v1'):
+        raise ValueError('exact P0 worker input schema required')
+    plan = load_source_plan(root/'p0-plan.json', document['plan_sha256'])
+    receipt = verify_p0_run(root/'code', root/'source-code-manifest.json', plan['source_manifest_sha256'],
+                            root/'p0-spec.json', plan['spec_sha256'])
+    schedule = p0_schedule(plan, receipt, now=_utc(document['batch_entered_utc']))
+    if (not isinstance(document['environment_sha256'],str)
+            or not re.fullmatch('[0-9a-f]{64}',document['environment_sha256'])):
+        raise ValueError('complete P0 environment digest required')
+    receipt['worker_input_sha256'] = expected_sha256
+    receipt['environment_sha256'] = document['environment_sha256']
+    identity = dict(run_id=receipt['run_id'],holder=receipt['holder'],code_commit=receipt['code_commit'],
+                    spec_sha256=receipt['spec_sha256'],source_manifest_sha256=receipt['manifest_sha256'])
+    return path, root, document, receipt, schedule, identity
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest='mode', required=True)

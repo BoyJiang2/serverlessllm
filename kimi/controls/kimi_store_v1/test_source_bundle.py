@@ -72,6 +72,33 @@ class SourceBundleTests(unittest.TestCase):
         return bundle.verify_p0_run(target, manifest, hashlib.sha256(manifest.read_bytes()).hexdigest(),
                                     path, hashlib.sha256(path.read_bytes()).hexdigest())
 
+    def test_p0_worker_input_verifies_without_any_container_identity(self):
+        import source_schedule
+        with tempfile.TemporaryDirectory() as temp:
+            target,manifest,path,spec=self.p0_fixture(temp)
+            receipt=self.p0_verify(target,manifest,path)
+            plan=dict(schema='kimi-p0-window-v1',run_id=receipt['run_id'],holder=receipt['holder'],
+                code_commit=receipt['code_commit'],spec_sha256=receipt['spec_sha256'],source_manifest_sha256=receipt['manifest_sha256'],
+                resource_id='h20/qjhs003',booking_id='bk-fixture',window_start='2026-10-31T00:00:00Z',
+                window_end='2026-10-31T01:00:00Z',cleanup_complete_by='2026-10-31T00:50:00Z',
+                seconds={name:30 for name in source_schedule.P0_PHASES})
+            plan['seconds']['component']=60;plan['seconds']['release_observe']=90
+            raw=json.dumps(plan).encode();(Path(temp)/'p0-plan.json').write_bytes(raw)
+            document=dict(schema='kimi-p0-worker-input-v1',plan_sha256=hashlib.sha256(raw).hexdigest(),
+                          batch_entered_utc=plan['window_start'],environment_sha256='a'*64)
+            worker=Path(temp)/'p0-worker-input.json';raw=json.dumps(document).encode();worker.write_bytes(raw)
+            digest=hashlib.sha256(raw).hexdigest()
+            _,root,inputs,verified,schedule,identity=bundle.verify_p0_worker_input(worker.resolve(),digest)
+            self.assertEqual(inputs,document);self.assertEqual(verified['worker_input_sha256'],digest)
+            self.assertEqual(identity['run_id'],spec['run_id'])
+            self.assertFalse(verified['runtime_admitted'])
+            self.assertFalse((root/'registration.json').exists())
+            worker.write_bytes(raw+b' ')
+            with self.assertRaises(ValueError):bundle.verify_p0_worker_input(worker.resolve(),digest)
+            worker.write_bytes(raw)
+            document['container_id']='e'*64;raw=json.dumps(document).encode();worker.write_bytes(raw)
+            with self.assertRaises(ValueError):bundle.verify_p0_worker_input(worker.resolve(),hashlib.sha256(raw).hexdigest())
+
     def test_p0_inventory_and_spec_bind_without_model_approval(self):
         with tempfile.TemporaryDirectory() as temp:
             target, manifest, path, spec = self.p0_fixture(temp)

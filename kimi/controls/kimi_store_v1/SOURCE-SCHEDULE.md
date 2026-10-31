@@ -95,3 +95,19 @@ systemd-run只调用一次；原提交期限内未返回、超时、非零或后
 原Windows orphan-child CPU夹具曾再次在child.err清理时报WinError32，原因是文件关闭marker先于进程实际退出/原生继承handle释放。现在仅在测试中为launcher返回的自有child申请SYNCHRONIZE权限，使用[WaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject)等待实际退出后关闭句柄，不signal/kill进程，不改变生产guard。依据[OpenProcess官方说明](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess)，没有申请终止/写内存等权限。
 
 61项相关CPU测试通过5.276秒；完整356项352过4 Windows POSIX FIFO跳过44.065秒。systemd/Docker/proc均明确替身，ready用真实小文件和模拟时钟；WinAPI child等待在实际Windows执行。初始旧fixture失败、新TimeoutExpired测试异常类型修正及最终精确hash/只读复审PASS均追加原review/tests文件，历史失败不删除。没有远端unit、GPU或服务通过。
+
+
+## 创建前冻结输入与 P0 target v2（2026-10-31）
+
+在接Docker创建命令时，源码分析发现旧P0候选存在循环：worker Cmd需要host registration SHA，但registration包含只有create后才得到的container ID。本聊天该候选尚未实际部署；这不是一次已发生的Docker/GPU失败。现改为创建前冻结p0-worker-input.json，精确四字段schema/plan_sha256/batch_entered_utc/environment_sha256。它通过原plan绑定完整code manifest、spec、固定image/GPU和原预算，不包含CID或host registration SHA。
+
+准备顺序为：先核既有固定image Config.Env并生成完整环境摘要，冻结code/spec/plan/worker input及其外部SHA；再由p0_container_command输出确定的Docker create argv；只有create返回CID/Created后才生成宿主registration。新target schema为kimi-p0-guard-target-v2，包含run_root/worker_input_sha256/environment_sha256；宿主将其与同份worker input的plan/anchor/spec/schedule逐项核对。旧P0 target v1拒绝，原source target schema与GLM结果保持。worker现在只接受 `python -B -E -s <run>/code/native_record_call.py p0a --worker-input <run>/p0-worker-input.json --worker-input-sha <SHA>`，仍绑定自身文件与原截止。旧带--registration的P0 worker示例仅是上节历史候选，不能用于新版本。
+
+p0_container_command是纯argv生成器，没有Docker调用或目录创建。固定--pull=never、不可变image、nvidia runtime与一GPU UUID、UID2147、2CPU/4GiB且无swap/128PID/64MiB shm、private IPC/network none、cap-drop ALL及no-new-privileges。覆盖image默认entrypoint为python3，使用-B -E -s，固定工作目录与精确worker Cmd。仅run根RW，code及四个JSON输入文件分别只读bind；不额外挂载模型/Store目录或发布服务端口；实际run根仍须由准入确认是本次小运行目录。这是候选配置，不是Docker实际接收或runtime通过证明。
+
+完整环境摘要由p0_image_environment_sha256对固定image基础ENV加六固定覆盖派生，使用唯一key的canonical JSON map；只存SHA，不保存基础ENV明文。guard核整个Config.Env摘要及label，顺序可变但重复key、额外变量或修改值都拒绝，不能只检查必需变量子集。初审新增LD_PRELOAD负例已先失败（1项0.004秒，ValueError未抛），修后通过；旧源码/测试SHA及NEEDS_FIX记录保留于source-schedule-review.json。-E/-s另外限制Python环境变量和用户包目录，但不把它们当作动态链接器环境校验的替代。
+
+guard_target同时核精确Cmd/entrypoint/workdir、全部挂载/读写性、runtime/MemorySwap/capdrop/security policy。宿主真正prepare时必须查询选定image的实际Config.Env并与固定image ID绑定；当前CPU夹具里的ENV摘要只是声明，不能证明真实image/ABI已验。源码、预算和输入验证仍不代替有效窗口、实际资源、独立守护和完整运行审阅。实际create/start、监控与退出后60秒观察仍未闭合，本轮无远端计算。
+
+
+最终同时保留六项固定环境值校验，防止准备阶段自己把错误override冻结进合法摘要；错冻结CUDA_VISIBLE_DEVICES=all负例先失败1项0.006秒，修后通过。完整358项354通过4 Windows POSIX FIFO跳过40.820秒，62相关4.956秒；当前六文件静态只读复审PASS/SHA及全部中间失败追加原review/tests，模块specific ledger指向同一最终审阅。没有重标历史失败，没有实际创建或启动容器；不能据此声称本轮开始时计划中的monitor/60秒已完成。
