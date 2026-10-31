@@ -159,6 +159,102 @@
         "Source checkpoint config in source_plugin/checkpoint_export still uses full-file reads",
         "No actual full Kimi metadata-size, conversion, native library, CUDA or runtime admission proof"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-31T03:02:42.880045+00:00",
+      "reviewer": "independent local read-only Codex subagent /root/deadline_readonly_review",
+      "verdict": "PASS - current two-file P0a internal-body static candidate only",
+      "sha256": {
+        "native_record_call.py": "8c157084e44b8acb7aeaf19bba49052fc28d4631cd25173c7ca935fa2745e920",
+        "test_native_record_call.py": "40d577aa01a6084e3f9081449f3718fc1a498559d866c55a8ca94d78edfe873c"
+      },
+      "intermediate_review": {
+        "verdict": "PASS before added PID evidence",
+        "sha256": {
+          "native_record_call.py": "7d187c695105d4a46fd82e2046a3f8d6d230755badffe13cd250fa0c0f2fe4ec",
+          "test_native_record_call.py": "b9efb0c844b2fbe8d0146c73382e08d5caf9cca07ebd7638d905187744cb260d"
+        }
+      },
+      "tests": {
+        "executor": "primary agent",
+        "initial_targeted": {
+          "total": 19,
+          "passed": 18,
+          "skipped": 1,
+          "seconds": 0.411
+        },
+        "final_targeted": {
+          "total": 19,
+          "passed": 18,
+          "skipped": 1,
+          "seconds": 0.386
+        },
+        "initial_full": {
+          "total": 343,
+          "passed": 339,
+          "skipped": 4,
+          "seconds": 32.836
+        },
+        "final_full": {
+          "total": 343,
+          "passed": 339,
+          "skipped": 4,
+          "seconds": 31.344
+        },
+        "wsl_windows_python_bridge": {
+          "total": 19,
+          "passed": 18,
+          "skipped": 1,
+          "seconds": 0.674
+        }
+      },
+      "verified": [
+        "Forty deterministic CPU bytes cover packed I32, BF16/F32 special bits, alias and empty state",
+        "Production refuses CPU fallback/wrong CUDA ABI and requires one exposed GPU with matching UUID",
+        "Spawn child receives CUDA tensors, verifies original digests, mutates packed test value, sends only metadata",
+        "Parent holds producer until child actually exits zero, then observes same GPU storage mutation",
+        "Original monotonic budget <=300 seconds includes three-second owned-child cleanup reserve",
+        "Only owned Process handle terminated/killed; uncertain failure retains owner dictionary and receipt",
+        "Producer/consumer PID and start-attempt metadata recorded; not host PID mapping proof"
+      ],
+      "cpu_controls": [
+        "Actual CPU bit-pattern/fingerprint tests",
+        "Parent positive transport and device are explicit CPU stand-ins, not CUDA IPC validation",
+        "Failure stand-ins cover wrong digest, independent nonshared copy, timeout, child error, close error and unreaped consumer",
+        "Expired child returns failure before any CUDA query"
+      ],
+      "torch_python_source_reference": {
+        "version": "2.10.0+cpu",
+        "multiprocessing_init_sha256": "211f8b47fa8d4991f547c076d8d0e925e5f4fd9ea9b885a0219c915a76520775",
+        "reductions_sha256": "6a1b098ae8361eb6990018085dfeab25ed2ea44186eb3fc35f3a8d2e9052171d",
+        "scope": "Existing installed CPU wheel source inspected for ForkingPickler/rebuild_cuda_tensor; not proof of target CUDA binary"
+      },
+      "local_environment": {
+        "distro": "Ubuntu-22.04 WSL2",
+        "linux_python": "3.10.12",
+        "repo": "/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm",
+        "repo_copied": false,
+        "linux_torch_installed": false,
+        "linux_vllm_installed": false,
+        "linux_transformers_installed": false,
+        "linux_ssh_qjhs003_configured": false,
+        "windows_ssh_exe_alias_configured": true,
+        "windows_python_bridge_verified": true,
+        "linux_git_status_probe": "timed out at 10 seconds on DrvFS; not repeated",
+        "git_filemode": false,
+        "git_writes": "Existing Windows git.exe from WSL; do not mix concurrent index writers",
+        "environment_installed": false,
+        "user_systemd_session_warning": "WSL reported failure to start boyjiang user systemd session; shell/edit/test bridge still succeeded; no system changes attempted"
+      },
+      "limitations": [
+        "Static reviewer ran no tests or remote commands",
+        "No CLI, complete P0 scope/guard deployment/monitor/60-second release or fresh execution admission yet",
+        "Existing source/GLM guard gates do not approve kimi-p0 scope automatically",
+        "Synchronous CUDA initialization, send/recv or join internals still require independent host guard",
+        "PID evidence is worker-namespace local; host PID/cgroup mapping not proved",
+        "Forty payload bytes and <=1MiB cap do not bound CUDA contexts/caching allocator/RSS",
+        "No native allocator/Store/model/gold/formal ID or real GPU verified; 2x native budget stop unchanged"
+      ]
     }
   ]
 }

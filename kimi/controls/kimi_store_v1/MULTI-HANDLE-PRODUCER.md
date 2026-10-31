@@ -31,3 +31,17 @@ core先向本实验拥有的loopback Store请求host加载；每个非空canonic
 当前九项producer CPU测试通过；全套302项中301通过、1项POSIX FIFO因Windows跳过（29.475秒）。两文件独立静态复审PASS，精确hash和旧失败追加native-record-call-review.json。同步close依然不能由本函数强制中断；此修正不是实际CUDA/IPC释放、原生ABI或宿主守护通过。逐记录producer已有独立mixed-loader组合候选，但未注册切换旧native工厂，也无完整worker准入。
 
 构建回执读取追加硬上限：外部SHA格式先验证，实际fd以nonblocking/no-follow（平台支持时）打开并fstat确认普通文件；最多read(65537)，超过65536字节在JSON/native核验前拒绝，finally关闭fd。64KiB精确边界、非法SHA不open、非普通fd拒绝/实际关闭均有CPU回归；Linux无writer FIFO用例在Windows明确跳过。旧源码超限解析负例已先失败，当前全套306项中304通过、2项平台跳过（27.885秒），当前两文件静态复审PASS。此上限只约束回执读取，不是整个进程RSS或阻塞I/O截止保证；其他侧车/旧入口仍有整文件metadata读取，不能宣称所有元数据已统一有界。
+
+## 最小单卡P0a主体（2026-10-31）
+
+原native_record_call.py已增加run_cuda_ipc_component_probe内部body，独立kimi-p0 run_id/holder/预先绑定GPU UUID，严格Torch2.10.0+cu129/CUDA12.9且只暴露一张卡，没有CPU回退。固定40字节packed I32/BF16/F32特殊位、同对象alias与空张量只作组件控制，不是checkpoint、模型权重或替代金标。spawn消费者经Torch注册的IPC reducer接收CUDA张量，先校原始bits，再写一个packed测试值；父端只有在实际child exitcode=0后读到同一修改才通过，不从子端拷回张量或只信其boolean。生产者保持至消费者退出。
+
+输入同一monotonic原截止、最多300秒worker预算并预留3秒清理，只对自己创建的Process对象有限terminate/kill/join；失败保留owner/receipt交宿主guard处理，不手动free未知地址，不卸载Store。回执含worker命名空间的producer/consumer PID和启动尝试，不能当作宿主NVML PID归属证明。载荷上限最多1MiB只是字节预算，CUDA上下文、allocator缓存和RSS须实际监控；resources_released/runtime_admitted/native_loader_verified/model/Store均保持false，未消费正式ID。
+
+最终343项CPU测试中339通过、4Windows FIFO跳过（31.344秒），两文件当前静态复审PASS。正向父进程使用明确CPU设备/传输替身；真实CPU验证位模式，不能冒称CUDA IPC。此body没有CLI或完整P0 guard scope/监控/60秒观察，不得直接调用绕开准入；旧source/GLM gate也不批准kimi-p0。下一步只补这些最小执行连接和可复用运行时，不等待整模source worker或native完整编译来运行纯CUDA P0a，不将P0a当native P0b通过。
+
+## 本机WSL执行范围
+
+复用现有Ubuntu-22.04 WSL2和同一/mnt/d仓库，无克隆/新环境/权重复制。Linux Python3.10.12无Torch/vLLM/Transformers，故不迁移依赖；已实测从WSL执行现有Windows CPU Python2.10+cpu及同一仓库cwd，相关19项测试18通过1平台跳过（0.674秒），仍是Windows解释器测试而非Linux验证。Linux ssh缺qjhs003配置，现有ssh.exe -G别名可用；WSL原生git status在DrvFS超过10秒，暂用WSL中的现有Windows git.exe写同一index，禁止并发两端写入，不改换行/权限或Git配置。
+
+WSL另报告boyjiang用户systemd会话启动失败，当前仅确认shell、同仓库编辑、Windows工具桥接可用，不据此批准任何WSL服务或将其与qjhs003守护混同；不为此修改WSL全局配置。Git本地写操作可从WSL调用现有git.exe，推送仍保留已验证的Windows凭据路径。

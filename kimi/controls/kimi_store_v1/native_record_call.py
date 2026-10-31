@@ -2,6 +2,7 @@
 import hashlib
 import inspect
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -16,6 +17,169 @@ from state_bindings import validate_state_bindings
 from vllm_cpu_hook import _verify_function
 
 PATCH_SHA = 'c057a1aa51f1c63be8671099d8a0a75da865d8fadffec667df4696fa4cf8287c'
+
+
+def _p0_tensors():
+    """Forty deterministic CPU bytes, never checkpoint or dummy model weights."""
+    import torch
+    packed = torch.tensor([-1, -2147483648, 0x01234567, 0], dtype=torch.int32)
+    return dict(packed=packed, packed_alias=packed,
+        scale=torch.tensor([-32768, 32705, 0, 16256], dtype=torch.int16).view(torch.bfloat16),
+        router=torch.tensor([-2147483648, 2143289345, 1065353216, 0], dtype=torch.int32).view(torch.float32),
+        empty=torch.empty((2, 0), dtype=torch.int32))
+
+
+def _p0_fingerprints(tensors, device):
+    import torch
+    from native_payload import iter_host_byte_blocks
+    layouts = dict(packed=([4], torch.int32), scale=([4], torch.bfloat16),
+                   router=([4], torch.float32), empty=([2, 0], torch.int32))
+    if not isinstance(tensors, dict) or set(tensors) != set(layouts) | {'packed_alias'}:
+        raise ValueError('P0 tensor coverage differs')
+    result = {}
+    for name, (shape, dtype) in layouts.items():
+        tensor = tensors[name]
+        if (not isinstance(tensor, torch.Tensor) or tensor.device != torch.device(device)
+                or tensor.dtype != dtype or list(tensor.shape) != shape or not tensor.is_contiguous()):
+            raise ValueError('P0 tensor layout differs: ' + name)
+        result[name] = hashlib.sha256(b''.join(iter_host_byte_blocks(tensor, 64))).hexdigest()
+    if tensors['packed_alias'] is not tensors['packed']:
+        raise ValueError('P0 packed alias object differs')
+    return result
+
+
+def _p0_device(gpu_uuid):
+    import torch
+    if str(torch.__version__) != '2.10.0+cu129' or torch.version.cuda != '12.9':
+        raise ValueError('P0 requires frozen CUDA PyTorch; no CPU fallback')
+    if torch.cuda.device_count() != 1:
+        raise ValueError('P0 requires exactly one explicitly exposed GPU')
+    torch.cuda.set_device(0)
+    actual = str(getattr(torch.cuda.get_device_properties(0), 'uuid', ''))
+    if actual.removeprefix('GPU-').lower() != gpu_uuid.removeprefix('GPU-').lower():
+        raise ValueError('P0 actual GPU UUID differs')
+    return torch.device('cuda:0')
+
+
+def _p0_ipc_child(connection, gpu_uuid, deadline):
+    """Spawn target: receives CUDA tensors, sends only metadata, then exits."""
+    try:
+        if time.monotonic() >= deadline:
+            raise TimeoutError('P0 consumer entered after original deadline')
+        device = _p0_device(gpu_uuid)
+        if time.monotonic() >= deadline or not connection.poll(max(0, deadline-time.monotonic())):
+            raise TimeoutError('P0 consumer receive deadline exhausted')
+        message = connection.recv()
+        tensors = message['tensors']
+        before = _p0_fingerprints(tensors, device)
+        if before != message['expected']:
+            raise ValueError('P0 consumer raw bits differ')
+        tensors['packed'][0] = 0x13579bdf
+        after = _p0_fingerprints(tensors, device)  # Synchronous host copies complete the write.
+        del tensors, message
+        if time.monotonic() >= deadline:
+            raise TimeoutError('P0 consumer return deadline exhausted')
+        connection.send(dict(status='ok', before=before, after=after))
+    except BaseException as error:
+        connection.send(dict(status='failed', error_type=type(error).__name__, error=repr(error)[:1024]))
+    finally:
+        connection.close()
+
+
+def run_cuda_ipc_component_probe(*, run_id, holder, gpu_uuid, deadline_monotonic, max_payload_bytes):
+    """Internal P0a body only. An admitted guarded worker must call this candidate.
+
+    No CLI, model, Store/native allocator, resource admission or release claim.
+    Parent retains producers until its owned spawn child has actually exited.
+    """
+    if (not isinstance(run_id, str) or not re.fullmatch('kimi-p0-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run_id)
+            or not isinstance(holder, str) or not re.fullmatch('[0-9a-f]{32}', holder)
+            or not isinstance(gpu_uuid, str) or not re.fullmatch('GPU-[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', gpu_uuid)
+            or type(max_payload_bytes) is not int or not 40 <= max_payload_bytes <= 1024**2
+            or type(deadline_monotonic) not in (int, float) or not math.isfinite(deadline_monotonic)):
+        raise ValueError('explicit P0 identity, GPU UUID, payload cap and original deadline required')
+    started = time.monotonic()
+    if not 3 < deadline_monotonic-started <= 300:
+        raise ValueError('P0 budget must cover cleanup within at most 300 seconds')
+    def remaining():
+        value = deadline_monotonic-3-time.monotonic()
+        if value <= 0:raise TimeoutError('P0 component compute deadline exhausted')
+        return value
+    receipt = dict(run_id=run_id, holder=holder, gpu_uuid=gpu_uuid, stage='checking_device',
+        mode='KIMI-CUDA-IPC-P0A-UNREVIEWED', payload_bytes=40, max_payload_bytes=max_payload_bytes,
+        allocator='torch', producer_pid=os.getpid(), consumer_pid=None, child_start_attempted=False,
+        child_exitcode=None, cleanup_errors=[], torch_cuda_ipc_verified=False,
+        native_loader_verified=False, store_created=False, full_model_verified=False,
+        resources_released=False, runtime_admitted=False)
+    gpu, process, parent, child, failure = {}, None, None, None, None
+    try:
+        remaining()
+        device = _p0_device(gpu_uuid)
+        remaining()
+        cpu = _p0_tensors()
+        expected = _p0_fingerprints(cpu, 'cpu')
+        for name, tensor in cpu.items():
+            if name != 'packed_alias':gpu[name] = tensor.to(device=device, copy=True)
+        gpu['packed_alias'] = gpu['packed']
+        receipt['stage'] = 'spawning_consumer'
+        remaining()
+        import torch.multiprocessing as multiprocessing
+        context = multiprocessing.get_context('spawn')
+        parent, child = context.Pipe(duplex=True)
+        process = context.Process(target=_p0_ipc_child, args=(child, gpu_uuid, deadline_monotonic-3), daemon=True)
+        receipt['child_start_attempted'] = True
+        process.start()
+        receipt['consumer_pid'] = process.pid
+        child.close()
+        remaining()
+        parent.send(dict(tensors=gpu, expected=expected))
+        receipt['stage'] = 'waiting_consumer'
+        if not parent.poll(remaining()):raise TimeoutError('P0 consumer response timed out')
+        response = parent.recv()
+        remaining()
+        if not isinstance(response, dict) or response.get('status') != 'ok' or response.get('before') != expected:
+            raise ValueError('P0 consumer did not confirm original raw bits')
+        process.join(remaining())
+        remaining()
+        if process.is_alive() or process.exitcode != 0:
+            raise RuntimeError('P0 owned consumer did not exit successfully')
+        cpu['packed'][0] = 0x13579bdf
+        changed = _p0_fingerprints(cpu, 'cpu')
+        observed = _p0_fingerprints(gpu, device)
+        remaining()
+        if response.get('after') != changed or observed != changed:
+            raise ValueError('P0 consumer mutation not visible in producer CUDA storage')
+        receipt.update(before=expected, after=observed, torch_cuda_ipc_verified=True)
+    except BaseException as error:
+        failure = error
+    finally:
+        for connection in (parent, child):
+            if connection is not None:
+                try:connection.close()
+                except BaseException as error:
+                    receipt['cleanup_errors'].append(type(error).__name__)
+                    if failure is None:failure = error
+        if process is not None and process.pid is not None:
+            try:
+                for stop in (process.terminate, process.kill):
+                    if not process.is_alive():break
+                    stop()
+                    process.join(max(0, min(1, deadline_monotonic-time.monotonic())))
+                receipt['child_exitcode'] = process.exitcode
+                if process.is_alive():raise RuntimeError('P0 consumer remains; host guard disposal required')
+                process.close()
+            except BaseException as error:
+                receipt['cleanup_errors'].append(type(error).__name__)
+                if failure is None:failure = error
+    receipt['elapsed_seconds'] = time.monotonic()-started
+    if failure is None and time.monotonic() >= deadline_monotonic:
+        failure = TimeoutError('P0 complete worker deadline exceeded')
+    if failure is not None:
+        receipt['error_type'] = type(failure).__name__
+        failure.p0_receipt, failure.p0_owners = receipt, gpu
+        raise failure
+    receipt['stage'] = 'returned'
+    return receipt
 
 
 def _file_digest(path):

@@ -10,7 +10,7 @@
 
 1. 新有效GPU及主机资源范围。当前10–19属于alan；19点之后也须明确GPU/RAM使用范围，不能据“Azure也是我们的”忽略该预约写明的GPU协调要求或活跃后台任务。
 2. 可复用的合规运行时。默认host Python的metadata未见torch/vllm/transformers/sllm-store；现有镜像列表没有已核Kimi ABI镜像，未标记0202候选仅vendor24.04标签，包版本未知。先查现有授权备份/运行时，不下载大资产、不另建环境，不把GLM cu130当冻结Kimi cu129验证。这里不是声称已搜索全部环境。
-3. P0a小探针最小执行闭包：单卡、确定性小张量、有限CUDA/IPC/所有权/释放验证，明确只算组件。原文件内完成脚本/完整硬预算、当前code manifest与一次完整独立R1、新run/独立guard实际安装与probe、轻量监控和60秒观察。禁止用现有CPU-only debug工具跑GPU，不把guard计划或CPU PASS当部署通过。native实际补丁编译与整模worker列入P0b/P1后续，不阻塞纯CUDA/IPC P0a，但没有编译receipt不得跳过native入口检查。
+3. P0a小探针最小执行闭包（内部body与当前静态复审已完成；尚无完整执行准入）：单卡、确定性小张量、有限CUDA/IPC/所有权/释放验证，明确只算组件。原文件内完成脚本/完整硬预算、当前code manifest与一次完整独立R1、新run/独立guard实际安装与probe、轻量监控和60秒观察。禁止用现有CPU-only debug工具跑GPU，不把guard计划或CPU PASS当部署通过。native实际补丁编译与整模worker列入P0b/P1后续，不阻塞纯CUDA/IPC P0a，但没有编译receipt不得跳过native入口检查。
 
 排程估计（不是已冻结timeout/已启动承诺）：本机P0a必要源码+R1约45–75分钟；若这些与合规运行时均在新窗口前完成，则窗口开始后约10–15分钟用于实际资源/guard/ABI准入，之后首次使用1卡。整个P0a建议预留30–45分钟，包含完整最大预算、60秒观察及清理余量，不预占8卡数小时。运行时尚未找到或窗口未确认时，无法诚实给出固定首次GPU时刻；19:00仅是潜在协调点，不是已确认开跑时间。不得为了赶时间跳过审阅、守护或资源检查。
 

@@ -3,9 +3,11 @@ import hashlib
 import json
 import math
 import os
+import struct
 from pathlib import Path
 import tempfile
 import types
+import time
 import unittest
 from unittest.mock import patch
 
@@ -16,6 +18,114 @@ import native_record_call as call
 from native_install import install_native_state
 import test_cpu_tensor_io
 import test_native_call
+
+
+class P0ComponentTests(unittest.TestCase):
+    def options(self):
+        return dict(run_id='kimi-p0-20261031T000000Z-01234567',holder='a'*32,
+            gpu_uuid='GPU-12345678-1234-1234-1234-123456789abc',
+            deadline_monotonic=time.monotonic()+30,max_payload_bytes=40)
+
+    def test_small_payload_preserves_packed_bf16_f32_bits_and_alias(self):
+        tensors=call._p0_tensors()
+        expected=dict(packed=struct.pack('<iiii',-1,-2147483648,0x01234567,0),
+            scale=struct.pack('<HHHH',0x8000,0x7fc1,0,0x3f80),
+            router=struct.pack('<iiii',-2147483648,2143289345,1065353216,0),empty=b'')
+        self.assertEqual(sum(map(len,expected.values())),40)
+        self.assertIs(tensors['packed_alias'],tensors['packed'])
+        self.assertEqual(call._p0_fingerprints(tensors,'cpu'),
+                         {k:hashlib.sha256(v).hexdigest() for k,v in expected.items()})
+        tensors['packed_alias']=tensors['packed'].clone()
+        with self.assertRaisesRegex(ValueError,'alias'):call._p0_fingerprints(tensors,'cpu')
+
+    def test_cpu_or_wrong_cuda_abi_rejected_before_any_gpu_query(self):
+        with patch.object(torch,'__version__','2.10.0+cpu'), \
+                patch.object(torch.cuda,'device_count',side_effect=AssertionError('unexpected GPU query')):
+            with self.assertRaisesRegex(ValueError,'no CPU fallback') as caught:
+                call.run_cuda_ipc_component_probe(**self.options())
+        self.assertFalse(caught.exception.p0_receipt['torch_cuda_ipc_verified'])
+        self.assertFalse(caught.exception.p0_owners)
+
+    def test_bad_p0_identity_cap_or_original_deadline_rejected_before_device(self):
+        for key,value in (('run_id','wrong'),('holder','a'*31),('gpu_uuid','GPU-unknown'),
+                          ('max_payload_bytes',39),('max_payload_bytes',True),
+                          ('max_payload_bytes',2*1024**2),('deadline_monotonic',float('nan')),
+                          ('deadline_monotonic',time.monotonic()+2),('deadline_monotonic',time.monotonic()+1000)):
+            options=self.options();options[key]=value
+            with patch.object(call,'_p0_device',side_effect=AssertionError('unexpected device')):
+                with self.assertRaises(ValueError):call.run_cuda_ipc_component_probe(**options)
+
+    def transport(self,kind):
+        events=[];response={}
+        class Connection:
+            def send(self,message):
+                state=message['tensors'];response.update(status='ok',before=message['expected'])
+                if kind=='wrong_before':response['before']={}
+                changed=call._p0_tensors();changed['packed'][0]=0x13579bdf
+                response['after']=call._p0_fingerprints(changed,'cpu')
+                if kind!='not_shared':state['packed'][0]=0x13579bdf
+            def poll(self,timeout):return kind!='timeout'
+            def recv(self):return response
+            def close(self):
+                events.append('pipe_close')
+                if kind=='close_error':raise OSError('owned pipe fault')
+        class ChildConnection:
+            def close(self):events.append('child_pipe_close')
+        class Process:
+            pid=None;exitcode=None;alive=False
+            def start(self):self.pid=999;self.alive=True;events.append('start')
+            def join(self,timeout):
+                if kind not in ('timeout','unkillable'):
+                    self.alive=False;self.exitcode=1 if kind=='child_error' else 0
+            def is_alive(self):return self.alive
+            def terminate(self):
+                events.append('terminate')
+                if kind!='unkillable':self.alive=False;self.exitcode=-15
+            def kill(self):events.append('kill')
+            def close(self):events.append('process_close')
+        process=Process()
+        context=types.SimpleNamespace(Pipe=lambda **kw:(Connection(),ChildConnection()),
+                                      Process=lambda **kw:process)
+        return context,process,events
+
+    def test_parent_cpu_transport_control_is_not_real_cuda_validation(self):
+        import torch.multiprocessing as mp
+        context,process,events=self.transport('ok')
+        with patch.object(call,'_p0_device',return_value=torch.device('cpu')), \
+                patch.object(mp,'get_context',return_value=context) as factory:
+            result=call.run_cuda_ipc_component_probe(**self.options())
+        factory.assert_called_once_with('spawn')
+        self.assertTrue(result['torch_cuda_ipc_verified'])  # Explicit CPU device and transport stand-ins.
+        self.assertEqual(result['child_exitcode'],0)
+        self.assertEqual(result['producer_pid'],os.getpid())
+        self.assertEqual(result['consumer_pid'],999)
+        self.assertTrue(result['child_start_attempted'])
+        self.assertFalse(process.is_alive())
+        self.assertIn('process_close',events)
+        for name in ('runtime_admitted','store_created','native_loader_verified','full_model_verified','resources_released'):
+            self.assertFalse(result[name])
+
+    def test_parent_failure_controls_keep_owners_and_only_stop_owned_consumer(self):
+        import torch.multiprocessing as mp
+        for kind in ('wrong_before','not_shared','timeout','child_error','close_error','unkillable'):
+            with self.subTest(kind=kind):
+                context,process,events=self.transport(kind)
+                with patch.object(call,'_p0_device',return_value=torch.device('cpu')), \
+                        patch.object(mp,'get_context',return_value=context):
+                    with self.assertRaises((ValueError,RuntimeError,TimeoutError,OSError)) as caught:
+                        call.run_cuda_ipc_component_probe(**self.options())
+                self.assertTrue(caught.exception.p0_owners)
+                self.assertFalse(caught.exception.p0_receipt['resources_released'])
+                if kind=='unkillable':self.assertIn('kill',events)
+                else:self.assertFalse(process.is_alive())
+
+    def test_expired_consumer_reports_failure_before_cuda_and_closes_pipe(self):
+        from unittest.mock import Mock
+        connection=Mock()
+        with patch.object(call,'_p0_device',side_effect=AssertionError('unexpected CUDA')):
+            call._p0_ipc_child(connection,self.options()['gpu_uuid'],time.monotonic()-1)
+        self.assertEqual(connection.send.call_args.args[0]['error_type'],'TimeoutError')
+        connection.close.assert_called_once()
 
 
 class NativeRecordCallTests(unittest.TestCase):

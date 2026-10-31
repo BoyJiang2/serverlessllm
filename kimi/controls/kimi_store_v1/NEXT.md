@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 2026-10-31 最小P0a已在原native_record_call实现内部body：40确定性字节/packed I32+BF16/F32+alias+empty，单暴露GPU UUID、固定Torch2.10cu129无CPUfallback、spawn/Pipe消费者读后修改，父保留producer到实际子进程exit0再观察共享修改；原<=300s deadline预留3s owned清理，失败保留owner，不碰native/Store/模型。独立kimi-p0身份/PID仅worker命名空间；无CLI、当前P0 guard scope/monitor/60秒及实际准入，所以不是可开跑gate。343项最终339过4跳过（31.344秒），19相关18过1跳过；当前两文件静态复审PASS见native-record-call-review。用户说继续，已继续必要准备，未借alan资源。下一项只接P0最小入口/身份与预算/新guard和轻监控、复用合规已有runtime；不再扩CPU工具，不用旧source/GLM gate批准P0，不改native2x停止。
+
+- WSL偏好已实际核验并开始采用：现有Ubuntu22.04 WSL2能访问同一/mnt/d repo，LinuxPython3.10无torch/vllm/transformers，原生ssh缺qjhs003别名；Win ssh.exe -G可用。从WSL桥接现有WindowsCPU Python/同一cwd已跑19相关测试18过1skip（0.674秒），不是LinuxTorch通过；不复制仓库/资产、不装新环境。Linuxgit status在DrvFS10s超时且未重复，保留失败，Git写暂用WSL现有Windowsgit.exe顺序操作、filemodefalse，不更改配置/权限。
+
 - 2026-10-31 已收尾Tensor.__dict__清单缺口：注册Parameter/buffer及隐藏Tensor附加属性沿原bounded walk扫描，已知隐藏Tensor在写目录前拒绝；旧Parameter缓存漏导出已复现，buffer原来已被state_bindings拒绝。337项最终333通过4跳过（32.023秒），三文件静态复审PASS；保留target-only opaque loader_marker导致严格清单不等的新可见事实，未放宽state_audit，失败追加runtime-inventory-cpu-review.json。用户催促后优先最小P0，不继续扩CPU工具：2026-10-31 10:04预约API已无旧boyjiang4498，10–19 alan，19–23 Azure用途RAM/RDMA且GPU需协调；09:58只读SSH八卡0MiB但harbor-alan仍在，systemd249、可用1.84TiB，默认host Python无torch/vllm，现有未标记镜像0202仅vendor24.04标签，不是合规runtime证明。详RESERVATION-PLAN最新。下一项P0a确定性小张量CUDA/IPC独立探针的最小源码/完整预算/R1/实际guard准入；不以source整模或native全编译作P0a前提，但实际窗口和合规现有runtime缺口先确认，不占8卡/池等审批、不新增环境/大资产，不启动GPU。
 
 - 2026-10-31 回到临时内存核心审计：verify_records旧read/hash循环持有上一块直到新read完成，且摘要异常consumer traceback锚块；真实12字节文件/4字节块弱引用负例先复现，旧源码私有namespace摘要故障也失败，现每块消费finally del block，无生产gc或新副本。11项stream测试通过，全套334项330通过4POSIX FIFO因Windows跳过（29.464秒），两文件静态复审PASS，初次Path.open测试descriptor错误/旧失败/哈希追加cpu-tensor-io-review.json。只证明consumer引用释放顺序，不是RSS/CUDA峰值或全部第三方traceback清理，原2×预算拒绝不变。原文件构建，无新目录/权重环境复制。下一项继续核完整转换/读回临时持有及worker提交/monitor/60秒释放闭包，真实native构建/八rank/服务仍缺，CPU-only不变。
