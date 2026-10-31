@@ -8,7 +8,7 @@
 
 CPU控制执行冻结registry→deferred→原mixed factory→私有Base小模型链；CUDA、native ABI/IPC、安装边界仍明确mock。另测注册不查询context、rank≠device、配置快照、非法context、未初始化CUDA、预算及部分加载失败。独立审阅发现旧`deepcopy`可复制Tensor，负例先失败，现纯元数据预检后浅快照拒绝Tensor/opaque且不调用其copy钩子。
 
-这只是受控worker可调用的注册接口，不是已经完成native general-plugin配置/manifest或spawn传播。`source_plugin.register`仍只export；native调用者、实际ABI/活跃Store、峰值、八rank和服务门槛尚待完成。没有远端计算、完整转换或GPU通过。
+该私有API现由`source_plugin.register_native`消费：独立native spec/manifest及private entrypoint，文件校验后才导入runtime；细节见SOURCE-PLUGIN。export回调仍独立。CPU子进程替身注册不是实际vLLM spawn传播，实际ABI/活跃Store、峰值、八rank和服务门槛尚待完成。没有远端计算、完整转换或GPU通过。
 
 `vllm_mixed_hook.make_mixed_store_loader` 已把现有组件组合成独立BaseModelLoader子类，不注册、不部署worker、不改旧工厂或旧运行包。顺序为：受限源码/二进制绑定及侧车预检 → 官方Base dtype与目标设备上下文 → CPU文本/官方CUDA视觉构造（保留官方quant/current-config/reload）→ mixed Marlin辅助规范化 → 逐记录allocator/多handle请求/确认 → 独立全payload核验与按角色安装 → 放弃loader持有的全raw状态引用 → 显式最终CUDA target的官方quant/Attention后处理 → Base eval。
 

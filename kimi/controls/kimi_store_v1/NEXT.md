@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 native独立插件接线完成CPU候选：原source_plugin内register_native使用独立schema/run_id/三env/native-spec和native-code-manifest，bounded regular fd<=64KiB、冻结config/1428contract、8rank纯元数据/不同Store目录/与run分离/本机loopback；verify_native_run用共用完整字节清单而不复用export审批，在真实framework/native导入前校验当前插件目录，cache也重查并绑定spec+bundle SHA/registry/class。mode=native私有entrypoint调用已审deferred API，export默认metadata字节不变，双环境互拒。31plugin+18bundle相关通过，含两个新CPU子进程实际discovery/spec继承/调用回调与冻结registry；code gate/runtime在该链明确mock，真实文件清单另有小非执行树正反例。全387项371过16Windows skip44.182s，四源码只读复审PASS/SHA核验见source-plugin-review；source-plugin-tests留原测试历史。无远端/GPU/安装/新环境/GB副本。
+- 下一项不再补重复注册接口：核实际native补丁构建/加载身份和完整mixed GPU+host峰值及运行预算；现有磁盘SHA不是已映射/活跃Store证明，2×预算停止保留，不填大数绕过。source单模型转换与P0准备已有组件，不因native缺口重做通用wrapper。真实vLLM spawn/CUDA/八rank/完整Store与业务金标均未通过，实际GPU须新有效窗口、全资源/共享I/O和完整R1/独立guard+probe，不借旧GLM或CPU静态PASS准入。沿现有CPU授权推进真正缺项，不创建预约或碰Claude/alan。
+
 - 2026-10-31 已在原vllm_mixed_hook加register_deferred_mixed_loader私有native注册API：注册仅固定八字段plain str/int浅快照，不读CUDA/ABI/Store；load_model才用既有current_rank_context核TP8/PP1，按rank选asset、device选budget（测试rank3/device5）。委托原mixed factory保留build/sidecar/2×停止及一次官方Base生命周期，失败保留delegate/清理义务且不重试。初审deepcopy可复制Tensor缺口已负例先失败1项.027s，再改纯元数据拒绝；旧NEEDS_FIX/源码SHA留mixed-lifecycle-review。最终11相关.719s；全381项365过16Windows skip41.902s（WSL桥接既有WindowsCPU Torch），当前两源码只读复审PASS且SHA核验。未新建环境/目录或GB副本，无远端计算/Store/GPU。
 - 下一项是把上述私有注册API接到绑定实际源码清单和独立native spec的general-plugin调用者，并核spawn传播/实际库身份；source_plugin仍仅export，本轮API不是可部署worker/真实native通过。禁止只改export spec的mode冒用其manifest，勿再扩通用P0包装。已有source转换与P0组件不重做；原2×拒绝、有效窗口/全资源与实际新guard门槛及GLM历史保持，完整Kimi Store/八rank/金标/服务尚未完成。
 

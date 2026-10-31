@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
 import time
 import traceback
 from datetime import datetime, timezone
@@ -13,6 +14,116 @@ SPEC_ENV = 'SLLM_KIMI_SOURCE_SPEC'
 SHA_ENV = 'SLLM_KIMI_SOURCE_SPEC_SHA256'
 BUNDLE_SHA_ENV = 'SLLM_KIMI_SOURCE_BUNDLE_SHA256'
 _registration = None
+NATIVE_ENV = ('SLLM_KIMI_NATIVE_SPEC', 'SLLM_KIMI_NATIVE_SPEC_SHA256', 'SLLM_KIMI_NATIVE_BUNDLE_SHA256')
+_native_registration = None
+
+
+def _load_native_spec(path, expected_sha):
+    from contract import REVISION, validate_config
+    from checkpoint_contract import load_targets, read_checkpoint_metadata
+    from native_call import _store_directory
+    source = Path(path)
+    if (not source.is_absolute() or not isinstance(expected_sha, str)
+            or not re.fullmatch('[0-9a-f]{64}', expected_sha)):
+        raise ValueError('absolute native spec path and external SHA required')
+    fd = os.open(source, os.O_RDONLY | getattr(os, 'O_BINARY', 0)
+                 | getattr(os, 'O_NONBLOCK', 0) | getattr(os, 'O_NOFOLLOW', 0))
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError('regular native spec required')
+        with os.fdopen(fd, 'rb', closefd=False) as stream:
+            raw = stream.read(65537)
+    finally:
+        os.close(fd)
+    if len(raw) > 65536 or hashlib.sha256(raw).hexdigest() != expected_sha:
+        raise ValueError('native spec length or external SHA differs')
+    spec = json.loads(raw)
+    keys = {'schema', 'node', 'mode', 'revision', 'run_id', 'holder', 'code_commit',
+            'run_root', 'config_path', 'checkpoint_contract_path', 'rank_options', 'device_memory_budgets'}
+    if (not isinstance(spec, dict) or set(spec) != keys
+            or spec['schema'] != 'kimi-native-worker-plugin-v1' or spec['node'] != 'qjhs003'
+            or spec['mode'] != 'native' or spec['revision'] != REVISION
+            or any(not isinstance(spec[k], str) or not re.fullmatch(pattern, spec[k]) for k, pattern in (
+                ('run_id', 'kimi-native-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}'),
+                ('holder', '[0-9a-f]{32}'), ('code_commit', '[0-9a-f]{40}')))):
+        raise ValueError('independent native schema and identity required')
+    for key in ('run_root', 'config_path', 'checkpoint_contract_path'):
+        if not isinstance(spec[key], str) or not Path(spec[key]).is_absolute():
+            raise ValueError('absolute native run metadata paths required')
+        spec[key] = Path(spec[key]).resolve(strict=True)
+    root = spec['run_root']
+    if (not root.is_dir() or source.resolve(strict=True) != root / 'native-spec.json'
+            or any(not spec[k].is_relative_to(root) for k in ('config_path', 'checkpoint_contract_path'))):
+        raise ValueError('native metadata belongs to another run layout')
+    rows, budgets = spec['rank_options'], spec['device_memory_budgets']
+    strings = {'storage_path', 'model_path', 'expected_sidecar_sha256', 'server_address',
+               'build_receipt', 'expected_build_sha256'}
+    integers = {'max_allocation_bytes', 'timeout_seconds'}
+    if (not isinstance(rows, list) or len(rows) != 8 or not isinstance(budgets, list) or len(budgets) != 8
+            or any(type(n) is not int or n <= 0 for n in budgets)
+            or any(not isinstance(row, dict) or set(row) != strings | integers
+                or any(type(row[k]) is not str for k in strings)
+                or any(type(row[k]) is not int or row[k] <= 0 for k in integers)
+                for row in rows)):
+        raise ValueError('eight plain metadata rank options and device budgets required')
+    directories = set()
+    for row in rows:
+        storage = Path(row['storage_path'])
+        build = Path(row['build_receipt'])
+        if (not storage.is_absolute() or not build.is_absolute()
+                or not build.resolve(strict=True).is_relative_to(root)
+                or any(not re.fullmatch('[0-9a-f]{64}', row[k]) for k in
+                       ('expected_sidecar_sha256', 'expected_build_sha256'))):
+            raise ValueError('native asset paths and external metadata SHA required')
+        storage, directory = _store_directory(storage, row['model_path'])
+        endpoint = re.fullmatch(r'127\.0\.0\.1:([0-9]{1,5})', row['server_address'])
+        if endpoint is None or not 1 <= int(endpoint[1]) <= 65535:
+            raise ValueError('native Store endpoint must remain on this node loopback')
+        if (not storage.is_dir() or not directory.is_dir() or not build.is_file()
+                or storage.is_relative_to(root) or root.is_relative_to(storage) or directory in directories):
+            raise ValueError('eight distinct read-only native assets separate from run required')
+        directories.add(directory)
+    config = read_checkpoint_metadata(spec['config_path'], 'config')
+    contract = read_checkpoint_metadata(spec['checkpoint_contract_path'], 'targets')
+    validate_config(config)
+    load_targets(contract)
+    return spec, config, contract
+
+
+def _native_runtime():
+    registry, base, _ = _runtime()
+    from sllm_store import torch as native
+    from vllm.model_executor.models.kimi_k25 import KimiK25ForConditionalGeneration
+    return registry, base, native, KimiK25ForConditionalGeneration
+
+
+def register_native():
+    global _native_registration
+    values = tuple(os.environ.get(k) for k in NATIVE_ENV)
+    if all(v is None for v in values):
+        return None
+    if not all(values) or any(os.environ.get(k) is not None for k in (SPEC_ENV, SHA_ENV, BUNDLE_SHA_ENV)):
+        raise ValueError('complete independent native environment without source activation required')
+    path, digest, bundle_digest = values
+    spec, config, contract = _load_native_spec(path, digest)
+    from source_bundle import verify_native_run
+    verify_native_run(Path(__file__).resolve().parent, spec['run_root'] / 'native-code-manifest.json',
+                      bundle_digest, path, digest)
+    registry, base, native, model_class = _native_runtime()
+    from loader_registry import FORMATS
+    if _native_registration is not None:
+        previous_sha, previous_bundle, previous_registry, cls = _native_registration
+        if (previous_sha != digest or previous_bundle != bundle_digest or previous_registry is not registry
+                or registry._LOAD_FORMAT_TO_MODEL_LOADER.get(FORMATS['native']) is not cls):
+            raise ValueError('native registration identity changed within worker')
+        return FORMATS['native']
+    from marlin_aux import PROFILE
+    from vllm_mixed_hook import register_deferred_mixed_loader
+    cls = register_deferred_mixed_loader(registry, base, native, model_class,
+        rank_options=spec['rank_options'], device_memory_budgets=spec['device_memory_budgets'],
+        config_raw=config, checkpoint_contract=contract, profile=PROFILE, vllm_version='0.19.1')
+    _native_registration = digest, bundle_digest, registry, cls
+    return FORMATS['native']
 
 
 def _load_spec(path, expected_sha):
@@ -83,6 +194,8 @@ def register():
     bundle_digest = os.environ.get(BUNDLE_SHA_ENV)
     if path is None and digest is None and bundle_digest is None:
         return None
+    if any(os.environ.get(k) is not None for k in NATIVE_ENV):
+        raise ValueError('source and native activation must be separate')
     if not path or not digest or not bundle_digest:
         raise ValueError('source plugin needs both spec path/SHA and bundle SHA')
     spec, config_raw, contract_raw = _load_spec(path, digest)
@@ -108,14 +221,18 @@ def register():
     return name
 
 
-def materialize_plugin_metadata(directory):
+def materialize_plugin_metadata(directory, *, mode='export'):
     """Create only dedicated distribution metadata; never install globally."""
     parent = Path(directory).resolve(strict=True)
-    target = parent / 'serverlessllm_kimi_source_candidate-0.1.0.dist-info'
+    if mode not in ('export', 'native'):
+        raise ValueError('explicit private plugin mode required')
+    label = 'source' if mode == 'export' else 'native'
+    target = parent / ('serverlessllm_kimi_' + label + '_candidate-0.1.0.dist-info')
     target.mkdir()  # Preserve partial evidence and refuse overwrite/retry.
     for name, contents in {
-        'METADATA': 'Metadata-Version: 2.1\nName: serverlessllm-kimi-source-candidate\nVersion: 0.1.0\n',
-        'entry_points.txt': '[vllm.general_plugins]\nsllm_kimi_source_candidate = source_plugin:register\n',
+        'METADATA': 'Metadata-Version: 2.1\nName: serverlessllm-kimi-' + label + '-candidate\nVersion: 0.1.0\n',
+        'entry_points.txt': '[vllm.general_plugins]\nsllm_kimi_' + label + '_candidate = source_plugin:'
+                            + ('register' if mode == 'export' else 'register_native') + '\n',
     }.items():
         with (target / name).open('x', encoding='utf-8', newline='\n') as stream:
             stream.write(contents)

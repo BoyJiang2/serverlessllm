@@ -15,6 +15,43 @@ import test_source_plugin
 
 
 class SourceBundleTests(unittest.TestCase):
+    def test_native_uses_independent_spec_and_manifest_with_real_file_set_verification(self):
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = test_source_plugin.SourcePluginTests().native_fixture(temp)
+            root = Path(spec['run_root'])
+            code = root / 'code'
+            code.mkdir()
+            names = ('source_plugin.py', 'source_bundle.py', 'checkpoint-targets.json',
+                     'vllm_mixed_hook.py', 'loader_registry.py', 'native_record_call.py')
+            # Tiny file-verifier fixture, not executable native plugin code.
+            rows = []
+            for name in names:
+                data = ('# inventory fixture ' + name + '\n').encode()
+                (code / name).write_bytes(data)
+                rows.append(dict(path=name, bytes=len(data), sha256=hashlib.sha256(data).hexdigest()))
+            manifest = root / 'native-code-manifest.json'
+            raw = json.dumps(dict(schema=bundle.SCHEMA, source_prefix=bundle.PREFIX,
+                code_commit=spec['code_commit'], files=rows, runtime_admitted=False)).encode()
+            manifest.write_bytes(raw)
+            digest = hashlib.sha256(raw).hexdigest()
+            spec_raw = json.dumps(spec).encode()
+            path.write_bytes(spec_raw)
+            spec_sha = hashlib.sha256(spec_raw).hexdigest()
+            receipt = bundle.verify_native_run(code, manifest, digest, path, spec_sha)
+            self.assertEqual(receipt['files_verified'], 6)
+            self.assertEqual(receipt['run_id'], spec['run_id'])
+            self.assertFalse(receipt['native_runtime_verified'])
+            self.assertFalse(receipt['runtime_admitted'])
+            export_manifest = root / 'source-code-manifest.json'
+            export_manifest.write_bytes(raw)
+            with self.assertRaisesRegex(ValueError, 'another run'):
+                bundle.verify_native_run(code, export_manifest, digest, path, spec_sha)
+            (code / 'native_record_call.py').write_bytes(b'changed')
+            with self.assertRaisesRegex(ValueError, 'source bytes differ'):
+                bundle.verify_native_run(code, manifest, digest, path, spec_sha)
+            with self.assertRaisesRegex(ValueError, 'source identity'):
+                bundle.verify_source_run(code, export_manifest, digest, path, spec_sha)
+
     def git(self, root, *args):
         return subprocess.check_output(['git', '-c', 'core.hooksPath=' + str(root / 'no-hooks'),
             '-c', 'commit.gpgsign=false', '-c', 'user.name=CPU Fixture',

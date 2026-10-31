@@ -32,3 +32,6 @@ python controls/kimi_store_v1/source_bundle.py verify --directory <code目录> -
 初审发现rglob可能抑制子目录扫描OSError。首次注入只patch os.scandir，未覆盖Python3.13缓存的pathlib扫描器，按真实结果保留为探针未命中；修正hook后旧实现确实误返回成功。现改os.walk(onerror=raise, followlinks=False)，子目录扫描失败必须退出；完整初审源码、hash、两次探针结果及最终测试保留source-bundle-tests.json。新回归是小本机故障注入，不冒充真实Linux权限probe。
 
 后续source-plugin修订已把verify_source_run接到_runtime/registry/factory之前，并要求外部bundle SHA，cached调用同样重查。原f152680候选保持冻结，新的代码必须重新成包；完整worker/实际导入内存/守护与运行准入仍缺，不能追认旧包已经包含本接线。
+# 2026-10-31 native绑定补充
+
+`verify_native_run`复用共用字节inventory，但消费独立`native-spec.json`及`native-code-manifest.json`。实际code目录必须属于该run，manifest commit绑定native spec；除完整文件集合和逐文件SHA，还要求mixed hook/registry/record producer入口在清单内。export spec/manifest不能直接审批native。此为文件证据，非已加载Python/native代码、实际UID/boot/窗口/Store或GPU运行证明。小型非执行树正反例与插件相关测试记录统一追加source-plugin-tests.json/source-plugin-review.json，旧证据不重标。

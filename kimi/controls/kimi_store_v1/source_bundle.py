@@ -149,6 +149,22 @@ def verify_source_run(directory, manifest_path, manifest_sha256, spec_path, spec
                 spec_sha256=spec_sha256, identity_declared_only=True)
 
 
+def verify_native_run(directory, manifest_path, manifest_sha256, spec_path, spec_sha256):
+    from source_plugin import _load_native_spec
+    spec, _, _ = _load_native_spec(spec_path, spec_sha256)
+    root = spec['run_root']
+    if (Path(directory).resolve(strict=True) != root / 'code'
+            or Path(manifest_path).resolve(strict=True) != root / 'native-code-manifest.json'):
+        raise ValueError('native code and manifest belong to another run layout')
+    receipt = verify_source_bundle(directory, manifest_path, manifest_sha256,
+        expected_code_commit=spec['code_commit'])
+    for name in ('vllm_mixed_hook.py', 'loader_registry.py', 'native_record_call.py'):
+        if not (root / 'code' / name).is_file():
+            raise ValueError('native entry absent from verified code inventory: ' + name)
+    return dict(receipt, run_id=spec['run_id'], holder=spec['holder'], spec_sha256=spec_sha256,
+                identity_declared_only=True, native_runtime_verified=False)
+
+
 
 def _p0_identity(identity):
     patterns = dict(run_id='kimi-p0-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}',

@@ -284,10 +284,138 @@ class SourcePluginTests(unittest.TestCase):
         environment = patch.dict(os.environ)
         environment.start()
         self.addCleanup(environment.stop)
-        for name in (plugin.SPEC_ENV, plugin.SHA_ENV, plugin.BUNDLE_SHA_ENV): os.environ.pop(name, None)
+        for name in (plugin.SPEC_ENV, plugin.SHA_ENV, plugin.BUNDLE_SHA_ENV) + plugin.NATIVE_ENV:
+            os.environ.pop(name, None)
         state = patch.object(plugin, '_registration', None)
         state.start()
         self.addCleanup(state.stop)
+        native_state = patch.object(plugin, '_native_registration', None)
+        native_state.start()
+        self.addCleanup(native_state.stop)
+
+    def native_fixture(self, temp):
+        source, _ = self.fixture(temp)
+        run = Path(source['run_root'])
+        config = run / 'config.json'
+        config.write_bytes((Path(source['checkpoint_path']) / 'config.json').read_bytes())
+        storage = Path(temp) / 'store'
+        storage.mkdir()
+        build = run / 'build.json'
+        build.write_bytes(b'{}')  # Metadata only; cannot satisfy compiled build check.
+        rows = []
+        for rank in range(8):
+            (storage / ('rank-' + str(rank))).mkdir()
+            rows.append(dict(storage_path=str(storage), model_path='rank-' + str(rank),
+                expected_sidecar_sha256='c' * 64, server_address='127.0.0.1:18073',
+                build_receipt=str(build), expected_build_sha256=hashlib.sha256(build.read_bytes()).hexdigest(),
+                max_allocation_bytes=1024, timeout_seconds=30))
+        spec = dict(schema='kimi-native-worker-plugin-v1', node='qjhs003', mode='native', revision=REVISION,
+            run_id='kimi-native-20261031T000000Z-01234567', holder='a' * 32, code_commit='b' * 40,
+            run_root=str(run), config_path=str(config), checkpoint_contract_path=source['checkpoint_contract_path'],
+            rank_options=rows, device_memory_budgets=[1024] * 8)
+        return spec, run / 'native-spec.json'
+
+    def activate_native(self, spec, path):
+        raw = json.dumps(spec, sort_keys=True).encode('utf-8')
+        path.write_bytes(raw)
+        for name, value in zip(plugin.NATIVE_ENV, (str(path), hashlib.sha256(raw).hexdigest(), 'd' * 64)):
+            os.environ[name] = value
+
+    def test_native_real_registry_registers_deferred_without_touching_runtime_groups(self):
+        import source_bundle
+        import vllm_mixed_hook
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = self.native_fixture(temp)
+            self.activate_native(spec, path)
+            registry, base = self.registry()
+            original = registry._LOAD_FORMAT_TO_MODEL_LOADER['safetensors']
+            with patch.object(source_bundle, 'verify_native_run', return_value={}) as gate, \
+                    patch.object(plugin, '_native_runtime', return_value=(registry, base, object(), object)), \
+                    patch.object(vllm_mixed_hook, 'make_mixed_store_loader') as factory:
+                self.assertEqual(plugin.register_native(), FORMATS['native'])
+                candidate = registry._LOAD_FORMAT_TO_MODEL_LOADER[FORMATS['native']]
+                self.assertEqual(plugin.register_native(), FORMATS['native'])
+                self.assertIs(registry._LOAD_FORMAT_TO_MODEL_LOADER[FORMATS['native']], candidate)
+                self.assertEqual(gate.call_count, 2)
+                factory.assert_not_called()
+                os.environ[plugin.NATIVE_ENV[2]] = 'e' * 64
+                with self.assertRaisesRegex(ValueError, 'identity changed'):
+                    plugin.register_native()
+            self.assertIs(registry._LOAD_FORMAT_TO_MODEL_LOADER['safetensors'], original)
+
+    def test_native_code_gate_failure_precedes_runtime_and_cached_registration(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = self.native_fixture(temp)
+            self.activate_native(spec, path)
+            with patch.object(plugin, '_native_runtime') as runtime:
+                with self.assertRaises((ValueError, OSError)):
+                    plugin.register_native()  # Real wrong layout, not a mocked rejection.
+                runtime.assert_not_called()
+            registry, base = self.registry()
+            with patch.object(source_bundle, 'verify_native_run', return_value={}), \
+                    patch.object(plugin, '_native_runtime', return_value=(registry, base, object(), object)):
+                plugin.register_native()
+            with patch.object(source_bundle, 'verify_native_run', side_effect=ValueError('changed code')), \
+                    patch.object(plugin, '_native_runtime') as runtime:
+                with self.assertRaisesRegex(ValueError, 'changed code'):
+                    plugin.register_native()
+                runtime.assert_not_called()
+
+    def test_native_independent_schema_paths_and_rank_metadata_reject_before_runtime(self):
+        for kind in ('schema', 'mode', 'run_id', 'duplicate', 'identity', 'budget', 'config', 'contract', 'escape', 'remote'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
+                spec, path = self.native_fixture(temp)
+                if kind == 'schema': spec['schema'] = 'kimi-source-worker-plugin-v1'
+                elif kind == 'mode': spec['mode'] = 'export'
+                elif kind == 'run_id': spec['run_id'] = 'kimi-export-20261031T000000Z-01234567'
+                elif kind == 'duplicate': spec['rank_options'][1] = spec['rank_options'][0]
+                elif kind == 'identity': spec['rank_options'][0]['rank'] = 0
+                elif kind == 'budget': spec['device_memory_budgets'][0] = True
+                elif kind == 'escape': spec['rank_options'][0]['model_path'] = '../escape'
+                elif kind == 'remote': spec['rank_options'][0]['server_address'] = 'qjhs001:18073'
+                else:
+                    target = Path(spec['config_path' if kind == 'config' else 'checkpoint_contract_path'])
+                    data = target.read_bytes()
+                    target.write_bytes(b'X' + data[1:])
+                self.activate_native(spec, path)
+                with patch.object(plugin, '_native_runtime') as runtime:
+                    with self.assertRaises(ValueError): plugin.register_native()
+                    runtime.assert_not_called()
+
+    def test_native_disabled_partial_and_mixed_activation_refuse_before_runtime(self):
+        with patch.object(plugin, '_native_runtime') as runtime:
+            self.assertIsNone(plugin.register_native())
+            os.environ[plugin.NATIVE_ENV[0]] = 'missing'
+            with self.assertRaisesRegex(ValueError, 'independent'):
+                plugin.register_native()
+            os.environ[plugin.SPEC_ENV] = 'also-missing'
+            with self.assertRaisesRegex(ValueError, 'separate'): plugin.register()
+            runtime.assert_not_called()
+
+    def test_native_entrypoint_discovery_and_spec_inheritance_in_fresh_cpu_children(self):
+        with tempfile.TemporaryDirectory() as temp:
+            spec, path = self.native_fixture(temp)
+            self.activate_native(spec, path)
+            plugin.materialize_plugin_metadata(temp, mode='native')
+            env = dict(os.environ, PYTHONPATH=os.pathsep.join((str(ROOT), temp)))
+            script = ("import importlib.metadata,json,os; import source_plugin as p; "
+                "entries=[e for e in importlib.metadata.entry_points(group='vllm.general_plugins') "
+                "if e.name=='sllm_kimi_native_candidate']; assert len(entries)==1; "
+                "s,c,t=p._load_native_spec(os.environ[p.NATIVE_ENV[0]],os.environ[p.NATIVE_ENV[1]]); "
+                "assert entries[0].load() is p.register_native; "
+                "from test_source_plugin import SourcePluginTests; from unittest.mock import patch; "
+                "import source_bundle,vllm_mixed_hook; registry,base=SourcePluginTests().registry();\n"
+                "with patch.object(source_bundle,'verify_native_run',return_value={}), "
+                "patch.object(p,'_native_runtime',return_value=(registry,base,object(),object)), "
+                "patch.object(vllm_mixed_hook,'make_mixed_store_loader') as factory:\n"
+                " result=entries[0].load()(); assert result=='sllm_kimi_native_v1'; factory.assert_not_called()\n"
+                "print(json.dumps({'run_id':s['run_id'],'holder':s['holder'],'ranks':len(s['rank_options'])}))")
+            for _ in range(2):
+                result = subprocess.run([sys.executable, '-B', '-X', 'utf8', '-c', script], env=env,
+                    capture_output=True, text=True, timeout=30)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(json.loads(result.stdout), dict(run_id=spec['run_id'], holder=spec['holder'], ranks=8))
 
     def fixture(self, temp):
         root = Path(temp)

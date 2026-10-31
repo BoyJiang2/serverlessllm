@@ -1,5 +1,17 @@
 # 源模型转换worker的独立插件候选
 
+## 2026-10-31：独立native候选入口
+
+在原文件内增加`register_native`，不改export schema或冒用其审批。三环境变量为`SLLM_KIMI_NATIVE_SPEC`、`SLLM_KIMI_NATIVE_SPEC_SHA256`、`SLLM_KIMI_NATIVE_BUNDLE_SHA256`。全缺失时禁用，部分配置或source/native同时激活时拒绝。`materialize_plugin_metadata(..., mode='native')`生成独立private metadata及`sllm_kimi_native_candidate=source_plugin:register_native`；默认export的原字节保持。
+
+spec使用`kimi-native-worker-plugin-v1`、mode=native、kimi-native运行身份，字段为schema/node/mode/revision/run_id/holder/code_commit/run_root/config_path/checkpoint_contract_path/rank_options/device_memory_budgets。固定config与1428目标contract位于run内；八份rank_options仅接受既有deferred API的八项纯元数据，不传rank/device。Store目录必须存在、八rank目录互异并与run分离；build receipt在run内且有外部SHA；RPC仅本节点loopback。预算按实际device索引，不以该字段声明代替真实资源/峰值验证。
+
+spec从普通非阻塞fd最多读65537字节并拒绝超过64KiB，校验外部SHA。实际插件目录须为run_root/code，独立native-code-manifest.json由`verify_native_run`绑定spec/commit与完整文件集合，使用共用字节inventory校验器，不授予source模型运行资格。每次注册（含cache）均在真实框架/native导入前核验文件；cache另绑定spec SHA、bundle SHA、registry及所持loader class。
+
+通过该CPU静态入口后才导入固定ABI的vLLM/native模块及官方Kimi类，调用`register_deferred_mixed_loader`；实际TP rank/device、build/native ABI、sidecar和2×预算拒绝仍由原加载链完成。入口不创建engine、通信组或Store池，也不产生运行许可。
+
+新CPU子进程实际发现metadata、读取同一spec并调用native注册回调和冻结registry；其中code gate/runtime为明确替身，mixed模型factory确认未调用。另以小型非执行文件树验证真实完整清单、篡改拒绝及export/native布局互拒。尚无真实vLLM engine/worker spawn、native extension或活跃Store、CUDA、只读挂载及独立guard通过。实际启动前仍须完整运行源码/配置审阅、峰值预算、新窗口/资源/guard与probe，不复用本次静态PASS或旧GLM gate。
+
 本轮只做本机CPU代码、小测试及临时distribution metadata，不安装到服务器/全局Python、不创建模型/Store、不初始化GPU。不修改GLM运行包、正式结果或native注册。源SF转换不依赖native双份预算，但其完整worker、实际峰值和守护仍未准入。
 
 ## 配置与进程传播
