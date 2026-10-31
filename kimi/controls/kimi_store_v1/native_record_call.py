@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import sys
 import time
 import types
 
@@ -190,6 +191,57 @@ def _file_digest(path):
     return digest.hexdigest()
 
 
+def _mapped_extension_identity(path, expected_sha256):
+    """Point-in-time inode binding, not a hash of executable memory or function addresses."""
+    if sys.platform != 'linux':
+        raise ValueError('Linux self mappings required for native extension identity')
+    if not isinstance(expected_sha256, str) or not re.fullmatch('[0-9a-f]{64}', expected_sha256):
+        raise ValueError('external native extension SHA required')
+    source = Path(path).resolve(strict=True)
+    fd = os.open(source, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
+    try:
+        before = os.fstat(fd)
+        if not stat.S_ISREG(before.st_mode) or not 0 < before.st_size <= 2 * 1024**3:
+            raise ValueError('bounded regular native extension required')
+        digest, count = hashlib.sha256(), 0
+        with os.fdopen(fd, 'rb', closefd=False) as stream:
+            while block := stream.read(1024**2):
+                count += len(block)
+                if count > 2 * 1024**3:
+                    raise ValueError('native extension grew beyond byte bound')
+                digest.update(block)
+                del block
+        fields = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns')
+        identity = tuple(getattr(before, k) for k in fields)
+        if (tuple(getattr(os.fstat(fd), k) for k in fields) != identity
+                or tuple(getattr(source.stat(), k) for k in fields) != identity
+                or count != before.st_size or digest.hexdigest() != expected_sha256):
+            raise ValueError('native extension file changed or SHA differs')
+        with Path('/proc/self/maps').open('rb') as stream:
+            raw = stream.read(4 * 1024**2 + 1)
+        if len(raw) > 4 * 1024**2:
+            raise ValueError('self mapping inventory exceeds byte bound')
+        segments = 0
+        for row in raw.splitlines():
+            parts = row.split(None, 5)
+            if len(parts) < 5:
+                raise ValueError('malformed self mapping inventory')
+            major, minor = (int(n, 16) for n in parts[3].split(b':'))
+            if ((major, minor, int(parts[4])) == (os.major(before.st_dev), os.minor(before.st_dev), before.st_ino)
+                    and b'x' in parts[1]):
+                segments += 1
+        if not segments:
+            raise ValueError('native extension file inode has no executable self mapping')
+        if tuple(getattr(source.stat(), k) for k in fields) != identity:
+            raise ValueError('native extension file changed after mapping check')
+        return dict(pid=os.getpid(), device_major=os.major(before.st_dev), device_minor=os.minor(before.st_dev),
+            inode=before.st_ino, file_bytes=count, file_sha256=expected_sha256,
+            executable_segments=segments, maps_sha256=hashlib.sha256(raw).hexdigest(),
+            mapped_inode_verified=True, mapped_library_bytes_verified=False, function_address_verified=False)
+    finally:
+        os.close(fd)
+
+
 def _bound_runtime(native_module, build_receipt, expected_build_sha256):
     """Bind local checkpoint binary and reviewed Store build receipt, not live server identity."""
     if not isinstance(expected_build_sha256, str) or not re.fullmatch('[0-9a-f]{64}', expected_build_sha256):
@@ -224,12 +276,12 @@ def _bound_runtime(native_module, build_receipt, expected_build_sha256):
         if (not inspect.isbuiltin(original[name]) or inspect.getmodule(original[name]) is not module
                 or getattr(module, name, None) is not original[name]):
             raise ValueError('native checkpoint functions do not belong to the same loaded extension')
-    if _file_digest(module.__file__) != build.get('checkpoint_library_sha256'):
-        raise ValueError('loaded native checkpoint binary differs')
+    mapping = _mapped_extension_identity(module.__file__, build.get('checkpoint_library_sha256'))
     if _file_digest(build['store_library_path']) != build.get('store_library_sha256'):
         raise ValueError('Store library on disk differs from bound build')
     return original, dict(build_receipt_sha256=expected_build_sha256,
         checkpoint_module_origin_checked=True, checkpoint_library_on_disk_verified=True,
+        checkpoint_mapping=mapping, checkpoint_mapped_inode_verified=True,
         store_library_on_disk_verified=True, mapped_library_bytes_verified=False,
         live_store_process_verified=False, native_loader_verified=False, runtime_admitted=False)
 

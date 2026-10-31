@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 native库身份首段已接：原native_record_call._bound_runtime实际消费_mapped_extension_identity，Linuxonly/regular nonblock nofollow fd/0<size<=2GiB/同fd流式SHA+fd/path dev/inode/size/mtime/ctime前后核，self maps<=4MiB须同dev/inode有exec段再核path。回执checkpoint_mapping+checkpoint_mapped_inode_verified；机器码/函数地址/后续寿命/live Store证明仍false，不把inode当字节映射或服务端补丁证明。原生WSL3.10 AST提取现有MappedLibraryTests六项实际通过.307s（真实_json extension、未映射同bytes副本、readonly mmap、g++ tiny shared library CDLL后rename同bytes新inode拒绝、maps cap/坏行、FIFO fd关闭；无Torch/安装/GB副本）。Win相关28项21过7skip.626s；全394项372过22Windows skip43.712s，新增6Linux skip已由上述原生测试另覆盖，其余不改报。当前两源码静态只读PASS/SHA核验及执行证据追加native-record-call-review。无remote/GPU/完整Store构建或模型，2×/GLM历史不动。
+- 下一项实际native补丁完整构建/服务端活跃身份与mixed全峰值/运行预算仍需闭环；不把本轮inode检查器的CPU成功充当真实build receipt/活跃Store，不重复已审插件/P0通用包装，不为等GPU制造无效测试扩展。沿本机CPU授权推进必要源码和明确可核证据；真实GPU仍须当前有效窗口/全资源、完整R1及独立guard/probe。
+
 - 2026-10-31 native独立插件接线完成CPU候选：原source_plugin内register_native使用独立schema/run_id/三env/native-spec和native-code-manifest，bounded regular fd<=64KiB、冻结config/1428contract、8rank纯元数据/不同Store目录/与run分离/本机loopback；verify_native_run用共用完整字节清单而不复用export审批，在真实framework/native导入前校验当前插件目录，cache也重查并绑定spec+bundle SHA/registry/class。mode=native私有entrypoint调用已审deferred API，export默认metadata字节不变，双环境互拒。31plugin+18bundle相关通过，含两个新CPU子进程实际discovery/spec继承/调用回调与冻结registry；code gate/runtime在该链明确mock，真实文件清单另有小非执行树正反例。全387项371过16Windows skip44.182s，四源码只读复审PASS/SHA核验见source-plugin-review；source-plugin-tests留原测试历史。无远端/GPU/安装/新环境/GB副本。
 - 下一项不再补重复注册接口：核实际native补丁构建/加载身份和完整mixed GPU+host峰值及运行预算；现有磁盘SHA不是已映射/活跃Store证明，2×预算停止保留，不填大数绕过。source单模型转换与P0准备已有组件，不因native缺口重做通用wrapper。真实vLLM spawn/CUDA/八rank/完整Store与业务金标均未通过，实际GPU须新有效窗口、全资源/共享I/O和完整R1/独立guard+probe，不借旧GLM或CPU静态PASS准入。沿现有CPU授权推进真正缺项，不创建预约或碰Claude/alan。
 

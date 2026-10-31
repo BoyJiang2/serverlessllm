@@ -1,5 +1,15 @@
 # 逐记录多handle加载候选
 
+## 2026-10-31：加载库的inode核验
+
+`_bound_runtime`现实际调用`_mapped_extension_identity`，不再仅凭checkpoint库磁盘SHA声称它是加载库。Linux内用nonblocking/no-follow fd读取普通文件（0<size<=2GiB），同一fd流式SHA并核设备/inode/size/mtime/ctime与路径前后相符；读取最多4MiB的`/proc/self/maps`，必须有同设备和inode的executable段，随后再次核路径身份。不读取checkpoint payload，不调用CUDA或Store，不为此复制环境。
+
+回执增加`checkpoint_mapping`及`checkpoint_mapped_inode_verified`。证明仅限该时刻文件摘要和执行映射inode相符，不校验已加载机器码、C函数地址或后续映射寿命；`mapped_library_bytes_verified`、`function_address_verified`及live Store/运行准入标志仍false。Store库仍仅磁盘SHA，不能据checkpoint客户端库的映射替代活跃Store进程/补丁身份。文件I/O上限不是时间截止，实际运行仍依赖独立宿主守护。
+
+原生WSL Python3.10直接执行现有测试文件中AST提取的`MappedLibraryTests`六项（未导入/安装Torch）：真实标准库extension，未映射的同字节副本，readonly非exec映射，现有g++临时编译小共享库的CDLL实际加载/rename/同字节新inode拒绝，maps超限/坏行及无writer FIFO关闭；6项通过0.307秒。编译的是约数十KiB CPU控制，非Store/CUDA构建。绑定函数消费新gate的正反例在Windows CPU执行，Python/C ABI边界明确替身，未伪造真实build receipt通过。
+
+完整CPU套件394项中372通过、22项Windows平台跳过（43.712秒）；其中新六项Linux映射控制已按上述方式原生执行，不能把其余Windows跳过改报成功。两源码静态只读复审与精确SHA追加native-record-call-review.json。仍无完整native构建、真实ABI/活跃Store、GPU、八rank或服务证明；2×预算停止及原GLM结果不变。
+
 2026-10-30。`native_record_call.py` 连接已审分配计划、Store客户端、逐记录恢复与独立安装。这里只做本机CPU协议测试，未构建完整原生库、运行GPU或形成可启动worker。
 
 ## 调用链与边界

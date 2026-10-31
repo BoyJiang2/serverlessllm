@@ -3,7 +3,11 @@ import hashlib
 import json
 import math
 import os
+import io
+import mmap
+import shutil
 import struct
+import subprocess
 from pathlib import Path
 import tempfile
 import types
@@ -18,6 +22,83 @@ import native_record_call as call
 from native_install import install_native_state
 import test_cpu_tensor_io
 import test_native_call
+
+
+@unittest.skipUnless(call.sys.platform == 'linux', 'Linux executable mapping identity required')
+class MappedLibraryTests(unittest.TestCase):
+    def extension(self):
+        import _json
+        path = Path(_json.__file__).resolve(strict=True)
+        return path, call._file_digest(path)
+
+    def test_actual_stdlib_extension_mapping_and_unmapped_identical_copy(self):
+        path, digest = self.extension()
+        receipt = call._mapped_extension_identity(path, digest)
+        self.assertEqual(receipt['inode'], path.stat().st_ino)
+        self.assertTrue(receipt['mapped_inode_verified'])
+        self.assertGreater(receipt['executable_segments'], 0)
+        self.assertFalse(receipt['mapped_library_bytes_verified'])
+        self.assertFalse(receipt['function_address_verified'])
+        with tempfile.TemporaryDirectory() as temp:
+            copy = Path(temp) / 'unmapped.so'
+            shutil.copyfile(path, copy)
+            self.assertEqual(call._file_digest(copy), digest)
+            with self.assertRaisesRegex(ValueError, 'no executable self mapping'):
+                call._mapped_extension_identity(copy, digest)
+
+    def test_readonly_file_mapping_is_not_executable_library_proof(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'bytes'
+            path.write_bytes(b'CPU mapping control')
+            with path.open('rb') as stream, mmap.mmap(stream.fileno(), 0, access=mmap.ACCESS_READ):
+                with self.assertRaisesRegex(ValueError, 'no executable self mapping'):
+                    call._mapped_extension_identity(path, call._file_digest(path))
+
+    def test_replaced_path_same_bytes_rejected_while_original_library_remains_loaded(self):
+        compiler = shutil.which('g++')
+        if compiler is None:
+            self.skipTest('existing CPU g++ unavailable')
+        with tempfile.TemporaryDirectory() as temp:
+            source, library = Path(temp) / 'probe.cpp', Path(temp) / 'probe.so'
+            source.write_text('extern "C" int kimi_mapping_probe() { return 7; }\n', encoding='utf-8')
+            subprocess.run([compiler, '-shared', '-fPIC', str(source), '-o', str(library)],
+                           check=True, capture_output=True, timeout=30)
+            handle = ctypes.CDLL(str(library))
+            self.assertEqual(handle.kimi_mapping_probe(), 7)
+            digest = call._file_digest(library)
+            receipt = call._mapped_extension_identity(library, digest)
+            moved = library.with_suffix('.old')
+            library.rename(moved)
+            shutil.copyfile(moved, library)
+            self.assertNotEqual(receipt['inode'], library.stat().st_ino)
+            self.assertEqual(call._file_digest(library), digest)
+            self.assertEqual(handle.kimi_mapping_probe(), 7)
+            with self.assertRaisesRegex(ValueError, 'no executable self mapping'):
+                call._mapped_extension_identity(library, digest)
+
+    def test_invalid_sha_precedes_open(self):
+        with patch.object(call.os, 'open', side_effect=AssertionError('unexpected open')):
+            for digest in (None, True, 'a' * 63, 'A' * 64):
+                with self.assertRaisesRegex(ValueError, 'external native extension SHA'):
+                    call._mapped_extension_identity('not-read', digest)
+
+    def test_maps_growth_and_malformed_rows_fail_closed(self):
+        path, digest = self.extension()
+        for raw in (b'x' * (4 * 1024**2 + 1), b'malformed\n'):
+            with patch.object(Path, 'open', return_value=io.BytesIO(raw)):
+                with self.assertRaisesRegex(ValueError, 'mapping inventory'):
+                    call._mapped_extension_identity(path, digest)
+
+    def test_fifo_rejected_without_waiting_for_writer_and_fd_closed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'library.fifo'
+            os.mkfifo(path)
+            with patch.object(call.os, 'close', wraps=os.close) as close:
+                with self.assertRaisesRegex(ValueError, 'bounded regular'):
+                    call._mapped_extension_identity(path, 'a' * 64)
+            close.assert_called_once()
+            with self.assertRaises(OSError):
+                os.fstat(close.call_args.args[0])
 
 
 class P0ComponentTests(unittest.TestCase):
@@ -222,6 +303,45 @@ class P0ComponentTests(unittest.TestCase):
 
 
 class NativeRecordCallTests(unittest.TestCase):
+    def test_runtime_binding_requires_mapping_check_and_keeps_memory_and_server_claims_false(self):
+        def callback():
+            pass
+        module = types.SimpleNamespace(__file__='checkpoint-library.so')
+        original = dict(_get_uuid=callback, SllmStoreClient=types.SimpleNamespace(**{
+            n: callback for n in ('__init__', 'load_into_cpu', 'load_into_gpu', 'confirm_model_loaded')}))
+        for name in ('allocate_cuda_memory', 'get_cuda_memory_handles', 'get_device_uuid_map', 'restore_tensors'):
+            original[name] = callback
+            setattr(module, name, callback)
+        native = types.SimpleNamespace(load_dict_non_blocking=types.FunctionType(callback.__code__, original))
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'build.json'
+            raw = json.dumps(dict(schema='kimi-independent-native-build-v1', compiled_native_store=True,
+                model_source_sha256=call.PATCH_SHA, checkpoint_library_sha256='a' * 64,
+                store_library_path='store-library.so', store_library_sha256='b' * 64)).encode()
+            path.write_bytes(raw)
+            for failed in (True, False):
+                proof = dict(mapped_inode_verified=True, mapped_library_bytes_verified=False)
+                # Python source/C builtin boundaries are explicit stand-ins; this
+                # proves only that public binding consumes the mapping gate.
+                with patch.object(call, '_verify_function', side_effect=lambda f, *a: f), \
+                        patch.object(call.inspect, 'getmodule', return_value=module), \
+                        patch.object(call.inspect, 'isbuiltin', return_value=True), \
+                        patch.object(call, '_file_digest', return_value='b' * 64) as store_digest, \
+                        patch.object(call, '_mapped_extension_identity', side_effect=(
+                            ValueError('mapping identity differs') if failed else None), return_value=proof) as mapped:
+                    if failed:
+                        with self.assertRaisesRegex(ValueError, 'mapping identity differs'):
+                            call._bound_runtime(native, path, hashlib.sha256(raw).hexdigest())
+                        store_digest.assert_not_called()
+                    else:
+                        _, receipt = call._bound_runtime(native, path, hashlib.sha256(raw).hexdigest())
+                        self.assertIs(receipt['checkpoint_mapping'], proof)
+                        self.assertTrue(receipt['checkpoint_mapped_inode_verified'])
+                        self.assertFalse(receipt['mapped_library_bytes_verified'])
+                        self.assertFalse(receipt['live_store_process_verified'])
+                        self.assertFalse(receipt['runtime_admitted'])
+                    mapped.assert_called_once_with('checkpoint-library.so', 'a' * 64)
+
     def test_build_receipt_has_a_hard_read_bound_before_json_or_native_checks(self):
         with tempfile.TemporaryDirectory() as temp:
             path=Path(temp)/'build.json'

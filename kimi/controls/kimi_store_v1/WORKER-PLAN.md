@@ -4,6 +4,8 @@
 
 ## 当前已接与尚未接
 
+2026-10-31库身份增量：native `_bound_runtime`现要求Linux self executable映射与同fd文件SHA/dev/inode/size/mtime/ctime一致，拒绝同字节未映射副本和旧库路径替换；原生WSL实际共享库控制通过。此为检查器的CPU证据，尚非实际Store checkpoint库或服务端身份通过；内存机器码/函数地址/live Store标志仍false。真实compiled receipt、活跃Store及全峰值/守护准入仍是下一项，不重复插件注册或凭磁盘SHA放行。
+
 2026-10-31调用图补充：`source_plugin.register_native`现以独立native spec/manifest/env/private entrypoint接`register_deferred_mixed_loader`；登记只快照纯元数据，load_model才取实际TP8/PP1 rank/device，按rank选资产、device选预算并调原mixed factory；保留delegate失败状态及2×拒绝。export回调保持独立。新CPU子进程替身注册及小树真实文件清单验证不是实际vLLM spawn、完整worker或GPU准入；下一项实际构建身份和完整mixed峰值/运行预算仍须证据，不绕过旧预算停止或实际guard。
 
 源转换入口现可由独立Base子类调用：固定Default loader只加载本地SF，rank导出发生在后处理之前，之后固定Base继续后处理，便于同一后端生成参考。`vllm_export_hook`默认读取已初始化的TP/PP组及当前CUDA设备；CPU测试的context callback是明确模拟。`loader_registry`复用固定官方注册函数，仅使用sllm_kimi_export_v1/sllm_kimi_native_v1独立名称；同类重复登记允许，其他类冲突拒绝，原safetensors不改。

@@ -1,10 +1,10 @@
 # Kimi INT4 Store CPU 适配候选
 
-当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。当前全套387项中371通过、16个Windows平台跳过（44.182秒，WSL桥接既有Windows Torch）；这是组件/CPU控制，不是完整模型正确性或运行准入。
+当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。当前全套394项中372通过、22个Windows平台跳过（43.712秒，WSL桥接既有Windows Torch）；新六项Linux库映射测试另在原生WSL Python3.10通过（0.307秒，无Torch）。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 | 目标 | 已有CPU证据/候选接口 | 仍未通过 |
 |---|---|---|
-| 审阅与版本 | 每次修订绑定源码SHA，故障负例/原失败及本地只读复审保留 | 完整实际运行manifest的R1、真实库/进程身份与准入 |
+| 审阅与版本 | 每次修订绑定源码SHA，故障负例/原失败及只读复审保留；Linux映射inode检查已用真实CPU共享库验证 | 完整运行manifest的R1、实际native构建/ABI/活跃Store与准入；inode检查不是机器码核验 |
 | packed INT4保存/读取 | stream_writer/native_index/cpu_restore/native_install保留I32 packed、BF16/F32原始位、shape/stride、角色、alias、buffer codec及量化配置；CPU小状态写读回 | 真正native Store/CUDA加载、完整checkpoint及八rank逐项校验 |
 | 分块与临时引用 | 默认8MiB块；正常及写/hash失败时释放自身view/CPU staging generator，保留原异常与partial，弱引用不用GC控制通过 | 整进程RSS/锁页/页缓存/原模型和GPU工作区峰值；8MiB不是RSS上限 |
 | TP8与后处理 | 条件1428目标名、融合专家/非专家映射、角色/alias/必要buffer、固定Marlin辅助政策及一次Base后处理组件 | 实际8rank shape/value、真实Marlin重排/释放、真实混设备构造 |

@@ -372,5 +372,63 @@
       "runtime_admitted": false,
       "remote_or_gpu_executed": false
     }
+  ],
+  "followup_reviews": [
+    {
+      "recorded_utc": "2026-10-31T10:29:00.748883+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "native_record_call.py": "9fff541cc0d166f0f33b73a507f872ebae1743aa48a751c676d0d123e54bf8fc",
+        "test_native_record_call.py": "b293a163f29f3c18f4a193a40c423ce398ce74ffb07d81b3b114c1c7f2c920f7"
+      },
+      "scope": "Linux self executable inode/file binding consumed by public native binding",
+      "verified": [
+        "Nonblocking nofollow regular fd, 2GiB file and 4MiB maps bounds, digest and fd/path stat identity checks",
+        "Same device/inode executable self mapping required; same-byte unmapped copy and replaced path refused",
+        "No claim of executable-memory bytes, C function addresses, mapping future lifetime or live Store identity"
+      ],
+      "tests": {
+        "executor": "primary agent",
+        "native_wsl": {
+          "python": "3.10.12",
+          "count": 6,
+          "passed": 6,
+          "seconds": 0.307,
+          "method": "AST extraction of current MappedLibraryTests only, original native_record_call imported; no Torch import/install",
+          "controls": [
+            "actual _json extension",
+            "identical-byte unmapped copy",
+            "readonly mmap nonexec",
+            "existing g++ tiny shared library CDLL then rename/same-byte replacement",
+            "maps oversize and malformed",
+            "nonblocking FIFO rejection and fd closed"
+          ],
+          "warning": "WSL user-systemd startup warning; shell/tests completed, no global repair"
+        },
+        "windows_targeted": {
+          "count": 28,
+          "passed": 21,
+          "skipped": 7,
+          "seconds": 0.626
+        },
+        "full_cpu": {
+          "count": 394,
+          "passed": 372,
+          "skipped": 22,
+          "seconds": 43.712,
+          "environment": "WSL bridge to existing Windows Torch CPU"
+        }
+      },
+      "limitations": [
+        "Reviewer only read/hash-checked files; no code execution or SSH",
+        "Native public gate integration uses explicit Python-source/C-builtin stand-ins",
+        "No actual compiled Store/checkpoint ABI, live Store, CUDA, complete model or service admission",
+        "Store library still on-disk digest only; checkpoint mapping check is point-in-time inode identity",
+        "File byte bounds do not supply I/O deadlines; independent host guard remains required"
+      ],
+      "remote_or_gpu_executed": false,
+      "runtime_admitted": false
+    }
   ]
 }
