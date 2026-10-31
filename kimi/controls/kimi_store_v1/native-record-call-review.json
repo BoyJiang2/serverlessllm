@@ -255,6 +255,104 @@
         "Forty payload bytes and <=1MiB cap do not bound CUDA contexts/caching allocator/RSS",
         "No native allocator/Store/model/gold/formal ID or real GPU verified; 2x native budget stop unchanged"
       ]
+    },
+    {
+      "recorded_utc": "2026-10-31T04:14:06.382540+00:00",
+      "scope": "P0a internal worker CLI in existing file; no host launch or GPU admission",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "native_record_call.py": "9ffe39b63daf2c91ac6a955759dcf08545ab8f81f986a5a7688f82e9b34a846c",
+        "test_native_record_call.py": "73c97a923503b4c99012b4872a7448e8cf7cffeffbce472db5310cb8a5d877ad"
+      },
+      "tests": {
+        "target_total": 21,
+        "target_passed": 20,
+        "target_skipped": 1,
+        "target_seconds": 0.71,
+        "full_total": 351,
+        "full_passed": 347,
+        "full_skipped": 4,
+        "full_seconds": 41.23,
+        "executor": "primary agent via existing WSL to Windows CPU interpreter"
+      },
+      "attempts": [
+        {
+          "total": 21,
+          "seconds": 0.606,
+          "result": "OK",
+          "scope": "Initial CLI mocks before review"
+        },
+        {
+          "total": 21,
+          "seconds": 0.744,
+          "result": "FAILED",
+          "error": "TypeError after wrong worker entered component mock; missing self-file binding reproduced"
+        },
+        {
+          "total": 21,
+          "seconds": 0.666,
+          "result": "FAILED",
+          "error": "Wrong-entry test fixture missing actual placeholder file, corrected fixture only"
+        },
+        {
+          "total": 21,
+          "seconds": 0.602,
+          "result": "FAILED",
+          "error": "Controlled fsync OSError replaced original component RuntimeError; reproduced and fixed"
+        },
+        {
+          "total": 21,
+          "seconds": 0.711,
+          "result": "OK",
+          "scope": "After self-file binding and failure receipt fixes"
+        },
+        {
+          "total": 21,
+          "seconds": 0.625,
+          "result": "FAILED",
+          "error": "Success terminal fsync OSError lacked p0_receipt; regression reproduced"
+        },
+        {
+          "total": 351,
+          "seconds": 41.328,
+          "result": "FAILED",
+          "errors": 1,
+          "skipped": 4,
+          "error": "Existing source CPU orphan-child fixture TemporaryDirectory deletion child.err WinError32; no production code changed; subsequent actual process listing no python rows"
+        },
+        {
+          "total": 21,
+          "seconds": 0.71,
+          "result": "OK",
+          "scope": "Final current two-file hash"
+        },
+        {
+          "total": 351,
+          "seconds": 41.23,
+          "result": "OK",
+          "passed": 347,
+          "skipped": 4,
+          "scope": "Final current hashes; failed prior attempt retained"
+        }
+      ],
+      "verified": [
+        "Only p0a internal worker dispatch, source registration rejected",
+        "Executed worker file must be the manifest-verified run/code/native_record_call.py",
+        "Original guard fire and component maximum bound one deadline before input verification; no renewal",
+        "Exclusive existing-run journal, bounded fsynced metadata; repeated run refuses before component",
+        "Original component exception retains p0_owners/p0_receipt when failed-event write/fsync fails",
+        "Completed IPC result retained on return timeout or terminal journal write/fsync failure"
+      ],
+      "limitations": [
+        "Reviewer static only, no execution/SSH/writes",
+        "CLI positive tests explicitly mock verifier and CUDA body; placeholder files are CPU test fixtures",
+        "component_returned alone is not success: future collector must also require actual worker exit0",
+        "Existing Windows orphan-child cleanup race failure retained; a later passing run does not erase it",
+        "Actual host submit/admission controller, guard install/probe, monitor and 60-second release remain incomplete",
+        "No remote compute, model, Store, CUDA, pool, environment install, new code directory or GB asset copy",
+        "Runtime/guard/resources flags remain false; native 2x budget rejection unchanged"
+      ]
     }
   ]
 }

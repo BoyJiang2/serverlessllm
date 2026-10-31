@@ -26,6 +26,99 @@ class P0ComponentTests(unittest.TestCase):
             gpu_uuid='GPU-12345678-1234-1234-1234-123456789abc',
             deadline_monotonic=time.monotonic()+30,max_payload_bytes=40)
 
+    def test_worker_cli_binds_p0_input_and_original_budget_without_claiming_guard(self):
+        import io
+        from datetime import datetime, timedelta, timezone
+        import source_schedule
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); options=self.options()
+            (root/'code').mkdir(); worker=root/'code/native_record_call.py';worker.write_text('# CPU CLI fixture')
+            entered=datetime.now(timezone.utc)-timedelta(seconds=20)
+            identity=dict(run_id=options['run_id'],holder=options['holder'],code_commit='a'*40,
+                spec_sha256='b'*64,source_manifest_sha256='c'*64)
+            registration=dict(schema='kimi-p0-watchdog-registration-v1',batch_entered_utc=entered.isoformat(),
+                plan_sha256='d'*64)
+            receipt=dict(identity,manifest_sha256='c'*64,gpu_uuid=options['gpu_uuid'],
+                image_id='sha256:'+'e'*64,component_max_seconds=60,max_payload_bytes=40)
+            schedule=dict(guard_fire_by_utc=(entered+timedelta(seconds=30)).isoformat())
+            bound=(root/'registration.json',root,registration,receipt,schedule,identity)
+            with patch.object(call,'__file__',str(worker)), \
+                    patch.object(source_schedule,'load_watchdog_inputs',return_value=bound) as verify, \
+                    patch.object(call,'run_cuda_ipc_component_probe',return_value=dict(torch_cuda_ipc_verified=True)) as component, \
+                    patch('sys.stdout',new_callable=io.StringIO) as output:
+                started=time.monotonic()
+                call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
+                verify.assert_called_once_with(str(root/'registration.json'),'f'*64)
+                remaining=component.call_args.kwargs['deadline_monotonic']-started
+                self.assertGreater(remaining,3);self.assertLess(remaining,11)
+                result=json.loads(output.getvalue())
+                self.assertFalse(result['guard_verified']);self.assertFalse(result['resources_released'])
+                self.assertFalse(result['runtime_admitted'])
+                rows=[json.loads(line) for line in (root/'p0-component-events.jsonl').read_text().splitlines()]
+                self.assertEqual([row['stage'] for row in rows],['inputs_verified','component_returned'])
+                component.reset_mock()
+                with self.assertRaises(FileExistsError):
+                    call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
+                component.assert_not_called()
+                (root/'p0-component-events.jsonl').unlink()
+                with patch.object(call.os,'fsync',side_effect=[None,OSError('terminal fsync')]):
+                    with self.assertRaises(OSError) as caught:
+                        call.p0_main(['--registration',str(root/'registration.json'),'--registration-sha','f'*64])
+                self.assertIs(caught.exception.p0_receipt,component.return_value)
+
+    def test_worker_cli_refuses_source_or_expired_and_persists_owned_failure(self):
+        from datetime import datetime,timedelta,timezone
+        import source_schedule
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);options=self.options()
+            (root/'code').mkdir(); worker=root/'code/native_record_call.py';worker.write_text('# CPU CLI fixture')
+            now=datetime.now(timezone.utc)
+            registration=dict(schema='kimi-source-watchdog-registration-v1',batch_entered_utc=now.isoformat(),plan_sha256='d'*64)
+            receipt=dict(run_id=options['run_id'],holder=options['holder'],code_commit='a'*40,
+                spec_sha256='b'*64,manifest_sha256='c'*64,gpu_uuid=options['gpu_uuid'],
+                image_id='sha256:'+'e'*64,component_max_seconds=60,max_payload_bytes=40)
+            schedule=dict(guard_fire_by_utc=(now+timedelta(seconds=30)).isoformat())
+            identity={key:receipt[key] for key in ('run_id','holder','code_commit','spec_sha256')}
+            bound=(root/'registration.json',root,registration,receipt,schedule,identity)
+            with patch.object(call,'__file__',str(worker)), \
+                    patch.object(source_schedule,'load_watchdog_inputs',return_value=bound), \
+                    patch.object(call,'run_cuda_ipc_component_probe') as component:
+                args=['--registration',str(root/'registration.json'),'--registration-sha','f'*64]
+                with self.assertRaisesRegex(ValueError,'source-model'):call.p0_main(args)
+                registration['schema']='kimi-p0-watchdog-registration-v1'
+                schedule['guard_fire_by_utc']=(now-timedelta(seconds=1)).isoformat()
+                with self.assertRaises(TimeoutError):call.p0_main(args)
+                component.assert_not_called()
+                self.assertFalse((root/'p0-component-events.jsonl').exists())
+                schedule['guard_fire_by_utc']=(now+timedelta(seconds=30)).isoformat()
+                (root/'wrong_worker.py').write_text('# wrong CPU entry')
+                with patch.object(call,'__file__',str(root/'wrong_worker.py')):
+                    with self.assertRaisesRegex(ValueError,'verified P0 worker'):
+                        call.p0_main(args)
+                component.assert_not_called()
+                error=RuntimeError('controlled CPU component failure');error.p0_receipt=dict(stage='controlled',failed=True)
+                component.side_effect=error
+                with self.assertRaisesRegex(RuntimeError,'controlled CPU'):call.p0_main(args)
+                rows=[json.loads(line) for line in (root/'p0-component-events.jsonl').read_text().splitlines()]
+                self.assertEqual(rows[-1]['stage'],'failed')
+                self.assertEqual(rows[-1]['details']['component'],error.p0_receipt)
+                self.assertFalse(rows[-1]['details']['resources_released'])
+                (root/'p0-component-events.jsonl').unlink()
+                error.p0_owners=object()
+                with patch.object(call.os,'fsync',side_effect=[None,OSError('controlled fsync')]):
+                    with self.assertRaises(RuntimeError) as caught:call.p0_main(args)
+                self.assertIs(caught.exception,error)
+                self.assertIsNotNone(caught.exception.p0_owners)
+                self.assertEqual(caught.exception.p0_evidence_error['error_type'],'OSError')
+                (root/'p0-component-events.jsonl').unlink()
+                component.side_effect=None;result=dict(torch_cuda_ipc_verified=True)
+                component.return_value=result
+                with patch.object(call.time,'monotonic',side_effect=[100.,100.,200.]):
+                    with self.assertRaises(TimeoutError) as caught:call.p0_main(args)
+                self.assertIs(caught.exception.p0_receipt,result)
+                rows=[json.loads(line) for line in (root/'p0-component-events.jsonl').read_text().splitlines()]
+                self.assertEqual(rows[-1]['details']['component'],result)
+
     def test_small_payload_preserves_packed_bf16_f32_bits_and_alias(self):
         tensors=call._p0_tensors()
         expected=dict(packed=struct.pack('<iiii',-1,-2147483648,0x01234567,0),

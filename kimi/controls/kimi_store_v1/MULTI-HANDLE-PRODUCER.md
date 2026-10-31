@@ -45,3 +45,12 @@ core先向本实验拥有的loopback Store请求host加载；每个非空canonic
 复用现有Ubuntu-22.04 WSL2和同一/mnt/d仓库，无克隆/新环境/权重复制。Linux Python3.10.12无Torch/vLLM/Transformers，故不迁移依赖；已实测从WSL执行现有Windows CPU Python2.10+cpu及同一仓库cwd，相关19项测试18通过1平台跳过（0.674秒），仍是Windows解释器测试而非Linux验证。Linux ssh缺qjhs003配置，现有ssh.exe -G别名可用；WSL原生git status在DrvFS超过10秒，暂用WSL中的现有Windows git.exe写同一index，禁止并发两端写入，不改换行/权限或Git配置。
 
 WSL另报告boyjiang用户systemd会话启动失败，当前仅确认shell、同仓库编辑、Windows工具桥接可用，不据此批准任何WSL服务或将其与qjhs003守护混同；不为此修改WSL全局配置。Git本地写操作可从WSL调用现有git.exe，推送仍保留已验证的Windows凭据路径。
+
+
+## P0a 内部 worker 命令（2026-10-31，尚非可开跑入口）
+
+现有native_record_call.py增加 `python -B <run>/code/native_record_call.py p0a --registration <run>/registration.json --registration-sha <SHA>`。这只供未来已完成准入的宿主控制器调用，不得手动借旧source/GLM gate启动。先复用专属P0 spec/manifest/window验证，并绑定当前脚本确实位于已核run/code；拒source-model registration。输入验证前记wall/mono，使用原guard fire剩余时间与spec component上限的更短值，验证、证据写入及返回都不重新计时。
+
+仅在既有run根独占创建p0-component-events.jsonl，记录inputs_verified及failed/component_returned元数据；无模型、Store或权重路径。失败日志write/fsync错误记入原异常p0_evidence_error，保留原p0_receipt/p0_owners；成功组件结果在返回超时或终态证据故障时也保留。component_returned只表示组件当时返回，之后证据/进程仍可能失败，未来收集端必须同时核真实worker exit0与独立释放证据，不能按单条日志追认成功。打印的guard_verified/runtime_admitted/resources_released仍false。
+
+21项相关CPU测试20过1Windows跳过，正向CLI的verifier/body是明确mock；最终全套351项347通过4跳过41.230秒。初审自文件绑定/错误覆盖/成功终态fsync缺口先用负例复现并修复，最终两文件只读复审PASS与hash、所有失败追加native-record-call-review.json。一次完整suite在旧Windows orphan-child夹具删除child.err时WinError32，实际进程列表已无Python，后续完整suite通过，旧失败保留。以上不是真实CUDA、独立宿主守护、监控或60秒释放通过。

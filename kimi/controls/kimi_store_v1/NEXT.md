@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 2026-10-31 P0a内部worker CLI已接原native_record_call，不新建源码目录：专属registration+manifest验证、自文件绑定、原guard fire/spec cap双截止含验证与证据、独占既有run小journal；source gate拒用。复审3个取证缺口均负例先复现后修，error保留owner/receipt及已完成IPC结果；component_returned仍需实际worker exit0，不单看日志。最终351项347过4跳过41.230秒，两文件静态复审PASS且核SHA见native-record-call-review；保留旧full351一次Windows child.err删除WinError32，不冒充原生故障或抹失败。下一项仅宿主P0启动/guard实际提交验收/轻监控/60秒收口控制器，仍无运行准入。12:02只读SSH八卡0MiB、harbor-alan活跃；现有0202镜像Env CUDA12.9.1，Torch实际版本未知，可先核现有资产，不下载或建新环境。10–19 alan窗口未被“继续跑”转为抢占授权。native2x停止/GLM历史冻结不变。
+
 - 2026-10-31 P0a spec/window/guard输入已接原source_bundle/source_schedule：专属kimi-p0 schema/purpose、完整代码清单、单GPU UUID/固定image/40B..1MiB/4..300s component、<=1800s完整批次及原截止/至少60秒观察/提前10分钟清理；原source测试保持。P0 guard profile候选2CPU4GiB/128PID/64MiB shm/network none/private IPC，非实际占用证明。349项CPU测试345过4跳过42.715秒，四文件静态复审PASS与精确SHA追加source-schedule-review，不是GPU运行R1。无新目录/环境/权重副本，无远端/GPU。下一项只补P0 worker CLI及宿主提交/monitor/60秒闭包，核合规既有runtime和实际协调窗口；禁止以旧source/GLM gate批准P0，旧native 2x停止保留。
 
 - 2026-10-31 最小P0a已在原native_record_call实现内部body：40确定性字节/packed I32+BF16/F32+alias+empty，单暴露GPU UUID、固定Torch2.10cu129无CPUfallback、spawn/Pipe消费者读后修改，父保留producer到实际子进程exit0再观察共享修改；原<=300s deadline预留3s owned清理，失败保留owner，不碰native/Store/模型。独立kimi-p0身份/PID仅worker命名空间；无CLI、当前P0 guard scope/monitor/60秒及实际准入，所以不是可开跑gate。343项最终339过4跳过（31.344秒），19相关18过1跳过；当前两文件静态复审PASS见native-record-call-review。用户说继续，已继续必要准备，未借alan资源。下一项只接P0最小入口/身份与预算/新guard和轻监控、复用合规已有runtime；不再扩CPU工具，不用旧source/GLM gate批准P0，不改native2x停止。

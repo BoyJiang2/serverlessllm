@@ -2,6 +2,10 @@
 
 2026-10-30，时区Asia/Shanghai。规划草案，不是GPU启动gate，不修改原GLM40ID、金标或历史失败；不启R24。
 
+## 2026-10-31 12:02 只读更新
+
+八卡仍0MiB且compute-apps为空，harbor-alan容器Up11h，未停止/修改。现有未标记镜像sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3（既有26,593,248,861B）配置Env声明CUDA_VERSION=12.9.1；先前vendor24.04标签不能代替该配置读取，也不能据此断定Torch2.10cu129已安装。仅只读image inspect，未create/start/pull/export/复制镜像或访问对方容器内部。可复用候选已有新线索，仍需实际ABI证明。当前P0 worker/spec/window/guard输入CPU静态闭包通过；宿主控制器/实际guard和监控60秒尚缺，不能据这份快照启动。
+
 ## 最新核验与最小P0优先（2026-10-31 10:04）
 
 旧00:00–11:00 boyjiang预约不再存在，不能继续沿用旧10:50清理终点。最新只读API：Azure01:00–10:00（4b75ebc3）已结束；alan10:00–19:00（839baf8f）；Azure19:00–23:00（6b09e5d7），用途明确RAM/RDMA且GPU需协调，尚非本实验GPU独占授权。09:58只读SSH八卡均0MiB、未列GPU计算进程，但harbor-alan容器仍在；空闲不授予抢占。已向用户请求真实可用窗口/范围，不创建或修改预约。资源与API证据追加kimi/evidence/followup-kimi-k26/resource-snapshot.json。

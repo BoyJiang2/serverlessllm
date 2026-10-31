@@ -402,3 +402,86 @@ def load_native_records(native_module, *, storage_path, model_path, expected_sid
         receipt.update(stage='return_boundary', error_type='TimeoutError', deadline_exceeded=True)
         raise NativeCallFailure(receipt, result) from TimeoutError('native record public return deadline reached')
     return result, receipt
+
+
+def p0_main(argv):
+    """Internal component worker; host launch/guard/resource admission is separate."""
+    import argparse
+    from datetime import datetime, timezone
+    import sys
+    from source_schedule import load_watchdog_inputs, _utc
+    if sys.flags.optimize or not sys.dont_write_bytecode:
+        raise ValueError('P0 worker requires unoptimized python -B')
+    parser = argparse.ArgumentParser(description='Bounded Torch IPC P0a worker, not model/Store admission')
+    parser.add_argument('--registration', required=True)
+    parser.add_argument('--registration-sha', required=True)
+    args = parser.parse_args(argv)
+    entered, started = datetime.now(timezone.utc), time.monotonic()
+    _, root, registration, receipt, schedule, identity = load_watchdog_inputs(
+        args.registration, args.registration_sha)
+    if registration['schema'] != 'kimi-p0-watchdog-registration-v1':
+        raise ValueError('P0 worker cannot use source-model registration')
+    if Path(__file__).resolve(strict=True) != root/'code/native_record_call.py':
+        raise ValueError('must execute the verified P0 worker file')
+    now = datetime.now(timezone.utc)
+    if now < entered or entered < _utc(registration['batch_entered_utc']):
+        raise TimeoutError('P0 worker clock regressed or batch has not started')
+    # Verification consumes this same deadline; late startup never renews the batch.
+    deadline = started + min(receipt['component_max_seconds'],
+        (_utc(schedule['guard_fire_by_utc']) - entered).total_seconds())
+    if time.monotonic()+3 >= deadline or now >= _utc(schedule['guard_fire_by_utc']):
+        raise TimeoutError('P0 original component budget exhausted')
+    path = root/'p0-component-events.jsonl'
+    with path.open('xb', buffering=0) as events:
+        def record(stage, details):
+            raw = (json.dumps(dict(identity, stage=stage, details=details,
+                schema='kimi-p0-component-events-v1', runtime_admitted=False,
+                observed_utc=datetime.now(timezone.utc).isoformat()), sort_keys=True)+'\n').encode()
+            if len(raw) > 16384:
+                raise ValueError('bounded P0 component evidence required')
+            if events.write(raw) != len(raw):
+                raise OSError('incomplete P0 event write')
+            os.fsync(events.fileno())
+        record('inputs_verified', dict(registration_sha256=args.registration_sha,
+            plan_sha256=registration['plan_sha256'], gpu_uuid=receipt['gpu_uuid'],
+            image_id=receipt['image_id'], original_guard_fire_by_utc=schedule['guard_fire_by_utc'],
+            guard_verified=False))
+        try:
+            result = run_cuda_ipc_component_probe(run_id=receipt['run_id'], holder=receipt['holder'],
+                gpu_uuid=receipt['gpu_uuid'], deadline_monotonic=deadline,
+                max_payload_bytes=receipt['max_payload_bytes'])
+            finished = datetime.now(timezone.utc)
+            if (time.monotonic() >= deadline or finished < entered
+                    or finished >= _utc(schedule['guard_fire_by_utc'])):
+                error = TimeoutError('P0 worker return deadline exhausted or clock regressed')
+                error.p0_receipt = result
+                raise error
+        except BaseException as error:
+            try:
+                record('failed', dict(error_type=type(error).__name__, error=str(error)[:1024],
+                    component=getattr(error, 'p0_receipt', None), resources_released=False))
+            except BaseException as evidence_error:
+                error.p0_evidence_error = dict(error_type=type(evidence_error).__name__,
+                                               error=str(evidence_error)[:1024])
+            raise
+        try:
+            record('component_returned', dict(component=result, resources_released=False))
+        except BaseException as error:
+            error.p0_receipt = result
+            raise
+    finished = datetime.now(timezone.utc)
+    if (time.monotonic() >= deadline or finished < entered
+            or finished >= _utc(schedule['guard_fire_by_utc'])):
+        error = TimeoutError('P0 evidence consumed return budget or clock regressed')
+        error.p0_receipt = result
+        raise error
+    print(json.dumps(dict(result, code_commit=receipt['code_commit'], spec_sha256=receipt['spec_sha256'],
+        source_manifest_sha256=receipt['manifest_sha256'], runtime_admitted=False,
+        guard_verified=False, resources_released=False), sort_keys=True))
+
+
+if __name__ == '__main__':
+    import sys
+    if sys.argv[1:2] != ['p0a']:
+        raise SystemExit('only internal p0a worker entry is available; host admission required')
+    p0_main(sys.argv[2:])
