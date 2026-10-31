@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 4e881f9后必要构建CPU控制：已钉setup.py真实AST方法（不执行顶层setup/导入Torch）在Ninja有/无两支配MAX_JOBS=1，实际截获两目标argv仍裸-j，Ninja compile pool仍8，PASS写cpu-probe.upstream_build_method_controls；subprocess/extension/base明确替身，没有真实编译或测并发。受预算构建不能直接默认setup，拟原CMake显式--parallel 1，但完整ABI/依赖/架构/资源和审阅未全不执行。utils来源目录API超时、单次raw回退SSL超时、web cache miss；未得到文件，失败保留upstream_build_followups，不继续无界重试、不称已齐构建包。不装环境/新目录/GB数据，不remote/GPU，旧2×/GLM结果不动。
+
 - 2026-10-31 只读原goal五项审计基于5d2c450，结论整体INCOMPLETE；未找到一个已证实、能本机CPU复现的新核心格式/映射错误（不是无缺陷或全栈R1）。表见WORKER-PLAN，细证追加source-plugin-review.goal_coverage_audits。保留2×停止；TensorImpl.h明确Dense CPU/CUDA兼容，不凭CPU/meta猜测改.data策略。下一关键外部证据：完整匹配工具链native构建/ABI，再最小真实CUDA/Store，再一份源模型TP8全导出/八rank实测/金标/服务；不为计数继续扩通用包装。
 - Git发布故障已用已有GitHub SSH严格host检查/BatchMode单次push解决，独立SSH ls-remote核main=5d2c450，origin仍HTTPS且全局配置不变；HTTPS只读schannel仍会失败，后续优先每命令SSH传输+独立refs核验，不force或循环重试。没有连接其他计算节点。
 - 22:01只读booking API：h20/qjhs003 CPU lane disabled，当前azure9a1ac929 19–23 Task2，后续azure91c0cf95 23–11/1 10用途ksqd；已请求用户确认是否本Kimi及CPU/内存范围。未核实际占用/未改预约/未启动remote。旧6b09或boyjiang4498不当当前授权。

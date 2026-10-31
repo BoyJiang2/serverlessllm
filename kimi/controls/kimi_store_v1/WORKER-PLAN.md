@@ -20,6 +20,10 @@ CPU/meta不兼容不能用于断言CPU/CUDA.data必错：本机Torch2.10的Tenso
 
 ### 已钉住的少量构建输入
 
+后续CPU控制直接从已钉setup.py的AST取出未修改的cmake_build_ext/remove_prefix，只替代build_ext基类/extension描述和subprocess，分别执行Ninja存在/不存在两支。MAX_JOBS=1时两支的两个目标仍传裸-j，Ninja分支仍传compile=8；四个build argv及两份configure argv留在cpu-probe.upstream_build_method_controls。没有执行CMake、编译器、顶层setup或Torch导入，不是实测编译并发。受预算的实际构建不能直接采用默认setup路径；拟从原CMake直接配置并以显式--parallel 1构建两个目标，ABI/依赖/架构/宿主硬预算仍需完整验证与审阅，当前不是可执行recipe。
+
+本轮获取utils.cmake的目录API超时；一次独立raw回退SSL握手超时，web读取亦cache miss，未取得文件，不重试循环。失败追加cpu-probe.upstream_build_followups，先前四文件及原失败保留；未据函数名假定能在无可见GPU环境设置架构，也未冻结glog依赖、创建工程、安装工具链或连接远端计算。
+
 通过冻结SLLM revision 9f50241…的目录API和Git blob API取得CMakeLists/setup.py/pyproject/requirements四文件共15367B，Git blob SHA与SHA256均核验，原文保存在已有native_patch/cpu-probe.json，没有新目录、源码checkout、依赖安装或编译。CMake要求3.20及CUDA/HIP、Torch/Python；该文件支持Python3.9–3.12，不能把Windows3.13 CPU测试环境当构建环境。
 
 原pyproject与requirements只约束torch>=2.7.0，不固定本实验2.10.0+cu129。setup的CMake build传未带数字的-j，Ninja compile pool写8；不能假定MAX_JOBS已控制，实际方案须显式锁ABI/禁止默认重解依赖，并审查所选generator的并发与硬内存上限。CMake会FetchContent glog v0.6.0及googletest v1.13.0；后者已解析commit b796f7d44681514f58a683a3a71ff17c94edb0c1，glog ref解析本次超时未固定。cmake/utils.cmake及完整工程仍未补齐，不称已有完整可编译包，不产生compiled=true回执。

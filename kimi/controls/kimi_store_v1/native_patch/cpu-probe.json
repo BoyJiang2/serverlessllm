@@ -432,5 +432,114 @@
         "notes": "Resolved commits are planning pins; original CMake still declares tags and FetchContent must be constrained before real build"
       }
     }
+  ],
+  "upstream_build_followups": [
+    {
+      "recorded_utc": "2026-10-31T14:55:48.808463+00:00",
+      "source_revision": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+      "files": [],
+      "errors": [
+        {
+          "stage": "utils_source",
+          "type": "TimeoutError",
+          "message": "The read operation timed out"
+        },
+        {
+          "stage": "raw_utils_fallback",
+          "type": "URLError",
+          "message": "<urlopen error _ssl.c:1001: The handshake operation timed out>"
+        }
+      ],
+      "installed": false,
+      "compiled_native_store": false
+    }
+  ],
+  "upstream_build_method_controls": [
+    {
+      "recorded_utc": "2026-10-31T15:03:54.736571+00:00",
+      "setup_sha256": "c00af68ac0fe962004432834f226207d2ba7ea04b89ef07d0f31fbd0aca3ed8a",
+      "method": "AST-selected unmodified cmake_build_ext/remove_prefix executed; dummy extension/base, process interception, existing build_temp; no top-level setup import",
+      "observations": [
+        {
+          "ninja_available": true,
+          "max_jobs": "1",
+          "configure_argv": [
+            "cmake",
+            "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_VERBOSE_MAKEFILE=ON",
+            "-DSLLM_STORE_PYTHON_EXECUTABLE=D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-cpu-tests-env\\Scripts\\python.exe",
+            "-DCMAKE_JOB_POOL_COMPILE:STRING=compile",
+            "-DCMAKE_JOB_POOLS:STRING=compile=8"
+          ],
+          "build_argv": [
+            [
+              "cmake",
+              "--build",
+              ".",
+              "--target",
+              "_C",
+              "-j"
+            ],
+            [
+              "cmake",
+              "--build",
+              ".",
+              "--target",
+              "_checkpoint_store",
+              "-j"
+            ]
+          ],
+          "commands_intercepted_not_executed": true
+        },
+        {
+          "ninja_available": false,
+          "max_jobs": "1",
+          "configure_argv": [
+            "cmake",
+            "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY=D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch",
+            "-DCMAKE_VERBOSE_MAKEFILE=ON",
+            "-DSLLM_STORE_PYTHON_EXECUTABLE=D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-cpu-tests-env\\Scripts\\python.exe"
+          ],
+          "build_argv": [
+            [
+              "cmake",
+              "--build",
+              ".",
+              "--target",
+              "_C",
+              "-j"
+            ],
+            [
+              "cmake",
+              "--build",
+              ".",
+              "--target",
+              "_checkpoint_store",
+              "-j"
+            ]
+          ],
+          "commands_intercepted_not_executed": true
+        }
+      ],
+      "status": "PASS",
+      "conclusion": "MAX_JOBS=1 does not change either build argv; explicit -j has no numeric bound, Ninja compile pool remains 8. Do not use default setup path for bounded build.",
+      "limitations": [
+        "No real cmake/configure/compiler/CUDA executed",
+        "Generator-specific actual concurrency not measured",
+        "Does not prove a direct CMake recipe works or native library ABI"
+      ],
+      "compiled_native_store": false,
+      "dependency_installed": false
+    }
   ]
 }
