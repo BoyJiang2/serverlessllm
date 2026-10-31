@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 23:14阻塞复核：4e881f9/e906053及本轮连续三轮的相同关键阻塞是无已核可用的完整native CUDA构建链。既有WSL本轮原生Python3.10标准库探针再次实证无Torch/nvcc/ninja/CUDA_HOME及两标准cuda_runtime.h路径；cmake/g++存在，systemd用户会话警告不当失败原因。现有WSL网络对冻结utils原文单次请求Connection reset，未取得源码；追加cpu-probe.upstream_build_followups/build_prerequisite_rechecks。WindowsCPU Torch/片段g++不能替代完整库构建/ABI。未新装环境/新目录/远端计算/GPU；不循环重试。
+- 阻塞审计：原五项目标限定CPU证据和未证项见WORKER-PLAN/source-plugin-review.goal_coverage_audits，仍INCOMPLETE；本轮没有新确认可修的CPU核心格式缺陷，没有活编译/传输/审阅句柄等待，后续关键证明需外部工具链/来源或授权范围改变。不能靠继续添加通用启动包装制造目标进展。原scope、源码、96资产/64分片、GLM40ID/金标/失败和2×停止保持。后续恢复先取得可复用匹配构建环境/完整冻结来源及明确CPU内存使用范围，完成受审有界构建方案；不需先占GPU。完整native/CUDA/八rank/服务仍未通过，目标不能标complete。
+
 - 4e881f9后必要构建CPU控制：已钉setup.py真实AST方法（不执行顶层setup/导入Torch）在Ninja有/无两支配MAX_JOBS=1，实际截获两目标argv仍裸-j，Ninja compile pool仍8，PASS写cpu-probe.upstream_build_method_controls；subprocess/extension/base明确替身，没有真实编译或测并发。受预算构建不能直接默认setup，拟原CMake显式--parallel 1，但完整ABI/依赖/架构/资源和审阅未全不执行。utils来源目录API超时、单次raw回退SSL超时、web cache miss；未得到文件，失败保留upstream_build_followups，不继续无界重试、不称已齐构建包。不装环境/新目录/GB数据，不remote/GPU，旧2×/GLM结果不动。
 
 - 2026-10-31 只读原goal五项审计基于5d2c450，结论整体INCOMPLETE；未找到一个已证实、能本机CPU复现的新核心格式/映射错误（不是无缺陷或全栈R1）。表见WORKER-PLAN，细证追加source-plugin-review.goal_coverage_audits。保留2×停止；TensorImpl.h明确Dense CPU/CUDA兼容，不凭CPU/meta猜测改.data策略。下一关键外部证据：完整匹配工具链native构建/ABI，再最小真实CUDA/Store，再一份源模型TP8全导出/八rank实测/金标/服务；不为计数继续扩通用包装。
