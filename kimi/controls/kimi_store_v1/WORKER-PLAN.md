@@ -4,6 +4,26 @@
 
 ## 当前已接与尚未接
 
+## 2026-10-31 原goal五项只读审计
+
+审计基于5d2c450，整体结论INCOMPLETE，不是完整R1或运行批准。限定静态检查未找到一个已证实、可本地CPU复现的新增核心格式/映射错误；这不证明没有缺陷，也不应为制造进展继续扩写通用启动包装。
+
+| 原目标 | 当前软件/CPU证据 | 必需的未证项 |
+|---|---|---|
+| 1 审阅收尾 | 修订SHA、原失败/回归与限定复审可查；mapped inode和runtime范围分开 | 当前完整运行包R1、实际构建/ABI/活跃Store及运行准入 |
+| 2 packed INT4/scale/shape/混精度写读 | native_index、cpu_restore、native_payload及实际C++读片段保留位/布局/alias/配置 | 完整native库/O_DIRECT/CUDA IPC/Confirm，完整checkpoint和八rank |
+| 3 分块与临时内存 | writer/reader/hash失败的自身引用清理，不GC或free不明DMA | 8MiB不等于RSS；源模型/CPU目标/池/缓存/重排/失败所有者的共同峰值 |
+| 4 TP8融合专家及后处理 | 冻结208550源名到1428目标的条件映射、alias/buffer/Marlin辅助与一次后处理 | 真实八rank shape/value/scale、Marlin重排、混设备安装和最终CUDA状态 |
+| 5 交付与八卡边界 | 源码/CPU测试/失败证据及未证项有记录；native plugin已有实际候选调用，source登记v2已绑输入 | vLLM实际spawn、parent/容器消费/守护、Kimi金标及原生服务/释放 |
+
+CPU/meta不兼容不能用于断言CPU/CUDA.data必错：本机Torch2.10的TensorImpl.h:2070起明确Dense CPU/CUDA兼容；这仍不是实际CUDA安装/释放证明。mixed工厂的2×拒绝保持，逐记录CPU所有权设计不足以解除它。下一关键证据为匹配工具链的完整native构建和导入，再是最小真实CUDA/Store控制，最后一份源模型TP8完整导出、八rank审计及金标/服务；不占八卡等待编译或审批。
+
+### 已钉住的少量构建输入
+
+通过冻结SLLM revision 9f50241…的目录API和Git blob API取得CMakeLists/setup.py/pyproject/requirements四文件共15367B，Git blob SHA与SHA256均核验，原文保存在已有native_patch/cpu-probe.json，没有新目录、源码checkout、依赖安装或编译。CMake要求3.20及CUDA/HIP、Torch/Python；该文件支持Python3.9–3.12，不能把Windows3.13 CPU测试环境当构建环境。
+
+原pyproject与requirements只约束torch>=2.7.0，不固定本实验2.10.0+cu129。setup的CMake build传未带数字的-j，Ninja compile pool写8；不能假定MAX_JOBS已控制，实际方案须显式锁ABI/禁止默认重解依赖，并审查所选generator的并发与硬内存上限。CMake会FetchContent glog v0.6.0及googletest v1.13.0；后者已解析commit b796f7d44681514f58a683a3a71ff17c94edb0c1，glog ref解析本次超时未固定。cmake/utils.cmake及完整工程仍未补齐，不称已有完整可编译包，不产生compiled=true回执。
+
 2026-10-31 source宿主登记升级v2：load_watchdog_inputs强制worker_input_sha256，重用worker输入读取器比对root/plan/原锚/完整schedule和source/target identity；旧source startup v1拒绝，旧target v1仅保留归属/清理描述，P0登记不变。CPU真实元数据正反例与77项原生WSL控制通过。实际source container Cmd/Env/resource profile绑定及parent创建/启动仍未完成，亦未安装guard；a581实际源码包CPU证明不审批这轮新guard修订。
 
 2026-10-31 source参考worker内部入口增量：verify_source_worker_input冻结prompt/KV/plan SHA/声明的parent原锚，核代码/spec，_run_source_worker在验证来源目录和原剩余预算后调用既有body并持久化input SHA。七项原生CPU控制与完整404项测试已过，但父端实际创建命令、source guard target对新input SHA和anchor的绑定、完整资源/窗口/ABI/monitor准入仍缺。不能把新内部API当已部署model CLI，不借native完整编译缺口阻塞source必要准备，也不重复P0通用包装。

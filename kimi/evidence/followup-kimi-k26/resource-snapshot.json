@@ -129,5 +129,93 @@
       "runtime_admitted": false,
       "no_pull_create_start_export_or_package_install": true
     }
+  ],
+  "readonly_booking_updates": [
+    {
+      "recorded_utc": "2026-10-31T14:01:19.507209+00:00",
+      "scope": "Read-only booking API only; no compute or reservation changes",
+      "resource_id": "h20/qjhs003",
+      "cpu_booking_enabled": false,
+      "gpu_count": 8,
+      "ongoing_or_future_bookings": [
+        {
+          "id": "bk-20261031T0623-9a1ac929",
+          "user": "azure",
+          "purpose": "Task2-normal-PD-GPU-and-switching-validation",
+          "start": "2026-10-31T19:00:00+08:00",
+          "end": "2026-10-31T23:00:00+08:00"
+        },
+        {
+          "id": "bk-20261031T1331-91c0cf95",
+          "user": "azure",
+          "purpose": "ksqd",
+          "start": "2026-10-31T23:00:00+08:00",
+          "end": "2026-11-01T10:00:00+08:00"
+        }
+      ],
+      "actual_gpu_memory_io_occupancy_checked": false,
+      "booking_authorization_for_kimi_verified": false,
+      "booking_changed": false,
+      "remote_computation_started": false,
+      "notes": [
+        "UTF-8 explicitly passed to child helper after first GBK printing failure; no login or token output",
+        "Purpose/owner alone does not authorize this experiment; no independent CPU lane on current resource"
+      ]
+    },
+    {
+      "observed_at_utc": "2026-10-31T14:41:29.707221+00:00",
+      "kind": "readonly_ssh_after_user_continue",
+      "returncode": 0,
+      "stdout": "2026-10-31T22:41:28+08:00\n0, 0 MiB, 143771 MiB\n1, 0 MiB, 143771 MiB\n2, 0 MiB, 143771 MiB\n3, 0 MiB, 143771 MiB\n4, 0 MiB, 143771 MiB\n5, 0 MiB, 143771 MiB\n6, 0 MiB, 143771 MiB\n7, 0 MiB, 143771 MiB\n               total        used        free      shared  buff/cache   available\nMem:     2065109635072 36157763584 1154187870208    13959168 874764001280 2018133245952\nSwap:              0           0           0\n6a0547ef9b8a harbor-alan Up 22 hours\n",
+      "stderr": "",
+      "compute_started": false
+    },
+    {
+      "observed_at_utc": "2026-10-31T14:43:23.872582+00:00",
+      "kind": "readonly_booking_after_user_continue",
+      "bookings": [
+        {
+          "cluster_id": "h20",
+          "created_ms": 1793427825028,
+          "end_ms": 1793458800000,
+          "id": "bk-20261031T0623-9a1ac929",
+          "node": "qjhs003",
+          "purpose": "Task2-normal-PD-GPU-and-switching-validation",
+          "resource_id": "h20/qjhs003",
+          "start_ms": 1793444400000,
+          "user": "azure"
+        },
+        {
+          "cluster_id": "h20",
+          "created_ms": 1793453475307,
+          "end_ms": 1793498400000,
+          "id": "bk-20261031T1331-91c0cf95",
+          "node": "qjhs003",
+          "purpose": "ksqd",
+          "resource_id": "h20/qjhs003",
+          "start_ms": 1793458800000,
+          "user": "azure"
+        }
+      ],
+      "resources": [
+        {
+          "active": true,
+          "bookable": true,
+          "cluster_id": "h20",
+          "cpu_booking_enabled": false,
+          "gpu_count": 8,
+          "gpu_label": "H20",
+          "id": "h20/qjhs003",
+          "node": "qjhs003",
+          "notes": "开发可预约；保留原 qjhs0..qjhs3 对应机器，不在预约系统暴露个人账号。",
+          "sort_order": 103,
+          "ssh_host": "115.190.191.164",
+          "ssh_host_alias": "qjhs003",
+          "ssh_port": 22
+        }
+      ],
+      "booking_modified": false,
+      "scope_confirmation": "User said continue; no explicit allocation of ksqd or memory/CPU scope"
+    }
   ]
 }

@@ -4,6 +4,11 @@
 
 ## 最新覆盖
 
+- 2026-10-31 只读原goal五项审计基于5d2c450，结论整体INCOMPLETE；未找到一个已证实、能本机CPU复现的新核心格式/映射错误（不是无缺陷或全栈R1）。表见WORKER-PLAN，细证追加source-plugin-review.goal_coverage_audits。保留2×停止；TensorImpl.h明确Dense CPU/CUDA兼容，不凭CPU/meta猜测改.data策略。下一关键外部证据：完整匹配工具链native构建/ABI，再最小真实CUDA/Store，再一份源模型TP8全导出/八rank实测/金标/服务；不为计数继续扩通用包装。
+- Git发布故障已用已有GitHub SSH严格host检查/BatchMode单次push解决，独立SSH ls-remote核main=5d2c450，origin仍HTTPS且全局配置不变；HTTPS只读schannel仍会失败，后续优先每命令SSH传输+独立refs核验，不force或循环重试。没有连接其他计算节点。
+- 22:01只读booking API：h20/qjhs003 CPU lane disabled，当前azure9a1ac929 19–23 Task2，后续azure91c0cf95 23–11/1 10用途ksqd；已请求用户确认是否本Kimi及CPU/内存范围。未核实际占用/未改预约/未启动remote。旧6b09或boyjiang4498不当当前授权。
+- 冻结9f50241原生SDK四构建输入CMake/setup/pyproject/requirements已用目录API+Git blob读取并核SHA1/SHA256，共15367B，原文/失败取源/依赖ref观察追加native_patch/cpu-probe.upstream_build_inputs；没有新目录/checkout/安装/构建。Web/raw通道失败后API blob有界成功。CMake>=3.20、Python3.9–3.12、Torch+CUDA，pyproject只torch>=2.7会允许重解ABI；setup裸-j且Ninja pool8需显式约束，不能默认MAX_JOBS已控制。googletest1.13 commit b796f7d…已解，glog0.6 ref超时未钉；utils.cmake和完整工程仍缺，不称完整build包或compiled=true。当前仍仅本机CPU工作；可继续必要构建来源/受控方案准备，scope/window/R1未全不能执行remote/GPU，不装GB环境或复用旧gate。
+
 - 2026-10-31 source宿主登记/worker-input绑定缺口已先复现：旧source registration v1在有新worker-input时仍被load_watchdog_inputs接受，1项.873s失败（ValueError未抛）。现新source startup强制kimi-source-watchdog-registration-v2+worker_input_sha256，通过已有读取器核实际input SHA、root/plan SHA/原batch UTC字串/完整schedule/run holder commit spec manifest及target identity；receipt记录inputSHA。旧source startup v1在部署前拒绝，cleanup target描述v1保留，P0登记分支不变。原生WSL77项5.136s全过；Win全406项382过24skip53.863s，两源码只读静态PASS/SHA核验与旧失败追加source-schedule-review/tests。
 - 本轮只改原读取器与测试，未安装守护/创建或启动容器，无GPU/模型/Store/全缓存/remote/新环境/GB副本。实际source Cmd/Env/resource profile与输入的绑定、parent创建/启动/真实guard仍缺；不声称G1/完整服务，不用旧a581包或其CPU PASS批准当前新code。下一项继续核真正缺失的精确source target配置/启动闭包，先读已有接口再改，保留原budget/资源/R1门槛，不能以登记metadata等同实际消费或计算授权。
 

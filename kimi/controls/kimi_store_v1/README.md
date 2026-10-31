@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+最新五项目标只读审计仍为整体INCOMPLETE，未发现一个已证实的新增本地CPU核心格式/映射错误。详表及下一外部证据见WORKER-PLAN。native完整构建、实际CUDA数据路径、八rank及服务仍缺，不用组件数或包装数量代替这些证据。四份冻结上游构建文件仅15367B已取得并核Git blob/SHA256；构建默认Torch范围及并发需要受控方案，未安装依赖或宣称可编译。
+
 当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 完整本机构建已有实际预检阻塞：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
