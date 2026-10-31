@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 当前源码候选a58113d973ac0d6a8bbd7de239983e7d79cdc469已实际Git对象成包175文件1777863B，manifest2a4a81afa3f2f8cd62a3f64e2acd5cf816e0848bca5c6ef79ec084e19e9367e9；fresh CPU子进程真实module origin及完整source/spec/plan/input验证→旧参考body/journal exit0，无Torch导入。此次去掉module/filegate替身，但engine/rank仍替身，不读权重payload，不是实际vLLM/转换/金标/guard通过。临时树已删除，不新增永久目录/GB数据；只保存input/journal SHA/child摘要和源码清单收据而非可重放测量档案，见source-startup-cpu-proof.bound_worker_followups。声明的node/booking/window仅CPU测试数据，不是有效资源票。代码首次push408后核远端仍410db62，再一次有界重试exit0成功；原失败留证，不force。
+- 下一项先核真正缺失的source parent启动清单、原anchor/inputSHA到实际target/guard的绑定及运行预算；不要重复已完成的worker-input和内部body，也不为绕本机CUDA构建缺口安装新GB环境或把组件控制冒充完整服务。全部实际准入前仍不启动GPU/模型/完整Store/大池/全缓存。
+
 - 2026-10-31 source真实输入接线CPU候选：新增verify_source_worker_input在原source_bundle中固定五字段schema/planSHA/声明原batchUTC/prompt<=896/KV正整数，regular nonblock <=64KiB读取input+plan，原完整code/spec/config/1428contract校验及source_schedule按固定锚派生deadline。source_plugin._run_source_worker内部API核实际目录root/code，启动前取wall/mono，验证耗时计入engine阶段且不重派batch；错module/未来锚/过期预算在engine前拒绝，复用已有body，inputSHA写start/成功/失败journal。没有新增可独立拉模型CLI；真实parent仍须把input SHA/anchor绑定实际启动清单/guard并做新窗口/全资源/ABI/预算准入，metadata不授计算权。
 - 7新增测试WSL原生3.10全过.571s无Torch导入，真实小非执行code树/实际SHA，module origin/engine/rank明确替身；Win plugin34过8.402s、bundle22项21过1FIFO skip25.944s，全404项380过24Windows skip50.798s，新FIFO另已原生覆盖。四源码只读静态复审PASS/SHA核验在source-plugin-review；原49b2 CPP/2×/GLM历史不动，无remote/GPU/新环境/GB复制。下一项在当前实际提交的小型完整源码包做CPU子进程链验证去掉module路径替身，仍用明确engine/rank替身，不读权重payload；之后再补真实parent source启动/guard绑定，不能重标为完整worker或金标通过。
 

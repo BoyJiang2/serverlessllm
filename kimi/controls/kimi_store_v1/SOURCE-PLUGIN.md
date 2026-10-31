@@ -1,5 +1,7 @@
 # 源模型转换worker的独立插件候选
 
+实际源码包CPU后续控制：提交a58113d973ac0d6a8bbd7de239983e7d79cdc469已从Git对象生成175文件、1777863字节的完整候选，manifest SHA为2a4a81afa3f2f8cd62a3f64e2acd5cf816e0848bca5c6ef79ec084e19e9367e9。新CPU子进程从真实code目录导入，执行新输入→实际完整文件/spec/plan校验→既有参考body/journal，未替换模块路径或文件gate，exit0且未导入Torch。engine/rank仍明确替身，checkpoint仅读冻结config，非真实转换/金标/守护。临时树及测试输入/日志已删除，仅保留源码清单收据、input/journal摘要与child stdout小证据，不能当可重放测量档案。记录追加source-startup-cpu-proof.json，代码候选仍为a58113d，后续证据提交不继承为新运行gate。
+
 ## 2026-10-31：冻结source worker业务输入
 
 新增内部_run_source_worker接线，复用已有转换/参考body，不新增可独立启动模型的CLI，也不授予宿主资源或guard准入。输入固定为run_root/source-worker-input.json，schema=kimi-source-worker-input-v1，只有plan_sha256、batch_entered_utc、prompt_token_ids、kv_cache_memory_bytes及schema五项。prompt为1至896个合法原始token，KV是明确正整数声明，不能据此断言真实预算足够。
