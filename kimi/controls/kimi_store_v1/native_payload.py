@@ -31,6 +31,33 @@ def iter_host_byte_blocks(tensor, chunk_bytes=CHUNK_BYTES):
         del block, buffer, host
 
 
+def _digest_tensor(tensor, chunk_bytes):
+    digest, transferred = hashlib.sha256(), 0
+    blocks = iter_host_byte_blocks(tensor, chunk_bytes)
+    failure = None
+    try:
+        for block in blocks:
+            try:
+                digest.update(block)
+                transferred += len(block)
+            finally:
+                del block
+    except BaseException as error:
+        failure = error
+        raise
+    finally:
+        try:
+            blocks.close()  # Owned staging generator, not a caller-supplied iterator.
+        except BaseException as close_error:
+            if failure is None:
+                raise
+            failure.__notes__ = list(getattr(failure, '__notes__', ())) + [
+                'payload staging close also failed: ' + repr(close_error)]
+        finally:
+            del blocks
+    return digest.hexdigest(), transferred
+
+
 def verify_native_payload(index, state, records, *, chunk_bytes=CHUNK_BYTES, **allocation):
     """Caller must authenticate index/records and quiesce the source beforehand.
 
@@ -55,12 +82,8 @@ def verify_native_payload(index, state, records, *, chunk_bytes=CHUNK_BYTES, **a
     for name, tensor in state.items():
         if name in aliases:
             continue
-        digest = hashlib.sha256()
-        for block in iter_host_byte_blocks(tensor, chunk_bytes):
-            digest.update(block)
-            transferred += len(block)
-            del block
-        digests[name] = digest.hexdigest()
+        digests[name], count = _digest_tensor(tensor, chunk_bytes)
+        transferred += count
         if digests[name] != records[name]['sha256']:
             raise ValueError('loaded payload digest differs: ' + name)
     for name, root in aliases.items():
@@ -87,15 +110,12 @@ def verify_independent_payload(index, result, records, *, chunk_bytes=CHUNK_BYTE
     digests, transferred = {}, 0
     for record in plan['records']:
         root = record['root']
-        digest = hashlib.sha256()
-        for block in iter_host_byte_blocks(result.tensors[root], chunk_bytes):
-            digest.update(block)
-            transferred += len(block)
-            del block
-        if digest.hexdigest() != records[root]['sha256']:
+        digest, count = _digest_tensor(result.tensors[root], chunk_bytes)
+        transferred += count
+        if digest != records[root]['sha256']:
             raise ValueError('independent payload digest differs: ' + root)
         for name in record['names']:
-            digests[name] = digest.hexdigest()
+            digests[name] = digest
     return dict(payload_verified=True, payload_device=result.device, verified_digests=digests,
                 host_payload_copy_bytes=transferred, host_block_limit_bytes=chunk_bytes,
                 metadata_intervals_verified=True, allocation_ownership_verified=False,

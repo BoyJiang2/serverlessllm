@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-10-31 两条读回摘要路径暂存寿命已修：旧verify_native_payload/verify_independent_payload的hash错误保留traceback时留CPU staging；真实Torch CPU3字节块弱ref、强保留错误+generator，旧1项两subtest均先失败.037s，故障callback先del data，不是替身自己锚。现共用_digest_tensor逐块finally del自身block，finally close/del自身暂存generator；二次关闭错误只note不盖原错，源packed位/metadata先检/alias去重/digest与bytecount不变。不GC/clear_frames/cudaFree、不释放原native owners。7相关测试.007s通过，全397项374过23Windows skip45.412s（既有WSL桥接WindowsTorchCPU），两源码只读静态PASS/SHA核验及原失败追加cpu-tensor-io-review。无remote/GPU/新环境/GB复制；默认8MiB不是RSS/锁页/allocator/GPU峰值或任意第三方栈清理证明，旧49b2 CPP/2×预算/GLM历史不动。
+- 下一项优先核完整native补丁构建来源和实际可用本地构建链、完整mixed峰值/运行预算；不把读回引用修复当完整Store/8rank/服务成功。已审writer/host reader/plugin/mapping不重复扩写；沿CPU授权推进真实缺项，实际GPU仍需有效窗口/全资源/完整R1/新guard与probe。
+
 - 2026-10-31 回到实际Store格式衔接：真实writer四个4KiB分区+抽取原ToHost片段已证旧代码至多拼两分区，16KiB块/512短读/EINTR失败（原始及c057close候选均失败），不是官方默认10GiB分区必触发或历史SIGKILL原因。独立native_patch/model.cpp改while填满原chunk，按分区剩余限读、正短读续当前file/EINTR重试、任意多part推进、提前EOF/异常拒绝，原size enqueue及IPC close补丁保留。源差异严格只允许host-read/close-tail/cerrno，未改变布局/packed/TP/GLM。新CPP SHA49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353已绑定ledger/PATCH_SHA，旧c057 SHA+commit留history且旧close-only compiled receipt拒绝。WSL原生3.10/g++实际三项通过3.447s；控制含4/6/16KiB块、I32/BF16/F32特殊位+padding完整SHA/短读/EINTR/truncated，旧1项1.715s失败和一次EOF newline检查失败保留native_patch/cpu-probe。全395项372过23Windows skip49.604s（新Linux读取项另已原生覆盖），四源码只读复审PASS/SHA核验见ipc-close-review。无remote/GPU/全转换/大池/新环境/GB副本；完整Store未编，O_DIRECT/线程/取消/池未验证，2×/金标/40ID仍冻结。
 - 下一项不重复reader或插件包装：核完整native源码/实际补丁构建与服务端活跃身份、mixed全GPU/host峰值和运行预算；CPU片段编译不能生成compiled_native_store=true的真实回执。仍在本机CPU授权内推进真实缺项；实际GPU必须当前有效窗口/全资源、完整R1及新guard/probe，未完整适配不标complete。
 

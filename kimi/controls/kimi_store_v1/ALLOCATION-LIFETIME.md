@@ -1,5 +1,13 @@
 # 逐记录 native 分配与重排寿命候选
 
+## 2026-10-31：读回摘要失败的CPU暂存引用
+
+两条读回校验路径原先都只在`digest.update`成功后删除block，摘要错误的traceback会保留CPU暂存memoryview；强保留generator也会延长它的host Tensor寿命。用真实Torch CPU、3字节块、保留原错误traceback和generator的弱引用负例，single与independent两子用例均先失败（1项0.037秒，2 failures）。故障callback先删除自身data参数，排除测试替身自己持有块的干扰；不使用GC或clear_frames掩盖问题。
+
+现二者共用`_digest_tensor`：每块消费finally删除自身block，finally关闭并删除自身创建的暂存generator；关闭再次抛错只记note、不覆盖原摘要错误。调用者输入是Tensor，不是借来的iterator；不关闭任意调用者对象，也不修改源Tensor、raw native owner或allocation。metadata预检仍在首次复制之前，alias去重、原始I32/BF16位、完整摘要和copy bytes计数保持。正常、失败、原始packed位不变及二次关闭错误的7项CPU测试通过（0.007秒），全397项374过23平台跳过（45.412秒）。
+
+两源码只读复审PASS及旧失败/SHA追加cpu-tensor-io-review.json。此处仅证明自身consumer/staging引用释放，不涵盖任意第三方异常栈、原模型所有者、RSS/allocator/锁页/页缓存或CUDA资源释放；默认8MiB块仍不是进程峰值上限。无实际GPU/native Store/完整checkpoint或服务通过，原2×预算停止和独立guard门槛不变。
+
 2026-10-30。代码与CPU组件测试；未运行原生CUDA allocator/RPC，未改变现有native工厂默认路径，不授予GPU准入。
 
 2026-10-31验证追加：真实CPU转换器的返回值为source/archive/transfer，完成发布器先前错误读取顶层index hash及cleanup_pending；已用实际转换器/写入器/索引与同一模型的固定Base/source loader联动回归复现KeyError并修正读取archive字段。此发现只涉及未运行的Kimi候选，不重判GLM历史结果或exit137。

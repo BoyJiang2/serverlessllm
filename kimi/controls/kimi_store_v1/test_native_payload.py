@@ -7,9 +7,86 @@ import torch
 
 import native_payload
 import test_native_spans
+import test_record_allocations
+from record_allocations import restore_independent_records
 
 
 class NativePayloadTests(unittest.TestCase):
+    def audit(self, mode):
+        if mode == 'single':
+            index, state, records, args = self.fixture()
+            return lambda: native_payload.verify_native_payload(index,state,records,chunk_bytes=3,**args), state
+        index, plan, buffers, pointers, restore, empty, calls = test_record_allocations.RecordAllocationTests().fixture()
+        result = restore_independent_records(index,plan,pointers,device_id=0,expected_device='cpu',
+            transfer_confirmed=True,restore_tensors=restore,make_empty=empty)
+        records = {n: dict(bytes=index[n][1],sha256=hashlib.sha256(
+            b''.join(native_payload.iter_host_byte_blocks(t,3))).hexdigest()) for n,t in result.tensors.items()}
+        return lambda: native_payload.verify_independent_payload(index,result,records,chunk_bytes=3), result.tensors
+
+    def test_both_audit_failures_release_host_staging_with_traceback_and_generator_retained(self):
+        original = native_payload.iter_host_byte_blocks
+        real_sha = hashlib.sha256
+        class Digest:
+            def update(self, data):
+                del data  # Simulate a C-call fault without a Python argument owner.
+                raise RuntimeError('audit hash fault')
+        for mode in ('single', 'independent'):
+            with self.subTest(mode=mode):
+                run, state = self.audit(mode)
+                owners, iterators, failures = [], [], []
+                def blocks(tensor, chunk_bytes):
+                    inner = original(tensor,chunk_bytes)
+                    try:
+                        for block in inner:
+                            owners.append(weakref.ref(block.obj._tensor_owner))
+                            self.assertNotEqual(block.obj._tensor_owner.data_ptr(),tensor.data_ptr())
+                            yield block
+                    finally:
+                        inner.close()
+                def tracked(*args):
+                    iterator = blocks(*args)
+                    iterators.append(iterator)
+                    return iterator
+                with patch.object(native_payload,'iter_host_byte_blocks',side_effect=tracked), \
+                        patch.object(native_payload.hashlib,'sha256',side_effect=lambda data=b'': real_sha(data) if data else Digest()):
+                    try: run()
+                    except RuntimeError as error: failures.append(error)
+                try:
+                    self.assertEqual(str(failures[0]),'audit hash fault')
+                    self.assertIsNotNone(failures[0].__traceback__)
+                    self.assertEqual(len(owners),1)
+                    self.assertIsNone(owners[0](),'failed audit retained host staging')
+                    self.assertIsNone(iterators[0].gi_frame)
+                    self.assertEqual(int(state['packed'][0]),-2147483648 if mode=='single' else -1)
+                finally:
+                    for iterator in iterators: iterator.close()
+
+    def test_staging_close_failure_does_not_mask_primary_audit_error(self):
+        original = native_payload.iter_host_byte_blocks
+        real_sha = hashlib.sha256
+        class Digest:
+            def update(self,data):
+                del data
+                raise RuntimeError('primary audit fault')
+        for mode in ('single','independent'):
+            with self.subTest(mode=mode):
+                run, _ = self.audit(mode)
+                closed = []
+                def blocks(*args):
+                    inner = original(*args)
+                    try:
+                        yield from inner
+                    finally:
+                        inner.close()
+                        closed.append(True)
+                        raise OSError('secondary staging close fault')
+                with patch.object(native_payload,'iter_host_byte_blocks',side_effect=blocks), \
+                        patch.object(native_payload.hashlib,'sha256',side_effect=lambda data=b'':real_sha(data) if data else Digest()):
+                    with self.assertRaisesRegex(RuntimeError,'primary audit fault') as caught:
+                        run()
+                self.assertEqual(closed,[True])
+                self.assertIn('secondary staging close fault',' '.join(caught.exception.__notes__))
+
     def fixture(self):
         index, state, args = test_native_spans.NativeSpanTests().fixture()
         state['packed'].copy_(torch.tensor([-2147483648, -1], dtype=torch.int32))

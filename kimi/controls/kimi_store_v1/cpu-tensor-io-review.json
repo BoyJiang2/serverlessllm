@@ -161,5 +161,56 @@
         "No model, pool/cache, remote, install, permanent new directory or GB copy; native 2x stop and GLM history unchanged"
       ]
     }
+  ],
+  "followup_reviews": [
+    {
+      "recorded_utc": "2026-10-31T11:27:39.196169+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS",
+      "sha256": {
+        "native_payload.py": "2398408c253e227928139537524789b68906778908cfcd441e7f4c44f0939984",
+        "test_native_payload.py": "7570626f17dc5c1b2ad408521e521a06fe2d56da7fca9acae441e3dcb60c4236"
+      },
+      "negative_control": {
+        "count": 1,
+        "subtest_failures": 2,
+        "seconds": 0.037,
+        "result": "FAILED",
+        "old_code_commit": "ad37b1f3bebbd0d0492f9e8faec70044a0687001",
+        "old_native_payload_sha256": "0a6aa1707ca14b08e174a435cc555fe5661325681d5b0d6d582fd7c71fed5f8a",
+        "test": "test_both_audit_failures_release_host_staging_with_traceback_and_generator_retained",
+        "observed": "Actual CPU host Tensor remained alive in single and independent audit failures; fault callback deletes its own data argument; no GC"
+      },
+      "tests": [
+        {
+          "count": 7,
+          "seconds": 0.007,
+          "result": "OK",
+          "scope": "Real Torch CPU staging weakrefs with traceback and generator retained; original packed bits and secondary-close error preservation"
+        },
+        {
+          "count": 397,
+          "passed": 374,
+          "skipped": 23,
+          "seconds": 45.412,
+          "result": "OK",
+          "scope": "WSL bridge to existing Windows Torch CPU; platform skips retained"
+        }
+      ],
+      "verified": [
+        "Both public audits consume the same helper; per-block finally drops consumer block and owned staging generator closes/deletes on all exits",
+        "Secondary close error does not mask primary hash failure",
+        "Whole metadata preflight before first copy, alias deduplication, original bits, digests and byte accounting unchanged"
+      ],
+      "limitations": [
+        "Static reviewer ran no code, wrote no files and did not SSH",
+        "Fault callbacks explicitly drop their own argument; original Tensor/native allocation owners intentionally remain retained",
+        "Own consumer/staging references only; not arbitrary third-party traceback, RSS, allocator, pinned memory, page cache or GPU/native resource release",
+        "No CUDA/native Store, complete checkpoint, eight-rank payload or business gold validation",
+        "Existing 49b2 native CPP patch, 2x budget rejection and frozen GLM history unchanged"
+      ],
+      "runtime_admitted": false,
+      "remote_or_gpu_executed": false
+    }
   ]
 }
