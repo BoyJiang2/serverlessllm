@@ -1,5 +1,7 @@
 # 源模型转换worker的独立插件候选
 
+11/3 CPU接线更新：宿主完成独立准入后，可省略`_run_source_worker`的两个factory参数。函数先核现有worker input、源码和原始batch时钟，再验证冻结ABI并直接采用`vllm.LLM/SamplingParams`；显式提供两个factory的旧测试接口保持，不能只给一方。没有新增CLI或宿主launcher。59项WSL source/bundle回归和1项真实Torch CPU ABI拒绝控制通过，正向引擎仍是明确替身；这不批准部署、TP8或Store转换，也不解决当前`runc create`残留。
+
 实际源码包CPU后续控制：提交a58113d973ac0d6a8bbd7de239983e7d79cdc469已从Git对象生成175文件、1777863字节的完整候选，manifest SHA为2a4a81afa3f2f8cd62a3f64e2acd5cf816e0848bca5c6ef79ec084e19e9367e9。新CPU子进程从真实code目录导入，执行新输入→实际完整文件/spec/plan校验→既有参考body/journal，未替换模块路径或文件gate，exit0且未导入Torch。engine/rank仍明确替身，checkpoint仅读冻结config，非真实转换/金标/守护。临时树及测试输入/日志已删除，仅保留源码清单收据、input/journal摘要与child stdout小证据，不能当可重放测量档案。记录追加source-startup-cpu-proof.json，代码候选仍为a58113d，后续证据提交不继承为新运行gate。
 
 ## 2026-10-31：冻结source worker业务输入

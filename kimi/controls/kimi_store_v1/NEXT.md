@@ -1,3 +1,9 @@
+## 11/3 03:00本轮已闭合CPU默认factory接线，实际runtime仍阻塞
+
+17305d8的source_plugin 168cb6b1…/test2bd99ce4…已获独立PASS_CPU_DEFAULT_FACTORY_BINDING_ONLY；59项WSL+1真实Torch CPU负例证据保留。默认API能在既有输入/源码/时间校验后使用冻结真实vllm factories，无新CLI或目录，未部署且不冒充TP8/Store通过。
+
+上轮独立root只读诊断100s外层实际124，未取得stack/FD结果，本地PID14518/parent14517已消失；远端完成未知。18:57:57Z仅取旧artifact文件元数据，确认p0-runtime-readonly.json不存在，此为取证检索，不是再次读取进程/发信号/重跑。不能据缺文件猜测NVIDIA或kernel根因，不能推导远端helper已终止。当前保留原CID/runtime清理义务，禁止新GPU或模型任务；若管理员介入须核原CID、boot/start_ticks及单个自有PID，不按python/runc名字或containerd共享cgroup批量终止。原P0完整失败、预算终止和历史结果均不改。
+
 ## 11/3 02:55本轮CPU接线候选/只读故障状态
 
 02:42实际只读再核：同boot、原shim2221317/runc2221328 start76765407仍S，Docker只报Created；证明卡在workload启动前，仍未IPC/模型/Store通过。新的仅自有runtime只读诊断使用独立100秒上限，实际外层124且本地父/child已退出，未取得结果，远端诊断完成未知；不再重复发，未向任何进程发新信号。原P0失败与cleanup_owed保持；不能因client结束就称root残留清完。

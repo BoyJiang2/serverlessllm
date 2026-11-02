@@ -75,5 +75,27 @@
       "runtime_approved": false,
       "prior_needs_fix_retained": true
     }
+  ],
+  "default_factory_reviews": [
+    {
+      "recorded_utc": "2026-11-02T19:01:50.975655+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "code_commit": "17305d8",
+      "verdict": "PASS_CPU_DEFAULT_FACTORY_BINDING_ONLY",
+      "scope": "existing source worker default real-runtime factories after metadata/time gate; no actual vLLM/GPU or source profile approval",
+      "sha256": {
+        "source_plugin.py": "168cb6b17675be76e87be1cbebf7c4938720b9425188c162544df95985e56f12",
+        "test_source_plugin.py": "2bd99ce4cc496f14f52da9e1585d8ad0044f00c250ac1e2787f730b0ff661d07"
+      },
+      "reviewer_executed_tests": false,
+      "observations": [
+        "one-factory rejected before runtime",
+        "default ABI/import follows input/source/module/original time checks",
+        "explicit factory pair behavior preserved",
+        "reference-only keeps safetensors/no Store completion",
+        "runtime import does not renew original deadline"
+      ],
+      "runtime_approved": false
+    }
   ]
 }
