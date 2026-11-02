@@ -1,3 +1,9 @@
+## 11/3 03:45真实输入问题已复现，传输修正待执行
+
+Root恢复300s本地实际124，尚无root结果；03:41只读检索固定p0-runc-kill-recovery.jsonl不存在，原两个PID/birth仍S，不据缺日志改判旧请求未执行。现已实际无凭据CPU复现：getpass仅LF时未返回且wait_woken；同TTY pts2输入CPU_ONLY+LF+CR后DONE8。此前把后续所有超时都当服务器等待不准确，最初Docker start/inspect/runc挂起仍有独立实测证据。
+
+传输修正只增加getpass返回及SSH调用前的时间marker（不记录密码/长度/哈希），输入用实证LF+CR；root模板ad008b73…逐字节不改，local034327e2…独立复审APPROVED_SINGLE_OWNED_RUNC_RECOVERY。批准一次新独立300s传输，不延长旧预算；同一个O_EXCL日志槽任何信号前必须持久取得，不得删除/替换，保持所有执行最多一个真实SIGKILL。旧run124/unknown永久保留；实际SSH、durable signal ack、60s和独立退出证据仍待。没有重试P0或启动任何模型。
+
 ## 本轮限定恢复代码已复审，尚未执行
 
 source-schedule-review.json.runc_kill_recovery_candidates[-1]记录独立APPROVED_SINGLE_OWNED_RUNC_RECOVERY：root模板ad008b73…/local2f217b17…，仅一个fresh核验PIDfd的自有runc2221328 SIGKILL，正常CID API清理、旧helper/进程/CG/runtime路径与60s观察；不信号shim/daemon/其他PID，不改runtime目录。root supervisor由本次原300s UTC最后截止派生，local295+kill5硬界；收据立即落固定p0新小日志，最终必须独立SSH证明roothelper退出。已纠正仅因root就要求管理员的过度保守判断，属于用户已授权自有失败资源清理。此为新独立恢复，不延长/重试/改判原P0；实际结果尚未产生。

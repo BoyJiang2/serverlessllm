@@ -861,5 +861,37 @@
       ],
       "verified": true
     }
+  ],
+  "local_credential_transport_controls": [
+    {
+      "recorded_utc": "2026-11-02T19:41:50.528162+00:00",
+      "scope": "CPU-only controlling-terminal input, no credential/SSH/GPU",
+      "lf_only": {
+        "pid": 15539,
+        "input": "CPU_ONLY + LF",
+        "completion_observed": false,
+        "wchan": "wait_woken",
+        "tool_chunks": [
+          "b94069",
+          "677cfa",
+          "01fd7e"
+        ]
+      },
+      "lf_then_cr": {
+        "pid": 15585,
+        "input": "CPU_ONLY + LF + CR",
+        "return_observed": true,
+        "reported_length": 8,
+        "controlling_tty": "pts/2",
+        "stdin": "/dev/pts/2",
+        "getpass_fd": "/dev/tty",
+        "tool_chunks": [
+          "08a8ff",
+          "03a469",
+          "9d884b"
+        ]
+      },
+      "limitation": "explains a possible local credential wait; does not retroactively prove remote signals were never dispatched"
+    }
   ]
 }
