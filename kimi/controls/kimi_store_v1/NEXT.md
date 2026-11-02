@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 本机实际e85f5609/c053da3已在183.96秒产出180包候选版本锁，46输入root（含39既有匹配包）及Linux Torch依赖均核验；采样进程峰214691840B/元数据85755210B，无安装/环境/GPU，新临时entry为空，旧cache保留复用。发现grpcio1.85.1不合冻结SLLM exact1.76，故仍非最终锁；新一次精化仅改该项，其余179版本固定、同128MiB/512MiB/600s轮询预算。原候选及1066文件清单在同JSON无损归档，不再越1MiB。controllercc061fbd…/payload2860df7b…限定delta复审PASS；审阅实发现重复cache-dir构造，已在原controller最小修正，4项实际AST控制覆盖已有/缺失/错误/重复，旧候选留档。尚未执行这次精化，不宣安装/ABI/模型通过。
+
 - 证据体积整改：8bdf04f提交时CPU证据JSON超过仓库暂存1MiB限制，外部命令失败后PowerShell未停而继续推送，属于本代理命令控制错误。后续正常提交修正，不改写main、不放宽限制：745个缓存诊断行和两份历史build独立核验data以zlib+base64保存在同一原JSON，原UTF8规范化字节/SHA及解码配方齐全，逐对象/字节roundtrip一致；历史原文本仍在Git。controller76c3849e…与payload6fbb04cd…完全未变。后续每步显式检查LASTEXITCODE，通过暂存检查才commit/push。
 
 - 11/2本机已有UV0.11.28 Linux/Python3.12解析：先CLI互斥选项失败，去掉重复only-binary后run8bd253df在189.84秒触及64MiB轮询阈值并停止自身；样本进程峰229318656B，无安装/新环境/GPU。已检查745文件67154918B，全为UV索引rkyv/包元数据msgpack/锁和sentinel，无wheel/源码/环境副本；因此新一次方案复用同一.tmpICHNgM（745完整SHA清单），不新目录、不重下索引，保留镜像39项已满足直接依赖+原7根共46精确root，减少无关版本升级。新metadata轮询阈值128MiB且包含旧缓存，进程512MiB/600秒不变，均不是硬quota；旧64MiB失败不改。controller76c3849e…/payload6fbb04cd…限定只读复审PASS，尚未执行。审阅曾误判换行，实际save/stdin AST证明JSON可读和46实际LF行，审阅者撤回误报，代码未为假问题修改。成功也仅候选版本锁，不是安装/完整artifact、ABI或GPU准入。
