@@ -4836,7 +4836,7 @@
       "outer_launch_code_template": "import sys,json,os,hashlib\nfrom pathlib import Path\nfrom datetime import datetime,timezone\nB=__P0_BINDINGS_JSON__\nroot=Path('/data/brick1/boyjiang/kimi-k2.6/p0')\nsys.dont_write_bytecode=True\nsys.path.insert(0,str(root/'code'))\nfrom source_bundle import verify_p0_worker_input\nfrom source_schedule import _watchdog_host\nfrom native_index import _publish\n_,verified_root,inputs,receipt,schedule,identity=verify_p0_worker_input(str(root/'p0-worker-input.json'),B['worker_input_sha256'])\nif root!=verified_root or identity!=B['identity'] or schedule['total_max_seconds']!=1200:raise ValueError('P0 outer identity or budget differs')\ncommand=['/usr/bin/timeout','--signal=TERM','--kill-after=5','1200','/usr/bin/python3','-B','-E','-s','-X','utf8',str(root/'code/source_schedule.py'),'p0-run','--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha',B['worker_input_sha256'],'--gate-sha',B['gate_sha256'],'--booking-sha',B['booking_sha256'],'--sudo-stdin']\nrecord=dict(schema='kimi-p0-outer-driver-startup-v1',host=_watchdog_host(),identity=identity,command=command,utc=datetime.now(timezone.utc).isoformat(),timeout_seconds=1200,kill_grace_seconds=5,resources_released=False)\nraw=(json.dumps(record,sort_keys=True)+'\\n').encode()\nif len(raw)>16384:raise ValueError('P0 startup receipt oversized')\nif not _publish(root,'p0-driver-startup.json',raw):raise ValueError('P0 startup retains partial publication')\nprint(json.dumps(dict(event='p0_outer_exec_prepared',identity=identity,startup_sha256=hashlib.sha256(raw).hexdigest())),flush=True)\nos.execv(command[0],command)\n",
       "full_max_seconds": 1800,
       "executed": false,
-      "review_status": "PENDING",
+      "review_status": "PASS_FRESH_P0_CONFIGURATION",
       "spec_sha256": "74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc",
       "plan_sha256": "245d84bbbf478d17c27656bc3e4d28cefd9b7af6d2f7c13c4affab7722afbea7",
       "archive_mapping": [
@@ -5131,6 +5131,15 @@
         "tool_chunk": "f501e9",
         "reason": "preflight mistakenly replaced placeholder inside quoted execution source, not an actual controller syntax defect; no execution or new files",
         "corrected": "only substitute archive template before its compile"
+      },
+      "configuration_review": {
+        "reviewer": "/root/deadline_readonly_review",
+        "recorded_utc": "2026-11-02T20:18:08.773077+00:00",
+        "verdict": "PASS_FRESH_P0_CONFIGURATION",
+        "execution_sha256": "a22869c4ce98023d28cd542a3460f72a86dd5653ca6d56cb21c2387f8051d1f1",
+        "archive_sha256": "1da06fa56012a1d9b2820ac871e303d411af6b8b9e03458d36788444f9ff039f",
+        "booking_reader_sha256": "f4ed271b2257def7b1734fd1b11862e3a931f1f5aa39a30160b18ef95f58f8c7",
+        "scope": "one current P0, actual fresh resources and new guard/probe mandatory, not TP8/Store/service"
       }
     }
   ]
