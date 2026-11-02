@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 12:01真实resolver控制54543b10/0648dc1证实53f镜像无uv，约0.25秒业务失败并释放；未进行联网解析，不解释成依赖无解。最小整改改用已有pip install --dry-run --ignore-installed --no-cache-dir --no-compile --only-binary=:all:和report，不补装解析工具/环境；清配置/重试、相同root pins/RO wheel、64MiB临时空间及16MiB单文件/540-600-720-900秒预算。报告<=2MiB/包<=512、根版本断言，完整报告压缩及SHA回传，实际host attach上限262144B/metadata全量解析（已核并更正审阅附注16KiB误述）。hosta2ec6f89…/body4a298258…限定delta复审PASS，尚未执行。所有旧失败/候选保留，下载回退触限不代表依赖无解；不是安装/ABI或GPU准入。
+
 - 11/2下一必要CPU解析候选已只读审阅PASS：原53f镜像若存在uv，复用其pip compile；缺失即失败，不新装工具/环境。三份现有vllm/Torch/accelerate wheel只读及完整SHA，audio/vision官方cu129 URL/SHA固定；Transformers5.5.1及NumPy2.2.6为符合现有排除/Numba约束的明确候选，尚非已验兼容性。bridge仅依赖元数据，禁构建/配置/缓存/解释器下载，1CPU2GiB/tmpfs64MiB/单文件16MiB，解析540/内600/宿主guard720/整体900秒及18:50收口。hosta2ec6f89…/bodyef7630a9…，尚未执行。只能输出候选版本锁，不是完整artifact/安装预算、ABI或运行准入；若大包回退触发临时空间限制，不把它说成依赖无解。
 
 - 11/2 11:50官方vLLM0.19.1 wheel资产准备通过：433132101B/完整SHA71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719，已落原qjhs003 downloads，未解包/安装。服务器253秒仅2.55MB（约10KB/s）后精确身份pidfd停止；本机180秒收到428670976B到期失败；一次有界仅余4461125B续传9.568秒，全SHA通过。远端原断点前缀一致后单次SFTP reput，独立SSH全SHA/UID/inode/ZIP目录验收再排他发布；随后核本地绝对路径及SHA删除433MB，两个本地大文件路径均不存在。完整失败/续传/清理证据留cpu-probe，不重写为一次成功。metadata控制356811b3已实际采集并释放：vLLM直接13缺失/11版本冲突，Torch自身另5冲突，不能直接相加当独立包数；Numba0.61.2还要求NumPy<2.3而现2.3.5，不是完整传递闭包。限定只读实际复审通过资产/清理与metadata范围。下一项固定完整兼容依赖及安装空间预算，再审现有差异层CPU安装/导入；当前环境/GPU/模型仍未准入，不重做native CPU探针，不另造包装或环境。
