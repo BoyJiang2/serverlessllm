@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 证据体积整改：8bdf04f提交时CPU证据JSON超过仓库暂存1MiB限制，外部命令失败后PowerShell未停而继续推送，属于本代理命令控制错误。后续正常提交修正，不改写main、不放宽限制：745个缓存诊断行和两份历史build独立核验data以zlib+base64保存在同一原JSON，原UTF8规范化字节/SHA及解码配方齐全，逐对象/字节roundtrip一致；历史原文本仍在Git。controller76c3849e…与payload6fbb04cd…完全未变。后续每步显式检查LASTEXITCODE，通过暂存检查才commit/push。
+
 - 11/2本机已有UV0.11.28 Linux/Python3.12解析：先CLI互斥选项失败，去掉重复only-binary后run8bd253df在189.84秒触及64MiB轮询阈值并停止自身；样本进程峰229318656B，无安装/新环境/GPU。已检查745文件67154918B，全为UV索引rkyv/包元数据msgpack/锁和sentinel，无wheel/源码/环境副本；因此新一次方案复用同一.tmpICHNgM（745完整SHA清单），不新目录、不重下索引，保留镜像39项已满足直接依赖+原7根共46精确root，减少无关版本升级。新metadata轮询阈值128MiB且包含旧缓存，进程512MiB/600秒不变，均不是硬quota；旧64MiB失败不改。controller76c3849e…/payload6fbb04cd…限定只读复审PASS，尚未执行。审阅曾误判换行，实际save/stdin AST证明JSON可读和46实际LF行，审阅者撤回误报，代码未为假问题修改。成功也仅候选版本锁，不是安装/完整artifact、ABI或GPU准入。
 
 - 11/2 12:14现有pip26.1.1的dry-run解析3304fdcd/3f85133到原540秒后TimeoutExpired，业务失败、未安装/未产版本锁；不延长或重复服务器任务，不据此认定依赖无解或归因网络/回溯。运行中一次独立采样约86.75MiB/2GiB、CPU0.05%、3 PID（非峰值），无GPU；新SSH确认uv缺失及pip超时两run均容器空/timerinactive。实际暴露原超时异常分支未保存stdout/stderr，历史流无法追补，已明示缺口。现有body修正保留各32KiB原始base64/文本、总长度/截断标志及实际timeout，并在try前初始化计时避免早期pip --version超时掩盖原错；bodyed2d2190…的5项本机实际handler AST控制通过，旧失败/初版补丁均留history。未再远端执行；最新bodyed2d2190…限定超时诊断只读复审PASS，不批准重复远端解析。下一项评估本机已有UV0.11.28的Linux目标有界解析，不新装工具/环境；仍无兼容锁、安装预算/ABI或GPU准入。
