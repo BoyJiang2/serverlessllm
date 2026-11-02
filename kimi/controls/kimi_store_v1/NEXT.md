@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 13:47实际只读metadata控制ef5f5fbb/7e0d998通过并独立SSH核容器空、timer inactive；0.52秒、无Torch/vLLM导入、无GPU。180候选实际86同版/37缺失/57替换，1068个Linux实际wheel tags；完整SDK声明仍有bitsandbytes/click/grpcio-tools/peft缺口，不能称整套SDK兼容。实际结果及释放证据保存原runtime-dependencies-candidate.json。随后仅本机官方metadata选wheel，91/94取得匹配标签与URL/SHA/字节，另3项TLS/尺寸缺口保留；首轮HEAD异常导致并行结果未保存的失败也留档。已知压缩包合计2258537285B，其中既有vLLM+accelerate共433513036B不重复扣算，新增下载下界1825024249B，尚缺3项/解包/替换峰值，绝非安装预算上限。未下载wheel/安装/新建环境/模型；下一项仅补具体元数据缺口和最小运行依赖范围，确认磁盘与安装增量预算后再审CPU安装，不批量盲升57包。
+
 - 下一必要CPU采集放在唯一同目录数据文件runtime-dependencies-candidate.json，集中后续180包差异/实际tags/具体wheel与预算，避免膨胀原native证据。新hostbf36cb34…/body4a947b83…限定只读复审PASS，复用原无挂载无网络metadata driver，53f镜像13:30实际仍在/UID2147/1.84TiB可用，当前265b50dd至19CPU窗口。1CPU2GiB/60内120guard300整体/18:50保持；仅读actual180版本+源SDK依赖匹配+实际packaging.sys_tags，未导入Torch/vLLM。tags JSON单独限192KiB，非完整输出；原始attach有262144字符界限，完整metadata解析。下一项实际采集，仍不安装/不GPU。
 
 - 11/2本机RPC约束精化37be2793/6ab9419已成功：136.687秒仍180包，唯一版本变化grpcio1.85.1→1.76.0；180root及Linux Torch约束核验，采样进程峰234270720B、元数据85755895B（均非硬峰值上限）。UV进程终态，独立PID8472查询无结果，未新增临时entry；只保留同一约82MiB软件元数据cache以复用，未安装/创建环境/使用GPU。必要4KiB数据文件requirements-runtime-candidate.txt逐180行与实际输出一致，file SHA9e71bd12…，raw pin-list SHA5c0db5a5…，二者区分。限定实际只读核验通过候选版本图及Store RPC exact grpc匹配；全SDK CLI/build依赖、具体wheel完整性、增量安装预算、Linux实际导入/功能ABI和GPU均未通过。下一项只比较180包与固定image实际metadata，冻结具体wheel hash及增量预算后再审CPU安装；不要重跑已通过的native CPU或版本求解，不复用旧GPU gate。
