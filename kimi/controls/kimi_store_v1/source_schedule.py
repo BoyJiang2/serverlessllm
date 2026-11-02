@@ -1438,6 +1438,109 @@ def observe_p0_release(target, schedule, cleanup, monitor, *, host_pid_namespace
         raise
 
 
+def await_p0_guard_exit(service_plan, target, schedule, proof, *, nonce, entered, started, events,
+                        query=None, pid_probe=_watchdog_pid):
+    """Wait for the existing guard to exit naturally; never stop or signal a unit."""
+    from vllm_export_hook import _metadata_stream
+    current=_watchdog_host()
+    identity=_guard_identity(target,boot_id=current['boot_id'],uid=current['uid'])
+    derived=watchdog_service_plan(target,service_plan['command'][-3],service_plan['command'][-1],
+        schedule,now=_utc(service_plan['generated_utc']))
+    if target['schema']!='kimi-p0-guard-target-v2' or json.dumps(derived,sort_keys=True)!=json.dumps(service_plan,sort_keys=True):
+        raise ValueError('P0 exact derived guard plan required')
+    host=proof['host'];unit=service_plan['unit']
+    if (proof.get('independent_service_verified') is not True or proof.get('runtime_admitted') is not False or proof.get('identity')!=identity
+            or proof.get('nonce')!=nonce or proof.get('service_unit')!=unit
+            or proof.get('container_id')!=target['container_id'] or proof.get('image_id')!=target['image_id']
+            or proof.get('container_created')!=target['container_created']
+            or proof.get('guard_fire_by_utc')!=schedule['guard_fire_by_utc']
+            or not isinstance(proof.get('service_invocation_id'),str)
+            or not re.fullmatch('[0-9a-f]{32}',proof['service_invocation_id'])
+            or host['boot_id']!=current['boot_id'] or host['uid']!=2147
+            or host['pid_namespace']!=current['pid_namespace']
+            or any(type(host[key]) is not int or host[key]<=0 for key in ('pid','start_ticks','pid_namespace'))
+            or host['cgroup']!='0::/system.slice/'+unit+'\n'):
+        raise ValueError('P0 original independent guard identity required')
+    state=dict(unit=unit,guard_resources_released=False,guard_task_returned=False,
+        resources_released=False,runtime_admitted=False,unit_exit_status=None)
+    waiting=time.monotonic()
+    def remaining():
+        return phase_remaining_seconds(schedule,'cleanup_evidence',entered=entered,
+            elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
+    try:
+        remaining()
+        _,root,registration,_,verified_schedule,_=load_watchdog_inputs(service_plan['command'][-3],service_plan['command'][-1])
+        if (registration['target']!=target or verified_schedule!=schedule or registration['nonce']!=nonce
+                or registration['host_pid_namespace']!=current['pid_namespace']):
+            raise ValueError('P0 guard exit registration changed')
+        while True:
+            if query is None:
+                response=_guard_capture(['/usr/bin/systemctl','--system','--no-pager','show',unit,
+                    '--property=Id,LoadState,ActiveState,MainPID,ControlGroup,InvocationID,Result,ExecMainCode,ExecMainStatus'],
+                    min(5,remaining()),{'PATH':'/usr/bin:/bin','LC_ALL':'C','SYSTEMD_COLORS':'0'})
+            else:response=query(unit,min(5,remaining()))
+            if response.returncode not in (0,1) or len(response.stdout)>65536 or len(response.stderr)>65536:
+                raise RuntimeError('P0 guard exit system query failed')
+            raw=response.stdout.decode() if isinstance(response.stdout,bytes) else response.stdout
+            properties={}
+            for line in raw.splitlines():
+                key,separator,value=line.partition('=')
+                if not separator or key in properties:raise ValueError('P0 guard unit property format differs')
+                properties[key]=value
+            if (properties.get('Id',unit)!=unit or properties.get('LoadState') not in ('loaded','not-found')
+                    or properties.get('InvocationID','') not in ('',proof['service_invocation_id'])
+                    or (properties.get('LoadState')=='loaded' and properties.get('InvocationID')!=proof['service_invocation_id'])
+                    or properties.get('MainPID','0') not in ('0',str(host['pid']))
+                    or properties.get('ControlGroup','') not in ('','/system.slice/'+unit)):
+                raise ValueError('P0 guard unit was replaced or changed identity')
+            try:process=pid_probe(host['pid'])
+            except FileNotFoundError:process=None
+            alive=process is not None and process['start_ticks']==host['start_ticks']
+            group=Path('/sys/fs/cgroup/system.slice')/unit
+            try:group.stat();group_absent=False
+            except FileNotFoundError:group_absent=True
+            state.update(properties=properties,original_guard_alive=alive,cgroup_absent=group_absent,
+                pid_reused=process is not None and not alive,wait_seconds=time.monotonic()-waiting)
+            _watchdog_event(events,identity,nonce,'guard_exit_sample',state)
+            remaining()
+            if properties.get('ActiveState')=='failed':raise RuntimeError('P0 guard failed; preserve its outcome')
+            if (properties.get('ActiveState')=='inactive' and properties.get('MainPID','0')=='0'
+                    and not alive and group_absent):
+                state['guard_resources_released']=True
+                with _metadata_stream(root/'source-watchdog-events.jsonl') as stream:terminal_raw=stream.read(65537)
+                if len(terminal_raw)>65536 or not terminal_raw.endswith(b'\n'):
+                    raise ValueError('complete bounded P0 guard journal required')
+                rows=[json.loads(line) for line in terminal_raw.splitlines()]
+                if len(rows)!=4 or [row.get('event') for row in rows]!=['inputs_verified','ready','cleanup_started','cleanup_returned']:
+                    raise ValueError('P0 guard terminal stages differ')
+                for row in rows:
+                    if (row.get('schema')!='kimi-source-watchdog-events-v1' or row.get('nonce')!=nonce
+                            or any(row.get(key)!=value for key,value in identity.items())):
+                        raise ValueError('P0 guard terminal identity differs')
+                payload=rows[-1]['payload']
+                if (rows[0]['payload'].get('registration_sha256')!=service_plan['command'][-1]
+                        or rows[0]['payload'].get('plan_sha256')!=registration['plan_sha256']
+                        or rows[1]['payload'].get('host')!=host or payload.get('container_id')!=target['container_id']
+                        or any(payload.get(key) is not value for key,value in dict(container_absence_verified=True,
+                            deadline_missed=False,late_start=False,runtime_admitted=False).items())
+                        or not _utc(schedule['guard_fire_by_utc'])<=_utc(rows[-1]['utc'])<=_utc(schedule['phase_deadlines_utc']['worker_shutdown'])):
+                    raise ValueError('P0 guard cleanup or original deadline proof differs')
+                if properties.get('LoadState')=='loaded':
+                    if properties.get('Result')!='success' or properties.get('ExecMainStatus')!='0' or properties.get('ExecMainCode')!='1':
+                        raise RuntimeError('P0 guard process did not report a normal zero exit')
+                    state['unit_exit_status']=0
+                state.update(guard_task_returned=True,journal_sha256=hashlib.sha256(terminal_raw).hexdigest())
+                _watchdog_event(events,identity,nonce,'guard_exit_verified',state)
+                remaining()
+                return state
+            time.sleep(min(1,remaining()))
+    except BaseException as error:
+        error.p0_guard_exit_receipt=state
+        try:_watchdog_event(events,identity,nonce,'guard_exit_failed',dict(state,error_type=type(error).__name__,error=str(error)[:1024]))
+        except BaseException as evidence_error:error.p0_guard_exit_evidence_error=repr(evidence_error)[:1024]
+        raise
+
+
 def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
                  runner=_guard_capture, host_probe=_watchdog_host):
     """Run metadata CLIs and collect real exit status; never start the GPU target."""

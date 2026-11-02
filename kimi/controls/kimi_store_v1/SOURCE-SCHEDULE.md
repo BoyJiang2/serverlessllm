@@ -186,3 +186,10 @@ observe_p0_release复用原phase截止，monotonic及wall都达到60秒才可签
 494a922被独立审阅指出观察起点早于首份有效快照。新回归实际复现14秒首采样导致仅46秒有效跨度通过，以及采样后不足60秒仍通过；现将起点移至首份有效快照通过所有条件之后，并重新检查原phase余量至少60秒，不延长总预算。CPU虚拟clock测试不能代替实际60秒证据。
 
 process_inventory_complete仅表示已取得完整当前leaf快照；累积清单是观察到的成员，不代表所有短命进程都曾采到。释放须由容器/cgroup/mount/NVML联合证据支撑，不能仅相信该布尔。
+
+
+## 自然守护退出核验候选
+
+await_p0_guard_exit不停止unit。既有守护按原截止自然清理并返回后，读取同一冻结registration/source/plan、实际probe身份、unit/InvocationID、原PID/start_ticks及cgroup，并核同nonce/run终态journal。共享活动probe的SERVICE_PROPERTIES保持原集合；退出专用查询额外读取Result/ExecMainCode/Status。loaded unit只有正常0可记unit_exit_status=0；被收集的unit记录None，不能捏造退出码。guard_resources_released与整个实验resources_released分开，后者仍false。等待及取证计入原cleanup_evidence预算，不延长到预约末。
+
+CPU控制使用systemd/proc/loader替身和真实小日志，覆盖重启、更换身份、失败日志/exit、PID复用、unit收集及过期；没有实际远端guard退出或生产P0调用。本候选不能替代完整运行R1/准入。

@@ -697,5 +697,29 @@
         "test_source_schedule.py": "befe11a5e2c3f15f5883a6067ad24a760880f85cd13e1ffdd4b615367dca39fb"
       }
     }
+  ],
+  "p0_guard_exit_regressions": [
+    {
+      "scope": "failed shared systemd-property modification, retained before minimal fix",
+      "baseline_missing_function_tool_chunk": "6cdd9e",
+      "failure_tool_chunk": "282526",
+      "result": "112 tests:3 failures2 errors; shared SERVICE_PROPERTIES exact-set contract broken",
+      "sha256": {
+        "source_schedule.py": "cd9a498507dd3f3ffe13a66770188e96ed5031b7a4cd2252c80b8a0ebd3834ec",
+        "test_source_schedule.py": "725cb684a55d8f6e03e77eeb49b6f439cd5c9a46ad1941723bd7770a0a265766"
+      }
+    },
+    {
+      "scope": "P0 natural guard-exit verifier; original active-probe property contract unchanged",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "................................................................................................................\n----------------------------------------------------------------------\nRan 112 tests in 6.375s\n\nOK\n",
+      "elapsed_seconds": 6.608216157999777,
+      "sha256": {
+        "source_schedule.py": "56e4047e3e084613e690b9ca649231ddc5e12fa1da500b4cd85779e989a5d6f2",
+        "test_source_schedule.py": "725cb684a55d8f6e03e77eeb49b6f439cd5c9a46ad1941723bd7770a0a265766"
+      },
+      "actual_guard_exit_verified": false
+    }
   ]
 }

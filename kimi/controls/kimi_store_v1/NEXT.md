@@ -1,3 +1,11 @@
+## 当前追加：自然守护退出核验完成CPU候选，尚未完成P0整条启动
+
+- 现有source_watchdog本来就在原guard_fire按精确CID清理（目标已不存在也支持）后退出；本次不新增停止协议、不发systemctl stop/kill或PID信号。只在原source_schedule中补await_p0_guard_exit，复用source/registration/plan读回、原cleanup_evidence截止和已取实际probe身份，联合核unit/InvocationID、原PID/start_ticks消失、cgroup消失与同run四段终态日志。
+- 仍可查询到的loaded unit必须保留原InvocationID且Result/ExecMainCode/Status正常；unit被systemd收集时可证资源消失/守护task日志返回，但unit_exit_status=None，不编成OS0。无论如何整体resources_released仍false，待完整控制器合并其他归属证据。PID复用不向新进程发信号。
+- 首次把退出字段加进共有SERVICE_PROPERTIES造成旧活动probe精确集合回归失败（112项3失败2错误），原失败摘要/源码SHA及tool chunk282526保留；已恢复旧清单原字节，新退出核验独立查询额外字段，旧接口行为不变。最终112项原生WSL CPU回归6.375秒通过；host/systemd/PID/code-loader为替身，实际小事件日志/解析，不是实际guard退出。
+- 本机既有预约helper读取API时先因GBK stdout无法编码符号失败，不是API授权失败；加-X utf8后实际读取成功，未登录/复制凭据/改预约。qjhs003原午夜3b9f0bc8票仍00–09，owner boyjiang、CPU lane disabled表示整机；09后alan票存在，08:50清理不延。当前snapshot保留原review.booking_context_snapshots。
+- 仍未把setup→当前完整运行gate/真实资源准入→start→monitor→output→cleanup→observe→guard-exit合成可部署driver，普通账号system-manager认证拒绝问题及固定小目录授权也未解决。下一项只做这个真实接线/准入闭包，不再扩展无关工具。GPU/模型/Store转换尚未执行，不ready。
+
 ## 11/2 23:25只读实际快照/修订复审
 
 运行镜像ec5b4131…精确ID仍存在，8卡NVML均0MiB/util0、compute apps空；MemAvailable1971814408KiB约1.836TiB，Mlocked229944KiB是全局背景非本实验池。单次WSL原生SSH exit0/6.192秒，无计算/清理/目录创建。完整stdout在原review.readiness_context_snapshots，不能替代随后启动前fresh资源/预约/guard准入。

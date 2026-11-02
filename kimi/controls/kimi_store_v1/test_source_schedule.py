@@ -1466,6 +1466,60 @@ os._exit(0)
         self.assertFalse(result['resources_released']);self.assertTrue(result['guard_release_owed'])
         self.assertGreaterEqual(len(samples),2)
 
+    def test_p0_guard_exit_binds_original_process_unit_and_terminal_journal(self):
+        for kind in ('normal','restart','failed_log','pid_reused','collected','badexit','timeout'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                plan,receipt,target,_=self.p0_fixture();target['run_root']=temp
+                entered=datetime.fromisoformat(plan['window_start'])
+                schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+                service=schedule_module.watchdog_service_plan(target,str(Path(temp)/'registration.json'),'1'*64,schedule,now=entered)
+                unit=service['unit'];cg=Path('/sys/fs/cgroup/system.slice')/unit
+                host=dict(uid=2147,boot_id=target['boot_id'],pid=999,start_ticks=42,pid_namespace=5,
+                    cgroup='0::/system.slice/'+unit+'\n')
+                proof=dict(independent_service_verified=True,identity=target['identity'],nonce='a'*32,
+                    container_id=target['container_id'],image_id=target['image_id'],container_created=target['container_created'],
+                    service_unit=unit,service_invocation_id='b'*32,guard_fire_by_utc=schedule['guard_fire_by_utc'],host=host,runtime_admitted=False)
+                terminal=datetime.fromisoformat(schedule['guard_fire_by_utc'])+timedelta(seconds=1)
+                payload=dict(container_id=target['container_id'],container_absence_verified=True,deadline_missed=False,late_start=False,runtime_admitted=False)
+                rows=[]
+                for event,data in [('inputs_verified',dict(registration_sha256='1'*64,plan_sha256='2'*64,runtime_admitted=False)),
+                        ('ready',dict(host=host)),('cleanup_started',dict(reason='deadline')),
+                        ('failed' if kind=='failed_log' else 'cleanup_returned',payload)]:
+                    rows.append(dict(target['identity'],schema='kimi-source-watchdog-events-v1',nonce='a'*32,
+                        utc=terminal.isoformat(),event=event,payload=data))
+                (Path(temp)/'source-watchdog-events.jsonl').write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                properties=dict(Id=unit,LoadState='loaded',ActiveState='inactive',MainPID='0',ControlGroup='',
+                    InvocationID=('c' if kind=='restart' else 'b')*32,Result='success',ExecMainStatus='0',ExecMainCode='1')
+                if kind=='collected':properties.update(LoadState='not-found',InvocationID='')
+                if kind=='badexit':properties.update(Result='exit-code',ExecMainStatus='1')
+                def stat(path,*args,**kwargs):
+                    if path==cg:raise FileNotFoundError()
+                    return original_stat(path,*args,**kwargs)
+                original_stat=Path.stat
+                query=Mock(return_value=types.SimpleNamespace(returncode=0,
+                    stdout=''.join(key+'='+value+'\n' for key,value in properties.items()).encode(),stderr=b''))
+                pid=Mock(side_effect=FileNotFoundError())
+                if kind=='pid_reused':pid=Mock(return_value=dict(host,start_ticks=43,cgroup='0::/foreign\n'))
+                with tempfile.TemporaryFile() as events,patch.object(Path,'stat',stat),\
+                        patch.object(schedule_module,'_watchdog_host',return_value=dict(host,pid=100,cgroup='0::/user.slice\n')),\
+                        patch.object(schedule_module,'load_watchdog_inputs',return_value=(None,Path(temp),
+                            dict(target=target,nonce='a'*32,host_pid_namespace=5,plan_sha256='2'*64),None,schedule,None)),\
+                        patch.object(schedule_module,'datetime',wraps=datetime) as clock:
+                    clock.now.return_value=terminal+timedelta(seconds=1)
+                    options=dict(nonce='a'*32,entered=entered,started=time.monotonic()-(terminal-entered).total_seconds(),
+                        events=events,query=query,pid_probe=pid)
+                    if kind=='timeout':options['started']-=1000
+                    if kind in ('restart','failed_log','badexit','timeout'):
+                        with self.assertRaises((ValueError,RuntimeError,TimeoutError)):
+                            schedule_module.await_p0_guard_exit(service,target,schedule,proof,**options)
+                    else:
+                        result=schedule_module.await_p0_guard_exit(service,target,schedule,proof,**options)
+                        self.assertTrue(result['guard_resources_released'])
+                        self.assertFalse(result['resources_released'])
+                        self.assertEqual(result['unit_exit_status'],None if kind=='collected' else 0)
+                if kind=='timeout':query.assert_not_called()
+                else:query.assert_called_once()
+
     def test_p0_process_inventory_reads_owned_leaf_and_refuses_missing_coverage(self):
         _,_,target,info=self.p0_fixture()
         info['State'].update(Running=True,Pid=123)
