@@ -1,5 +1,7 @@
 ## 当前追加：P0输出验收消费者完成CPU接线，完整运行仍未准入
 
+源码381850d已push核远端；独立只读复审PASS_CPU_OUTPUT_CONSUMER_ONLY，四文件SHA实核一致，见原review末条。返回PID来自worker命名空间，不能当宿主PID发信号或证明释放；后续使用实际monitor/cgroup的宿主PID及start_ticks。
+
 - 仅修改已有source_schedule.py及两份现有测试；verify_p0_component_output消费已核输入receipt、两条完整有界事件及stdout，核冻结身份、GPU/image/输入SHA/原guard截止、producer/consumer身份与成功退出、40字节packed/BF16 scale/F32/empty前后固定挑战摘要及全部失败/范围标志。不依赖host Torch。
 - 通过已有Torch CPU transport控制，实际run_cuda_ipc_component_probe结果经实际p0_main事件/stdout序列化再被新host消费者接受；设备、通信、input verifier是明确替身。消费者返回worker_output_verified，不把自报或CPU数据升为实际CUDA、exit provenance、release或runtime准入。
 - 新负例实际发现Python dict比较允许事件的数字0冒充false；保留09e610失败并改为严格规范JSON比较，未放宽校验。重复key、截断/超长输出与事件、错误身份/原始位/子退出/时间/清理错误均拒绝。107项WSL schedule/bundle 6.071秒、8项既有Windows Torch CPU 0.078秒通过；缺NumPy警告原样保存，不为本测试安装环境。原baseline与stdout/stderr在原tests JSON，未创建新目录或下载资产。
