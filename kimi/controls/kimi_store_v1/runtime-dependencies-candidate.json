@@ -187,7 +187,7 @@
     "yarl": "1.25.1",
     "zipp": "4.1.2"
   },
-  "status": "ACTUAL_METADATA_COLLECTED_NOT_INSTALLED",
+  "status": "WHEEL_METADATA_COMPLETE_INSTALL_BUDGET_UNADMITTED",
   "installed": false,
   "artifact_integrity_complete": false,
   "incremental_budget_verified": false,
@@ -2803,7 +2803,12 @@
         "metadata_only": true
       },
       "cuda-python": {
-        "error": "URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+        "filename": "cuda_python-12.9.4-py3-none-any.whl",
+        "url": "https://files.pythonhosted.org/packages/af/f3/6b032a554019cfb3447e671798c1bd3e79b5f1af20d10253f56cea269ef2/cuda_python-12.9.4-py3-none-any.whl",
+        "sha256": "d2cacea882a69863f1e7d27ee71d75f0684f4c76910aff839067e4f89c902279",
+        "size": 7594,
+        "metadata_only": true,
+        "metadata_source": "https://pypi.org/pypi/cuda-python/12.9.4/json"
       },
       "mcp": {
         "filename": "mcp-2.3.0-py3-none-any.whl",
@@ -3112,10 +3117,20 @@
         "metadata_only": true
       },
       "torchaudio": {
-        "error": "official cu129 URL/hash already frozen; size unavailable after HEAD TLS failure; not retried"
+        "filename": "torchaudio-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "url": "https://download.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "sha256": "5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969",
+        "size": 1736412,
+        "metadata_only": true,
+        "metadata_source": "official HEAD Windows curl; S3 checksum agrees with frozen index hash"
       },
       "torchvision": {
-        "error": "official cu129 URL/hash already frozen; size unavailable after HEAD TLS failure; not retried"
+        "filename": "torchvision-0.25.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "url": "https://download.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "sha256": "5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b",
+        "size": 9142020,
+        "metadata_only": true,
+        "metadata_source": "official HEAD Windows curl; S3 checksum agrees with frozen index hash"
       },
       "sse-starlette": {
         "filename": "sse_starlette-3.6.0-py3-none-any.whl",
@@ -3257,16 +3272,2272 @@
     "scope": "official version metadata only; no wheel payload downloads; cu129 sizes remain unknown after failed HEAD",
     "elapsed_seconds": 23.343486400000984,
     "max_parallel": 4,
-    "complete": false,
-    "selected_compressed_bytes": 2258537285,
+    "complete": true,
+    "selected_compressed_bytes": 2269423311,
     "uncompressed_and_install_peak": "UNKNOWN; compressed bytes are not installation budget",
     "existing_verified_remote_asset_bytes": 433513036,
-    "known_new_download_lower_bound_bytes": 1825024249,
+    "known_new_download_lower_bound_bytes": 1835910275,
     "not_an_upper_bound_reasons": [
       "torchaudio/torchvision/cuda-python size or metadata incomplete",
       "wheel uncompressed sizes and pip replacement peak not measured",
       "immutable base image keeps old layers; uninstall does not reclaim their disk bytes",
       "full SDK optional/CLI/build dependencies not covered"
-    ]
+    ],
+    "superseded_errors": {
+      "cuda-python": {
+        "error": "URLError: <urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+      },
+      "torchaudio": {
+        "error": "official cu129 URL/hash already frozen; size unavailable after HEAD TLS failure; not retried"
+      },
+      "torchvision": {
+        "error": "official cu129 URL/hash already frozen; size unavailable after HEAD TLS failure; not retried"
+      }
+    }
+  },
+  "artifact_metadata_followups": [
+    {
+      "recorded_utc": "2026-11-02T05:51:27.561938+00:00",
+      "elapsed_seconds": 3.3835168999994494,
+      "scope": "three bounded public metadata requests only, no wheel download or installation",
+      "results": [
+        {
+          "name": "cuda-python",
+          "url": "https://pypi.org/pypi/cuda-python/12.9.4/json",
+          "method": "GET version metadata",
+          "status": 200,
+          "final_url": "https://pypi.org/pypi/cuda-python/12.9.4/json",
+          "body_bytes": 6145,
+          "artifact": {
+            "filename": "cuda_python-12.9.4-py3-none-any.whl",
+            "url": "https://files.pythonhosted.org/packages/af/f3/6b032a554019cfb3447e671798c1bd3e79b5f1af20d10253f56cea269ef2/cuda_python-12.9.4-py3-none-any.whl",
+            "sha256": "d2cacea882a69863f1e7d27ee71d75f0684f4c76910aff839067e4f89c902279",
+            "size": 7594,
+            "metadata_only": true,
+            "metadata_source": "https://pypi.org/pypi/cuda-python/12.9.4/json"
+          }
+        },
+        {
+          "name": "torchaudio",
+          "url": "https://download.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "method": "GET Range bytes=0-0",
+          "error_type": "URLError",
+          "error": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+        },
+        {
+          "name": "torchvision",
+          "url": "https://download.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "method": "GET Range bytes=0-0",
+          "error_type": "URLError",
+          "error": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+        }
+      ]
+    },
+    {
+      "recorded_utc": "2026-11-02T05:51:45.988541+00:00",
+      "scope": "diagnose Python TLS path with existing curl; HEAD only; no package payload",
+      "results": [
+        {
+          "name": "torchaudio",
+          "method": "curl.exe HEAD with Windows TLS; no retry",
+          "url": "https://download.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "returncode": 0,
+          "stdout": "HTTP/1.1 200 OK\nContent-Type: binary/octet-stream\nContent-Length: 1736412\nConnection: keep-alive\nServer: AmazonS3\nDate: Mon, 02 Nov 2026 05:29:22 GMT\nLast-Modified: Wed, 21 Jan 2026 15:05:50 GMT\nETag: \"c79b478898902ecf88be438e0c1537d9\"\nx-amz-server-side-encryption: AES256\nx-amz-meta-checksum-sha256: 5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969\nx-amz-version-id: DDAlsqx2UM4AlZRguTKsSv672yNQfiyI\nAccept-Ranges: bytes\nX-Cache: Hit from cloudfront\nVia: 1.1 fc18121fc918548b1f4a8233ff0b1cde.cloudfront.net (CloudFront)\nX-Amz-Cf-Pop: SIN3-P1\nX-Amz-Cf-Id: vf5rxVeRYhClHG4zG1IL-h0iATkdy9gufdTaqVz_-dGhimOZw1RJNw==\nAge: 1343\n\n",
+          "stderr": ""
+        },
+        {
+          "name": "torchvision",
+          "method": "curl.exe HEAD with Windows TLS; no retry",
+          "url": "https://download.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "returncode": 0,
+          "stdout": "HTTP/1.1 200 OK\nContent-Type: binary/octet-stream\nContent-Length: 9142020\nConnection: keep-alive\nServer: AmazonS3\nDate: Mon, 02 Nov 2026 05:51:46 GMT\nLast-Modified: Mon, 27 Apr 2026 19:00:28 GMT\nETag: \"0ca5724e6f9219faf183b2320b213d27\"\nx-amz-server-side-encryption: AES256\nx-amz-meta-checksum-sha256: 5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b\nx-amz-version-id: jbWwsWxEkMclCji66OlMwXQGdm1pSAET\nAccept-Ranges: bytes\nX-Cache: Miss from cloudfront\nVia: 1.1 b09f2bc99519b5ff38b4273926c62816.cloudfront.net (CloudFront)\nX-Amz-Cf-Pop: SIN3-P1\nX-Amz-Cf-Id: KmlW7XiB8-skq-algPO5tqJms5fdbQZULhTtUj3kY5ehKgnkPrz6ng==\n\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "wheel_directory_inventory": {
+    "registered_utc": "2026-11-02T05:54:07.294823+00:00",
+    "state": "LOCAL_TERMINAL",
+    "scope": "ZIP directory metadata only, no full wheel/download/install; directory SHA is not full artifact integrity",
+    "max_parallel": 4,
+    "max_seconds": 180,
+    "per_range_limit_bytes": 1048576,
+    "artifacts": {
+      "annotated-doc": {
+        "filename": "annotated_doc-0.0.5-py3-none-any.whl",
+        "artifact_sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101",
+        "compressed_bytes": 5302,
+        "requests": [
+          {
+            "start": 0,
+            "end": 5301,
+            "bytes": 5302,
+            "sha256": "117bac03a25ede5df5440e855b32d556049ca169ead221505badf432fed4b101"
+          }
+        ],
+        "member_count": 8,
+        "declared_uncompressed_bytes": 9515,
+        "largest_member_bytes": 6516,
+        "central_directory_bytes": 637,
+        "central_directory_sha256": "947168c3b448269a9fdc2fa30b025f64d7ee5b09a61849933df87d0f66fe6088",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "agent-detector": {
+        "filename": "agent_detector-2.0.0-py3-none-any.whl",
+        "artifact_sha256": "22c6a1c9c23894a12f55aea625f060b8d3330fba774de72d02d5442bb580417f",
+        "compressed_bytes": 9352,
+        "requests": [
+          {
+            "start": 0,
+            "end": 9351,
+            "bytes": 9352,
+            "sha256": "22c6a1c9c23894a12f55aea625f060b8d3330fba774de72d02d5442bb580417f"
+          }
+        ],
+        "member_count": 11,
+        "declared_uncompressed_bytes": 19106,
+        "largest_member_bytes": 6857,
+        "central_directory_bytes": 865,
+        "central_directory_sha256": "86fcdb28a99e72f54c39c7876d0841872185599b941993b4ae5ad77722e617a6",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "annotated-types": {
+        "filename": "annotated_types-0.8.0-py3-none-any.whl",
+        "artifact_sha256": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0",
+        "compressed_bytes": 13427,
+        "requests": [
+          {
+            "start": 0,
+            "end": 13426,
+            "bytes": 13427,
+            "sha256": "f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0"
+          }
+        ],
+        "member_count": 7,
+        "declared_uncompressed_bytes": 36347,
+        "largest_member_bytes": 15009,
+        "central_directory_bytes": 565,
+        "central_directory_sha256": "fd5b42ba3b74f83f54e15193f11198ea831d280dfb0c2f5c57788cd88d033348",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "aiohappyeyeballs": {
+        "filename": "aiohappyeyeballs-2.7.1-py3-none-any.whl",
+        "artifact_sha256": "9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472",
+        "compressed_bytes": 15038,
+        "requests": [
+          {
+            "start": 0,
+            "end": 15037,
+            "bytes": 15038,
+            "sha256": "9243213661e29250eb41368e5daa826fc017156c3b8a11440826b2e3ed376472"
+          }
+        ],
+        "member_count": 10,
+        "declared_uncompressed_bytes": 40006,
+        "largest_member_bytes": 13936,
+        "central_directory_bytes": 784,
+        "central_directory_sha256": "bd9384554af5e6b0bcf2319eeebc59ec0470b7e44cc7fbe098fcbcd1ce66e155",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cachetools": {
+        "filename": "cachetools-7.2.8-py3-none-any.whl",
+        "artifact_sha256": "09b04a85741d0019b3fb7d02b7ee9933a422fa6923af92a0fd63b893b695830c",
+        "compressed_bytes": 19646,
+        "requests": [
+          {
+            "start": 0,
+            "end": 19645,
+            "bytes": 19646,
+            "sha256": "09b04a85741d0019b3fb7d02b7ee9933a422fa6923af92a0fd63b893b695830c"
+          }
+        ],
+        "member_count": 15,
+        "declared_uncompressed_bytes": 78479,
+        "largest_member_bytes": 24738,
+        "central_directory_bytes": 1084,
+        "central_directory_sha256": "ef029dd2c2b591d599d23820c7fb231eafabaef03c9fdee1d8b832402d1982a3",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "anyio": {
+        "filename": "anyio-4.14.2-py3-none-any.whl",
+        "artifact_sha256": "9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494",
+        "compressed_bytes": 125813,
+        "requests": [
+          {
+            "start": 60256,
+            "end": 125812,
+            "bytes": 65557,
+            "sha256": "f7d8d5655c7595ee03037f2a3de6a0152545231e70ac9a6801259b5e7e333122"
+          }
+        ],
+        "member_count": 52,
+        "declared_uncompressed_bytes": 512408,
+        "largest_member_bytes": 104400,
+        "central_directory_bytes": 3684,
+        "central_directory_sha256": "a71e60e75a7eeea74291c9b78859ecb6241f722ac1e1321da79f7bd468811430",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "accelerate": {
+        "filename": "accelerate-1.12.0-py3-none-any.whl",
+        "artifact_sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11",
+        "compressed_bytes": 380935,
+        "requests": [
+          {
+            "start": 315378,
+            "end": 380934,
+            "bytes": 65557,
+            "sha256": "104e769182fe02965bde617ddf1f7d66ef2a73c65db7ff85142f5c76f9fee436"
+          }
+        ],
+        "member_count": 90,
+        "declared_uncompressed_bytes": 1490305,
+        "largest_member_bytes": 197200,
+        "central_directory_bytes": 7300,
+        "central_directory_sha256": "26865efaab33e9d57e1ad2d37ed6269c1414853a82236d1b060fd0dcecc08807",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "apache-tvm-ffi": {
+        "filename": "apache_tvm_ffi-0.1.15.post2-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "059eed9bfc94bcd41650fb8eefde74040a1bc7e7b1a6f0a8ff897b02b118875b",
+        "compressed_bytes": 3312304,
+        "requests": [
+          {
+            "start": 3246747,
+            "end": 3312303,
+            "bytes": 65557,
+            "sha256": "84fc6d9ff50d398240a454ea225fc53dca2ceb9b55305a430cea683c9e51a331"
+          }
+        ],
+        "member_count": 291,
+        "declared_uncompressed_bytes": 10996180,
+        "largest_member_bytes": 2585024,
+        "central_directory_bytes": 23563,
+        "central_directory_sha256": "e9eb4e160c1b9c12317fae813aa33144d87fa63e06f173ff0e00e951909a8c5a",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "certifi": {
+        "filename": "certifi-2026.10.23-py3-none-any.whl",
+        "artifact_sha256": "e9b54de76e530bb6cf0ccd036787103acb58fd42ba930ea8bf948ddbaa2f61d1",
+        "compressed_bytes": 135082,
+        "requests": [
+          {
+            "start": 69525,
+            "end": 135081,
+            "bytes": 65557,
+            "sha256": "4d0159ccf7c004b78374dd9b9e97e56f994f281f4375ca7620f04660a6202617"
+          }
+        ],
+        "member_count": 12,
+        "declared_uncompressed_bytes": 244625,
+        "largest_member_bytes": 235863,
+        "central_directory_bytes": 886,
+        "central_directory_sha256": "99707e5c5201bcc7c344ea419b9c65f2b380934cde8868f68820b3cf3a1bd955",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cbor2": {
+        "filename": "cbor2-6.2.0.post1-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "d81d3158b5bdf29931478287ee12f40cb1aeaa5a3e0cf1bb826aa34c8875ffe8",
+        "compressed_bytes": 465255,
+        "requests": [
+          {
+            "start": 399698,
+            "end": 465254,
+            "bytes": 65557,
+            "sha256": "2e2779d3333e3bc533e659f879de9b22a17b702dcdee5ef15bea18167c62dc8f"
+          }
+        ],
+        "member_count": 14,
+        "declared_uncompressed_bytes": 1364468,
+        "largest_member_bytes": 1340000,
+        "central_directory_bytes": 1057,
+        "central_directory_sha256": "4c9570f276656e4313fb6b1efd6a415391658034494e183d5508c6f538fb952a",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "astor": {
+        "filename": "astor-0.8.1-py2.py3-none-any.whl",
+        "artifact_sha256": "070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5",
+        "compressed_bytes": 27488,
+        "requests": [
+          {
+            "start": 0,
+            "end": 27487,
+            "bytes": 27488,
+            "sha256": "070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5"
+          }
+        ],
+        "member_count": 18,
+        "declared_uncompressed_bytes": 78526,
+        "largest_member_bytes": 32032,
+        "central_directory_bytes": 1223,
+        "central_directory_sha256": "e93e29b77883434ca033f7c2cbb1a42ce59feff005b700c85df1bacafa41688c",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "click": {
+        "filename": "click-8.5.0-py3-none-any.whl",
+        "artifact_sha256": "255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360",
+        "compressed_bytes": 125251,
+        "requests": [
+          {
+            "start": 59694,
+            "end": 125250,
+            "bytes": 65557,
+            "sha256": "0b0ffe5a3760b1625747b48269330a8f4bd1a4ba45991bfa04f6fe6d9617bbb8"
+          }
+        ],
+        "member_count": 22,
+        "declared_uncompressed_bytes": 447719,
+        "largest_member_bytes": 147845,
+        "central_directory_bytes": 1445,
+        "central_directory_sha256": "81750b21cea33808e0e48c949f2e46d91f846a0748519321e2c550de9125f72e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "blake3": {
+        "filename": "blake3-1.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "33424c686b291c7682b5816fe9320466dbc0a457ef7e15c273c804a2d70fea70",
+        "compressed_bytes": 381348,
+        "requests": [
+          {
+            "start": 315791,
+            "end": 381347,
+            "bytes": 65557,
+            "sha256": "0d593e07a10c39bc31a387c6fb6df48a047aa204a2b3e510341a99a42996b492"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 1035317,
+        "largest_member_bytes": 975352,
+        "central_directory_bytes": 693,
+        "central_directory_sha256": "a711814b580d593ddef51ccefc646afe1177faeccfcbc3f4494b103e6106fcca",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cryptography": {
+        "filename": "cryptography-50.0.2-cp311-abi3-manylinux_2_34_x86_64.whl",
+        "artifact_sha256": "9dab55f57c74c3cad24c323bacbbd04be4705ba6eb0d92e920b1fc4837ed5079",
+        "compressed_bytes": 4752576,
+        "requests": [
+          {
+            "start": 4687019,
+            "end": 4752575,
+            "bytes": 65557,
+            "sha256": "e1b7f3dee2595a3373c9d4339a349c7dfa7b996cbebd691be458b968e9c253a2"
+          }
+        ],
+        "member_count": 141,
+        "declared_uncompressed_bytes": 14999630,
+        "largest_member_bytes": 14434376,
+        "central_directory_bytes": 12518,
+        "central_directory_sha256": "b536885e3c0999b292394bfe61dd469d79f35bc41fad7da0d269c1634f367403",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cffi": {
+        "filename": "cffi-2.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "c1453022f490d2459a11819d83ad1d586e9ff65a12ac3e705ffebd46d3685dcf",
+        "compressed_bytes": 221822,
+        "requests": [
+          {
+            "start": 156265,
+            "end": 221821,
+            "bytes": 65557,
+            "sha256": "693279aa75dbd05ee8ad9a65814eb9a1090f5adbd7eb3470b5e247ea782fc924"
+          }
+        ],
+        "member_count": 34,
+        "declared_uncompressed_bytes": 735169,
+        "largest_member_bytes": 348856,
+        "central_directory_bytes": 2285,
+        "central_directory_sha256": "aad3184bc8bb3db6bea3457d5e2e4dcdca29315f9da5d68e123042d5f9ab954c",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "depyf": {
+        "filename": "depyf-0.20.0-py3-none-any.whl",
+        "artifact_sha256": "d31effad4261cebecb58955d832e448ace88f432328f95f82fd99c30fd9308d4",
+        "compressed_bytes": 39381,
+        "requests": [
+          {
+            "start": 0,
+            "end": 39380,
+            "bytes": 39381,
+            "sha256": "d31effad4261cebecb58955d832e448ace88f432328f95f82fd99c30fd9308d4"
+          }
+        ],
+        "member_count": 21,
+        "declared_uncompressed_bytes": 125462,
+        "largest_member_bytes": 54966,
+        "central_directory_bytes": 1582,
+        "central_directory_sha256": "855331d794dd4ddc885a5fc9efafc2d4870148dd555340f7344d2982f1f2d6bf",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cuda-bindings": {
+        "filename": "cuda_bindings-12.9.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "fda147a344e8eaeca0c6ff113d2851ffca8f7dfc0a6c932374ee5c47caa649c8",
+        "compressed_bytes": 12151019,
+        "requests": [
+          {
+            "start": 12085462,
+            "end": 12151018,
+            "bytes": 65557,
+            "sha256": "ecae72fd99eddbe8476e3a5aa70781f5cb4d5783f77ecf91c19367d0a62bcf84"
+          }
+        ],
+        "member_count": 144,
+        "declared_uncompressed_bytes": 110606602,
+        "largest_member_bytes": 37317473,
+        "central_directory_bytes": 11397,
+        "central_directory_sha256": "59f0b3ad87d3172af737b90085c0179946e27de21f32964b44bb0e086c7e8954",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "charset-normalizer": {
+        "filename": "charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "3d31298449090ab8d47b7b1b2a555ff73cac7ed438a08b7ac160980c7ebed649",
+        "compressed_bytes": 257601,
+        "requests": [
+          {
+            "start": 192044,
+            "end": 257600,
+            "bytes": 65557,
+            "sha256": "69fe7c0c9ad1c0f989e049834d2e45f402483e08833f3c2e8ead968e7ac06a08"
+          }
+        ],
+        "member_count": 25,
+        "declared_uncompressed_bytes": 760865,
+        "largest_member_bytes": 340528,
+        "central_directory_bytes": 2021,
+        "central_directory_sha256": "f17dc3834545351878446be5215887a957a1f174bbb7f749fd4fbf074ac44501",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "fastapi-cli": {
+        "filename": "fastapi_cli-0.0.32-py3-none-any.whl",
+        "artifact_sha256": "8dcc286fa32f01bbd3f65dd09cfd5a2540ed5f2230b77db7fd30978d6165f3c4",
+        "compressed_bytes": 14670,
+        "requests": [
+          {
+            "start": 0,
+            "end": 14669,
+            "bytes": 14670,
+            "sha256": "8dcc286fa32f01bbd3f65dd09cfd5a2540ed5f2230b77db7fd30978d6165f3c4"
+          }
+        ],
+        "member_count": 15,
+        "declared_uncompressed_bytes": 40723,
+        "largest_member_bytes": 18216,
+        "central_directory_bytes": 1114,
+        "central_directory_sha256": "95af6c4355d7921d8b340a74e8536c358d03bdff6c3a79b92f023f19e87ca49e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "email-validator": {
+        "filename": "email_validator-2.3.0-py3-none-any.whl",
+        "artifact_sha256": "80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4",
+        "compressed_bytes": 35604,
+        "requests": [
+          {
+            "start": 0,
+            "end": 35603,
+            "bytes": 35604,
+            "sha256": "80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4"
+          }
+        ],
+        "member_count": 16,
+        "declared_uncompressed_bytes": 101060,
+        "largest_member_bytes": 38971,
+        "central_directory_bytes": 1272,
+        "central_directory_sha256": "f454934f17b15904c5dda53d51f89ce18978cc158430805d7b5ac1f70fbe3d6e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cuda-pathfinder": {
+        "filename": "cuda_pathfinder-1.8.5-py3-none-any.whl",
+        "artifact_sha256": "16d1026fdd78ac0222b966441de53dec3f0dbe6b1e2c43d19d92eb29bfd81e67",
+        "compressed_bytes": 62595,
+        "requests": [
+          {
+            "start": 0,
+            "end": 62594,
+            "bytes": 62595,
+            "sha256": "16d1026fdd78ac0222b966441de53dec3f0dbe6b1e2c43d19d92eb29bfd81e67"
+          }
+        ],
+        "member_count": 39,
+        "declared_uncompressed_bytes": 188027,
+        "largest_member_bytes": 25186,
+        "central_directory_bytes": 3521,
+        "central_directory_sha256": "56796b6e06afb997ef5b88d2cb11b9097820f226181aae57267b857ad49c3582",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "fastapi-cloud-cli": {
+        "filename": "fastapi_cloud_cli-0.26.0-py3-none-any.whl",
+        "artifact_sha256": "94029f92f3dc4289b376e1213f0d6cc7c30d4f32de7e47b5effc6dc754ab9ce9",
+        "compressed_bytes": 108653,
+        "requests": [
+          {
+            "start": 43096,
+            "end": 108652,
+            "bytes": 65557,
+            "sha256": "b6ee67b2bcf138cd223579e7e2d7375566a68db93734bd063391fd6141236f7f"
+          }
+        ],
+        "member_count": 98,
+        "declared_uncompressed_bytes": 301096,
+        "largest_member_bytes": 17271,
+        "central_directory_bytes": 8482,
+        "central_directory_sha256": "a9fe7a4d1cd80f25253894729ddac56dc4bcbf4884b1939658a903efe37b1a63",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "detect-installer": {
+        "filename": "detect_installer-0.2.1-py3-none-any.whl",
+        "artifact_sha256": "87e2ce7d05cb108b178f8e45bb80d3d88c0cb4b397983345c18ad6562e02e620",
+        "compressed_bytes": 5371,
+        "requests": [
+          {
+            "start": 0,
+            "end": 5370,
+            "bytes": 5371,
+            "sha256": "87e2ce7d05cb108b178f8e45bb80d3d88c0cb4b397983345c18ad6562e02e620"
+          }
+        ],
+        "member_count": 12,
+        "declared_uncompressed_bytes": 8580,
+        "largest_member_bytes": 5125,
+        "central_directory_bytes": 965,
+        "central_directory_sha256": "f3ff589c9a2c3bbb8b27c13820431d87ca2ac43692ceb127a8f0f0d3b11ac275",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "flashinfer-cubin": {
+        "filename": "flashinfer_cubin-0.6.6-py3-none-any.whl",
+        "artifact_sha256": "36508dfc792eb5ecfb15d2c140a7702812e1fa1ab0fb03929b2ed55e3e8191f3",
+        "compressed_bytes": 267661457,
+        "requests": [
+          {
+            "start": 267595900,
+            "end": 267661456,
+            "bytes": 65557,
+            "sha256": "e7131f4a201c79a12e53462f5d5885667468eea36d7f5ff68c564db1a6083176"
+          }
+        ],
+        "passed": false,
+        "error_type": "AssertionError",
+        "error": ""
+      },
+      "dnspython": {
+        "filename": "dnspython-2.9.1-py3-none-any.whl",
+        "artifact_sha256": "7c81caf8de1ed57b8cfc7e0ad4f528a0b8ceace473c7eb946df195dc9def751f",
+        "compressed_bytes": 360364,
+        "requests": [
+          {
+            "start": 294807,
+            "end": 360363,
+            "bytes": 65557,
+            "sha256": "52fa78ed940f1a028d3e1f36ac6f5941ce4424d30778bce3a5edfd390017f39c"
+          }
+        ],
+        "member_count": 175,
+        "declared_uncompressed_bytes": 1188407,
+        "largest_member_bytes": 74287,
+        "central_directory_bytes": 11491,
+        "central_directory_sha256": "d32d8d91835bdd6dc5f896288e91dac205d372f5e1a6333ee7afa3d4ab3aee66",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "fastar": {
+        "filename": "fastar-0.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "deb0b3882626832361dd0fcee1f4ef1c6e2a7aaa4165e51c86ae0bab95caccd6",
+        "compressed_bytes": 808091,
+        "requests": [
+          {
+            "start": 742534,
+            "end": 808090,
+            "bytes": 65557,
+            "sha256": "e9792f5f8b376947c08707ffb0025d341b53b5747d2b33ccace0b431d0598c7d"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 2016018,
+        "largest_member_bytes": 1963792,
+        "central_directory_bytes": 693,
+        "central_directory_sha256": "e5c2ccae1ec4c2bf668fcab9db74dc23f45d3f6927cab071741cdd23f027e9d1",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "googleapis-common-protos": {
+        "filename": "googleapis_common_protos-1.76.0-py3-none-any.whl",
+        "artifact_sha256": "59e13344a9f3651aa201a03e2bee815a3bf43a4baf1f9ff8a9b62a840ce25fac",
+        "compressed_bytes": 307707,
+        "requests": [
+          {
+            "start": 242150,
+            "end": 307706,
+            "bytes": 65557,
+            "sha256": "c9ecc1c10636855e8c90d37826b64924343cf83141afecc0b2b4f0343d8a376e"
+          }
+        ],
+        "member_count": 199,
+        "declared_uncompressed_bytes": 787394,
+        "largest_member_bytes": 30153,
+        "central_directory_bytes": 15017,
+        "central_directory_sha256": "10534fbd2799b031fcd3b9a4b0d798e61e7e93e1ef684370764aa0e8b07aa480",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "flashinfer-python": {
+        "filename": "flashinfer_python-0.6.6-py3-none-any.whl",
+        "artifact_sha256": "078f158636969eec1a0d3dea19c3ca90b426b66df89bbf7b7b8276ce2ec08148",
+        "compressed_bytes": 7817047,
+        "requests": [
+          {
+            "start": 7751490,
+            "end": 7817046,
+            "bytes": 65557,
+            "sha256": "5ef82c6b60bbd3e43fd52836283f681d9e41cd30be3a9e35b5af8c45e70b35a3"
+          },
+          {
+            "start": 7582617,
+            "end": 7817024,
+            "bytes": 234408,
+            "sha256": "1217aaae8fa035debf3e787851cdba6b52861432e0467a3bb805f58e7bef3dcb"
+          }
+        ],
+        "member_count": 2023,
+        "declared_uncompressed_bytes": 45604509,
+        "largest_member_bytes": 2932673,
+        "central_directory_bytes": 234408,
+        "central_directory_sha256": "1217aaae8fa035debf3e787851cdba6b52861432e0467a3bb805f58e7bef3dcb",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "grpcio": {
+        "filename": "grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "980a846182ce88c4f2f7e2c22c56aefd515daeb36149d1c897f83cf57999e0b6",
+        "compressed_bytes": 6573963,
+        "requests": [
+          {
+            "start": 6508406,
+            "end": 6573962,
+            "bytes": 65557,
+            "sha256": "77ded3689684cfcdba92612cccb393881a450b7c0b4fc04dd419b23d93dad50c"
+          }
+        ],
+        "member_count": 78,
+        "declared_uncompressed_bytes": 16311833,
+        "largest_member_bytes": 15398104,
+        "central_directory_bytes": 5660,
+        "central_directory_sha256": "0334e1492a43ad09584e623145ddc3c61c2a1f283a4447e83fa3649d9bf28af3",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "fsspec": {
+        "filename": "fsspec-2026.9.0-py3-none-any.whl",
+        "artifact_sha256": "8dd6e646e99ea382bd85f97a45e6b526a442d79423a7dc673f1e2756d05fcb5f",
+        "compressed_bytes": 221738,
+        "requests": [
+          {
+            "start": 156181,
+            "end": 221737,
+            "bytes": 65557,
+            "sha256": "83f49eec8808ed0f33fd739e47a3873c77787b793efcf040105d6cff3d408773"
+          }
+        ],
+        "member_count": 62,
+        "declared_uncompressed_bytes": 810582,
+        "largest_member_bytes": 80278,
+        "central_directory_bytes": 4484,
+        "central_directory_sha256": "e520a3fd56abe9ab19789a1157abe976b9d57492c9b805d31dfe8ccc32efbf7e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "httpx2": {
+        "filename": "httpx2-2.16.0-py3-none-any.whl",
+        "artifact_sha256": "fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a",
+        "compressed_bytes": 97880,
+        "requests": [
+          {
+            "start": 32323,
+            "end": 97879,
+            "bytes": 65557,
+            "sha256": "789f6a10ade5bb748be7544d005b84f82a10023b21fc71a4bf16c40a1d61f039"
+          }
+        ],
+        "member_count": 37,
+        "declared_uncompressed_bytes": 412425,
+        "largest_member_bytes": 75349,
+        "central_directory_bytes": 2546,
+        "central_directory_sha256": "bed4c4be64e2e169e1d02d37eee095a69763edfb9aa89c16f38ff5f1644893c2",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "httptools": {
+        "filename": "httptools-0.9.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+        "artifact_sha256": "3e3201fe4d46e0d15d7ff9fafc94a605da9eb82d2c5b9837f0368acb325481f1",
+        "compressed_bytes": 552848,
+        "requests": [
+          {
+            "start": 487291,
+            "end": 552847,
+            "bytes": 65557,
+            "sha256": "983b5902375fb1d41a074edc3593220de5d65a8a8ea23f416efa8d26bcea9d75"
+          }
+        ],
+        "member_count": 29,
+        "declared_uncompressed_bytes": 1882920,
+        "largest_member_bytes": 1294160,
+        "central_directory_bytes": 2325,
+        "central_directory_sha256": "7715e5e5b8b7c869e256db344f677b1e08eb07050dcc95e8558feb9a988f5c36",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "huggingface-hub": {
+        "filename": "huggingface_hub-1.33.0-py3-none-any.whl",
+        "artifact_sha256": "04e434b06e100eddbce9a6e817d72693a7884b10a79bd67ab48080d5c07eb899",
+        "compressed_bytes": 846435,
+        "requests": [
+          {
+            "start": 780878,
+            "end": 846434,
+            "bytes": 65557,
+            "sha256": "1c0b6c0e3bbcb9d6dbcb000f3e99b541b800a0430987fa0de239b5ac24732afa"
+          }
+        ],
+        "member_count": 194,
+        "declared_uncompressed_bytes": 3291113,
+        "largest_member_bytes": 689592,
+        "central_directory_bytes": 16906,
+        "central_directory_sha256": "bec2b21fde9888c9bec5c739fed5ccec61928ecc871c1480078fce29bd4351ec",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "idna": {
+        "filename": "idna-3.20-py3-none-any.whl",
+        "artifact_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+        "compressed_bytes": 69583,
+        "requests": [
+          {
+            "start": 4026,
+            "end": 69582,
+            "bytes": 65557,
+            "sha256": "f41bb5485d74621608463398cdfa2b1c27d8f292a7ef48664a40e54ab7b803e6"
+          }
+        ],
+        "member_count": 16,
+        "declared_uncompressed_bytes": 342091,
+        "largest_member_bytes": 237174,
+        "central_directory_bytes": 1055,
+        "central_directory_sha256": "ff07815d1409b6522e41cf7e2dd1d97577255f6c2f1a68ac7854d058e3b1c010",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "jiter": {
+        "filename": "jiter-0.18.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "b3c741e6b778c951a6861964ee475118812a33208426c54fb92bf4e318bda834",
+        "compressed_bytes": 336286,
+        "requests": [
+          {
+            "start": 270729,
+            "end": 336285,
+            "bytes": 65557,
+            "sha256": "425758f6744534cef584629101598e04aff5c5ec05117c5f9886f71c89750342"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 785287,
+        "largest_member_bytes": 731128,
+        "central_directory_bytes": 689,
+        "central_directory_sha256": "9d9623c81467a1349b6191ebb99035f21ada923eba5d02a4f6e71dd81e9a53f8",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "hf-xet": {
+        "filename": "hf_xet-1.8.0-cp38-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "29dab7c904cd1914a0439c6e1306c12c7497c8bd32290fbe563ebf51ca4b6d6d",
+        "compressed_bytes": 4292483,
+        "requests": [
+          {
+            "start": 4226926,
+            "end": 4292482,
+            "bytes": 65557,
+            "sha256": "bff4b6229ebd396e9437777b70845a731e1d0ed52d2cbce9f5d920a67c7813f8"
+          }
+        ],
+        "member_count": 7,
+        "declared_uncompressed_bytes": 11727276,
+        "largest_member_bytes": 11425664,
+        "central_directory_bytes": 538,
+        "central_directory_sha256": "8f31a1667ba0c5ce2e3b2517fd43cbeb984db1449e18365aa96241c5b8c03a98",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "httpcore2": {
+        "filename": "httpcore2-2.16.0-py3-none-any.whl",
+        "artifact_sha256": "5c4358319f2602d984ad93182c9fee5160f22e9da7babdda870a5e7c4e2dc34f",
+        "compressed_bytes": 85070,
+        "requests": [
+          {
+            "start": 19513,
+            "end": 85069,
+            "bytes": 65557,
+            "sha256": "4ccb33006f2e5b9bbe227b9732fd5081a4f127882a27a46c0d42f776633a5105"
+          }
+        ],
+        "member_count": 36,
+        "declared_uncompressed_bytes": 307028,
+        "largest_member_bytes": 27552,
+        "central_directory_bytes": 2642,
+        "central_directory_sha256": "5b6506daca0a9d8123db16bafe06033cf59711a189bd0ef021469f885258758a",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "ijson": {
+        "filename": "ijson-3.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "c14d568d31a322e8ed7e9735f6e355608a23cc6ff4b5da843515089dae4cbf5f",
+        "compressed_bytes": 150188,
+        "requests": [
+          {
+            "start": 84631,
+            "end": 150187,
+            "bytes": 65557,
+            "sha256": "a1cbd5e2c9fd79ffb90ef2b4a7bc7d78964f9b0e37b8aef32d71127253b93cf8"
+          }
+        ],
+        "member_count": 28,
+        "declared_uncompressed_bytes": 520783,
+        "largest_member_bytes": 381153,
+        "central_directory_bytes": 1951,
+        "central_directory_sha256": "e722303214fbbda08a01ceb0989330cd21eb5df1e4d8b1b931c9d0be85c80036",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "lark": {
+        "filename": "lark-1.2.2-py3-none-any.whl",
+        "artifact_sha256": "c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c",
+        "compressed_bytes": 111036,
+        "requests": [
+          {
+            "start": 45479,
+            "end": 111035,
+            "bytes": 65557,
+            "sha256": "c1a75cc9340ee516010fa0e3eaaec04ae6fea7833bb6fb4991e769cf6a2d876a"
+          }
+        ],
+        "member_count": 46,
+        "declared_uncompressed_bytes": 350066,
+        "largest_member_bytes": 53946,
+        "central_directory_bytes": 3184,
+        "central_directory_sha256": "d43c7b54d7355cb3685d9d7b1e62a53c9313a6f7292c956c7a8b7c40c5848c3b",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "llguidance": {
+        "filename": "llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "bc17e9dd602c3879bf91664a64bf72f54c74dbfbeb24ccfab6a5fe435b12f7aa",
+        "compressed_bytes": 3033133,
+        "requests": [
+          {
+            "start": 2967576,
+            "end": 3033132,
+            "bytes": 65557,
+            "sha256": "fafd7797cc9a02325e328b749f32f536fc4aadeb706468cc810bdfdaba4c1472"
+          }
+        ],
+        "member_count": 20,
+        "declared_uncompressed_bytes": 8046853,
+        "largest_member_bytes": 7967296,
+        "central_directory_bytes": 1399,
+        "central_directory_sha256": "a44a28b74a0d66e1f132cdacbafb4e72de78ca8fbc15f5eb713ce31494916c92",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "jmespath": {
+        "filename": "jmespath-1.1.0-py3-none-any.whl",
+        "artifact_sha256": "a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64",
+        "compressed_bytes": 20419,
+        "requests": [
+          {
+            "start": 0,
+            "end": 20418,
+            "bytes": 20419,
+            "sha256": "a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64"
+          }
+        ],
+        "member_count": 14,
+        "declared_uncompressed_bytes": 70223,
+        "largest_member_bytes": 19571,
+        "central_directory_bytes": 991,
+        "central_directory_sha256": "b09c25efebb31c10a5a78dbc04282ce096f91947e7127de03e36c6677890a7fd",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "llvmlite": {
+        "filename": "llvmlite-0.44.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "c0143a5ef336da14deaa8ec26c5449ad5b6a2b564df82fcef4be040b9cacfea9",
+        "compressed_bytes": 42361901,
+        "requests": [
+          {
+            "start": 42296344,
+            "end": 42361900,
+            "bytes": 65557,
+            "sha256": "d1715875849cf2744003309a30a937ebb80d2b825de97e7dcf9b543eb8139e9f"
+          }
+        ],
+        "member_count": 51,
+        "declared_uncompressed_bytes": 133463046,
+        "largest_member_bytes": 132875504,
+        "central_directory_bytes": 3689,
+        "central_directory_sha256": "3220f89b56ef0a9e097726ff564e96463af8ab4a747b28d7604868cce89f8029",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "mcp-types": {
+        "filename": "mcp_types-2.3.0-py3-none-any.whl",
+        "artifact_sha256": "968efdbdaedfab06adae40d378a34395f1090c5921d4be3c9cde283aaf76d91d",
+        "compressed_bytes": 69108,
+        "requests": [
+          {
+            "start": 3551,
+            "end": 69107,
+            "bytes": 65557,
+            "sha256": "d5fb2a6694cd723173effee93cef4493b1b087b2a4d7f611e54c0e52735babea"
+          }
+        ],
+        "member_count": 13,
+        "declared_uncompressed_bytes": 356212,
+        "largest_member_bytes": 116817,
+        "central_directory_bytes": 946,
+        "central_directory_sha256": "52d39c53945c06b41ebdbfe5ef6596edbcd4623b67c33c9c8b015b50ff76a280",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "lm-format-enforcer": {
+        "filename": "lm_format_enforcer-0.11.3-py3-none-any.whl",
+        "artifact_sha256": "cf586350875def1ae7a8fba84fcbbfc8371424b6c9d05c1fcba70aa233fbf06f",
+        "compressed_bytes": 45418,
+        "requests": [
+          {
+            "start": 0,
+            "end": 45417,
+            "bytes": 45418,
+            "sha256": "cf586350875def1ae7a8fba84fcbbfc8371424b6c9d05c1fcba70aa233fbf06f"
+          }
+        ],
+        "member_count": 25,
+        "declared_uncompressed_bytes": 139475,
+        "largest_member_bytes": 35094,
+        "central_directory_bytes": 2102,
+        "central_directory_sha256": "3045f738427b0cc30322266fca1d8b0d09e3e4a5b762aa5d10987719f79fd4db",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "mcp": {
+        "filename": "mcp-2.3.0-py3-none-any.whl",
+        "artifact_sha256": "dd0c44c089d16453e8ae31a3877a0054d7a2314caaa81f5e0541b9b1734b2377",
+        "compressed_bytes": 368664,
+        "requests": [
+          {
+            "start": 303107,
+            "end": 368663,
+            "bytes": 65557,
+            "sha256": "1922087da83b72496f44919a05dbb138d48df900972129f5f1be94a07ffe2b0a"
+          }
+        ],
+        "member_count": 130,
+        "declared_uncompressed_bytes": 1210630,
+        "largest_member_bytes": 69444,
+        "central_directory_bytes": 9645,
+        "central_directory_sha256": "9fe0fb09278f7dc84d1fb8677496c681658bc87932b3009c90ca02136d2bf957",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "markupsafe": {
+        "filename": "markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581",
+        "compressed_bytes": 22985,
+        "requests": [
+          {
+            "start": 0,
+            "end": 22984,
+            "bytes": 22985,
+            "sha256": "8e124f974786f831d6043728e38296969d3579db8896fe004682f5758e613581"
+          }
+        ],
+        "member_count": 14,
+        "declared_uncompressed_bytes": 67294,
+        "largest_member_bytes": 44072,
+        "central_directory_bytes": 1065,
+        "central_directory_sha256": "2288d547e49cc2b4d052c4b71b9101986ac90881bc0e191452e2f21a51a00620",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "model-hosting-container-standards": {
+        "filename": "model_hosting_container_standards-0.1.16-py3-none-any.whl",
+        "artifact_sha256": "47f4f65713120bc3a69feb022981a38db9e557aedf88dbd72077f20588caa12b",
+        "compressed_bytes": 125666,
+        "requests": [
+          {
+            "start": 60109,
+            "end": 125665,
+            "bytes": 65557,
+            "sha256": "f8d796f23c8a97588dc5adccea884b14df74db76524d33c164cf2264a7978940"
+          }
+        ],
+        "member_count": 75,
+        "declared_uncompressed_bytes": 375646,
+        "largest_member_bytes": 30085,
+        "central_directory_bytes": 8316,
+        "central_directory_sha256": "46004b181b003f98f8f806e1f73d85844274af81452a1bed2e9a6b05120a417c",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "cuda-python": {
+        "filename": "cuda_python-12.9.4-py3-none-any.whl",
+        "artifact_sha256": "d2cacea882a69863f1e7d27ee71d75f0684f4c76910aff839067e4f89c902279",
+        "compressed_bytes": 7594,
+        "requests": [
+          {
+            "start": 0,
+            "end": 7593,
+            "bytes": 7594,
+            "sha256": "d2cacea882a69863f1e7d27ee71d75f0684f4c76910aff839067e4f89c902279"
+          }
+        ],
+        "member_count": 5,
+        "declared_uncompressed_bytes": 16279,
+        "largest_member_bytes": 11096,
+        "central_directory_bytes": 423,
+        "central_directory_sha256": "a6c1c9eed39604b4dffc22cf2c5d61a69160d5e414fd98f587071ab6132440c5",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "multidict": {
+        "filename": "multidict-6.9.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "976fd7689d69ec78d67d31d38d396d8adb562f7e8368279f76aed4aa451fa06d",
+        "compressed_bytes": 336881,
+        "requests": [
+          {
+            "start": 271324,
+            "end": 336880,
+            "bytes": 65557,
+            "sha256": "3adadb7596627f50e48debd71eb0352aa3a74927260acf999822d38d6c146f89"
+          }
+        ],
+        "member_count": 14,
+        "declared_uncompressed_bytes": 1189552,
+        "largest_member_bytes": 1115496,
+        "central_directory_bytes": 1047,
+        "central_directory_sha256": "fd15e77408ebb868b87f57b697ed68615fa3c16039713253ed1acd77c073e2c5",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "numba": {
+        "filename": "numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "5b1bb509d01f23d70325d3a5a0e237cbc9544dd50e50588bc581ba860c213546",
+        "compressed_bytes": 3885928,
+        "requests": [
+          {
+            "start": 3820371,
+            "end": 3885927,
+            "bytes": 65557,
+            "sha256": "1f66c190e8cd10299107710e24d48e65c01c0aadda19400c39e86058631735bc"
+          }
+        ],
+        "member_count": 822,
+        "declared_uncompressed_bytes": 15698436,
+        "largest_member_bytes": 1054537,
+        "central_directory_bytes": 63953,
+        "central_directory_sha256": "efbf50e23c0b0b59c3bb1ec343bb1380833db303a8529bbe3816db75b84eccaf",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "nvidia-cudnn-frontend": {
+        "filename": "nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "6c023539ca6de99234cf5102c3ec0d6af817f5396fc93028a22ba5b834a35b8a",
+        "compressed_bytes": 2159245,
+        "requests": [
+          {
+            "start": 2093688,
+            "end": 2159244,
+            "bytes": 65557,
+            "sha256": "a446235db725a4b61c6cf2002bd069b5c1a3940d1073aa13467ec6fc56d5bead"
+          }
+        ],
+        "member_count": 132,
+        "declared_uncompressed_bytes": 8889303,
+        "largest_member_bytes": 5471328,
+        "central_directory_bytes": 11248,
+        "central_directory_sha256": "6ebf16aa2bcfb159db275fa408939627c0538890c8aaa0c8f0b7a16bb9868124",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "networkx": {
+        "filename": "networkx-3.7-py3-none-any.whl",
+        "artifact_sha256": "e3fd2c13a7814cee3746340d8d7f8598a67f16a58bf47fb7f8793fab6efca1b0",
+        "compressed_bytes": 2142205,
+        "requests": [
+          {
+            "start": 2076648,
+            "end": 2142204,
+            "bytes": 65557,
+            "sha256": "6fd5b997d1fd5690ed08703468a92ffef6f755fbb07e7557473dca3bf8b9e3bd"
+          }
+        ],
+        "member_count": 604,
+        "declared_uncompressed_bytes": 7298220,
+        "largest_member_bytes": 139967,
+        "central_directory_bytes": 53754,
+        "central_directory_sha256": "5ed177b628f2c363efa49a301c03d56072ff0fddff24d2485c2d22c4d1a00551",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "nvidia-nccl-cu12": {
+        "filename": "nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "ad730cf15cb5d25fe849c6e6ca9eb5b76db16a80f13f425ac68d8e2e55624457",
+        "compressed_bytes": 322348229,
+        "requests": [
+          {
+            "start": 322282672,
+            "end": 322348228,
+            "bytes": 65557,
+            "sha256": "6953937a94cc762a367b81e2010d15f1eb6b1d2651ea5d66134b79f5c485c65a"
+          }
+        ],
+        "member_count": 7,
+        "declared_uncompressed_bytes": 429655582,
+        "largest_member_bytes": 429628328,
+        "central_directory_bytes": 598,
+        "central_directory_sha256": "d4c58388954ebfb40d7f3f7309e2dc8610f666a84bda56bd2fdea635e90f79f0",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "nvidia-cudnn-cu12": {
+        "filename": "nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl",
+        "artifact_sha256": "949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8",
+        "compressed_bytes": 706758467,
+        "requests": [
+          {
+            "start": 706692910,
+            "end": 706758466,
+            "bytes": 65557,
+            "sha256": "f6cc35e5bc09e0862150460778fb2a22588b0a1595b5b3a4b9011b81148bf614"
+          }
+        ],
+        "member_count": 27,
+        "declared_uncompressed_bytes": 1053624755,
+        "largest_member_bytes": 547383096,
+        "central_directory_bytes": 2278,
+        "central_directory_sha256": "b8b28bb486fb0093d23a39576a1d2a34c885dba4d330f11caee7437b148d0133",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "numpy": {
+        "filename": "numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249",
+        "compressed_bytes": 16527618,
+        "requests": [
+          {
+            "start": 16462061,
+            "end": 16527617,
+            "bytes": 65557,
+            "sha256": "1a4babfdda9123a8f0f86a4f7604918905e5f63153305ac088b38b83edac9de0"
+          },
+          {
+            "start": 16449919,
+            "end": 16527595,
+            "bytes": 77677,
+            "sha256": "56940a461c7135add4ed174df935791d943c1817e7957fdd98497e03ee0e8e1d"
+          }
+        ],
+        "member_count": 967,
+        "declared_uncompressed_bytes": 57790150,
+        "largest_member_bytes": 25021457,
+        "central_directory_bytes": 77677,
+        "central_directory_sha256": "56940a461c7135add4ed174df935791d943c1817e7957fdd98497e03ee0e8e1d",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "opentelemetry-semantic-conventions-ai": {
+        "filename": "opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl",
+        "artifact_sha256": "25aeb22bd261543b4898a73824026d96770e5351209c7d07a0b1314762b1f6e4",
+        "compressed_bytes": 11250,
+        "requests": [
+          {
+            "start": 0,
+            "end": 11249,
+            "bytes": 11250,
+            "sha256": "25aeb22bd261543b4898a73824026d96770e5351209c7d07a0b1314762b1f6e4"
+          }
+        ],
+        "member_count": 7,
+        "declared_uncompressed_bytes": 39594,
+        "largest_member_bytes": 19070,
+        "central_directory_bytes": 643,
+        "central_directory_sha256": "1bf360d03801823e4e9df86a939700b4124d14a14fe57b0366f5ed86e0a8f755",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "opencv-python-headless": {
+        "filename": "opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "ed709fdf9aa0bd1f2ed8549e71d19449b03a675bb581eb292285f6861953be37",
+        "compressed_bytes": 61204038,
+        "requests": [
+          {
+            "start": 61138481,
+            "end": 61204037,
+            "bytes": 65557,
+            "sha256": "aefc9b11fdfa05938db64b91f081db1b46c38c35f41fe56f73a3ae21980693ab"
+          }
+        ],
+        "member_count": 91,
+        "declared_uncompressed_bytes": 159488055,
+        "largest_member_bytes": 73874137,
+        "central_directory_bytes": 6669,
+        "central_directory_sha256": "6eedc04ae02b3c8fa11b2ddaa4853ba93856dbb0c5bcf1872220ff9b8e1bda38",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "packaging": {
+        "filename": "packaging-26.3-py3-none-any.whl",
+        "artifact_sha256": "d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c",
+        "compressed_bytes": 129956,
+        "requests": [
+          {
+            "start": 64399,
+            "end": 129955,
+            "bytes": 65557,
+            "sha256": "c95376595ce7ce5c8561cf13fd3131e3c8bf9942c4bcc76a596a22bce97db294"
+          }
+        ],
+        "member_count": 29,
+        "declared_uncompressed_bytes": 499179,
+        "largest_member_bytes": 83054,
+        "central_directory_bytes": 2066,
+        "central_directory_sha256": "0a65b46d19675a6c54bdcffb5a0f27eaea99a779eb5e766aa27293255f21e3ca",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "prometheus-fastapi-instrumentator": {
+        "filename": "prometheus_fastapi_instrumentator-8.1.0-py3-none-any.whl",
+        "artifact_sha256": "b9f40b2cff3f7891ca0610b3ae4fc6ec723fd326b04bb659819aaeb821a0fc7d",
+        "compressed_bytes": 19649,
+        "requests": [
+          {
+            "start": 0,
+            "end": 19648,
+            "bytes": 19649,
+            "sha256": "b9f40b2cff3f7891ca0610b3ae4fc6ec723fd326b04bb659819aaeb821a0fc7d"
+          }
+        ],
+        "member_count": 10,
+        "declared_uncompressed_bytes": 74637,
+        "largest_member_bytes": 29802,
+        "central_directory_bytes": 969,
+        "central_directory_sha256": "852580f6c3b52e822b2721870cba4445a256d4ce2dc6a6faaccf19ba86af6816",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "outlines-core": {
+        "filename": "outlines_core-0.2.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "86df9740368866295077346440d911df4972da2b3f1f54b8125e6f329e8a8891",
+        "compressed_bytes": 2287677,
+        "requests": [
+          {
+            "start": 2222120,
+            "end": 2287676,
+            "bytes": 65557,
+            "sha256": "076a542ea03f81729b480b00fd86d0da44484e6d420b060f23843593969f91e8"
+          }
+        ],
+        "member_count": 11,
+        "declared_uncompressed_bytes": 5424121,
+        "largest_member_bytes": 5390440,
+        "central_directory_bytes": 898,
+        "central_directory_sha256": "fc2f3a7f0372fc47f61c66d4e5d5f13cef95632d939bd124ccae3bd1070f5c3e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "propcache": {
+        "filename": "propcache-0.5.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "2814ecd8e818f487bee4b0f921bc4d1c176cc5fc71ac0f072d0fa67eda4ac14b",
+        "compressed_bytes": 250424,
+        "requests": [
+          {
+            "start": 184867,
+            "end": 250423,
+            "bytes": 65557,
+            "sha256": "45dde70e2a5db9bb42904594d524cf7469758a0be87cec53989e59006e81fbf6"
+          }
+        ],
+        "member_count": 16,
+        "declared_uncompressed_bytes": 879215,
+        "largest_member_bytes": 832384,
+        "central_directory_bytes": 1202,
+        "central_directory_sha256": "c96fff7f342d25db0dda72c53cba83d468e8d3c7142b5d9ce318bd1852762959",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "nvidia-nvshmem-cu12": {
+        "filename": "nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+        "artifact_sha256": "042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd",
+        "compressed_bytes": 139103095,
+        "requests": [],
+        "passed": false,
+        "error_type": "URLError",
+        "error": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+      },
+      "pydantic-settings": {
+        "filename": "pydantic_settings-2.16.2-py3-none-any.whl",
+        "artifact_sha256": "8d523e5c129b097686bde019bd6109bff53f4c8c3f63f1ddf9933ffa42e5ab4f",
+        "compressed_bytes": 81994,
+        "requests": [
+          {
+            "start": 16437,
+            "end": 81993,
+            "bytes": 65557,
+            "sha256": "0553c5d6a67fb266d91c2fd0b3f3715b64dd08248e988a3eb93a768dd1f2a066"
+          }
+        ],
+        "member_count": 27,
+        "declared_uncompressed_bytes": 306878,
+        "largest_member_bytes": 92093,
+        "central_directory_bytes": 2300,
+        "central_directory_sha256": "85070bf2c44609957931c7b57233cb4c22b941037925e9d08e5683ed33b2d9cd",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "py-cpuinfo": {
+        "filename": "py_cpuinfo-9.0.0-py3-none-any.whl",
+        "artifact_sha256": "859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5",
+        "compressed_bytes": 22335,
+        "requests": [
+          {
+            "start": 0,
+            "end": 22334,
+            "bytes": 22335,
+            "sha256": "859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 87249,
+        "largest_member_bytes": 84388,
+        "central_directory_bytes": 687,
+        "central_directory_sha256": "b92dd04c8b8dd58dc210cee30fe2f24b043267faf320fd63607f7f8a012e68f1",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "pyjwt": {
+        "filename": "pyjwt-2.15.1-py3-none-any.whl",
+        "artifact_sha256": "42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193",
+        "compressed_bytes": 33860,
+        "requests": [
+          {
+            "start": 0,
+            "end": 33859,
+            "bytes": 33860,
+            "sha256": "42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193"
+          }
+        ],
+        "member_count": 19,
+        "declared_uncompressed_bytes": 122170,
+        "largest_member_bytes": 40684,
+        "central_directory_bytes": 1271,
+        "central_directory_sha256": "696756f55ae447ddd9c29b7acecbc1de461676743810ff43fa214f163c8612dc",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "pycparser": {
+        "filename": "pycparser-3.12-py3-none-any.whl",
+        "artifact_sha256": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e",
+        "compressed_bytes": 62600,
+        "requests": [
+          {
+            "start": 0,
+            "end": 62599,
+            "bytes": 62600,
+            "sha256": "a076f3f489b39b43ed13563a1dafe42447445bec2e294154ec5c57fcdda4c85e"
+          }
+        ],
+        "member_count": 13,
+        "declared_uncompressed_bytes": 262110,
+        "largest_member_bytes": 109894,
+        "central_directory_bytes": 943,
+        "central_directory_sha256": "9fa12b2c5458bd44d4a0ad9fba147bc30dee7a4d4b7bb3b2aad9127e5a4e26d4",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "python-dotenv": {
+        "filename": "python_dotenv-1.2.4-py3-none-any.whl",
+        "artifact_sha256": "42269a8a5b3fd54ffa6f3d84b18abed50064717576b4ecf03dc4a55d8aa04fdc",
+        "compressed_bytes": 23266,
+        "requests": [
+          {
+            "start": 0,
+            "end": 23265,
+            "bytes": 23266,
+            "sha256": "42269a8a5b3fd54ffa6f3d84b18abed50064717576b4ecf03dc4a55d8aa04fdc"
+          }
+        ],
+        "member_count": 15,
+        "declared_uncompressed_bytes": 65897,
+        "largest_member_bytes": 29979,
+        "central_directory_bytes": 1081,
+        "central_directory_sha256": "1d9931a239fbd423666c5b2788e4bbe7f9000b1f93f8910fc4ba81ecc62d92c5",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "python-json-logger": {
+        "filename": "python_json_logger-4.2.0-py3-none-any.whl",
+        "artifact_sha256": "158a52126fcd6869e09574d2b66272666f3dc8f468c62637ef9a1fa883719cb9",
+        "compressed_bytes": 14988,
+        "requests": [
+          {
+            "start": 0,
+            "end": 14987,
+            "bytes": 14988,
+            "sha256": "158a52126fcd6869e09574d2b66272666f3dc8f468c62637ef9a1fa883719cb9"
+          }
+        ],
+        "member_count": 15,
+        "declared_uncompressed_bytes": 39737,
+        "largest_member_bytes": 16268,
+        "central_directory_bytes": 1179,
+        "central_directory_sha256": "6dea04527f5f2e5d7a795819294e086404ddcf7f22e7958d5a53c4a537f3df88",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "nvidia-ml-py": {
+        "filename": "nvidia_ml_py-13.615.71-py3-none-any.whl",
+        "artifact_sha256": "959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6",
+        "compressed_bytes": 58132,
+        "requests": [],
+        "passed": false,
+        "error_type": "URLError",
+        "error": "<urlopen error _ssl.c:1001: The handshake operation timed out>"
+      },
+      "pygments": {
+        "filename": "pygments-2.21.0-py3-none-any.whl",
+        "artifact_sha256": "2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9",
+        "compressed_bytes": 1250147,
+        "requests": [
+          {
+            "start": 1184590,
+            "end": 1250146,
+            "bytes": 65557,
+            "sha256": "4b9007fdf90def9fa411a2820f0fa18b448267671086bc562ace2706f7812324"
+          }
+        ],
+        "member_count": 349,
+        "declared_uncompressed_bytes": 4621166,
+        "largest_member_bytes": 157900,
+        "central_directory_bytes": 25022,
+        "central_directory_sha256": "ccfcb5181a4161be2fd778ea1e647333eab36eeb0cc6c0d67ab8e9a0996eec4e",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "python-multipart": {
+        "filename": "python_multipart-0.0.33-py3-none-any.whl",
+        "artifact_sha256": "8f16c07b36add9da6b2ee87d3efcaf0a45a6de9c3d0a5dd94e9ccf7675a7bc45",
+        "compressed_bytes": 32253,
+        "requests": [
+          {
+            "start": 0,
+            "end": 32252,
+            "bytes": 32253,
+            "sha256": "8f16c07b36add9da6b2ee87d3efcaf0a45a6de9c3d0a5dd94e9ccf7675a7bc45"
+          }
+        ],
+        "member_count": 13,
+        "declared_uncompressed_bytes": 111145,
+        "largest_member_bytes": 82153,
+        "central_directory_bytes": 1000,
+        "central_directory_sha256": "afc17207627bb9a4c588170104cdd1937b0664bd971340b815f6429d9296e958",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "rich-toolkit": {
+        "filename": "rich_toolkit-0.20.6-py3-none-any.whl",
+        "artifact_sha256": "465453ba6f94f99401f59f79fb562827ba5f6b4d4759015d40019f5c67750262",
+        "compressed_bytes": 39466,
+        "requests": [
+          {
+            "start": 0,
+            "end": 39465,
+            "bytes": 39466,
+            "sha256": "465453ba6f94f99401f59f79fb562827ba5f6b4d4759015d40019f5c67750262"
+          }
+        ],
+        "member_count": 29,
+        "declared_uncompressed_bytes": 119344,
+        "largest_member_bytes": 18516,
+        "central_directory_bytes": 2165,
+        "central_directory_sha256": "911c12a17b3fb25132e954ecb739bfb7554ff91dd5c8cda8be6e7e52545edc4b",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "rignore": {
+        "filename": "rignore-0.8.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "2e68cfc4ee0a2909952af2aebd608d1cd22f7d1cdce332cb0b5ea3762939865d",
+        "compressed_bytes": 927835,
+        "requests": [
+          {
+            "start": 862278,
+            "end": 927834,
+            "bytes": 65557,
+            "sha256": "c1e6cf271633aef36039e82ef6443d38f1288455b23ece9d4db00fa97611709e"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 2539740,
+        "largest_member_bytes": 2497168,
+        "central_directory_bytes": 699,
+        "central_directory_sha256": "ef96459a0a7afbe22ef75f2a7b2b288d8b5737e76ef7a81b2919c81f878741d5",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "sentry-sdk": {
+        "filename": "sentry_sdk-2.73.0-py3-none-any.whl",
+        "artifact_sha256": "0bcfa6928ea5adbb89591858b514d27adac27c7a3cccc31b20ed10e0b09eda9e",
+        "compressed_bytes": 549011,
+        "requests": [
+          {
+            "start": 483454,
+            "end": 549010,
+            "bytes": 65557,
+            "sha256": "bcc36026df8636ed00bbbaea48a64e5d602fb9cd9cd8ad1815d4a2000431a797"
+          }
+        ],
+        "member_count": 210,
+        "declared_uncompressed_bytes": 2154833,
+        "largest_member_bytes": 79206,
+        "central_directory_bytes": 17428,
+        "central_directory_sha256": "f19ad6eaf6965cabee892ebe4c1f15671bfc3d6ae5dc67a03f938a12fb9e0b70",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "setuptools": {
+        "filename": "setuptools-80.10.2-py3-none-any.whl",
+        "artifact_sha256": "95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173",
+        "compressed_bytes": 1064234,
+        "requests": [
+          {
+            "start": 998677,
+            "end": 1064233,
+            "bytes": 65557,
+            "sha256": "d43653cad045630df2e21bd59389a53a36ae74726ed07d72a21cd73e8dd3f56c"
+          }
+        ],
+        "member_count": 458,
+        "declared_uncompressed_bytes": 3661004,
+        "largest_member_bytes": 354682,
+        "central_directory_bytes": 40242,
+        "central_directory_sha256": "ebfd73cbcd8f6ed8f1cbfb75a6ddc6a071b4720eb6c2765d6c8efb418c24f152",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "safetensors": {
+        "filename": "safetensors-0.8.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "fd6f3f93c9a0a7cc2788ee63fb763353d4bd2e89b0751bc78fcf7dda00bea774",
+        "compressed_bytes": 516040,
+        "requests": [
+          {
+            "start": 450483,
+            "end": 516039,
+            "bytes": 65557,
+            "sha256": "4fd1521c4feb95f04d6a88d1ecc5609b6a453270f862e6190c28ad7d398ddf8e"
+          }
+        ],
+        "member_count": 15,
+        "declared_uncompressed_bytes": 1337729,
+        "largest_member_bytes": 1223000,
+        "central_directory_bytes": 1131,
+        "central_directory_sha256": "906defe5085e4b1156561ad897dbf652138be6a3676882dfae584141ca022a87",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "torchaudio": {
+        "filename": "torchaudio-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969",
+        "compressed_bytes": 1736412,
+        "requests": [
+          {
+            "start": 1670855,
+            "end": 1736411,
+            "bytes": 65557,
+            "sha256": "ce7ec03c2fbb56d73004eebbe4e69300fa0d613195c7e85e567875a593c85676"
+          }
+        ],
+        "member_count": 106,
+        "declared_uncompressed_bytes": 7975142,
+        "largest_member_bytes": 4655088,
+        "central_directory_bytes": 10877,
+        "central_directory_sha256": "4301ebaa6791de261bbc7cb59522060fe9671a0a582be7d98e89f86f5690116b",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "rpds-py": {
+        "filename": "rpds_py-2026.9.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+        "artifact_sha256": "addeda51556dac7c1a2f14cda62db8b621cd12afba3091d03a96c72932387eab",
+        "compressed_bytes": 371261,
+        "requests": [
+          {
+            "start": 305704,
+            "end": 371260,
+            "bytes": 65557,
+            "sha256": "48a5e1703bd6be85b44c7a864a3f9cd3fcc28671a6961d8691458ccd9c66295b"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 1069044,
+        "largest_member_bytes": 1039656,
+        "central_directory_bytes": 699,
+        "central_directory_sha256": "ca978e2b999ce95ad4cdec1572a33a35c6d03fb48587e7a64cafad7d99dd7166",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "sse-starlette": {
+        "filename": "sse_starlette-3.6.0-py3-none-any.whl",
+        "artifact_sha256": "e4dfa4d237d2712cb2b4d4918eda9b457cd6b44bbecdc838af75de836565bafd",
+        "compressed_bytes": 17985,
+        "requests": [
+          {
+            "start": 0,
+            "end": 17984,
+            "bytes": 17985,
+            "sha256": "e4dfa4d237d2712cb2b4d4918eda9b457cd6b44bbecdc838af75de836565bafd"
+          }
+        ],
+        "member_count": 11,
+        "declared_uncompressed_bytes": 46862,
+        "largest_member_bytes": 23909,
+        "central_directory_bytes": 862,
+        "central_directory_sha256": "9a5141111e8cc2ce86c5b83f326b5eb4a7ff4411dac864d562520893f56c2ef5",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "triton": {
+        "filename": "triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "74caf5e34b66d9f3a429af689c1c7128daba1d8208df60e81106b115c00d6fca",
+        "compressed_bytes": 188266850,
+        "requests": [
+          {
+            "start": 188201293,
+            "end": 188266849,
+            "bytes": 65557,
+            "sha256": "a7567f1e22b1515395dc405618ed5a5805c27e7c312e29981911c1dc8f54b350"
+          }
+        ],
+        "member_count": 410,
+        "declared_uncompressed_bytes": 669050695,
+        "largest_member_bytes": 415617000,
+        "central_directory_bytes": 36796,
+        "central_directory_sha256": "cab0b189b8963fe5a3a12d1d0e9ed5c57199fe3080ab9d784dcd0ce32a322fd0",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "transformers": {
+        "filename": "transformers-5.5.1-py3-none-any.whl",
+        "artifact_sha256": "ceb2190689f5afc112d13507ddc94185b4ee11921e283f035dade91e347c3e15",
+        "compressed_bytes": 10235183,
+        "requests": [
+          {
+            "start": 10169626,
+            "end": 10235182,
+            "bytes": 65557,
+            "sha256": "8aa6f0a123ca5caf440602a2a90ccc0cdea6291af8f1240e2670e544a75fc52d"
+          },
+          {
+            "start": 10018162,
+            "end": 10235160,
+            "bytes": 216999,
+            "sha256": "ace6f74f9cf4f369fa83b5558c87517e4a30d0729507aa5524a2f94848305c39"
+          }
+        ],
+        "member_count": 2278,
+        "declared_uncompressed_bytes": 41843583,
+        "largest_member_bytes": 253486,
+        "central_directory_bytes": 216999,
+        "central_directory_sha256": "ace6f74f9cf4f369fa83b5558c87517e4a30d0729507aa5524a2f94848305c39",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "torchvision": {
+        "filename": "torchvision-0.25.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b",
+        "compressed_bytes": 9142020,
+        "requests": [
+          {
+            "start": 9076463,
+            "end": 9142019,
+            "bytes": 65557,
+            "sha256": "eb1e4c62385d3e907aff43dcc0cc20a962ec78168b67e8841966cebf31d201da"
+          }
+        ],
+        "member_count": 218,
+        "declared_uncompressed_bytes": 23433997,
+        "largest_member_bytes": 9352784,
+        "central_directory_bytes": 17516,
+        "central_directory_sha256": "8102f8e4d21791d67d73dfb3a781267a45044f27c808e23e0d732c0a8e7b3d0d",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "truststore": {
+        "filename": "truststore-0.10.5-py3-none-any.whl",
+        "artifact_sha256": "9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c",
+        "compressed_bytes": 19017,
+        "requests": [
+          {
+            "start": 0,
+            "end": 19016,
+            "bytes": 19017,
+            "sha256": "9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c"
+          }
+        ],
+        "member_count": 11,
+        "declared_uncompressed_bytes": 63033,
+        "largest_member_bytes": 20503,
+        "central_directory_bytes": 804,
+        "central_directory_sha256": "aaed34d652d5294b8a5e2661c59be83f73230eaadfac252f45c38fa39192aeea",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "typer": {
+        "filename": "typer-0.27.3-py3-none-any.whl",
+        "artifact_sha256": "e50022f28b82a86313e54501317a1db64bf8f8d036ff8cfe5ca7e47675454aff",
+        "compressed_bytes": 123312,
+        "requests": [
+          {
+            "start": 57755,
+            "end": 123311,
+            "bytes": 65557,
+            "sha256": "3a39b95451398ab9605910ea941bcfa6a322563769200e87b34f7493695696ca"
+          }
+        ],
+        "member_count": 41,
+        "declared_uncompressed_bytes": 487603,
+        "largest_member_bytes": 69089,
+        "central_directory_bytes": 2802,
+        "central_directory_sha256": "8f5f417a85eabfca2d38938bb44f84bff4f4bea806c50386e56f7db607bdd493",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "typing-inspection": {
+        "filename": "typing_inspection-0.4.4-py3-none-any.whl",
+        "artifact_sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147",
+        "compressed_bytes": 14750,
+        "requests": [
+          {
+            "start": 0,
+            "end": 14749,
+            "bytes": 14750,
+            "sha256": "65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147"
+          }
+        ],
+        "member_count": 9,
+        "declared_uncompressed_bytes": 54538,
+        "largest_member_bytes": 22550,
+        "central_directory_bytes": 745,
+        "central_directory_sha256": "4c4ef558dfaf108840bcac1c775b8cefa7e2b249bee31b7bea954690a6337801",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "starlette": {
+        "filename": "starlette-1.10.0-py3-none-any.whl",
+        "artifact_sha256": "478c0ab3b4ced6e82719849c118fa406f0278a3499c1a898cd15cd31bdc38ce4",
+        "compressed_bytes": 80571,
+        "requests": [
+          {
+            "start": 15014,
+            "end": 80570,
+            "bytes": 65557,
+            "sha256": "6860d95198049810d9f5a770ee985127e7b3df083df7e80f31f4b4a15f64a9f3"
+          }
+        ],
+        "member_count": 41,
+        "declared_uncompressed_bytes": 275681,
+        "largest_member_bytes": 30777,
+        "central_directory_bytes": 2992,
+        "central_directory_sha256": "bf2b10de799d43fe3cb3f74c9725631a1415d5c26064f979dda65994078acb95",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "uvicorn": {
+        "filename": "uvicorn-0.54.0-py3-none-any.whl",
+        "artifact_sha256": "505bdb0f318731d45f1f712071fc781a8981f6847a31c902c9f5e652d4f67faf",
+        "compressed_bytes": 87427,
+        "requests": [
+          {
+            "start": 21870,
+            "end": 87426,
+            "bytes": 65557,
+            "sha256": "859b51a4ef0d9817a1b7d9c28d09998ca5bed230d68066cc1a08a4296ccf67f5"
+          }
+        ],
+        "member_count": 51,
+        "declared_uncompressed_bytes": 294179,
+        "largest_member_bytes": 25482,
+        "central_directory_bytes": 3836,
+        "central_directory_sha256": "8c361460aa48c04d2d5d6abb1325eb0042a7989edb1932b17171de6a312c5a57",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "urllib3": {
+        "filename": "urllib3-2.8.0-py3-none-any.whl",
+        "artifact_sha256": "0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3",
+        "compressed_bytes": 135717,
+        "requests": [
+          {
+            "start": 70160,
+            "end": 135716,
+            "bytes": 65557,
+            "sha256": "03bef3003c71acb461f0391ba9043544d4dffffc9d7084620968ad79eeee4674"
+          }
+        ],
+        "member_count": 42,
+        "declared_uncompressed_bytes": 450461,
+        "largest_member_bytes": 54628,
+        "central_directory_bytes": 3039,
+        "central_directory_sha256": "2f038173198112be8dc8996c72ea902ed980cbe26075f6f65d54e65c0c758dc2",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "websockets": {
+        "filename": "websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl",
+        "artifact_sha256": "9ae1429ee9e52b139167ed0169757806a27ed7307e942e8c62037a9184e9843b",
+        "compressed_bytes": 226321,
+        "requests": [
+          {
+            "start": 160764,
+            "end": 226320,
+            "bytes": 65557,
+            "sha256": "4137478d1c5be08739f108485a6bf7f83cbd476122c16ed66007c3b5265ddb57"
+          }
+        ],
+        "member_count": 70,
+        "declared_uncompressed_bytes": 836256,
+        "largest_member_bytes": 64016,
+        "central_directory_bytes": 5029,
+        "central_directory_sha256": "b375a3a920642f00a6b25ed0bed43237b339ab9f248af3a7cbbf782693caf66d",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "zipp": {
+        "filename": "zipp-4.1.2-py3-none-any.whl",
+        "artifact_sha256": "b30cb6cd253122169c47de245ca24a86bac2a5d3802ba15bf7ba6414eb9e144d",
+        "compressed_bytes": 10581,
+        "requests": [
+          {
+            "start": 0,
+            "end": 10580,
+            "bytes": 10581,
+            "sha256": "b30cb6cd253122169c47de245ca24a86bac2a5d3802ba15bf7ba6414eb9e144d"
+          }
+        ],
+        "member_count": 12,
+        "declared_uncompressed_bytes": 24397,
+        "largest_member_bytes": 11722,
+        "central_directory_bytes": 836,
+        "central_directory_sha256": "512ab137953f5f29ffe3cddefb0a4f9e871ae5bc7ac89eda90bcb2f263ee4780",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "yarl": {
+        "filename": "yarl-1.25.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "c6f117789d22dce188e5754e8bc65b7e6ebf8cb73963b9fa761f672a5883769d",
+        "compressed_bytes": 117050,
+        "requests": [
+          {
+            "start": 51493,
+            "end": 117049,
+            "bytes": 65557,
+            "sha256": "f6de8743b8240791c3ee781a3d8e3fcaa2159600b9c156cfc455fc6e6a304159"
+          }
+        ],
+        "member_count": 20,
+        "declared_uncompressed_bytes": 364856,
+        "largest_member_bytes": 124936,
+        "central_directory_bytes": 1372,
+        "central_directory_sha256": "18490f0f03b3be7984c385b46d2833adb94000e6cfd912d4946c4bf6a0fe2178",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "uvloop": {
+        "filename": "uvloop-0.23.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+        "artifact_sha256": "090865d8ce7a03986755a3ce711b7dd0d4b44eb14ab74368b717f3fad1180208",
+        "compressed_bytes": 4532597,
+        "requests": [
+          {
+            "start": 4467040,
+            "end": 4532596,
+            "bytes": 65557,
+            "sha256": "cbd162ba7e936c984db34b9e100e2624142179e55f54aea7e6b13b00f8102f08"
+          }
+        ],
+        "member_count": 68,
+        "declared_uncompressed_bytes": 16576009,
+        "largest_member_bytes": 16134240,
+        "central_directory_bytes": 4740,
+        "central_directory_sha256": "28fd0041c44e35457c25b51a482a63cec24292f6f409c8a6e6945bcc03ae3567",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      },
+      "supervisor": {
+        "filename": "supervisor-4.3.0-py2.py3-none-any.whl",
+        "artifact_sha256": "0bcb763fddafba410f35cbde226aa7f8514b9fb82eb05a0c85f6588d1c13f8db",
+        "compressed_bytes": 320736,
+        "requests": [],
+        "passed": false,
+        "error_type": "URLError",
+        "error": "<urlopen error [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1018)>"
+      },
+      "vllm": {
+        "filename": "vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "artifact_sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "compressed_bytes": 433132101,
+        "requests": [
+          {
+            "start": 433066544,
+            "end": 433132100,
+            "bytes": 65557,
+            "sha256": "863605d7c49ca179f8d47375ee1c45fdfdedc7d25909115e5bdc4c6e26690b20"
+          },
+          {
+            "start": 432905663,
+            "end": 433132078,
+            "bytes": 226416,
+            "sha256": "2d1665617c4bb5ff91f1d197c96515e4ae3a401ee590bf31fe0677636ac27a77"
+          }
+        ],
+        "member_count": 2116,
+        "declared_uncompressed_bytes": 1172403610,
+        "largest_member_bytes": 465634600,
+        "central_directory_bytes": 226416,
+        "central_directory_sha256": "2d1665617c4bb5ff91f1d197c96515e4ae3a401ee590bf31fe0677636ac27a77",
+        "full_wheel_sha256_verified": false,
+        "passed": true
+      }
+    },
+    "elapsed_seconds": 43.36557869999888,
+    "passed": false,
+    "requested_bytes": 5551881,
+    "declared_uncompressed_bytes": 4065533352,
+    "largest_member_bytes": 547383096,
+    "process_memory_peak": "not measured; bounded per request is not RSS peak"
+  },
+  "wheel_directory_diagnostics": [
+    {
+      "name": "flashinfer-cubin",
+      "method": "bounded Windows curl tail diagnostic after assertion, not full download",
+      "returncode": 0,
+      "stderr": "",
+      "tail_bytes": 65557,
+      "tail_sha256": "e7131f4a201c79a12e53462f5d5885667468eea36d7f5ff68c564db1a6083176",
+      "eocd": {
+        "disk": 0,
+        "central_disk": 0,
+        "disk_entries": 9764,
+        "entries": 9764,
+        "central_bytes": 2374376,
+        "central_offset": 265287059,
+        "comment_bytes": 0
+      },
+      "eocd_position": 267661435
+    }
+  ],
+  "wsl_execution_preflight": {
+    "recorded_utc": "2026-11-02T05:58:56.438402+00:00",
+    "checks": {
+      "config": {
+        "returncode": 0,
+        "stdout": "file:.git/config\tcore.filemode false\nfile:.git/config\tremote.origin.url https://github.com/BoyJiang2/serverlessllm.git\ncommand line:\tcore.autocrlf true\ncommand line:\tcore.filemode false\n",
+        "stderr": ""
+      },
+      "eol": {
+        "returncode": 0,
+        "stdout": "i/lf    w/lf    attr/-text            \t.gitattributes\ni/lf    w/lf    attr/-text            \tkimi/controls/kimi_store_v1/NEXT.md\ni/lf    w/lf    attr/-text            \tkimi/controls/kimi_store_v1/runtime-dependencies-candidate.json\n",
+        "stderr": ""
+      },
+      "head": {
+        "returncode": 0,
+        "stdout": "593cda958f5113584a42f4d8715de8ace206d3f9\n",
+        "stderr": ""
+      },
+      "status": {
+        "returncode": 0,
+        "stdout": " M kimi/controls/kimi_store_v1/runtime-dependencies-candidate.json\n",
+        "stderr": ""
+      },
+      "ssh_config": {
+        "profile": "WSL ssh -G qjhs003 resolved boyjiang and existing host/identity aliases in prior read-only check",
+        "actual_remote_connection_verified": false
+      },
+      "git_push_authentication_verified": false,
+      "execution": {
+        "scope": "LOCAL WSL only; no remote execution, new bash, environment or credential copy",
+        "python_version": "Python 3.10.12",
+        "git_version": "git version 2.34.1",
+        "shell_handling": "existing bash has no controllable current-chat handle; use native WSL programs without creating a duplicate persistent bash",
+        "explicit_git_config": {
+          "core.autocrlf": "true (verified Windows system existing value; kimi/glm -text prevents conversion)",
+          "core.filemode": "false (verified repository existing value)"
+        },
+        "attributes_sha256": "2d8896cd075a2e980b5bdb48f39274c0f13651ec4a5b7383ad68ce4236e36f54"
+      },
+      "git_auth_readonly_attempt": {
+        "transport": "WSL native Git + native SSH443, strict host key, batch mode",
+        "returncode": 128,
+        "stderr": "kex_exchange_identification: Connection closed by remote host\nConnection closed by 198.18.0.171 port 443\nfatal: Could not read from remote repository.\n\nPlease make sure you have the correct access rights\nand the repository exists.\n",
+        "authentication_verified": false,
+        "push_attempted": false,
+        "network_or_auth_root_cause": "UNKNOWN; handshake did not complete"
+      },
+      "git_identity_precheck": {
+        "returncode": 128,
+        "error": "Author identity unknown; empty ident name for boyjiang@BoyJiang.localdomain",
+        "global_config_changed": false,
+        "plan": "per-operation native Git user.name/user.email from existing HEAD committer metadata, without global configuration or credentials"
+      }
+    }
+  },
+  "wheel_directory_followups": [
+    {
+      "registered_utc": "2026-11-02T05:59:34.515240+00:00",
+      "scope": "LOCAL WSL stdlib and existing curl, only four missing ZIP directories; FlashInfer actual 2374376-byte directory read in <=1MiB ranges; no full wheel/install",
+      "max_seconds": 90,
+      "per_request_limit_bytes": 1048576,
+      "state": "LOCAL_TERMINAL",
+      "artifacts": {
+        "nvidia-ml-py": {
+          "filename": "nvidia_ml_py-13.615.71-py3-none-any.whl",
+          "artifact_sha256": "959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6",
+          "compressed_bytes": 58132,
+          "requests": [],
+          "passed": false,
+          "error_type": "RuntimeError",
+          "error": "curl: (28) Operation timed out after 12001 milliseconds with 0 bytes received\n"
+        },
+        "supervisor": {
+          "filename": "supervisor-4.3.0-py2.py3-none-any.whl",
+          "artifact_sha256": "0bcb763fddafba410f35cbde226aa7f8514b9fb82eb05a0c85f6588d1c13f8db",
+          "compressed_bytes": 320736,
+          "requests": [],
+          "passed": false,
+          "error_type": "RuntimeError",
+          "error": "curl: (28) Operation timed out after 12001 milliseconds with 0 bytes received\n"
+        },
+        "nvidia-nvshmem-cu12": {
+          "filename": "nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+          "artifact_sha256": "042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd",
+          "compressed_bytes": 139103095,
+          "requests": [],
+          "passed": false,
+          "error_type": "RuntimeError",
+          "error": "curl: (28) Operation timed out after 12001 milliseconds with 0 bytes received\n"
+        },
+        "flashinfer-cubin": {
+          "filename": "flashinfer_cubin-0.6.6-py3-none-any.whl",
+          "artifact_sha256": "36508dfc792eb5ecfb15d2c140a7702812e1fa1ab0fb03929b2ed55e3e8191f3",
+          "compressed_bytes": 267661457,
+          "requests": [],
+          "passed": false,
+          "error_type": "RuntimeError",
+          "error": "curl: (28) Operation timed out after 12001 milliseconds with 0 bytes received\n"
+        }
+      },
+      "elapsed_seconds": 12.060154570000009,
+      "passed": false,
+      "requested_bytes": 0
+    },
+    {
+      "registered_utc": "2026-11-02T06:01:06.128138+00:00",
+      "scope": "LOCAL WSL Python + existing Windows curl transport after native curl 12s failures; only four missing ZIP directories, no full wheel or install",
+      "curl": "/mnt/c/Windows/system32/curl.exe",
+      "max_seconds": 90,
+      "per_request_limit_bytes": 1048576,
+      "state": "LOCAL_TERMINAL",
+      "artifacts": {
+        "supervisor": {
+          "filename": "supervisor-4.3.0-py2.py3-none-any.whl",
+          "artifact_sha256": "0bcb763fddafba410f35cbde226aa7f8514b9fb82eb05a0c85f6588d1c13f8db",
+          "compressed_bytes": 320736,
+          "requests": [
+            {
+              "start": 255179,
+              "end": 320735,
+              "bytes": 65557,
+              "sha256": "38055d46d1fd41dbb5c62ebea4569751b67c7fb2da303a0985ae89b486045c64"
+            }
+          ],
+          "member_count": 112,
+          "declared_uncompressed_bytes": 1534705,
+          "largest_member_bytes": 145969,
+          "central_directory_bytes": 8831,
+          "central_directory_sha256": "6162c71010916c47bb1c13c49fbda402ba103fa0bd55c15d718d03f874bb41dd",
+          "full_wheel_sha256_verified": false,
+          "passed": true
+        },
+        "nvidia-ml-py": {
+          "filename": "nvidia_ml_py-13.615.71-py3-none-any.whl",
+          "artifact_sha256": "959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6",
+          "compressed_bytes": 58132,
+          "requests": [
+            {
+              "start": 0,
+              "end": 58131,
+              "bytes": 58132,
+              "sha256": "959bf4adf6fe1308e4bd739e722236b0d1ec8392e2cefad33ff70c311380b9b6"
+            }
+          ],
+          "member_count": 6,
+          "declared_uncompressed_bytes": 350617,
+          "largest_member_bytes": 332274,
+          "central_directory_bytes": 459,
+          "central_directory_sha256": "172e92b1e7ff48e484fc71d234d0f26a9f12f2cf526a000eaf5120a66620e84f",
+          "full_wheel_sha256_verified": false,
+          "passed": true
+        },
+        "nvidia-nvshmem-cu12": {
+          "filename": "nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+          "artifact_sha256": "042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd",
+          "compressed_bytes": 139103095,
+          "requests": [
+            {
+              "start": 139037538,
+              "end": 139103094,
+              "bytes": 65557,
+              "sha256": "6ab82b268115a4135b7bd0c638ca8d26c4f5403fcb02288ca0da4febce9d9c39"
+            }
+          ],
+          "member_count": 64,
+          "declared_uncompressed_bytes": 204181279,
+          "largest_member_bytes": 160322296,
+          "central_directory_bytes": 6317,
+          "central_directory_sha256": "d8219229affc8afde87ef8172b892d9bac806c3d2a6a1daed8cf686024d107dc",
+          "full_wheel_sha256_verified": false,
+          "passed": true
+        },
+        "flashinfer-cubin": {
+          "filename": "flashinfer_cubin-0.6.6-py3-none-any.whl",
+          "artifact_sha256": "36508dfc792eb5ecfb15d2c140a7702812e1fa1ab0fb03929b2ed55e3e8191f3",
+          "compressed_bytes": 267661457,
+          "requests": [
+            {
+              "start": 267595900,
+              "end": 267661456,
+              "bytes": 65557,
+              "sha256": "e7131f4a201c79a12e53462f5d5885667468eea36d7f5ff68c564db1a6083176"
+            },
+            {
+              "start": 265287059,
+              "end": 266335634,
+              "bytes": 1048576,
+              "sha256": "21096392bb49fab7a233b9623daefb661e43db442f75d34df90dd910ed3b5f69"
+            },
+            {
+              "start": 266335635,
+              "end": 267384210,
+              "bytes": 1048576,
+              "sha256": "b39efac06596b7367ceb6772d4ff57be4f0ad561046af5745a486f70d3ce8ad8"
+            },
+            {
+              "start": 267384211,
+              "end": 267661434,
+              "bytes": 277224,
+              "sha256": "ce00499cdd4fd3b4d591b14aedbbed6b8f3f34c67c0e5cea514a428f996aeffe"
+            }
+          ],
+          "member_count": 9764,
+          "declared_uncompressed_bytes": 1117272792,
+          "largest_member_bytes": 5045046,
+          "central_directory_bytes": 2374376,
+          "central_directory_sha256": "b27bdd19ee629424cff10951c6c08af0d0f5a9347c8060d9c29c053dec5a1271",
+          "full_wheel_sha256_verified": false,
+          "passed": true
+        }
+      },
+      "elapsed_seconds": 5.881005231000017,
+      "passed": true,
+      "requested_bytes": 2629179
+    }
+  ],
+  "wheel_payload_budget": {
+    "recorded_utc": "2026-11-02T06:04:34.110153+00:00",
+    "all_94_directories_collected": true,
+    "selected_compressed_bytes": 2269423311,
+    "existing_verified_archive_bytes": 433513036,
+    "new_archive_bytes": 1835910275,
+    "declared_selected_uncompressed_bytes": 5388872745,
+    "largest_selected_wheel_compressed_bytes": 706758467,
+    "largest_selected_wheel_uncompressed_bytes": 1172403610,
+    "largest_member_bytes": 547383096,
+    "total_member_count": 23776,
+    "scope": "ZIP declarations, not full archive integrity or measured install peak",
+    "additional_content_bytes_with_all_new_archives_kept": 7224783020,
+    "not_actual_peak": true,
+    "unknown_components": [
+      "installed replacement file stashing/copy-up bytes",
+      "Docker overlay and commit temporary usage/metadata/inodes",
+      "free bytes on actual Docker root and downloads mounts",
+      "pip/RSS peak and functional ABI"
+    ],
+    "proposal": "reuse existing two archives; only private task runtime, no new env or base-image duplicate; no installation authorized by these declarations",
+    "installed": false,
+    "full_artifact_hashes_verified": false,
+    "disk_budget_admitted": false
+  },
+  "replacement_size_probe_candidate": {
+    "status": "STATIC_REVIEW_PASSED_NOT_EXECUTED",
+    "purpose": "necessary replacement-file sizing plus read-only Docker-root/downloads free-byte/inode snapshot; existing guarded metadata driver reused",
+    "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"\nrun=\"kimi-runtime-compare-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+300\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<300:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 300s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n docker_root=cmd(['docker','info','--format','{{.DockerRootDir}}']).stdout.strip()\n if not os.path.isabs(docker_root):raise ValueError('Docker root must be an absolute path')\n storage={}\n for name,path in [('downloads','/data/brick1/boyjiang/kimi-k2.6/downloads'),('docker_root',docker_root)]:\n  fs=os.statvfs(path);storage[name]={'path':path,'st_dev':os.stat(path).st_dev,'total_bytes':fs.f_blocks*fs.f_frsize,'available_bytes':fs.f_bavail*fs.f_frsize,'available_inodes':fs.f_favail}\n result['storage_budget_snapshot']=storage\n mounts=[]\n mount_args=[]\n for source,target in mounts:mount_args += [\"--mount\",\"type=bind,src=\"+source+\",dst=\"+target+\",readonly\"]\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=none\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=16m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",*mount_args,\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"60s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or sorted((m['Source'],m['Destination'],m['RW']) for m in d['Mounts'])!=sorted((s,t,False) for s,t in mounts) or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=120s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=80,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:262144],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"relocation import failed\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+    "host_driver_sha256": "283ee771a2903d53ff654fce3cac684a1865301e781b7f7838f45bd99078845d",
+    "body": "import datetime,glob,importlib.metadata as md,json,os,platform,stat,sys,time\nEXPECTED={'aiohappyeyeballs': '2.6.1', 'annotated-doc': '0.0.4', 'annotated-types': '0.7.0', 'anyio': '4.13.0', 'apache-tvm-ffi': '0.1.11', 'certifi': '2026.4.22', 'cffi': '2.0.0', 'charset-normalizer': '3.4.7', 'click': '8.3.3', 'cryptography': '41.0.7', 'cuda-bindings': '12.9.6', 'cuda-pathfinder': '1.5.4', 'cuda-python': '12.9.0', 'flashinfer-cubin': '0.6.7.post2', 'flashinfer-python': '0.6.7.post2', 'fsspec': '2026.2.0', 'googleapis-common-protos': '1.75.0', 'grpcio': '1.80.0', 'hf-xet': '1.5.0', 'huggingface-hub': '1.14.0', 'idna': '3.14', 'jiter': '0.14.0', 'lark': '1.3.1', 'llguidance': '0.7.30', 'markupsafe': '3.0.3', 'multidict': '6.7.1', 'networkx': '3.6.1', 'numpy': '2.3.5', 'nvidia-cudnn-cu12': '9.16.0.29', 'nvidia-cudnn-frontend': '1.23.0', 'nvidia-ml-py': '13.595.45', 'nvidia-nccl-cu12': '2.28.3', 'nvidia-nvshmem-cu12': '3.3.20', 'opencv-python-headless': '4.10.0.84', 'outlines-core': '0.1.26', 'packaging': '26.2', 'propcache': '0.5.2', 'pycparser': '3.0', 'pygments': '2.20.0', 'pyjwt': '2.7.0', 'python-dotenv': '1.2.2', 'python-multipart': '0.0.28', 'rpds-py': '0.30.0', 'safetensors': '0.7.0', 'setuptools': '82.0.1', 'starlette': '1.0.0', 'torchaudio': '2.9.1+cu129', 'torchvision': '0.24.1+cu129', 'transformers': '5.3.0', 'triton': '3.5.1', 'typer': '0.25.1', 'typing-inspection': '0.4.2', 'urllib3': '2.7.0', 'uvicorn': '0.46.0', 'uvloop': '0.22.1', 'yarl': '1.23.0', 'zipp': '3.23.1'}\nr={'passed':False,'device_nodes':glob.glob('/dev/nvidia*')+glob.glob('/dev/dri/*'),'scope':'installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA'}\nstarted=time.monotonic();max_paths=250000;count=0;unique={};rows={}\ntry:\n if sys.platform!='linux' or platform.machine()!='x86_64' or sys.version_info[:2]!=(3,12) or r['device_nodes']:raise ValueError('CPU Linux3.12/x86 profile differs')\n for name,version in EXPECTED.items():\n  dist=md.distribution(name)\n  if dist.version!=version:raise ValueError('baseline installed version differs: '+name)\n  files=dist.files\n  if files is None:raise ValueError('installed RECORD/files unavailable: '+name)\n  row={'installed_version':dist.version,'listed_paths':len(files),'regular_file_bytes':0,'symlink_bytes':0,'missing_paths':0,'directories':0};seen=set()\n  for entry in files:\n   count+=1\n   if count>max_paths or time.monotonic()-started>30:raise TimeoutError('bounded metadata path inventory exceeded')\n   path=dist.locate_file(entry)\n   try:s=os.lstat(path)\n   except FileNotFoundError:row['missing_paths']+=1;continue\n   key=(s.st_dev,s.st_ino)\n   if stat.S_ISDIR(s.st_mode):row['directories']+=1;continue\n   if not (stat.S_ISREG(s.st_mode) or stat.S_ISLNK(s.st_mode)):raise ValueError('unexpected installed path type')\n   if key in seen:continue\n   seen.add(key);unique[key]=s.st_size\n   row['symlink_bytes' if stat.S_ISLNK(s.st_mode) else 'regular_file_bytes']+=s.st_size\n  rows[name]=row\n if 'torch' in sys.modules or 'vllm' in sys.modules:raise ValueError('unexpected runtime import')\n r.update(passed=True,replacements=rows,listed_paths=count,unique_inode_bytes=sum(unique.values()),conservative_sum_per_distribution_bytes=sum(x['regular_file_bytes']+x['symlink_bytes'] for x in rows.values()),elapsed_seconds=time.monotonic()-started,torch_imported=False,vllm_imported=False,install_peak_verified=False,gpu_admitted=False)\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error),partial_replacements=rows)\nfinally:print(json.dumps(r))\n",
+    "body_sha256": "28d0804c891f6a6e57b26200fb65a871497e87dff8da49592bcc422b23654d2e",
+    "budget": {
+      "cpu": 1,
+      "memory_gib": 2,
+      "inner_seconds": 60,
+      "host_guard_seconds": 120,
+      "overall_seconds": 300,
+      "network": "none",
+      "mounts": [],
+      "gpu": false,
+      "install": false
+    },
+    "baseline_image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+    "scope": "existing CPU-only authority and fresh actual window/resource/guard required; no authorization expansion",
+    "body_syntax_check": true,
+    "host_changes": "docker info root path then statvfs/stat for two existing paths only, before container create; original identity, window, create/guard/finally checks retained"
+  },
+  "replacement_size_probe_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_METADATA_ONLY",
+    "host_driver_sha256": "283ee771a2903d53ff654fce3cac684a1865301e781b7f7838f45bd99078845d",
+    "body_sha256": "28d0804c891f6a6e57b26200fb65a871497e87dff8da49592bcc422b23654d2e",
+    "limits": [
+      "st_size is logical length, not physical blocks or exact overlay copy-up/stash/install peak",
+      "missing RECORD paths must remain separately reported",
+      "fresh actual resource/window/guard still required; no install/ABI/GPU/model approval"
+    ],
+    "independent_budget_recount": {
+      "wheel_count": 94,
+      "declared_uncompressed_bytes": 5388872745,
+      "compressed_bytes": 2269423311,
+      "member_count": 23776
+    }
   }
 }

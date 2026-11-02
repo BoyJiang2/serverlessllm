@@ -4,6 +4,11 @@
 
 ## 最新覆盖
 
+- 新replacement-size只读审阅已返回PASS_METADATA_ONLY，精确host283ee771…/body28d0804c…；独立重算94/5388872745B/2269423311B/23776成员一致。未实际执行，不批准安装或模型。st_size仅逻辑长度，不能当物理块/精确copy-up/stash或安装峰值；missing路径须保留。WSL Git身份尚未配置（实际var返回128），不改全局，后续每次commit沿用既有HEAD committer公开元数据作单命令配置，GitHub连接仍按必要操作借既有Windows Git。
+
+- 11/2 14:04本机metadata闭环（无新包下载/安装）：94/94候选wheel的官方URL/SHA/尺寸及实际1068 Linux tags匹配均已采集，完整wheel SHA仍未全部验证。94个ZIP目录/23776项声明展开5388872745B，压缩2269423311B；既有vLLM+accelerate433513036B不重复下载，新增包1835910275B。保留全部新增归档+安装内容合计7224783020B仅内容量，不是安装峰值；旧文件stash/Docker copy-up/实际两FS空间及RSS仍缺。首轮FlashInfer目录2374376B超过1MiB限制，后续保持每次<=1MiB分3段完成，无完整wheel副本；旧失败保留。下一必要probe候选只读统计57替换包RECORD路径的lstat字节，并statvfs原downloads与Docker root；复用既有独立guard driver，host/body SHA见同JSON，待本地只读审阅，未远端执行。
+- 执行方式按用户新要求：WSL Ubuntu22.04 native Python3.10/Git2.34读取本仓库成功；现有bash无本聊天可控句柄，未另开持续bash。已核本仓库kimi/glm -text、原Windows系统autocrlf=true及repo filemode=false，WSL Git后续逐命令显式保持两值，原源码字节不变。native SSH443 GitHub只读检查在198.18.0.171握手前关闭，认证/推送未验证；native curl四请求12s内0B失败。WSL Python经既有Windows curl仅补4个目录成功，未修改全局网络/SSH/认证，不把别的项目证据当本项目成功。后续仅必要Git联网操作用既有Windows Git，原生本地处理继续。
+
 - 11/2 13:47实际只读metadata控制ef5f5fbb/7e0d998通过并独立SSH核容器空、timer inactive；0.52秒、无Torch/vLLM导入、无GPU。180候选实际86同版/37缺失/57替换，1068个Linux实际wheel tags；完整SDK声明仍有bitsandbytes/click/grpcio-tools/peft缺口，不能称整套SDK兼容。实际结果及释放证据保存原runtime-dependencies-candidate.json。随后仅本机官方metadata选wheel，91/94取得匹配标签与URL/SHA/字节，另3项TLS/尺寸缺口保留；首轮HEAD异常导致并行结果未保存的失败也留档。已知压缩包合计2258537285B，其中既有vLLM+accelerate共433513036B不重复扣算，新增下载下界1825024249B，尚缺3项/解包/替换峰值，绝非安装预算上限。未下载wheel/安装/新建环境/模型；下一项仅补具体元数据缺口和最小运行依赖范围，确认磁盘与安装增量预算后再审CPU安装，不批量盲升57包。
 
 - 下一必要CPU采集放在唯一同目录数据文件runtime-dependencies-candidate.json，集中后续180包差异/实际tags/具体wheel与预算，避免膨胀原native证据。新hostbf36cb34…/body4a947b83…限定只读复审PASS，复用原无挂载无网络metadata driver，53f镜像13:30实际仍在/UID2147/1.84TiB可用，当前265b50dd至19CPU窗口。1CPU2GiB/60内120guard300整体/18:50保持；仅读actual180版本+源SDK依赖匹配+实际packaging.sys_tags，未导入Torch/vLLM。tags JSON单独限192KiB，非完整输出；原始attach有262144字符界限，完整metadata解析。下一项实际采集，仍不安装/不GPU。
