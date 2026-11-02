@@ -1,6 +1,9 @@
-# 最新实际状态（11/2 21:43）
+## 当前实际状态：GPU P0重复失败，已释放资源；不是模型或服务通过
 
-固定镜像`ec5b4131…`的CPU普通运行时已实测并独立复核：180版本、离线依赖闭包、root及UID2147只读容器普通导入、两原生库和删除后60秒观察通过；显式私有Torch缓存是受审条件。没有CUDA初始化、GPU或模型/Store池运行。完整证据与历史失败在`runtime-dependencies-candidate.json`和`runtime-install-evidence.json`；下一步补既有P0a启动/监控/收口，再按实际窗口准入。P0a仅Torch CUDA IPC，不冒充native Store或Kimi服务通过。
+匹配依赖、native完整编译/普通CPU导入及source默认factory的限定CPU验证已完成。P0入口、实际独立guard/probe已经执行，两次都卡在自有Docker runc create，未执行IPC/模型；历史失败不改判。最后一次精确清理及64.580142秒观察、独立退出取证和限定复核通过。本窗口GPU/TP8停止保持，不重复开发已存在入口或重做已通过构建。
+
+最新只读证据确认runtime默认配置mode=auto；按所报告NVIDIA1.19.0源码commit，满足默认配置/有效OCI设备优先分支条件时预期jit-cdi。历史实际模式和根因未证明；不擅自改全局mode或删runtime参数。完整断点及未来受审取证缺项以NEXT.md最新覆盖为准。真实Kimi TP8参考/稳定金标、完整Store转换/恢复与原生服务仍未通过；GLM原40ID/35成功5失败冻结，不启R24。
+
 
 # Kimi INT4 Store CPU 适配候选
 

@@ -1,10 +1,14 @@
-## 11/3 04:48只读诊断增量：实际runtime版本已核，尚无可证明的项目内修复
+## 11/3 04:54只读断点：auto配置对应JIT-CDI线索，未追认实际模式/根因
 
-复用WSL会话16786及原仓库，Git仍core.autocrlf=false/core.filemode=false、kimi/glm -text，无新目录/环境/副本。只读qjhs003命令实际0：Docker27.0.3/containerd2.2.3/runc1.3.5(Go1.25.9)、NVIDIA runtime/CLI1.19.0、systemd249、kernel5.15.0-91、默认runtime runc及systemd/cgroupv2。两CID Docker replay均0且未截断，仅create/destroy；匹配CID journal读取1且空，未取得daemon错误详情，不把空日志当不存在或权限故障的证明。未创建容器、使用GPU、复测模型或修改全局设置。
+本轮起点0a20184已push核远端；本轮继续复用WSL16786和原仓库，只读qjhs003，未新建容器/GPU/目录/环境/GB副本。Docker27.0.3/containerd2.2.3/runc1.3.5及systemd/cgroupv2事实和两CID create/destroy事件仍有效；无匹配journal条目不是daemon无错的证明。两次P0失败及64.580142秒释放关账均不变，本窗口GPU/TP8停止保持。
 
-官方v1.19.0说明runtime=nvidia+gpus组合合法，直接gpus/runc路径需legacy模式；因此不能把删除runtime参数当已证实修复。Docker27打包baseline与现节点runc/containerd版本不同，但不等于已证明不兼容，不能擅自降级。两条上游hang issue均与实际版本/触发阶段有差异，只作线索，不认定NVIDIA、systemd或历史exit137根因。事实、URL与限制保存在source-startup-review.json.runtime_blocker_analysis。
+默认/etc/nvidia-container-runtime/config.toml实际只读SHA 65ff485fab3e17754169b066b0a910221b3de4bc8de4089c2c345357316a7982；活跃字段mode=auto、log-level=info、runtimes=[runc,crun]，没有读到显式debug路径。Docker runtime登记为/usr/bin/nvidia-container-runtime、runtimeArgs为空。未读取daemon XDG_CONFIG_HOME，因此默认文件不是实际配置路径的绝对证明；不称已取得历史selected-mode日志。
 
-当前真正缺的是全线程/子进程与用户态等待关系、实际OCI/hook/daemon错误；之前只读main-thread futex不是充分诊断，已清理的OCI bundle/runtime log不能伪造回收。没有可证明的源码缺口，本轮不添加启动包装/测试框架或改P0参数。原GPU停止保持，后续只做必要CPU准备/未来受审取证方案，不重跑本窗GPU，也不以模型编译/依赖下载替代runtime故障处理。Goal未完成。
+对应v1.19.0的internal/info/auto.go及internal/runtime/runtime_factory.go显示，NewRuntimeModeResolver默认JitCDI，在默认配置生效、mode未覆盖、有效OCI设备/annotation未触发fully-qualified-CDI-only优先分支的条件下，NVML/WSL auto路径预期走jit-cdi，而非可直接假设legacy；Docker的UUID请求本身不能替代丢失OCI证据。仅为受条件约束的源码推断，不证明此次实际模式或挂起原因。官方README的runtime=nvidia+gpus组合仍合法，不凭此擅自删参数、改全局mode或降级版本。URL/代码行、实际配置与推断边界已入source-startup-review.json.runtime_blocker_analysis.mode_resolution_followup；独立限定复核APPROVE_WITH_NITS，已补准有效OCI优先分支条件，不是运行准入。
+
+下一次获准且独立审阅后的诊断必须在清理前收集自有OCI/hooks、低层runtime日志和全部线程/task children；每项有原batch剩余上限与collector退出证明，private raw只留远端。该collector尚未实现/部署，不ready、不借此重开本窗P0。已随正常Docker清理移除的旧OCI/runtime日志不能伪造回收；mainthread futex202不是死锁/NVIDIA/systemd/历史exit137根因证明。
+
+没有确证的项目内源码缺口，本轮仅补既有证据/接续说明，不写新wrapper或重复模型编译/下载。仍未有真实Kimi TP8参考/稳定金标、完整Store转换/恢复或原生服务通过；Goal未完成。
 
 ## 11/3 04:38 当前断点：两次P0失败，本窗口停止GPU；自有残留已实际清完并复审通过
 
