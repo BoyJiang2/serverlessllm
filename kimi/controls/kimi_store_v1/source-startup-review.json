@@ -291,5 +291,124 @@
         "limitation": "Main thread futex202 is not a proven deadlock or root cause; other threads/children not covered. Full private raw remains remote; raw addresses and stacks are not committed."
       }
     }
-  ]
+  ],
+  "runtime_version_readonly_probes": [
+    {
+      "returncode": 0,
+      "stdout": "{\"captured_utc\": \"2026-11-02T20:41:42.674117+00:00\", \"host\": \"qjhs3\", \"uid\": 2147, \"read_only\": true, \"gpu_or_container_started\": false, \"rows\": [{\"argv\": [\"/usr/bin/docker\", \"--host\", \"unix:///var/run/docker.sock\", \"version\", \"--format\", \"{{json .Server}}\"], \"returncode\": 0, \"stdout\": \"{\\\"Platform\\\":{\\\"Name\\\":\\\"Docker Engine - Community\\\"},\\\"Components\\\":[{\\\"Name\\\":\\\"Engine\\\",\\\"Version\\\":\\\"27.0.3\\\",\\\"Details\\\":{\\\"ApiVersion\\\":\\\"1.46\\\",\\\"Arch\\\":\\\"amd64\\\",\\\"BuildTime\\\":\\\"Sat Jun 29 00:02:33 2024\\\",\\\"Experimental\\\":\\\"false\\\",\\\"GitCommit\\\":\\\"662f78c\\\",\\\"GoVersion\\\":\\\"go1.21.11\\\",\\\"KernelVersion\\\":\\\"5.15.0-91-generic\\\",\\\"MinAPIVersion\\\":\\\"1.24\\\",\\\"Os\\\":\\\"linux\\\"}},{\\\"Name\\\":\\\"containerd\\\",\\\"Version\\\":\\\"v2.2.3\\\",\\\"Details\\\":{\\\"GitCommit\\\":\\\"77c84241c7cbdd9b4eca2591793e3d4f4317c590\\\"}},{\\\"Name\\\":\\\"runc\\\",\\\"Version\\\":\\\"1.3.5\\\",\\\"Details\\\":{\\\"GitCommit\\\":\\\"v1.3.5-0-g488fc13e\\\"}},{\\\"Name\\\":\\\"docker-init\\\",\\\"Version\\\":\\\"0.19.0\\\",\\\"Details\\\":{\\\"GitCommit\\\":\\\"de40ad0\\\"}}],\\\"Version\\\":\\\"27.0.3\\\",\\\"ApiVersion\\\":\\\"1.46\\\",\\\"MinAPIVersion\\\":\\\"1.24\\\",\\\"GitCommit\\\":\\\"662f78c\\\",\\\"GoVersion\\\":\\\"go1.21.11\\\",\\\"Os\\\":\\\"linux\\\",\\\"Arch\\\":\\\"amd64\\\",\\\"KernelVersion\\\":\\\"5.15.0-91-generic\\\",\\\"BuildTime\\\":\\\"2024-06-29T00:02:33.000000000+00:00\\\"}\\n\", \"stderr\": \"\"}, {\"argv\": [\"/usr/bin/docker\", \"--host\", \"unix:///var/run/docker.sock\", \"info\", \"--format\", \"{\\\"CgroupDriver\\\":{{json .CgroupDriver}},\\\"CgroupVersion\\\":{{json .CgroupVersion}},\\\"DefaultRuntime\\\":{{json .DefaultRuntime}}}\"], \"returncode\": 0, \"stdout\": \"{\\\"CgroupDriver\\\":\\\"systemd\\\",\\\"CgroupVersion\\\":\\\"2\\\",\\\"DefaultRuntime\\\":\\\"runc\\\"}\\n\", \"stderr\": \"\"}, {\"argv\": [\"/usr/bin/runc\", \"--version\"], \"returncode\": 0, \"stdout\": \"runc version 1.3.5\\ncommit: v1.3.5-0-g488fc13e\\nspec: 1.2.1\\ngo: go1.25.9\\nlibseccomp: 2.5.3\\n\", \"stderr\": \"\"}, {\"argv\": [\"/usr/bin/nvidia-container-runtime\", \"--version\"], \"returncode\": 0, \"stdout\": \"NVIDIA Container Runtime version 1.19.0\\ncommit: ec7b4e2fa2caecad6d89be4a26029b831fe7503a\\nspec: 1.3.0\\n\\nrunc version 1.3.5\\ncommit: v1.3.5-0-g488fc13e\\nspec: 1.2.1\\ngo: go1.25.9\\nlibseccomp: 2.5.3\\n\", \"stderr\": \"\"}, {\"argv\": [\"/usr/bin/nvidia-container-cli\", \"--version\"], \"returncode\": 0, \"stdout\": \"cli-version: 1.19.0\\nlib-version: 1.19.0\\nbuild date: 2026-03-10T13:23+00:00\\nbuild revision: 7585946c6471402577e14474d7c56ca5be0348d7\\nbuild compiler: x86_64-linux-gnu-gcc-7 7.5.0\\nbuild platform: x86_64\\nbuild flags: -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -DNDEBUG -std=gnu11 -O2 -g -fdata-sections -ffunction-sections -fplan9-extensions -fstack-protector -fno-strict-aliasing -fvisibility=hidden -Wall -Wextra -Wcast-align -Wpointer-arith -Wmissing-prototypes -Wnonnull -Wwrite-strings -Wlogical-op -Wformat=2 -Wmissing-format-attribute -Winit-self -Wshadow -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections\\n\", \"stderr\": \"\"}, {\"argv\": [\"/usr/bin/systemd\", \"--version\"], \"returncode\": 0, \"stdout\": \"systemd 249 (249.11-0ubuntu3.12)\\n+PAM +AUDIT +SELINUX +APPARMOR +IMA +SMACK +SECCOMP +GCRYPT +GNUTLS +OPENSSL +ACL +BLKID +CURL +ELFUTILS +FIDO2 +IDN2 -IDN +IPTC +KMOD +LIBCRYPTSETUP +LIBFDISK +PCRE2 -PWQUALITY -P11KIT -QRENCODE +BZIP2 +LZ4 +XZ +ZLIB +ZSTD -XKBCOMMON +UTMP +SYSVINIT default-hierarchy=unified\\n\", \"stderr\": \"\"}]}\n",
+      "stderr": "",
+      "local_reader_utc": "2026-11-02T20:41:43.108376+00:00"
+    }
+  ],
+  "owned_runtime_event_probes": [
+    {
+      "captured_utc": "2026-11-02T20:43:55.657938+00:00",
+      "returncode": 0,
+      "stdout": "{\"owned_cids_only\": true, \"created_container\": false, \"rows\": [{\"argv\": [\"/usr/bin/docker\", \"--host\", \"unix:///var/run/docker.sock\", \"events\", \"--since\", \"2026-11-02T18:10:00Z\", \"--until\", \"2026-11-02T20:36:00Z\", \"--filter\", \"container=d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386\", \"--format\", \"{{json .}}\"], \"returncode\": 0, \"stdout\": \"{\\\"status\\\":\\\"create\\\",\\\"id\\\":\\\"d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386\\\",\\\"from\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"Type\\\":\\\"container\\\",\\\"Action\\\":\\\"create\\\",\\\"Actor\\\":{\\\"ID\\\":\\\"d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386\\\",\\\"Attributes\\\":{\\\"com.nvidia.cudnn.version\\\":\\\"9.10.2.21-1\\\",\\\"experiment\\\":\\\"kimi-cpu-toolchain\\\",\\\"image\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"maintainer\\\":\\\"NVIDIA CORPORATION <cudatools@nvidia.com>\\\",\\\"name\\\":\\\"kimi-p0-20261102T175946Z-de357c39-f8150342518ff1168a1e623063fab419\\\",\\\"org.opencontainers.image.ref.name\\\":\\\"ubuntu\\\",\\\"org.opencontainers.image.version\\\":\\\"24.04\\\",\\\"owner_uid\\\":\\\"2147\\\",\\\"purpose\\\":\\\"kimi-cpu-runtime-install\\\",\\\"run_id\\\":\\\"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\\\",\\\"sllm.kimi.code_commit\\\":\\\"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\\\",\\\"sllm.kimi.environment_sha256\\\":\\\"4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387\\\",\\\"sllm.kimi.holder\\\":\\\"f8150342518ff1168a1e623063fab419\\\",\\\"sllm.kimi.run_id\\\":\\\"kimi-p0-20261102T175946Z-de357c39\\\",\\\"sllm.kimi.source_manifest_sha256\\\":\\\"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\\\",\\\"sllm.kimi.spec_sha256\\\":\\\"a2c6b2cb419747323629e9c738a6de6fa76ab6b39b1f2416358baf07db40471f\\\",\\\"sllm.purpose\\\":\\\"KIMI-CUDA-IPC-P0A-UNREVIEWED\\\"}},\\\"scope\\\":\\\"local\\\",\\\"time\\\":1793643331,\\\"timeNano\\\":1793643331710444956}\\n{\\\"status\\\":\\\"destroy\\\",\\\"id\\\":\\\"d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386\\\",\\\"from\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"Type\\\":\\\"container\\\",\\\"Action\\\":\\\"destroy\\\",\\\"Actor\\\":{\\\"ID\\\":\\\"d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386\\\",\\\"Attributes\\\":{\\\"com.nvidia.cudnn.version\\\":\\\"9.10.2.21-1\\\",\\\"experiment\\\":\\\"kimi-cpu-toolchain\\\",\\\"image\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"maintainer\\\":\\\"NVIDIA CORPORATION <cudatools@nvidia.com>\\\",\\\"name\\\":\\\"kimi-p0-20261102T175946Z-de357c39-f8150342518ff1168a1e623063fab419\\\",\\\"org.opencontainers.image.ref.name\\\":\\\"ubuntu\\\",\\\"org.opencontainers.image.version\\\":\\\"24.04\\\",\\\"owner_uid\\\":\\\"2147\\\",\\\"purpose\\\":\\\"kimi-cpu-runtime-install\\\",\\\"run_id\\\":\\\"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\\\",\\\"sllm.kimi.code_commit\\\":\\\"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\\\",\\\"sllm.kimi.environment_sha256\\\":\\\"4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387\\\",\\\"sllm.kimi.holder\\\":\\\"f8150342518ff1168a1e623063fab419\\\",\\\"sllm.kimi.run_id\\\":\\\"kimi-p0-20261102T175946Z-de357c39\\\",\\\"sllm.kimi.source_manifest_sha256\\\":\\\"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\\\",\\\"sllm.kimi.spec_sha256\\\":\\\"a2c6b2cb419747323629e9c738a6de6fa76ab6b39b1f2416358baf07db40471f\\\",\\\"sllm.purpose\\\":\\\"KIMI-CUDA-IPC-P0A-UNREVIEWED\\\"}},\\\"scope\\\":\\\"local\\\",\\\"time\\\":1793648780,\\\"timeNano\\\":1793648780629412249}\\n\", \"stderr\": \"\", \"stdout_truncated\": false}, {\"argv\": [\"/usr/bin/docker\", \"--host\", \"unix:///var/run/docker.sock\", \"events\", \"--since\", \"2026-11-02T18:10:00Z\", \"--until\", \"2026-11-02T20:36:00Z\", \"--filter\", \"container=77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"--format\", \"{{json .}}\"], \"returncode\": 0, \"stdout\": \"{\\\"status\\\":\\\"create\\\",\\\"id\\\":\\\"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\\\",\\\"from\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"Type\\\":\\\"container\\\",\\\"Action\\\":\\\"create\\\",\\\"Actor\\\":{\\\"ID\\\":\\\"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\\\",\\\"Attributes\\\":{\\\"com.nvidia.cudnn.version\\\":\\\"9.10.2.21-1\\\",\\\"experiment\\\":\\\"kimi-cpu-toolchain\\\",\\\"image\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"maintainer\\\":\\\"NVIDIA CORPORATION <cudatools@nvidia.com>\\\",\\\"name\\\":\\\"kimi-p0-20261102T201641Z-99679319-36bd55952634fb3c44982ddbb6602611\\\",\\\"org.opencontainers.image.ref.name\\\":\\\"ubuntu\\\",\\\"org.opencontainers.image.version\\\":\\\"24.04\\\",\\\"owner_uid\\\":\\\"2147\\\",\\\"purpose\\\":\\\"kimi-cpu-runtime-install\\\",\\\"run_id\\\":\\\"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\\\",\\\"sllm.kimi.code_commit\\\":\\\"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\\\",\\\"sllm.kimi.environment_sha256\\\":\\\"4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387\\\",\\\"sllm.kimi.holder\\\":\\\"36bd55952634fb3c44982ddbb6602611\\\",\\\"sllm.kimi.run_id\\\":\\\"kimi-p0-20261102T201641Z-99679319\\\",\\\"sllm.kimi.source_manifest_sha256\\\":\\\"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\\\",\\\"sllm.kimi.spec_sha256\\\":\\\"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\\\",\\\"sllm.purpose\\\":\\\"KIMI-CUDA-IPC-P0A-UNREVIEWED\\\"}},\\\"scope\\\":\\\"local\\\",\\\"time\\\":1793650771,\\\"timeNano\\\":1793650771022092292}\\n{\\\"status\\\":\\\"destroy\\\",\\\"id\\\":\\\"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\\\",\\\"from\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"Type\\\":\\\"container\\\",\\\"Action\\\":\\\"destroy\\\",\\\"Actor\\\":{\\\"ID\\\":\\\"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\\\",\\\"Attributes\\\":{\\\"com.nvidia.cudnn.version\\\":\\\"9.10.2.21-1\\\",\\\"experiment\\\":\\\"kimi-cpu-toolchain\\\",\\\"image\\\":\\\"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\\",\\\"maintainer\\\":\\\"NVIDIA CORPORATION <cudatools@nvidia.com>\\\",\\\"name\\\":\\\"kimi-p0-20261102T201641Z-99679319-36bd55952634fb3c44982ddbb6602611\\\",\\\"org.opencontainers.image.ref.name\\\":\\\"ubuntu\\\",\\\"org.opencontainers.image.version\\\":\\\"24.04\\\",\\\"owner_uid\\\":\\\"2147\\\",\\\"purpose\\\":\\\"kimi-cpu-runtime-install\\\",\\\"run_id\\\":\\\"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\\\",\\\"sllm.kimi.code_commit\\\":\\\"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\\\",\\\"sllm.kimi.environment_sha256\\\":\\\"4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387\\\",\\\"sllm.kimi.holder\\\":\\\"36bd55952634fb3c44982ddbb6602611\\\",\\\"sllm.kimi.run_id\\\":\\\"kimi-p0-20261102T201641Z-99679319\\\",\\\"sllm.kimi.source_manifest_sha256\\\":\\\"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\\\",\\\"sllm.kimi.spec_sha256\\\":\\\"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\\\",\\\"sllm.purpose\\\":\\\"KIMI-CUDA-IPC-P0A-UNREVIEWED\\\"}},\\\"scope\\\":\\\"local\\\",\\\"time\\\":1793651662,\\\"timeNano\\\":1793651662646163996}\\n\", \"stderr\": \"\", \"stdout_truncated\": false}, {\"argv\": [\"/usr/bin/journalctl\", \"--no-pager\", \"--utc\", \"--output=json\", \"--since=2026-11-02 18:10:00 UTC\", \"--until=2026-11-02 20:36:00 UTC\", \"--unit=docker.service\", \"--grep=d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386|77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"-n\", \"40\"], \"returncode\": 1, \"stdout\": \"\", \"stderr\": \"\", \"stdout_truncated\": false}]}\n",
+      "stderr": ""
+    }
+  ],
+  "runtime_blocker_analysis": {
+    "recorded_utc": "2026-11-02T20:46:19.323842+00:00",
+    "scope": "read-only current host metadata and offline official source analysis; not new runtime approval",
+    "verified": {
+      "host": "qjhs3",
+      "uid": 2147,
+      "docker": "27.0.3",
+      "components": [
+        {
+          "name": "Engine",
+          "version": "27.0.3"
+        },
+        {
+          "name": "containerd",
+          "version": "v2.2.3"
+        },
+        {
+          "name": "runc",
+          "version": "1.3.5"
+        },
+        {
+          "name": "docker-init",
+          "version": "0.19.0"
+        }
+      ],
+      "cgroups": {
+        "CgroupDriver": "systemd",
+        "CgroupVersion": "2",
+        "DefaultRuntime": "runc"
+      },
+      "nvidia_runtime": "1.19.0",
+      "systemd": "249.11-0ubuntu3.12",
+      "kernel": "5.15.0-91-generic",
+      "own_event_replays": [
+        {
+          "cid": "d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386",
+          "actions": [
+            "create",
+            "destroy"
+          ],
+          "times_nanoseconds": [
+            1793643331710444956,
+            1793648780629412249
+          ],
+          "capture_returncode": 0,
+          "capture_truncated": false,
+          "limitation": "Docker event replay is corroborating evidence, not a complete OS signal audit"
+        },
+        {
+          "cid": "77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d",
+          "actions": [
+            "create",
+            "destroy"
+          ],
+          "times_nanoseconds": [
+            1793650771022092292,
+            1793651662646163996
+          ],
+          "capture_returncode": 0,
+          "capture_truncated": false,
+          "limitation": "Docker event replay is corroborating evidence, not a complete OS signal audit"
+        }
+      ],
+      "journal_returncode": 1,
+      "journal_cid_entries_obtained": false
+    },
+    "source_findings": [
+      {
+        "source": "https://raw.githubusercontent.com/NVIDIA/nvidia-container-toolkit/v1.19.0/cmd/nvidia-container-runtime/README.md",
+        "finding": "NVIDIA runtime wraps low-level OCI create; --runtime=nvidia plus --gpus is documented. Direct Docker --gpus without the wrapper depends on legacy mode.",
+        "implication": "Do not assert an invalid double-runtime combination or change project profile without actual mode/OCI evidence"
+      },
+      {
+        "source": "https://docs.docker.com/engine/release-notes/27/",
+        "finding": "27.0 packaging notes mention runc1.1.13; actual node reports1.3.5 and containerd2.2.3.",
+        "implication": "Actual stack differs from that historical package baseline; compatibility failure or who changed it is not established; no global upgrade/downgrade justified"
+      },
+      {
+        "source": "https://github.com/opencontainers/runc/issues/3904",
+        "finding": "Report concerns runc1.1.2 with very busy systemd and high pod startup concurrency.",
+        "implication": "Not matched to actual1.3.5, six mostly idle background containers and low sampled load; not a root-cause conclusion"
+      },
+      {
+        "source": "https://github.com/containerd/containerd/issues/13849",
+        "finding": "Report describes post-PID1-death shim stalls, with affected1.3.6/2.2.5 and application crash context.",
+        "implication": "Similar container-scoped API hang is a lead, but our observed create-stage live runc1.3.5 differs. Does not justify killing shim or patching global runtime"
+      }
+    ],
+    "known_gaps": [
+      "Only main-thread futex/syscall was sampled; all-thread wait and child ownership are not established",
+      "No userspace Go goroutine trace or caller-level wait graph",
+      "Own OCI bundle/config and low-level runtime log were not preserved before successful normal Docker removal; do not reconstruct as historical evidence",
+      "No matching journal message was returned; this is not proof that no daemon error existed",
+      "No confirmed project-local corrective patch yet; do not create code merely to show progress"
+    ],
+    "next_scope": "Keep this window GPU stop. Prepare only necessary CPU source work and a narrowly reviewed future diagnostic plan; no new replica, environment, runtime deployment or shared configuration change",
+    "artifacts_unchanged": [
+      "official96assets/64shards",
+      "remote844source",
+      "GLM40IDs35success5failure",
+      "bothO_EXCLrecoverylogs"
+    ]
+  }
 }

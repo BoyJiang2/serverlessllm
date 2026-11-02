@@ -1,3 +1,11 @@
+## 11/3 04:48只读诊断增量：实际runtime版本已核，尚无可证明的项目内修复
+
+复用WSL会话16786及原仓库，Git仍core.autocrlf=false/core.filemode=false、kimi/glm -text，无新目录/环境/副本。只读qjhs003命令实际0：Docker27.0.3/containerd2.2.3/runc1.3.5(Go1.25.9)、NVIDIA runtime/CLI1.19.0、systemd249、kernel5.15.0-91、默认runtime runc及systemd/cgroupv2。两CID Docker replay均0且未截断，仅create/destroy；匹配CID journal读取1且空，未取得daemon错误详情，不把空日志当不存在或权限故障的证明。未创建容器、使用GPU、复测模型或修改全局设置。
+
+官方v1.19.0说明runtime=nvidia+gpus组合合法，直接gpus/runc路径需legacy模式；因此不能把删除runtime参数当已证实修复。Docker27打包baseline与现节点runc/containerd版本不同，但不等于已证明不兼容，不能擅自降级。两条上游hang issue均与实际版本/触发阶段有差异，只作线索，不认定NVIDIA、systemd或历史exit137根因。事实、URL与限制保存在source-startup-review.json.runtime_blocker_analysis。
+
+当前真正缺的是全线程/子进程与用户态等待关系、实际OCI/hook/daemon错误；之前只读main-thread futex不是充分诊断，已清理的OCI bundle/runtime log不能伪造回收。没有可证明的源码缺口，本轮不添加启动包装/测试框架或改P0参数。原GPU停止保持，后续只做必要CPU准备/未来受审取证方案，不重跑本窗GPU，也不以模型编译/依赖下载替代runtime故障处理。Goal未完成。
+
 ## 11/3 04:38 当前断点：两次P0失败，本窗口停止GPU；自有残留已实际清完并复审通过
 
 - CPU编译/匹配依赖和普通导入此前已实际完成；source默认真实vLLM factory接线17305d8及限定CPU复审通过。本轮未新增checkout、环境、权重或Store副本，未改远端冻结844源码/178文件manifest b2f75414…。GLM原40ID/35成功5失败、金标及历史冻结，不启R24。
