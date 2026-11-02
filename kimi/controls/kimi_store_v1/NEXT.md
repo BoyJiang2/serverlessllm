@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 10:39源码/构建输入已闭环推进：现有SDK 31个C++输入30个LF相同，仅model.cpp需只读叠加49b2；21178B补丁排他传到原downloads/kimi-native-model.cpp并实核SHA，不复制SDK/改GLM。glog v0.6.0已实解commit b33e3bad4c46c8a6345525fd822af355e5ef9446；它和已钉gtest b796f7d…归档共1057536B已下载原downloads，SHA/安全成员/解包合计4775586B均记录cpu-probe.native_build_dependency_archives，尚未解包/编译。现有SDK无build/_deps缓存；53f661ba镜像仍在。下一项直接编排受审原CMake执行body，不重下/另造启动框架：原SDK+单文件overlay只读、原/tmp临时构建、依赖本地解包+FULLY_DISCONNECTED、两个原target单并发、线程1，完整日志/target架构/库SHA与普通CPU导入。具体约束见WORKER-PLAN；当前仍compiled_native_store=false，不把准备完成当完整编译通过。
+
 - 11/2 10:30实际进展：Torch2.10.0+cu129已离线安装；最初普通import exit139，stderr记录OpenBLAS试建64线程撞PID64及CPU dispatcher错误（原始日志保留，未认定所有根因）。同一e8cf…容器随后仅设OPENBLAS/OMP/MKL/NUMEXPR线程1、禁core、无pip重装的受审控制成功：Torch2.10cu129/CUDA12.9/cuda_initialized false/dev nvidia为空/exit0。成功才commit镜像sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8，tag sllm-kimi-cpu-build:torch210-cu129。独立SSH核29基础层全部复用、仅新增一层2284573135B（约2.13GiB），未复制整基础镜像；精确自身container rm0/timer stop0，独立自身查询空及timer inactive，别人容器保留。旧失败全部保留；限定实际只读复审确认普通导入/差异层/运行释放，不是完整ABI/native/GPU或历史SIGKILL根因通过。
 - 下一项不再重下Torch/重做普通probe：优先核实际镜像ID仍存在、复用已查SDK原CMake及patch49b2绑定完整C++输入，现有构建位置内单并发受审编译/普通native导入。全冻结依赖尚未闭合：现nvshmem3.3.20/cudnn9.16.0.29/nccl2.28.3/cuda-bindings12.9.6/triton3.5.1与官方Torch wheel要求若干不一致，vllm仍缺；不能称整环境ready，不为编译先装不需要的后端包，也不跳过目标ABI/构建审阅。未来CPU容器必须显式线程1，设置未写入镜像Config，不能默认继承此次进程环境。无GPU初始化、模型/Store池或正式ID操作；镜像不建常驻anchor或额外整备份，下一阶段以实际ID核验为准。
 

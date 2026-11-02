@@ -4,6 +4,14 @@
 
 ## 当前已接与尚未接
 
+### native完整编译的已核输入与最小执行方式（11月2日）
+
+已有SDK的31个C++文件中30个按LF比对与冻结source-v7相同，唯一model.cpp须只读叠加候选49b2；raw及LF SHA全部在cpu-probe.existing_sdk_native_input_comparisons，不把换行归一化称原字节相同。已审21178B候选传到原downloads/kimi-native-model.cpp，校验49b2，不改GLM源码。两个原CMake必需依赖已取不可变commit存原downloads：glog b33e3bad…归档193526B/SHA a4cd355a…、googletest b796f7d…归档864010B/SHA2681de8c…；总解包4775586B，尚未解包，逐成员检查路径/大小/类型。没有旧build或_deps缓存可复用；不再复制SDK或重复下载这两份依赖。
+
+拟复用已核53f661ba…镜像，原SDK目录及单文件补丁分开只读挂载到/src和/src/csrc/sllm_store/model.cpp，两个归档文件只读挂载；用已有/tmp作临时构建位置，无新host工作目录/checkout/venv。先解包校验过的小依赖到容器/tmp的临时子目录，然后原CMake -S/src -B/tmp -G Ninja -DSLLM_STORE_PYTHON_EXECUTABLE=<actual-sys.executable> -DBUILD_SLLM_TESTS=OFF -DFETCHCONTENT_FULLY_DISCONNECTED=ON -DFETCHCONTENT_SOURCE_DIR_GLOG=<实解包路径> -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=<实解包路径> -DCMAKE_BUILD_TYPE=Release，原Torch实际prefix由SDK函数取得，不用setup安装GLM插件。显式TORCH_CUDA_ARCH_LIST=9.0及四类CPU线程1；--build /tmp --target _C _checkpoint_store --parallel 1。必须保存真实配置/编译/链接日志、最终target架构、candidate输入SHA及库SHA，不能以CMake生成成功冒充完整编译。此为待执行约束，具体命令/宿主守护与预算仍需按同一执行body审阅，尚未运行CMake。
+
+编译/普通extension import只用CPU、runc无GPU设备/网络，拟1CPU8GiB且临时产物增量预算2GiB（规划值，非已测峰值），成功保存必要.so与小证据后删除仅本次容器/tmp构建产物/停止运行，失败保留有界原日志。不得修改GLM原build或清他人文件，不强制GC/free未知CUDA指针。普通导入必须再核CUDA未初始化；缺少driver共享库或其他链接依赖时原样记录，不能调用CUDA来“验证”。当前nvshmem/cudnn/nccl/Triton等合同差异及vllm缺失依然存在，编译组件结果不作为全冻结环境或服务准入。
+
 11月2日实际更新：目标Torch2.10cu129已装到原0202镜像的本任务差异层；普通import在线程1/无GPU设备下实际通过，CUDA未初始化。镜像53f661ba…独立核29原层共享、只增2.13GiB，自身临时容器/timer已释放。已有Torch安装阻塞已解除；native补丁仍未完整编译或导入，NVIDIA/Triton版本合同尚有差异/vllm缺失，不能宣全冻结环境ready。完整失败/成功/静态与实际只读复审在cpu-probe，NEXT首部为下一项；不重复下载或另建环境。首次139与后续成功分开，不追认历史故障根因。
 
 11月1日新CPU/内存授权后的实际进展：已审一次性CPU metadata探针在已有0202镜像成功执行并释放，启动前独立user timer绑定同socket/完整CID，内60s外300s，实际目标约0.164s、exit0、无nvidia设备；独立SSH再核同label空、timer inactive及alan不变。实际复审只确认CPU版本/释放。远端确有nvcc12.9.86/CUDA头/CMake3.28.3，但Torch2.9.1+cu129且无vllm，不符合冻结2.10.0+cu129；并未执行ABI调用或编译。此前本机缺CUDA工具链的证据仍有效，但不再外推远端没有CUDA。原文/收据/源码SHA和新限定结论见cpu-probe；不得据版本probe声称完整build或GPU通过。
