@@ -40,9 +40,9 @@ def read(path,limit):
   if len(data)>limit:raise ValueError('context file exceeds bound')
   return bytes(data)
  finally:os.close(fd)
-def identity(path):
+def identity(path,pid=None):
  f=read(path/'stat',4096).decode().rsplit(')',1)[1].split()
- return dict(pid=int(path.name),start_ticks=int(f[19]),ppid=int(f[1]),uid=path.stat().st_uid)
+ return dict(pid=int(path.name) if pid is None else pid,start_ticks=int(f[19]),ppid=int(f[1]),uid=path.stat().st_uid)
 def publish(name,data):
  fd=os.open(ROOT/name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
  try:
@@ -79,23 +79,25 @@ def collect(b):
  if len(candidates)>8192:raise ValueError('process enumeration exceeds bound')
  for path in candidates:
   if not path.name.isdigit():continue
-  remaining();matched=False
+  remaining();matched=False;directory=None
   try:
    comm=read(path/'comm',64).decode().strip()
    if comm not in ('runc','containerd-shim'):continue
-   argv=[x.decode() for x in read(path/'cmdline',4096).split(bytes([0])) if x]
+   directory=os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+   pinned=Path('/proc/self/fd')/str(directory)
+   argv=[x.decode() for x in read(pinned/'cmdline',4096).split(bytes([0])) if x]
    if cid not in argv:continue
    matched=True
-   before=identity(path)
+   before=identity(pinned,pid=int(path.name))
    if before['uid']!=0:raise ValueError('owned runtime UID differs')
    expected=['/usr/bin/containerd-shim-runc-v2','-namespace','moby','-id',cid,'-address','/run/containerd/containerd.sock']
    if comm=='runc':expected=['/usr/bin/runc','--root','/var/run/docker/runtime-runc/moby','--log',str(bundle/'log.json'),'--log-format','json','--systemd-cgroup','create','--bundle',str(bundle),'--pid-file',str(bundle/'init.pid'),cid]
-   if argv!=expected or os.readlink(path/'exe')!=os.path.realpath(expected[0]):raise ValueError('owned runtime command differs')
+   if argv!=expected or os.readlink(pinned/'exe')!=os.path.realpath(expected[0]):raise ValueError('owned runtime command differs')
    actor=dict(before,argv=argv,threads=[])
    result['actors'].append(actor)
    if len(result['actors'])>2:
     result['coverage_complete']=False;result['errors'].append(dict(error='ambiguous owned runtime actors'));break
-   tasks=sorted(itertools.islice((path/'task').iterdir(),65),key=lambda p:int(p.name))
+   tasks=sorted(itertools.islice((pinned/'task').iterdir(),65),key=lambda p:int(p.name))
    actor['task_count_observed']=len(tasks)
    if not 1<=len(tasks)<=64:raise ValueError('runtime task inventory exceeds bound')
    for task in tasks:
@@ -109,10 +111,12 @@ def collect(b):
     except (OSError,ValueError) as e:values['children_after']=dict(error=type(e).__name__);result['coverage_complete']=False
     actor['threads'].append(dict(thread,reads=values))
     if identity(task)!=thread:raise ValueError('runtime thread lifetime changed')
-   if identity(path)!=before or sorted(p.name for p in itertools.islice((path/'task').iterdir(),65))!=sorted(p.name for p in tasks):raise ValueError('runtime task inventory changed')
+   if identity(pinned,pid=int(path.name))!=before or sorted(p.name for p in itertools.islice((pinned/'task').iterdir(),65))!=sorted(p.name for p in tasks):raise ValueError('runtime task inventory changed')
   except (OSError,ValueError) as e:
    if matched or not isinstance(e,(FileNotFoundError,ProcessLookupError)):
     result['coverage_complete']=False;result['errors'].append(dict(actor=path.name,error=type(e).__name__))
+  finally:
+   if directory is not None:os.close(directory)
  if len(result['actors'])!=2:result['coverage_complete']=False
  else:
   shim=next((a for a in result['actors'] if a['argv'][0].endswith('containerd-shim-runc-v2')),None)

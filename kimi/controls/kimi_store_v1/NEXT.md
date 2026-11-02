@@ -1,10 +1,12 @@
 ## 11/3 05:26CPU候选：start失败前清理取证已接线，当前完整源码R1待审
 
-为解决旧OCI/runtime日志随rm丢失及主线程诊断不足，仅修改现有source_schedule.py/test_source_schedule.py。固定6443B isolated stdlib root producer仅读精确注册CID的OCI/log和runc/shim全部task/children；256KiB/32KiB/64task/512KiB有界，短读续读、短写拒绝、线程/children变化或截断标不完整，private raw仅固定p0小目录。host复用既有sudo-stdin匿名pipe，root supervisor在sudo后从原UTC余量派生，不新得完整timeout；没有root导入可写项目源码或任意命令白名单。
+为解决旧OCI/runtime日志随rm丢失及主线程诊断不足，仅修改现有source_schedule.py/test_source_schedule.py。固定6715B isolated stdlib root producer仅读精确注册CID的OCI/log和runc/shim全部task/children；256KiB/32KiB/64task/512KiB有界，短读续读、短写拒绝、线程/children变化或截断标不完整，private raw仅固定p0小目录。host复用既有sudo-stdin匿名pipe，root supervisor在sudo后从原UTC余量派生，不新得完整timeout；没有root导入可写项目源码或任意命令白名单。
 
-默认failure_collector=None保持原内部API；CLI已接当前固定producer，仅start尚未确认运行的异常调用，最多25秒且先保留原shutdown预算；其他资源/窗口故障跳过。回调错误/未知helper另留义务，原start异常及finally目标清理保持。CPU边界tests不是实际root/OCI/CUDA验证。本轮最新121项原生WSL CPU回归0FAIL/0ERROR/0skip，原失败夹具1FAIL/5ERROR及后续1FAIL记录保留；最终源/测试/root程序SHA及完整stdio在source-schedule-tests.json.failure_context_cpu_runs，计划只读限定审阅及候选账本见source-schedule-review.json.start_failure_context_candidates。
+默认failure_collector=None保持原内部API；CLI已接当前固定producer，仅start尚未确认运行的异常调用，最多25秒且先保留原shutdown预算；其他资源/窗口故障跳过。回调错误/未知helper另留义务，原start异常及finally目标清理保持。CPU边界tests不是实际root/OCI/CUDA验证。本轮最新122项原生WSL CPU回归0FAIL/0ERROR/0skip，原失败夹具1FAIL/5ERROR及后续1FAIL记录保留；最终源/测试/root程序SHA及完整stdio在source-schedule-tests.json.failure_context_cpu_runs，计划只读限定审阅及候选账本见source-schedule-review.json.start_failure_context_candidates。
 
 尚未完整当前源码R1、未部署、未生成新runtime gate，旧844远端源码和旧批准保持冻结，不拿旧gate批准新代码。本窗口GPU/TP8停止不变；两次实际P0仍失败，旧资源已关账，模型/Store/服务未通过。后续先完整审当前候选与清单；实际root预算/退出及OCI覆盖必须在另获授权并准入的控制验证，不能由CPU夹具追认。没有新目录/环境/模型或GB副本，不启R24。
+
+旧候选072bf15保留；当前补了proc目录FD锚定，防PID数字路径复用重定向私有读取。实际本地CPU子进程正常退出后旧proc FD读取失败、目录替换夹具不采外国数据均通过；不宣称实际PID复用/root通过。内核语义参考docs.kernel.org/filesystems/proc.html。
 
 ## 11/3 04:54只读断点：auto配置对应JIT-CDI线索，未追认实际模式/根因
 

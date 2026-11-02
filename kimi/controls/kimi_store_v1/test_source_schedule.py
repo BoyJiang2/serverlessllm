@@ -23,6 +23,7 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    @unittest.skipUnless(sys.platform=='linux','Linux-only P0 diagnostic')
     def test_failure_context_file_reader_handles_short_reads_and_refuses_symlinks(self):
         namespace={'__name__':'CPU_CONTEXT_FIXTURE_ONLY'}
         exec(schedule_module.P0_FAILURE_CONTEXT_SOURCE,namespace)
@@ -36,8 +37,27 @@ class SourceScheduleTests(unittest.TestCase):
                 link=Path(temp)/'link';link.symlink_to(path)
                 with self.assertRaises(OSError):namespace['read'](link,20)
 
+    @unittest.skipUnless(sys.platform=='linux','proc directory lifetime requires Linux')
+    def test_failure_context_proc_descriptor_does_not_reopen_a_dead_numeric_pid(self):
+        namespace={'__name__':'CPU_CONTEXT_FIXTURE_ONLY'}
+        exec(schedule_module.P0_FAILURE_CONTEXT_SOURCE,namespace)
+        child=subprocess.Popen([sys.executable,'-B','-c','import sys;sys.stdin.buffer.read(1)'],
+            stdin=subprocess.PIPE,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+        descriptor=None
+        try:
+            descriptor=os.open('/proc/'+str(child.pid),os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+            path=Path('/proc/self/fd')/str(descriptor)/'stat'
+            self.assertTrue(namespace['read'](path,4096))
+            child.stdin.close();self.assertEqual(child.wait(timeout=3),0)
+            with self.assertRaises(OSError):namespace['read'](path,4096)
+        finally:
+            if child.poll() is None:child.kill();child.wait(timeout=3)
+            if child.stdin is not None:child.stdin.close()
+            if descriptor is not None:os.close(descriptor)
+
+    @unittest.skipUnless(sys.platform=='linux','Linux-only P0 diagnostic')
     def test_private_failure_context_fixture_checks_all_tasks_and_preserves_partial_coverage(self):
-        for kind in ('complete','truncated','thread-changed','short-write','task-limit','oci-oversize','child-changed'):
+        for kind in ('complete','truncated','thread-changed','short-write','task-limit','oci-oversize','child-changed','directory-replaced'):
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
                 root=Path(temp)/'run';root.mkdir();proc=Path(temp)/'proc';proc.mkdir()
                 namespace={'__name__':'CPU_CONTEXT_FIXTURE_ONLY'}
@@ -45,6 +65,7 @@ class SourceScheduleTests(unittest.TestCase):
                 actual_path=Path
                 def mapped(path):
                     text=str(path)
+                    if text=='/proc/self/fd' or text.startswith('/proc/self/fd/'):return actual_path(path)
                     if text=='/proc' or text.startswith('/proc/'):return proc/text.removeprefix('/proc').lstrip('/')
                     if text.startswith('/run/containerd/'):return Path(temp)/'bundle'
                     return actual_path(path)
@@ -77,17 +98,21 @@ class SourceScheduleTests(unittest.TestCase):
                 (path/'config.json').write_text('{"CPU_FIXTURE_ONLY":true}')
                 (path/'log.json').write_text('{"CPU_FIXTURE_ONLY":true}')
                 original_identity=namespace['identity'];counts={}
-                def identity(path):
-                    row=original_identity(path);row['uid']=0
-                    if kind=='thread-changed' and path==proc/'101/task/1101':
+                def identity(path,**kwargs):
+                    row=original_identity(path,**kwargs);row['uid']=0
+                    if kind=='thread-changed' and path.resolve()==proc/'101/task/1101':
                         counts[str(path)]=counts.get(str(path),0)+1
                         if counts[str(path)]>1:row['start_ticks']+=1
                     return row
                 namespace['identity']=identity
                 original_read=namespace['read'];child_reads=[0]
                 def read(path,limit):
+                    if kind=='directory-replaced' and path.resolve()==proc/'101/task/1101/wchan' and not (proc/'retired101').exists():
+                        (proc/'101').rename(proc/'retired101')
+                        foreign=proc/'101/task/1101';foreign.mkdir(parents=True)
+                        (foreign/'wchan').write_text('FOREIGN_CPU_ONLY_NEVER_CAPTURE')
                     data=original_read(path,limit)
-                    if kind=='child-changed' and path==proc/'101/task/1101/children':
+                    if kind=='child-changed' and path.resolve()==proc/'101/task/1101/children':
                         child_reads[0]+=1
                         if child_reads[0]>1:return b'42'
                     return data
@@ -111,12 +136,14 @@ class SourceScheduleTests(unittest.TestCase):
                     result=namespace['collect'](bindings)
                 context=(root/'p0-start-failure-context.json').read_bytes()
                 self.assertEqual(result['context_sha256'],hashlib.sha256(context).hexdigest())
-                self.assertEqual(result['coverage_complete'],kind=='complete',context.decode())
-                if kind=='complete':self.assertEqual([len(x['threads']) for x in json.loads(context)['actors']],[2,2])
+                self.assertEqual(result['coverage_complete'],kind in ('complete','directory-replaced'),context.decode())
+                if kind in ('complete','directory-replaced'):self.assertEqual([len(x['threads']) for x in json.loads(context)['actors']],[2,2])
+                if kind=='directory-replaced':self.assertNotIn(b'FOREIGN_CPU_ONLY_NEVER_CAPTURE',context)
                 if kind=='task-limit':
                     actor=next(x for x in json.loads(context)['actors'] if x['pid']==101)
                     self.assertEqual(actor['task_count_observed'],65);self.assertEqual(actor['threads'],[])
 
+    @unittest.skipUnless(sys.platform=='linux','Linux-only P0 diagnostic')
     def test_failure_context_host_bridge_retains_unknown_helper_exit_without_stdout(self):
         for kind in ('complete','capture-timeout','capture-timeout-with-file','missing-identity','short-input'):
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
