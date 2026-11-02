@@ -5461,6 +5461,73 @@
       "proc_lifetime_policy": "Opened proc directory FD anchors all private actor/thread reads; numeric PID path replacement never redirects captured private data; before/after birth and task inventories still checked",
       "kernel_reference": "https://docs.kernel.org/filesystems/proc.html",
       "actual_pid_reuse_verified": false
+    },
+    {
+      "recorded_utc": "2026-11-02T21:45:33.699071+00:00",
+      "base_commit": "ff8e608517beabb26e1e8bf1634045cd2127598a",
+      "source_sha256": "03e81ebda80d544758b835eb9ffcdd343ba5831f1159fbe8efdcfafcc4fe4006",
+      "test_sha256": "b69067ad616ae2a5d746b6d6c5db15039f6e148c79e253a44a37f0bff1002956",
+      "root_body_sha256": "1909837591186190445ac0bde00573748ab98a63f9ce7c537e482e7781ae4a53",
+      "root_body_bytes": 6715,
+      "cpu_tests": 123,
+      "cpu_stderr_sha256": "630e889e1a8bdc3a4d5c535ad010c3a218f578603d84e4a421c1dfb352f7ab92",
+      "scope": "Only CPU candidate for preserving exact owned start-failure context before cleanup, not an runc fix or runtime gate",
+      "plan_review": {
+        "reviewer": "/root/deadline_readonly_review",
+        "verdict": "CPU_IMPLEMENTATION_PLAN_ACCEPTABLE_NOT_RUNTIME_GATE",
+        "conditions": [
+          "start-unconfirmed failures only",
+          "whole callback<=25 within original deadline and reserved shutdown",
+          "fixed isolated inline root source, no project imports or arbitrary Python privilege bridge",
+          "private raw remote only, incomplete thread/byte coverage closes evidence",
+          "unknown helper exit remains owed, original exception and finally cleanup preserved"
+        ]
+      },
+      "limits": {
+        "callback_budget_seconds": 25,
+        "private_context_bytes": 524288,
+        "oci_bytes": 262144,
+        "runtime_log_bytes": 32768,
+        "tasks_per_actor": 64,
+        "process_scan_entries": 8192
+      },
+      "implemented": [
+        "root inline producer and CLI anonymous sudo-stdin binding",
+        "remaining privileged supervisor derived after sudo from same absolute cutoff",
+        "default None preserves existing internal API",
+        "start failure capture before finally; callback errors do not replace original failure",
+        "two single-attempt private artifacts included in existing setup freshness check"
+      ],
+      "actual_root_verified": false,
+      "actual_oci_verified": false,
+      "remote_deployed": false,
+      "full_r1_status": "PENDING_REVIEW_NEW_REVISION",
+      "runtime_admitted": false,
+      "no_further_gpu_this_window": true,
+      "supersedes_source_sha256": "dc2cd0ba3f7c6f98480ae17b04c914b8b9888731209c654d98444a0d3761ed6f",
+      "proc_lifetime_policy": "Opened proc directory FD anchors all private actor/thread reads; numeric PID path replacement never redirects captured private data; before/after birth and task inventories still checked",
+      "kernel_reference": "https://docs.kernel.org/filesystems/proc.html",
+      "actual_pid_reuse_verified": false,
+      "budget_anchor_fix": {
+        "entry_anchor_before_host": true,
+        "absolute_diagnostic_cutoff": "original guard_fire_by_utc",
+        "negative_baseline": "failure_context_budget_regression_baselines[-1]: one mock dispatch under oldff8; no root execution",
+        "physical_io_cancellation_verified": false
+      }
+    }
+  ],
+  "start_failure_context_r1_reviews": [
+    {
+      "reviewer": "/root/deadline_readonly_review",
+      "recorded_utc": "2026-11-02T21:45:33.699023+00:00",
+      "verdict": "NEEDS_FIX",
+      "code_commit": "ff8e608517beabb26e1e8bf1634045cd2127598a",
+      "manifest_sha256": "df277416fae022cac100e3412fe9b183907f02be5f2f5d09dfa0bc24c87bd789",
+      "manifest_files": 178,
+      "manifest_source_bytes": 4654575,
+      "root_body_sha256": "1909837591186190445ac0bde00573748ab98a63f9ce7c537e482e7781ae4a53",
+      "blocking": "host/identity work preceded25s anchors; relative budget was passed with later worker_shutdown cutoff, invading reserved cleanup",
+      "other_limits": "Physical IO cancellation is not proven; snapshots do not cover all descendants or user-space wait graph; no runtime gate issued"
     }
   ]
 }

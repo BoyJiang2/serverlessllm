@@ -1661,6 +1661,7 @@ def await_p0_guard_exit(service_plan, target, schedule, proof, *, nonce, entered
 
 def collect_p0_start_failure(target, *, registration_sha256, timeout_seconds, deadline_utc, password):
     """One private metadata capture; never authorize a model or infer cleanup."""
+    entered,started=datetime.now(timezone.utc),time.monotonic()
     from vllm_export_hook import _metadata_stream
     host=_watchdog_host()
     _guard_identity(target,boot_id=host['boot_id'],uid=host['uid'])
@@ -1672,7 +1673,6 @@ def collect_p0_start_failure(target, *, registration_sha256, timeout_seconds, de
             or not isinstance(password,bytes) or not 2<=len(password)<=129
             or not password.endswith(b'\n') or b'\x00' in password):
         raise ValueError('bounded owned P0 diagnostic input required')
-    entered,started=datetime.now(timezone.utc),time.monotonic()
     wall_end=min(_utc(deadline_utc).timestamp(),entered.timestamp()+timeout_seconds)
     def remaining():
         now=datetime.now(timezone.utc)
@@ -1968,7 +1968,7 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                 else:
                     diagnostic_attempted=True
                     state['failure_context']=failure_collector(target,registration_sha256=setup['registration_sha256'],
-                        timeout_seconds=budget,deadline_utc=schedule['phase_deadlines_utc']['worker_shutdown'])
+                        timeout_seconds=budget,deadline_utc=schedule['guard_fire_by_utc'])
                     state['diagnostic_cleanup_owed']=state['failure_context'].get('helper_exit_verified') is not True
             except BaseException as diagnostic_error:
                 state['failure_context_error_type']=type(diagnostic_error).__name__

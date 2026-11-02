@@ -186,6 +186,30 @@ class SourceScheduleTests(unittest.TestCase):
                 self.assertEqual(result['context_verified'],kind=='complete')
                 self.assertNotIn('CPU_ONLY_NEVER_IN_SUMMARY',str(result))
 
+    @unittest.skipUnless(sys.platform=='linux','Linux-only P0 diagnostic')
+    def test_failure_context_counts_slow_host_probe_before_dispatch(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+            target['run_root']=str(root);host=options['host_probe'].return_value
+            entered=datetime.now(timezone.utc);elapsed=[0.]
+            class Clock(datetime):
+                @classmethod
+                def now(cls,tz=None):return entered+timedelta(seconds=elapsed[0])
+            def slow_host():elapsed[0]+=6;return host
+            with patch.object(schedule_module,'P0_RUN_ROOT',str(root)),\
+                    patch.object(schedule_module,'_watchdog_host',side_effect=slow_host),\
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),\
+                    patch.object(schedule_module,'datetime',Clock),\
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:elapsed[0]),\
+                    patch.object(schedule_module,'_guard_capture',return_value=types.SimpleNamespace(returncode=1,stdout='',stderr='')) as capture:
+                try:
+                    with self.assertRaises(TimeoutError):
+                        schedule_module.collect_p0_start_failure(target,registration_sha256='f'*64,
+                            timeout_seconds=10,deadline_utc=(entered+timedelta(seconds=130)).isoformat(),
+                            password=b'CPU_ONLY_NOT_A_SECRET\n')
+                finally:self.budget_anchor_probe_capture_calls=capture.call_count
+                capture.assert_not_called()
+
     @unittest.skipUnless(os.name=='posix','anonymous input capture requires POSIX')
     def test_guard_capture_reads_anonymous_input_without_exposing_it(self):
         read_fd,write_fd=os.pipe()
@@ -353,6 +377,7 @@ class SourceScheduleTests(unittest.TestCase):
                     self.assertEqual(actual,target);self.assertLessEqual(kwargs['timeout_seconds'],25)
                     self.assertEqual(kwargs['registration_sha256'],setup['registration_sha256'])
                     calls.append('diagnostic')
+                    self.assertEqual(kwargs['deadline_utc'],schedule['guard_fire_by_utc'])
                     if kind=='diagnostic-timeout':raise subprocess.TimeoutExpired('CPU collector',1)
                     return dict(helper_exit_verified=kind!='diagnostic-incomplete',coverage_complete=False)
                 with tempfile.TemporaryFile() as events,ExitStack() as stack:
@@ -388,6 +413,7 @@ class SourceScheduleTests(unittest.TestCase):
                         if kind not in ('residual','missing-stats'):self.assertIn('guard_exit',caught.exception.p0_lifecycle_receipt)
                         if kind in ('start-failure','diagnostic-timeout','diagnostic-incomplete','diagnostic-short-budget'):
                             self.assertIs(caught.exception,start_error)
+                            if kind=='start-failure':self.assertNotIn('failure_context_error_type',caught.exception.p0_lifecycle_receipt)
                             if kind in ('diagnostic-timeout','diagnostic-incomplete'):
                                 self.assertTrue(caught.exception.p0_lifecycle_receipt['diagnostic_cleanup_owed'])
                     else:
