@@ -2,7 +2,7 @@
 
 匹配依赖、native完整编译/普通CPU导入及source默认factory的限定CPU验证已完成。P0入口、实际独立guard/probe已经执行，两次都卡在自有Docker runc create，未执行IPC/模型；历史失败不改判。最后一次精确清理及64.580142秒观察、独立退出取证和限定复核通过。本窗口GPU/TP8停止保持，不重复开发已存在入口或重做已通过构建。
 
-最新只读证据确认runtime默认配置mode=auto；按所报告NVIDIA1.19.0源码commit，满足默认配置/有效OCI设备优先分支条件时预期jit-cdi。历史实际模式和根因未证明；不擅自改全局mode或删runtime参数。完整断点及未来受审取证缺项以NEXT.md最新覆盖为准。故障前取证已有CPU候选和123项WSL回归，当前完整源码R1及实际root/OCI验证仍待，不覆盖远端844。真实Kimi TP8参考/稳定金标、完整Store转换/恢复与原生服务仍未通过；GLM原40ID/35成功5失败冻结，不启R24。
+最新只读证据确认runtime默认配置mode=auto；按所报告NVIDIA1.19.0源码commit，满足默认配置/有效OCI设备优先分支条件时预期jit-cdi。历史实际模式和根因未证明；不擅自改全局mode或删runtime参数。完整断点及未来受审取证缺项以NEXT.md最新覆盖为准。故障前取证已有CPU候选和123项WSL回归，ab134f0完整源码R1已PASS_SOURCE_ONLY，实际root/OCI验证仍待，不覆盖远端844。真实Kimi TP8参考/稳定金标、完整Store转换/恢复与原生服务仍未通过；GLM原40ID/35成功5失败冻结，不启R24。
 
 
 # Kimi INT4 Store CPU 适配候选

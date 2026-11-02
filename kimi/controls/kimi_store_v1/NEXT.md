@@ -1,3 +1,11 @@
+## 11/3 05:53 当前断点：ab134f0完整源码R1通过，仅源码，不重开本窗GPU
+
+代码commit ab134f0f1cb486fc7d4e158bc7ddf8c692b21214已push并独立核远端main。完整178文件/4709771B源码清单SHA f85266ac8f2f218be8663ecd5db815e668011dd4f51e135c4adf8f414ce29f3f，由只读审阅从Git独立重建逐字节一致，结论PASS_SOURCE_ONLY。清单全文在source-bundle-materialization.json，结论及范围在source-schedule-review.json；旧ff8 NEEDS_FIX和负例失败保留。最新123项WSL CPU测试全通过。
+
+本窗两次实际runc create失败后的GPU停止保持；自己的失败容器/进程已释放并完成64.580142秒观察，不重试、不冒充TP8参考/Store通过。远端844代码未覆盖，新collector未部署/未实际root、OCI或CUDA验证，不发runtime gate。当前没有模型或大池等待审批。
+
+下一步：在下一次有效授权及资源核验后，为当前源码生成新配置/完整预算并审阅；独立宿主guard/probe必须实际通过。先在有界控制验证新collector的私有raw、覆盖与已知helper退出，不沿用旧批准。随后GPU小探针通过才依序推进源SF TP8参考/金标、Store转换、恢复正确性和原生服务。每批最大预算另含60秒观察和清理取证余量；native 2×预算停止不绕过。底层IO物理不可取消、完整后代/用户态等待图覆盖仍未证明，历史runc和exit137原因未知。无新40项正式实验。
+
 ## 11/3 05:26CPU候选：start失败前清理取证已接线，当前完整源码R1待审
 
 为解决旧OCI/runtime日志随rm丢失及主线程诊断不足，仅修改现有source_schedule.py/test_source_schedule.py。固定6715B isolated stdlib root producer仅读精确注册CID的OCI/log和runc/shim全部task/children；256KiB/32KiB/64task/512KiB有界，短读续读、短写拒绝、线程/children变化或截断标不完整，private raw仅固定p0小目录。host复用既有sudo-stdin匿名pipe，root supervisor在sudo后从原UTC余量派生，不新得完整timeout；没有root导入可写项目源码或任意命令白名单。

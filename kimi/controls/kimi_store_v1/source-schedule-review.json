@@ -5501,7 +5501,7 @@
       "actual_root_verified": false,
       "actual_oci_verified": false,
       "remote_deployed": false,
-      "full_r1_status": "PENDING_REVIEW_NEW_REVISION",
+      "full_r1_status": "PASS_SOURCE_ONLY",
       "runtime_admitted": false,
       "no_further_gpu_this_window": true,
       "supersedes_source_sha256": "dc2cd0ba3f7c6f98480ae17b04c914b8b9888731209c654d98444a0d3761ed6f",
@@ -5513,7 +5513,10 @@
         "absolute_diagnostic_cutoff": "original guard_fire_by_utc",
         "negative_baseline": "failure_context_budget_regression_baselines[-1]: one mock dispatch under oldff8; no root execution",
         "physical_io_cancellation_verified": false
-      }
+      },
+      "code_commit": "ab134f0f1cb486fc7d4e158bc7ddf8c692b21214",
+      "manifest_sha256": "f85266ac8f2f218be8663ecd5db815e668011dd4f51e135c4adf8f414ce29f3f",
+      "reviewer": "/root/deadline_readonly_review"
     }
   ],
   "start_failure_context_r1_reviews": [
@@ -5528,6 +5531,35 @@
       "root_body_sha256": "1909837591186190445ac0bde00573748ab98a63f9ce7c537e482e7781ae4a53",
       "blocking": "host/identity work preceded25s anchors; relative budget was passed with later worker_shutdown cutoff, invading reserved cleanup",
       "other_limits": "Physical IO cancellation is not proven; snapshots do not cover all descendants or user-space wait graph; no runtime gate issued"
+    },
+    {
+      "reviewer": "/root/deadline_readonly_review",
+      "recorded_utc": "2026-11-02T21:52:07.931730+00:00",
+      "verdict": "PASS_SOURCE_ONLY",
+      "code_commit": "ab134f0f1cb486fc7d4e158bc7ddf8c692b21214",
+      "manifest_sha256": "f85266ac8f2f218be8663ecd5db815e668011dd4f51e135c4adf8f414ce29f3f",
+      "manifest_files": 178,
+      "manifest_source_bytes": 4709771,
+      "manifest_bytes": 28317,
+      "source_sha256": "03e81ebda80d544758b835eb9ffcdd343ba5831f1159fbe8efdcfafcc4fe4006",
+      "test_sha256": "b69067ad616ae2a5d746b6d6c5db15039f6e148c79e253a44a37f0bff1002956",
+      "root_body_sha256": "1909837591186190445ac0bde00573748ab98a63f9ce7c537e482e7781ae4a53",
+      "independent_manifest_byte_match": true,
+      "blocking_findings": [],
+      "resolved_finding": "Entry wall/mono anchors now precede host verification; original guard_fire_by_utc absolute cutoff passed; slow-host negative rejects privileged dispatch; original exception/finally retained",
+      "scope": "Complete P0 failure-context candidate source only, no root/OCI/CUDA execution and no runtime gate",
+      "limitations": [
+        "Snapshots do not prove complete descendants or user-space waiting graph",
+        "Physical IO cancellation and hard wall-clock bound not actually tested",
+        "Current window GPU stop, remote844 and all historical failures unchanged"
+      ],
+      "runtime_admitted": false,
+      "remote_deployed": false,
+      "reviewer_git_hash_recheck": {
+        "source_and_test_64hex_match_git_and_worktree": true,
+        "review_reply_transcription_corrected": true,
+        "manifest_root_and_verdict_unchanged": true
+      }
     }
   ]
 }
