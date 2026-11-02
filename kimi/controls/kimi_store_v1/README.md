@@ -8,6 +8,8 @@
 
 11/2 11:50官方vLLM0.19.1 wheel资产准备通过：433132101B/完整SHA71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719，已落原qjhs003 downloads，未解包/安装。服务器253秒仅2.55MB（约10KB/s）后精确身份pidfd停止；本机180秒收到428670976B到期失败；一次有界仅余4461125B续传9.568秒，全SHA通过。远端原断点前缀一致后单次SFTP reput，独立SSH全SHA/UID/inode/ZIP目录验收再排他发布；随后核本地绝对路径及SHA删除433MB，两个本地大文件路径均不存在。完整失败/续传/清理证据留cpu-probe，不重写为一次成功。metadata控制356811b3已实际采集并释放：vLLM直接13缺失/11版本冲突，Torch自身另5冲突，不能直接相加当独立包数；Numba0.61.2还要求NumPy<2.3而现2.3.5，不是完整传递闭包。限定只读实际复审通过资产/清理与metadata范围。下一项固定完整兼容依赖及安装空间预算，再审现有差异层CPU安装/导入；当前环境/GPU/模型仍未准入，不重做native CPU探针，不另造包装或环境。
 
+11/2 12:14现有pip26.1.1的dry-run解析3304fdcd/3f85133到原540秒后TimeoutExpired，业务失败、未安装/未产版本锁；不延长或重复服务器任务，不据此认定依赖无解或归因网络/回溯。运行中一次独立采样约86.75MiB/2GiB、CPU0.05%、3 PID（非峰值），无GPU；新SSH确认uv缺失及pip超时两run均容器空/timerinactive。实际暴露原超时异常分支未保存stdout/stderr，历史流无法追补，已明示缺口。现有body修正保留各32KiB原始base64/文本、总长度/截断标志及实际timeout，并在try前初始化计时避免早期pip --version超时掩盖原错；bodyed2d2190…的5项本机实际handler AST控制通过，旧失败/初版补丁均留history。未再远端执行；最新bodyed2d2190…限定超时诊断只读复审PASS，不批准重复远端解析。下一项评估本机已有UV0.11.28的Linux目标有界解析，不新装工具/环境；仍无兼容锁、安装预算/ABI或GPU准入。
+
 当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 历史本机构建预检（远端完整编译已于11/2通过，见上）：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。

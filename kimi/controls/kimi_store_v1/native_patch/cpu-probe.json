@@ -6015,9 +6015,9 @@
   "vllm_dependency_resolve_candidate": {
     "recorded_utc": "2026-11-02T03:59:19.280011+00:00",
     "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"\nrun=\"kimi-dependency-resolve-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+900\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<900:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 900s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n mounts=[('/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', '/artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', '/artifacts/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', '/artifacts/accelerate-1.12.0-py3-none-any.whl')]\n mount_args=[]\n for source,target in mounts:mount_args += [\"--mount\",\"type=bind,src=\"+source+\",dst=\"+target+\",readonly\"]\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=bridge\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=64m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",*mount_args,\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"600s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or sorted((m['Source'],m['Destination'],m['RW']) for m in d['Mounts'])!=sorted((s,t,False) for s,t in mounts) or h[\"NetworkMode\"]!=\"bridge\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=720s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=660,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:262144],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"relocation import failed\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
-    "body": "FILES=[{'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'bytes': 433132101, 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'bytes': 1278028350, 'sha256': 'a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', 'bytes': 380935, 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11'}]\nROOTS=['vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl', 'torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'transformers==5.5.1', 'numpy==2.2.6']\n\nimport json,os,sys,resource,hashlib,shutil,subprocess,time\nfrom pathlib import Path\nresource.setrlimit(resource.RLIMIT_CORE,(0,0));resource.setrlimit(resource.RLIMIT_FSIZE,(16*1024**2,16*1024**2))\nr={'passed':False,'device_nodes':[str(p) for p in Path('/dev').glob('nvidia*')],'installed':False,'full_environment_ready':False,'gpu_verified':False}\ntry:\n if r['device_nodes']:raise ValueError('unexpected GPU nodes')\n r['pip_version']=subprocess.run([sys.executable,'-m','pip','--version'],capture_output=True,text=True,timeout=10,check=True).stdout.strip()\n for f in FILES:\n  path=Path('/artifacts')/Path(f['path']).name\n  if path.stat().st_size!=f['bytes']:raise ValueError('root wheel length differs')\n  h=hashlib.sha256()\n  with path.open('rb') as stream:\n   while block:=stream.read(1024**2):h.update(block)\n  if h.hexdigest()!=f['sha256']:raise ValueError('root wheel SHA differs')\n requirement=Path('/tmp/requirements.in');requirement.write_text('\\n'.join(ROOTS)+'\\n')\n environment=dict(os.environ)\n for name in list(environment):\n  if name.startswith(('UV_','PIP_')):del environment[name]\n environment.update(UV_PYTHON_DOWNLOADS='never',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1',TMPDIR='/tmp',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1')\n environment.update(PIP_CONFIG_FILE=os.devnull,PIP_DISABLE_PIP_VERSION_CHECK='1',PIP_NO_INPUT='1')\n argv=[sys.executable,'-m','pip','install','--dry-run','--ignore-installed','--no-cache-dir','--no-compile','--only-binary',':all:','--index-url','https://pypi.org/simple','--timeout','10','--retries','0','--progress-bar','off','--report','/tmp/resolution.json','--requirement',str(requirement)]\n r['argv']=argv;r['roots']=ROOTS\n started=time.monotonic();out=subprocess.run(argv,capture_output=True,text=True,timeout=540,env=environment)\n r['elapsed_seconds']=time.monotonic()-started;r['returncode']=out.returncode;r['stdout']=out.stdout[:32768];r['stderr']=out.stderr[:32768]\n if out.returncode:raise ValueError('dependency resolver failed; no installation performed')\n import base64,zlib\n with Path('/tmp/resolution.json').open('rb') as stream:raw=stream.read(2*1024**2+1)\n if len(raw)>2*1024**2:raise ValueError('resolution report exceeds 2MiB bound')\n report=json.loads(raw);rows=report['install'];pins={};artifacts={}\n if not 1<=len(rows)<=512:raise ValueError('bounded package inventory required')\n from packaging.utils import canonicalize_name\n for row in rows:\n  name=canonicalize_name(row['metadata']['name']);version=row['metadata']['version']\n  if name in pins:raise ValueError('duplicate resolved package')\n  pins[name]=version;artifacts[name]=row['download_info']\n expected={'vllm':'0.19.1','torch':'2.10.0+cu129','accelerate':'1.12.0','torchaudio':'2.10.0+cu129','torchvision':'0.25.0+cu129','transformers':'5.5.1','numpy':'2.2.6'}\n if any(pins.get(name)!=version for name,version in expected.items()):raise ValueError('root pin differs')\n r['pins']=pins;r['artifacts']=artifacts;r['report_sha256']=hashlib.sha256(raw).hexdigest();r['report_bytes']=len(raw)\n r['report_zlib_base64']=base64.b64encode(zlib.compress(raw,9)).decode();r['torch_module_imported']='torch' in sys.modules;r['vllm_module_imported']='vllm' in sys.modules\n if r['torch_module_imported'] or r['vllm_module_imported']:raise ValueError('unexpected runtime import')\n r['scope']='CPU dependency resolution only; versions are candidate pins, no install/ABI/GPU proof; future artifact hashes and delta budget required'\n r['passed']=True\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error))\nfinally:print(json.dumps(r))\n",
+    "body": "FILES=[{'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'bytes': 433132101, 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'bytes': 1278028350, 'sha256': 'a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', 'bytes': 380935, 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11'}]\nROOTS=['vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl', 'torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'transformers==5.5.1', 'numpy==2.2.6']\n\nimport json,os,sys,resource,hashlib,shutil,subprocess,time\nfrom pathlib import Path\nresource.setrlimit(resource.RLIMIT_CORE,(0,0));resource.setrlimit(resource.RLIMIT_FSIZE,(16*1024**2,16*1024**2))\nr={'passed':False,'device_nodes':[str(p) for p in Path('/dev').glob('nvidia*')],'installed':False,'full_environment_ready':False,'gpu_verified':False}\nstarted=time.monotonic()\ntry:\n if r['device_nodes']:raise ValueError('unexpected GPU nodes')\n r['pip_version']=subprocess.run([sys.executable,'-m','pip','--version'],capture_output=True,text=True,timeout=10,check=True).stdout.strip()\n for f in FILES:\n  path=Path('/artifacts')/Path(f['path']).name\n  if path.stat().st_size!=f['bytes']:raise ValueError('root wheel length differs')\n  h=hashlib.sha256()\n  with path.open('rb') as stream:\n   while block:=stream.read(1024**2):h.update(block)\n  if h.hexdigest()!=f['sha256']:raise ValueError('root wheel SHA differs')\n requirement=Path('/tmp/requirements.in');requirement.write_text('\\n'.join(ROOTS)+'\\n')\n environment=dict(os.environ)\n for name in list(environment):\n  if name.startswith(('UV_','PIP_')):del environment[name]\n environment.update(UV_PYTHON_DOWNLOADS='never',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1',TMPDIR='/tmp',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1')\n environment.update(PIP_CONFIG_FILE=os.devnull,PIP_DISABLE_PIP_VERSION_CHECK='1',PIP_NO_INPUT='1')\n argv=[sys.executable,'-m','pip','install','--dry-run','--ignore-installed','--no-cache-dir','--no-compile','--only-binary',':all:','--index-url','https://pypi.org/simple','--timeout','10','--retries','0','--progress-bar','off','--report','/tmp/resolution.json','--requirement',str(requirement)]\n r['argv']=argv;r['roots']=ROOTS\n started=time.monotonic();out=subprocess.run(argv,capture_output=True,text=True,timeout=540,env=environment)\n r['elapsed_seconds']=time.monotonic()-started;r['returncode']=out.returncode;r['stdout']=out.stdout[:32768];r['stderr']=out.stderr[:32768]\n if out.returncode:raise ValueError('dependency resolver failed; no installation performed')\n import base64,zlib\n with Path('/tmp/resolution.json').open('rb') as stream:raw=stream.read(2*1024**2+1)\n if len(raw)>2*1024**2:raise ValueError('resolution report exceeds 2MiB bound')\n report=json.loads(raw);rows=report['install'];pins={};artifacts={}\n if not 1<=len(rows)<=512:raise ValueError('bounded package inventory required')\n from packaging.utils import canonicalize_name\n for row in rows:\n  name=canonicalize_name(row['metadata']['name']);version=row['metadata']['version']\n  if name in pins:raise ValueError('duplicate resolved package')\n  pins[name]=version;artifacts[name]=row['download_info']\n expected={'vllm':'0.19.1','torch':'2.10.0+cu129','accelerate':'1.12.0','torchaudio':'2.10.0+cu129','torchvision':'0.25.0+cu129','transformers':'5.5.1','numpy':'2.2.6'}\n if any(pins.get(name)!=version for name,version in expected.items()):raise ValueError('root pin differs')\n r['pins']=pins;r['artifacts']=artifacts;r['report_sha256']=hashlib.sha256(raw).hexdigest();r['report_bytes']=len(raw)\n r['report_zlib_base64']=base64.b64encode(zlib.compress(raw,9)).decode();r['torch_module_imported']='torch' in sys.modules;r['vllm_module_imported']='vllm' in sys.modules\n if r['torch_module_imported'] or r['vllm_module_imported']:raise ValueError('unexpected runtime import')\n r['scope']='CPU dependency resolution only; versions are candidate pins, no install/ABI/GPU proof; future artifact hashes and delta budget required'\n r['passed']=True\nexcept subprocess.TimeoutExpired as error:\n import base64\n r.update(error_type=type(error).__name__,error=str(error),elapsed_seconds=time.monotonic()-started,timeout_seconds=error.timeout)\n for field in ('stdout','stderr'):\n  value=getattr(error,field,None)\n  raw=value if isinstance(value,bytes) else (value.encode('utf-8') if value is not None else b'')\n  r[field]=raw[:32768].decode('utf-8',errors='replace')\n  r[field+'_raw_base64']=base64.b64encode(raw[:32768]).decode()\n  r[field+'_captured_bytes']=len(raw)\n  r[field+'_truncated']=len(raw)>32768\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error))\nfinally:print(json.dumps(r))\n",
     "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
-    "body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+    "body_sha256": "ed2d2190a5b70e379c6336d7ee7faa738214d6a3986d3a7b9bbcba1455f970d7",
     "roots": [
       "vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
       "torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
@@ -6044,7 +6044,7 @@
         "sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11"
       }
     ],
-    "status": "READONLY_REVIEW_PASS_RESOLUTION_ONLY",
+    "status": "LOCAL_TIMEOUT_CAPTURE_REVIEW_PASS_NO_REMOTE_RERUN",
     "booking_id": "bk-20261101T1134-265b50dd",
     "local_preparation_failure": "First candidate assembly used Windows Path.as_uri on POSIX paths, raised before persistence/execution; corrected to PurePosixPath.as_uri",
     "budget": {
@@ -6138,6 +6138,115 @@
           "finished_utc": "2026-11-02T04:01:21.675832+00:00"
         }
       ]
+    },
+    {
+      "registered_utc": "2026-11-02T04:05:02.309457+00:00",
+      "code_commit": "3f8513366d4be2d14831bc721887082b38b8ae08",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
+      "body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+      "returncode": 0,
+      "stderr": "",
+      "events": [
+        {
+          "run_id": "kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T04:05:06.256804+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "container_id": "ebc539e5392cecb0d4969cc9321e4108b8a4be39a47a578eed32c23108f4f108",
+          "guard_install": "Running timer as unit: kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb-cleanup.timer\nWill run service as unit: kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 7h 15min 44.182697s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force ebc539e5392cecb0d4969cc9321e4108b8a4be39a47a578eed32c23108f4f108 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": false, \"device_nodes\": [], \"installed\": false, \"full_environment_ready\": false, \"gpu_verified\": false, \"pip_version\": \"pip 26.1.1 from /usr/local/lib/python3.12/dist-packages/pip (python 3.12)\", \"argv\": [\"/usr/bin/python3\", \"-m\", \"pip\", \"install\", \"--dry-run\", \"--ignore-installed\", \"--no-cache-dir\", \"--no-compile\", \"--only-binary\", \":all:\", \"--index-url\", \"https://pypi.org/simple\", \"--timeout\", \"10\", \"--retries\", \"0\", \"--progress-bar\", \"off\", \"--report\", \"/tmp/resolution.json\", \"--requirement\", \"/tmp/requirements.in\"], \"roots\": [\"vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl\", \"torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl\", \"accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl\", \"torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969\", \"torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b\", \"transformers==5.5.1\", \"numpy==2.2.6\"], \"error_type\": \"TimeoutExpired\", \"error\": \"Command '['/usr/bin/python3', '-m', 'pip', 'install', '--dry-run', '--ignore-installed', '--no-cache-dir', '--no-compile', '--only-binary', ':all:', '--index-url', 'https://pypi.org/simple', '--timeout', '10', '--retries', '0', '--progress-bar', 'off', '--report', '/tmp/resolution.json', '--requirement', '/tmp/requirements.in']' timed out after 540 seconds\"}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T04:05:06.384396219Z",
+            "FinishedAt": "2026-11-02T04:14:08.275421941Z"
+          },
+          "passed": false,
+          "metadata": {
+            "passed": false,
+            "device_nodes": [],
+            "installed": false,
+            "full_environment_ready": false,
+            "gpu_verified": false,
+            "pip_version": "pip 26.1.1 from /usr/local/lib/python3.12/dist-packages/pip (python 3.12)",
+            "argv": [
+              "/usr/bin/python3",
+              "-m",
+              "pip",
+              "install",
+              "--dry-run",
+              "--ignore-installed",
+              "--no-cache-dir",
+              "--no-compile",
+              "--only-binary",
+              ":all:",
+              "--index-url",
+              "https://pypi.org/simple",
+              "--timeout",
+              "10",
+              "--retries",
+              "0",
+              "--progress-bar",
+              "off",
+              "--report",
+              "/tmp/resolution.json",
+              "--requirement",
+              "/tmp/requirements.in"
+            ],
+            "roots": [
+              "vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+              "torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+              "accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl",
+              "torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969",
+              "torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b",
+              "transformers==5.5.1",
+              "numpy==2.2.6"
+            ],
+            "error_type": "TimeoutExpired",
+            "error": "Command '['/usr/bin/python3', '-m', 'pip', 'install', '--dry-run', '--ignore-installed', '--no-cache-dir', '--no-compile', '--only-binary', ':all:', '--index-url', 'https://pypi.org/simple', '--timeout', '10', '--retries', '0', '--progress-bar', 'off', '--report', '/tmp/resolution.json', '--requirement', '/tmp/requirements.in']' timed out after 540 seconds"
+          },
+          "error": {
+            "type": "ValueError",
+            "message": "relocation import failed"
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T04:14:08.502111+00:00"
+        }
+      ],
+      "known_diagnostic_gap": "Actual timeout error retained, but original handler did not preserve TimeoutExpired.stdout/stderr; these historical streams cannot be recovered after container cleanup. New handler not applied retroactively."
     }
   ],
   "vllm_dependency_resolve_candidate_history": [
@@ -6190,6 +6299,108 @@
         "source_builds": false,
         "interpreter_downloads": false
       }
+    },
+    {
+      "recorded_utc": "2026-11-02T03:59:19.280011+00:00",
+      "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"\nrun=\"kimi-dependency-resolve-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+900\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<900:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 900s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n mounts=[('/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', '/artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', '/artifacts/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', '/artifacts/accelerate-1.12.0-py3-none-any.whl')]\n mount_args=[]\n for source,target in mounts:mount_args += [\"--mount\",\"type=bind,src=\"+source+\",dst=\"+target+\",readonly\"]\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=bridge\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=64m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",*mount_args,\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"600s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or sorted((m['Source'],m['Destination'],m['RW']) for m in d['Mounts'])!=sorted((s,t,False) for s,t in mounts) or h[\"NetworkMode\"]!=\"bridge\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=720s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=660,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:262144],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"relocation import failed\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+      "body": "FILES=[{'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'bytes': 433132101, 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'bytes': 1278028350, 'sha256': 'a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', 'bytes': 380935, 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11'}]\nROOTS=['vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl', 'torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'transformers==5.5.1', 'numpy==2.2.6']\n\nimport json,os,sys,resource,hashlib,shutil,subprocess,time\nfrom pathlib import Path\nresource.setrlimit(resource.RLIMIT_CORE,(0,0));resource.setrlimit(resource.RLIMIT_FSIZE,(16*1024**2,16*1024**2))\nr={'passed':False,'device_nodes':[str(p) for p in Path('/dev').glob('nvidia*')],'installed':False,'full_environment_ready':False,'gpu_verified':False}\ntry:\n if r['device_nodes']:raise ValueError('unexpected GPU nodes')\n r['pip_version']=subprocess.run([sys.executable,'-m','pip','--version'],capture_output=True,text=True,timeout=10,check=True).stdout.strip()\n for f in FILES:\n  path=Path('/artifacts')/Path(f['path']).name\n  if path.stat().st_size!=f['bytes']:raise ValueError('root wheel length differs')\n  h=hashlib.sha256()\n  with path.open('rb') as stream:\n   while block:=stream.read(1024**2):h.update(block)\n  if h.hexdigest()!=f['sha256']:raise ValueError('root wheel SHA differs')\n requirement=Path('/tmp/requirements.in');requirement.write_text('\\n'.join(ROOTS)+'\\n')\n environment=dict(os.environ)\n for name in list(environment):\n  if name.startswith(('UV_','PIP_')):del environment[name]\n environment.update(UV_PYTHON_DOWNLOADS='never',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1',TMPDIR='/tmp',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1')\n environment.update(PIP_CONFIG_FILE=os.devnull,PIP_DISABLE_PIP_VERSION_CHECK='1',PIP_NO_INPUT='1')\n argv=[sys.executable,'-m','pip','install','--dry-run','--ignore-installed','--no-cache-dir','--no-compile','--only-binary',':all:','--index-url','https://pypi.org/simple','--timeout','10','--retries','0','--progress-bar','off','--report','/tmp/resolution.json','--requirement',str(requirement)]\n r['argv']=argv;r['roots']=ROOTS\n started=time.monotonic();out=subprocess.run(argv,capture_output=True,text=True,timeout=540,env=environment)\n r['elapsed_seconds']=time.monotonic()-started;r['returncode']=out.returncode;r['stdout']=out.stdout[:32768];r['stderr']=out.stderr[:32768]\n if out.returncode:raise ValueError('dependency resolver failed; no installation performed')\n import base64,zlib\n with Path('/tmp/resolution.json').open('rb') as stream:raw=stream.read(2*1024**2+1)\n if len(raw)>2*1024**2:raise ValueError('resolution report exceeds 2MiB bound')\n report=json.loads(raw);rows=report['install'];pins={};artifacts={}\n if not 1<=len(rows)<=512:raise ValueError('bounded package inventory required')\n from packaging.utils import canonicalize_name\n for row in rows:\n  name=canonicalize_name(row['metadata']['name']);version=row['metadata']['version']\n  if name in pins:raise ValueError('duplicate resolved package')\n  pins[name]=version;artifacts[name]=row['download_info']\n expected={'vllm':'0.19.1','torch':'2.10.0+cu129','accelerate':'1.12.0','torchaudio':'2.10.0+cu129','torchvision':'0.25.0+cu129','transformers':'5.5.1','numpy':'2.2.6'}\n if any(pins.get(name)!=version for name,version in expected.items()):raise ValueError('root pin differs')\n r['pins']=pins;r['artifacts']=artifacts;r['report_sha256']=hashlib.sha256(raw).hexdigest();r['report_bytes']=len(raw)\n r['report_zlib_base64']=base64.b64encode(zlib.compress(raw,9)).decode();r['torch_module_imported']='torch' in sys.modules;r['vllm_module_imported']='vllm' in sys.modules\n if r['torch_module_imported'] or r['vllm_module_imported']:raise ValueError('unexpected runtime import')\n r['scope']='CPU dependency resolution only; versions are candidate pins, no install/ABI/GPU proof; future artifact hashes and delta budget required'\n r['passed']=True\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error))\nfinally:print(json.dumps(r))\n",
+      "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
+      "body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+      "roots": [
+        "vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl",
+        "torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969",
+        "torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b",
+        "transformers==5.5.1",
+        "numpy==2.2.6"
+      ],
+      "files": [
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+          "bytes": 433132101,
+          "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719"
+        },
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "bytes": 1278028350,
+          "sha256": "a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd"
+        },
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl",
+          "bytes": 380935,
+          "sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11"
+        }
+      ],
+      "status": "READONLY_REVIEW_PASS_RESOLUTION_ONLY",
+      "booking_id": "bk-20261101T1134-265b50dd",
+      "local_preparation_failure": "First candidate assembly used Windows Path.as_uri on POSIX paths, raised before persistence/execution; corrected to PurePosixPath.as_uri",
+      "budget": {
+        "cpu": 1,
+        "memory_limit_gib": 2,
+        "tmpfs_mib": 64,
+        "per_file_max_mib": 16,
+        "inner_seconds": 600,
+        "resolver_seconds": 540,
+        "host_guard_seconds": 720,
+        "overall_seconds": 900,
+        "network": "bridge for official dependency metadata, no published ports",
+        "install": false,
+        "source_builds": false,
+        "interpreter_downloads": false
+      },
+      "resolver": "existing pip dry-run/report; no extra tool"
+    },
+    {
+      "recorded_utc": "2026-11-02T03:59:19.280011+00:00",
+      "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"\nrun=\"kimi-dependency-resolve-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+900\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<900:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 900s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n mounts=[('/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', '/artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', '/artifacts/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', '/artifacts/accelerate-1.12.0-py3-none-any.whl')]\n mount_args=[]\n for source,target in mounts:mount_args += [\"--mount\",\"type=bind,src=\"+source+\",dst=\"+target+\",readonly\"]\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=bridge\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=64m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",*mount_args,\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"600s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or sorted((m['Source'],m['Destination'],m['RW']) for m in d['Mounts'])!=sorted((s,t,False) for s,t in mounts) or h[\"NetworkMode\"]!=\"bridge\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=720s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=660,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:262144],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"relocation import failed\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+      "body": "FILES=[{'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'bytes': 433132101, 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'bytes': 1278028350, 'sha256': 'a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd'}, {'path': '/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl', 'bytes': 380935, 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11'}]\nROOTS=['vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl', 'torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'transformers==5.5.1', 'numpy==2.2.6']\n\nimport json,os,sys,resource,hashlib,shutil,subprocess,time\nfrom pathlib import Path\nresource.setrlimit(resource.RLIMIT_CORE,(0,0));resource.setrlimit(resource.RLIMIT_FSIZE,(16*1024**2,16*1024**2))\nr={'passed':False,'device_nodes':[str(p) for p in Path('/dev').glob('nvidia*')],'installed':False,'full_environment_ready':False,'gpu_verified':False}\ntry:\n if r['device_nodes']:raise ValueError('unexpected GPU nodes')\n r['pip_version']=subprocess.run([sys.executable,'-m','pip','--version'],capture_output=True,text=True,timeout=10,check=True).stdout.strip()\n for f in FILES:\n  path=Path('/artifacts')/Path(f['path']).name\n  if path.stat().st_size!=f['bytes']:raise ValueError('root wheel length differs')\n  h=hashlib.sha256()\n  with path.open('rb') as stream:\n   while block:=stream.read(1024**2):h.update(block)\n  if h.hexdigest()!=f['sha256']:raise ValueError('root wheel SHA differs')\n requirement=Path('/tmp/requirements.in');requirement.write_text('\\n'.join(ROOTS)+'\\n')\n environment=dict(os.environ)\n for name in list(environment):\n  if name.startswith(('UV_','PIP_')):del environment[name]\n environment.update(UV_PYTHON_DOWNLOADS='never',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1',TMPDIR='/tmp',OPENBLAS_NUM_THREADS='1',OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1')\n environment.update(PIP_CONFIG_FILE=os.devnull,PIP_DISABLE_PIP_VERSION_CHECK='1',PIP_NO_INPUT='1')\n argv=[sys.executable,'-m','pip','install','--dry-run','--ignore-installed','--no-cache-dir','--no-compile','--only-binary',':all:','--index-url','https://pypi.org/simple','--timeout','10','--retries','0','--progress-bar','off','--report','/tmp/resolution.json','--requirement',str(requirement)]\n r['argv']=argv;r['roots']=ROOTS\n started=time.monotonic();out=subprocess.run(argv,capture_output=True,text=True,timeout=540,env=environment)\n r['elapsed_seconds']=time.monotonic()-started;r['returncode']=out.returncode;r['stdout']=out.stdout[:32768];r['stderr']=out.stderr[:32768]\n if out.returncode:raise ValueError('dependency resolver failed; no installation performed')\n import base64,zlib\n with Path('/tmp/resolution.json').open('rb') as stream:raw=stream.read(2*1024**2+1)\n if len(raw)>2*1024**2:raise ValueError('resolution report exceeds 2MiB bound')\n report=json.loads(raw);rows=report['install'];pins={};artifacts={}\n if not 1<=len(rows)<=512:raise ValueError('bounded package inventory required')\n from packaging.utils import canonicalize_name\n for row in rows:\n  name=canonicalize_name(row['metadata']['name']);version=row['metadata']['version']\n  if name in pins:raise ValueError('duplicate resolved package')\n  pins[name]=version;artifacts[name]=row['download_info']\n expected={'vllm':'0.19.1','torch':'2.10.0+cu129','accelerate':'1.12.0','torchaudio':'2.10.0+cu129','torchvision':'0.25.0+cu129','transformers':'5.5.1','numpy':'2.2.6'}\n if any(pins.get(name)!=version for name,version in expected.items()):raise ValueError('root pin differs')\n r['pins']=pins;r['artifacts']=artifacts;r['report_sha256']=hashlib.sha256(raw).hexdigest();r['report_bytes']=len(raw)\n r['report_zlib_base64']=base64.b64encode(zlib.compress(raw,9)).decode();r['torch_module_imported']='torch' in sys.modules;r['vllm_module_imported']='vllm' in sys.modules\n if r['torch_module_imported'] or r['vllm_module_imported']:raise ValueError('unexpected runtime import')\n r['scope']='CPU dependency resolution only; versions are candidate pins, no install/ABI/GPU proof; future artifact hashes and delta budget required'\n r['passed']=True\nexcept subprocess.TimeoutExpired as error:\n import base64\n r.update(error_type=type(error).__name__,error=str(error),elapsed_seconds=time.monotonic()-started,timeout_seconds=error.timeout)\n for field in ('stdout','stderr'):\n  value=getattr(error,field,None)\n  raw=value if isinstance(value,bytes) else (value.encode('utf-8') if value is not None else b'')\n  r[field]=raw[:32768].decode('utf-8',errors='replace')\n  r[field+'_raw_base64']=base64.b64encode(raw[:32768]).decode()\n  r[field+'_captured_bytes']=len(raw)\n  r[field+'_truncated']=len(raw)>32768\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error))\nfinally:print(json.dumps(r))\n",
+      "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
+      "body_sha256": "55e38f5c3c5cd6710b6d5944d90d999a597f4eede07dbe77141d617a21e93805",
+      "roots": [
+        "vllm @ file:///artifacts/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "torch @ file:///artifacts/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "accelerate @ file:///artifacts/accelerate-1.12.0-py3-none-any.whl",
+        "torchaudio @ https://download-r2.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969",
+        "torchvision @ https://download-r2.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b",
+        "transformers==5.5.1",
+        "numpy==2.2.6"
+      ],
+      "files": [
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+          "bytes": 433132101,
+          "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719"
+        },
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "bytes": 1278028350,
+          "sha256": "a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd"
+        },
+        {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl",
+          "bytes": 380935,
+          "sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11"
+        }
+      ],
+      "status": "LOCAL_TIMEOUT_CAPTURE_FIXED_AWAITING_REVIEW_NO_RERUN",
+      "booking_id": "bk-20261101T1134-265b50dd",
+      "local_preparation_failure": "First candidate assembly used Windows Path.as_uri on POSIX paths, raised before persistence/execution; corrected to PurePosixPath.as_uri",
+      "budget": {
+        "cpu": 1,
+        "memory_limit_gib": 2,
+        "tmpfs_mib": 64,
+        "per_file_max_mib": 16,
+        "inner_seconds": 600,
+        "resolver_seconds": 540,
+        "host_guard_seconds": 720,
+        "overall_seconds": 900,
+        "network": "bridge for official dependency metadata, no published ports",
+        "install": false,
+        "source_builds": false,
+        "interpreter_downloads": false
+      },
+      "resolver": "existing pip dry-run/report; no extra tool"
     }
   ],
   "vllm_dependency_resolve_review_history": [
@@ -6204,18 +6415,162 @@
         "resource-limit failures do not prove dependencies unsatisfiable",
         "Transformers5.5.1/NumPy2.2.6 candidate pins require later compatibility validation"
       ]
+    },
+    {
+      "reviewer": "/root/deadline_readonly_review",
+      "decision": "PASS_RESOLUTION_ONLY",
+      "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
+      "body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+      "limits": [
+        "dry-run may fetch candidate wheels for metadata, bounded by file/tmpfs limits",
+        "failure from limits or transport does not prove unsatisfiable dependencies",
+        "artifact report is not all-files downloaded/verified or installation readiness"
+      ],
+      "primary_verified_note": "actual host attach.stdout cap=262144 bytes; metadata parses complete p.stdout, correcting reviewer 16KiB statement"
     }
   ],
+  "vllm_resolve_timeout_capture_tests": {
+    "old_body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+    "new_body_sha256": "ed2d2190a5b70e379c6336d7ee7faa738214d6a3986d3a7b9bbcba1455f970d7",
+    "result": "PASS",
+    "count": 5,
+    "results": [
+      {
+        "stdout_type": "bytes",
+        "stderr_type": "bytes",
+        "old_handler_drops_diagnostics": true,
+        "new_handler_preserves_bounded_raw_diagnostics": true
+      },
+      {
+        "stdout_type": "str",
+        "stderr_type": "str",
+        "old_handler_drops_diagnostics": true,
+        "new_handler_preserves_bounded_raw_diagnostics": true
+      },
+      {
+        "stdout_type": "NoneType",
+        "stderr_type": "NoneType",
+        "old_handler_drops_diagnostics": true,
+        "new_handler_preserves_bounded_raw_diagnostics": true
+      },
+      {
+        "stdout_type": "bytes",
+        "stderr_type": "bytes",
+        "old_handler_drops_diagnostics": true,
+        "new_handler_preserves_bounded_raw_diagnostics": true
+      },
+      {
+        "case": "early pip version timeout",
+        "pretry_timer_defined": true,
+        "original_timeout_preserved": true
+      }
+    ],
+    "local_control_source": "import ast,base64,subprocess,time\n\ndef handler_code(body,kind):\n main=next(n for n in ast.parse(body).body if isinstance(n,ast.Try))\n h=next(h for h in main.handlers if (isinstance(h.type,ast.Attribute) and h.type.attr==kind) or (isinstance(h.type,ast.Name) and h.type.id==kind))\n return compile(ast.fix_missing_locations(ast.Module(body=h.body,type_ignores=[])),'actual-timeout-handler','exec')\n\ncases=[(b'partial package metadata',b'network detail'),('unicode text','text stderr'),(None,None),(b'X'*40000,b'\\xffraw stderr')]\nold_code=handler_code(OLD_BODY,'BaseException');new_code=handler_code(NEW_BODY,'TimeoutExpired')\nresults=[]\nfor stdout,stderr in cases:\n error=subprocess.TimeoutExpired(['pip'],540,output=stdout,stderr=stderr)\n old={'r':{'passed':False},'error':error};exec(old_code,old)\n assert 'stdout' not in old['r'] and 'stderr' not in old['r']\n ns={'r':{'passed':False,'installed':False},'error':error,'time':time,'started':time.monotonic()-1}\n exec(new_code,ns);r=ns['r'];assert r['error_type']=='TimeoutExpired' and r['timeout_seconds']==540 and not r['passed'] and not r['installed']\n for field,value in [('stdout',stdout),('stderr',stderr)]:\n  raw=value if isinstance(value,bytes) else (value.encode() if value is not None else b'')\n  assert base64.b64decode(r[field+'_raw_base64'])==raw[:32768]\n  assert r[field+'_captured_bytes']==len(raw) and r[field+'_truncated']==(len(raw)>32768)\n results.append({'stdout_type':type(stdout).__name__,'stderr_type':type(stderr).__name__,'old_handler_drops_diagnostics':True,'new_handler_preserves_bounded_raw_diagnostics':True})\n\ntree=ast.parse(NEW_BODY);main=next(n for n in tree.body if isinstance(n,ast.Try))\nprefix=next(n for n in tree.body[:tree.body.index(main)] if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='started' for t in n.targets))\nearly={'time':time,'r':{'passed':False,'installed':False},'error':subprocess.TimeoutExpired(['pip','--version'],10,output=b'version partial',stderr=b'detail')}\nexec(compile(ast.fix_missing_locations(ast.Module(body=[prefix],type_ignores=[])),'actual-pretry-timer','exec'),early)\nexec(handler_code(NEW_BODY,'TimeoutExpired'),early)\nassert early['r']['error_type']=='TimeoutExpired' and early['r']['timeout_seconds']==10\nresults.append({'case':'early pip version timeout','pretry_timer_defined':True,'original_timeout_preserved':True})\n",
+    "scope": "execute actual old/new exception-handler AST on synthetic TimeoutExpired, not resolver/model test"
+  },
+  "vllm_dependency_resolve_independent_verification": {
+    "recorded_utc": "2026-11-02T04:18:18.476294+00:00",
+    "returncode": 0,
+    "stdout": "{\"passed\": true, \"runs\": {\"kimi-dependency-resolve-54543b10d3c840ccbaafd2a265d03f0e\": {\"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}, \"kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb\": {\"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}}}\n",
+    "stderr": "",
+    "data": {
+      "passed": true,
+      "runs": {
+        "kimi-dependency-resolve-54543b10d3c840ccbaafd2a265d03f0e": {
+          "own_containers": "",
+          "timer": "ActiveState=inactive\n"
+        },
+        "kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb": {
+          "own_containers": "",
+          "timer": "ActiveState=inactive\n"
+        }
+      }
+    }
+  },
+  "vllm_dependency_resolve_live_sample": {
+    "run_id": "kimi-dependency-resolve-3304fdcd4a444c2299f514ee21183bdb",
+    "container_id": "ebc539e5392cecb0d4969cc9321e4108b8a4be39a47a578eed32c23108f4f108",
+    "memory_limit_bytes": 2147483648,
+    "nano_cpus": 1000000000,
+    "docker_stats_mem_usage": "86.75MiB / 2GiB",
+    "docker_stats_cpu_percent": "0.05%",
+    "pids": 3,
+    "network_input": "13.9MB",
+    "read_only_root": true,
+    "network": "bridge",
+    "gpu_device_requests": null,
+    "devices": [],
+    "tmpfs": "/tmp:rw,nosuid,nodev,size=64m",
+    "guard_observed_active": true,
+    "scope": "single independently observed live sample, not peak memory or final release proof"
+  },
+  "vllm_resolve_timeout_capture_test_history": [
+    {
+      "old_body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+      "new_body_sha256": "55e38f5c3c5cd6710b6d5944d90d999a597f4eede07dbe77141d617a21e93805",
+      "result": "PASS",
+      "count": 4,
+      "results": [
+        {
+          "stdout_type": "bytes",
+          "stderr_type": "bytes",
+          "old_handler_drops_diagnostics": true,
+          "new_handler_preserves_bounded_raw_diagnostics": true
+        },
+        {
+          "stdout_type": "str",
+          "stderr_type": "str",
+          "old_handler_drops_diagnostics": true,
+          "new_handler_preserves_bounded_raw_diagnostics": true
+        },
+        {
+          "stdout_type": "NoneType",
+          "stderr_type": "NoneType",
+          "old_handler_drops_diagnostics": true,
+          "new_handler_preserves_bounded_raw_diagnostics": true
+        },
+        {
+          "stdout_type": "bytes",
+          "stderr_type": "bytes",
+          "old_handler_drops_diagnostics": true,
+          "new_handler_preserves_bounded_raw_diagnostics": true
+        }
+      ],
+      "local_control_source": "import ast,base64,subprocess,time\n\ndef handler_code(body,kind):\n main=next(n for n in ast.parse(body).body if isinstance(n,ast.Try))\n h=next(h for h in main.handlers if (isinstance(h.type,ast.Attribute) and h.type.attr==kind) or (isinstance(h.type,ast.Name) and h.type.id==kind))\n return compile(ast.fix_missing_locations(ast.Module(body=h.body,type_ignores=[])),'actual-timeout-handler','exec')\n\ncases=[(b'partial package metadata',b'network detail'),('unicode text','text stderr'),(None,None),(b'X'*40000,b'\\xffraw stderr')]\nold_code=handler_code(OLD_BODY,'BaseException');new_code=handler_code(NEW_BODY,'TimeoutExpired')\nresults=[]\nfor stdout,stderr in cases:\n error=subprocess.TimeoutExpired(['pip'],540,output=stdout,stderr=stderr)\n old={'r':{'passed':False},'error':error};exec(old_code,old)\n assert 'stdout' not in old['r'] and 'stderr' not in old['r']\n ns={'r':{'passed':False,'installed':False},'error':error,'time':time,'started':time.monotonic()-1}\n exec(new_code,ns);r=ns['r'];assert r['error_type']=='TimeoutExpired' and r['timeout_seconds']==540 and not r['passed'] and not r['installed']\n for field,value in [('stdout',stdout),('stderr',stderr)]:\n  raw=value if isinstance(value,bytes) else (value.encode() if value is not None else b'')\n  assert base64.b64decode(r[field+'_raw_base64'])==raw[:32768]\n  assert r[field+'_captured_bytes']==len(raw) and r[field+'_truncated']==(len(raw)>32768)\n results.append({'stdout_type':type(stdout).__name__,'stderr_type':type(stderr).__name__,'old_handler_drops_diagnostics':True,'new_handler_preserves_bounded_raw_diagnostics':True})\n",
+      "scope": "execute actual old/new exception-handler AST on synthetic TimeoutExpired, not resolver/model test"
+    }
+  ],
+  "vllm_dependency_resolution_outcome": {
+    "recorded_utc": "2026-11-02T04:22:30.928766+00:00",
+    "version_lock_produced": false,
+    "environment_ready": false,
+    "install_performed": false,
+    "gpu_used": false,
+    "failures": [
+      "existing image lacks uv; initial control stopped before resolution",
+      "existing pip26.1.1 metadata dry-run exceeded original 540s limit"
+    ],
+    "timeout_root_cause": "not localized; not evidence of unsatisfiable dependencies",
+    "historical_diagnostic_gap": "TimeoutExpired captured stdout/stderr were not saved by original handler and cannot be recovered",
+    "timeout_capture_fix_body_sha256": "ed2d2190a5b70e379c6336d7ee7faa738214d6a3986d3a7b9bbcba1455f970d7",
+    "timeout_capture_local_controls": 5,
+    "timeout_capture_remote_rerun": false,
+    "independent_runs_released": true,
+    "next": "evaluate bounded Linux-target resolution with already-installed local UV; no new environment or tool"
+  },
   "vllm_dependency_resolve_review": {
     "reviewer": "/root/deadline_readonly_review",
-    "decision": "PASS_RESOLUTION_ONLY",
+    "decision": "PASS_TIMEOUT_CAPTURE_ONLY_NO_REMOTE_RERUN",
     "host_driver_sha256": "a2ec6f890fc03406e676ceca6afc5d40e6b05be973347c164e677fd1863032e9",
-    "body_sha256": "4a298258d25300bf55b7c1a339d5b2e0485f570e3740f0f59f3a83a4f1cb33a7",
+    "body_sha256": "ed2d2190a5b70e379c6336d7ee7faa738214d6a3986d3a7b9bbcba1455f970d7",
+    "verified_local_controls": 5,
+    "actual_resolution_result": "540s timeout, no lock or installation",
+    "historical_streams_recovered": false,
+    "reviewer_correction": "attach.stdout cap is 262144 characters; metadata parses complete p.stdout, not a 16KiB cap",
     "limits": [
-      "dry-run may fetch candidate wheels for metadata, bounded by file/tmpfs limits",
-      "failure from limits or transport does not prove unsatisfiable dependencies",
-      "artifact report is not all-files downloaded/verified or installation readiness"
-    ],
-    "primary_verified_note": "actual host attach.stdout cap=262144 bytes; metadata parses complete p.stdout, correcting reviewer 16KiB statement"
+      "only timeout diagnostic patch; does not authorize repeated remote resolution",
+      "candidate version lock/environment/ABI/GPU not verified",
+      "historical failed attempt remains failed; timeout root cause unknown"
+    ]
   }
 }

@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 12:14现有pip26.1.1的dry-run解析3304fdcd/3f85133到原540秒后TimeoutExpired，业务失败、未安装/未产版本锁；不延长或重复服务器任务，不据此认定依赖无解或归因网络/回溯。运行中一次独立采样约86.75MiB/2GiB、CPU0.05%、3 PID（非峰值），无GPU；新SSH确认uv缺失及pip超时两run均容器空/timerinactive。实际暴露原超时异常分支未保存stdout/stderr，历史流无法追补，已明示缺口。现有body修正保留各32KiB原始base64/文本、总长度/截断标志及实际timeout，并在try前初始化计时避免早期pip --version超时掩盖原错；bodyed2d2190…的5项本机实际handler AST控制通过，旧失败/初版补丁均留history。未再远端执行；最新bodyed2d2190…限定超时诊断只读复审PASS，不批准重复远端解析。下一项评估本机已有UV0.11.28的Linux目标有界解析，不新装工具/环境；仍无兼容锁、安装预算/ABI或GPU准入。
+
 - 11/2 12:01真实resolver控制54543b10/0648dc1证实53f镜像无uv，约0.25秒业务失败并释放；未进行联网解析，不解释成依赖无解。最小整改改用已有pip install --dry-run --ignore-installed --no-cache-dir --no-compile --only-binary=:all:和report，不补装解析工具/环境；清配置/重试、相同root pins/RO wheel、64MiB临时空间及16MiB单文件/540-600-720-900秒预算。报告<=2MiB/包<=512、根版本断言，完整报告压缩及SHA回传，实际host attach上限262144B/metadata全量解析（已核并更正审阅附注16KiB误述）。hosta2ec6f89…/body4a298258…限定delta复审PASS，尚未执行。所有旧失败/候选保留，下载回退触限不代表依赖无解；不是安装/ABI或GPU准入。
 
 - 11/2下一必要CPU解析候选已只读审阅PASS：原53f镜像若存在uv，复用其pip compile；缺失即失败，不新装工具/环境。三份现有vllm/Torch/accelerate wheel只读及完整SHA，audio/vision官方cu129 URL/SHA固定；Transformers5.5.1及NumPy2.2.6为符合现有排除/Numba约束的明确候选，尚非已验兼容性。bridge仅依赖元数据，禁构建/配置/缓存/解释器下载，1CPU2GiB/tmpfs64MiB/单文件16MiB，解析540/内600/宿主guard720/整体900秒及18:50收口。hosta2ec6f89…/bodyef7630a9…，尚未执行。只能输出候选版本锁，不是完整artifact/安装预算、ABI或运行准入；若大包回退触发临时空间限制，不把它说成依赖无解。
