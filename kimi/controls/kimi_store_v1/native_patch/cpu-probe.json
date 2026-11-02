@@ -4412,6 +4412,225 @@
           "finished_utc": "2026-11-02T03:24:03.687278+00:00"
         }
       ]
+    },
+    {
+      "registered_utc": "2026-11-02T03:27:59.250063+00:00",
+      "code_commit": "620543c724065a10624c6536766e48ac37fded90",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "44fffe579c84e0d432afbd7de30f68d3b3510939c1adfae91a8fb48f124007cb",
+      "body_sha256": "051349f6448013d54db3a9687a6dd0bc0246db273caca9cebb663e2200670413",
+      "returncode": 0,
+      "stderr": "",
+      "events": [
+        {
+          "run_id": "kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T03:28:03.892680+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "container_id": "d72ec3d9a57f7554374b3c0823dffd88324797f60a30b942d71056318bfd93fe",
+          "guard_install": "Running timer as unit: kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7-cleanup.timer\nWill run service as unit: kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 6h 28min 41.820744s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force d72ec3d9a57f7554374b3c0823dffd88324797f60a30b942d71056318bfd93fe ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": true, \"device_nodes\": [], \"build_directory_present\": false, \"imports\": {\"_C\": {\"loaded\": true, \"file\": \"/artifacts/_C.so\", \"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\"}, \"_checkpoint_store\": {\"loaded\": true, \"file\": \"/artifacts/_checkpoint_store.so\", \"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\"}}, \"torch_version\": \"2.10.0+cu129\", \"torch_cuda\": \"12.9\", \"support_dependency\": {\"name\": \"accelerate\", \"version\": \"1.12.0\", \"origin\": \"/dependencies/accelerate.whl/accelerate/__init__.py\", \"wheel_sha256\": \"3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11\", \"installed\": false}, \"native_binding\": {\"passed\": true, \"proof\": {\"build_receipt_sha256\": \"1c78c8c1871edd3adcad0ab0b60ee59a171b997627aab71a3c61e91cb8bd9c68\", \"checkpoint_module_origin_checked\": true, \"checkpoint_library_on_disk_verified\": true, \"checkpoint_mapping\": {\"pid\": 7, \"device_major\": 259, \"device_minor\": 0, \"inode\": 3273232423, \"file_bytes\": 395376, \"file_sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\", \"executable_segments\": 1, \"maps_sha256\": \"df949e2bf4f0140383b39c90ed89d4abdf243f5de48e9b726a2e78b43f42e365\", \"mapped_inode_verified\": true, \"mapped_library_bytes_verified\": false, \"function_address_verified\": false}, \"checkpoint_mapped_inode_verified\": true, \"store_library_on_disk_verified\": true, \"mapped_library_bytes_verified\": false, \"live_store_process_verified\": false, \"native_loader_verified\": false, \"runtime_admitted\": false}, \"negative_controls\": {\"external_hash\": \"Store build receipt digest differs\", \"not_compiled\": \"compiled IPC-close patch receipt required\", \"store_hash\": \"Store library on disk differs from bound build\"}, \"temporary_python_source_bytes\": 139359, \"source_files\": {\"auxiliary_manifest.py\": {\"bytes\": 2768, \"sha256\": \"77976230674a812d38326cb219fcb1a2484d49de9d3b89987ed97f1ffb6ad879\"}, \"buffer_codec.py\": {\"bytes\": 5177, \"sha256\": \"4392ee0f0da7a5e98b7937ba52f9bf147adf54501db34607cafe50cbeb287b9e\"}, \"checkpoint_contract.py\": {\"bytes\": 3336, \"sha256\": \"01bbe956d145519c6b01578f6fe1fc62906f8ac751e52801037c8238807d753f\"}, \"contract.py\": {\"bytes\": 4074, \"sha256\": \"93d9e8d33b5aac9f9dda2f9315e7bd47e9e920848658594d8f3b212e193f15a3\"}, \"cpu_restore.py\": {\"bytes\": 8628, \"sha256\": \"6536b581b68d3d10bd21e828cd769f0475388f52871d05c2c8bc1027edc477d7\"}, \"cpu_tensor_io.py\": {\"bytes\": 4710, \"sha256\": \"6005573103eea2369df20c3d94c94827bd61ade13a1fb0fc00d537d7abb9d958\"}, \"expert_mapping.py\": {\"bytes\": 2215, \"sha256\": \"ae930f768902957b5e8df5e0d926db5d94e05689a8b089736053b97bcd94ea17\"}, \"marlin_aux.py\": {\"bytes\": 6152, \"sha256\": \"fc0d23a2f98b126e1c2507d12ef72079512a37f9db2affb2bafdca570512dd47\"}, \"native_call.py\": {\"bytes\": 11342, \"sha256\": \"e645c2eadd55d87c0dc4175895e7d76c6f26eb16d9a5d9de9e62c6de14cd9d29\"}, \"native_index.py\": {\"bytes\": 8855, \"sha256\": \"9f739fcf4a40c6824d88dabf648de99d84a23a7e993ecec3d0279a507ebd63a0\"}, \"native_record_call.py\": {\"bytes\": 29929, \"sha256\": \"da1bc7c70465976f29fb4d188a7cd08534ace599d5bc60f312ac0a91beae4d7a\"}, \"nonexpert_mapping.py\": {\"bytes\": 4702, \"sha256\": \"9c21922593ac9bf794171519720c76ba63c40d8c748309e301aa7d2a787101cd\"}, \"rank_export.py\": {\"bytes\": 7239, \"sha256\": \"727b85695fef721b2db7b6803bf5565cbfb55998affbe4c1a07474e7d8f74bda\"}, \"record_allocations.py\": {\"bytes\": 8380, \"sha256\": \"383d519d5214d59ccd6e5477e54987ea1bc2273f0a402843c4ad1967521509fa\"}, \"runtime_inventory.py\": {\"bytes\": 6376, \"sha256\": \"960bd0ce457bb5df7e496211ae8c3fdf87bb3850c2ff03c1bb30486fcee57111\"}, \"state_bindings.py\": {\"bytes\": 1813, \"sha256\": \"a8e3341ea84a1b41790ad468ba56b0f6c5227a6f1b45ca1654754af4270cdd2b\"}, \"state_devices.py\": {\"bytes\": 840, \"sha256\": \"700ab580e547baaa4f8ddadb95de71abad36a9a62f4d43d113c8433b3a9a1bd2\"}, \"stream_writer.py\": {\"bytes\": 5546, \"sha256\": \"2cfb4f9367985a095d5608581d46cfa9e4baffb135475ae506cbfa72271e6175\"}, \"vllm_cpu_hook.py\": {\"bytes\": 5224, \"sha256\": \"2fae40f80681f8923e643171b1377c34dafcae0ee35b5622f6028ee2093528f8\"}, \"native_torch.py\": {\"bytes\": 5752, \"sha256\": \"a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9\"}, \"native_client.py\": {\"bytes\": 6301, \"sha256\": \"e33fb8ca82969dada13ea4e2905530ec6e9741f83dfc6fc33ca067d750ab04c4\"}}, \"build_receipt\": {\"schema\": \"kimi-independent-native-build-v1\", \"compiled_native_store\": true, \"model_source_sha256\": \"49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353\", \"checkpoint_library_sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\", \"store_library_path\": \"/artifacts/_checkpoint_store.so\", \"store_library_sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\", \"build_code_commit\": \"00c3de89a936c3e51c14537e0c99a665408abead\", \"build_run_id\": \"kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea\", \"image\": \"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"}, \"scope\": \"real Python wrappers and actual C builtin module/mapped inode identity only; no client/allocator/CUDA call, no live Store\"}, \"cuda_initialized\": false}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T03:28:04.006577305Z",
+            "FinishedAt": "2026-11-02T03:28:08.109911509Z"
+          },
+          "passed": true,
+          "metadata": {
+            "passed": true,
+            "device_nodes": [],
+            "build_directory_present": false,
+            "imports": {
+              "_C": {
+                "loaded": true,
+                "file": "/artifacts/_C.so",
+                "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+              },
+              "_checkpoint_store": {
+                "loaded": true,
+                "file": "/artifacts/_checkpoint_store.so",
+                "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+              }
+            },
+            "torch_version": "2.10.0+cu129",
+            "torch_cuda": "12.9",
+            "support_dependency": {
+              "name": "accelerate",
+              "version": "1.12.0",
+              "origin": "/dependencies/accelerate.whl/accelerate/__init__.py",
+              "wheel_sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11",
+              "installed": false
+            },
+            "native_binding": {
+              "passed": true,
+              "proof": {
+                "build_receipt_sha256": "1c78c8c1871edd3adcad0ab0b60ee59a171b997627aab71a3c61e91cb8bd9c68",
+                "checkpoint_module_origin_checked": true,
+                "checkpoint_library_on_disk_verified": true,
+                "checkpoint_mapping": {
+                  "pid": 7,
+                  "device_major": 259,
+                  "device_minor": 0,
+                  "inode": 3273232423,
+                  "file_bytes": 395376,
+                  "file_sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864",
+                  "executable_segments": 1,
+                  "maps_sha256": "df949e2bf4f0140383b39c90ed89d4abdf243f5de48e9b726a2e78b43f42e365",
+                  "mapped_inode_verified": true,
+                  "mapped_library_bytes_verified": false,
+                  "function_address_verified": false
+                },
+                "checkpoint_mapped_inode_verified": true,
+                "store_library_on_disk_verified": true,
+                "mapped_library_bytes_verified": false,
+                "live_store_process_verified": false,
+                "native_loader_verified": false,
+                "runtime_admitted": false
+              },
+              "negative_controls": {
+                "external_hash": "Store build receipt digest differs",
+                "not_compiled": "compiled IPC-close patch receipt required",
+                "store_hash": "Store library on disk differs from bound build"
+              },
+              "temporary_python_source_bytes": 139359,
+              "source_files": {
+                "auxiliary_manifest.py": {
+                  "bytes": 2768,
+                  "sha256": "77976230674a812d38326cb219fcb1a2484d49de9d3b89987ed97f1ffb6ad879"
+                },
+                "buffer_codec.py": {
+                  "bytes": 5177,
+                  "sha256": "4392ee0f0da7a5e98b7937ba52f9bf147adf54501db34607cafe50cbeb287b9e"
+                },
+                "checkpoint_contract.py": {
+                  "bytes": 3336,
+                  "sha256": "01bbe956d145519c6b01578f6fe1fc62906f8ac751e52801037c8238807d753f"
+                },
+                "contract.py": {
+                  "bytes": 4074,
+                  "sha256": "93d9e8d33b5aac9f9dda2f9315e7bd47e9e920848658594d8f3b212e193f15a3"
+                },
+                "cpu_restore.py": {
+                  "bytes": 8628,
+                  "sha256": "6536b581b68d3d10bd21e828cd769f0475388f52871d05c2c8bc1027edc477d7"
+                },
+                "cpu_tensor_io.py": {
+                  "bytes": 4710,
+                  "sha256": "6005573103eea2369df20c3d94c94827bd61ade13a1fb0fc00d537d7abb9d958"
+                },
+                "expert_mapping.py": {
+                  "bytes": 2215,
+                  "sha256": "ae930f768902957b5e8df5e0d926db5d94e05689a8b089736053b97bcd94ea17"
+                },
+                "marlin_aux.py": {
+                  "bytes": 6152,
+                  "sha256": "fc0d23a2f98b126e1c2507d12ef72079512a37f9db2affb2bafdca570512dd47"
+                },
+                "native_call.py": {
+                  "bytes": 11342,
+                  "sha256": "e645c2eadd55d87c0dc4175895e7d76c6f26eb16d9a5d9de9e62c6de14cd9d29"
+                },
+                "native_index.py": {
+                  "bytes": 8855,
+                  "sha256": "9f739fcf4a40c6824d88dabf648de99d84a23a7e993ecec3d0279a507ebd63a0"
+                },
+                "native_record_call.py": {
+                  "bytes": 29929,
+                  "sha256": "da1bc7c70465976f29fb4d188a7cd08534ace599d5bc60f312ac0a91beae4d7a"
+                },
+                "nonexpert_mapping.py": {
+                  "bytes": 4702,
+                  "sha256": "9c21922593ac9bf794171519720c76ba63c40d8c748309e301aa7d2a787101cd"
+                },
+                "rank_export.py": {
+                  "bytes": 7239,
+                  "sha256": "727b85695fef721b2db7b6803bf5565cbfb55998affbe4c1a07474e7d8f74bda"
+                },
+                "record_allocations.py": {
+                  "bytes": 8380,
+                  "sha256": "383d519d5214d59ccd6e5477e54987ea1bc2273f0a402843c4ad1967521509fa"
+                },
+                "runtime_inventory.py": {
+                  "bytes": 6376,
+                  "sha256": "960bd0ce457bb5df7e496211ae8c3fdf87bb3850c2ff03c1bb30486fcee57111"
+                },
+                "state_bindings.py": {
+                  "bytes": 1813,
+                  "sha256": "a8e3341ea84a1b41790ad468ba56b0f6c5227a6f1b45ca1654754af4270cdd2b"
+                },
+                "state_devices.py": {
+                  "bytes": 840,
+                  "sha256": "700ab580e547baaa4f8ddadb95de71abad36a9a62f4d43d113c8433b3a9a1bd2"
+                },
+                "stream_writer.py": {
+                  "bytes": 5546,
+                  "sha256": "2cfb4f9367985a095d5608581d46cfa9e4baffb135475ae506cbfa72271e6175"
+                },
+                "vllm_cpu_hook.py": {
+                  "bytes": 5224,
+                  "sha256": "2fae40f80681f8923e643171b1377c34dafcae0ee35b5622f6028ee2093528f8"
+                },
+                "native_torch.py": {
+                  "bytes": 5752,
+                  "sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9"
+                },
+                "native_client.py": {
+                  "bytes": 6301,
+                  "sha256": "e33fb8ca82969dada13ea4e2905530ec6e9741f83dfc6fc33ca067d750ab04c4"
+                }
+              },
+              "build_receipt": {
+                "schema": "kimi-independent-native-build-v1",
+                "compiled_native_store": true,
+                "model_source_sha256": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
+                "checkpoint_library_sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864",
+                "store_library_path": "/artifacts/_checkpoint_store.so",
+                "store_library_sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5",
+                "build_code_commit": "00c3de89a936c3e51c14537e0c99a665408abead",
+                "build_run_id": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea",
+                "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8"
+              },
+              "scope": "real Python wrappers and actual C builtin module/mapped inode identity only; no client/allocator/CUDA call, no live Store"
+            },
+            "cuda_initialized": false
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T03:28:08.283203+00:00"
+        }
+      ]
     }
   ],
   "native_binding_accelerate_dependency": {
@@ -4672,5 +4891,104 @@
       "no live Store/CUDA/model admission",
       "record further dependency failure without expanded retries"
     ]
+  },
+  "native_binding_independent_verification": {
+    "recorded_utc": "2026-11-02T03:28:27.050830+00:00",
+    "returncode": 0,
+    "stdout": "{\"passed\": true, \"uid\": 2147, \"runs\": {\"kimi-native-bind-9a040d4d3d5f4c32b79eb4aad07931f9\": {\"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}, \"kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7\": {\"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}}, \"files\": {\"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/__init__.py\": {\"sha256\": \"43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59\", \"bytes\": 1394}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/torch.py\": {\"sha256\": \"5dc2b43d1a640d9f4cf8f7a9a0a7e5e909b474869c665c17963a14fa82d035f6\", \"bytes\": 5837}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/client.py\": {\"sha256\": \"8e2cbfe3f58c467a322e5cd4ef058ccaed5099966c3ba916a7597fef11a6bffe\", \"bytes\": 6799}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/device_map_utils.py\": {\"sha256\": \"d2ddf48d03f4d768b0306c44936d697cad8ad3d85dc10ad647a6cbe2dda481ac\", \"bytes\": 12242}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/utils.py\": {\"sha256\": \"3fd324e1bb2505624e44a9a7d70eeaa002e081363551fbe267675e6255ead216\", \"bytes\": 12480}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/logger.py\": {\"sha256\": \"bf368e2bb2b5aa3eaef723609a077a10283f9b8fa87c87bcb09d2c09373e9c44\", \"bytes\": 3256}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2.py\": {\"sha256\": \"f4eb37ba2fdbdf877db67f8659bcd2295e32066146b589283b253d5498757522\", \"bytes\": 5903}, \"/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2_grpc.py\": {\"sha256\": \"eb4fc40c1bd6adf9970a75fff0296515bda5d99998b972e14a1997098f03da87\", \"bytes\": 11689}, \"/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so\": {\"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\", \"bytes\": 395376}, \"/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so\": {\"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\", \"bytes\": 823584}, \"/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl\": {\"sha256\": \"3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11\", \"bytes\": 380935}}}\n",
+    "stderr": "",
+    "data": {
+      "passed": true,
+      "uid": 2147,
+      "runs": {
+        "kimi-native-bind-9a040d4d3d5f4c32b79eb4aad07931f9": {
+          "own_containers": "",
+          "timer": "ActiveState=inactive\n"
+        },
+        "kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7": {
+          "own_containers": "",
+          "timer": "ActiveState=inactive\n"
+        }
+      },
+      "files": {
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/__init__.py": {
+          "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59",
+          "bytes": 1394
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/torch.py": {
+          "sha256": "5dc2b43d1a640d9f4cf8f7a9a0a7e5e909b474869c665c17963a14fa82d035f6",
+          "bytes": 5837
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/client.py": {
+          "sha256": "8e2cbfe3f58c467a322e5cd4ef058ccaed5099966c3ba916a7597fef11a6bffe",
+          "bytes": 6799
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/device_map_utils.py": {
+          "sha256": "d2ddf48d03f4d768b0306c44936d697cad8ad3d85dc10ad647a6cbe2dda481ac",
+          "bytes": 12242
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/utils.py": {
+          "sha256": "3fd324e1bb2505624e44a9a7d70eeaa002e081363551fbe267675e6255ead216",
+          "bytes": 12480
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/logger.py": {
+          "sha256": "bf368e2bb2b5aa3eaef723609a077a10283f9b8fa87c87bcb09d2c09373e9c44",
+          "bytes": 3256
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2.py": {
+          "sha256": "f4eb37ba2fdbdf877db67f8659bcd2295e32066146b589283b253d5498757522",
+          "bytes": 5903
+        },
+        "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2_grpc.py": {
+          "sha256": "eb4fc40c1bd6adf9970a75fff0296515bda5d99998b972e14a1997098f03da87",
+          "bytes": 11689
+        },
+        "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so": {
+          "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864",
+          "bytes": 395376
+        },
+        "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so": {
+          "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5",
+          "bytes": 823584
+        },
+        "/data/brick1/boyjiang/kimi-k2.6/downloads/accelerate-1.12.0-py3-none-any.whl": {
+          "sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11",
+          "bytes": 380935
+        }
+      }
+    }
+  },
+  "native_binding_actual_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_CPU_RUNTIME_BINDING_ONLY",
+    "native_cpu_runtime_binding": true,
+    "run_id": "kimi-native-bind-44ef8ef8f8854efb86e68cef4c8699c7",
+    "code_commit": "620543c724065a10624c6536766e48ac37fded90",
+    "host_driver_sha256": "44fffe579c84e0d432afbd7de30f68d3b3510939c1adfae91a8fb48f124007cb",
+    "body_sha256": "051349f6448013d54db3a9687a6dd0bc0246db273caca9cebb663e2200670413",
+    "required_support": {
+      "name": "accelerate",
+      "version": "1.12.0",
+      "origin": "/dependencies/accelerate.whl/accelerate/__init__.py",
+      "wheel_sha256": "3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11",
+      "installed": false
+    },
+    "negative_controls": {
+      "external_hash": "Store build receipt digest differs",
+      "not_compiled": "compiled IPC-close patch receipt required",
+      "store_hash": "Store library on disk differs from bound build"
+    },
+    "compiled_native_store_flag_scope": "this probe performed no compilation; prior full build proof is separate",
+    "not_verified": [
+      "full functional ABI",
+      "mapped machine code bytes/function address",
+      "live Store",
+      "CUDA transfer",
+      "native restore",
+      "eight ranks",
+      "full checkpoint or model/service"
+    ],
+    "first_dependency_failure_preserved": true,
+    "cleanup_owed": false
   }
 }

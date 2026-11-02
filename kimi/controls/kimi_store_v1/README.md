@@ -4,6 +4,8 @@
 
 11/2 11:14原生CPU保存对照实际通过：run9c6b6ae6/codeba5c16c，原_C.save_tensors与未改stream_writer对5个canonical+1alias的packed INT4/int32、BF16/FP16/FP32有效位及offset一致；源shape/stride/dtype未改，两文件均8192B，未比较未定义padding。独立SSH完整/逐payload哈希、uid2147/mode0600和自身容器空/timer inactive均通过，只留原downloads内8KiB证据。限定实际只读复审允许native_cpu_save_comparison=true，不证明native index、原生恢复、CUDA、八rank/完整模型/服务；CUDA未初始化。原始错误候选和NEEDS_FIX保留。原生writer申请1GiB虚拟buffer，Python单块上限8MiB；本次均未测RSS峰值。
 
+11/2 11:28真实CPU身份绑定通过：run44ef8ef8/code620543c，固定53f661镜像/994772cc及30132b6d两库，冻结wrapper及实际native_record_call._bound_runtime完成builtin归属、checkpoint映射inode和Store磁盘摘要核验；坏外部SHA、compiled=false及Store SHA三个负例实际拒绝。accelerate1.12.0仅从已核380935B只读wheel临时导入，未pip/改镜像或新环境；139359B必要源码仅容器/tmp临时存在，释放后消失。独立SSH核本次和首次缺accelerate失败run均容器空/timerinactive，8个GLM SDK文件及两库/wheel SHA不变。限定实际复审允许native_cpu_runtime_binding=true；mapped机器码/函数地址、完整功能ABI/liveStore、CUDA、原生恢复、八rank/完整模型/服务仍未验证。原失败保留，不复用本次临时receipt作为后续运行凭证。
+
 当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 历史本机构建预检（远端完整编译已于11/2通过，见上）：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
