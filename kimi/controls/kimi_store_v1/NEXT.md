@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2 10:50第一次完整native CPU build实际成功：配置/编译两target均0、两.so写出并在builder普通import成功、CUDA未初始化、无GPU、约72秒。完整33输入rawSHA/14源/命令/两个日志与库/receipt独立哈希已回取cpu-probe，自己的容器rm0/timer stop0且独立查询空。原_C SHA994772c…/_checkpoint_store SHA c122d36…，不修改旧失败或GLM。独立ELF发现_checkpoint_store依赖libglog.so.1及/tmp/_deps/glog-build：这次仅证明builder内成功，不能当部署产物通过。
+- 必要最小修正仅原CMake命令追加BUILD_SHARED_LIBS=OFF和CMAKE_POSITION_INDEPENDENT_CODE=ON，链接静态glog；已有body加readelf拒绝/tmp/和共享glog依赖，原真实ELF负例及readelf失败控制通过。新body7d63f1a…、host不变f860861…只读限定复审PASS。下一项这一次必要重编译，随后必须在无构建目录的新CPU容器只挂载产物做普通import，ELF gate不代替新容器验收。尚未执行修订，不称liveStore/八rank/GPU/服务通过。
+
 - 完整CPU native构建执行候选已接入原cpu-probe控制而非新增工具：hostf860861…/body876bf1e…，源码31项+实际两配方raw SHA+14编译源覆盖、两个已钉tar、53f661ba镜像；原SDK与补丁/依赖只读、5个独占单文件输出落原downloads；uid2147/1CPU8GiB/无GPU网络、线程1、原容器/tmp临时build、FSIZE256MiB/core0。configure180/build1080秒，payload1440/timer1620/host1800秒，单并发两个原target后普通extension import；库SHA/完整原始log/receipt独立保留，configure生成不算编译成功。初审要求配方绑定已修复且保留原NEEDS_FIX；actual AST摘要正反控制/实际regexp14通过，限定静态复审PASS只准本次CPU build/import，不是liveStore或GPU批准。当前尚未实际执行。
 
 - 11/2 10:39源码/构建输入已闭环推进：现有SDK 31个C++输入30个LF相同，仅model.cpp需只读叠加49b2；21178B补丁排他传到原downloads/kimi-native-model.cpp并实核SHA，不复制SDK/改GLM。glog v0.6.0已实解commit b33e3bad4c46c8a6345525fd822af355e5ef9446；它和已钉gtest b796f7d…归档共1057536B已下载原downloads，SHA/安全成员/解包合计4775586B均记录cpu-probe.native_build_dependency_archives，尚未解包/编译。现有SDK无build/_deps缓存；53f661ba镜像仍在。下一项直接编排受审原CMake执行body，不重下/另造启动框架：原SDK+单文件overlay只读、原/tmp临时构建、依赖本地解包+FULLY_DISCONNECTED、两个原target单并发、线程1，完整日志/target架构/库SHA与普通CPU导入。具体约束见WORKER-PLAN；当前仍compiled_native_store=false，不把准备完成当完整编译通过。
