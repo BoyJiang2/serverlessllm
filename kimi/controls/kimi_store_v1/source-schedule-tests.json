@@ -664,5 +664,26 @@
         "test_source_schedule.py": "555fb10ea8ff604c1d81d3af774e2b545d7188fb0544887d366b96eec53f310c"
       }
     }
+  ],
+  "p0_release_anchor_regressions": [
+    {
+      "scope": "review regression on unchanged old production code",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "F\n======================================================================\nFAIL: test_p0_release_observation_requires_full_60_seconds_and_retains_guard_cost (test_source_schedule.SourceScheduleTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_schedule.py\", line 1464, in test_p0_release_observation_requires_full_60_seconds_and_retains_guard_cost\n    self.assertGreaterEqual(samples[-1]-samples[0],60)\nAssertionError: 46.0 not greater than or equal to 60\n\n======================================================================\nFAIL: test_p0_release_observation_refuses_residue_clock_and_unproven_delete (test_source_schedule.SourceScheduleTests) (kind='slow_initial_budget')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_schedule.py\", line 1559, in test_p0_release_observation_refuses_residue_clock_and_unproven_delete\n    with self.assertRaises((ValueError,TimeoutError,RuntimeError)):\nAssertionError: (<class 'ValueError'>, <class 'TimeoutError'>, <class 'RuntimeError'>) not raised\n\n----------------------------------------------------------------------\nRan 2 tests in 0.475s\n\nFAILED (failures=2)\n",
+      "elapsed_seconds": 0.6984829640005046
+    },
+    {
+      "scope": "anchor after first valid snapshot; original budget preserved; slow first sample and insufficient tail covered",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "...............................................................................................................\n----------------------------------------------------------------------\nRan 111 tests in 6.427s\n\nOK\n",
+      "elapsed_seconds": 6.644952648999606,
+      "actual_wait_60_seconds": false,
+      "sha256": {
+        "source_schedule.py": "1097358f38c435010eec309d86e6e40e62dd7c3dd9fdb71222f854132ab96dce",
+        "test_source_schedule.py": "befe11a5e2c3f15f5883a6067ad24a760880f85cd13e1ffdd4b615367dca39fb"
+      }
+    }
   ]
 }

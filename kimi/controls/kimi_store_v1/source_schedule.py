@@ -1270,6 +1270,7 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
                         if member not in state['owned_processes']:state['owned_processes'].append(member)
                     if len(state['owned_processes'])>128:
                         raise ValueError('P0 lifetime process inventory exceeds bound')
+                    # Complete current snapshot; polling does not enumerate every past child.
                     state['process_inventory_complete']=True
                 else:state['process_inventory_complete']=False
                 stats=command(['stats','--no-stream','--no-trunc','--format','{{json .}}',target['container_id']])
@@ -1404,7 +1405,7 @@ def observe_p0_release(target, schedule, cleanup, monitor, *, host_pid_namespace
         raise ValueError('P0 exact deletion and owned process inventory required before observation')
     state=dict(container_id=target['container_id'],sample_count=0,container_release_observation_verified=False,
         resources_released=False,guard_release_owed=True,runtime_admitted=False)
-    begin=time.monotonic();wall=datetime.now(timezone.utc)
+    begin,wall=None,None
     def remaining():
         return phase_remaining_seconds(schedule,'release_observe',entered=entered,
             elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
@@ -1418,7 +1419,11 @@ def observe_p0_release(target, schedule, cleanup, monitor, *, host_pid_namespace
             if (not isinstance(snapshot,dict) or any(snapshot.get(key) is not True for key in
                     ('container_absent','original_processes_absent','cgroup_absent','owned_mounts_absent','owned_gpu_processes_absent'))):
                 raise RuntimeError('P0 residual or unattributable resources; release unverified')
-            elapsed=time.monotonic()-begin;now=datetime.now(timezone.utc)
+            now=datetime.now(timezone.utc)
+            if begin is None:
+                begin,wall=time.monotonic(),now
+                if remaining()<60:raise TimeoutError('P0 first valid snapshot leaves less than 60 seconds')
+            elapsed=time.monotonic()-begin
             if now<wall:raise TimeoutError('P0 release observation clock regressed')
             if elapsed>=60 and (now-wall).total_seconds()>=60:
                 state.update(container_release_observation_verified=True,observation_seconds=elapsed)

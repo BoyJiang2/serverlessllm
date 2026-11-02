@@ -257,6 +257,23 @@
         "No complete driver/start, actual guard or release proof",
         "No P0/GPU/native Store/model/service approval"
       ]
+    },
+    {
+      "recorded_utc": "2026-11-02T15:21:25.396271+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "code_commit": "494a922fb17c0e1d11e232baa88b191435d84be2",
+      "verdict": "NEEDS_FIX_FIRST_VALID_SNAPSHOT_ANCHOR",
+      "sha256": {
+        "source_schedule.py": "3de9847dfb54f756a112fdc8e5370f855964622afa7b1904f050ad4b61a4ea76",
+        "test_source_schedule.py": "555fb10ea8ff604c1d81d3af774e2b545d7188fb0544887d366b96eec53f310c",
+        "source-schedule-tests.json": "36c3c4b1683f22fad435dd11dae21ec5ca34356d4732292490323041cce42ce7"
+      },
+      "finding": "Observation anchor set before first sample; snapshot collection time could reduce verified first-to-last span below60s",
+      "minimum_fix": "Anchor after first valid snapshot; original budget unchanged; add slow initial sample regression",
+      "limitations": [
+        "Poll inventory is accumulated observed members, not proof all short-lived children were recorded",
+        "No actual GPU/guard/60s proof"
+      ]
     }
   ],
   "followups": [

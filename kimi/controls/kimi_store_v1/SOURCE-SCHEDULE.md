@@ -179,3 +179,10 @@ monitor默认p0_process_snapshot只接受同一leaf cgroup前后稳定的成员�
 sample_p0_release只读精确CID absence、原进程、cgroup/mount残留及8卡NVML资源背景；旧PID复用或查询不到的NVML归属标为不足，不能转为“他人资源是本实验残留”。其他合法进程或全局Mlocked/Shmem/显存无需归零。P0不涉及Store池/RDMA，此证据不外推native MR/全模型释放。
 
 observe_p0_release复用原phase截止，monotonic及wall都达到60秒才可签container_release_observation_verified；sampling/归属/时钟/剩余预算失败保留原异常及清理义务。resources_released始终false，guard_release_owed保持true，等待完整driver停止并复核宿主守护/监控。CPU回归采用虚拟clock及明确host/Docker/NVML替身，没有实际GPU释放或60秒等待证据，也没有生产启动调用。
+
+
+### 首采样耗时的审阅整改
+
+494a922被独立审阅指出观察起点早于首份有效快照。新回归实际复现14秒首采样导致仅46秒有效跨度通过，以及采样后不足60秒仍通过；现将起点移至首份有效快照通过所有条件之后，并重新检查原phase余量至少60秒，不延长总预算。CPU虚拟clock测试不能代替实际60秒证据。
+
+process_inventory_complete仅表示已取得完整当前leaf快照；累积清单是观察到的成员，不代表所有短命进程都曾采到。释放须由容器/cgroup/mount/NVML联合证据支撑，不能仅相信该布尔。

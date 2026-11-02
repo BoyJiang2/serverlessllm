@@ -1452,7 +1452,9 @@ os._exit(0)
         cleanup=dict(container_id=target['container_id'],container_absence_verified=True)
         monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
         samples=[]
-        def sample(*args,**kwargs):samples.append(ticks[0]);return snapshot
+        def sample(*args,**kwargs):
+            if not samples:ticks[0]+=14
+            samples.append(ticks[0]);return snapshot
         with tempfile.TemporaryFile() as events,patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
                 patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),\
                 patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)):
@@ -1530,7 +1532,7 @@ os._exit(0)
                 self.assertFalse(result['resources_released'])
 
     def test_p0_release_observation_refuses_residue_clock_and_unproven_delete(self):
-        for kind in ('residue','clock','delete','missing','short_budget','wall_stall'):
+        for kind in ('residue','clock','delete','missing','short_budget','slow_initial_budget','wall_stall'):
             with self.subTest(kind=kind),tempfile.TemporaryFile() as events:
                 plan,receipt,target,_=self.p0_fixture()
                 entered=datetime.fromisoformat(plan['window_start'])
@@ -1549,9 +1551,14 @@ os._exit(0)
                     started=0
                     if kind=='short_budget':
                         started=59-(datetime.fromisoformat(schedule['phase_deadlines_utc']['release_observe'])-entered).total_seconds()
+                    if kind=='slow_initial_budget':
+                        started=73-(datetime.fromisoformat(schedule['phase_deadlines_utc']['release_observe'])-entered).total_seconds()
+                    def sample(*args,**kwargs):
+                        if kind=='slow_initial_budget' and ticks[0]==0:ticks[0]+=14
+                        return snapshot
                     with self.assertRaises((ValueError,TimeoutError,RuntimeError)):
                         schedule_module.observe_p0_release(target,schedule,cleanup,monitor,
-                            host_pid_namespace=42,entered=entered,started=started,events=events,sample=lambda *a,**kw:snapshot)
+                            host_pid_namespace=42,entered=entered,started=started,events=events,sample=sample)
 
     def test_p0_monitor_rejects_oom_failed_exit_and_unstarted_target(self):
         plan,receipt,target,info=self.p0_fixture()
