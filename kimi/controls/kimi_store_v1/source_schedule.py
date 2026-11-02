@@ -1107,6 +1107,76 @@ def materialize_p0_guard_inputs(worker_input_path, worker_input_sha256, create_e
         raise
 
 
+def verify_p0_component_output(receipt, worker_input, schedule, stdout):
+    """Consume output against already verified inputs; no exit or GPU provenance proof."""
+    from source_bundle import _p0_identity
+    from vllm_export_hook import _metadata_stream
+    identity=_p0_identity(dict(run_id=receipt['run_id'],holder=receipt['holder'],
+        code_commit=receipt['code_commit'],spec_sha256=receipt['spec_sha256'],
+        source_manifest_sha256=receipt['manifest_sha256']))
+    def unique(pairs):
+        result={}
+        for key,value in pairs:
+            if key in result:raise ValueError('duplicate P0 output field')
+            result[key]=value
+        return result
+    if not isinstance(stdout,bytes) or not stdout.endswith(b'\n') or len(stdout)>65536:
+        raise ValueError('complete P0 stdout must fit 64KiB')
+    result=json.loads(stdout,object_pairs_hook=unique)
+    fixed=dict(identity,gpu_uuid=receipt['gpu_uuid'],stage='returned',mode=P0_PURPOSE,
+        payload_bytes=40,max_payload_bytes=receipt['max_payload_bytes'],allocator='torch')
+    flags=dict(child_start_attempted=True,torch_cuda_ipc_verified=True,native_loader_verified=False,
+        store_created=False,full_model_verified=False,resources_released=False,runtime_admitted=False,guard_verified=False)
+    keys=set(fixed)|set(flags)|{'producer_pid','consumer_pid','child_exitcode','cleanup_errors','before','after','elapsed_seconds'}
+    if (not isinstance(result,dict) or set(result)!=keys
+            or any(result.get(key)!=value for key,value in fixed.items())
+            or any(result.get(key) is not value for key,value in flags.items())
+            or any(type(result[name]) is not int or result[name]<=0 for name in ('producer_pid','consumer_pid'))
+            or result['producer_pid']==result['consumer_pid']
+            or type(result['child_exitcode']) is not int or result['child_exitcode']!=0
+            or result['cleanup_errors']!=[] or type(result['payload_bytes']) is not int
+            or type(result['max_payload_bytes']) is not int
+            or type(result['elapsed_seconds']) not in (int,float) or not math.isfinite(result['elapsed_seconds'])
+            or not 0<=result['elapsed_seconds']<receipt['component_max_seconds']):
+        raise ValueError('P0 output identity, lifecycle or finite limits differ')
+    # Independent forty-byte challenge reference, usable by the host without Torch.
+    payload=dict(packed=struct.pack('<4i',-1,-2147483648,0x01234567,0),
+        scale=struct.pack('<4H',0x8000,0x7fc1,0,0x3f80),
+        router=struct.pack('<4i',-2147483648,2143289345,1065353216,0),empty=b'')
+    before={name:hashlib.sha256(raw).hexdigest() for name,raw in payload.items()}
+    after=dict(before,packed=hashlib.sha256(struct.pack('<4i',0x13579bdf,-2147483648,0x01234567,0)).hexdigest())
+    if result['before']!=before or result['after']!=after:
+        raise ValueError('P0 expected packed/scale/router/empty raw fingerprints differ')
+    path=Path(receipt['run_root'])/'p0-component-events.jsonl'
+    with _metadata_stream(path) as stream:raw=stream.read(32769)
+    if len(raw)>32768 or not raw.endswith(b'\n') or len(raw.splitlines())!=2:
+        raise ValueError('exact complete bounded P0 component events required')
+    rows=[json.loads(line,object_pairs_hook=unique) for line in raw.splitlines()]
+    stamp=_utc(worker_input['batch_entered_utc'])
+    for stage,row in zip(('inputs_verified','component_returned'),rows):
+        if (not isinstance(row,dict) or set(row)!=set(identity)|{'schema','stage','details','runtime_admitted','observed_utc'}
+                or any(row.get(key)!=value for key,value in identity.items())
+                or row.get('schema')!='kimi-p0-component-events-v1' or row.get('stage')!=stage
+                or row.get('runtime_admitted') is not False):
+            raise ValueError('P0 event identity or stage differs')
+        observed=_utc(row['observed_utc'])
+        if not stamp<=observed<_utc(schedule['guard_fire_by_utc']):
+            raise ValueError('P0 event clock or original deadline differs')
+        stamp=observed
+    component={key:value for key,value in result.items() if key not in
+        ('code_commit','spec_sha256','source_manifest_sha256','guard_verified')}
+    expected=dict(worker_input_sha256=receipt['worker_input_sha256'],plan_sha256=worker_input['plan_sha256'],
+        gpu_uuid=receipt['gpu_uuid'],image_id=receipt['image_id'],
+        original_guard_fire_by_utc=schedule['guard_fire_by_utc'],guard_verified=False)
+    def exact(document):return json.dumps(document,sort_keys=True,allow_nan=False)
+    if (exact(rows[0]['details'])!=exact(expected)
+            or exact(rows[1]['details'])!=exact(dict(component=component,resources_released=False))):
+        raise ValueError('P0 events and frozen inputs/stdout differ')
+    return dict(identity,worker_output_verified=True,stdout_sha256=hashlib.sha256(stdout).hexdigest(),
+        events_sha256=hashlib.sha256(raw).hexdigest(),component=result,
+        torch_cuda_ipc_verified=False,resources_released=False,runtime_admitted=False)
+
+
 def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invocation_id,
                       events, guard_probe, docker=_guard_docker, process_probe=guard_process):
     """Internal monitor only: no start, admission, component validation or release."""

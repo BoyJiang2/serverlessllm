@@ -1,3 +1,10 @@
+## 当前追加：P0输出验收消费者完成CPU接线，完整运行仍未准入
+
+- 仅修改已有source_schedule.py及两份现有测试；verify_p0_component_output消费已核输入receipt、两条完整有界事件及stdout，核冻结身份、GPU/image/输入SHA/原guard截止、producer/consumer身份与成功退出、40字节packed/BF16 scale/F32/empty前后固定挑战摘要及全部失败/范围标志。不依赖host Torch。
+- 通过已有Torch CPU transport控制，实际run_cuda_ipc_component_probe结果经实际p0_main事件/stdout序列化再被新host消费者接受；设备、通信、input verifier是明确替身。消费者返回worker_output_verified，不把自报或CPU数据升为实际CUDA、exit provenance、release或runtime准入。
+- 新负例实际发现Python dict比较允许事件的数字0冒充false；保留09e610失败并改为严格规范JSON比较，未放宽校验。重复key、截断/超长输出与事件、错误身份/原始位/子退出/时间/清理错误均拒绝。107项WSL schedule/bundle 6.071秒、8项既有Windows Torch CPU 0.078秒通过；缺NumPy警告原样保存，不为本测试安装环境。原baseline与stdout/stderr在原tests JSON，未创建新目录或下载资产。
+- 仍未接生产启动调用、真实资源/窗口审阅准入、合法system-manager提交及实际probe、删除后60秒完整归属观察。新消费者不替代这几项，不是P0/GPU模型或Store通过。目录例外答复仍待，不在checkpoint/downloads写运行树。
+
 ## 当前追加：P0连续监控已有内部组件，尚未接完整入口
 
 当前代码a4291f2已push核远端，独立只读复审PASS_CPU_STATIC_MONITOR_COMPONENT_ONLY且三文件SHA实核；审阅记录追加原JSON。不得将此局部审阅沿用于尚未写出的完整driver或GPU。

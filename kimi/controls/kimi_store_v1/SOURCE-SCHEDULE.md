@@ -165,3 +165,8 @@ _capture的新本地实际CPU故障控制发现：旧版本读取直到timeout�
 `monitor_p0_target`复用原component绝对截止，调用者必须传原batch进入时刻/monotonic起点和真实独立service probe；它不创建、启动、停止、删除容器，也不授予资源或运行准入。逐轮绑定nonce、InvocationID、boot/UID/完整容器身份和固定profile，活跃进程身份必须稳定；`docker stats --no-stream --no-trunc`仅接受同一完整CID。事件保留原始State、CPU/memory等Docker字符串；不是NVML/匿名内存/锁页归属的完整监控。
 
 异常带p0_monitor_receipt及cleanup_owed=true退出，写证据失败也保留原错。只见exit0仅container_exited=true；worker原始结果/IPC位模式验证与删除后60秒观察尚须完整driver接线，不能把该返回值当资源释放或完整P0通过。现无生产调用/CLI，当前未准入。106项CPU回归见原tests JSON，显式mock边界见NEXT。
+
+
+## P0输出验收消费者
+
+`verify_p0_component_output`要求已核的worker输入/receipt与原schedule；它对64KiB stdout及32KiB两行事件做完整性、重复字段、冻结身份/时限、有限数值及固定40字节挑战核验，并核实际序列化的事件详情与stdout严格相同（数字0不能冒充false）。原始位参考由host标准库计算，不载入Torch或模型。返回两份证据SHA与worker_output_verified；这仅是输出内容验收，不能证明输出来自实际受守护进程、CUDA执行或已释放，完整driver仍须绑定同一容器/真实退出/资源证明。现有Torch CPU测试覆盖实际worker序列化到消费者，CUDA/transport为替身，不能当GPU结果。

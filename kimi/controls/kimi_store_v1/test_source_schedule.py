@@ -1371,6 +1371,64 @@ os._exit(0)
         self.assertEqual(result['process']['start_ticks'],42)
         self.assertEqual([row[0] for row in calls],['inspect','stats','inspect'])
 
+    def test_p0_output_consumer_binds_bits_identity_events_and_explicit_limits(self):
+        plan,receipt,target,_=self.p0_fixture()
+        identity=target['identity']
+        receipt.update(run_root='',worker_input_sha256='f'*64,max_payload_bytes=40)
+        payload=dict(packed=bytes.fromhex('ffffffff000000806745230100000000'),
+            scale=bytes.fromhex('0080c17f0000803f'),router=bytes.fromhex('000000800100c07f0000803f00000000'),empty=b'')
+        before={name:hashlib.sha256(raw).hexdigest() for name,raw in payload.items()}
+        after=dict(before,packed=hashlib.sha256(bytes.fromhex('df9b5713000000806745230100000000')).hexdigest())
+        component=dict(run_id=receipt['run_id'],holder=receipt['holder'],gpu_uuid=receipt['gpu_uuid'],
+            stage='returned',mode=schedule_module.P0_PURPOSE,payload_bytes=40,max_payload_bytes=40,
+            allocator='torch',producer_pid=10,consumer_pid=11,child_start_attempted=True,child_exitcode=0,
+            cleanup_errors=[],torch_cuda_ipc_verified=True,native_loader_verified=False,store_created=False,
+            full_model_verified=False,resources_released=False,runtime_admitted=False,
+            before=before,after=after,elapsed_seconds=1.25)
+        inputs=dict(plan_sha256='9'*64,batch_entered_utc=plan['window_start'])
+        schedule=schedule_module.p0_schedule(plan,receipt,now=datetime.fromisoformat(plan['window_start']))
+        first=dict(identity,schema='kimi-p0-component-events-v1',stage='inputs_verified',runtime_admitted=False,
+            observed_utc=plan['window_start'],details=dict(worker_input_sha256='f'*64,
+            plan_sha256=inputs['plan_sha256'],gpu_uuid=receipt['gpu_uuid'],image_id=receipt['image_id'],
+            original_guard_fire_by_utc=schedule['guard_fire_by_utc'],guard_verified=False))
+        second=dict(first,stage='component_returned',details=dict(component=component,resources_released=False))
+        output=dict(component,code_commit=receipt['code_commit'],spec_sha256=receipt['spec_sha256'],
+            source_manifest_sha256=receipt['manifest_sha256'],guard_verified=False)
+        with tempfile.TemporaryDirectory() as temp:
+            receipt['run_root']=temp;path=Path(temp)/'p0-component-events.jsonl'
+            def verify(document,rows):
+                path.write_bytes(b''.join((json.dumps(row)+'\n').encode() for row in rows))
+                return schedule_module.verify_p0_component_output(receipt,inputs,schedule,
+                    (json.dumps(document)+'\n').encode())
+            result=verify(output,[first,second])
+            self.assertTrue(result['worker_output_verified'])
+            self.assertFalse(result['runtime_admitted']);self.assertFalse(result['resources_released'])
+            for kind in ('identity','bits','exit','pid','cleanup','limit','nonfinite','missing_event','event_identity','event_time','event_details','event_flag'):
+                with self.subTest(kind=kind):
+                    document=copy.deepcopy(output);rows=copy.deepcopy([first,second])
+                    if kind=='identity':document['code_commit']='0'*40
+                    elif kind=='bits':document['after']['scale']='0'*64
+                    elif kind=='exit':document['child_exitcode']=137
+                    elif kind=='pid':document['consumer_pid']=True
+                    elif kind=='cleanup':document['cleanup_errors']=['unknown']
+                    elif kind=='limit':document['max_payload_bytes']=41
+                    elif kind=='nonfinite':document['elapsed_seconds']=float('nan')
+                    elif kind=='missing_event':rows.pop()
+                    elif kind=='event_identity':rows[1]['holder']='0'*32
+                    elif kind=='event_time':rows[1]['observed_utc']='2027-01-01T00:00:00Z'
+                    elif kind=='event_details':rows[1]['details']['component']['producer_pid']=99
+                    elif kind=='event_flag':rows[1]['details']['resources_released']=0
+                    with self.assertRaises(ValueError):verify(document,rows)
+            verify(output,[first,second])
+            encoded=(json.dumps(output)+'\n').encode()
+            for raw in (encoded[:-1],b'x'*65537,encoded.replace(b'"producer_pid": 10',b'"producer_pid": 10, "producer_pid": 10')):
+                with self.assertRaises(ValueError):
+                    schedule_module.verify_p0_component_output(receipt,inputs,schedule,raw)
+            for raw in (path.read_bytes()[:-1],b'x'*32769):
+                path.write_bytes(raw)
+                with self.assertRaises(ValueError):
+                    schedule_module.verify_p0_component_output(receipt,inputs,schedule,encoded)
+
     def test_p0_monitor_rejects_missing_guard_before_inspect_and_retains_cleanup_obligation(self):
         plan,receipt,target,_=self.p0_fixture()
         entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)

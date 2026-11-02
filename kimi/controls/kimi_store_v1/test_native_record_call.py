@@ -279,6 +279,30 @@ class P0ComponentTests(unittest.TestCase):
         for name in ('runtime_admitted','store_created','native_loader_verified','full_model_verified','resources_released'):
             self.assertFalse(result[name])
 
+        # The actual worker serializer and host consumer must agree, still CPU-only.
+        from datetime import datetime,timedelta,timezone
+        import source_bundle
+        import source_schedule
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp).resolve();(root/'code').mkdir()
+            worker=root/'code/native_record_call.py';worker.write_text('# CPU worker path control')
+            now=datetime.now(timezone.utc)
+            identity=dict(run_id=result['run_id'],holder=result['holder'],code_commit='b'*40,
+                spec_sha256='c'*64,source_manifest_sha256='d'*64)
+            receipt=dict(identity,manifest_sha256='d'*64,run_root=str(root),gpu_uuid=result['gpu_uuid'],
+                image_id='sha256:'+'e'*64,max_payload_bytes=40,component_max_seconds=30,worker_input_sha256='f'*64)
+            inputs=dict(schema='kimi-p0-worker-input-v1',plan_sha256='1'*64,batch_entered_utc=now.isoformat())
+            schedule=dict(guard_fire_by_utc=(now+timedelta(seconds=30)).isoformat())
+            bound=(root/'p0-worker-input.json',root,inputs,receipt,schedule,identity)
+            with patch.object(call,'__file__',str(worker)),\
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),\
+                    patch.object(call,'run_cuda_ipc_component_probe',return_value=result),\
+                    patch('sys.stdout',new_callable=io.StringIO) as output:
+                call.p0_main(['--worker-input',str(root/'p0-worker-input.json'),'--worker-input-sha','f'*64])
+            consumed=source_schedule.verify_p0_component_output(receipt,inputs,schedule,output.getvalue().encode())
+            self.assertTrue(consumed['worker_output_verified'])
+            self.assertFalse(consumed['torch_cuda_ipc_verified'])
+
     def test_parent_failure_controls_keep_owners_and_only_stop_owned_consumer(self):
         import torch.multiprocessing as mp
         for kind in ('wrong_before','not_shared','timeout','child_error','close_error','unkillable'):

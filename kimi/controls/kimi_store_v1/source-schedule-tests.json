@@ -596,5 +596,42 @@
       "gpu_started": false,
       "runtime_admitted": false
     }
+  ],
+  "p0_output_regressions": [
+    {
+      "scope": "P0 output consumer CPU; no GPU/exit/runtime provenance promotion",
+      "baselines": [
+        {
+          "result": "consumer absent AttributeError",
+          "tool_chunk": "4de626"
+        },
+        {
+          "result": "numeric 0 incorrectly accepted in event boolean field",
+          "tool_chunk": "09e610"
+        }
+      ],
+      "gpu_started": false,
+      "attempts": [
+        {
+          "label": "WSL schedule+bundle",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": "...........................................................................................................\n----------------------------------------------------------------------\nRan 107 tests in 6.071s\n\nOK\n",
+          "elapsed_seconds": 6.302337077999255
+        },
+        {
+          "label": "existing Windows Torch CPU P0",
+          "returncode": 0,
+          "stdout": "",
+          "stderr": "D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-cpu-tests-env\\Lib\\site-packages\\torch\\_subclasses\\functional_tensor.py:283: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\pytorch\\torch\\csrc\\utils\\tensor_numpy.cpp:84.)\n  cpu = _conversion_method_template(device=torch.device(\"cpu\"))\n........\n----------------------------------------------------------------------\nRan 8 tests in 0.078s\n\nOK\n",
+          "elapsed_seconds": 1.6040080809998472
+        }
+      ],
+      "sha256": {
+        "source_schedule.py": "0569d730903ae65468641f2795020f0143ddc45b7b3e9ec588514b79d3b3893f",
+        "test_source_schedule.py": "d1004b189d7c18781323ed5b7ce8c47fbf2614b83fa0719d4f63abf3f986b98c",
+        "test_native_record_call.py": "0bd2964db2aea7b223ba3c84c6019da11e2e8b98776ef8bddd63f4286b321aea"
+      }
+    }
   ]
 }
