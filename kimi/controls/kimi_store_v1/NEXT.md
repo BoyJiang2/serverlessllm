@@ -1,3 +1,7 @@
+## 11/3 02:10配置条件审阅通过，下一步实际有界准备
+
+独立PASS_P0_CONFIGURATION_CONDITIONAL已核实际spec a2c6b2cb…/plan211b4c0e…/修订prelude15f5438c…，仅当前40B/1GPU控制，非TP8/Store/模型/正式批准。可开始一次有界部署元数据；任何远端准备前须先实核本地timeout/REPL身份PGID并从父开始推算全批1800最后截止。每步只用原remaining，启动需>=1205+60。源码844及完整178manifest b2f75414…不改。实际resource/window、部署bytes、独立guard/probe通过后才GPU start，runtime_approved继续false直到实际准入。
+
 ## 11/3 02:08最小外层方案：直接复用现有bash+GNUtimeout，不新写执行框架
 
 已选1795秒TERM+5秒KILL=整批1800硬界，现有WSL bash16786内固定python3 -B -E -s -u -i；实际首次记录父timeout PID/start/boot/PGID并从父开始推算最终deadline，部署/配置/SSH启动/独立取证均只用同一remaining。不在driver之后新加600；启动driver前至少1205+60剩余（其中driver已含60s观察）。只有方案审阅可接受，实际配置最终结论及首次outer记录尚待，不ready。
