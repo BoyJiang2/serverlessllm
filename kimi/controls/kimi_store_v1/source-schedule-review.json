@@ -298,6 +298,30 @@
         "Guard termination and full runtime admission unverified",
         "No P0/native Store/full Kimi/service gate"
       ]
+    },
+    {
+      "recorded_utc": "2026-11-02T15:56:17.005416+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "code_commit": "fc641d07b7b386bf17b2b56acd5ccf9d39dd3185",
+      "verdict": "PASS_CPU_NATURAL_GUARD_EXIT_ONLY",
+      "sha256": {
+        "source_schedule.py": "56e4047e3e084613e690b9ca649231ddc5e12fa1da500b4cd85779e989a5d6f2",
+        "test_source_schedule.py": "725cb684a55d8f6e03e77eeb49b6f439cd5c9a46ad1941723bd7770a0a265766",
+        "source-schedule-tests.json": "edf867c187d57f3dc1a4d0cc15f060a63a433b3c2c2d251a34652ffdf6dddaca"
+      },
+      "reviewer_ran_tests": false,
+      "reviewer_remote_access": false,
+      "verified": [
+        "Frozen inputs/guard identity and InvocationID bound; original cleanup budget used",
+        "No stop/kill; original PID and cgroup absent, same-run complete terminal journal required",
+        "Loaded unit requires normal exit; collected unit keeps unknown OS exit status as None",
+        "Original active-probe property contract restored; failed regression retained"
+      ],
+      "limitations": [
+        "No actual systemd/guard exit or GPU evidence",
+        "Overall resources_released remains false",
+        "No complete P0 runtime gate"
+      ]
     }
   ],
   "followups": [
@@ -896,6 +920,19 @@
       "full_node_context_preserved_at_commit": "eff892f",
       "display_filter": "qjhs003 bookings with end_ms after capture; past records preserved unchanged in eff892f, not deleted from Git history",
       "historical_booking_rows_omitted_from_current_view": 250
+    }
+  ],
+  "preservation_checks": [
+    {
+      "tool_chunk": "0863a2",
+      "previous_review_objects_unchanged": true,
+      "booking_context_only_current_new_snapshot_trimmed": true,
+      "original_full_snapshot_commit": "eff892f",
+      "AST_unchanged_from_9c79e0b": [
+        "_guard_systemctl",
+        "probe_watchdog_service",
+        "source_watchdog"
+      ]
     }
   ]
 }

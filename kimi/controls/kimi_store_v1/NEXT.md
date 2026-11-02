@@ -1,3 +1,9 @@
+## 最新冻结/审阅
+
+fc641d0（源码eff892f）自然守护退出核验已获独立PASS_CPU_NATURAL_GUARD_EXIT_ONLY，三个SHA实核，112项CPU回归6.375秒；不能当完整P0/GPU gate。原_guard_systemctl/probe_watchdog_service/source_watchdog与9c79e0b的AST逐项一致，旧review对象语义未变，保护核验0863a2；新API快照只在当前视图保留3条现行/未来预约，原253条完整节点快照保存在eff892f及canonicalSHA，无历史重写。
+
+当前完整功能仍缺driver的准入/start及端到端组合；不得用局部PASS代替完整源码R1，不要再开发新的独立包装工具。固定小目录答复仍未到，不创建；未部署P0/新guard，不启动GPU。23:50前的远端准备仅已结束只读查询，无本轮远端计算/池/模型留存；后续实际使用须新鲜有效票、全资源及I/O核验、当前完整审阅和实际守护。
+
 ## 当前追加：自然守护退出核验完成CPU候选，尚未完成P0整条启动
 
 - 现有source_watchdog本来就在原guard_fire按精确CID清理（目标已不存在也支持）后退出；本次不新增停止协议、不发systemctl stop/kill或PID信号。只在原source_schedule中补await_p0_guard_exit，复用source/registration/plan读回、原cleanup_evidence截止和已取实际probe身份，联合核unit/InvocationID、原PID/start_ticks消失、cgroup消失与同run四段终态日志。
