@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 首次真实CPU安装a485已终态失败并完整收口：host_started/guard_ready/terminal齐全，body在首个accelerate归档PermissionError前置失败，commands[]/installedfalse/SizeRw0/无GPU；原因实核目录UID2147 mode0700且capdropALL的root0不能遍历。随后60s观察保持失败，原容器日志/State/labels/SizeRw留runtime-install-evidence.json，最后只删除该精确停止CID并独立ps核空。72.313秒控制成本单列，不消耗任何正式ID、不追认历史失败。
+- 最小整改当前b728安装/3dcd clean均未开始：复用先前单文件RO方式，59归档+两原生库共61个明确绑定，完全不挂载/改权限downloads目录；仅已核owned公开文件0644，两库真实原模式0600/bytesSHA保持。安装body8d7…及全3900预算完全不变；新host5c9c4a2e…、manifest95ef9869…，旧e612/a35原候选和PASS/失败保留在Git及history引用。静态61文件列表/只读/所有权/禁GPU检查通过，实际修复仍待当前修订复审及新控制；不沿用旧gate批准新host。
+
 - e61294a完整CPU五部分已获独立只读PASS_ONE_COMPLETE_CPU_BATCH，manifestd9e6364e…；不是GPU/模型/完整Kimi R1。安装run a485、clean1f3均未派发；新3900秒全预算、fresh CPU票/资源及实际guard probe缺一不启动。12项负例/边界/小文件控制通过，mock边界完整标明；已推main e61294a且独立核远端同SHA。CPU安装前仍需fresh API和身份/实际资源，不重跑已通过native build及59归档下载。
 
 - 11/2新实际里程碑：6492981f镜像下载1176.772秒终态通过，59/59归档2244307355B；随后独立SSH逐59完整SHA/大小/UID/inode复核全部通过、原PID1907378 absent同boot、无mirror partial。新运输1809793289B，原官方直下及本机失败保留，不再下载这些软件或96模型资产。没有本地wheel残留，CPU运行环境仍未安装。

@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "batch_run_id": "kimi-runtime-install-a48517465adf43979abf9f52c5352212",
+  "source_manifest_sha256": "d9e6364e2725b821050ea7299c4fa7d33b35689ecb8d6e41624a9b8e500dd63c",
+  "code_commit": "a35fe46c98033b4e076b5b1da632f7ae8e9d4af9",
+  "records": [
+    {
+      "stage": "install",
+      "run_id": "kimi-runtime-install-a48517465adf43979abf9f52c5352212",
+      "registered_utc": "2026-11-02T12:51:46.312911+00:00",
+      "script_sha256": "c2454b76b73e66e0ab8247c9ef81a37c350f383fdda1b571fcfed7f12760d659",
+      "state": "SSH_TERMINAL",
+      "local_limit_seconds": 3360,
+      "remote_limit_seconds": 3300,
+      "returncode": 0,
+      "stdout_sha256": "4d5f7b743a4c864004f8aa031a636219a614e8c15b96f888fe6b89be9321d630",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_seconds": 8.47896905900052,
+      "stdout": "{\"event\": \"host_started\", \"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"identity\": {\"pid\": 1943723, \"uid\": 2147, \"start_ticks\": 74823196, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}}\n{\"event\": \"guard_ready\", \"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"container_id\": \"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\"}\n{\"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"image\": \"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\", \"started_utc\": \"2026-11-02T12:51:54.206038+00:00\", \"gpu_requested\": false, \"compiled_native_store\": false, \"released\": true, \"cleanup_errors\": [], \"host_identity\": {\"pid\": 1943723, \"uid\": 2147, \"start_ticks\": 74823196, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}, \"resource_precheck\": {\"memory_available_kib\": 1971108076, \"prior_owned_containers\": []}, \"docker_root\": \"/var/lib/docker\", \"docker_root_free_bytes\": 887470419968, \"container_id\": \"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\", \"guard_install\": \"Running timer as unit: kimi-runtime-install-a48517465adf43979abf9f52c5352212-cleanup.timer\\nWill run service as unit: kimi-runtime-install-a48517465adf43979abf9f52c5352212-cleanup.service\\n\", \"guard_probe\": {\"timer\": \"NextElapseUSecMonotonic=1w 1d 16h 30min 32.213770s\\nActiveState=active\\n\", \"service\": \"ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock stop --time 10 9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\\n\"}, \"attach\": {\"returncode\": 0, \"stdout\": \"{\\\"passed\\\": false, \\\"installed\\\": false, \\\"scope\\\": \\\"offline frozen180 runtime and CPU imports only\\\", \\\"device_nodes\\\": [], \\\"commands\\\": [], \\\"error_type\\\": \\\"PermissionError\\\", \\\"error\\\": \\\"[Errno 13] Permission denied: '/opt/software/accelerate-1.12.0-py3-none-any.whl'\\\", \\\"max_child_rss_kib\\\": 0, \\\"elapsed_seconds\\\": 0.0033146219793707132, \\\"maxrss_kib\\\": 22840}\\n\", \"stderr\": \"\", \"stdout_chars\": 346, \"stderr_chars\": 0, \"truncated\": false}, \"exit_state\": {\"Status\": \"exited\", \"Running\": false, \"Paused\": false, \"Restarting\": false, \"OOMKilled\": false, \"Dead\": false, \"Pid\": 0, \"ExitCode\": 0, \"Error\": \"\", \"StartedAt\": \"2026-11-02T12:51:54.400848768Z\", \"FinishedAt\": \"2026-11-02T12:51:54.575075441Z\"}, \"passed\": false, \"metadata\": {\"passed\": false, \"installed\": false, \"scope\": \"offline frozen180 runtime and CPU imports only\", \"device_nodes\": [], \"commands\": [], \"error_type\": \"PermissionError\", \"error\": \"[Errno 13] Permission denied: '/opt/software/accelerate-1.12.0-py3-none-any.whl'\", \"max_child_rss_kib\": 0, \"elapsed_seconds\": 0.0033146219793707132, \"maxrss_kib\": 22840}, \"error\": {\"type\": \"ValueError\", \"message\": \"offline runtime install/CPU imports did not pass\"}, \"cleanup\": 0, \"retained_container_id\": \"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\", \"writable_layer_bytes\": 0, \"guard_stop\": 0, \"create_completion_unknown\": false, \"cleanup_owed\": false, \"finished_utc\": \"2026-11-02T12:51:54.665110+00:00\", \"event\": \"terminal\"}\n",
+      "stderr": ""
+    },
+    {
+      "stage": "release_observation",
+      "run_id": "kimi-runtime-install-a48517465adf43979abf9f52c5352212-observation",
+      "registered_utc": "2026-11-02T12:51:54.878888+00:00",
+      "script_sha256": "7b0dfb3554470ba67ebf3bc79fcfc80aa0b99a810c3a8a8b3e62b80f48614e83",
+      "state": "SSH_TERMINAL",
+      "local_limit_seconds": 150,
+      "remote_limit_seconds": 130,
+      "returncode": 0,
+      "stdout_sha256": "2fb99e89109624856a74a2b21060bdf1f0d07bdebcf33b3a12591f402ebef0c0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "elapsed_seconds": 63.5677007889999,
+      "stdout": "{\"scope\": \"own CPU preparation lifecycle only; no GPU/Store/RDMA allocations\", \"samples\": [{\"elapsed_seconds\": 0.018231088994070888, \"rows\": [{\"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [\"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\"], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-1f3cfd74d7214ec59d996c2b5517c642\", \"executed\": false}], \"global_memory_context_only\": {\"MemAvailable\": \"1971108508 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"3013540 kB\", \"Shmem\": \"15940 kB\"}}, {\"elapsed_seconds\": 60.04081394406967, \"rows\": [{\"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [\"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\"], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-1f3cfd74d7214ec59d996c2b5517c642\", \"executed\": false}], \"global_memory_context_only\": {\"MemAvailable\": \"1971080868 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"3012064 kB\", \"Shmem\": \"15944 kB\"}}], \"passed\": false, \"started_utc\": \"2026-11-02T12:51:55.814671+00:00\", \"observation_wait_seconds\": 60.0225140620023, \"elapsed_seconds\": 60.04091990599409}\n",
+      "stderr": ""
+    }
+  ],
+  "failed_container_cleanup": {
+    "checked_utc": "2026-11-02T12:55:25.410932+00:00",
+    "returncode": 0,
+    "stdout": "{\"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\", \"container_id\": \"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\", \"state\": {\"Status\": \"exited\", \"Running\": false, \"Paused\": false, \"Restarting\": false, \"OOMKilled\": false, \"Dead\": false, \"Pid\": 0, \"ExitCode\": 0, \"Error\": \"\", \"StartedAt\": \"2026-11-02T12:51:54.400848768Z\", \"FinishedAt\": \"2026-11-02T12:51:54.575075441Z\"}, \"size_rw_bytes\": 0, \"image\": \"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\", \"labels\": {\"com.nvidia.cudnn.version\": \"9.10.2.21-1\", \"experiment\": \"kimi-cpu-toolchain\", \"maintainer\": \"NVIDIA CORPORATION <cudatools@nvidia.com>\", \"org.opencontainers.image.ref.name\": \"ubuntu\", \"org.opencontainers.image.version\": \"24.04\", \"owner_uid\": \"2147\", \"purpose\": \"kimi-cpu-runtime-install\", \"run_id\": \"kimi-runtime-install-a48517465adf43979abf9f52c5352212\"}, \"software_dir_mode\": \"0o700\", \"native_modes\": [{\"name\": \"kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so\", \"mode\": \"0o600\", \"uid\": 2147, \"size\": 395376}, {\"name\": \"kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so\", \"mode\": \"0o600\", \"uid\": 2147, \"size\": 823584}], \"logs_returncode\": 0, \"logs_stdout\": \"{\\\"passed\\\": false, \\\"installed\\\": false, \\\"scope\\\": \\\"offline frozen180 runtime and CPU imports only\\\", \\\"device_nodes\\\": [], \\\"commands\\\": [], \\\"error_type\\\": \\\"PermissionError\\\", \\\"error\\\": \\\"[Errno 13] Permission denied: '/opt/software/accelerate-1.12.0-py3-none-any.whl'\\\", \\\"max_child_rss_kib\\\": 0, \\\"elapsed_seconds\\\": 0.0033146219793707132, \\\"maxrss_kib\\\": 22840}\\n\", \"logs_stderr\": \"\", \"remove_returncode\": 0, \"remove_stdout\": \"9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\\n\", \"remove_stderr\": \"\", \"remaining\": [], \"query_returncode\": 0, \"released\": true}\n",
+    "stderr": "",
+    "result": {
+      "run_id": "kimi-runtime-install-a48517465adf43979abf9f52c5352212",
+      "container_id": "9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-02T12:51:54.400848768Z",
+        "FinishedAt": "2026-11-02T12:51:54.575075441Z"
+      },
+      "size_rw_bytes": 0,
+      "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+      "labels": {
+        "com.nvidia.cudnn.version": "9.10.2.21-1",
+        "experiment": "kimi-cpu-toolchain",
+        "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+        "org.opencontainers.image.ref.name": "ubuntu",
+        "org.opencontainers.image.version": "24.04",
+        "owner_uid": "2147",
+        "purpose": "kimi-cpu-runtime-install",
+        "run_id": "kimi-runtime-install-a48517465adf43979abf9f52c5352212"
+      },
+      "software_dir_mode": "0o700",
+      "native_modes": [
+        {
+          "name": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so",
+          "mode": "0o600",
+          "uid": 2147,
+          "size": 395376
+        },
+        {
+          "name": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so",
+          "mode": "0o600",
+          "uid": 2147,
+          "size": 823584
+        }
+      ],
+      "logs_returncode": 0,
+      "logs_stdout": "{\"passed\": false, \"installed\": false, \"scope\": \"offline frozen180 runtime and CPU imports only\", \"device_nodes\": [], \"commands\": [], \"error_type\": \"PermissionError\", \"error\": \"[Errno 13] Permission denied: '/opt/software/accelerate-1.12.0-py3-none-any.whl'\", \"max_child_rss_kib\": 0, \"elapsed_seconds\": 0.0033146219793707132, \"maxrss_kib\": 22840}\n",
+      "logs_stderr": "",
+      "remove_returncode": 0,
+      "remove_stdout": "9afa6859421ceb30cb65153fc6ea14e17d37c1922a60e5a83987ae13f4ba24e6\n",
+      "remove_stderr": "",
+      "remaining": [],
+      "query_returncode": 0,
+      "released": true
+    }
+  }
+}
