@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2用户明确批准下载匹配依赖，覆盖此前GB新增等待决定的阻塞，不改冻结版本/原目录约束。10:02只读API核当前ksqd票265b50dd；原downloads目录空余1565367881728B，无目标或partial。已从官方cu129索引固定cp312 x86_64 Torch2.10.0+cu129完整URL及SHA a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd，单次受host timeout600s/nice10/512MiB地址空间/20MiB每秒平均限速下载，约82.5秒exit0。1278028350B及完整SHA一致后hardlink排他发布正式wheel、移除自身partial；服务器原downloads下留小receipt，原权重不动，本机无GB副本。完整注册/命令摘要/进度/收据在cpu-probe.approved_dependency_downloads。当前只下载，尚未安装/普通Torch导入/native编译，未使用GPU/进入他人容器/新建环境或checkout。
+
 - 11/2 09:58只读实核已有SDK五个构建输入：CMakeLists/pyproject/requirements/utils的原摘要不同仅因CRLF，LF归一化后逐一等于已钉9f50241原文SHA；保留raw SHA，未改任何远端文件，归一化对比不冒充原字节相同。setup.py的唯一文本差异为新增vllm.general_plugins/sllm_raw_fp8入口，精确unified diff保存cpu-probe.existing_sdk_provenance_comparisons。后续原CMake入口可优先复用评估，不经该setup误装GLM插件；本次仅证明五个输入，未核完整C++树，未批准或执行构建。Torch2.10cu129环境及用户对GB级必要依赖的决定仍缺；没有新脚本/目录/环境、依赖下载或重复审阅。上一轮属实质进展（取得真实wheel大小与依赖），本轮补齐来源差异证据，不重复已过夹具。
 
 - 2026-11-02用户重申只复用原仓库/环境/构建位置，禁止新增checkout/环境/GB副本。本轮未改实现或增包装/目录/夹具。09:55 API当前ksqd预约为bk-20261101T1134-265b50dd，旧91c0cf95已结束；仅只读SSH核镜像及自有环境路径，未继承旧守护或执行编译。镜像列表仍0202(CUDA12.9/Torch2.9.1历史实测)、ac608(CUDA13.0.3仅配置实测)，无新增匹配候选；fullpd-prefill及harbor-alan运行，未进入/修改；已查宿主自有缓存、/opt/conda、/opt/venv无匹配环境线索。不称已穷尽全机所有路径或已验证ac608包版本。

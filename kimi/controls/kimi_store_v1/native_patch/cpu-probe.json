@@ -1527,5 +1527,132 @@
         "         \"sllm_store\": [\"py.typed\", \"*.so\"],"
       ]
     }
+  ],
+  "approved_dependency_downloads": [
+    {
+      "recorded_utc": "2026-11-02T02:03:10.557964+00:00",
+      "scope": "official wheel link and SHA pin plus existing destination metadata; user approved necessary dependency download",
+      "data": {
+        "url": "https://download-r2.pytorch.org/whl/cu129/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "sha256": "a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd",
+        "name": "torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "root": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+        "existing_final": false,
+        "existing_partial": false,
+        "free_bytes": 1565367881728,
+        "uid": 2147
+      },
+      "download_script_sha256": "f10d0e372aaad5235d29e467e152529be0cb3217860d72631e5c8d913afe3e81",
+      "download_script": "import hashlib,json,os,resource,shutil,time,urllib.request,uuid\nfrom pathlib import Path\npin={'url': 'https://download-r2.pytorch.org/whl/cu129/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': 'a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd', 'name': 'torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'root': '/data/brick1/boyjiang/kimi-k2.6/downloads', 'existing_final': False, 'existing_partial': False, 'free_bytes': 1565367881728, 'uid': 2147}\nresource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))\nroot=Path(pin[\"root\"]);final=root/pin[\"name\"];part=root/(pin[\"name\"]+\".partial\");receipt=root/(pin[\"name\"]+\".receipt.json\")\nr={\"run_id\":\"kimi-torch-download-\"+uuid.uuid4().hex,\"url\":pin[\"url\"],\"expected_sha256\":pin[\"sha256\"],\"expected_bytes\":1278028350,\"started_epoch\":time.time(),\"gpu_used\":False,\"installed\":False}\nif os.getuid()!=2147 or time.time()+660>=1793617200:raise RuntimeError(\"identity or current window budget mismatch\")\nif final.exists() or part.exists() or receipt.exists():raise RuntimeError(\"existing artifact; refuse duplicate/overwrite\")\nif shutil.disk_usage(root).free<8*1024**3:raise RuntimeError(\"insufficient space\")\nwith receipt.open(\"x\") as f:json.dump(r,f)\ncount=0;digest=hashlib.sha256();entered=time.monotonic();next_report=64*1024**2\ntry:\n fd=os.open(part,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600)\n with os.fdopen(fd,\"wb\") as out,urllib.request.urlopen(urllib.request.Request(pin[\"url\"],headers={\"Accept-Encoding\":\"identity\"}),timeout=30) as src:\n  if src.status!=200 or src.headers.get(\"Content-Encoding\", \"identity\")!=\"identity\":raise RuntimeError(\"unexpected HTTP response\")\n  while True:\n   block=src.read(1024**2)\n   if not block:break\n   count+=len(block)\n   if count>1278028350:raise RuntimeError(\"oversized wheel\")\n   out.write(block);digest.update(block)\n   if count>=next_report:\n    print(json.dumps({\"phase\":\"progress\",\"bytes\":count}),flush=True);next_report+=64*1024**2\n   time.sleep(max(0,count/(20*1024**2)-(time.monotonic()-entered)))\n  out.flush();os.fsync(out.fileno())\n if count!=1278028350 or digest.hexdigest()!=pin[\"sha256\"]:raise RuntimeError(\"wheel bytes/SHA mismatch\")\n os.link(part,final);part.unlink()\n r.update(status=\"VERIFIED\",bytes=count,sha256=digest.hexdigest(),path=str(final))\nexcept BaseException as err:r.update(status=\"FAILED_PARTIAL_PRESERVED\",bytes=count,error_type=type(err).__name__,error=str(err))\nfinally:\n r[\"finished_epoch\"]=time.time()\n with receipt.open(\"w\") as f:json.dump(r,f);f.flush();os.fsync(f.fileno())\n print(json.dumps(r),flush=True)\n",
+      "state": "TERMINAL",
+      "local_ssh_pid": 9028,
+      "events": [
+        {
+          "phase": "progress",
+          "bytes": 67108864
+        },
+        {
+          "phase": "progress",
+          "bytes": 134217728
+        },
+        {
+          "phase": "progress",
+          "bytes": 201326592
+        },
+        {
+          "phase": "progress",
+          "bytes": 268435456
+        },
+        {
+          "phase": "progress",
+          "bytes": 335544320
+        },
+        {
+          "phase": "progress",
+          "bytes": 402653184
+        },
+        {
+          "phase": "progress",
+          "bytes": 469762048
+        },
+        {
+          "phase": "progress",
+          "bytes": 536870912
+        },
+        {
+          "phase": "progress",
+          "bytes": 603979776
+        },
+        {
+          "phase": "progress",
+          "bytes": 671088640
+        },
+        {
+          "phase": "progress",
+          "bytes": 738197504
+        },
+        {
+          "phase": "progress",
+          "bytes": 805306368
+        },
+        {
+          "phase": "progress",
+          "bytes": 872415232
+        },
+        {
+          "phase": "progress",
+          "bytes": 939524096
+        },
+        {
+          "phase": "progress",
+          "bytes": 1006632960
+        },
+        {
+          "phase": "progress",
+          "bytes": 1073741824
+        },
+        {
+          "phase": "progress",
+          "bytes": 1140850688
+        },
+        {
+          "phase": "progress",
+          "bytes": 1207959552
+        },
+        {
+          "phase": "progress",
+          "bytes": 1275068416
+        },
+        {
+          "run_id": "kimi-torch-download-65d6e6de55f240a1a147fbf8f8235e80",
+          "url": "https://download-r2.pytorch.org/whl/cu129/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "expected_sha256": "a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd",
+          "expected_bytes": 1278028350,
+          "started_epoch": 1793585045.603439,
+          "gpu_used": false,
+          "installed": false,
+          "status": "VERIFIED",
+          "bytes": 1278028350,
+          "sha256": "a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd",
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+          "finished_epoch": 1793585128.1046019
+        }
+      ],
+      "stderr": "",
+      "returncode": 0,
+      "completed_utc": "2026-11-02T02:05:27.950140+00:00",
+      "wheel_directory_check": {
+        "recorded_utc": "2026-11-02T02:10:28.499621+00:00",
+        "returncode": 0,
+        "stderr": "",
+        "data": {
+          "file_count": 12417,
+          "archive_bytes": 1278028350,
+          "unpacked_bytes": 2239013310,
+          "compressed_bytes": 1275250702,
+          "metadata_only_no_extraction": true
+        }
+      }
+    }
   ]
 }
