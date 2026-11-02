@@ -10,6 +10,8 @@
 
 11/2 12:14现有pip26.1.1的dry-run解析3304fdcd/3f85133到原540秒后TimeoutExpired，业务失败、未安装/未产版本锁；不延长或重复服务器任务，不据此认定依赖无解或归因网络/回溯。运行中一次独立采样约86.75MiB/2GiB、CPU0.05%、3 PID（非峰值），无GPU；新SSH确认uv缺失及pip超时两run均容器空/timerinactive。实际暴露原超时异常分支未保存stdout/stderr，历史流无法追补，已明示缺口。现有body修正保留各32KiB原始base64/文本、总长度/截断标志及实际timeout，并在try前初始化计时避免早期pip --version超时掩盖原错；bodyed2d2190…的5项本机实际handler AST控制通过，旧失败/初版补丁均留history。未再远端执行；最新bodyed2d2190…限定超时诊断只读复审PASS，不批准重复远端解析。下一项评估本机已有UV0.11.28的Linux目标有界解析，不新装工具/环境；仍无兼容锁、安装预算/ABI或GPU准入。
 
+11/2本机RPC约束精化37be2793/6ab9419已成功：136.687秒仍180包，唯一版本变化grpcio1.85.1→1.76.0；180root及Linux Torch约束核验，采样进程峰234270720B、元数据85755895B（均非硬峰值上限）。UV进程终态，独立PID8472查询无结果，未新增临时entry；只保留同一约82MiB软件元数据cache以复用，未安装/创建环境/使用GPU。必要4KiB数据文件requirements-runtime-candidate.txt逐180行与实际输出一致，file SHA9e71bd12…，raw pin-list SHA5c0db5a5…，二者区分。限定实际只读核验通过候选版本图及Store RPC exact grpc匹配；全SDK CLI/build依赖、具体wheel完整性、增量安装预算、Linux实际导入/功能ABI和GPU均未通过。下一项只比较180包与固定image实际metadata，冻结具体wheel hash及增量预算后再审CPU安装；不要重跑已通过的native CPU或版本求解，不复用旧GPU gate。
+
 当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
 历史本机构建预检（远端完整编译已于11/2通过，见上）：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。

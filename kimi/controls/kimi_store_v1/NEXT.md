@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2本机RPC约束精化37be2793/6ab9419已成功：136.687秒仍180包，唯一版本变化grpcio1.85.1→1.76.0；180root及Linux Torch约束核验，采样进程峰234270720B、元数据85755895B（均非硬峰值上限）。UV进程终态，独立PID8472查询无结果，未新增临时entry；只保留同一约82MiB软件元数据cache以复用，未安装/创建环境/使用GPU。必要4KiB数据文件requirements-runtime-candidate.txt逐180行与实际输出一致，file SHA9e71bd12…，raw pin-list SHA5c0db5a5…，二者区分。限定实际只读核验通过候选版本图及Store RPC exact grpc匹配；全SDK CLI/build依赖、具体wheel完整性、增量安装预算、Linux实际导入/功能ABI和GPU均未通过。下一项只比较180包与固定image实际metadata，冻结具体wheel hash及增量预算后再审CPU安装；不要重跑已通过的native CPU或版本求解，不复用旧GPU gate。
+
 - 本机实际e85f5609/c053da3已在183.96秒产出180包候选版本锁，46输入root（含39既有匹配包）及Linux Torch依赖均核验；采样进程峰214691840B/元数据85755210B，无安装/环境/GPU，新临时entry为空，旧cache保留复用。发现grpcio1.85.1不合冻结SLLM exact1.76，故仍非最终锁；新一次精化仅改该项，其余179版本固定、同128MiB/512MiB/600s轮询预算。原候选及1066文件清单在同JSON无损归档，不再越1MiB。controllercc061fbd…/payload2860df7b…限定delta复审PASS；审阅实发现重复cache-dir构造，已在原controller最小修正，4项实际AST控制覆盖已有/缺失/错误/重复，旧候选留档。尚未执行这次精化，不宣安装/ABI/模型通过。
 
 - 证据体积整改：8bdf04f提交时CPU证据JSON超过仓库暂存1MiB限制，外部命令失败后PowerShell未停而继续推送，属于本代理命令控制错误。后续正常提交修正，不改写main、不放宽限制：745个缓存诊断行和两份历史build独立核验data以zlib+base64保存在同一原JSON，原UTF8规范化字节/SHA及解码配方齐全，逐对象/字节roundtrip一致；历史原文本仍在Git。controller76c3849e…与payload6fbb04cd…完全未变。后续每步显式检查LASTEXITCODE，通过暂存检查才commit/push。
