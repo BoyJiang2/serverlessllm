@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- e61294a完整CPU五部分已获独立只读PASS_ONE_COMPLETE_CPU_BATCH，manifestd9e6364e…；不是GPU/模型/完整Kimi R1。安装run a485、clean1f3均未派发；新3900秒全预算、fresh CPU票/资源及实际guard probe缺一不启动。12项负例/边界/小文件控制通过，mock边界完整标明；已推main e61294a且独立核远端同SHA。CPU安装前仍需fresh API和身份/实际资源，不重跑已通过native build及59归档下载。
+
 - 11/2新实际里程碑：6492981f镜像下载1176.772秒终态通过，59/59归档2244307355B；随后独立SSH逐59完整SHA/大小/UID/inode复核全部通过、原PID1907378 absent同boot、无mirror partial。新运输1809793289B，原官方直下及本机失败保留，不再下载这些软件或96模型资产。没有本地wheel残留，CPU运行环境仍未安装。
 - 本轮真正实现仅既有runtime JSON内CPU安装闭包：复用旧install/relocation driver；固定a485安装run、1f3清洁验证run；PyJWT仅私有/usr/local且先核实际pip scheme/目标无碰撞/精确wheel成员，保留OS文件前后SHA；其余58包离线no-deps后严格180版本和active extras依赖检查、fresh普通Torch/vLLM/Transformers/accelerate/PyJWT/native导入且CUDA/通信未初始化。继承镜像层，只持久必要依赖差异层，不复制base或新环境。
 - 完整预算3900秒=install host3300+clean300+observation block150(实际等待>=60)+transport/evidence margin150；body2100/pip总1800、container2220、独立hoststop2400；clean只接受当前实际安装run成功/释放/同boot衍生image，root只读UID2147/1CPU4GiB/双库RO。11项CPU负例/边界及参数静态控制通过，明确不是实际环境/模型通过。manifest见runtime_install_candidate.source_manifest；当前等待完整只读审阅，未创建安装容器/guard、未安装或使用GPU；不能将这个候选当已部署。
