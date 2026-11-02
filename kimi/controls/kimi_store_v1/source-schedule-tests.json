@@ -772,5 +772,31 @@
       "actual_gpu_verified": false,
       "runtime_gate_approved": false
     }
+  ],
+  "p0_background_policy_regressions": [
+    {
+      "recorded_utc": "2026-11-02T17:48:38.334413+00:00",
+      "returncode": 1,
+      "tool_chunk": "a79fff",
+      "error": "IndexError in positive background fixture: background ID e*64 equals owned fixture CID, correctly excluded by production scope",
+      "sha256": {
+        "source_schedule.py": "fc174aa07c0af1c467d464d3ad170facaf07d5cdea79cdc443cbab33d0d42d93",
+        "test_source_schedule.py": "4ae20ae26a07b01b45fd98f2784f22cd6b31d582e585542de25c16fe22938132"
+      },
+      "runtime_executed": false
+    },
+    {
+      "recorded_utc": "2026-11-02T17:50:03.801292+00:00",
+      "returncode": 0,
+      "elapsed_seconds": 7.28506973399999,
+      "stdout": "",
+      "stderr": "......................................................................................................................\n----------------------------------------------------------------------\nRan 118 tests in 7.005s\n\nOK\n",
+      "sha256": {
+        "source_schedule.py": "3f3e3231a1c8ba403e7d7cb25061e90d22c839b9cabe7d6caf9fc2ff1061b2af",
+        "test_source_schedule.py": "13703b3ef5ee7004db739771671409e04c54f4446daf08bd0a5a412b518336a3"
+      },
+      "scope": "P0-only monitored resource budget, CPU fixtures; no actual GPU/remote guard",
+      "runtime_approved": false
+    }
   ]
 }

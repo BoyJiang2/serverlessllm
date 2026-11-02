@@ -1218,7 +1218,8 @@ def verify_p0_component_output(receipt, worker_input, schedule, stdout):
 
 
 def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invocation_id,
-                      events, guard_probe, docker=_guard_docker, process_probe=p0_process_snapshot):
+                      events, guard_probe, docker=_guard_docker, process_probe=p0_process_snapshot,
+                      resource_probe=None):
     """Internal monitor only: no start, admission, component validation or release."""
     identity=_guard_identity(target,boot_id=target['boot_id'],uid=2147)
     if (target['schema']!='kimi-p0-guard-target-v2'
@@ -1227,9 +1228,9 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
             or type(started) not in (int,float) or not math.isfinite(started)):
         raise ValueError('P0 target, guard nonce, invocation and original clock required')
     state=dict(container_id=target['container_id'],sample_count=0,process=None,owned_processes=[],
-        process_inventory_complete=False,
+        process_inventory_complete=False,current_processes=[],
         container_exited=False,torch_cuda_ipc_verified=False,resources_released=False,
-        runtime_admitted=False,cleanup_owed=True)
+        runtime_admitted=False,cleanup_owed=True,resource_monitoring_verified=False)
     def remaining():
         return phase_remaining_seconds(schedule,'component',entered=entered,
             elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
@@ -1260,6 +1261,7 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
             guard_target(target,info,boot_id=target['boot_id'],uid=2147)
             status=info['State']
             stats=None
+            state['current_processes']=[]
             if status['Running']:
                 process=process_probe(info)
                 anchor=None if process is None else {key:process[key] for key in ('pid','start_ticks','uid','cgroup')}
@@ -1267,6 +1269,7 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
                     raise ValueError('P0 monitor container process identity changed')
                 state['process']=anchor
                 if 'members' in process:
+                    state['current_processes']=process['members']
                     for member in process['members']:
                         if member not in state['owned_processes']:state['owned_processes'].append(member)
                     if len(state['owned_processes'])>128:
@@ -1277,9 +1280,15 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
                 stats=command(['stats','--no-stream','--no-trunc','--format','{{json .}}',target['container_id']])
                 if not isinstance(stats,dict) or stats.get('ID')!=target['container_id']:
                     raise ValueError('P0 monitor stats belong to another container')
+            context=None
+            if resource_probe is not None:
+                context=resource_probe(state)
+                if not isinstance(context,dict) or context.get('p0_budget_verified') is not True:
+                    raise ValueError('P0 resource monitor evidence missing')
+                state['resource_monitoring_verified']=True
             state['sample_count']+=1
             _watchdog_event(events,identity,nonce,'component_sample',dict(state,
-                container_state=status,docker_stats=stats,service_invocation_id=service_invocation_id))
+                container_state=status,docker_stats=stats,resource_context=context,service_invocation_id=service_invocation_id))
             remaining()
             if (type(status.get('OOMKilled')) is not bool or status['OOMKilled']
                     or status.get('Error')!='' or type(status.get('ExitCode')) is not int
@@ -1589,28 +1598,67 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                 or matching[0]['start_ms']!=start or matching[0]['end_ms']!=end or not start<=now<end):
             raise ValueError('P0 current owner/window differs from frozen plan')
         return dict(booking_id=plan['booking_id'],snapshot_sha256=booking_sha256,age_seconds=age)
-    def resources(phase):
+    def resources(phase,monitor_state=None):
         host=_watchdog_host()
         if (host['uid']!=2147 or socket.gethostname() not in ('qjhs3','qjhs003')
                 or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])):
             raise ValueError('P0 lifecycle requires authorized qjhs003 host')
-        response=_guard_docker(['ps','-q','--no-trunc'],min(5,remaining(phase)))
-        if response.returncode!=0 or response.stdout.strip():
-            raise RuntimeError('P0 refuses running containers with unbudgeted resources')
+        response=_guard_docker(['ps','--no-trunc','--format','{{json .}}'],min(5,remaining(phase)))
+        if response.returncode!=0 or len(response.stdout)>65536:
+            raise RuntimeError('P0 background container inventory unavailable')
+        background=[json.loads(line) for line in response.stdout.splitlines()]
+        if len(background)>64:raise ValueError('P0 background inventory exceeds bound')
+        background_ids=[]
+        for row in background:
+            cid=row.get('ID');labels=row.get('Labels')
+            if not isinstance(cid,str) or not re.fullmatch('[0-9a-f]{64}',cid) or not isinstance(labels,str):
+                raise ValueError('P0 background identity unavailable')
+            if target is not None and cid==target['container_id']:continue
+            if 'sllm.' in labels:raise RuntimeError('P0 refuses another ServerlessLLM experiment or residual')
+            if cid in background_ids:raise ValueError('P0 duplicate background identity')
+            background_ids.append(cid)
+        background_stats=[]
+        if background_ids:
+            response=_guard_docker(['stats','--no-stream','--no-trunc','--format','{{json .}}',*background_ids],min(5,remaining(phase)))
+            if response.returncode!=0 or len(response.stdout)>65536:
+                raise RuntimeError('P0 background resource evidence unavailable')
+            background_stats=[json.loads(line) for line in response.stdout.splitlines()]
+            if (len(background_stats)!=len(background_ids)
+                    or {row.get('ID') for row in background_stats}!=set(background_ids)
+                    or any(not isinstance(row.get(key),str) or not row[key] for row in background_stats
+                           for key in ('CPUPerc','MemUsage','BlockIO','PIDs'))):
+                raise ValueError('P0 background resource snapshot incomplete')
         response=_guard_capture(['/usr/bin/nvidia-smi','--query-gpu=uuid,memory.used,utilization.gpu',
             '--format=csv,noheader,nounits'],min(5,remaining(phase)),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
         if response.returncode!=0 or len(response.stdout)>65536:raise RuntimeError('P0 GPU preflight failed')
         rows=[line.split(',') for line in response.stdout.splitlines()]
         uuids=[]
         for row in rows:
-            if len(row)!=3 or any(not value.strip().isdigit() or int(value)!=0 for value in row[1:]):
+            if len(row)!=3 or any(not value.strip().isdigit() for value in row[1:]):
                 raise RuntimeError('P0 GPU memory or utilization is occupied or unknown')
+            owned=monitor_state is not None and row[0].strip()==receipt['gpu_uuid']
+            if ((owned and (int(row[1])>4096 or int(row[2])>100))
+                    or (not owned and any(int(value)!=0 for value in row[1:]))):
+                raise RuntimeError('P0 GPU occupancy exceeds the single-GPU control budget')
             uuids.append(row[0].strip())
         if len(set(uuids))!=8 or len(uuids)!=8 or receipt['gpu_uuid'] not in uuids:
             raise ValueError('P0 complete GPU topology differs')
         response=_guard_capture(['/usr/bin/nvidia-smi','--query-compute-apps=gpu_uuid,pid',
             '--format=csv,noheader,nounits'],min(5,remaining(phase)),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
-        if response.returncode!=0 or response.stdout.strip():raise RuntimeError('P0 GPU processes remain')
+        if response.returncode!=0 or len(response.stdout)>65536:raise RuntimeError('P0 GPU process evidence unavailable')
+        gpu_processes=[line.split(',') for line in response.stdout.splitlines()]
+        if monitor_state is not None and not gpu_processes and any(
+                row[0].strip()==receipt['gpu_uuid'] and int(row[1])!=0 for row in rows):
+            raise RuntimeError('P0 GPU memory lacks attributable current processes')
+        owned_pids={} if monitor_state is None else {row['pid']:row for row in monitor_state.get('current_processes',[])}
+        for row in gpu_processes:
+            if (len(row)!=2 or row[0].strip()!=receipt['gpu_uuid'] or not row[1].strip().isdigit()
+                    or int(row[1]) not in owned_pids):
+                raise RuntimeError('P0 foreign or unattributable GPU process observed')
+            member=owned_pids[int(row[1])];current=_watchdog_pid(int(row[1]))
+            if (current['boot_id']!=host['boot_id']
+                    or any(current[key]!=member[key] for key in ('pid','start_ticks','uid','cgroup'))):
+                raise ValueError('P0 GPU process identity changed during resource sampling')
         with _metadata_stream(Path('/proc/meminfo')) as stream:memory=stream.read(65537)
         if len(memory)>65536:raise ValueError('P0 memory metadata oversized')
         available=re.search(rb'^MemAvailable:\s+([0-9]+) kB$',memory,re.M)
@@ -1630,7 +1678,9 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
             raise RuntimeError('P0 block-device activity exceeds reviewed control policy')
         result=dict(host=host,available_memory_kib=int(available[1]),load_1m=load,gpu_uuids=uuids,
             aggregate_disk_bytes_per_second=(after-before)*512/duration,
-            disk_partitions_may_double_count=True,measurement_scope='non_timed_torch_ipc')
+            disk_partitions_may_double_count=True,measurement_scope='non_timed_torch_ipc',
+            p0_budget_verified=True,whole_node_exclusive=False,background_containers=background,
+            background_stats=background_stats,gpu_processes=gpu_processes)
         remaining(phase);return result
     try:
         remaining('preflight')
@@ -1641,7 +1691,7 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                 or gate['image_id']!=receipt['image_id'] or gate['verdict']!='PASS_COMPLETE_P0_SOURCE'
                 or not isinstance(gate['reviewer'],str) or not gate['reviewer'].startswith('/root/')
                 or gate['scope']!='P0A_TORCH_IPC_NO_MODEL_NO_STORE'
-                or gate['resource_policy']!='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1'):
+                or gate['resource_policy']!='P0_2CPU_4G_GPU4G_MEM8G_LOAD10P_DISK1G_MONITORED_V2'):
             raise ValueError('current complete P0 source gate required; component approvals do not admit runtime')
         if str(root)!=P0_RUN_ROOT or receipt['run_root']!=str(root):
             raise ValueError('P0 lifecycle requires the one authorized fixed directory')
@@ -1671,8 +1721,11 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
             raise RuntimeError('P0 Docker start failed or outcome uncertain')
         remaining('component')
         monitor=monitor_p0_target(target,schedule,entered=entered,started=started,nonce=registration['nonce'],
-            service_invocation_id=proof['service_invocation_id'],events=events,guard_probe=guard_probe)
+            service_invocation_id=proof['service_invocation_id'],events=events,guard_probe=guard_probe,
+            resource_probe=lambda state:resources('component',state))
         state['monitor']=monitor
+        if monitor.get('resource_monitoring_verified') is not True:
+            raise ValueError('P0 continuous budget evidence missing')
         response=_guard_docker(['logs',target['container_id']],min(5,remaining('component')))
         if response.returncode!=0 or len(response.stdout)>65536 or len(response.stderr)>65536:
             raise RuntimeError('P0 complete worker output unavailable')

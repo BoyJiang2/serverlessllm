@@ -1,3 +1,9 @@
+## 11/3 01:50最新：P0资源策略最小整改待复审，不沿用672源码R1
+
+672bff3完整178文件P0源码R1已获PASS_SOURCE_ONLY，但实际配置/外层1800s身份退出取证/guard尚缺，不是runtime gate。为避免把休眠容器存在误作资源争用，独立只读审阅允许设计仅P0修订：现有资源检查记录背景完整CID/CPU/内存/I/O，仍拒绝SLLM残留；保留八卡空闲前检及host内存/load/I/O，监控每轮重复检查，仅允许当前本容器PID/start_ticks/cgroup对应的选定GPU进程，显存<=4GiB；他人GPU/无法归属/越限/采样失败判控制失败，只清自己。明确whole_node_exclusive=false，不适用TP8/池/正式条件。
+
+当前source SHA3f3e3231…、test13703b3e…；最新118项WSL CPU 7.005s通过（tool abcbc9），覆盖休眠背景可通过、SLLM残留、外国GPU、PID复用、显存/内存/load/I/O越界、缺失stats/monitor和失败清理。正向背景fixture初次CID与owned相同导致IndexError，原失败保留并仅修fixture；生产无该错误。所有仍是CPU/系统边界替身，未部署/未GPU；必须新manifest和当前修订复审，旧672批准不继承。
+
 ## 当前接线限定复审已通过，非完整R1
 
 独立只读子代理已核当前40ce83a…/3edbdc1… SHA，sudo匿名输入与生命周期接线限定静态PASS。初审把capture成功误认bytes、错用旧azure预约的意见已实际回读源码撤回；初审/更正均留source-schedule-review.json，不机械改生产接口。外层driver退出取证和完整P0运行manifest/预算R1仍未通过；不能部署GPU。

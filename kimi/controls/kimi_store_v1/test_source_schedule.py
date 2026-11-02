@@ -92,7 +92,7 @@ class SourceScheduleTests(unittest.TestCase):
             gate=dict(schema='kimi-p0-runtime-gate-v1',identity=target['identity'],
                 plan_sha256=bound[2]['plan_sha256'],image_id=target['image_id'],
                 verdict='PASS_CPU_NATURAL_GUARD_EXIT_ONLY',reviewer='independent',
-                scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1')
+                scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_GPU4G_MEM8G_LOAD10P_DISK1G_MONITORED_V2')
             raw=json.dumps(gate).encode();(root/'p0-runtime-gate.json').write_bytes(raw)
             with tempfile.TemporaryFile() as events,patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),\
                     patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')),\
@@ -108,13 +108,16 @@ class SourceScheduleTests(unittest.TestCase):
     def test_p0_lifecycle_composes_success_and_monitor_failure_with_text_capture(self):
         import source_bundle
         import vllm_export_hook
-        for fail_monitor in (False,True):
-            with self.subTest(fail_monitor=fail_monitor),tempfile.TemporaryDirectory() as temp:
+        successes=('success','background','owned-gpu')
+        for kind in (*successes,'monitor-failure','residual','foreign-gpu','pid-reuse','excess-gpu',
+                     'low-memory','high-load','io-busy','missing-stats','missing-monitor'):
+            fail_monitor=kind=='monitor-failure'
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
                 root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
                 inputs,receipt,schedule,identity=bound[2:]
                 gate=dict(schema='kimi-p0-runtime-gate-v1',identity=identity,plan_sha256=inputs['plan_sha256'],
                     image_id=receipt['image_id'],verdict='PASS_COMPLETE_P0_SOURCE',reviewer='/root/CPU_FIXTURE_ONLY',
-                    scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1')
+                    scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_GPU4G_MEM8G_LOAD10P_DISK1G_MONITORED_V2')
                 gate_raw=json.dumps(gate).encode();(root/'p0-runtime-gate.json').write_bytes(gate_raw)
                 plan=json.loads((root/'p0-plan.json').read_text())
                 booking=dict(id=plan['booking_id'],resource_id='h20/qjhs003',user='boyjiang',
@@ -132,23 +135,41 @@ class SourceScheduleTests(unittest.TestCase):
                 calls=[]
                 def capture(command,timeout,environment):
                     stdout=''.join(uuid+', 0, 0\n' for uuid in gpu_ids) if '--query-gpu=' in command[1] else ''
+                    if kind=='foreign-gpu' and '--query-compute-apps=' in command[1] and 'monitor' in calls:
+                        stdout=gpu_ids[-1]+', 987\n'
+                    if kind in ('owned-gpu','pid-reuse','excess-gpu') and 'monitor' in calls:
+                        if '--query-gpu=' in command[1]:stdout=stdout.replace(gpu_ids[0]+', 0, 0',gpu_ids[0]+(', 5000, 50' if kind=='excess-gpu' else ', 1024, 50'))
+                        else:stdout=gpu_ids[0]+', 123\n'
                     return types.SimpleNamespace(returncode=0,stdout=stdout,stderr='')
                 def docker(args,timeout):
                     if args[0]=='start':calls.append('start');text=target['container_id']+'\n'
                     elif args[0]=='logs':calls.append('logs');text='{"CPU_FIXTURE_ONLY":true}\n'
-                    elif args[0]=='ps':text=''
+                    elif args[0]=='ps':
+                        text=json.dumps(dict(ID='7'*64,Labels='sllm.kimi.run_id=old' if kind=='residual' else '')) if kind in ('background','residual','missing-stats') else ''
+                    elif args[0]=='stats':
+                        text='' if kind=='missing-stats' else json.dumps(dict(ID='7'*64,CPUPerc='0.1%',MemUsage='18GiB',BlockIO='1MB / 2MB',PIDs='2'))
                     else:self.fail('unexpected Docker mutation')
                     return types.SimpleNamespace(returncode=0,stdout=text,stderr='')
                 original_stream=vllm_export_hook._metadata_stream
                 def stream(path):
-                    if str(path)=='/proc/meminfo':return io.BytesIO(b'MemAvailable: 999999999 kB\n')
-                    if str(path)=='/proc/diskstats':return io.BytesIO(b'8 0 sda 0 0 0 0 0 0 0 0 0 0 0\n')
+                    if str(path)=='/proc/meminfo':
+                        return io.BytesIO(b'MemAvailable: 1 kB\n' if kind=='low-memory' and 'monitor' in calls else b'MemAvailable: 999999999 kB\n')
+                    if str(path)=='/proc/diskstats':
+                        sectors=int(ticks[0]*10000000) if kind=='io-busy' and 'monitor' in calls else 0
+                        return io.BytesIO(('8 0 sda 0 0 %d 0 0 0 0 0 0 0 0\n'%sectors).encode())
                     return original_stream(path)
-                monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+                monitor=dict(container_id=target['container_id'],process_inventory_complete=True,resource_monitoring_verified=True)
+                member=dict(pid=123,start_ticks=42,uid=2147,cgroup='owned')
+                monitor['current_processes']=[member]
                 def monitored(*args,**kwargs):
                     calls.append('monitor')
                     if fail_monitor:
                         error=RuntimeError('CPU monitor fault');error.p0_monitor_receipt=monitor;raise error
+                    try:context=kwargs['resource_probe'](monitor)
+                    except BaseException as error:error.p0_monitor_receipt=monitor;raise
+                    self.assertTrue(context['p0_budget_verified']);self.assertFalse(context['whole_node_exclusive'])
+                    if kind=='background':self.assertEqual(context['background_stats'][0]['ID'],'7'*64)
+                    if kind=='missing-monitor':monitor['resource_monitoring_verified']=False
                     return monitor
                 def recorded(label,result):
                     def run(*args,**kwargs):calls.append(label);return result
@@ -163,7 +184,8 @@ class SourceScheduleTests(unittest.TestCase):
                         patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)),
                         patch.object(schedule_module,'_watchdog_host',return_value=host),
                         patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),
-                        patch.object(schedule_module.os,'getloadavg',return_value=(0,0,0)),
+                        patch.object(schedule_module,'_watchdog_pid',return_value=dict(member,boot_id=host['boot_id'],start_ticks=43 if kind=='pid-reuse' else 42)),
+                        patch.object(schedule_module.os,'getloadavg',side_effect=lambda:(100 if kind=='high-load' and 'monitor' in calls else 0,0,0)),
                         patch.object(schedule_module.os,'cpu_count',return_value=8),
                         patch.object(vllm_export_hook,'_metadata_stream',side_effect=stream),
                         patch.object(schedule_module,'_guard_capture',side_effect=capture),
@@ -179,16 +201,17 @@ class SourceScheduleTests(unittest.TestCase):
                         patch.object(schedule_module,'await_p0_guard_exit',side_effect=recorded('guard_exit',dict(guard_resources_released=True)))):
                         stack.enter_context(manager)
                     args=dict(gate_sha256=hashlib.sha256(gate_raw).hexdigest(),booking_sha256=hashlib.sha256(booking_raw).hexdigest(),events=events)
-                    if fail_monitor:
-                        with self.assertRaisesRegex(RuntimeError,'CPU monitor fault') as caught:
+                    if kind not in successes:
+                        with self.assertRaises((RuntimeError,ValueError)) as caught:
                             schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
-                        self.assertIn('guard_exit',caught.exception.p0_lifecycle_receipt)
+                        if kind not in ('residual','missing-stats'):self.assertIn('guard_exit',caught.exception.p0_lifecycle_receipt)
                     else:
                         result=schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
                         self.assertTrue(result['target_and_guard_release_verified'])
                         self.assertFalse(result['resources_released']);self.assertTrue(result['driver_exit_verification_owed'])
                         self.assertEqual((root/'p0-component.stdout.log').read_bytes(),b'{"CPU_FIXTURE_ONLY":true}\n')
-                self.assertEqual(calls,['setup','start','monitor']+([] if fail_monitor else ['logs'])+['cleanup','observe','guard_exit'])
+                expected=[] if kind in ('residual','missing-stats') else ['setup','start','monitor']+(['logs'] if kind in successes else [])+['cleanup','observe','guard_exit']
+                self.assertEqual(calls,expected)
 
     def source_registration_fixture(self,temp):
         root,worker_path,document=test_source_bundle.SourceBundleTests().source_worker_fixture(temp)
@@ -1551,6 +1574,7 @@ os._exit(0)
             container_created=target['container_created'],guard_fire_by_utc=schedule['guard_fire_by_utc'],
             service_invocation_id='b'*32,runtime_admitted=False)
         rows=iter([info,exited]);calls=[]
+        resource=Mock(return_value=dict(p0_budget_verified=True,whole_node_exclusive=False))
         def docker(args,timeout):
             calls.append(args)
             if args[0]=='inspect':value=[next(rows)]
@@ -1562,10 +1586,12 @@ os._exit(0)
             clock.now.return_value=entered
             result=schedule_module.monitor_p0_target(target,schedule,entered=entered,started=time.monotonic(),
                 nonce='a'*32,service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:guard,
-                docker=docker,process_probe=lambda item:dict(pid=123,start_ticks=42,uid=2147,cgroup='owned'))
+                docker=docker,process_probe=lambda item:dict(pid=123,start_ticks=42,uid=2147,cgroup='owned'),
+                resource_probe=resource)
             events.seek(0);records=[json.loads(line) for line in events]
         self.assertEqual([row['event'] for row in records],['component_sample','component_sample','component_exited'])
         self.assertEqual(result['sample_count'],2)
+        self.assertTrue(result['resource_monitoring_verified']);self.assertEqual(resource.call_count,2)
         self.assertTrue(result['container_exited'])
         self.assertFalse(result['torch_cuda_ipc_verified']);self.assertFalse(result['resources_released'])
         self.assertEqual(result['process']['start_ticks'],42)
@@ -1650,7 +1676,7 @@ os._exit(0)
         snapshot=dict(container_absent=True,original_processes_absent=True,cgroup_absent=True,
             owned_mounts_absent=True,owned_gpu_processes_absent=True)
         cleanup=dict(container_id=target['container_id'],container_absence_verified=True)
-        monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+        monitor=dict(container_id=target['container_id'],process_inventory_complete=True,resource_monitoring_verified=True)
         samples=[]
         def sample(*args,**kwargs):
             if not samples:ticks[0]+=14
@@ -1792,7 +1818,7 @@ os._exit(0)
                 entered=datetime.fromisoformat(plan['window_start'])
                 schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
                 cleanup=dict(container_id=target['container_id'],container_absence_verified=kind!='delete')
-                monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+                monitor=dict(container_id=target['container_id'],process_inventory_complete=True,resource_monitoring_verified=True)
                 snapshot=dict(container_absent=True,original_processes_absent=True,cgroup_absent=True,
                     owned_mounts_absent=True,owned_gpu_processes_absent=True)
                 if kind=='residue':snapshot['owned_gpu_processes_absent']=False
@@ -1835,7 +1861,7 @@ os._exit(0)
                 self.assertFalse(caught.exception.p0_monitor_receipt['resources_released'])
 
     def test_p0_monitor_rejects_deadline_process_reuse_foreign_stats_and_guard_change(self):
-        for kind in ('deadline','reuse','stats','guard'):
+        for kind in ('deadline','reuse','stats','guard','resource-missing','resource-error'):
             with self.subTest(kind=kind),tempfile.TemporaryFile() as events,\
                     patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
                     patch.object(schedule_module.time,'sleep'):
@@ -1853,11 +1879,13 @@ os._exit(0)
                     return types.SimpleNamespace(returncode=0,stdout=json.dumps(value).encode(),stderr=b'')
                 process=Mock(side_effect=[dict(pid=123,start_ticks=1,uid=2147,cgroup='owned'),
                     dict(pid=123,start_ticks=2,uid=2147,cgroup='owned')])
+                resource=Mock(side_effect=ValueError('resource snapshot failed')) if kind=='resource-error' else Mock(return_value={})
                 with self.assertRaises((ValueError,TimeoutError)) as caught:
                     schedule_module.monitor_p0_target(target,schedule,entered=entered,
                         started=time.monotonic()-(1000 if kind=='deadline' else 0),nonce='a'*32,
                         service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:proof,
-                        docker=docker,process_probe=process)
+                        docker=docker,process_probe=process,
+                        resource_probe=resource if kind.startswith('resource-') else None)
                 self.assertTrue(caught.exception.p0_monitor_receipt['cleanup_owed'])
 
     def test_p0_guard_rejects_missing_or_oversized_private_cache_mount(self):
