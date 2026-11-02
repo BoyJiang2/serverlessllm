@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2官方PyPI 0.19.1 x86 wheel433132101B/SHA71a87f46…已固定；仅HTTP Range共305135B核ZIP目录及四个Base/utils/default/kimi源码，SHA逐项匹配已有绑定。目录声明解包1172403610B，不是已实际解包或完整wheel SHA验收；未下载完整包/安装。官方v0.19.1文档默认CUDA12.9，依赖Torch2.10。下一项复用原无挂载CPU probe，仅stdlib metadata/packaging核实际直接依赖与Torch自身依赖，无Torch/vLLM import；host02becf6b…/body08bc1d38…只读复审PASS，尚未执行。原CPU/窗口/guard/释放保持，不将matched或采集passed称环境ready。
+
 - 11/2 11:28真实CPU身份绑定通过：run44ef8ef8/code620543c，固定53f661镜像/994772cc及30132b6d两库，冻结wrapper及实际native_record_call._bound_runtime完成builtin归属、checkpoint映射inode和Store磁盘摘要核验；坏外部SHA、compiled=false及Store SHA三个负例实际拒绝。accelerate1.12.0仅从已核380935B只读wheel临时导入，未pip/改镜像或新环境；139359B必要源码仅容器/tmp临时存在，释放后消失。独立SSH核本次和首次缺accelerate失败run均容器空/timerinactive，8个GLM SDK文件及两库/wheel SHA不变。限定实际复审允许native_cpu_runtime_binding=true；mapped机器码/函数地址、完整功能ABI/liveStore、CUDA、原生恢复、八rank/完整模型/服务仍未验证。原失败保留，不复用本次临时receipt作为后续运行凭证。
 - 下一项是固定vLLM0.19.1完整worker依赖的实际安装/来源缺口评估及既有source worker接线；不要重复CPU保存或身份探针。native运行前仍需新完整审阅、实际资源/窗口与守护，2×显存预算拒绝不变。当前无需为native编译再申请GPU，也不能称source/native worker已可运行。
 
