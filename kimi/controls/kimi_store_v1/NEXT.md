@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2 19:43官方server下载2924b真实读取超时：342.55秒/7项完整验收/新增1001030B，原PID1899959独立absent同boot、cuda旧partial0B保留；不复用此run或追认成功。本机仅首个12.15MB包有界180秒curl也超时，6,959,423B部分文件原native_patch暂留，未传输/未称完整，完整远端及前缀核验后方清本地。
+- 不把源站慢当环境失败：仅HEAD核TUNA/阿里镜像同文件200/12151019B；003 TUNA HEAD0.474秒，尚非payload成功。新server6492981f/bodyb6621cf7仅新身份、独立.mirror.partial及PyPI路径保留TUNA运输映射，59原SHA/尺寸及3600+kill5/单CPU512MiB/23:50不变，限定运输delta复审PASS。旧7项复核后重用、不覆盖旧partial/不下载权重；待执行。CPU安装计划仅草案，不标环境/模型ready。
+
 - 11/2 19:29晚间4309227c实际采集完成：21889路径/21个RECORD包3976153625B，唯一未知PyJWT2.7来自/usr/lib/python3/dist-packages、无RECORD，故passed=false/总量None，未知未计0。1.01秒/noTorch/vLLM/GPU；独立SSH容器空、timerinactive、PID1895134 absent、同boot。原native编译不重做。UV既有mcp2.3缓存明确pyjwt[crypto]>=2.10.1，不能保留2.7硬过；拟只在本任务私有容器/usr/local安装已钉新PyJWT，保留OS源，尚未实现/受审。
 - 59归档准备候选仅复用原stream/SHA下载实现，原downloads内2已核旧包重用、57新包合计1810794319B；无权重/环境副本、无Docker/安装/GPU。512MiB/单CPU affinity/20MiB每秒平均、外层timeout3600+kill5，23:50收尾，固定run2924bb66 max1；bodyf9a3e5cf及3项真实小文件/明确HTTP与身份资源mock控制通过，临时小文件全清。正在限定只读审阅，未执行。60f0485已push独立核同SHA。
 
