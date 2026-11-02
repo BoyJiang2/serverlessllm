@@ -1,5 +1,7 @@
 # Kimi INT4 Store CPU 适配候选
 
+11/2 CPU依赖准备最新：最小候选图实际235.327秒解析180包并独立核验，121包可复用、37补装、22必要替换（原需替换57）；cryptography41.0.7保留，Store grpc1.76/click8.1.7及框架严格根锁定。新锁SHAe6c4de8c…，59项待安装artifact公开元数据已绑定，但完整包校验/22路径归属/安装峰值/Linux导入未完成，不称环境或模型ready。原图/失败和GLM40ID历史不变，当前断点见NEXT.md。
+
 11/2 11:00实际闭环：native补丁49b2已完整配置、编译及链接两个原target（code00c3de8/run5e597e33），以静态PIC glog修复首版临时动态依赖。固定53f661ba镜像、Torch2.10cu129/CUDA12.9、单并发1CPU8GiB；_C 395376B/SHA994772cc…，_checkpoint_store 823584B/SHA30132b6d…，详细原始哈希/33输入/日志见native_patch/cpu-probe.json。随后独立干净容器run0cd27f9d（codeb934e03）只挂两库，无源码或构建目录、无GPU/网络、1CPU2GiB，两个普通import均成功且CUDA未初始化；自身容器及timer独立复核已释放。实际只读复审允许ledger compiled_native_store=true及限定CPU导入声明。GPU、活跃Store、完整checkpoint、八rank和原生服务仍未验证，2×预算拒绝不变；依赖合同差异/vllm缺失未解除。旧失败和首版glog缺口完整保留。
 
 11/2 11:14原生CPU保存对照实际通过：run9c6b6ae6/codeba5c16c，原_C.save_tensors与未改stream_writer对5个canonical+1alias的packed INT4/int32、BF16/FP16/FP32有效位及offset一致；源shape/stride/dtype未改，两文件均8192B，未比较未定义padding。独立SSH完整/逐payload哈希、uid2147/mode0600和自身容器空/timer inactive均通过，只留原downloads内8KiB证据。限定实际只读复审允许native_cpu_save_comparison=true，不证明native index、原生恢复、CUDA、八rank/完整模型/服务；CUDA未初始化。原始错误候选和NEEDS_FIX保留。原生writer申请1GiB虚拟buffer，Python单块上限8MiB；本次均未测RSS峰值。

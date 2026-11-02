@@ -4,6 +4,12 @@
 
 ## 最新覆盖
 
+- 新22路径metadata候选已限定静态审阅PASS：host3faa1cac…/body3163eefb…/固定runf9cfafcf… max1；NO_RECORD/未知总量明确保持失败，missing_paths另列，逻辑长度不是实际overlay/卸载/峰值。尚未实际执行，不批准安装/GPU/model。
+
+- 新最小图及59条manifest已独立实际只读核验通过（仅metadata）：180行与实际输出一致、121/37/22、压缩2244307355B/新增归档1810794319B重算一致。声明展开5307046801B不是实际安装峰值，全wheel SHA及Linux导入仍未证。下一22项路径collector候选复用旧guard，保留全部NO_RECORD及真实distribution_root；未知不计0、total=None、passed=false，仍一次收集完而非逐个失败才重做。仅既有runtime JSON更新，run/source SHA见candidate；待只读审阅未运行。
+
+- 本机最小求解876d71d8/code c72ec02实际成功：235.327秒，180包，采样进程峰205426688B/cache85797281B（轮询非硬上限），新tmp entry[]，独立WindowsPID91744 absent。121同版/37补装/22替换，较原86/37/57去掉35项无必要替换；cryptography41.0.7保留、click8.1.7/grpc1.76/其余15严格根均核验。新候选file SHAe6c4de8c…含CANDIDATE ONLY头，未安装/不代表Linux ABI。原9e71图/锁、94项metadata和预算均明确绑定历史SHA，未追认当前有效；新59项metadata复用58同版本条目，只补click8.1.7 JSON/ZIP目录，新增压缩字节与展开量见current_artifact_metadata_selection。下一项按22替换范围收集全部RECORD/实际路径归属（未知不能省略或当0），冻结安装成本与发布策略后才审CPU安装/导入；不再盲升57包，不重做native编译。
+
 - 最小依赖本机controller原08161670…审阅NEEDS_FIX两项已真实核验并修：seed写入纳入try；UV输出校验失败保留raw并标未通过，正常成功也标CANDIDATE ONLY。旧小文件失败标记缺失实际复现，新小/131073B大/缺文件三个实际except控制通过，测试临时单文件已清理。最终4c0d9280…限定delta复审PASS_ONE_LOCAL_METADATA_ATTEMPT，15根/缓存/预算不变；仍未执行/未安装。不得把候选文件或新小控制当Linux运行时正确性。
 
 - 恢复后受审控制2502f7fb实际codeb3f029c：SSH0，host_started/guard_ready/terminal齐全，采集passed=false（cryptography41.0.7没有RECORD/files；原候选欲换50.0.2），原外层遗留“relocation import failed”仅错误文案，真正metadata错误已保留。实际downloads可用1563652898816B、Docker根/var/lib/docker可用888938573824B；因此容量不缺，安装峰值仍未证。独立SSH确认原PID1497397 absent/容器空/timer inactive。旧255未知不追认。
