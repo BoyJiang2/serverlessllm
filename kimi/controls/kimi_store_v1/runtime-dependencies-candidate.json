@@ -187,7 +187,7 @@
     "yarl": "1.25.1",
     "zipp": "4.1.2"
   },
-  "status": "WHEEL_METADATA_COMPLETE_INSTALL_BUDGET_UNADMITTED",
+  "status": "PAUSED_BY_USER_FOR_SOURCE_COPY",
   "installed": false,
   "artifact_integrity_complete": false,
   "incremental_budget_verified": false,
@@ -5539,5 +5539,119 @@
       "compressed_bytes": 2269423311,
       "member_count": 23776
     }
+  },
+  "replacement_probe_prechecks": [
+    {
+      "recorded_utc": "2026-11-02T06:13:28.779805+00:00",
+      "scope": "read-only window refresh; original user CPU/RAM authorization only",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "native_api_result": "12s local timeout; no remote jobs",
+      "fallback": "existing Windows global Python stdlib booking helper only; no copied token/env; not the dedicated Torch test interpreter",
+      "native_ssh": {
+        "scope": "REMOTE qjhs003 minimal read-only identity/clock/memory only via WSL native ssh",
+        "returncode": 0,
+        "stdout": "{\"uid\": 2147, \"utc_epoch\": 1793600031.7473757, \"memory_available_kib\": \"MemAvailable:   1972170808 kB\"}\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "replacement_probe_executions": [
+    {
+      "registered_utc": "2026-11-02T06:14:50.120615+00:00",
+      "code_commit": "460a1419891a847379f6eb61c6232d50c484cf5e",
+      "state": "SSH_TERMINAL",
+      "transport": "WSL native SSH",
+      "host_sha256": "283ee771a2903d53ff654fce3cac684a1865301e781b7f7838f45bd99078845d",
+      "body_sha256": "28d0804c891f6a6e57b26200fb65a871497e87dff8da49592bcc422b23654d2e",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "returncode": 255,
+      "stderr": "Timeout, server 115.190.191.164 not responding.\n",
+      "stdout_bytes": 0,
+      "result": null,
+      "remote_start_or_collection_terminal_proven": false,
+      "historical_scope": "SSH timeout with no probe JSON; do not relabel as successful collection or automatically repeat"
+    }
+  ],
+  "pause_reconciliation": [
+    {
+      "registered_utc": "2026-11-02T06:17:45.119345+00:00",
+      "scope": "user-requested pause safety closure, no resume",
+      "transport": "existing Windows SSH after native established session ended255 server-not-responding",
+      "state": "RECONCILE_TERMINAL",
+      "returncode": 0,
+      "stdout": "{\"uid\": 2147, \"scope\": \"pause safety closure only; inspect exact current CPU probe identities; no source data delete or other task actions\", \"matching\": [], \"other_labelled_container_count\": 0, \"current_probe_containers_absent\": true, \"passed\": true}\n",
+      "stderr": "",
+      "result": {
+        "uid": 2147,
+        "scope": "pause safety closure only; inspect exact current CPU probe identities; no source data delete or other task actions",
+        "matching": [],
+        "other_labelled_container_count": 0,
+        "current_probe_containers_absent": true,
+        "passed": true
+      }
+    }
+  ],
+  "pause_writer_and_guard_check": {
+    "recorded_utc": "2026-11-02T06:19:16.343041+00:00",
+    "returncode": 0,
+    "stdout": "{\"uid\": 2147, \"scope\": \"pause closure only; own metadata guards and UID2147 writable descriptors under the two experiment roots; no source reads or deletes\", \"timers\": [], \"writable_descriptors\": [], \"uninspectable_processes\": [1330162, 1330215, 1477179, 1484878, 1485276], \"pid_count\": 19, \"fd_count\": 210, \"passed\": false, \"finished_utc\": \"2026-11-02T06:19:16.235713+00:00\"}\n",
+    "stderr": "",
+    "result": {
+      "uid": 2147,
+      "scope": "pause closure only; own metadata guards and UID2147 writable descriptors under the two experiment roots; no source reads or deletes",
+      "timers": [],
+      "writable_descriptors": [],
+      "uninspectable_processes": [
+        1330162,
+        1330215,
+        1477179,
+        1484878,
+        1485276
+      ],
+      "pid_count": 19,
+      "fd_count": 210,
+      "passed": false,
+      "finished_utc": "2026-11-02T06:19:16.235713+00:00"
+    }
+  },
+  "pause_writer_process_classification": {
+    "returncode": 0,
+    "stdout": "{\"returncode\": 0, \"stdout\": \"1330162 1330161  2147 S    (sd-pam)\\n1330215 1329749  2147 S    sshd\\n1477179 1477145  2147 S    sshd\\n\", \"stderr\": \"\", \"scope\": \"metadata classification only, no signals or privileged access\"}\n",
+    "stderr": ""
+  },
+  "pause_state": {
+    "recorded_utc": "2026-11-02T06:21:20.747716+00:00",
+    "requested_by_user": true,
+    "reason": "user will copy qjhs003:/data/brick1/boyjiang/ to qjhs002; wait for explicit resume",
+    "new_work_stopped": true,
+    "registered_current_probe_containers_absent": true,
+    "current_metadata_timers": [],
+    "observed_source_writable_fds": [],
+    "uninspectable_fd_scope": "five UID2147 entries initially inaccessible; subsequent ps found only sd-pam and two sshd, other two no longer listed; not a global filesystem consistency certificate",
+    "source_assets_deleted_or_modified": false,
+    "running_owned_source_writer_known": false,
+    "automatic_resume": "none matching this experiment found in local automation definitions; unrelated Janus already PAUSED left unchanged",
+    "qjhs002_execution_authorized": false,
+    "resume_requires_user_explicit_instruction": true
   }
 }

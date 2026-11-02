@@ -4,6 +4,11 @@
 
 ## 最新覆盖
 
+- 11/2 14:20按用户侧聊明确要求暂停，准备由用户复制qjhs003:/data/brick1/boyjiang/到qjhs002。停止所有新下载/安装/构建/模型/Store/后续probe，等待用户本人明确恢复；复制不授权在002运行或变更唯一实验节点。仅完成安全收口和本地断点保存，不删/改源资产，不干预复制或他人资源。
+- 最后一次replacement-size探针：code460a141、注册06:14:50Z，WSL SSH terminal255、Timeout server not responding、stdout0、没有probe JSON；远端启动/采集终态未获直接证明，不称预算采集通过、不重派。pause reconcile实际SSH0：本实验label容器0；随后相关metadata timer0；UID2147源目录writable fd观测0。5个FD不可读PID随后只剩sd-pam+两sshd、另2已不列出，未sudo或干预；保留扫描passed=false及归属局限，不伪称全局文件系统稳定证明。本实验没有已知源目录写入任务，原模型/Store/权重不动。
+- 本机无匹配本实验的自动续跑定义；仅匹配到别项Janus已PAUSED，未修改。原40ID/金标/Kimi官方revision/资产全部冻结不重置。最新payload预算/已审size候选留存，恢复后必须先核实际窗口/源位置/完整性，不能因资产被复制自动向002启动。
+- 本轮WSL native Git本地commit成功，但native GitHub SSH及Windows SSH443均在198.18.0.171握手前关闭；Windows Git单操作http.sslBackend=openssl HTTPS已实际push460a141并核远端同SHA，未改全局配置或复制凭据。普通处理继续WSL原生；WSL qjhs003最小只读SSH曾真实UID2147成功，不代表后续长会话稳定。native booking API12s超时，既有Windows全局Python仅调用既有认证helper刷新CPU票成功，不用专用Torch环境、不复制token。
+
 - 新replacement-size只读审阅已返回PASS_METADATA_ONLY，精确host283ee771…/body28d0804c…；独立重算94/5388872745B/2269423311B/23776成员一致。未实际执行，不批准安装或模型。st_size仅逻辑长度，不能当物理块/精确copy-up/stash或安装峰值；missing路径须保留。WSL Git身份尚未配置（实际var返回128），不改全局，后续每次commit沿用既有HEAD committer公开元数据作单命令配置，GitHub连接仍按必要操作借既有Windows Git。
 
 - 11/2 14:04本机metadata闭环（无新包下载/安装）：94/94候选wheel的官方URL/SHA/尺寸及实际1068 Linux tags匹配均已采集，完整wheel SHA仍未全部验证。94个ZIP目录/23776项声明展开5388872745B，压缩2269423311B；既有vLLM+accelerate433513036B不重复下载，新增包1835910275B。保留全部新增归档+安装内容合计7224783020B仅内容量，不是安装峰值；旧文件stash/Docker copy-up/实际两FS空间及RSS仍缺。首轮FlashInfer目录2374376B超过1MiB限制，后续保持每次<=1MiB分3段完成，无完整wheel副本；旧失败保留。下一必要probe候选只读统计57替换包RECORD路径的lstat字节，并statvfs原downloads与Docker root；复用既有独立guard driver，host/body SHA见同JSON，待本地只读审阅，未远端执行。
