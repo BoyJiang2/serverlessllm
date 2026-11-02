@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 当前真实活跃任务：server镜像下载6492981f，既有本地exec handle92375，注册f50b293，外层timeout3600+kill5/local3660，不延长/不重复派发。最近826.385秒快照33/59已验、cuDNN partial585105408B仍增长；不是终态，也不是全归档通过。结束后controller自动保存events/result到本文件，接手先poll同handle及既有remote receipt，再独立PID/start_ticks/boot/各final+partial核验。
+- 本机cuda失败partial6959423B已独立对比远端已恢复12151019B完整SHA及对应前缀，SHA/前缀均一致后核绝对路径，单文件删除成功；收据在runtime_artifact_local_relays[-1].cleanup，没有本地wheel/GB副本。旧server失败、0Bpartial和本机180秒失败保留。下一真正门槛是全部59归档SHA、最小PyJWT策略实现/完整CPU安装与干净导入、完整P0审阅/新守护；不能因午夜预约或下载进度启动GPU/模型/大池。
+
 - 11/2 19:43官方server下载2924b真实读取超时：342.55秒/7项完整验收/新增1001030B，原PID1899959独立absent同boot、cuda旧partial0B保留；不复用此run或追认成功。本机仅首个12.15MB包有界180秒curl也超时，6,959,423B部分文件原native_patch暂留，未传输/未称完整，完整远端及前缀核验后方清本地。
 - 不把源站慢当环境失败：仅HEAD核TUNA/阿里镜像同文件200/12151019B；003 TUNA HEAD0.474秒，尚非payload成功。新server6492981f/bodyb6621cf7仅新身份、独立.mirror.partial及PyPI路径保留TUNA运输映射，59原SHA/尺寸及3600+kill5/单CPU512MiB/23:50不变，限定运输delta复审PASS。旧7项复核后重用、不覆盖旧partial/不下载权重；待执行。CPU安装计划仅草案，不标环境/模型ready。
 
