@@ -274,6 +274,30 @@
         "Poll inventory is accumulated observed members, not proof all short-lived children were recorded",
         "No actual GPU/guard/60s proof"
       ]
+    },
+    {
+      "recorded_utc": "2026-11-02T15:27:24.985956+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "code_commit": "bbb9434f1db231bb214c6c629ad22323d61b70fb",
+      "verdict": "PASS_CPU_RELEASE_ANCHOR_POLICY_ONLY",
+      "sha256": {
+        "source_schedule.py": "17df91e843a67cfa822787ffe4a5cd52ed58f535c223eb089a0ed4248e49274b",
+        "test_source_schedule.py": "befe11a5e2c3f15f5883a6067ad24a760880f85cd13e1ffdd4b615367dca39fb",
+        "source-schedule-tests.json": "a844b8492a2d601e4514b0e2efc63ce4a1b85bd74f492f74c6f05b3a8ad53a95"
+      },
+      "reviewer_ran_tests": false,
+      "reviewer_remote_access": false,
+      "verified": [
+        "First valid snapshot establishes both observation clocks",
+        "Original budget checked again for full60s after initial snapshot",
+        "Original 46s and remaining59s false positives retained as failures",
+        "Inventory described as accumulated observed members only"
+      ],
+      "limitations": [
+        "No actual wait60s or GPU release evidence",
+        "Guard termination and full runtime admission unverified",
+        "No P0/native Store/full Kimi/service gate"
+      ]
     }
   ],
   "followups": [
@@ -790,6 +814,16 @@
       "explicit_exit_code_captured": false,
       "guard_deployed": false,
       "runtime_admitted": false
+    }
+  ],
+  "readiness_context_snapshots": [
+    {
+      "scope": "single read-only pre-midnight readiness context, not allocation or runtime gate",
+      "recorded_utc": "2026-11-02T15:25:07.324051+00:00",
+      "returncode": 0,
+      "stdout": "{\"host\": \"qjhs3\", \"uid\": 2147, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"utc\": \"2026-11-02T15:25:06.727363+00:00\", \"image\": {\"returncode\": 0, \"stdout\": \"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\n\", \"stderr\": \"\"}, \"gpu_context\": {\"returncode\": 0, \"stdout\": \"GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, 0, 0\\nGPU-a3baf382-35c8-8748-626a-f69745aab5f8, 0, 0\\nGPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, 0, 0\\nGPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, 0, 0\\nGPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, 0, 0\\nGPU-151684e8-c7ba-a20a-6955-e1f765940536, 0, 0\\nGPU-af5f5c7a-0dce-f291-99be-2c844225cec6, 0, 0\\nGPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, 0, 0\\n\", \"stderr\": \"\"}, \"gpu_apps\": {\"returncode\": 0, \"stdout\": \"\", \"stderr\": \"\"}, \"memory_context\": \"MemTotal:       2016708628 kB\\nMemAvailable:   1971814408 kB\\nMlocked:          229944 kB\\nAnonPages:       2759260 kB\\nShmem:             15716 kB\"}\n",
+      "stderr": "",
+      "elapsed_seconds": 6.192071657998895
     }
   ]
 }

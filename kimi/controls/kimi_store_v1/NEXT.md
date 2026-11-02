@@ -1,3 +1,9 @@
+## 11/2 23:25只读实际快照/修订复审
+
+运行镜像ec5b4131…精确ID仍存在，8卡NVML均0MiB/util0、compute apps空；MemAvailable1971814408KiB约1.836TiB，Mlocked229944KiB是全局背景非本实验池。单次WSL原生SSH exit0/6.192秒，无计算/清理/目录创建。完整stdout在原review.readiness_context_snapshots，不能替代随后启动前fresh资源/预约/guard准入。
+
+bbb9434（源码91326e0）的首有效快照起点修复静态复审PASS_CPU_RELEASE_ANCHOR_POLICY_ONLY，三个SHA实核。111项精确源CPU回归6.428秒；旧494 NEEDS_FIX/两个已复现失败保留。仍没有实际GPU、真实60秒观察、guard停止或完整driver/运行gate。下一项必须直接接现有setup→真实准入/start→monitor→output→cleanup→observe→guard-stop，不再另造启动工具。目录例外未获回复，不创建p0目录。
+
 ## 当前修订：修复首份快照前误计入60秒的问题，等待当前复审
 
 494a922初审NEEDS_FIX及旧SHA保留原review。新增慢首采样14秒的真实CPU虚拟时钟回归，原源码实际仅46秒有效快照跨度仍通过，以及采样后剩余59秒仍通过，两项失败原样留tests JSON。现在首份有效快照/全部判据通过后才设wall和monotonic观察起点，之后仍须完整60秒；原总预算不延长，首采样后不足60秒直接失败。111项WSL CPU回归6.427秒通过，不是实际60秒运行。
