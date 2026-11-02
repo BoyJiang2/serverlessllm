@@ -1,3 +1,7 @@
+## 本轮限定恢复代码已复审，尚未执行
+
+source-schedule-review.json.runc_kill_recovery_candidates[-1]记录独立APPROVED_SINGLE_OWNED_RUNC_RECOVERY：root模板ad008b73…/local2f217b17…，仅一个fresh核验PIDfd的自有runc2221328 SIGKILL，正常CID API清理、旧helper/进程/CG/runtime路径与60s观察；不信号shim/daemon/其他PID，不改runtime目录。root supervisor由本次原300s UTC最后截止派生，local295+kill5硬界；收据立即落固定p0新小日志，最终必须独立SSH证明roothelper退出。已纠正仅因root就要求管理员的过度保守判断，属于用户已授权自有失败资源清理。此为新独立恢复，不延长/重试/改判原P0；实际结果尚未产生。
+
 ## 11/3 03:00本轮已闭合CPU默认factory接线，实际runtime仍阻塞
 
 17305d8的source_plugin 168cb6b1…/test2bd99ce4…已获独立PASS_CPU_DEFAULT_FACTORY_BINDING_ONLY；59项WSL+1真实Torch CPU负例证据保留。默认API能在既有输入/源码/时间校验后使用冻结真实vllm factories，无新CLI或目录，未部署且不冒充TP8/Store通过。
