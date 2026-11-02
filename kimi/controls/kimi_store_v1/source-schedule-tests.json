@@ -828,5 +828,38 @@
       "scope": "real three-field member contract; bounded separate context/terminal receipts; six-background CPU fixture, no GPU",
       "runtime_approved": false
     }
+  ],
+  "outer_timeout_cpu_probes": [
+    {
+      "recorded_utc": "2026-11-02T18:05:26.883739+00:00",
+      "scope": "local CPU GNU timeout process-group boundary only",
+      "command": [
+        "/usr/bin/timeout",
+        "--signal=TERM",
+        "--kill-after=5",
+        "0.5",
+        "/usr/bin/python3",
+        "-B",
+        "-u",
+        "-c",
+        "<record parent+child PGID then sleep5>"
+      ],
+      "returncode": 124,
+      "elapsed_seconds": 0.5243626160008716,
+      "stdout": "{\"pid\": 14030, \"ppid\": 14029, \"pgid\": 14029}\n{\"pid\": 14032, \"pgid\": 14029}\n\n",
+      "stderr": "",
+      "records": [
+        {
+          "pid": 14030,
+          "ppid": 14029,
+          "pgid": 14029
+        },
+        {
+          "pid": 14032,
+          "pgid": 14029
+        }
+      ],
+      "verified": true
+    }
   ]
 }

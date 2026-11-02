@@ -1,3 +1,9 @@
+## 11/3 02:08最小外层方案：直接复用现有bash+GNUtimeout，不新写执行框架
+
+已选1795秒TERM+5秒KILL=整批1800硬界，现有WSL bash16786内固定python3 -B -E -s -u -i；实际首次记录父timeout PID/start/boot/PGID并从父开始推算最终deadline，部署/配置/SSH启动/独立取证均只用同一remaining。不在driver之后新加600；启动driver前至少1205+60剩余（其中driver已含60s观察）。只有方案审阅可接受，实际配置最终结论及首次outer记录尚待，不ready。
+
+已真实本地CPU短timeout：124/0.524秒，parent timeout14029、Python14030、普通子14032同PGID14029，返回后父及Python均gone，证据在原tests.outer_timeout_cpu_probes；仅限该次CPU组，不当远端容器/daemon已释放。原prelude assert副作用已显式if修正、SHA15f5438c…；密码须getpass读取，绝不作为REPL代码字面量/history/env/argv。尚未remote部署/guard/GPU。
+
 ## 11/3 02:03接续：844完整源码R1 PASS，实际配置外层预算仍缺
 
 当前已核源码844e567（178文件4141254B/manifest b2f75414…）完整P0源码R1 PASS_SOURCE_ONLY；未审新代码不再新增。已在现有source-schedule-review.json准备实际spec/plan（run kimi-p0-20261102T175946Z-de357c39，1800全批=1200driver+600外部；固定GPU901a…/ec5镜像环境4c00993e…/本人00–09票）。独立配置审阅NEEDS_FIX两项：prelude assert发布副作用、外部600只是声明尚无共享累计截止。已显式if发布并固定prelude python3 -B -E -s，旧模板和NEEDS_FIX保留；第二项尚未实现/验证，不能签gate、部署或启动GPU。
