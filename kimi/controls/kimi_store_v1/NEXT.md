@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 原CID1636…已在02:17:46Z发生destroy（Docker精确事件已取回，调用者/原因未知）；02:18单次resume先inspect失败，未再次安装，保留保守cleanup_owed原收据，不重判成功。为避免停止层再次消失，后续候选仅在真实install/import通过后commit必要差异层到固定tag sllm-kimi-cpu-build:torch210-cu129，复用26.6GB基础层、不复制整镜像；实际imageID核对后才stop/rm自己临时容器。原wheel0644/RO挂载、1CPU8GiB/noGPU/networknone保持。host7ad6258…/body89a74ad…限定只读PASS，三个actual AST commit状态mock控制通过。空间核DockerRootDir(/var/lib/docker)至少12GiB；900秒仅controller/720秒仅container stop，daemon commit客户端超时不能硬取消，必须保留commit未知及artifact核验义务，不自动重试/删镜像。原NEEDS_FIX/旧候选/两次实际失败均保留。尚未执行此候选，不是native build准入。
+
 - 11/2 10:16首次离线安装实际失败（原错误保留cpu_dependency_install_executions）：wheel宿主uid2147/mode0600，容器uid0但cap-drop ALL，pip读取RO挂载报Errno13，尚未安装。host不把进程exit0冒充业务成功：passed=false，停止精确CID1636cee147c2b32894f2cec5be0c189a065afbb91c1d1dd10eaaa14f4cf3a71c并记录PID0/SizeRw0/guard stop0，无GPU。最小整改仅将同一已核公开wheel设0644（owner核验，不改目录或他人文件），复用同一停止容器/原限制/已审body；不新增镜像/环境/容器、不得重下。resume候选及原candidate均保留，未以此批准native构建。
 
 - 用户“开启下一步”授权后，离线安装候选复用cpu-probe已有driver：仅改为root本任务可写层+唯一wheel RO挂载、1CPU8GiB/noGPU/runc/networknone，pip --no-deps --no-cache-dir后普通import核Torch2.10cu129及CUDA未初始化；stdin注入同一body，停止后同一依赖层可复用后续build，不新镜像/venv/checkout。540秒payload/720秒宿主stop guard/900秒整体/11月2日18:50收口，未知创建及清理义务保留。body89a74ad…、hostbc7ed60…限定只读复审PASS，5项mock body控制与真实cmd helper的stdin传递控制通过；不是实际安装/ABI或native build准入。后续只停止自有CID并记录SizeRw，released仅表示运行停止，磁盘层保留；原探针候选历史保留。当前尚未执行。
