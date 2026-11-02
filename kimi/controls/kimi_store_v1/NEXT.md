@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 恢复观测delta已获限定PASS_ONE_METADATA_CONTROL：host0a02a7f4…/body28d0804c…，固定run2502f7fb…最多一次。host_started只证明进入、guard_ready只证明守护预检，必须同run terminal+passed及独立释放才能成功；SSH255/缺终态仍未知，不能重用run。未执行，不批准安装/模型/GPU；下一项先实际刷新CPU授权、UID/内存/旧容器缺席，再执行受审控制。
+
+- 11/2 14:30用户明确取消迁移并恢复原任务；保持qjhs003唯一入口，不向002复制/运行，原暂停与SSH255历史完整保留。main3ffa86f已独立ls-remote核远端同SHA。原只读size采集未取得结果，旧container/timer在暂停收口已核空；不是预算通过。现仅原runtime-dependencies-candidate.json补必要观测：新run_id连接前固定、host PID/start_ticks/boot即时事件、guard_ready CID及明确terminal事件（flush），body28d0804c…不变、原guard/window/finally逐补丁逆运算完全同父host。新控制max1、host SHA见JSON，待已有只读审阅，未运行；不重派旧ID或新下载/安装/模型。
+
 - 11/2 14:20按用户侧聊明确要求暂停，准备由用户复制qjhs003:/data/brick1/boyjiang/到qjhs002。停止所有新下载/安装/构建/模型/Store/后续probe，等待用户本人明确恢复；复制不授权在002运行或变更唯一实验节点。仅完成安全收口和本地断点保存，不删/改源资产，不干预复制或他人资源。
 - 最后一次replacement-size探针：code460a141、注册06:14:50Z，WSL SSH terminal255、Timeout server not responding、stdout0、没有probe JSON；远端启动/采集终态未获直接证明，不称预算采集通过、不重派。pause reconcile实际SSH0：本实验label容器0；随后相关metadata timer0；UID2147源目录writable fd观测0。5个FD不可读PID随后只剩sd-pam+两sshd、另2已不列出，未sudo或干预；保留扫描passed=false及归属局限，不伪称全局文件系统稳定证明。本实验没有已知源目录写入任务，原模型/Store/权重不动。
 - 本机无匹配本实验的自动续跑定义；仅匹配到别项Janus已PAUSED，未修改。原40ID/金标/Kimi官方revision/资产全部冻结不重置。最新payload预算/已审size候选留存，恢复后必须先核实际窗口/源位置/完整性，不能因资产被复制自动向002启动。
