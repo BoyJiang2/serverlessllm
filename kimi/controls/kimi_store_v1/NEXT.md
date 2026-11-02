@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 11:22实际现有SDK的torch.py/client.py与Kimi固定SHA不符，精确diff留cpu-probe：分别增加confirm失败抛错和CPU等待方法等GLM修订，不改GLM也不放宽Kimi源绑定。最小CPU接线候选复用原probe，SDK原目录只读，21个必要Git源码文件139359B（19导入依赖+2冻结wrapper）仅容器/tmp临时写入，不新host目录/环境。固定库按真实包名导入，调用真实_bound_runtime，正向及外部SHA/compiledfalse/storeSHA三个负例；1CPU2GiB、内60/guard120/整体300秒和18:50保持。21个Git blob逐SHA一致，原28测试21通过7Windows跳过。host41a6144c…/bodyb0060d13…限定只读复审PASS，尚未执行。来源receipt仅绑定已实构建产物，不是活跃Store证明；下一项此一次有界CPU真实身份绑定。vLLM仍缺，不声称worker/模型ready。
+
 - 11/2 11:14原生CPU保存对照实际通过：run9c6b6ae6/codeba5c16c，原_C.save_tensors与未改stream_writer对5个canonical+1alias的packed INT4/int32、BF16/FP16/FP32有效位及offset一致；源shape/stride/dtype未改，两文件均8192B，未比较未定义padding。独立SSH完整/逐payload哈希、uid2147/mode0600和自身容器空/timer inactive均通过，只留原downloads内8KiB证据。限定实际只读复审允许native_cpu_save_comparison=true，不证明native index、原生恢复、CUDA、八rank/完整模型/服务；CUDA未初始化。原始错误候选和NEEDS_FIX保留。原生writer申请1GiB虚拟buffer，Python单块上限8MiB；本次均未测RSS峰值。
 - 下一项沿现有source worker核对实际冻结vLLM依赖与已构建扩展的调用接线，先定位可证明的缺口，不新增通用启动包装。原生RestoreTensors显式构造CUDA张量且含cudaFree所有者，不能在CPU-only权限下执行来冒充恢复通过。完整原生恢复仍需后续独立运行审阅/有效窗口/资源及守护准入。
 
