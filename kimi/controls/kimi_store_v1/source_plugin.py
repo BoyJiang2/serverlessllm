@@ -476,6 +476,7 @@ def read_reference_events(path, identity):
         payload = rows[1]['payload']
         if (not isinstance(payload, dict) or any(payload.get(k) != v for k, v in identity.items())
                 or payload.get('reference_collected') is not True
+                or type(payload.get('export_performed')) is not bool
                 or payload.get('engine_shutdown_returned') is not True
                 or any(payload.get(k) is not False for k in ('runtime_admitted', 'gold_frozen',
                     'native_loader_verified', 'full_service_verified', 'resources_released'))):

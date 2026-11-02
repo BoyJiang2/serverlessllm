@@ -1,3 +1,7 @@
+## reference-only复审整改
+
+5c5e45e初审NEEDS_FIX（export_performed的0/null/缺失可绕过模式分支），原SHA/结论保留。已要求新终态type(export_performed) is bool；0/1/null/缺失全部拒绝，并保持reference ranks=None及官方SF加载器限制。35项WSL CPU回归2.557秒通过；对冻结5c reader仅在内存执行新负例，4项绕过均实际复现失败（证据明确是修复后追溯回归，不伪装先后）。不安装WSL Torch、不建新checkout/候选目录；旧无字段归档保留原字节，可用其冻结旧reader检查，不当成新reference模式成功。当前等待修订只读复审，不是GPU/R1全流程通过。
+
 ## 当前最小功能整改：reference-only已分离，等待静态复审
 
 仅修改现有source_plugin.py及测试：mode=reference时output_root必须None，官方safetensors loader/TP8/Marlin及原业务参数不变；不构造/注册export loader、不收八rank导出回执；结果ranks=None、export_performed=false，reader拒绝该分支伪装Store完成。旧export分支仍走原工厂和校验，原GLM文件未改。

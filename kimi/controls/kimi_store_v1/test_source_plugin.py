@@ -44,6 +44,13 @@ class SourcePluginTests(unittest.TestCase):
             path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
             with self.assertRaisesRegex(ValueError,'reference-only'):
                 plugin.read_reference_events(path,options['identity'])
+            for value in (0,1,None,'missing'):
+                with self.subTest(export_performed=value):
+                    changed=json.loads(json.dumps(rows))
+                    if value=='missing':changed[-1]['payload'].pop('export_performed')
+                    else:changed[-1]['payload']['export_performed']=value
+                    path.write_text(''.join(json.dumps(row)+'\n' for row in changed))
+                    with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])
 
     def test_reference_plugin_verifies_spec_without_registering_export_loader(self):
         with tempfile.TemporaryDirectory() as temp:
