@@ -3369,6 +3369,125 @@
       "outer_os_exit_code": 1,
       "outer_os_exit_code_tool_chunk": "b3963f",
       "gpu_dispatch_attempted": false
+    },
+    {
+      "run_id": "kimi-p0-20261102T201641Z-99679319",
+      "pid": 15990,
+      "parent_pid": 15989,
+      "parent_start_ticks": 3313130,
+      "pgid": 15989,
+      "boot_id": "8ef3b877-a806-4c32-bfb6-47a3323e52e3",
+      "entered_utc": "2026-11-02T20:18:47.575869+00:00",
+      "deadline_utc": 1793652527.4550207,
+      "deadline_monotonic": 34931.300003631,
+      "resources_released": false,
+      "control_success": false,
+      "steps": [
+        {
+          "name": "preserve_failed_evidence",
+          "utc": "2026-11-02T20:19:01.672486+00:00",
+          "returncode": 0,
+          "stdout": "{\"archive_complete\": true, \"files\": 3, \"bytes\": 2070}\n",
+          "stderr": ""
+        },
+        {
+          "name": "publish_reviewed_static_inputs",
+          "utc": "2026-11-02T20:19:06.168447+00:00",
+          "returncode": 0,
+          "stdout": "{\"published\": {\"p0-spec.json\": \"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\", \"p0-plan.json\": \"245d84bbbf478d17c27656bc3e4d28cefd9b7af6d2f7c13c4affab7722afbea7\", \"p0-runtime-gate.json\": \"a86441cbb384eeab28250dabb7ab2573294f022f1827cdab3d2ae6e3e8549c77\"}}\n",
+          "stderr": ""
+        },
+        {
+          "name": "publish_fresh_worker_booking",
+          "utc": "2026-11-02T20:19:11.594507+00:00",
+          "returncode": 0,
+          "stdout": "{\"published\": [\"p0-worker-input.json\", \"p0-booking-snapshot.json\"]}\n",
+          "stderr": ""
+        },
+        {
+          "name": "independent_actual_exit",
+          "utc": "2026-11-02T20:28:27.688433+00:00",
+          "returncode": 0,
+          "stdout": "{\"verified\": false, \"pids\": [{\"pid\": 2280291, \"original_identity_present\": false}, {\"pid\": 2280292, \"original_identity_present\": false}], \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"docker_ps\": {\"returncode\": 0, \"stdout\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\\n\", \"stderr\": \"\"}, \"receipt\": {\"booking\": {\"age_seconds\": 24.125406, \"booking_id\": \"bk-20261102T0653-3b9f0bc8\", \"snapshot_sha256\": \"a39d4fc6ad0ba372c8e9343cb4d76a9e6ba165e48a88f628705733eaa74a127e\"}, \"cleanup_error\": {\"error\": \"Command '['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock', 'inspect', '77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d']' timed out after 502.19673905400145 seconds\", \"error_type\": \"TimeoutExpired\"}, \"cleanup_owed\": true, \"driver_exit_verification_owed\": true, \"error\": \"Command '['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock', 'start', '77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d']' timed out after 10 seconds\", \"error_type\": \"TimeoutExpired\", \"full_model_verified\": false, \"guard_exit_error\": {\"error\": \"P0 guard failed; preserve its outcome\", \"error_type\": \"RuntimeError\"}, \"native_loader_verified\": false, \"phase\": \"cleanup\", \"preflight_resources\": {\"context_bytes\": 13287, \"context_file\": \"p0-resource-000.json\", \"context_sha256\": \"c13e7aee417002936d6b7e1c5e3bfb6fb4046ab9fe36ccac09764b38bd8d15bd\", \"p0_budget_verified\": true, \"whole_node_exclusive\": false}, \"resources_released\": false, \"runtime_admitted\": true, \"scope\": \"P0A_TORCH_IPC_NO_MODEL_NO_STORE\", \"setup\": {\"artifacts\": {\"p0-setup-create.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-create.stdout.log\": \"65a42c8ab71a3c910b38262fe1d26f9bb28b572893499708b67192ee231a6268\", \"p0-setup-probe.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-probe.stdout.log\": \"ced4130facde42a69e0cb241d0eecdb75de051f309d54b9430bb0a1f890682b2\", \"p0-setup-register.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-register.stdout.log\": \"77a053029c55db1c138075bb70d1a97fae411bda0aa032135bb391b12cc3a81e\", \"p0-setup-systemd-client.stderr.log\": \"46646cbd1be340b062db4667f5b2b112dceafa9764435ef7cf2ce0230ec60776\", \"p0-setup-systemd-client.stdout.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}, \"capture_cleanup\": {}, \"cleanup_owed\": true, \"container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"creation_cli_exit_verified\": true, \"guard_deployed\": true, \"pending_partial_cleanup\": [], \"phase_exitcodes\": {\"create\": 0, \"probe\": 0, \"register\": 0, \"submit\": null}, \"registration_cli_exit_verified\": true, \"registration_sha256\": \"39b5c9c32e7e5318d4314fff850ba32405d86d7d2cc287d6364bcf0a5cb2acf4\", \"reported_container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"resource_window_verified\": false, \"resources_released\": false, \"runtime_abi_verified\": false, \"runtime_admitted\": false, \"service_plan_sha256\": \"5b31d4410b031057029ccf720e8336e81773ff841633a6628368f46c84d36e67\", \"service_probe_cli_exit_verified\": true, \"service_submit_cli_exit_verified\": false, \"service_submit_function_verified\": true, \"setup_cli_exit_verified\": false, \"systemd_client_returncode\": 0}, \"setup_failure\": null, \"start_resources\": {\"context_bytes\": 13287, \"context_file\": \"p0-resource-001.json\", \"context_sha256\": \"508313c768ac29d3169927b151b73485007f6e125967ff164018a834e1b258f1\", \"p0_budget_verified\": true, \"whole_node_exclusive\": false}, \"store_created\": false, \"torch_cuda_ipc_verified\": false}, \"startup\": {\"command\": [\"/usr/bin/timeout\", \"--signal=TERM\", \"--kill-after=5\", \"1200\", \"/usr/bin/python3\", \"-B\", \"-E\", \"-s\", \"-X\", \"utf8\", \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", \"p0-run\", \"--worker-input\", \"/data/brick1/boyjiang/kimi-k2.6/p0/p0-worker-input.json\", \"--worker-input-sha\", \"c3c5896c8bd3b9628fedd674e8d53927d3e0684726c6aa11aae6b5963d3245b0\", \"--gate-sha\", \"a86441cbb384eeab28250dabb7ab2573294f022f1827cdab3d2ae6e3e8549c77\", \"--booking-sha\", \"a39d4fc6ad0ba372c8e9343cb4d76a9e6ba165e48a88f628705733eaa74a127e\", \"--sudo-stdin\"], \"host\": {\"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"cgroup\": \"0::/user.slice/user-2147.slice/session-12323.scope\\n\", \"pid\": 2280291, \"pid_namespace\": 4026531836, \"start_ticks\": 77508458, \"uid\": 2147}, \"identity\": {\"code_commit\": \"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\", \"holder\": \"36bd55952634fb3c44982ddbb6602611\", \"run_id\": \"kimi-p0-20261102T201641Z-99679319\", \"source_manifest_sha256\": \"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\", \"spec_sha256\": \"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\"}, \"kill_grace_seconds\": 5, \"resources_released\": false, \"schema\": \"kimi-p0-outer-driver-startup-v1\", \"timeout_seconds\": 1200, \"utc\": \"2026-11-02T20:19:26.815145+00:00\"}, \"service\": {\"cleanup_complete_by_utc\": \"2026-11-02T20:39:07.620455+00:00\", \"command\": [\"/usr/bin/systemd-run\", \"--system\", \"--no-ask-password\", \"--unit=kimi-p0-20261102T201641Z-99679319-guard-36bd55952634fb3c44982ddbb6602611.service\", \"--uid=2147\", \"--property=Type=exec\", \"--property=Slice=system.slice\", \"--property=Restart=no\", \"--property=KillMode=control-group\", \"--property=UMask=0077\", \"--property=MemoryMax=256M\", \"--property=CPUQuota=100%\", \"--property=TasksMax=64\", \"--property=TimeoutStartSec=10\", \"--property=TimeoutStopSec=5\", \"--property=RuntimeMaxSec=1151\", \"--working-directory=/data/brick1/boyjiang/kimi-k2.6/p0\", \"/usr/bin/python3\", \"-B\", \"-E\", \"-s\", \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", \"guard\", \"--registration\", \"/data/brick1/boyjiang/kimi-k2.6/p0/registration.json\", \"--registration-sha\", \"39b5c9c32e7e5318d4314fff850ba32405d86d7d2cc287d6364bcf0a5cb2acf4\"], \"deployment_performed\": false, \"generated_utc\": \"2026-11-02T20:19:31.166211+00:00\", \"guard_deployed\": false, \"identity\": {\"code_commit\": \"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\", \"holder\": \"36bd55952634fb3c44982ddbb6602611\", \"run_id\": \"kimi-p0-20261102T201641Z-99679319\", \"source_manifest_sha256\": \"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\", \"spec_sha256\": \"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\"}, \"independent_service_verified\": false, \"launch_before_utc\": \"2026-11-02T20:19:41.166211+00:00\", \"max_runtime_seconds\": 1151, \"runtime_admitted\": false, \"schema\": \"kimi-source-watchdog-service-plan-v1\", \"startup_grace_seconds\": 10, \"stop_grace_seconds\": 5, \"system_manager_authorization_required\": true, \"unit\": \"kimi-p0-20261102T201641Z-99679319-guard-36bd55952634fb3c44982ddbb6602611.service\"}, \"registration\": {\"batch_entered_utc\": \"2026-11-02T20:19:07.620455+00:00\", \"host_pid_namespace\": 4026531836, \"nonce\": \"40cbe1c41347721f49112be4a3d14b81\", \"plan_sha256\": \"245d84bbbf478d17c27656bc3e4d28cefd9b7af6d2f7c13c4affab7722afbea7\", \"schema\": \"kimi-p0-watchdog-registration-v1\", \"target\": {\"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"container_created\": \"2026-11-02T20:19:30.993001148Z\", \"container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"environment_sha256\": \"4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387\", \"gpu_uuid\": \"GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81\", \"identity\": {\"code_commit\": \"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\", \"holder\": \"36bd55952634fb3c44982ddbb6602611\", \"run_id\": \"kimi-p0-20261102T201641Z-99679319\", \"source_manifest_sha256\": \"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\", \"spec_sha256\": \"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\"}, \"image_id\": \"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\", \"run_root\": \"/data/brick1/boyjiang/kimi-k2.6/p0\", \"schema\": \"kimi-p0-guard-target-v2\", \"uid\": 2147, \"worker_input_sha256\": \"c3c5896c8bd3b9628fedd674e8d53927d3e0684726c6aa11aae6b5963d3245b0\"}}}\n",
+          "stderr": ""
+        }
+      ],
+      "credential_input_returned_utc": "2026-11-02T20:18:53.393631+00:00",
+      "fresh_inputs": {
+        "worker_input": {
+          "schema": "kimi-p0-worker-input-v1",
+          "plan_sha256": "245d84bbbf478d17c27656bc3e4d28cefd9b7af6d2f7c13c4affab7722afbea7",
+          "batch_entered_utc": "2026-11-02T20:19:07.620455+00:00",
+          "environment_sha256": "4c00993e6a5769e81680fe6a9b898546633fc2fe2f7d9e01ae0d865548aa8387"
+        },
+        "booking": {
+          "schema": "kimi-p0-booking-snapshot-v1",
+          "captured_utc": "2026-11-02T20:19:07.620434+00:00",
+          "resource": {
+            "id": "h20/qjhs003",
+            "cluster_id": "h20",
+            "node": "qjhs003",
+            "cpu_booking_enabled": false,
+            "gpu_label": "H20",
+            "gpu_count": 8,
+            "notes": "开发可预约；保留原 qjhs0..qjhs3 对应机器，不在预约系统暴露个人账号。",
+            "ssh_host_alias": "qjhs003",
+            "ssh_host": "115.190.191.164",
+            "ssh_port": 22,
+            "active": true,
+            "bookable": true,
+            "sort_order": 103
+          },
+          "bookings": [
+            {
+              "id": "bk-20261102T0653-3b9f0bc8",
+              "resource_id": "h20/qjhs003",
+              "cluster_id": "h20",
+              "node": "qjhs003",
+              "start_ms": 1793635200000,
+              "end_ms": 1793667600000,
+              "user": "boyjiang",
+              "purpose": "kimi k2.6",
+              "created_ms": 1793602428500
+            },
+            {
+              "id": "bk-20261102T1157-efadda8d",
+              "resource_id": "h20/qjhs003",
+              "cluster_id": "h20",
+              "node": "qjhs003",
+              "start_ms": 1793667600000,
+              "end_ms": 1793718000000,
+              "user": "alan",
+              "purpose": "Miles Harbor GLM-4.7-Flash GRPO checkpoint resume; requires GPU and host memory",
+              "created_ms": 1793620621990
+            }
+          ]
+        },
+        "bindings": {
+          "identity": {
+            "run_id": "kimi-p0-20261102T201641Z-99679319",
+            "holder": "36bd55952634fb3c44982ddbb6602611",
+            "code_commit": "844e56736f0a7f5775ed51a8c878f20cc0b64f4c",
+            "spec_sha256": "74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc",
+            "source_manifest_sha256": "b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6"
+          },
+          "worker_input_sha256": "c3c5896c8bd3b9628fedd674e8d53927d3e0684726c6aa11aae6b5963d3245b0",
+          "gate_sha256": "a86441cbb384eeab28250dabb7ab2573294f022f1827cdab3d2ae6e3e8549c77",
+          "booking_sha256": "a39d4fc6ad0ba372c8e9343cb4d76a9e6ba165e48a88f628705733eaa74a127e"
+        }
+      },
+      "ssh_dispatch_attempted_utc": "2026-11-02T20:19:11.602731+00:00",
+      "launch_result": {
+        "returncode": 1,
+        "stdout": "{\"event\": \"p0_outer_exec_prepared\", \"identity\": {\"run_id\": \"kimi-p0-20261102T201641Z-99679319\", \"holder\": \"36bd55952634fb3c44982ddbb6602611\", \"code_commit\": \"844e56736f0a7f5775ed51a8c878f20cc0b64f4c\", \"spec_sha256\": \"74bbfbc78f5e1eaef857844a10ba719d221d444de7b9d179c476eef7986663bc\", \"source_manifest_sha256\": \"b2f75414d9d3d1c33b52c9eb52cc6ed10faf3fc9e7a25bf49c9b0bb90ea840c6\"}, \"startup_sha256\": \"1c33c879b62df72b5291de33c7f6f6b92a45d596e1df1523c45c66e8e2774f5c\"}\n",
+        "stderr": "{\"booking\": {\"age_seconds\": 24.125406, \"booking_id\": \"bk-20261102T0653-3b9f0bc8\", \"snapshot_sha256\": \"a39d4fc6ad0ba372c8e9343cb4d76a9e6ba165e48a88f628705733eaa74a127e\"}, \"cleanup_error\": {\"error\": \"Command '['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock', 'inspect', '77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d']' timed out after 502.19673905400145 seconds\", \"error_type\": \"TimeoutExpired\"}, \"cleanup_owed\": true, \"driver_exit_verification_owed\": true, \"full_model_verified\": false, \"guard_exit_error\": {\"error\": \"P0 guard failed; preserve its outcome\", \"error_type\": \"RuntimeError\"}, \"native_loader_verified\": false, \"phase\": \"cleanup\", \"preflight_resources\": {\"context_bytes\": 13287, \"context_file\": \"p0-resource-000.json\", \"context_sha256\": \"c13e7aee417002936d6b7e1c5e3bfb6fb4046ab9fe36ccac09764b38bd8d15bd\", \"p0_budget_verified\": true, \"whole_node_exclusive\": false}, \"resources_released\": false, \"runtime_admitted\": true, \"scope\": \"P0A_TORCH_IPC_NO_MODEL_NO_STORE\", \"setup\": {\"artifacts\": {\"p0-setup-create.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-create.stdout.log\": \"65a42c8ab71a3c910b38262fe1d26f9bb28b572893499708b67192ee231a6268\", \"p0-setup-probe.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-probe.stdout.log\": \"ced4130facde42a69e0cb241d0eecdb75de051f309d54b9430bb0a1f890682b2\", \"p0-setup-register.stderr.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\", \"p0-setup-register.stdout.log\": \"77a053029c55db1c138075bb70d1a97fae411bda0aa032135bb391b12cc3a81e\", \"p0-setup-systemd-client.stderr.log\": \"46646cbd1be340b062db4667f5b2b112dceafa9764435ef7cf2ce0230ec60776\", \"p0-setup-systemd-client.stdout.log\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}, \"capture_cleanup\": {}, \"cleanup_owed\": true, \"container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"creation_cli_exit_verified\": true, \"guard_deployed\": true, \"pending_partial_cleanup\": [], \"phase_exitcodes\": {\"create\": 0, \"probe\": 0, \"register\": 0, \"submit\": null}, \"registration_cli_exit_verified\": true, \"registration_sha256\": \"39b5c9c32e7e5318d4314fff850ba32405d86d7d2cc287d6364bcf0a5cb2acf4\", \"reported_container_id\": \"77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d\", \"resource_window_verified\": false, \"resources_released\": false, \"runtime_abi_verified\": false, \"runtime_admitted\": false, \"service_plan_sha256\": \"5b31d4410b031057029ccf720e8336e81773ff841633a6628368f46c84d36e67\", \"service_probe_cli_exit_verified\": true, \"service_submit_cli_exit_verified\": false, \"service_submit_function_verified\": true, \"setup_cli_exit_verified\": false, \"systemd_client_returncode\": 0}, \"setup_failure\": null, \"start_resources\": {\"context_bytes\": 13287, \"context_file\": \"p0-resource-001.json\", \"context_sha256\": \"508313c768ac29d3169927b151b73485007f6e125967ff164018a834e1b258f1\", \"p0_budget_verified\": true, \"whole_node_exclusive\": false}, \"store_created\": false, \"torch_cuda_ipc_verified\": false}\nTraceback (most recent call last):\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 2314, in <module>\n    p0_lifecycle_main(sys.argv[2:])\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 2015, in p0_lifecycle_main\n    result=run_p0_lifecycle(str(path),args.worker_input_sha,gate_sha256=args.gate_sha,\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 1797, in run_p0_lifecycle\n    raise failure\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 1733, in run_p0_lifecycle\n    response=_guard_docker(['start',target['container_id']],min(10,remaining('component')))\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 402, in _guard_docker\n    return _guard_capture(['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock', *args], timeout, environment)\n  File \"/data/brick1/boyjiang/kimi-k2.6/p0/code/source_schedule.py\", line 358, in _guard_capture\n    raise subprocess.TimeoutExpired(command, timeout)\nsubprocess.TimeoutExpired: Command '['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock', 'start', '77882eadab54b5f309551b7f80436bfb6cff6836ce7168b45fd1e27231d34f9d']' timed out after 10 seconds\n"
+      },
+      "finished_utc": "2026-11-02T20:28:27.698070+00:00",
+      "outer_os_exit_code": 1,
+      "outer_os_exit_code_tool_chunk": "165096",
+      "cleanup_owed": true,
+      "same_runtime_start_failure_recurred": true,
+      "no_further_gpu_this_window": true
     }
   ],
   "p0_post_failure_diagnostics": [
