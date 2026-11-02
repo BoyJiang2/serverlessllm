@@ -158,7 +158,8 @@ def _p0_mounts(run_root):
 def _p0_environment(gpu_uuid):
     return dict(NVIDIA_VISIBLE_DEVICES=gpu_uuid,CUDA_VISIBLE_DEVICES='0',
         NVIDIA_DRIVER_CAPABILITIES='compute,utility',PYTHONDONTWRITEBYTECODE='1',
-        OMP_NUM_THREADS='1',MKL_NUM_THREADS='1')
+        OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1',
+        HOME='/tmp',XDG_CACHE_HOME='/tmp',TORCHINDUCTOR_CACHE_DIR='/tmp/torchinductor')
 
 
 def _environment_digest(rows, overrides):
@@ -197,7 +198,7 @@ def p0_container_command(identity, *, run_root, image_id, gpu_uuid, worker_input
     command = ['create','--name',identity['run_id']+'-'+identity['holder'],'--pull=never',
         '--runtime=nvidia','--gpus','driver=nvidia,device='+gpu_uuid,'--user=2147:2147',
         '--restart=no','--network=none','--ipc=private','--memory=4g','--memory-swap=4g',
-        '--cpus=2','--pids-limit=128','--shm-size=64m','--cap-drop=ALL',
+        '--cpus=2','--pids-limit=128','--shm-size=64m','--tmpfs','/tmp:rw,nosuid,nodev,size=16m','--cap-drop=ALL',
         '--security-opt=no-new-privileges=true','--workdir',run_root,'--entrypoint=python3']
     for key,value in dict(**{'sllm.kimi.'+key:value for key,value in identity.items()},
                            **{'sllm.purpose':P0_PURPOSE,'sllm.kimi.environment_sha256':environment_sha256}).items():
@@ -240,6 +241,7 @@ def guard_target(registration, info, *, boot_id, uid):
                 or type(host.get('NanoCpus')) is not int or host['NanoCpus'] != 2*10**9
                 or type(host.get('PidsLimit')) is not int or host['PidsLimit'] != 128
                 or type(host.get('ShmSize')) is not int or host['ShmSize'] != 64*1024**2
+                or host.get('Tmpfs') != {'/tmp':'rw,nosuid,nodev,size=16m'}
                 or host.get('NetworkMode') != 'none' or host.get('Privileged') is not False
                 or host.get('IpcMode') != 'private' or host.get('PidMode') != ''
                 or host.get('Devices') not in ([], None) or host.get('CapAdd') not in ([], None)):

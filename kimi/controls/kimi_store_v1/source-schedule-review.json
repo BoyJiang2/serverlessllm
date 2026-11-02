@@ -658,5 +658,35 @@
         "No remote access, model/pool/full Store/cache, environment install, permanent new directory or GB asset copy"
       ]
     }
+  ],
+  "actual_guard_authorization_probes": [
+    {
+      "unit": "kimi-guard-auth-probe-79305bf045854dadb741447481a045e8",
+      "command": [
+        "/usr/bin/systemd-run",
+        "--system",
+        "--no-ask-password",
+        "--wait",
+        "--collect",
+        "--unit=kimi-guard-auth-probe-79305bf045854dadb741447481a045e8",
+        "--uid=2147",
+        "--property=Type=exec",
+        "--property=MemoryMax=16M",
+        "--property=CPUQuota=10%",
+        "--property=TasksMax=8",
+        "--property=RuntimeMaxSec=5",
+        "/usr/bin/True"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "Failed to start transient service unit: Interactive authentication required.\n",
+      "post_state": "LoadState=not-found\nActiveState=inactive\n",
+      "post_query_returncode": 0,
+      "elapsed_seconds": 0.04907336796168238,
+      "scope": "one bounded True CPU guard authorization probe, no password/global policy/GPU or data changes",
+      "recorded_at": "2026-11-02T14:45:10.980121+00:00",
+      "remote": "qjhs003",
+      "runtime_admitted": false
+    }
   ]
 }

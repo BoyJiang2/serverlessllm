@@ -1231,7 +1231,7 @@ os._exit(0)
                             if rows[-1]['event'] in ('cleanup_returned','failed'):break
                     time.sleep(0.05)
                 self.assertTrue(rows,errors.read_text())
-                self.assertEqual(rows[-1]['event'],'cleanup_returned',errors.read_text())
+                self.assertEqual(rows[-1]['event'],'cleanup_returned',errors.read_text()+'\n'+json.dumps(rows))
                 self.assertGreater(datetime.fromisoformat(rows[-1]['utc']),stopped_parent)
                 self.assertFalse(rows[-1]['payload']['resources_released'])
             finally:
@@ -1270,7 +1270,8 @@ os._exit(0)
             DeviceIDs=[target['gpu_uuid']],Capabilities=[['gpu']],Options={})],Memory=4*1024**3,
             NanoCpus=2*10**9,PidsLimit=128,ShmSize=64*1024**2,NetworkMode='none',
             Privileged=False,IpcMode='private',PidMode='',Devices=[],CapAdd=[],Runtime='nvidia',
-            MemorySwap=4*1024**3,CapDrop=['ALL'],SecurityOpt=['no-new-privileges=true'])
+            MemorySwap=4*1024**3,CapDrop=['ALL'],SecurityOpt=['no-new-privileges=true'],
+            Tmpfs={'/tmp':'rw,nosuid,nodev,size=16m'})
         command=schedule_module.p0_container_command(target['identity'],run_root=target['run_root'],
             image_id=target['image_id'],gpu_uuid=target['gpu_uuid'],worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
         info['Config']['Labels']['sllm.kimi.environment_sha256']=target['environment_sha256']
@@ -1326,6 +1327,36 @@ os._exit(0)
                 ('worker_input_sha256','mutable'),('image_id','vllm:latest')):
             candidate=dict(options);candidate[key]=value
             with self.assertRaises(ValueError):schedule_module.p0_container_command(target['identity'],**candidate)
+
+    def test_p0_nonroot_cache_directory_is_explicit_and_bounded(self):
+        _,_,target,_=self.p0_fixture()
+        command=schedule_module.p0_container_command(target['identity'],run_root=target['run_root'],
+            image_id=target['image_id'],gpu_uuid=target['gpu_uuid'],
+            worker_input_sha256=target['worker_input_sha256'],environment_sha256=target['environment_sha256'])
+        environment=dict(command[i+1].split('=',1) for i,arg in enumerate(command) if arg=='--env')
+        for key,value in dict(HOME='/tmp',XDG_CACHE_HOME='/tmp',
+                TORCHINDUCTOR_CACHE_DIR='/tmp/torchinductor',OPENBLAS_NUM_THREADS='1',NUMEXPR_NUM_THREADS='1').items():
+            self.assertEqual(environment.get(key),value)
+        self.assertEqual(command[command.index('--tmpfs')+1],'/tmp:rw,nosuid,nodev,size=16m')
+
+    def test_p0_guard_rejects_missing_or_oversized_private_cache_mount(self):
+        _,_,target,info=self.p0_fixture()
+        for tmpfs in ({},{'/tmp':'rw,nosuid,nodev,size=1g'}):
+            with self.subTest(tmpfs=tmpfs):
+                candidate=copy.deepcopy(info)
+                candidate['HostConfig']['Tmpfs']=tmpfs
+                with self.assertRaises(ValueError):
+                    schedule_module.guard_target(target,candidate,boot_id=target['boot_id'],uid=2147)
+
+    def test_p0_guard_rejects_self_consistent_wrong_cache_environment(self):
+        _,_,target,info=self.p0_fixture()
+        values=dict(row.split('=',1) for row in info['Config']['Env'])
+        values['TORCHINDUCTOR_CACHE_DIR']='/root/unregistered-cache'
+        info['Config']['Env']=[key+'='+value for key,value in values.items()]
+        target['environment_sha256']=schedule_module._environment_digest(info['Config']['Env'],{})
+        info['Config']['Labels']['sllm.kimi.environment_sha256']=target['environment_sha256']
+        with self.assertRaises(ValueError):
+            schedule_module.guard_target(target,info,boot_id=target['boot_id'],uid=2147)
 
     def test_p0_budget_is_original_complete_batch_and_cannot_use_source_schema(self):
         plan, receipt, _, _ = self.p0_fixture()

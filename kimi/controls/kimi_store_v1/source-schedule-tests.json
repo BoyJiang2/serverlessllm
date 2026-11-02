@@ -493,5 +493,91 @@
   ],
   "gpu_used": false,
   "actual_guard_or_worker_verified": false,
-  "timing_fixture_not_production_bounds": true
+  "timing_fixture_not_production_bounds": true,
+  "p0_cache_runtime_regressions": [
+    {
+      "checked_utc": "2026-11-02T14:34:25.520446+00:00",
+      "scope": "CPU source/metadata only, no GPU/container deployment",
+      "baseline": {
+        "tool_output_chunk": "a8b951",
+        "tests_run": 3,
+        "failures": 4,
+        "exitcode": 1,
+        "raw_byte_stream_saved": false,
+        "raw_combined_output_preserved_in_tool_transcript": true
+      },
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "test_source_schedule.SourceScheduleTests.test_p0_nonroot_cache_directory_is_explicit_and_bounded",
+        "test_source_schedule.SourceScheduleTests.test_p0_guard_rejects_missing_or_oversized_private_cache_mount",
+        "test_source_schedule.SourceScheduleTests.test_p0_guard_rejects_self_consistent_wrong_cache_environment"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 0.004s\n\nOK\n",
+      "source_sha256": "7e712028f0bb1c3392251269edd3ca981f5b67fdef1d79be7b81a905cc8886ef",
+      "test_sha256": "6efc697f1d1cc7751b377cd6aacd0ffedb330066db3bca68bef118159970c7f0"
+    },
+    {
+      "checked_utc": "2026-11-02T14:35:33.743222+00:00",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "test_source_schedule",
+        "test_source_bundle"
+      ],
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "....F.................................................................................................\n======================================================================\nFAIL: test_cpu_watchdog_child_reaches_deadline_after_its_launcher_exits (test_source_schedule.SourceScheduleTests)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_schedule.py\", line 1234, in test_cpu_watchdog_child_reaches_deadline_after_its_launcher_exits\n    self.assertEqual(rows[-1]['event'],'cleanup_returned',errors.read_text())\nAssertionError: 'failed' != 'cleanup_returned'\n- failed\n+ cleanup_returned\n : Traceback (most recent call last):\n  File \"<string>\", line 23, in <module>\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 672, in source_watchdog\n    raise error\nTimeoutError: watchdog deadline or clock failed; cleanup evidence retained\n\n\n----------------------------------------------------------------------\nRan 102 tests in 5.653s\n\nFAILED (failures=1)\n",
+      "elapsed_seconds": 5.9266193580006075,
+      "source_sha256": "7e712028f0bb1c3392251269edd3ca981f5b67fdef1d79be7b81a905cc8886ef",
+      "test_sha256": "6efc697f1d1cc7751b377cd6aacd0ffedb330066db3bca68bef118159970c7f0",
+      "scope": "native WSL CPU only, no actual runtime/guard/GPU admission"
+    },
+    {
+      "scope": "full CPU schedule and bundle regression after diagnostic-only assertion enrichment",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "......................................................................................................\n----------------------------------------------------------------------\nRan 102 tests in 6.031s\n\nOK\n",
+      "elapsed_seconds": 6.282363431999329,
+      "historical_failure_retained": true,
+      "gpu_runtime_verified": false
+    }
+  ],
+  "p0_orphan_watchdog_diagnostics": [
+    {
+      "scope": "existing CPU orphan-watchdog timing failure diagnosis, not GPU guard evidence",
+      "planned_attempts": 3,
+      "deadlines_unchanged": true,
+      "why": "full102 failed one real-clock orphan-child test; retain originalfailure, add existing event rows to error message instead of changing timeouts",
+      "attempts": [
+        {
+          "index": 1,
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 2.180s\n\nOK\n",
+          "elapsed_seconds": 2.491401377999864
+        },
+        {
+          "index": 2,
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 2.108s\n\nOK\n",
+          "elapsed_seconds": 2.3425275680001505
+        },
+        {
+          "index": 3,
+          "returncode": 0,
+          "stdout": "",
+          "stderr": ".\n----------------------------------------------------------------------\nRan 1 test in 2.101s\n\nOK\n",
+          "elapsed_seconds": 2.324653091000073
+        }
+      ]
+    }
+  ]
 }

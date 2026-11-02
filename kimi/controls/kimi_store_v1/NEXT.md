@@ -1,3 +1,11 @@
+## 11/2 22:45准入评估：CPU软件通过，P0未准入
+
+- 实际CPU安装/非root普通导入/60秒释放已通过；不重复编译、安装和下载。当前仅修改已有source_schedule.py及测试，将已验证的显式/tmp/torchinductor、16MiB私有tmpfs和线程上限接入P0创建及guard精确profile。三项负例先复现失败；最新102项原生WSL CPU回归通过。
+- 首次102项运行有一次真实时钟孤儿watchdog测试失败，原stderr/失败保留。只增加已有事件行诊断，固定三次诊断均通过，随后完整102项通过；未改变任何截止，原因未知，不声称已修复或真实guard已通过。
+- 实际systemd system-manager权限探针返回Interactive authentication required，post unit not-found/inactive；未建服务、无密码/全局策略修改。证据在source-schedule-review.json.actual_guard_authorization_probes。现有system.slice守护不能用用户timer冒充；需合法提交及真实probe。
+- 完整P0 start/连续监控/删除后60秒收口尚未接齐，当前不ready；P0本身只Torch IPC，不是native Store。远端资产根仅downloads/checkpoint，现有P0要求独立run_root/code；不把资产目录变成RW run_root。最小部署为固定控制目录约3.91MB代码清单（178文件），不是环境/模型副本；目录例外未获确认前不创建。
+- 午夜预约仍按用户00–09整机授权、08:50收口；启动前fresh API/全资源/当前完整审阅及实际新guard缺一不可。今晚不承诺P1或native服务，不空占GPU/池等准备，不自行改预约。23:30前再次评估可运行范围；未就绪建议缩短不用时段，由用户决定。
+
 # Kimi CPU接续断点
 
 2026-10-29。保持当前goal，不新建/重置阶段。原GLM40ID、金标、结果冻结；不启R24，不恢复取消的今晚探索脚本。
