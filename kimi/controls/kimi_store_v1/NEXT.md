@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 2026-11-02用户重申只复用原仓库/环境/构建位置，禁止新增checkout/环境/GB副本。本轮未改实现或增包装/目录/夹具。09:55 API当前ksqd预约为bk-20261101T1134-265b50dd，旧91c0cf95已结束；仅只读SSH核镜像及自有环境路径，未继承旧守护或执行编译。镜像列表仍0202(CUDA12.9/Torch2.9.1历史实测)、ac608(CUDA13.0.3仅配置实测)，无新增匹配候选；fullpd-prefill及harbor-alan运行，未进入/修改；已查宿主自有缓存、/opt/conda、/opt/venv无匹配环境线索。不称已穷尽全机所有路径或已验证ac608包版本。
+- 真正依赖阻塞已进一步量化：官方cu129索引确有Torch2.10.0+cu129；仅HEAD和<=128KiB metadata实查cp312 x86_64 wheel=1278028350B，未下载。最小新增方案拟复用0202镜像的本任务可写层替换Torch并仅补缺失依赖、不新venv/不复制镜像；native编译本身不需安装vLLM，vLLM完整接线仍另行验证。下载/解包/必要依赖/产物峰值暂估6–10GiB（未实测，不能当保证/硬上限），编译并发拟1、内存拟8GiB，具体预算/清理/审阅须先闭合。因用户禁止自行新增GB内容，未执行该方案，提交具体原因及空间估计供用户决定；不为绕过阻塞改冻结版本。原cpp49b2、金标、历史失败、GLM40ID及2×停止不变。
+
 - 11/1 00:11实际CPU metadata探针已通过且独立复核释放：code feb8789、driver d99f6ed…/body7844122…，run kimi-cpu-toolchain-90cc42d1fac14c5e98ddcd94a61b3ea7，CID703ad7b…；启动前user timer active且ExecStart同固定socket/精确CID，目标exit0/PID0/约0.164秒/无nvidia设备，rm0/stop0/cleanup_owed false。另SSH同label空、timer inactive、harbor-alan仍Up23h、八卡0。原stdout和独立检查及限定只读实际复审在cpu-probe，PASS仅CPU版本与释放，不是完整R1/G1或ABI/build/model/Store/GPU。
 - 实际0202镜像Python3.12.3、Torch2.9.1+cu129、nvcc12.9.86/头文件、cmake3.28.3/g++13.3/ninja1.11.1存在，无vllm/sllm-store；与冻结Torch2.10.0+cu129合同不符，尚未执行ABI导入，不能称ABI调用失败，不用错版本编译目标库。另已有50.3GB镜像仅inspect声明CUDA13.0.3、实际包未知，未启动；自有/home缓存无pip/uv目录；自有GLM SDK归档存在但无.git、四关键文件原SHA与取源不同，未改动，不冒充同9f50241来源。下一必要工作是匹配运行时与源字节溯源/受审编译预算；不自动拉新大镜像或装GB依赖、不占GPU等待。之前“没有任何CUDA工具链”的本机结论被远端新证据细化为“有工具链但冻结环境合同不匹配”，原失败保持。
 

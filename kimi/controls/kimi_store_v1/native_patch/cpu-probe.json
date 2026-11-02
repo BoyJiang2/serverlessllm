@@ -986,6 +986,106 @@
           "stderr": "fatal: not a git repository (or any parent up to mount point /data)\nStopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).\n"
         }
       }
+    },
+    {
+      "recorded_utc": "2026-11-02T01:55:29.259231+00:00",
+      "scope": "read-only current image/container list and existing environment path names; no starts or installs",
+      "returncode": 0,
+      "stderr": "",
+      "data": {
+        "images": {
+          "code": 0,
+          "stdout": "sha256:ac6081bf472bdd3ba9cc42a804a956a2b02c40f6144d5ac41dffc15f3c8d1642 docker.1ms.run/radixark/miles:latest 50.3GB\nsha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3 <none>:<none> 26.6GB\nsha256:ec6eeb02cecf35faf5badd75646ab0dd2e02cab484638b413ccd4606a2e2ef7d docker.1ms.run/alexgshaw/git-multibranch:20251031 618MB\nsha256:ec6eeb02cecf35faf5badd75646ab0dd2e02cab484638b413ccd4606a2e2ef7d alexgshaw/git-multibranch:20251031 618MB\nsha256:daba7f4d626336854298dd6e021c4b85486844e34474b2928e261fc35c312547 docker.1ms.run/alexgshaw/prove-plus-comm:20251031 1.29GB\nsha256:14636c361ced3673ad2a80291343b30916af81c26d954567e6f3d9de04df3b76 docker.1ms.run/alexgshaw/overfull-hbox:20251031 312MB\nsha256:158e1425861e7daff35d76555db6bc9df63ac411a856b3b83c433ec331bee1cf docker.1ms.run/alexgshaw/path-tracing-reverse:20251031 406MB\nsha256:b041e51b3fd55da33dc43648fcfb28f4887374a8676c77b0836923422e7fde29 docker.1ms.run/alexgshaw/fix-git:20251031 310MB\nsha256:b041e51b3fd55da33dc43648fcfb28f4887374a8676c77b0836923422e7fde29 alexgshaw/fix-git:20251031 310MB\nsha256:748e8485201e72133a9400dc8f6f524eb20e9812655eef41b32a1cc21796bdef docker.1ms.run/alexgshaw/log-summary-date-ranges:20251031 126MB\nsha256:748e8485201e72133a9400dc8f6f524eb20e9812655eef41b32a1cc21796bdef alexgshaw/log-summary-date-ranges:20251031 126MB\nsha256:14e6e693be70ee0c7f07105dfc0f3cae71fd495cc0106042dd530fc5fbd8e637 docker.1ms.run/alexgshaw/cobol-modernization:20251031 424MB\nsha256:14e6e693be70ee0c7f07105dfc0f3cae71fd495cc0106042dd530fc5fbd8e637 alexgshaw/cobol-modernization:20251031 424MB\n",
+          "stderr": ""
+        },
+        "containers": {
+          "code": 0,
+          "stdout": "19b5b205d2b1 fullpd-2a3efe96ab8c-prefill Up 2 hours\n6a0547ef9b8a harbor-alan Up 2 days\n",
+          "stderr": ""
+        },
+        "resources": {
+          "code": 0,
+          "stdout": "               total        used        free      shared  buff/cache   available\nMem:     2065109635072 35832119296 1868021649408    15167488 161255866368 2019253153792\nSwap:              0           0           0\n",
+          "stderr": ""
+        },
+        "existing_paths": {
+          "/data/brick1/boyjiang/kimi-k2.6": [
+            "downloads",
+            "checkpoint"
+          ],
+          "/data/brick1/boyjiang/glm5.1-fp8/code": [
+            "ServerlessLLM",
+            "Store-source-v7",
+            "service_model_validation.py",
+            "weight_contract.py",
+            "sllm-integration-v5.patch",
+            "vllm-integration-v5.patch",
+            "c23-reference-f176e05",
+            "docker-debug-0825203",
+            "debug-stack-7e639d024e2f",
+            "debug-stack-7bfac31f5d8a",
+            "debug-stack-e64ed4268954",
+            "debug-stack-171b3650304c",
+            "debug-stack-3472f1d05e0e",
+            "debug-stack-0916485e90ae",
+            "source-debug-8bbf81324f72-a1f168e6d375",
+            "debug-stack-ef3886503339"
+          ],
+          "/home/boyjiang/.cache": [
+            "motd.legal-displayed",
+            "Microsoft"
+          ],
+          "/opt/conda": {
+            "error": "[Errno 2] No such file or directory: '/opt/conda'"
+          },
+          "/opt/venv": {
+            "error": "[Errno 2] No such file or directory: '/opt/venv'"
+          }
+        }
+      }
+    },
+    {
+      "recorded_utc": "2026-11-02T01:56:27.108424+00:00",
+      "scope": "official pinned wheel HEAD and bounded metadata only; no wheel download or installation",
+      "returncode": 0,
+      "stderr": "",
+      "data": {
+        "url": "https://download.pytorch.org/whl/cu129/torch-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl",
+        "downloaded_wheel": false,
+        "status": 200,
+        "content_length": "1278028350",
+        "requirements": [
+          "Name: torch",
+          "Version: 2.10.0+cu129",
+          "Requires-Dist: filelock",
+          "Requires-Dist: typing-extensions>=4.10.0",
+          "Requires-Dist: setuptools; python_version >= \"3.12\"",
+          "Requires-Dist: sympy>=1.13.3",
+          "Requires-Dist: networkx>=2.5.1",
+          "Requires-Dist: jinja2",
+          "Requires-Dist: fsspec>=0.8.5",
+          "Requires-Dist: cuda-bindings==12.9.4; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cuda-nvrtc-cu12==12.9.86; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cuda-runtime-cu12==12.9.79; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cuda-cupti-cu12==12.9.79; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cudnn-cu12==9.10.2.21; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cublas-cu12==12.9.1.4; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cufft-cu12==11.4.1.4; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-curand-cu12==10.3.10.19; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cusolver-cu12==11.7.5.82; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cusparse-cu12==12.5.10.65; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cusparselt-cu12==0.7.1; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-nccl-cu12==2.27.5; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-nvshmem-cu12==3.4.5; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-nvtx-cu12==12.9.79; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-nvjitlink-cu12==12.9.86; platform_system == \"Linux\"",
+          "Requires-Dist: nvidia-cufile-cu12==1.14.1.1; platform_system == \"Linux\"",
+          "Requires-Dist: triton==3.6.0; platform_system == \"Linux\"",
+          "Requires-Dist: optree>=0.13.0; extra == \"optree\"",
+          "Requires-Dist: opt-einsum>=3.3; extra == \"opt-einsum\"",
+          "Requires-Dist: pyyaml; extra == \"pyyaml\""
+        ]
+      }
     }
   ],
   "authorized_cpu_toolchain_probe_candidate": {
