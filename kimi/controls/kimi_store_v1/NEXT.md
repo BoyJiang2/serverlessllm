@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2用户新增确认：19–24可低并发CPU，11/3 00–09整机8GPU+RAM，08:50收口；原复制暂停已被主聊明确取消/恢复，goal已active。实际API三票及倒排写入既有RESERVATION-PLAN.md；准备22:30评估，不承诺native峰值未过的P2/P3。无新预约/新节点。
+- 22 collector仍未派发：独立只读SSH precheck20s超时，已记录非collector attempt。为减少连接，保留并并入host的MemAvailable>4GiB与旧本实验label容器空检查，create前失败关闭；新hostc7fb464c…/body3163eefb…窄复审PASS，固定f9/run最多一次、原1850截止未延。TTY长JSON渲染有换行/光标重复，不作为机器receipt；结构化采集走WSL原生编排的subprocess管道。质量要求沿用用户原明确授权main，显式stage、小步push/远端核验，不新增分支、不force、不合并、不清理他人。
+
 - 新22路径metadata候选已限定静态审阅PASS：host3faa1cac…/body3163eefb…/固定runf9cfafcf… max1；NO_RECORD/未知总量明确保持失败，missing_paths另列，逻辑长度不是实际overlay/卸载/峰值。尚未实际执行，不批准安装/GPU/model。
 
 - 新最小图及59条manifest已独立实际只读核验通过（仅metadata）：180行与实际输出一致、121/37/22、压缩2244307355B/新增归档1810794319B重算一致。声明展开5307046801B不是实际安装峰值，全wheel SHA及Linux导入仍未证。下一22项路径collector候选复用旧guard，保留全部NO_RECORD及真实distribution_root；未知不计0、total=None、passed=false，仍一次收集完而非逐个失败才重做。仅既有runtime JSON更新，run/source SHA见candidate；待只读审阅未运行。
