@@ -1,3 +1,13 @@
+## 11/3 03:50已实际解除本实验runtime残留；下一步新P0配置，旧失败不重判
+
+新独立恢复run kimi-runc-cleanup-20261102T194606Z成功且限定实际证据复审PASS：单次SIGKILL ack仅PID2221328，pidfd确认退出；docker rm1 already in progress原错误保留，后续CID消失。13份快照全clean、首末wall/mono64.595395s；runc/shim/原driver/guard及旧helper、同CID进程/runtime路径/cgroup均无，NVML归属核验通过。root SSH0、独立UID2147 SSH0、本地outer0；Root helper2266032/timeout2266031及本地15668/15667均已独立消失。完整19行23043B log SHA268a58d1…已同SHA取回，原件固定p0-runc-kill-recovery.jsonl保留，绝不删除/替换该O_EXCL信号槽。当前资源义务通过新记录关闭，旧P0/124/unknown和失败raw字节不改，runc卡住原因仍未知。
+
+CPU默认factory接线17305d8及59+1测试/限定复审通过，实际p0/code仍冻结844、178文件manifest b2f75414…；未部署新源、无模型/Store/完整服务通过，不启R24。新的P0如执行必须独立run/holder/spec/plan/gate、fresh API/全资源、实际独立guard/probe及完整预算，不因本恢复批准自动开跑。最多拟一项新控制，若再次同类start/cleanup异常无新增证据则停本窗GPU尝试。
+
+建议下一项优先复用844原P0实现及同一小p0目录/代码，不写新launcher。先审明确旧通用运行文件的逐文件rename映射及SHA，只移动已关闭run自有证据至同目录固定prefix保留原字节，不新建目录、不复制code/权重/环境；code/与p0-runc-kill-recovery.jsonl不能移动/覆盖。尚未执行归档或生成新P0配置。新控制通过才Source TP8；Source仍缺完整Cmd/Env/mount/profile及非P0提交接线，不直接运行GLM冻结入口。预约仍需fresh核，既有票到09/08:50清理；下一批完整预算装不下则不启动，3.5h参考/2h转换仍待绑定评审，不能承诺本窗全部完成。
+
+本地getpass当前TTY必须LF后CR才实际完成输入；无凭据CPU实证及返回/SSH-dispatch marker已存。旧Root300及只读100超时不改判远端从未执行；此次独立核旧helper无残留仅关闭当前义务，不追认旧成功。此前“一直远端等待/只有管理员可清root”两种过度判断已纠正，禁止据root身份自动引入不必要权限确认。
+
 ## 11/3 03:45真实输入问题已复现，传输修正待执行
 
 Root恢复300s本地实际124，尚无root结果；03:41只读检索固定p0-runc-kill-recovery.jsonl不存在，原两个PID/birth仍S，不据缺日志改判旧请求未执行。现已实际无凭据CPU复现：getpass仅LF时未返回且wait_woken；同TTY pts2输入CPU_ONLY+LF+CR后DONE8。此前把后续所有超时都当服务器等待不准确，最初Docker start/inspect/runc挂起仍有独立实测证据。
