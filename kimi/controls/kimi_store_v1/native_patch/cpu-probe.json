@@ -3914,5 +3914,217 @@
     "fixed": "Explicit modules[_C].save_tensors; previous NEEDS_FIX preserved",
     "scope": "bounded synthetic CPU native SaveTensors versus existing Python writer; no CUDA restore",
     "execution_verified": false
+  },
+  "native_save_executions": [
+    {
+      "registered_utc": "2026-11-02T03:14:44.379248+00:00",
+      "code_commit": "ba5c16cf0fec8c3bfffa45408de26635e42dd776",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "7a86ed083aaa0cae1f467b99c7218acc634eb6670b784059a490ba86f71ba08d",
+      "body_sha256": "636fb831fab7a3052dbed012ce061adf781f5a71803ebe8fc2b997240167eab0",
+      "returncode": 0,
+      "stderr": "",
+      "events": [
+        {
+          "run_id": "kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T03:14:45.099873+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "output_path": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319-tensor.data_0",
+          "container_id": "cd6ffe70a00a2bb310458c9ceef9291e90dc5ac1ae26d97abf5b6d45562fe244",
+          "guard_install": "Running timer as unit: kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319-cleanup.timer\nWill run service as unit: kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 6h 15min 23.104460s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force cd6ffe70a00a2bb310458c9ceef9291e90dc5ac1ae26d97abf5b6d45562fe244 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "Saving tensors: 16% [===========>                                                          ] 16 %\nSaving tensors: 33% [=======================>                                              ] 33 %\nSaving tensors: 50% [===================================>                                  ] 50 %\nSaving tensors: 66% [==============================================>                       ] 66 %\nSaving tensors: 83% [==========================================================>           ] 83 %\nKIMI_RESULT={\"passed\": true, \"device_nodes\": [], \"build_directory_present\": false, \"imports\": {\"_C\": {\"loaded\": true, \"file\": \"/artifacts/_C.so\", \"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\"}, \"_checkpoint_store\": {\"loaded\": true, \"file\": \"/artifacts/_checkpoint_store.so\", \"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\"}}, \"torch_version\": \"2.10.0+cu129\", \"torch_cuda\": \"12.9\", \"save_comparison\": {\"passed\": true, \"records\": {\"packed_int4\": {\"offset\": 0, \"bytes\": 4355, \"shape\": [4355], \"stride\": [1], \"dtype\": \"torch.uint8\", \"sha256\": \"3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f\"}, \"scales_bf16\": {\"offset\": 4360, \"bytes\": 14, \"shape\": [7], \"stride\": [1], \"dtype\": \"torch.bfloat16\", \"sha256\": \"859ff79ef0ffd24ba11f75c4393ddff1f9cc4b2786f07787614018f20f5652e0\"}, \"mixed_fp16\": {\"offset\": 4376, \"bytes\": 14, \"shape\": [7], \"stride\": [1], \"dtype\": \"torch.float16\", \"sha256\": \"e1b47e78c368d4a53d9311a92c4aa3f96aa01de8d33d637dd5bf091cf976a927\"}, \"packed_int32\": {\"offset\": 4392, \"bytes\": 20, \"shape\": [5], \"stride\": [1], \"dtype\": \"torch.int32\", \"sha256\": \"b76cd521cf80b929d27cb5caca9ffc1890aa67d2a81a39b16cf8e02e7077445e\"}, \"mixed_fp32\": {\"offset\": 4416, \"bytes\": 20, \"shape\": [5], \"stride\": [1], \"dtype\": \"torch.float32\", \"sha256\": \"76760dda0dc78cd4b936048992feeec576a274e49158fc48ea7967be667960f4\"}, \"packed_alias\": {\"offset\": 0, \"bytes\": 4355, \"shape\": [4355], \"stride\": [1], \"dtype\": \"torch.uint8\", \"sha256\": \"3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f\"}}, \"native_file_bytes\": 8192, \"native_file_sha256\": \"23eb93b88af0019c67f40d50d27e9da2fe24fce2c357771c77b8b1081659b930\", \"python_file_bytes\": 8192, \"padding_bytes_compared\": false, \"writer_sha256\": \"2cfb4f9367985a095d5608581d46cfa9e4baffb135475ae506cbfa72271e6175\", \"chunk_bytes_used\": 7, \"native_buffer_virtual_allocation_bytes\": 1073741824, \"scope\": \"synthetic CPU payload/offset/alias and source metadata only; no native CUDA restore, no model\"}, \"cuda_initialized\": false}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T03:14:45.288674863Z",
+            "FinishedAt": "2026-11-02T03:14:47.129715349Z"
+          },
+          "passed": true,
+          "metadata": {
+            "passed": true,
+            "device_nodes": [],
+            "build_directory_present": false,
+            "imports": {
+              "_C": {
+                "loaded": true,
+                "file": "/artifacts/_C.so",
+                "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+              },
+              "_checkpoint_store": {
+                "loaded": true,
+                "file": "/artifacts/_checkpoint_store.so",
+                "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+              }
+            },
+            "torch_version": "2.10.0+cu129",
+            "torch_cuda": "12.9",
+            "save_comparison": {
+              "passed": true,
+              "records": {
+                "packed_int4": {
+                  "offset": 0,
+                  "bytes": 4355,
+                  "shape": [
+                    4355
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.uint8",
+                  "sha256": "3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f"
+                },
+                "scales_bf16": {
+                  "offset": 4360,
+                  "bytes": 14,
+                  "shape": [
+                    7
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.bfloat16",
+                  "sha256": "859ff79ef0ffd24ba11f75c4393ddff1f9cc4b2786f07787614018f20f5652e0"
+                },
+                "mixed_fp16": {
+                  "offset": 4376,
+                  "bytes": 14,
+                  "shape": [
+                    7
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.float16",
+                  "sha256": "e1b47e78c368d4a53d9311a92c4aa3f96aa01de8d33d637dd5bf091cf976a927"
+                },
+                "packed_int32": {
+                  "offset": 4392,
+                  "bytes": 20,
+                  "shape": [
+                    5
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.int32",
+                  "sha256": "b76cd521cf80b929d27cb5caca9ffc1890aa67d2a81a39b16cf8e02e7077445e"
+                },
+                "mixed_fp32": {
+                  "offset": 4416,
+                  "bytes": 20,
+                  "shape": [
+                    5
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.float32",
+                  "sha256": "76760dda0dc78cd4b936048992feeec576a274e49158fc48ea7967be667960f4"
+                },
+                "packed_alias": {
+                  "offset": 0,
+                  "bytes": 4355,
+                  "shape": [
+                    4355
+                  ],
+                  "stride": [
+                    1
+                  ],
+                  "dtype": "torch.uint8",
+                  "sha256": "3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f"
+                }
+              },
+              "native_file_bytes": 8192,
+              "native_file_sha256": "23eb93b88af0019c67f40d50d27e9da2fe24fce2c357771c77b8b1081659b930",
+              "python_file_bytes": 8192,
+              "padding_bytes_compared": false,
+              "writer_sha256": "2cfb4f9367985a095d5608581d46cfa9e4baffb135475ae506cbfa72271e6175",
+              "chunk_bytes_used": 7,
+              "native_buffer_virtual_allocation_bytes": 1073741824,
+              "scope": "synthetic CPU payload/offset/alias and source metadata only; no native CUDA restore, no model"
+            },
+            "cuda_initialized": false
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T03:14:47.267577+00:00"
+        }
+      ]
+    }
+  ],
+  "native_save_independent_verification": {
+    "recorded_utc": "2026-11-02T03:15:08.565261+00:00",
+    "returncode": 0,
+    "stdout": "{\"passed\": true, \"node\": \"qjhs003\", \"uid\": 2147, \"path\": \"/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319-tensor.data_0\", \"bytes\": 8192, \"mode\": \"0o600\", \"sha256\": \"23eb93b88af0019c67f40d50d27e9da2fe24fce2c357771c77b8b1081659b930\", \"payload_sha256\": {\"packed_int4\": \"3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f\", \"scales_bf16\": \"859ff79ef0ffd24ba11f75c4393ddff1f9cc4b2786f07787614018f20f5652e0\", \"mixed_fp16\": \"e1b47e78c368d4a53d9311a92c4aa3f96aa01de8d33d637dd5bf091cf976a927\", \"packed_int32\": \"b76cd521cf80b929d27cb5caca9ffc1890aa67d2a81a39b16cf8e02e7077445e\", \"mixed_fp32\": \"76760dda0dc78cd4b936048992feeec576a274e49158fc48ea7967be667960f4\", \"packed_alias\": \"3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f\"}, \"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}\n",
+    "stderr": "",
+    "data": {
+      "passed": true,
+      "node": "qjhs003",
+      "uid": 2147,
+      "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319-tensor.data_0",
+      "bytes": 8192,
+      "mode": "0o600",
+      "sha256": "23eb93b88af0019c67f40d50d27e9da2fe24fce2c357771c77b8b1081659b930",
+      "payload_sha256": {
+        "packed_int4": "3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f",
+        "scales_bf16": "859ff79ef0ffd24ba11f75c4393ddff1f9cc4b2786f07787614018f20f5652e0",
+        "mixed_fp16": "e1b47e78c368d4a53d9311a92c4aa3f96aa01de8d33d637dd5bf091cf976a927",
+        "packed_int32": "b76cd521cf80b929d27cb5caca9ffc1890aa67d2a81a39b16cf8e02e7077445e",
+        "mixed_fp32": "76760dda0dc78cd4b936048992feeec576a274e49158fc48ea7967be667960f4",
+        "packed_alias": "3a4f6194e4959387f2440ea0f0616492274df8ea254800dff8c354afa8d0209f"
+      },
+      "own_containers": "",
+      "timer": "ActiveState=inactive\n"
+    }
+  },
+  "native_save_actual_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_MICRO_CPU_SAVE_COMPARISON_ONLY",
+    "run_id": "kimi-native-save-9c6b6ae6cbad47d68898f21f165f5319",
+    "host_driver_sha256": "7a86ed083aaa0cae1f467b99c7218acc634eb6670b784059a490ba86f71ba08d",
+    "body_sha256": "636fb831fab7a3052dbed012ce061adf781f5a71803ebe8fc2b997240167eab0",
+    "native_cpu_save_comparison": true,
+    "canonical_records": 5,
+    "alias_records": 1,
+    "native_restore_verified": false,
+    "gpu_verified": false,
+    "full_model_verified": false,
+    "source_metadata_unchanged": true,
+    "native_index_roundtrip_verified": false,
+    "padding_bytes_compared": false,
+    "cleanup_owed": false,
+    "note": "Execution compiled_native_store=false means this invocation performed no compilation; it does not override independently proven prior build."
   }
 }
