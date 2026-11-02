@@ -1565,11 +1565,17 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
         torch_cuda_ipc_verified=False,native_loader_verified=False,store_created=False,full_model_verified=False,resources_released=False,
         cleanup_owed=False,driver_exit_verification_owed=True,phase='preflight')
     target=registration=service=proof=monitor=None
-    setup_entered=False;failure=None
+    setup_entered=False;failure=None;resource_sample=0
     def remaining(phase):
         return phase_remaining_seconds(schedule,phase,entered=entered,
             elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
     def event(name,details):_watchdog_event(events,identity,identity['holder'],name,details)
+    def terminal_event(name,details):
+        raw=(json.dumps(details,sort_keys=True,allow_nan=False)+'\n').encode('utf-8')
+        if len(raw)>256*1024 or not _publish(root,'p0-lifecycle-receipt.json',raw):
+            raise ValueError('P0 terminal receipt exceeds bound or retains partial publication')
+        event(name,dict(receipt_file='p0-lifecycle-receipt.json',receipt_sha256=hashlib.sha256(raw).hexdigest(),
+            receipt_bytes=len(raw),resources_released=False,driver_exit_verification_owed=True))
     def booking():
         snapshot=load_source_plan(root/'p0-booking-snapshot.json',booking_sha256)
         if (not isinstance(snapshot,dict) or set(snapshot)!={'schema','captured_utc','resource','bookings'}
@@ -1599,6 +1605,7 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
             raise ValueError('P0 current owner/window differs from frozen plan')
         return dict(booking_id=plan['booking_id'],snapshot_sha256=booking_sha256,age_seconds=age)
     def resources(phase,monitor_state=None):
+        nonlocal resource_sample
         host=_watchdog_host()
         if (host['uid']!=2147 or socket.gethostname() not in ('qjhs3','qjhs003')
                 or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])):
@@ -1657,7 +1664,8 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                 raise RuntimeError('P0 foreign or unattributable GPU process observed')
             member=owned_pids[int(row[1])];current=_watchdog_pid(int(row[1]))
             if (current['boot_id']!=host['boot_id']
-                    or any(current[key]!=member[key] for key in ('pid','start_ticks','uid','cgroup'))):
+                    or any(current[key]!=member[key] for key in ('pid','start_ticks','uid'))
+                    or current['cgroup']!=monitor_state['process']['cgroup']):
                 raise ValueError('P0 GPU process identity changed during resource sampling')
         with _metadata_stream(Path('/proc/meminfo')) as stream:memory=stream.read(65537)
         if len(memory)>65536:raise ValueError('P0 memory metadata oversized')
@@ -1681,7 +1689,13 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
             disk_partitions_may_double_count=True,measurement_scope='non_timed_torch_ipc',
             p0_budget_verified=True,whole_node_exclusive=False,background_containers=background,
             background_stats=background_stats,gpu_processes=gpu_processes)
-        remaining(phase);return result
+        raw=(json.dumps(result,sort_keys=True,allow_nan=False)+'\n').encode('utf-8')
+        if resource_sample>=128 or len(raw)>65536:raise ValueError('P0 resource evidence budget exhausted')
+        name='p0-resource-%03d.json'%resource_sample;resource_sample+=1
+        if not _publish(root,name,raw):raise ValueError('P0 resource evidence retains partial publication')
+        remaining(phase)
+        return dict(p0_budget_verified=True,whole_node_exclusive=False,context_file=name,
+            context_sha256=hashlib.sha256(raw).hexdigest(),context_bytes=len(raw))
     try:
         remaining('preflight')
         gate=load_source_plan(root/'p0-runtime-gate.json',gate_sha256)
@@ -1778,12 +1792,12 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
         failure=RuntimeError('P0 lifecycle lacks complete target/guard release evidence')
     if failure is not None:
         failure.p0_lifecycle_receipt=state
-        try:event('lifecycle_failed',dict(state,error_type=type(failure).__name__,error=str(failure)[:1024]))
+        try:terminal_event('lifecycle_failed',dict(state,error_type=type(failure).__name__,error=str(failure)[:1024]))
         except BaseException as evidence_error:failure.p0_lifecycle_evidence_error=repr(evidence_error)[:1024]
         raise failure
     state.update(phase='returned',cleanup_owed=False,target_and_guard_release_verified=True)
     try:
-        event('lifecycle_return_prepared',state)
+        terminal_event('lifecycle_return_prepared',state)
         remaining('cleanup_evidence')
     except BaseException as error:
         error.p0_lifecycle_receipt=state

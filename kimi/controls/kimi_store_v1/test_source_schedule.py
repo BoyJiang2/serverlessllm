@@ -108,7 +108,7 @@ class SourceScheduleTests(unittest.TestCase):
     def test_p0_lifecycle_composes_success_and_monitor_failure_with_text_capture(self):
         import source_bundle
         import vllm_export_hook
-        successes=('success','background','owned-gpu')
+        successes=('success','background','six-background','owned-gpu')
         for kind in (*successes,'monitor-failure','residual','foreign-gpu','pid-reuse','excess-gpu',
                      'low-memory','high-load','io-busy','missing-stats','missing-monitor'):
             fail_monitor=kind=='monitor-failure'
@@ -146,8 +146,10 @@ class SourceScheduleTests(unittest.TestCase):
                     elif args[0]=='logs':calls.append('logs');text='{"CPU_FIXTURE_ONLY":true}\n'
                     elif args[0]=='ps':
                         text=json.dumps(dict(ID='7'*64,Labels='sllm.kimi.run_id=old' if kind=='residual' else '')) if kind in ('background','residual','missing-stats') else ''
+                        if kind=='six-background':text='\n'.join(json.dumps(dict(ID=str(i)*64,Labels='',Names='background-'+str(i),Image='sha256:'+'f'*64,Status='Up 12 hours',Command='CPU context',Mounts='/data/brick1',Ports='',Networks='bridge')) for i in range(1,7))
                     elif args[0]=='stats':
                         text='' if kind=='missing-stats' else json.dumps(dict(ID='7'*64,CPUPerc='0.1%',MemUsage='18GiB',BlockIO='1MB / 2MB',PIDs='2'))
+                        if kind=='six-background':text='\n'.join(json.dumps(dict(ID=cid,CPUPerc='0.10%',MemUsage='17.9GiB / 1.781TiB',BlockIO='490MB / 64.1GB',PIDs='272')) for cid in args[5:])
                     else:self.fail('unexpected Docker mutation')
                     return types.SimpleNamespace(returncode=0,stdout=text,stderr='')
                 original_stream=vllm_export_hook._metadata_stream
@@ -159,7 +161,8 @@ class SourceScheduleTests(unittest.TestCase):
                         return io.BytesIO(('8 0 sda 0 0 %d 0 0 0 0 0 0 0 0\n'%sectors).encode())
                     return original_stream(path)
                 monitor=dict(container_id=target['container_id'],process_inventory_complete=True,resource_monitoring_verified=True)
-                member=dict(pid=123,start_ticks=42,uid=2147,cgroup='owned')
+                member=dict(pid=123,start_ticks=42,uid=2147)
+                monitor['process']=dict(member,cgroup='owned')
                 monitor['current_processes']=[member]
                 def monitored(*args,**kwargs):
                     calls.append('monitor')
@@ -168,7 +171,10 @@ class SourceScheduleTests(unittest.TestCase):
                     try:context=kwargs['resource_probe'](monitor)
                     except BaseException as error:error.p0_monitor_receipt=monitor;raise
                     self.assertTrue(context['p0_budget_verified']);self.assertFalse(context['whole_node_exclusive'])
-                    if kind=='background':self.assertEqual(context['background_stats'][0]['ID'],'7'*64)
+                    if kind=='background':
+                        raw=(root/context['context_file']).read_bytes()
+                        self.assertEqual(hashlib.sha256(raw).hexdigest(),context['context_sha256'])
+                        self.assertEqual(json.loads(raw)['background_stats'][0]['ID'],'7'*64)
                     if kind=='missing-monitor':monitor['resource_monitoring_verified']=False
                     return monitor
                 def recorded(label,result):
@@ -184,7 +190,7 @@ class SourceScheduleTests(unittest.TestCase):
                         patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)),
                         patch.object(schedule_module,'_watchdog_host',return_value=host),
                         patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),
-                        patch.object(schedule_module,'_watchdog_pid',return_value=dict(member,boot_id=host['boot_id'],start_ticks=43 if kind=='pid-reuse' else 42)),
+                        patch.object(schedule_module,'_watchdog_pid',return_value=dict(member,cgroup='owned',boot_id=host['boot_id'],start_ticks=43 if kind=='pid-reuse' else 42)),
                         patch.object(schedule_module.os,'getloadavg',side_effect=lambda:(100 if kind=='high-load' and 'monitor' in calls else 0,0,0)),
                         patch.object(schedule_module.os,'cpu_count',return_value=8),
                         patch.object(vllm_export_hook,'_metadata_stream',side_effect=stream),
@@ -210,6 +216,10 @@ class SourceScheduleTests(unittest.TestCase):
                         self.assertTrue(result['target_and_guard_release_verified'])
                         self.assertFalse(result['resources_released']);self.assertTrue(result['driver_exit_verification_owed'])
                         self.assertEqual((root/'p0-component.stdout.log').read_bytes(),b'{"CPU_FIXTURE_ONLY":true}\n')
+                        terminal=json.loads((root/'p0-lifecycle-receipt.json').read_bytes())
+                        self.assertTrue(terminal['target_and_guard_release_verified'])
+                        events.seek(0)
+                        self.assertTrue(all(len(line)<=8192 for line in events.readlines()))
                 expected=[] if kind in ('residual','missing-stats') else ['setup','start','monitor']+(['logs'] if kind in successes else [])+['cleanup','observe','guard_exit']
                 self.assertEqual(calls,expected)
 

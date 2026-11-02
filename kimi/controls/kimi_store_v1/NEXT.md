@@ -1,3 +1,11 @@
+## 11/3 01:55最新整改：真实成员合同失败已复现并修正，等待复审
+
+c229e2c复审NEEDS_FIX：p0_process_snapshot实际members只有pid/start_ticks/uid；旧资源检查误读member.cgroup。按真实三字段fixture已实际复现KeyError（2bf96f原stdout/stderr/SHA保留），最小改为与主进程anchor的cgroup比对，保留fresh PID/start/uid/boot。没有修改原严格释放三字段合同。
+
+完整背景与终态可能超过8KiB事件上限，现保留原事件上限，把原始资源快照落run内p0-resource-NNN.json（最多128份、各64KiB，合计<=8MiB），终态收据p0-lifecycle-receipt.json<=256KiB；事件绑定文件/bytes/SHA，不把完整重复快照塞每行。六背景容器CPU夹具验证事件每行<=8192且终态可核；仍不是实际资源采样保证。最新118 CPU回归6.764s通过，source a0b6ee01…/test d20274bb…。一次从repo根调用测试的ModuleNotFoundError亦留证，不改成业务失败。
+
+尚未创建远端p0/code、配置、guard或GPU；当前修订待完整R1更新，不沿用672/source-only或c229失败批准。接下来只准备冻结实际输入/外层1800s身份退出证据，并复审，资源/window与实际guard/probe全部成立才运行。Store/native双份预算停止和旧40ID不变。
+
 ## 11/3 01:50最新：P0资源策略最小整改待复审，不沿用672源码R1
 
 672bff3完整178文件P0源码R1已获PASS_SOURCE_ONLY，但实际配置/外层1800s身份退出取证/guard尚缺，不是runtime gate。为避免把休眠容器存在误作资源争用，独立只读审阅允许设计仅P0修订：现有资源检查记录背景完整CID/CPU/内存/I/O，仍拒绝SLLM残留；保留八卡空闲前检及host内存/load/I/O，监控每轮重复检查，仅允许当前本容器PID/start_ticks/cgroup对应的选定GPU进程，显存<=4GiB；他人GPU/无法归属/越限/采样失败判控制失败，只清自己。明确whole_node_exclusive=false，不适用TP8/池/正式条件。

@@ -797,6 +797,36 @@
       },
       "scope": "P0-only monitored resource budget, CPU fixtures; no actual GPU/remote guard",
       "runtime_approved": false
+    },
+    {
+      "recorded_utc": "2026-11-02T17:52:31.310962+00:00",
+      "scope": "actual producer members three-field contract vs unchanged resource consumer",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "\n======================================================================\nERROR: test_p0_lifecycle_composes_success_and_monitor_failure_with_text_capture (test_source_schedule.SourceScheduleTests) (kind='owned-gpu')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_schedule.py\", line 210, in test_p0_lifecycle_composes_success_and_monitor_failure_with_text_capture\n    result=schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 1783, in run_p0_lifecycle\n    raise failure\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 1723, in run_p0_lifecycle\n    monitor=monitor_p0_target(target,schedule,entered=entered,started=started,nonce=registration['nonce'],\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1114, in __call__\n    return self._mock_call(*args, **kwargs)\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1118, in _mock_call\n    return self._execute_mock_call(*args, **kwargs)\n  File \"/usr/lib/python3.10/unittest/mock.py\", line 1179, in _execute_mock_call\n    result = effect(*args, **kwargs)\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_schedule.py\", line 169, in monitored\n    try:context=kwargs['resource_probe'](monitor)\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 1725, in <lambda>\n    resource_probe=lambda state:resources('component',state))\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 1660, in resources\n    or any(current[key]!=member[key] for key in ('pid','start_ticks','uid','cgroup'))):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/source_schedule.py\", line 1660, in <genexpr>\n    or any(current[key]!=member[key] for key in ('pid','start_ticks','uid','cgroup'))):\nKeyError: 'cgroup'\n\n----------------------------------------------------------------------\nRan 1 test in 0.136s\n\nFAILED (errors=1)\n",
+      "sha256": {
+        "source_schedule.py": "3f3e3231a1c8ba403e7d7cb25061e90d22c839b9cabe7d6caf9fc2ff1061b2af",
+        "test_source_schedule.py": "b6ce7e263f3d7f56bb522d5c2c2f4584f5f89353eb3bfbdf896ceba070892776"
+      }
+    },
+    {
+      "tool_chunk": "c66155",
+      "returncode": 1,
+      "scope": "test invocation cwd error",
+      "error": "ModuleNotFoundError: test_source_schedule; repo root instead of test directory; no production code executed"
+    },
+    {
+      "recorded_utc": "2026-11-02T17:54:27.996377+00:00",
+      "returncode": 0,
+      "elapsed_seconds": 6.991677395002625,
+      "stdout": "",
+      "stderr": "......................................................................................................................\n----------------------------------------------------------------------\nRan 118 tests in 6.764s\n\nOK\n",
+      "sha256": {
+        "source_schedule.py": "a0b6ee0113739eaf7e264f09c9a6445edbd80d1d6218cd59b0dd43084960bfc8",
+        "test_source_schedule.py": "d20274bb05fdace3839ae64e1cdc1fb5a78c8e84a1b362925d92824a357d11e8"
+      },
+      "scope": "real three-field member contract; bounded separate context/terminal receipts; six-background CPU fixture, no GPU",
+      "runtime_approved": false
     }
   ]
 }
