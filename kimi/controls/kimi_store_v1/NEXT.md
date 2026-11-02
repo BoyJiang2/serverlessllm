@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 10:16首次离线安装实际失败（原错误保留cpu_dependency_install_executions）：wheel宿主uid2147/mode0600，容器uid0但cap-drop ALL，pip读取RO挂载报Errno13，尚未安装。host不把进程exit0冒充业务成功：passed=false，停止精确CID1636cee147c2b32894f2cec5be0c189a065afbb91c1d1dd10eaaa14f4cf3a71c并记录PID0/SizeRw0/guard stop0，无GPU。最小整改仅将同一已核公开wheel设0644（owner核验，不改目录或他人文件），复用同一停止容器/原限制/已审body；不新增镜像/环境/容器、不得重下。resume候选及原candidate均保留，未以此批准native构建。
+
 - 用户“开启下一步”授权后，离线安装候选复用cpu-probe已有driver：仅改为root本任务可写层+唯一wheel RO挂载、1CPU8GiB/noGPU/runc/networknone，pip --no-deps --no-cache-dir后普通import核Torch2.10cu129及CUDA未初始化；stdin注入同一body，停止后同一依赖层可复用后续build，不新镜像/venv/checkout。540秒payload/720秒宿主stop guard/900秒整体/11月2日18:50收口，未知创建及清理义务保留。body89a74ad…、hostbc7ed60…限定只读复审PASS，5项mock body控制与真实cmd helper的stdin传递控制通过；不是实际安装/ABI或native build准入。后续只停止自有CID并记录SizeRw，released仅表示运行停止，磁盘层保留；原探针候选历史保留。当前尚未执行。
 
 - 11/2用户明确批准下载匹配依赖，覆盖此前GB新增等待决定的阻塞，不改冻结版本/原目录约束。10:02只读API核当前ksqd票265b50dd；原downloads目录空余1565367881728B，无目标或partial。已从官方cu129索引固定cp312 x86_64 Torch2.10.0+cu129完整URL及SHA a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd，单次受host timeout600s/nice10/512MiB地址空间/20MiB每秒平均限速下载，约82.5秒exit0。1278028350B及完整SHA一致后hardlink排他发布正式wheel、移除自身partial；服务器原downloads下留小receipt，原权重不动，本机无GB副本。完整注册/命令摘要/进度/收据在cpu-probe.approved_dependency_downloads。当前只下载，尚未安装/普通Torch导入/native编译，未使用GPU/进入他人容器/新建环境或checkout。
