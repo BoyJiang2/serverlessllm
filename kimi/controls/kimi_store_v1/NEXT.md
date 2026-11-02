@@ -1,3 +1,11 @@
+## 11/3 02:55本轮CPU接线候选/只读故障状态
+
+02:42实际只读再核：同boot、原shim2221317/runc2221328 start76765407仍S，Docker只报Created；证明卡在workload启动前，仍未IPC/模型/Store通过。新的仅自有runtime只读诊断使用独立100秒上限，实际外层124且本地父/child已退出，未取得结果，远端诊断完成未知；不再重复发，未向任何进程发新信号。原P0失败与cleanup_owed保持；不能因client结束就称root残留清完。
+
+本轮只修改现有source_plugin._run_source_worker：省略双factory时先实际元数据/源码/模块/原始batch时间校验，再核冻结_runtime ABI并取真实vllm.LLM/SamplingParams；显式双factory的既有CPU路径不变，禁止只给一方。没有新增CLI/包装脚本/配置来源或目录。新调用baseline实际TypeError已保留，修订59项WSL source/bundle CPU回归4.364s通过，另原Windows真实Torch CPU负例1项4.493s通过，NumPy缺失警告不安装。实际引擎/CUDA/plugin/TP8/Store依然未通过。
+
+当前源168cb6b1…/test2bd99ce4…待限定只读复审；本次改动不是runc修复，不更新844部署、旧gate或p0现场。下一CPU关键闭包仍为source完整实际Cmd/Env/mount/8卡/资源profile与原source guard提交接线，尽量复用GLM pure argv及既有函数，不另起管理框架；runtime残留未清前禁止新计算。两个通用registration/watchdog命名冲突须保留p0证据，不擅建目录/覆盖原件。
+
 ## 11/3 02:39最终实际断点：首次P0失败，Docker runtime残留，禁止新计算
 
 受审源码844/manifest b2f75414…及配置a2c6b2cb/211b4c0e均已真实部署并核178文件；外层WSL timeout1795+kill5从父实际开始计总1800，PID14097/REPL14098/PGID14097，原截止已触发，未延长。实际独立guard及主动probe通过，P0 admission后docker start10s超时；没有IPC/model/Store通过。parent/driver远端PID2221074/2221075及guard2221223已在最后两次实际快照消失。

@@ -134,5 +134,42 @@
       "output": "\n======================================================================\nFAIL: test_reference_only_uses_builtin_safetensors_without_store_output (test_source_plugin.SourcePluginTests) (export_performed=0)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 53, in test_reference_only_uses_builtin_safetensors_without_store_output\n    with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_reference_only_uses_builtin_safetensors_without_store_output (test_source_plugin.SourcePluginTests) (export_performed=1)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 53, in test_reference_only_uses_builtin_safetensors_without_store_output\n    with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_reference_only_uses_builtin_safetensors_without_store_output (test_source_plugin.SourcePluginTests) (export_performed=None)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 53, in test_reference_only_uses_builtin_safetensors_without_store_output\n    with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])\nAssertionError: ValueError not raised\n\n======================================================================\nFAIL: test_reference_only_uses_builtin_safetensors_without_store_output (test_source_plugin.SourcePluginTests) (export_performed='missing')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 53, in test_reference_only_uses_builtin_safetensors_without_store_output\n    with self.assertRaises(ValueError):plugin.read_reference_events(path,options['identity'])\nAssertionError: ValueError not raised\n\n----------------------------------------------------------------------\nRan 1 test in 0.037s\n\nFAILED (failures=4)\n",
       "elapsed_seconds": 0.0375100189994555
     }
+  ],
+  "default_factory_regressions": [
+    {
+      "recorded_utc": "2026-11-02T18:52:13.548639+00:00",
+      "scope": "new real-runtime default invocation against unchanged required-factory API; CPU fake vLLM and tiny metadata fixture",
+      "returncode": 1,
+      "stdout": "",
+      "stderr": "\n======================================================================\nERROR: test_bound_worker_defaults_to_vllm_factories_after_real_input_verification (test_source_plugin.SourcePluginTests) (mode='reference')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 100, in test_bound_worker_defaults_to_vllm_factories_after_real_input_verification\n    result=plugin._run_source_worker(worker_input_path=path,worker_input_sha256=digest)\nTypeError: _run_source_worker() missing 2 required positional arguments: 'engine_factory' and 'sampling_factory'\n\n======================================================================\nERROR: test_bound_worker_defaults_to_vllm_factories_after_real_input_verification (test_source_plugin.SourcePluginTests) (mode='export')\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/test_source_plugin.py\", line 100, in test_bound_worker_defaults_to_vllm_factories_after_real_input_verification\n    result=plugin._run_source_worker(worker_input_path=path,worker_input_sha256=digest)\nTypeError: _run_source_worker() missing 2 required positional arguments: 'engine_factory' and 'sampling_factory'\n\n----------------------------------------------------------------------\nRan 1 test in 0.152s\n\nFAILED (errors=2)\n",
+      "sha256": {
+        "source_plugin.py": "59a5805de9ed49294ec117e1ec0691b7c846c98da788cc93993c351f4951c22f",
+        "test_source_plugin.py": "c656c5a35caf92c4a33c9512bb07249dc2f026abaadf2229a04996126c6f26fc"
+      }
+    },
+    {
+      "recorded_utc": "2026-11-02T18:53:51.163682+00:00",
+      "scope": "default factories plus existing source/bundle CPU regressions; fake vLLM runtime positive, no CUDA or deployment",
+      "tests": 59,
+      "successful": true,
+      "output": "...........................................................\n----------------------------------------------------------------------\nRan 59 tests in 4.364s\n\nOK\n",
+      "elapsed_seconds": 4.364113245999761,
+      "excluded": "one actual Torch CPU test uses existing Windows interpreter separately",
+      "sha256": {
+        "source_plugin.py": "168cb6b17675be76e87be1cbebf7c4938720b9425188c162544df95985e56f12",
+        "test_source_plugin.py": "2bd99ce4cc496f14f52da9e1585d8ad0044f00c250ac1e2787f730b0ff661d07"
+      }
+    },
+    {
+      "recorded_utc": "2026-11-02T18:55:09.396781+00:00",
+      "scope": "actual existing Windows Torch2.10 CPU negative ABI check; not CUDA positive",
+      "tool_chunk": "38af22",
+      "tests": 1,
+      "returncode": 0,
+      "seconds": 4.493,
+      "output": "Ran 1 test in 4.493s; OK",
+      "warning": "Failed to initialize NumPy: No module named numpy; retained, no installation",
+      "interpreter": "D:/Documents/codex/2026-10-24/new-chat/outputs/kimi-cpu-tests-env/Scripts/python.exe"
+    }
   ]
 }

@@ -75,6 +75,62 @@ class SourcePluginTests(unittest.TestCase):
         root,path,document=SourceBundleTests().source_worker_fixture(temp)
         return root,path,document,hashlib.sha256(path.read_bytes()).hexdigest()
 
+    def test_bound_worker_defaults_to_vllm_factories_after_real_input_verification(self):
+        for mode in ('reference','export'):
+            with self.subTest(mode=mode),tempfile.TemporaryDirectory() as temp:
+                root,path,document,digest=self.worker_fixture(temp)
+                if mode=='reference':
+                    spec_path=root/'source-spec.json';spec=json.loads(spec_path.read_bytes())
+                    Path(spec['output_root']).rmdir();spec.update(mode='reference',output_root=None)
+                    spec_path.write_bytes(json.dumps(spec).encode())
+                    plan_path=root/'source-plan.json';plan=json.loads(plan_path.read_bytes())
+                    plan['spec_sha256']=hashlib.sha256(spec_path.read_bytes()).hexdigest()
+                    plan_path.write_bytes(json.dumps(plan).encode())
+                    document['plan_sha256']=hashlib.sha256(plan_path.read_bytes()).hexdigest()
+                    path.write_bytes(json.dumps(document).encode());digest=hashlib.sha256(path.read_bytes()).hexdigest()
+                core=types.SimpleNamespace(shutdown=Mock())
+                engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                    generate=Mock(side_effect=[self.completion(),self.completion(False)]))
+                factory=Mock(return_value=engine);sampling=Mock(side_effect=lambda **kw:kw)
+                module=types.ModuleType('vllm');module.LLM=factory;module.SamplingParams=sampling
+                with patch.object(plugin,'__file__',str(root/'code/source_plugin.py')), \
+                        patch.object(plugin,'_runtime') as runtime, \
+                        patch.dict(sys.modules,{'vllm':module}), \
+                        patch.object(vllm_export_hook,'collect_source_rank_receipts',return_value={'completed_rank_count':8}) as ranks:
+                    result=plugin._run_source_worker(worker_input_path=path,worker_input_sha256=digest)
+                runtime.assert_called_once();factory.assert_called_once();core.shutdown.assert_called_once()
+                self.assertEqual(factory.call_args.kwargs['load_format'],'safetensors' if mode=='reference' else FORMATS['export'])
+                self.assertEqual(factory.call_args.kwargs['tensor_parallel_size'],8)
+                self.assertEqual(result['export_performed'],mode=='export')
+                if mode=='reference':ranks.assert_not_called();self.assertIsNone(result['ranks'])
+                self.assertEqual(len(result['business']['fixed_token_business']['token_ids']),32)
+                self.assertFalse(result['runtime_admitted']);self.assertFalse(result['gold_frozen'])
+
+    def test_bound_worker_default_runtime_refusals_and_import_budget_never_construct_engine(self):
+        for kind in ('bad-input','one-factory','abi','runtime-budget'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,path,document,digest=self.worker_fixture(temp)
+                factory=Mock();module=types.ModuleType('vllm');module.LLM=factory;module.SamplingParams=Mock()
+                ticks=[100]
+                def runtime():
+                    if kind=='abi':raise ValueError('wrong frozen runtime ABI')
+                    if kind=='runtime-budget':ticks[0]+=1000
+                if kind=='bad-input':path.write_bytes(path.read_bytes()+b' ')
+                with patch.object(plugin,'__file__',str(root/'code/source_plugin.py')), \
+                        patch.object(plugin,'_runtime',side_effect=runtime) as checked, \
+                        patch.object(plugin.time,'monotonic',side_effect=lambda:ticks[0]), \
+                        patch.dict(sys.modules,{'vllm':module}):
+                    kwargs=dict(worker_input_path=path,worker_input_sha256=digest)
+                    if kind=='one-factory':kwargs['engine_factory']=factory
+                    with self.assertRaises((ValueError,TimeoutError)):plugin._run_source_worker(**kwargs)
+                factory.assert_not_called()
+                if kind in ('bad-input','one-factory'):checked.assert_not_called()
+                else:checked.assert_called_once()
+                if kind=='runtime-budget':
+                    rows=[json.loads(x) for x in (root/'source-reference-events.jsonl').read_bytes().splitlines()]
+                    self.assertEqual(rows[-1]['event'],'failed')
+                    self.assertEqual(rows[-1]['payload']['error_type'],'TimeoutError')
+
     def test_bound_worker_consumes_frozen_business_and_records_input_sha(self):
         with tempfile.TemporaryDirectory() as temp:
             root,path,document,digest=self.worker_fixture(temp)

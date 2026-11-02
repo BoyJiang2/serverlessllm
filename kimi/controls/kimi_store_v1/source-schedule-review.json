@@ -3330,5 +3330,40 @@
         "returncode": 2
       }
     }
+  ],
+  "p0_post_failure_diagnostics": [
+    {
+      "probe_id": "kimi-p0-runtime-readonly-20261102T184214Z",
+      "recorded_utc": "2026-11-02T18:42:14.708885+00:00",
+      "scope": "new bounded readonly recovery diagnosis, not P0 retry or extension",
+      "max_seconds": 35,
+      "returncode": 0,
+      "stdout": "{\"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"pids\": {\"2221317\": {\"present\": true, \"start_ticks\": 76765407, \"state\": \"S\", \"ppid\": 1, \"uid\": 0, \"cmdline\": \"/usr/bin/containerd-shim-runc-v2 -namespace moby -id d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386 -address /run/containerd/containerd.sock \", \"status_lines\": [\"VmRSS:\\t   10376 kB\", \"Threads:\\t11\", \"SigPnd:\\t0000000000000000\", \"ShdPnd:\\t0000000000000000\", \"SigBlk:\\tfffffffc3bba2800\", \"SigIgn:\\t0000000000000000\", \"SigCgt:\\tfffffffd7fc1feff\"]}, \"2221328\": {\"present\": true, \"start_ticks\": 76765407, \"state\": \"S\", \"ppid\": 2221317, \"uid\": 0, \"cmdline\": \"/usr/bin/runc --root /var/run/docker/runtime-runc/moby --log /run/containerd/io.containerd.runtime.v2.task/moby/d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386/log.json --log-format json --systemd-cgroup create --bundle /run/containerd/io.containerd.runtime.v2.task/moby/d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386 --pid-file /run/containerd/io.containerd.runtime.v2.task/moby/d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386/init.pid d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386 \", \"status_lines\": [\"VmRSS:\\t   20964 kB\", \"Threads:\\t10\", \"SigPnd:\\t0000000000000000\", \"ShdPnd:\\t0000000000000000\", \"SigBlk:\\t0000000000000000\", \"SigIgn:\\t0000000000000000\", \"SigCgt:\\tfffffffd7ffbfeff\"]}}, \"own_ps\": {\"returncode\": 0, \"stdout\": \"d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386 created Created\\n\", \"stderr\": \"\"}}\n",
+      "stderr": "",
+      "elapsed_seconds": 28.681176988000516
+    },
+    {
+      "scope": "previous local interactive preparation expired before remote dispatch",
+      "tool_chunk": "4a243e",
+      "remote_dispatched": false,
+      "local_only_failure": true
+    },
+    {
+      "probe_id": "kimi-owned-runc-readonly-20261102T184543Z",
+      "entered_utc": "2026-11-02T18:45:43.293296+00:00",
+      "local_pid": 14518,
+      "parent_pid": 14517,
+      "parent_start_ticks": 2737609,
+      "max_seconds": 100,
+      "remote_code_sha256": "93641512ea6a38187efa9ed2187e30b86864aeb3b701b90f6271b28eba377e38",
+      "scope": "only owned runtime metadata, no signals/model",
+      "outer_returncode": 124,
+      "outer_returncode_tool_chunk": "913902",
+      "outcome": "local hard deadline reached without persisted result; remote diagnostic completion unknown; do not retry",
+      "no_gpu_or_signals": true,
+      "finalized_utc": "2026-11-02T18:55:09.387305+00:00",
+      "local_pid_present": false,
+      "local_parent_present": false
+    }
   ]
 }

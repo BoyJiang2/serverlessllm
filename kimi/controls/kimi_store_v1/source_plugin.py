@@ -374,10 +374,12 @@ def _write_reference_event(stream, identity, event, payload):
     os.fsync(stream.fileno())
 
 
-def _run_source_worker(engine_factory, sampling_factory, *, worker_input_path, worker_input_sha256):
+def _run_source_worker(engine_factory=None, sampling_factory=None, *, worker_input_path, worker_input_sha256):
     """Internal admitted-parent API, not a standalone or guard-authorizing CLI."""
     from source_bundle import verify_source_worker_input
     from source_schedule import phase_remaining_seconds, _utc
+    if (engine_factory is None)!=(sampling_factory is None):
+        raise ValueError('both runtime factories must be supplied or both omitted')
     entered, started = datetime.now(timezone.utc), time.monotonic()
     root, document, spec, _, schedule, identity = verify_source_worker_input(
         worker_input_path, worker_input_sha256)
@@ -389,6 +391,10 @@ def _run_source_worker(engine_factory, sampling_factory, *, worker_input_path, w
     # Deadlines derive from the frozen parent anchor, not this worker's startup.
     phase_remaining_seconds(schedule, 'engine_initialize_and_export', entered=entered,
                             elapsed=time.monotonic()-started, now=now)
+    if engine_factory is None:
+        _runtime()
+        from vllm import LLM, SamplingParams
+        engine_factory, sampling_factory = LLM, SamplingParams
     return _run_source_reference(engine_factory, sampling_factory, spec=spec, identity=identity,
         prompt_token_ids=document['prompt_token_ids'], kv_cache_memory_bytes=document['kv_cache_memory_bytes'],
         schedule=schedule, entered=entered, started=started, worker_input_sha256=worker_input_sha256)
