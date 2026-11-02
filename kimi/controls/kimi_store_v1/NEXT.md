@@ -1,3 +1,15 @@
+## 11/3 02:39最终实际断点：首次P0失败，Docker runtime残留，禁止新计算
+
+受审源码844/manifest b2f75414…及配置a2c6b2cb/211b4c0e均已真实部署并核178文件；外层WSL timeout1795+kill5从父实际开始计总1800，PID14097/REPL14098/PGID14097，原截止已触发，未延长。实际独立guard及主动probe通过，P0 admission后docker start10s超时；没有IPC/model/Store通过。parent/driver远端PID2221074/2221075及guard2221223已在最后两次实际快照消失。
+
+失败不能归为CPU忙/NVIDIA hook/历史exit137：现有证据仅定位本CID runc create挂起，无hook后代。主清理inspect473.877s和独立guard inspect119.984s均超时，guard exit1；正常CID rm-force两次分别15s/8s超时。只读异常清理审阅仅许可一次严格boot/UID/exe/argv/PPID/startticks+pidfd向自有runc TERM；执行SSH35s超时，仅收到prepared，不能证明signal送达或退出，未自动SIGKILL/重启daemon/动shim/其他容器。
+
+最后有效残留观察北京时间02:34:57→02:35:57，实际wall/mono60.321s：八卡0MiB/apps空，CID d389985472ebcf6cd8934ad1c8ff24b8d49bf74d785c4527b6b1c025e4dbd386仍存在；root shim2221317及runc2221328 start_ticks同76765407、boot0145ca12-ac6e-40fc-9760-5d0639290553仍S，RSS约31180KiB/锁页0/CPU ticks不增。cleanup_owed=true/resources_released=false；需要管理员或另行受审的精确异常恢复，不把8卡空闲当释放。没有新GPU/模型/Store/40项实验，不自动重复本run。
+
+原硬截止后拟最后REPL探针落到bash产生syntaxerror，未执行任何远端命令；outer实际OS退出码未捕获，保持None，不编124；现已独立本地核原控制器PID是否消失，原记录保留。所有实际raw事件/失败stdout/stderr/SHA、signal未知和60s残留在source-schedule-review.json.p0_actual_batches[-1]；远端原件固定p0内保留，背景其他工作负载的raw详情只留远端，仓库摘要明确裁剪不冒充raw。密码只getpass/匿名fd，未存仓库/环境/argv。
+
+下一步优先精确runtime故障处理，问题未清不能开新计算。可以继续本地CPU把source_plugin._run_source_worker现有reference-only接到实际受守护TP8容器，复用GLM纯argv；仍缺source完整Cmd/Env/mount/profile核验和非P0 guard提交接线，须新源码/配置完整复审。不要执行GLM冻结C23入口，不覆盖p0现有registration/watchdog/代码/失败证据；只允许既有固定小目录，不擅新增source目录。3.5h参考/2h转换预算仍草案，当前不能承诺本窗完成。
+
 ## 11/3 02:10配置条件审阅通过，下一步实际有界准备
 
 独立PASS_P0_CONFIGURATION_CONDITIONAL已核实际spec a2c6b2cb…/plan211b4c0e…/修订prelude15f5438c…，仅当前40B/1GPU控制，非TP8/Store/模型/正式批准。可开始一次有界部署元数据；任何远端准备前须先实核本地timeout/REPL身份PGID并从父开始推算全批1800最后截止。每步只用原remaining，启动需>=1205+60。源码844及完整178manifest b2f75414…不改。实际resource/window、部署bytes、独立guard/probe通过后才GPU start，runtime_approved继续false直到实际准入。
