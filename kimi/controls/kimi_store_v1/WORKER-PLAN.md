@@ -4,6 +4,8 @@
 
 ## 当前已接与尚未接
 
+11月2日实际更新：目标Torch2.10cu129已装到原0202镜像的本任务差异层；普通import在线程1/无GPU设备下实际通过，CUDA未初始化。镜像53f661ba…独立核29原层共享、只增2.13GiB，自身临时容器/timer已释放。已有Torch安装阻塞已解除；native补丁仍未完整编译或导入，NVIDIA/Triton版本合同尚有差异/vllm缺失，不能宣全冻结环境ready。完整失败/成功/静态与实际只读复审在cpu-probe，NEXT首部为下一项；不重复下载或另建环境。首次139与后续成功分开，不追认历史故障根因。
+
 11月1日新CPU/内存授权后的实际进展：已审一次性CPU metadata探针在已有0202镜像成功执行并释放，启动前独立user timer绑定同socket/完整CID，内60s外300s，实际目标约0.164s、exit0、无nvidia设备；独立SSH再核同label空、timer inactive及alan不变。实际复审只确认CPU版本/释放。远端确有nvcc12.9.86/CUDA头/CMake3.28.3，但Torch2.9.1+cu129且无vllm，不符合冻结2.10.0+cu129；并未执行ABI调用或编译。此前本机缺CUDA工具链的证据仍有效，但不再外推远端没有CUDA。原文/收据/源码SHA和新限定结论见cpu-probe；不得据版本probe声称完整build或GPU通过。
 
 2026-10-31 23:14实际阻塞复核：连续4e881f9、e906053、本轮均缺可用完整native CUDA构建链。现有WSL3.10本轮实查Torch不可import、nvcc/ninja/CUDA_HOME为空、两标准CUDA头路径不存在，cmake/g++有；WSL单次固定原文读取Connection reset，未获得utils。所有新证据仅标准库metadata/网络小文件，没有安装或远端运行。已有五项只读审计没有新已确认本机CPU核心格式缺陷；native/GPU/完整模型验证缺口仍在，不以进一步通用启动封装代替证明。恢复需要现成匹配工具链/完整来源及其授权CPU内存范围，再审有界构建；构建无需先占八卡。目标保持未完成，原范围/拒绝/失败不放宽。

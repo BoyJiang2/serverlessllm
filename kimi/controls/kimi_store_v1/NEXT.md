@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2 10:30实际进展：Torch2.10.0+cu129已离线安装；最初普通import exit139，stderr记录OpenBLAS试建64线程撞PID64及CPU dispatcher错误（原始日志保留，未认定所有根因）。同一e8cf…容器随后仅设OPENBLAS/OMP/MKL/NUMEXPR线程1、禁core、无pip重装的受审控制成功：Torch2.10cu129/CUDA12.9/cuda_initialized false/dev nvidia为空/exit0。成功才commit镜像sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8，tag sllm-kimi-cpu-build:torch210-cu129。独立SSH核29基础层全部复用、仅新增一层2284573135B（约2.13GiB），未复制整基础镜像；精确自身container rm0/timer stop0，独立自身查询空及timer inactive，别人容器保留。旧失败全部保留；限定实际只读复审确认普通导入/差异层/运行释放，不是完整ABI/native/GPU或历史SIGKILL根因通过。
+- 下一项不再重下Torch/重做普通probe：优先核实际镜像ID仍存在、复用已查SDK原CMake及patch49b2绑定完整C++输入，现有构建位置内单并发受审编译/普通native导入。全冻结依赖尚未闭合：现nvshmem3.3.20/cudnn9.16.0.29/nccl2.28.3/cuda-bindings12.9.6/triton3.5.1与官方Torch wheel要求若干不一致，vllm仍缺；不能称整环境ready，不为编译先装不需要的后端包，也不跳过目标ABI/构建审阅。未来CPU容器必须显式线程1，设置未写入镜像Config，不能默认继承此次进程环境。无GPU初始化、模型/Store池或正式ID操作；镜像不建常驻anchor或额外整备份，下一阶段以实际ID核验为准。
+
 - 原CID1636…已在02:17:46Z发生destroy（Docker精确事件已取回，调用者/原因未知）；02:18单次resume先inspect失败，未再次安装，保留保守cleanup_owed原收据，不重判成功。为避免停止层再次消失，后续候选仅在真实install/import通过后commit必要差异层到固定tag sllm-kimi-cpu-build:torch210-cu129，复用26.6GB基础层、不复制整镜像；实际imageID核对后才stop/rm自己临时容器。原wheel0644/RO挂载、1CPU8GiB/noGPU/networknone保持。host7ad6258…/body89a74ad…限定只读PASS，三个actual AST commit状态mock控制通过。空间核DockerRootDir(/var/lib/docker)至少12GiB；900秒仅controller/720秒仅container stop，daemon commit客户端超时不能硬取消，必须保留commit未知及artifact核验义务，不自动重试/删镜像。原NEEDS_FIX/旧候选/两次实际失败均保留。尚未执行此候选，不是native build准入。
 
 - 11/2 10:16首次离线安装实际失败（原错误保留cpu_dependency_install_executions）：wheel宿主uid2147/mode0600，容器uid0但cap-drop ALL，pip读取RO挂载报Errno13，尚未安装。host不把进程exit0冒充业务成功：passed=false，停止精确CID1636cee147c2b32894f2cec5be0c189a065afbb91c1d1dd10eaaa14f4cf3a71c并记录PID0/SizeRw0/guard stop0，无GPU。最小整改仅将同一已核公开wheel设0644（owner核验，不改目录或他人文件），复用同一停止容器/原限制/已审body；不新增镜像/环境/容器、不得重下。resume候选及原candidate均保留，未以此批准native构建。

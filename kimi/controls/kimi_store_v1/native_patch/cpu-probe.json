@@ -1917,6 +1917,181 @@
       "local_ssh_pid": 43688,
       "returncode": 0,
       "stderr": ""
+    },
+    {
+      "registered_utc": "2026-11-02T02:24:46.706014+00:00",
+      "state": "SSH_TERMINAL",
+      "code_commit": "55c772b",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "7ad6258ebedd54905bed24fefb221c1379e6a52c01d629305329ddadfdebdd2b",
+      "body_sha256": "89a74ad3004d4fdca418730bb4688cbf035b31640b30d762e3e7702e2bd6f38f",
+      "events": [
+        {
+          "run_id": "kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0",
+          "image": "sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3",
+          "started_utc": "2026-11-02T02:24:49.334501+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "docker_root": "/var/lib/docker",
+          "docker_root_free_bytes": 891465232384,
+          "container_id": "e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7",
+          "guard_install": "Running timer as unit: kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0-cleanup.timer\nWill run service as unit: kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 5h 35min 28.309635s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock stop --time 10 e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 139,
+            "stdout": "{\"uid\": 0, \"device_nodes\": [], \"installed\": true, \"compiled_native_store\": false, \"before\": {\"nvidia-cusolver-cu12\": \"11.7.5.82\", \"nvidia-nvshmem-cu12\": \"3.3.20\", \"nvidia-cuda-runtime-cu12\": \"12.9.79\", \"cuda-bindings\": \"12.9.6\", \"triton\": \"3.5.1\", \"nvidia-curand-cu12\": \"10.3.10.19\", \"cuda-pathfinder\": \"1.5.4\", \"nvidia-cutlass-dsl-libs-base\": \"4.5.0\", \"nvidia-nvtx-cu12\": \"12.9.79\", \"nvidia-cufile-cu12\": \"1.14.1.1\", \"nvidia-nccl-cu12\": \"2.28.3\", \"nvidia-cuda-nvrtc-cu12\": \"12.9.86\", \"nvidia-nvjitlink-cu12\": \"12.9.86\", \"nvidia-cusparse-cu12\": \"12.5.10.65\", \"nvidia-cusparselt-cu12\": \"0.7.1\", \"cuda-tile\": \"1.3.0\", \"nvidia-ml-py\": \"13.595.45\", \"nvidia-cutlass-dsl\": \"4.5.0\", \"nvidia-cufft-cu12\": \"11.4.1.4\", \"nvidia-cublas-cu12\": \"12.9.1.4\", \"nvidia-cudnn-frontend\": \"1.23.0\", \"cuda-python\": \"12.9.0\", \"nvidia-cuda-cupti-cu12\": \"12.9.79\", \"torch\": \"2.9.1+cu129\", \"nvidia-cudnn-cu12\": \"9.16.0.29\"}, \"pip\": {\"returncode\": 0, \"stdout\": \"Processing /opt/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl\\nInstalling collected packages: torch\\n  Attempting uninstall: torch\\n    Found existing installation: torch 2.9.1+cu129\\n    Uninstalling torch-2.9.1+cu129:\\n      Successfully uninstalled torch-2.9.1+cu129\\nSuccessfully installed torch-2.10.0+cu129\\n\", \"stderr\": \"WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.\\n\"}, \"metadata_version\": \"2.10.0+cu129\", \"passed\": false, \"error_type\": \"RuntimeError\", \"error\": \"CPU dispatcher tracer already initlized\"}\n",
+            "stderr": "OpenBLAS blas_thread_init: pthread_create failed for thread 63 of 64: Resource temporarily unavailable\nOpenBLAS blas_thread_init: ensure that your address space and process count limits are big enough (ulimit -a)\nOpenBLAS blas_thread_init: or set a smaller OPENBLAS_NUM_THREADS to fit into what you have available\nOpenBLAS blas_thread_init: RLIMIT_NPROC -1 current, -1 max\n/usr/bin/timeout: the monitored command dumped core\n"
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 139,
+            "Error": "",
+            "StartedAt": "2026-11-02T02:24:50.492885956Z",
+            "FinishedAt": "2026-11-02T02:26:39.068335224Z"
+          },
+          "passed": false,
+          "cleanup": 0,
+          "retained_container_id": "e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7",
+          "writable_layer_bytes": 2284573135,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T02:27:09.333549+00:00"
+        }
+      ],
+      "purpose": "fresh install after known previous container destroyed; preserve successful delta",
+      "local_ssh_pid": 16276,
+      "returncode": 0,
+      "stderr": ""
+    },
+    {
+      "registered_utc": "2026-11-02T02:29:24.745987+00:00",
+      "state": "SSH_TERMINAL",
+      "base_commit": "55c772b",
+      "source_state": "exact reviewed candidate SHA in pending evidence; not claimed committed runtime",
+      "host_driver_sha256": "719599476c207c90332e65475a19564b50158adf1fc2dc79a62eb6165a0d0a41",
+      "body_sha256": "d1152add481f92e50576e17c1ab78a1f8d2e19272eed15812a855f2d7f78a7ae",
+      "purpose": "same installed CID ordinary import thread1 only",
+      "events": [
+        {
+          "run_id": "kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0",
+          "image": "sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3",
+          "started_utc": "2026-11-02T02:29:33.680519+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "docker_root": "/var/lib/docker",
+          "docker_root_free_bytes": 889141088256,
+          "container_id": "e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7",
+          "guard_install": "Running timer as unit: kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0-import1-cleanup.timer\nWill run service as unit: kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0-import1-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 5h 40min 12.614790s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock stop --time 10 e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"uid\": 0, \"device_nodes\": [], \"installed\": true, \"compiled_native_store\": false, \"before\": {\"torch\": \"2.10.0+cu129\", \"nvidia-cusolver-cu12\": \"11.7.5.82\", \"nvidia-nvshmem-cu12\": \"3.3.20\", \"nvidia-cuda-runtime-cu12\": \"12.9.79\", \"cuda-bindings\": \"12.9.6\", \"triton\": \"3.5.1\", \"nvidia-curand-cu12\": \"10.3.10.19\", \"cuda-pathfinder\": \"1.5.4\", \"nvidia-cutlass-dsl-libs-base\": \"4.5.0\", \"nvidia-nvtx-cu12\": \"12.9.79\", \"nvidia-cufile-cu12\": \"1.14.1.1\", \"nvidia-nccl-cu12\": \"2.28.3\", \"nvidia-cuda-nvrtc-cu12\": \"12.9.86\", \"nvidia-nvjitlink-cu12\": \"12.9.86\", \"nvidia-cusparse-cu12\": \"12.5.10.65\", \"nvidia-cusparselt-cu12\": \"0.7.1\", \"cuda-tile\": \"1.3.0\", \"nvidia-ml-py\": \"13.595.45\", \"nvidia-cutlass-dsl\": \"4.5.0\", \"nvidia-cufft-cu12\": \"11.4.1.4\", \"nvidia-cublas-cu12\": \"12.9.1.4\", \"nvidia-cudnn-frontend\": \"1.23.0\", \"cuda-python\": \"12.9.0\", \"nvidia-cuda-cupti-cu12\": \"12.9.79\", \"nvidia-cudnn-cu12\": \"9.16.0.29\"}, \"thread_environment\": {\"OPENBLAS_NUM_THREADS\": \"1\", \"OMP_NUM_THREADS\": \"1\", \"MKL_NUM_THREADS\": \"1\", \"NUMEXPR_NUM_THREADS\": \"1\"}, \"metadata_version\": \"2.10.0+cu129\", \"torch_version\": \"2.10.0+cu129\", \"torch_cuda\": \"12.9\", \"cuda_initialized\": false, \"passed\": true}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T02:29:34.797947871Z",
+            "FinishedAt": "2026-11-02T02:29:36.482739203Z"
+          },
+          "passed": true,
+          "metadata": {
+            "uid": 0,
+            "device_nodes": [],
+            "installed": true,
+            "compiled_native_store": false,
+            "before": {
+              "torch": "2.10.0+cu129",
+              "nvidia-cusolver-cu12": "11.7.5.82",
+              "nvidia-nvshmem-cu12": "3.3.20",
+              "nvidia-cuda-runtime-cu12": "12.9.79",
+              "cuda-bindings": "12.9.6",
+              "triton": "3.5.1",
+              "nvidia-curand-cu12": "10.3.10.19",
+              "cuda-pathfinder": "1.5.4",
+              "nvidia-cutlass-dsl-libs-base": "4.5.0",
+              "nvidia-nvtx-cu12": "12.9.79",
+              "nvidia-cufile-cu12": "1.14.1.1",
+              "nvidia-nccl-cu12": "2.28.3",
+              "nvidia-cuda-nvrtc-cu12": "12.9.86",
+              "nvidia-nvjitlink-cu12": "12.9.86",
+              "nvidia-cusparse-cu12": "12.5.10.65",
+              "nvidia-cusparselt-cu12": "0.7.1",
+              "cuda-tile": "1.3.0",
+              "nvidia-ml-py": "13.595.45",
+              "nvidia-cutlass-dsl": "4.5.0",
+              "nvidia-cufft-cu12": "11.4.1.4",
+              "nvidia-cublas-cu12": "12.9.1.4",
+              "nvidia-cudnn-frontend": "1.23.0",
+              "cuda-python": "12.9.0",
+              "nvidia-cuda-cupti-cu12": "12.9.79",
+              "nvidia-cudnn-cu12": "9.16.0.29"
+            },
+            "thread_environment": {
+              "OPENBLAS_NUM_THREADS": "1",
+              "OMP_NUM_THREADS": "1",
+              "MKL_NUM_THREADS": "1",
+              "NUMEXPR_NUM_THREADS": "1"
+            },
+            "metadata_version": "2.10.0+cu129",
+            "torch_version": "2.10.0+cu129",
+            "torch_cuda": "12.9",
+            "cuda_initialized": false,
+            "passed": true
+          },
+          "commit_attempted": true,
+          "commit_source_cid": "e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7",
+          "commit_target_tag": "sllm-kimi-cpu-build:torch210-cu129",
+          "commit_completion_unknown": false,
+          "artifact_verification_owed": false,
+          "budget_scope": "900s host controller /720s container stop only; Docker daemon commit has no hard cancellation guarantee",
+          "committed_image_id": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "committed_image_tag": "sllm-kimi-cpu-build:torch210-cu129",
+          "cleanup": 0,
+          "container_remove": 0,
+          "retained_container_id": null,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T02:30:24.516812+00:00"
+        }
+      ],
+      "returncode": 0,
+      "stderr": ""
     }
   ],
   "cpu_dependency_install_resume_candidate": {
@@ -2029,6 +2204,189 @@
     "limitations": [
       "daemon commit has no hard cancellation guarantee; unknown artifact needs separate verification",
       "not native build/GPU/full ABI/R1/G1 approval"
+    ]
+  },
+  "cpu_dependency_import_thread_candidate": {
+    "recorded_utc": "2026-11-02T02:28:07.214768+00:00",
+    "body": "WHEEL='/opt/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl'\nimport importlib.metadata as md,json,os,subprocess,sys,time\nfrom pathlib import Path\nimport resource\nresource.setrlimit(resource.RLIMIT_CORE,(0,0))\nfor key in (\"OPENBLAS_NUM_THREADS\",\"OMP_NUM_THREADS\",\"MKL_NUM_THREADS\",\"NUMEXPR_NUM_THREADS\"):\n os.environ[key]=\"1\"\nr={\"uid\":os.getuid(),\"device_nodes\":[str(p) for p in Path(\"/dev\").glob(\"nvidia*\")],\"installed\":False,\"compiled_native_store\":False}\ntry:\n if r[\"device_nodes\"]:raise RuntimeError(\"GPU devices exposed\")\n r[\"before\"]={}\n for dist in md.distributions():\n  name=dist.metadata.get(\"Name\",\"\")\n  if name.lower().startswith((\"nvidia-\",\"cuda-\")) or name.lower() in (\"torch\",\"triton\",\"vllm\"):\n   r[\"before\"][name]=dist.version\n if md.version(\"torch\")!=\"2.10.0+cu129\":raise RuntimeError(\"existing installed Torch version differs; no reinstall\")\n r[\"thread_environment\"]={k:os.environ[k] for k in (\"OPENBLAS_NUM_THREADS\",\"OMP_NUM_THREADS\",\"MKL_NUM_THREADS\",\"NUMEXPR_NUM_THREADS\")}\n r[\"installed\"]=True\n r[\"metadata_version\"]=md.version(\"torch\")\n if r[\"metadata_version\"]!=\"2.10.0+cu129\":raise RuntimeError(\"Torch metadata version differs\")\n import torch\n r[\"torch_version\"]=str(torch.__version__);r[\"torch_cuda\"]=torch.version.cuda;r[\"cuda_initialized\"]=torch.cuda.is_initialized()\n if r[\"torch_version\"]!=\"2.10.0+cu129\" or r[\"torch_cuda\"]!=\"12.9\" or r[\"cuda_initialized\"]:raise RuntimeError(\"ordinary import contract differs\")\n r[\"passed\"]=True\nexcept BaseException as e:r.update(passed=False,error_type=type(e).__name__,error=str(e))\nfinally:print(json.dumps(r),flush=True)\n",
+    "host_driver": "import datetime,hashlib,json,os,subprocess,time,uuid\nfrom pathlib import Path\nIMAGE=\"sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3\"\nrun='kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0'\nunit=run+\"-import1-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+900\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<900:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 900s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True,input=None):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV,input=input)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n artifact_tag='sllm-kimi-cpu-build:torch210-cu129'\n if cmd([\"docker\",\"image\",\"inspect\",artifact_tag],check=False).returncode==0:raise ValueError(\"build image already exists; refuse duplicate install/overwrite\")\n docker_root=cmd([\"docker\",\"info\",\"--format\",\"{{.DockerRootDir}}\"]).stdout.strip()\n docker_free=__import__(\"shutil\").disk_usage(docker_root).free\n result[\"docker_root\"]=docker_root;result[\"docker_root_free_bytes\"]=docker_free\n if docker_free<12*1024**3:raise ValueError(\"insufficient Docker writable-layer space\")\n wheel=Path('/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl')\n if wheel.is_symlink() or not wheel.is_file():raise ValueError(\"wheel path differs\")\n if wheel.stat().st_size!=1278028350:raise ValueError(\"wheel bytes differ\")\n digest=hashlib.sha256()\n with wheel.open(\"rb\") as f:\n  while True:\n   block=f.read(1024**2)\n   if not block:break\n   digest.update(block)\n if digest.hexdigest()!=\"a3c703e74a88cccfeb4b1807c49d563a0a73793ba72d4fa035d4ac5885f3aefd\":raise ValueError(\"wheel SHA differs\")\n if wheel.stat().st_uid!=2147:raise ValueError(\"wheel owner differs\")\n wheel.chmod(0o644)\n if __import__(\"shutil\").disk_usage(wheel.parent).free<8*1024**3:raise ValueError(\"insufficient installation space\")\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n creation_attempted=True\n cid='e8cf9c9ae7093fa5a4376b127485b0750fa48599c53b204d0774e19fc8fe2cb7'\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or len(d[\"Mounts\"])!=1 or d[\"Mounts\"][0][\"Source\"]!='/data/brick1/boyjiang/kimi-k2.6/downloads/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl' or d[\"Mounts\"][0][\"Destination\"]!='/opt/torch-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl' or d[\"Mounts\"][0][\"RW\"] or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=8589934592 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=720s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=30s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"stop\",\"--time\",\"10\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"stop --time 10\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",\"--interactive\",cid],timeout=600,check=False,input=BODY)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:16000],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"Torch install/import did not pass\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\n  result[\"commit_attempted\"]=True;result[\"commit_source_cid\"]=cid;result[\"commit_target_tag\"]=artifact_tag\n  result[\"commit_completion_unknown\"]=True;result[\"artifact_verification_owed\"]=True\n  result[\"budget_scope\"]=\"900s host controller /720s container stop only; Docker daemon commit has no hard cancellation guarantee\"\n  image_id=cmd([\"docker\",\"commit\",cid,artifact_tag],timeout=120).stdout.strip()\n  if cmd([\"docker\",\"image\",\"inspect\",artifact_tag,\"--format\",\"{{.Id}}\"],timeout=10).stdout.strip()!=image_id:raise ValueError(\"committed image identity differs\")\n  result[\"committed_image_id\"]=image_id;result[\"committed_image_tag\"]=artifact_tag\n  result[\"commit_completion_unknown\"]=False;result[\"artifact_verification_owed\"]=False\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"stop\",\"--time\",\"10\",cid],timeout=20,check=False).returncode\n      if result.get(\"committed_image_id\"):\n       result[\"container_remove\"]=cmd([\"docker\",\"rm\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    if result.get(\"committed_image_id\") and result.get(\"container_remove\")==0:\n     result[\"released\"]=True;result[\"retained_container_id\"]=None\n    elif cid and creation_completed:\n     stopped=json.loads(cmd([\"docker\",\"inspect\",\"--size\",cid]).stdout)[0]\n     result[\"released\"]=stopped[\"Id\"]==cid and not stopped[\"State\"][\"Running\"] and stopped[\"State\"][\"Pid\"]==0 and stopped[\"Config\"][\"Labels\"].get(\"run_id\")==run and not result.get(\"cleanup_identity_mismatch\",False)\n     result[\"retained_container_id\"]=cid;result[\"writable_layer_bytes\"]=stopped.get(\"SizeRw\")\n    else:result[\"released\"]=False\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+    "body_sha256": "d1152add481f92e50576e17c1ab78a1f8d2e19272eed15812a855f2d7f78a7ae",
+    "host_driver_sha256": "719599476c207c90332e65475a19564b50158adf1fc2dc79a62eb6165a0d0a41",
+    "status": "NOT_EXECUTED",
+    "scope": "single exact already installed container import with CPU threads1 and no pip/reinstall; retain approved successful delta persistence"
+  },
+  "cpu_dependency_import_thread_review": {
+    "reviewer": "local read-only deadline_readonly_review",
+    "verdict": "PASS_SCOPED_STATIC",
+    "host_driver_sha256": "719599476c207c90332e65475a19564b50158adf1fc2dc79a62eb6165a0d0a41",
+    "body_sha256": "d1152add481f92e50576e17c1ab78a1f8d2e19272eed15812a855f2d7f78a7ae",
+    "scope": "single exact installed container thread1 ordinary import; no fresh create/install/native/GPU"
+  },
+  "cpu_dependency_install_independent_verification": {
+    "recorded_utc": "2026-11-02T02:31:33.786432+00:00",
+    "scope": "independent exact image layers and own-runtime release metadata",
+    "returncode": 0,
+    "data": {
+      "base_id": "sha256:0202a24ab20274f3046d76a0022e3586ea8043ff5a6defb72b06283ff517c7e3",
+      "artifact_id": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+      "artifact_tags": [
+        "sllm-kimi-cpu-build:torch210-cu129"
+      ],
+      "base_layers": [
+        "sha256:107cbdaeec042e6154640c94972c638f4e2fee795902b149e8ce9acbd03d59d7",
+        "sha256:d54e805fe9aac70390dd3e3ca1b6fd0f63b2cf5913eb0023bf741bd291d2a746",
+        "sha256:35a8bdbbbf277997b1e1efcbdc9ae5321ec3a96ceb81ad194ad58d671ab47bd4",
+        "sha256:12f5e36b8e7e83c3fa409e1b34eaec072b9381c8a5e600e9f03c53dbd295bec1",
+        "sha256:455bca42f6ec40ca42fea4bea15c6c17b97101af90413cdd25647de2b9d98960",
+        "sha256:6e980015d67b5cae225c0adf06e30b516f62600df02350db433029e63968b932",
+        "sha256:97486d1882c55d529af69661c72297f97dd38801c0dfa771cbbbe649da358078",
+        "sha256:d38a3b5fb295c76c1383bf5f56fa8ede57ce3ad574a6a6918307daab6ae62889",
+        "sha256:3cefe4836f3110ecc622b831aafa0c278feabc23c5aeb8a914f9f90727fcbd1a",
+        "sha256:3a91992f0bb9e54dbdface53427b7bea60d9e32dacef2105f5f15ce7cae11b17",
+        "sha256:9c481f26e4c2227ea8326b5a770905d99fe3770090c01733ca65f36a4b1e920c",
+        "sha256:5e16802760d009002b863933de78747f17d0a47dbbaa22448e17d3be8a5ea69c",
+        "sha256:e635c2930ff9f31c04b926c8881beb4f979c3bb89ee50bba975f16e483d8d6d7",
+        "sha256:79d066ae3fefdf1224da4286fec70a4f87b668206b3f9259a689ce84b594d954",
+        "sha256:533529d6d9a66f234f60c1cc648b6d3e1a81f688e666e6e1a700ff774f5960bf",
+        "sha256:8ac5220a5a7bdda1237836ec967d7040b8bd0a3548572c0e4de68e1910134aa4",
+        "sha256:6a56606d5fa57ca32f00f6681b0bc8e04ff87d2452df458002895df36c1f322d",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:0f426e8605f2b77483acd19d479665cbe6fe257485c367d9d7d6d347b7733a4b",
+        "sha256:9018688f35963615578f58175d643673feff11b5aad58e4bacd8f36791f16563",
+        "sha256:ddd093deb2afface325e1305744e44531ff1b047113e56e360fb95095c804516",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:4d9902304a0c736ab60cd90d87f1b8219c547453e45a871a89ff5387ac3f432b",
+        "sha256:08441dcd4264bd6ff7a3d187bb69d18a94ae493aec318b9cdb504497c62dd0da",
+        "sha256:239f363d03163d7557d63c6ee73ce5ecacbf9f46b076e8a24782b48701e00dd3",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:5cfd43317bf367736d0401360633d0dcd22139c070cc6b4d2459afa4fce11324",
+        "sha256:3146b653e4c84af657c023252eca46ad695c0d236b261758ed0124d625e1853a"
+      ],
+      "artifact_layers": [
+        "sha256:107cbdaeec042e6154640c94972c638f4e2fee795902b149e8ce9acbd03d59d7",
+        "sha256:d54e805fe9aac70390dd3e3ca1b6fd0f63b2cf5913eb0023bf741bd291d2a746",
+        "sha256:35a8bdbbbf277997b1e1efcbdc9ae5321ec3a96ceb81ad194ad58d671ab47bd4",
+        "sha256:12f5e36b8e7e83c3fa409e1b34eaec072b9381c8a5e600e9f03c53dbd295bec1",
+        "sha256:455bca42f6ec40ca42fea4bea15c6c17b97101af90413cdd25647de2b9d98960",
+        "sha256:6e980015d67b5cae225c0adf06e30b516f62600df02350db433029e63968b932",
+        "sha256:97486d1882c55d529af69661c72297f97dd38801c0dfa771cbbbe649da358078",
+        "sha256:d38a3b5fb295c76c1383bf5f56fa8ede57ce3ad574a6a6918307daab6ae62889",
+        "sha256:3cefe4836f3110ecc622b831aafa0c278feabc23c5aeb8a914f9f90727fcbd1a",
+        "sha256:3a91992f0bb9e54dbdface53427b7bea60d9e32dacef2105f5f15ce7cae11b17",
+        "sha256:9c481f26e4c2227ea8326b5a770905d99fe3770090c01733ca65f36a4b1e920c",
+        "sha256:5e16802760d009002b863933de78747f17d0a47dbbaa22448e17d3be8a5ea69c",
+        "sha256:e635c2930ff9f31c04b926c8881beb4f979c3bb89ee50bba975f16e483d8d6d7",
+        "sha256:79d066ae3fefdf1224da4286fec70a4f87b668206b3f9259a689ce84b594d954",
+        "sha256:533529d6d9a66f234f60c1cc648b6d3e1a81f688e666e6e1a700ff774f5960bf",
+        "sha256:8ac5220a5a7bdda1237836ec967d7040b8bd0a3548572c0e4de68e1910134aa4",
+        "sha256:6a56606d5fa57ca32f00f6681b0bc8e04ff87d2452df458002895df36c1f322d",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:0f426e8605f2b77483acd19d479665cbe6fe257485c367d9d7d6d347b7733a4b",
+        "sha256:9018688f35963615578f58175d643673feff11b5aad58e4bacd8f36791f16563",
+        "sha256:ddd093deb2afface325e1305744e44531ff1b047113e56e360fb95095c804516",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:4d9902304a0c736ab60cd90d87f1b8219c547453e45a871a89ff5387ac3f432b",
+        "sha256:08441dcd4264bd6ff7a3d187bb69d18a94ae493aec318b9cdb504497c62dd0da",
+        "sha256:239f363d03163d7557d63c6ee73ce5ecacbf9f46b076e8a24782b48701e00dd3",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:5cfd43317bf367736d0401360633d0dcd22139c070cc6b4d2459afa4fce11324",
+        "sha256:3146b653e4c84af657c023252eca46ad695c0d236b261758ed0124d625e1853a",
+        "sha256:d370867d5deeb5f16e0f1c215e06e525a677dd105d9abfeeb5a3818999db1e60"
+      ],
+      "base_size": 26593248861,
+      "artifact_size": 28877821996,
+      "uncompressed_size_delta": 2284573135,
+      "base_prefix_shared": true,
+      "own_running": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guard": {
+        "code": 3,
+        "stdout": "inactive\n",
+        "stderr": ""
+      },
+      "other_containers": {
+        "code": 0,
+        "stdout": "friendly_agnesi Up 24 minutes\nfullpd-2a3efe96ab8c-prefill Up 3 hours\nharbor-alan Up 2 days\n",
+        "stderr": ""
+      },
+      "gpu": {
+        "code": 0,
+        "stdout": "0, 0 MiB\n1, 0 MiB\n2, 0 MiB\n3, 0 MiB\n4, 0 MiB\n5, 0 MiB\n6, 0 MiB\n7, 0 MiB\n",
+        "stderr": ""
+      }
+    }
+  },
+  "cpu_dependency_install_resource_samples": [
+    {
+      "recorded_utc": "2026-11-02T02:25:25.512805+00:00",
+      "returncode": 0,
+      "data": {
+        "containers": [
+          "e8cf9c9ae709"
+        ],
+        "sample_is_not_peak": true,
+        "e8cf9c9ae709": {
+          "code": 0,
+          "stdout": "{\"BlockIO\":\"1.54GB / 310MB\",\"CPUPerc\":\"4.67%\",\"Container\":\"e8cf9c9ae709\",\"ID\":\"e8cf9c9ae709\",\"MemPerc\":\"1.90%\",\"MemUsage\":\"155.3MiB / 8GiB\",\"Name\":\"kimi-cpu-install-c93ad207fd114dc09b219f64b22e67f0\",\"NetIO\":\"0B / 0B\",\"PIDs\":\"3\"}\n",
+          "stderr": ""
+        }
+      }
+    }
+  ],
+  "cpu_dependency_install_outcome": {
+    "status": "TORCH_ORDINARY_IMPORT_AND_DELTA_PERSISTENCE_PASSED",
+    "image_id": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+    "image_tag": "sllm-kimi-cpu-build:torch210-cu129",
+    "delta_bytes": 2284573135,
+    "base_layers_shared": true,
+    "new_base_image_copied": false,
+    "threads_required": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1"
+    },
+    "cuda_initialized": false,
+    "compiled_native_store": false,
+    "full_dependency_contract_verified": false,
+    "known_unresolved_dependencies": [
+      "triton3.5.1 vs wheel requires3.6.0",
+      "nvshmem3.3.20 vs requires3.4.5",
+      "cudnn9.16.0.29 vs requires9.10.2.21",
+      "nccl2.28.3 vs requires2.27.5",
+      "cuda-bindings12.9.6 vs requires12.9.4",
+      "vllm not installed"
+    ],
+    "failure_retained": [
+      "pip permission failure",
+      "retained stopped container disappeared; actor/cause unknown",
+      "initial ordinary import exit139/OpenBLAS thread exhaustion plus dispatcher error"
+    ],
+    "interpretation": "thread1 control success does not establish all historical crash causes; no CUDA/GPU/native/whole-model/service validation"
+  },
+  "cpu_dependency_install_actual_review": {
+    "recorded_utc": "2026-11-02T02:33:25.877975+00:00",
+    "reviewer": "local read-only deadline_readonly_review",
+    "verdict": "PASS_ORDINARY_TORCH_IMPORT_DELTA_AND_RUNTIME_RELEASE_ONLY",
+    "image_id": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+    "base_prefix_shared": true,
+    "added_layers": 1,
+    "delta_bytes": 2284573135,
+    "scope": [
+      "ordinary import with threads1 and CUDA uninitialized",
+      "successful commit confirmed separately",
+      "own runtime/container/timer released"
+    ],
+    "not_proven": [
+      "full dependency contract/ABI",
+      "native Store compile/import",
+      "CUDA/GPU/full model/service",
+      "historical SIGKILL cause"
     ]
   }
 }
