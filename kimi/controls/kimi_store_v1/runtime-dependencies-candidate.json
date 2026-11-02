@@ -8144,5 +8144,786 @@
       "ssh_port": 22
     },
     "scope": "user-authorized low CPU only before midnight"
+  },
+  "replacement22_inventory_executions": [
+    {
+      "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+      "registered_utc": "2026-11-02T11:29:41.435925+00:00",
+      "state": "SSH_TERMINAL",
+      "code_commit": "60f0485469dcf49a479a652d9461ee7ec4219694",
+      "host_driver_sha256": "8c62d54337374a3d7a59b300316204c0c0b65c2b0e23740915e9e078e30d8c67",
+      "body_sha256": "3163eefb19fcdb5e1ffd41d03afd80e15d5851d6cd9b465115219244eec00c0f",
+      "script_sha256": "52f7a8b8b33c633b56f2a00d2501124ef3b0dfc80ad550b3e1c71315a9524fe6",
+      "booking_id": "bk-20261102T0229-41b77620",
+      "returncode": 0,
+      "stdout": "{\"event\": \"host_started\", \"run_id\": \"kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b\", \"identity\": {\"pid\": 1895134, \"uid\": 2147, \"start_ticks\": 74330363, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}}\n{\"event\": \"guard_ready\", \"run_id\": \"kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b\", \"container_id\": \"6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800\"}\n{\"run_id\": \"kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b\", \"image\": \"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\", \"started_utc\": \"2026-11-02T11:29:45.900426+00:00\", \"gpu_requested\": false, \"compiled_native_store\": false, \"released\": true, \"cleanup_errors\": [], \"host_identity\": {\"pid\": 1895134, \"uid\": 2147, \"start_ticks\": 74330363, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}, \"resource_precheck\": {\"memory_available_kib\": 1971505432, \"own_containers\": []}, \"storage_budget_snapshot\": {\"downloads\": {\"path\": \"/data/brick1/boyjiang/kimi-k2.6/downloads\", \"st_dev\": 66304, \"total_bytes\": 3838880616448, \"available_bytes\": 1563652898816, \"available_inodes\": 374272502}, \"docker_root\": {\"path\": \"/var/lib/docker\", \"st_dev\": 64514, \"total_bytes\": 1082045239296, \"available_bytes\": 887973326848, \"available_inodes\": 65513230}}, \"container_id\": \"6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800\", \"guard_install\": \"Running timer as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.timer\\nWill run service as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.service\\n\", \"guard_probe\": {\"timer\": \"NextElapseUSecMonotonic=1w 1d 14h 30min 23.932115s\\nActiveState=active\\n\", \"service\": \"ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\\n\"}, \"attach\": {\"returncode\": 0, \"stdout\": \"{\\\"passed\\\": false, \\\"device_nodes\\\": [], \\\"scope\\\": \\\"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\\\", \\\"collection_complete\\\": true, \\\"replacements\\\": {\\\"click\\\": {\\\"installed_version\\\": \\\"8.3.3\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 40, \\\"regular_file_bytes\\\": 848087, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"cuda-bindings\\\": {\\\"installed_version\\\": \\\"12.9.6\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 171, \\\"regular_file_bytes\\\": 35882071, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"flashinfer-cubin\\\": {\\\"installed_version\\\": \\\"0.6.7.post2\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 10570, \\\"regular_file_bytes\\\": 1225508750, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"flashinfer-python\\\": {\\\"installed_version\\\": \\\"0.6.7.post2\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 2804, \\\"regular_file_bytes\\\": 65955722, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"grpcio\\\": {\\\"installed_version\\\": \\\"1.80.0\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 122, \\\"regular_file_bytes\\\": 17685752, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"idna\\\": {\\\"installed_version\\\": \\\"3.14\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 22, \\\"regular_file_bytes\\\": 621811, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"lark\\\": {\\\"installed_version\\\": \\\"1.3.1\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 82, \\\"regular_file_bytes\\\": 843057, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"llguidance\\\": {\\\"installed_version\\\": \\\"0.7.30\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 34, \\\"regular_file_bytes\\\": 55942526, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"numpy\\\": {\\\"installed_version\\\": \\\"2.3.5\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 1310, \\\"regular_file_bytes\\\": 69106608, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"nvidia-cudnn-cu12\\\": {\\\"installed_version\\\": \\\"9.16.0.29\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 29, \\\"regular_file_bytes\\\": 978257692, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"nvidia-cudnn-frontend\\\": {\\\"installed_version\\\": \\\"1.23.0\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 293, \\\"regular_file_bytes\\\": 17377795, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"nvidia-nccl-cu12\\\": {\\\"installed_version\\\": \\\"2.28.3\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 27, \\\"regular_file_bytes\\\": 398088636, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"nvidia-nvshmem-cu12\\\": {\\\"installed_version\\\": \\\"3.3.20\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 65, \\\"regular_file_bytes\\\": 211108531, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"opencv-python-headless\\\": {\\\"installed_version\\\": \\\"4.10.0.84\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 111, \\\"regular_file_bytes\\\": 141563565, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"outlines-core\\\": {\\\"installed_version\\\": \\\"0.1.26\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 21, \\\"regular_file_bytes\\\": 768714, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"pyjwt\\\": {\\\"installed_version\\\": \\\"2.7.0\\\", \\\"distribution_root\\\": \\\"/usr/lib/python3/dist-packages\\\", \\\"listed_paths\\\": null, \\\"logical_file_bytes\\\": null, \\\"coverage\\\": \\\"NO_RECORD\\\"}, \\\"setuptools\\\": {\\\"installed_version\\\": \\\"82.0.1\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 760, \\\"regular_file_bytes\\\": 7100520, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"torchaudio\\\": {\\\"installed_version\\\": \\\"2.9.1+cu129\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 166, \\\"regular_file_bytes\\\": 9677358, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"torchvision\\\": {\\\"installed_version\\\": \\\"0.24.1+cu129\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 389, \\\"regular_file_bytes\\\": 26230666, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"transformers\\\": {\\\"installed_version\\\": \\\"5.3.0\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 4346, \\\"regular_file_bytes\\\": 92506304, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"triton\\\": {\\\"installed_version\\\": \\\"3.5.1\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 487, \\\"regular_file_bytes\\\": 620553403, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}, \\\"typer\\\": {\\\"installed_version\\\": \\\"0.25.1\\\", \\\"distribution_root\\\": \\\"/usr/local/lib/python3.12/dist-packages\\\", \\\"listed_paths\\\": 40, \\\"regular_file_bytes\\\": 526057, \\\"symlink_bytes\\\": 0, \\\"missing_paths\\\": 0, \\\"directories\\\": 0, \\\"coverage\\\": \\\"RECORD_PATH_METADATA\\\"}}, \\\"listed_paths\\\": 21889, \\\"known_unique_inode_bytes\\\": 3976153625, \\\"known_distribution_logical_bytes\\\": 3976153625, \\\"total_replacement_logical_bytes\\\": null, \\\"missing_record_packages\\\": [\\\"pyjwt\\\"], \\\"elapsed_seconds\\\": 1.0120972900185734, \\\"torch_imported\\\": false, \\\"vllm_imported\\\": false, \\\"install_peak_verified\\\": false, \\\"gpu_admitted\\\": false}\\n\", \"stderr\": \"\"}, \"exit_state\": {\"Status\": \"exited\", \"Running\": false, \"Paused\": false, \"Restarting\": false, \"OOMKilled\": false, \"Dead\": false, \"Pid\": 0, \"ExitCode\": 0, \"Error\": \"\", \"StartedAt\": \"2026-11-02T11:29:46.119251977Z\", \"FinishedAt\": \"2026-11-02T11:29:47.409537686Z\"}, \"passed\": false, \"metadata\": {\"passed\": false, \"device_nodes\": [], \"scope\": \"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\", \"collection_complete\": true, \"replacements\": {\"click\": {\"installed_version\": \"8.3.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 848087, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"cuda-bindings\": {\"installed_version\": \"12.9.6\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 171, \"regular_file_bytes\": 35882071, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-cubin\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 10570, \"regular_file_bytes\": 1225508750, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-python\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 2804, \"regular_file_bytes\": 65955722, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"grpcio\": {\"installed_version\": \"1.80.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 122, \"regular_file_bytes\": 17685752, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"idna\": {\"installed_version\": \"3.14\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 22, \"regular_file_bytes\": 621811, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"lark\": {\"installed_version\": \"1.3.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 82, \"regular_file_bytes\": 843057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"llguidance\": {\"installed_version\": \"0.7.30\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 34, \"regular_file_bytes\": 55942526, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"numpy\": {\"installed_version\": \"2.3.5\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 1310, \"regular_file_bytes\": 69106608, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-cu12\": {\"installed_version\": \"9.16.0.29\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 29, \"regular_file_bytes\": 978257692, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-frontend\": {\"installed_version\": \"1.23.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 293, \"regular_file_bytes\": 17377795, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nccl-cu12\": {\"installed_version\": \"2.28.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 27, \"regular_file_bytes\": 398088636, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nvshmem-cu12\": {\"installed_version\": \"3.3.20\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 65, \"regular_file_bytes\": 211108531, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"opencv-python-headless\": {\"installed_version\": \"4.10.0.84\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 111, \"regular_file_bytes\": 141563565, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"outlines-core\": {\"installed_version\": \"0.1.26\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 21, \"regular_file_bytes\": 768714, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"pyjwt\": {\"installed_version\": \"2.7.0\", \"distribution_root\": \"/usr/lib/python3/dist-packages\", \"listed_paths\": null, \"logical_file_bytes\": null, \"coverage\": \"NO_RECORD\"}, \"setuptools\": {\"installed_version\": \"82.0.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 760, \"regular_file_bytes\": 7100520, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchaudio\": {\"installed_version\": \"2.9.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 166, \"regular_file_bytes\": 9677358, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchvision\": {\"installed_version\": \"0.24.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 389, \"regular_file_bytes\": 26230666, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"transformers\": {\"installed_version\": \"5.3.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 4346, \"regular_file_bytes\": 92506304, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"triton\": {\"installed_version\": \"3.5.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 487, \"regular_file_bytes\": 620553403, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"typer\": {\"installed_version\": \"0.25.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 526057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}}, \"listed_paths\": 21889, \"known_unique_inode_bytes\": 3976153625, \"known_distribution_logical_bytes\": 3976153625, \"total_replacement_logical_bytes\": null, \"missing_record_packages\": [\"pyjwt\"], \"elapsed_seconds\": 1.0120972900185734, \"torch_imported\": false, \"vllm_imported\": false, \"install_peak_verified\": false, \"gpu_admitted\": false}, \"error\": {\"type\": \"ValueError\", \"message\": \"CPU replacement metadata collection incomplete\"}, \"cleanup\": 0, \"guard_stop\": 0, \"create_completion_unknown\": false, \"cleanup_owed\": false, \"finished_utc\": \"2026-11-02T11:29:47.554336+00:00\", \"event\": \"terminal\"}\n",
+      "stderr": "",
+      "elapsed_seconds": 7.035650164999993,
+      "events": [
+        {
+          "event": "host_started",
+          "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+          "identity": {
+            "pid": 1895134,
+            "uid": 2147,
+            "start_ticks": 74330363,
+            "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+            "hostname": "qjhs3"
+          }
+        },
+        {
+          "event": "guard_ready",
+          "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+          "container_id": "6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800"
+        },
+        {
+          "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T11:29:45.900426+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "host_identity": {
+            "pid": 1895134,
+            "uid": 2147,
+            "start_ticks": 74330363,
+            "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+            "hostname": "qjhs3"
+          },
+          "resource_precheck": {
+            "memory_available_kib": 1971505432,
+            "own_containers": []
+          },
+          "storage_budget_snapshot": {
+            "downloads": {
+              "path": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+              "st_dev": 66304,
+              "total_bytes": 3838880616448,
+              "available_bytes": 1563652898816,
+              "available_inodes": 374272502
+            },
+            "docker_root": {
+              "path": "/var/lib/docker",
+              "st_dev": 64514,
+              "total_bytes": 1082045239296,
+              "available_bytes": 887973326848,
+              "available_inodes": 65513230
+            }
+          },
+          "container_id": "6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800",
+          "guard_install": "Running timer as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.timer\nWill run service as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 14h 30min 23.932115s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": false, \"device_nodes\": [], \"scope\": \"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\", \"collection_complete\": true, \"replacements\": {\"click\": {\"installed_version\": \"8.3.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 848087, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"cuda-bindings\": {\"installed_version\": \"12.9.6\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 171, \"regular_file_bytes\": 35882071, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-cubin\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 10570, \"regular_file_bytes\": 1225508750, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-python\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 2804, \"regular_file_bytes\": 65955722, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"grpcio\": {\"installed_version\": \"1.80.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 122, \"regular_file_bytes\": 17685752, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"idna\": {\"installed_version\": \"3.14\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 22, \"regular_file_bytes\": 621811, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"lark\": {\"installed_version\": \"1.3.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 82, \"regular_file_bytes\": 843057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"llguidance\": {\"installed_version\": \"0.7.30\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 34, \"regular_file_bytes\": 55942526, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"numpy\": {\"installed_version\": \"2.3.5\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 1310, \"regular_file_bytes\": 69106608, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-cu12\": {\"installed_version\": \"9.16.0.29\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 29, \"regular_file_bytes\": 978257692, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-frontend\": {\"installed_version\": \"1.23.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 293, \"regular_file_bytes\": 17377795, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nccl-cu12\": {\"installed_version\": \"2.28.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 27, \"regular_file_bytes\": 398088636, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nvshmem-cu12\": {\"installed_version\": \"3.3.20\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 65, \"regular_file_bytes\": 211108531, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"opencv-python-headless\": {\"installed_version\": \"4.10.0.84\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 111, \"regular_file_bytes\": 141563565, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"outlines-core\": {\"installed_version\": \"0.1.26\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 21, \"regular_file_bytes\": 768714, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"pyjwt\": {\"installed_version\": \"2.7.0\", \"distribution_root\": \"/usr/lib/python3/dist-packages\", \"listed_paths\": null, \"logical_file_bytes\": null, \"coverage\": \"NO_RECORD\"}, \"setuptools\": {\"installed_version\": \"82.0.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 760, \"regular_file_bytes\": 7100520, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchaudio\": {\"installed_version\": \"2.9.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 166, \"regular_file_bytes\": 9677358, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchvision\": {\"installed_version\": \"0.24.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 389, \"regular_file_bytes\": 26230666, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"transformers\": {\"installed_version\": \"5.3.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 4346, \"regular_file_bytes\": 92506304, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"triton\": {\"installed_version\": \"3.5.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 487, \"regular_file_bytes\": 620553403, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"typer\": {\"installed_version\": \"0.25.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 526057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}}, \"listed_paths\": 21889, \"known_unique_inode_bytes\": 3976153625, \"known_distribution_logical_bytes\": 3976153625, \"total_replacement_logical_bytes\": null, \"missing_record_packages\": [\"pyjwt\"], \"elapsed_seconds\": 1.0120972900185734, \"torch_imported\": false, \"vllm_imported\": false, \"install_peak_verified\": false, \"gpu_admitted\": false}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T11:29:46.119251977Z",
+            "FinishedAt": "2026-11-02T11:29:47.409537686Z"
+          },
+          "passed": false,
+          "metadata": {
+            "passed": false,
+            "device_nodes": [],
+            "scope": "installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA",
+            "collection_complete": true,
+            "replacements": {
+              "click": {
+                "installed_version": "8.3.3",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 40,
+                "regular_file_bytes": 848087,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "cuda-bindings": {
+                "installed_version": "12.9.6",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 171,
+                "regular_file_bytes": 35882071,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "flashinfer-cubin": {
+                "installed_version": "0.6.7.post2",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 10570,
+                "regular_file_bytes": 1225508750,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "flashinfer-python": {
+                "installed_version": "0.6.7.post2",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 2804,
+                "regular_file_bytes": 65955722,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "grpcio": {
+                "installed_version": "1.80.0",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 122,
+                "regular_file_bytes": 17685752,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "idna": {
+                "installed_version": "3.14",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 22,
+                "regular_file_bytes": 621811,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "lark": {
+                "installed_version": "1.3.1",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 82,
+                "regular_file_bytes": 843057,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "llguidance": {
+                "installed_version": "0.7.30",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 34,
+                "regular_file_bytes": 55942526,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "numpy": {
+                "installed_version": "2.3.5",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 1310,
+                "regular_file_bytes": 69106608,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "nvidia-cudnn-cu12": {
+                "installed_version": "9.16.0.29",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 29,
+                "regular_file_bytes": 978257692,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "nvidia-cudnn-frontend": {
+                "installed_version": "1.23.0",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 293,
+                "regular_file_bytes": 17377795,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "nvidia-nccl-cu12": {
+                "installed_version": "2.28.3",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 27,
+                "regular_file_bytes": 398088636,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "nvidia-nvshmem-cu12": {
+                "installed_version": "3.3.20",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 65,
+                "regular_file_bytes": 211108531,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "opencv-python-headless": {
+                "installed_version": "4.10.0.84",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 111,
+                "regular_file_bytes": 141563565,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "outlines-core": {
+                "installed_version": "0.1.26",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 21,
+                "regular_file_bytes": 768714,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "pyjwt": {
+                "installed_version": "2.7.0",
+                "distribution_root": "/usr/lib/python3/dist-packages",
+                "listed_paths": null,
+                "logical_file_bytes": null,
+                "coverage": "NO_RECORD"
+              },
+              "setuptools": {
+                "installed_version": "82.0.1",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 760,
+                "regular_file_bytes": 7100520,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "torchaudio": {
+                "installed_version": "2.9.1+cu129",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 166,
+                "regular_file_bytes": 9677358,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "torchvision": {
+                "installed_version": "0.24.1+cu129",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 389,
+                "regular_file_bytes": 26230666,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "transformers": {
+                "installed_version": "5.3.0",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 4346,
+                "regular_file_bytes": 92506304,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "triton": {
+                "installed_version": "3.5.1",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 487,
+                "regular_file_bytes": 620553403,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              },
+              "typer": {
+                "installed_version": "0.25.1",
+                "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+                "listed_paths": 40,
+                "regular_file_bytes": 526057,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0,
+                "coverage": "RECORD_PATH_METADATA"
+              }
+            },
+            "listed_paths": 21889,
+            "known_unique_inode_bytes": 3976153625,
+            "known_distribution_logical_bytes": 3976153625,
+            "total_replacement_logical_bytes": null,
+            "missing_record_packages": [
+              "pyjwt"
+            ],
+            "elapsed_seconds": 1.0120972900185734,
+            "torch_imported": false,
+            "vllm_imported": false,
+            "install_peak_verified": false,
+            "gpu_admitted": false
+          },
+          "error": {
+            "type": "ValueError",
+            "message": "CPU replacement metadata collection incomplete"
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T11:29:47.554336+00:00",
+          "event": "terminal"
+        }
+      ],
+      "result": {
+        "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+        "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+        "started_utc": "2026-11-02T11:29:45.900426+00:00",
+        "gpu_requested": false,
+        "compiled_native_store": false,
+        "released": true,
+        "cleanup_errors": [],
+        "host_identity": {
+          "pid": 1895134,
+          "uid": 2147,
+          "start_ticks": 74330363,
+          "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+          "hostname": "qjhs3"
+        },
+        "resource_precheck": {
+          "memory_available_kib": 1971505432,
+          "own_containers": []
+        },
+        "storage_budget_snapshot": {
+          "downloads": {
+            "path": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+            "st_dev": 66304,
+            "total_bytes": 3838880616448,
+            "available_bytes": 1563652898816,
+            "available_inodes": 374272502
+          },
+          "docker_root": {
+            "path": "/var/lib/docker",
+            "st_dev": 64514,
+            "total_bytes": 1082045239296,
+            "available_bytes": 887973326848,
+            "available_inodes": 65513230
+          }
+        },
+        "container_id": "6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800",
+        "guard_install": "Running timer as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.timer\nWill run service as unit: kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b-cleanup.service\n",
+        "guard_probe": {
+          "timer": "NextElapseUSecMonotonic=1w 1d 14h 30min 23.932115s\nActiveState=active\n",
+          "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 6f2b882fbb7a05775e96e567bdf55aec9a0dae0e4fef78ea5ee6032c50fb3800 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+        },
+        "attach": {
+          "returncode": 0,
+          "stdout": "{\"passed\": false, \"device_nodes\": [], \"scope\": \"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\", \"collection_complete\": true, \"replacements\": {\"click\": {\"installed_version\": \"8.3.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 848087, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"cuda-bindings\": {\"installed_version\": \"12.9.6\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 171, \"regular_file_bytes\": 35882071, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-cubin\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 10570, \"regular_file_bytes\": 1225508750, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"flashinfer-python\": {\"installed_version\": \"0.6.7.post2\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 2804, \"regular_file_bytes\": 65955722, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"grpcio\": {\"installed_version\": \"1.80.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 122, \"regular_file_bytes\": 17685752, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"idna\": {\"installed_version\": \"3.14\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 22, \"regular_file_bytes\": 621811, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"lark\": {\"installed_version\": \"1.3.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 82, \"regular_file_bytes\": 843057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"llguidance\": {\"installed_version\": \"0.7.30\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 34, \"regular_file_bytes\": 55942526, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"numpy\": {\"installed_version\": \"2.3.5\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 1310, \"regular_file_bytes\": 69106608, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-cu12\": {\"installed_version\": \"9.16.0.29\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 29, \"regular_file_bytes\": 978257692, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-cudnn-frontend\": {\"installed_version\": \"1.23.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 293, \"regular_file_bytes\": 17377795, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nccl-cu12\": {\"installed_version\": \"2.28.3\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 27, \"regular_file_bytes\": 398088636, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"nvidia-nvshmem-cu12\": {\"installed_version\": \"3.3.20\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 65, \"regular_file_bytes\": 211108531, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"opencv-python-headless\": {\"installed_version\": \"4.10.0.84\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 111, \"regular_file_bytes\": 141563565, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"outlines-core\": {\"installed_version\": \"0.1.26\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 21, \"regular_file_bytes\": 768714, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"pyjwt\": {\"installed_version\": \"2.7.0\", \"distribution_root\": \"/usr/lib/python3/dist-packages\", \"listed_paths\": null, \"logical_file_bytes\": null, \"coverage\": \"NO_RECORD\"}, \"setuptools\": {\"installed_version\": \"82.0.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 760, \"regular_file_bytes\": 7100520, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchaudio\": {\"installed_version\": \"2.9.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 166, \"regular_file_bytes\": 9677358, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"torchvision\": {\"installed_version\": \"0.24.1+cu129\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 389, \"regular_file_bytes\": 26230666, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"transformers\": {\"installed_version\": \"5.3.0\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 4346, \"regular_file_bytes\": 92506304, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"triton\": {\"installed_version\": \"3.5.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 487, \"regular_file_bytes\": 620553403, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}, \"typer\": {\"installed_version\": \"0.25.1\", \"distribution_root\": \"/usr/local/lib/python3.12/dist-packages\", \"listed_paths\": 40, \"regular_file_bytes\": 526057, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0, \"coverage\": \"RECORD_PATH_METADATA\"}}, \"listed_paths\": 21889, \"known_unique_inode_bytes\": 3976153625, \"known_distribution_logical_bytes\": 3976153625, \"total_replacement_logical_bytes\": null, \"missing_record_packages\": [\"pyjwt\"], \"elapsed_seconds\": 1.0120972900185734, \"torch_imported\": false, \"vllm_imported\": false, \"install_peak_verified\": false, \"gpu_admitted\": false}\n",
+          "stderr": ""
+        },
+        "exit_state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-02T11:29:46.119251977Z",
+          "FinishedAt": "2026-11-02T11:29:47.409537686Z"
+        },
+        "passed": false,
+        "metadata": {
+          "passed": false,
+          "device_nodes": [],
+          "scope": "installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA",
+          "collection_complete": true,
+          "replacements": {
+            "click": {
+              "installed_version": "8.3.3",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 40,
+              "regular_file_bytes": 848087,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "cuda-bindings": {
+              "installed_version": "12.9.6",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 171,
+              "regular_file_bytes": 35882071,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "flashinfer-cubin": {
+              "installed_version": "0.6.7.post2",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 10570,
+              "regular_file_bytes": 1225508750,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "flashinfer-python": {
+              "installed_version": "0.6.7.post2",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 2804,
+              "regular_file_bytes": 65955722,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "grpcio": {
+              "installed_version": "1.80.0",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 122,
+              "regular_file_bytes": 17685752,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "idna": {
+              "installed_version": "3.14",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 22,
+              "regular_file_bytes": 621811,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "lark": {
+              "installed_version": "1.3.1",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 82,
+              "regular_file_bytes": 843057,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "llguidance": {
+              "installed_version": "0.7.30",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 34,
+              "regular_file_bytes": 55942526,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "numpy": {
+              "installed_version": "2.3.5",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 1310,
+              "regular_file_bytes": 69106608,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "nvidia-cudnn-cu12": {
+              "installed_version": "9.16.0.29",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 29,
+              "regular_file_bytes": 978257692,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "nvidia-cudnn-frontend": {
+              "installed_version": "1.23.0",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 293,
+              "regular_file_bytes": 17377795,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "nvidia-nccl-cu12": {
+              "installed_version": "2.28.3",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 27,
+              "regular_file_bytes": 398088636,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "nvidia-nvshmem-cu12": {
+              "installed_version": "3.3.20",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 65,
+              "regular_file_bytes": 211108531,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "opencv-python-headless": {
+              "installed_version": "4.10.0.84",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 111,
+              "regular_file_bytes": 141563565,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "outlines-core": {
+              "installed_version": "0.1.26",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 21,
+              "regular_file_bytes": 768714,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "pyjwt": {
+              "installed_version": "2.7.0",
+              "distribution_root": "/usr/lib/python3/dist-packages",
+              "listed_paths": null,
+              "logical_file_bytes": null,
+              "coverage": "NO_RECORD"
+            },
+            "setuptools": {
+              "installed_version": "82.0.1",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 760,
+              "regular_file_bytes": 7100520,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "torchaudio": {
+              "installed_version": "2.9.1+cu129",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 166,
+              "regular_file_bytes": 9677358,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "torchvision": {
+              "installed_version": "0.24.1+cu129",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 389,
+              "regular_file_bytes": 26230666,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "transformers": {
+              "installed_version": "5.3.0",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 4346,
+              "regular_file_bytes": 92506304,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "triton": {
+              "installed_version": "3.5.1",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 487,
+              "regular_file_bytes": 620553403,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            },
+            "typer": {
+              "installed_version": "0.25.1",
+              "distribution_root": "/usr/local/lib/python3.12/dist-packages",
+              "listed_paths": 40,
+              "regular_file_bytes": 526057,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0,
+              "coverage": "RECORD_PATH_METADATA"
+            }
+          },
+          "listed_paths": 21889,
+          "known_unique_inode_bytes": 3976153625,
+          "known_distribution_logical_bytes": 3976153625,
+          "total_replacement_logical_bytes": null,
+          "missing_record_packages": [
+            "pyjwt"
+          ],
+          "elapsed_seconds": 1.0120972900185734,
+          "torch_imported": false,
+          "vllm_imported": false,
+          "install_peak_verified": false,
+          "gpu_admitted": false
+        },
+        "error": {
+          "type": "ValueError",
+          "message": "CPU replacement metadata collection incomplete"
+        },
+        "cleanup": 0,
+        "guard_stop": 0,
+        "create_completion_unknown": false,
+        "cleanup_owed": false,
+        "finished_utc": "2026-11-02T11:29:47.554336+00:00",
+        "event": "terminal"
+      }
+    }
+  ],
+  "replacement22_inventory_independent_release": {
+    "checked_utc": "2026-11-02T11:30:11.399873+00:00",
+    "returncode": 0,
+    "stdout": "{\"container_query_returncode\": 0, \"containers\": [], \"container_stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\", \"host_state\": \"original_pid_absent\", \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"uid\": 2147, \"passed\": true}\n",
+    "stderr": "",
+    "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+    "result": {
+      "container_query_returncode": 0,
+      "containers": [],
+      "container_stderr": "",
+      "timer_returncode": 3,
+      "timer_state": "inactive",
+      "host_state": "original_pid_absent",
+      "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+      "uid": 2147,
+      "passed": true
+    }
+  },
+  "replacement22_outcome": {
+    "run_id": "kimi-runtime-compare-4309227c093c447bada5c3c700cd4f9b",
+    "collection_complete": true,
+    "passed": false,
+    "known_unique_inode_bytes": 3976153625,
+    "unknown_package": "pyjwt",
+    "unknown_package_root": "/usr/lib/python3/dist-packages",
+    "unknown_bytes_not_zero": true,
+    "released_independently": true,
+    "scope": "21 RECORD covered; actual install/copy-up/RSS peak still unverified"
+  },
+  "pyjwt_install_policy_candidate": {
+    "status": "NOT_IMPLEMENTED_NOT_REVIEWED",
+    "necessity": "mcp2.3.0 requires pyjwt[crypto]>=2.10.1; baseline2.7.0 insufficient",
+    "source_metadata_cache": "kimi/controls/kimi_store_v1/native_patch/.tmpICHNgM/wheels-v6/pypi/mcp/2.3.0-py3-none-any.msgpack",
+    "cache_sha256": "bef39e8af2f866eb00a2fec4c02d655e8099999c11488b646fe789cc642c8541",
+    "source_requirement_bytes": "pyjwt[crypto]>=2.10.1",
+    "proposed_minimal_policy": "only PyJWT official pinned wheel into existing private container /usr/local site, without uninstalling OS /usr/lib copy; precheck no existing target collision; verify import/metadata origin+version and retained OS bytes; no new venv",
+    "prohibited": "global ignore-installed for59 or modifying host/shared runtime; no install yet",
+    "pip_reference": "https://pip.pypa.io/en/stable/cli/pip_install/"
+  },
+  "runtime_artifact_download_candidate": {
+    "run_id": "kimi-runtime-download-2924bb669b0b47a3bb97c0b71e7d6e4d",
+    "body": "PINS=[{'filename': 'accelerate-1.12.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/9f/d2/c581486aa6c4fbd7394c23c47b83fa1a919d34194e16944241daf9e762dd/accelerate-1.12.0-py3-none-any.whl', 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11', 'size': 380935, 'existing_verified_remote_asset': True}, {'filename': 'agent_detector-2.0.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/72/15/504337e302d070bd2ff2f39418bb17d2ad73c662c403a4f37cb4e5c5b237/agent_detector-2.0.0-py3-none-any.whl', 'sha256': '22c6a1c9c23894a12f55aea625f060b8d3330fba774de72d02d5442bb580417f', 'size': 9352}, {'filename': 'astor-0.8.1-py2.py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/c3/88/97eef84f48fa04fbd6750e62dcceafba6c63c81b7ac1420856c8dcc0a3f9/astor-0.8.1-py2.py3-none-any.whl', 'sha256': '070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5', 'size': 27488}, {'filename': 'blake3-1.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/38/e3/0578c88bf4c268db7f529620788a6db9478927b1c1412ca2c19124bba864/blake3-1.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '33424c686b291c7682b5816fe9320466dbc0a457ef7e15c273c804a2d70fea70', 'size': 381348}, {'filename': 'cachetools-7.2.8-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/0c/35/2fb720060bb278759da35f2076fab1af4e9d66e3add080e6b40d6e25ba48/cachetools-7.2.8-py3-none-any.whl', 'sha256': '09b04a85741d0019b3fb7d02b7ee9933a422fa6923af92a0fd63b893b695830c', 'size': 19646}, {'filename': 'cbor2-6.2.0.post1-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ed/c3/6416bf191920fd99fee8674406b551f40cc8360d6ea07f894dec528f19b4/cbor2-6.2.0.post1-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': 'd81d3158b5bdf29931478287ee12f40cb1aeaa5a3e0cf1bb826aa34c8875ffe8', 'size': 465255}, {'filename': 'click-8.1.7-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/00/2e/d53fa4befbf2cfa713304affc7ca780ce4fc1fd8710527771b58311a3229/click-8.1.7-py3-none-any.whl', 'sha256': 'ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28', 'size': 97941}, {'filename': 'cuda_bindings-12.9.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/a9/c1/dabe88f52c3e3760d861401bb994df08f672ec893b8f7592dc91626adcf3/cuda_bindings-12.9.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl', 'sha256': 'fda147a344e8eaeca0c6ff113d2851ffca8f7dfc0a6c932374ee5c47caa649c8', 'size': 12151019}, {'filename': 'depyf-0.20.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/cf/65/4df6936130b56e1429114e663e7c1576cf845f3aef1b2dd200c0a5d19dba/depyf-0.20.0-py3-none-any.whl', 'sha256': 'd31effad4261cebecb58955d832e448ace88f432328f95f82fd99c30fd9308d4', 'size': 39381}, {'filename': 'detect_installer-0.2.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/61/fe/a245e1d579e7abf47208f7c1ce5684caa2cd956ede5ff646d66d0299d9e8/detect_installer-0.2.1-py3-none-any.whl', 'sha256': '87e2ce7d05cb108b178f8e45bb80d3d88c0cb4b397983345c18ad6562e02e620', 'size': 5371}, {'filename': 'dnspython-2.9.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/61/55/f90405bbbbd3dd8f788e92cec2d39964f5c09783f0570fc35f3bb3381485/dnspython-2.9.1-py3-none-any.whl', 'sha256': '7c81caf8de1ed57b8cfc7e0ad4f528a0b8ceace473c7eb946df195dc9def751f', 'size': 360364}, {'filename': 'email_validator-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl', 'sha256': '80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4', 'size': 35604}, {'filename': 'fastapi_cli-0.0.32-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/d5/53/56ae5ae17bb0a5d89d1d31e5320eb1865553ebbfbde91cdc4c221245f2a8/fastapi_cli-0.0.32-py3-none-any.whl', 'sha256': '8dcc286fa32f01bbd3f65dd09cfd5a2540ed5f2230b77db7fd30978d6165f3c4', 'size': 14670}, {'filename': 'fastapi_cloud_cli-0.26.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/30/96/0e527b3aa93c0ade8b4edc959eb064df49f816469d4781312374b4ce1bab/fastapi_cloud_cli-0.26.0-py3-none-any.whl', 'sha256': '94029f92f3dc4289b376e1213f0d6cc7c30d4f32de7e47b5effc6dc754ab9ce9', 'size': 108653}, {'filename': 'fastar-0.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/0c/dc/a58f3c205d2934453ba643d0064d2735f359f736af2d15bc00dbf774e4d4/fastar-0.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'deb0b3882626832361dd0fcee1f4ef1c6e2a7aaa4165e51c86ae0bab95caccd6', 'size': 808091}, {'filename': 'flashinfer_cubin-0.6.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/12/e8/826f9452bc5f76b94d7eb025f03dcaf1b51b9ed7790386c0285191e69be4/flashinfer_cubin-0.6.6-py3-none-any.whl', 'sha256': '36508dfc792eb5ecfb15d2c140a7702812e1fa1ab0fb03929b2ed55e3e8191f3', 'size': 267661457}, {'filename': 'flashinfer_python-0.6.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/e0/61/385d06755f3ab66333018285657adf0daf8a90a129448231fd09e315bd2e/flashinfer_python-0.6.6-py3-none-any.whl', 'sha256': '078f158636969eec1a0d3dea19c3ca90b426b66df89bbf7b7b8276ce2ec08148', 'size': 7817047}, {'filename': 'grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/f5/86/f6ec2164f743d9609691115ae8ece098c76b894ebe4f7c94a655c6b03e98/grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '980a846182ce88c4f2f7e2c22c56aefd515daeb36149d1c897f83cf57999e0b6', 'size': 6573963}, {'filename': 'httpcore2-2.16.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/af/c2/ce417c397afa5181f0e3c6ff01a4d01639414e1adef08730d97571297151/httpcore2-2.16.0-py3-none-any.whl', 'sha256': '5c4358319f2602d984ad93182c9fee5160f22e9da7babdda870a5e7c4e2dc34f', 'size': 85070}, {'filename': 'httptools-0.9.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/85/3f/642113e9882f53158ecddf58003d25f18ded2c210ed23bf6eb663d4d51c3/httptools-0.9.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'sha256': '3e3201fe4d46e0d15d7ff9fafc94a605da9eb82d2c5b9837f0368acb325481f1', 'size': 552848}, {'filename': 'httpx2-2.16.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/7b/3d/2e4bc4fd1ef9770871669adb348d612a6e4786b303a23f9935b81c48dd60/httpx2-2.16.0-py3-none-any.whl', 'sha256': 'fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a', 'size': 97880}, {'filename': 'idna-3.20-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl', 'sha256': 'ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c', 'size': 69583}, {'filename': 'ijson-3.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/3d/43/2d8abf1ff74ed9a0372021e61e9fc660f850e0cde9aced66ca1b97da77b0/ijson-3.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl', 'sha256': 'c14d568d31a322e8ed7e9735f6e355608a23cc6ff4b5da843515089dae4cbf5f', 'size': 150188}, {'filename': 'jmespath-1.1.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl', 'sha256': 'a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64', 'size': 20419}, {'filename': 'lark-1.2.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/2d/00/d90b10b962b4277f5e64a78b6609968859ff86889f5b898c1a778c06ec00/lark-1.2.2-py3-none-any.whl', 'sha256': 'c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c', 'size': 111036}, {'filename': 'llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/83/a8/1ff2bedb8f9acb46a2d2d603415d272bb622c142ea86f5b95445cc6e366c/llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'bc17e9dd602c3879bf91664a64bf72f54c74dbfbeb24ccfab6a5fe435b12f7aa', 'size': 3033133}, {'filename': 'llvmlite-0.44.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/cb/da/8341fd3056419441286c8e26bf436923021005ece0bff5f41906476ae514/llvmlite-0.44.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'c0143a5ef336da14deaa8ec26c5449ad5b6a2b564df82fcef4be040b9cacfea9', 'size': 42361901}, {'filename': 'lm_format_enforcer-0.11.3-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/a0/ef/11292bb0b85cf4c93447cab5a29f64576ed14d3ab4280e35ddd23486594a/lm_format_enforcer-0.11.3-py3-none-any.whl', 'sha256': 'cf586350875def1ae7a8fba84fcbbfc8371424b6c9d05c1fcba70aa233fbf06f', 'size': 45418}, {'filename': 'mcp-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/20/d7/4a2878f128df729db3ca04e71bfce26405cc2e0c9ebe19c592feeb4c61b9/mcp-2.3.0-py3-none-any.whl', 'sha256': 'dd0c44c089d16453e8ae31a3877a0054d7a2314caaa81f5e0541b9b1734b2377', 'size': 368664}, {'filename': 'mcp_types-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/ce/48/32583066b155bb5d4507e7887dc88ee23118cc4de8e2a12870c49719e2a8/mcp_types-2.3.0-py3-none-any.whl', 'sha256': '968efdbdaedfab06adae40d378a34395f1090c5921d4be3c9cde283aaf76d91d', 'size': 69108}, {'filename': 'model_hosting_container_standards-0.1.16-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/07/ef/6eabeb251d2a0598cb5f9a274159e05ae07a1e3fe6a1473bf6035793252a/model_hosting_container_standards-0.1.16-py3-none-any.whl', 'sha256': '47f4f65713120bc3a69feb022981a38db9e557aedf88dbd72077f20588caa12b', 'size': 125666}, {'filename': 'numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/9a/2d/e518df036feab381c23a624dac47f8445ac55686ec7f11083655eb707da3/numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '5b1bb509d01f23d70325d3a5a0e237cbc9544dd50e50588bc581ba860c213546', 'size': 3885928}, {'filename': 'numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/8c/3d/1e1db36cfd41f895d266b103df00ca5b3cbe965184df824dec5c08c6b803/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249', 'size': 16527618}, {'filename': 'nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ba/51/e123d997aa098c61d029f76663dedbfb9bc8dcf8c60cbd6adbe42f76d049/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl', 'sha256': '949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8', 'size': 706758467}, {'filename': 'nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/c6/52/08f98262e77b1cbcc834cc1a5db494d0661ea1dbdea58c2e2d51a57fdaca/nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'sha256': '6c023539ca6de99234cf5102c3ec0d6af817f5396fc93028a22ba5b834a35b8a', 'size': 2159245}, {'filename': 'nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/6e/89/f7a07dc961b60645dbbf42e80f2bc85ade7feb9a491b11a1e973aa00071f/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': 'ad730cf15cb5d25fe849c6e6ca9eb5b76db16a80f13f425ac68d8e2e55624457', 'size': 322348229}, {'filename': 'nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/b5/09/6ea3ea725f82e1e76684f0708bbedd871fc96da89945adeba65c3835a64c/nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd', 'size': 139103095}, {'filename': 'opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/9b/21/f6ef335f6e65724aa78b8d792b48d40a48c381715f1e62f5a5049e09d07e/opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl', 'sha256': 'ed709fdf9aa0bd1f2ed8549e71d19449b03a675bb581eb292285f6861953be37', 'size': 61204038}, {'filename': 'opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/55/22/41fb05f1dc5fda2c468e05a41814c20859016c85117b66c8a257cae814f6/opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl', 'sha256': '25aeb22bd261543b4898a73824026d96770e5351209c7d07a0b1314762b1f6e4', 'size': 11250}, {'filename': 'outlines_core-0.2.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/92/c7/a65d1fddf49830ebc41422294eacde35286d9f68994a8aa905cb14f5aade/outlines_core-0.2.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '86df9740368866295077346440d911df4972da2b3f1f54b8125e6f329e8a8891', 'size': 2287677}, {'filename': 'prometheus_fastapi_instrumentator-8.1.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/44/b9/91a2246e6cf01b7ccb14479803c8a50f9c258ae5c6a0f16ba3294820632b/prometheus_fastapi_instrumentator-8.1.0-py3-none-any.whl', 'sha256': 'b9f40b2cff3f7891ca0610b3ae4fc6ec723fd326b04bb659819aaeb821a0fc7d', 'size': 19649}, {'filename': 'py_cpuinfo-9.0.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl', 'sha256': '859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5', 'size': 22335}, {'filename': 'pydantic_settings-2.16.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/39/88/4131c51ff87b7cd7f82a1194d0c0a2b7ca68c72d9da04c3b7e69ab91a79f/pydantic_settings-2.16.2-py3-none-any.whl', 'sha256': '8d523e5c129b097686bde019bd6109bff53f4c8c3f63f1ddf9933ffa42e5ab4f', 'size': 81994}, {'filename': 'pyjwt-2.15.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl', 'sha256': '42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193', 'size': 33860}, {'filename': 'python_json_logger-4.2.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/dc/55/6467fde553886cb293e41538f3a8b4e4fd4688c6df242cf982162d8367fb/python_json_logger-4.2.0-py3-none-any.whl', 'sha256': '158a52126fcd6869e09574d2b66272666f3dc8f468c62637ef9a1fa883719cb9', 'size': 14988}, {'filename': 'rich_toolkit-0.20.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/79/fc/7c296a563a893b0a23a73923ce27965ae15f658dcb58c0bcdd463e1671a2/rich_toolkit-0.20.6-py3-none-any.whl', 'sha256': '465453ba6f94f99401f59f79fb562827ba5f6b4d4759015d40019f5c67750262', 'size': 39466}, {'filename': 'rignore-0.8.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/a9/a8/c6e6db62226df8cd3d950889925d826a0e35ac567cc5df548a872944f1ed/rignore-0.8.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '2e68cfc4ee0a2909952af2aebd608d1cd22f7d1cdce332cb0b5ea3762939865d', 'size': 927835}, {'filename': 'sentry_sdk-2.73.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/b2/88/cabf98d017d7b940720e514e5f8ee02e3e6f7495caf93c30735a38387ec4/sentry_sdk-2.73.0-py3-none-any.whl', 'sha256': '0bcfa6928ea5adbb89591858b514d27adac27c7a3cccc31b20ed10e0b09eda9e', 'size': 549011}, {'filename': 'setuptools-80.10.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl', 'sha256': '95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173', 'size': 1064234}, {'filename': 'sse_starlette-3.6.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/cf/49/35053078cdfcf639237e8bee6dc6f34f1b3a3cc8d01800a1e213e1660ff6/sse_starlette-3.6.0-py3-none-any.whl', 'sha256': 'e4dfa4d237d2712cb2b4d4918eda9b457cd6b44bbecdc838af75de836565bafd', 'size': 17985}, {'filename': 'supervisor-4.3.0-py2.py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/0e/65/5e726c372da8a5e35022a94388b12252710aad0c2351699c3d76ae8dba78/supervisor-4.3.0-py2.py3-none-any.whl', 'sha256': '0bcb763fddafba410f35cbde226aa7f8514b9fb82eb05a0c85f6588d1c13f8db', 'size': 320736}, {'filename': 'torchaudio-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://download.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': '5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'size': 1736412}, {'filename': 'torchvision-0.25.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://download.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': '5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'size': 9142020}, {'filename': 'transformers-5.5.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/a0/09/dd2f76acc40988d235ed020506722f867430c66b8bf2b7cbce2f822a982c/transformers-5.5.1-py3-none-any.whl', 'sha256': 'ceb2190689f5afc112d13507ddc94185b4ee11921e283f035dade91e347c3e15', 'size': 10235183}, {'filename': 'triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ab/a8/cdf8b3e4c98132f965f88c2313a4b493266832ad47fb52f23d14d4f86bb5/triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'sha256': '74caf5e34b66d9f3a429af689c1c7128daba1d8208df60e81106b115c00d6fca', 'size': 188266850}, {'filename': 'truststore-0.10.5-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/51/e9/3a7820be2bb0fe53b6bc9c3be26d3d1158004e4c3ab953aa6840b955b1e9/truststore-0.10.5-py3-none-any.whl', 'sha256': '9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c', 'size': 19017}, {'filename': 'typer-0.27.3-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/07/ea/2e31b67051e91a133189e9c000c222502ddc6969856416de0d095de4c0b0/typer-0.27.3-py3-none-any.whl', 'sha256': 'e50022f28b82a86313e54501317a1db64bf8f8d036ff8cfe5ca7e47675454aff', 'size': 123312}, {'filename': 'vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719', 'size': 433132101, 'existing_verified_remote_asset': True}, {'filename': 'websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/cb/18/6229d6583031ca81d092a0cd887a13a57b402fb555acc323d39b45967eb7/websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'sha256': '9ae1429ee9e52b139167ed0169757806a27ed7307e942e8c62037a9184e9843b', 'size': 226321}]\nimport datetime,hashlib,json,os,pathlib,resource,shutil,time,urllib.request\nROOT=pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/downloads')\nresource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))\nos.nice(10)\nos.sched_setaffinity(0,{min(os.sched_getaffinity(0))})\nend=datetime.datetime.fromisoformat('2026-11-02T23:50:00+08:00').timestamp()\nif os.getuid()!=2147 or time.time()<datetime.datetime.fromisoformat('2026-11-02T19:00:00+08:00').timestamp() or time.time()+3660>=end:raise RuntimeError('CPU identity/window budget mismatch')\nif ROOT.is_symlink() or not ROOT.is_dir() or shutil.disk_usage(ROOT).free<8*1024**3:raise RuntimeError('destination or capacity differs')\nrun='kimi-runtime-download-2924bb669b0b47a3bb97c0b71e7d6e4d'\nr={'run_id':run,'started_epoch':time.time(),'pid':os.getpid(),'gpu':False,'installed':False,'artifacts':[],'passed':False}\nr['start_ticks']=int(pathlib.Path('/proc/self/stat').read_text().rsplit(') ',1)[1].split()[19])\nr['boot_id']=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()\nreceipt=ROOT/(run+'.json')\nwith receipt.open('x') as f:json.dump(r,f)\nprint(json.dumps(dict(r,event='host_started')),flush=True)\nstarted=time.monotonic();network_bytes=0\ntry:\n for pin in PINS:\n  name=pin['filename'];expected=pin['size'];sha=pin['sha256']\n  if pathlib.Path(name).name!=name or not name.endswith('.whl') or len(sha)!=64:raise ValueError('invalid artifact pin')\n  final=ROOT/name;part=ROOT/(name+'.partial');h=hashlib.sha256();count=0\n  if final.is_symlink():raise RuntimeError('symlink final refused')\n  if final.exists():\n   if not final.is_file() or final.stat().st_uid!=2147 or final.stat().st_size!=expected:raise RuntimeError('existing asset metadata differs')\n   with final.open('rb') as f:\n    for block in iter(lambda:f.read(1024**2),b''):h.update(block);count+=len(block)\n   if h.hexdigest()!=sha:raise RuntimeError('existing asset digest differs')\n   r['artifacts'].append({'name':name,'bytes':count,'sha256':sha,'reused':True})\n  else:\n   if pin.get('existing_verified_remote_asset'):raise RuntimeError('expected retained asset missing; refuse duplicate download')\n   fd=os.open(part,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600)\n   with os.fdopen(fd,'wb') as out,urllib.request.urlopen(urllib.request.Request(pin['url'],headers={'Accept-Encoding':'identity'}),timeout=30) as src:\n    if src.status!=200 or src.headers.get('Content-Encoding','identity')!='identity':raise RuntimeError('unexpected HTTP response')\n    while True:\n     block=src.read(1024**2)\n     if not block:break\n     count+=len(block);network_bytes+=len(block)\n     if count>expected:raise RuntimeError('oversized artifact')\n     out.write(block);h.update(block)\n     time.sleep(max(0,network_bytes/(20*1024**2)-(time.monotonic()-started)))\n    out.flush();os.fsync(out.fileno())\n   if count!=expected or h.hexdigest()!=sha:raise RuntimeError('artifact size/digest differs')\n   os.chmod(part,0o644);os.link(part,final);part.unlink();r['artifacts'].append({'name':name,'bytes':count,'sha256':sha,'reused':False})\n  with receipt.open('w') as f:json.dump(r,f);f.flush();os.fsync(f.fileno())\n  print(json.dumps({'event':'artifact_verified','run_id':run,'name':name,'bytes':count,'reused':r['artifacts'][-1]['reused']}),flush=True)\n r['passed']=len(r['artifacts'])==len(PINS)\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error),partial_preserved=True)\nfinally:\n r.update(finished_epoch=time.time(),network_bytes=network_bytes,elapsed_seconds=time.monotonic()-started)\n with receipt.open('w') as f:json.dump(r,f);f.flush();os.fsync(f.fileno())\n print(json.dumps(dict(r,event='terminal')),flush=True)\n",
+    "body_sha256": "e681677b1c4ef0317cee2ae16674e55198cae87d7b4c289f316f3eefac76d950",
+    "status": "STATIC_REVIEW_PASSED_NOT_EXECUTED",
+    "artifact_count": 59,
+    "candidate_versions_sha256": "e6c4de8c409881d9a176bb9bedbd9ec4fab92b0b1a6fb8e9559902664220385d",
+    "limits": {
+      "outer_timeout_seconds": 3600,
+      "kill_after_seconds": 5,
+      "cleanup_margin_seconds": 60,
+      "memory_mib": 512,
+      "one_cpu_affinity": true,
+      "network_average_mib_s": 20,
+      "max_attempts": 1
+    },
+    "command": [
+      "/usr/bin/timeout",
+      "--signal=TERM",
+      "--kill-after=5s",
+      "3600s",
+      "python3",
+      "-"
+    ],
+    "parent": "approved_dependency_downloads[0], same streaming SHA/exclusive partial/hardlink publish; extended only for59 exact artifacts and existing asset reuse",
+    "scope": "downloads only in original downloads dir; no Docker/install/model/GPU; errors/partials preserved not automatically retried",
+    "identity_delta": "only pid start_ticks/boot receipt+flushed initial event; no download/budget changes"
+  },
+  "runtime_artifact_download_controls": {
+    "body_sha256": "f9a3e5cfc4a5bbdd9b28cb8283a05627a85493af5a66e00108937bed63606f1c",
+    "cases": [
+      {
+        "case": "new_verified",
+        "passed": true,
+        "scope": "actual body control flow with HTTP/UID/resource mocks; real small file IO; no runtime download"
+      },
+      {
+        "case": "existing_reused",
+        "passed": true,
+        "scope": "actual body control flow with HTTP/UID/resource mocks; real small file IO; no runtime download"
+      },
+      {
+        "case": "short_download_preserved",
+        "passed": true,
+        "scope": "actual body control flow with HTTP/UID/resource mocks; real small file IO; no runtime download"
+      }
+    ],
+    "temporary_files_removed": true
+  },
+  "runtime_artifact_download_candidate_history": [
+    {
+      "run_id": "kimi-runtime-download-2924bb669b0b47a3bb97c0b71e7d6e4d",
+      "body": "PINS=[{'filename': 'accelerate-1.12.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/9f/d2/c581486aa6c4fbd7394c23c47b83fa1a919d34194e16944241daf9e762dd/accelerate-1.12.0-py3-none-any.whl', 'sha256': '3e2091cd341423207e2f084a6654b1efcd250dc326f2a37d6dde446e07cabb11', 'size': 380935, 'existing_verified_remote_asset': True}, {'filename': 'agent_detector-2.0.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/72/15/504337e302d070bd2ff2f39418bb17d2ad73c662c403a4f37cb4e5c5b237/agent_detector-2.0.0-py3-none-any.whl', 'sha256': '22c6a1c9c23894a12f55aea625f060b8d3330fba774de72d02d5442bb580417f', 'size': 9352}, {'filename': 'astor-0.8.1-py2.py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/c3/88/97eef84f48fa04fbd6750e62dcceafba6c63c81b7ac1420856c8dcc0a3f9/astor-0.8.1-py2.py3-none-any.whl', 'sha256': '070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5', 'size': 27488}, {'filename': 'blake3-1.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/38/e3/0578c88bf4c268db7f529620788a6db9478927b1c1412ca2c19124bba864/blake3-1.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '33424c686b291c7682b5816fe9320466dbc0a457ef7e15c273c804a2d70fea70', 'size': 381348}, {'filename': 'cachetools-7.2.8-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/0c/35/2fb720060bb278759da35f2076fab1af4e9d66e3add080e6b40d6e25ba48/cachetools-7.2.8-py3-none-any.whl', 'sha256': '09b04a85741d0019b3fb7d02b7ee9933a422fa6923af92a0fd63b893b695830c', 'size': 19646}, {'filename': 'cbor2-6.2.0.post1-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ed/c3/6416bf191920fd99fee8674406b551f40cc8360d6ea07f894dec528f19b4/cbor2-6.2.0.post1-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': 'd81d3158b5bdf29931478287ee12f40cb1aeaa5a3e0cf1bb826aa34c8875ffe8', 'size': 465255}, {'filename': 'click-8.1.7-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/00/2e/d53fa4befbf2cfa713304affc7ca780ce4fc1fd8710527771b58311a3229/click-8.1.7-py3-none-any.whl', 'sha256': 'ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28', 'size': 97941}, {'filename': 'cuda_bindings-12.9.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/a9/c1/dabe88f52c3e3760d861401bb994df08f672ec893b8f7592dc91626adcf3/cuda_bindings-12.9.4-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl', 'sha256': 'fda147a344e8eaeca0c6ff113d2851ffca8f7dfc0a6c932374ee5c47caa649c8', 'size': 12151019}, {'filename': 'depyf-0.20.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/cf/65/4df6936130b56e1429114e663e7c1576cf845f3aef1b2dd200c0a5d19dba/depyf-0.20.0-py3-none-any.whl', 'sha256': 'd31effad4261cebecb58955d832e448ace88f432328f95f82fd99c30fd9308d4', 'size': 39381}, {'filename': 'detect_installer-0.2.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/61/fe/a245e1d579e7abf47208f7c1ce5684caa2cd956ede5ff646d66d0299d9e8/detect_installer-0.2.1-py3-none-any.whl', 'sha256': '87e2ce7d05cb108b178f8e45bb80d3d88c0cb4b397983345c18ad6562e02e620', 'size': 5371}, {'filename': 'dnspython-2.9.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/61/55/f90405bbbbd3dd8f788e92cec2d39964f5c09783f0570fc35f3bb3381485/dnspython-2.9.1-py3-none-any.whl', 'sha256': '7c81caf8de1ed57b8cfc7e0ad4f528a0b8ceace473c7eb946df195dc9def751f', 'size': 360364}, {'filename': 'email_validator-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/de/15/545e2b6cf2e3be84bc1ed85613edd75b8aea69807a71c26f4ca6a9258e82/email_validator-2.3.0-py3-none-any.whl', 'sha256': '80f13f623413e6b197ae73bb10bf4eb0908faf509ad8362c5edeb0be7fd450b4', 'size': 35604}, {'filename': 'fastapi_cli-0.0.32-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/d5/53/56ae5ae17bb0a5d89d1d31e5320eb1865553ebbfbde91cdc4c221245f2a8/fastapi_cli-0.0.32-py3-none-any.whl', 'sha256': '8dcc286fa32f01bbd3f65dd09cfd5a2540ed5f2230b77db7fd30978d6165f3c4', 'size': 14670}, {'filename': 'fastapi_cloud_cli-0.26.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/30/96/0e527b3aa93c0ade8b4edc959eb064df49f816469d4781312374b4ce1bab/fastapi_cloud_cli-0.26.0-py3-none-any.whl', 'sha256': '94029f92f3dc4289b376e1213f0d6cc7c30d4f32de7e47b5effc6dc754ab9ce9', 'size': 108653}, {'filename': 'fastar-0.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/0c/dc/a58f3c205d2934453ba643d0064d2735f359f736af2d15bc00dbf774e4d4/fastar-0.12.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'deb0b3882626832361dd0fcee1f4ef1c6e2a7aaa4165e51c86ae0bab95caccd6', 'size': 808091}, {'filename': 'flashinfer_cubin-0.6.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/12/e8/826f9452bc5f76b94d7eb025f03dcaf1b51b9ed7790386c0285191e69be4/flashinfer_cubin-0.6.6-py3-none-any.whl', 'sha256': '36508dfc792eb5ecfb15d2c140a7702812e1fa1ab0fb03929b2ed55e3e8191f3', 'size': 267661457}, {'filename': 'flashinfer_python-0.6.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/e0/61/385d06755f3ab66333018285657adf0daf8a90a129448231fd09e315bd2e/flashinfer_python-0.6.6-py3-none-any.whl', 'sha256': '078f158636969eec1a0d3dea19c3ca90b426b66df89bbf7b7b8276ce2ec08148', 'size': 7817047}, {'filename': 'grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/f5/86/f6ec2164f743d9609691115ae8ece098c76b894ebe4f7c94a655c6b03e98/grpcio-1.76.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '980a846182ce88c4f2f7e2c22c56aefd515daeb36149d1c897f83cf57999e0b6', 'size': 6573963}, {'filename': 'httpcore2-2.16.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/af/c2/ce417c397afa5181f0e3c6ff01a4d01639414e1adef08730d97571297151/httpcore2-2.16.0-py3-none-any.whl', 'sha256': '5c4358319f2602d984ad93182c9fee5160f22e9da7babdda870a5e7c4e2dc34f', 'size': 85070}, {'filename': 'httptools-0.9.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/85/3f/642113e9882f53158ecddf58003d25f18ded2c210ed23bf6eb663d4d51c3/httptools-0.9.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'sha256': '3e3201fe4d46e0d15d7ff9fafc94a605da9eb82d2c5b9837f0368acb325481f1', 'size': 552848}, {'filename': 'httpx2-2.16.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/7b/3d/2e4bc4fd1ef9770871669adb348d612a6e4786b303a23f9935b81c48dd60/httpx2-2.16.0-py3-none-any.whl', 'sha256': 'fd2c5d7909e8d86fe92d53020c310ca0e4e431b838c207c5754b9bbf0308d49a', 'size': 97880}, {'filename': 'idna-3.20-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl', 'sha256': 'ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c', 'size': 69583}, {'filename': 'ijson-3.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/3d/43/2d8abf1ff74ed9a0372021e61e9fc660f850e0cde9aced66ca1b97da77b0/ijson-3.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl', 'sha256': 'c14d568d31a322e8ed7e9735f6e355608a23cc6ff4b5da843515089dae4cbf5f', 'size': 150188}, {'filename': 'jmespath-1.1.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl', 'sha256': 'a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64', 'size': 20419}, {'filename': 'lark-1.2.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/2d/00/d90b10b962b4277f5e64a78b6609968859ff86889f5b898c1a778c06ec00/lark-1.2.2-py3-none-any.whl', 'sha256': 'c2276486b02f0f1b90be155f2c8ba4a8e194d42775786db622faccd652d8e80c', 'size': 111036}, {'filename': 'llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/83/a8/1ff2bedb8f9acb46a2d2d603415d272bb622c142ea86f5b95445cc6e366c/llguidance-1.3.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'bc17e9dd602c3879bf91664a64bf72f54c74dbfbeb24ccfab6a5fe435b12f7aa', 'size': 3033133}, {'filename': 'llvmlite-0.44.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/cb/da/8341fd3056419441286c8e26bf436923021005ece0bff5f41906476ae514/llvmlite-0.44.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'c0143a5ef336da14deaa8ec26c5449ad5b6a2b564df82fcef4be040b9cacfea9', 'size': 42361901}, {'filename': 'lm_format_enforcer-0.11.3-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/a0/ef/11292bb0b85cf4c93447cab5a29f64576ed14d3ab4280e35ddd23486594a/lm_format_enforcer-0.11.3-py3-none-any.whl', 'sha256': 'cf586350875def1ae7a8fba84fcbbfc8371424b6c9d05c1fcba70aa233fbf06f', 'size': 45418}, {'filename': 'mcp-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/20/d7/4a2878f128df729db3ca04e71bfce26405cc2e0c9ebe19c592feeb4c61b9/mcp-2.3.0-py3-none-any.whl', 'sha256': 'dd0c44c089d16453e8ae31a3877a0054d7a2314caaa81f5e0541b9b1734b2377', 'size': 368664}, {'filename': 'mcp_types-2.3.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/ce/48/32583066b155bb5d4507e7887dc88ee23118cc4de8e2a12870c49719e2a8/mcp_types-2.3.0-py3-none-any.whl', 'sha256': '968efdbdaedfab06adae40d378a34395f1090c5921d4be3c9cde283aaf76d91d', 'size': 69108}, {'filename': 'model_hosting_container_standards-0.1.16-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/07/ef/6eabeb251d2a0598cb5f9a274159e05ae07a1e3fe6a1473bf6035793252a/model_hosting_container_standards-0.1.16-py3-none-any.whl', 'sha256': '47f4f65713120bc3a69feb022981a38db9e557aedf88dbd72077f20588caa12b', 'size': 125666}, {'filename': 'numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/9a/2d/e518df036feab381c23a624dac47f8445ac55686ec7f11083655eb707da3/numba-0.61.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '5b1bb509d01f23d70325d3a5a0e237cbc9544dd50e50588bc581ba860c213546', 'size': 3885928}, {'filename': 'numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/8c/3d/1e1db36cfd41f895d266b103df00ca5b3cbe965184df824dec5c08c6b803/numpy-2.2.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': 'fd83c01228a688733f1ded5201c678f0c53ecc1006ffbc404db9f7a899ac6249', 'size': 16527618}, {'filename': 'nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ba/51/e123d997aa098c61d029f76663dedbfb9bc8dcf8c60cbd6adbe42f76d049/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_x86_64.whl', 'sha256': '949452be657fa16687d0930933f032835951ef0892b37d2d53824d1a84dc97a8', 'size': 706758467}, {'filename': 'nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/c6/52/08f98262e77b1cbcc834cc1a5db494d0661ea1dbdea58c2e2d51a57fdaca/nvidia_cudnn_frontend-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'sha256': '6c023539ca6de99234cf5102c3ec0d6af817f5396fc93028a22ba5b834a35b8a', 'size': 2159245}, {'filename': 'nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/6e/89/f7a07dc961b60645dbbf42e80f2bc85ade7feb9a491b11a1e973aa00071f/nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': 'ad730cf15cb5d25fe849c6e6ca9eb5b76db16a80f13f425ac68d8e2e55624457', 'size': 322348229}, {'filename': 'nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/b5/09/6ea3ea725f82e1e76684f0708bbedd871fc96da89945adeba65c3835a64c/nvidia_nvshmem_cu12-3.4.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl', 'sha256': '042f2500f24c021db8a06c5eec2539027d57460e1c1a762055a6554f72c369bd', 'size': 139103095}, {'filename': 'opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/9b/21/f6ef335f6e65724aa78b8d792b48d40a48c381715f1e62f5a5049e09d07e/opencv_python_headless-5.0.0.93-cp37-abi3-manylinux_2_28_x86_64.whl', 'sha256': 'ed709fdf9aa0bd1f2ed8549e71d19449b03a675bb581eb292285f6861953be37', 'size': 61204038}, {'filename': 'opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/55/22/41fb05f1dc5fda2c468e05a41814c20859016c85117b66c8a257cae814f6/opentelemetry_semantic_conventions_ai-0.5.1-py3-none-any.whl', 'sha256': '25aeb22bd261543b4898a73824026d96770e5351209c7d07a0b1314762b1f6e4', 'size': 11250}, {'filename': 'outlines_core-0.2.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/92/c7/a65d1fddf49830ebc41422294eacde35286d9f68994a8aa905cb14f5aade/outlines_core-0.2.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '86df9740368866295077346440d911df4972da2b3f1f54b8125e6f329e8a8891', 'size': 2287677}, {'filename': 'prometheus_fastapi_instrumentator-8.1.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/44/b9/91a2246e6cf01b7ccb14479803c8a50f9c258ae5c6a0f16ba3294820632b/prometheus_fastapi_instrumentator-8.1.0-py3-none-any.whl', 'sha256': 'b9f40b2cff3f7891ca0610b3ae4fc6ec723fd326b04bb659819aaeb821a0fc7d', 'size': 19649}, {'filename': 'py_cpuinfo-9.0.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl', 'sha256': '859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5', 'size': 22335}, {'filename': 'pydantic_settings-2.16.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/39/88/4131c51ff87b7cd7f82a1194d0c0a2b7ca68c72d9da04c3b7e69ab91a79f/pydantic_settings-2.16.2-py3-none-any.whl', 'sha256': '8d523e5c129b097686bde019bd6109bff53f4c8c3f63f1ddf9933ffa42e5ab4f', 'size': 81994}, {'filename': 'pyjwt-2.15.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl', 'sha256': '42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193', 'size': 33860}, {'filename': 'python_json_logger-4.2.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/dc/55/6467fde553886cb293e41538f3a8b4e4fd4688c6df242cf982162d8367fb/python_json_logger-4.2.0-py3-none-any.whl', 'sha256': '158a52126fcd6869e09574d2b66272666f3dc8f468c62637ef9a1fa883719cb9', 'size': 14988}, {'filename': 'rich_toolkit-0.20.6-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/79/fc/7c296a563a893b0a23a73923ce27965ae15f658dcb58c0bcdd463e1671a2/rich_toolkit-0.20.6-py3-none-any.whl', 'sha256': '465453ba6f94f99401f59f79fb562827ba5f6b4d4759015d40019f5c67750262', 'size': 39466}, {'filename': 'rignore-0.8.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/a9/a8/c6e6db62226df8cd3d950889925d826a0e35ac567cc5df548a872944f1ed/rignore-0.8.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl', 'sha256': '2e68cfc4ee0a2909952af2aebd608d1cd22f7d1cdce332cb0b5ea3762939865d', 'size': 927835}, {'filename': 'sentry_sdk-2.73.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/b2/88/cabf98d017d7b940720e514e5f8ee02e3e6f7495caf93c30735a38387ec4/sentry_sdk-2.73.0-py3-none-any.whl', 'sha256': '0bcfa6928ea5adbb89591858b514d27adac27c7a3cccc31b20ed10e0b09eda9e', 'size': 549011}, {'filename': 'setuptools-80.10.2-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/94/b8/f1f62a5e3c0ad2ff1d189590bfa4c46b4f3b6e49cef6f26c6ee4e575394d/setuptools-80.10.2-py3-none-any.whl', 'sha256': '95b30ddfb717250edb492926c92b5221f7ef3fbcc2b07579bcd4a27da21d0173', 'size': 1064234}, {'filename': 'sse_starlette-3.6.0-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/cf/49/35053078cdfcf639237e8bee6dc6f34f1b3a3cc8d01800a1e213e1660ff6/sse_starlette-3.6.0-py3-none-any.whl', 'sha256': 'e4dfa4d237d2712cb2b4d4918eda9b457cd6b44bbecdc838af75de836565bafd', 'size': 17985}, {'filename': 'supervisor-4.3.0-py2.py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/0e/65/5e726c372da8a5e35022a94388b12252710aad0c2351699c3d76ae8dba78/supervisor-4.3.0-py2.py3-none-any.whl', 'sha256': '0bcb763fddafba410f35cbde226aa7f8514b9fb82eb05a0c85f6588d1c13f8db', 'size': 320736}, {'filename': 'torchaudio-2.10.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://download.pytorch.org/whl/cu129/torchaudio-2.10.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': '5072f6c901ddc234b8d5d472d42fbe97445c6bb3433337c3945d00b012642969', 'size': 1736412}, {'filename': 'torchvision-0.25.0+cu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'url': 'https://download.pytorch.org/whl/cu129/torchvision-0.25.0%2Bcu129-cp312-cp312-manylinux_2_28_x86_64.whl', 'sha256': '5d741dff079cd9b9dfe690f2f14ba6db22bd9415838726ab795c378a12adbc3b', 'size': 9142020}, {'filename': 'transformers-5.5.1-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/a0/09/dd2f76acc40988d235ed020506722f867430c66b8bf2b7cbce2f822a982c/transformers-5.5.1-py3-none-any.whl', 'sha256': 'ceb2190689f5afc112d13507ddc94185b4ee11921e283f035dade91e347c3e15', 'size': 10235183}, {'filename': 'triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/ab/a8/cdf8b3e4c98132f965f88c2313a4b493266832ad47fb52f23d14d4f86bb5/triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl', 'sha256': '74caf5e34b66d9f3a429af689c1c7128daba1d8208df60e81106b115c00d6fca', 'size': 188266850}, {'filename': 'truststore-0.10.5-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/51/e9/3a7820be2bb0fe53b6bc9c3be26d3d1158004e4c3ab953aa6840b955b1e9/truststore-0.10.5-py3-none-any.whl', 'sha256': '9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c', 'size': 19017}, {'filename': 'typer-0.27.3-py3-none-any.whl', 'url': 'https://files.pythonhosted.org/packages/07/ea/2e31b67051e91a133189e9c000c222502ddc6969856416de0d095de4c0b0/typer-0.27.3-py3-none-any.whl', 'sha256': 'e50022f28b82a86313e54501317a1db64bf8f8d036ff8cfe5ca7e47675454aff', 'size': 123312}, {'filename': 'vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719', 'size': 433132101, 'existing_verified_remote_asset': True}, {'filename': 'websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/cb/18/6229d6583031ca81d092a0cd887a13a57b402fb555acc323d39b45967eb7/websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl', 'sha256': '9ae1429ee9e52b139167ed0169757806a27ed7307e942e8c62037a9184e9843b', 'size': 226321}]\nimport datetime,hashlib,json,os,pathlib,resource,shutil,time,urllib.request\nROOT=pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/downloads')\nresource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2))\nos.nice(10)\nos.sched_setaffinity(0,{min(os.sched_getaffinity(0))})\nend=datetime.datetime.fromisoformat('2026-11-02T23:50:00+08:00').timestamp()\nif os.getuid()!=2147 or time.time()<datetime.datetime.fromisoformat('2026-11-02T19:00:00+08:00').timestamp() or time.time()+3660>=end:raise RuntimeError('CPU identity/window budget mismatch')\nif ROOT.is_symlink() or not ROOT.is_dir() or shutil.disk_usage(ROOT).free<8*1024**3:raise RuntimeError('destination or capacity differs')\nrun='kimi-runtime-download-2924bb669b0b47a3bb97c0b71e7d6e4d'\nr={'run_id':run,'started_epoch':time.time(),'pid':os.getpid(),'gpu':False,'installed':False,'artifacts':[],'passed':False}\nreceipt=ROOT/(run+'.json')\nwith receipt.open('x') as f:json.dump(r,f)\nstarted=time.monotonic();network_bytes=0\ntry:\n for pin in PINS:\n  name=pin['filename'];expected=pin['size'];sha=pin['sha256']\n  if pathlib.Path(name).name!=name or not name.endswith('.whl') or len(sha)!=64:raise ValueError('invalid artifact pin')\n  final=ROOT/name;part=ROOT/(name+'.partial');h=hashlib.sha256();count=0\n  if final.is_symlink():raise RuntimeError('symlink final refused')\n  if final.exists():\n   if not final.is_file() or final.stat().st_uid!=2147 or final.stat().st_size!=expected:raise RuntimeError('existing asset metadata differs')\n   with final.open('rb') as f:\n    for block in iter(lambda:f.read(1024**2),b''):h.update(block);count+=len(block)\n   if h.hexdigest()!=sha:raise RuntimeError('existing asset digest differs')\n   r['artifacts'].append({'name':name,'bytes':count,'sha256':sha,'reused':True})\n  else:\n   if pin.get('existing_verified_remote_asset'):raise RuntimeError('expected retained asset missing; refuse duplicate download')\n   fd=os.open(part,os.O_CREAT|os.O_EXCL|os.O_WRONLY|os.O_NOFOLLOW,0o600)\n   with os.fdopen(fd,'wb') as out,urllib.request.urlopen(urllib.request.Request(pin['url'],headers={'Accept-Encoding':'identity'}),timeout=30) as src:\n    if src.status!=200 or src.headers.get('Content-Encoding','identity')!='identity':raise RuntimeError('unexpected HTTP response')\n    while True:\n     block=src.read(1024**2)\n     if not block:break\n     count+=len(block);network_bytes+=len(block)\n     if count>expected:raise RuntimeError('oversized artifact')\n     out.write(block);h.update(block)\n     time.sleep(max(0,network_bytes/(20*1024**2)-(time.monotonic()-started)))\n    out.flush();os.fsync(out.fileno())\n   if count!=expected or h.hexdigest()!=sha:raise RuntimeError('artifact size/digest differs')\n   os.chmod(part,0o644);os.link(part,final);part.unlink();r['artifacts'].append({'name':name,'bytes':count,'sha256':sha,'reused':False})\n  with receipt.open('w') as f:json.dump(r,f);f.flush();os.fsync(f.fileno())\n  print(json.dumps({'event':'artifact_verified','run_id':run,'name':name,'bytes':count,'reused':r['artifacts'][-1]['reused']}),flush=True)\n r['passed']=len(r['artifacts'])==len(PINS)\nexcept BaseException as error:r.update(error_type=type(error).__name__,error=str(error),partial_preserved=True)\nfinally:\n r.update(finished_epoch=time.time(),network_bytes=network_bytes,elapsed_seconds=time.monotonic()-started)\n with receipt.open('w') as f:json.dump(r,f);f.flush();os.fsync(f.fileno())\n print(json.dumps(dict(r,event='terminal')),flush=True)\n",
+      "body_sha256": "f9a3e5cfc4a5bbdd9b28cb8283a05627a85493af5a66e00108937bed63606f1c",
+      "status": "AWAITING_READONLY_REVIEW",
+      "artifact_count": 59,
+      "candidate_versions_sha256": "e6c4de8c409881d9a176bb9bedbd9ec4fab92b0b1a6fb8e9559902664220385d",
+      "limits": {
+        "outer_timeout_seconds": 3600,
+        "kill_after_seconds": 5,
+        "cleanup_margin_seconds": 60,
+        "memory_mib": 512,
+        "one_cpu_affinity": true,
+        "network_average_mib_s": 20,
+        "max_attempts": 1
+      },
+      "command": [
+        "/usr/bin/timeout",
+        "--signal=TERM",
+        "--kill-after=5s",
+        "3600s",
+        "python3",
+        "-"
+      ],
+      "parent": "approved_dependency_downloads[0], same streaming SHA/exclusive partial/hardlink publish; extended only for59 exact artifacts and existing asset reuse",
+      "scope": "downloads only in original downloads dir; no Docker/install/model/GPU; errors/partials preserved not automatically retried",
+      "review": "PASS_ONE_DOWNLOAD: outer timeout required, missing terminal requires independent process/final/partial checks"
+    }
+  ],
+  "runtime_artifact_download_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_ONE_DOWNLOAD_WITH_IDENTITY_DELTA",
+    "body_sha256": "e681677b1c4ef0317cee2ae16674e55198cae87d7b4c289f316f3eefac76d950",
+    "run_id": "kimi-runtime-download-2924bb669b0b47a3bb97c0b71e7d6e4d",
+    "verified": "59 pins exact current manifest; new pid/start_ticks/boot/start event inverse matches prior reviewed source",
+    "conditions": [
+      "must execute exact host timeout3600 TERM+kill5",
+      "max1 no auto retries",
+      "independent identity and asset state checks after timeout or terminal",
+      "not installation/ABI/model/GPU admission"
+    ]
   }
 }

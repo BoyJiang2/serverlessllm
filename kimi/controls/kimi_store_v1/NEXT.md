@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2 19:29晚间4309227c实际采集完成：21889路径/21个RECORD包3976153625B，唯一未知PyJWT2.7来自/usr/lib/python3/dist-packages、无RECORD，故passed=false/总量None，未知未计0。1.01秒/noTorch/vLLM/GPU；独立SSH容器空、timerinactive、PID1895134 absent、同boot。原native编译不重做。UV既有mcp2.3缓存明确pyjwt[crypto]>=2.10.1，不能保留2.7硬过；拟只在本任务私有容器/usr/local安装已钉新PyJWT，保留OS源，尚未实现/受审。
+- 59归档准备候选仅复用原stream/SHA下载实现，原downloads内2已核旧包重用、57新包合计1810794319B；无权重/环境副本、无Docker/安装/GPU。512MiB/单CPU affinity/20MiB每秒平均、外层timeout3600+kill5，23:50收尾，固定run2924bb66 max1；bodyf9a3e5cf及3项真实小文件/明确HTTP与身份资源mock控制通过，临时小文件全清。正在限定只读审阅，未执行。60f0485已push独立核同SHA。
+
 - 11/2 19点窗口：此前f9 collector未派发且原18:50已过，已保留原候选/审阅；新run4309227c、host8c62d543/body3163eefb，仅身份及19:00–23:50变更，逆替换逐字节一致并限定只读复审PASS。fresh API晚间41b77620/午夜3b9f0bc8仍有效，CPU1/2GiB、60内/120宿主guard/300整体不变。当前尚未执行，不是安装/模型准入。adb0e3a已push且独立ls-remote同SHA。
 
 - 11/2用户新增确认：19–24可低并发CPU，11/3 00–09整机8GPU+RAM，08:50收口；原复制暂停已被主聊明确取消/恢复，goal已active。实际API三票及倒排写入既有RESERVATION-PLAN.md；准备22:30评估，不承诺native峰值未过的P2/P3。无新预约/新节点。
