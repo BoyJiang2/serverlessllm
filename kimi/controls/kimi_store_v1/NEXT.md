@@ -1,3 +1,16 @@
+## 11/3 04:38 当前断点：两次P0失败，本窗口停止GPU；自有残留已实际清完并复审通过
+
+- CPU编译/匹配依赖和普通导入此前已实际完成；source默认真实vLLM factory接线17305d8及限定CPU复审通过。本轮未新增checkout、环境、权重或Store副本，未改远端冻结844源码/178文件manifest b2f75414…。GLM原40ID/35成功5失败、金标及历史冻结，不启R24。
+- 新P0 kimi-p0-20261102T201641Z-99679319实际窗口/资源、新独立guard/主动probe通过后，docker start10秒超时，runc2280547/shim2280536（birth77509354）卡在同CID create。主清理inspect502.196739秒超时；guard119.982183秒超时，20:28:07Z failed/ExecMainStatus1/MainPID0；driver外层1且独立核两个原PID消失。没有IPC/模型/Store成功。两次同类start失败触发本窗GPU/TP8停止，不因空卡或剩余时间重试。
+- 中间一次准备run201641之前的200718Z-cb7c9d6b在GPU/worker创建前因官方历史snapshot超2MiB错误本地cap退出1，成本单列、未重判。已复用官方只读helper先筛当前/未来003，再由原capture64KiB限制，1007B实际读和新配置复审通过。旧24普通文件68692B及此3个static文件2070B分别同目录NO_REPLACE归档failed-p0-1--/failed-p0-2--，无新目录/源码副本。
+- Root只读诊断实际0，独立known helper/parent PID+birth退出及artifact SHA3271ec99…已核；原kernel仅服务器p0-second-runtime-readonly.json（2987B）。repo仅主线程futex202派生摘要；不是全线程/子进程覆盖，不能证明死锁、NVIDIA hook或历史exit137根因。
+- 独立恢复kimi-runc-cleanup-20261102T203402Z只向PIDfd核验的runc2280547发一次SIGKILL，不信号shim/daemon/其他任务。正常精确CID rm0，13份全clean快照wall/mono64.580142秒；root/独立SSH/local outer均0，helper/parent及local16112/16111均消失。19行22968B完整raw SHA fbd77f16842db9a319d598adeb91f43521db767446edd9a08c56eb8a8d0cb345已同SHA取回，限定实际关账复审PASS。当前资源恢复义务关闭，不把清理成功追认P0通过。
+- 两个固定O_EXCL槽p0-runc-kill-recovery.jsonl和p0-second-runc-kill-recovery.jsonl不得删除、改名或覆盖；首槽SHA268a58…/源码manifest原值经独立核验未变。原P0所有失败/guard失败/unknown均保留原字节。
+
+下一步先查明并修复已重复的Docker runtime create阻塞，复用本次精确CID证据和已有GLM流程，不扩展无关工具，不再重复编译/下载。后续GPU须新受审方案/实际窗口/全资源/独立guard及probe；没有修复证据不安排长模型批次。源TP8参考及稳定Kimi金标尚未产生，完整Store转换、八rank恢复正确性及原生服务仍未通过；native双份峰值停止未解除。3.5h源参考/2h转换仍是未冻结草案，不能拿来直接开跑。
+
+本人当前票仍00–09、08:50收口；本实验已提前释放计算资源，余下不占GPU/大池等开发。不自行取消/延长预约或操作其他任务，后续先建议短runtime/P0验证窗口，再根据实际通过情况安排TP8批次。Git在所有观察完成后进行，远端推送状态以实际核验为准，不能把本地提交称已push。
+
 ## 11/3 03:50已实际解除本实验runtime残留；下一步新P0配置，旧失败不重判
 
 新独立恢复run kimi-runc-cleanup-20261102T194606Z成功且限定实际证据复审PASS：单次SIGKILL ack仅PID2221328，pidfd确认退出；docker rm1 already in progress原错误保留，后续CID消失。13份快照全clean、首末wall/mono64.595395s；runc/shim/原driver/guard及旧helper、同CID进程/runtime路径/cgroup均无，NVML归属核验通过。root SSH0、独立UID2147 SSH0、本地outer0；Root helper2266032/timeout2266031及本地15668/15667均已独立消失。完整19行23043B log SHA268a58d1…已同SHA取回，原件固定p0-runc-kill-recovery.jsonl保留，绝不删除/替换该O_EXCL信号槽。当前资源义务通过新记录关闭，旧P0/124/unknown和失败raw字节不改，runc卡住原因仍未知。
