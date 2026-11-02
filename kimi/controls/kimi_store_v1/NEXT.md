@@ -4,6 +4,11 @@
 
 ## 最新覆盖
 
+- 最小依赖本机controller原08161670…审阅NEEDS_FIX两项已真实核验并修：seed写入纳入try；UV输出校验失败保留raw并标未通过，正常成功也标CANDIDATE ONLY。旧小文件失败标记缺失实际复现，新小/131073B大/缺文件三个实际except控制通过，测试临时单文件已清理。最终4c0d9280…限定delta复审PASS_ONE_LOCAL_METADATA_ATTEMPT，15根/缓存/预算不变；仍未执行/未安装。不得把候选文件或新小控制当Linux运行时正确性。
+
+- 恢复后受审控制2502f7fb实际codeb3f029c：SSH0，host_started/guard_ready/terminal齐全，采集passed=false（cryptography41.0.7没有RECORD/files；原候选欲换50.0.2），原外层遗留“relocation import failed”仅错误文案，真正metadata错误已保留。实际downloads可用1563652898816B、Docker根/var/lib/docker可用888938573824B；因此容量不缺，安装峰值仍未证。独立SSH确认原PID1497397 absent/容器空/timer inactive。旧255未知不追认。
+- 下一实际缺口改为精简依赖：仅原requirements-runtime-candidate.txt作为UV output偏好，优先已有180图内installed版本，15个严格框架/SDK/cryptography根不变或纠正（click8.1.7及cryptography保留41.0.7）；约束不满足必须失败，不用override/ignore依赖。复用已有UV/82MiB metadata cache和旧512MiB/128MiB/600s轮询monitor，仅改既有controller，旧cpu-probe不写；前图/失败/新pref seed与源码SHA在原runtime JSON归档。候选controller待只读审阅，未运行/未改锁文件/未安装。
+
 - 恢复观测delta已获限定PASS_ONE_METADATA_CONTROL：host0a02a7f4…/body28d0804c…，固定run2502f7fb…最多一次。host_started只证明进入、guard_ready只证明守护预检，必须同run terminal+passed及独立释放才能成功；SSH255/缺终态仍未知，不能重用run。未执行，不批准安装/模型/GPU；下一项先实际刷新CPU授权、UID/内存/旧容器缺席，再执行受审控制。
 
 - 11/2 14:30用户明确取消迁移并恢复原任务；保持qjhs003唯一入口，不向002复制/运行，原暂停与SSH255历史完整保留。main3ffa86f已独立ls-remote核远端同SHA。原只读size采集未取得结果，旧container/timer在暂停收口已核空；不是预算通过。现仅原runtime-dependencies-candidate.json补必要观测：新run_id连接前固定、host PID/start_ticks/boot即时事件、guard_ready CID及明确terminal事件（flush），body28d0804c…不变、原guard/window/finally逐补丁逆运算完全同父host。新控制max1、host SHA见JSON，待已有只读审阅，未运行；不重派旧ID或新下载/安装/模型。

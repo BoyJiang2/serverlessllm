@@ -187,7 +187,7 @@
     "yarl": "1.25.1",
     "zipp": "4.1.2"
   },
-  "status": "RESUMED_BY_USER_METADATA_ONLY_NEW_CAPTURE_PENDING_REVIEW",
+  "status": "ACTUAL_SIZE_CONTROL_FAILED_MISSING_RECORD_MINIMAL_RESOLUTION_PENDING",
   "installed": false,
   "artifact_integrity_complete": false,
   "incremental_budget_verified": false,
@@ -5705,6 +5705,684 @@
       "same-run terminal + passed + independent release required",
       "SSH255 or missing terminal remains unknown; fixed run cannot be reused",
       "fresh actual window/resources/guard; no install/model/GPU approval"
+    ]
+  },
+  "replacement_size_resume_precheck": {
+    "recorded_utc": "2026-11-02T06:39:51.083329+00:00",
+    "booking": {
+      "cluster_id": "h20",
+      "created_ms": 1793532872010,
+      "end_ms": 1793617200000,
+      "id": "bk-20261101T1134-265b50dd",
+      "node": "qjhs003",
+      "purpose": "ksqd",
+      "resource_id": "h20/qjhs003",
+      "start_ms": 1793581200000,
+      "user": "azure"
+    },
+    "actual": {
+      "uid": 2147,
+      "utc_epoch": 1793601590.9729161,
+      "memory_available_kib": 1971923180,
+      "own_container_query_returncode": 0,
+      "own_containers": [],
+      "stderr": ""
+    },
+    "api_transport": "existing Windows global Python stdlib helper only, no environment/credential copy",
+    "ssh_transport": "existing Windows SSH for this operation, local orchestration WSL native Python",
+    "planned_run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+    "scope": "CPU1/2GiB metadata only; no GPU grant"
+  },
+  "replacement_size_resume_executions": [
+    {
+      "registered_utc": "2026-11-02T06:42:12.670317+00:00",
+      "code_commit": "b3f029ccfac5f27ee6254f8952199ffc32656a1e",
+      "planned_run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+      "state": "SSH_TERMINAL",
+      "transport": "existing Windows SSH for this one operation after WSL native large stdin session terminal255; main local logic remains WSL native",
+      "host_sha256": "0a02a7f4f61917ecceca967089c62de4c8b6123e2022397139945015fd3ee6b1",
+      "body_sha256": "28d0804c891f6a6e57b26200fb65a871497e87dff8da49592bcc422b23654d2e",
+      "full_stdin_sha256": "d30a46c083538207e1afbbbe3984ee9c1f2464f12cc202c62a6b226d3da71d67",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "returncode": 0,
+      "stderr": "",
+      "stdout_bytes": 6073,
+      "events": [
+        {
+          "event": "host_started",
+          "run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+          "identity": {
+            "pid": 1497397,
+            "uid": 2147,
+            "start_ticks": 72606662,
+            "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+            "hostname": "qjhs3"
+          }
+        },
+        {
+          "event": "guard_ready",
+          "run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+          "container_id": "41c2a3ca19946be5c5cfc363bdfcdc6080630a5ce01e594dcd4d4f48b7e59fb8"
+        },
+        {
+          "run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T06:42:28.820361+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "host_identity": {
+            "pid": 1497397,
+            "uid": 2147,
+            "start_ticks": 72606662,
+            "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+            "hostname": "qjhs3"
+          },
+          "storage_budget_snapshot": {
+            "downloads": {
+              "path": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+              "st_dev": 66304,
+              "total_bytes": 3838880616448,
+              "available_bytes": 1563652898816,
+              "available_inodes": 374272502
+            },
+            "docker_root": {
+              "path": "/var/lib/docker",
+              "st_dev": 64514,
+              "total_bytes": 1082045239296,
+              "available_bytes": 888938573824,
+              "available_inodes": 65538656
+            }
+          },
+          "container_id": "41c2a3ca19946be5c5cfc363bdfcdc6080630a5ce01e594dcd4d4f48b7e59fb8",
+          "guard_install": "Running timer as unit: kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6-cleanup.timer\nWill run service as unit: kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 9h 43min 6.842925s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 41c2a3ca19946be5c5cfc363bdfcdc6080630a5ce01e594dcd4d4f48b7e59fb8 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": false, \"device_nodes\": [], \"scope\": \"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\", \"error_type\": \"ValueError\", \"error\": \"installed RECORD/files unavailable: cryptography\", \"partial_replacements\": {\"aiohappyeyeballs\": {\"installed_version\": \"2.6.1\", \"listed_paths\": 16, \"regular_file_bytes\": 64371, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"annotated-doc\": {\"installed_version\": \"0.0.4\", \"listed_paths\": 11, \"regular_file_bytes\": 11875, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"annotated-types\": {\"installed_version\": \"0.7.0\", \"listed_paths\": 10, \"regular_file_bytes\": 69071, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"anyio\": {\"installed_version\": \"4.13.0\", \"listed_paths\": 92, \"regular_file_bytes\": 1107110, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"apache-tvm-ffi\": {\"installed_version\": \"0.1.11\", \"listed_paths\": 274, \"regular_file_bytes\": 9298582, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"certifi\": {\"installed_version\": \"2026.4.22\", \"listed_paths\": 14, \"regular_file_bytes\": 249872, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"cffi\": {\"installed_version\": \"2.0.0\", \"listed_paths\": 49, \"regular_file_bytes\": 1146876, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"charset-normalizer\": {\"installed_version\": \"3.4.7\", \"listed_paths\": 35, \"regular_file_bytes\": 842364, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"click\": {\"installed_version\": \"8.3.3\", \"listed_paths\": 40, \"regular_file_bytes\": 848087, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}}}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T06:42:29.028798634Z",
+            "FinishedAt": "2026-11-02T06:42:29.205372301Z"
+          },
+          "passed": false,
+          "metadata": {
+            "passed": false,
+            "device_nodes": [],
+            "scope": "installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA",
+            "error_type": "ValueError",
+            "error": "installed RECORD/files unavailable: cryptography",
+            "partial_replacements": {
+              "aiohappyeyeballs": {
+                "installed_version": "2.6.1",
+                "listed_paths": 16,
+                "regular_file_bytes": 64371,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "annotated-doc": {
+                "installed_version": "0.0.4",
+                "listed_paths": 11,
+                "regular_file_bytes": 11875,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "annotated-types": {
+                "installed_version": "0.7.0",
+                "listed_paths": 10,
+                "regular_file_bytes": 69071,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "anyio": {
+                "installed_version": "4.13.0",
+                "listed_paths": 92,
+                "regular_file_bytes": 1107110,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "apache-tvm-ffi": {
+                "installed_version": "0.1.11",
+                "listed_paths": 274,
+                "regular_file_bytes": 9298582,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "certifi": {
+                "installed_version": "2026.4.22",
+                "listed_paths": 14,
+                "regular_file_bytes": 249872,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "cffi": {
+                "installed_version": "2.0.0",
+                "listed_paths": 49,
+                "regular_file_bytes": 1146876,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "charset-normalizer": {
+                "installed_version": "3.4.7",
+                "listed_paths": 35,
+                "regular_file_bytes": 842364,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              },
+              "click": {
+                "installed_version": "8.3.3",
+                "listed_paths": 40,
+                "regular_file_bytes": 848087,
+                "symlink_bytes": 0,
+                "missing_paths": 0,
+                "directories": 0
+              }
+            }
+          },
+          "error": {
+            "type": "ValueError",
+            "message": "relocation import failed"
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T06:42:29.299903+00:00",
+          "event": "terminal"
+        }
+      ],
+      "result": {
+        "run_id": "kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6",
+        "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+        "started_utc": "2026-11-02T06:42:28.820361+00:00",
+        "gpu_requested": false,
+        "compiled_native_store": false,
+        "released": true,
+        "cleanup_errors": [],
+        "host_identity": {
+          "pid": 1497397,
+          "uid": 2147,
+          "start_ticks": 72606662,
+          "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+          "hostname": "qjhs3"
+        },
+        "storage_budget_snapshot": {
+          "downloads": {
+            "path": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+            "st_dev": 66304,
+            "total_bytes": 3838880616448,
+            "available_bytes": 1563652898816,
+            "available_inodes": 374272502
+          },
+          "docker_root": {
+            "path": "/var/lib/docker",
+            "st_dev": 64514,
+            "total_bytes": 1082045239296,
+            "available_bytes": 888938573824,
+            "available_inodes": 65538656
+          }
+        },
+        "container_id": "41c2a3ca19946be5c5cfc363bdfcdc6080630a5ce01e594dcd4d4f48b7e59fb8",
+        "guard_install": "Running timer as unit: kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6-cleanup.timer\nWill run service as unit: kimi-runtime-compare-2502f7fb1a6240a8a8c363175c8aede6-cleanup.service\n",
+        "guard_probe": {
+          "timer": "NextElapseUSecMonotonic=1w 1d 9h 43min 6.842925s\nActiveState=active\n",
+          "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 41c2a3ca19946be5c5cfc363bdfcdc6080630a5ce01e594dcd4d4f48b7e59fb8 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+        },
+        "attach": {
+          "returncode": 0,
+          "stdout": "{\"passed\": false, \"device_nodes\": [], \"scope\": \"installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA\", \"error_type\": \"ValueError\", \"error\": \"installed RECORD/files unavailable: cryptography\", \"partial_replacements\": {\"aiohappyeyeballs\": {\"installed_version\": \"2.6.1\", \"listed_paths\": 16, \"regular_file_bytes\": 64371, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"annotated-doc\": {\"installed_version\": \"0.0.4\", \"listed_paths\": 11, \"regular_file_bytes\": 11875, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"annotated-types\": {\"installed_version\": \"0.7.0\", \"listed_paths\": 10, \"regular_file_bytes\": 69071, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"anyio\": {\"installed_version\": \"4.13.0\", \"listed_paths\": 92, \"regular_file_bytes\": 1107110, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"apache-tvm-ffi\": {\"installed_version\": \"0.1.11\", \"listed_paths\": 274, \"regular_file_bytes\": 9298582, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"certifi\": {\"installed_version\": \"2026.4.22\", \"listed_paths\": 14, \"regular_file_bytes\": 249872, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"cffi\": {\"installed_version\": \"2.0.0\", \"listed_paths\": 49, \"regular_file_bytes\": 1146876, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"charset-normalizer\": {\"installed_version\": \"3.4.7\", \"listed_paths\": 35, \"regular_file_bytes\": 842364, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}, \"click\": {\"installed_version\": \"8.3.3\", \"listed_paths\": 40, \"regular_file_bytes\": 848087, \"symlink_bytes\": 0, \"missing_paths\": 0, \"directories\": 0}}}\n",
+          "stderr": ""
+        },
+        "exit_state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-02T06:42:29.028798634Z",
+          "FinishedAt": "2026-11-02T06:42:29.205372301Z"
+        },
+        "passed": false,
+        "metadata": {
+          "passed": false,
+          "device_nodes": [],
+          "scope": "installed replacement RECORD path metadata only; no file contents, install, Torch/vLLM or CUDA",
+          "error_type": "ValueError",
+          "error": "installed RECORD/files unavailable: cryptography",
+          "partial_replacements": {
+            "aiohappyeyeballs": {
+              "installed_version": "2.6.1",
+              "listed_paths": 16,
+              "regular_file_bytes": 64371,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "annotated-doc": {
+              "installed_version": "0.0.4",
+              "listed_paths": 11,
+              "regular_file_bytes": 11875,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "annotated-types": {
+              "installed_version": "0.7.0",
+              "listed_paths": 10,
+              "regular_file_bytes": 69071,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "anyio": {
+              "installed_version": "4.13.0",
+              "listed_paths": 92,
+              "regular_file_bytes": 1107110,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "apache-tvm-ffi": {
+              "installed_version": "0.1.11",
+              "listed_paths": 274,
+              "regular_file_bytes": 9298582,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "certifi": {
+              "installed_version": "2026.4.22",
+              "listed_paths": 14,
+              "regular_file_bytes": 249872,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "cffi": {
+              "installed_version": "2.0.0",
+              "listed_paths": 49,
+              "regular_file_bytes": 1146876,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "charset-normalizer": {
+              "installed_version": "3.4.7",
+              "listed_paths": 35,
+              "regular_file_bytes": 842364,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            },
+            "click": {
+              "installed_version": "8.3.3",
+              "listed_paths": 40,
+              "regular_file_bytes": 848087,
+              "symlink_bytes": 0,
+              "missing_paths": 0,
+              "directories": 0
+            }
+          }
+        },
+        "error": {
+          "type": "ValueError",
+          "message": "relocation import failed"
+        },
+        "cleanup": 0,
+        "guard_stop": 0,
+        "create_completion_unknown": false,
+        "cleanup_owed": false,
+        "finished_utc": "2026-11-02T06:42:29.299903+00:00",
+        "event": "terminal"
+      },
+      "same_run_terminal_observed": true,
+      "collection_succeeded": false
+    }
+  ],
+  "replacement_size_resume_release": {
+    "recorded_utc": "2026-11-02T06:47:42.385018+00:00",
+    "transport": "independent existing Windows SSH operation",
+    "result": {
+      "container_query_returncode": 0,
+      "containers": [],
+      "container_stderr": "",
+      "timer_returncode": 3,
+      "timer_state": "inactive",
+      "host_state": "original_pid_absent"
+    }
+  },
+  "runtime_minimal_resolve_candidate": {
+    "status": "STATIC_REVIEW_PASSED_NOT_EXECUTED",
+    "scope": "one local metadata resolution only; no env install/build/GPU; existing Windows UV and RAM monitor reused because no WSL tool installation allowed",
+    "max_attempts": 1,
+    "approved_parent_run": "kimi-local-resolve-37be2793a53847e49aa5ef5044404907",
+    "roots": [
+      "vllm==0.19.1",
+      "torch==2.10.0+cu129",
+      "torchaudio==2.10.0+cu129",
+      "torchvision==0.25.0+cu129",
+      "transformers==5.5.1",
+      "numpy==2.2.6",
+      "accelerate==1.12.0",
+      "grpcio==1.76.0",
+      "click==8.1.7",
+      "cryptography==41.0.7",
+      "cuda-bindings==12.9.4",
+      "nvidia-cudnn-cu12==9.10.2.21",
+      "nvidia-nccl-cu12==2.27.5",
+      "nvidia-nvshmem-cu12==3.4.5",
+      "triton==3.6.0"
+    ],
+    "preferred_versions": {
+      "accelerate": "1.12.0",
+      "agent-detector": "2.0.0",
+      "aiohappyeyeballs": "2.6.1",
+      "aiohttp": "3.13.5",
+      "aiosignal": "1.4.0",
+      "annotated-doc": "0.0.4",
+      "annotated-types": "0.7.0",
+      "anthropic": "0.101.0",
+      "anyio": "4.13.0",
+      "apache-tvm-ffi": "0.1.11",
+      "astor": "0.8.1",
+      "attrs": "26.1.0",
+      "blake3": "1.0.11",
+      "cachetools": "7.2.8",
+      "cbor2": "6.2.0.post1",
+      "certifi": "2026.4.22",
+      "cffi": "2.0.0",
+      "charset-normalizer": "3.4.7",
+      "click": "8.1.7",
+      "cloudpickle": "3.1.2",
+      "compressed-tensors": "0.15.0.1",
+      "cryptography": "41.0.7",
+      "cuda-bindings": "12.9.4",
+      "cuda-pathfinder": "1.5.4",
+      "cuda-python": "12.9.0",
+      "depyf": "0.20.0",
+      "detect-installer": "0.2.1",
+      "dill": "0.4.1",
+      "diskcache": "5.6.3",
+      "distro": "1.9.0",
+      "dnspython": "2.9.1",
+      "docstring-parser": "0.18.0",
+      "einops": "0.8.2",
+      "email-validator": "2.3.0",
+      "fastapi": "0.136.1",
+      "fastapi-cli": "0.0.32",
+      "fastapi-cloud-cli": "0.26.0",
+      "fastar": "0.12.0",
+      "filelock": "3.29.0",
+      "flashinfer-cubin": "0.6.7.post2",
+      "flashinfer-python": "0.6.7.post2",
+      "frozenlist": "1.8.0",
+      "fsspec": "2026.2.0",
+      "gguf": "0.19.0",
+      "googleapis-common-protos": "1.75.0",
+      "grpcio": "1.76.0",
+      "h11": "0.16.0",
+      "hf-xet": "1.5.0",
+      "httpcore": "1.0.9",
+      "httpcore2": "2.16.0",
+      "httptools": "0.9.0",
+      "httpx": "0.28.1",
+      "httpx2": "2.16.0",
+      "huggingface-hub": "1.14.0",
+      "idna": "3.14",
+      "ijson": "3.6.0",
+      "importlib-metadata": "8.7.1",
+      "interegular": "0.3.3",
+      "jinja2": "3.1.6",
+      "jiter": "0.14.0",
+      "jmespath": "1.1.0",
+      "jsonschema": "4.26.0",
+      "jsonschema-specifications": "2025.9.1",
+      "lark": "1.3.1",
+      "llguidance": "0.7.30",
+      "llvmlite": "0.44.0",
+      "lm-format-enforcer": "0.11.3",
+      "loguru": "0.7.3",
+      "markdown-it-py": "4.2.0",
+      "markupsafe": "3.0.3",
+      "mcp": "2.3.0",
+      "mcp-types": "2.3.0",
+      "mdurl": "0.1.2",
+      "mistral-common": "1.11.2",
+      "model-hosting-container-standards": "0.1.16",
+      "mpmath": "1.3.0",
+      "msgspec": "0.21.1",
+      "multidict": "6.7.1",
+      "networkx": "3.6.1",
+      "ninja": "1.13.0",
+      "numba": "0.61.2",
+      "numpy": "2.2.6",
+      "nvidia-cublas-cu12": "12.9.1.4",
+      "nvidia-cuda-cupti-cu12": "12.9.79",
+      "nvidia-cuda-nvrtc-cu12": "12.9.86",
+      "nvidia-cuda-runtime-cu12": "12.9.79",
+      "nvidia-cudnn-cu12": "9.10.2.21",
+      "nvidia-cudnn-frontend": "1.23.0",
+      "nvidia-cufft-cu12": "11.4.1.4",
+      "nvidia-cufile-cu12": "1.14.1.1",
+      "nvidia-curand-cu12": "10.3.10.19",
+      "nvidia-cusolver-cu12": "11.7.5.82",
+      "nvidia-cusparse-cu12": "12.5.10.65",
+      "nvidia-cusparselt-cu12": "0.7.1",
+      "nvidia-cutlass-dsl": "4.5.0",
+      "nvidia-cutlass-dsl-libs-base": "4.5.0",
+      "nvidia-ml-py": "13.595.45",
+      "nvidia-nccl-cu12": "2.27.5",
+      "nvidia-nvjitlink-cu12": "12.9.86",
+      "nvidia-nvshmem-cu12": "3.4.5",
+      "nvidia-nvtx-cu12": "12.9.79",
+      "openai": "2.6.1",
+      "openai-harmony": "0.0.4",
+      "opencv-python-headless": "4.10.0.84",
+      "opentelemetry-api": "1.41.1",
+      "opentelemetry-exporter-otlp": "1.41.1",
+      "opentelemetry-exporter-otlp-proto-common": "1.41.1",
+      "opentelemetry-exporter-otlp-proto-grpc": "1.41.1",
+      "opentelemetry-exporter-otlp-proto-http": "1.41.1",
+      "opentelemetry-proto": "1.41.1",
+      "opentelemetry-sdk": "1.41.1",
+      "opentelemetry-semantic-conventions": "0.62b1",
+      "opentelemetry-semantic-conventions-ai": "0.5.1",
+      "outlines-core": "0.1.26",
+      "packaging": "26.2",
+      "partial-json-parser": "0.2.1.1.post7",
+      "pillow": "12.2.0",
+      "prometheus-client": "0.25.0",
+      "prometheus-fastapi-instrumentator": "8.1.0",
+      "propcache": "0.5.2",
+      "protobuf": "6.33.6",
+      "psutil": "7.2.2",
+      "py-cpuinfo": "9.0.0",
+      "pybase64": "1.4.3",
+      "pycountry": "26.2.16",
+      "pycparser": "3.0",
+      "pydantic": "2.13.4",
+      "pydantic-core": "2.46.4",
+      "pydantic-extra-types": "2.11.1",
+      "pydantic-settings": "2.16.2",
+      "pygments": "2.20.0",
+      "pyjwt": "2.7.0",
+      "python-dotenv": "1.2.2",
+      "python-json-logger": "4.2.0",
+      "python-multipart": "0.0.28",
+      "pyyaml": "6.0.1",
+      "pyzmq": "27.1.0",
+      "quack-kernels": "0.4.1",
+      "referencing": "0.37.0",
+      "regex": "2026.5.9",
+      "requests": "2.34.0",
+      "rich": "15.0.0",
+      "rich-toolkit": "0.20.6",
+      "rignore": "0.8.1",
+      "rpds-py": "0.30.0",
+      "safetensors": "0.7.0",
+      "sentencepiece": "0.2.1",
+      "sentry-sdk": "2.73.0",
+      "setproctitle": "1.3.7",
+      "setuptools": "82.0.1",
+      "shellingham": "1.5.4",
+      "six": "1.17.0",
+      "sniffio": "1.3.1",
+      "sse-starlette": "3.6.0",
+      "starlette": "1.0.0",
+      "supervisor": "4.3.0",
+      "sympy": "1.14.0",
+      "tabulate": "0.10.0",
+      "tiktoken": "0.12.0",
+      "tokenizers": "0.22.2",
+      "torch": "2.10.0+cu129",
+      "torch-c-dlpack-ext": "0.1.5",
+      "torchaudio": "2.10.0+cu129",
+      "torchvision": "0.25.0+cu129",
+      "tqdm": "4.67.3",
+      "transformers": "5.5.1",
+      "triton": "3.6.0",
+      "truststore": "0.10.5",
+      "typer": "0.25.1",
+      "typing-extensions": "4.15.0",
+      "typing-inspection": "0.4.2",
+      "urllib3": "2.7.0",
+      "uvicorn": "0.46.0",
+      "uvloop": "0.22.1",
+      "vllm": "0.19.1",
+      "watchfiles": "1.1.1",
+      "websockets": "17.4",
+      "xgrammar": "0.1.32",
+      "yarl": "1.23.0",
+      "zipp": "3.23.1"
+    },
+    "preference_seed": "# PREFERENCE SEED ONLY: not resolved, not installable, no runtime admission.\naccelerate==1.12.0\nagent-detector==2.0.0\naiohappyeyeballs==2.6.1\naiohttp==3.13.5\naiosignal==1.4.0\nannotated-doc==0.0.4\nannotated-types==0.7.0\nanthropic==0.101.0\nanyio==4.13.0\napache-tvm-ffi==0.1.11\nastor==0.8.1\nattrs==26.1.0\nblake3==1.0.11\ncachetools==7.2.8\ncbor2==6.2.0.post1\ncertifi==2026.4.22\ncffi==2.0.0\ncharset-normalizer==3.4.7\nclick==8.1.7\ncloudpickle==3.1.2\ncompressed-tensors==0.15.0.1\ncryptography==41.0.7\ncuda-bindings==12.9.4\ncuda-pathfinder==1.5.4\ncuda-python==12.9.0\ndepyf==0.20.0\ndetect-installer==0.2.1\ndill==0.4.1\ndiskcache==5.6.3\ndistro==1.9.0\ndnspython==2.9.1\ndocstring-parser==0.18.0\neinops==0.8.2\nemail-validator==2.3.0\nfastapi==0.136.1\nfastapi-cli==0.0.32\nfastapi-cloud-cli==0.26.0\nfastar==0.12.0\nfilelock==3.29.0\nflashinfer-cubin==0.6.7.post2\nflashinfer-python==0.6.7.post2\nfrozenlist==1.8.0\nfsspec==2026.2.0\ngguf==0.19.0\ngoogleapis-common-protos==1.75.0\ngrpcio==1.76.0\nh11==0.16.0\nhf-xet==1.5.0\nhttpcore==1.0.9\nhttpcore2==2.16.0\nhttptools==0.9.0\nhttpx==0.28.1\nhttpx2==2.16.0\nhuggingface-hub==1.14.0\nidna==3.14\nijson==3.6.0\nimportlib-metadata==8.7.1\ninteregular==0.3.3\njinja2==3.1.6\njiter==0.14.0\njmespath==1.1.0\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\nlark==1.3.1\nllguidance==0.7.30\nllvmlite==0.44.0\nlm-format-enforcer==0.11.3\nloguru==0.7.3\nmarkdown-it-py==4.2.0\nmarkupsafe==3.0.3\nmcp==2.3.0\nmcp-types==2.3.0\nmdurl==0.1.2\nmistral-common==1.11.2\nmodel-hosting-container-standards==0.1.16\nmpmath==1.3.0\nmsgspec==0.21.1\nmultidict==6.7.1\nnetworkx==3.6.1\nninja==1.13.0\nnumba==0.61.2\nnumpy==2.2.6\nnvidia-cublas-cu12==12.9.1.4\nnvidia-cuda-cupti-cu12==12.9.79\nnvidia-cuda-nvrtc-cu12==12.9.86\nnvidia-cuda-runtime-cu12==12.9.79\nnvidia-cudnn-cu12==9.10.2.21\nnvidia-cudnn-frontend==1.23.0\nnvidia-cufft-cu12==11.4.1.4\nnvidia-cufile-cu12==1.14.1.1\nnvidia-curand-cu12==10.3.10.19\nnvidia-cusolver-cu12==11.7.5.82\nnvidia-cusparse-cu12==12.5.10.65\nnvidia-cusparselt-cu12==0.7.1\nnvidia-cutlass-dsl==4.5.0\nnvidia-cutlass-dsl-libs-base==4.5.0\nnvidia-ml-py==13.595.45\nnvidia-nccl-cu12==2.27.5\nnvidia-nvjitlink-cu12==12.9.86\nnvidia-nvshmem-cu12==3.4.5\nnvidia-nvtx-cu12==12.9.79\nopenai==2.6.1\nopenai-harmony==0.0.4\nopencv-python-headless==4.10.0.84\nopentelemetry-api==1.41.1\nopentelemetry-exporter-otlp==1.41.1\nopentelemetry-exporter-otlp-proto-common==1.41.1\nopentelemetry-exporter-otlp-proto-grpc==1.41.1\nopentelemetry-exporter-otlp-proto-http==1.41.1\nopentelemetry-proto==1.41.1\nopentelemetry-sdk==1.41.1\nopentelemetry-semantic-conventions==0.62b1\nopentelemetry-semantic-conventions-ai==0.5.1\noutlines-core==0.1.26\npackaging==26.2\npartial-json-parser==0.2.1.1.post7\npillow==12.2.0\nprometheus-client==0.25.0\nprometheus-fastapi-instrumentator==8.1.0\npropcache==0.5.2\nprotobuf==6.33.6\npsutil==7.2.2\npy-cpuinfo==9.0.0\npybase64==1.4.3\npycountry==26.2.16\npycparser==3.0\npydantic==2.13.4\npydantic-core==2.46.4\npydantic-extra-types==2.11.1\npydantic-settings==2.16.2\npygments==2.20.0\npyjwt==2.7.0\npython-dotenv==1.2.2\npython-json-logger==4.2.0\npython-multipart==0.0.28\npyyaml==6.0.1\npyzmq==27.1.0\nquack-kernels==0.4.1\nreferencing==0.37.0\nregex==2026.5.9\nrequests==2.34.0\nrich==15.0.0\nrich-toolkit==0.20.6\nrignore==0.8.1\nrpds-py==0.30.0\nsafetensors==0.7.0\nsentencepiece==0.2.1\nsentry-sdk==2.73.0\nsetproctitle==1.3.7\nsetuptools==82.0.1\nshellingham==1.5.4\nsix==1.17.0\nsniffio==1.3.1\nsse-starlette==3.6.0\nstarlette==1.0.0\nsupervisor==4.3.0\nsympy==1.14.0\ntabulate==0.10.0\ntiktoken==0.12.0\ntokenizers==0.22.2\ntorch==2.10.0+cu129\ntorch-c-dlpack-ext==0.1.5\ntorchaudio==2.10.0+cu129\ntorchvision==0.25.0+cu129\ntqdm==4.67.3\ntransformers==5.5.1\ntriton==3.6.0\ntruststore==0.10.5\ntyper==0.25.1\ntyping-extensions==4.15.0\ntyping-inspection==0.4.2\nurllib3==2.7.0\nuvicorn==0.46.0\nuvloop==0.22.1\nvllm==0.19.1\nwatchfiles==1.1.1\nwebsockets==17.4\nxgrammar==0.1.32\nyarl==1.23.0\nzipp==3.23.1\n",
+    "preference_seed_sha256": "6c06f02b55f406bebe40354d2170c0d441662c35764189e4d51376cf60de6ff4",
+    "previous_lock": "# CANDIDATE ONLY: Linux x86_64 (glibc2.39), Python3.12, CUDA12.9.\n# UV0.11.28 cross-resolution; no packages installed or Linux runtime imported.\n# Scope: vLLM/source worker and native RPC client; full SDK CLI/build extras unverified.\n# Binary artifact hashes, delta install budget and functional ABI still required.\n# Resolution indices: https://pypi.org/simple and https://download.pytorch.org/whl/cu129\n# Raw pin-list SHA256: 5c0db5a5a6e09536c8dfc4418068b2d2d07e5ad3bdccf0765ae3aae17d84533b\naccelerate==1.12.0\nagent-detector==2.0.0\naiohappyeyeballs==2.7.1\naiohttp==3.13.5\naiosignal==1.4.0\nannotated-doc==0.0.5\nannotated-types==0.8.0\nanthropic==0.101.0\nanyio==4.14.2\napache-tvm-ffi==0.1.15.post2\nastor==0.8.1\nattrs==26.1.0\nblake3==1.0.11\ncachetools==7.2.8\ncbor2==6.2.0.post1\ncertifi==2026.10.23\ncffi==2.1.1\ncharset-normalizer==3.5.2\nclick==8.5.0\ncloudpickle==3.1.2\ncompressed-tensors==0.15.0.1\ncryptography==50.0.2\ncuda-bindings==12.9.4\ncuda-pathfinder==1.8.5\ncuda-python==12.9.4\ndepyf==0.20.0\ndetect-installer==0.2.1\ndill==0.4.1\ndiskcache==5.6.3\ndistro==1.9.0\ndnspython==2.9.1\ndocstring-parser==0.18.0\neinops==0.8.2\nemail-validator==2.3.0\nfastapi==0.136.1\nfastapi-cli==0.0.32\nfastapi-cloud-cli==0.26.0\nfastar==0.12.0\nfilelock==3.29.0\nflashinfer-cubin==0.6.6\nflashinfer-python==0.6.6\nfrozenlist==1.8.0\nfsspec==2026.9.0\ngguf==0.19.0\ngoogleapis-common-protos==1.76.0\ngrpcio==1.76.0\nh11==0.16.0\nhf-xet==1.8.0\nhttpcore==1.0.9\nhttpcore2==2.16.0\nhttptools==0.9.0\nhttpx==0.28.1\nhttpx2==2.16.0\nhuggingface-hub==1.33.0\nidna==3.20\nijson==3.6.0\nimportlib-metadata==8.7.1\ninteregular==0.3.3\njinja2==3.1.6\njiter==0.18.0\njmespath==1.1.0\njsonschema==4.26.0\njsonschema-specifications==2025.9.1\nlark==1.2.2\nllguidance==1.3.0\nllvmlite==0.44.0\nlm-format-enforcer==0.11.3\nloguru==0.7.3\nmarkdown-it-py==4.2.0\nmarkupsafe==3.0.4\nmcp==2.3.0\nmcp-types==2.3.0\nmdurl==0.1.2\nmistral-common==1.11.2\nmodel-hosting-container-standards==0.1.16\nmpmath==1.3.0\nmsgspec==0.21.1\nmultidict==6.9.1\nnetworkx==3.7\nninja==1.13.0\nnumba==0.61.2\nnumpy==2.2.6\nnvidia-cublas-cu12==12.9.1.4\nnvidia-cuda-cupti-cu12==12.9.79\nnvidia-cuda-nvrtc-cu12==12.9.86\nnvidia-cuda-runtime-cu12==12.9.79\nnvidia-cudnn-cu12==9.10.2.21\nnvidia-cudnn-frontend==1.18.0\nnvidia-cufft-cu12==11.4.1.4\nnvidia-cufile-cu12==1.14.1.1\nnvidia-curand-cu12==10.3.10.19\nnvidia-cusolver-cu12==11.7.5.82\nnvidia-cusparse-cu12==12.5.10.65\nnvidia-cusparselt-cu12==0.7.1\nnvidia-cutlass-dsl==4.5.0\nnvidia-cutlass-dsl-libs-base==4.5.0\nnvidia-ml-py==13.615.71\nnvidia-nccl-cu12==2.27.5\nnvidia-nvjitlink-cu12==12.9.86\nnvidia-nvshmem-cu12==3.4.5\nnvidia-nvtx-cu12==12.9.79\nopenai==2.6.1\nopenai-harmony==0.0.4\nopencv-python-headless==5.0.0.93\nopentelemetry-api==1.41.1\nopentelemetry-exporter-otlp==1.41.1\nopentelemetry-exporter-otlp-proto-common==1.41.1\nopentelemetry-exporter-otlp-proto-grpc==1.41.1\nopentelemetry-exporter-otlp-proto-http==1.41.1\nopentelemetry-proto==1.41.1\nopentelemetry-sdk==1.41.1\nopentelemetry-semantic-conventions==0.62b1\nopentelemetry-semantic-conventions-ai==0.5.1\noutlines-core==0.2.11\npackaging==26.3\npartial-json-parser==0.2.1.1.post7\npillow==12.2.0\nprometheus-client==0.25.0\nprometheus-fastapi-instrumentator==8.1.0\npropcache==0.5.4\nprotobuf==6.33.6\npsutil==7.2.2\npy-cpuinfo==9.0.0\npybase64==1.4.3\npycountry==26.2.16\npycparser==3.12\npydantic==2.13.4\npydantic-core==2.46.4\npydantic-extra-types==2.11.1\npydantic-settings==2.16.2\npygments==2.21.0\npyjwt==2.15.1\npython-dotenv==1.2.4\npython-json-logger==4.2.0\npython-multipart==0.0.33\npyyaml==6.0.1\npyzmq==27.1.0\nquack-kernels==0.4.1\nreferencing==0.37.0\nregex==2026.5.9\nrequests==2.34.0\nrich==15.0.0\nrich-toolkit==0.20.6\nrignore==0.8.1\nrpds-py==2026.9.1\nsafetensors==0.8.0\nsentencepiece==0.2.1\nsentry-sdk==2.73.0\nsetproctitle==1.3.7\nsetuptools==80.10.2\nshellingham==1.5.4\nsix==1.17.0\nsniffio==1.3.1\nsse-starlette==3.6.0\nstarlette==1.10.0\nsupervisor==4.3.0\nsympy==1.14.0\ntabulate==0.10.0\ntiktoken==0.12.0\ntokenizers==0.22.2\ntorch==2.10.0+cu129\ntorch-c-dlpack-ext==0.1.5\ntorchaudio==2.10.0+cu129\ntorchvision==0.25.0+cu129\ntqdm==4.67.3\ntransformers==5.5.1\ntriton==3.6.0\ntruststore==0.10.5\ntyper==0.27.3\ntyping-extensions==4.15.0\ntyping-inspection==0.4.4\nurllib3==2.8.0\nuvicorn==0.54.0\nuvloop==0.23.0\nvllm==0.19.1\nwatchfiles==1.1.1\nwebsockets==17.4\nxgrammar==0.1.32\nyarl==1.25.1\nzipp==4.1.2\n",
+    "previous_lock_sha256": "9e71bd12e300951f37b0cc5c7b3c539d0e07593e498657eab64d35311311c8fc",
+    "output_path": "D:/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/requirements-runtime-candidate.txt",
+    "cache_directory": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\.tmpICHNgM",
+    "initial_cache_bytes": 85755895,
+    "cache_manifest_archive": {
+      "encoding": "zlib+base64 of UTF8 JSON",
+      "uncompressed_bytes": 177171,
+      "sha256": "f8ebfbb3b3243f4f3ecfe26d56d00a15e72722d22aee1d6e7e70c2cbd17aaf53",
+      "payload": "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"
+    },
+    "max_seconds": 600,
+    "process_monitor_threshold_bytes": 536870912,
+    "cache_monitor_threshold_bytes": 134217728,
+    "limits_are_polled_not_hard_quotas": true,
+    "controller_source": "import ctypes,datetime,getpass,hashlib,json,os,re,subprocess,sys,time,uuid\nfrom ctypes import wintypes\nfrom pathlib import Path\np=Path('kimi/controls/kimi_store_v1/runtime-dependencies-candidate.json');root=(p.parent/'native_patch').resolve();d=json.loads(p.read_text(encoding='utf-8'));legacy=json.loads((root/'cpu-probe.json').read_text(encoding='utf-8'));old=legacy['vllm_local_resolve_executions'][-1];argv=list(old['argv'])\nif '--only-binary' in argv:\n index=argv.index('--only-binary');del argv[index:index+2]\nassert '--no-build' in argv and Path(old['temporary_root']).resolve()==root\nuv=Path(old['tool']);assert hashlib.sha256(uv.read_bytes()).hexdigest()==old['tool_sha256']\ncandidate=d['runtime_minimal_resolve_candidate'];assert candidate.get('review_decision')=='PASS_ONE_LOCAL_METADATA_ATTEMPT' and old['run_id']==candidate['approved_parent_run'];assert not d.get('runtime_minimal_resolve_executions')\nroots=candidate['roots'];env={k:v for k,v in os.environ.items() if not k.startswith(('UV_','PIP_'))}\nenv.update(TMP=str(root),TEMP=str(root),TMPDIR=str(root),UV_PYTHON_DOWNLOADS='never',UV_NO_PROGRESS='1',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1')\ncache=Path(candidate['cache_directory']).resolve();assert cache.parent==root and cache.is_dir() and not cache.is_symlink()\nimport base64,zlib\narchive=candidate['cache_manifest_archive'];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(archive['payload'],validate=True),1048577)\nassert len(raw)<=1048576 and len(raw)==archive['uncompressed_bytes'] and decoder.eof and not decoder.unconsumed_tail and not decoder.unused_data and hashlib.sha256(raw).hexdigest()==archive['sha256']\nmanifest=json.loads(raw);assert isinstance(manifest,list) and 0<len(manifest)<=4096\nfor item in manifest:\n file=root/item['path'];assert file.is_file() and not file.is_symlink() and file.stat().st_size==item['bytes'] and hashlib.sha256(file.read_bytes()).hexdigest()==item['sha256']\nif '--no-cache' in argv:argv.remove('--no-cache')\nif '--cache-dir' in argv:\n index=argv.index('--cache-dir');assert argv.count('--cache-dir')==1 and Path(argv[index+1]).resolve()==cache\nelse:argv[1:1]=['--cache-dir',str(cache)]\ntarget=Path(candidate['output_path']).resolve();assert target==p.parent.resolve()/'requirements-runtime-candidate.txt' and target.is_file() and not target.is_symlink();assert hashlib.sha256(target.read_bytes()).hexdigest()==candidate['previous_lock_sha256']\nassert '--output-file' not in argv and '--upgrade' not in argv and '--overrides' not in argv and '--excludes' not in argv\nargv += ['--output-file',str(target)]\nbaseline={q.resolve() for q in root.iterdir()}\nclass Memory(ctypes.Structure):\n _fields_=[('cb',wintypes.DWORD),('PageFaultCount',wintypes.DWORD),('PeakWorkingSetSize',ctypes.c_size_t),('WorkingSetSize',ctypes.c_size_t),('QuotaPeakPagedPoolUsage',ctypes.c_size_t),('QuotaPagedPoolUsage',ctypes.c_size_t),('QuotaPeakNonPagedPoolUsage',ctypes.c_size_t),('QuotaNonPagedPoolUsage',ctypes.c_size_t),('PagefileUsage',ctypes.c_size_t),('PeakPagefileUsage',ctypes.c_size_t),('PrivateUsage',ctypes.c_size_t)]\nquery=ctypes.WinDLL('psapi',use_last_error=True).GetProcessMemoryInfo;query.argtypes=[wintypes.HANDLE,ctypes.POINTER(Memory),wintypes.DWORD];query.restype=wintypes.BOOL\nkeys=('tool','tool_version','tool_sha256','roots','target_platform','target_python','temporary_root','max_seconds','memory_monitor_threshold_bytes','temporary_monitor_threshold_bytes','monitor_interval_seconds','monitor_limits_are_polled_not_hard_quotas','source_builds','environment_created','installed','gpu_used')\nrow={k:old[k] for k in keys};row.update(run_id='kimi-local-resolve-'+uuid.uuid4().hex,registered_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),owner=getpass.getuser(),state='LOCAL_RUNNING',code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),argv=argv,parent_resolved_run=old['run_id'],change='UV rejects --no-build together with --only-binary; retained --no-build, removed redundant mutually exclusive option; no source builds allowed')\nrow['roots']=roots;row['temporary_monitor_threshold_bytes']=128*1024**2;row['reused_metadata_cache']=str(cache);row['initial_metadata_cache_bytes']=candidate['initial_cache_bytes'];row['change']='preserve actual installed versions as soft output preferences;15 exact framework/SDK/cryptography policy roots; no dependency overrides, installs or builds'\nd['runtime_minimal_resolve_executions']=[row]\ndef save():p.write_bytes((json.dumps(d,ensure_ascii=False,indent=2)+'\\n').encode())\nsave();proc=None;out=b'';err=b'';entered=time.monotonic();peak_mem=0;peak_temp=0\ntry:\n seed=candidate['preference_seed'].encode();assert hashlib.sha256(seed).hexdigest()==candidate['preference_seed_sha256'];target.write_bytes(seed);row['preference_seed_written']=True;save()\n proc=subprocess.Popen(argv,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env,creationflags=subprocess.CREATE_NO_WINDOW);row['pid']=proc.pid;save();first=True\n while True:\n  try:\n   out,err=proc.communicate(input=('\\n'.join(roots)+'\\n').encode() if first else None,timeout=1);break\n  except subprocess.TimeoutExpired:\n   first=False;mem=Memory();mem.cb=ctypes.sizeof(mem)\n   if not query(wintypes.HANDLE(int(proc._handle)),ctypes.byref(mem),mem.cb):\n    if proc.poll() is not None:continue\n    raise OSError(ctypes.get_last_error(),'cannot monitor owned UV process')\n   used=max(mem.WorkingSetSize,mem.PrivateUsage);peak_mem=max(peak_mem,used);temporary=0\n   for entry in root.iterdir():\n    if entry.resolve() in baseline and entry.resolve()!=cache:continue\n    if entry.is_symlink():raise ValueError('unattributed new temporary symlink')\n    for file in (entry.rglob('*') if entry.is_dir() else [entry]):\n     try:\n      if file.is_file() and not file.is_symlink():temporary+=file.stat().st_size\n     except FileNotFoundError:pass\n   peak_temp=max(peak_temp,temporary)\n   if time.monotonic()-entered>600 or used>512*1024**2 or temporary>128*1024**2:\n    row['guard_stop']={'elapsed_seconds':time.monotonic()-entered,'process_memory_bytes':used,'new_entry_bytes':temporary};proc.kill();out,err=proc.communicate(timeout=15);break\n row.update(state='LOCAL_TERMINAL',returncode=proc.returncode,elapsed_seconds=time.monotonic()-entered,peak_sampled_process_memory_bytes=peak_mem,peak_sampled_new_entry_bytes=peak_temp,stdout=out[:131072].decode('utf-8',errors='replace'),stderr=err[:65536].decode('utf-8',errors='replace'),stdout_bytes=len(out),stderr_bytes=len(err),stdout_sha256=hashlib.sha256(out).hexdigest(),stderr_sha256=hashlib.sha256(err).hexdigest())\n if proc.returncode or row.get('guard_stop'):raise ValueError('local UV resolution failed or monitor stopped it')\n if len(out)>131072:raise ValueError('candidate lock exceeds 128KiB')\n with target.open('rb') as stream:lock_raw=stream.read(131073)\n if len(lock_raw)>131072:raise ValueError('output lock exceeds128KiB')\n pins={}\n for line in lock_raw.decode().splitlines():\n  line=line.strip()\n  if not line or line.startswith('#'):continue\n  match=re.fullmatch(r'([A-Za-z0-9_.-]+)==([^ ;]+)',line)\n  if match is None:raise ValueError('unexpected lock row: '+line)\n  name=re.sub('[-_.]+','-',match[1]).lower()\n  if name in pins:raise ValueError('duplicate package')\n  pins[name]=match[2]\n expected=dict(vllm='0.19.1',torch='2.10.0+cu129',accelerate='1.12.0',torchaudio='2.10.0+cu129',torchvision='0.25.0+cu129',transformers='5.5.1',numpy='2.2.6',triton='3.6.0')\n expected.update({'cuda-bindings':'12.9.4','nvidia-cudnn-cu12':'9.10.2.21','nvidia-nccl-cu12':'2.27.5','nvidia-nvshmem-cu12':'3.4.5'})\n for clause in roots:\n  name,version=clause.split('==');expected[re.sub('[-_.]+','-',name).lower()]=version\n if any(pins.get(k)!=v for k,v in expected.items()):raise ValueError('root/preserved direct version or Linux-specific Torch dependency differs')\n row['validated_output_before_header_base64']=base64.b64encode(lock_raw).decode();save()\n published=b'# CANDIDATE ONLY: resolved metadata, not installed or runtime/GPU admitted.\\n'+lock_raw\n target.write_bytes(published);row['published_candidate_sha256']=hashlib.sha256(published).hexdigest()\n row.update(passed=True,pins=pins,package_count=len(pins),lock_sha256=hashlib.sha256(lock_raw).hexdigest(),output_path=str(target),output_lock_bytes=len(lock_raw),output_lock=lock_raw.decode(),previous_lock_sha256=candidate['previous_lock_sha256'],linux_markers_cross_checked=True,scope='Linux/Python3.12 candidate versions on Windows only; no Linux imports, artifact integrity/install budget or ABI proof')\nexcept BaseException as error:\n row.update(passed=False,error_type=type(error).__name__,error=str(error),state='LOCAL_FAILED')\n if proc is not None and proc.poll() is None:proc.kill();out,err=proc.communicate(timeout=15)\n row.setdefault('stdout',out[:131072].decode('utf-8',errors='replace'));row.setdefault('stderr',err[:65536].decode('utf-8',errors='replace'))\n try:\n  with target.open('rb') as stream:failed_raw=stream.read(131073)\n  original_bytes=target.stat().st_size;truncated=len(failed_raw)>131072\n  row['failed_output_capture']={'base64':base64.b64encode(failed_raw[:131072]).decode(),'captured_bytes':min(len(failed_raw),131072),'original_bytes':original_bytes,'truncated':truncated,'sha256':hashlib.sha256(failed_raw).hexdigest() if not truncated else None,'captured_prefix_sha256':hashlib.sha256(failed_raw[:131072]).hexdigest()}\n  marker=b'# FAILED_UNRESOLVED_CANDIDATE: do not install or admit this file.\\n'\n  if truncated:\n   with target.open('ab') as stream:stream.write(b'\\n'+marker)\n   row['failed_marker']='footer; original full bytes retained as the first original_bytes bytes; only prefix captured in JSON'\n  else:\n   target.write_bytes(marker+failed_raw);row['failed_marker']='header; full original bytes captured in JSON and retained after header'\n except BaseException as capture_error:row['failed_output_mark_error']={'type':type(capture_error).__name__,'message':str(capture_error)}\n\nfinally:\n row['process_terminal']=proc is None or proc.poll() is not None;row['new_entries_after_exit']=[{'path':str(q.resolve()),'is_dir':q.is_dir()} for q in root.iterdir() if q.resolve() not in baseline];row['unknown_entries_not_deleted']=True;save()\nprint(json.dumps({k:v for k,v in row.items() if k not in ('stdout','pins')},ensure_ascii=False));print('LOCK_PREVIEW',row.get('stdout','')[:1500])",
+    "controller_sha256": "4c0d9280df646d61d444f9846d89e9a2a64e05941494fa855488c85c479af203",
+    "parent_controller_sha256": "cc061fbd6a3441443b461d6a3b51c737f0009678f06c9a0553eaf65b60480344",
+    "parent_restore_identical": true,
+    "patch_count": 8,
+    "documentation_url": "https://docs.astral.sh/uv/pip/compile/#upgrading-requirements",
+    "documentation_scope": "existing output pins are preferences; do not use --upgrade or overrides; actual resolution still must pass",
+    "missing_record_policy": "cryptography41.0.7 fixed to actual immutable-image version, conflict must fail; no force overwrite or ignored dependencies",
+    "reason": "actual prior57-path control failed on missing cryptography RECORD; old solver unnecessarily upgraded compatible transitive packages; preserve old evidence and minimize only where declared constraints permit",
+    "failure_publication_policy": "capture bounded raw+hash before marking; <=128KiB header with full capture, larger output preserved intact with failure footer/original length, no full hash claim; success candidate-only header; missing target/error explicitly recorded",
+    "review_decision": "PASS_ONE_LOCAL_METADATA_ATTEMPT",
+    "stdin_sha256": "0d9e889f79f2ce78dd6f2f7b8e46bdf51be8981088a4a11e665bf5342e7dd77d"
+  },
+  "runtime_minimal_resolve_candidate_history": [
+    {
+      "controller_source": "import ctypes,datetime,getpass,hashlib,json,os,re,subprocess,sys,time,uuid\nfrom ctypes import wintypes\nfrom pathlib import Path\np=Path('kimi/controls/kimi_store_v1/runtime-dependencies-candidate.json');root=(p.parent/'native_patch').resolve();d=json.loads(p.read_text(encoding='utf-8'));legacy=json.loads((root/'cpu-probe.json').read_text(encoding='utf-8'));old=legacy['vllm_local_resolve_executions'][-1];argv=list(old['argv'])\nif '--only-binary' in argv:\n index=argv.index('--only-binary');del argv[index:index+2]\nassert '--no-build' in argv and Path(old['temporary_root']).resolve()==root\nuv=Path(old['tool']);assert hashlib.sha256(uv.read_bytes()).hexdigest()==old['tool_sha256']\ncandidate=d['runtime_minimal_resolve_candidate'];assert candidate.get('review_decision')=='PASS_ONE_LOCAL_METADATA_ATTEMPT' and old['run_id']==candidate['approved_parent_run'];assert not d.get('runtime_minimal_resolve_executions')\nroots=candidate['roots'];env={k:v for k,v in os.environ.items() if not k.startswith(('UV_','PIP_'))}\nenv.update(TMP=str(root),TEMP=str(root),TMPDIR=str(root),UV_PYTHON_DOWNLOADS='never',UV_NO_PROGRESS='1',UV_HTTP_TIMEOUT='10',UV_HTTP_RETRIES='0',UV_CONCURRENT_DOWNLOADS='1',UV_CONCURRENT_BUILDS='1',UV_CONCURRENT_INSTALLS='1',RAYON_NUM_THREADS='1',TOKIO_WORKER_THREADS='1')\ncache=Path(candidate['cache_directory']).resolve();assert cache.parent==root and cache.is_dir() and not cache.is_symlink()\nimport base64,zlib\narchive=candidate['cache_manifest_archive'];decoder=zlib.decompressobj();raw=decoder.decompress(base64.b64decode(archive['payload'],validate=True),1048577)\nassert len(raw)<=1048576 and len(raw)==archive['uncompressed_bytes'] and decoder.eof and not decoder.unconsumed_tail and not decoder.unused_data and hashlib.sha256(raw).hexdigest()==archive['sha256']\nmanifest=json.loads(raw);assert isinstance(manifest,list) and 0<len(manifest)<=4096\nfor item in manifest:\n file=root/item['path'];assert file.is_file() and not file.is_symlink() and file.stat().st_size==item['bytes'] and hashlib.sha256(file.read_bytes()).hexdigest()==item['sha256']\nif '--no-cache' in argv:argv.remove('--no-cache')\nif '--cache-dir' in argv:\n index=argv.index('--cache-dir');assert argv.count('--cache-dir')==1 and Path(argv[index+1]).resolve()==cache\nelse:argv[1:1]=['--cache-dir',str(cache)]\ntarget=Path(candidate['output_path']).resolve();assert target==p.parent.resolve()/'requirements-runtime-candidate.txt' and target.is_file() and not target.is_symlink();assert hashlib.sha256(target.read_bytes()).hexdigest()==candidate['previous_lock_sha256']\nassert '--output-file' not in argv and '--upgrade' not in argv and '--overrides' not in argv and '--excludes' not in argv\nargv += ['--output-file',str(target)]\nbaseline={q.resolve() for q in root.iterdir()}\nclass Memory(ctypes.Structure):\n _fields_=[('cb',wintypes.DWORD),('PageFaultCount',wintypes.DWORD),('PeakWorkingSetSize',ctypes.c_size_t),('WorkingSetSize',ctypes.c_size_t),('QuotaPeakPagedPoolUsage',ctypes.c_size_t),('QuotaPagedPoolUsage',ctypes.c_size_t),('QuotaPeakNonPagedPoolUsage',ctypes.c_size_t),('QuotaNonPagedPoolUsage',ctypes.c_size_t),('PagefileUsage',ctypes.c_size_t),('PeakPagefileUsage',ctypes.c_size_t),('PrivateUsage',ctypes.c_size_t)]\nquery=ctypes.WinDLL('psapi',use_last_error=True).GetProcessMemoryInfo;query.argtypes=[wintypes.HANDLE,ctypes.POINTER(Memory),wintypes.DWORD];query.restype=wintypes.BOOL\nkeys=('tool','tool_version','tool_sha256','roots','target_platform','target_python','temporary_root','max_seconds','memory_monitor_threshold_bytes','temporary_monitor_threshold_bytes','monitor_interval_seconds','monitor_limits_are_polled_not_hard_quotas','source_builds','environment_created','installed','gpu_used')\nrow={k:old[k] for k in keys};row.update(run_id='kimi-local-resolve-'+uuid.uuid4().hex,registered_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),owner=getpass.getuser(),state='LOCAL_RUNNING',code_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),argv=argv,parent_failed_run=old['run_id'],change='UV rejects --no-build together with --only-binary; retained --no-build, removed redundant mutually exclusive option; no source builds allowed')\nrow['roots']=roots;row['temporary_monitor_threshold_bytes']=128*1024**2;row['reused_metadata_cache']=str(cache);row['initial_metadata_cache_bytes']=candidate['initial_cache_bytes'];row['change']='preserve actual installed versions as soft output preferences;15 exact framework/SDK/cryptography policy roots; no dependency overrides, installs or builds'\nd['runtime_minimal_resolve_executions']=[row]\ndef save():p.write_bytes((json.dumps(d,ensure_ascii=False,indent=2)+'\\n').encode())\nsave();proc=None;out=b'';err=b'';entered=time.monotonic();peak_mem=0;peak_temp=0\nseed=candidate['preference_seed'].encode();assert hashlib.sha256(seed).hexdigest()==candidate['preference_seed_sha256'];target.write_bytes(seed);row['preference_seed_written']=True;save()\ntry:\n proc=subprocess.Popen(argv,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=env,creationflags=subprocess.CREATE_NO_WINDOW);row['pid']=proc.pid;save();first=True\n while True:\n  try:\n   out,err=proc.communicate(input=('\\n'.join(roots)+'\\n').encode() if first else None,timeout=1);break\n  except subprocess.TimeoutExpired:\n   first=False;mem=Memory();mem.cb=ctypes.sizeof(mem)\n   if not query(wintypes.HANDLE(int(proc._handle)),ctypes.byref(mem),mem.cb):\n    if proc.poll() is not None:continue\n    raise OSError(ctypes.get_last_error(),'cannot monitor owned UV process')\n   used=max(mem.WorkingSetSize,mem.PrivateUsage);peak_mem=max(peak_mem,used);temporary=0\n   for entry in root.iterdir():\n    if entry.resolve() in baseline and entry.resolve()!=cache:continue\n    if entry.is_symlink():raise ValueError('unattributed new temporary symlink')\n    for file in (entry.rglob('*') if entry.is_dir() else [entry]):\n     try:\n      if file.is_file() and not file.is_symlink():temporary+=file.stat().st_size\n     except FileNotFoundError:pass\n   peak_temp=max(peak_temp,temporary)\n   if time.monotonic()-entered>600 or used>512*1024**2 or temporary>128*1024**2:\n    row['guard_stop']={'elapsed_seconds':time.monotonic()-entered,'process_memory_bytes':used,'new_entry_bytes':temporary};proc.kill();out,err=proc.communicate(timeout=15);break\n row.update(state='LOCAL_TERMINAL',returncode=proc.returncode,elapsed_seconds=time.monotonic()-entered,peak_sampled_process_memory_bytes=peak_mem,peak_sampled_new_entry_bytes=peak_temp,stdout=out[:131072].decode('utf-8',errors='replace'),stderr=err[:65536].decode('utf-8',errors='replace'),stdout_bytes=len(out),stderr_bytes=len(err),stdout_sha256=hashlib.sha256(out).hexdigest(),stderr_sha256=hashlib.sha256(err).hexdigest())\n if proc.returncode or row.get('guard_stop'):raise ValueError('local UV resolution failed or monitor stopped it')\n if len(out)>131072:raise ValueError('candidate lock exceeds 128KiB')\n with target.open('rb') as stream:lock_raw=stream.read(131073)\n if len(lock_raw)>131072:raise ValueError('output lock exceeds128KiB')\n pins={}\n for line in lock_raw.decode().splitlines():\n  line=line.strip()\n  if not line or line.startswith('#'):continue\n  match=re.fullmatch(r'([A-Za-z0-9_.-]+)==([^ ;]+)',line)\n  if match is None:raise ValueError('unexpected lock row: '+line)\n  name=re.sub('[-_.]+','-',match[1]).lower()\n  if name in pins:raise ValueError('duplicate package')\n  pins[name]=match[2]\n expected=dict(vllm='0.19.1',torch='2.10.0+cu129',accelerate='1.12.0',torchaudio='2.10.0+cu129',torchvision='0.25.0+cu129',transformers='5.5.1',numpy='2.2.6',triton='3.6.0')\n expected.update({'cuda-bindings':'12.9.4','nvidia-cudnn-cu12':'9.10.2.21','nvidia-nccl-cu12':'2.27.5','nvidia-nvshmem-cu12':'3.4.5'})\n for clause in roots:\n  name,version=clause.split('==');expected[re.sub('[-_.]+','-',name).lower()]=version\n if any(pins.get(k)!=v for k,v in expected.items()):raise ValueError('root/preserved direct version or Linux-specific Torch dependency differs')\n row.update(passed=True,pins=pins,package_count=len(pins),lock_sha256=hashlib.sha256(lock_raw).hexdigest(),output_path=str(target),output_lock_bytes=len(lock_raw),output_lock=lock_raw.decode(),previous_lock_sha256=candidate['previous_lock_sha256'],linux_markers_cross_checked=True,scope='Linux/Python3.12 candidate versions on Windows only; no Linux imports, artifact integrity/install budget or ABI proof')\nexcept BaseException as error:\n row.update(passed=False,error_type=type(error).__name__,error=str(error),state='LOCAL_FAILED')\n if proc is not None and proc.poll() is None:proc.kill();out,err=proc.communicate(timeout=15)\n row.setdefault('stdout',out[:131072].decode('utf-8',errors='replace'));row.setdefault('stderr',err[:65536].decode('utf-8',errors='replace'))\nfinally:\n row['process_terminal']=proc is None or proc.poll() is not None;row['new_entries_after_exit']=[{'path':str(q.resolve()),'is_dir':q.is_dir()} for q in root.iterdir() if q.resolve() not in baseline];row['unknown_entries_not_deleted']=True;save()\nprint(json.dumps({k:v for k,v in row.items() if k not in ('stdout','pins')},ensure_ascii=False));print('LOCK_PREVIEW',row.get('stdout','')[:1500])",
+      "controller_sha256": "08161670cc97b35615a213d714aa1214272980a6874acec2b5291647b5b3ae0c",
+      "review_decision": "NEEDS_FIX",
+      "findings": [
+        "seed mutation outside try may leave LOCAL_RUNNING",
+        "UV output may look resolved after validation failure without file marker"
+      ],
+      "executed": false
+    }
+  ],
+  "runtime_minimal_publication_controls": {
+    "cases": [
+      {
+        "case": "old-small",
+        "passed": true,
+        "original_bytes": 13,
+        "result_bytes": 13,
+        "scope": "actual exception-handler path only, no resolver/model/native runtime"
+      },
+      {
+        "case": "new-small",
+        "passed": true,
+        "original_bytes": 13,
+        "result_bytes": 79,
+        "scope": "actual exception-handler path only, no resolver/model/native runtime"
+      },
+      {
+        "case": "new-large",
+        "passed": true,
+        "original_bytes": 131073,
+        "result_bytes": 131140,
+        "scope": "actual exception-handler path only, no resolver/model/native runtime"
+      },
+      {
+        "case": "new-missing",
+        "passed": true,
+        "original_bytes": null,
+        "result_bytes": null,
+        "scope": "actual exception-handler path only, no resolver/model/native runtime"
+      }
+    ],
+    "old_failure_reproduced": true,
+    "temporary_file": "/mnt/d/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/native_patch/.runtime-lock-publication-check.tmp",
+    "temporary_file_absent_after": true,
+    "no_new_directory_environment_or_network": true
+  },
+  "runtime_minimal_resolve_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_ONE_LOCAL_METADATA_ATTEMPT",
+    "controller_sha256": "4c0d9280df646d61d444f9846d89e9a2a64e05941494fa855488c85c479af203",
+    "limits": [
+      "one local metadata resolution only; no install/ABI/GPU/model approval",
+      "failed save/marker is evidence insufficient; file not an installable lock",
+      "15 strict roots/cache/512MiB process and128MiB metadata/600s polled bounds unchanged"
+    ],
+    "previous_findings_closed": [
+      "seed mutation in try",
+      "bounded raw failure preservation and explicit unresolved marker",
+      "candidate-only success header",
+      "parent_resolved_run truthful"
     ]
   }
 }
