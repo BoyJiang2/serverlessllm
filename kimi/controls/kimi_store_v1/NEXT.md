@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 11:50官方vLLM0.19.1 wheel资产准备通过：433132101B/完整SHA71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719，已落原qjhs003 downloads，未解包/安装。服务器253秒仅2.55MB（约10KB/s）后精确身份pidfd停止；本机180秒收到428670976B到期失败；一次有界仅余4461125B续传9.568秒，全SHA通过。远端原断点前缀一致后单次SFTP reput，独立SSH全SHA/UID/inode/ZIP目录验收再排他发布；随后核本地绝对路径及SHA删除433MB，两个本地大文件路径均不存在。完整失败/续传/清理证据留cpu-probe，不重写为一次成功。metadata控制356811b3已实际采集并释放：vLLM直接13缺失/11版本冲突，Torch自身另5冲突，不能直接相加当独立包数；Numba0.61.2还要求NumPy<2.3而现2.3.5，不是完整传递闭包。限定只读实际复审通过资产/清理与metadata范围。下一项固定完整兼容依赖及安装空间预算，再审现有差异层CPU安装/导入；当前环境/GPU/模型仍未准入，不重做native CPU探针，不另造包装或环境。
+
 - 11/2官方PyPI 0.19.1 x86 wheel433132101B/SHA71a87f46…已固定；仅HTTP Range共305135B核ZIP目录及四个Base/utils/default/kimi源码，SHA逐项匹配已有绑定。目录声明解包1172403610B，不是已实际解包或完整wheel SHA验收；未下载完整包/安装。官方v0.19.1文档默认CUDA12.9，依赖Torch2.10。下一项复用原无挂载CPU probe，仅stdlib metadata/packaging核实际直接依赖与Torch自身依赖，无Torch/vLLM import；host02becf6b…/body08bc1d38…只读复审PASS，尚未执行。原CPU/窗口/guard/释放保持，不将matched或采集passed称环境ready。
 
 - 11/2 11:28真实CPU身份绑定通过：run44ef8ef8/code620543c，固定53f661镜像/994772cc及30132b6d两库，冻结wrapper及实际native_record_call._bound_runtime完成builtin归属、checkpoint映射inode和Store磁盘摘要核验；坏外部SHA、compiled=false及Store SHA三个负例实际拒绝。accelerate1.12.0仅从已核380935B只读wheel临时导入，未pip/改镜像或新环境；139359B必要源码仅容器/tmp临时存在，释放后消失。独立SSH核本次和首次缺accelerate失败run均容器空/timerinactive，8个GLM SDK文件及两库/wheel SHA不变。限定实际复审允许native_cpu_runtime_binding=true；mapped机器码/函数地址、完整功能ABI/liveStore、CUDA、原生恢复、八rank/完整模型/服务仍未验证。原失败保留，不复用本次临时receipt作为后续运行凭证。

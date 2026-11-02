@@ -5236,5 +5236,479 @@
       "version matches do not prove transitive/extras/dynamic-library/functional ABI",
       "inactive markers reported as count only"
     ]
+  },
+  "vllm_dependency_inventory_executions": [
+    {
+      "registered_utc": "2026-11-02T03:34:21.249844+00:00",
+      "code_commit": "d07a2b9ebe4135104904079399c67fe42120505e",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "02becf6b25662f34c109fd75901f266ae42563c2ccca6008f7c6293b9208d863",
+      "body_sha256": "08bc1d38e7ab9bf100c08b318508056a6b5dc982cdbd701e2392ad0ca766330c",
+      "returncode": 0,
+      "stderr": "",
+      "events": [
+        {
+          "run_id": "kimi-runtime-metadata-356811b37e254170b54580612b0d3a51",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T03:34:27.983088+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "container_id": "d425039fdff2456ed6e63ee11e970126526721fdbc4b5a8c114c2403c52258a7",
+          "guard_install": "Running timer as unit: kimi-runtime-metadata-356811b37e254170b54580612b0d3a51-cleanup.timer\nWill run service as unit: kimi-runtime-metadata-356811b37e254170b54580612b0d3a51-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 6h 35min 5.910480s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force d425039fdff2456ed6e63ee11e970126526721fdbc4b5a8c114c2403c52258a7 ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": true, \"device_nodes\": [], \"full_environment_ready\": false, \"gpu_verified\": false, \"vllm_direct\": {\"matched\": {\"regex\": \"2026.5.9\", \"psutil\": \"7.2.2\", \"sentencepiece\": \"0.2.1\", \"numpy\": \"2.3.5\", \"requests\": \"2.34.0\", \"tqdm\": \"4.67.3\", \"tokenizers\": \"0.22.2\", \"protobuf\": \"6.33.6\", \"fastapi\": \"0.136.1\", \"aiohttp\": \"3.13.5\", \"openai\": \"2.6.1\", \"pydantic\": \"2.13.4\", \"prometheus_client\": \"0.25.0\", \"pillow\": \"12.2.0\", \"tiktoken\": \"0.12.0\", \"diskcache\": \"5.6.3\", \"xgrammar\": \"0.1.32\", \"typing_extensions\": \"4.15.0\", \"filelock\": \"3.29.0\", \"partial-json-parser\": \"0.2.1.1.post7\", \"pyzmq\": \"27.1.0\", \"msgspec\": \"0.21.1\", \"gguf\": \"0.19.0\", \"mistral_common\": \"1.11.2\", \"pyyaml\": \"6.0.1\", \"six\": \"1.17.0\", \"einops\": \"0.8.2\", \"compressed-tensors\": \"0.15.0.1\", \"cloudpickle\": \"3.1.2\", \"watchfiles\": \"1.1.1\", \"ninja\": \"1.13.0\", \"pybase64\": \"1.4.3\", \"setproctitle\": \"1.3.7\", \"openai-harmony\": \"0.0.4\", \"anthropic\": \"0.101.0\", \"opentelemetry-sdk\": \"1.41.1\", \"opentelemetry-api\": \"1.41.1\", \"opentelemetry-exporter-otlp\": \"1.41.1\", \"torch\": \"2.10.0+cu129\", \"nvidia-cutlass-dsl\": \"4.5.0\", \"quack-kernels\": \"0.4.1\"}, \"missing\": [\"cachetools\", \"blake3\", \"py-cpuinfo\", \"prometheus-fastapi-instrumentator>=7.0.0\", \"lm-format-enforcer==0.11.3\", \"depyf==0.20.0\", \"python-json-logger\", \"cbor2\", \"ijson\", \"model-hosting-container-standards<1.0.0,>=0.1.13\", \"mcp\", \"opentelemetry-semantic-conventions-ai>=0.4.1\", \"numba==0.61.2\"], \"conflicts\": [{\"requirement\": \"transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0\", \"actual\": \"5.3.0\"}, {\"requirement\": \"llguidance<1.4.0,>=1.3.0; platform_machine == \\\"x86_64\\\" or platform_machine == \\\"arm64\\\" or platform_machine == \\\"aarch64\\\" or platform_machine == \\\"s390x\\\" or platform_machine == \\\"ppc64le\\\"\", \"actual\": \"0.7.30\"}, {\"requirement\": \"outlines_core==0.2.11\", \"actual\": \"0.1.26\"}, {\"requirement\": \"lark==1.2.2\", \"actual\": \"1.3.1\"}, {\"requirement\": \"opencv-python-headless>=4.13.0\", \"actual\": \"4.10.0.84\"}, {\"requirement\": \"setuptools<81.0.0,>=77.0.3; python_version > \\\"3.11\\\"\", \"actual\": \"82.0.1\"}, {\"requirement\": \"torchaudio==2.10.0\", \"actual\": \"2.9.1+cu129\"}, {\"requirement\": \"torchvision==0.25.0\", \"actual\": \"0.24.1+cu129\"}, {\"requirement\": \"flashinfer-python==0.6.6\", \"actual\": \"0.6.7.post2\"}, {\"requirement\": \"flashinfer-cubin==0.6.6\", \"actual\": \"0.6.7.post2\"}, {\"requirement\": \"nvidia-cudnn-frontend<1.19.0,>=1.13.0\", \"actual\": \"1.23.0\"}], \"extras_unverified\": [{\"package\": \"fastapi\", \"extras\": [\"standard\"], \"transitive_extra_dependencies_verified\": false}, {\"package\": \"mistral_common\", \"extras\": [\"image\"], \"transitive_extra_dependencies_verified\": false}], \"inactive_marker_count\": 23}, \"torch_requires\": {\"matched\": {\"filelock\": \"3.29.0\", \"typing-extensions\": \"4.15.0\", \"setuptools\": \"82.0.1\", \"sympy\": \"1.14.0\", \"networkx\": \"3.6.1\", \"jinja2\": \"3.1.6\", \"fsspec\": \"2026.2.0\", \"nvidia-cuda-nvrtc-cu12\": \"12.9.86\", \"nvidia-cuda-runtime-cu12\": \"12.9.79\", \"nvidia-cuda-cupti-cu12\": \"12.9.79\", \"nvidia-cublas-cu12\": \"12.9.1.4\", \"nvidia-cufft-cu12\": \"11.4.1.4\", \"nvidia-curand-cu12\": \"10.3.10.19\", \"nvidia-cusolver-cu12\": \"11.7.5.82\", \"nvidia-cusparse-cu12\": \"12.5.10.65\", \"nvidia-cusparselt-cu12\": \"0.7.1\", \"nvidia-nvtx-cu12\": \"12.9.79\", \"nvidia-nvjitlink-cu12\": \"12.9.86\", \"nvidia-cufile-cu12\": \"1.14.1.1\"}, \"missing\": [], \"conflicts\": [{\"requirement\": \"cuda-bindings==12.9.4; platform_system == \\\"Linux\\\"\", \"actual\": \"12.9.6\"}, {\"requirement\": \"nvidia-cudnn-cu12==9.10.2.21; platform_system == \\\"Linux\\\"\", \"actual\": \"9.16.0.29\"}, {\"requirement\": \"nvidia-nccl-cu12==2.27.5; platform_system == \\\"Linux\\\"\", \"actual\": \"2.28.3\"}, {\"requirement\": \"nvidia-nvshmem-cu12==3.4.5; platform_system == \\\"Linux\\\"\", \"actual\": \"3.3.20\"}, {\"requirement\": \"triton==3.6.0; platform_system == \\\"Linux\\\"\", \"actual\": \"3.5.1\"}], \"extras_unverified\": [], \"inactive_marker_count\": 3}, \"sdk_accelerate\": {\"matched\": {}, \"missing\": [\"accelerate>=1.7.0\"], \"conflicts\": [], \"extras_unverified\": [], \"inactive_marker_count\": 0}, \"installed_vllm\": null, \"python\": \"3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]\", \"machine\": \"x86_64\", \"libc\": [\"glibc\", \"2.39\"], \"torch_module_imported\": false, \"vllm_module_imported\": false, \"scope\": \"distribution metadata only; no module/engine/CUDA import; no transitive closure or functional ABI proof\"}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T03:34:28.09334758Z",
+            "FinishedAt": "2026-11-02T03:34:28.294286823Z"
+          },
+          "passed": true,
+          "metadata": {
+            "passed": true,
+            "device_nodes": [],
+            "full_environment_ready": false,
+            "gpu_verified": false,
+            "vllm_direct": {
+              "matched": {
+                "regex": "2026.5.9",
+                "psutil": "7.2.2",
+                "sentencepiece": "0.2.1",
+                "numpy": "2.3.5",
+                "requests": "2.34.0",
+                "tqdm": "4.67.3",
+                "tokenizers": "0.22.2",
+                "protobuf": "6.33.6",
+                "fastapi": "0.136.1",
+                "aiohttp": "3.13.5",
+                "openai": "2.6.1",
+                "pydantic": "2.13.4",
+                "prometheus_client": "0.25.0",
+                "pillow": "12.2.0",
+                "tiktoken": "0.12.0",
+                "diskcache": "5.6.3",
+                "xgrammar": "0.1.32",
+                "typing_extensions": "4.15.0",
+                "filelock": "3.29.0",
+                "partial-json-parser": "0.2.1.1.post7",
+                "pyzmq": "27.1.0",
+                "msgspec": "0.21.1",
+                "gguf": "0.19.0",
+                "mistral_common": "1.11.2",
+                "pyyaml": "6.0.1",
+                "six": "1.17.0",
+                "einops": "0.8.2",
+                "compressed-tensors": "0.15.0.1",
+                "cloudpickle": "3.1.2",
+                "watchfiles": "1.1.1",
+                "ninja": "1.13.0",
+                "pybase64": "1.4.3",
+                "setproctitle": "1.3.7",
+                "openai-harmony": "0.0.4",
+                "anthropic": "0.101.0",
+                "opentelemetry-sdk": "1.41.1",
+                "opentelemetry-api": "1.41.1",
+                "opentelemetry-exporter-otlp": "1.41.1",
+                "torch": "2.10.0+cu129",
+                "nvidia-cutlass-dsl": "4.5.0",
+                "quack-kernels": "0.4.1"
+              },
+              "missing": [
+                "cachetools",
+                "blake3",
+                "py-cpuinfo",
+                "prometheus-fastapi-instrumentator>=7.0.0",
+                "lm-format-enforcer==0.11.3",
+                "depyf==0.20.0",
+                "python-json-logger",
+                "cbor2",
+                "ijson",
+                "model-hosting-container-standards<1.0.0,>=0.1.13",
+                "mcp",
+                "opentelemetry-semantic-conventions-ai>=0.4.1",
+                "numba==0.61.2"
+              ],
+              "conflicts": [
+                {
+                  "requirement": "transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0",
+                  "actual": "5.3.0"
+                },
+                {
+                  "requirement": "llguidance<1.4.0,>=1.3.0; platform_machine == \"x86_64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+                  "actual": "0.7.30"
+                },
+                {
+                  "requirement": "outlines_core==0.2.11",
+                  "actual": "0.1.26"
+                },
+                {
+                  "requirement": "lark==1.2.2",
+                  "actual": "1.3.1"
+                },
+                {
+                  "requirement": "opencv-python-headless>=4.13.0",
+                  "actual": "4.10.0.84"
+                },
+                {
+                  "requirement": "setuptools<81.0.0,>=77.0.3; python_version > \"3.11\"",
+                  "actual": "82.0.1"
+                },
+                {
+                  "requirement": "torchaudio==2.10.0",
+                  "actual": "2.9.1+cu129"
+                },
+                {
+                  "requirement": "torchvision==0.25.0",
+                  "actual": "0.24.1+cu129"
+                },
+                {
+                  "requirement": "flashinfer-python==0.6.6",
+                  "actual": "0.6.7.post2"
+                },
+                {
+                  "requirement": "flashinfer-cubin==0.6.6",
+                  "actual": "0.6.7.post2"
+                },
+                {
+                  "requirement": "nvidia-cudnn-frontend<1.19.0,>=1.13.0",
+                  "actual": "1.23.0"
+                }
+              ],
+              "extras_unverified": [
+                {
+                  "package": "fastapi",
+                  "extras": [
+                    "standard"
+                  ],
+                  "transitive_extra_dependencies_verified": false
+                },
+                {
+                  "package": "mistral_common",
+                  "extras": [
+                    "image"
+                  ],
+                  "transitive_extra_dependencies_verified": false
+                }
+              ],
+              "inactive_marker_count": 23
+            },
+            "torch_requires": {
+              "matched": {
+                "filelock": "3.29.0",
+                "typing-extensions": "4.15.0",
+                "setuptools": "82.0.1",
+                "sympy": "1.14.0",
+                "networkx": "3.6.1",
+                "jinja2": "3.1.6",
+                "fsspec": "2026.2.0",
+                "nvidia-cuda-nvrtc-cu12": "12.9.86",
+                "nvidia-cuda-runtime-cu12": "12.9.79",
+                "nvidia-cuda-cupti-cu12": "12.9.79",
+                "nvidia-cublas-cu12": "12.9.1.4",
+                "nvidia-cufft-cu12": "11.4.1.4",
+                "nvidia-curand-cu12": "10.3.10.19",
+                "nvidia-cusolver-cu12": "11.7.5.82",
+                "nvidia-cusparse-cu12": "12.5.10.65",
+                "nvidia-cusparselt-cu12": "0.7.1",
+                "nvidia-nvtx-cu12": "12.9.79",
+                "nvidia-nvjitlink-cu12": "12.9.86",
+                "nvidia-cufile-cu12": "1.14.1.1"
+              },
+              "missing": [],
+              "conflicts": [
+                {
+                  "requirement": "cuda-bindings==12.9.4; platform_system == \"Linux\"",
+                  "actual": "12.9.6"
+                },
+                {
+                  "requirement": "nvidia-cudnn-cu12==9.10.2.21; platform_system == \"Linux\"",
+                  "actual": "9.16.0.29"
+                },
+                {
+                  "requirement": "nvidia-nccl-cu12==2.27.5; platform_system == \"Linux\"",
+                  "actual": "2.28.3"
+                },
+                {
+                  "requirement": "nvidia-nvshmem-cu12==3.4.5; platform_system == \"Linux\"",
+                  "actual": "3.3.20"
+                },
+                {
+                  "requirement": "triton==3.6.0; platform_system == \"Linux\"",
+                  "actual": "3.5.1"
+                }
+              ],
+              "extras_unverified": [],
+              "inactive_marker_count": 3
+            },
+            "sdk_accelerate": {
+              "matched": {},
+              "missing": [
+                "accelerate>=1.7.0"
+              ],
+              "conflicts": [],
+              "extras_unverified": [],
+              "inactive_marker_count": 0
+            },
+            "installed_vllm": null,
+            "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+            "machine": "x86_64",
+            "libc": [
+              "glibc",
+              "2.39"
+            ],
+            "torch_module_imported": false,
+            "vllm_module_imported": false,
+            "scope": "distribution metadata only; no module/engine/CUDA import; no transitive closure or functional ABI proof"
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T03:34:28.383680+00:00"
+        }
+      ]
+    }
+  ],
+  "vllm_dependency_inventory_independent_verification": {
+    "recorded_utc": "2026-11-02T03:36:10.348740+00:00",
+    "returncode": 0,
+    "stdout": "{\"passed\": true, \"own_containers\": \"\", \"timer\": \"ActiveState=inactive\\n\"}\n",
+    "stderr": "",
+    "data": {
+      "passed": true,
+      "own_containers": "",
+      "timer": "ActiveState=inactive\n"
+    }
+  },
+  "vllm_wheel_downloads": [
+    {
+      "registered_utc": "2026-11-02T03:38:01.180720+00:00",
+      "run_id": "kimi-vllm-wheel-e647bb7c01ad4174a5f94fbaa77e815e",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "script_sha256": "714a6b99bf59a5215381faf9846b7b4c429df1da6608b1b58775a6f4fc96f711",
+      "script": "W={'filename': 'vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'url': 'https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl', 'bytes': 433132101, 'sha256': '71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719', 'declared_unpacked_bytes': 1172403610, 'members': 2116}\n\nimport os,json,resource,hashlib,urllib.request,zipfile,stat,datetime,time,sys\nfrom pathlib import Path,PurePosixPath\nresource.setrlimit(resource.RLIMIT_AS,(512*1024**2,512*1024**2));resource.setrlimit(resource.RLIMIT_FSIZE,(W['bytes']+65536,W['bytes']+65536));resource.setrlimit(resource.RLIMIT_CORE,(0,0));os.nice(10)\nallowed=os.sched_getaffinity(0);os.sched_setaffinity(0,{min(allowed)})\nnow=datetime.datetime.now(datetime.timezone.utc);end=datetime.datetime.fromisoformat('2026-11-02T18:50:00+08:00')\nif os.getuid()!=2147 or not datetime.datetime.fromisoformat('2026-11-02T01:00:00+08:00')<=now or (end-now).total_seconds()<660:raise ValueError('CPU identity/window budget differs')\nroot=Path('/data/brick1/boyjiang/kimi-k2.6/downloads');target=root/W['filename'];partial=target.with_name(target.name+'.partial');fs=os.statvfs(root)\nif fs.f_bavail*fs.f_frsize<2*W['bytes']+1024**3:raise ValueError('dependency free-space budget insufficient')\nprint(json.dumps({'event':'registered','run_id':sys.argv[1],'pid':os.getpid(),'uid':os.getuid(),'pid_start_ticks':Path('/proc/self/stat').read_text().split()[21],'boot_id':Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'max_seconds':600,'utc':now.isoformat(),'path':str(target)}),flush=True)\ndef digest_file(path):\n h=hashlib.sha256()\n with path.open('rb') as f:\n  while block:=f.read(1024**2):h.update(block)\n return h.hexdigest()\nreused=False\nif target.exists():\n if target.is_symlink() or target.stat().st_size!=W['bytes'] or digest_file(target)!=W['sha256']:raise ValueError('existing dependency differs')\n reused=True\nelse:\n fd=os.open(partial,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600);count=0;h=hashlib.sha256();started=time.monotonic();report=64*1024**2\n with os.fdopen(fd,'wb') as out,urllib.request.urlopen(W['url'],timeout=20) as inp:\n  if inp.status!=200:raise ValueError('unexpected download response')\n  while block:=inp.read(65536):\n   count+=len(block)\n   if count>W['bytes']:raise ValueError('dependency exceeds declared bytes')\n   out.write(block);h.update(block)\n   pause=count/(20*1024**2)-(time.monotonic()-started)\n   if pause>0:time.sleep(pause)\n   if count>=report:\n    print(json.dumps({'event':'progress','run_id':sys.argv[1],'bytes':count,'elapsed_seconds':time.monotonic()-started}),flush=True);report+=64*1024**2\n  out.flush();os.fsync(out.fileno())\n if count!=W['bytes'] or h.hexdigest()!=W['sha256']:raise ValueError('dependency full size/SHA differs')\n os.link(partial,target);partial.unlink()\nwith zipfile.ZipFile(target) as z:\n members=z.infolist();total=sum(i.file_size for i in members)\n if len(members)!=W['members'] or total!=W['declared_unpacked_bytes']:raise ValueError('wheel directory differs from preflight')\n for i in members:\n  n=PurePosixPath(i.filename)\n  if n.is_absolute() or '..' in n.parts or stat.S_ISLNK(i.external_attr>>16):raise ValueError('unsafe wheel member')\nprint(json.dumps({'event':'complete','passed':True,'run_id':sys.argv[1],'path':str(target),'bytes':target.stat().st_size,'sha256':digest_file(target),'declared_unpacked_bytes':total,'members':len(members),'reused':reused,'installed':False,'extracted':False,'gpu_used':False}),flush=True)\n",
+      "asset": {
+        "filename": "vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "bytes": 433132101,
+        "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "declared_unpacked_bytes": 1172403610,
+        "members": 2116
+      },
+      "code_commit": "d07a2b9ebe4135104904079399c67fe42120505e",
+      "returncode": 4294967295,
+      "stdout": "{\"event\": \"registered\", \"run_id\": \"kimi-vllm-wheel-e647bb7c01ad4174a5f94fbaa77e815e\", \"pid\": 1387590, \"uid\": 2147, \"pid_start_ticks\": \"71500844\", \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"max_seconds\": 600, \"utc\": \"2026-11-02T03:38:10.657967+00:00\", \"path\": \"/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl\"}\n",
+      "stderr": "",
+      "events": [
+        {
+          "event": "registered",
+          "run_id": "kimi-vllm-wheel-e647bb7c01ad4174a5f94fbaa77e815e",
+          "pid": 1387590,
+          "uid": 2147,
+          "pid_start_ticks": "71500844",
+          "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+          "max_seconds": 600,
+          "utc": "2026-11-02T03:38:10.657967+00:00",
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl"
+        }
+      ],
+      "stop_evidence": {
+        "recorded_utc": "2026-11-02T03:42:23.756938+00:00",
+        "action": "terminate_exact_owned_downloader_insufficient_throughput",
+        "pid": 1387590,
+        "pid_start_ticks": "71500844",
+        "age_seconds": 253.1600000000326,
+        "partial_bytes": 2555904,
+        "average_bytes_per_second": 10096.002528044204,
+        "estimated_remaining_seconds": 42648.18632958595,
+        "original_timeout_remaining_seconds": 346.8399999999674,
+        "signal_method": "pidfd_send_signal SIGTERM after exact argv/UID check"
+      },
+      "passed": false
+    }
+  ],
+  "vllm_wheel_local_relays": [
+    {
+      "registered_utc": "2026-11-02T03:43:31.957906+00:00",
+      "state": "LOCAL_DOWNLOAD_FAILED",
+      "source": {
+        "filename": "vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "bytes": 433132101,
+        "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "declared_unpacked_bytes": 1172403610,
+        "members": 2116
+      },
+      "local_archive": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+      "partial": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl.local-relay.partial",
+      "max_download_seconds": 180,
+      "download_rate_limit_bytes_per_second": 20971520,
+      "temporary_local_bytes_limit": 433132101,
+      "remove_local_after_remote_integrity_verified": true,
+      "passed": false,
+      "error": "TimeoutError('original local dependency download deadline')",
+      "partial_bytes": 428670976
+    },
+    {
+      "run_id": "kimi-vllm-local-resume-1276a50b1e024c0ea1a19e5cc86c3dcf",
+      "registered_utc": "2026-11-02T03:47:25.805050+00:00",
+      "state": "LOCAL_ARCHIVE_VERIFIED",
+      "original_failure_preserved": true,
+      "start_offset": 428670976,
+      "remaining_bytes": 4461125,
+      "local_archive": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+      "partial": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl.local-relay.partial",
+      "source": {
+        "filename": "vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "bytes": 433132101,
+        "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "declared_unpacked_bytes": 1172403610,
+        "members": 2116
+      },
+      "max_download_seconds": 60,
+      "socket_timeout_seconds": 10,
+      "prefix_sha256": "66b712b6f62a7176726b25e0be55ecd49663cfdf3548724386ae82415b6ce7ff",
+      "passed": true,
+      "bytes": 433132101,
+      "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+      "elapsed_seconds": 9.567937699999675
+    }
+  ],
+  "vllm_wheel_sftp_transfers": [
+    {
+      "registered_utc": "2026-11-02T03:48:13.048035+00:00",
+      "state": "REMOTE_VERIFIED_LOCAL_REMOVED",
+      "local_archive": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+      "remote_target": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+      "remote_partial": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl.partial",
+      "prefix_proof": {
+        "passed": true,
+        "partial_path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl.partial",
+        "bytes": 2555904,
+        "sha256": "82c3230c296f4ee9c3cc6eef9e78ba79eae1e2331746922dea8ebd2292c9c775",
+        "inode": 3273232428,
+        "mtime_ns": 1793590932877859784,
+        "original_downloader_absent": true
+      },
+      "source": {
+        "filename": "vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "url": "https://files.pythonhosted.org/packages/78/20/f41216b79c87372a9d03175f36fa1411ee61059ce8c557d2691722ea4aae/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "bytes": 433132101,
+        "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "declared_unpacked_bytes": 1172403610,
+        "members": 2116
+      },
+      "transfer_limit_seconds": 600,
+      "scp_or_sftp_repeated": false,
+      "returncode": 0,
+      "stdout": "sftp> reput \"D:/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/native_patch/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl\" \"/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl.partial\"\n",
+      "stderr": "",
+      "transfer_completed": true,
+      "remote_verification": {
+        "returncode": 0,
+        "stdout": "{\"passed\": true, \"utc\": \"2026-11-02T03:50:07.572412+00:00\", \"path\": \"/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl\", \"bytes\": 433132101, \"sha256\": \"71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719\", \"uid\": 2147, \"inode\": 3273232428, \"partial_exists\": false, \"installed\": false, \"extracted\": false, \"directory_declared_unpacked_bytes\": 1172403610}\n",
+        "stderr": "",
+        "data": {
+          "passed": true,
+          "utc": "2026-11-02T03:50:07.572412+00:00",
+          "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+          "bytes": 433132101,
+          "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+          "uid": 2147,
+          "inode": 3273232428,
+          "partial_exists": false,
+          "installed": false,
+          "extracted": false,
+          "directory_declared_unpacked_bytes": 1172403610
+        }
+      },
+      "local_cleanup": {
+        "verified_remote_before_delete": true,
+        "resolved_path": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\native_patch\\vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+        "bytes_removed": 433132101,
+        "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+        "file_absent": true,
+        "scope": "only exact task-owned verified local dependency wheel; no directory/history removal"
+      }
+    }
+  ],
+  "vllm_dependency_inventory_actual_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_METADATA_COLLECTION_ONLY",
+    "missing_direct_requirements": 13,
+    "conflicting_direct_requirements": 11,
+    "conflicting_torch_requirements": 5,
+    "counts_must_not_be_added_as_unique_packages": true,
+    "full_environment_ready": false,
+    "torch_module_imported": false,
+    "vllm_module_imported": false,
+    "release_independently_verified": true
+  },
+  "vllm_numba_transitive_constraint": {
+    "metadata_url": "https://pypi.org/pypi/numba/0.61.2/json",
+    "requires_dist": [
+      "llvmlite<0.45,>=0.44.0dev0",
+      "numpy<2.3,>=1.24"
+    ],
+    "observed_installed_numpy": "2.3.5",
+    "numpy_constraint_satisfied": false,
+    "full_transitive_closure_verified": false
+  },
+  "vllm_wheel_asset_outcome": {
+    "recorded_utc": "2026-11-02T03:51:43.162471+00:00",
+    "official_wheel_asset_verified": true,
+    "remote_path": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl",
+    "bytes": 433132101,
+    "sha256": "71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719",
+    "local_archive_removed": true,
+    "local_partial_removed": true,
+    "remote_partial_absent": true,
+    "installed": false,
+    "extracted": false,
+    "gpu_verified": false,
+    "full_environment_ready": false,
+    "reviewer": "/root/deadline_readonly_review",
+    "review_decision": "PASS_ASSET_AND_LOCAL_CLEANUP_ONLY",
+    "history": "server slow transfer, local 180s timeout and one bounded 4.46MB resume preserved separately",
+    "dependency_inventory_run": "kimi-runtime-metadata-356811b37e254170b54580612b0d3a51"
   }
 }

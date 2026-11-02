@@ -4,6 +4,23 @@
 
 ## 当前已接与尚未接
 
+11/2 11:50官方vLLM0.19.1 wheel资产准备通过：433132101B/完整SHA71a87f46cafab4489c69a5c5c83b870d0235e5694d8222303d460576293dc719，已落原qjhs003 downloads，未解包/安装。服务器253秒仅2.55MB（约10KB/s）后精确身份pidfd停止；本机180秒收到428670976B到期失败；一次有界仅余4461125B续传9.568秒，全SHA通过。远端原断点前缀一致后单次SFTP reput，独立SSH全SHA/UID/inode/ZIP目录验收再排他发布；随后核本地绝对路径及SHA删除433MB，两个本地大文件路径均不存在。完整失败/续传/清理证据留cpu-probe，不重写为一次成功。metadata控制356811b3已实际采集并释放：vLLM直接13缺失/11版本冲突，Torch自身另5冲突，不能直接相加当独立包数；Numba0.61.2还要求NumPy<2.3而现2.3.5，不是完整传递闭包。限定只读实际复审通过资产/清理与metadata范围。下一项固定完整兼容依赖及安装空间预算，再审现有差异层CPU安装/导入；当前环境/GPU/模型仍未准入，不重做native CPU探针，不另造包装或环境。
+
+
+### 11月2日实际依赖缺口（固定53f661镜像，metadata控制356811b3）
+
+| 范围 | 当前证据 | 后续要求 |
+|---|---|---|
+| 官方vLLM 0.19.1 wheel | x86_64/CPython abi3；433132101B，官方SHA71a87f46…；Range读取305135B，四个关键源文件与固定SHA一致 | 完整wheel433132101B/SHA已于11:50独立验收，本地中转删除；安装/导入仍未执行，目录声明解包1172403610B不是实测解包 |
+| vLLM直接依赖 | 13项未安装、11项版本不符；vLLM本身也未安装 | 固定完整依赖闭包和下载/安装空间预算，不以单包安装完成称ready |
+| 关键冲突 | Transformers5.3.0在排除范围；FlashInfer python/cubin为0.6.7.post2而需0.6.6；torchaudio/vision为旧Torch配套 | 在本任务差异层统一匹配，不修改共享基础镜像或他人容器 |
+| Torch自身依赖 | CUDA bindings/cuDNN/NCCL/NVSHMEM/Triton共5项不符；Torch本体2.10cu129匹配 | 核完整依赖及动态库/实际ABI，不把之前native普通导入升级为完整环境通过 |
+| 传递约束 | 官方numba0.61.2要求numpy<2.3,>=1.24及llvmlite<0.45,>=0.44.0dev0；现NumPy2.3.5不满足 | 此为新增已证传递冲突，尚未完成全部传递依赖/extras检查 |
+| native辅助依赖 | accelerate1.12只读wheel辅助导入已实证；镜像内仍未安装 | 两种状态明确区分，不复用临时receipt充当运行证明 |
+
+所有依赖计数按来源分组，不直接相加宣称独立包数。metadata采集成功不等于版本全部满足；本次无Torch/vLLM导入、无GPU/模型/Store。原完整编译、CPU保存和CPU身份绑定证据仍有效，但只覆盖各自范围。Numba元数据来源：https://pypi.org/pypi/numba/0.61.2/json 。
+
+
 11/2 11:28真实CPU身份绑定通过：run44ef8ef8/code620543c，固定53f661镜像/994772cc及30132b6d两库，冻结wrapper及实际native_record_call._bound_runtime完成builtin归属、checkpoint映射inode和Store磁盘摘要核验；坏外部SHA、compiled=false及Store SHA三个负例实际拒绝。accelerate1.12.0仅从已核380935B只读wheel临时导入，未pip/改镜像或新环境；139359B必要源码仅容器/tmp临时存在，释放后消失。独立SSH核本次和首次缺accelerate失败run均容器空/timerinactive，8个GLM SDK文件及两库/wheel SHA不变。限定实际复审允许native_cpu_runtime_binding=true；mapped机器码/函数地址、完整功能ABI/liveStore、CUDA、原生恢复、八rank/完整模型/服务仍未验证。原失败保留，不复用本次临时receipt作为后续运行凭证。
 
 11/2 11:14原生CPU保存对照实际通过：run9c6b6ae6/codeba5c16c，原_C.save_tensors与未改stream_writer对5个canonical+1alias的packed INT4/int32、BF16/FP16/FP32有效位及offset一致；源shape/stride/dtype未改，两文件均8192B，未比较未定义padding。独立SSH完整/逐payload哈希、uid2147/mode0600和自身容器空/timer inactive均通过，只留原downloads内8KiB证据。限定实际只读复审允许native_cpu_save_comparison=true，不证明native index、原生恢复、CUDA、八rank/完整模型/服务；CUDA未初始化。原始错误候选和NEEDS_FIX保留。原生writer申请1GiB虚拟buffer，Python单块上限8MiB；本次均未测RSS峰值。
