@@ -240,7 +240,56 @@
           "recorded_utc": "2026-11-02T20:30:17.368213+00:00",
           "scope": "one local60/root35 no-signal diagnostic; actual known helper PID/birth exit required; GPU stop remains"
         }
-      ]
+      ],
+      "root_diagnostic_actual": {
+        "started_utc": "2026-11-02T20:30:23.567042+00:00",
+        "pid": 16091,
+        "parent_pid": 16090,
+        "parent_start_ticks": 3385353,
+        "deadline_utc": 1793651483.4532254,
+        "root_sha256": "39cc56e9e80966d7af2823f736a2428c046741c2a89299ee2e2c8b5bd6a9c707",
+        "signal_sent": false,
+        "helper_exit_verified": true,
+        "credential_input_returned_utc": "2026-11-02T20:30:28.293445+00:00",
+        "ssh_dispatch_attempted_utc": "2026-11-02T20:30:28.297764+00:00",
+        "root_result": {
+          "returncode": 0,
+          "stdout": "{\"path\": \"/data/brick1/boyjiang/kimi-k2.6/p0/p0-second-runtime-readonly.json\", \"sha256\": \"3271ec99a98bf4b212cf9fa2c3b2e1bbce12c8961b2fb211ccc19a3b30ff6a8f\", \"bytes\": 2987, \"pids\": [2280536, 2280547], \"signal_sent\": false, \"raw_kernel_evidence_remote_only\": true, \"helpers\": [{\"pid\": 2285781, \"start_ticks\": 77575072}, {\"pid\": 2285780, \"start_ticks\": 77575071}]}\n",
+          "stderr": ""
+        },
+        "independent_result": {
+          "returncode": 0,
+          "stdout": "{\"helper_matches\": [], \"known_helper_checks\": [{\"pid\": 2285781, \"gone\": true}, {\"pid\": 2285780, \"gone\": true}], \"known_helpers_gone\": true, \"raw_artifact_exists\": true, \"raw_artifact_sha256\": \"3271ec99a98bf4b212cf9fa2c3b2e1bbce12c8961b2fb211ccc19a3b30ff6a8f\"}\n",
+          "stderr": ""
+        },
+        "diagnostic_verified": true,
+        "finished_utc": "2026-11-02T20:30:38.064965+00:00",
+        "outer_os_exit_code": 0,
+        "outer_tool_chunk": "a71717"
+      },
+      "derived_wait_summary": {
+        "returncode": 0,
+        "raw_artifact_sha256": "3271ec99a98bf4b212cf9fa2c3b2e1bbce12c8961b2fb211ccc19a3b30ff6a8f",
+        "main_thread_only": [
+          {
+            "pid": 2280536,
+            "main_thread_wchan": "futex_wait_queue_me",
+            "main_thread_syscall_number": "202",
+            "main_thread_children": "",
+            "stdin_target": "/dev/null",
+            "other_fd_count": 12
+          },
+          {
+            "pid": 2280547,
+            "main_thread_wchan": "futex_wait_queue_me",
+            "main_thread_syscall_number": "202",
+            "main_thread_children": "",
+            "stdin_target": "/dev/null",
+            "other_fd_count": 10
+          }
+        ],
+        "limitation": "Main thread futex202 is not a proven deadlock or root cause; other threads/children not covered. Full private raw remains remote; raw addresses and stacks are not committed."
+      }
     }
   ]
 }
