@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- b728真实安装已成功350.828秒：59离线包、180精确版本、1093活动extras依赖核验、OS PyJWT原文件不变、fresh root普通Torch2.10cu129/vLLM0.19.1/Transformers5.5.1/accelerate1.12/JWT2.15.1及两原生库导入均通过，CUDA/通信未初始化。提交镜像ec5b4131…；独立SSH证实旧53f全部层共享、仅新增一层Docker声明5307106335B，当前runtime tag相同、自有容器空。最大子进程RSS840760KiB；cgroup峰不可用，明确未知而非0。此为实际安装成功，不再安装/编译/下载。
+- 3dcd非root清洁验证失败：实际已进入vLLM/Torch cache_dir默认分支，旧stderr2000字截掉异常尾部，历史精确异常仍未知；失败及60秒资源观察原样保留，整批433.89秒记失败/未全部验收，不能追认PASS。源码来自已钉Torchwheel的cache_dir函数，默认依赖getpass用户名；最小新301766bd清洁控制仅显式/tmp/torchinductor(16MiB tmpfs)、完整stderr32768/截断标记、禁止检查优化、固定实际ec5镜像。没有重新安装/新环境/源码复制；冻结body670不变。当前等待新manifest只读审阅，未执行。600秒整组件覆盖clean300+观察150(>=60s)+传输余量150；旧终态不重跑，不算GPU/模型/完整Kimi通过。
+
 - 首次真实CPU安装a485已终态失败并完整收口：host_started/guard_ready/terminal齐全，body在首个accelerate归档PermissionError前置失败，commands[]/installedfalse/SizeRw0/无GPU；原因实核目录UID2147 mode0700且capdropALL的root0不能遍历。随后60s观察保持失败，原容器日志/State/labels/SizeRw留runtime-install-evidence.json，最后只删除该精确停止CID并独立ps核空。72.313秒控制成本单列，不消耗任何正式ID、不追认历史失败。
 - 最小整改当前b728安装/3dcd clean均未开始：复用先前单文件RO方式，59归档+两原生库共61个明确绑定，完全不挂载/改权限downloads目录；仅已核owned公开文件0644，两库真实原模式0600/bytesSHA保持。安装body8d7…及全3900预算完全不变；新host5c9c4a2e…、manifest95ef9869…，旧e612/a35原候选和PASS/失败保留在Git及history引用。静态61文件列表/只读/所有权/禁GPU检查通过，实际修复仍待当前修订复审及新控制；不沿用旧gate批准新host。
 
