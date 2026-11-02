@@ -1,3 +1,7 @@
+# 最新实际状态（11/2 21:43）
+
+固定镜像`ec5b4131…`的CPU普通运行时已实测并独立复核：180版本、离线依赖闭包、root及UID2147只读容器普通导入、两原生库和删除后60秒观察通过；显式私有Torch缓存是受审条件。没有CUDA初始化、GPU或模型/Store池运行。完整证据与历史失败在`runtime-dependencies-candidate.json`和`runtime-install-evidence.json`；下一步补既有P0a启动/监控/收口，再按实际窗口准入。P0a仅Torch CUDA IPC，不冒充native Store或Kimi服务通过。
+
 # Kimi INT4 Store CPU 适配候选
 
 11/2 CPU依赖准备最新：最小候选图实际235.327秒解析180包并独立核验，121包可复用、37补装、22必要替换（原需替换57）；cryptography41.0.7保留，Store grpc1.76/click8.1.7及框架严格根锁定。新锁SHAe6c4de8c…，59项待安装artifact公开元数据已绑定，但完整包校验/22路径归属/安装峰值/Linux导入未完成，不称环境或模型ready。原图/失败和GLM40ID历史不变，当前断点见NEXT.md。

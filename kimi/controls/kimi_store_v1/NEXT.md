@@ -4,6 +4,10 @@
 
 ## 最新覆盖
 
+- 11/2 21:43实际CPU运行时闭环通过：受审新cache条件301766bd clean13.640秒通过、删除后真实等待60.037秒/观察65.490秒通过，整组件79.361秒。UID2147/readonly/noGPU/noNetwork/双库RO，冻结180版本、Torch2.10cu129/vLLM0.19.1/Transformers5.5.1/Accelerate1.12/JWT2.15.1与两.so普通导入成功，PYTHONOPTIMIZE未设置、CUDA/通信未初始化；精确两run在观察0/60s均容器空、原hostPIDgone、timerinactive。独立只读actual复核限定PASS_CPU_ORDINARY_RUNTIME；镜像ec5b4131…和私有/tmp/torchinductor条件绑定。CPU软件阻塞已解除，不重装/编译/下载或重跑旧失败。
+- 旧a485和b728整批/3dcd仍保留失败，成功新条件单列；旧2K stderr尾不可追回，旧cache具体异常和历史exit137不作因果追认。原型cgroup峰未知、840760KiB只最大子进程RSS；5.307GB是Docker声明新层且基础全共享，不是整环境副本或实际内存峰。
+- 下一真缺口来自现有source_schedule.py：P0a setup只完成create/register/submit/probe，runtime_admitted仍false；完整start/持续监控/删除后60s收口尚未接齐，现有P0a本身仅Torch CUDA IPC/lifetime，不是native Store功能验证。先补既有入口最小闭包/当前新R1与午夜window/actual guard；未通过不启动GPU或占大池。实际vLLM general-plugin/worker、nativeCUDA/liveStore、完整checkpoint/TP8/金标/原生服务仍全部未验证；native2x停止保留。
+
 - b728真实安装已成功350.828秒：59离线包、180精确版本、1093活动extras依赖核验、OS PyJWT原文件不变、fresh root普通Torch2.10cu129/vLLM0.19.1/Transformers5.5.1/accelerate1.12/JWT2.15.1及两原生库导入均通过，CUDA/通信未初始化。提交镜像ec5b4131…；独立SSH证实旧53f全部层共享、仅新增一层Docker声明5307106335B，当前runtime tag相同、自有容器空。最大子进程RSS840760KiB；cgroup峰不可用，明确未知而非0。此为实际安装成功，不再安装/编译/下载。
 - 3dcd非root清洁验证失败：实际已进入vLLM/Torch cache_dir默认分支，旧stderr2000字截掉异常尾部，历史精确异常仍未知；失败及60秒资源观察原样保留，整批433.89秒记失败/未全部验收，不能追认PASS。源码来自已钉Torchwheel的cache_dir函数，默认依赖getpass用户名；最小新301766bd清洁控制仅显式/tmp/torchinductor(16MiB tmpfs)、完整stderr32768/截断标记、禁止检查优化、固定实际ec5镜像。没有重新安装/新环境/源码复制；冻结body670不变。当前等待新manifest只读审阅，未执行。600秒整组件覆盖clean300+观察150(>=60s)+传输余量150；旧终态不重跑，不算GPU/模型/完整Kimi通过。
 

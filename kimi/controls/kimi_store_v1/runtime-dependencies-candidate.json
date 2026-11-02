@@ -187,11 +187,11 @@
     "yarl": "1.23.0",
     "zipp": "3.23.1"
   },
-  "status": "RUNTIME_INSTALLED_ROOT_CPU_VERIFIED_NONROOT_CLEAN_PENDING",
+  "status": "CPU_ORDINARY_RUNTIME_VERIFIED_GPU_AND_MODEL_NOT_ADMITTED",
   "installed": true,
   "artifact_integrity_complete": true,
   "incremental_budget_verified": false,
-  "linux_functional_import_verified": false,
+  "linux_functional_import_verified": true,
   "gpu_admitted": false,
   "precheck": {
     "ssh_utc": "2026-11-02T05:30:27.459338+00:00",
@@ -11488,8 +11488,8 @@
   ],
   "runtime_install_evidence": {
     "path": "kimi/controls/kimi_store_v1/runtime-install-evidence.json",
-    "bytes": 65382,
-    "sha256": "6c8e29f5f32d7478ded8690cca2c85c12838f8308ae069f73cdaa79acc2d8728"
+    "bytes": 73236,
+    "sha256": "b353bb58feaa83bb3211bf6ebe4b8737c87d5e5350e3bf3ad3b05063164f9f15"
   },
   "runtime_install_candidate_history": [
     {
@@ -11573,6 +11573,16 @@
       "formal_ID_consumed": false,
       "failure_tail_missing_after_2000_chars": true,
       "actual_cause_not_claimed_from_clipped_trace": true
+    },
+    {
+      "kind": "CPU_nonroot_clean_new_explicit_cache_condition",
+      "run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+      "measured_seconds": 79.36142541499976,
+      "nominal_observation_wait_seconds": 60.03747968596872,
+      "GPU_used": false,
+      "reinstall": false,
+      "formal_ID_consumed": false,
+      "does_not_reclassify_previous_failures": true
     }
   ],
   "runtime_clean_diagnostic_candidate": {
@@ -11599,7 +11609,7 @@
     },
     "delta": "new clean nonce, explicit bounded /tmp/torchinductor cache and inspected Env/checks enabled, stderr32768+actual lengths/truncation; same installed immutable image/body, no reinstall",
     "purpose": "avoid documented Torch default cache username lookup in UID2147/read-only context, and preserve full next error; clipped old tail not retrospectively recovered or attributed",
-    "status": "STATIC_REVIEW_PASSED_NOT_EXECUTED",
+    "status": "EXECUTED_SUCCEEDED_NEW_CACHE_CONDITION",
     "historical_tail_recovered": false,
     "controls": {
       "actual_argv_private_cache_in16MiB_tmpfs": true,
@@ -11772,6 +11782,95 @@
       "no reinstall/build/download/GPU or model",
       "new cache condition does not prove old exception cause or recover clipped tail",
       "max1 new nonce, oldfailed3dcd retained"
+    ]
+  },
+  "runtime_clean_executions": [
+    {
+      "run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+      "registered_utc": "2026-11-02T13:41:47.385455+00:00",
+      "code_commit": "19c4e0d3d8047a2974194b793d148ad5393013df",
+      "review_source_commit": "d2f44306a62c753aa6f0512078261b0424d1d7bc",
+      "manifest_sha256": "38032be55f264d18056f0a27561e6b4a8904a4e7297f79adbb1993a995ef8e0e",
+      "parent_install_run": "kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566",
+      "actual_image_id": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793586581223,
+        "end_ms": 1793635200000,
+        "id": "bk-20261102T0229-41b77620",
+        "node": "qjhs003",
+        "purpose": "快速启动",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793617200000,
+        "user": "azure"
+      },
+      "max_seconds": 600,
+      "state": "SUCCEEDED",
+      "stages": [
+        {
+          "stage": "clean_verifier",
+          "returncode": 0,
+          "elapsed_seconds": 13.639634861001468,
+          "passed": true,
+          "run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+          "host_identity": {
+            "pid": 1968780,
+            "uid": 2147,
+            "start_ticks": 75123390,
+            "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+            "hostname": "qjhs3"
+          },
+          "container_id": "abdfe52a17d583e7213df43ddfcfe6ecb0a41227d1eb3e2bca8985ec6baaa4ac",
+          "released": true,
+          "cleanup_owed": false,
+          "cpu_environment": {
+            "HOME": "/tmp",
+            "XDG_CACHE_HOME": "/tmp",
+            "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+            "PYTHONOPTIMIZE": null,
+            "CUDA_VISIBLE_DEVICES": "",
+            "NVIDIA_VISIBLE_DEVICES": "void"
+          }
+        },
+        {
+          "stage": "release_observation",
+          "returncode": 0,
+          "elapsed_seconds": 65.49035517999982,
+          "passed": true,
+          "observation_wait_seconds": 60.03747968596872
+        }
+      ],
+      "reinstall": false,
+      "GPU_used": false,
+      "passed": true,
+      "elapsed_seconds": 79.36142541499976,
+      "finished_utc": "2026-11-02T13:43:04.462741+00:00"
+    }
+  ],
+  "linux_functional_import_scope": "ordinary CPU imports and metadata only under root and UID2147/read-only, explicit private TORCHINDUCTOR cache; no GPU ABI, plugin/worker, liveStore, TP8, checkpoint or service proof",
+  "runtime_cpu_actual_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_LIMITED_CPU_ORDINARY_RUNTIME",
+    "run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+    "actual_image_id": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "manifest_sha256": "38032be55f264d18056f0a27561e6b4a8904a4e7297f79adbb1993a995ef8e0e",
+    "allowed_claims": [
+      "root install180 frozen versions+1093 iterated dependency checks",
+      "OS PyJWT original bytes preserved",
+      "fresh nonroot readonly ordinary imports of Torch/vLLM/Transformers/Accelerate/JWT/two native libs",
+      "assert checks not disabled; CUDA/comm uninitialized",
+      "actual60.037second observation both target containers absent/hostPIDs absent/timersinactive",
+      "base image layers all shared, one Docker declared5307106335B layer"
+    ],
+    "required_condition": "TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor in bounded private temporary cache",
+    "not_proven": [
+      "actual general-plugin or worker",
+      "native CUDA functional ABI/liveStore",
+      "full checkpoint/eight ranks/gold/service"
+    ],
+    "limitations": [
+      "maxchildRSS840760KiB not wholebatch peak; cgrouppeakunknown",
+      "new condition does not recover old clipped stderr or identify historical exit137"
     ]
   }
 }

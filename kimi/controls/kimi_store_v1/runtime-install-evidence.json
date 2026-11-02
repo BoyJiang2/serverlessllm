@@ -84,6 +84,38 @@
       "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "stdout": "{\"scope\": \"own CPU preparation lifecycle only; no GPU/Store/RDMA allocations\", \"samples\": [{\"elapsed_seconds\": 0.03649018099531531, \"rows\": [{\"run_id\": \"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-3dcd17a5e2ea4020bae1bfcf6cdef7ab\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}], \"global_memory_context_only\": {\"MemAvailable\": \"1971299612 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"2905148 kB\", \"Shmem\": \"15708 kB\"}}, {\"elapsed_seconds\": 60.17023800907191, \"rows\": [{\"run_id\": \"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-3dcd17a5e2ea4020bae1bfcf6cdef7ab\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}], \"global_memory_context_only\": {\"MemAvailable\": \"1971242668 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"2902752 kB\", \"Shmem\": \"15708 kB\"}}], \"passed\": false, \"started_utc\": \"2026-11-02T13:16:17.815273+00:00\", \"observation_wait_seconds\": 60.133745079045184, \"elapsed_seconds\": 60.170332422014326}\n",
       "stderr": ""
+    },
+    {
+      "batch_run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+      "source_manifest_sha256": "38032be55f264d18056f0a27561e6b4a8904a4e7297f79adbb1993a995ef8e0e",
+      "stage": "clean_verifier",
+      "registered_utc": "2026-11-02T13:41:47.469001+00:00",
+      "script_sha256": "e9a9b600b99af59045821632f90a64adbe94d75433f1ea07e6ff43a570024235",
+      "state": "SSH_TERMINAL",
+      "remote_max_seconds": 300,
+      "local_max_seconds": 330,
+      "stdout": "{\"event\": \"host_started\", \"run_id\": \"kimi-runtime-clean-301766bd7204437f8468c03880728c0e\", \"identity\": {\"pid\": 1968780, \"uid\": 2147, \"start_ticks\": 75123390, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}}\n{\"event\": \"guard_ready\", \"run_id\": \"kimi-runtime-clean-301766bd7204437f8468c03880728c0e\", \"container_id\": \"abdfe52a17d583e7213df43ddfcfe6ecb0a41227d1eb3e2bca8985ec6baaa4ac\"}\n{\"run_id\": \"kimi-runtime-clean-301766bd7204437f8468c03880728c0e\", \"image\": \"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\", \"started_utc\": \"2026-11-02T13:41:56.174119+00:00\", \"gpu_requested\": false, \"compiled_native_store\": false, \"released\": true, \"cleanup_errors\": [], \"host_identity\": {\"pid\": 1968780, \"uid\": 2147, \"start_ticks\": 75123390, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"hostname\": \"qjhs3\"}, \"cpu_environment\": {\"HOME\": \"/tmp\", \"XDG_CACHE_HOME\": \"/tmp\", \"TORCHINDUCTOR_CACHE_DIR\": \"/tmp/torchinductor\", \"PYTHONOPTIMIZE\": null, \"CUDA_VISIBLE_DEVICES\": \"\", \"NVIDIA_VISIBLE_DEVICES\": \"void\"}, \"container_id\": \"abdfe52a17d583e7213df43ddfcfe6ecb0a41227d1eb3e2bca8985ec6baaa4ac\", \"guard_install\": \"Running timer as unit: kimi-runtime-clean-301766bd7204437f8468c03880728c0e-cleanup.timer\\nWill run service as unit: kimi-runtime-clean-301766bd7204437f8468c03880728c0e-cleanup.service\\n\", \"guard_probe\": {\"timer\": \"NextElapseUSecMonotonic=1w 1d 16h 43min 34.128517s\\nActiveState=active\\n\", \"service\": \"ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force abdfe52a17d583e7213df43ddfcfe6ecb0a41227d1eb3e2bca8985ec6baaa4ac ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\\n\"}, \"attach\": {\"returncode\": 0, \"stdout\": \"{\\\"event\\\": \\\"cpu_import_result\\\", \\\"passed\\\": true, \\\"torch\\\": \\\"2.10.0+cu129\\\", \\\"vllm\\\": \\\"0.19.1\\\", \\\"transformers\\\": \\\"5.5.1\\\", \\\"accelerate\\\": \\\"1.12.0\\\", \\\"pyjwt\\\": \\\"2.15.1\\\", \\\"pyjwt_file\\\": \\\"/usr/local/lib/python3.12/dist-packages/jwt/__init__.py\\\", \\\"native\\\": {\\\"_C\\\": {\\\"path\\\": \\\"/opt/software/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so\\\", \\\"sha256\\\": \\\"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\\\"}, \\\"_checkpoint_store\\\": {\\\"path\\\": \\\"/opt/software/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so\\\", \\\"sha256\\\": \\\"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\\\"}}, \\\"cuda_initialized\\\": false, \\\"communication_group_initialized\\\": false, \\\"device_nodes\\\": []}\\n\", \"stderr\": \"\", \"stdout_chars\": 698, \"stderr_chars\": 0, \"truncated\": false}, \"exit_state\": {\"Status\": \"exited\", \"Running\": false, \"Paused\": false, \"Restarting\": false, \"OOMKilled\": false, \"Dead\": false, \"Pid\": 0, \"ExitCode\": 0, \"Error\": \"\", \"StartedAt\": \"2026-11-02T13:41:56.314435356Z\", \"FinishedAt\": \"2026-11-02T13:42:00.274857079Z\"}, \"passed\": true, \"metadata\": {\"event\": \"cpu_import_result\", \"passed\": true, \"torch\": \"2.10.0+cu129\", \"vllm\": \"0.19.1\", \"transformers\": \"5.5.1\", \"accelerate\": \"1.12.0\", \"pyjwt\": \"2.15.1\", \"pyjwt_file\": \"/usr/local/lib/python3.12/dist-packages/jwt/__init__.py\", \"native\": {\"_C\": {\"path\": \"/opt/software/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so\", \"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\"}, \"_checkpoint_store\": {\"path\": \"/opt/software/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so\", \"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\"}}, \"cuda_initialized\": false, \"communication_group_initialized\": false, \"device_nodes\": []}, \"cleanup\": 0, \"guard_stop\": 0, \"create_completion_unknown\": false, \"cleanup_owed\": false, \"finished_utc\": \"2026-11-02T13:42:00.447767+00:00\", \"event\": \"terminal\"}\n",
+      "stdout_sha256": "a73ca0df8ad6dc6c6eb34886d144fdc594010ee2c8e8a73cb5e4767d55493ca5",
+      "stderr": "",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "returncode": 0,
+      "elapsed_seconds": 13.639634861001468
+    },
+    {
+      "batch_run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+      "source_manifest_sha256": "38032be55f264d18056f0a27561e6b4a8904a4e7297f79adbb1993a995ef8e0e",
+      "stage": "release_observation",
+      "registered_utc": "2026-11-02T13:42:01.183889+00:00",
+      "script_sha256": "ee398ec6c5163f8511c410051b652e9bb6b4839cf59d1e389b185f23e8707fac",
+      "state": "SSH_TERMINAL",
+      "remote_max_seconds": 130,
+      "local_max_seconds": 150,
+      "stdout": "{\"scope\": \"own CPU preparation lifecycle only; no GPU/Store/RDMA allocations\", \"samples\": [{\"elapsed_seconds\": 0.034120794967748225, \"rows\": [{\"run_id\": \"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-301766bd7204437f8468c03880728c0e\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}], \"global_memory_context_only\": {\"MemAvailable\": \"1971201060 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"2870292 kB\", \"Shmem\": \"15708 kB\"}}, {\"elapsed_seconds\": 60.071594977984205, \"rows\": [{\"run_id\": \"kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}, {\"run_id\": \"kimi-runtime-clean-301766bd7204437f8468c03880728c0e\", \"executed\": true, \"host_state\": \"original_pid_absent\", \"container_query_returncode\": 0, \"containers\": [], \"stderr\": \"\", \"timer_returncode\": 3, \"timer_state\": \"inactive\"}], \"global_memory_context_only\": {\"MemAvailable\": \"1971184260 kB\", \"Mlocked\": \"229944 kB\", \"AnonPages\": \"2871104 kB\", \"Shmem\": \"15708 kB\"}}], \"passed\": true, \"started_utc\": \"2026-11-02T13:42:03.682108+00:00\", \"observation_wait_seconds\": 60.03747968596872, \"elapsed_seconds\": 60.07169861800503}\n",
+      "stdout_sha256": "f83bba821a1f777baec5662bbc7e1dbbaae45e2289091de61d21fa90fc90d4b3",
+      "stderr": "",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "returncode": 0,
+      "elapsed_seconds": 65.49035517999982
     }
   ],
   "failed_container_cleanup": {
@@ -152,6 +184,13 @@
       "code_commit": "0e6e9208f7f8f24c0136e0e275260bff57e20bb0",
       "review_source_commit": "247e0eead6612efc5bb194be582534bb50aadf80",
       "manifest_sha256": "95ef9869640e8e7b674a9f7b114b2282264c559a5f5008d12adc36514241ae3e"
+    },
+    {
+      "run_id": "kimi-runtime-clean-301766bd7204437f8468c03880728c0e",
+      "registered_utc": "2026-11-02T13:41:47.385455+00:00",
+      "code_commit": "19c4e0d3d8047a2974194b793d148ad5393013df",
+      "review_source_commit": "d2f44306a62c753aa6f0512078261b0424d1d7bc",
+      "manifest_sha256": "38032be55f264d18056f0a27561e6b4a8904a4e7297f79adbb1993a995ef8e0e"
     }
   ],
   "torch_cache_source_excerpt": {
