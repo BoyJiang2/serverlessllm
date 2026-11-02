@@ -1,5 +1,7 @@
 ## 当前追加：P0连续监控已有内部组件，尚未接完整入口
 
+当前代码a4291f2已push核远端，独立只读复审PASS_CPU_STATIC_MONITOR_COMPONENT_ONLY且三文件SHA实核；审阅记录追加原JSON。不得将此局部审阅沿用于尚未写出的完整driver或GPU。
+
 - source_schedule.monitor_p0_target在既有文件中实现，无新模块或CLI。复用原batch wall/monotonic component截止、精确guard_target及事件落盘；每次采样要求同一nonce/InvocationID/target的独立guard证明，再inspect、核稳定PID/start_ticks/cgroup、读取精确容器stats。只记录原始Docker资源字段，不冒充NVML/RSS/PSS峰值。
 - 未启动/失败退出/OOM/错误状态、守护变化、PID复用、他人stats或超时均拒绝。仅容器exit0仍torch_cuda_ipc_verified=false、resources_released=false、cleanup_owed=true；组件内容校验、删除和60秒归属释放必须由完整控制流程另行执行。当前没有调用它的生产启动入口，不ready。
 - 106项原生WSL CPU schedule/bundle回归5.849秒通过；Docker/guard/process/clock是显式替身，事件文件/解析/既有身份核验实际执行，未访问远端或GPU。新增前3方法5个缺实现错误保留tool chunk 9fd7b8，现有source-schedule-tests.json记录范围与SHA，不冒充真实运行。
