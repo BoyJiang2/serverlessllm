@@ -3151,6 +3151,175 @@
       "local_ssh_pid": 81348,
       "returncode": 0,
       "stderr": ""
+    },
+    {
+      "registered_utc": "2026-11-02T02:54:53.611218+00:00",
+      "code_commit": "00c3de8",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "f86086142629aedc0e6346ca549ba83c0ad1276b579d014c3c6e14a97f0b0ec7",
+      "body_sha256": "7d63f1ab1cf6c23593916aa6378e8cefa48e09d26041ca75e288fd949561d786",
+      "events": [
+        {
+          "run_id": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T02:54:59.097416+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": true,
+          "released": true,
+          "cleanup_errors": [],
+          "artifact_paths": {
+            "configure.log": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-configure.log",
+            "build.log": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-build.log",
+            "_C.so": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so",
+            "_checkpoint_store.so": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so",
+            "receipt.json": "/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-receipt.json"
+          },
+          "container_id": "a0ce14aab68caee92106d96e2e2932c51b77847d5442177d36b2898d5b914d4f",
+          "guard_install": "Running timer as unit: kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-cleanup.timer\nWill run service as unit: kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 6h 20min 37.055028s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock stop --time 10 a0ce14aab68caee92106d96e2e2932c51b77847d5442177d36b2898d5b914d4f ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"compiled_native_store\": true, \"passed\": true, \"gpu_used\": false, \"libraries\": {\"_C\": {\"bytes\": 395376, \"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\"}, \"_checkpoint_store\": {\"bytes\": 823584, \"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\"}}, \"device_nodes\": [], \"torch_version\": \"2.10.0+cu129\", \"torch_cuda\": \"12.9\", \"cxx11_abi\": true, \"recipe_sha256\": {\"CMakeLists.txt\": \"e21cb3a9bcdd4c2c763d0aa0ee33b112f6651bc30f1d6d4e5e849125f3b0b92c\", \"cmake/utils.cmake\": \"4adc1c4f073bf1a3fcab925c3b80453d3bd8a687edf3e0b4baa6a143b0dfea56\"}, \"recipe_sources\": [\"csrc/checkpoint/aligned_buffer.cpp\", \"csrc/checkpoint/checkpoint.cpp\", \"csrc/checkpoint/checkpoint_py.cpp\", \"csrc/checkpoint/tensor_writer.cpp\", \"csrc/sllm_store/binary_utils.cpp\", \"csrc/sllm_store/checkpoint_store.cpp\", \"csrc/sllm_store/checkpoint_store_py.cpp\", \"csrc/sllm_store/cuda_memory.cpp\", \"csrc/sllm_store/cuda_memory_pool.cpp\", \"csrc/sllm_store/gpu_replica.cpp\", \"csrc/sllm_store/memory_state.cpp\", \"csrc/sllm_store/model.cpp\", \"csrc/sllm_store/pinned_memory.cpp\", \"csrc/sllm_store/pinned_memory_pool.cpp\"], \"commands\": {\"configure\": [\"cmake\", \"-S\", \"/src\", \"-B\", \"/tmp\", \"-G\", \"Ninja\", \"-DCMAKE_BUILD_TYPE=Release\", \"-DBUILD_SHARED_LIBS=OFF\", \"-DCMAKE_POSITION_INDEPENDENT_CODE=ON\", \"-DSLLM_STORE_PYTHON_EXECUTABLE=/usr/bin/python3\", \"-DBUILD_SLLM_TESTS=OFF\", \"-DFETCHCONTENT_FULLY_DISCONNECTED=ON\", \"-DFETCHCONTENT_SOURCE_DIR_GLOG=/tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446\", \"-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/tmp/googletest-b796f7d44681514f58a683a3a71ff17c94edb0c1\", \"-DCMAKE_JOB_POOL_COMPILE=compile\", \"-DCMAKE_JOB_POOLS=compile=1\"], \"build\": [\"cmake\", \"--build\", \"/tmp\", \"--target\", \"_C\", \"_checkpoint_store\", \"--parallel\", \"1\"]}, \"configure_returncode\": 0, \"configure_log_bytes\": 10150, \"build_returncode\": 0, \"build_log_bytes\": 7687, \"imports\": {\"_C\": {\"loaded\": true, \"file\": \"/artifacts/_C.so\"}, \"_checkpoint_store\": {\"loaded\": true, \"file\": \"/artifacts/_checkpoint_store.so\"}}, \"elf_dynamic\": {\"_C\": {\"returncode\": 0, \"stdout\": \"\\nDynamic section at offset 0x49bb8 contains 33 entries:\\n  Tag        Type                         Name/Value\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_python.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libc10.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\\n 0x000000000000000c (INIT)               0xe000\\n 0x000000000000000d (FINI)               0x3de2c\\n 0x0000000000000019 (INIT_ARRAY)         0x498e0\\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\\n 0x000000000000001a (FINI_ARRAY)         0x498e8\\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\\n 0x000000006ffffef5 (GNU_HASH)           0x2f0\\n 0x0000000000000005 (STRTAB)             0x2f98\\n 0x0000000000000006 (SYMTAB)             0x7f0\\n 0x000000000000000a (STRSZ)              30841 (bytes)\\n 0x000000000000000b (SYMENT)             24 (bytes)\\n 0x0000000000000003 (PLTGOT)             0x49fe8\\n 0x0000000000000002 (PLTRELSZ)           7176 (bytes)\\n 0x0000000000000014 (PLTREL)             RELA\\n 0x0000000000000017 (JMPREL)             0xbdb0\\n 0x0000000000000007 (RELA)               0xacd0\\n 0x0000000000000008 (RELASZ)             4320 (bytes)\\n 0x0000000000000009 (RELAENT)            24 (bytes)\\n 0x000000006ffffffe (VERNEED)            0xab60\\n 0x000000006fffffff (VERNEEDNUM)         4\\n 0x000000006ffffff0 (VERSYM)             0xa812\\n 0x000000006ffffff9 (RELACOUNT)          57\\n 0x0000000000000000 (NULL)               0x0\\n\", \"stderr\": \"\"}, \"_checkpoint_store\": {\"returncode\": 0, \"stdout\": \"\\nDynamic section at offset 0x90a90 contains 32 entries:\\n  Tag        Type                         Name/Value\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\\n 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]\\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\\n 0x000000000000000c (INIT)               0x16000\\n 0x000000000000000d (FINI)               0x788e8\\n 0x0000000000000019 (INIT_ARRAY)         0x8f670\\n 0x000000000000001b (INIT_ARRAYSZ)       40 (bytes)\\n 0x000000000000001a (FINI_ARRAY)         0x8f698\\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\\n 0x000000006ffffef5 (GNU_HASH)           0x328\\n 0x0000000000000005 (STRTAB)             0x4960\\n 0x0000000000000006 (SYMTAB)             0xb38\\n 0x000000000000000a (STRSZ)              40261 (bytes)\\n 0x000000000000000b (SYMENT)             24 (bytes)\\n 0x0000000000000003 (PLTGOT)             0x90fe8\\n 0x0000000000000002 (PLTRELSZ)           10368 (bytes)\\n 0x0000000000000014 (PLTREL)             RELA\\n 0x0000000000000017 (JMPREL)             0x12e98\\n 0x0000000000000007 (RELA)               0xee18\\n 0x0000000000000008 (RELASZ)             16512 (bytes)\\n 0x0000000000000009 (RELAENT)            24 (bytes)\\n 0x000000006ffffffe (VERNEED)            0xebd8\\n 0x000000006fffffff (VERNEEDNUM)         5\\n 0x000000006ffffff0 (VERSYM)             0xe6a6\\n 0x000000006ffffff9 (RELACOUNT)          382\\n 0x0000000000000000 (NULL)               0x0\\n\", \"stderr\": \"\"}}, \"cuda_initialized\": false}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T02:54:59.238348728Z",
+            "FinishedAt": "2026-11-02T02:56:09.379305701Z"
+          },
+          "passed": true,
+          "metadata": {
+            "compiled_native_store": true,
+            "passed": true,
+            "gpu_used": false,
+            "libraries": {
+              "_C": {
+                "bytes": 395376,
+                "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+              },
+              "_checkpoint_store": {
+                "bytes": 823584,
+                "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+              }
+            },
+            "device_nodes": [],
+            "torch_version": "2.10.0+cu129",
+            "torch_cuda": "12.9",
+            "cxx11_abi": true,
+            "recipe_sha256": {
+              "CMakeLists.txt": "e21cb3a9bcdd4c2c763d0aa0ee33b112f6651bc30f1d6d4e5e849125f3b0b92c",
+              "cmake/utils.cmake": "4adc1c4f073bf1a3fcab925c3b80453d3bd8a687edf3e0b4baa6a143b0dfea56"
+            },
+            "recipe_sources": [
+              "csrc/checkpoint/aligned_buffer.cpp",
+              "csrc/checkpoint/checkpoint.cpp",
+              "csrc/checkpoint/checkpoint_py.cpp",
+              "csrc/checkpoint/tensor_writer.cpp",
+              "csrc/sllm_store/binary_utils.cpp",
+              "csrc/sllm_store/checkpoint_store.cpp",
+              "csrc/sllm_store/checkpoint_store_py.cpp",
+              "csrc/sllm_store/cuda_memory.cpp",
+              "csrc/sllm_store/cuda_memory_pool.cpp",
+              "csrc/sllm_store/gpu_replica.cpp",
+              "csrc/sllm_store/memory_state.cpp",
+              "csrc/sllm_store/model.cpp",
+              "csrc/sllm_store/pinned_memory.cpp",
+              "csrc/sllm_store/pinned_memory_pool.cpp"
+            ],
+            "commands": {
+              "configure": [
+                "cmake",
+                "-S",
+                "/src",
+                "-B",
+                "/tmp",
+                "-G",
+                "Ninja",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DBUILD_SHARED_LIBS=OFF",
+                "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+                "-DSLLM_STORE_PYTHON_EXECUTABLE=/usr/bin/python3",
+                "-DBUILD_SLLM_TESTS=OFF",
+                "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+                "-DFETCHCONTENT_SOURCE_DIR_GLOG=/tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446",
+                "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/tmp/googletest-b796f7d44681514f58a683a3a71ff17c94edb0c1",
+                "-DCMAKE_JOB_POOL_COMPILE=compile",
+                "-DCMAKE_JOB_POOLS=compile=1"
+              ],
+              "build": [
+                "cmake",
+                "--build",
+                "/tmp",
+                "--target",
+                "_C",
+                "_checkpoint_store",
+                "--parallel",
+                "1"
+              ]
+            },
+            "configure_returncode": 0,
+            "configure_log_bytes": 10150,
+            "build_returncode": 0,
+            "build_log_bytes": 7687,
+            "imports": {
+              "_C": {
+                "loaded": true,
+                "file": "/artifacts/_C.so"
+              },
+              "_checkpoint_store": {
+                "loaded": true,
+                "file": "/artifacts/_checkpoint_store.so"
+              }
+            },
+            "elf_dynamic": {
+              "_C": {
+                "returncode": 0,
+                "stdout": "\nDynamic section at offset 0x49bb8 contains 33 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_python.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libc10.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0xe000\n 0x000000000000000d (FINI)               0x3de2c\n 0x0000000000000019 (INIT_ARRAY)         0x498e0\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x498e8\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x2f0\n 0x0000000000000005 (STRTAB)             0x2f98\n 0x0000000000000006 (SYMTAB)             0x7f0\n 0x000000000000000a (STRSZ)              30841 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x49fe8\n 0x0000000000000002 (PLTRELSZ)           7176 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0xbdb0\n 0x0000000000000007 (RELA)               0xacd0\n 0x0000000000000008 (RELASZ)             4320 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xab60\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0xa812\n 0x000000006ffffff9 (RELACOUNT)          57\n 0x0000000000000000 (NULL)               0x0\n",
+                "stderr": ""
+              },
+              "_checkpoint_store": {
+                "returncode": 0,
+                "stdout": "\nDynamic section at offset 0x90a90 contains 32 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0x16000\n 0x000000000000000d (FINI)               0x788e8\n 0x0000000000000019 (INIT_ARRAY)         0x8f670\n 0x000000000000001b (INIT_ARRAYSZ)       40 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x8f698\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x328\n 0x0000000000000005 (STRTAB)             0x4960\n 0x0000000000000006 (SYMTAB)             0xb38\n 0x000000000000000a (STRSZ)              40261 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x90fe8\n 0x0000000000000002 (PLTRELSZ)           10368 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x12e98\n 0x0000000000000007 (RELA)               0xee18\n 0x0000000000000008 (RELASZ)             16512 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xebd8\n 0x000000006fffffff (VERNEEDNUM)         5\n 0x000000006ffffff0 (VERSYM)             0xe6a6\n 0x000000006ffffff9 (RELACOUNT)          382\n 0x0000000000000000 (NULL)               0x0\n",
+                "stderr": ""
+              }
+            },
+            "cuda_initialized": false
+          },
+          "cleanup": 0,
+          "container_remove": 0,
+          "retained_container_id": null,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T02:56:09.529587+00:00"
+        }
+      ],
+      "reason": "first build ELF proved glog shared dependency on deleted /tmp; static PIC fix",
+      "local_ssh_pid": 69896,
+      "returncode": 0,
+      "stderr": ""
     }
   ],
   "native_build_independent_verification": {
@@ -3348,5 +3517,22 @@
     "scope": "static PIC glog recipe plus ELF gate CPU rebuild only",
     "controls": "actual ELF predicate: original real dynamic artifact refused, synthetic no-temp accepted, readelf failure refused",
     "remaining": "fresh no-build-dir container import still required"
+  },
+  "native_relocation_candidate": {
+    "recorded_utc": "2026-11-02T02:56:59.521609+00:00",
+    "status": "NOT_EXECUTED",
+    "host_driver": "import datetime,json,os,subprocess,time,uuid\nIMAGE=\"sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8\"\nrun=\"kimi-native-relocate-\"+uuid.uuid4().hex\nunit=run+\"-cleanup\"\nresult={\"run_id\":run,\"image\":IMAGE,\"started_utc\":datetime.datetime.now(datetime.timezone.utc).isoformat(),\"gpu_requested\":False,\"compiled_native_store\":False}\ncid=None;guard=False;creation_attempted=False;creation_completed=False\nDOCKER=[\"/usr/bin/docker\",\"--host\",\"unix:///var/run/docker.sock\"]\nDOCKER_ENV_KEYS=(\"DOCKER_HOST\",\"DOCKER_CONTEXT\",\"DOCKER_TLS\",\"DOCKER_TLS_VERIFY\",\"DOCKER_CERT_PATH\",\"DOCKER_API_VERSION\")\nENV={k:v for k,v in os.environ.items() if not k.startswith(\"DOCKER_\")}\nWINDOW_START=datetime.datetime.fromisoformat(\"2026-11-02T01:00:00+08:00\")\nCLEANUP_END=datetime.datetime.fromisoformat(\"2026-11-02T18:50:00+08:00\")\nentered=time.monotonic();overall_end=entered+300\nresult[\"released\"]=False\nresult[\"cleanup_errors\"]=[]\ndef window_check():\n now=datetime.datetime.now(datetime.timezone.utc)\n if not WINDOW_START<=now or (CLEANUP_END-now).total_seconds()<300:\n  raise TimeoutError(\"original authorized CPU window cannot cover full 300s probe and cleanup\")\ndef cmd(argv,timeout=10,check=True):\n if argv and argv[0]==\"docker\":argv=DOCKER+argv[1:]\n timeout=min(timeout,overall_end-time.monotonic())\n if timeout<=0:raise TimeoutError(\"original CPU probe deadline exhausted\")\n p=subprocess.run(argv,capture_output=True,text=True,timeout=timeout,env=ENV)\n if check and p.returncode:raise RuntimeError(json.dumps({\"argv\":argv,\"code\":p.returncode,\"stderr\":p.stderr[:2000]}))\n return p\ntry:\n if os.getuid()!=2147:raise ValueError(\"actual host UID differs\")\n window_check()\n if cmd([\"docker\",\"image\",\"inspect\",IMAGE,\"--format\",\"{{.Id}}\"]).stdout.strip()!=IMAGE:raise ValueError(\"image differs\")\n window_check()\n mounts=[('/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_C.so', '/artifacts/_C.so'), ('/data/brick1/boyjiang/kimi-k2.6/downloads/kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-_checkpoint_store.so', '/artifacts/_checkpoint_store.so')]\n mount_args=[]\n for source,target in mounts:mount_args += [\"--mount\",\"type=bind,src=\"+source+\",dst=\"+target+\",readonly\"]\n creation_attempted=True\n cid=cmd([\"docker\",\"create\",\"--pull=never\",\"--name\",run,\"--label\",\"experiment=kimi-cpu-toolchain\",\"--label\",\"run_id=\"+run,\"--runtime=runc\",\"--user\",\"2147:2147\",\"--cpus\",\"1\",\"--memory\",\"2g\",\"--memory-swap\",\"2g\",\"--pids-limit\",\"64\",\"--read-only\",\"--network=none\",\"--ipc=private\",\"--shm-size\",\"16m\",\"--tmpfs\",\"/tmp:rw,nosuid,nodev,size=16m\",\"--cap-drop=ALL\",\"--security-opt\",\"no-new-privileges\",\"--workdir\",\"/tmp\",*mount_args,\"--env\",\"NVIDIA_VISIBLE_DEVICES=void\",\"--env\",\"CUDA_VISIBLE_DEVICES=\",\"--env\",\"PYTHONDONTWRITEBYTECODE=1\",\"--log-driver=json-file\",\"--log-opt\",\"max-size=1m\",\"--log-opt\",\"max-file=1\",\"--entrypoint\",\"/usr/bin/timeout\",IMAGE,\"--signal=TERM\",\"--kill-after=5s\",\"60s\",\"python3\",\"-c\",BODY],timeout=20).stdout.strip()\n creation_completed=True\n if len(cid)!=64 or any(x not in \"0123456789abcdef\" for x in cid):raise ValueError(\"invalid create CID\")\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0];h=d[\"HostConfig\"]\n if (d[\"Image\"]!=IMAGE or d[\"Id\"]!=cid or d[\"State\"][\"Running\"] or d[\"Config\"][\"Labels\"].get(\"run_id\")!=run or h[\"Runtime\"]!=\"runc\" or h.get(\"Devices\") or h.get(\"DeviceRequests\") or h[\"Privileged\"] or sorted((m['Source'],m['Destination'],m['RW']) for m in d['Mounts'])!=sorted((s,t,False) for s,t in mounts) or h[\"NetworkMode\"]!=\"none\" or h[\"Memory\"]!=2147483648 or h[\"NanoCpus\"]!=1000000000):raise ValueError(\"created target profile differs\")\n result[\"container_id\"]=cid\n result[\"guard_install\"]=cmd([\"systemd-run\",\"--user\",\"--unit=\"+unit,\"--on-active=120s\",\"--timer-property=AccuracySec=1s\",\"--property=TimeoutStartSec=20s\",\"/usr/bin/env\",*[v for k in DOCKER_ENV_KEYS for v in (\"-u\",k)],*DOCKER,\"rm\",\"--force\",cid]).stderr\n timer=cmd([\"systemctl\",\"--user\",\"show\",unit+\".timer\",\"--property=ActiveState\",\"--property=NextElapseUSecMonotonic\"]).stdout\n service=cmd([\"systemctl\",\"--user\",\"show\",unit+\".service\",\"--property=ExecStart\"]).stdout\n result[\"guard_probe\"]={\"timer\":timer,\"service\":service}\n if \"ActiveState=active\" not in timer or cid not in service or \"/usr/bin/docker\" not in service or \"unix:///var/run/docker.sock\" not in service or \"rm --force\" not in service:raise ValueError(\"guard probe differs\")\n guard=True\n window_check()\n p=cmd([\"docker\",\"start\",\"--attach\",cid],timeout=80,check=False)\n result[\"attach\"]={\"returncode\":p.returncode,\"stdout\":p.stdout[:16000],\"stderr\":p.stderr[:2000]}\n d=json.loads(cmd([\"docker\",\"inspect\",cid]).stdout)[0]\n result[\"exit_state\"]=d[\"State\"]\n result[\"passed\"]=p.returncode==0 and not d[\"State\"][\"Running\"] and d[\"State\"][\"ExitCode\"]==0\n if result[\"passed\"]:\n  result[\"metadata\"]=json.loads(p.stdout)\n  if not result[\"metadata\"].get(\"passed\",False):raise ValueError(\"relocation import failed\")\n  if result[\"metadata\"][\"device_nodes\"]:raise ValueError(\"unexpected GPU device nodes\")\nexcept BaseException as e:\n result[\"error\"]={\"type\":type(e).__name__,\"message\":str(e)[:3000]};result[\"passed\"]=False\nfinally:\n try:\n  if creation_attempted:\n   try:\n    p=cmd([\"docker\",\"inspect\",cid or run],check=False)\n    if p.returncode==0:\n     d=json.loads(p.stdout)[0]\n     if d[\"Config\"][\"Labels\"].get(\"run_id\")==run and d[\"Config\"][\"Labels\"].get(\"experiment\")==\"kimi-cpu-toolchain\":\n      cid=d[\"Id\"];creation_completed=True;result[\"cleanup\"]=cmd([\"docker\",\"rm\",\"--force\",cid],timeout=20,check=False).returncode\n     else:result[\"cleanup_identity_mismatch\"]=True\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"inspect_remove\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   try:\n    remaining=cmd([\"docker\",\"ps\",\"--all\",\"--no-trunc\",\"--filter\",\"label=run_id=\"+run,\"--format\",\"{{.ID}}\"],check=False)\n    result[\"released\"]=creation_completed and remaining.returncode==0 and not remaining.stdout.strip() and not result.get(\"cleanup_identity_mismatch\",False)\n   except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"release_check\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n   if result[\"released\"]:\n    try:result[\"guard_stop\"]=cmd([\"systemctl\",\"--user\",\"stop\",unit+\".timer\"],check=False).returncode\n    except BaseException as e:result[\"cleanup_errors\"].append({\"stage\":\"guard_stop\",\"type\":type(e).__name__,\"message\":str(e)[:1000]})\n  else:result[\"released\"]=True\n finally:\n  result[\"create_completion_unknown\"]=creation_attempted and not creation_completed\n  result[\"cleanup_owed\"]=not result[\"released\"]\n  result[\"passed\"]=bool(result.get(\"passed\",False) and result[\"released\"] and not result[\"cleanup_errors\"])\n  result[\"finished_utc\"]=datetime.datetime.now(datetime.timezone.utc).isoformat()\n  print(json.dumps(result))\n",
+    "body": "LIBRARIES={'_C': {'bytes': 395376, 'sha256': '994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864'}, '_checkpoint_store': {'bytes': 823584, 'sha256': '30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5'}}\nimport os,json,hashlib,importlib.util,resource\nfrom pathlib import Path\nresource.setrlimit(resource.RLIMIT_CORE,(0,0))\nfor k in (\"OPENBLAS_NUM_THREADS\",\"OMP_NUM_THREADS\",\"MKL_NUM_THREADS\",\"NUMEXPR_NUM_THREADS\"):os.environ[k]=\"1\"\nr={\"passed\":False,\"device_nodes\":[str(p) for p in Path('/dev').glob('nvidia*')],\"build_directory_present\":Path('/tmp/_deps').exists() or Path('/src').exists(),\"imports\":{}}\ntry:\n if r['device_nodes'] or r['build_directory_present']:raise ValueError('not a clean CPU relocation container')\n import torch\n r['torch_version']=str(torch.__version__);r['torch_cuda']=torch.version.cuda\n if r['torch_version']!='2.10.0+cu129' or r['torch_cuda']!='12.9':raise ValueError('Torch differs')\n for name,e in LIBRARIES.items():\n  path=Path('/artifacts')/(name+'.so')\n  if path.stat().st_size!=e['bytes'] or hashlib.sha256(path.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('native library identity differs')\n  spec=importlib.util.spec_from_file_location(name,str(path));mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)\n  r['imports'][name]={'loaded':True,'file':mod.__file__,'sha256':e['sha256']}\n r['cuda_initialized']=torch.cuda.is_initialized()\n if r['cuda_initialized']:raise ValueError('CUDA initialized')\n r['passed']=True\nexcept BaseException as e:r.update(error_type=type(e).__name__,error=str(e))\nfinally:print(json.dumps(r))\n",
+    "host_driver_sha256": "fb4fbae1043ee4ab072525c88095ef18765ec2003885dffd52c4a1707698b7ee",
+    "body_sha256": "1901694006e44befcfa7d6f4af9459928c71999a208c270a4a5641f44ede346d",
+    "scope": "fresh image CPU container, only two exact .so RO mounts, no source/build tree/archives, ordinary import only"
+  },
+  "native_relocation_review": {
+    "recorded_utc": "2026-11-02T02:58:01.766956+00:00",
+    "reviewer": "local read-only deadline_readonly_review",
+    "verdict": "PASS_SCOPED_STATIC",
+    "host_driver_sha256": "fb4fbae1043ee4ab072525c88095ef18765ec2003885dffd52c4a1707698b7ee",
+    "body_sha256": "1901694006e44befcfa7d6f4af9459928c71999a208c270a4a5641f44ede346d",
+    "scope": "fresh no-build-tree container imports two exact libraries on fixed53f661 image only; not cross-environment/liveStore/GPU"
   }
 }

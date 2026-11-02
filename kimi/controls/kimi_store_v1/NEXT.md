@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 10:56静态PIC glog修订完整build已真通过（run5e597e33…），_C仍994772cc…395376B、_checkpoint_store改30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5/823584B。readelf实际无/tmp或libglog.so依赖，同builder普通import/CUDA未初始化成功；原初版构建与临时依赖缺口保留。新无构建目录CPU容器导入候选复用原probe driver：hostfb4fbae…/body19016940…，只挂两精确产物RO、固定53f661镜像、readonlyroot/noGPU/networknone/1CPU2GiB、线程1/内60+host guard120/整体300秒，限定只读复审PASS；实际尚未执行，不能先称移位导入成功。
+
 - 11/2 10:50第一次完整native CPU build实际成功：配置/编译两target均0、两.so写出并在builder普通import成功、CUDA未初始化、无GPU、约72秒。完整33输入rawSHA/14源/命令/两个日志与库/receipt独立哈希已回取cpu-probe，自己的容器rm0/timer stop0且独立查询空。原_C SHA994772c…/_checkpoint_store SHA c122d36…，不修改旧失败或GLM。独立ELF发现_checkpoint_store依赖libglog.so.1及/tmp/_deps/glog-build：这次仅证明builder内成功，不能当部署产物通过。
 - 必要最小修正仅原CMake命令追加BUILD_SHARED_LIBS=OFF和CMAKE_POSITION_INDEPENDENT_CODE=ON，链接静态glog；已有body加readelf拒绝/tmp/和共享glog依赖，原真实ELF负例及readelf失败控制通过。新body7d63f1a…、host不变f860861…只读限定复审PASS。下一项这一次必要重编译，随后必须在无构建目录的新CPU容器只挂载产物做普通import，ELF gate不代替新容器验收。尚未执行修订，不称liveStore/八rank/GPU/服务通过。
 
