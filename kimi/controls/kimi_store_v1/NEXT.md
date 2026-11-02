@@ -4,6 +4,9 @@
 
 ## 最新覆盖
 
+- 11/2 11:00实际闭环：native补丁49b2已完整配置、编译及链接两个原target（code00c3de8/run5e597e33），以静态PIC glog修复首版临时动态依赖。固定53f661ba镜像、Torch2.10cu129/CUDA12.9、单并发1CPU8GiB；_C 395376B/SHA994772cc…，_checkpoint_store 823584B/SHA30132b6d…，详细原始哈希/33输入/日志见native_patch/cpu-probe.json。随后独立干净容器run0cd27f9d（codeb934e03）只挂两库，无源码或构建目录、无GPU/网络、1CPU2GiB，两个普通import均成功且CUDA未初始化；自身容器及timer独立复核已释放。实际只读复审允许ledger compiled_native_store=true及限定CPU导入声明。GPU、活跃Store、完整checkpoint、八rank和原生服务仍未验证，2×预算拒绝不变；依赖合同差异/vllm缺失未解除。旧失败和首版glog缺口完整保留。
+- 下一项检查已编译原生接口的实际CPU读写能力，优先复用已有writer/restore；不得为了通过CPU测试调用CUDA初始化或新增启动包装。以下条目为按时间保留的历史状态，以本条为准。
+
 - 11/2 10:56静态PIC glog修订完整build已真通过（run5e597e33…），_C仍994772cc…395376B、_checkpoint_store改30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5/823584B。readelf实际无/tmp或libglog.so依赖，同builder普通import/CUDA未初始化成功；原初版构建与临时依赖缺口保留。新无构建目录CPU容器导入候选复用原probe driver：hostfb4fbae…/body19016940…，只挂两精确产物RO、固定53f661镜像、readonlyroot/noGPU/networknone/1CPU2GiB、线程1/内60+host guard120/整体300秒，限定只读复审PASS；实际尚未执行，不能先称移位导入成功。
 
 - 11/2 10:50第一次完整native CPU build实际成功：配置/编译两target均0、两.so写出并在builder普通import成功、CUDA未初始化、无GPU、约72秒。完整33输入rawSHA/14源/命令/两个日志与库/receipt独立哈希已回取cpu-probe，自己的容器rm0/timer stop0且独立查询空。原_C SHA994772c…/_checkpoint_store SHA c122d36…，不修改旧失败或GLM。独立ELF发现_checkpoint_store依赖libglog.so.1及/tmp/_deps/glog-build：这次仅证明builder内成功，不能当部署产物通过。

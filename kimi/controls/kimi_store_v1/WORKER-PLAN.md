@@ -4,6 +4,10 @@
 
 ## 当前已接与尚未接
 
+11/2 11:00实际闭环：native补丁49b2已完整配置、编译及链接两个原target（code00c3de8/run5e597e33），以静态PIC glog修复首版临时动态依赖。固定53f661ba镜像、Torch2.10cu129/CUDA12.9、单并发1CPU8GiB；_C 395376B/SHA994772cc…，_checkpoint_store 823584B/SHA30132b6d…，详细原始哈希/33输入/日志见native_patch/cpu-probe.json。随后独立干净容器run0cd27f9d（codeb934e03）只挂两库，无源码或构建目录、无GPU/网络、1CPU2GiB，两个普通import均成功且CUDA未初始化；自身容器及timer独立复核已释放。实际只读复审允许ledger compiled_native_store=true及限定CPU导入声明。GPU、活跃Store、完整checkpoint、八rank和原生服务仍未验证，2×预算拒绝不变；依赖合同差异/vllm缺失未解除。旧失败和首版glog缺口完整保留。
+
+以下构建方案和阻塞为历史记录，不覆盖上述实际结果。
+
 ### native完整编译的已核输入与最小执行方式（11月2日）
 
 已有SDK的31个C++文件中30个按LF比对与冻结source-v7相同，唯一model.cpp须只读叠加候选49b2；raw及LF SHA全部在cpu-probe.existing_sdk_native_input_comparisons，不把换行归一化称原字节相同。已审21178B候选传到原downloads/kimi-native-model.cpp，校验49b2，不改GLM源码。两个原CMake必需依赖已取不可变commit存原downloads：glog b33e3bad…归档193526B/SHA a4cd355a…、googletest b796f7d…归档864010B/SHA2681de8c…；总解包4775586B，尚未解包，逐成员检查路径/大小/类型。没有旧build或_deps缓存可复用；不再复制SDK或重复下载这两份依赖。
@@ -25,7 +29,7 @@
 | 原目标 | 当前软件/CPU证据 | 必需的未证项 |
 |---|---|---|
 | 1 审阅收尾 | 修订SHA、原失败/回归与限定复审可查；mapped inode和runtime范围分开 | 当前完整运行包R1、实际构建/ABI/活跃Store及运行准入 |
-| 2 packed INT4/scale/shape/混精度写读 | native_index、cpu_restore、native_payload及实际C++读片段保留位/布局/alias/配置 | 完整native库/O_DIRECT/CUDA IPC/Confirm，完整checkpoint和八rank |
+| 2 packed INT4/scale/shape/混精度写读 | native_index、cpu_restore、native_payload及实际C++读片段保留位/布局/alias/配置 | 完整native库的实际O_DIRECT/CUDA IPC/Confirm，完整checkpoint和八rank |
 | 3 分块与临时内存 | writer/reader/hash失败的自身引用清理，不GC或free不明DMA | 8MiB不等于RSS；源模型/CPU目标/池/缓存/重排/失败所有者的共同峰值 |
 | 4 TP8融合专家及后处理 | 冻结208550源名到1428目标的条件映射、alias/buffer/Marlin辅助与一次后处理 | 真实八rank shape/value/scale、Marlin重排、混设备安装和最终CUDA状态 |
 | 5 交付与八卡边界 | 源码/CPU测试/失败证据及未证项有记录；native plugin已有实际候选调用，source登记v2已绑输入 | vLLM实际spawn、parent/容器消费/守护、Kimi金标及原生服务/释放 |

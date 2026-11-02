@@ -1,14 +1,14 @@
 # Kimi INT4 Store CPU 适配候选
 
-最新五项目标只读审计仍为整体INCOMPLETE，未发现一个已证实的新增本地CPU核心格式/映射错误。详表及下一外部证据见WORKER-PLAN。native完整构建、实际CUDA数据路径、八rank及服务仍缺，不用组件数或包装数量代替这些证据。四份冻结上游构建文件仅15367B已取得并核Git blob/SHA256；构建默认Torch范围及并发需要受控方案，未安装依赖或宣称可编译。
+11/2 11:00实际闭环：native补丁49b2已完整配置、编译及链接两个原target（code00c3de8/run5e597e33），以静态PIC glog修复首版临时动态依赖。固定53f661ba镜像、Torch2.10cu129/CUDA12.9、单并发1CPU8GiB；_C 395376B/SHA994772cc…，_checkpoint_store 823584B/SHA30132b6d…，详细原始哈希/33输入/日志见native_patch/cpu-probe.json。随后独立干净容器run0cd27f9d（codeb934e03）只挂两库，无源码或构建目录、无GPU/网络、1CPU2GiB，两个普通import均成功且CUDA未初始化；自身容器及timer独立复核已释放。实际只读复审允许ledger compiled_native_store=true及限定CPU导入声明。GPU、活跃Store、完整checkpoint、八rank和原生服务仍未验证，2×预算拒绝不变；依赖合同差异/vllm缺失未解除。旧失败和首版glog缺口完整保留。
 
 当前接续以NEXT.md最新覆盖为准。以下是2026-10-31按现有代码核验的CPU覆盖，不把早期章节的“最新”当作当前整体状态。最近一次全套406项中382通过、24个Windows平台跳过（53.863秒，WSL桥接既有Windows Torch）；source_schedule原生WSL77项通过5.136秒，source worker输入链7项先前亦已原生通过。这是组件/CPU控制，不是完整模型正确性或运行准入。
 
-完整本机构建已有实际预检阻塞：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
+历史本机构建预检（远端完整编译已于11/2通过，见上）：配置的WSL缺nvcc/CUDA头/Linux Torch，34文件Store快照缺构建入口，实际syntax probe因cuda_runtime.h缺失失败；本机两个Docker端点均无pipe，未启动/安装/下载。详情与原始证据见MULTI-HANDLE-PRODUCER及native_patch/cpu-probe.json。CPU片段编译和397项结果不能代替完整native构建，也不能声称现有镜像不存在。
 
 | 目标 | 已有CPU证据/候选接口 | 仍未通过 |
 |---|---|---|
-| 审阅与版本 | 每次修订绑定源码SHA，故障负例/原失败及只读复审保留；Linux映射inode检查已用真实CPU共享库验证 | 完整运行manifest的R1、实际native构建/ABI/活跃Store与准入；inode检查不是机器码核验 |
+| 审阅与版本 | 每次修订绑定源码SHA，故障负例/原失败及只读复审保留；Linux映射inode检查已用真实CPU共享库验证 | 完整运行manifest的R1、实际功能ABI/活跃Store与准入；inode检查不是机器码核验 |
 | packed INT4保存/读取 | writer/index/restore/install保留packed及scale原始位/布局/alias/角色/配置；实际CPP读取片段与writer小文件衔接，跨多分区/短读/EINTR修复 | 真正完整native Store/O_DIRECT/CUDA、完整checkpoint及八rank逐项校验 |
 | 分块与临时引用 | 默认8MiB块；写入及两条读回摘要失败时释放自身view/CPU staging generator，保留原错误/partial，真实CPU弱引用不用GC控制通过 | 整进程RSS/锁页/页缓存/原模型和GPU工作区峰值；8MiB不是RSS上限 |
 | TP8与后处理 | 条件1428目标名、融合专家/非专家映射、角色/alias/必要buffer、固定Marlin辅助政策及一次Base后处理组件 | 实际8rank shape/value、真实Marlin重排/释放、真实混设备构造 |

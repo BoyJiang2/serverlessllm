@@ -1,5 +1,5 @@
 {
-  "scope": "independent Kimi candidate source only; not deployed",
+  "scope": "independent Kimi patch fully compiled and CPU-import verified; not admitted for live Store/model/service",
   "base_path": "glm/controls/candidate13e/evidence/runtime/source-v7/sllm_store/csrc/sllm_store/model.cpp",
   "base_sha256": "1d2d566e5c64bf513cf2c5096c05c5994535081efbfc9a5f4021ba0ab6fda719",
   "candidate_path": "kimi/controls/kimi_store_v1/native_patch/model.cpp",
@@ -14,7 +14,7 @@
     "No cudaFree or forced cleanup",
     "No shared runtime, original archive or GLM result modified"
   ],
-  "compiled_native_store": false,
+  "compiled_native_store": true,
   "gpu_verified": false,
   "runtime_admitted": false,
   "previous_candidates": [
@@ -24,5 +24,44 @@
       "compiled_native_store": false,
       "scope": "IPC close propagation candidate before ToHost multi-partition read fix"
     }
-  ]
+  ],
+  "cpu_extension_import_verified": true,
+  "clean_container_import_verified": true,
+  "live_store_verified": false,
+  "eight_rank_verified": false,
+  "actual_build": {
+    "run_id": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea",
+    "code_commit": "00c3de89a936c3e51c14537e0c99a665408abead",
+    "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+    "patch_sha256": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
+    "torch": "2.10.0+cu129",
+    "cuda_toolkit": "12.9.86",
+    "cxx11_abi": true,
+    "flags": [
+      "BUILD_SHARED_LIBS=OFF",
+      "CMAKE_POSITION_INDEPENDENT_CODE=ON"
+    ],
+    "parallel_jobs": 1,
+    "cpu_limit": 1,
+    "memory_limit_gib": 8,
+    "artifacts": {
+      "_C": {
+        "loaded": true,
+        "file": "/artifacts/_C.so",
+        "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+      },
+      "_checkpoint_store": {
+        "loaded": true,
+        "file": "/artifacts/_checkpoint_store.so",
+        "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+      }
+    },
+    "artifact_directory": "qjhs003:/data/brick1/boyjiang/kimi-k2.6/downloads/",
+    "artifact_prefix": "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea-",
+    "clean_import_run": "kimi-native-relocate-0cd27f9d95c742fca40e5f53e0c62f38",
+    "clean_import_code_commit": "b934e030599d28e9c0720e188091110e5a8b707d",
+    "cuda_initialized": false,
+    "released": true,
+    "evidence": "cpu-probe.json: native_build_executions, native_static_build_independent_verification, native_relocation_executions, native_build_actual_review"
+  }
 }

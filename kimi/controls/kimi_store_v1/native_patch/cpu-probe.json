@@ -3534,5 +3534,296 @@
     "host_driver_sha256": "fb4fbae1043ee4ab072525c88095ef18765ec2003885dffd52c4a1707698b7ee",
     "body_sha256": "1901694006e44befcfa7d6f4af9459928c71999a208c270a4a5641f44ede346d",
     "scope": "fresh no-build-tree container imports two exact libraries on fixed53f661 image only; not cross-environment/liveStore/GPU"
+  },
+  "native_relocation_executions": [
+    {
+      "registered_utc": "2026-11-02T02:58:45.413472+00:00",
+      "code_commit": "b934e03",
+      "state": "SSH_TERMINAL",
+      "booking": {
+        "cluster_id": "h20",
+        "created_ms": 1793532872010,
+        "end_ms": 1793617200000,
+        "id": "bk-20261101T1134-265b50dd",
+        "node": "qjhs003",
+        "purpose": "ksqd",
+        "resource_id": "h20/qjhs003",
+        "start_ms": 1793581200000,
+        "user": "azure"
+      },
+      "host_driver_sha256": "fb4fbae1043ee4ab072525c88095ef18765ec2003885dffd52c4a1707698b7ee",
+      "body_sha256": "1901694006e44befcfa7d6f4af9459928c71999a208c270a4a5641f44ede346d",
+      "returncode": 0,
+      "stderr": "",
+      "events": [
+        {
+          "run_id": "kimi-native-relocate-0cd27f9d95c742fca40e5f53e0c62f38",
+          "image": "sha256:53f661bab40f626333389272d0aeb0fbd3a77209ab99739a3a6e83e1b3c520e8",
+          "started_utc": "2026-11-02T02:58:52.162238+00:00",
+          "gpu_requested": false,
+          "compiled_native_store": false,
+          "released": true,
+          "cleanup_errors": [],
+          "container_id": "0cb3beb5d460b03b091d428b2adfb6c3cd05f4f5d564c769d92dc4a28f1ce39f",
+          "guard_install": "Running timer as unit: kimi-native-relocate-0cd27f9d95c742fca40e5f53e0c62f38-cleanup.timer\nWill run service as unit: kimi-native-relocate-0cd27f9d95c742fca40e5f53e0c62f38-cleanup.service\n",
+          "guard_probe": {
+            "timer": "NextElapseUSecMonotonic=1w 1d 5h 59min 30.085902s\nActiveState=active\n",
+            "service": "ExecStart={ path=/usr/bin/env ; argv[]=/usr/bin/env -u DOCKER_HOST -u DOCKER_CONTEXT -u DOCKER_TLS -u DOCKER_TLS_VERIFY -u DOCKER_CERT_PATH -u DOCKER_API_VERSION /usr/bin/docker --host unix:///var/run/docker.sock rm --force 0cb3beb5d460b03b091d428b2adfb6c3cd05f4f5d564c769d92dc4a28f1ce39f ; ignore_errors=no ; start_time=[n/a] ; stop_time=[n/a] ; pid=0 ; code=(null) ; status=0/0 }\n"
+          },
+          "attach": {
+            "returncode": 0,
+            "stdout": "{\"passed\": true, \"device_nodes\": [], \"build_directory_present\": false, \"imports\": {\"_C\": {\"loaded\": true, \"file\": \"/artifacts/_C.so\", \"sha256\": \"994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864\"}, \"_checkpoint_store\": {\"loaded\": true, \"file\": \"/artifacts/_checkpoint_store.so\", \"sha256\": \"30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5\"}}, \"torch_version\": \"2.10.0+cu129\", \"torch_cuda\": \"12.9\", \"cuda_initialized\": false}\n",
+            "stderr": ""
+          },
+          "exit_state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-11-02T02:58:52.268653928Z",
+            "FinishedAt": "2026-11-02T02:58:53.883144989Z"
+          },
+          "passed": true,
+          "metadata": {
+            "passed": true,
+            "device_nodes": [],
+            "build_directory_present": false,
+            "imports": {
+              "_C": {
+                "loaded": true,
+                "file": "/artifacts/_C.so",
+                "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+              },
+              "_checkpoint_store": {
+                "loaded": true,
+                "file": "/artifacts/_checkpoint_store.so",
+                "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+              }
+            },
+            "torch_version": "2.10.0+cu129",
+            "torch_cuda": "12.9",
+            "cuda_initialized": false
+          },
+          "cleanup": 0,
+          "guard_stop": 0,
+          "create_completion_unknown": false,
+          "cleanup_owed": false,
+          "finished_utc": "2026-11-02T02:58:54.016999+00:00"
+        }
+      ]
+    }
+  ],
+  "native_static_build_independent_verification": {
+    "recorded_utc": "2026-11-02T03:00:10.693139+00:00",
+    "scope": "independent static-linked build artifacts/raw logs/receipt/ELF and build/relocation release checks",
+    "returncode": 0,
+    "data": {
+      "files": {
+        "configure.log": {
+          "bytes": 10150,
+          "sha256": "bf1240d56e444149969d75dd5552dd5496f81d9fdac3f0dd9f4717e62ad5e7c7",
+          "content_utf8": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\nCMake Deprecation Warning at /tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446/cmake/GetCacheVariables.cmake:2 (cmake_policy):\n  Compatibility with CMake < 3.5 will be removed from a future version of\n  CMake.\n\n  Update the VERSION argument <min> value or use a ...<max> suffix to tell\n  CMake that the project does not need compatibility with older versions.\nCall Stack (most recent call first):\n  /tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446/CMakeLists.txt:34 (include)\n\n\n-- Could NOT find GTest (missing: GTest_DIR)\nCMake Warning at /tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446/CMakeLists.txt:82 (find_package):\n  By not providing \"Findgflags.cmake\" in CMAKE_MODULE_PATH this project has\n  asked CMake to find a package configuration file provided by \"gflags\", but\n  CMake did not find one.\n\n  Could not find a package configuration file provided by \"gflags\" (requested\n  version 2.2.2) with any of the following names:\n\n    gflagsConfig.cmake\n    gflags-config.cmake\n\n  Add the installation prefix of \"gflags\" to CMAKE_PREFIX_PATH or set\n  \"gflags_DIR\" to a directory containing one of the above files.  If \"gflags\"\n  provides a separate development package or SDK, be sure it has been\n  installed.\n\n\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD\n-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success\n-- Found Threads: TRUE  \n-- Could NOT find Unwind (missing: Unwind_INCLUDE_DIR Unwind_LIBRARY) \n-- Looking for C++ include unwind.h\n-- Looking for C++ include unwind.h - found\n-- Looking for _Unwind_Backtrace\n-- Looking for _Unwind_Backtrace - found\n-- Looking for C++ include dlfcn.h\n-- Looking for C++ include dlfcn.h - found\n-- Looking for C++ include execinfo.h\n-- Looking for C++ include execinfo.h - found\n-- Looking for C++ include glob.h\n-- Looking for C++ include glob.h - found\n-- Looking for C++ include inttypes.h\n-- Looking for C++ include inttypes.h - found\n-- Looking for C++ include memory.h\n-- Looking for C++ include memory.h - found\n-- Looking for C++ include pwd.h\n-- Looking for C++ include pwd.h - found\n-- Looking for C++ include stdint.h\n-- Looking for C++ include stdint.h - found\n-- Looking for C++ include strings.h\n-- Looking for C++ include strings.h - found\n-- Looking for C++ include sys/stat.h\n-- Looking for C++ include sys/stat.h - found\n-- Looking for C++ include sys/syscall.h\n-- Looking for C++ include sys/syscall.h - found\n-- Looking for C++ include sys/time.h\n-- Looking for C++ include sys/time.h - found\n-- Looking for C++ include sys/types.h\n-- Looking for C++ include sys/types.h - found\n-- Looking for C++ include sys/utsname.h\n-- Looking for C++ include sys/utsname.h - found\n-- Looking for C++ include sys/wait.h\n-- Looking for C++ include sys/wait.h - found\n-- Looking for C++ include syscall.h\n-- Looking for C++ include syscall.h - found\n-- Looking for C++ include syslog.h\n-- Looking for C++ include syslog.h - found\n-- Looking for C++ include ucontext.h\n-- Looking for C++ include ucontext.h - found\n-- Looking for C++ include unistd.h\n-- Looking for C++ include unistd.h - found\n-- Looking for C++ include ext/hash_map\n-- Looking for C++ include ext/hash_map - found\n-- Looking for C++ include ext/hash_set\n-- Looking for C++ include ext/hash_set - found\n-- Looking for C++ include ext/slist\n-- Looking for C++ include ext/slist - found\n-- Looking for C++ include tr1/unordered_map\n-- Looking for C++ include tr1/unordered_map - found\n-- Looking for C++ include tr1/unordered_set\n-- Looking for C++ include tr1/unordered_set - found\n-- Looking for C++ include unordered_map\n-- Looking for C++ include unordered_map - found\n-- Looking for C++ include unordered_set\n-- Looking for C++ include unordered_set - found\n-- Looking for C++ include stddef.h\n-- Looking for C++ include stddef.h - found\n-- Check size of unsigned __int16\n-- Check size of unsigned __int16 - failed\n-- Check size of u_int16_t\n-- Check size of u_int16_t - done\n-- Check size of uint16_t\n-- Check size of uint16_t - done\n-- Looking for dladdr\n-- Looking for dladdr - found\n-- Looking for fcntl\n-- Looking for fcntl - found\n-- Looking for pread\n-- Looking for pread - found\n-- Looking for pwrite\n-- Looking for pwrite - found\n-- Looking for sigaction\n-- Looking for sigaction - found\n-- Looking for sigaltstack\n-- Looking for sigaltstack - found\n-- Performing Test HAVE_NO_DEPRECATED\n-- Performing Test HAVE_NO_DEPRECATED - Success\n-- Performing Test HAVE_NO_UNNAMED_TYPE_TEMPLATE_ARGS\n-- Performing Test HAVE_NO_UNNAMED_TYPE_TEMPLATE_ARGS - Failed\n-- Looking for pthread_threadid_np\n-- Looking for pthread_threadid_np - not found\n-- Looking for snprintf\n-- Looking for snprintf - found\n-- Looking for UnDecorateSymbolName in dbghelp\n-- Looking for UnDecorateSymbolName in dbghelp - not found\n-- Performing Test HAVE___ATTRIBUTE__\n-- Performing Test HAVE___ATTRIBUTE__ - Success\n-- Performing Test HAVE___ATTRIBUTE__VISIBILITY_DEFAULT\n-- Performing Test HAVE___ATTRIBUTE__VISIBILITY_DEFAULT - Success\n-- Performing Test HAVE___ATTRIBUTE__VISIBILITY_HIDDEN\n-- Performing Test HAVE___ATTRIBUTE__VISIBILITY_HIDDEN - Success\n-- Performing Test HAVE___BUILTIN_EXPECT\n-- Performing Test HAVE___BUILTIN_EXPECT - Success\n-- Performing Test HAVE___SYNC_VAL_COMPARE_AND_SWAP\n-- Performing Test HAVE___SYNC_VAL_COMPARE_AND_SWAP - Success\n-- Performing Test HAVE_RWLOCK\n-- Performing Test HAVE_RWLOCK - Success\n-- Performing Test HAVE___DECLSPEC\n-- Performing Test HAVE___DECLSPEC - Failed\n-- Performing Test STL_NO_NAMESPACE\n-- Performing Test STL_NO_NAMESPACE - Failed\n-- Performing Test STL_STD_NAMESPACE\n-- Performing Test STL_STD_NAMESPACE - Success\n-- Performing Test HAVE_USING_OPERATOR\n-- Performing Test HAVE_USING_OPERATOR - Success\n-- Performing Test HAVE_NAMESPACES\n-- Performing Test HAVE_NAMESPACES - Success\n-- Performing Test HAVE_GCC_TLS\n-- Performing Test HAVE_GCC_TLS - Success\n-- Performing Test HAVE_MSVC_TLS\n-- Performing Test HAVE_MSVC_TLS - Failed\n-- Performing Test HAVE_CXX11_TLS\n-- Performing Test HAVE_CXX11_TLS - Success\n-- Performing Test HAVE_ALIGNED_STORAGE\n-- Performing Test HAVE_ALIGNED_STORAGE - Success\n-- Performing Test HAVE_CXX11_ATOMIC\n-- Performing Test HAVE_CXX11_ATOMIC - Success\n-- Performing Test HAVE_CXX11_CONSTEXPR\n-- Performing Test HAVE_CXX11_CONSTEXPR - Success\n-- Performing Test HAVE_CXX11_CHRONO\n-- Performing Test HAVE_CXX11_CHRONO - Success\n-- Performing Test HAVE_CXX11_NULLPTR_T\n-- Performing Test HAVE_CXX11_NULLPTR_T - Success\n-- Performing Test HAVE_LOCALTIME_R\n-- Performing Test HAVE_LOCALTIME_R - Success\n-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY\n-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success\n-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY\n-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success\n-- Performing Test COMPILER_HAS_DEPRECATED_ATTR\n-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success\n-- The C compiler identification is GNU 13.3.0\n-- Detecting C compiler ABI info\n-- Detecting C compiler ABI info - done\n-- Check for working C compiler: /usr/bin/cc - skipped\n-- Detecting C compile features\n-- Detecting C compile features - done\n-- Found Python: /usr/bin/python3 (found version \"3.12.3\") found components: Interpreter \n-- CUDA found\n-- The CUDA compiler identification is NVIDIA 12.9.86\n-- Detecting CUDA compiler ABI info\n-- Detecting CUDA compiler ABI info - done\n-- Check for working CUDA compiler: /usr/local/cuda/bin/nvcc - skipped\n-- Detecting CUDA compile features\n-- Detecting CUDA compile features - done\n-- Found Python: /usr/bin/python3 (found version \"3.12.3\") found components: Interpreter Development.Module \n-- Found python matching: /usr/bin/python3.\n-- Found CUDA: /usr/local/cuda (found version \"12.9\") \n-- Found CUDAToolkit: /usr/local/cuda/include (found version \"12.9.86\") \n-- PyTorch: CUDA detected: 12.9\n-- PyTorch: CUDA nvcc is: /usr/local/cuda/bin/nvcc\n-- PyTorch: CUDA toolkit directory: /usr/local/cuda\n-- PyTorch: Header version is: 12.9\n-- Found Python: /usr/bin/python3 (found version \"3.12.3\") found components: Interpreter \nCMake Warning at /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Caffe2/public/cuda.cmake:149 (message):\n  Failed to compute shorthash for libnvrtc.so\nCall Stack (most recent call first):\n  /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)\n  /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)\n  CMakeLists.txt:80 (find_package)\n\n\n-- USE_CUDNN is set to 0. Compiling without cuDNN support\n-- USE_CUSPARSELT is set to 0. Compiling without cuSPARSELt support\n-- USE_CUDSS is set to 0. Compiling without cuDSS support\n-- USE_CUFILE is set to 0. Compiling without cuFile support\nCMake Warning at /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Caffe2/public/cuda.cmake:332 (message):\n  pytorch is not compatible with `CMAKE_CUDA_ARCHITECTURES` and will ignore\n  its value.  Please configure `TORCH_CUDA_ARCH_LIST` instead.\nCall Stack (most recent call first):\n  /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)\n  /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Torch/TorchConfig.cmake:68 (find_package)\n  CMakeLists.txt:80 (find_package)\n\n\n-- Added CUDA NVCC flags for: -gencode;arch=compute_90,code=sm_90\nCMake Warning at /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Torch/TorchConfig.cmake:22 (message):\n  static library kineto_LIBRARY-NOTFOUND not found.\nCall Stack (most recent call first):\n  /usr/local/lib/python3.12/dist-packages/torch/share/cmake/Torch/TorchConfig.cmake:125 (append_torchlib_if_found)\n  CMakeLists.txt:80 (find_package)\n\n\n-- Found Torch: /usr/local/lib/python3.12/dist-packages/torch/lib/libtorch.so  \n-- CUDA supported arches: 7.0;7.5;8.0;8.6;8.9;9.0\n-- CUDA target arches: 90-real\n-- Configuring done (9.2s)\n-- Generating done (0.0s)\n-- Build files have been written to: /tmp\n"
+        },
+        "build.log": {
+          "bytes": 7687,
+          "sha256": "065e4bcecdc0a4d287dc988ad7c64e9326e6bea3cfed51c83bde0be713d76aa1",
+          "content_utf8": "[1/24] Building CXX object CMakeFiles/_C.dir/csrc/checkpoint/aligned_buffer.cpp.o\n/src/csrc/checkpoint/aligned_buffer.cpp: In member function ‘size_t AlignedBuffer::writeData(const void*, size_t)’:\n/src/csrc/checkpoint/aligned_buffer.cpp:67:19: warning: ignoring return value of ‘char* strerror_r(int, char*, size_t)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]\n   67 |         strerror_r(errno, err_msg, sizeof(err_msg));\n      |         ~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n/src/csrc/checkpoint/aligned_buffer.cpp: In member function ‘size_t AlignedBuffer::writePadding(size_t)’:\n/src/csrc/checkpoint/aligned_buffer.cpp:116:11: warning: ignoring return value of ‘ssize_t pwrite(int, const void*, size_t, __off_t)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]\n  116 |     pwrite(fd_, buffer_, buf_pos_, file_offset_);\n      |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n[2/24] Building CXX object CMakeFiles/_C.dir/csrc/checkpoint/checkpoint.cpp.o\n[3/24] Building CXX object CMakeFiles/_C.dir/csrc/checkpoint/checkpoint_py.cpp.o\n[4/24] Building CXX object CMakeFiles/_C.dir/csrc/checkpoint/tensor_writer.cpp.o\n[5/24] Linking CXX shared module _C.cpython-312-x86_64-linux-gnu.so\n[6/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/binary_utils.cpp.o\n[7/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/checkpoint_store.cpp.o\n[8/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/checkpoint_store_py.cpp.o\nIn file included from /src/csrc/sllm_store/model.h:36,\n                 from /src/csrc/sllm_store/checkpoint_store.h:35,\n                 from /src/csrc/sllm_store/checkpoint_store_py.cpp:22:\n/tmp/_deps/glog-build/glog/logging.h:610: warning: \"LOG\" redefined\n  610 | #define LOG(severity) COMPACT_GOOGLE_LOG_ ## severity.stream()\n      | \nIn file included from /usr/local/lib/python3.12/dist-packages/torch/include/c10/util/Logging.h:30,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/ivalue_inl.h:28,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/ivalue.h:1638,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/List_inl.h:5,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/List.h:492,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/IListRef_inl.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/core/IListRef.h:634,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/WrapDimUtils.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/TensorNames.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/ATen/NamedTensorUtils.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/torch/csrc/autograd/variable.h:12,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/torch/csrc/autograd/autograd.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/torch/csrc/api/include/torch/autograd.h:4,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/torch/csrc/api/include/torch/all.h:8,\n                 from /usr/local/lib/python3.12/dist-packages/torch/include/torch/extension.h:6,\n                 from /src/csrc/sllm_store/checkpoint_store_py.cpp:20:\n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:73: note: this is the location of the previous definition\n   73 | #define LOG(n)                                 \\\n      | \nIn file included from /tmp/_deps/glog-build/glog/logging.h:617:\n/tmp/_deps/glog-build/glog/vlog_is_on.h:73: warning: \"VLOG_IS_ON\" redefined\n   73 | #define VLOG_IS_ON(verboselevel)                                \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:87: note: this is the location of the previous definition\n   87 | #define VLOG_IS_ON(verboselevel) (CAFFE2_LOG_THRESHOLD <= -(verboselevel))\n      | \n/tmp/_deps/glog-build/glog/logging.h:694: warning: \"LOG_IF\" redefined\n  694 | #define LOG_IF(severity, condition) \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:80: note: this is the location of the previous definition\n   80 | #define LOG_IF(n, condition)                                  \\\n      | \n/tmp/_deps/glog-build/glog/logging.h:710: warning: \"CHECK\" redefined\n  710 | #define CHECK(condition)  \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:102: note: this is the location of the previous definition\n  102 | #define CHECK(condition) FATAL_IF(condition) << \"Check failed: \" #condition \" \"\n      | \n/tmp/_deps/glog-build/glog/logging.h:1330: warning: \"DLOG\" redefined\n 1330 | #define DLOG(severity)  \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:114: note: this is the location of the previous definition\n  114 | #define DLOG(n)                   \\\n      | \n/tmp/_deps/glog-build/glog/logging.h:1356: warning: \"DCHECK\" redefined\n 1356 | #define DCHECK(condition) \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:110: note: this is the location of the previous definition\n  110 | #define DCHECK(condition) \\\n      | \n/tmp/_deps/glog-build/glog/logging.h:1419: warning: \"VLOG\" redefined\n 1419 | #define VLOG(verboselevel) LOG_IF(INFO, VLOG_IS_ON(verboselevel))\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:76: note: this is the location of the previous definition\n   76 | #define VLOG(n)                   \\\n      | \n/tmp/_deps/glog-build/glog/logging.h:1421: warning: \"VLOG_IF\" redefined\n 1421 | #define VLOG_IF(verboselevel, condition) \\\n      | \n/usr/local/lib/python3.12/dist-packages/torch/include/c10/util/logging_is_not_google_glog.h:83: note: this is the location of the previous definition\n   83 | #define VLOG_IF(n, condition)                    \\\n      | \n[9/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/cuda_memory.cpp.o\n[10/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/cuda_memory_pool.cpp.o\n[11/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/gpu_replica.cpp.o\n[12/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/memory_state.cpp.o\n[13/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/model.cpp.o\n[14/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/pinned_memory.cpp.o\n[15/24] Building CXX object CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/pinned_memory_pool.cpp.o\n[16/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/demangle.cc.o\n[17/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/logging.cc.o\n[18/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/raw_logging.cc.o\n[19/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/symbolize.cc.o\n[20/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/utilities.cc.o\n[21/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/vlog_is_on.cc.o\n[22/24] Building CXX object _deps/glog-build/CMakeFiles/glogbase.dir/src/signalhandler.cc.o\n[23/24] Linking CXX static library _deps/glog-build/libglog.a\n[24/24] Linking CXX shared module _checkpoint_store.cpython-312-x86_64-linux-gnu.so\n"
+        },
+        "_C.so": {
+          "bytes": 395376,
+          "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864",
+          "dynamic": {
+            "code": 0,
+            "stdout": "\nDynamic section at offset 0x49bb8 contains 33 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_python.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libc10.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0xe000\n 0x000000000000000d (FINI)               0x3de2c\n 0x0000000000000019 (INIT_ARRAY)         0x498e0\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x498e8\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x2f0\n 0x0000000000000005 (STRTAB)             0x2f98\n 0x0000000000000006 (SYMTAB)             0x7f0\n 0x000000000000000a (STRSZ)              30841 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x49fe8\n 0x0000000000000002 (PLTRELSZ)           7176 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0xbdb0\n 0x0000000000000007 (RELA)               0xacd0\n 0x0000000000000008 (RELASZ)             4320 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xab60\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0xa812\n 0x000000006ffffff9 (RELACOUNT)          57\n 0x0000000000000000 (NULL)               0x0\n",
+            "stderr": ""
+          }
+        },
+        "_checkpoint_store.so": {
+          "bytes": 823584,
+          "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5",
+          "dynamic": {
+            "code": 0,
+            "stdout": "\nDynamic section at offset 0x90a90 contains 32 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0x16000\n 0x000000000000000d (FINI)               0x788e8\n 0x0000000000000019 (INIT_ARRAY)         0x8f670\n 0x000000000000001b (INIT_ARRAYSZ)       40 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x8f698\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x328\n 0x0000000000000005 (STRTAB)             0x4960\n 0x0000000000000006 (SYMTAB)             0xb38\n 0x000000000000000a (STRSZ)              40261 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x90fe8\n 0x0000000000000002 (PLTRELSZ)           10368 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x12e98\n 0x0000000000000007 (RELA)               0xee18\n 0x0000000000000008 (RELASZ)             16512 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xebd8\n 0x000000006fffffff (VERNEEDNUM)         5\n 0x000000006ffffff0 (VERSYM)             0xe6a6\n 0x000000006ffffff9 (RELACOUNT)          382\n 0x0000000000000000 (NULL)               0x0\n",
+            "stderr": ""
+          }
+        },
+        "receipt.json": {
+          "bytes": 9852,
+          "sha256": "c0a1a55ffad2442f1d4a04fc5efe6b6c171a33d79fe3210e0592c6f881f2f007"
+        }
+      },
+      "receipt": {
+        "compiled_native_store": true,
+        "passed": true,
+        "gpu_used": false,
+        "libraries": {
+          "_C": {
+            "bytes": 395376,
+            "sha256": "994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864"
+          },
+          "_checkpoint_store": {
+            "bytes": 823584,
+            "sha256": "30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5"
+          }
+        },
+        "device_nodes": [],
+        "torch_version": "2.10.0+cu129",
+        "torch_cuda": "12.9",
+        "cxx11_abi": true,
+        "recipe_sha256": {
+          "CMakeLists.txt": "e21cb3a9bcdd4c2c763d0aa0ee33b112f6651bc30f1d6d4e5e849125f3b0b92c",
+          "cmake/utils.cmake": "4adc1c4f073bf1a3fcab925c3b80453d3bd8a687edf3e0b4baa6a143b0dfea56"
+        },
+        "recipe_sources": [
+          "csrc/checkpoint/aligned_buffer.cpp",
+          "csrc/checkpoint/checkpoint.cpp",
+          "csrc/checkpoint/checkpoint_py.cpp",
+          "csrc/checkpoint/tensor_writer.cpp",
+          "csrc/sllm_store/binary_utils.cpp",
+          "csrc/sllm_store/checkpoint_store.cpp",
+          "csrc/sllm_store/checkpoint_store_py.cpp",
+          "csrc/sllm_store/cuda_memory.cpp",
+          "csrc/sllm_store/cuda_memory_pool.cpp",
+          "csrc/sllm_store/gpu_replica.cpp",
+          "csrc/sllm_store/memory_state.cpp",
+          "csrc/sllm_store/model.cpp",
+          "csrc/sllm_store/pinned_memory.cpp",
+          "csrc/sllm_store/pinned_memory_pool.cpp"
+        ],
+        "source_raw_sha256": {
+          "CMakeLists.txt": "e21cb3a9bcdd4c2c763d0aa0ee33b112f6651bc30f1d6d4e5e849125f3b0b92c",
+          "cmake/utils.cmake": "4adc1c4f073bf1a3fcab925c3b80453d3bd8a687edf3e0b4baa6a143b0dfea56",
+          "csrc/checkpoint/aligned_buffer.cpp": "aa7a4aa1b5202be21e0b3d4a4849d5a9c6613bbe696b812f4bfdb09b7625f53f",
+          "csrc/checkpoint/aligned_buffer.h": "5fac88529e56b49b1f618a501245c5fe6c18d4c007c5123cbf1c08898ae72b11",
+          "csrc/checkpoint/checkpoint.cpp": "eb731fab981dae01d752e0cd3a4539cbffeae415d50eabb030d0acb9f3de8099",
+          "csrc/checkpoint/checkpoint.h": "542afe315b139f1cd900c8edc731fa306df38488940b2086c129fcf5874e2e82",
+          "csrc/checkpoint/checkpoint_py.cpp": "8be8febaba4f78a125c64988a68681dc07d7ece7a2425b6543cc253d5b51d379",
+          "csrc/checkpoint/progress_bar.h": "49ab262a23607c92b469699c245b1c14c33042b6eeeeb3519fe8098995c46fa6",
+          "csrc/checkpoint/tensor_writer.cpp": "9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404",
+          "csrc/checkpoint/tensor_writer.h": "ecb811d207e3dd715af4b6cbdcff5bd7eed65e88ac6f84b7440c24a0fd9676b8",
+          "csrc/sllm_store/binary_utils.cpp": "d699019a8ca23ecd7c1173b7d80edc581e0cfe1890e7cc78e3b1f9aa473624b2",
+          "csrc/sllm_store/binary_utils.h": "e9e331282cb30bbc98a5949d4a69339ec1250da1a84f8aad4e9cb42631a8a0c7",
+          "csrc/sllm_store/checkpoint_store.cpp": "2ec03dd407e8f8f25fd6abd522b78892d633f46735264d102e27c4911e49ffdd",
+          "csrc/sllm_store/checkpoint_store.h": "02ca7c740f2318f930136d3588c9ee48d73c76abe7aee833d8b3ca9b90c63af2",
+          "csrc/sllm_store/checkpoint_store_py.cpp": "621a6d103c1f972f620f068dccbeb9bacc3ac1c63b2a5c5609389c9a02a74674",
+          "csrc/sllm_store/concurrent_queue.h": "f9fe36b5945083b90fc085b9180df2b89d1ee1ef56a24359d1f8cd95f3407542",
+          "csrc/sllm_store/concurrent_vector.h": "cb807fd9f2d52923174e810abb44f65ee7d23b089bf5bc0d0d8123362f3362a1",
+          "csrc/sllm_store/cuda_memory.cpp": "e6ca6a57d4c1f29ac34e277544c68870f3186ca04435d264c7cdc6ac9c4ee010",
+          "csrc/sllm_store/cuda_memory.h": "ad2fa8af7abd692249804dac9c748cef735a76b3022e62d8e5a1bc7d9184d3a1",
+          "csrc/sllm_store/cuda_memory_pool.cpp": "a29e82eb67193a05f8c244784db3b44fba2cb209d770b00e3e3702f131478b25",
+          "csrc/sllm_store/cuda_memory_pool.h": "cd7fd46328718aa909c5e9867619a0fddd61e195aad75de7a82fe30413f724c1",
+          "csrc/sllm_store/error_handling.h": "f4ac532191879c984c4f3f6e040155c58622fbe866f4d9096b693529a361ae48",
+          "csrc/sllm_store/gpu_replica.cpp": "61b35d26662652619bb4230fdb40975f68075e1f79acafe12953cae0c23399c9",
+          "csrc/sllm_store/gpu_replica.h": "b695d3f12fabc5681b3e2cb68186c173b3d399132c075858fde08dc1679d28dd",
+          "csrc/sllm_store/memory_state.cpp": "f610e94be02d312825a03a0dc60886074105d437cf7f258c3df67562ef2c2cb2",
+          "csrc/sllm_store/memory_state.h": "2aa5a974a676ab71132c0ba5a201b0dceba175b13f184f36b2cd9f7e7fe4b8ce",
+          "csrc/sllm_store/model.cpp": "49b2b7fd2ba6fd2ae230f0361da4839b141401ad5ea180baf03d8190f469a353",
+          "csrc/sllm_store/model.h": "88199aae87ce585a5e73d1c3e7384fba68bf0b06b5ab5188ac3edc6c1b20609b",
+          "csrc/sllm_store/pinned_memory.cpp": "24e33950ea72b97e25432d1b97b562e733a44ed6fb3a47e8ccbeecde497bb14e",
+          "csrc/sllm_store/pinned_memory.h": "61064f6df0e46d22bf6ac72837667cb6882f2d8aebb29a9b25a3e63a19a422ed",
+          "csrc/sllm_store/pinned_memory_pool.cpp": "b6ec05cdcba640ec3dacfd58e201b19f5d6df8c3c584e7c211183b4e32e01313",
+          "csrc/sllm_store/pinned_memory_pool.h": "ec25f983da627d98edea4b871e9420f2b417bb479128a7992bed8993d592f16c",
+          "csrc/sllm_store/types_and_defs.h": "2a3b11c5040735bffc368360776f52e9706e099818496e765cde1d04527489c0"
+        },
+        "commands": {
+          "configure": [
+            "cmake",
+            "-S",
+            "/src",
+            "-B",
+            "/tmp",
+            "-G",
+            "Ninja",
+            "-DCMAKE_BUILD_TYPE=Release",
+            "-DBUILD_SHARED_LIBS=OFF",
+            "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
+            "-DSLLM_STORE_PYTHON_EXECUTABLE=/usr/bin/python3",
+            "-DBUILD_SLLM_TESTS=OFF",
+            "-DFETCHCONTENT_FULLY_DISCONNECTED=ON",
+            "-DFETCHCONTENT_SOURCE_DIR_GLOG=/tmp/glog-b33e3bad4c46c8a6345525fd822af355e5ef9446",
+            "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/tmp/googletest-b796f7d44681514f58a683a3a71ff17c94edb0c1",
+            "-DCMAKE_JOB_POOL_COMPILE=compile",
+            "-DCMAKE_JOB_POOLS=compile=1"
+          ],
+          "build": [
+            "cmake",
+            "--build",
+            "/tmp",
+            "--target",
+            "_C",
+            "_checkpoint_store",
+            "--parallel",
+            "1"
+          ]
+        },
+        "configure_returncode": 0,
+        "configure_log_bytes": 10150,
+        "build_returncode": 0,
+        "build_log_bytes": 7687,
+        "imports": {
+          "_C": {
+            "loaded": true,
+            "file": "/artifacts/_C.so"
+          },
+          "_checkpoint_store": {
+            "loaded": true,
+            "file": "/artifacts/_checkpoint_store.so"
+          }
+        },
+        "elf_dynamic": {
+          "_C": {
+            "returncode": 0,
+            "stdout": "\nDynamic section at offset 0x49bb8 contains 33 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_python.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libc10.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0xe000\n 0x000000000000000d (FINI)               0x3de2c\n 0x0000000000000019 (INIT_ARRAY)         0x498e0\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x498e8\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x2f0\n 0x0000000000000005 (STRTAB)             0x2f98\n 0x0000000000000006 (SYMTAB)             0x7f0\n 0x000000000000000a (STRSZ)              30841 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x49fe8\n 0x0000000000000002 (PLTRELSZ)           7176 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0xbdb0\n 0x0000000000000007 (RELA)               0xacd0\n 0x0000000000000008 (RELASZ)             4320 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xab60\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0xa812\n 0x000000006ffffff9 (RELACOUNT)          57\n 0x0000000000000000 (NULL)               0x0\n",
+            "stderr": ""
+          },
+          "_checkpoint_store": {
+            "returncode": 0,
+            "stdout": "\nDynamic section at offset 0x90a90 contains 32 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cuda.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]\n 0x000000000000001d (RUNPATH)            Library runpath: [/lib/intel64:/lib/intel64_win:/lib/win-x64:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-12.9/targets/x86_64-linux/lib:]\n 0x000000000000000c (INIT)               0x16000\n 0x000000000000000d (FINI)               0x788e8\n 0x0000000000000019 (INIT_ARRAY)         0x8f670\n 0x000000000000001b (INIT_ARRAYSZ)       40 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x8f698\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x328\n 0x0000000000000005 (STRTAB)             0x4960\n 0x0000000000000006 (SYMTAB)             0xb38\n 0x000000000000000a (STRSZ)              40261 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x90fe8\n 0x0000000000000002 (PLTRELSZ)           10368 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x12e98\n 0x0000000000000007 (RELA)               0xee18\n 0x0000000000000008 (RELASZ)             16512 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xebd8\n 0x000000006fffffff (VERNEEDNUM)         5\n 0x000000006ffffff0 (VERSYM)             0xe6a6\n 0x000000006ffffff9 (RELACOUNT)          382\n 0x0000000000000000 (NULL)               0x0\n",
+            "stderr": ""
+          }
+        },
+        "cuda_initialized": false
+      },
+      "kimi-native-build-5e597e33bd074637bb34a6b887e0c9ea": {
+        "containers_code": 0,
+        "containers": "",
+        "timer_code": 3,
+        "timer": "inactive\n"
+      },
+      "kimi-native-relocate-0cd27f9d95c742fca40e5f53e0c62f38": {
+        "containers_code": 0,
+        "containers": "",
+        "timer_code": 3,
+        "timer": "inactive\n"
+      }
+    }
+  },
+  "native_build_actual_review": {
+    "reviewer": "/root/deadline_readonly_review",
+    "decision": "PASS_COMPONENT_SCOPE_ONLY",
+    "basis": [
+      "actual full configure/build/link logs and 33 raw input hashes",
+      "static PIC glog eliminates build-directory/shared glog dependency",
+      "fresh no-source/no-build-tree CPU container imported both exact artifacts",
+      "independent own-container absence and inactive timers"
+    ],
+    "allowed_claims": [
+      "compiled_native_store=true",
+      "CPU ordinary import on exact fixed image without build tree"
+    ],
+    "not_verified": [
+      "live Store",
+      "CUDA IPC and release",
+      "eight ranks",
+      "full Kimi checkpoint",
+      "model/service correctness",
+      "full frozen dependency environment"
+    ],
+    "historical_failures_preserved": true
   }
 }
