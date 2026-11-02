@@ -1,3 +1,7 @@
+## 11/3 05:56 预约与预算接续覆盖
+
+新只读API核实当前票09:00结束、alan09:00–23:00整机GPU/内存用途，未见本实验后续窗口；未修改预约。现有P0 1200秒预算分解和下一次先短runtime/P0窗口的条件已更新RESERVATION-PLAN.md。源码/清单继续绑定ab134f0/f85266ac，不把本次仅证据/规划提交当成新的运行代码批准；无远端部署或计算。本窗GPU停止不变。下一次具体run/spec/booking/guard只能在真实新授权窗口与完整配置审阅后绑定，不能伪造未来窗口、复用旧失败身份或提前发gate。
+
 ## 11/3 05:53 当前断点：ab134f0完整源码R1通过，仅源码，不重开本窗GPU
 
 代码commit ab134f0f1cb486fc7d4e158bc7ddf8c692b21214已push并独立核远端main。完整178文件/4709771B源码清单SHA f85266ac8f2f218be8663ecd5db815e668011dd4f51e135c4adf8f414ce29f3f，由只读审阅从Git独立重建逐字节一致，结论PASS_SOURCE_ONLY。清单全文在source-bundle-materialization.json，结论及范围在source-schedule-review.json；旧ff8 NEEDS_FIX和负例失败保留。最新123项WSL CPU测试全通过。

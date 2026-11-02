@@ -983,6 +983,51 @@
         }
       ],
       "scope": "fresh readonly booking context; no booking change"
+    },
+    {
+      "recorded_utc": "2026-11-02T21:55:59.218812+00:00",
+      "resources": [
+        {
+          "id": "h20/qjhs003",
+          "cluster_id": "h20",
+          "node": "qjhs003",
+          "cpu_booking_enabled": false,
+          "gpu_label": "H20",
+          "gpu_count": 8,
+          "notes": "开发可预约；保留原 qjhs0..qjhs3 对应机器，不在预约系统暴露个人账号。",
+          "ssh_host_alias": "qjhs003",
+          "ssh_host": "115.190.191.164",
+          "ssh_port": 22,
+          "active": true,
+          "bookable": true,
+          "sort_order": 103
+        }
+      ],
+      "bookings": [
+        {
+          "id": "bk-20261102T0653-3b9f0bc8",
+          "resource_id": "h20/qjhs003",
+          "cluster_id": "h20",
+          "node": "qjhs003",
+          "start_ms": 1793635200000,
+          "end_ms": 1793667600000,
+          "user": "boyjiang",
+          "purpose": "kimi k2.6",
+          "created_ms": 1793602428500
+        },
+        {
+          "id": "bk-20261102T1157-efadda8d",
+          "resource_id": "h20/qjhs003",
+          "cluster_id": "h20",
+          "node": "qjhs003",
+          "start_ms": 1793667600000,
+          "end_ms": 1793718000000,
+          "user": "alan",
+          "purpose": "Miles Harbor GLM-4.7-Flash GRPO checkpoint resume; requires GPU and host memory",
+          "created_ms": 1793620621990
+        }
+      ],
+      "scope": "fresh readonly complete current/future qjhs003 filter; no booking change; not a runtime authorization"
     }
   ],
   "preservation_checks": [
