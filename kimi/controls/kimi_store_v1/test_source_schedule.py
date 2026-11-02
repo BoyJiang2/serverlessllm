@@ -23,6 +23,142 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    def test_failure_context_file_reader_handles_short_reads_and_refuses_symlinks(self):
+        namespace={'__name__':'CPU_CONTEXT_FIXTURE_ONLY'}
+        exec(schedule_module.P0_FAILURE_CONTEXT_SOURCE,namespace)
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'data';path.write_bytes(b'raw-context')
+            original=os.read
+            with patch.object(namespace['os'],'read',side_effect=lambda fd,n:original(fd,min(2,n))):
+                self.assertEqual(namespace['read'](path,20),b'raw-context')
+            with self.assertRaises(ValueError):namespace['read'](path,3)
+            if os.name=='posix':
+                link=Path(temp)/'link';link.symlink_to(path)
+                with self.assertRaises(OSError):namespace['read'](link,20)
+
+    def test_private_failure_context_fixture_checks_all_tasks_and_preserves_partial_coverage(self):
+        for kind in ('complete','truncated','thread-changed','short-write','task-limit','oci-oversize','child-changed'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp)/'run';root.mkdir();proc=Path(temp)/'proc';proc.mkdir()
+                namespace={'__name__':'CPU_CONTEXT_FIXTURE_ONLY'}
+                exec(schedule_module.P0_FAILURE_CONTEXT_SOURCE,namespace)
+                actual_path=Path
+                def mapped(path):
+                    text=str(path)
+                    if text=='/proc' or text.startswith('/proc/'):return proc/text.removeprefix('/proc').lstrip('/')
+                    if text.startswith('/run/containerd/'):return Path(temp)/'bundle'
+                    return actual_path(path)
+                namespace['Path']=mapped;namespace['ROOT']=root
+                fake_os=types.SimpleNamespace(**{name:getattr(os,name) for name in dir(os)})
+                fake_os.geteuid=lambda:0;fake_os.getpid=lambda:900;fake_os.getppid=lambda:901
+                fake_os.fchown=lambda *args:None
+                namespace['os']=fake_os
+                namespace['socket']=types.SimpleNamespace(gethostname=lambda:'qjhs3')
+                cid='c'*64;boot='a'*36
+                f=proc/'sys/kernel/random/boot_id';f.parent.mkdir(parents=True);f.write_text(boot)
+                target=dict(container_id=cid,boot_id=boot,uid=2147,run_root=str(root),identity={'run_id':'CPU_FIXTURE_ONLY'})
+                raw=json.dumps(dict(target=target)).encode();(root/'registration.json').write_bytes(raw)
+                bundle=str(Path(temp)/'bundle'/cid)
+                names={100:['/usr/bin/containerd-shim-runc-v2','-namespace','moby','-id',cid,'-address','/run/containerd/containerd.sock'],
+                    101:['/usr/bin/runc','--root','/var/run/docker/runtime-runc/moby','--log',bundle+'/log.json','--log-format','json','--systemd-cgroup','create','--bundle',bundle,'--pid-file',bundle+'/init.pid',cid]}
+                for pid,ppid in ((100,1),(101,100),(900,901),(901,1)):
+                    path=proc/str(pid);path.mkdir()
+                    fields=['S',str(ppid)]+['0']*17+['1234']
+                    (path/'stat').write_text(str(pid)+' (CPU) '+' '.join(fields))
+                    if pid not in names:continue
+                    (path/'comm').write_text('runc' if pid==101 else 'containerd-shim')
+                    (path/'cmdline').write_bytes(b'\0'.join(x.encode() for x in names[pid])+b'\0')
+                    (path/'exe').symlink_to(names[pid][0]);(path/'task').mkdir()
+                    for tid in (pid,pid+1000):
+                        task=path/'task'/str(tid);task.mkdir()
+                        (task/'stat').write_text(str(tid)+' (CPU) '+' '.join(fields))
+                        for name in ('wchan','syscall','stack','children'):(task/name).write_text('CPU_ONLY')
+                path=Path(temp)/'bundle'/cid;path.mkdir(parents=True)
+                (path/'config.json').write_text('{"CPU_FIXTURE_ONLY":true}')
+                (path/'log.json').write_text('{"CPU_FIXTURE_ONLY":true}')
+                original_identity=namespace['identity'];counts={}
+                def identity(path):
+                    row=original_identity(path);row['uid']=0
+                    if kind=='thread-changed' and path==proc/'101/task/1101':
+                        counts[str(path)]=counts.get(str(path),0)+1
+                        if counts[str(path)]>1:row['start_ticks']+=1
+                    return row
+                namespace['identity']=identity
+                original_read=namespace['read'];child_reads=[0]
+                def read(path,limit):
+                    data=original_read(path,limit)
+                    if kind=='child-changed' and path==proc/'101/task/1101/children':
+                        child_reads[0]+=1
+                        if child_reads[0]>1:return b'42'
+                    return data
+                namespace['read']=read
+                original_stat=Path.stat
+                def status(path,*args,**kwargs):
+                    row=original_stat(path,*args,**kwargs)
+                    if path==root:
+                        fields=list(row);fields[4]=2147;return os.stat_result(fields)
+                    return row
+                if kind=='truncated':(proc/'101/task/1101/stack').write_text('x'*2049)
+                if kind=='task-limit':
+                    for tid in range(2000,2063):(proc/'101/task'/str(tid)).mkdir()
+                if kind=='oci-oversize':(path/'config.json').write_bytes(b'x'*262145)
+                if kind=='short-write':fake_os.write=lambda fd,data:len(data)-1
+                bindings=dict(target=target,registration_sha256=hashlib.sha256(raw).hexdigest(),deadline_utc=time.time()+20)
+                with patch.object(Path,'stat',status):
+                    if kind=='short-write':
+                        with self.assertRaisesRegex(OSError,'short'):namespace['collect'](bindings)
+                        self.assertFalse((root/'p0-start-failure-context.json').exists());continue
+                    result=namespace['collect'](bindings)
+                context=(root/'p0-start-failure-context.json').read_bytes()
+                self.assertEqual(result['context_sha256'],hashlib.sha256(context).hexdigest())
+                self.assertEqual(result['coverage_complete'],kind=='complete',context.decode())
+                if kind=='complete':self.assertEqual([len(x['threads']) for x in json.loads(context)['actors']],[2,2])
+                if kind=='task-limit':
+                    actor=next(x for x in json.loads(context)['actors'] if x['pid']==101)
+                    self.assertEqual(actor['task_count_observed'],65);self.assertEqual(actor['threads'],[])
+
+    def test_failure_context_host_bridge_retains_unknown_helper_exit_without_stdout(self):
+        for kind in ('complete','capture-timeout','capture-timeout-with-file','missing-identity','short-input'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+                target['run_root']=str(root)
+                host=options['host_probe'].return_value;captured=[]
+                def capture(command,timeout,environment,*,stdin):
+                    self.assertEqual(command[:5],['/usr/bin/sudo','-S','-p','','--'])
+                    self.assertIn(repr(schedule_module.P0_FAILURE_CONTEXT_SOURCE),command[-2])
+                    self.assertIn('-I',command);self.assertLessEqual(timeout,22)
+                    deadline=json.loads(command[-1])['deadline_utc']
+                    with patch.object(time,'time',return_value=deadline-5),\
+                            patch.object(os,'execv') as execute,patch.object(sys,'argv',['-c',command[-1]]):
+                        exec(command[-2],{'__name__':'CPU_SUPERVISOR_FIXTURE_ONLY'})
+                    self.assertEqual(execute.call_args.args[1][3],'3')
+                    with patch.object(time,'time',return_value=deadline),\
+                            patch.object(os,'execv') as execute,patch.object(sys,'argv',['-c',command[-1]]):
+                        with self.assertRaises(TimeoutError):exec(command[-2],{'__name__':'CPU_SUPERVISOR_FIXTURE_ONLY'})
+                    execute.assert_not_called()
+                    self.assertEqual(os.read(stdin,129),b'CPU_ONLY_NOT_A_SECRET\n')
+                    self.assertNotIn('CPU_ONLY_NOT_A_SECRET',str(command)+str(environment))
+                    captured.append(command)
+                    if kind=='capture-timeout':raise subprocess.TimeoutExpired(command,timeout)
+                    helpers=[dict(pid=200000001+i,start_ticks=1234,uid=0) for i in range(2)]
+                    raw=(json.dumps(dict(identity=target['identity'],helpers=[] if kind=='missing-identity' else helpers))+'\n').encode()
+                    context=b'{"private":"CPU_ONLY_NEVER_IN_SUMMARY"}\n'
+                    for name,data in (('p0-start-failure-helper.json',raw),('p0-start-failure-context.json',context)):
+                        (root/name).write_bytes(data);(root/name).chmod(0o600)
+                    if kind=='capture-timeout-with-file':raise subprocess.TimeoutExpired(command,timeout)
+                    summary=dict(identity=target['identity'],helpers=helpers,helper_sha256=hashlib.sha256(raw).hexdigest(),context_sha256=hashlib.sha256(context).hexdigest(),context_bytes=len(context),coverage_complete=True)
+                    return types.SimpleNamespace(returncode=0,stdout=json.dumps(summary),stderr='')
+                with patch.object(schedule_module,'P0_RUN_ROOT',str(root)),\
+                        patch.object(schedule_module,'_watchdog_host',return_value=host),\
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),\
+                        patch.object(schedule_module,'_guard_capture',side_effect=capture),ExitStack() as stack:
+                    if kind=='short-input':stack.enter_context(patch.object(schedule_module.os,'write',return_value=1))
+                    result=schedule_module.collect_p0_start_failure(target,registration_sha256='f'*64,timeout_seconds=25,
+                        deadline_utc=(datetime.now(timezone.utc)+timedelta(seconds=60)).isoformat(),password=b'CPU_ONLY_NOT_A_SECRET\n')
+                self.assertEqual(result['helper_exit_verified'],kind=='complete')
+                self.assertEqual(result['context_verified'],kind=='complete')
+                self.assertNotIn('CPU_ONLY_NEVER_IN_SUMMARY',str(result))
+
     @unittest.skipUnless(os.name=='posix','anonymous input capture requires POSIX')
     def test_guard_capture_reads_anonymous_input_without_exposing_it(self):
         read_fd,write_fd=os.pipe()
@@ -110,7 +246,8 @@ class SourceScheduleTests(unittest.TestCase):
         import vllm_export_hook
         successes=('success','background','six-background','owned-gpu')
         for kind in (*successes,'monitor-failure','residual','foreign-gpu','pid-reuse','excess-gpu',
-                     'low-memory','high-load','io-busy','missing-stats','missing-monitor'):
+                     'low-memory','high-load','io-busy','missing-stats','missing-monitor',
+                     'start-failure','diagnostic-timeout','diagnostic-incomplete','diagnostic-short-budget'):
             fail_monitor=kind=='monitor-failure'
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
                 root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
@@ -132,7 +269,7 @@ class SourceScheduleTests(unittest.TestCase):
                 setup=dict(registration_sha256='1'*64,service_plan_sha256=hashlib.sha256(service_raw).hexdigest())
                 host=options['host_probe'].return_value
                 gpu_ids=[target['gpu_uuid']]+['GPU-%08x-1234-1234-1234-123456789abc'%i for i in range(1,8)]
-                calls=[]
+                calls=[];start_error=RuntimeError('CPU original start failure')
                 def capture(command,timeout,environment):
                     stdout=''.join(uuid+', 0, 0\n' for uuid in gpu_ids) if '--query-gpu=' in command[1] else ''
                     if kind=='foreign-gpu' and '--query-compute-apps=' in command[1] and 'monitor' in calls:
@@ -142,7 +279,12 @@ class SourceScheduleTests(unittest.TestCase):
                         else:stdout=gpu_ids[0]+', 123\n'
                     return types.SimpleNamespace(returncode=0,stdout=stdout,stderr='')
                 def docker(args,timeout):
-                    if args[0]=='start':calls.append('start');text=target['container_id']+'\n'
+                    if args[0]=='start':
+                        calls.append('start');text=target['container_id']+'\n'
+                        if kind in ('start-failure','diagnostic-timeout','diagnostic-incomplete','diagnostic-short-budget'):
+                            if kind=='diagnostic-short-budget':
+                                ticks[0]=(datetime.fromisoformat(schedule['phase_deadlines_utc']['worker_shutdown'])-clock.now(timezone.utc)).total_seconds()-5+ticks[0]
+                            raise start_error
                     elif args[0]=='logs':calls.append('logs');text='{"CPU_FIXTURE_ONLY":true}\n'
                     elif args[0]=='ps':
                         text=json.dumps(dict(ID='7'*64,Labels='sllm.kimi.run_id=old' if kind=='residual' else '')) if kind in ('background','residual','missing-stats') else ''
@@ -180,6 +322,12 @@ class SourceScheduleTests(unittest.TestCase):
                 def recorded(label,result):
                     def run(*args,**kwargs):calls.append(label);return result
                     return run
+                def diagnose(actual,**kwargs):
+                    self.assertEqual(actual,target);self.assertLessEqual(kwargs['timeout_seconds'],25)
+                    self.assertEqual(kwargs['registration_sha256'],setup['registration_sha256'])
+                    calls.append('diagnostic')
+                    if kind=='diagnostic-timeout':raise subprocess.TimeoutExpired('CPU collector',1)
+                    return dict(helper_exit_verified=kind!='diagnostic-incomplete',coverage_complete=False)
                 with tempfile.TemporaryFile() as events,ExitStack() as stack:
                     for manager in (
                         patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),
@@ -206,11 +354,15 @@ class SourceScheduleTests(unittest.TestCase):
                         patch.object(schedule_module,'observe_p0_release',side_effect=recorded('observe',dict(container_release_observation_verified=True))),
                         patch.object(schedule_module,'await_p0_guard_exit',side_effect=recorded('guard_exit',dict(guard_resources_released=True)))):
                         stack.enter_context(manager)
-                    args=dict(gate_sha256=hashlib.sha256(gate_raw).hexdigest(),booking_sha256=hashlib.sha256(booking_raw).hexdigest(),events=events)
+                    args=dict(gate_sha256=hashlib.sha256(gate_raw).hexdigest(),booking_sha256=hashlib.sha256(booking_raw).hexdigest(),events=events,failure_collector=diagnose)
                     if kind not in successes:
                         with self.assertRaises((RuntimeError,ValueError)) as caught:
                             schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
                         if kind not in ('residual','missing-stats'):self.assertIn('guard_exit',caught.exception.p0_lifecycle_receipt)
+                        if kind in ('start-failure','diagnostic-timeout','diagnostic-incomplete','diagnostic-short-budget'):
+                            self.assertIs(caught.exception,start_error)
+                            if kind in ('diagnostic-timeout','diagnostic-incomplete'):
+                                self.assertTrue(caught.exception.p0_lifecycle_receipt['diagnostic_cleanup_owed'])
                     else:
                         result=schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
                         self.assertTrue(result['target_and_guard_release_verified'])
@@ -221,6 +373,8 @@ class SourceScheduleTests(unittest.TestCase):
                         events.seek(0)
                         self.assertTrue(all(len(line)<=8192 for line in events.readlines()))
                 expected=[] if kind in ('residual','missing-stats') else ['setup','start','monitor']+(['logs'] if kind in successes else [])+['cleanup','observe','guard_exit']
+                if kind in ('start-failure','diagnostic-timeout','diagnostic-incomplete','diagnostic-short-budget'):
+                    expected=['setup','start']+([] if kind=='diagnostic-short-budget' else ['diagnostic'])+['cleanup','guard_exit']
                 self.assertEqual(calls,expected)
 
     def source_registration_fixture(self,temp):

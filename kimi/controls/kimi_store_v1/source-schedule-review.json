@@ -5370,5 +5370,50 @@
         "scope": "one current P0, actual fresh resources and new guard/probe mandatory, not TP8/Store/service"
       }
     }
+  ],
+  "start_failure_context_candidates": [
+    {
+      "recorded_utc": "2026-11-02T21:26:16.417145+00:00",
+      "base_commit": "372504b72f89f31349fa364911e59831ba3912fe",
+      "source_sha256": "7fec812b358c2e9fa80cd4064471630119ef1e13504fa09b3cc7009f7ab2c10b",
+      "test_sha256": "a57303385e8f4fee9df760abf7f77ae970b33bc4dfb3cf6bd94431cc0c436d6f",
+      "root_body_sha256": "e2328750af6c3094660c5033d13846e75fd2ae6316c4e843ebcc0607c7b3a6d0",
+      "root_body_bytes": 6443,
+      "cpu_tests": 121,
+      "cpu_stderr_sha256": "f89b685b5aad52c57ef02f1af2e04b8ef55eea6ee55e04ca9026b20f9d762a9a",
+      "scope": "Only CPU candidate for preserving exact owned start-failure context before cleanup, not an runc fix or runtime gate",
+      "plan_review": {
+        "reviewer": "/root/deadline_readonly_review",
+        "verdict": "CPU_IMPLEMENTATION_PLAN_ACCEPTABLE_NOT_RUNTIME_GATE",
+        "conditions": [
+          "start-unconfirmed failures only",
+          "whole callback<=25 within original deadline and reserved shutdown",
+          "fixed isolated inline root source, no project imports or arbitrary Python privilege bridge",
+          "private raw remote only, incomplete thread/byte coverage closes evidence",
+          "unknown helper exit remains owed, original exception and finally cleanup preserved"
+        ]
+      },
+      "limits": {
+        "callback_budget_seconds": 25,
+        "private_context_bytes": 524288,
+        "oci_bytes": 262144,
+        "runtime_log_bytes": 32768,
+        "tasks_per_actor": 64,
+        "process_scan_entries": 8192
+      },
+      "implemented": [
+        "root inline producer and CLI anonymous sudo-stdin binding",
+        "remaining privileged supervisor derived after sudo from same absolute cutoff",
+        "default None preserves existing internal API",
+        "start failure capture before finally; callback errors do not replace original failure",
+        "two single-attempt private artifacts included in existing setup freshness check"
+      ],
+      "actual_root_verified": false,
+      "actual_oci_verified": false,
+      "remote_deployed": false,
+      "full_r1_status": "PENDING",
+      "runtime_admitted": false,
+      "no_further_gpu_this_window": true
+    }
   ]
 }

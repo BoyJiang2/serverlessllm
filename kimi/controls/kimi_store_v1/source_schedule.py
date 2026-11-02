@@ -9,6 +9,7 @@ import re
 import secrets
 import selectors
 import socket
+import stat
 import struct
 import subprocess
 import sys
@@ -21,6 +22,109 @@ GUARD_PURPOSE = 'KIMI-SOURCE-UNREVIEWED'
 P0_PURPOSE = 'KIMI-CUDA-IPC-P0A-UNREVIEWED'
 P0_RUN_ROOT = '/data/brick1/boyjiang/kimi-k2.6/p0'
 P0_PHASES = ('preflight', 'guard_setup', 'component', *TAIL)
+
+# Executed with isolated stdlib imports, never as root imports of the run tree.
+P0_FAILURE_CONTEXT_SOURCE = r'''
+import os,sys,json,time,stat,hashlib,socket,math,itertools
+from pathlib import Path
+ROOT=Path('/data/brick1/boyjiang/kimi-k2.6/p0')
+def read(path,limit):
+ fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW|os.O_NONBLOCK)
+ try:
+  if not stat.S_ISREG(os.fstat(fd).st_mode):raise ValueError('ordinary context file required')
+  data=bytearray()
+  while len(data)<=limit:
+   block=os.read(fd,min(65536,limit+1-len(data)))
+   if not block:break
+   data.extend(block)
+  if len(data)>limit:raise ValueError('context file exceeds bound')
+  return bytes(data)
+ finally:os.close(fd)
+def identity(path):
+ f=read(path/'stat',4096).decode().rsplit(')',1)[1].split()
+ return dict(pid=int(path.name),start_ticks=int(f[19]),ppid=int(f[1]),uid=path.stat().st_uid)
+def publish(name,data):
+ fd=os.open(ROOT/name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+ try:
+  os.fchown(fd,2147,2147)
+  if os.write(fd,data)!=len(data):raise OSError('short private context write')
+  os.fsync(fd)
+ finally:os.close(fd)
+def collect(b):
+ target=b['target'];cid=target['container_id'];boot=target['boot_id']
+ entered=time.time();started=time.monotonic()
+ def remaining():
+  now=time.time()
+  if now<entered or min(b['deadline_utc']-now,b['deadline_utc']-entered-(time.monotonic()-started))<=0:raise TimeoutError('original diagnostic deadline exhausted')
+ if (os.geteuid()!=0 or socket.gethostname() not in ('qjhs3','qjhs003')
+     or type(b['deadline_utc']) not in (int,float) or not math.isfinite(b['deadline_utc']) or b['deadline_utc']>entered+25
+     or len(cid)!=64 or any(x not in '0123456789abcdef' for x in cid)
+     or target['run_root']!=str(ROOT) or target['uid']!=2147
+     or ROOT.is_symlink() or ROOT.resolve(strict=True)!=ROOT or ROOT.stat().st_uid!=2147
+     or read(Path('/proc/sys/kernel/random/boot_id'),64).decode().strip()!=boot):raise ValueError('owned context scope differs')
+ remaining()
+ raw=read(ROOT/'registration.json',16384)
+ if hashlib.sha256(raw).hexdigest()!=b['registration_sha256'] or json.loads(raw)['target']!=target:raise ValueError('registered context target differs')
+ helpers=[identity(Path('/proc')/str(pid)) for pid in (os.getpid(),os.getppid())]
+ helper_raw=(json.dumps(dict(identity=target['identity'],helpers=helpers),sort_keys=True)+'\n').encode()
+ publish('p0-start-failure-helper.json',helper_raw)
+ result=dict(identity=target['identity'],boot_id=boot,coverage_complete=True,actors=[],files={},errors=[])
+ bundle=Path('/run/containerd/io.containerd.runtime.v2.task/moby')/cid
+ for name,limit in (('config.json',262144),('log.json',32768)):
+  remaining()
+  try:
+   data=read(bundle/name,limit);result['files'][name]=dict(sha256=hashlib.sha256(data).hexdigest(),bytes=len(data),raw_utf8=data.decode('utf-8'))
+  except (OSError,ValueError) as e:result['coverage_complete']=False;result['errors'].append(dict(file=name,error=type(e).__name__))
+ candidates=list(itertools.islice(Path('/proc').iterdir(),8193))
+ if len(candidates)>8192:raise ValueError('process enumeration exceeds bound')
+ for path in candidates:
+  if not path.name.isdigit():continue
+  remaining();matched=False
+  try:
+   comm=read(path/'comm',64).decode().strip()
+   if comm not in ('runc','containerd-shim'):continue
+   argv=[x.decode() for x in read(path/'cmdline',4096).split(bytes([0])) if x]
+   if cid not in argv:continue
+   matched=True
+   before=identity(path)
+   if before['uid']!=0:raise ValueError('owned runtime UID differs')
+   expected=['/usr/bin/containerd-shim-runc-v2','-namespace','moby','-id',cid,'-address','/run/containerd/containerd.sock']
+   if comm=='runc':expected=['/usr/bin/runc','--root','/var/run/docker/runtime-runc/moby','--log',str(bundle/'log.json'),'--log-format','json','--systemd-cgroup','create','--bundle',str(bundle),'--pid-file',str(bundle/'init.pid'),cid]
+   if argv!=expected or os.readlink(path/'exe')!=os.path.realpath(expected[0]):raise ValueError('owned runtime command differs')
+   actor=dict(before,argv=argv,threads=[])
+   result['actors'].append(actor)
+   if len(result['actors'])>2:
+    result['coverage_complete']=False;result['errors'].append(dict(error='ambiguous owned runtime actors'));break
+   tasks=sorted(itertools.islice((path/'task').iterdir(),65),key=lambda p:int(p.name))
+   actor['task_count_observed']=len(tasks)
+   if not 1<=len(tasks)<=64:raise ValueError('runtime task inventory exceeds bound')
+   for task in tasks:
+    remaining();thread=identity(task);values={}
+    for name,limit in (('wchan',256),('syscall',512),('stack',2048),('children',2048)):
+     try:values[name]=read(task/name,limit).decode('utf-8')
+     except (OSError,ValueError) as e:values[name]=dict(error=type(e).__name__);result['coverage_complete']=False
+    try:
+     values['children_after']=read(task/'children',2048).decode('utf-8')
+     if values['children_after']!=values['children']:result['coverage_complete']=False
+    except (OSError,ValueError) as e:values['children_after']=dict(error=type(e).__name__);result['coverage_complete']=False
+    actor['threads'].append(dict(thread,reads=values))
+    if identity(task)!=thread:raise ValueError('runtime thread lifetime changed')
+   if identity(path)!=before or sorted(p.name for p in itertools.islice((path/'task').iterdir(),65))!=sorted(p.name for p in tasks):raise ValueError('runtime task inventory changed')
+  except (OSError,ValueError) as e:
+   if matched or not isinstance(e,(FileNotFoundError,ProcessLookupError)):
+    result['coverage_complete']=False;result['errors'].append(dict(actor=path.name,error=type(e).__name__))
+ if len(result['actors'])!=2:result['coverage_complete']=False
+ else:
+  shim=next((a for a in result['actors'] if a['argv'][0].endswith('containerd-shim-runc-v2')),None)
+  runc=next((a for a in result['actors'] if a['argv'][0]=='/usr/bin/runc'),None)
+  if shim is None or runc is None or shim['ppid']!=1 or runc['ppid']!=shim['pid']:
+   result['coverage_complete']=False;result['errors'].append(dict(error='runtime parent chain differs'))
+ remaining();raw=(json.dumps(result,sort_keys=True)+'\n').encode()
+ if len(raw)>524288:raise ValueError('private context exceeds512KiB')
+ publish('p0-start-failure-context.json',raw)
+ return dict(identity=target['identity'],helpers=helpers,helper_sha256=hashlib.sha256(helper_raw).hexdigest(),context_sha256=hashlib.sha256(raw).hexdigest(),context_bytes=len(raw),coverage_complete=result['coverage_complete'])
+if __name__=='__main__':print(json.dumps(collect(json.loads(sys.argv[1])),sort_keys=True))
+'''
 
 
 def _utc(value):
@@ -1551,8 +1655,102 @@ def await_p0_guard_exit(service_plan, target, schedule, proof, *, nonce, entered
         raise
 
 
+def collect_p0_start_failure(target, *, registration_sha256, timeout_seconds, deadline_utc, password):
+    """One private metadata capture; never authorize a model or infer cleanup."""
+    from vllm_export_hook import _metadata_stream
+    host=_watchdog_host()
+    _guard_identity(target,boot_id=host['boot_id'],uid=host['uid'])
+    if (target['schema']!='kimi-p0-guard-target-v2' or target['run_root']!=P0_RUN_ROOT
+            or socket.gethostname() not in ('qjhs3','qjhs003') or host['uid']!=2147
+            or not re.fullmatch('[0-9a-f]{64}',registration_sha256)
+            or type(timeout_seconds) not in (int,float) or not math.isfinite(timeout_seconds)
+            or not 10<=timeout_seconds<=25
+            or not isinstance(password,bytes) or not 2<=len(password)<=129
+            or not password.endswith(b'\n') or b'\x00' in password):
+        raise ValueError('bounded owned P0 diagnostic input required')
+    entered,started=datetime.now(timezone.utc),time.monotonic()
+    wall_end=min(_utc(deadline_utc).timestamp(),entered.timestamp()+timeout_seconds)
+    def remaining():
+        now=datetime.now(timezone.utc)
+        value=min(wall_end-now.timestamp(),wall_end-entered.timestamp()-(time.monotonic()-started))
+        if now<entered or value<=0:raise TimeoutError('original failure-context budget exhausted')
+        return value
+    cap=math.floor(remaining())-8
+    if cap<2:raise TimeoutError('complete failure-context capture and exit proof do not fit')
+    root=Path(P0_RUN_ROOT)
+    names=('p0-start-failure-helper.json','p0-start-failure-context.json')
+    if any((root/name).exists() or (root/name).is_symlink() for name in names):
+        raise FileExistsError('failure context is single-attempt evidence')
+    bindings=dict(target=target,registration_sha256=registration_sha256,deadline_utc=wall_end-4)
+    prelude=("import os,sys,json,time,math\nb=json.loads(sys.argv[1]);cap=min(17,math.floor(b['deadline_utc']-time.time())-2)\n"
+        "if cap<1:raise TimeoutError('original privileged diagnostic deadline exhausted')\n"
+        "os.execv('/usr/bin/timeout',['/usr/bin/timeout','--signal=TERM','--kill-after=2',str(cap),"
+        "'/usr/bin/python3','-I','-B','-c',"+repr(P0_FAILURE_CONTEXT_SOURCE)+",sys.argv[1]])")
+    command=['/usr/bin/sudo','-S','-p','','--','/usr/bin/python3','-I','-B','-c',prelude,
+        json.dumps(bindings,sort_keys=True,allow_nan=False)]
+    result=dict(collector_sha256=hashlib.sha256(P0_FAILURE_CONTEXT_SOURCE.encode()).hexdigest(),
+        coverage_complete=False,helper_exit_verified=False,context_verified=False,resources_released=False)
+    read_fd,write_fd=os.pipe()
+    try:
+        if os.write(write_fd,password)!=len(password):raise OSError('short anonymous sudo input')
+        os.close(write_fd);write_fd=None
+        response=_guard_capture(command,remaining()-3,
+            dict(PATH='/usr/bin:/bin',LC_ALL='C',HOME='/tmp'),stdin=read_fd)
+        result['returncode']=response.returncode
+        if response.returncode==0:
+            summary=json.loads(response.stdout)
+            if (set(summary)!={'identity','helpers','helper_sha256','context_sha256','context_bytes','coverage_complete'}
+                    or summary['identity']!=target['identity'] or type(summary['coverage_complete']) is not bool
+                    or type(summary['context_bytes']) is not int or not 0<summary['context_bytes']<=524288):
+                raise ValueError('fixed failure-context summary differs')
+            result['summary']=summary
+    except BaseException as error:
+        result['error_type']=type(error).__name__
+    finally:
+        os.close(read_fd)
+        if write_fd is not None:os.close(write_fd)
+    # A failed command still owes helper closure; absence of stdout is not exit proof.
+    try:
+        remaining()
+        with _metadata_stream(root/names[0]) as stream:
+            status=os.fstat(stream.fileno())
+            if status.st_uid!=os.getuid() or stat.S_IMODE(status.st_mode)!=0o600:
+                raise ValueError('private helper evidence owner/mode differs')
+            raw=stream.read(4097)
+        if len(raw)>4096:raise ValueError('bounded diagnostic helper record required')
+        record=json.loads(raw);helpers=record['helpers']
+        if record['identity']!=target['identity'] or not isinstance(helpers,list) or len(helpers)!=2:
+            raise ValueError('known helper identities required')
+        checks=[]
+        for before in helpers:
+            if (type(before.get('pid')) is not int or before['pid']<=1
+                    or type(before.get('start_ticks')) is not int or before['start_ticks']<=0
+                    or type(before.get('uid')) is not int or before['uid']!=0):
+                raise ValueError('root helper PID/birth differs')
+            try:
+                fields=(Path('/proc')/str(before['pid'])/'stat').read_text().rsplit(')',1)[1].split()
+                checks.append(dict(pid=before['pid'],gone=int(fields[19])!=before['start_ticks']))
+            except (FileNotFoundError,ProcessLookupError):checks.append(dict(pid=before['pid'],gone=True))
+        remaining();result['helpers']=helpers;result['helper_exit_checks']=checks
+        summary=result.get('summary')
+        if summary is not None and summary['helpers']==helpers and summary['helper_sha256']==hashlib.sha256(raw).hexdigest():
+            result['helper_exit_verified']=all(row['gone'] for row in checks)
+            with _metadata_stream(root/names[1]) as stream:
+                status=os.fstat(stream.fileno())
+                if status.st_uid!=os.getuid() or stat.S_IMODE(status.st_mode)!=0o600:
+                    raise ValueError('private context evidence owner/mode differs')
+                context=stream.read(524289)
+            if (len(context)!=summary['context_bytes'] or len(context)>524288
+                    or hashlib.sha256(context).hexdigest()!=summary['context_sha256']):
+                raise ValueError('private failure-context bytes differ')
+            remaining();result['context_verified']=True
+            result['coverage_complete']=summary['coverage_complete']
+    except BaseException as error:result['closure_error_type']=type(error).__name__
+    return result
+
+
 def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, booking_sha256, events,
-                      service_runner=None):
+                      service_runner=None, failure_collector=None):
     """Non-timed P0 control only; full reviewed gate and actual guard precede start."""
     from source_bundle import verify_p0_worker_input
     from vllm_export_hook import _metadata_stream
@@ -1565,7 +1763,7 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
         torch_cuda_ipc_verified=False,native_loader_verified=False,store_created=False,full_model_verified=False,resources_released=False,
         cleanup_owed=False,driver_exit_verification_owed=True,phase='preflight')
     target=registration=service=proof=monitor=None
-    setup_entered=False;failure=None;resource_sample=0
+    setup_entered=False;failure=None;resource_sample=0;start_unconfirmed=False
     def remaining(phase):
         return phase_remaining_seconds(schedule,phase,entered=entered,
             elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
@@ -1730,9 +1928,11 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
         proof=guard_probe(min(5,remaining('component')))
         state['phase']='component';state['runtime_admitted']=True
         event('lifecycle_start_requested',dict(container_id=target['container_id'],guard_proof=proof))
+        start_unconfirmed=True
         response=_guard_docker(['start',target['container_id']],min(10,remaining('component')))
         if response.returncode!=0 or response.stdout.strip()!=target['container_id']:
             raise RuntimeError('P0 Docker start failed or outcome uncertain')
+        start_unconfirmed=False
         remaining('component')
         monitor=monitor_p0_target(target,schedule,entered=entered,started=started,nonce=registration['nonce'],
             service_invocation_id=proof['service_invocation_id'],events=events,guard_probe=guard_probe,
@@ -1753,6 +1953,22 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
         failure=error
         state['setup_failure']=getattr(error,'p0_setup_receipt',None)
         monitor=getattr(error,'p0_monitor_receipt',monitor)
+        if start_unconfirmed and failure_collector is not None:
+            diagnostic_attempted=False
+            try:
+                plan=load_source_plan(root/'p0-plan.json',inputs['plan_sha256'])
+                budget=min(25,remaining('worker_shutdown')-plan['seconds']['worker_shutdown'])
+                if budget<10:
+                    state['failure_context']=dict(skipped='insufficient original budget',helper_started=False)
+                    state['diagnostic_cleanup_owed']=False
+                else:
+                    diagnostic_attempted=True
+                    state['failure_context']=failure_collector(target,registration_sha256=setup['registration_sha256'],
+                        timeout_seconds=budget,deadline_utc=schedule['phase_deadlines_utc']['worker_shutdown'])
+                    state['diagnostic_cleanup_owed']=state['failure_context'].get('helper_exit_verified') is not True
+            except BaseException as diagnostic_error:
+                state['failure_context_error_type']=type(diagnostic_error).__name__
+                state['diagnostic_cleanup_owed']=diagnostic_attempted
     finally:
         if setup_entered:
             try:
@@ -1844,7 +2060,8 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
         if service_runner is not None:
             names += ['p0-setup-systemd-client.stdout.log','p0-setup-systemd-client.stderr.log']
         names += ['p0-create-events.jsonl','p0-registration-events.jsonl','registration.json',
-            'source-watchdog-service-plan.json','source-watchdog-submit-events.jsonl','source-watchdog-events.jsonl']
+            'source-watchdog-service-plan.json','source-watchdog-submit-events.jsonl','source-watchdog-events.jsonl',
+            'p0-start-failure-helper.json','p0-start-failure-context.json']
         if any((root/name).exists() or (root/name).is_symlink() for name in (*names,*(name+'.partial' for name in names))):
             raise FileExistsError('P0 setup has existing stage evidence; no automatic replay')
         def record_streams(label,stdout,stderr):
@@ -2014,7 +2231,9 @@ def p0_lifecycle_main(argv):
         try:
             result=run_p0_lifecycle(str(path),args.worker_input_sha,gate_sha256=args.gate_sha,
                 booking_sha256=args.booking_sha,events=events,
-                service_runner=service_runner if args.sudo_stdin else None)
+                service_runner=service_runner if args.sudo_stdin else None,
+                failure_collector=(lambda target,**options:collect_p0_start_failure(target,password=password,**options))
+                    if args.sudo_stdin else None)
         except BaseException as error:
             receipt=getattr(error,'p0_lifecycle_receipt',None)
             if receipt is not None:print(json.dumps(receipt,sort_keys=True),file=sys.stderr)
