@@ -1,3 +1,9 @@
+## 11/3 02:03接续：844完整源码R1 PASS，实际配置外层预算仍缺
+
+当前已核源码844e567（178文件4141254B/manifest b2f75414…）完整P0源码R1 PASS_SOURCE_ONLY；未审新代码不再新增。已在现有source-schedule-review.json准备实际spec/plan（run kimi-p0-20261102T175946Z-de357c39，1800全批=1200driver+600外部；固定GPU901a…/ec5镜像环境4c00993e…/本人00–09票）。独立配置审阅NEEDS_FIX两项：prelude assert发布副作用、外部600只是声明尚无共享累计截止。已显式if发布并固定prelude python3 -B -E -s，旧模板和NEEDS_FIX保留；第二项尚未实现/验证，不能签gate、部署或启动GPU。
+
+下一步优先解决唯一实际闭包：准备开始起同一个1800秒wall+monotonic截止，覆盖固定小源码部署/启动/真实driver和独立SSH退出取证，各步骤只用剩余预算，不在driver后重获600秒。尽量直接复用现有有界capture/phase算法，避免另造启动框架；实际执行命令及此闭包须配置复审。source已有resource000真实host记录Pythondriver身份，outer prelude经exec维持timeout PID，可用于独立退出核验；不能用自报resources_released false升级成功。现在远端p0仍不存在，八卡仅01:37快照，后续必须fresh全资源/API+新实际独立guard/probe。无模型/池/完整转换，新40项不启动。
+
 ## 11/3 01:55最新整改：真实成员合同失败已复现并修正，等待复审
 
 c229e2c复审NEEDS_FIX：p0_process_snapshot实际members只有pid/start_ticks/uid；旧资源检查误读member.cgroup。按真实三字段fixture已实际复现KeyError（2bf96f原stdout/stderr/SHA保留），最小改为与主进程anchor的cgroup比对，保留fresh PID/start/uid/boot。没有修改原严格释放三字段合同。
