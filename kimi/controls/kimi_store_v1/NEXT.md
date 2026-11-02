@@ -1,3 +1,13 @@
+## 当前接线限定复审已通过，非完整R1
+
+独立只读子代理已核当前40ce83a…/3edbdc1… SHA，sudo匿名输入与生命周期接线限定静态PASS。初审把capture成功误认bytes、错用旧azure预约的意见已实际回读源码撤回；初审/更正均留source-schedule-review.json，不机械改生产接口。外层driver退出取证和完整P0运行manifest/预算R1仍未通过；不能部署GPU。
+
+## 11/3 01:38实际接续：P0入口CPU通过，完整R1/真实守护未通过
+
+原source_schedule已接p0-run及仅精确重推导systemd-run的匿名stdin sudo桥，业务与守护UID2147不变，不建全局服务/权限策略。118项WSL CPU回归6.613秒通过，匿名stdin实际CPU子进程及新调用/失败收据有覆盖；Docker/systemd/GPU边界仍mock。当前修订待完整审阅，未部署/未启动GPU。原114项时钟倒退失败和历史exit137未知保留，不因本次通过重判。reference-only严格bool修复局部复审PASS已持久化，非完整R1。
+
+01:37只读API仍本人3b9f0bc8票00–09、09后alan；实际8卡0MiB/apps空、可用内存约1.84TiB、镜像ec5存在、brick1本地XFS余1561841938432B。但Docker仍6个他人容器（01:38单次stats合计约18.3GiB、各CPU0–0.10%；全机load1=0.55；这些是时点值而非峰值/未来不增长保证），不能凭空卡认定整机独占；当前未审P0资源策略拒绝此情况，继续只读取证/审阅，不清理他人。唯一固定p0小目录获准但尚未创建；不占模型/Store池等开发。不启动新40项。
+
 ## reference-only复审整改
 
 5c5e45e初审NEEDS_FIX（export_performed的0/null/缺失可绕过模式分支），原SHA/结论保留。已要求新终态type(export_performed) is bool；0/1/null/缺失全部拒绝，并保持reference ranks=None及官方SF加载器限制。35项WSL CPU回归2.557秒通过；对冻结5c reader仅在内存执行新负例，4项绕过均实际复现失败（证据明确是修复后追溯回归，不伪装先后）。不安装WSL Torch、不建新checkout/候选目录；旧无字段归档保留原字节，可用其冻结旧reader检查，不当成新reference模式成功。当前等待修订只读复审，不是GPU/R1全流程通过。

@@ -848,6 +848,24 @@
       "stdout": "{\"host\": \"qjhs3\", \"uid\": 2147, \"boot_id\": \"0145ca12-ac6e-40fc-9760-5d0639290553\", \"utc\": \"2026-11-02T15:25:06.727363+00:00\", \"image\": {\"returncode\": 0, \"stdout\": \"sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\\n\", \"stderr\": \"\"}, \"gpu_context\": {\"returncode\": 0, \"stdout\": \"GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, 0, 0\\nGPU-a3baf382-35c8-8748-626a-f69745aab5f8, 0, 0\\nGPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, 0, 0\\nGPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, 0, 0\\nGPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, 0, 0\\nGPU-151684e8-c7ba-a20a-6955-e1f765940536, 0, 0\\nGPU-af5f5c7a-0dce-f291-99be-2c844225cec6, 0, 0\\nGPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, 0, 0\\n\", \"stderr\": \"\"}, \"gpu_apps\": {\"returncode\": 0, \"stdout\": \"\", \"stderr\": \"\"}, \"memory_context\": \"MemTotal:       2016708628 kB\\nMemAvailable:   1971814408 kB\\nMlocked:          229944 kB\\nAnonPages:       2759260 kB\\nShmem:             15716 kB\"}\n",
       "stderr": "",
       "elapsed_seconds": 6.192071657998895
+    },
+    {
+      "returncode": 0,
+      "stdout": "2026-11-03T01:37:14+08:00\nqjhs3\n2147\nGPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, 0, 0\nGPU-a3baf382-35c8-8748-626a-f69745aab5f8, 0, 0\nGPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, 0, 0\nGPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, 0, 0\nGPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, 0, 0\nGPU-151684e8-c7ba-a20a-6955-e1f765940536, 0, 0\nGPU-af5f5c7a-0dce-f291-99be-2c844225cec6, 0, 0\nGPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, 0, 0\nMemTotal:       2016708628 kB\nMemFree:        1894342172 kB\nMemAvailable:   1972053872 kB\nBuffers:          266184 kB\nCached:         84376588 kB\nSwapCached:            0 kB\nActive:         37591624 kB\nInactive:       49195292 kB\nActive(anon):       8820 kB\nInactive(anon):  2184876 kB\nActive(file):   37582804 kB\nInactive(file): 47010416 kB\nUnevictable:      231480 kB\nMlocked:          229944 kB\nSwapTotal:             0 kB\nSwapFree:              0 kB\nDirty:              1292 kB\nWriteback:             0 kB\nAnonPages:       2370824 kB\nMapped:           377836 kB\nShmem:             15344 kB\nKReclaimable:    2883520 kB\nSlab:            7755840 kB\nSReclaimable:    2883520 kB\nSUnreclaim:      4872320 kB\nKernelStack:       72976 kB\nPageTables:        30104 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    1008354312 kB\nCommitted_AS:   20630248 kB\nVmallocTotal:   13743895347199 kB\nVmallocUsed:      669956 kB\nVmallocChunk:          0 kB\nPercpu:           810240 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:   1398784 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:    381659860 kB\nDirectMap2M:    1635796992 kB\nDirectMap1G:    33554432 kB\n4b8b5d6fbb0b node9-unified-persistent-5348f4f27b55 0202a24ab202\n494f2bdc16ab fullpd-f95000732399-prefill 0202a24ab202\n2e3a43f18254 fullpd-e4504cd075b7-prefill 0202a24ab202\nd77e30fc0a6f node9-unified-b238329d022e 0202a24ab202\n8d279f200630 node9-unified-eaaf4aa1d8e7 0202a24ab202\n6a0547ef9b8a harbor-alan docker.1ms.run/radixark/miles:latest\nFilesystem         1B-blocks          Used     Available Use% Mounted on\n/dev/nvme1n1   3838880616448 2277038678016 1561841938432  60% /data/brick1\nTARGET       SOURCE       FSTYPE\n/data/brick1 /dev/nvme1n1 xfs\nsha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27\n",
+      "stderr": "",
+      "recorded_utc": "2026-11-02T17:37:15.469857+00:00",
+      "elapsed_seconds": 30.37473151499944,
+      "scope": "read-only readiness, not admission",
+      "command": "date -Is; hostname; id -u; nvidia-smi --query-gpu=uuid,memory.used,utilization.gpu --format=csv,noheader,nounits; nvidia-smi --query-compute-apps=pid,gpu_uuid,used_memory --format=csv,noheader,nounits; cat /proc/meminfo; docker ps --format '{{.ID}} {{.Names}} {{.Image}}'; df -B1 /data/brick1/boyjiang/kimi-k2.6; findmnt -T /data/brick1/boyjiang/kimi-k2.6 -o TARGET,SOURCE,FSTYPE; docker image inspect --format '{{.Id}}' sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27"
+    },
+    {
+      "recorded_utc": "2026-11-02T17:38:25.025213+00:00",
+      "command": "docker stats --no-stream --format '{{.ID}} {{.Name}} {{.CPUPerc}} {{.MemUsage}} {{.BlockIO}} {{.PIDs}}'; cat /proc/loadavg",
+      "returncode": 0,
+      "stdout": "4b8b5d6fbb0b node9-unified-persistent-5348f4f27b55 0.02% 107.1MiB / 4GiB 3.92MB / 526MB 2\n494f2bdc16ab fullpd-f95000732399-prefill 0.06% 112MiB / 1.781TiB 98.3kB / 442kB 23\n2e3a43f18254 fullpd-e4504cd075b7-prefill 0.10% 17.9GiB / 1.781TiB 490MB / 64.1GB 272\nd77e30fc0a6f node9-unified-b238329d022e 0.00% 936KiB / 8GiB 143kB / 10.7MB 1\n8d279f200630 node9-unified-eaaf4aa1d8e7 0.00% 1.969MiB / 8GiB 90.1kB / 127kB 1\n6a0547ef9b8a harbor-alan 0.02% 60.64MiB / 1.878TiB 31.6MB / 2.83MB 19\n0.55 0.62 0.50 6/4377 2203262\n",
+      "stderr": "",
+      "elapsed_seconds": 8.143626246001077,
+      "scope": "read-only other-container aggregate resource context; no ownership or release claim"
     }
   ],
   "booking_context_snapshots": [
@@ -920,6 +938,51 @@
       "full_node_context_preserved_at_commit": "eff892f",
       "display_filter": "qjhs003 bookings with end_ms after capture; past records preserved unchanged in eff892f, not deleted from Git history",
       "historical_booking_rows_omitted_from_current_view": 250
+    },
+    {
+      "recorded_utc": "2026-11-02T17:37:32.869786+00:00",
+      "resources": [
+        {
+          "active": true,
+          "bookable": true,
+          "cluster_id": "h20",
+          "cpu_booking_enabled": false,
+          "gpu_count": 8,
+          "gpu_label": "H20",
+          "id": "h20/qjhs003",
+          "node": "qjhs003",
+          "notes": "开发可预约；保留原 qjhs0..qjhs3 对应机器，不在预约系统暴露个人账号。",
+          "sort_order": 103,
+          "ssh_host": "115.190.191.164",
+          "ssh_host_alias": "qjhs003",
+          "ssh_port": 22
+        }
+      ],
+      "bookings": [
+        {
+          "cluster_id": "h20",
+          "created_ms": 1793602428500,
+          "end_ms": 1793667600000,
+          "id": "bk-20261102T0653-3b9f0bc8",
+          "node": "qjhs003",
+          "purpose": "kimi k2.6",
+          "resource_id": "h20/qjhs003",
+          "start_ms": 1793635200000,
+          "user": "boyjiang"
+        },
+        {
+          "cluster_id": "h20",
+          "created_ms": 1793620621990,
+          "end_ms": 1793718000000,
+          "id": "bk-20261102T1157-efadda8d",
+          "node": "qjhs003",
+          "purpose": "Miles Harbor GLM-4.7-Flash GRPO checkpoint resume; requires GPU and host memory",
+          "resource_id": "h20/qjhs003",
+          "start_ms": 1793667600000,
+          "user": "alan"
+        }
+      ],
+      "scope": "fresh readonly booking context; no booking change"
     }
   ],
   "preservation_checks": [
@@ -933,6 +996,37 @@
         "probe_watchdog_service",
         "source_watchdog"
       ]
+    }
+  ],
+  "p0_lifecycle_reviews": [
+    {
+      "recorded_utc": "2026-11-02T17:40:54.232556+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "verdict": "PASS_STATIC_SCOPED_LIFECYCLE_CONNECTION_ONLY",
+      "sha256": {
+        "source_schedule.py": "40ce83a3178a176a273421ac2a319beac6386761d7f15825e4f51e0f43f5a672",
+        "test_source_schedule.py": "3edbdc125abd1d73dbad11b2a42cd4a24ce8ba5488f41a340440bd555a3ef412"
+      },
+      "scope": "sudo anonymous input / existing lifecycle connection, not complete R1",
+      "reviewer_ran_tests": false,
+      "initial_review": {
+        "verdict": "NEEDS_FIX",
+        "claims": [
+          "capture success assumed bytes",
+          "old azure booking applied to current boyjiang"
+        ],
+        "status": "WITHDRAWN_AFTER_SOURCE_VERIFICATION",
+        "reason": "actual same-SHA line371 strict UTF8 str; stale booking not evidence against current window"
+      },
+      "findings": [
+        "sudo runs only exact re-derived systemd-run; service and controller UID2147",
+        "no original deadline reset",
+        "failure cannot become lifecycle success",
+        "outer driver exit verification still owed; resources_released remains false"
+      ],
+      "actual_gpu_verified": false,
+      "actual_guard_verified": false,
+      "runtime_approved": false
     }
   ]
 }

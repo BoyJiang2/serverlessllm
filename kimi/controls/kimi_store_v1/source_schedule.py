@@ -19,6 +19,7 @@ PHASES = ('preflight', 'image_restore', 'engine_initialize_and_export', 'fixed_t
 TAIL = ('worker_shutdown', 'release_observe', 'cleanup_evidence', 'safety_margin')
 GUARD_PURPOSE = 'KIMI-SOURCE-UNREVIEWED'
 P0_PURPOSE = 'KIMI-CUDA-IPC-P0A-UNREVIEWED'
+P0_RUN_ROOT = '/data/brick1/boyjiang/kimi-k2.6/p0'
 P0_PHASES = ('preflight', 'guard_setup', 'component', *TAIL)
 
 
@@ -329,13 +330,13 @@ def p0_process_snapshot(info):
     return dict(process,members=records)
 
 
-def _guard_capture(command, timeout, environment):
+def _guard_capture(command, timeout, environment, *, stdin=subprocess.DEVNULL):
     """POSIX host-only pipe reader: cap each output before retaining more bytes."""
     if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:
         raise ValueError('finite positive CLI capture budget required')
     deadline = time.monotonic() + timeout
     work_deadline = deadline-min(0.25,timeout/4)
-    process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+    process = subprocess.Popen(command, stdin=stdin, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, env=environment)
     buffers = [bytearray(), bytearray()]
     selector, failure, code = None, None, None
@@ -1541,7 +1542,8 @@ def await_p0_guard_exit(service_plan, target, schedule, proof, *, nonce, entered
         raise
 
 
-def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, booking_sha256, events):
+def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, booking_sha256, events,
+                      service_runner=None):
     """Non-timed P0 control only; full reviewed gate and actual guard precede start."""
     from source_bundle import verify_p0_worker_input
     from vllm_export_hook import _metadata_stream
@@ -1550,7 +1552,8 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
     _,root,inputs,receipt,schedule,identity=verify_p0_worker_input(worker_input_path,worker_input_sha256)
     if Path(__file__).resolve(strict=True)!=root/'code/source_schedule.py':
         raise ValueError('P0 lifecycle must execute its verified source bundle')
-    state=dict(runtime_admitted=False,torch_cuda_ipc_verified=False,resources_released=False,
+    state=dict(scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',runtime_admitted=False,
+        torch_cuda_ipc_verified=False,native_loader_verified=False,store_created=False,full_model_verified=False,resources_released=False,
         cleanup_owed=False,driver_exit_verification_owed=True,phase='preflight')
     target=registration=service=proof=monitor=None
     setup_entered=False;failure=None
@@ -1640,11 +1643,13 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                 or gate['scope']!='P0A_TORCH_IPC_NO_MODEL_NO_STORE'
                 or gate['resource_policy']!='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1'):
             raise ValueError('current complete P0 source gate required; component approvals do not admit runtime')
+        if str(root)!=P0_RUN_ROOT or receipt['run_root']!=str(root):
+            raise ValueError('P0 lifecycle requires the one authorized fixed directory')
         state['booking']=booking();state['preflight_resources']=resources('preflight')
         event('lifecycle_admission_prepared',dict(gate_sha256=gate_sha256,booking=state['booking'],
             resources=state['preflight_resources'],runtime_admitted=False))
         setup_entered=True;state['cleanup_owed']=True;state['phase']='setup'
-        state['setup']=run_p0_setup(worker_input_path,worker_input_sha256,events=events)
+        state['setup']=run_p0_setup(worker_input_path,worker_input_sha256,events=events,service_runner=service_runner)
         setup=state['setup']
         _,_,registration,_,registered_schedule,_=load_watchdog_inputs(root/'registration.json',setup['registration_sha256'])
         if registered_schedule!=schedule:raise ValueError('P0 setup changed original schedule')
@@ -1715,21 +1720,26 @@ def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, boo
                     state['guard_exit_error']=dict(error_type=type(error).__name__,error=str(error)[:1024])
                     if failure is None:failure=error
             else:state['guard_resolution_owed']=True
+    if failure is None and (state.get('observation',{}).get('container_release_observation_verified') is not True
+            or state.get('guard_exit',{}).get('guard_resources_released') is not True):
+        failure=RuntimeError('P0 lifecycle lacks complete target/guard release evidence')
     if failure is not None:
         failure.p0_lifecycle_receipt=state
-        event('lifecycle_failed',dict(state,error_type=type(failure).__name__,error=str(failure)[:1024]))
+        try:event('lifecycle_failed',dict(state,error_type=type(failure).__name__,error=str(failure)[:1024]))
+        except BaseException as evidence_error:failure.p0_lifecycle_evidence_error=repr(evidence_error)[:1024]
         raise failure
-    if (state.get('observation',{}).get('container_release_observation_verified') is not True
-            or state.get('guard_exit',{}).get('guard_resources_released') is not True):
-        raise RuntimeError('P0 lifecycle lacks complete target/guard release evidence')
     state.update(phase='returned',cleanup_owed=False,target_and_guard_release_verified=True)
-    event('lifecycle_returned',state)
-    remaining('cleanup_evidence')
+    try:
+        event('lifecycle_return_prepared',state)
+        remaining('cleanup_evidence')
+    except BaseException as error:
+        error.p0_lifecycle_receipt=state
+        raise
     return state
 
 
 def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
-                 runner=_guard_capture, host_probe=_watchdog_host):
+                 runner=_guard_capture, host_probe=_watchdog_host, service_runner=None):
     """Run metadata CLIs and collect real exit status; never start the GPU target."""
     from source_bundle import verify_p0_worker_input
     from vllm_export_hook import _metadata_stream
@@ -1764,6 +1774,8 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
             raise ValueError('P0 setup requires the authorized Linux host')
         stages = ('create','register','submit','probe')
         names = [f'p0-setup-{stage}.{stream}.log' for stage in stages for stream in ('stdout','stderr')]
+        if service_runner is not None:
+            names += ['p0-setup-systemd-client.stdout.log','p0-setup-systemd-client.stderr.log']
         names += ['p0-create-events.jsonl','p0-registration-events.jsonl','registration.json',
             'source-watchdog-service-plan.json','source-watchdog-submit-events.jsonl','source-watchdog-events.jsonl']
         if any((root/name).exists() or (root/name).is_symlink() for name in (*names,*(name+'.partial' for name in names))):
@@ -1846,7 +1858,26 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
         state['registration_cli_exit_verified']=True
         guard_args=['--registration',str(root/'registration.json'),'--registration-sha',registered['registration_sha256'],
                     '--service-plan-sha',registered['service_plan_sha256']]
-        submitted=run('submit','service-submit',guard_args)
+        if service_runner is None:
+            submitted=run('submit','service-submit',guard_args)
+        else:
+            phase='submit';state['phase_exitcodes']['submit']=None
+            state['service_submit_function_verified']=False
+            def privileged(command,timeout,environment):
+                try:response=service_runner(command,timeout,environment)
+                except BaseException as error:
+                    state['systemd_client_returncode']=getattr(error,'guard_capture_returncode',None)
+                    try:record_streams('systemd-client',getattr(error,'guard_capture_stdout',b''),getattr(error,'guard_capture_stderr',b''))
+                    except BaseException as evidence_error:error.p0_setup_capture_error=repr(evidence_error)[:1024]
+                    raise
+                state['systemd_client_returncode']=response.returncode
+                record_streams('systemd-client',response.stdout,response.stderr)
+                return response
+            with (root/'source-watchdog-submit-events.jsonl').open('xb',buffering=0) as service_events:
+                submitted=submit_p0_watchdog(service_plan,registration['target'],schedule,
+                    nonce=registration['nonce'],host_pid_namespace=host['pid_namespace'],
+                    plan_sha256=registration['plan_sha256'],events=service_events,runner=privileged)
+            remaining('submit')
         if (submitted.get('guard_deployed') is not True or submitted.get('service_submission_deadline_verified') is not True
                 or submitted.get('container_id')!=state['container_id'] or submitted.get('identity')!=identity
                 or submitted.get('independent_service_verified') is not True
@@ -1854,7 +1885,8 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
                 or not isinstance(submitted.get('service_invocation_id'),str)
                 or not re.fullmatch('[0-9a-f]{32}',submitted['service_invocation_id'])):
             raise ValueError('P0 guard submission proof differs')
-        state['service_submit_cli_exit_verified']=True
+        if service_runner is None:state['service_submit_cli_exit_verified']=True
+        else:state['service_submit_function_verified']=True
         probed=run('probe','service-probe',guard_args)
         if (probed.get('independent_service_verified') is not True or probed.get('identity')!=identity
                 or probed.get('container_id')!=state['container_id'] or probed.get('nonce')!=registration['nonce']
@@ -1867,7 +1899,7 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
                 or probed.get('host',{}).get('uid')!=2147
                 or probed.get('host',{}).get('pid_namespace')!=host['pid_namespace']):
             raise ValueError('P0 fresh guard probe changed service identity')
-        state.update(service_probe_cli_exit_verified=True,guard_deployed=True,setup_cli_exit_verified=True)
+        state.update(service_probe_cli_exit_verified=True,guard_deployed=True,setup_cli_exit_verified=service_runner is None)
         result=dict(state,registration_sha256=registered['registration_sha256'],service_plan_sha256=registered['service_plan_sha256'])
         _watchdog_event(events,identity,identity['holder'],'setup_returned',result)
         remaining('probe')
@@ -1879,6 +1911,48 @@ def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
             except BaseException as evidence_error:
                 error.p0_setup_evidence_error=dict(error_type=type(evidence_error).__name__,error=str(evidence_error)[:1024])
         raise
+
+
+def p0_lifecycle_main(argv):
+    import argparse
+    if sys.flags.optimize or not sys.dont_write_bytecode or os.getuid()!=2147:
+        raise ValueError('P0 lifecycle requires UID2147 and unoptimized python -B')
+    parser=argparse.ArgumentParser(description=__doc__)
+    for name in ('worker-input','worker-input-sha','gate-sha','booking-sha'):
+        parser.add_argument('--'+name,required=True)
+    parser.add_argument('--sudo-stdin',action='store_true')
+    args=parser.parse_args(argv)
+    path=Path(args.worker_input)
+    if (not path.is_absolute() or path.resolve(strict=True).parent!=Path(P0_RUN_ROOT)
+            or Path(__file__).resolve(strict=True)!=Path(P0_RUN_ROOT)/'code/source_schedule.py'):
+        raise ValueError('P0 lifecycle requires the fixed authorized source directory')
+    password=None
+    if args.sudo_stdin:
+        password=sys.stdin.buffer.readline(130)
+        if not 2<=len(password)<=129 or not password.endswith(b'\n') or b'\x00' in password:
+            raise ValueError('one bounded newline-terminated sudo input required')
+    def service_runner(command,timeout,environment):
+        if (not isinstance(command,list) or command[:2]!=['/usr/bin/systemd-run','--system']
+                or '--uid=2147' not in command or '--no-ask-password' not in command):
+            raise ValueError('only the re-derived P0 system service submission can be elevated')
+        read_fd,write_fd=os.pipe()
+        try:
+            if os.write(write_fd,password)!=len(password):raise OSError('incomplete sudo input')
+            os.close(write_fd);write_fd=None
+            return _guard_capture(['/usr/bin/sudo','-S','-p','','--',*command],timeout,environment,stdin=read_fd)
+        finally:
+            os.close(read_fd)
+            if write_fd is not None:os.close(write_fd)
+    with (path.parent/'p0-lifecycle-events.jsonl').open('xb',buffering=0) as events:
+        try:
+            result=run_p0_lifecycle(str(path),args.worker_input_sha,gate_sha256=args.gate_sha,
+                booking_sha256=args.booking_sha,events=events,
+                service_runner=service_runner if args.sudo_stdin else None)
+        except BaseException as error:
+            receipt=getattr(error,'p0_lifecycle_receipt',None)
+            if receipt is not None:print(json.dumps(receipt,sort_keys=True),file=sys.stderr)
+            raise
+    print(json.dumps(result,sort_keys=True))
 
 
 def p0_setup_main(argv):
@@ -2169,7 +2243,9 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:2] == ['p0-create']:
+    if sys.argv[1:2] == ['p0-run']:
+        p0_lifecycle_main(sys.argv[2:])
+    elif sys.argv[1:2] == ['p0-create']:
         p0_create_main(sys.argv[2:])
     elif sys.argv[1:2] == ['p0-setup']:
         p0_setup_main(sys.argv[2:])

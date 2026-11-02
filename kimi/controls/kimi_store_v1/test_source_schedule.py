@@ -23,6 +23,60 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    @unittest.skipUnless(os.name=='posix','anonymous input capture requires POSIX')
+    def test_guard_capture_reads_anonymous_input_without_exposing_it(self):
+        read_fd,write_fd=os.pipe()
+        try:
+            os.write(write_fd,b'CPU_ONLY_NOT_A_SECRET\n');os.close(write_fd);write_fd=None
+            result=schedule_module._guard_capture([sys.executable,'-B','-c',
+                'import sys;assert sys.stdin.buffer.read()==b"CPU_ONLY_NOT_A_SECRET\\n";print("accepted")'],
+                3,dict(os.environ),stdin=read_fd)
+        finally:
+            os.close(read_fd)
+            if write_fd is not None:os.close(write_fd)
+        self.assertEqual(result.returncode,0)
+        self.assertEqual(result.stdout,'accepted\n');self.assertEqual(result.stderr,'')
+
+    @unittest.skipUnless(os.name=='posix','host-only sudo input bridge requires POSIX')
+    def test_p0_lifecycle_cli_limits_sudo_to_service_submission_and_retains_failure(self):
+        for kind in ('success','bad-command','bad-input','failure'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                root=Path(temp);(root/'code').mkdir()
+                source=root/'code/source_schedule.py';source.write_text('CPU fixture')
+                worker=root/'p0-worker-input.json';worker.write_text('{}')
+                captured=[]
+                def capture(command,timeout,environment,*,stdin):
+                    self.assertEqual(command[:5],['/usr/bin/sudo','-S','-p','','--'])
+                    self.assertEqual(os.read(stdin,130),b'CPU_ONLY_NOT_A_SECRET\n')
+                    self.assertNotIn('CPU_ONLY_NOT_A_SECRET',str(command))
+                    captured.append(command)
+                    return types.SimpleNamespace(returncode=0,stdout='created',stderr='')
+                def lifecycle(*args,**kwargs):
+                    command=['/usr/bin/systemd-run','--system','--no-ask-password','--uid=2147']
+                    if kind=='bad-command':command[0]='/bin/sh'
+                    kwargs['service_runner'](command,3,dict(PATH='/usr/bin'))
+                    if kind=='failure':
+                        error=RuntimeError('CPU failure');error.p0_lifecycle_receipt={'resources_released':False};raise error
+                    return {'resources_released':False,'driver_exit_verification_owed':True}
+                data=b'bad' if kind=='bad-input' else b'CPU_ONLY_NOT_A_SECRET\n'
+                with patch.object(schedule_module,'P0_RUN_ROOT',str(root)), \
+                        patch.object(schedule_module,'__file__',str(source)), \
+                        patch.object(schedule_module.os,'getuid',return_value=2147), \
+                        patch.object(schedule_module.sys,'stdin',types.SimpleNamespace(buffer=io.BytesIO(data))), \
+                        patch.object(schedule_module.sys,'stdout',new_callable=io.StringIO) as output, \
+                        patch.object(schedule_module.sys,'stderr',new_callable=io.StringIO) as errors, \
+                        patch.object(schedule_module,'_guard_capture',side_effect=capture), \
+                        patch.object(schedule_module,'run_p0_lifecycle',side_effect=lifecycle) as run:
+                    argv=['--worker-input',str(worker),'--worker-input-sha','a'*64,
+                          '--gate-sha','b'*64,'--booking-sha','c'*64,'--sudo-stdin']
+                    if kind=='success':schedule_module.p0_lifecycle_main(argv)
+                    else:
+                        with self.assertRaises((ValueError,RuntimeError)):schedule_module.p0_lifecycle_main(argv)
+                    if kind=='bad-input':run.assert_not_called()
+                    if kind=='failure':self.assertIn('"resources_released": false',errors.getvalue())
+                    self.assertNotIn('CPU_ONLY_NOT_A_SECRET',output.getvalue()+errors.getvalue())
+                self.assertEqual(len(captured),int(kind in ('success','failure')))
+
     @unittest.skipUnless(os.name=='posix','native pipe capture requires POSIX')
     def test_guard_capture_success_text_contract_uses_real_cpu_child(self):
         result=schedule_module._guard_capture([sys.executable,'-B','-c',
@@ -103,6 +157,7 @@ class SourceScheduleTests(unittest.TestCase):
                     for manager in (
                         patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),
                         patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')),
+                        patch.object(schedule_module,'P0_RUN_ROOT',str(root)),
                         patch.object(schedule_module,'datetime',clock),
                         patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),
                         patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)),
@@ -487,8 +542,9 @@ class SourceScheduleTests(unittest.TestCase):
                 service_unit=plan['unit'],service_invocation_id='b'*32,service_submission_deadline_verified=False,
                 guard_deployed=False,runtime_admitted=False,resources_released=False)
         def submit_call(*args,**kwargs):
+            client=kwargs.pop('runner',lambda *a:types.SimpleNamespace(returncode=0,stdout='created',stderr=''))
             return submit(*args,**kwargs,**options,
-                runner=lambda *a:types.SimpleNamespace(returncode=0,stdout='created',stderr=''),
+                runner=client,
                 ready_waiter=ready_waiter,service_probe=probe)
         # Only the process boundary is substituted; actual entry parsers and metadata functions run.
         def runner(command,timeout,environment):
@@ -526,6 +582,37 @@ class SourceScheduleTests(unittest.TestCase):
             for key in ('runtime_admitted','runtime_abi_verified','resource_window_verified','resources_released'):self.assertFalse(result[key])
             self.assertEqual(len(result['artifacts']),8)
             self.assertFalse(any(c.args[0][0] in ('start','stop','rm') for c in options['docker'].call_args_list))
+
+    @unittest.skipUnless(os.name=='posix','Native WSL covers service submission integration')
+    def test_p0_setup_service_runner_does_not_invent_submit_cli_exit(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,ticks,clock,bound,options,create,register,submit,probe,runner=self.setup_control(temp)
+            transport=Mock(side_effect=runner)
+            client=Mock(return_value=types.SimpleNamespace(returncode=0,stdout='created',stderr=''))
+            with (root/'setup-events').open('xb',buffering=0) as events, ExitStack() as stack:
+                for manager in (
+                    patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),
+                    patch.object(source_bundle,'verify_p0_run',return_value=bound[3]),
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')),
+                    patch.object(schedule_module,'datetime',clock),
+                    patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),
+                    patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),
+                    patch.object(schedule_module.secrets,'token_hex',return_value='9'*32),
+                    patch.object(schedule_module,'create_p0_target',side_effect=create),
+                    patch.object(schedule_module,'materialize_p0_guard_inputs',side_effect=register),
+                    patch.object(schedule_module,'submit_p0_watchdog',side_effect=submit),
+                    patch.object(schedule_module,'probe_watchdog_service',side_effect=probe)):
+                    stack.enter_context(manager)
+                result=schedule_module.run_p0_setup(str(worker),'f'*64,events=events,runner=transport,
+                    host_probe=options['host_probe'],service_runner=client)
+            client.assert_called_once()
+            self.assertEqual([c.args[0][7] for c in transport.call_args_list],['p0-create','p0-register','service-probe'])
+            self.assertIsNone(result['phase_exitcodes']['submit'])
+            self.assertFalse(result['setup_cli_exit_verified']);self.assertFalse(result['service_submit_cli_exit_verified'])
+            self.assertTrue(result['service_submit_function_verified']);self.assertTrue(result['guard_deployed'])
+            self.assertEqual(result['systemd_client_returncode'],0)
+            self.assertEqual((root/'p0-setup-systemd-client.stdout.log').read_bytes(),b'created')
 
     @unittest.skipUnless(os.name=='posix','Native WSL covers setup CLI integration and POSIX capture')
     def test_p0_setup_rejects_phase_failures_partial_json_stale_deadline_and_changed_service(self):
