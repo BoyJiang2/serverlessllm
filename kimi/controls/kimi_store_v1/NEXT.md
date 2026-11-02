@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 19点窗口：此前f9 collector未派发且原18:50已过，已保留原候选/审阅；新run4309227c、host8c62d543/body3163eefb，仅身份及19:00–23:50变更，逆替换逐字节一致并限定只读复审PASS。fresh API晚间41b77620/午夜3b9f0bc8仍有效，CPU1/2GiB、60内/120宿主guard/300整体不变。当前尚未执行，不是安装/模型准入。adb0e3a已push且独立ls-remote同SHA。
+
 - 11/2用户新增确认：19–24可低并发CPU，11/3 00–09整机8GPU+RAM，08:50收口；原复制暂停已被主聊明确取消/恢复，goal已active。实际API三票及倒排写入既有RESERVATION-PLAN.md；准备22:30评估，不承诺native峰值未过的P2/P3。无新预约/新节点。
 - 22 collector仍未派发：独立只读SSH precheck20s超时，已记录非collector attempt。为减少连接，保留并并入host的MemAvailable>4GiB与旧本实验label容器空检查，create前失败关闭；新hostc7fb464c…/body3163eefb…窄复审PASS，固定f9/run最多一次、原1850截止未延。TTY长JSON渲染有换行/光标重复，不作为机器receipt；结构化采集走WSL原生编排的subprocess管道。质量要求沿用用户原明确授权main，显式stage、小步push/远端核验，不新增分支、不force、不合并、不清理他人。
 
