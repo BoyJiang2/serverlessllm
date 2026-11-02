@@ -145,21 +145,26 @@ def _load_spec(path, expected_sha):
     keys = {'schema', 'node', 'mode', 'revision', 'run_id', 'holder', 'code_commit',
             'checkpoint_path', 'run_root', 'output_root', 'checkpoint_contract_path', 'chunk_bytes'}
     if (set(spec) != keys or spec['schema'] != 'kimi-source-worker-plugin-v1'
-            or spec['node'] != 'qjhs003' or spec['mode'] != 'export' or spec['revision'] != REVISION
+            or spec['node'] != 'qjhs003' or spec['mode'] not in ('reference','export') or spec['revision'] != REVISION
             or not re.fullmatch('kimi-export-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', spec['run_id'])
             or not re.fullmatch('[0-9a-f]{32}', spec['holder'])
             or not re.fullmatch('[0-9a-f]{40}', spec['code_commit'])
             or type(spec['chunk_bytes']) is not int or not 4 <= spec['chunk_bytes'] <= CHUNK_BYTES):
         raise ValueError('fixed source identity, schema and byte bound required')
-    for key in ('checkpoint_path', 'run_root', 'output_root', 'checkpoint_contract_path'):
+    if spec['mode']=='reference' and spec['output_root'] is not None:
+        raise ValueError('reference-only mode must not declare a Store output')
+    paths=('checkpoint_path','run_root','checkpoint_contract_path')
+    if spec['mode']=='export':paths+=('output_root',)
+    for key in paths:
         value = Path(spec[key])
         if not value.is_absolute():
             raise ValueError('absolute worker paths required')
         spec[key] = value.resolve(strict=True)
     checkpoint, run, output = (spec[k] for k in ('checkpoint_path', 'run_root', 'output_root'))
     contract = spec['checkpoint_contract_path']
-    if (not all(p.is_dir() for p in (checkpoint, run, output)) or output == run
-            or not output.is_relative_to(run) or not contract.is_relative_to(run)
+    if (not all(p.is_dir() for p in (checkpoint, run))
+            or (output is not None and (not output.is_dir() or output == run or not output.is_relative_to(run)))
+            or not contract.is_relative_to(run)
             or not source.resolve().is_relative_to(run)
             or checkpoint.is_relative_to(run) or run.is_relative_to(checkpoint)):
         raise ValueError('isolated run paths and separate read-only checkpoint required')
@@ -201,6 +206,10 @@ def register():
     spec, config_raw, contract_raw = _load_spec(path, digest)
     _verify_code_bundle(spec, path, digest, bundle_digest)
     registry, base, default = _runtime()
+    if spec['mode']=='reference':
+        if _registration is not None:
+            raise ValueError('reference-only worker cannot reuse an export registration')
+        return 'safetensors'
     from loader_registry import FORMATS, register_candidate_loader
     from marlin_aux import PROFILE
     from vllm_export_hook import make_checkpoint_export_loader
@@ -278,6 +287,9 @@ def _source_reference_body(engine_factory, sampling_factory, *, spec, identity, 
     from source_schedule import phase_remaining_seconds
     from vllm_export_hook import collect_source_rank_receipts, _source_identity
     identity = _source_identity(identity)
+    if spec['mode'] not in ('reference','export'):
+        raise ValueError('explicit reference or export mode required')
+    exporting=spec['mode']=='export'
     if any(identity[k] != spec[k] for k in ('run_id', 'holder', 'code_commit')):
         raise ValueError('worker spec and reference identity differ')
     if (not isinstance(prompt_token_ids, list) or not 1 <= len(prompt_token_ids) <= 896
@@ -289,7 +301,7 @@ def _source_reference_body(engine_factory, sampling_factory, *, spec, identity, 
             elapsed=time.monotonic()-started, now=datetime.now(timezone.utc))
     options = dict(model=str(spec['checkpoint_path']), tokenizer=str(spec['checkpoint_path']),
         revision=REVISION, tokenizer_revision=REVISION, trust_remote_code=True,
-        dtype='bfloat16', quantization='compressed-tensors', load_format=FORMATS['export'],
+        dtype='bfloat16', quantization='compressed-tensors', load_format=FORMATS['export'] if exporting else 'safetensors',
         tensor_parallel_size=8, pipeline_parallel_size=1, data_parallel_size=1,
         prefill_context_parallel_size=1, distributed_executor_backend='mp',
         enable_expert_parallel=False, speculative_config=None,
@@ -305,7 +317,7 @@ def _source_reference_body(engine_factory, sampling_factory, *, spec, identity, 
     try:
         remaining('engine_initialize_and_export')
         engine = engine_factory(**options)
-        ranks = collect_source_rank_receipts(spec['output_root'], identity)
+        ranks = collect_source_rank_receipts(spec['output_root'], identity) if exporting else None
         evidence['ranks'] = ranks
         remaining('engine_initialize_and_export')
         business = evidence['business']
@@ -318,7 +330,7 @@ def _source_reference_body(engine_factory, sampling_factory, *, spec, identity, 
             business[name] = _reference_output(requests, prompt_token_ids, fixed=fixed)
             remaining(name)
         result = dict(identity, prompt_token_ids=list(prompt_token_ids), engine_options=options,
-            ranks=ranks, business=business, reference_collected=True,
+            ranks=ranks, business=business, reference_collected=True,export_performed=exporting,
             gold_frozen=False, runtime_admitted=False, native_loader_verified=False,
             full_service_verified=False, resources_released=False)
     except BaseException as error:
@@ -392,8 +404,8 @@ def _run_source_reference(engine_factory, sampling_factory, *, worker_input_sha2
     spec = options['spec']
     root = Path(spec['run_root']).resolve(strict=True)
     checkpoint = Path(spec['checkpoint_path']).resolve(strict=True)
-    output = Path(spec['output_root']).resolve(strict=True)
-    if (not root.is_dir() or not output.is_dir() or output == root or not output.is_relative_to(root)
+    output = None if spec['mode']=='reference' and spec['output_root'] is None else Path(spec['output_root']).resolve(strict=True)
+    if (not root.is_dir() or (output is not None and (not output.is_dir() or output == root or not output.is_relative_to(root)))
             or root.is_relative_to(checkpoint) or checkpoint.is_relative_to(root)
             or any(identity[k] != spec[k] for k in ('run_id', 'holder', 'code_commit'))):
         raise ValueError('existing isolated run directory required')
@@ -434,6 +446,7 @@ def _run_source_reference(engine_factory, sampling_factory, *, worker_input_sha2
 def read_reference_events(path, identity):
     """Read bounded evidence; a missing terminal record proves no completion."""
     from vllm_export_hook import _source_identity, _metadata_stream
+    from loader_registry import FORMATS
     identity = _source_identity(identity)
     with _metadata_stream(Path(path)) as stream:
         raw = stream.read(131073)
@@ -467,6 +480,11 @@ def read_reference_events(path, identity):
                 or any(payload.get(k) is not False for k in ('runtime_admitted', 'gold_frozen',
                     'native_loader_verified', 'full_service_verified', 'resources_released'))):
             raise ValueError('reference result scope differs')
+        if payload.get('export_performed') is False and (payload.get('ranks') is not None
+                or payload.get('engine_options',{}).get('load_format')!='safetensors'):
+            raise ValueError('reference-only result must not carry Store completion')
+        if payload.get('export_performed') is True and payload.get('engine_options',{}).get('load_format')!=FORMATS['export']:
+            raise ValueError('export result loader scope differs')
     return dict(status='incomplete' if len(rows) == 1 else rows[1]['event'], records=rows,
                 journal_sha256=hashlib.sha256(raw).hexdigest(), resources_released=False,
                 runtime_admitted=False, full_service_verified=False)

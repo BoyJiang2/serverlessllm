@@ -27,5 +27,24 @@
     "Disk code hash is not loaded-memory code, actual UID/boot/window/guard proof",
     "No GPU, model, Store conversion, full worker or runtime admission approval",
     "Old frozen bundle does not inherit this review"
+  ],
+  "glm_reuse_assessments": [
+    {
+      "recorded_utc": "2026-11-02T17:14:27.352829+00:00",
+      "reviewer": "/root/deadline_readonly_review",
+      "scope": "read-only reuse mapping, not R1",
+      "findings": [
+        "Reuse GLM lifecycle structure and pure Docker argv builder, not frozen GLM entrypoints",
+        "GLM guard/install scripts bind old run/window; instantiate fresh identity and actual probe, do not run old scripts",
+        "Do not deploy global debug scanning guard",
+        "Kimi source reference currently couples export; separate official safetensors and no rank export receipts",
+        "Only systemd-run guard submission needs scoped sudo; serving and verification stay UID2147"
+      ],
+      "files": {
+        "glm/controls/service_smoke_v1/docker_args.py": "6d20317cb8c653ed521734bf93bd95b4e360a17bb2fcf54f2816088fad96e2af",
+        "glm/runtime/active/install_guard13.sh": "b583a42b9e1b6d7173cda2a78644fd31b6d11d5543693dbd37c44ca9f92aa4d9",
+        "glm/runtime/active/cleanup_guard13.sh": "93e238d77748aafdd9d793bfc54e306d04c7a747bfc7cc736fd20e616a139e3b"
+      }
+    }
   ]
 }

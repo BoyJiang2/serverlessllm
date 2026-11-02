@@ -21,6 +21,48 @@ ROOT = Path(__file__).parent.resolve()
 
 
 class SourcePluginTests(unittest.TestCase):
+    def test_reference_only_uses_builtin_safetensors_without_store_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            options=self.reference_fixture(temp)
+            Path(options['spec']['output_root']).rmdir()
+            options['spec'].update(mode='reference',output_root=None)
+            core=types.SimpleNamespace(shutdown=Mock())
+            engine=types.SimpleNamespace(llm_engine=types.SimpleNamespace(engine_core=core),
+                generate=Mock(side_effect=[self.completion(),self.completion(False)]))
+            factory=Mock(return_value=engine)
+            with patch.object(vllm_export_hook,'collect_source_rank_receipts',side_effect=AssertionError('reference must not read Store receipts')):
+                result=plugin._run_source_reference(factory,lambda **kwargs:kwargs,**options)
+            self.assertEqual(factory.call_args.kwargs['load_format'],'safetensors')
+            self.assertEqual(factory.call_args.kwargs['tensor_parallel_size'],8)
+            self.assertIsNone(result['ranks']);self.assertFalse(result['export_performed'])
+            self.assertTrue(result['engine_shutdown_returned'])
+            self.assertEqual(len(result['business']['fixed_token_business']['token_ids']),32)
+            self.assertFalse((Path(options['spec']['run_root'])/'export').exists())
+            path=Path(options['spec']['run_root'])/'source-reference-events.jsonl'
+            rows=[json.loads(line) for line in path.read_bytes().splitlines()]
+            rows[-1]['payload']['ranks']={'completed_rank_count':8}
+            path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+            with self.assertRaisesRegex(ValueError,'reference-only'):
+                plugin.read_reference_events(path,options['identity'])
+
+    def test_reference_plugin_verifies_spec_without_registering_export_loader(self):
+        with tempfile.TemporaryDirectory() as temp:
+            spec,path=self.fixture(temp)
+            Path(spec['output_root']).rmdir();spec.update(mode='reference',output_root=None)
+            self.activate(spec,path)
+            registry,base=self.registry();before=dict(registry._LOAD_FORMAT_TO_MODEL_LOADER)
+            with patch.object(plugin,'_verify_code_bundle',return_value={}),\
+                    patch.object(plugin,'_runtime',return_value=(registry,base,object)),\
+                    patch.object(vllm_export_hook,'make_checkpoint_export_loader',side_effect=AssertionError('unexpected export factory')):
+                self.assertEqual(plugin.register(),'safetensors')
+                self.assertEqual(plugin.register(),'safetensors')
+                plugin._registration=('old export',registry,object)
+                with self.assertRaisesRegex(ValueError,'cannot reuse'):
+                    plugin.register()
+                plugin._registration=None
+            self.assertEqual(registry._LOAD_FORMAT_TO_MODEL_LOADER,before)
+            self.assertIsNone(plugin._registration)
+
     def worker_fixture(self,temp):
         from test_source_bundle import SourceBundleTests
         root,path,document=SourceBundleTests().source_worker_fixture(temp)

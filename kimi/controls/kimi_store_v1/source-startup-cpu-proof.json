@@ -71,5 +71,51 @@
         }
       ]
     }
+  ],
+  "reference_only_regressions": [
+    {
+      "scope": "reference-only separation CPU controls; actual model/registry/ABI mocked where stated",
+      "baseline": {
+        "tool_chunk": "bcec2d",
+        "result": "two missing reference-mode failures"
+      },
+      "wsl": {
+        "count": 35,
+        "successful": true,
+        "output": "...................................\n----------------------------------------------------------------------\nRan 35 tests in 2.929s\n\nOK\n",
+        "elapsed_seconds": 2.9293280629972287
+      },
+      "wsl_full_attempt": {
+        "tool_chunk": "8e9192",
+        "tests": 36,
+        "failed": 1,
+        "why": "one actual Torch CPU test requires existing Windows interpreter; WSL Torch not installed"
+      },
+      "windows_torch_cpu": {
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "D:\\Documents\\codex\\2026-10-24\\new-chat\\outputs\\kimi-cpu-tests-env\\Lib\\site-packages\\torch\\_subclasses\\functional_tensor.py:283: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\pytorch\\torch\\csrc\\utils\\tensor_numpy.cpp:84.)\n  cpu = _conversion_method_template(device=torch.device(\"cpu\"))\n.\n----------------------------------------------------------------------\nRan 1 test in 1.496s\n\nOK\n",
+        "elapsed_seconds": 2.039082105999114
+      },
+      "sha256": {
+        "source_plugin.py": "087dd4c2db259bbf5cf0ba1623f5aadfe1b13cb3f44a43dc8d97642c13c581c9",
+        "test_source_plugin.py": "da28a7c00673e9c0fe90702479b8d5d0f19abbef428d5c4fadce9ee780c079d4"
+      }
+    },
+    {
+      "scope": "final reference-only parser/registry/engine/reader CPU regressions",
+      "wsl": {
+        "count": 35,
+        "successful": true,
+        "output": "...................................\n----------------------------------------------------------------------\nRan 35 tests in 3.008s\n\nOK\n",
+        "elapsed_seconds": 3.007687190998695
+      },
+      "sha256": {
+        "source_plugin.py": "7dfaa2ea16bfbd7d5fea7f3d12f04f72e47137ffa7e9e89bb80006be7c3984ff",
+        "test_source_plugin.py": "320b023ad05fd6dc8f8ecc95e1714fb1b74c77041dbb841a03f447b3d8de092d"
+      },
+      "model_inference_verified": false,
+      "store_conversion_verified": false
+    }
   ]
 }

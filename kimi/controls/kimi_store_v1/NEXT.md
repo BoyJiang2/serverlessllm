@@ -1,3 +1,11 @@
+## 当前最小功能整改：reference-only已分离，等待静态复审
+
+仅修改现有source_plugin.py及测试：mode=reference时output_root必须None，官方safetensors loader/TP8/Marlin及原业务参数不变；不构造/注册export loader、不收八rank导出回执；结果ranks=None、export_performed=false，reader拒绝该分支伪装Store完成。旧export分支仍走原工厂和校验，原GLM文件未改。
+
+35项WSL CPU测试3.008秒通过；另1项实际Torch CPU负例在原Windows Torch解释器通过（WSL不装Torch）。旧WSL36项中1项缺Torch失败按环境留证，不称模型问题；两项新功能baseline失败和最终SHA见source-startup-cpu-proof.json.reference_only_regressions。以上仍无真实vLLM/general-plugin/TP8运行或Store转换通过。
+
+只读复用审阅已确认GLM的Docker派生/独立root截止/真实probe/监控/释放可复用，GLM镜像/金标/C23路径不可直接运行；只需对当前Kimi guard的systemd-run提交做已有sudo授权的提权，不把整套Python改root，不改polkit/sudoers。复用文件SHA与建议保留source-startup-review.json，非完整R1。下一项最小接齐这个受控root提交及已有关联流程，不新增全局守护/新包装工程。
+
 ## 11/3用户最新顺序与范围：优先复用GLM流程
 
 用户已允许唯一固定小目录/data/brick1/boyjiang/kimi-k2.6/p0（代码及有界证据，不是权重/环境副本）；旧“目录未授权”被此更新覆盖，目前尚未部署。当前只改既有源码。新run_p0_lifecycle只是未审、无CLI/无生产调用的组合草案，不能部署或生成完整gate；先只读核GLM已有Docker/独立守护/监控/释放流程可复用点，不再扩展旁支工具。
