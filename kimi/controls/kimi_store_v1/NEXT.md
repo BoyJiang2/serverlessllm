@@ -1,3 +1,13 @@
+## 11/3用户最新顺序与范围：优先复用GLM流程
+
+用户已允许唯一固定小目录/data/brick1/boyjiang/kimi-k2.6/p0（代码及有界证据，不是权重/环境副本）；旧“目录未授权”被此更新覆盖，目前尚未部署。当前只改既有源码。新run_p0_lifecycle只是未审、无CLI/无生产调用的组合草案，不能部署或生成完整gate；先只读核GLM已有Docker/独立守护/监控/释放流程可复用点，不再扩展旁支工具。
+
+00:27到08:50原剩8h23m；本窗主目标依序：GPU小探针(全批<=30min)→TP8源Safetensors推理参考(待审预算3.5h)→首份Store转换/八rank检查(待审2h)，CPU收敛/完整审阅/实际守护预计1h。完整恢复/原生服务为条件目标，native显存2x停止仍未解除，不承诺本窗全通过。每批完整最大预算/真实>=60秒观察/取证清理必须先冻结且装入剩余窗口；到09后有他人票，08:50不延长。没有新40项实验或新预约。
+
+实际源码发现source_plugin._source_reference_body固定load_format=export，边加载边转换，不能当作用户要求的先纯源参考。下一改动应最小化地允许reference-only原生Safetensors、关闭导出/八rank Store收据收集；参考通过后才调用已有导出实现。GLM镜像/路径/gold及C23编号绑定不可原样套用，GLM原正式文件与40历史结果冻结。
+
+真实接口整改：_guard_capture成功输出str，旧NVML替身bytes掩盖sample_p0_release.decode错误，正确str边界已实际复现7项错误并修正；4项当前针对性CPU控制通过。最新全114项仍保留1项真实时钟孤儿守护失败：ready时间42.008646→cleanup41.419165，reason=clock_regressed，说明该次观察到倒退且守护走失败清理；不追认旧失败、历史exit137或具体宿主时钟根因已解决。原全失败tool3ac872和新边界回归在原tests JSON，不能称全套通过。
+
 ## 最新冻结/审阅
 
 fc641d0（源码eff892f）自然守护退出核验已获独立PASS_CPU_NATURAL_GUARD_EXIT_ONLY，三个SHA实核，112项CPU回归6.375秒；不能当完整P0/GPU gate。原_guard_systemctl/probe_watchdog_service/source_watchdog与9c79e0b的AST逐项一致，旧review对象语义未变，保护核验0863a2；新API快照只在当前视图保留3条现行/未来预约，原253条完整节点快照保存在eff892f及canonicalSHA，无历史重写。

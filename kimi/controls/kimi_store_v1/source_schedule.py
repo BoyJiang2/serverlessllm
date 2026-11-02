@@ -1359,7 +1359,7 @@ def sample_p0_release(target, monitor, *, host_pid_namespace, timeout_seconds):
             min(5,remaining()),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
         if result.returncode!=0 or len(result.stdout)>65536 or len(result.stderr)>65536:
             raise RuntimeError('P0 release NVML query failed')
-        return [line.split(',') for line in result.stdout.decode('ascii').splitlines() if line.strip()]
+        return [line.split(',') for line in result.stdout.splitlines() if line.strip()]
     gpus=[]
     for fields in nvml('--query-gpu=uuid,memory.used'):
         if len(fields)!=2:raise ValueError('P0 GPU context format differs')
@@ -1539,6 +1539,193 @@ def await_p0_guard_exit(service_plan, target, schedule, proof, *, nonce, entered
         try:_watchdog_event(events,identity,nonce,'guard_exit_failed',dict(state,error_type=type(error).__name__,error=str(error)[:1024]))
         except BaseException as evidence_error:error.p0_guard_exit_evidence_error=repr(evidence_error)[:1024]
         raise
+
+
+def run_p0_lifecycle(worker_input_path, worker_input_sha256, *, gate_sha256, booking_sha256, events):
+    """Non-timed P0 control only; full reviewed gate and actual guard precede start."""
+    from source_bundle import verify_p0_worker_input
+    from vllm_export_hook import _metadata_stream
+    from native_index import _publish
+    entered,started=datetime.now(timezone.utc),time.monotonic()
+    _,root,inputs,receipt,schedule,identity=verify_p0_worker_input(worker_input_path,worker_input_sha256)
+    if Path(__file__).resolve(strict=True)!=root/'code/source_schedule.py':
+        raise ValueError('P0 lifecycle must execute its verified source bundle')
+    state=dict(runtime_admitted=False,torch_cuda_ipc_verified=False,resources_released=False,
+        cleanup_owed=False,driver_exit_verification_owed=True,phase='preflight')
+    target=registration=service=proof=monitor=None
+    setup_entered=False;failure=None
+    def remaining(phase):
+        return phase_remaining_seconds(schedule,phase,entered=entered,
+            elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
+    def event(name,details):_watchdog_event(events,identity,identity['holder'],name,details)
+    def booking():
+        snapshot=load_source_plan(root/'p0-booking-snapshot.json',booking_sha256)
+        if (not isinstance(snapshot,dict) or set(snapshot)!={'schema','captured_utc','resource','bookings'}
+                or snapshot['schema']!='kimi-p0-booking-snapshot-v1'):
+            raise ValueError('P0 complete current booking snapshot required')
+        age=(datetime.now(timezone.utc)-_utc(snapshot['captured_utc'])).total_seconds()
+        resource=snapshot['resource'];rows=snapshot['bookings']
+        if (not 0<=age<=60 or not isinstance(resource,dict) or resource.get('id')!='h20/qjhs003'
+                or resource.get('active') is not True or resource.get('gpu_count')!=8
+                or resource.get('cpu_booking_enabled') is not False or not isinstance(rows,list)):
+            raise ValueError('P0 booking snapshot stale or whole-node resource differs')
+        plan=load_source_plan(root/'p0-plan.json',inputs['plan_sha256'])
+        start=int(_utc(plan['window_start']).timestamp()*1000);end=int(_utc(plan['window_end']).timestamp()*1000)
+        matching=[]
+        for row in rows:
+            if (not isinstance(row,dict) or row.get('resource_id')!='h20/qjhs003'
+                    or any(type(row.get(key)) is not int for key in ('start_ms','end_ms'))
+                    or not row['start_ms']<row['end_ms']):
+                raise ValueError('P0 booking rows malformed or include another node')
+            if row.get('id')==plan['booking_id']:matching.append(row)
+            elif row['start_ms']<end and row['end_ms']>start:
+                raise ValueError('P0 booking window overlaps another allocation')
+        now=int(datetime.now(timezone.utc).timestamp()*1000)
+        if (len(matching)!=1 or matching[0].get('user')!='boyjiang'
+                or matching[0].get('kind') not in (None,'gpu','all')
+                or matching[0]['start_ms']!=start or matching[0]['end_ms']!=end or not start<=now<end):
+            raise ValueError('P0 current owner/window differs from frozen plan')
+        return dict(booking_id=plan['booking_id'],snapshot_sha256=booking_sha256,age_seconds=age)
+    def resources(phase):
+        host=_watchdog_host()
+        if (host['uid']!=2147 or socket.gethostname() not in ('qjhs3','qjhs003')
+                or re.search(r'/(docker/|docker-|kubepods)',host['cgroup'])):
+            raise ValueError('P0 lifecycle requires authorized qjhs003 host')
+        response=_guard_docker(['ps','-q','--no-trunc'],min(5,remaining(phase)))
+        if response.returncode!=0 or response.stdout.strip():
+            raise RuntimeError('P0 refuses running containers with unbudgeted resources')
+        response=_guard_capture(['/usr/bin/nvidia-smi','--query-gpu=uuid,memory.used,utilization.gpu',
+            '--format=csv,noheader,nounits'],min(5,remaining(phase)),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
+        if response.returncode!=0 or len(response.stdout)>65536:raise RuntimeError('P0 GPU preflight failed')
+        rows=[line.split(',') for line in response.stdout.splitlines()]
+        uuids=[]
+        for row in rows:
+            if len(row)!=3 or any(not value.strip().isdigit() or int(value)!=0 for value in row[1:]):
+                raise RuntimeError('P0 GPU memory or utilization is occupied or unknown')
+            uuids.append(row[0].strip())
+        if len(set(uuids))!=8 or len(uuids)!=8 or receipt['gpu_uuid'] not in uuids:
+            raise ValueError('P0 complete GPU topology differs')
+        response=_guard_capture(['/usr/bin/nvidia-smi','--query-compute-apps=gpu_uuid,pid',
+            '--format=csv,noheader,nounits'],min(5,remaining(phase)),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
+        if response.returncode!=0 or response.stdout.strip():raise RuntimeError('P0 GPU processes remain')
+        with _metadata_stream(Path('/proc/meminfo')) as stream:memory=stream.read(65537)
+        if len(memory)>65536:raise ValueError('P0 memory metadata oversized')
+        available=re.search(rb'^MemAvailable:\s+([0-9]+) kB$',memory,re.M)
+        load=os.getloadavg()[0];cores=os.cpu_count() or 1
+        if available is None or int(available[1])*1024<8*1024**3 or cores<2 or load>max(2,cores/10):
+            raise RuntimeError('P0 CPU or host memory headroom insufficient')
+        def disk_sectors():
+            with _metadata_stream(Path('/proc/diskstats')) as stream:raw=stream.read(1024**2+1)
+            if len(raw)>1024**2:raise ValueError('P0 disk metadata oversized')
+            rows=[line.split() for line in raw.splitlines()]
+            if any(len(row)<14 for row in rows):raise ValueError('P0 disk counters malformed')
+            return sum(int(row[5])+int(row[9]) for row in rows if not row[2].startswith((b'loop',b'ram')))
+        before=disk_sectors();stamp=time.monotonic()
+        if remaining(phase)<=1:raise TimeoutError('P0 I/O sampling no longer fits original phase')
+        time.sleep(1);after=disk_sectors();duration=time.monotonic()-stamp
+        if duration<=0 or after<before or (after-before)*512/duration>1024**3:
+            raise RuntimeError('P0 block-device activity exceeds reviewed control policy')
+        result=dict(host=host,available_memory_kib=int(available[1]),load_1m=load,gpu_uuids=uuids,
+            aggregate_disk_bytes_per_second=(after-before)*512/duration,
+            disk_partitions_may_double_count=True,measurement_scope='non_timed_torch_ipc')
+        remaining(phase);return result
+    try:
+        remaining('preflight')
+        gate=load_source_plan(root/'p0-runtime-gate.json',gate_sha256)
+        if (not isinstance(gate,dict) or set(gate)!={'schema','identity','plan_sha256','image_id',
+                'verdict','reviewer','scope','resource_policy'} or gate['schema']!='kimi-p0-runtime-gate-v1'
+                or gate['identity']!=identity or gate['plan_sha256']!=inputs['plan_sha256']
+                or gate['image_id']!=receipt['image_id'] or gate['verdict']!='PASS_COMPLETE_P0_SOURCE'
+                or not isinstance(gate['reviewer'],str) or not gate['reviewer'].startswith('/root/')
+                or gate['scope']!='P0A_TORCH_IPC_NO_MODEL_NO_STORE'
+                or gate['resource_policy']!='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1'):
+            raise ValueError('current complete P0 source gate required; component approvals do not admit runtime')
+        state['booking']=booking();state['preflight_resources']=resources('preflight')
+        event('lifecycle_admission_prepared',dict(gate_sha256=gate_sha256,booking=state['booking'],
+            resources=state['preflight_resources'],runtime_admitted=False))
+        setup_entered=True;state['cleanup_owed']=True;state['phase']='setup'
+        state['setup']=run_p0_setup(worker_input_path,worker_input_sha256,events=events)
+        setup=state['setup']
+        _,_,registration,_,registered_schedule,_=load_watchdog_inputs(root/'registration.json',setup['registration_sha256'])
+        if registered_schedule!=schedule:raise ValueError('P0 setup changed original schedule')
+        target=registration['target']
+        service=load_source_plan(root/'source-watchdog-service-plan.json',setup['service_plan_sha256'])
+        def guard_probe(timeout):
+            ready=read_watchdog_ready(root/'source-watchdog-events.jsonl',target,nonce=registration['nonce'],
+                registration_sha256=setup['registration_sha256'],plan_sha256=registration['plan_sha256'],
+                guard_fire_by_utc=schedule['guard_fire_by_utc'])
+            return probe_watchdog_service(service,target,ready,schedule,nonce=registration['nonce'],
+                host_pid_namespace=registration['host_pid_namespace'],guard_fire_by_utc=schedule['guard_fire_by_utc'],
+                timeout_seconds=min(5,timeout))
+        state['booking']=booking();state['start_resources']=resources('component')
+        proof=guard_probe(min(5,remaining('component')))
+        state['phase']='component';state['runtime_admitted']=True
+        event('lifecycle_start_requested',dict(container_id=target['container_id'],guard_proof=proof))
+        response=_guard_docker(['start',target['container_id']],min(10,remaining('component')))
+        if response.returncode!=0 or response.stdout.strip()!=target['container_id']:
+            raise RuntimeError('P0 Docker start failed or outcome uncertain')
+        remaining('component')
+        monitor=monitor_p0_target(target,schedule,entered=entered,started=started,nonce=registration['nonce'],
+            service_invocation_id=proof['service_invocation_id'],events=events,guard_probe=guard_probe)
+        state['monitor']=monitor
+        response=_guard_docker(['logs',target['container_id']],min(5,remaining('component')))
+        if response.returncode!=0 or len(response.stdout)>65536 or len(response.stderr)>65536:
+            raise RuntimeError('P0 complete worker output unavailable')
+        for name,data in (('stdout',response.stdout.encode('utf-8')),('stderr',response.stderr.encode('utf-8'))):
+            if not _publish(root,'p0-component.'+name+'.log',data):
+                raise RuntimeError('P0 output retains partial publication cleanup')
+        state['output']=verify_p0_component_output(receipt,inputs,schedule,response.stdout.encode('utf-8'))
+        state['torch_cuda_ipc_verified']=True
+        remaining('component')
+    except BaseException as error:
+        failure=error
+        state['setup_failure']=getattr(error,'p0_setup_receipt',None)
+        monitor=getattr(error,'p0_monitor_receipt',monitor)
+    finally:
+        if setup_entered:
+            try:
+                if target is None:
+                    with _metadata_stream(root/'p0-create-events.jsonl') as stream:raw=stream.read(16385)
+                    if len(raw)>16384 or not raw.endswith(b'\n'):raise ValueError('P0 create recovery evidence incomplete')
+                    rows=[json.loads(line) for line in raw.splitlines()]
+                    if len(rows)!=2 or rows[-1].get('event')!='create_verified':
+                        raise ValueError('P0 create outcome unresolved; do not infer release')
+                    target=rows[-1]['payload']['target']
+                    if (target['identity']!=identity or target['run_root']!=str(root)
+                            or not entered<=_utc(target['container_created'])<=datetime.now(timezone.utc)):
+                        raise ValueError('P0 recovery target is not owned by this attempt')
+                state['phase']='cleanup'
+                state['cleanup']=cleanup_guard_target(target,boot_id=target['boot_id'],uid=2147,
+                    timeout_seconds=remaining('worker_shutdown'))
+            except BaseException as error:
+                state['cleanup_error']=dict(error_type=type(error).__name__,error=str(error)[:1024])
+                if failure is None:failure=error
+            if monitor is not None and registration is not None and 'cleanup' in state:
+                try:
+                    state['observation']=observe_p0_release(target,schedule,state['cleanup'],monitor,
+                        host_pid_namespace=registration['host_pid_namespace'],entered=entered,started=started,events=events)
+                except BaseException as error:
+                    state['observation_error']=dict(error_type=type(error).__name__,error=str(error)[:1024])
+                    if failure is None:failure=error
+            if proof is not None:
+                try:
+                    state['guard_exit']=await_p0_guard_exit(service,target,schedule,proof,nonce=registration['nonce'],
+                        entered=entered,started=started,events=events)
+                except BaseException as error:
+                    state['guard_exit_error']=dict(error_type=type(error).__name__,error=str(error)[:1024])
+                    if failure is None:failure=error
+            else:state['guard_resolution_owed']=True
+    if failure is not None:
+        failure.p0_lifecycle_receipt=state
+        event('lifecycle_failed',dict(state,error_type=type(failure).__name__,error=str(failure)[:1024]))
+        raise failure
+    if (state.get('observation',{}).get('container_release_observation_verified') is not True
+            or state.get('guard_exit',{}).get('guard_resources_released') is not True):
+        raise RuntimeError('P0 lifecycle lacks complete target/guard release evidence')
+    state.update(phase='returned',cleanup_owed=False,target_and_guard_release_verified=True)
+    event('lifecycle_returned',state)
+    remaining('cleanup_evidence')
+    return state
 
 
 def run_p0_setup(worker_input_path, worker_input_sha256, *, events,

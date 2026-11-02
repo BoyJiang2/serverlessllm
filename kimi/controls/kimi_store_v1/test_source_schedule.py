@@ -14,6 +14,7 @@ import sys
 import time
 import threading
 import types
+from contextlib import ExitStack
 
 import source_schedule as schedule_module
 import test_source_bundle
@@ -22,6 +23,118 @@ from source_schedule import PHASES, load_source_plan, source_schedule
 
 
 class SourceScheduleTests(unittest.TestCase):
+    @unittest.skipUnless(os.name=='posix','native pipe capture requires POSIX')
+    def test_guard_capture_success_text_contract_uses_real_cpu_child(self):
+        result=schedule_module._guard_capture([sys.executable,'-B','-c',
+            'import sys;print("text \\u4e2d");print("error",file=sys.stderr)'],3,dict(os.environ))
+        self.assertEqual(result.returncode,0)
+        self.assertIsInstance(result.stdout,str);self.assertIsInstance(result.stderr,str)
+        self.assertEqual(result.stdout.encode('utf-8'),b'text \xe4\xb8\xad\n')
+
+    def test_p0_lifecycle_rejects_component_only_gate_before_creating_anything(self):
+        import source_bundle
+        with tempfile.TemporaryDirectory() as temp:
+            root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+            gate=dict(schema='kimi-p0-runtime-gate-v1',identity=target['identity'],
+                plan_sha256=bound[2]['plan_sha256'],image_id=target['image_id'],
+                verdict='PASS_CPU_NATURAL_GUARD_EXIT_ONLY',reviewer='independent',
+                scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1')
+            raw=json.dumps(gate).encode();(root/'p0-runtime-gate.json').write_bytes(raw)
+            with tempfile.TemporaryFile() as events,patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),\
+                    patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')),\
+                    patch.object(schedule_module,'datetime',clock),\
+                    patch.object(schedule_module.time,'monotonic',return_value=0),\
+                    patch.object(schedule_module,'run_p0_setup') as setup,\
+                    patch.object(schedule_module,'_guard_docker') as docker:
+                with self.assertRaisesRegex(ValueError,'complete P0'):
+                    schedule_module.run_p0_lifecycle(str(worker),'f'*64,gate_sha256=hashlib.sha256(raw).hexdigest(),
+                        booking_sha256='e'*64,events=events)
+                setup.assert_not_called();docker.assert_not_called()
+
+    def test_p0_lifecycle_composes_success_and_monitor_failure_with_text_capture(self):
+        import source_bundle
+        import vllm_export_hook
+        for fail_monitor in (False,True):
+            with self.subTest(fail_monitor=fail_monitor),tempfile.TemporaryDirectory() as temp:
+                root,worker,target,info,image,ticks,clock,bound,options=self.create_control(temp)
+                inputs,receipt,schedule,identity=bound[2:]
+                gate=dict(schema='kimi-p0-runtime-gate-v1',identity=identity,plan_sha256=inputs['plan_sha256'],
+                    image_id=receipt['image_id'],verdict='PASS_COMPLETE_P0_SOURCE',reviewer='/root/CPU_FIXTURE_ONLY',
+                    scope='P0A_TORCH_IPC_NO_MODEL_NO_STORE',resource_policy='P0_2CPU_4G_MEM8G_LOAD10P_DISK1G_V1')
+                gate_raw=json.dumps(gate).encode();(root/'p0-runtime-gate.json').write_bytes(gate_raw)
+                plan=json.loads((root/'p0-plan.json').read_text())
+                booking=dict(id=plan['booking_id'],resource_id='h20/qjhs003',user='boyjiang',
+                    start_ms=int(datetime.fromisoformat(plan['window_start']).timestamp()*1000),
+                    end_ms=int(datetime.fromisoformat(plan['window_end']).timestamp()*1000))
+                snapshot=dict(schema='kimi-p0-booking-snapshot-v1',captured_utc=inputs['batch_entered_utc'],
+                    resource=dict(id='h20/qjhs003',active=True,gpu_count=8,cpu_booking_enabled=False),bookings=[booking])
+                booking_raw=json.dumps(snapshot).encode();(root/'p0-booking-snapshot.json').write_bytes(booking_raw)
+                service=dict(unit='fixture');service_raw=json.dumps(service).encode()
+                (root/'source-watchdog-service-plan.json').write_bytes(service_raw)
+                registration=dict(target=target,nonce='a'*32,host_pid_namespace=42,plan_sha256=inputs['plan_sha256'])
+                setup=dict(registration_sha256='1'*64,service_plan_sha256=hashlib.sha256(service_raw).hexdigest())
+                host=options['host_probe'].return_value
+                gpu_ids=[target['gpu_uuid']]+['GPU-%08x-1234-1234-1234-123456789abc'%i for i in range(1,8)]
+                calls=[]
+                def capture(command,timeout,environment):
+                    stdout=''.join(uuid+', 0, 0\n' for uuid in gpu_ids) if '--query-gpu=' in command[1] else ''
+                    return types.SimpleNamespace(returncode=0,stdout=stdout,stderr='')
+                def docker(args,timeout):
+                    if args[0]=='start':calls.append('start');text=target['container_id']+'\n'
+                    elif args[0]=='logs':calls.append('logs');text='{"CPU_FIXTURE_ONLY":true}\n'
+                    elif args[0]=='ps':text=''
+                    else:self.fail('unexpected Docker mutation')
+                    return types.SimpleNamespace(returncode=0,stdout=text,stderr='')
+                original_stream=vllm_export_hook._metadata_stream
+                def stream(path):
+                    if str(path)=='/proc/meminfo':return io.BytesIO(b'MemAvailable: 999999999 kB\n')
+                    if str(path)=='/proc/diskstats':return io.BytesIO(b'8 0 sda 0 0 0 0 0 0 0 0 0 0 0\n')
+                    return original_stream(path)
+                monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+                def monitored(*args,**kwargs):
+                    calls.append('monitor')
+                    if fail_monitor:
+                        error=RuntimeError('CPU monitor fault');error.p0_monitor_receipt=monitor;raise error
+                    return monitor
+                def recorded(label,result):
+                    def run(*args,**kwargs):calls.append(label);return result
+                    return run
+                with tempfile.TemporaryFile() as events,ExitStack() as stack:
+                    for manager in (
+                        patch.object(source_bundle,'verify_p0_worker_input',return_value=bound),
+                        patch.object(schedule_module,'__file__',str(root/'code/source_schedule.py')),
+                        patch.object(schedule_module,'datetime',clock),
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),
+                        patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)),
+                        patch.object(schedule_module,'_watchdog_host',return_value=host),
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),
+                        patch.object(schedule_module.os,'getloadavg',return_value=(0,0,0)),
+                        patch.object(schedule_module.os,'cpu_count',return_value=8),
+                        patch.object(vllm_export_hook,'_metadata_stream',side_effect=stream),
+                        patch.object(schedule_module,'_guard_capture',side_effect=capture),
+                        patch.object(schedule_module,'_guard_docker',side_effect=docker),
+                        patch.object(schedule_module,'run_p0_setup',side_effect=recorded('setup',setup)),
+                        patch.object(schedule_module,'load_watchdog_inputs',return_value=(None,root,registration,None,schedule,identity)),
+                        patch.object(schedule_module,'read_watchdog_ready',return_value={}),
+                        patch.object(schedule_module,'probe_watchdog_service',return_value=dict(service_invocation_id='b'*32)),
+                        patch.object(schedule_module,'monitor_p0_target',side_effect=monitored),
+                        patch.object(schedule_module,'verify_p0_component_output',return_value=dict(worker_output_verified=True)),
+                        patch.object(schedule_module,'cleanup_guard_target',side_effect=recorded('cleanup',dict(container_id=target['container_id'],container_absence_verified=True))),
+                        patch.object(schedule_module,'observe_p0_release',side_effect=recorded('observe',dict(container_release_observation_verified=True))),
+                        patch.object(schedule_module,'await_p0_guard_exit',side_effect=recorded('guard_exit',dict(guard_resources_released=True)))):
+                        stack.enter_context(manager)
+                    args=dict(gate_sha256=hashlib.sha256(gate_raw).hexdigest(),booking_sha256=hashlib.sha256(booking_raw).hexdigest(),events=events)
+                    if fail_monitor:
+                        with self.assertRaisesRegex(RuntimeError,'CPU monitor fault') as caught:
+                            schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
+                        self.assertIn('guard_exit',caught.exception.p0_lifecycle_receipt)
+                    else:
+                        result=schedule_module.run_p0_lifecycle(str(worker),'f'*64,**args)
+                        self.assertTrue(result['target_and_guard_release_verified'])
+                        self.assertFalse(result['resources_released']);self.assertTrue(result['driver_exit_verification_owed'])
+                        self.assertEqual((root/'p0-component.stdout.log').read_bytes(),b'{"CPU_FIXTURE_ONLY":true}\n')
+                self.assertEqual(calls,['setup','start','monitor']+([] if fail_monitor else ['logs'])+['cleanup','observe','guard_exit'])
+
     def source_registration_fixture(self,temp):
         root,worker_path,document=test_source_bundle.SourceBundleTests().source_worker_fixture(temp)
         import source_bundle
@@ -1559,7 +1672,7 @@ os._exit(0)
                 def capture(command,timeout,environment):
                     if command[1].startswith('--query-gpu='):raw=''.join(uuid+', 500\n' for uuid in gpu_ids)
                     else:raw=(gpu_ids[1] if kind=='foreign' else gpu_ids[0])+', '+('123' if kind in ('owned','reuse') else '99')+', 500\n'
-                    return types.SimpleNamespace(returncode=0,stdout=raw.encode(),stderr=b'')
+                    return types.SimpleNamespace(returncode=0,stdout=raw,stderr='')
                 def pid_probe(pid):
                     if kind=='live' and pid==123:return dict(main)
                     if kind=='reuse' and pid==123:return dict(main,start_ticks=999,cgroup='0::/foreign\n')
