@@ -4,6 +4,8 @@
 
 ## 最新覆盖
 
+- 11/2 09:58只读实核已有SDK五个构建输入：CMakeLists/pyproject/requirements/utils的原摘要不同仅因CRLF，LF归一化后逐一等于已钉9f50241原文SHA；保留raw SHA，未改任何远端文件，归一化对比不冒充原字节相同。setup.py的唯一文本差异为新增vllm.general_plugins/sllm_raw_fp8入口，精确unified diff保存cpu-probe.existing_sdk_provenance_comparisons。后续原CMake入口可优先复用评估，不经该setup误装GLM插件；本次仅证明五个输入，未核完整C++树，未批准或执行构建。Torch2.10cu129环境及用户对GB级必要依赖的决定仍缺；没有新脚本/目录/环境、依赖下载或重复审阅。上一轮属实质进展（取得真实wheel大小与依赖），本轮补齐来源差异证据，不重复已过夹具。
+
 - 2026-11-02用户重申只复用原仓库/环境/构建位置，禁止新增checkout/环境/GB副本。本轮未改实现或增包装/目录/夹具。09:55 API当前ksqd预约为bk-20261101T1134-265b50dd，旧91c0cf95已结束；仅只读SSH核镜像及自有环境路径，未继承旧守护或执行编译。镜像列表仍0202(CUDA12.9/Torch2.9.1历史实测)、ac608(CUDA13.0.3仅配置实测)，无新增匹配候选；fullpd-prefill及harbor-alan运行，未进入/修改；已查宿主自有缓存、/opt/conda、/opt/venv无匹配环境线索。不称已穷尽全机所有路径或已验证ac608包版本。
 - 真正依赖阻塞已进一步量化：官方cu129索引确有Torch2.10.0+cu129；仅HEAD和<=128KiB metadata实查cp312 x86_64 wheel=1278028350B，未下载。最小新增方案拟复用0202镜像的本任务可写层替换Torch并仅补缺失依赖、不新venv/不复制镜像；native编译本身不需安装vLLM，vLLM完整接线仍另行验证。下载/解包/必要依赖/产物峰值暂估6–10GiB（未实测，不能当保证/硬上限），编译并发拟1、内存拟8GiB，具体预算/清理/审阅须先闭合。因用户禁止自行新增GB内容，未执行该方案，提交具体原因及空间估计供用户决定；不为绕过阻塞改冻结版本。原cpp49b2、金标、历史失败、GLM40ID及2×停止不变。
 

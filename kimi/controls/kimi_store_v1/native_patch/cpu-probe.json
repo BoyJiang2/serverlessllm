@@ -1448,5 +1448,84 @@
       "Other existing 50.3GB image only config-inspected: CUDA13.0.3 declaration; packages unknown",
       "Existing own GLM SDK root is an archive without .git; four actual file SHA differ from fetched inputs, cannot treat as exact source revision without further byte/provenance checks"
     ]
-  }
+  },
+  "existing_sdk_provenance_comparisons": [
+    {
+      "recorded_utc": "2026-11-02T01:58:17.816099+00:00",
+      "scope": "five existing own SDK build files bounded read-only raw and LF-normalized provenance comparison; no writes or compilation",
+      "returncode": 0,
+      "stderr": "",
+      "files": [
+        {
+          "path": "sllm_store/CMakeLists.txt",
+          "bytes": 6897,
+          "sha256": "e21cb3a9bcdd4c2c763d0aa0ee33b112f6651bc30f1d6d4e5e849125f3b0b92c",
+          "crlf_count": 237,
+          "normalized_sha256": "d079639463b0d6a3b37562aba941f10791a164ba13585c8cd9068d3bdae6a307",
+          "pinned_sha256": "d079639463b0d6a3b37562aba941f10791a164ba13585c8cd9068d3bdae6a307",
+          "raw_matches": false,
+          "lf_normalized_matches": true
+        },
+        {
+          "path": "sllm_store/setup.py",
+          "bytes": 8081,
+          "sha256": "e5ef6908077685f13b6eb412519f86f75de65a3d9a7be1e7606ace5dfd7c1d87",
+          "crlf_count": 0,
+          "normalized_sha256": "e5ef6908077685f13b6eb412519f86f75de65a3d9a7be1e7606ace5dfd7c1d87",
+          "pinned_sha256": "c00af68ac0fe962004432834f226207d2ba7ea04b89ef07d0f31fbd0aca3ed8a",
+          "raw_matches": false,
+          "lf_normalized_matches": false
+        },
+        {
+          "path": "sllm_store/pyproject.toml",
+          "bytes": 549,
+          "sha256": "aa671564c241267db288d53075cd13bb3a4554ccc95c31c7e3fc2591fed7e8c1",
+          "crlf_count": 39,
+          "normalized_sha256": "a2a3ea4964e508cb0d1a4371759c44b036dc7eaf7f6c236b2613297ebdb21caf",
+          "pinned_sha256": "a2a3ea4964e508cb0d1a4371759c44b036dc7eaf7f6c236b2613297ebdb21caf",
+          "raw_matches": false,
+          "lf_normalized_matches": true
+        },
+        {
+          "path": "sllm_store/requirements.txt",
+          "bytes": 233,
+          "sha256": "4c75e030fa99d2f4112aabfee1ece44b7708f01ec50c7f5cdff244e9066a2cbd",
+          "crlf_count": 13,
+          "normalized_sha256": "78474d520d33b568e11a6eb535f5936132d079f97a17dd7165b6b47fb9a75290",
+          "pinned_sha256": "78474d520d33b568e11a6eb535f5936132d079f97a17dd7165b6b47fb9a75290",
+          "raw_matches": false,
+          "lf_normalized_matches": true
+        },
+        {
+          "path": "sllm_store/cmake/utils.cmake",
+          "bytes": 13892,
+          "sha256": "4adc1c4f073bf1a3fcab925c3b80453d3bd8a687edf3e0b4baa6a143b0dfea56",
+          "crlf_count": 367,
+          "normalized_sha256": "35d4bcfa32a53dd456c2c99c39d5e4b0c2693e47d15940851475c8dcc1237d80",
+          "pinned_sha256": "35d4bcfa32a53dd456c2c99c39d5e4b0c2693e47d15940851475c8dcc1237d80",
+          "raw_matches": false,
+          "lf_normalized_matches": true
+        }
+      ]
+    },
+    {
+      "recorded_utc": "2026-11-02T01:58:34.560716+00:00",
+      "scope": "read-only existing setup.py exact text difference; no edits",
+      "returncode": 0,
+      "diff": [
+        "--- pinned-9f50241-setup\n",
+        "+++ existing-SDK-setup\n",
+        "@@ -239,6 +239,9 @@\n",
+        "     extras_require=extras,",
+        "     entry_points={",
+        "         \"console_scripts\": [\"sllm-store=sllm_store.cli:main\"],",
+        "+        \"vllm.general_plugins\": [",
+        "+            \"sllm_raw_fp8=sllm_store.vllm_loader:register\"",
+        "+        ],",
+        "     },",
+        "     package_data={",
+        "         \"sllm_store\": [\"py.typed\", \"*.so\"],"
+      ]
+    }
+  ]
 }
