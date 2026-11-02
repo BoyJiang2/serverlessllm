@@ -1107,6 +1107,81 @@ def materialize_p0_guard_inputs(worker_input_path, worker_input_sha256, create_e
         raise
 
 
+def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invocation_id,
+                      events, guard_probe, docker=_guard_docker, process_probe=guard_process):
+    """Internal monitor only: no start, admission, component validation or release."""
+    identity=_guard_identity(target,boot_id=target['boot_id'],uid=2147)
+    if (target['schema']!='kimi-p0-guard-target-v2'
+            or not isinstance(nonce,str) or not re.fullmatch('[0-9a-f]{32}',nonce)
+            or not isinstance(service_invocation_id,str) or not re.fullmatch('[0-9a-f]{32}',service_invocation_id)
+            or type(started) not in (int,float) or not math.isfinite(started)):
+        raise ValueError('P0 target, guard nonce, invocation and original clock required')
+    state=dict(container_id=target['container_id'],sample_count=0,process=None,
+        container_exited=False,torch_cuda_ipc_verified=False,resources_released=False,
+        runtime_admitted=False,cleanup_owed=True)
+    def remaining():
+        return phase_remaining_seconds(schedule,'component',entered=entered,
+            elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
+    def command(args):
+        response=docker(args,min(5,remaining()))
+        if (type(response.returncode) is not int or response.returncode!=0
+                or len(response.stdout)>65536 or len(response.stderr)>65536):
+            raise RuntimeError('P0 monitor Docker response failed or exceeded bound')
+        remaining()
+        return json.loads(response.stdout)
+    try:
+        while True:
+            proof=guard_probe(min(2,remaining()))
+            if (not isinstance(proof,dict) or proof.get('independent_service_verified') is not True
+                    or proof.get('identity')!=identity or proof.get('nonce')!=nonce
+                    or proof.get('container_id')!=target['container_id']
+                    or proof.get('image_id')!=target['image_id']
+                    or proof.get('container_created')!=target['container_created']
+                    or proof.get('guard_fire_by_utc')!=schedule['guard_fire_by_utc']
+                    or proof.get('service_invocation_id')!=service_invocation_id
+                    or proof.get('runtime_admitted') is not False):
+                raise ValueError('P0 monitor current independent guard proof differs')
+            remaining()
+            rows=command(['inspect',target['container_id']])
+            if not isinstance(rows,list) or len(rows)!=1:
+                raise ValueError('P0 monitor requires one exact container')
+            info=rows[0]
+            guard_target(target,info,boot_id=target['boot_id'],uid=2147)
+            status=info['State']
+            stats=None
+            if status['Running']:
+                process=process_probe(info)
+                if process is None or (state['process'] is not None and process!=state['process']):
+                    raise ValueError('P0 monitor container process identity changed')
+                state['process']=process
+                stats=command(['stats','--no-stream','--no-trunc','--format','{{json .}}',target['container_id']])
+                if not isinstance(stats,dict) or stats.get('ID')!=target['container_id']:
+                    raise ValueError('P0 monitor stats belong to another container')
+            state['sample_count']+=1
+            _watchdog_event(events,identity,nonce,'component_sample',dict(state,
+                container_state=status,docker_stats=stats,service_invocation_id=service_invocation_id))
+            remaining()
+            if (type(status.get('OOMKilled')) is not bool or status['OOMKilled']
+                    or status.get('Error')!='' or type(status.get('ExitCode')) is not int
+                    or status.get('Status')!=('running' if status['Running'] else 'exited')
+                    or (not status['Running'] and status['ExitCode']!=0)):
+                raise RuntimeError('P0 container OOM, failure or unexpected lifecycle state')
+            if not status['Running']:
+                state['container_exited']=True
+                _watchdog_event(events,identity,nonce,'component_exited',state)
+                remaining()
+                return state
+            time.sleep(min(1,remaining()))
+    except BaseException as error:
+        error.p0_monitor_receipt=state
+        try:
+            _watchdog_event(events,identity,nonce,'component_monitor_failed',dict(state,
+                error_type=type(error).__name__,error=str(error)[:1024]))
+        except BaseException as evidence_error:
+            error.p0_monitor_evidence_error=repr(evidence_error)[:1024]
+        raise
+
+
 def run_p0_setup(worker_input_path, worker_input_sha256, *, events,
                  runner=_guard_capture, host_probe=_watchdog_host):
     """Run metadata CLIs and collect real exit status; never start the GPU target."""

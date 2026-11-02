@@ -1,3 +1,11 @@
+## 当前追加：P0连续监控已有内部组件，尚未接完整入口
+
+- source_schedule.monitor_p0_target在既有文件中实现，无新模块或CLI。复用原batch wall/monotonic component截止、精确guard_target及事件落盘；每次采样要求同一nonce/InvocationID/target的独立guard证明，再inspect、核稳定PID/start_ticks/cgroup、读取精确容器stats。只记录原始Docker资源字段，不冒充NVML/RSS/PSS峰值。
+- 未启动/失败退出/OOM/错误状态、守护变化、PID复用、他人stats或超时均拒绝。仅容器exit0仍torch_cuda_ipc_verified=false、resources_released=false、cleanup_owed=true；组件内容校验、删除和60秒归属释放必须由完整控制流程另行执行。当前没有调用它的生产启动入口，不ready。
+- 106项原生WSL CPU schedule/bundle回归5.849秒通过；Docker/guard/process/clock是显式替身，事件文件/解析/既有身份核验实际执行，未访问远端或GPU。新增前3方法5个缺实现错误保留tool chunk 9fd7b8，现有source-schedule-tests.json记录范围与SHA，不冒充真实运行。
+- 当前Git规则重新实核：本仓库core.autocrlf未设置（默认false）、core.filemode=false，kimi/glm -text。后续显式autocrlf=false/filemode=false，源码raw SHA不变，不改全局配置。复用bash16786，无新会话/环境。
+- 后续仍是完整start/admission/输出验证/删除与60秒收口、当前完整R1、合法system-manager提交和实际probe、目录例外及fresh午夜资源窗口。native预算停止仍保留。
+
 ## 11/2 22:45准入评估：CPU软件通过，P0未准入
 
 当前缓存代码10c25d2已push并核远端；独立只读复审PASS_CPU_STATIC_CACHE_PROFILE_ONLY，三文件SHA实核一致，见source-schedule-review.json末条。当前仍未获P0/GPU gate，不沿用此审阅批准后续生命周期改动。

@@ -158,3 +158,10 @@ _capture的新本地实际CPU故障控制发现：旧版本读取直到timeout�
 成功的setup_cli_exit_verified只表示内部四个CLI退出与输出条件均核过，不是对外层p0-setup进程未来exit0的自证。独立使用该CLI时，外部执行者仍须取得实际exit0。后续完整宿主driver应直接复用run_p0_setup函数及其异常/返回值，不另造一层自证包装；在同一driver内补真实ABI/有效窗口/资源准入后才可考虑start与连续监控/至少60秒观察。本候选没有Docker start，resource_window_verified/runtime_abi_verified/runtime_admitted/resources_released继续false，成功也不消除初始化/闲置/cleanup_owed成本。
 
 最终WSL Python3.10原生75项全过4.793秒，含真实小CPU子进程exit7/timeout的早期输出、直接Popen已回收；四阶段正向实际调用入口解析和metadata函数，但执行传输、Docker/host/code verifier/独立service证明仍为明确替身。Windows完整371项355通过16跳过42.794秒，12 Linux专属已在WSL覆盖，另4 FIFO尚未在这个无Torch Linux配置跑全。旧ResourceWarning、三组失败负例与精确SHA、当前两文件静态复审PASS均追加原review/tests。不代表真实qjhs003、Docker/systemd或GPU验证，也不解释历史exit137；没有新环境或权重副本。
+
+
+## P0内部连续监控（CPU候选，不是启动入口）
+
+`monitor_p0_target`复用原component绝对截止，调用者必须传原batch进入时刻/monotonic起点和真实独立service probe；它不创建、启动、停止、删除容器，也不授予资源或运行准入。逐轮绑定nonce、InvocationID、boot/UID/完整容器身份和固定profile，活跃进程身份必须稳定；`docker stats --no-stream --no-trunc`仅接受同一完整CID。事件保留原始State、CPU/memory等Docker字符串；不是NVML/匿名内存/锁页归属的完整监控。
+
+异常带p0_monitor_receipt及cleanup_owed=true退出，写证据失败也保留原错。只见exit0仅container_exited=true；worker原始结果/IPC位模式验证与删除后60秒观察尚须完整driver接线，不能把该返回值当资源释放或完整P0通过。现无生产调用/CLI，当前未准入。106项CPU回归见原tests JSON，显式mock边界见NEXT。

@@ -1339,6 +1339,96 @@ os._exit(0)
             self.assertEqual(environment.get(key),value)
         self.assertEqual(command[command.index('--tmpfs')+1],'/tmp:rw,nosuid,nodev,size=16m')
 
+    def test_p0_monitor_records_running_and_exited_without_claiming_component_or_release(self):
+        plan,receipt,target,info=self.p0_fixture()
+        entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        info['State'].update(Running=True,Pid=123,Status='running',OOMKilled=False,Error='',ExitCode=0)
+        exited=copy.deepcopy(info)
+        exited['State'].update(Running=False,Pid=0,Status='exited')
+        guard=dict(independent_service_verified=True,identity=target['identity'],nonce='a'*32,
+            container_id=target['container_id'],image_id=target['image_id'],
+            container_created=target['container_created'],guard_fire_by_utc=schedule['guard_fire_by_utc'],
+            service_invocation_id='b'*32,runtime_admitted=False)
+        rows=iter([info,exited]);calls=[]
+        def docker(args,timeout):
+            calls.append(args)
+            if args[0]=='inspect':value=[next(rows)]
+            elif args[0]=='stats':value=dict(ID=target['container_id'],CPUPerc='1.0%',MemUsage='1MiB / 4GiB')
+            else:self.fail('monitor must not mutate Docker resources')
+            return types.SimpleNamespace(returncode=0,stdout=json.dumps(value).encode(),stderr=b'')
+        with tempfile.TemporaryFile() as events,patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
+                patch.object(schedule_module.time,'sleep'):
+            clock.now.return_value=entered
+            result=schedule_module.monitor_p0_target(target,schedule,entered=entered,started=time.monotonic(),
+                nonce='a'*32,service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:guard,
+                docker=docker,process_probe=lambda item:dict(pid=123,start_ticks=42,uid=2147,cgroup='owned'))
+            events.seek(0);records=[json.loads(line) for line in events]
+        self.assertEqual([row['event'] for row in records],['component_sample','component_sample','component_exited'])
+        self.assertEqual(result['sample_count'],2)
+        self.assertTrue(result['container_exited'])
+        self.assertFalse(result['torch_cuda_ipc_verified']);self.assertFalse(result['resources_released'])
+        self.assertEqual(result['process']['start_ticks'],42)
+        self.assertEqual([row[0] for row in calls],['inspect','stats','inspect'])
+
+    def test_p0_monitor_rejects_missing_guard_before_inspect_and_retains_cleanup_obligation(self):
+        plan,receipt,target,_=self.p0_fixture()
+        entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        docker=Mock()
+        with tempfile.TemporaryFile() as events,patch.object(schedule_module,'datetime',wraps=datetime) as clock:
+            clock.now.return_value=entered
+            with self.assertRaisesRegex(ValueError,'guard proof') as caught:
+                schedule_module.monitor_p0_target(target,schedule,entered=entered,started=time.monotonic(),
+                    nonce='a'*32,service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:{},docker=docker)
+        docker.assert_not_called()
+        self.assertTrue(caught.exception.p0_monitor_receipt['cleanup_owed'])
+
+    def test_p0_monitor_rejects_oom_failed_exit_and_unstarted_target(self):
+        plan,receipt,target,info=self.p0_fixture()
+        entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        guard=dict(independent_service_verified=True,identity=target['identity'],nonce='a'*32,
+            container_id=target['container_id'],image_id=target['image_id'],container_created=target['container_created'],
+            guard_fire_by_utc=schedule['guard_fire_by_utc'],service_invocation_id='b'*32,runtime_admitted=False)
+        for change in (dict(OOMKilled=True),dict(ExitCode=137),dict(Status='created')):
+            with self.subTest(change=change),tempfile.TemporaryFile() as events,\
+                    patch.object(schedule_module,'datetime',wraps=datetime) as clock:
+                clock.now.return_value=entered
+                item=copy.deepcopy(info)
+                item['State'].update(Running=False,Pid=0,Status='exited',OOMKilled=False,Error='',ExitCode=0)
+                item['State'].update(change)
+                with self.assertRaises(RuntimeError) as caught:
+                    schedule_module.monitor_p0_target(target,schedule,entered=entered,started=time.monotonic(),
+                        nonce='a'*32,service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:guard,
+                        docker=lambda args,timeout:types.SimpleNamespace(returncode=0,stdout=json.dumps([item]).encode(),stderr=b''))
+                self.assertFalse(caught.exception.p0_monitor_receipt['resources_released'])
+
+    def test_p0_monitor_rejects_deadline_process_reuse_foreign_stats_and_guard_change(self):
+        for kind in ('deadline','reuse','stats','guard'):
+            with self.subTest(kind=kind),tempfile.TemporaryFile() as events,\
+                    patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
+                    patch.object(schedule_module.time,'sleep'):
+                plan,receipt,target,info=self.p0_fixture()
+                entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)
+                clock.now.return_value=entered
+                schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+                info['State'].update(Running=True,Pid=123,Status='running',OOMKilled=False,Error='',ExitCode=0)
+                proof=dict(independent_service_verified=True,identity=target['identity'],nonce='a'*32,
+                    container_id=target['container_id'],image_id=target['image_id'],container_created=target['container_created'],
+                    guard_fire_by_utc=schedule['guard_fire_by_utc'],service_invocation_id='b'*32,runtime_admitted=False)
+                if kind=='guard':proof['service_invocation_id']='c'*32
+                def docker(args,timeout):
+                    value=[info] if args[0]=='inspect' else dict(ID='0'*64 if kind=='stats' else target['container_id'])
+                    return types.SimpleNamespace(returncode=0,stdout=json.dumps(value).encode(),stderr=b'')
+                process=Mock(side_effect=[dict(pid=123,start_ticks=1),dict(pid=123,start_ticks=2)])
+                with self.assertRaises((ValueError,TimeoutError)) as caught:
+                    schedule_module.monitor_p0_target(target,schedule,entered=entered,
+                        started=time.monotonic()-(1000 if kind=='deadline' else 0),nonce='a'*32,
+                        service_invocation_id='b'*32,events=events,guard_probe=lambda timeout:proof,
+                        docker=docker,process_probe=process)
+                self.assertTrue(caught.exception.p0_monitor_receipt['cleanup_owed'])
+
     def test_p0_guard_rejects_missing_or_oversized_private_cache_mount(self):
         _,_,target,info=self.p0_fixture()
         for tmpfs in ({},{'/tmp':'rw,nosuid,nodev,size=1g'}):
