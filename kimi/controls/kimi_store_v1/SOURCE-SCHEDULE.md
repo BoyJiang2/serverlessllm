@@ -170,3 +170,12 @@ _capture的新本地实际CPU故障控制发现：旧版本读取直到timeout�
 ## P0输出验收消费者
 
 `verify_p0_component_output`要求已核的worker输入/receipt与原schedule；它对64KiB stdout及32KiB两行事件做完整性、重复字段、冻结身份/时限、有限数值及固定40字节挑战核验，并核实际序列化的事件详情与stdout严格相同（数字0不能冒充false）。原始位参考由host标准库计算，不载入Torch或模型。返回两份证据SHA与worker_output_verified；这仅是输出内容验收，不能证明输出来自实际受守护进程、CUDA执行或已释放，完整driver仍须绑定同一容器/真实退出/资源证明。现有Torch CPU测试覆盖实际worker序列化到消费者，CUDA/transport为替身，不能当GPU结果。
+
+
+## P0归属释放（限定cgroup v2、内部候选）
+
+monitor默认p0_process_snapshot只接受同一leaf cgroup前后稳定的成员清单，将host PID/start_ticks/UID累计到有界inventory；嵌套、遗漏、身份变化均拒绝。只在worker namespace返回的PID不是这种宿主身份来源。
+
+sample_p0_release只读精确CID absence、原进程、cgroup/mount残留及8卡NVML资源背景；旧PID复用或查询不到的NVML归属标为不足，不能转为“他人资源是本实验残留”。其他合法进程或全局Mlocked/Shmem/显存无需归零。P0不涉及Store池/RDMA，此证据不外推native MR/全模型释放。
+
+observe_p0_release复用原phase截止，monotonic及wall都达到60秒才可签container_release_observation_verified；sampling/归属/时钟/剩余预算失败保留原异常及清理义务。resources_released始终false，guard_release_owed保持true，等待完整driver停止并复核宿主守护/监控。CPU回归采用虚拟clock及明确host/Docker/NVML替身，没有实际GPU释放或60秒等待证据，也没有生产启动调用。

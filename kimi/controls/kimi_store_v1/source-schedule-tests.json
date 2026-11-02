@@ -633,5 +633,36 @@
         "test_native_record_call.py": "0bd2964db2aea7b223ba3c84c6019da11e2e8b98776ef8bddd63f4286b321aea"
       }
     }
+  ],
+  "p0_release_regressions": [
+    {
+      "scope": "P0 cgroup-v2 inventory, read-only release sampler and >=60s policy CPU controls; host/Docker/NVML and clock substitutes, no actual GPU release",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "...............................................................................................................\n----------------------------------------------------------------------\nRan 111 tests in 6.048s\n\nOK\n",
+      "elapsed_seconds": 6.28043246299967,
+      "baseline": {
+        "result": "observer absent, 2 methods/5 missing-implementation errors",
+        "tool_chunk": "87b07d"
+      },
+      "sha256": {
+        "source_schedule.py": "3de9847dfb54f756a112fdc8e5370f855964622afa7b1904f050ad4b61a4ea76",
+        "test_source_schedule.py": "befa49bc3e5a508c4b9104271cd032a9fe5809a91a89e60dde97339af1617e6a"
+      },
+      "actual_wait_60_seconds": false,
+      "actual_gpu_release_verified": false
+    },
+    {
+      "scope": "Final release CPU boundary regression including <60s remaining and stalled wall clock",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "...............................................................................................................\n----------------------------------------------------------------------\nRan 111 tests in 6.415s\n\nOK\n",
+      "elapsed_seconds": 6.6705379909999465,
+      "actual_wait_60_seconds": false,
+      "sha256": {
+        "source_schedule.py": "3de9847dfb54f756a112fdc8e5370f855964622afa7b1904f050ad4b61a4ea76",
+        "test_source_schedule.py": "555fb10ea8ff604c1d81d3af774e2b545d7188fb0544887d366b96eec53f310c"
+      }
+    }
   ]
 }

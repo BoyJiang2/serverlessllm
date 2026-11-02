@@ -1442,6 +1442,117 @@ os._exit(0)
         docker.assert_not_called()
         self.assertTrue(caught.exception.p0_monitor_receipt['cleanup_owed'])
 
+    def test_p0_release_observation_requires_full_60_seconds_and_retains_guard_cost(self):
+        plan,receipt,target,_=self.p0_fixture()
+        entered=datetime.fromisoformat(plan['window_start'])
+        schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+        ticks=[0.]
+        snapshot=dict(container_absent=True,original_processes_absent=True,cgroup_absent=True,
+            owned_mounts_absent=True,owned_gpu_processes_absent=True)
+        cleanup=dict(container_id=target['container_id'],container_absence_verified=True)
+        monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+        samples=[]
+        def sample(*args,**kwargs):samples.append(ticks[0]);return snapshot
+        with tempfile.TemporaryFile() as events,patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
+                patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),\
+                patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)):
+            clock.now.side_effect=lambda zone:entered+timedelta(seconds=ticks[0])
+            result=schedule_module.observe_p0_release(target,schedule,cleanup,monitor,
+                host_pid_namespace=42,entered=entered,started=0,events=events,sample=sample)
+        self.assertGreaterEqual(samples[-1]-samples[0],60)
+        self.assertTrue(result['container_release_observation_verified'])
+        self.assertFalse(result['resources_released']);self.assertTrue(result['guard_release_owed'])
+        self.assertGreaterEqual(len(samples),2)
+
+    def test_p0_process_inventory_reads_owned_leaf_and_refuses_missing_coverage(self):
+        _,_,target,info=self.p0_fixture()
+        info['State'].update(Running=True,Pid=123)
+        main=dict(pid=123,start_ticks=1,uid=2147,cgroup='0::/system.slice/docker-'+target['container_id']+'.scope\n')
+        self.assertEqual(str(schedule_module._p0_cgroup_directory(main,target['container_id'])),
+            '/sys/fs/cgroup/system.slice/docker-'+target['container_id']+'.scope')
+        with tempfile.TemporaryDirectory() as temp:
+            group=Path(temp);path=group/'cgroup.procs';path.write_text('123\n124\n')
+            def process(item):return dict(main,pid=item['State']['Pid'],start_ticks=item['State']['Pid'])
+            with patch.object(schedule_module,'_p0_cgroup_directory',return_value=group),\
+                    patch.object(schedule_module,'guard_process',side_effect=process):
+                result=schedule_module.p0_process_snapshot(info)
+                self.assertEqual([row['pid'] for row in result['members']],[123,124])
+                for text in ('124\n','123\n123\n','0\n','123\n'*2000):
+                    path.write_text(text)
+                    with self.assertRaises(ValueError):schedule_module.p0_process_snapshot(info)
+                path.write_text('123\n');(group/'nested').mkdir()
+                with self.assertRaisesRegex(ValueError,'nested'):schedule_module.p0_process_snapshot(info)
+        for name in ('0::/foreign\n','1:memory:/docker/'+target['container_id']+'\n',
+                '0::/system.slice/../docker-'+target['container_id']+'.scope\n'):
+            with self.assertRaises(ValueError):schedule_module._p0_cgroup_directory(dict(main,cgroup=name),target['container_id'])
+
+    def test_p0_release_sampler_keeps_foreign_resources_and_unknown_ownership_separate(self):
+        _,_,target,_=self.p0_fixture()
+        main=dict(pid=123,start_ticks=1,uid=2147,cgroup='0::/system.slice/docker-'+target['container_id']+'.scope\n')
+        monitor=dict(container_id=target['container_id'],process_inventory_complete=True,process=main,
+            owned_processes=[{key:main[key] for key in ('pid','start_ticks','uid')}])
+        host=dict(uid=2147,boot_id=target['boot_id'],pid_namespace=42)
+        gpu_ids=[target['gpu_uuid']]+['GPU-%08x-1234-1234-1234-123456789abc'%i for i in range(1,8)]
+        for kind in ('foreign','unknown','owned','reuse','live','cgroup','mount'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as temp:
+                group=Path(temp)/'owned'
+                if kind=='cgroup':group.mkdir()
+                def metadata(path):
+                    raw=(target['container_id'] if kind=='mount' else 'foreign mount') if str(path).endswith('mountinfo') else 'Mlocked: 999 kB\nShmem: 888 kB\n'
+                    return io.BytesIO(raw.encode())
+                def capture(command,timeout,environment):
+                    if command[1].startswith('--query-gpu='):raw=''.join(uuid+', 500\n' for uuid in gpu_ids)
+                    else:raw=(gpu_ids[1] if kind=='foreign' else gpu_ids[0])+', '+('123' if kind in ('owned','reuse') else '99')+', 500\n'
+                    return types.SimpleNamespace(returncode=0,stdout=raw.encode(),stderr=b'')
+                def pid_probe(pid):
+                    if kind=='live' and pid==123:return dict(main)
+                    if kind=='reuse' and pid==123:return dict(main,start_ticks=999,cgroup='0::/foreign\n')
+                    raise FileNotFoundError()
+                with patch.object(schedule_module,'_watchdog_host',return_value=host),\
+                        patch.object(schedule_module.socket,'gethostname',return_value='qjhs3'),\
+                        patch.object(schedule_module,'_p0_cgroup_directory',return_value=group),\
+                        patch.object(schedule_module,'_watchdog_pid',side_effect=pid_probe),\
+                        patch.object(schedule_module,'_guard_docker',return_value=types.SimpleNamespace(returncode=0,stdout=b'',stderr=b'')),\
+                        patch.object(schedule_module,'_guard_capture',side_effect=capture),\
+                        patch('vllm_export_hook._metadata_stream',side_effect=metadata):
+                    result=schedule_module.sample_p0_release(target,monitor,host_pid_namespace=42,timeout_seconds=10)
+                if kind=='foreign':
+                    self.assertTrue(result['owned_gpu_processes_absent'])
+                    self.assertEqual(result['global_memory_context_kib']['Mlocked'],999)
+                    self.assertEqual(result['gpu_context'][0]['memory_used_mib'],500)
+                elif kind in ('unknown','owned','reuse'):
+                    self.assertFalse(result['owned_gpu_processes_absent'])
+                    self.assertEqual(result['owned_gpu_processes'],[])
+                    self.assertTrue(result['unattributable_gpu_processes'])
+                elif kind=='live':self.assertFalse(result['original_processes_absent'])
+                elif kind=='cgroup':self.assertFalse(result['cgroup_absent'])
+                elif kind=='mount':self.assertFalse(result['owned_mounts_absent'])
+                self.assertFalse(result['resources_released'])
+
+    def test_p0_release_observation_refuses_residue_clock_and_unproven_delete(self):
+        for kind in ('residue','clock','delete','missing','short_budget','wall_stall'):
+            with self.subTest(kind=kind),tempfile.TemporaryFile() as events:
+                plan,receipt,target,_=self.p0_fixture()
+                entered=datetime.fromisoformat(plan['window_start'])
+                schedule=schedule_module.p0_schedule(plan,receipt,now=entered)
+                cleanup=dict(container_id=target['container_id'],container_absence_verified=kind!='delete')
+                monitor=dict(container_id=target['container_id'],process_inventory_complete=True)
+                snapshot=dict(container_absent=True,original_processes_absent=True,cgroup_absent=True,
+                    owned_mounts_absent=True,owned_gpu_processes_absent=True)
+                if kind=='residue':snapshot['owned_gpu_processes_absent']=False
+                if kind=='missing':snapshot.pop('owned_mounts_absent')
+                ticks=[0.]
+                with patch.object(schedule_module,'datetime',wraps=datetime) as clock,\
+                        patch.object(schedule_module.time,'monotonic',side_effect=lambda:ticks[0]),\
+                        patch.object(schedule_module.time,'sleep',side_effect=lambda seconds:ticks.__setitem__(0,ticks[0]+seconds)):
+                    clock.now.side_effect=lambda zone:entered-timedelta(seconds=1) if kind=='clock' else entered+timedelta(seconds=0 if kind=='wall_stall' else ticks[0])
+                    started=0
+                    if kind=='short_budget':
+                        started=59-(datetime.fromisoformat(schedule['phase_deadlines_utc']['release_observe'])-entered).total_seconds()
+                    with self.assertRaises((ValueError,TimeoutError,RuntimeError)):
+                        schedule_module.observe_p0_release(target,schedule,cleanup,monitor,
+                            host_pid_namespace=42,entered=entered,started=started,events=events,sample=lambda *a,**kw:snapshot)
+
     def test_p0_monitor_rejects_oom_failed_exit_and_unstarted_target(self):
         plan,receipt,target,info=self.p0_fixture()
         entered=datetime.fromisoformat(plan['window_start'])+timedelta(seconds=1)
@@ -1479,7 +1590,8 @@ os._exit(0)
                 def docker(args,timeout):
                     value=[info] if args[0]=='inspect' else dict(ID='0'*64 if kind=='stats' else target['container_id'])
                     return types.SimpleNamespace(returncode=0,stdout=json.dumps(value).encode(),stderr=b'')
-                process=Mock(side_effect=[dict(pid=123,start_ticks=1),dict(pid=123,start_ticks=2)])
+                process=Mock(side_effect=[dict(pid=123,start_ticks=1,uid=2147,cgroup='owned'),
+                    dict(pid=123,start_ticks=2,uid=2147,cgroup='owned')])
                 with self.assertRaises((ValueError,TimeoutError)) as caught:
                     schedule_module.monitor_p0_target(target,schedule,entered=entered,
                         started=time.monotonic()-(1000 if kind=='deadline' else 0),nonce='a'*32,

@@ -1,3 +1,11 @@
+## 当前追加：P0归属释放采样/60秒策略已有CPU闭包，生产入口仍未完成
+
+- 已只读实际核qjhs003物理qjhs3/UID2147/cgroup2挂载/sys/fs/cgroup；不是资源空闲、guard或GPU运行证明。原review保留命令/原stdout与未单独捕获退出码的证据边界。没有重复下载、目录/环境复制或远端计算。
+- 在既有source_schedule内接p0_process_snapshot为monitor默认producer：读同一leaf cgroup两次、核main及全部当前PID/start_ticks/UID一致，累计有界128生命周期记录；嵌套或变化导致覆盖不明就拒绝。未捕获进程不能用布尔冒充完整inventory。
+- sample_p0_release只读同run宿主身份、精确容器absence、原PID/start_ticks、cgroup、相关mounts与8卡NVML背景/进程。全局Mlocked/Shmem/显存非0不作为他人清理要求；旧PID复用或NVML PID无法归属列unattributable，不谎称本实验占用/释放，也不发信号。该P0只Torch IPC，无Store池/RDMA；不能复用于native Store/MR退出证明。
+- observe_p0_release在原release_observe截止内同时要求monotonic与wall至少60秒，残留/失联/取证失败/不足60秒预算均不通过。即使容器观察通过仍resources_released=false、guard_release_owed=true；guard/monitor等独立宿主任务必须另行实际停止取证，不从闲置成本消失。
+- 111项原生WSL CPU schedule/bundle回归6.415秒通过，读取小文件/事件真实；host/Docker/NVML/clock为显式替身，actual_wait_60_seconds=false，actual_gpu_release_verified=false。这里只是CPU政策/解析回归，不是实际P0释放。源码尚待当前只读复审，生产start/admission/guard-stop与完整driver仍未接齐，不ready。
+
 ## 当前追加：P0输出验收消费者完成CPU接线，完整运行仍未准入
 
 源码381850d已push核远端；独立只读复审PASS_CPU_OUTPUT_CONSUMER_ONLY，四文件SHA实核一致，见原review末条。返回PID来自worker命名空间，不能当宿主PID发信号或证明释放；后续使用实际monitor/cgroup的宿主PID及start_ticks。

@@ -290,6 +290,45 @@ def guard_process(info):
     return dict(pid=pid, start_ticks=started, uid=owner, cgroup=cgroup)
 
 
+def _p0_cgroup_directory(process, container_id):
+    lines=process['cgroup'].splitlines()
+    if len(lines)!=1 or not lines[0].startswith('0::/'):
+        raise ValueError('P0 release requires the verified cgroup-v2 host layout')
+    name=lines[0][3:]
+    if (str(PurePosixPath(name))!=name or '..' in PurePosixPath(name).parts
+            or not re.fullmatch('/[A-Za-z0-9_./-]+',name)
+            or not re.search(r'/(?:docker/|docker-)'+container_id+r'(?:\.scope)?$',name)):
+        raise ValueError('P0 exact owned container cgroup required')
+    return Path('/sys/fs/cgroup'+name)
+
+
+def p0_process_snapshot(info):
+    """Capture the main host identity and all current members of its leaf cgroup."""
+    from vllm_export_hook import _metadata_stream
+    process=guard_process(info)
+    if process is None:raise ValueError('running P0 process required for resource inventory')
+    group=_p0_cgroup_directory(process,info['Id'])
+    if any(path.is_dir() for path in group.iterdir()):
+        raise ValueError('P0 nested cgroup coverage is not implemented')
+    def members():
+        with _metadata_stream(group/'cgroup.procs') as stream:raw=stream.read(4097)
+        if len(raw)>4096 or not re.fullmatch(rb'(?:[1-9][0-9]*\n)+',raw):
+            raise ValueError('bounded nonempty P0 cgroup membership required')
+        ids=[int(line) for line in raw.splitlines()]
+        if len(ids)>128 or len(set(ids))!=len(ids) or process['pid'] not in ids:
+            raise ValueError('P0 cgroup membership differs from main process or limit')
+        return sorted(ids)
+    before=members();records=[]
+    for pid in before:
+        current=guard_process(dict(Id=info['Id'],State=dict(Running=True,Pid=pid)))
+        if current['cgroup']!=process['cgroup']:
+            raise ValueError('P0 member moved between owned cgroups')
+        records.append({key:current[key] for key in ('pid','start_ticks','uid')})
+    if members()!=before or guard_process(info)!=process:
+        raise ValueError('P0 process inventory changed during capture')
+    return dict(process,members=records)
+
+
 def _guard_capture(command, timeout, environment):
     """POSIX host-only pipe reader: cap each output before retaining more bytes."""
     if type(timeout) not in (int,float) or not math.isfinite(timeout) or timeout<=0:
@@ -1178,7 +1217,7 @@ def verify_p0_component_output(receipt, worker_input, schedule, stdout):
 
 
 def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invocation_id,
-                      events, guard_probe, docker=_guard_docker, process_probe=guard_process):
+                      events, guard_probe, docker=_guard_docker, process_probe=p0_process_snapshot):
     """Internal monitor only: no start, admission, component validation or release."""
     identity=_guard_identity(target,boot_id=target['boot_id'],uid=2147)
     if (target['schema']!='kimi-p0-guard-target-v2'
@@ -1186,7 +1225,8 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
             or not isinstance(service_invocation_id,str) or not re.fullmatch('[0-9a-f]{32}',service_invocation_id)
             or type(started) not in (int,float) or not math.isfinite(started)):
         raise ValueError('P0 target, guard nonce, invocation and original clock required')
-    state=dict(container_id=target['container_id'],sample_count=0,process=None,
+    state=dict(container_id=target['container_id'],sample_count=0,process=None,owned_processes=[],
+        process_inventory_complete=False,
         container_exited=False,torch_cuda_ipc_verified=False,resources_released=False,
         runtime_admitted=False,cleanup_owed=True)
     def remaining():
@@ -1221,9 +1261,17 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
             stats=None
             if status['Running']:
                 process=process_probe(info)
-                if process is None or (state['process'] is not None and process!=state['process']):
+                anchor=None if process is None else {key:process[key] for key in ('pid','start_ticks','uid','cgroup')}
+                if process is None or (state['process'] is not None and anchor!=state['process']):
                     raise ValueError('P0 monitor container process identity changed')
-                state['process']=process
+                state['process']=anchor
+                if 'members' in process:
+                    for member in process['members']:
+                        if member not in state['owned_processes']:state['owned_processes'].append(member)
+                    if len(state['owned_processes'])>128:
+                        raise ValueError('P0 lifetime process inventory exceeds bound')
+                    state['process_inventory_complete']=True
+                else:state['process_inventory_complete']=False
                 stats=command(['stats','--no-stream','--no-trunc','--format','{{json .}}',target['container_id']])
                 if not isinstance(stats,dict) or stats.get('ID')!=target['container_id']:
                     raise ValueError('P0 monitor stats belong to another container')
@@ -1249,6 +1297,139 @@ def monitor_p0_target(target, schedule, *, entered, started, nonce, service_invo
                 error_type=type(error).__name__,error=str(error)[:1024]))
         except BaseException as evidence_error:
             error.p0_monitor_evidence_error=repr(evidence_error)[:1024]
+        raise
+
+
+def sample_p0_release(target, monitor, *, host_pid_namespace, timeout_seconds):
+    """Read only owned identities plus NVML/global context; never clean resources."""
+    from vllm_export_hook import _metadata_stream
+    _guard_identity(target,boot_id=target['boot_id'],uid=2147)
+    host=_watchdog_host()
+    if (target['schema']!='kimi-p0-guard-target-v2' or host['boot_id']!=target['boot_id']
+            or host['uid']!=2147 or type(host['uid']) is not int
+            or host['pid_namespace']!=host_pid_namespace or type(host_pid_namespace) is not int
+            or socket.gethostname() not in ('qjhs3','qjhs003')
+            or monitor.get('container_id')!=target['container_id']
+            or monitor.get('process_inventory_complete') is not True):
+        raise ValueError('fresh P0 host and complete owned process inventory required')
+    if type(timeout_seconds) not in (int,float) or not math.isfinite(timeout_seconds) or timeout_seconds<=0:
+        raise ValueError('finite P0 release snapshot budget required')
+    started=time.monotonic()
+    def remaining():
+        value=timeout_seconds-(time.monotonic()-started)
+        if value<=0:raise TimeoutError('P0 release snapshot budget exhausted')
+        return value
+    members=monitor['owned_processes']
+    if (not isinstance(members,list) or not 1<=len(members)<=128
+            or any(not isinstance(row,dict) or set(row)!={'pid','start_ticks','uid'}
+                or any(type(row[key]) is not int or row[key]<=0 for key in row)
+                or row['uid']!=2147 for row in members)):
+        raise ValueError('P0 positive PID/start-ticks ownership records required')
+    if ({key:monitor['process'][key] for key in ('pid','start_ticks','uid')} not in members
+            or len({(row['pid'],row['start_ticks']) for row in members})!=len(members)):
+        raise ValueError('P0 main process missing from unique lifetime inventory')
+    group=_p0_cgroup_directory(monitor['process'],target['container_id'])
+    live=[];reused=[]
+    for record in members:
+        remaining()
+        try:current=_watchdog_pid(record['pid'])
+        except FileNotFoundError:continue
+        if current['start_ticks']==record['start_ticks']:live.append(record)
+        else:reused.append(dict(pid=record['pid'],old_start_ticks=record['start_ticks'],new_start_ticks=current['start_ticks']))
+    try:group.stat();group_absent=False
+    except FileNotFoundError:group_absent=True
+    response=_guard_docker(['ps','-aq','--no-trunc','--filter','id='+target['container_id']],min(5,remaining()))
+    if response.returncode!=0 or len(response.stdout)>65536 or len(response.stderr)>65536:
+        raise RuntimeError('P0 release container query failed')
+    def read(path,limit):
+        remaining()
+        with _metadata_stream(Path(path)) as stream:raw=stream.read(limit+1)
+        if len(raw)>limit:raise ValueError('P0 release metadata exceeds bound')
+        return raw.decode('ascii')
+    mounts=read('/proc/self/mountinfo',1024**2)
+    memory={}
+    for line in read('/proc/meminfo',65536).splitlines():
+        fields=line.split()
+        if fields and fields[0] in ('MemAvailable:','AnonPages:','Mlocked:','Shmem:'):
+            if len(fields)!=3 or fields[2]!='kB':raise ValueError('P0 global memory context format differs')
+            memory[fields[0][:-1]]=int(fields[1])
+    def nvml(query):
+        result=_guard_capture(['/usr/bin/nvidia-smi',query,'--format=csv,noheader,nounits'],
+            min(5,remaining()),{'PATH':'/usr/bin:/bin','LC_ALL':'C'})
+        if result.returncode!=0 or len(result.stdout)>65536 or len(result.stderr)>65536:
+            raise RuntimeError('P0 release NVML query failed')
+        return [line.split(',') for line in result.stdout.decode('ascii').splitlines() if line.strip()]
+    gpus=[]
+    for fields in nvml('--query-gpu=uuid,memory.used'):
+        if len(fields)!=2:raise ValueError('P0 GPU context format differs')
+        uuid,used=(field.strip() for field in fields)
+        if not re.fullmatch('GPU-[0-9a-f-]{36}',uuid) or not used.isdigit():
+            raise ValueError('P0 GPU identity or memory is unknown')
+        gpus.append(dict(gpu_uuid=uuid,memory_used_mib=int(used)))
+    if len(gpus)!=8 or len({row['gpu_uuid'] for row in gpus})!=8 or target['gpu_uuid'] not in {row['gpu_uuid'] for row in gpus}:
+        raise ValueError('P0 release requires complete eight-GPU context')
+    apps=[];owned_gpu=[];unknown=[]
+    for fields in nvml('--query-compute-apps=gpu_uuid,pid,used_gpu_memory'):
+        if len(fields)!=3:raise ValueError('P0 GPU process context format differs')
+        uuid,pid,used=(field.strip() for field in fields)
+        if not pid.isdigit() or int(pid)<=0:raise ValueError('P0 GPU process PID is unknown')
+        app=dict(gpu_uuid=uuid,pid=int(pid),memory_used_mib_raw=used);apps.append(app)
+        if int(pid) in {row['pid'] for row in members}:
+            try:peer=_watchdog_pid(int(pid))
+            except FileNotFoundError:unknown.append(app);continue
+            if (any(peer['start_ticks']==row['start_ticks'] and peer['uid']==row['uid'] for row in members if row['pid']==int(pid))
+                    and target['container_id'] in peer['cgroup']):owned_gpu.append(app)
+            else:unknown.append(app)
+        elif uuid==target['gpu_uuid']:
+            try:peer=_watchdog_pid(int(pid))
+            except FileNotFoundError:unknown.append(app);continue
+            if target['container_id'] in peer['cgroup']:owned_gpu.append(app)
+    remaining()
+    return dict(container_absent=not response.stdout.strip(),original_processes_absent=not live,
+        cgroup_absent=group_absent,owned_mounts_absent=target['container_id'] not in mounts,
+        owned_gpu_processes_absent=not owned_gpu and not unknown,live_owned_processes=live,reused_pids=reused,
+        owned_gpu_processes=owned_gpu,unattributable_gpu_processes=unknown,gpu_context=gpus,gpu_process_context=apps,
+        global_memory_context_kib=memory,global_context_is_ownership_proof=False,
+        rdma_used_by_p0=False,store_pool_created_by_p0=False,resources_released=False)
+
+
+def observe_p0_release(target, schedule, cleanup, monitor, *, host_pid_namespace, entered, started,
+                       events, sample=sample_p0_release):
+    """Observe container resources for >=60 seconds; guard release remains separate."""
+    identity=_guard_identity(target,boot_id=target['boot_id'],uid=2147)
+    if (target['schema']!='kimi-p0-guard-target-v2' or cleanup.get('container_id')!=target['container_id']
+            or cleanup.get('container_absence_verified') is not True
+            or monitor.get('container_id')!=target['container_id']
+            or monitor.get('process_inventory_complete') is not True):
+        raise ValueError('P0 exact deletion and owned process inventory required before observation')
+    state=dict(container_id=target['container_id'],sample_count=0,container_release_observation_verified=False,
+        resources_released=False,guard_release_owed=True,runtime_admitted=False)
+    begin=time.monotonic();wall=datetime.now(timezone.utc)
+    def remaining():
+        return phase_remaining_seconds(schedule,'release_observe',entered=entered,
+            elapsed=time.monotonic()-started,now=datetime.now(timezone.utc))
+    try:
+        if remaining()<60:raise TimeoutError('P0 full observation no longer fits original budget')
+        while True:
+            snapshot=sample(target,monitor,host_pid_namespace=host_pid_namespace,timeout_seconds=min(15,remaining()))
+            state['sample_count']+=1
+            _watchdog_event(events,identity,identity['holder'],'release_sample',dict(state,snapshot=snapshot))
+            remaining()
+            if (not isinstance(snapshot,dict) or any(snapshot.get(key) is not True for key in
+                    ('container_absent','original_processes_absent','cgroup_absent','owned_mounts_absent','owned_gpu_processes_absent'))):
+                raise RuntimeError('P0 residual or unattributable resources; release unverified')
+            elapsed=time.monotonic()-begin;now=datetime.now(timezone.utc)
+            if now<wall:raise TimeoutError('P0 release observation clock regressed')
+            if elapsed>=60 and (now-wall).total_seconds()>=60:
+                state.update(container_release_observation_verified=True,observation_seconds=elapsed)
+                _watchdog_event(events,identity,identity['holder'],'container_release_observed',state)
+                remaining()
+                return state
+            time.sleep(min(1,remaining()))
+    except BaseException as error:
+        error.p0_release_receipt=state
+        try:_watchdog_event(events,identity,identity['holder'],'release_observation_failed',dict(state,error_type=type(error).__name__,error=str(error)[:1024]))
+        except BaseException as evidence_error:error.p0_release_evidence_error=repr(evidence_error)[:1024]
         raise
 
 
