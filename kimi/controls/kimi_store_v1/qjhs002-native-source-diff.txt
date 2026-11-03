@@ -1,0 +1,233 @@
+FILE csrc/checkpoint/aligned_buffer.cpp
+--- old_build/csrc/checkpoint/aligned_buffer.cpp
++++ official/csrc/checkpoint/aligned_buffer.cpp
+@@ -21,5 +21,4 @@
+ #include <unistd.h>
+ 
+-#include <cstdlib>
+ #include <cstring>
+ #include <iostream>
+@@ -37,12 +36,5 @@
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    size_t aligned_size = (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
+-    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
+-    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
+-        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
+-      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
+-                << std::endl;
+-      std::abort();
+-    }
++    pwrite(fd_, buffer_, buf_pos_, file_offset_);
+   }
+   if (buffer_) {
+@@ -119,3 +111,3 @@
+   }
+   return padding_size;
+-}
++}
+FILE csrc/checkpoint/checkpoint.cpp
+--- old_build/csrc/checkpoint/checkpoint.cpp
++++ official/csrc/checkpoint/checkpoint.cpp
+@@ -96,14 +96,9 @@
+ at::ScalarType stringToScalarType(const std::string& dtype_str) {
+   static const std::unordered_map<std::string, at::ScalarType> dtype_map = {
+-      {"torch.float16", torch::kFloat16},
+-      {"torch.float32", torch::kFloat32},
+-      {"torch.float64", torch::kFloat64},
+-      {"torch.int16", torch::kInt16},
+-      {"torch.int32", torch::kInt32},
+-      {"torch.int64", torch::kInt64},
+-      {"torch.uint8", torch::kUInt8},
+-      {"torch.int8", torch::kInt8},
+-      {"torch.bfloat16", torch::kBFloat16},
+-      {"torch.float8_e4m3fn", torch::kFloat8_e4m3fn}};
++      {"torch.float16", torch::kFloat16},  {"torch.float32", torch::kFloat32},
++      {"torch.float64", torch::kFloat64},  {"torch.int16", torch::kInt16},
++      {"torch.int32", torch::kInt32},      {"torch.int64", torch::kInt64},
++      {"torch.uint8", torch::kUInt8},      {"torch.int8", torch::kInt8},
++      {"torch.bfloat16", torch::kBFloat16}};
+ 
+   auto it = dtype_map.find(dtype_str);
+@@ -253,3 +248,3 @@
+   }
+   return device_uuid_map;
+-}
++}
+FILE csrc/checkpoint/tensor_writer.cpp
+--- old_build/csrc/checkpoint/tensor_writer.cpp
++++ official/csrc/checkpoint/tensor_writer.cpp
+@@ -27,7 +27,4 @@
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
+-    if (partition_idx_ != -1) {
+-      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
+-    }
+     partition_idx_++;
+     partition_size_ = 0;
+
+FILE csrc/sllm_store/checkpoint_store.cpp
+--- old_build/csrc/sllm_store/checkpoint_store.cpp
++++ official/csrc/sllm_store/checkpoint_store.cpp
+@@ -274,14 +274,4 @@
+ }
+ 
+-int CheckpointStore::WaitModelInHost(const std::string& model_path) {
+-  std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+-  auto model = GetModelPtr(model_path);
+-  if (model == nullptr) {
+-    return -1;
+-  }
+-  lock_info.unlock();
+-  return model->WaitInHost();
+-}
+-
+ int CheckpointStore::ClearMem() {
+   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+@@ -347,3 +337,3 @@
+   }
+   return gpu_ptrs;
+-}
++}
+FILE csrc/sllm_store/checkpoint_store.h
+--- old_build/csrc/sllm_store/checkpoint_store.h
++++ official/csrc/sllm_store/checkpoint_store.h
+@@ -57,5 +57,4 @@
+   int WaitModelInGpu(const std::string& model_path,
+                      const std::string& replica_uuid);
+-  int WaitModelInHost(const std::string& model_path);
+   int UnloadModelFromHost(const std::string& model_path);
+   int ClearMem();
+@@ -106,3 +105,3 @@
+   MemPtrListMap GetDevicePtrsFromMemHandles(
+       const MemCopyHandleListMap& memory_handles);
+-};
++};
+FILE csrc/sllm_store/checkpoint_store_py.cpp
+--- old_build/csrc/sllm_store/checkpoint_store_py.cpp
++++ official/csrc/sllm_store/checkpoint_store_py.cpp
+@@ -70,9 +70,5 @@
+       .def("wait_model_in_gpu", &CheckpointStore::WaitModelInGpu,
+            py::arg("model_path"), py::arg("replica_uuid"),
+-           py::call_guard<py::gil_scoped_release>(),
+            "Wait for a model to be available in GPU memory.")
+-      .def("wait_model_in_host", &CheckpointStore::WaitModelInHost,
+-           py::arg("model_path"), py::call_guard<py::gil_scoped_release>(),
+-           "Wait for the entire model to be available in pinned host memory.")
+       .def("unload_model_from_host", &CheckpointStore::UnloadModelFromHost,
+            py::arg("model_path"), "Unload a model from the host memory.")
+@@ -85,3 +81,3 @@
+       .def("__repr__",
+            [](const CheckpointStore& cs) { return "<CheckpointStore>"; });
+-}
++}
+FILE csrc/sllm_store/model.cpp
+--- old_build/csrc/sllm_store/model.cpp
++++ official/csrc/sllm_store/model.cpp
+@@ -24,5 +24,4 @@
+ 
+ #include <algorithm>
+-#include <cerrno>
+ #include <condition_variable>
+ #include <filesystem>
+@@ -173,33 +172,34 @@
+         }
+ 
+-        size_t copied = 0;
+-        while (copied < size) {
+-          while (partition_id < partition_sizes_.size() &&
+-                 file_offset == partition_sizes_[partition_id]) {
+-            ++partition_id;
++        int fd = file_descriptors[partition_id];
++        ssize_t ret =
++            pread(fd, (void*)host_buffers[chunk_idx], size, file_offset);
++        if (ret < 0) {
++          auto tensor_path = partition_paths_[partition_id];
++          LOG(ERROR) << "pread() failed for file: " << tensor_path
++                     << ", error: " << strerror(errno);
++          return -1;
++        } else if (ret != size) {
++          if (ret < size && partition_id + 1 < file_descriptors.size()) {
++            partition_id += 1;
+             file_offset = 0;
+-          }
+-          if (partition_id >= partition_sizes_.size() ||
+-              file_offset > partition_sizes_[partition_id]) {
+-            LOG(ERROR) << "Partition bounds exceeded for " << model_path_;
++            size_t remaining_size = size - ret;
++            int fd = file_descriptors[partition_id];
++            ret = pread(fd, (void*)(host_buffers[chunk_idx] + ret),
++                        remaining_size, file_offset);
++            if (ret != remaining_size) {
++              auto tensor_path = partition_paths_[partition_id];
++              LOG(ERROR) << "Failed to read file: " << tensor_path
++                         << " read: " << ret << " expected: " << remaining_size;
++              return -1;
++            }
++          } else {
++            auto tensor_path = partition_paths_[partition_id];
++            LOG(ERROR) << "Failed to read file: " << tensor_path
++                       << " read: " << ret << " expected: " << size;
+             return -1;
+           }
+-          size_t requested = std::min(size - copied,
+-                                      partition_sizes_[partition_id] - file_offset);
+-          ssize_t ret = pread(file_descriptors[partition_id],
+-                              (void*)(host_buffers[chunk_idx] + copied),
+-                              requested, file_offset);
+-          if (ret < 0 && errno == EINTR) {
+-            continue;
+-          }
+-          if (ret <= 0 || static_cast<size_t>(ret) > requested) {
+-            LOG(ERROR) << "pread() failed or truncated file: "
+-                       << partition_paths_[partition_id] << " read: " << ret
+-                       << " expected at most: " << requested;
+-            return -1;
+-          }
+-          copied += ret;
+-          file_offset += ret;
+         }
++        file_offset += ret;
+ 
+         host_ptr_vector_->enqueue(chunk_idx, Batch{chunk_idx, size});
+@@ -248,5 +248,4 @@
+ 
+   state_ = MemoryState::LOADED;
+-  cv_.notify_all();
+   LOG(INFO) << "Finished loading model " << model_path_ << " from disk";
+ 
+@@ -363,13 +362,9 @@
+     gpu_replica->state_ = MemoryState::LOADED;
+   }
+-  bool ipc_close_failed = false;
++  gpu_replica->cv_.notify_all();
++
++  // TODO: move to background thread
+   for (auto& [device_id, device_ptr_list] : gpu_replica->device_ptrs_) {
+-    cudaError_t device_err = cudaSetDevice(device_id);
+-    if (device_err != cudaSuccess) {
+-      LOG(ERROR) << "Failed to select device for IPC close " << device_id
+-                 << " error: " << cudaGetErrorString(device_err);
+-      ipc_close_failed = true;
+-      continue;
+-    }
++    cudaSetDevice(device_id);
+     for (auto device_ptr : device_ptr_list) {
+       cudaError_t err = cudaIpcCloseMemHandle(device_ptr);
+@@ -377,12 +372,7 @@
+         LOG(ERROR) << "Failed to close memory handle for device " << device_id
+                    << " error: " << cudaGetErrorString(err);
+-        ipc_close_failed = true;
+-      }
+-    }
+-  }
+-  if (ipc_close_failed) {
+-    gpu_replica->state_ = MemoryState::INTERRUPTED;
+-  }
+-  gpu_replica->cv_.notify_all();
++      }
++    }
++  }
+ 
+   if (gpu_replica->state_ == MemoryState::INTERRUPTED) {
+

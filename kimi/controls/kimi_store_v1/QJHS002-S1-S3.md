@@ -34,3 +34,18 @@
 - 旧5e597e33编译库实际SHA与旧receipt一致：_C=994772cc3ca6c874d995b5aa9a846400b4b253b0a786628a2832dccc0f813864，_checkpoint_store=30132b6d6034759d3b5b961cd4d22bd0d8da1ca2754d8e80d7769e35cfe21eb5。33项源码原始SHA与当前基线均不同，其中26项可由LF/CRLF解释，另7项仍实质不同（aligned_buffer.cpp/checkpoint.cpp/tensor_writer.cpp/checkpoint_store.cpp/checkpoint_store.h/checkpoint_store_py.cpp/model.cpp）。旧receipt的import/CPU构建成功不能追认为002当前基线ABI成功。
 
 最小生产补丁清单仍未冻结：不新增codec/loader框架，不降级、不覆盖链接/编译库。下一步定位既有环境；查七项源码差异及Transformers约束；用0.19.1实际接口确定官方patch最小移植范围，然后完成真实有界张量save/read验证。运行前须新资源、预算、审阅和守护。
+
+## 本轮七项差异定位与官方缺口复现
+
+已逐行比较当前官方基线与旧构建对应冻结源码（model.cpp用Kimi既有候选），仅读取GLM冻结文件，没有修改。完整差异见qjhs002-native-source-diff.txt：
+- aligned_buffer.cpp：旧版对尾部按4096补零并检查写入/截断，官方析构直接pwrite未对齐buf_pos_且忽略返回。
+- tensor_writer.cpp：旧版在切分区时把offset_补到4096边界，官方未计物理分区尾部padding。
+- checkpoint.cpp：旧版增加float8_e4m3fn，当前官方原本已有I32/BF16等；不能因INT4就预设需要新codec或FP8补丁。
+- checkpoint_store.cpp/.h/_py.cpp：旧版额外WaitModelInHost入口、等待GPU时释放GIL。不是当前官方库的既有能力。
+- model.cpp：旧Kimi候选包含跨多分片/EINTR/短读处理，以及IPC关闭错误传播；官方当前实现只补读下一分片且通知早于IPC close。
+
+已在002直接编译当前官方aligned_buffer.cpp（未修改源码），用3字节输入实际写/读。g++编译rc0，writeData返回3，但析构后文件size=0、payload=0,0,0，probe rc5；完整输出见qjhs002-official-tail-repro.txt。小CPU控制限制AS1536MiB、CPU5秒、wall8秒；官方固定1GiB虚拟buffer仅触碰小尾部，未启动Torch/GPU/Store。临时目录/可执行文件/3字节payload由TemporaryDirectory在退出后清除。这证明官方未对齐尾部写入会静默丢失，尚非Kimi真实张量组件验证。
+
+最小修复范围已收敛为官方aligned_buffer.cpp与tensor_writer.cpp的尾部/物理分片偏移一致性，先设计覆盖非整页尾部、已有文件截断、分片偏移的有界回归再改；不能只修其中一处，不直接搬入七文件旧GLM补丁。分片边界小fixture若缩小常量必须明示，不能当10GiB完整性能验证。原生ToHost多分片读取和IPC关闭错误传播另列待验证必要缺口。当前生产文件未修改，旧收据/失败/金标保持原样。
+
+补充环境核验：002系统python为3.10；旧native构建依赖Python3.12/Torch2.10/CUDA12.9，其构建镜像53f661ba…精确inspect也返回No such image，和旧P0运行镜像均缺失。不能将wheel或迁移库当已安装的运行环境。用户关于既有环境位置的问题仍待回复；依照禁止新建环境要求，未安装或创建容器环境。S4a和GPU路径仍未通过。
