@@ -181,3 +181,11 @@ S4a/S4b、完整模型转换、真实 Store 读回、GPU/TP8/八 rank 及原生�
 冻结 guard SHA 与运行目录原 `guard.sha256` 一致。两个运行 manifest 的 SHA 及所有小证据的 SHA/大小是在观察结束后补建，保存为 `post-observation-manifest.json`；不能冒称运行前已持久化 manifest SHA。原始 stdout/JSON、最终观察、启动计划、root 叙述均分别保留。
 
 该 CPU 结果不授予 GPU/模型/Store 运行权限，不证明 GPU 资源释放、逃逸子进程覆盖、GPU 独立预算及释放观察。S4a/S4b 的完整准入、独立审阅和实际资源/窗口核验仍独立要求。
+
+## 002 下一步探针准备里程碑（2026-11-03，无 GPU 执行）
+
+`qjhs002-probe-preparation/` 冻结六个现有小脚本及审阅范围。这里的 GPU-aware guard 与已归档 CPU 旧 guard 分开：start 前查 GPU XML 全部进程及 cgroup，再由同一进程 start；异常后固定清理截止覆盖 late start。2GiB 仅 sampling stop，绝非硬显存分配上限。guard_recipe_review 最终静态通过仅限1MiB CUDA 微探针，仍需 fresh booking/resource/budget/server hash；本次未启动容器或 GPU。
+
+归档脚本上的纯 stdlib 回归实际 rc0：guard 四例（超阈值、外来 graphics PID、查询超时、start timeout 后延迟启动）；组件 cleanup 为1 test/10 subcases。完整小 stdout/stderr 保留。review_s4a_component 对实际组件 provenance/header/cleanup 复审通过；CPU stub/AST 回归不证明 GPU release、Store 完整读回或模型通过。
+
+准备脚本仍固定 nonce/UUID/源码及镜像，且要求两个源文件置于 p0 根目录、probe 文件名以 cuda-micro-probe- 开头；本里程碑归档路径不等于部署路径，不自动满足该准备合同。具体限制见 REVIEW-SCOPE.md；任何 GPU 微探针或 S4a 仍须独立准入、完整释放观察，不复用此提交作运行批准。
