@@ -1,0 +1,51 @@
+{
+  "evidence_origin": "user-provided terminal output; tests not rerun by agent",
+  "source_commit_after_user_validation": "d9eee8de70badb1570127ca551f22b66ec4a5b30",
+  "node": "qjhs002",
+  "baseline": "/data/brick1/boyjiang/ServerlessLLM",
+  "runs": [
+    {
+      "pattern": "test_vllm_loader_interface.py",
+      "tests": 1,
+      "seconds": 0.003,
+      "result": "OK"
+    },
+    {
+      "pattern": "test_confirm_model_error.py",
+      "tests": 3,
+      "seconds": 0.008,
+      "result": "OK"
+    },
+    {
+      "pattern": "test_ipc_close_status.py",
+      "tests": 1,
+      "seconds": 0.442,
+      "result": "OK"
+    }
+  ],
+  "scope": "CPU interface and error/notification fixtures only",
+  "file_sha256": {
+    "sllm_store/csrc/sllm_store/model.cpp": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509",
+    "sllm_store/sllm_store/client.py": "203f22054e1cb2661f3d02d63dcfa7697b8f1d37d7a057ad6a514c43995d205f",
+    "sllm_store/vllm_patch/sllm_load.patch": "4d6271fa7cce8e47ccbc10a39812075d3e806426b8cf0a83b42632e807110f84",
+    "sllm_store/tests/python/test_confirm_model_error.py": "c19ec503919af1536526b7e8f562205dedaa36ae28017b932b42247de2f35d8e",
+    "sllm_store/tests/python/test_ipc_close_status.py": "e7f8171e5518e389ad017e7ff21367f7d3e755d62eeac2794ce53810597fc673",
+    "sllm_store/tests/python/test_vllm_loader_interface.py": "72e4151107a1ab118a6700bf650f27cd2e6474312331eb907ae79a20970a0127"
+  },
+  "preserved_uncommitted_difference": "T sllm_store/sllm_store/proto/storage.proto",
+  "not_verified": [
+    "actual runtime dependency/ABI",
+    "native full library rebuild",
+    "ownership candidate CPU/CUDA tests",
+    "real Kimi tensor roundtrip",
+    "full model/TP8/Store/service"
+  ],
+  "whitespace_note": "Three single-space lines are mandatory unified-diff blank context markers; preserved, not trimmed.",
+  "source_publication": {
+    "repository": "BoyJiang2/serverlessllm",
+    "branch": "kimi-qjhs002-aligned-tail",
+    "verified_remote_sha": "d9eee8de70badb1570127ca551f22b66ec4a5b30",
+    "force_push": false,
+    "merged_to_main": false
+  }
+}

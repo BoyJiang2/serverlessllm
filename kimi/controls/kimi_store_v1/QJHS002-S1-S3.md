@@ -142,3 +142,13 @@ S4a只读结论补充：官方save_dict可以CPU原始保存；已查load_dict/R
 review_official_fixes独立只读复审对IPC尾部及共享客户端传播均给出限定可交用户验证、无新增源码阻塞；没有执行测试或授运行准入。失败句柄残留、consumer异常时CUDA allocation所有权、Store停止/释放顺序仍待守护与实际GPU验证。RPC阻塞/超时也未由这个“已返回错误传播”改动解决，不能宣称完整失败清理。
 
 最终候选outputs/official-ipc-close-candidate.patch SHA256=eeb75df57417f64ee98bb2c5be85b25ee3d3e7b80e52430f122d8b128fb1195e。已上传002:/data/brick1/boyjiang/kimi-k2.6/p0/ipc-close-candidate-eeb75df57417.patch，官方工作树git apply --check通过、SHA与本地一致；未应用，工作树检查仍只有原storage.proto类型T。准备给用户在传输期间运行这两项CPU回归，不启动容器/GPU/Store。旧候选5b3163仅包含尾部，保留为历史草稿，不冒充最终版本。
+
+## 用户实际CPU回归通过，源码已提交并发布（最新覆盖）
+
+用户回传qjhs002原始终端结果：test_vllm_loader_interface.py 1test/0.003s OK；test_confirm_model_error.py 3tests/0.008s OK；test_ipc_close_status.py 1test/0.442s OK。共5项CPU测试，包含实际g++编译的CUDA-stub关闭控制，执行者为用户，agent未代跑。详见qjhs002-user-cpu-validation-d9eee8d.json。不能将这些结果外推为真实GPU/Store/IPC资源清理通过。
+
+root只读核对六个源/测试文件及SHA，普通源码diff --check通过；仅显式stage这六个文件，于服务器提交d9eee8de70badb1570127ca551f22b66ec4a5b30。原storage.proto类型T保持未提交，未回滚或纳管。用户报告的空白警告对应内嵌unified patch三处单空格上下文标记（261/284/331），直接trim会改变补丁语法，因此原样保留，不为消除警告破坏补丁。完整四提交源码系列保存在official-source-through-d9eee8d.patch。
+
+这次源码分支推送成功：GitHub BoyJiang2/serverlessllm refs/heads/kimi-qjhs002-aligned-tail实际返回d9eee8de70badb1570127ca551f22b66ec4a5b30。此前HTTP408失败保留，本次不是force-push，没有合并main。此处覆盖“源码分支尚未同步”的旧断点，不能覆盖运行准入边界。
+
+17:48:35只读确认002压缩包9794322432B，未找到runtime210-cu129镜像；不推断传输/导入已完成。下一步由用户完成导入后运行已交付e0bcf2e CPU inventory命令，核实际解释器/版本/commit/路径/依赖。ownership候选185d6821仍未应用/编译/执行，当前原生库未按新源码重建，S4a、S4b仍未通过。收到CPU回归结果解决该部分等待，不自动赋予新的GPU运行gate。

@@ -1,0 +1,868 @@
+From ab3eb90ffe197002d75aae5e0057a235db60282d Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:17:28 +0800
+Subject: [PATCH 1/4] Fix aligned tensor tail persistence and partition offsets
+
+---
+ sllm_store/csrc/checkpoint/aligned_buffer.cpp | 10 ++-
+ sllm_store/csrc/checkpoint/tensor_writer.cpp  |  3 +
+ sllm_store/tests/cpp/test_tensor_writer.py    | 70 +++++++++++++++++++
+ 3 files changed, 82 insertions(+), 1 deletion(-)
+ create mode 100644 sllm_store/tests/cpp/test_tensor_writer.py
+
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 4b93340..932ddc9 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -20,6 +20,7 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ 
++#include <cstdlib>
+ #include <cstring>
+ #include <iostream>
+ 
+@@ -35,7 +36,14 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
+ AlignedBuffer::~AlignedBuffer() {
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
++    size_t aligned_size = (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
++    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
++    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
++        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
++      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
++                << std::endl;
++      std::abort();
++    }
+   }
+   if (buffer_) {
+     free(buffer_);
+diff --git a/sllm_store/csrc/checkpoint/tensor_writer.cpp b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+index 46eb304..ad84009 100644
+--- a/sllm_store/csrc/checkpoint/tensor_writer.cpp
++++ b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
+ uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
++    if (partition_idx_ != -1) {
++      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
++    }
+     partition_idx_++;
+     partition_size_ = 0;
+     std::string partition_filename =
+diff --git a/sllm_store/tests/cpp/test_tensor_writer.py b/sllm_store/tests/cpp/test_tensor_writer.py
+new file mode 100644
+index 0000000..81c2edb
+--- /dev/null
++++ b/sllm_store/tests/cpp/test_tensor_writer.py
+@@ -0,0 +1,70 @@
++"""CPU regression for the official writer; no Torch/CUDA or downloads.
++
++Run: python3 sllm_store/tests/cpp/test_tensor_writer.py
++The partition test copies only the writer sources into a temporary directory
++and reduces kPartitionMaxSize to 8192 bytes. It is a boundary fixture,
++not a real 10 GiB partition or model conversion test.
++"""
++import pathlib
++import subprocess
++import tempfile
++import unittest
++
++
++class TensorWriterTest(unittest.TestCase):
++    def test_tail_and_partition_offsets(self):
++        root = pathlib.Path(__file__).resolve().parents[2] / "csrc/checkpoint"
++        with tempfile.TemporaryDirectory(prefix="sllm-writer-test-") as directory:
++            work = pathlib.Path(directory)
++            for name in ("aligned_buffer.cpp", "aligned_buffer.h",
++                         "tensor_writer.cpp", "tensor_writer.h"):
++                (work / name).write_bytes((root / name).read_bytes())
++            header = work / "tensor_writer.h"
++            text = header.read_text()
++            self.assertIn("10L << 30", text)
++            header.write_text(text.replace("10L << 30", "8192"))
++            (work / "test.cpp").write_text(r"""
++#include "tensor_writer.h"
++#include <cassert>
++#include <algorithm>
++#include <filesystem>
++#include <fstream>
++#include <vector>
++
++std::vector<char> read(const std::string& path) {
++  std::ifstream file(path, std::ios::binary);
++  return std::vector<char>(std::istreambuf_iterator<char>(file), {});
++}
++int main(int argc, char** argv) {
++  std::string path = argv[1];
++  for (size_t size : {3, 4096, 4101}) {
++    { std::ofstream old(path); old << std::string(16384, 'x'); }
++    std::vector<char> data(size, 'a');
++    { AlignedBuffer buffer(path);
++      assert(buffer.writeData(data.data(), size) == size); }
++    auto actual = read(path);
++    size_t padded = (size + 4095) / 4096 * 4096;
++    assert(actual.size() == padded);
++    assert(std::equal(data.begin(), data.end(), actual.begin()));
++    for (size_t i = size; i < padded; ++i) assert(actual[i] == 0);
++  }
++  std::vector<char> first(4097, 'b'), second(4097, 'c');
++  { TensorWriter writer(path + ".tensor");
++    assert(writer.writeRecord(first.data(), first.size()) == 0);
++    assert(writer.writeRecord(second.data(), second.size()) == 8192); }
++  auto a = read(path + ".tensor_0"), b = read(path + ".tensor_1");
++  assert(a.size() == 8192 && b.size() == 8192);
++  assert(std::equal(first.begin(), first.end(), a.begin()));
++  assert(std::equal(second.begin(), second.end(), b.begin()));
++}
++""")
++            subprocess.run(["g++", "-std=c++17", str(work / "test.cpp"),
++                            str(work / "aligned_buffer.cpp"),
++                            str(work / "tensor_writer.cpp"), "-o",
++                            str(work / "test")], check=True, timeout=30)
++            subprocess.run([str(work / "test"), str(work / "payload")],
++                           check=True, timeout=10)
++
++
++if __name__ == "__main__":
++    unittest.main()
+-- 
+2.55.0.windows.5
+
+
+From 398058769c697e7930a7768eca17067481eeef89 Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:28:09 +0800
+Subject: [PATCH 2/4] Distinguish unapplied applied and conflicting vLLM
+ patches
+
+---
+ .../tests/python/test_vllm_patch_status.py    | 48 +++++++++++++++++++
+ sllm_store/vllm_patch/patch.sh                |  9 ++--
+ 2 files changed, 54 insertions(+), 3 deletions(-)
+ create mode 100644 sllm_store/tests/python/test_vllm_patch_status.py
+
+diff --git a/sllm_store/tests/python/test_vllm_patch_status.py b/sllm_store/tests/python/test_vllm_patch_status.py
+new file mode 100644
+index 0000000..9f03bc4
+--- /dev/null
++++ b/sllm_store/tests/python/test_vllm_patch_status.py
+@@ -0,0 +1,48 @@
++"""Exercise patch status with real patch(1), without importing vLLM."""
++import os
++import pathlib
++import subprocess
++import tempfile
++import unittest
++
++
++class PatchStatusTest(unittest.TestCase):
++    def test_unapplied_applied_and_conflict(self):
++        script = pathlib.Path(__file__).resolve().parents[2] / "vllm_patch/patch.sh"
++        with tempfile.TemporaryDirectory(prefix="sllm-patch-test-") as directory:
++            work = pathlib.Path(directory)
++            target = work / "package"
++            target.mkdir()
++            (work / "patch.sh").write_bytes(script.read_bytes())
++            (work / "sllm_load.patch").write_text(
++                "--- a/vllm/item.txt\n+++ b/vllm/item.txt\n"
++                "@@ -1 +1 @@\n-old\n+new\n")
++            python = work / "python"
++            python.write_text("#!/bin/sh\nprintf '%s\\n' '" + str(target) + "'\n")
++            python.chmod(0o700)
++            environment = dict(os.environ, PATH=str(work) + ":" + os.environ["PATH"])
++
++            def run():
++                return subprocess.run(["bash", str(work / "patch.sh")],
++                                      env=environment, capture_output=True,
++                                      text=True, timeout=10)
++
++            item = target / "item.txt"
++            item.write_text("old\n")
++            first = run()
++            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
++            self.assertEqual(item.read_text(), "new\n")
++            second = run()
++            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
++            self.assertIn("already been applied", second.stdout)
++            self.assertEqual(item.read_text(), "new\n")
++            item.write_text("foreign\n")
++            conflict = run()
++            self.assertNotEqual(conflict.returncode, 0)
++            self.assertIn("conflicts", conflict.stderr)
++            self.assertNotIn("already been applied", conflict.stdout)
++            self.assertEqual(item.read_text(), "foreign\n")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/sllm_store/vllm_patch/patch.sh b/sllm_store/vllm_patch/patch.sh
+index c3a2166..7f10cc9 100755
+--- a/sllm_store/vllm_patch/patch.sh
++++ b/sllm_store/vllm_patch/patch.sh
+@@ -41,11 +41,14 @@ if [ ! -d "$VLLM_PATH" ]; then
+ fi
+ 
+ # Attempt a dry run of the patch to check if it's already applied
+-if patch -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
++if patch --batch --forward --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch is not applied. Applying the patch now..."
+     # Apply the patch
+-    patch -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
++    patch --batch --forward --fuzz=0 -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
+     echo "Patch applied successfully."
+-else
++elif patch --batch --force -R --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch has already been applied. Skipping..."
++else
++    echo "Error: vLLM patch conflicts with this installation; compatibility is unverified." >&2
++    exit 1
+ fi
+\ No newline at end of file
+-- 
+2.55.0.windows.5
+
+
+From bb315443216a7b2d1931a23851203ec5674b8aa3 Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:36:08 +0800
+Subject: [PATCH 3/4] Truncate rewritten tensor partitions including
+ full-buffer outputs
+
+---
+ sllm_store/csrc/checkpoint/aligned_buffer.cpp          |  2 +-
+ sllm_store/tests/{cpp => python}/test_tensor_writer.py | 10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+ rename sllm_store/tests/{cpp => python}/test_tensor_writer.py (86%)
+
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 932ddc9..90c9c6e 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -26,7 +26,7 @@
+ 
+ AlignedBuffer::AlignedBuffer(const std::string& filename)
+     : fd_(-1), buf_size_(kBufferSize), buf_pos_(0), file_offset_(0) {
+-  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_DIRECT, 0644);
++  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_DIRECT, 0644);
+   if (fd_ < 0) {
+     std::cerr << "Failed to open file " << filename << std::endl;
+   }
+diff --git a/sllm_store/tests/cpp/test_tensor_writer.py b/sllm_store/tests/python/test_tensor_writer.py
+similarity index 86%
+rename from sllm_store/tests/cpp/test_tensor_writer.py
+rename to sllm_store/tests/python/test_tensor_writer.py
+index 81c2edb..761cc06 100644
+--- a/sllm_store/tests/cpp/test_tensor_writer.py
++++ b/sllm_store/tests/python/test_tensor_writer.py
+@@ -1,8 +1,8 @@
+ """CPU regression for the official writer; no Torch/CUDA or downloads.
+ 
+-Run: python3 sllm_store/tests/cpp/test_tensor_writer.py
++Run: python3 sllm_store/tests/python/test_tensor_writer.py
+ The partition test copies only the writer sources into a temporary directory
+-and reduces kPartitionMaxSize to 8192 bytes. It is a boundary fixture,
++and reduces kPartitionMaxSize and kBufferSize to 8192 bytes. It is a boundary fixture,
+ not a real 10 GiB partition or model conversion test.
+ """
+ import pathlib
+@@ -23,6 +23,10 @@ class TensorWriterTest(unittest.TestCase):
+             text = header.read_text()
+             self.assertIn("10L << 30", text)
+             header.write_text(text.replace("10L << 30", "8192"))
++            buffer_header = work / "aligned_buffer.h"
++            buffer_text = buffer_header.read_text()
++            self.assertIn("1L << 30", buffer_text)
++            buffer_header.write_text(buffer_text.replace("1L << 30", "8192"))
+             (work / "test.cpp").write_text(r"""
+ #include "tensor_writer.h"
+ #include <cassert>
+@@ -37,7 +41,7 @@ std::vector<char> read(const std::string& path) {
+ }
+ int main(int argc, char** argv) {
+   std::string path = argv[1];
+-  for (size_t size : {3, 4096, 4101}) {
++  for (size_t size : {3, 4096, 4101, 8192, 0}) {
+     { std::ofstream old(path); old << std::string(16384, 'x'); }
+     std::vector<char> data(size, 'a');
+     { AlignedBuffer buffer(path);
+-- 
+2.55.0.windows.5
+
+
+From d9eee8de70badb1570127ca551f22b66ec4a5b30 Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 17:48:33 +0800
+Subject: [PATCH 4/4] Fix vLLM 0.19.1 loader arguments and propagate IPC
+ confirmation errors
+
+---
+ sllm_store/csrc/sllm_store/model.cpp          |  17 ++-
+ sllm_store/sllm_store/client.py               |   5 +-
+ .../tests/python/test_confirm_model_error.py  |  82 ++++++++++++++
+ .../tests/python/test_ipc_close_status.py     | 106 ++++++++++++++++++
+ .../python/test_vllm_loader_interface.py      |  75 +++++++++++++
+ sllm_store/vllm_patch/sllm_load.patch         |  84 +++++++-------
+ 6 files changed, 321 insertions(+), 48 deletions(-)
+ create mode 100644 sllm_store/tests/python/test_confirm_model_error.py
+ create mode 100644 sllm_store/tests/python/test_ipc_close_status.py
+ create mode 100644 sllm_store/tests/python/test_vllm_loader_interface.py
+
+diff --git a/sllm_store/csrc/sllm_store/model.cpp b/sllm_store/csrc/sllm_store/model.cpp
+index 2837962..e9e21c6 100644
+--- a/sllm_store/csrc/sllm_store/model.cpp
++++ b/sllm_store/csrc/sllm_store/model.cpp
+@@ -361,19 +361,28 @@ int Model::ToGpu(
+   } else {
+     gpu_replica->state_ = MemoryState::LOADED;
+   }
+-  gpu_replica->cv_.notify_all();
+-
+-  // TODO: move to background thread
++  bool ipc_close_failed = false;
+   for (auto& [device_id, device_ptr_list] : gpu_replica->device_ptrs_) {
+-    cudaSetDevice(device_id);
++    cudaError_t device_err = cudaSetDevice(device_id);
++    if (device_err != cudaSuccess) {
++      LOG(ERROR) << "Failed to select device for IPC close " << device_id
++                 << " error: " << cudaGetErrorString(device_err);
++      ipc_close_failed = true;
++      continue;
++    }
+     for (auto device_ptr : device_ptr_list) {
+       cudaError_t err = cudaIpcCloseMemHandle(device_ptr);
+       if (err != cudaSuccess) {
+         LOG(ERROR) << "Failed to close memory handle for device " << device_id
+                    << " error: " << cudaGetErrorString(err);
++        ipc_close_failed = true;
+       }
+     }
+   }
++  if (ipc_close_failed) {
++    gpu_replica->state_ = MemoryState::INTERRUPTED;
++  }
++  gpu_replica->cv_.notify_all();
+ 
+   if (gpu_replica->state_ == MemoryState::INTERRUPTED) {
+     LOG(ERROR) << "Model " << model_path_ << " replica " << replica_uuid
+diff --git a/sllm_store/sllm_store/client.py b/sllm_store/sllm_store/client.py
+index 8efead6..fb0d3ae 100644
+--- a/sllm_store/sllm_store/client.py
++++ b/sllm_store/sllm_store/client.py
+@@ -126,10 +126,11 @@ class SllmStoreClient:
+         except grpc.RpcError as e:
+             if e.code() == grpc.StatusCode.CANCELLED:
+                 logger.error("Model not loaded")
+-                return False
+             else:
+                 logger.error(f"Error: {e}")
+-                return False
++            raise RuntimeError(
++                f"Model {model_path} replica {replica_uuid} was not confirmed"
++            ) from e
+ 
+     def register_model(self, model_path) -> int:
+         logger.info(f"register_model: {model_path}")
+diff --git a/sllm_store/tests/python/test_confirm_model_error.py b/sllm_store/tests/python/test_confirm_model_error.py
+new file mode 100644
+index 0000000..adaccb4
+--- /dev/null
++++ b/sllm_store/tests/python/test_confirm_model_error.py
+@@ -0,0 +1,82 @@
++"""ConfirmModel errors must propagate through the public load_dict call."""
++import ast
++import os
++from pathlib import Path
++import types
++from typing import Dict, Optional, Union
++import unittest
++from unittest import mock
++
++
++def extract(source, name):
++    tree = ast.parse(source)
++    node = next(n for n in ast.walk(tree)
++                if isinstance(n, ast.FunctionDef) and n.name == name)
++    return ast.Module(body=[node], type_ignores=[])
++
++
++class RpcError(Exception):
++    def __init__(self, status):
++        super().__init__(status)
++        self.status = status
++
++    def code(self):
++        return self.status
++
++
++class ConfirmModelErrorTest(unittest.TestCase):
++    def setUp(self):
++        root = Path(__file__).resolve().parents[2] / "sllm_store"
++        namespace = {
++            "logger": mock.Mock(),
++            "grpc": types.SimpleNamespace(
++                RpcError=RpcError,
++                StatusCode=types.SimpleNamespace(CANCELLED="cancelled")),
++            "storage_pb2": types.SimpleNamespace(
++                ConfirmModelRequest=mock.Mock(return_value=object()),
++                DeviceType=types.SimpleNamespace(DEVICE_TYPE_GPU=1)),
++        }
++        exec(compile(extract((root / "client.py").read_text(),
++                             "confirm_model_loaded"), "<client>", "exec"),
++             namespace)
++        self.confirm = namespace["confirm_model_loaded"]
++        self.load_node = extract((root / "torch.py").read_text(), "load_dict")
++
++    def client(self, error=None):
++        stub = mock.Mock()
++        stub.ConfirmModel.side_effect = error
++        client = types.SimpleNamespace(stub=stub)
++        client.confirm_model_loaded = types.MethodType(self.confirm, client)
++        return client
++
++    def test_success_contract_is_unchanged(self):
++        client = self.client()
++        self.assertIsNone(client.confirm_model_loaded("component", "replica"))
++        client.stub.ConfirmModel.assert_called_once()
++
++    def test_cancelled_and_internal_preserve_original_error(self):
++        for status in ("cancelled", "internal"):
++            with self.subTest(status=status):
++                error = RpcError(status)
++                with self.assertRaises(RuntimeError) as caught:
++                    self.client(error).confirm_model_loaded("component", "replica")
++                self.assertIs(caught.exception.__cause__, error)
++                self.assertIn("component", str(caught.exception))
++
++    def test_public_load_dict_does_not_return_state_after_failed_confirmation(self):
++        error = RpcError("internal")
++        client = self.client(error)
++        state = object()
++        namespace = {
++            "os": os, "Dict": Dict, "Optional": Optional, "Union": Union,
++            "load_dict_non_blocking": mock.Mock(return_value=("replica", state)),
++            "SllmStoreClient": lambda _: client,
++        }
++        exec(compile(self.load_node, "<torch-load-dict>", "exec"), namespace)
++        with self.assertRaises(RuntimeError) as caught:
++            namespace["load_dict"]("component", {"": 0})
++        self.assertIs(caught.exception.__cause__, error)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/sllm_store/tests/python/test_ipc_close_status.py b/sllm_store/tests/python/test_ipc_close_status.py
+new file mode 100644
+index 0000000..473fe49
+--- /dev/null
++++ b/sllm_store/tests/python/test_ipc_close_status.py
+@@ -0,0 +1,106 @@
++"""CPU control of the actual IPC-close tail; no CUDA linked.
++
++The C++ fixture is reused from the existing Kimi test_ipc_close_patch.py.
++This verifies status/notification behavior, not actual IPC closure or cleanup.
++"""
++import json
++from pathlib import Path
++import shutil
++import subprocess
++import tempfile
++import unittest
++
++PREFIX = r'''
++#include <cstdint>
++#include <iostream>
++#include <map>
++#include <memory>
++#include <sstream>
++#include <string>
++#include <vector>
++enum class MemoryState { LOADING, LOADED, INTERRUPTED };
++std::vector<std::string> events;
++std::vector<int> closed;
++int fail_device=-1, fail_close=-1;
++using cudaError_t=int;
++constexpr int cudaSuccess=0;
++int cudaSetDevice(int d) { events.push_back("device"); return d==fail_device ? 7 : 0; }
++int cudaIpcCloseMemHandle(void* p) {
++  int id=static_cast<int>(reinterpret_cast<uintptr_t>(p));
++  closed.push_back(id); events.push_back("close"); return id==fail_close ? 9 : 0;
++}
++const char* cudaGetErrorString(int) { return "CPU fixture error"; }
++std::ostringstream log_stream;
++#define LOG(level) log_stream
++struct CV {
++  int count=0;
++  void notify_all() { ++count; events.push_back("notify"); }
++};
++struct Replica {
++  MemoryState state_=MemoryState::LOADING;
++  std::map<int,std::vector<void*>> device_ptrs_;
++  CV cv_;
++};
++int complete(bool error, std::shared_ptr<Replica> gpu_replica) {
++  std::string model_path_="fixture", replica_uuid="fixture";
++'''
++
++MAIN = r'''
++int main() {
++  struct Case { const char* name; bool copy_error; int device_error; int close_error; };
++  std::vector<Case> cases={{"success",false,-1,-1},{"close_failure",false,-1,2},
++    {"device_failure",false,0,-1},{"copy_failure",true,-1,-1}};
++  std::cout << "{";
++  bool all=true;
++  for (size_t i=0;i<cases.size();++i) {
++    auto c=cases[i]; events.clear(); closed.clear(); fail_device=c.device_error; fail_close=c.close_error;
++    auto r=std::make_shared<Replica>();
++    r->device_ptrs_={{0,{reinterpret_cast<void*>(1),reinterpret_cast<void*>(2)}},
++                     {1,{reinterpret_cast<void*>(3)}}};
++    int ret=complete(c.copy_error,r);
++    bool failed=c.copy_error || c.device_error>=0 || c.close_error>=0;
++    bool ok=ret==(failed ? -1 : 0) && r->state_==(failed ? MemoryState::INTERRUPTED : MemoryState::LOADED)
++      && r->cv_.count==1;
++    if (CHECK_PATCH_ORDER) ok=ok && !events.empty() && events.back()=="notify"
++      && closed.size()==(c.device_error==0 ? 1U : 3U);
++    all=all && ok;
++    if(i) std::cout << ",";
++    std::cout << "\"" << c.name << "\":" << (ok ? "true" : "false");
++  }
++  std::cout << "}" << std::endl;
++  return all ? 0 : 1;
++}
++'''
++
++class IpcCloseStatusTest(unittest.TestCase):
++    def test_close_status_and_notification_order(self):
++        compiler = shutil.which("g++")
++        self.assertIsNotNone(compiler, "Existing g++ is required for CPU control")
++        path = (Path(__file__).resolve().parents[2]
++                / "csrc/sllm_store/model.cpp")
++        source = path.read_text()
++        marker = source.index("  lock.lock();\n  futures.clear();",
++                              source.index("int Model::ToGpu("))
++        start = source.index("  if (error) {", marker)
++        end = source.index("\nint Model::WaitInHost()", start)
++        with tempfile.TemporaryDirectory(prefix="sllm-ipc-close-") as folder:
++            root = Path(folder)
++            fixture = root / "test.cpp"
++            binary = root / "test"
++            fixture.write_text("constexpr bool CHECK_PATCH_ORDER=true;\n"
++                               + PREFIX + source[start:end] + MAIN)
++            built = subprocess.run(
++                [compiler, "-std=c++17", "-O0", str(fixture), "-o", str(binary)],
++                capture_output=True, text=True, timeout=60)
++            self.assertEqual(built.returncode, 0, built.stderr)
++            result = subprocess.run([str(binary)], capture_output=True,
++                                    text=True, timeout=5)
++            cases = json.loads(result.stdout)
++            self.assertEqual(result.returncode, 0, str(cases) + result.stderr)
++            self.assertEqual(set(cases), {
++                "success", "close_failure", "device_failure", "copy_failure"})
++            self.assertTrue(all(cases.values()), str(cases))
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/sllm_store/tests/python/test_vllm_loader_interface.py b/sllm_store/tests/python/test_vllm_loader_interface.py
+new file mode 100644
+index 0000000..7ca22bf
+--- /dev/null
++++ b/sllm_store/tests/python/test_vllm_loader_interface.py
+@@ -0,0 +1,75 @@
++"""Check loader argument forwarding without importing Torch or vLLM."""
++import ast
++import contextlib
++import os
++import pathlib
++import tempfile
++import types
++import unittest
++from unittest import mock
++
++
++class LoaderInterfaceTest(unittest.TestCase):
++    def test_selected_model_config_and_prefix_reach_initializer(self):
++        patch = (pathlib.Path(__file__).resolve().parents[2]
++                 / "vllm_patch/sllm_load.patch").read_text()
++        marker = "+++ b/vllm/model_executor/model_loader/sllm_loader.py"
++        section = patch.split(marker, 1)[1].split("diff --git ", 1)[0]
++        source = "".join(line[1:] for line in section.splitlines(True)
++                         if line.startswith("+") and not line.startswith("+++"))
++        tree = ast.parse(source)
++        loader = next(node for node in tree.body
++                      if isinstance(node, ast.ClassDef)
++                      and node.name == "ServerlessLLMLoader")
++        method = next(node for node in loader.body
++                      if isinstance(node, ast.FunctionDef)
++                      and node.name == "load_model")
++
++        class ReachedInitializer(Exception):
++            pass
++
++        initialize = mock.Mock(side_effect=ReachedInitializer)
++        dtype_context = mock.Mock(return_value=contextlib.nullcontext())
++        namespace = {
++            "VllmConfig": object, "ModelConfig": object,
++            "nn": types.SimpleNamespace(Module=object), "os": os,
++            "set_default_torch_dtype": dtype_context,
++            "torch": types.SimpleNamespace(
++                device=lambda _: contextlib.nullcontext()),
++            "initialize_model": initialize,
++        }
++        exec(compile(ast.Module(body=[method], type_ignores=[]),
++                     "<official-sllm-loader>", "exec"), namespace)
++        store = types.ModuleType("sllm_store")
++        store.__path__ = []
++        store_torch = types.ModuleType("sllm_store.torch")
++        store_torch.load_dict = mock.Mock(
++            side_effect=AssertionError("Store must not run in this test"))
++        vllm = types.ModuleType("vllm")
++        vllm.__path__ = []
++        distributed = types.ModuleType("vllm.distributed")
++        distributed.get_tensor_model_parallel_rank = lambda: 0
++        modules = {"sllm_store": store, "sllm_store.torch": store_torch,
++                   "vllm": vllm, "vllm.distributed": distributed}
++        with tempfile.TemporaryDirectory(prefix="sllm-loader-api-") as folder:
++            selected = types.SimpleNamespace(model=folder, dtype=object())
++            fallback = types.SimpleNamespace(
++                model=os.path.join(folder, "must-not-use-fallback"),
++                dtype="must-not-use-fallback")
++            config = types.SimpleNamespace(model_config=fallback)
++            with mock.patch.dict("sys.modules", modules):
++                with mock.patch.object(os.path, "join", wraps=os.path.join) as join:
++                    with self.assertRaises(ReachedInitializer):
++                        namespace["load_model"](
++                            object(), vllm_config=config,
++                            model_config=selected, prefix="selected_prefix")
++                join.assert_any_call(selected.model, "rank_0")
++            initialize.assert_called_once_with(
++                vllm_config=config, model_config=selected,
++                prefix="selected_prefix")
++            dtype_context.assert_called_once_with(selected.dtype)
++            store_torch.load_dict.assert_not_called()
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/sllm_store/vllm_patch/sllm_load.patch b/sllm_store/vllm_patch/sllm_load.patch
+index 8bdaef0..ddbef72 100644
+--- a/sllm_store/vllm_patch/sllm_load.patch
++++ b/sllm_store/vllm_patch/sllm_load.patch
+@@ -1,8 +1,7 @@
+ diff --git a/vllm/model_executor/model_loader/__init__.py b/vllm/model_executor/model_loader/__init__.py
+-index 301f2d00b..e3aa40da1 100644
+ --- a/vllm/model_executor/model_loader/__init__.py
+ +++ b/vllm/model_executor/model_loader/__init__.py
+-@@ -18,6 +18,7 @@ from vllm.model_executor.model_loader.runai_streamer_loader import (
++@@ -18,6 +18,7 @@
+  )
+  from vllm.model_executor.model_loader.sharded_state_loader import ShardedStateLoader
+  from vllm.model_executor.model_loader.tensorizer_loader import TensorizerLoader
+@@ -10,7 +9,7 @@ index 301f2d00b..e3aa40da1 100644
+  from vllm.model_executor.model_loader.utils import (
+      get_architecture_class_name,
+      get_model_architecture,
+-@@ -42,6 +43,7 @@ LoadFormats = Literal[
++@@ -44,6 +45,7 @@
+      "safetensors",
+      "sharded_state",
+      "tensorizer",
+@@ -18,7 +17,7 @@ index 301f2d00b..e3aa40da1 100644
+  ]
+  _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
+      "auto": DefaultModelLoader,
+-@@ -57,6 +59,7 @@ _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
++@@ -61,6 +63,7 @@
+      "safetensors": DefaultModelLoader,
+      "sharded_state": ShardedStateLoader,
+      "tensorizer": TensorizerLoader,
+@@ -28,17 +27,17 @@ index 301f2d00b..e3aa40da1 100644
+  
+ diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_executor/model_loader/sllm_loader.py
+ new file mode 100644
+-index 000000000..c65b46989
+ --- /dev/null
+ +++ b/vllm/model_executor/model_loader/sllm_loader.py
+-@@ -0,0 +1,150 @@
++@@ -0,0 +1,160 @@
+ +import torch
+ +from torch import nn
+ +import collections
+ +import os
+ +import gc
+ +from typing import Dict, Optional
+-+from vllm.config import LoadConfig, VllmConfig, ModelConfig
+++from vllm.config import VllmConfig, ModelConfig
+++from vllm.config.load import LoadConfig
+ +from vllm.model_executor.model_loader.base_loader import BaseModelLoader
+ +from vllm.model_executor.model_loader.utils import (
+ +    initialize_model)
+@@ -92,15 +91,20 @@ index 000000000..c65b46989
+ +                    result[k] = t
+ +        return result
+ +        
+-+    def load_model(self, *, vllm_config: VllmConfig, **kwargs) -> nn.Module:
+++    def load_model(
+++        self,
+++        vllm_config: VllmConfig,
+++        model_config: ModelConfig,
+++        prefix: str = "",
+++    ) -> nn.Module:
+ +        from sllm_store.torch import load_dict
+ +        from vllm.distributed import get_tensor_model_parallel_rank
+ +        
+-+        assert os.path.isdir(vllm_config.model_config.model)
+++        assert os.path.isdir(model_config.model)
+ +        
+ +        rank = get_tensor_model_parallel_rank()
+ +
+-+        local_model_path = vllm_config.model_config.model
+++        local_model_path = model_config.model
+ +        local_model_path = os.path.join(local_model_path, f"rank_{rank}")
+ +
+ +        def remove_prefix(path, prefix):
+@@ -121,10 +125,14 @@ index 000000000..c65b46989
+ +        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
+ +        model_path = remove_prefix(local_model_path, storage_path)
+ +        
+-+        with set_default_torch_dtype(vllm_config.model_config.dtype):
+++        with set_default_torch_dtype(model_config.dtype):
+ +            # with torch.device(device_config.device):
+ +            with torch.device("cpu"):
+-+                model = initialize_model(vllm_config=vllm_config)
+++                model = initialize_model(
+++                    vllm_config=vllm_config,
+++                    model_config=model_config,
+++                    prefix=prefix,
+++                )
+ +                model = model.eval()
+ +            # set all parameters to meta device
+ +            state_dict = self._filter_subtensors(model.state_dict())
+@@ -183,10 +191,9 @@ index 000000000..c65b46989
+ +            os.makedirs(save_path)
+ +        save_dict(state_dict, save_path)
+ diff --git a/vllm/v1/engine/core.py b/vllm/v1/engine/core.py
+-index d49eb752d..87bca1fc7 100644
+ --- a/vllm/v1/engine/core.py
+ +++ b/vllm/v1/engine/core.py
+-@@ -516,6 +516,17 @@ class EngineCore:
++@@ -725,6 +725,17 @@
+              path=path, pattern=pattern, max_size=max_size
+          )
+  
+@@ -205,10 +212,9 @@ index d49eb752d..87bca1fc7 100644
+          self,
+          method: str | Callable[..., _R],
+ diff --git a/vllm/v1/engine/core_client.py b/vllm/v1/engine/core_client.py
+-index 9b440505b..2ba5934ef 100644
+ --- a/vllm/v1/engine/core_client.py
+ +++ b/vllm/v1/engine/core_client.py
+-@@ -176,6 +176,14 @@ class EngineCoreClient(ABC):
++@@ -190,6 +190,14 @@
+      ) -> None:
+          raise NotImplementedError
+  
+@@ -223,7 +229,7 @@ index 9b440505b..2ba5934ef 100644
+      def collective_rpc(
+          self,
+          method: str | Callable[..., _R],
+-@@ -792,6 +800,14 @@ class SyncMPClient(MPClient):
++@@ -870,6 +878,14 @@
+      ) -> None:
+          self.call_utility("save_sharded_state", path, pattern, max_size)
+  
+@@ -238,10 +244,11 @@ index 9b440505b..2ba5934ef 100644
+  
+  class AsyncMPClient(MPClient):
+      """Asyncio-compatible client for multi-proc EngineCore."""
+-@@ -987,6 +1003,16 @@ class AsyncMPClient(MPClient):
++@@ -1108,6 +1124,16 @@
++         self, path: str, pattern: str | None = None, max_size: int | None = None
+      ) -> None:
+          await self.call_utility_async("save_sharded_state", path, pattern, max_size)
+- 
+++
+ +    async def save_serverless_llm_state_async(
+ +                                        self,
+ +                                        path: str,
+@@ -251,18 +258,18 @@ index 9b440505b..2ba5934ef 100644
+ +        await self.call_utility_async("save_serverless_llm_state", path, pattern, 
+ +                                      max_size)
+ +
+-+
++ 
+      async def collective_rpc_async(
+          self,
+-         method: str | Callable[..., _R],
+ diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
+-index db8303fce..be0c4e034 100644
+ --- a/vllm/v1/executor/abstract.py
+ +++ b/vllm/v1/executor/abstract.py
+-@@ -250,6 +250,18 @@ class Executor(ABC):
++@@ -258,6 +258,18 @@
++         self.collective_rpc(
++             "save_sharded_state",
+              kwargs=dict(path=path, pattern=pattern, max_size=max_size),
+-         )
+- 
+++        )
+++
+ +    def save_serverless_llm_state(
+ +        self,
+ +        path: str,
+@@ -273,18 +280,15 @@ index db8303fce..be0c4e034 100644
+ +        self.collective_rpc(
+ +            "save_serverless_llm_state",
+ +            kwargs=dict(path=path, pattern=pattern, max_size=max_size)
+-+        )
+-+
++         )
++ 
+      @abstractmethod
+-     def check_health(self) -> None:
+-         """Checks if the executor is healthy. If not, it should raise an
+ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
+-index 156294693..153613c93 100644
+ --- a/vllm/v1/worker/gpu_model_runner.py
+ +++ b/vllm/v1/worker/gpu_model_runner.py
+-@@ -3438,6 +3438,20 @@ class GPUModelRunner(
+-             model_config=self.model_config,
+-         )
++@@ -4990,6 +4990,20 @@
++                     weights_not_loaded,
++                 )
+  
+ +    def save_serverless_llm_state(
+ +        self,
+@@ -304,12 +308,11 @@ index 156294693..153613c93 100644
+          self,
+          hidden_states: torch.Tensor,
+ diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+-index 52f84ddbf..0776e3f19 100644
+ --- a/vllm/v1/worker/gpu_worker.py
+ +++ b/vllm/v1/worker/gpu_worker.py
+-@@ -851,6 +851,18 @@ class Worker(WorkerBase):
+-             pattern=pattern,
+-             max_size=max_size,
++@@ -827,6 +827,18 @@
++             all_gather_group=get_tp_group(),
++             all_gather_tensors=all_gather_tensors,
+          )
+ +        
+ +    def save_serverless_llm_state(
+@@ -324,8 +327,5 @@ index 52f84ddbf..0776e3f19 100644
+ +            max_size=max_size,
+ +        )
+  
+-     def save_tensorized_model(
+-         self,
+--- 
+-2.43.0
+-
++         return None
++ 
+-- 
+2.55.0.windows.5
+
