@@ -20,6 +20,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 
@@ -35,7 +36,14 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
 AlignedBuffer::~AlignedBuffer() {
   // if the buffer is not written to file, write it to file
   if (buffer_ && buf_pos_) {
-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
+    size_t aligned_size = (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
+    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
+    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
+        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
+      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
+                << std::endl;
+      std::abort();
+    }
   }
   if (buffer_) {
     free(buffer_);

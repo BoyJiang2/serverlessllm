@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
 uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
     // create a new partition
+    if (partition_idx_ != -1) {
+      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
+    }
     partition_idx_++;
     partition_size_ = 0;
     std::string partition_filename =
