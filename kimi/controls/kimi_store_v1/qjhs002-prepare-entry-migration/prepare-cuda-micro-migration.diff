@@ -1,0 +1,42 @@
+--- historical/prepare_cuda_micro.py
++++ sllm_store/tests/prepare_cuda_micro.py
+@@ -1,25 +1,32 @@
+ """Prepare, but do not start, the reviewed one-MiB CUDA probe container."""
+-import hashlib,json,pathlib,subprocess,sys
+-root=pathlib.Path('/data/brick1/boyjiang/ServerlessLLM')
++import argparse,hashlib,json,pathlib,subprocess
++parser=argparse.ArgumentParser(description=__doc__)
++parser.add_argument("--pids-limit",type=int,default=128)
++parser.add_argument("sources",nargs=2)
++args=parser.parse_args()
++if args.pids_limit<=0:
++    parser.error("--pids-limit must be a positive integer")
++root=pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
+ p0=pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')
+ image='sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
+ uuid='GPU-736d7f37-f647-b82d-ab11-693753ac6822'
+-nonce='cuda-micro-20261103-2045'
++nonce='cuda-micro-pids512-20261104'
+ assert subprocess.check_output(['hostname'],text=True).strip()=='qjhs2'
+-assert subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()=='00097eaafd60dbae262a954a29863b5c633aade9'
++source_commit=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
+ directory=p0/nonce;directory.mkdir()
+ sources={}
+-for filename in sys.argv[1:]:
++for filename in args.sources:
+     path=p0/filename
+     assert path.parent==p0 and path.is_file() and not path.is_symlink()
+     sources[filename]=hashlib.sha256(path.read_bytes()).hexdigest()
+ assert len(sources)==2
+ probe=next(p0/name for name in sources if name.startswith('cuda-micro-probe-'))
+-command=['/usr/bin/docker','--host','unix:///var/run/docker.sock','create','--name','kimi-'+nonce,'--runtime=nvidia','--gpus','device='+uuid,'--restart=no','--network=none','--user','2147:2147','--cpus=1','--memory=2g','--memory-swap=2g','--pids-limit=128','--ulimit','core=0','--read-only','--tmpfs','/tmp:rw,exec,size=64m','--env','OMP_NUM_THREADS=1','--env','MKL_NUM_THREADS=1','--env','OPENBLAS_NUM_THREADS=1','--env','NVIDIA_DRIVER_CAPABILITIES=compute,utility','--label','sllm.kimi.run='+nonce,'--mount','type=bind,src='+str(probe)+',dst=/probe.py,readonly','--entrypoint','/usr/bin/timeout',image,'--signal=TERM','--kill-after=5','45','/usr/bin/python3','-I','/probe.py']
++command=['/usr/bin/docker','--host','unix:///var/run/docker.sock','create','--name','kimi-'+nonce,'--runtime=nvidia','--gpus','device='+uuid,'--restart=no','--network=none','--user','2147:2147','--cpus=1','--memory=2g','--memory-swap=2g','--pids-limit='+str(args.pids_limit),'--ulimit','core=0','--read-only','--tmpfs','/tmp:rw,exec,size=64m','--env','OMP_NUM_THREADS=1','--env','MKL_NUM_THREADS=1','--env','OPENBLAS_NUM_THREADS=1','--env','NVIDIA_DRIVER_CAPABILITIES=compute,utility','--label','sllm.kimi.run='+nonce,'--mount','type=bind,src='+str(probe)+',dst=/probe.py,readonly','--entrypoint','/usr/bin/timeout',image,'--signal=TERM','--kill-after=5','45','/usr/bin/python3','-I','/probe.py']
+ cid=subprocess.check_output(command,text=True).strip()
+ row=json.loads(subprocess.check_output(['/usr/bin/docker','--host','unix:///var/run/docker.sock','inspect',cid],text=True))[0]
+ assert row['Id']==cid and row['Image']==image and not row['State']['Running']
++assert row['HostConfig']['PidsLimit']==args.pids_limit
+ (directory/'container-before.json').write_text(json.dumps(row,indent=2))
+-receipt={'nonce':nonce,'cid':cid,'image':image,'gpu_uuid':uuid,'command':command,'source_commit':'00097eaafd60dbae262a954a29863b5c633aade9','script_sha256':sources,'scope':'one MiB CUDA arithmetic only; no model/Store/vLLM','budget_seconds':180,'inner_timeout_seconds':45,'inner_kill_after_seconds':5,'guard_deadline_seconds':25,'failure_cleanup_until_guard_deadline_plus_seconds':25,'systemd_runtime_max_seconds':65,'release_observation_min_seconds':60,'gpu_stop_threshold_mib':2048,'threshold_is_hard_allocation_cap':False}
++receipt={'nonce':nonce,'cid':cid,'image':image,'gpu_uuid':uuid,'command':command,'source_commit':source_commit,'pids_limit':args.pids_limit,'script_sha256':sources,'scope':'one MiB CUDA arithmetic only; no model/Store/vLLM','budget_seconds':180,'inner_timeout_seconds':45,'inner_kill_after_seconds':5,'guard_deadline_seconds':25,'failure_cleanup_until_guard_deadline_plus_seconds':25,'systemd_runtime_max_seconds':65,'release_observation_min_seconds':60,'gpu_stop_threshold_mib':2048,'threshold_is_hard_allocation_cap':False}
+ (directory/'prepared.json').write_text(json.dumps(receipt,indent=2))
+ print(json.dumps(receipt,indent=2))

@@ -307,3 +307,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 该路径是initial charging task/目标cgroup，不识别实际limiting ancestor；首个event打印一次不等于只拒绝一次。与同CID启动窗口hook pthread EAGAIN强关联，但kernel无PID/TID，具体hookthread、local128还是ancestor拒绝、任务数和压力来源仍未知；upstream5.15与Ubuntu补丁差异未核，不由当前CPU控制或ancestor快照追认历史。至少一次原始PID-controller拒绝已确证，不等于完整GPU故障根因闭环，更不授权调限或GPU重试。
 
 source dd4b60b、新根唯一、GPU FAILED_RETAINED/no-retry、GLM35/5/goal不变。本轮只归档五个指定小文件，不打包大booking或其他并发证据，不运行新计算。
+
+## 用户批准现有 prepare 入口迁入 active root（2026-11-04，源码已发布）
+
+`qjhs002-prepare-entry-migration/` 保留最小迁移、4项offline回归及独立source-scope PASS。active新root仅stage并提交 `sllm_store/tests/prepare_cuda_micro.py` 与 `sllm_store/tests/python/test_prepare_cuda_micro.py`，source=`e4da57ec70f1259f4f5a5aa2e13670f801c44f8f`（parent dd4b60b），GitHub sourcebranch已non-force推送并核SHA，服务器tracking ref以CAS同步。两项glog未stage，本地证据repo用户AGENTS不stage。
+
+entry SHA=f99229c338a240b7a5f78dd1d635004038414c4763f082ad73938280ab2e1c29，test SHA=adb6fa18f07425776d6f5e3bec78c158e737a2c4856e54ee06c1f5c0deac3274；本机取得已提交对象再次核相同。最小改动为单PID参数(default128/显式512)、新root/actual source/newnonce/inspect PID一致性；4offline tests/0.012s通过，未创建容器。历史入口/prepared/FAILED_RETAINED原样并记录SHA，不因本次迁移覆盖。
+
+native-scope deadline review仅source-only附录，181KB输入仅记SHA不重复打包；预算/guard字段是声明，不等于guard已通过或运行准入。当前唯一新根、原版旧根/GPUstop/no-retry/GLM35/5/goal保持；未新跑GPU/runc fixture或修改依赖。
