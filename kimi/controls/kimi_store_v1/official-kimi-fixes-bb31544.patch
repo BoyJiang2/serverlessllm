@@ -1,0 +1,293 @@
+From ab3eb90ffe197002d75aae5e0057a235db60282d Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:17:28 +0800
+Subject: [PATCH 1/3] Fix aligned tensor tail persistence and partition offsets
+
+---
+ sllm_store/csrc/checkpoint/aligned_buffer.cpp | 10 ++-
+ sllm_store/csrc/checkpoint/tensor_writer.cpp  |  3 +
+ sllm_store/tests/cpp/test_tensor_writer.py    | 70 +++++++++++++++++++
+ 3 files changed, 82 insertions(+), 1 deletion(-)
+ create mode 100644 sllm_store/tests/cpp/test_tensor_writer.py
+
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 4b93340..932ddc9 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -20,6 +20,7 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ 
++#include <cstdlib>
+ #include <cstring>
+ #include <iostream>
+ 
+@@ -35,7 +36,14 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
+ AlignedBuffer::~AlignedBuffer() {
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
++    size_t aligned_size = (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
++    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
++    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
++        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
++      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
++                << std::endl;
++      std::abort();
++    }
+   }
+   if (buffer_) {
+     free(buffer_);
+diff --git a/sllm_store/csrc/checkpoint/tensor_writer.cpp b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+index 46eb304..ad84009 100644
+--- a/sllm_store/csrc/checkpoint/tensor_writer.cpp
++++ b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
+ uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
++    if (partition_idx_ != -1) {
++      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
++    }
+     partition_idx_++;
+     partition_size_ = 0;
+     std::string partition_filename =
+diff --git a/sllm_store/tests/cpp/test_tensor_writer.py b/sllm_store/tests/cpp/test_tensor_writer.py
+new file mode 100644
+index 0000000..81c2edb
+--- /dev/null
++++ b/sllm_store/tests/cpp/test_tensor_writer.py
+@@ -0,0 +1,70 @@
++"""CPU regression for the official writer; no Torch/CUDA or downloads.
++
++Run: python3 sllm_store/tests/cpp/test_tensor_writer.py
++The partition test copies only the writer sources into a temporary directory
++and reduces kPartitionMaxSize to 8192 bytes. It is a boundary fixture,
++not a real 10 GiB partition or model conversion test.
++"""
++import pathlib
++import subprocess
++import tempfile
++import unittest
++
++
++class TensorWriterTest(unittest.TestCase):
++    def test_tail_and_partition_offsets(self):
++        root = pathlib.Path(__file__).resolve().parents[2] / "csrc/checkpoint"
++        with tempfile.TemporaryDirectory(prefix="sllm-writer-test-") as directory:
++            work = pathlib.Path(directory)
++            for name in ("aligned_buffer.cpp", "aligned_buffer.h",
++                         "tensor_writer.cpp", "tensor_writer.h"):
++                (work / name).write_bytes((root / name).read_bytes())
++            header = work / "tensor_writer.h"
++            text = header.read_text()
++            self.assertIn("10L << 30", text)
++            header.write_text(text.replace("10L << 30", "8192"))
++            (work / "test.cpp").write_text(r"""
++#include "tensor_writer.h"
++#include <cassert>
++#include <algorithm>
++#include <filesystem>
++#include <fstream>
++#include <vector>
++
++std::vector<char> read(const std::string& path) {
++  std::ifstream file(path, std::ios::binary);
++  return std::vector<char>(std::istreambuf_iterator<char>(file), {});
++}
++int main(int argc, char** argv) {
++  std::string path = argv[1];
++  for (size_t size : {3, 4096, 4101}) {
++    { std::ofstream old(path); old << std::string(16384, 'x'); }
++    std::vector<char> data(size, 'a');
++    { AlignedBuffer buffer(path);
++      assert(buffer.writeData(data.data(), size) == size); }
++    auto actual = read(path);
++    size_t padded = (size + 4095) / 4096 * 4096;
++    assert(actual.size() == padded);
++    assert(std::equal(data.begin(), data.end(), actual.begin()));
++    for (size_t i = size; i < padded; ++i) assert(actual[i] == 0);
++  }
++  std::vector<char> first(4097, 'b'), second(4097, 'c');
++  { TensorWriter writer(path + ".tensor");
++    assert(writer.writeRecord(first.data(), first.size()) == 0);
++    assert(writer.writeRecord(second.data(), second.size()) == 8192); }
++  auto a = read(path + ".tensor_0"), b = read(path + ".tensor_1");
++  assert(a.size() == 8192 && b.size() == 8192);
++  assert(std::equal(first.begin(), first.end(), a.begin()));
++  assert(std::equal(second.begin(), second.end(), b.begin()));
++}
++""")
++            subprocess.run(["g++", "-std=c++17", str(work / "test.cpp"),
++                            str(work / "aligned_buffer.cpp"),
++                            str(work / "tensor_writer.cpp"), "-o",
++                            str(work / "test")], check=True, timeout=30)
++            subprocess.run([str(work / "test"), str(work / "payload")],
++                           check=True, timeout=10)
++
++
++if __name__ == "__main__":
++    unittest.main()
+-- 
+2.34.1
+
+
+From 398058769c697e7930a7768eca17067481eeef89 Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:28:09 +0800
+Subject: [PATCH 2/3] Distinguish unapplied applied and conflicting vLLM
+ patches
+
+---
+ .../tests/python/test_vllm_patch_status.py    | 48 +++++++++++++++++++
+ sllm_store/vllm_patch/patch.sh                |  9 ++--
+ 2 files changed, 54 insertions(+), 3 deletions(-)
+ create mode 100644 sllm_store/tests/python/test_vllm_patch_status.py
+
+diff --git a/sllm_store/tests/python/test_vllm_patch_status.py b/sllm_store/tests/python/test_vllm_patch_status.py
+new file mode 100644
+index 0000000..9f03bc4
+--- /dev/null
++++ b/sllm_store/tests/python/test_vllm_patch_status.py
+@@ -0,0 +1,48 @@
++"""Exercise patch status with real patch(1), without importing vLLM."""
++import os
++import pathlib
++import subprocess
++import tempfile
++import unittest
++
++
++class PatchStatusTest(unittest.TestCase):
++    def test_unapplied_applied_and_conflict(self):
++        script = pathlib.Path(__file__).resolve().parents[2] / "vllm_patch/patch.sh"
++        with tempfile.TemporaryDirectory(prefix="sllm-patch-test-") as directory:
++            work = pathlib.Path(directory)
++            target = work / "package"
++            target.mkdir()
++            (work / "patch.sh").write_bytes(script.read_bytes())
++            (work / "sllm_load.patch").write_text(
++                "--- a/vllm/item.txt\n+++ b/vllm/item.txt\n"
++                "@@ -1 +1 @@\n-old\n+new\n")
++            python = work / "python"
++            python.write_text("#!/bin/sh\nprintf '%s\\n' '" + str(target) + "'\n")
++            python.chmod(0o700)
++            environment = dict(os.environ, PATH=str(work) + ":" + os.environ["PATH"])
++
++            def run():
++                return subprocess.run(["bash", str(work / "patch.sh")],
++                                      env=environment, capture_output=True,
++                                      text=True, timeout=10)
++
++            item = target / "item.txt"
++            item.write_text("old\n")
++            first = run()
++            self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
++            self.assertEqual(item.read_text(), "new\n")
++            second = run()
++            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
++            self.assertIn("already been applied", second.stdout)
++            self.assertEqual(item.read_text(), "new\n")
++            item.write_text("foreign\n")
++            conflict = run()
++            self.assertNotEqual(conflict.returncode, 0)
++            self.assertIn("conflicts", conflict.stderr)
++            self.assertNotIn("already been applied", conflict.stdout)
++            self.assertEqual(item.read_text(), "foreign\n")
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/sllm_store/vllm_patch/patch.sh b/sllm_store/vllm_patch/patch.sh
+index c3a2166..7f10cc9 100755
+--- a/sllm_store/vllm_patch/patch.sh
++++ b/sllm_store/vllm_patch/patch.sh
+@@ -41,11 +41,14 @@ if [ ! -d "$VLLM_PATH" ]; then
+ fi
+ 
+ # Attempt a dry run of the patch to check if it's already applied
+-if patch -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
++if patch --batch --forward --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch is not applied. Applying the patch now..."
+     # Apply the patch
+-    patch -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
++    patch --batch --forward --fuzz=0 -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
+     echo "Patch applied successfully."
+-else
++elif patch --batch --force -R --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch has already been applied. Skipping..."
++else
++    echo "Error: vLLM patch conflicts with this installation; compatibility is unverified." >&2
++    exit 1
+ fi
+\ No newline at end of file
+-- 
+2.34.1
+
+
+From bb315443216a7b2d1931a23851203ec5674b8aa3 Mon Sep 17 00:00:00 2001
+From: Boy Jiang <2352027372@qq.com>
+Date: Tue, 3 Nov 2026 16:36:08 +0800
+Subject: [PATCH 3/3] Truncate rewritten tensor partitions including
+ full-buffer outputs
+
+---
+ sllm_store/csrc/checkpoint/aligned_buffer.cpp          |  2 +-
+ sllm_store/tests/{cpp => python}/test_tensor_writer.py | 10 +++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+ rename sllm_store/tests/{cpp => python}/test_tensor_writer.py (86%)
+
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 932ddc9..90c9c6e 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -26,7 +26,7 @@
+ 
+ AlignedBuffer::AlignedBuffer(const std::string& filename)
+     : fd_(-1), buf_size_(kBufferSize), buf_pos_(0), file_offset_(0) {
+-  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_DIRECT, 0644);
++  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_DIRECT, 0644);
+   if (fd_ < 0) {
+     std::cerr << "Failed to open file " << filename << std::endl;
+   }
+diff --git a/sllm_store/tests/cpp/test_tensor_writer.py b/sllm_store/tests/python/test_tensor_writer.py
+similarity index 86%
+rename from sllm_store/tests/cpp/test_tensor_writer.py
+rename to sllm_store/tests/python/test_tensor_writer.py
+index 81c2edb..761cc06 100644
+--- a/sllm_store/tests/cpp/test_tensor_writer.py
++++ b/sllm_store/tests/python/test_tensor_writer.py
+@@ -1,8 +1,8 @@
+ """CPU regression for the official writer; no Torch/CUDA or downloads.
+ 
+-Run: python3 sllm_store/tests/cpp/test_tensor_writer.py
++Run: python3 sllm_store/tests/python/test_tensor_writer.py
+ The partition test copies only the writer sources into a temporary directory
+-and reduces kPartitionMaxSize to 8192 bytes. It is a boundary fixture,
++and reduces kPartitionMaxSize and kBufferSize to 8192 bytes. It is a boundary fixture,
+ not a real 10 GiB partition or model conversion test.
+ """
+ import pathlib
+@@ -23,6 +23,10 @@ class TensorWriterTest(unittest.TestCase):
+             text = header.read_text()
+             self.assertIn("10L << 30", text)
+             header.write_text(text.replace("10L << 30", "8192"))
++            buffer_header = work / "aligned_buffer.h"
++            buffer_text = buffer_header.read_text()
++            self.assertIn("1L << 30", buffer_text)
++            buffer_header.write_text(buffer_text.replace("1L << 30", "8192"))
+             (work / "test.cpp").write_text(r"""
+ #include "tensor_writer.h"
+ #include <cassert>
+@@ -37,7 +41,7 @@ std::vector<char> read(const std::string& path) {
+ }
+ int main(int argc, char** argv) {
+   std::string path = argv[1];
+-  for (size_t size : {3, 4096, 4101}) {
++  for (size_t size : {3, 4096, 4101, 8192, 0}) {
+     { std::ofstream old(path); old << std::string(16384, 'x'); }
+     std::vector<char> data(size, 'a');
+     { AlignedBuffer buffer(path);
+-- 
+2.34.1
+

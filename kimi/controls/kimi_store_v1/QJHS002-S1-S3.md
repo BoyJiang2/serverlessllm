@@ -64,3 +64,19 @@
 在002执行回归1 test OK（0.873秒）；git diff --check通过。服务器源码commit=ab3eb90ffe197002d75aae5e0057a235db60282d，父基线9f50241；proto类型T仍未纳入提交，未回滚。当前未重编译扩展、未部署运行或独立GPU审阅。小型源码patch已保存official-aligned-tail-ab3eb90.patch。
 
 本地从002现有仓库fetch单个提交用于发布（对象包约6.13MiB，无新checkout）。多次将源码commit发布到用户GitHub refs/heads/kimi-qjhs002-aligned-tail返回HTTP408，远端未返回该ref；源码分支推送尚未核验成功，不能称已同步。原审计main的2e4e43247a6c3f890b9b3b0fe17547c0695b4ff6随后push及ls-remote均已核验。此次保留服务器/本地源码提交及可复查patch，后续继续发布，不force-push。
+
+## S3三态修复、独立审阅与整buffer覆盖补缺
+
+已读最新用户指定AGENTS.md并原样复制到当前工作目录AGENTS.md，双端SHA256一致，未修改源仓库中用户的未提交AGENTS.md。
+
+旧版本证据已从官方Git历史定位：7b3afd7为“Update vllm version to 0.9.0.1 and support v1 engine (#263)”，旧docs/stable/store/rocm_quickstart.md含0.9.0.1运行日志；ce354fd4d3a2f6117ffffc49dffe3cca11d6bbde将官方补丁升级0.11.2；9f50241当前quickstart明确测试0.11.2。Kimi snapshot指南另明确推荐0.19.1，因此不据旧说明降级。
+
+官方patch.sh现已修正：正向--forward --fuzz=0干跑成功才实际应用同样严格补丁；反向--force -R --fuzz=0干跑成功才报已应用；两者失败明确冲突退出1。commit398058769c697e7930a7768eca17067481eeef89。新tests/python/test_vllm_patch_status.py用真实patch(1)+小文本夹具验证未应用/已应用/冲突三态，1test OK 0.017s；只对fixture伪造包发现，不导入/修改环境。真实0.19.1 wheel源码子集上新script rc1、source_unchanged=true、false_already_applied=false，输出见qjhs002-strict-script-wheel-result.json。尚未修改实际vLLM安装树或宣称runtime兼容。
+
+用户明确允许多subagent后启动三个只读任务：官方修复独立审阅、0.19.1接口核对、S4a官方组件路径。writer首审NEEDS_FIX：恰好写满buffer时buf_pos_=0使旧长文件未截断。保持原失败不抹去，用临时kBufferSize=8192夹具先实际复现SIGABRT（见qjhs002-writer-full-buffer-negative.txt），再在官方AlignedBuffer constructor加O_TRUNC。唯一生产调用为TensorWriter完整重写分片，未发现append消费者。新增case8192及0，测试移入既有tests/python，不变生产常量。主线程实际unittest discover 1test OK 0.831s、diffcheck通过；新commit bb315443216a7b2d1931a23851203ec5674b8aa3。独立agent review_official_fixes限定复审PASS_SOURCE_ONLY，绑定该SHA，未执行测试/未授GPU批准。旧NEEDS_FIX保留。源码三提交系列保存在official-kimi-fixes-bb31544.patch，不含权重/环境。
+
+官方CLI早已通过llm_engine.engine_core保存，现有test_save_vllm_model.py集成测试也是此路径；只有examples/save_vllm_model.py仍访问model_executor。选择复用CLI，不另修示例或新建转换入口；尚未运行GPU集成测试或完整模型。
+
+用户再次明确授权002 GPU计算，16:31 fresh API核boyjiang预约仍到20:00+08；nvidia-smi显示8×H20-3e各143771MiB，均0占用/0利用率、无compute-apps；主机available约2013882548224B。此为当时资源快照，非后续运行gate。
+
+镜像迁移exec39425仍存活、尚未目标归档字节；源Docker导出进程和目标load进程可见，源磁盘用量增长不单独证明本任务进度。保留同一会话，未重启迁移。Github审计main d1bda621906c9312c958124463cc03efe70f1cca已实际核验。源码分支发布仍HTTP408（一次--progress记录4.39MiB pack、84–369KiB/s后断连）；未把失败称成功，服务器/本地源码提交及小型patch均保留。S1实际执行环境、S2符号链接变化原因、S3运行兼容、S4a官方读回与全部S4b仍未闭环。

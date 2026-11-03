@@ -1,0 +1,8 @@
+Main-thread tool transcript excerpt, not a raw stderr file.
+Command: python3 sllm_store/tests/python/test_tensor_writer.py
+Source: before O_TRUNC fix; fixture buffer reduced to 8192.
+Observed exit_code: 1.
+test: /tmp/sllm-writer-test-8fkhjbg5/test.cpp:22: int main(int, char**): Assertion `actual.size() == padded' failed.
+unittest result: FAILED (errors=1), 1 test, 0.981s.
+subprocess.CalledProcessError: test process died with Signals.SIGABRT: 6.
+The original stderr is retained in this chat tool result. The attempted Tee-Object did not create a file because output arrived on stderr.
