@@ -189,3 +189,19 @@ S4a/S4b、完整模型转换、真实 Store 读回、GPU/TP8/八 rank 及原生�
 归档脚本上的纯 stdlib 回归实际 rc0：guard 四例（超阈值、外来 graphics PID、查询超时、start timeout 后延迟启动）；组件 cleanup 为1 test/10 subcases。完整小 stdout/stderr 保留。review_s4a_component 对实际组件 provenance/header/cleanup 复审通过；CPU stub/AST 回归不证明 GPU release、Store 完整读回或模型通过。
 
 准备脚本仍固定 nonce/UUID/源码及镜像，且要求两个源文件置于 p0 根目录、probe 文件名以 cuda-micro-probe- 开头；本里程碑归档路径不等于部署路径，不自动满足该准备合同。具体限制见 REVIEW-SCOPE.md；任何 GPU 微探针或 S4a 仍须独立准入、完整释放观察，不复用此提交作运行批准。
+
+## 002 CUDA 微探针 FAILED_RETAINED（2026-11-03，停止 GPU 升级）
+
+归档 `qjhs002-cuda-micro-failed-retained-20261103/` 保留该正式失败及释放观察，绝不称 GPU 通过、不以重试替换证据。180秒完整计划预算已超限，未进入 Python，CUDA compute/model/Store 均未通过。
+
+| 时间/阶段（+08） | 实际结果 |
+| --- | --- |
+| 20:49:06 | guard ready；GPU 0MiB、无进程 |
+| start/cleanup | start 4秒超时，随后 inspect 反复4秒超时，Docker guard 未能在完整预算内完成释放 |
+| root 精确清理 | 仅身份 pin 的 runc PID1368025/startticks25212033，pidfd，TERM 后 KILL |
+| 20:54:07 | inspect 解锁，created/Running=false/Pid0/exit128/RestartCount0，未进入 Python |
+| 20:56:28–20:57:31 | 13 samples/62.939545秒，均非运行/Pid0/Restart0/GPU0/无GPU PID；精确 owned runc/shim/logs CLI absent |
+
+hook #4 报 Go startup pthread_create EAGAIN；128 PID 限制仅候选，实际 OCI/cgroup post-cleanup 已 gone，未证实因果。只保留512字符以内错误摘录及完整错误/原 inspect SHA，不提交 full inspect、Config.Env 或172k错误栈。FAILED_RETAINED_RELEASE_VERIFIED 仅表示失败保留且所列释放观察完成；停止 GPU 升级、不重试，未来任何 GPU 工作须新诊断/审阅与完整 gate。
+
+同批保留既有 CPU installed-vLLM 补丁干跑：同不可变镜像、runc/noGPU/只读树，安装路径 `/usr/local/lib/python3.12/dist-packages/vllm`，inner patch `4d6271fa7cce8e47ccbc10a39812075d3e806426b8cf0a83b42632e807110f84`；forward `--batch --fuzz=0 --dry-run -p2` rc0、forced reverse rc1、全部 target before==after，classification=unapplied。未应用实际环境，不称运行兼容；本次归档未重新运行。

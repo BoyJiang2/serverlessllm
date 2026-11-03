@@ -1,0 +1,58 @@
+{
+  "status": "FAILED_RETAINED_RELEASE_VERIFIED",
+  "run": "cuda-micro-20261103-2045",
+  "cid": "c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7",
+  "source_commit": "00097eaafd60dbae262a954a29863b5c633aade9",
+  "evidence_commit_before_run": "555550114ed2499bc4778fea2a08fb59e5e0829c",
+  "cuda_compute_pass": false,
+  "model_started": false,
+  "store_started": false,
+  "planned_budget_seconds": 180,
+  "budget_exceeded": true,
+  "reason": "Docker start timed out; exact runtime create remained hung past independent guard; manual identity-pinned runc cleanup was required",
+  "state": {
+    "Status": "created",
+    "Running": false,
+    "Pid": 0,
+    "ExitCode": 128,
+    "StartedAt": "0001-01-01T00:00:00Z",
+    "FinishedAt": "0001-01-01T00:00:00Z"
+  },
+  "restart_count": 0,
+  "error_excerpt": "failed to create task for container: failed to create shim task: OCI runtime create failed: runc create failed: unable to start container process: error during container init: error running createContainer hook #4: exit status 2, stdout: , stderr: runtime/cgo: pthread_create failed: Resource temporarily unavailable\nSIGABRT: abort\nPC=0x7f0c44ddc9fc m=0 sigcode=18446744073709551610\n\ngoroutine 0 gp=0x124c4a0 m=0 mp=0x124d260 [idle]:\nruntime: g 0 gp=0x124c4a0: unknown pc 0x7f0c44ddc9fc\nstack: frame={sp:0x7ffc04",
+  "full_error_bytes": 172874,
+  "full_error_sha256": "ca344d692aa03ead3d29cc1b5312f32aa45f661591256764a5e4ad3bf97581de",
+  "raw_local_inspect_sha256": "2b2d99a6ec2ff2a51a68e8b55db58a85248c86f6ba01d2716398797d6a4e64b2",
+  "pids_limit": 128,
+  "pids_limit_causation_proven": false,
+  "cleanup": {
+    "pid": 1368025,
+    "startticks": 25212033,
+    "cid": "c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7",
+    "cmdline": "/usr/bin/runc --root /var/run/docker/runtime-runc/moby --log /run/containerd/io.containerd.runtime.v2.task/moby/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/log.json --log-format json --systemd-cgroup create --bundle /run/containerd/io.containerd.runtime.v2.task/moby/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 --pid-file /run/containerd/io.containerd.runtime.v2.task/moby/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/init.pid c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 ",
+    "events": [
+      {
+        "signal": "TERM",
+        "time": 1793710421.6305091
+      },
+      {
+        "signal": "KILL",
+        "time": 1793710424.6339355
+      }
+    ],
+    "pidfd_exited": true,
+    "finished_at": 1793710424.6346579
+  },
+  "release": {
+    "samples": 13,
+    "first": "2026-11-03T12:56:28.638117+00:00",
+    "last": "2026-11-03T12:57:31.577660+00:00",
+    "observed_span_seconds": 62.939545405999525,
+    "all_stopped_pid_zero_restart_zero": true,
+    "gpu_used_mib": 0,
+    "gpu_processes": [],
+    "exact_runtime_pids_absent": true
+  },
+  "no_retry": true,
+  "next_gate": "diagnose runtime create hook; new review required before any future GPU work"
+}
