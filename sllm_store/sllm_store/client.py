@@ -126,10 +126,11 @@ class SllmStoreClient:
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.CANCELLED:
                 logger.error("Model not loaded")
-                return False
             else:
                 logger.error(f"Error: {e}")
-                return False
+            raise RuntimeError(
+                f"Model {model_path} replica {replica_uuid} was not confirmed"
+            ) from e
 
     def register_model(self, model_path) -> int:
         logger.info(f"register_model: {model_path}")

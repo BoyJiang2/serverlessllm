@@ -361,19 +361,28 @@ int Model::ToGpu(
   } else {
     gpu_replica->state_ = MemoryState::LOADED;
   }
-  gpu_replica->cv_.notify_all();
-
-  // TODO: move to background thread
+  bool ipc_close_failed = false;
   for (auto& [device_id, device_ptr_list] : gpu_replica->device_ptrs_) {
-    cudaSetDevice(device_id);
+    cudaError_t device_err = cudaSetDevice(device_id);
+    if (device_err != cudaSuccess) {
+      LOG(ERROR) << "Failed to select device for IPC close " << device_id
+                 << " error: " << cudaGetErrorString(device_err);
+      ipc_close_failed = true;
+      continue;
+    }
     for (auto device_ptr : device_ptr_list) {
       cudaError_t err = cudaIpcCloseMemHandle(device_ptr);
       if (err != cudaSuccess) {
         LOG(ERROR) << "Failed to close memory handle for device " << device_id
                    << " error: " << cudaGetErrorString(err);
+        ipc_close_failed = true;
       }
     }
   }
+  if (ipc_close_failed) {
+    gpu_replica->state_ = MemoryState::INTERRUPTED;
+  }
+  gpu_replica->cv_.notify_all();
 
   if (gpu_replica->state_ == MemoryState::INTERRUPTED) {
     LOG(ERROR) << "Model " << model_path_ << " replica " << replica_uuid
