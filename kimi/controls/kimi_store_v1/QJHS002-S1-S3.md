@@ -100,3 +100,20 @@
 已准备给用户的下一条CPU环境核验命令（outputs/qjhs002-runtime-inventory-command.txt）：先核精确image ID，再用既有镜像runc、无GPU/网络、1CPU/4GiB/128pids，只导入并报告模块路径/版本、vLLM commit和依赖、Torch编译CUDA/ABI。Python入口45秒alarm，不加载模型/Store或分配CUDA；尚未由用户执行。alarm仅约束Python入口，不证明Docker start物理可取消；旧Docker启动失败历史保留。S4b必须另有新守护/预算/资源及审阅。
 
 CPU命令经review_official_fixes只读复审后已按建议修订：运行完整expected image ID，避免tag检查/使用竞态；逐模块starting/result即时flush，导入崩溃/超时也保留先前已完成项；额外收集已安装distribution版本。声明requirements与已安装版本均只作证据，不自动宣称约束/ABI满足。该命令不是S4b guard或probe。用户尚未执行，不宣称导入成功。
+
+## RestoreTensors所有权候选（用户执行，未应用/编译）
+
+独立源码复审确认当前官方RestoreTensors的实际缺口：各from_blob创建独立Storage，只有一个offset0 Storage拥有cudaFree；非零offset/另一个offset0 Storage不会保活该allocation。删掉拥有者而保留其他Storage会悬空；没有offset0则没有释放者。此结论是源码合同证据，不是GPU复现实测。
+
+已准备official-restore-ownership-candidate.patch，只改官方csrc/checkpoint/checkpoint.cpp并在既有tests/python增加回归，不新增loader/部署框架：
+- 对输入base建立shared_ptr<void> owner表，所有对应from_blob deleter捕获同一owner；保留原cudaFree操作，去掉offset0特殊分支。
+- 明确一次调用消费输入allocation，unused allocation在返回时释放；不支持caller之后手动free或把同一allocation再次交入另一调用。
+- 测试提取实际RestoreTensors函数，使用真实Torch C++ from_blob，仅替换设备为CPU、CUDA free为计数的test_cuda_free；覆盖offset0先删、多个offset0别名、无offset0、unused allocation、缺metadata异常。缺metadata case先检查生产释放次数再进入测试兜底，不能以兜底冒充通过。
+- CPU Torch扩展编译限制MAX_JOBS=1并使用临时build目录；需要既有Torch/compiler/Ninja，无安装。尚未编译/运行，不能称CPU测试通过，更不能称CUDA/Store通过。
+- 任意OOM中尚未被owner表接管的后续allocation、跨调用重复移交、跨设备及IPC生命周期仍需后续验证，不声称全部异常无泄漏。
+
+首版patch的Windows CRLF使002 git apply --check失败，未应用任何源码；已改用明确LF字节重新生成。最终SHA256=185d68216d46e24357268a8b14b5925a9e54f40a5596bdb9ee31bf3c241a4aee，已上传002:/data/brick1/boyjiang/kimi-k2.6/p0/restore-ownership-candidate-185d68216d46.patch，并实际git apply --check通过。002官方HEAD仍bb315443216a7b2d1931a23851203ec5674b8aa3，工作树仍只有原proto T；checkpoint.cpp SHA256=7ec80ad1d2104e0743874888c3d1f0dde03a95778f576f299e299199af84c2a6，与9f50241源对象相同。候选未部署，源码commit未改变。review_official_fixes独立只读复审给出限定可交用户编译验证、异常case无新增阻塞；未执行测试。root只做Python AST与补丁干跑。
+
+S4a只读结论补充：官方save_dict可以CPU原始保存；已查load_dict/RestoreTensors路径依赖Store RPC与CUDA，不能自行解析tensor.data冒充官方CPU读回。真实最小组件建议一个专家packed I32+对应scale+必要shape元数据，总payload<=16MiB；必须通过官方保存/读回并核原始位模式。单GPU、单Store、1thread/1MiB chunk/64MiB pinned pool仅是待验证有界候选，不是已证明的最小可运行配置。现有source_schedule/watchdog旧gate仍绑定003，未给002新守护发通过。镜像/ABI核验先行，所有计算由用户运行。
+
+迁移接续：用户手工导出后，17:03只读确认003已生成kimi-runtime-ec5b4131.tar.gz（18061247234B）及117B sha256文件，导出/压缩/校验/传输进程当时均未见；002当时未见这两个文件。已给用户只重试scp的命令，禁止重复导出。用户报告remote -v已OK，涉及其kimi-new/ServerlessLLM checkout；不改变唯一构建/服务基线。后续传输/导入/CPU inventory输出尚待用户回传，不推断已运行成功。
