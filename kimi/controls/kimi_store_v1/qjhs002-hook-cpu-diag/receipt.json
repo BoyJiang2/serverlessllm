@@ -1,0 +1,50 @@
+{
+  "recorded_at": "2026-11-03T13:15:29.069532+00:00",
+  "scope": "One CPU runc /hook --version attempt at pids128, no GPU; not original failed GPU OCI",
+  "actual_argv": [
+    "/hook",
+    "--version"
+  ],
+  "diagnosis": {
+    "affinity_cpu_count": 240,
+    "after": {
+      "memory.current": "11063296\n",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+      "memory.max": "536870912\n",
+      "pids.current": "2\n",
+      "pids.events": "max 0\n",
+      "pids.events.local": null,
+      "pids.max": "128\n",
+      "pids.peak": null
+    },
+    "before": {
+      "memory.current": "10649600\n",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+      "memory.max": "536870912\n",
+      "pids.current": "2\n",
+      "pids.events": "max 0\n",
+      "pids.events.local": null,
+      "pids.max": "128\n",
+      "pids.peak": null
+    },
+    "elapsed_seconds": 0.004035965976072475,
+    "error": null,
+    "go_environment": {
+      "GODEBUG": null,
+      "GOMAXPROCS": null
+    },
+    "hook_sha256": "fb9e22c288346e9a99cfbef446a8495932073608aa9982628a750cacb129925c",
+    "returncode": 0,
+    "scope": "CPU runc with no GPU devices; /hook --version only",
+    "stderr_bytes": 0,
+    "stderr_excerpt": "",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_excerpt": "NVIDIA CDI Hook version 1.19.0\ncommit: ec7b4e2fa2caecad6d89be4a26029b831fe7503a\n"
+  },
+  "actual_oci_has_nvidia_hook": false,
+  "pids512_started": false,
+  "gpu_stop_remains_in_force": true,
+  "gpu_root_cause_proven": false,
+  "fallback_note": "cdi-selected-hooks-fallback.json is the current CDI fallback enumeration, not actual OCI evidence from the failed GPU attempt",
+  "prior_runtime_diagnostic_fields": "../qjhs002-cuda-micro-failed-retained-20261103/runtime-diagnostic-fields.json"
+}

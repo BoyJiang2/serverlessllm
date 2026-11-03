@@ -213,3 +213,9 @@ hook #4 报 Go startup pthread_create EAGAIN；128 PID 限制仅候选，实际 
 archive 仅保留于002 `p0/s4a-saveonly-20261103-2103/packed-component`，未下载/纳管payload；tensor.data_0 SHA256=`4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8`。实际源码仍00097ea；SDK _C=41d2409…、_checkpoint_store=f757a8e…（完整SHA见验证日志），proto类型T保留且原因未知。versioned libglog.so.0.6.0/.1作为未跟踪编译artifact保留，不stage .so、不改ignore。
 
 这只是 S4a 保存半程 PASS：archive raw-bit 比对不是官方 load_dict 读回，不是完整转换。真实 Store/CUDA 读回、GPU资源释放及完整模型/TP8/原生服务仍未通过；GPU FAILED_RETAINED、预算超限和 no-retry 边界不变。当前CDI fallback即使另有枚举，也不是失败当次实际OCI证据，不据此给hook#4定因。此轮仅归档已有证据，无新计算。
+
+## CPU hook 机制诊断：仅 pids128 version 成功（2026-11-03）
+
+`qjhs002-hook-cpu-diag/` 保留一次 CPU runc `/hook --version` 小证据。host binary SHA256=`fb9e22c288346e9a99cfbef446a8495932073608aa9982628a750cacb129925c`，rc0，非 pthread EAGAIN；before/after 实际 pids.max=128、pids.events max0、memory.events全部0。容器exited0，OS guard inactive/Result=success，后验8 GPU全0。
+
+本次实际 OCI 仅 libnetwork prestart，无 NVIDIA hook；因此只证明128 CPU version成功，不能证明原GPU startup/hook#4失败根因。512条件未满足、未启动；GPU FAILED_RETAINED/no-retry停止边界不解除。当前CDI fallback枚举另存，但不是原失败当次OCI证据；原runtime-diagnostic-fields已在失败目录保留，不重复或覆盖。未保存full container-before/Config.Env，未新增计算。

@@ -1,0 +1,33 @@
+{
+  "hooks": {
+    "prestart": [
+      {
+        "path": "/proc/5908/exe",
+        "args": [
+          "libnetwork-setkey",
+          "-exec-root=/var/run/docker",
+          "2c185379ce2467541c32a6a7d511e0543ba0ce8088de275ae606bd04d34e9088",
+          "4a13fd79d67b"
+        ],
+        "env": [
+          "TRACEPARENT=00-95214183fdddea8c2612fe3f58165dfe-e16617a996ef1e77-01"
+        ]
+      }
+    ]
+  },
+  "cgroupsPath": "system.slice:docker:2c185379ce2467541c32a6a7d511e0543ba0ce8088de275ae606bd04d34e9088",
+  "pids": {
+    "limit": 128
+  },
+  "cpu": {
+    "quota": 100000,
+    "period": 100000
+  },
+  "rlimits": [
+    {
+      "type": "RLIMIT_CORE",
+      "hard": 0,
+      "soft": 0
+    }
+  ]
+}
