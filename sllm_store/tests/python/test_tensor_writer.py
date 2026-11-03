@@ -1,8 +1,8 @@
 """CPU regression for the official writer; no Torch/CUDA or downloads.
 
-Run: python3 sllm_store/tests/cpp/test_tensor_writer.py
+Run: python3 sllm_store/tests/python/test_tensor_writer.py
 The partition test copies only the writer sources into a temporary directory
-and reduces kPartitionMaxSize to 8192 bytes. It is a boundary fixture,
+and reduces kPartitionMaxSize and kBufferSize to 8192 bytes. It is a boundary fixture,
 not a real 10 GiB partition or model conversion test.
 """
 import pathlib
@@ -23,6 +23,10 @@ class TensorWriterTest(unittest.TestCase):
             text = header.read_text()
             self.assertIn("10L << 30", text)
             header.write_text(text.replace("10L << 30", "8192"))
+            buffer_header = work / "aligned_buffer.h"
+            buffer_text = buffer_header.read_text()
+            self.assertIn("1L << 30", buffer_text)
+            buffer_header.write_text(buffer_text.replace("1L << 30", "8192"))
             (work / "test.cpp").write_text(r"""
 #include "tensor_writer.h"
 #include <cassert>
@@ -37,7 +41,7 @@ std::vector<char> read(const std::string& path) {
 }
 int main(int argc, char** argv) {
   std::string path = argv[1];
-  for (size_t size : {3, 4096, 4101}) {
+  for (size_t size : {3, 4096, 4101, 8192, 0}) {
     { std::ofstream old(path); old << std::string(16384, 'x'); }
     std::vector<char> data(size, 'a');
     { AlignedBuffer buffer(path);

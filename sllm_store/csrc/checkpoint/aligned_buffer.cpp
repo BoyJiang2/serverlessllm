@@ -26,7 +26,7 @@
 
 AlignedBuffer::AlignedBuffer(const std::string& filename)
     : fd_(-1), buf_size_(kBufferSize), buf_pos_(0), file_offset_(0) {
-  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_DIRECT, 0644);
+  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_DIRECT, 0644);
   if (fd_ < 0) {
     std::cerr << "Failed to open file " << filename << std::endl;
   }
