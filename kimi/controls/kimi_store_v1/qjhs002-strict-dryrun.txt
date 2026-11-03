@@ -1,0 +1,101 @@
+build_source_mismatches ['CMakeLists.txt', 'cmake/utils.cmake', 'csrc/checkpoint/aligned_buffer.cpp', 'csrc/checkpoint/aligned_buffer.h', 'csrc/checkpoint/checkpoint.cpp', 'csrc/checkpoint/checkpoint.h', 'csrc/checkpoint/checkpoint_py.cpp', 'csrc/checkpoint/progress_bar.h', 'csrc/checkpoint/tensor_writer.cpp', 'csrc/checkpoint/tensor_writer.h', 'csrc/sllm_store/binary_utils.cpp', 'csrc/sllm_store/binary_utils.h', 'csrc/sllm_store/checkpoint_store.cpp', 'csrc/sllm_store/checkpoint_store.h', 'csrc/sllm_store/checkpoint_store_py.cpp', 'csrc/sllm_store/concurrent_queue.h', 'csrc/sllm_store/concurrent_vector.h', 'csrc/sllm_store/cuda_memory.cpp', 'csrc/sllm_store/cuda_memory.h', 'csrc/sllm_store/cuda_memory_pool.cpp', 'csrc/sllm_store/cuda_memory_pool.h', 'csrc/sllm_store/error_handling.h', 'csrc/sllm_store/gpu_replica.cpp', 'csrc/sllm_store/gpu_replica.h', 'csrc/sllm_store/memory_state.cpp', 'csrc/sllm_store/memory_state.h', 'csrc/sllm_store/model.cpp', 'csrc/sllm_store/model.h', 'csrc/sllm_store/pinned_memory.cpp', 'csrc/sllm_store/pinned_memory.h', 'csrc/sllm_store/pinned_memory_pool.cpp', 'csrc/sllm_store/pinned_memory_pool.h', 'csrc/sllm_store/types_and_defs.h']
+snapshots []
+DRYRUN ['--forward', '--fuzz=0'] 1 checking file vllm/model_executor/model_loader/__init__.py
+Hunk #2 succeeded at 45 (offset 2 lines).
+Hunk #3 succeeded at 63 (offset 4 lines).
+checking file vllm/model_executor/model_loader/sllm_loader.py
+checking file vllm/v1/engine/core.py
+Hunk #1 succeeded at 725 (offset 209 lines).
+checking file vllm/v1/engine/core_client.py
+Hunk #1 succeeded at 190 (offset 14 lines).
+Hunk #2 succeeded at 878 (offset 78 lines).
+Hunk #3 succeeded at 1125 (offset 122 lines).
+checking file vllm/v1/executor/abstract.py
+Hunk #1 succeeded at 260 (offset 10 lines).
+checking file vllm/v1/worker/gpu_model_runner.py
+Hunk #1 FAILED at 3438.
+1 out of 1 hunk FAILED
+checking file vllm/v1/worker/gpu_worker.py
+Hunk #1 FAILED at 851.
+1 out of 1 hunk FAILED
+
+DRYRUN ['--force', '-R', '--fuzz=0'] 1 checking file vllm/model_executor/model_loader/__init__.py
+Hunk #1 FAILED at 18.
+Hunk #2 FAILED at 43.
+Hunk #3 FAILED at 59.
+3 out of 3 hunks FAILED
+The next patch, when reversed, would delete the file vllm/model_executor/model_loader/sllm_loader.py,
+which does not exist!  Applying it anyway.
+checking file vllm/model_executor/model_loader/sllm_loader.py
+Hunk #1 FAILED at 1.
+1 out of 1 hunk FAILED
+checking file vllm/v1/engine/core.py
+Hunk #1 FAILED at 516.
+1 out of 1 hunk FAILED
+checking file vllm/v1/engine/core_client.py
+Hunk #1 FAILED at 176.
+Hunk #2 FAILED at 800.
+Hunk #3 FAILED at 1003.
+3 out of 3 hunks FAILED
+checking file vllm/v1/executor/abstract.py
+Hunk #1 FAILED at 250.
+1 out of 1 hunk FAILED
+checking file vllm/v1/worker/gpu_model_runner.py
+Hunk #1 FAILED at 3438.
+1 out of 1 hunk FAILED
+checking file vllm/v1/worker/gpu_worker.py
+Hunk #1 FAILED at 851.
+1 out of 1 hunk FAILED
+
+vllm/model_executor/model_loader/__init__.py return loader.load_model(
+        vllm_config=vllm_config, model_config=model_config, prefix=prefix
+    )
+
+
+__all__ = [
+    "get_model",
+    "get_model_loader",
+    "get_architecture_class_name",
+    "get_model_architecture",
+    "get_model_cls",
+    "register_model_loader",
+    "BaseModelLoader",
+    "BitsAndBytesModelLoader",
+    "GGUFModelLoader",
+    "DefaultModelLoader",
+    "DummyModelLoader",
+    "RunaiModelStreamerLoader",
+    "ShardedStateLoader",
+    "TensorizerLoader",
+]
+
+vllm/model_executor/model_loader/utils.py def initialize_model(
+    vllm_config: VllmConfig,
+    *,
+    prefix: str = "",
+    model_class: type[nn.Module] | None = None,
+    model_config: ModelConfig | None = None,
+) -> nn.Module:
+    """Initialize a model with the given configurations."""
+    if model_config is None:
+        model_config = vllm_config.model_config
+    if model_class is None:
+        model_class, _ = get_model_architecture(model_config)
+
+    if vllm_config.quant_config is not None:
+        configure_quant_config(vllm_co
+vllm/v1/engine/llm_engine.py self.model_executor = self.engine_core.engine_core.model_executor  # type: ignore
+
+        if self.external_launcher_dp:
+            # If we use DP in external launcher mode, we reuse the
+            # existing DP group used for data communication.
+            self.dp_group = get_dp_group().cpu_group
+
+        # Don't keep the dummy data in memory
+        self.reset_mm_cache()
+
+    @classmethod
+    def from_vllm_config(
+        cls,
+        vllm_config: VllmConfig,
+        usage_context: UsageCon

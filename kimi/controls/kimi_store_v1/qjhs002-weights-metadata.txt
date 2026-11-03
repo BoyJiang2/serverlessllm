@@ -1,0 +1,127 @@
+{
+  "snapshot": "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+  "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+  "architectures": [
+    "KimiK25ForConditionalGeneration"
+  ],
+  "model_type": "kimi_k25",
+  "quantization_config": null,
+  "text_quant": {
+    "config_groups": {
+      "group_0": {
+        "input_activations": null,
+        "output_activations": null,
+        "targets": [
+          "Linear"
+        ],
+        "weights": {
+          "actorder": null,
+          "block_structure": null,
+          "dynamic": false,
+          "group_size": 32,
+          "num_bits": 4,
+          "observer": "minmax",
+          "observer_kwargs": {},
+          "strategy": "group",
+          "symmetric": true,
+          "type": "int"
+        }
+      }
+    },
+    "format": "pack-quantized",
+    "ignore": [
+      "re:.*self_attn.*",
+      "re:.*shared_experts.*",
+      "re:.*mlp\\.(gate|up|gate_up|down)_proj.*",
+      "re:.*lm_head.*",
+      "re:vision_tower.*",
+      "re:mm_projector.*"
+    ],
+    "kv_cache_scheme": null,
+    "quant_method": "compressed-tensors",
+    "quantization_status": "compressed"
+  },
+  "shards": 64,
+  "tensor_names": 208550,
+  "missing": [],
+  "metadata": {
+    "total_size": 595148192736
+  },
+  "total_file_bytes": 595177988208
+}
+{
+  "header_tensor_count": 208550,
+  "index_disagreements": [],
+  "samples": [
+    [
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed",
+      {
+        "dtype": "I32",
+        "shape": [
+          7168,
+          256
+        ],
+        "data_offsets": [
+          1536,
+          7341568
+        ]
+      }
+    ],
+    [
+      "language_model.model.layers.1.mlp.experts.0.gate_proj.weight_packed",
+      {
+        "dtype": "I32",
+        "shape": [
+          2048,
+          896
+        ],
+        "data_offsets": [
+          7341576,
+          14681608
+        ]
+      }
+    ],
+    [
+      "language_model.model.layers.1.mlp.experts.0.up_proj.weight_packed",
+      {
+        "dtype": "I32",
+        "shape": [
+          2048,
+          896
+        ],
+        "data_offsets": [
+          14681616,
+          22021648
+        ]
+      }
+    ],
+    [
+      "language_model.model.layers.1.mlp.experts.1.down_proj.weight_packed",
+      {
+        "dtype": "I32",
+        "shape": [
+          7168,
+          256
+        ],
+        "data_offsets": [
+          22021656,
+          29361688
+        ]
+      }
+    ],
+    [
+      "language_model.model.layers.1.mlp.experts.1.gate_proj.weight_packed",
+      {
+        "dtype": "I32",
+        "shape": [
+          2048,
+          896
+        ],
+        "data_offsets": [
+          29361696,
+          36701728
+        ]
+      }
+    ]
+  ]
+}
