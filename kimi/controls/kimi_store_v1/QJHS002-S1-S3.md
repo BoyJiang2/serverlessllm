@@ -117,3 +117,18 @@ CPU命令经review_official_fixes只读复审后已按建议修订：运行完�
 S4a只读结论补充：官方save_dict可以CPU原始保存；已查load_dict/RestoreTensors路径依赖Store RPC与CUDA，不能自行解析tensor.data冒充官方CPU读回。真实最小组件建议一个专家packed I32+对应scale+必要shape元数据，总payload<=16MiB；必须通过官方保存/读回并核原始位模式。单GPU、单Store、1thread/1MiB chunk/64MiB pinned pool仅是待验证有界候选，不是已证明的最小可运行配置。现有source_schedule/watchdog旧gate仍绑定003，未给002新守护发通过。镜像/ABI核验先行，所有计算由用户运行。
 
 迁移接续：用户手工导出后，17:03只读确认003已生成kimi-runtime-ec5b4131.tar.gz（18061247234B）及117B sha256文件，导出/压缩/校验/传输进程当时均未见；002当时未见这两个文件。已给用户只重试scp的命令，禁止重复导出。用户报告remote -v已OK，涉及其kimi-new/ServerlessLLM checkout；不改变唯一构建/服务基线。后续传输/导入/CPU inventory输出尚待用户回传，不推断已运行成功。
+
+## 用户等待传输期间：0.19.1官方补丁接口候选
+
+用户明确传输未完成并要求继续后续工作。未代其启动计算或迁移；并行准备了不依赖镜像运行的官方源码候选。新增official-vllm0191-interface-candidate.patch只修改官方既有sllm_store/vllm_patch/sllm_load.patch并在既有tests/python新增参数转发回归：
+- 将上下文按0.19.1 wheel源重新生成，LoadConfig导入改为vllm.config.load。
+- ServerlessLLMLoader.load_model显式接收vllm_config/model_config/prefix，不再通过**kwargs静默丢弃；目录、dtype取传入model_config，initialize_model转发三参数，符合0.19.1 BaseModelLoader合同。
+- test_vllm_loader_interface.py无需导入Torch/vLLM；执行实际补丁内load_model方法，到mock initializer抛异常即止。用不同且不可访问的fallback model_config验证选择正确，断言dtype、rank目录(selected.model,rank_0)及prefix转发，并拒绝Store调用。只做过AST语法检查，测试尚未运行；不覆盖模块级真实导入/模型构造或GPU。
+- 生成时仅在临时wheel源码子集借原补丁fuzz应用重建意图；重新生成后的候选在干净0.19.1源码子集上，以--batch --fuzz=0 -p2完成正向干跑、实际fixture应用、严格反向干跑，三者rc0。完整argv与临时路径/输出见qjhs002-vllm0191-interface-static-checks.json。不是实际安装树应用。
+- 独立AST核GPUModelRunner与Worker各恰有一个save_serverless_llm_state方法；LoadConfig定义与导入路径AST核验通过。不是Python包导入/ABI验证。
+
+最终outer候选SHA256=e33be14d0d0cc74d9e264596e951f8c8345f94307028b3359dc3b251e1f506a0；已上传002:/data/brick1/boyjiang/kimi-k2.6/p0/vllm0191-interface-candidate-e33be14d0d0c.patch，实际官方工作树git apply --check通过，未应用。inner补丁SHA256=4d6271fa7cce8e47ccbc10a39812075d3e806426b8cf0a83b42632e807110f84。vllm_compatibility独立只读核对scope/API/fixture通过；其要求的完整argv、worker AST结果与rank目录断言均已补齐。测试仍由用户运行。
+
+更精确backend证据：同一个CompressedTensorsWNA16MarlinMoEMethod类以kernel_backend字段区分Flashinfer/Marlin（1172–1179），不能按类名判分支。actorder来自weight_quant.actorder；E与device从layer.w13_weight_g_idx取，TP rank不等于E。四空参数/workspace重建必须绑定实际Marlin/no-group profile及归档layout。当前候选仍不解决这些布局/scratch、alias、所有权或显存峰值缺口，不是完整转换或运行准入；不能仅因严格文本补丁可应用就启动模型。
+
+用户可在传输期间对官方源码应用该outer候选并运行纯stdlib接口回归；这不调用patch.sh、不修改实际vLLM环境、不导入Torch或启动模型/Store。需回传实际测试结果后才能记为回归通过。

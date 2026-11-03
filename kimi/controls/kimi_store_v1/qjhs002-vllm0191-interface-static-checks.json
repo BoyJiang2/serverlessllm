@@ -1,0 +1,66 @@
+{
+  "scope": "wheel source fixture; no environment imports or runtime verification",
+  "outer_sha256": "e33be14d0d0cc74d9e264596e951f8c8345f94307028b3359dc3b251e1f506a0",
+  "checks": [
+    {
+      "argv": [
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "-p2",
+        "-d",
+        "/tmp/kimi-strict-source-dcyo07hc/vllm",
+        "--forward",
+        "--dry-run"
+      ],
+      "rc": 0,
+      "output": "checking file model_executor/model_loader/__init__.py\nchecking file model_executor/model_loader/sllm_loader.py\nchecking file v1/engine/core.py\nchecking file v1/engine/core_client.py\nchecking file v1/executor/abstract.py\nchecking file v1/worker/gpu_model_runner.py\nchecking file v1/worker/gpu_worker.py\n"
+    },
+    {
+      "argv": [
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "-p2",
+        "-d",
+        "/tmp/kimi-strict-source-dcyo07hc/vllm",
+        "--forward"
+      ],
+      "rc": 0,
+      "output": "patching file model_executor/model_loader/__init__.py\npatching file model_executor/model_loader/sllm_loader.py\npatching file v1/engine/core.py\npatching file v1/engine/core_client.py\npatching file v1/executor/abstract.py\npatching file v1/worker/gpu_model_runner.py\npatching file v1/worker/gpu_worker.py\n"
+    },
+    {
+      "argv": [
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "-p2",
+        "-d",
+        "/tmp/kimi-strict-source-dcyo07hc/vllm",
+        "--force",
+        "-R",
+        "--dry-run"
+      ],
+      "rc": 0,
+      "output": "checking file model_executor/model_loader/__init__.py\nchecking file model_executor/model_loader/sllm_loader.py\nchecking file v1/engine/core.py\nchecking file v1/engine/core_client.py\nchecking file v1/executor/abstract.py\nchecking file v1/worker/gpu_model_runner.py\nchecking file v1/worker/gpu_worker.py\n"
+    }
+  ],
+  "worker_ast_checks": [
+    {
+      "path": "vllm/v1/worker/gpu_model_runner.py",
+      "class": "GPUModelRunner",
+      "method": "save_serverless_llm_state",
+      "count": 1,
+      "passed": true
+    },
+    {
+      "path": "vllm/v1/worker/gpu_worker.py",
+      "class": "Worker",
+      "method": "save_serverless_llm_state",
+      "count": 1,
+      "passed": true
+    }
+  ],
+  "inner_sha256": "4d6271fa7cce8e47ccbc10a39812075d3e806426b8cf0a83b42632e807110f84",
+  "loadconfig_definition_and_import_ast_checked": true
+}
