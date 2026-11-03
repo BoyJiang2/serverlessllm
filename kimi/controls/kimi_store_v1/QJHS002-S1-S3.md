@@ -49,3 +49,18 @@
 最小修复范围已收敛为官方aligned_buffer.cpp与tensor_writer.cpp的尾部/物理分片偏移一致性，先设计覆盖非整页尾部、已有文件截断、分片偏移的有界回归再改；不能只修其中一处，不直接搬入七文件旧GLM补丁。分片边界小fixture若缩小常量必须明示，不能当10GiB完整性能验证。原生ToHost多分片读取和IPC关闭错误传播另列待验证必要缺口。当前生产文件未修改，旧收据/失败/金标保持原样。
 
 补充环境核验：002系统python为3.10；旧native构建依赖Python3.12/Torch2.10/CUDA12.9，其构建镜像53f661ba…精确inspect也返回No such image，和旧P0运行镜像均缺失。不能将wheel或迁移库当已安装的运行环境。用户关于既有环境位置的问题仍待回复；依照禁止新建环境要求，未安装或创建容器环境。S4a和GPU路径仍未通过。
+
+## 官方最小修复已实际提交；既有环境迁移进行中
+
+用户确认运行环境仍在qjhs003 Docker内，明确授权尝试迁移既有runtime210-cu129镜像。003实际image ID=sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27，size=34184928331B；已取RootFS全部层摘要用于迁移后比对。无registry digest不等于没有可核验内容身份，需核完整image ID/配置/层摘要。002 DockerRootDir=/data/brick0/docker，所在NVMe可用约1123874398208B；003系统盘可用约820563099648B。
+
+迁移复用既有WSL，通过003 docker save|gzip -1流到002 gzip -d|docker load，未生成本地/共享盘tar，无新镜像构建、容器、GPU或模型。外层timeout1800秒。当前exec session_id=39425，仍运行；最近独立核源端docker save PID3484138/gzip3484139及目标gzip4025990/docker load4025991均存活。尚未有归档字节流到目标，不宣称导入成功。继续轮询同一handle，不能因观察超时重启迁移。
+
+已修复官方对应模块且仅显式stage本任务三文件：
+- sllm_store/csrc/checkpoint/aligned_buffer.cpp：尾部补零到4096并写入；检查pwrite/ftruncate，拒绝静默成功。
+- sllm_store/csrc/checkpoint/tensor_writer.cpp：下一物理分片起点纳入padding。
+- sllm_store/tests/cpp/test_tensor_writer.py：stdlib unittest直接编译现有C++；覆盖3/4096/4101字节、较长旧文件截断、零padding、分片偏移及两分片payload。分片阈值只在临时头文件夹具降为8192，生产常量未改，不是10GiB性能/完整模型证明。
+
+在002执行回归1 test OK（0.873秒）；git diff --check通过。服务器源码commit=ab3eb90ffe197002d75aae5e0057a235db60282d，父基线9f50241；proto类型T仍未纳入提交，未回滚。当前未重编译扩展、未部署运行或独立GPU审阅。小型源码patch已保存official-aligned-tail-ab3eb90.patch。
+
+本地从002现有仓库fetch单个提交用于发布（对象包约6.13MiB，无新checkout）。多次将源码commit发布到用户GitHub refs/heads/kimi-qjhs002-aligned-tail返回HTTP408，远端未返回该ref；源码分支推送尚未核验成功，不能称已同步。原审计main的2e4e43247a6c3f890b9b3b0fe17547c0695b4ff6随后push及ls-remote均已核验。此次保留服务器/本地源码提交及可复查patch，后续继续发布，不force-push。
