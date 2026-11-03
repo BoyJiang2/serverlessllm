@@ -1,0 +1,599 @@
+{
+  "status": "TOKENIZER_CORE_DIVERGENCE_CONFIRMED",
+  "scope": "official literal pattern/reserved mapping through installed tiktoken only; no checkpoint Python import, model, chat-template parity or GPU",
+  "versions": {
+    "transformers": "5.5.1",
+    "tiktoken": "0.12.0",
+    "tokenizers": "0.22.2",
+    "vllm": "0.19.1"
+  },
+  "source_sha256": "2ab1ffb6f5c4380758bd8d9752ff1041c09024182676a4311528fbdf92fb9599",
+  "asset_sha256": {
+    "chat_template.jinja": "8bf859698fd4781c0e1e1c63ce74422aab27e53ccc5f47116317c64cda06132f",
+    "config.json": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "generation_config.json": "5431db52f431099f309ece737670e977de148f8cfd5340e920ff1f44d7cff596",
+    "tiktoken.model": "b6c497a7469b33ced9c38afb1ad6e47f03f5e5dc05f15930799210ec050c5103",
+    "tokenization_kimi.py": "2ab1ffb6f5c4380758bd8d9752ff1041c09024182676a4311528fbdf92fb9599",
+    "tokenizer_config.json": "12fcab43d2b6068f46769f5ff373960bf7c17a94d7abbc50e2491306b2f6cf58"
+  },
+  "reference_pattern": "[\\p{Han}]+|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]*[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]+(?i:'s|'t|'re|'ve|'m|'ll|'d)?|[^\\r\\n\\p{L}\\p{N}]?[\\p{Lu}\\p{Lt}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]+[\\p{Ll}\\p{Lm}\\p{Lo}\\p{M}&&[^\\p{Han}]]*(?i:'s|'t|'re|'ve|'m|'ll|'d)?|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+",
+  "native_pretokenizer": {
+    "type": "Sequence",
+    "pretokenizers": [
+      {
+        "type": "Split",
+        "pattern": {
+          "Regex": "(?i:'s|'t|'re|'ve|'m|'ll|'d)|[^\\r\\n\\p{L}\\p{N}]?\\p{L}+|\\p{N}{1,3}| ?[^\\s\\p{L}\\p{N}]+[\\r\\n]*|\\s*[\\r\\n]+|\\s+(?!\\S)|\\s+"
+        },
+        "behavior": "Isolated",
+        "invert": false
+      },
+      {
+        "type": "ByteLevel",
+        "add_prefix_space": false,
+        "trim_offsets": true,
+        "use_regex": false
+      }
+    ]
+  },
+  "base_vocab": 163584,
+  "reference_vocab": 163840,
+  "native_len": 163607,
+  "named_ids": [
+    {
+      "token": "[BOS]",
+      "expected_id": 163584,
+      "native_id": 163584
+    },
+    {
+      "token": "[EOS]",
+      "expected_id": 163585,
+      "native_id": 163585
+    },
+    {
+      "token": "<|im_end|>",
+      "expected_id": 163586,
+      "native_id": 163586
+    },
+    {
+      "token": "<|im_user|>",
+      "expected_id": 163587,
+      "native_id": 163587
+    },
+    {
+      "token": "<|im_assistant|>",
+      "expected_id": 163588,
+      "native_id": 163588
+    },
+    {
+      "token": "<|start_header_id|>",
+      "expected_id": 163590,
+      "native_id": 163589
+    },
+    {
+      "token": "<|end_header_id|>",
+      "expected_id": 163591,
+      "native_id": 163590
+    },
+    {
+      "token": "[EOT]",
+      "expected_id": 163593,
+      "native_id": 163591
+    },
+    {
+      "token": "<|im_system|>",
+      "expected_id": 163594,
+      "native_id": 163592
+    },
+    {
+      "token": "<|tool_calls_section_begin|>",
+      "expected_id": 163595,
+      "native_id": 163593
+    },
+    {
+      "token": "<|tool_calls_section_end|>",
+      "expected_id": 163596,
+      "native_id": 163594
+    },
+    {
+      "token": "<|tool_call_begin|>",
+      "expected_id": 163597,
+      "native_id": 163595
+    },
+    {
+      "token": "<|tool_call_argument_begin|>",
+      "expected_id": 163598,
+      "native_id": 163596
+    },
+    {
+      "token": "<|tool_call_end|>",
+      "expected_id": 163599,
+      "native_id": 163597
+    },
+    {
+      "token": "<|im_middle|>",
+      "expected_id": 163601,
+      "native_id": 163598
+    },
+    {
+      "token": "<|media_begin|>",
+      "expected_id": 163602,
+      "native_id": 163599
+    },
+    {
+      "token": "<|media_content|>",
+      "expected_id": 163603,
+      "native_id": 163600
+    },
+    {
+      "token": "<|media_end|>",
+      "expected_id": 163604,
+      "native_id": 163601
+    },
+    {
+      "token": "<|media_pad|>",
+      "expected_id": 163605,
+      "native_id": 163602
+    },
+    {
+      "token": "<think>",
+      "expected_id": 163606,
+      "native_id": 163603
+    },
+    {
+      "token": "</think>",
+      "expected_id": 163607,
+      "native_id": 163604
+    },
+    {
+      "token": "[UNK]",
+      "expected_id": 163838,
+      "native_id": 163605
+    },
+    {
+      "token": "[PAD]",
+      "expected_id": 163839,
+      "native_id": 163606
+    }
+  ],
+  "named_id_mismatches": [
+    {
+      "token": "<|start_header_id|>",
+      "expected_id": 163590,
+      "native_id": 163589
+    },
+    {
+      "token": "<|end_header_id|>",
+      "expected_id": 163591,
+      "native_id": 163590
+    },
+    {
+      "token": "[EOT]",
+      "expected_id": 163593,
+      "native_id": 163591
+    },
+    {
+      "token": "<|im_system|>",
+      "expected_id": 163594,
+      "native_id": 163592
+    },
+    {
+      "token": "<|tool_calls_section_begin|>",
+      "expected_id": 163595,
+      "native_id": 163593
+    },
+    {
+      "token": "<|tool_calls_section_end|>",
+      "expected_id": 163596,
+      "native_id": 163594
+    },
+    {
+      "token": "<|tool_call_begin|>",
+      "expected_id": 163597,
+      "native_id": 163595
+    },
+    {
+      "token": "<|tool_call_argument_begin|>",
+      "expected_id": 163598,
+      "native_id": 163596
+    },
+    {
+      "token": "<|tool_call_end|>",
+      "expected_id": 163599,
+      "native_id": 163597
+    },
+    {
+      "token": "<|im_middle|>",
+      "expected_id": 163601,
+      "native_id": 163598
+    },
+    {
+      "token": "<|media_begin|>",
+      "expected_id": 163602,
+      "native_id": 163599
+    },
+    {
+      "token": "<|media_content|>",
+      "expected_id": 163603,
+      "native_id": 163600
+    },
+    {
+      "token": "<|media_end|>",
+      "expected_id": 163604,
+      "native_id": 163601
+    },
+    {
+      "token": "<|media_pad|>",
+      "expected_id": 163605,
+      "native_id": 163602
+    },
+    {
+      "token": "<think>",
+      "expected_id": 163606,
+      "native_id": 163603
+    },
+    {
+      "token": "</think>",
+      "expected_id": 163607,
+      "native_id": 163604
+    },
+    {
+      "token": "[UNK]",
+      "expected_id": 163838,
+      "native_id": 163605
+    },
+    {
+      "token": "[PAD]",
+      "expected_id": 163839,
+      "native_id": 163606
+    }
+  ],
+  "missing_reserved_count": 233,
+  "missing_reserved_first": [
+    {
+      "token": "<|reserved_token_163589|>",
+      "expected_id": 163589
+    },
+    {
+      "token": "<|reserved_token_163592|>",
+      "expected_id": 163592
+    },
+    {
+      "token": "<|reserved_token_163600|>",
+      "expected_id": 163600
+    },
+    {
+      "token": "<|reserved_token_163608|>",
+      "expected_id": 163608
+    },
+    {
+      "token": "<|reserved_token_163609|>",
+      "expected_id": 163609
+    }
+  ],
+  "native_added_vocab": {
+    "[BOS]": 163584,
+    "[EOS]": 163585,
+    "<|im_end|>": 163586,
+    "<|im_user|>": 163587,
+    "<|im_assistant|>": 163588,
+    "<|start_header_id|>": 163589,
+    "<|end_header_id|>": 163590,
+    "[EOT]": 163591,
+    "<|im_system|>": 163592,
+    "<|tool_calls_section_begin|>": 163593,
+    "<|tool_calls_section_end|>": 163594,
+    "<|tool_call_begin|>": 163595,
+    "<|tool_call_argument_begin|>": 163596,
+    "<|tool_call_end|>": 163597,
+    "<|im_middle|>": 163598,
+    "<|media_begin|>": 163599,
+    "<|media_content|>": 163600,
+    "<|media_end|>": 163601,
+    "<|media_pad|>": 163602,
+    "<think>": 163603,
+    "</think>": 163604,
+    "[UNK]": 163605,
+    "[PAD]": 163606
+  },
+  "cases": [
+    {
+      "text": "Kimi-K2.6 张量校验 0123456789\n",
+      "reference_ids": [
+        42,
+        30223,
+        21706,
+        17,
+        13,
+        21,
+        220,
+        1760,
+        976,
+        78007,
+        220,
+        16349,
+        18439,
+        22523,
+        24,
+        198
+      ],
+      "native_ids": [
+        42,
+        30223,
+        21706,
+        17,
+        13,
+        21,
+        220,
+        1760,
+        976,
+        78007,
+        220,
+        16349,
+        18439,
+        22523,
+        24,
+        198
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "ABC中文def",
+      "reference_ids": [
+        55335,
+        16717,
+        1166
+      ],
+      "native_ids": [
+        55335,
+        16717,
+        1166
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "中文English中文",
+      "reference_ids": [
+        16717,
+        44372,
+        16717
+      ],
+      "native_ids": [
+        16717,
+        44372,
+        16717
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "HelloWorld XMLHTTPRequest",
+      "reference_ids": [
+        19180,
+        14350,
+        20510,
+        17819,
+        3188
+      ],
+      "native_ids": [
+        19180,
+        14350,
+        20510,
+        17819,
+        3188
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "helloWORLD HTTPServer camelCase",
+      "reference_ids": [
+        22931,
+        155350,
+        73374,
+        4022,
+        73974,
+        8081
+      ],
+      "native_ids": [
+        22931,
+        155350,
+        73374,
+        4022,
+        73974,
+        8081
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "I'm WE'RE Don't CAN'T",
+      "reference_ids": [
+        17172,
+        40893,
+        6,
+        1046,
+        18467,
+        32330,
+        64833
+      ],
+      "native_ids": [
+        40,
+        14404,
+        40893,
+        6,
+        1046,
+        7773,
+        1769,
+        32330,
+        64833
+      ],
+      "ids_equal": false,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "áÉ é Σσ中文ABC",
+      "reference_ids": [
+        3187,
+        39983,
+        350,
+        37484,
+        84615,
+        13394,
+        16717,
+        55335
+      ],
+      "native_ids": [
+        3187,
+        39983,
+        350,
+        37484,
+        84615,
+        13394,
+        16717,
+        55335
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "1234567 0123456789",
+      "reference_ids": [
+        6694,
+        12972,
+        22,
+        220,
+        16349,
+        18439,
+        22523,
+        24
+      ],
+      "native_ids": [
+        6694,
+        12972,
+        22,
+        220,
+        16349,
+        18439,
+        22523,
+        24
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": " \t\r\n中文\n\n!?",
+      "reference_ids": [
+        220,
+        17355,
+        16717,
+        382,
+        130875
+      ],
+      "native_ids": [
+        220,
+        17355,
+        16717,
+        382,
+        130875
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "测试ServerlessLLM适配KimiK2.6",
+      "reference_ids": [
+        9555,
+        7018,
+        2457,
+        5847,
+        44,
+        78997,
+        42,
+        30223,
+        42,
+        17,
+        13,
+        21
+      ],
+      "native_ids": [
+        9555,
+        7018,
+        2457,
+        5847,
+        44,
+        78997,
+        42,
+        30223,
+        42,
+        17,
+        13,
+        21
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "你好world123中文",
+      "reference_ids": [
+        33845,
+        23617,
+        6694,
+        16717
+      ],
+      "native_ids": [
+        33845,
+        23617,
+        6694,
+        16717
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    },
+    {
+      "text": "aB ABc aBCd ABCdE",
+      "reference_ids": [
+        64,
+        33,
+        24538,
+        66,
+        261,
+        8760,
+        67,
+        39793,
+        67,
+        36
+      ],
+      "native_ids": [
+        64,
+        33,
+        24538,
+        66,
+        261,
+        8760,
+        67,
+        39793,
+        67,
+        36
+      ],
+      "ids_equal": true,
+      "reference_roundtrip": true,
+      "native_roundtrip": true
+    }
+  ],
+  "case_id_mismatch_count": 1,
+  "cuda_initialized": false
+}

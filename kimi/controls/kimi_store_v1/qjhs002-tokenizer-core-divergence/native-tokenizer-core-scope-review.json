@@ -1,0 +1,36 @@
+{
+  "verdict": "PASS_SOURCE_SCOPE",
+  "script_sha256": "29b3586797c8118be1cbf9855585eda7fff1311ff678f35b395a2ecf32721b5d",
+  "meaning": "Reviewed actual source; no execution by reviewer. Once-only bounded CPU core-reference comparison within caller-provided constraints; no model/tokenizer full parity claim.",
+  "required_outer_controls": [
+    "same immutable image",
+    "runc",
+    "noGPU devices",
+    "network none and offline env",
+    "readonly root and six readonly small checkpoint assets",
+    "memory4g cpu1 pids256",
+    "bounded tmpfs256m with cache destinations explicitly /tmp",
+    "inner timeout60 kill10 and bounded host90 observer/cleanup"
+  ],
+  "source_findings": [
+    "AST parse and literal-only pat_str join/reserved256 from SHA-pinned checkpoint tokenizer source; no import/exec of checkpoint code.",
+    "Only local tiktoken ranks and configured special mapping construct the reference; native API remains unchanged.",
+    "12 bounded text cases, all named special IDs, missing reserved slots, and actual native pretokenizer state recorded.",
+    "No version/regex/codec correction, checkpoint writes, tensors, model or Store operations."
+  ],
+  "offline_wheel_listing": {
+    "node": "qjhs002",
+    "directory": "/data/brick1/boyjiang/kimi-k2.6/downloads",
+    "scope": "maxdepth1 regular files, case-insensitive transformers*.whl/huggingface_hub*.whl/tokenizers*.whl only",
+    "method": "native Windows OpenSSH find read-only",
+    "matches": [
+      "transformers-5.5.1-py3-none-any.whl"
+    ],
+    "not_found": [
+      "huggingface_hub wheel",
+      "tokenizers wheel",
+      "transformers4.57.x wheel"
+    ],
+    "candidate_note": "4.57.x with >=4.57.1 satisfies both model README and vllm0.19.1 package constraint, but is only a candidate; source/API/tokenizer/runtime dependency compatibility is unproven. No install/download/downgrade authorized by this review."
+  }
+}

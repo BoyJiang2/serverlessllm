@@ -251,3 +251,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 旧适配树same-FS rename至 `p0/baseline-relocation-20261103/retired-adapted-checkout`，保留build/history无大拷贝。旧root `/data/brick1/boyjiang/ServerlessLLM` 重建官方main9f50241，独立objects/无alternates、tracked/untracked clean、origin官方.git。服务器GitHub直clone两次TLS失败后，local clone --no-hardlinks复用已核原始Gitcommit，Windows上游main同9f；不称服务器网络clone成功。
 
 用户确认recursive scp；官方scp手册-r跟随symlink，proto类型变化因果关账。target普通1994B文件/元数据/diff先在服务器迁移目录保全，再仅target恢复Git120000 `../../proto/storage.proto`，内容95547af…不变；旧历史不改。未修改生产源码commit、未stage库/权重/环境，原repo用户dirty AGENTS不stage。迁移完成不等于适配完成，GPUstop/FAILED_RETAINED/no-retry及GLM冻结不变；不继续实验、不改goal。
+
+## 已完成 CPU tokenizer core divergence 证据补存（2026-11-03）
+
+`qjhs002-tokenizer-core-divergence/` 保留迁移前已完成的CPU探针，receipt逐字段等于原stdout最后JSON，postcheck容器exited0、后验8 GPU全0。结果确认：18个named ID错误、233个reserved槽缺失、12个文本用例中1个ID序列不同（`I'm WE'RE Don't CAN'T`）；两侧decode均可往返，不能将roundtrip当ID语义相同。
+
+参考只从官方源码AST提取literal pattern/reserved常量，使用既有tiktoken及2.8MB本地资产；未import checkpoint Python，不是模型/GPU/chat-template验证。运行时native pretokenizer已捕获，generic pattern与官方Han/大小写分支的实际差异证据保留，不设fix_mistral_regex、不改依赖/生产。
+
+同存只读下一路径选择：优先复用既有vLLM `tokenizer_cls` 与官方class进行独立CPU验证，尚未执行，需显式可信源scope；TF4.57.1候选metadata显示hub<1与当前1.14冲突，不能盲降级。当前唯一适配目录仍 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`；旧root pristine9f不动，source00097ea不变。GPU停止/no-retry与goal状态均不变，本轮仅小证据归档。
