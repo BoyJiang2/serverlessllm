@@ -80,3 +80,23 @@
 用户再次明确授权002 GPU计算，16:31 fresh API核boyjiang预约仍到20:00+08；nvidia-smi显示8×H20-3e各143771MiB，均0占用/0利用率、无compute-apps；主机available约2013882548224B。此为当时资源快照，非后续运行gate。
 
 镜像迁移exec39425仍存活、尚未目标归档字节；源Docker导出进程和目标load进程可见，源磁盘用量增长不单独证明本任务进度。保留同一会话，未重启迁移。Github审计main d1bda621906c9312c958124463cc03efe70f1cca已实际核验。源码分支发布仍HTTP408（一次--progress记录4.39MiB pack、84–369KiB/s后断连）；未把失败称成功，服务器/本地源码提交及小型patch均保留。S1实际执行环境、S2符号链接变化原因、S3运行兼容、S4a官方读回与全部S4b仍未闭环。
+
+## 最新工作方式与迁移终态覆盖（不重写旧记录）
+
+用户明确调整为“我准备代码/命令，用户负责运行”。此后不再自行启动迁移、容器、GPU、模型或Store。已提供用户分步docker save压缩落盘、scp和docker load命令，等待实际回传，不能把用户意图视为已运行或成功。
+
+旧exec39425已明确terminal exit1：源003 SSH报“Timeout, server 115.190.191.164 not responding”，目标gzip报unexpected end of file，docker load报缺repositories。随后独立只读ps确认源3484138/3484139、目标4025990/4025991均不在；002精确镜像inspect仍未找到目标镜像。没有仍活跃的迁移handle，不重复启动。审计main a461beed0f8380cb837e73736c33f56f338b14ae已实际ls-remote核验。
+
+独立vllm_compatibility只读核验发现必须处理的实际合同缺口：
+- 0.19.1 compressed_tensors_moe.py:1369–1411 fresh创建4个g_idx/sort_indices；Marlin且actorder非group时:1478–1494改为[E,0] int32参数。官方_filter_subtensors丢弃numel=0，当前恢复fresh模型却仍索引这些非空key，会缺key。仅可对实际确认Marlin/no-actorder分支用官方语义重建，不能用于group actorder或未核分支。
+- :1552的workspace是普通tensor属性，不在state_dict；apply:1664需要。marlin_utils.py:257–265官方marlin_make_workspace_new(device,4)创建全零int workspace，大小为num_compute_units(device.index)*4。可独立重建，但不能因此宣称布局/完整恢复已验证。
+- :1496–1550会repack/permute packed/scale。Store保存LLM加载后的状态，恢复不可再跑完整后处理；必须先绑定归档backend/layout身份及源参考实际分支。
+- Flashinfer :1417–1439提前返回，不具有同一Marlin workspace/空参数问题；不能套Marlin规则，亦不能由此称完整兼容。
+- get_model传model_config/prefix，旧补丁忽略；CPU state_dict引用保留使placeholder替换不立即释放原CPU权重；shape/dtype/backend/layout严格校验与CUDA backing ownership仍未证明。
+- 视觉time_weight及lazy complex64 freqs_cis均为persistent=False，不能预设需新增codec。
+
+当前最小代码修复方向限定官方既有sllm_load.patch/ServerlessLLMLoader：先锁实际backend，绑定布局，再处理必要scratch及原生API合同；没有新增loader管理框架或启动系统。现阶段不盲目把Marlin政策套到未知profile。官方writer与patch状态修复已源码复审通过，但真实组件/完整GPU/原生服务尚未通过。
+
+已准备给用户的下一条CPU环境核验命令（outputs/qjhs002-runtime-inventory-command.txt）：先核精确image ID，再用既有镜像runc、无GPU/网络、1CPU/4GiB/128pids，只导入并报告模块路径/版本、vLLM commit和依赖、Torch编译CUDA/ABI。Python入口45秒alarm，不加载模型/Store或分配CUDA；尚未由用户执行。alarm仅约束Python入口，不证明Docker start物理可取消；旧Docker启动失败历史保留。S4b必须另有新守护/预算/资源及审阅。
+
+CPU命令经review_official_fixes只读复审后已按建议修订：运行完整expected image ID，避免tag检查/使用竞态；逐模块starting/result即时flush，导入崩溃/超时也保留先前已完成项；额外收集已安装distribution版本。声明requirements与已安装版本均只作证据，不自动宣称约束/ABI满足。该命令不是S4b guard或probe。用户尚未执行，不宣称导入成功。

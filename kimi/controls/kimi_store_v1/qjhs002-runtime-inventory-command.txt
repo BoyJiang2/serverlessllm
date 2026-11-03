@@ -1,0 +1,53 @@
+# 在 qjhs002 执行；先完成镜像导入。
+# 只核验现有环境：不挂GPU、不加载模型、不启动Store、不安装包。
+set -euo pipefail
+
+image=sllm-kimi-cpu-build:runtime210-cu129
+expected=sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27
+actual=$(docker image inspect "$image" --format '{{.Id}}')
+test "$actual" = "$expected"
+
+docker run --rm -i --runtime=runc --network none   --cpus 1 --memory 4g --pids-limit 128   -e NVIDIA_VISIBLE_DEVICES=void -e CUDA_VISIBLE_DEVICES=   -e PYTHONDONTWRITEBYTECODE=1   --entrypoint /usr/bin/python3 "$expected" - <<'PY'
+import signal
+signal.alarm(45)
+import importlib
+import importlib.metadata as metadata
+import json
+import sys
+
+result = {"python": sys.version, "executable": sys.executable,
+          "scope": "CPU imports only; no model, Store, or CUDA allocation",
+          "modules": {}}
+failed = False
+for name in ("torch", "vllm", "transformers", "compressed_tensors",
+             "sllm_store", "sllm_store._C"):
+    print(json.dumps({"starting_module": name}), flush=True)
+    row = {}
+    try:
+        module = importlib.import_module(name)
+        row["file"] = getattr(module, "__file__", None)
+        row["version"] = getattr(module, "__version__", None)
+        if name == "vllm":
+            version = importlib.import_module("vllm._version")
+            row["commit"] = getattr(version, "__commit_id__", None)
+        if name == "torch":
+            row["compiled_cuda"] = module.version.cuda
+            row["cxx11_abi"] = module._C._GLIBCXX_USE_CXX11_ABI
+    except Exception as error:
+        failed = True
+        row["error_type"] = type(error).__name__
+        row["error"] = str(error)
+    result["modules"][name] = row
+    print(json.dumps({"module": name, "result": row}), flush=True)
+try:
+    result["vllm_requirements"] = metadata.requires("vllm")
+except metadata.PackageNotFoundError:
+    failed = True
+    result["vllm_requirements"] = None
+result["installed_distributions"] = {
+    dist.metadata["Name"]: dist.version for dist in metadata.distributions()
+    if dist.metadata["Name"]
+}
+print(json.dumps(result, indent=2), flush=True)
+sys.exit(1 if failed else 0)
+PY
