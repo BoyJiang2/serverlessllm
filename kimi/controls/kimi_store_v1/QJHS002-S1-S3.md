@@ -283,3 +283,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 `qjhs002-os-guard-cpu/` 保留已有CPU proof与仅四个远端指定小文件。实际Type=exec、Restart=no、DelegateControllers=cpu memory pids、RuntimeMax10s/Stop3s、KillMode=control-group/FinalSIG9。ready时unit root procs为空；supervisor与container两个descendant cgroup共3角色，均忽略TERM。最终Result=timeout、ExecMainCode2/Status9，StartMono267382437077→Exit267395520626=13.083549s。13次释放观察实际跨度>=60s，全部精确owned PID+starttick身份不存在、unit cgroup removed。
 
 限制必须保留：交互launch后properties捕获命令被TTY截断，报`roperties.txt not found`；fresh SSH权威show已完整恢复，属性以final文本为准（Restart=no另见fresh live文本），不能伪装launch CLI全程无错误。此proof仅CPU睡眠/OS清理机制PASS，未跑runc/hook/GPU/模型/Store，不证明原GPU失败根因或GPU授权，GPUstop不解除。source dd4b60b、新根唯一、GLM35/5、goal不变，本轮仅证据归档。
+
+## Canonical CPU chat 三个有界用例通过，首次fixture失败保留（2026-11-04）
+
+`qjhs002-canonical-chat-cpu/` 保存原/修正脚本、两次stdout/stderr、源码审阅及postcheck。首次容器exit1：参考工具声明fixture漏终端LF；按官方tool_declaration_ts.py末尾 `}\n` 源码证据，仅修正参考tool_text末尾LF，不修改生产、断言、flag、用例或gold。原脚本SHA14151988…与修正fb9029dc…分别保留；correction-review为修正前审阅，原“未执行”状态由本次实际corrected结果覆盖，历史不改。
+
+修正容器exit0，stdout最后JSON=`CANONICAL_KIMI_TOKENIZER_CPU_CHAT_CASES_PASS`；default thinking、thinking=False和tool declaration三个有界纯文本用例的官方template渲染及core BPE IDs均对独立参考一致，控制token恰一次；tool仅声明不执行。CUDA未初始化，后验8 GPU全0。只读factory overlay仍不是原镜像完整patch部署。
+
+仅上述CPU chat cases PASS，不覆盖default AutoProcessor解析、HTTP服务、多模态、工具执行、模型/权重/Store/GPU或S4a官方读回。source仍dd4b60b、新根唯一，GPUstop/GLM35/5/goal边界不变；本轮只归档，不新运行。

@@ -1,0 +1,8 @@
+W1103 17:19:26.197000 7 torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+Calling super().encode with {'add_special_tokens': False}
+Calling super().encode with {'add_special_tokens': False}
+Traceback (most recent call last):
+  File "/probe.py", line 57, in <module>
+    assert rendered==expected_text,(name,rendered,expected_text)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('tool_declaration', '<|im_system|>tool_declare<|im_middle|># Tools\n\n## functions\nnamespace functions {\ntype echo_text = (_: {}) => any;\n}\n<|im_end|><|im_user|>user<|im_middle|>你好 Kimi<|im_end|><|im_assistant|>assistant<|im_middle|><think>', '<|im_system|>tool_declare<|im_middle|># Tools\n\n## functions\nnamespace functions {\ntype echo_text = (_: {}) => any;\n}<|im_end|><|im_user|>user<|im_middle|>你好 Kimi<|im_end|><|im_assistant|>assistant<|im_middle|><think>')
