@@ -1,0 +1,93 @@
+"""Regression checks extract guard code without executing its root-only entry point."""
+import ast
+import hashlib
+import json
+import os
+from pathlib import Path
+import tempfile
+import time
+import types
+import unittest
+from unittest.mock import patch
+
+TREE = ast.parse((Path(__file__).resolve().parents[1] / "guard_cuda_micro.py").read_text())
+MAIN = next(node for node in TREE.body if isinstance(node, ast.Try))
+
+
+def execute(nodes, namespace):
+    exec(compile(ast.fix_missing_locations(ast.Module(body=nodes, type_ignores=[])), "guard-extracted", "exec"), namespace)
+
+
+@unittest.skipUnless(hasattr(os, "O_PATH"), "Linux directory-fd checks")
+class GuardCudaMicroTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        base = Path(self.temporary.name)
+        root = base / "cgroup"
+        scope = root / "system.slice" / ("docker-" + "c" * 64 + ".scope")
+        scope.mkdir(parents=True)
+        (scope / "cgroup.events").write_text("populated 1\nfrozen 0\n")
+        (scope / "cgroup.kill").touch()
+        oci = base / "config.json"
+        expected = "system.slice:docker:" + "c" * 64
+        oci.write_text(json.dumps({"linux": {"cgroupsPath": expected}}))
+        self.ns = dict(os=os, pathlib=__import__("pathlib"), json=json, hashlib=hashlib, time=time,
+                       base=base, oci=oci, cgroot=root, scope=scope, expected_cg=expected,
+                       scopefd=None, oci_seen=False, scope_seen=False, raw_sha=None, last={}, emit=lambda *args, **kwargs: None)
+        execute([n for n in TREE.body if isinstance(n, ast.FunctionDef) and n.name in ("read", "atomic", "snapshot", "kill_scope")], self.ns)
+        self.addCleanup(self.close_scope)
+
+    def close_scope(self):
+        if self.ns["scopefd"] is not None:
+            os.close(self.ns["scopefd"])
+            self.ns["scopefd"] = None
+
+    def replace_scope(self):
+        scope = self.ns["scope"]
+        scope.rename(scope.with_name("old-generation"))
+        scope.mkdir()
+        (scope / "cgroup.events").write_text("populated 1\nfrozen 0\n")
+        (scope / "cgroup.kill").touch()
+
+    def test_rebuilt_scope_is_reauthenticated_before_kill(self):
+        self.ns["snapshot"]()
+        old_inode = os.fstat(self.ns["scopefd"]).st_ino
+        self.replace_scope()
+        self.ns["snapshot"]()
+        self.assertNotEqual(os.fstat(self.ns["scopefd"]).st_ino, old_inode)
+        self.ns["kill_scope"]()
+        self.assertEqual((self.ns["scope"] / "cgroup.kill").read_text(), "1\n")
+        self.assertEqual((self.ns["scope"].with_name("old-generation") / "cgroup.kill").read_text(), "")
+
+    def test_rebuilt_scope_without_fresh_oci_is_rejected(self):
+        self.ns["snapshot"]()
+        self.replace_scope()
+        self.ns["oci"].unlink()
+        with self.assertRaisesRegex(ValueError, "fresh OCI"):
+            self.ns["snapshot"]()
+        self.assertEqual((self.ns["scope"] / "cgroup.kill").read_text(), "")
+
+    def test_ack_directory_fsync_error_stays_in_cleanup_path(self):
+        ack = next(n for n in MAIN.body if isinstance(n, ast.Try) and any(isinstance(x, ast.Constant) and x.value == "GO-ACK.json" for x in ast.walk(n)))
+        self.ns.update(a=types.SimpleNamespace(cid="c" * 64), go_at=1.0, failures=set(), abort_at=None)
+        with patch.object(os, "fsync", side_effect=[None, OSError("injected directory fsync failure")]):
+            execute([ack], self.ns)
+        self.assertTrue((self.ns["base"] / "GO-ACK.json").exists())
+        self.assertIn("GO_ACK_publish", self.ns["failures"])
+        self.assertIsNotNone(self.ns["abort_at"])
+
+    def test_first_quiet_observation_after_cleanup_cutoff_fails(self):
+        loop = next(n for n in MAIN.body if isinstance(n, ast.While) and "a.overall" in ast.unparse(n.test))
+        triggered = next(n for n in loop.body if isinstance(n, ast.If) and ast.unparse(n.test) == "now >= trigger")
+        cutoff = next(n for n in triggered.body if isinstance(n, ast.If) and "quiet is None" in ast.unparse(n.test))
+        quiet = next(n for n in triggered.body if isinstance(n, ast.If) and ast.unparse(n.test) == "not live and empty")
+        # The first cutoff check must precede the first assignment to quiet.
+        body = triggered.body
+        execute(body[body.index(cutoff):body.index(quiet)], dict(self.ns, quiet=None, now=66.0, go_at=0.0,
+                a=types.SimpleNamespace(overall=65), failures=(failures := set())))
+        self.assertIn("cleanup_exceeded_GO65", failures)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -315,3 +315,11 @@ source dd4b60b、新根唯一、GPU FAILED_RETAINED/no-retry、GLM35/5/goal不�
 entry SHA=f99229c338a240b7a5f78dd1d635004038414c4763f082ad73938280ab2e1c29，test SHA=adb6fa18f07425776d6f5e3bec78c158e737a2c4856e54ee06c1f5c0deac3274；本机取得已提交对象再次核相同。最小改动为单PID参数(default128/显式512)、新root/actual source/newnonce/inspect PID一致性；4offline tests/0.012s通过，未创建容器。历史入口/prepared/FAILED_RETAINED原样并记录SHA，不因本次迁移覆盖。
 
 native-scope deadline review仅source-only附录，181KB输入仅记SHA不重复打包；预算/guard字段是声明，不等于guard已通过或运行准入。当前唯一新根、原版旧根/GPUstop/no-retry/GLM35/5/goal保持；未新跑GPU/runc fixture或修改依赖。
+
+## 当前 guard/probe source 候选已提交，GitHub 发布待网络恢复（2026-11-04）
+
+active仅新增并stage三个任务文件：`sllm_store/tests/guard_cuda_micro.py`、`sllm_store/tests/cuda_micro_probe.py`、`sllm_store/tests/python/test_guard_cuda_micro.py`；source=`b1f14fef05b31516e5ff05adaa09aeb4bec2379f`、parent e4da57e。glog未stage。服务器commit与本机fetch对象成功；GitHub默认proxy127.0.0.1两次拒绝，本次direct443也连接失败，故不称已公开，server origin tracking仍e4da；持久proxy配置未改。
+
+`qjhs002-guard-source-candidate/` 保留4offline PASS、旧2scope缺陷EXPECTED2FAIL、guard独审允许单次bounded CPU fault scope、normal-exit probe独审及CPU recipe。recipe状态NOT_EXECUTED；offline不验证kernel cgroup/pidfd，声明时限/预算不算guard实测或GPU准入。旧75ba rejected源码不是当前候选，不替换历史；probe仅marker及去掉hold支持正常退出，原GPU payload不改。
+
+本轮无容器/probe运行，正式CPU注入尚未执行，GPUstop/GLM35/5/goal均保持。源码与证据commit本地/服务器保留，待GitHub网络恢复后普通push并核SHA，不force。
