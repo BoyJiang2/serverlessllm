@@ -1,0 +1,16 @@
+{
+  "model": "Qwen/Qwen3-8B",
+  "backend": "transformers",
+  "num_gpus": 1,
+  "auto_scaling_config": {
+    "min_instances": 1,
+    "max_instances": 1,
+    "keep_alive": 60
+  },
+  "backend_config": {
+    "pretrained_model_name_or_path": "/models/Qwen3-8B",
+    "device_map": "auto",
+    "torch_dtype": "bfloat16",
+    "hf_model_class": "AutoModelForCausalLM"
+  }
+}

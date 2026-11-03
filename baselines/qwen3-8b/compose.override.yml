@@ -1,0 +1,23 @@
+services:
+  sllm_head:
+    image: serverlessllm/sllm@sha256:470039cd917ca13febc1a5d04578e60850fbc9b1604dc5cdf4ad53561fd9035e
+    container_name: sllm_qwen3_head
+    cpus: 4
+    mem_limit: 16g
+    shm_size: 8g
+    environment:
+      - RAY_NUM_CPUS=4
+    volumes:
+      - ${MODEL_FOLDER}:/models:ro
+  sllm_worker_0:
+    image: serverlessllm/sllm@sha256:470039cd917ca13febc1a5d04578e60850fbc9b1604dc5cdf4ad53561fd9035e
+    container_name: sllm_qwen3_worker_0
+    cpus: 4
+    mem_limit: 96g
+    shm_size: 32g
+    volumes:
+      - ${MODEL_FOLDER}/Qwen3-8B:/app/Qwen/Qwen3-8B:ro
+    command: ["--mem-pool-size", "32GB", "--registration-required", "true"]
+networks:
+  sllm_network:
+    name: sllm-qwen3-baseline
