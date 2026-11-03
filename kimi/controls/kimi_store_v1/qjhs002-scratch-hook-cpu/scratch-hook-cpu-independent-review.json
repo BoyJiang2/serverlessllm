@@ -1,0 +1,31 @@
+{
+  "review_date": "2026-11-04",
+  "verdict": "PASS_SOURCE_SCOPE",
+  "candidate": "work/scratch_runc_hook_cpu_candidate.py",
+  "candidate_sha256": "c60720217207e77b53e3cee2e2272193c3c4021f967b765cb6fbc1d5819e50bb",
+  "execution_by_reviewer": false,
+  "scope": "One instrumented CPU-only createContainer mechanism control; no GPU cause or retry admission",
+  "explicit_rootfs_propagation": "rprivate",
+  "runc_operation": "create; never start; cleanup only own --root/id delete --force",
+  "hook": {
+    "path": "/usr/bin/nvidia-cdi-hook",
+    "sha256": "fb9e22c288346e9a99cfbef446a8495932073608aa9982628a750cacb129925c",
+    "args": ["nvidia-cdi-hook", "--version"],
+    "env": ["NVIDIA_CTK_DEBUG=false"],
+    "timeout_seconds": 5
+  },
+  "child_limits": {"pids":128,"memory_bytes":2147483648,"memory_swap_total_bytes":2147483648,"cpu_quota":100000,"cpu_period":100000},
+  "required_parent": {"type":"exec","restart":"no","delegate":["cpu","memory","pids"],"memory_bytes":3221225472,"tasks":1024,"cpu_percent":100,"runtime_seconds":30,"stop_seconds":3,"kill_mode":"control-group","final_signal":9},
+  "root_supplied_execution_budget_seconds": 180,
+  "external_release_observation_minimum_seconds": 60,
+  "sampling_period_seconds": 0.02,
+  "limitations": [
+    "Original OCI and full ancestor profile unavailable; original GPU cause remains unknown",
+    "Strace changes scheduling and --version does not reproduce earlier GPU hook actions",
+    "Clone3 ENOSYS with successful clone is fallback, not thread exhaustion",
+    "Short-lived process identity or leaf events may be missed; report missing, never zero",
+    "Success hook stdout is not returned by runc; raw trace needs independent review",
+    "Native systemd shutdown and owned identity/subtree release require external verification"
+  ],
+  "not_performed": ["host execution","sudo","runc/container/GPU execution","Git","synchronization","production edits"]
+}

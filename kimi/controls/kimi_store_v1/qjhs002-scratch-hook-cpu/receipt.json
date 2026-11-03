@@ -1,0 +1,81 @@
+{
+  "status": "CPU_INSTRUMENTED_POST_HOOK_MISSING_APP",
+  "source_commit": "dd4b60bb9b19183fc45896d5b7fd778a9f98ad44",
+  "scope": "Instrumented scratch runc CPU createContainer hook --version only; no GPU/model/Store",
+  "hook_trace": {
+    "raw_trace_bytes": 168118,
+    "raw_trace_sha256": "788e44ccba51e416aa9d3840949a76af04fea3dc411c6d52e042688799303e40",
+    "hook_pid": 3013823,
+    "hook_exec": [
+      "3013823 1793727642.454520 execve(\"/usr/bin/nvidia-cdi-hook\", [\"nvidia-cdi-hook\", \"--version\"], 0xc00002d0f0 /* 1 var */ <unfinished ...>"
+    ],
+    "hook_exec_resumed": [
+      "3013823 1793727642.454645 <... execve resumed>) = 0"
+    ],
+    "hook_version_write": [
+      "3013823 1793727642.540184 write(1, \"NVIDIA CDI Hook version 1.19.0\\ncommit: ec7b4e2fa2caecad6d89be4a26029b831fe7503a\\n\", 80) = 80"
+    ],
+    "hook_exit": [
+      "3013823 1793727642.540228 exit_group(0 <unfinished ...>",
+      "3013823 1793727642.546477 +++ exited with 0 +++"
+    ],
+    "thread_or_memory_all_trace_failures": [],
+    "scope": "trace-controlled CPU hook only; nonblocking read EAGAIN excluded"
+  },
+  "create_returncode": 1,
+  "create_failure_expected": "Missing /__cpu_probe_no_app__ after successful hook, not model execution",
+  "wrapper_returncode": 0,
+  "delete_returncode": 0,
+  "leaf_once_observed": {
+    "pids_max": 128,
+    "memory_max_bytes": 2147483648,
+    "cpu_max": "100000 100000",
+    "pids_events_max": 0
+  },
+  "final_deleted_leaf": {
+    "cgroup.events": {
+      "unavailable_errno": 2
+    },
+    "pids.current": {
+      "unavailable_errno": 2
+    },
+    "pids.max": {
+      "unavailable_errno": 2
+    },
+    "pids.events": {
+      "unavailable_errno": 2
+    },
+    "memory.current": {
+      "unavailable_errno": 2
+    },
+    "memory.max": {
+      "unavailable_errno": 2
+    },
+    "memory.swap.max": {
+      "unavailable_errno": 2
+    },
+    "memory.events": {
+      "unavailable_errno": 2
+    },
+    "cpu.max": {
+      "unavailable_errno": 2
+    },
+    "cpuset.cpus.effective": {
+      "unavailable_errno": 2
+    }
+  },
+  "unit_runtime_reported_ms": 310,
+  "unit_runtime_source": "Root reported interactive TTY output; final unit was collected and monotonic timestamps are 0, so not recomputed from unit-final.txt.",
+  "release": {
+    "samples": 13,
+    "span_seconds": 60.10432313196361,
+    "owned_identities": 7,
+    "all_absent": true,
+    "unit_cgroup_removed": true
+  },
+  "raw_trace_downloaded": false,
+  "raw_trace_remote_directory": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136",
+  "original_gpu_failure_reproduced": false,
+  "original_gpu_root_cause_known": false,
+  "gpu_stop_remains": true
+}

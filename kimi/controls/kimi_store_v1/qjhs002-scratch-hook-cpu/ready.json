@@ -1,0 +1,173 @@
+{
+  "unit": "kimi-scratch-hook-cpu-20261104-0136.service",
+  "properties": {
+    "Type": "exec",
+    "Restart": "no",
+    "TimeoutStopUSec": "3s",
+    "RuntimeMaxUSec": "30s",
+    "MainPID": "3013787",
+    "ControlGroup": "/system.slice/kimi-scratch-hook-cpu-20261104-0136.service",
+    "Delegate": "yes",
+    "DelegateControllers": "cpu memory pids",
+    "CPUQuotaPerSecUSec": "1s",
+    "MemoryMax": "3221225472",
+    "TasksMax": "1024",
+    "KillMode": "control-group",
+    "FinalKillSignal": "9",
+    "SendSIGKILL": "yes"
+  },
+  "unit_cgroup": "/sys/fs/cgroup/system.slice/kimi-scratch-hook-cpu-20261104-0136.service",
+  "parent": {
+    "pid": 3013787,
+    "startticks": 26961581,
+    "ppid": 1,
+    "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/supervisor",
+    "status": {
+      "Name": "python3",
+      "Uid": "0\t0\t0\t0",
+      "Gid": "0\t0\t0\t0",
+      "Threads": "1",
+      "CapEff": "000001ffffffffff",
+      "Seccomp": "0",
+      "Cpus_allowed_list": "0-239"
+    },
+    "limits": "Limit                     Soft Limit           Hard Limit           Units     \nMax cpu time              unlimited            unlimited            seconds   \nMax file size             unlimited            unlimited            bytes     \nMax data size             unlimited            unlimited            bytes     \nMax stack size            8388608              unlimited            bytes     \nMax core file size        0                    unlimited            bytes     \nMax resident set          unlimited            unlimited            bytes     \nMax processes             7877312              7877312              processes \nMax open files            1024                 524288               files     \nMax locked memory         65536                65536                bytes     \nMax address space         unlimited            unlimited            bytes     \nMax file locks            unlimited            unlimited            locks     \nMax pending signals       7877312              7877312              signals   \nMax msgqueue size         819200               819200               bytes     \nMax nice priority         0                    0                    \nMax realtime priority     0                    0                    \nMax realtime timeout      unlimited            unlimited            us"
+  },
+  "binary_sha256": {
+    "/usr/bin/nvidia-cdi-hook": "fb9e22c288346e9a99cfbef446a8495932073608aa9982628a750cacb129925c",
+    "/usr/bin/runc": "5d45a75ed79d62f445c8ec44b019dac4584ca1fe9d07e72953d6b17272216f7a",
+    "/usr/bin/strace": "38a5c75cb29dd85ddd7780d54f5bf595554d7a1b5c42524b23065f5dc4c4b01d"
+  },
+  "oci_sha256": "0b0bd976bf8b5d032f2b4af963f9f02d157400f1b5c637dda3ea0fb00231fe30",
+  "oci": {
+    "ociVersion": "1.2.1",
+    "root": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/bundle/rootfs",
+      "readonly": true
+    },
+    "process": {
+      "terminal": false,
+      "user": {
+        "uid": 0,
+        "gid": 0
+      },
+      "args": [
+        "/__cpu_probe_no_app__"
+      ],
+      "cwd": "/",
+      "env": []
+    },
+    "mounts": [
+      {
+        "destination": "/dev",
+        "type": "tmpfs",
+        "source": "tmpfs",
+        "options": [
+          "nosuid",
+          "strictatime",
+          "mode=755",
+          "size=65536"
+        ]
+      }
+    ],
+    "linux": {
+      "rootfsPropagation": "rprivate",
+      "cgroupsPath": "/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/container",
+      "namespaces": [
+        {
+          "type": "mount"
+        },
+        {
+          "type": "pid"
+        },
+        {
+          "type": "ipc"
+        },
+        {
+          "type": "uts"
+        },
+        {
+          "type": "network"
+        },
+        {
+          "type": "cgroup"
+        }
+      ],
+      "devices": [],
+      "resources": {
+        "cpu": {
+          "quota": 100000,
+          "period": 100000
+        },
+        "memory": {
+          "limit": 2147483648,
+          "swap": 2147483648
+        },
+        "pids": {
+          "limit": 128
+        }
+      }
+    },
+    "hooks": {
+      "createContainer": [
+        {
+          "path": "/usr/bin/nvidia-cdi-hook",
+          "args": [
+            "nvidia-cdi-hook",
+            "--version"
+          ],
+          "env": [
+            "NVIDIA_CTK_DEBUG=false"
+          ],
+          "timeout": 5
+        }
+      ]
+    }
+  },
+  "argv": [
+    "/usr/bin/strace",
+    "-f",
+    "-ttt",
+    "-s",
+    "160",
+    "-o",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/runc.strace.raw",
+    "-e",
+    "trace=execve,fork,vfork,clone,clone3,mmap,mprotect,munmap,openat,read,write,prlimit64,exit,exit_group",
+    "/usr/bin/runc",
+    "--root",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/runc-state",
+    "--debug",
+    "--log",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/runc.debug.json",
+    "--log-format",
+    "json",
+    "create",
+    "--bundle",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/bundle",
+    "kimi-scratch-hook-cpu-20261104-0136"
+  ],
+  "create_argv": [
+    "/usr/bin/runc",
+    "--root",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/runc-state",
+    "--debug",
+    "--log",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/runc.debug.json",
+    "--log-format",
+    "json",
+    "create",
+    "--bundle",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-scratch-hook-cpu-20261104-0136/bundle",
+    "kimi-scratch-hook-cpu-20261104-0136"
+  ],
+  "script_sha256": "c60720217207e77b53e3cee2e2272193c3c4021f967b765cb6fbc1d5819e50bb",
+  "selected_parent_env": {
+    "GOMAXPROCS": null,
+    "GODEBUG": null,
+    "LD_PRELOAD": null,
+    "LD_LIBRARY_PATH": null
+  },
+  "root_procs_empty": true,
+  "scope": "instrumented CPU createContainer stage control only; no app start/model/Store/GPU; original full profile and limits unknown"
+}

@@ -291,3 +291,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 修正容器exit0，stdout最后JSON=`CANONICAL_KIMI_TOKENIZER_CPU_CHAT_CASES_PASS`；default thinking、thinking=False和tool declaration三个有界纯文本用例的官方template渲染及core BPE IDs均对独立参考一致，控制token恰一次；tool仅声明不执行。CUDA未初始化，后验8 GPU全0。只读factory overlay仍不是原镜像完整patch部署。
 
 仅上述CPU chat cases PASS，不覆盖default AutoProcessor解析、HTTP服务、多模态、工具执行、模型/权重/Store/GPU或S4a官方读回。source仍dd4b60b、新根唯一，GPUstop/GLM35/5/goal边界不变；本轮只归档，不新运行。
+
+## Scratch runc CPU hook 实测完成（2026-11-04）
+
+`qjhs002-scratch-hook-cpu/` 保存指定小证据；trace证实nvidia-cdi-hook --version exec成功、打印1.19.0并exit0。leaf曾实际128 PID/2GiB/cpu1、pids.events max0；删除后字段为missing/errno2，不补0。runc create1为预期缺 `/__cpu_probe_no_app__`（hook之后），wrapper0/delete0，不称应用或模型通过。
+
+7个实际PID+starttick身份均在13样本、60.104323秒跨度观察中absent，unit cgroup removed。unit runtime310ms来源root的交互TTY，不从已collected unit-final的0单调时间伪算。raw strace168118B仅留远端原run目录，SHA256=`788e44ccba51e416aa9d3840949a76af04fea3dc411c6d52e042688799303e40`，本地只保存trace-analysis首行摘要，无raw下载。
+
+这是CPU instrumented hook成功控制；原GPU故障未复现、根因仍未知、GPUstop不解除。source dd4b60b/新根唯一、GLM35/5/goal保持，本轮只归档已有结果，不启动新fixture。

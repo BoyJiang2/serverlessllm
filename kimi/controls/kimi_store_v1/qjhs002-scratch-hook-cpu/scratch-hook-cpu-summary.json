@@ -1,0 +1,233 @@
+{
+  "status": "CPU_INSTRUMENTED_POST_HOOK_MISSING_APP",
+  "create_returncode": 1,
+  "delete_returncode": 0,
+  "observed_process_count": 7,
+  "observed_processes": [
+    {
+      "pid": 3013787,
+      "ppid": 1,
+      "startticks": 26961581,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/supervisor",
+      "status": {
+        "Name": "python3",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "1",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013795,
+      "ppid": 3013787,
+      "startticks": 26961587,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/supervisor",
+      "status": {
+        "Name": "strace",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "1",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013798,
+      "ppid": 3013795,
+      "startticks": 26961587,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/supervisor",
+      "status": {
+        "Name": "runc",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "14",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013808,
+      "ppid": 3013798,
+      "startticks": 26961588,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/container",
+      "status": {
+        "Name": "runc:[0:PARENT]",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "1",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013810,
+      "ppid": 3013798,
+      "startticks": 26961589,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/container",
+      "status": {
+        "Name": "runc:[1:CHILD]",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "1",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013811,
+      "ppid": 3013798,
+      "startticks": 26961589,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/container",
+      "status": {
+        "Name": "runc:[2:INIT]",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "6",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    },
+    {
+      "pid": 3013823,
+      "ppid": 3013811,
+      "startticks": 26961593,
+      "cgroup": "0::/system.slice/kimi-scratch-hook-cpu-20261104-0136.service/container",
+      "status": {
+        "Name": "nvidia-cdi-hook",
+        "Uid": "0\t0\t0\t0",
+        "Gid": "0\t0\t0\t0",
+        "Threads": "10",
+        "CapEff": "000001ffffffffff",
+        "Seccomp": "0",
+        "Cpus_allowed_list": "0-239"
+      }
+    }
+  ],
+  "leaf_events": [
+    {
+      "time": 1793727642.3932881,
+      "monotonic": 269615.873623274,
+      "leaf": {
+        "cgroup.events": "populated 0\nfrozen 0",
+        "pids.current": "0",
+        "pids.max": "max",
+        "pids.events": "max 0",
+        "memory.current": "0",
+        "memory.max": "max",
+        "memory.swap.max": "max",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+        "cpu.max": "max 100000",
+        "cpuset.cpus.effective": {
+          "unavailable_errno": 2
+        }
+      }
+    },
+    {
+      "time": 1793727642.4143682,
+      "monotonic": 269615.894703485,
+      "leaf": {
+        "cgroup.events": "populated 1\nfrozen 0",
+        "pids.current": "2",
+        "pids.max": "max",
+        "pids.events": "max 0",
+        "memory.current": "524288",
+        "memory.max": "max",
+        "memory.swap.max": "max",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+        "cpu.max": "max 100000",
+        "cpuset.cpus.effective": "0-239"
+      }
+    },
+    {
+      "time": 1793727642.4568722,
+      "monotonic": 269615.937207312,
+      "leaf": {
+        "cgroup.events": "populated 1\nfrozen 0",
+        "pids.current": "7",
+        "pids.max": "128",
+        "pids.events": "max 0",
+        "memory.current": "7385088",
+        "memory.max": "2147483648",
+        "memory.swap.max": "0",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+        "cpu.max": "100000 100000",
+        "cpuset.cpus.effective": "0-239"
+      }
+    },
+    {
+      "time": 1793727642.5623357,
+      "monotonic": 269616.042670636,
+      "leaf": {
+        "cgroup.events": {
+          "unavailable_errno": 2
+        },
+        "pids.current": {
+          "unavailable_errno": 2
+        },
+        "pids.max": {
+          "unavailable_errno": 2
+        },
+        "pids.events": {
+          "unavailable_errno": 2
+        },
+        "memory.current": {
+          "unavailable_errno": 2
+        },
+        "memory.max": {
+          "unavailable_errno": 2
+        },
+        "memory.swap.max": {
+          "unavailable_errno": 2
+        },
+        "memory.events": {
+          "unavailable_errno": 2
+        },
+        "cpu.max": {
+          "unavailable_errno": 2
+        },
+        "cpuset.cpus.effective": {
+          "unavailable_errno": 2
+        }
+      }
+    }
+  ],
+  "final_leaf": {
+    "cgroup.events": {
+      "unavailable_errno": 2
+    },
+    "pids.current": {
+      "unavailable_errno": 2
+    },
+    "pids.max": {
+      "unavailable_errno": 2
+    },
+    "pids.events": {
+      "unavailable_errno": 2
+    },
+    "memory.current": {
+      "unavailable_errno": 2
+    },
+    "memory.max": {
+      "unavailable_errno": 2
+    },
+    "memory.swap.max": {
+      "unavailable_errno": 2
+    },
+    "memory.events": {
+      "unavailable_errno": 2
+    },
+    "cpu.max": {
+      "unavailable_errno": 2
+    },
+    "cpuset.cpus.effective": {
+      "unavailable_errno": 2
+    }
+  }
+}
