@@ -1,3 +1,7 @@
+## 11/3 用户要求同步：最新本地工作已上传远端
+
+现有p0/local-work.tar.gz已上传commit1a0db62完整178文件、源码4749584B、压缩1230677B，附local-work-manifest.json及local-work-receipt.json；独立SSH逐文件SHA验证通过。仅传输源码/测试/审阅/接续资料，不包含权重/Store/环境/镜像。旧p0/code的844冻结清单未变，未启动容器/计算。最新可执行源码批准仍仅ab134f0的PASS_SOURCE_ONLY，无runtime准入。完整收据见source-bundle-materialization.json.remote_local_work_transfers。
+
 ## 11/3 05:56 预约与预算接续覆盖
 
 新只读API核实当前票09:00结束、alan09:00–23:00整机GPU/内存用途，未见本实验后续窗口；未修改预约。现有P0 1200秒预算分解和下一次先短runtime/P0窗口的条件已更新RESERVATION-PLAN.md。源码/清单继续绑定ab134f0/f85266ac，不把本次仅证据/规划提交当成新的运行代码批准；无远端部署或计算。本窗GPU停止不变。下一次具体run/spec/booking/guard只能在真实新授权窗口与完整配置审阅后绑定，不能伪造未来窗口、复用旧失败身份或提前发gate。
