@@ -259,3 +259,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 参考只从官方源码AST提取literal pattern/reserved常量，使用既有tiktoken及2.8MB本地资产；未import checkpoint Python，不是模型/GPU/chat-template验证。运行时native pretokenizer已捕获，generic pattern与官方Han/大小写分支的实际差异证据保留，不设fix_mistral_regex、不改依赖/生产。
 
 同存只读下一路径选择：优先复用既有vLLM `tokenizer_cls` 与官方class进行独立CPU验证，尚未执行，需显式可信源scope；TF4.57.1候选metadata显示hub<1与当前1.14冲突，不能盲降级。当前唯一适配目录仍 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`；旧root pristine9f不动，source00097ea不变。GPU停止/no-retry与goal状态均不变，本轮仅小证据归档。
+
+## Official tokenizer CPU core/cache/pickle 通过；生产 factory 尚未接入（2026-11-03）
+
+`qjhs002-official-tokenizer-cpu/` 保存实际已有输出、booking、脚本和回执。`--allow-reviewed-local-code` 限定root原任务授权及两次完整源码独立审阅的scope，现有get_tokenizer显式传入official tokenizer_cls；7资产<3MiB、sandbox runc/noGPU/netnone/只读/user2147，HF_MODULES/cache仅tmp。未将任意checkpoint Python授权扩展到其他代码；stderr原encode警告原样保留。
+
+实际original/cached/pickle恢复三个对象均匹配23 named ID、256 reserved槽和12 gold语料精确IDs；PAD163839/UNK163838/vocab163840，torch CUDA未初始化。pickle6733495B仅在内存，无序列化payload文件归档；postcheck容器exited0、8 GPU全0。receipt逐字段等于原stdout。
+
+这是直接class CPU路径验证，不是生产修复：native CLI/LLM factory仍未接入，生产修改候选仅work且未apply；`vllm-tokenizer-production-api-review.md`明确真实factory位置及调用边界。既有支持路径选择引用 `qjhs002-tokenizer-core-divergence/kimi-tokenizer-support-path-selection.md`。不证明chat/tools/model/GPU、S4a官方读回或原生服务；TF README版本差异和所有GPUstop/no-retry保持。唯一适配新root `/data/brick1/boyjiang/kimi-new/ServerlessLLM`、source00097ea不变，无新生产/依赖/goal改动。
