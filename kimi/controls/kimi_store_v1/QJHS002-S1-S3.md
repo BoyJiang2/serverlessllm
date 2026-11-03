@@ -132,3 +132,13 @@ S4a只读结论补充：官方save_dict可以CPU原始保存；已查load_dict/R
 更精确backend证据：同一个CompressedTensorsWNA16MarlinMoEMethod类以kernel_backend字段区分Flashinfer/Marlin（1172–1179），不能按类名判分支。actorder来自weight_quant.actorder；E与device从layer.w13_weight_g_idx取，TP rank不等于E。四空参数/workspace重建必须绑定实际Marlin/no-group profile及归档layout。当前候选仍不解决这些布局/scratch、alias、所有权或显存峰值缺口，不是完整转换或运行准入；不能仅因严格文本补丁可应用就启动模型。
 
 用户可在传输期间对官方源码应用该outer候选并运行纯stdlib接口回归；这不调用patch.sh、不修改实际vLLM环境、不导入Torch或启动模型/Store。需回传实际测试结果后才能记为回归通过。
+
+## IPC关闭状态与确认错误传播候选（镜像传输期间源码准备）
+
+已复用既有Kimi native_patch/model.cpp中经历史CPU夹具验证的关闭尾部，提取为当前官方model.cpp的独立候选；没有搬入旧ToHost/FP8/WaitModelInHost等无关差异。仅在ToGpu尾部保留复制失败，记录cudaSetDevice/cudaIpcCloseMemHandle失败，失败设备不在错误context继续关闭，并继续其他可处理句柄，最终INTERRUPTED后通知。复用旧test_ipc_close_patch.py的PREFIX/MAIN编译当前官方实际tail，新增tests/python/test_ipc_close_status.py覆盖success/close_failure/device_failure/copy_failure、有效关闭数量及notify最后。未执行此新测试，只做AST和提取标记检查。必须保留限制：原尾部持有mutex_，此前同锁等待者不能在解锁前观察；不能把通知位置调整单独称为并发竞态已修复。
+
+继续沿失败链读得ConfirmModel服务wait失败返回gRPC INTERNAL；客户端confirm_model_loaded却捕获RPC错误返回False，而官方torch.py一次、transformers.py三次和utils.py一次调用全部忽略该返回值。候选只在共享client.py方法把已返回的RPC错误统一raise RuntimeError(...) from e，成功仍返回None；使五处调用均不能继续返回未确认结果，不批量改五个调用方。新增tests/python/test_confirm_model_error.py使用实际AST提取函数：成功契约、cancelled/internal保留原cause、实际load_dict不返回未确认state，三条纯stdlib回归；未运行。
+
+review_official_fixes独立只读复审对IPC尾部及共享客户端传播均给出限定可交用户验证、无新增源码阻塞；没有执行测试或授运行准入。失败句柄残留、consumer异常时CUDA allocation所有权、Store停止/释放顺序仍待守护与实际GPU验证。RPC阻塞/超时也未由这个“已返回错误传播”改动解决，不能宣称完整失败清理。
+
+最终候选outputs/official-ipc-close-candidate.patch SHA256=eeb75df57417f64ee98bb2c5be85b25ee3d3e7b80e52430f122d8b128fb1195e。已上传002:/data/brick1/boyjiang/kimi-k2.6/p0/ipc-close-candidate-eeb75df57417.patch，官方工作树git apply --check通过、SHA与本地一致；未应用，工作树检查仍只有原storage.proto类型T。准备给用户在传输期间运行这两项CPU回归，不启动容器/GPU/Store。旧候选5b3163仅包含尾部，保留为历史草稿，不冒充最终版本。
