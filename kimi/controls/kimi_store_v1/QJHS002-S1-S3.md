@@ -158,3 +158,16 @@ root只读核对六个源/测试文件及SHA，普通源码diff --check通过；
 用户报告镜像导入完成后，root只读分别inspect qjhs003和qjhs002的runtime210-cu129：完整ID均为sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27；Size均34184928331B；RootFS 31个层摘要及顺序逐项相同。镜像ID绑定配置文档；本轮未启动容器、导入模块或运行GPU。完整双端身份收据见qjhs002-runtime-image-migration-verified.json。这解除“目标运行镜像缺失”，不证明实际依赖/ABI、当前官方源码已编译安装或GPU运行通过。
 
 下一步仍由用户在002执行现有/p0/qjhs002-runtime-inventory-e0bcf2e.txt：CPU导入核验Python/module路径/version、vLLM commit/声明依赖/已安装distribution、Torch编译CUDA/ABI、Store扩展是否可导入。metadata命令不是S4b guard。当前ownership候选尚未应用/编译/测试，当前源码未重建原生库；S4a/TP8/完整转换/八rank/原生服务仍未通过。压缩包在完整后续验收前保留，未擅自清理。
+
+## 002 CPU ownership、原生库与 SDK 导入里程碑（2026-11-03，覆盖旧等待）
+
+已核源码分支 `kimi-qjhs002-aligned-tail` 的远端 SHA 为 `00097eaafd60dbae262a954a29863b5c633aade9`。本节只保存已有 CPU 证据，不在整理时重新执行容器、编译、模型、Store 或 GPU；源码分支发布不等于 main 合并或运行准入。原始小日志、收据与文件 SHA 清单见 `qjhs002-cpu-00097ea/`。
+
+- ownership 首次因 `/tmp` noexec 导致扩展映射失败，0 tests/11.091s，保留为失败；改为可执行目录后的 retry 为 1 test、5 subcases、11.079s OK。测试使用真实 Torch C++ `from_blob`，设备与 free 为 CPU/stub，仅证明相应 CPU 生命周期回归，不证明 CUDA allocation/IPC 清理。
+- 静态构建原生 `_C`、`_checkpoint_store` 通过且扩展可导入；SDK `torch` 可导入，`server`/`cli` 因缺 `libglog.so` 失败，不能将该构建收据的 `passed` 当作整个 SDK 通过。
+- shared 构建并修正包内 glog 后，`_C`、`_checkpoint_store`、`torch`、`server` 四项 CPU 导入通过；CLI 仍因 `No module named 'peft'` 失败。两次构建收据的全部 `source_before`/`source_after` 哈希逐项一致。
+- 原 shared build 收据错误记录 SONAME 为字符串 `SONAME`，原始文件保持不改。`sdk-shared-install-00097ea-receipt.json` 附更正：实际 SONAME 为 `libglog.so.1`，文件为 `libglog.so.0.6.0`，SHA256 `d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6`；错误来自正则捕获 tag 而非方括号值，二进制未变。
+
+用户回传的运行环境原始输出另存 `runtime-inventory-user-output.txt`：Python 3.12.3、Torch 2.10.0+cu129（compiled CUDA 12.9、CXX11 ABI=true）、vLLM 0.19.1 commit `gb1388b1fb`、Transformers 5.5.1、compressed-tensors 0.15.0.1。初始 inventory 未安装 `sllm_store`，须与后续包内导入结果分开看。SDK 声明依赖中仍缺 bitsandbytes==0.46.0、grpcio-tools==1.76.0、peft>=0.16.0；本次证据整理未重跑依赖解析器，不由版本清单推断完整兼容。
+
+S4a/S4b、完整模型转换、真实 Store 读回、GPU/TP8/八 rank 及原生服务均未通过；本节不能解除这些门槛。未归档二进制、权重、大日志或凭据；原始失败及 SONAME 错误收据均保留。

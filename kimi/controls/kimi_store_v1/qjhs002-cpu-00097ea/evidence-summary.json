@@ -1,0 +1,98 @@
+{
+  "source_commit": "00097eaafd60dbae262a954a29863b5c633aade9",
+  "source_branch": "kimi-qjhs002-aligned-tail",
+  "scope": "CPU test/build/import evidence only; no model, Store constructor/pool, or GPU runtime validation",
+  "ownership": {
+    "initial": {
+      "tests": 0,
+      "seconds": 11.091,
+      "status": "FAILED",
+      "error": "/tmp noexec: failed to map segment from shared object"
+    },
+    "exec_retry": {
+      "tests": 1,
+      "subcases": 5,
+      "seconds": 11.079,
+      "status": "PASS"
+    },
+    "limit": "real Torch C++ from_blob, CPU device and counted free stub; does not prove CUDA ownership"
+  },
+  "build": {
+    "static": "PASS; extensions import; SDK server/CLI fail missing libglog.so",
+    "shared": "PASS; _C, _checkpoint_store, torch, server import; CLI fails missing peft",
+    "source_hashes_unchanged": true
+  },
+  "soname_correction": {
+    "raw_receipt": "native-build-shared-00097ea-receipt.json",
+    "original": "SONAME",
+    "actual": "libglog.so.1",
+    "authority": "sdk-shared-install-00097ea-receipt.json",
+    "note": "Raw receipt retained unchanged; regex captured the tag rather than bracket value; binary unchanged."
+  },
+  "runtime_inventory": {
+    "python": "3.12.3",
+    "torch": "2.10.0+cu129",
+    "torch_compiled_cuda": "12.9",
+    "cxx11_abi": true,
+    "vllm": "0.19.1",
+    "vllm_commit": "gb1388b1fb",
+    "transformers": "5.5.1",
+    "compressed_tensors": "0.15.0.1",
+    "sdk_missing_declared_requirements": [
+      "bitsandbytes==0.46.0",
+      "grpcio-tools==1.76.0",
+      "peft>=0.16.0"
+    ],
+    "limit": "Version/import snapshot only; no GPU/model compatibility claim. No new dependency resolver run for this evidence commit."
+  },
+  "artifacts": {
+    "native-build-00097ea-receipt.json": {
+      "bytes": 10365,
+      "sha256": "de5ebcd6848fb8ad838c2d45d2471da77e323b216e87320fedb447598064fdfe"
+    },
+    "native-build-shared-00097ea-receipt.json": {
+      "bytes": 10898,
+      "sha256": "fc62321d073cc0f1b2f97a4d91fdd46c8143f9239b501186429f49d936488035"
+    },
+    "ownership-cpu-retry-exec.stderr.txt": {
+      "bytes": 306,
+      "sha256": "184eed23c70db873b1d6f299ca0f59f92b4561f262a64e13a6324b5008b1241c"
+    },
+    "ownership-cpu-retry-exec.stdout.txt": {
+      "bytes": 46,
+      "sha256": "2001476f7528ecc5494d7eb08d44f320153ae116d87313f5c0772f0bfb100cff"
+    },
+    "ownership-cpu-run-20261103-1920.stderr.txt": {
+      "bytes": 1717,
+      "sha256": "b91156117bdb124f3ef2e4f9089e2bebda95eef3cf65a3be63bc98da428143e3"
+    },
+    "ownership-cpu-run-20261103-1920.stdout.txt": {
+      "bytes": 92,
+      "sha256": "0c5bef7350ca0aa50ffbfa55d68131c00c29317e2c81b632804c4afb19f6e881"
+    },
+    "runtime-inventory-user-output.txt": {
+      "bytes": 14835,
+      "sha256": "6cd6f9a184d52ff55c8ed2d384c0fb4463cd1e1873a2c6402d101b400a0c855a"
+    },
+    "sdk-import-probe.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sdk-import-probe.stdout.txt": {
+      "bytes": 1978,
+      "sha256": "5c50105b60172c5e5492ca8bf3b1a9434dcfc43c2c3def17eef18fc283e3ea1b"
+    },
+    "sdk-import-shared.stderr.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "sdk-import-shared.stdout.txt": {
+      "bytes": 1836,
+      "sha256": "cd3420f5606f66b8137f0db57f03be41c9e9e75f81f5ab22801af5a88eff96c1"
+    },
+    "sdk-shared-install-00097ea-receipt.json": {
+      "bytes": 1079,
+      "sha256": "d8c88037e85785158c43ab41e909a5a71e3dcf9d5b30e5182c6f6954603a56fb"
+    }
+  }
+}
