@@ -277,3 +277,9 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 原inner前12057B保留；new hf candidate SHA=`0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480`，whole inner SHA=`a734b0864c0bff21357db8b83ab1a46955abb381e136bc506f4c752067acab53`。candidate-manifest是最初静态阶段历史收据，其“未测试”状态由本节实际证据覆盖，原文件不改。whole inner实际安装树strict forward0/reverse1、全部target unchanged，classification=unapplied：不可变镜像未安装完整patch，sync不是部署批准。
 
 唯一适配根仍 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`；旧root HEAD仍9f，本轮未触；source-final小快照有untracked models/，不据此称当前全树clean或擅自清理。仅CPU factory限定通过，不证明chat/tools/model/Store/GPU/S4a官方读回，TF README差异与GPUstop/no-retry、GLM35/5及goal状态均保持。
+
+## OS 原生 guard CPU 机制 proof 通过（2026-11-04）
+
+`qjhs002-os-guard-cpu/` 保留已有CPU proof与仅四个远端指定小文件。实际Type=exec、Restart=no、DelegateControllers=cpu memory pids、RuntimeMax10s/Stop3s、KillMode=control-group/FinalSIG9。ready时unit root procs为空；supervisor与container两个descendant cgroup共3角色，均忽略TERM。最终Result=timeout、ExecMainCode2/Status9，StartMono267382437077→Exit267395520626=13.083549s。13次释放观察实际跨度>=60s，全部精确owned PID+starttick身份不存在、unit cgroup removed。
+
+限制必须保留：交互launch后properties捕获命令被TTY截断，报`roperties.txt not found`；fresh SSH权威show已完整恢复，属性以final文本为准（Restart=no另见fresh live文本），不能伪装launch CLI全程无错误。此proof仅CPU睡眠/OS清理机制PASS，未跑runc/hook/GPU/模型/Store，不证明原GPU失败根因或GPU授权，GPUstop不解除。source dd4b60b、新根唯一、GLM35/5、goal不变，本轮仅证据归档。

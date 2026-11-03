@@ -1,0 +1,52 @@
+2026-11-04T01:04:31+08:00
+Type=exec
+Restart=no
+TimeoutStopUSec=3s
+RuntimeMaxUSec=10s
+MainPID=0
+Result=timeout
+ExecMainCode=2
+ExecMainStatus=9
+ControlGroup=
+Delegate=yes
+DelegateControllers=cpu memory pids
+CPUQuotaPerSecUSec=1s
+MemoryMax=67108864
+TasksMax=16
+KillMode=control-group
+FinalKillSignal=9
+SendSIGKILL=yes
+ActiveState=failed
+{"unit": "kimi-os-guard-cpu-20261104.service", "ready_at": 1793725409.0288231, "unit_cgroup": "/sys/fs/cgroup/system.slice/kimi-os-guard-cpu-20261104.service", "root_procs_empty": true, "subtree_control": "cpu memory pids", "processes": {"supervisor": {"pid": 2797314, "startticks": 26738243, "ppid": 1, "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/supervisor", "sigign": "0000000001005000"}, "child": {"pid": 2797324, "startticks": 26738245, "ppid": 2797314, "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/container", "sigign": "0000000001005000"}, "grandchild": {"pid": 2797325, "startticks": 26738247, "ppid": 2797324, "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/container", "sigign": "0000000000004000"}}, "scope": "three TERM-resistant CPU-only processes in two delegated descendant cgroups; no GPU/runtime hook/model/Store", "expected_termination": "native systemd RuntimeMaxSec followed by FinalKillSignal=SIGKILL"}
+{
+  "unit": "kimi-os-guard-cpu-20261104.service",
+  "ready_at": 1793725409.0288231,
+  "unit_cgroup": "/sys/fs/cgroup/system.slice/kimi-os-guard-cpu-20261104.service",
+  "root_procs_empty": true,
+  "subtree_control": "cpu memory pids",
+  "processes": {
+    "supervisor": {
+      "pid": 2797314,
+      "startticks": 26738243,
+      "ppid": 1,
+      "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/supervisor",
+      "sigign": "0000000001005000"
+    },
+    "child": {
+      "pid": 2797324,
+      "startticks": 26738245,
+      "ppid": 2797314,
+      "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/container",
+      "sigign": "0000000001005000"
+    },
+    "grandchild": {
+      "pid": 2797325,
+      "startticks": 26738247,
+      "ppid": 2797324,
+      "cgroup": "0::/system.slice/kimi-os-guard-cpu-20261104.service/container",
+      "sigign": "0000000000004000"
+    }
+  },
+  "scope": "three TERM-resistant CPU-only processes in two delegated descendant cgroups; no GPU/runtime hook/model/Store",
+  "expected_termination": "native systemd RuntimeMaxSec followed by FinalKillSignal=SIGKILL"
+}
