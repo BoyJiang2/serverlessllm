@@ -152,3 +152,9 @@ root只读核对六个源/测试文件及SHA，普通源码diff --check通过；
 这次源码分支推送成功：GitHub BoyJiang2/serverlessllm refs/heads/kimi-qjhs002-aligned-tail实际返回d9eee8de70badb1570127ca551f22b66ec4a5b30。此前HTTP408失败保留，本次不是force-push，没有合并main。此处覆盖“源码分支尚未同步”的旧断点，不能覆盖运行准入边界。
 
 17:48:35只读确认002压缩包9794322432B，未找到runtime210-cu129镜像；不推断传输/导入已完成。下一步由用户完成导入后运行已交付e0bcf2e CPU inventory命令，核实际解释器/版本/commit/路径/依赖。ownership候选185d6821仍未应用/编译/执行，当前原生库未按新源码重建，S4a、S4b仍未通过。收到CPU回归结果解决该部分等待，不自动赋予新的GPU运行gate。
+
+## 用户已导入运行镜像，迁移身份核验通过（覆盖旧等待）
+
+用户报告镜像导入完成后，root只读分别inspect qjhs003和qjhs002的runtime210-cu129：完整ID均为sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27；Size均34184928331B；RootFS 31个层摘要及顺序逐项相同。镜像ID绑定配置文档；本轮未启动容器、导入模块或运行GPU。完整双端身份收据见qjhs002-runtime-image-migration-verified.json。这解除“目标运行镜像缺失”，不证明实际依赖/ABI、当前官方源码已编译安装或GPU运行通过。
+
+下一步仍由用户在002执行现有/p0/qjhs002-runtime-inventory-e0bcf2e.txt：CPU导入核验Python/module路径/version、vLLM commit/声明依赖/已安装distribution、Torch编译CUDA/ABI、Store扩展是否可导入。metadata命令不是S4b guard。当前ownership候选尚未应用/编译/测试，当前源码未重建原生库；S4a/TP8/完整转换/八rank/原生服务仍未通过。压缩包在完整后续验收前保留，未擅自清理。
