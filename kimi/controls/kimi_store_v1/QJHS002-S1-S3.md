@@ -219,3 +219,11 @@ archive 仅保留于002 `p0/s4a-saveonly-20261103-2103/packed-component`，未�
 `qjhs002-hook-cpu-diag/` 保留一次 CPU runc `/hook --version` 小证据。host binary SHA256=`fb9e22c288346e9a99cfbef446a8495932073608aa9982628a750cacb129925c`，rc0，非 pthread EAGAIN；before/after 实际 pids.max=128、pids.events max0、memory.events全部0。容器exited0，OS guard inactive/Result=success，后验8 GPU全0。
 
 本次实际 OCI 仅 libnetwork prestart，无 NVIDIA hook；因此只证明128 CPU version成功，不能证明原GPU startup/hook#4失败根因。512条件未满足、未启动；GPU FAILED_RETAINED/no-retry停止边界不解除。当前CDI fallback枚举另存，但不是原失败当次OCI证据；原runtime-diagnostic-fields已在失败目录保留，不重复或覆盖。未保存full container-before/Config.Env，未新增计算。
+
+## S1/S2 与 runtime 只读源码证据补齐（2026-11-03）
+
+`qjhs002-readonly-runtime-provenance/` 持久化依赖求值输入、报告及只读采集/求值脚本。root实际重跑audit rc0，closure SHA256=`c10bbdc522df0c03c9c193f4f97199a9f3ef894fcf28220250e70c8fe756089c`。历史inventory的88条vLLM Requires-Dist按目标Linux/x86_64/CPython3.12.3/default extra求值：65条默认直接distribution版本满足，23条optional extras排除；不是transitive/extras递归闭包。实际SDK requirements13项=10满足/3缺（bitsandbytes0.46.0、grpcio-tools1.76.0、peft>=0.16.0）。wheel metadata允许TF5.5.1并有原生KimiK25/v4-v5分支，但README `<5` 与actual5.5.1差异仍未消除，不证明模型兼容。
+
+hook ELF内联buildinfo实际Go1.26.0/CGO_ENABLED=1，区别runc自身Go1.25.9；host glibc2.35。当前daemon及可读祖先pids无上限、events max0，不追认失败时不存在PID限制；缺失字段记unavailable，不当0。runc createContainer在应用UID/rlimits/seccomp设置前，应用参数不能直接解释hook；Go源码行号与保留栈仍有精确对应缺口。EAGAIN有多种原因，仍无当次OCI/hook限额证据，不重试GPU/不绕过hook。
+
+S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storage.proto`，mtime/birth 11:32:16.945592703；002普通文件birth12:51:06、mtime11:32:16截秒，target也相近复制式birth。root补充README/Git目录12:50复制式birth。这支持迁移解引用推断，未找到具体复制命令，用户方式尚待确认；不恢复或纳管proto。源码仍00097ea且未修改，未纳管libs/环境/凭据。此轮仅归档既有只读证据，无新GPU/模型/Store/容器计算，所有GPU停止边界保持。

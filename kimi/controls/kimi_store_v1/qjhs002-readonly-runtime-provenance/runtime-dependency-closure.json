@@ -1,0 +1,1765 @@
+{
+  "scope": "Read-only static direct-dependency closure from historical runtime inventory plus live host source reads; no container execution, installs, GPU, model, Store or weight payload access. Does not establish transitive extras closure or runtime/model compatibility.",
+  "packaging_evaluator_version": "25.0",
+  "runtime_inventory": {
+    "path": "D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\kimi\\controls\\kimi_store_v1\\qjhs002-cpu-00097ea\\runtime-inventory-user-output.txt",
+    "sha256": "6cd6f9a184d52ff55c8ed2d384c0fb4463cd1e1873a2c6402d101b400a0c855a",
+    "bytes": 14835,
+    "snapshot_not_fresh_probe": true,
+    "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+    "modules": {
+      "torch": {
+        "file": "/usr/local/lib/python3.12/dist-packages/torch/__init__.py",
+        "version": "2.10.0+cu129",
+        "compiled_cuda": "12.9",
+        "cxx11_abi": true
+      },
+      "vllm": {
+        "file": "/usr/local/lib/python3.12/dist-packages/vllm/__init__.py",
+        "version": "0.19.1",
+        "commit": "gb1388b1fb"
+      },
+      "transformers": {
+        "file": "/usr/local/lib/python3.12/dist-packages/transformers/__init__.py",
+        "version": "5.5.1"
+      },
+      "compressed_tensors": {
+        "file": "/usr/local/lib/python3.12/dist-packages/compressed_tensors/__init__.py",
+        "version": "0.15.0.1"
+      },
+      "sllm_store": {
+        "error_type": "ModuleNotFoundError",
+        "error": "No module named 'sllm_store'"
+      },
+      "sllm_store._C": {
+        "error_type": "ModuleNotFoundError",
+        "error": "No module named 'sllm_store'"
+      }
+    }
+  },
+  "marker_environment": {
+    "implementation_name": "cpython",
+    "implementation_version": "3.12.3",
+    "os_name": "posix",
+    "platform_machine": "x86_64",
+    "platform_python_implementation": "CPython",
+    "platform_release": "",
+    "platform_system": "Linux",
+    "platform_version": "",
+    "python_full_version": "3.12.3",
+    "python_version": "3.12",
+    "sys_platform": "linux",
+    "extra": ""
+  },
+  "unobserved_marker_fields": [
+    "platform_release",
+    "platform_version"
+  ],
+  "unobserved_fields_note": "Blank, not copied from evaluator Windows host; none of the 88 requirements reference these fields. Linux/x86_64 and CPython3.12.3 are specified target facts.",
+  "semantics": {
+    "root_extra": "",
+    "dependency_extras": "fastapi[standard], mistral_common[image], uvicorn[standard] stay explicit. Version check covers root distributions only; their extra/transitive requirements need their own metadata, unavailable in this inventory.",
+    "prereleases": true,
+    "pep440_local_versions": "torch==2.10.0 accepts installed 2.10.0+cu129 under PEP440; analogous audio/vision local versions accepted."
+  },
+  "inputs": {
+    "/data/brick1/boyjiang/ServerlessLLM/sllm_store/requirements.txt": {
+      "sha256": "78474d520d33b568e11a6eb535f5936132d079f97a17dd7165b6b47fb9a75290",
+      "bytes": 220
+    },
+    "/data/brick1/boyjiang/ServerlessLLM/sllm_store/setup.py": {
+      "sha256": "c00af68ac0fe962004432834f226207d2ba7ea04b89ef07d0f31fbd0aca3ed8a",
+      "bytes": 7977
+    },
+    "/data/brick1/boyjiang/ServerlessLLM/requirements-worker.txt": {
+      "sha256": "423bda059c984f74d4b0ff02c30ce88d01a6ad6c1ede8728fc72ab9f8bb8d069",
+      "bytes": 141
+    },
+    "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/README.md": {
+      "sha256": "95db3be1d0473e482c7aa901f237ad7af8bb7929625a777b27428081bb8ea9f7",
+      "bytes": 29325
+    },
+    "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/docs/deploy_guidance.md": {
+      "sha256": "103a660460f6ce9b43a68b5c7a98a76271b5b3121dc57afd521fe11953abc530",
+      "bytes": 3648
+    },
+    "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/config.json": {
+      "sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+      "bytes": 5416
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/model_executor/models/registry.py": {
+      "sha256": "3efaece3f48dc76d8bd6bd6825830f778365f8b2976ef4d1b42de0c9d59620c3",
+      "bytes": 53558
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/model_executor/models/kimi_k25.py": {
+      "sha256": "72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba",
+      "bytes": 16361
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/configs/kimi_k25.py": {
+      "sha256": "c7b79b5b0369ba3f4f756fede58c552cbc452a8447322c927405638af1fbc984",
+      "bytes": 4863
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/config.py": {
+      "sha256": "477f97b5ff5b0596f579d65a29b3fa17daf943d8ca39ffaf1514a52de5205fbe",
+      "bytes": 45631
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/_version.py": {
+      "sha256": "b06838233b49c3277baf1250c6480d182fb2604362bc810ad2988d8bdaf06667",
+      "bytes": 530
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm-0.19.1.dist-info/METADATA": {
+      "sha256": "f76ea566acba199ef8dd91bde6bb162795c7f8876c206a865cbb3b94fbcf7bc2",
+      "bytes": 10013
+    }
+  },
+  "vllm_wheel_metadata_requirements_equal_runtime_inventory": true,
+  "vllm": {
+    "counts": {
+      "satisfied": 65,
+      "excluded_by_marker": 23
+    },
+    "requirements": [
+      {
+        "index": 1,
+        "requirement": "regex",
+        "normalized_name": "regex",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2026.5.9",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 2,
+        "requirement": "cachetools",
+        "normalized_name": "cachetools",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "7.2.8",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 3,
+        "requirement": "psutil",
+        "normalized_name": "psutil",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "7.2.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 4,
+        "requirement": "sentencepiece",
+        "normalized_name": "sentencepiece",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.2.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 5,
+        "requirement": "numpy",
+        "normalized_name": "numpy",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.2.6",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 6,
+        "requirement": "requests>=2.26.0",
+        "normalized_name": "requests",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.26.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.34.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 7,
+        "requirement": "tqdm",
+        "normalized_name": "tqdm",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "4.67.3",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 8,
+        "requirement": "blake3",
+        "normalized_name": "blake3",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.0.11",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 9,
+        "requirement": "py-cpuinfo",
+        "normalized_name": "py-cpuinfo",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "9.0.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 10,
+        "requirement": "transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0",
+        "normalized_name": "transformers",
+        "requested_dependency_extras": [],
+        "specifier": "!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "5.5.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 11,
+        "requirement": "tokenizers>=0.21.1",
+        "normalized_name": "tokenizers",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.21.1",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.22.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 12,
+        "requirement": "protobuf!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6",
+        "normalized_name": "protobuf",
+        "requested_dependency_extras": [],
+        "specifier": "!=6.30.*,!=6.31.*,!=6.32.*,!=6.33.0.*,!=6.33.1.*,!=6.33.2.*,!=6.33.3.*,!=6.33.4.*,>=5.29.6",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "6.33.6",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 13,
+        "requirement": "fastapi[standard]>=0.115.0",
+        "normalized_name": "fastapi",
+        "requested_dependency_extras": [
+          "standard"
+        ],
+        "specifier": ">=0.115.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.136.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 14,
+        "requirement": "aiohttp>=3.13.3",
+        "normalized_name": "aiohttp",
+        "requested_dependency_extras": [],
+        "specifier": ">=3.13.3",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "3.13.5",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 15,
+        "requirement": "openai>=2.0.0",
+        "normalized_name": "openai",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.0.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.6.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 16,
+        "requirement": "pydantic>=2.12.0",
+        "normalized_name": "pydantic",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.12.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.13.4",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 17,
+        "requirement": "prometheus_client>=0.18.0",
+        "normalized_name": "prometheus-client",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.18.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.25.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 18,
+        "requirement": "pillow",
+        "normalized_name": "pillow",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "12.2.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 19,
+        "requirement": "prometheus-fastapi-instrumentator>=7.0.0",
+        "normalized_name": "prometheus-fastapi-instrumentator",
+        "requested_dependency_extras": [],
+        "specifier": ">=7.0.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "8.1.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 20,
+        "requirement": "tiktoken>=0.6.0",
+        "normalized_name": "tiktoken",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.6.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.12.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 21,
+        "requirement": "lm-format-enforcer==0.11.3",
+        "normalized_name": "lm-format-enforcer",
+        "requested_dependency_extras": [],
+        "specifier": "==0.11.3",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.11.3",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 22,
+        "requirement": "llguidance<1.4.0,>=1.3.0; platform_machine == \"x86_64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+        "normalized_name": "llguidance",
+        "requested_dependency_extras": [],
+        "specifier": "<1.4.0,>=1.3.0",
+        "marker": "platform_machine == \"x86_64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+        "marker_evaluates": true,
+        "installed_version": "1.3.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 23,
+        "requirement": "outlines_core==0.2.11",
+        "normalized_name": "outlines-core",
+        "requested_dependency_extras": [],
+        "specifier": "==0.2.11",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.2.11",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 24,
+        "requirement": "diskcache==5.6.3",
+        "normalized_name": "diskcache",
+        "requested_dependency_extras": [],
+        "specifier": "==5.6.3",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "5.6.3",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 25,
+        "requirement": "lark==1.2.2",
+        "normalized_name": "lark",
+        "requested_dependency_extras": [],
+        "specifier": "==1.2.2",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.2.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 26,
+        "requirement": "xgrammar<1.0.0,>=0.1.32; platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"arm64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+        "normalized_name": "xgrammar",
+        "requested_dependency_extras": [],
+        "specifier": "<1.0.0,>=0.1.32",
+        "marker": "platform_machine == \"x86_64\" or platform_machine == \"aarch64\" or platform_machine == \"arm64\" or platform_machine == \"s390x\" or platform_machine == \"ppc64le\"",
+        "marker_evaluates": true,
+        "installed_version": "0.1.32",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 27,
+        "requirement": "typing_extensions>=4.10",
+        "normalized_name": "typing-extensions",
+        "requested_dependency_extras": [],
+        "specifier": ">=4.10",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "4.15.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 28,
+        "requirement": "filelock>=3.16.1",
+        "normalized_name": "filelock",
+        "requested_dependency_extras": [],
+        "specifier": ">=3.16.1",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "3.29.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 29,
+        "requirement": "partial-json-parser",
+        "normalized_name": "partial-json-parser",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.2.1.1.post7",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 30,
+        "requirement": "pyzmq>=25.0.0",
+        "normalized_name": "pyzmq",
+        "requested_dependency_extras": [],
+        "specifier": ">=25.0.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "27.1.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 31,
+        "requirement": "msgspec",
+        "normalized_name": "msgspec",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.21.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 32,
+        "requirement": "gguf>=0.17.0",
+        "normalized_name": "gguf",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.17.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.19.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 33,
+        "requirement": "mistral_common[image]>=1.10.0",
+        "normalized_name": "mistral-common",
+        "requested_dependency_extras": [
+          "image"
+        ],
+        "specifier": ">=1.10.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.11.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 34,
+        "requirement": "opencv-python-headless>=4.13.0",
+        "normalized_name": "opencv-python-headless",
+        "requested_dependency_extras": [],
+        "specifier": ">=4.13.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "5.0.0.93",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 35,
+        "requirement": "pyyaml",
+        "normalized_name": "pyyaml",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "6.0.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 36,
+        "requirement": "six>=1.16.0; python_version > \"3.11\"",
+        "normalized_name": "six",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.16.0",
+        "marker": "python_version > \"3.11\"",
+        "marker_evaluates": true,
+        "installed_version": "1.16.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 37,
+        "requirement": "setuptools<81.0.0,>=77.0.3; python_version > \"3.11\"",
+        "normalized_name": "setuptools",
+        "requested_dependency_extras": [],
+        "specifier": "<81.0.0,>=77.0.3",
+        "marker": "python_version > \"3.11\"",
+        "marker_evaluates": true,
+        "installed_version": "80.10.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 38,
+        "requirement": "einops",
+        "normalized_name": "einops",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.8.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 39,
+        "requirement": "compressed-tensors==0.15.0.1",
+        "normalized_name": "compressed-tensors",
+        "requested_dependency_extras": [],
+        "specifier": "==0.15.0.1",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.15.0.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 40,
+        "requirement": "depyf==0.20.0",
+        "normalized_name": "depyf",
+        "requested_dependency_extras": [],
+        "specifier": "==0.20.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.20.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 41,
+        "requirement": "cloudpickle",
+        "normalized_name": "cloudpickle",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "3.1.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 42,
+        "requirement": "watchfiles",
+        "normalized_name": "watchfiles",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.1.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 43,
+        "requirement": "python-json-logger",
+        "normalized_name": "python-json-logger",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "4.2.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 44,
+        "requirement": "ninja",
+        "normalized_name": "ninja",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.13.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 45,
+        "requirement": "pybase64",
+        "normalized_name": "pybase64",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.4.3",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 46,
+        "requirement": "cbor2",
+        "normalized_name": "cbor2",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "6.2.0.post1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 47,
+        "requirement": "ijson",
+        "normalized_name": "ijson",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "3.6.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 48,
+        "requirement": "setproctitle",
+        "normalized_name": "setproctitle",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.3.7",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 49,
+        "requirement": "openai-harmony>=0.0.3",
+        "normalized_name": "openai-harmony",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.0.3",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.0.4",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 50,
+        "requirement": "anthropic>=0.71.0",
+        "normalized_name": "anthropic",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.71.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.101.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 51,
+        "requirement": "model-hosting-container-standards<1.0.0,>=0.1.13",
+        "normalized_name": "model-hosting-container-standards",
+        "requested_dependency_extras": [],
+        "specifier": "<1.0.0,>=0.1.13",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.1.16",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 52,
+        "requirement": "mcp",
+        "normalized_name": "mcp",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.3.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 53,
+        "requirement": "opentelemetry-sdk>=1.27.0",
+        "normalized_name": "opentelemetry-sdk",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.27.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 54,
+        "requirement": "opentelemetry-api>=1.27.0",
+        "normalized_name": "opentelemetry-api",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.27.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 55,
+        "requirement": "opentelemetry-exporter-otlp>=1.27.0",
+        "normalized_name": "opentelemetry-exporter-otlp",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.27.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 56,
+        "requirement": "opentelemetry-semantic-conventions-ai>=0.4.1",
+        "normalized_name": "opentelemetry-semantic-conventions-ai",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.4.1",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.5.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 57,
+        "requirement": "numba==0.61.2",
+        "normalized_name": "numba",
+        "requested_dependency_extras": [],
+        "specifier": "==0.61.2",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.61.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 58,
+        "requirement": "torch==2.10.0",
+        "normalized_name": "torch",
+        "requested_dependency_extras": [],
+        "specifier": "==2.10.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.10.0+cu129",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 59,
+        "requirement": "torchaudio==2.10.0",
+        "normalized_name": "torchaudio",
+        "requested_dependency_extras": [],
+        "specifier": "==2.10.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.10.0+cu129",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 60,
+        "requirement": "torchvision==0.25.0",
+        "normalized_name": "torchvision",
+        "requested_dependency_extras": [],
+        "specifier": "==0.25.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.25.0+cu129",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 61,
+        "requirement": "flashinfer-python==0.6.6",
+        "normalized_name": "flashinfer-python",
+        "requested_dependency_extras": [],
+        "specifier": "==0.6.6",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.6.6",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 62,
+        "requirement": "flashinfer-cubin==0.6.6",
+        "normalized_name": "flashinfer-cubin",
+        "requested_dependency_extras": [],
+        "specifier": "==0.6.6",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.6.6",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 63,
+        "requirement": "nvidia-cudnn-frontend<1.19.0,>=1.13.0",
+        "normalized_name": "nvidia-cudnn-frontend",
+        "requested_dependency_extras": [],
+        "specifier": "<1.19.0,>=1.13.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.18.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 64,
+        "requirement": "nvidia-cutlass-dsl>=4.4.0.dev1",
+        "normalized_name": "nvidia-cutlass-dsl",
+        "requested_dependency_extras": [],
+        "specifier": ">=4.4.0.dev1",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "4.5.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 65,
+        "requirement": "quack-kernels>=0.2.7",
+        "normalized_name": "quack-kernels",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.2.7",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.4.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 66,
+        "requirement": "zentorch; extra == \"zen\"",
+        "normalized_name": "zentorch",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"zen\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 67,
+        "requirement": "pandas; extra == \"bench\"",
+        "normalized_name": "pandas",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": "3.0.3",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 68,
+        "requirement": "matplotlib; extra == \"bench\"",
+        "normalized_name": "matplotlib",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": "3.10.9",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 69,
+        "requirement": "seaborn; extra == \"bench\"",
+        "normalized_name": "seaborn",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 70,
+        "requirement": "datasets; extra == \"bench\"",
+        "normalized_name": "datasets",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": "4.8.5",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 71,
+        "requirement": "scipy; extra == \"bench\"",
+        "normalized_name": "scipy",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": "1.17.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 72,
+        "requirement": "plotly; extra == \"bench\"",
+        "normalized_name": "plotly",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"bench\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 73,
+        "requirement": "tensorizer==2.10.1; extra == \"tensorizer\"",
+        "normalized_name": "tensorizer",
+        "requested_dependency_extras": [],
+        "specifier": "==2.10.1",
+        "marker": "extra == \"tensorizer\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 74,
+        "requirement": "fastsafetensors>=0.2.2; extra == \"fastsafetensors\"",
+        "normalized_name": "fastsafetensors",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.2.2",
+        "marker": "extra == \"fastsafetensors\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 75,
+        "requirement": "instanttensor>=0.1.5; extra == \"instanttensor\"",
+        "normalized_name": "instanttensor",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.1.5",
+        "marker": "extra == \"instanttensor\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 76,
+        "requirement": "runai-model-streamer[azure,gcs,s3]>=0.15.7; extra == \"runai\"",
+        "normalized_name": "runai-model-streamer",
+        "requested_dependency_extras": [
+          "azure",
+          "gcs",
+          "s3"
+        ],
+        "specifier": ">=0.15.7",
+        "marker": "extra == \"runai\"",
+        "marker_evaluates": false,
+        "installed_version": "0.15.9",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 77,
+        "requirement": "av; extra == \"audio\"",
+        "normalized_name": "av",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"audio\"",
+        "marker_evaluates": false,
+        "installed_version": "16.1.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 78,
+        "requirement": "resampy; extra == \"audio\"",
+        "normalized_name": "resampy",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"audio\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 79,
+        "requirement": "scipy; extra == \"audio\"",
+        "normalized_name": "scipy",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"audio\"",
+        "marker_evaluates": false,
+        "installed_version": "1.17.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 80,
+        "requirement": "soundfile; extra == \"audio\"",
+        "normalized_name": "soundfile",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"audio\"",
+        "marker_evaluates": false,
+        "installed_version": "0.13.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 81,
+        "requirement": "mistral_common[audio]; extra == \"audio\"",
+        "normalized_name": "mistral-common",
+        "requested_dependency_extras": [
+          "audio"
+        ],
+        "specifier": "",
+        "marker": "extra == \"audio\"",
+        "marker_evaluates": false,
+        "installed_version": "1.11.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 82,
+        "requirement": "petit-kernel; extra == \"petit-kernel\"",
+        "normalized_name": "petit-kernel",
+        "requested_dependency_extras": [],
+        "specifier": "",
+        "marker": "extra == \"petit-kernel\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 83,
+        "requirement": "helion==0.3.2; extra == \"helion\"",
+        "normalized_name": "helion",
+        "requested_dependency_extras": [],
+        "specifier": "==0.3.2",
+        "marker": "extra == \"helion\"",
+        "marker_evaluates": false,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 84,
+        "requirement": "smg-grpc-servicer[vllm]>=0.5.0; extra == \"grpc\"",
+        "normalized_name": "smg-grpc-servicer",
+        "requested_dependency_extras": [
+          "vllm"
+        ],
+        "specifier": ">=0.5.0",
+        "marker": "extra == \"grpc\"",
+        "marker_evaluates": false,
+        "installed_version": "0.5.2",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 85,
+        "requirement": "opentelemetry-sdk>=1.26.0; extra == \"otel\"",
+        "normalized_name": "opentelemetry-sdk",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.26.0",
+        "marker": "extra == \"otel\"",
+        "marker_evaluates": false,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 86,
+        "requirement": "opentelemetry-api>=1.26.0; extra == \"otel\"",
+        "normalized_name": "opentelemetry-api",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.26.0",
+        "marker": "extra == \"otel\"",
+        "marker_evaluates": false,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 87,
+        "requirement": "opentelemetry-exporter-otlp>=1.26.0; extra == \"otel\"",
+        "normalized_name": "opentelemetry-exporter-otlp",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.26.0",
+        "marker": "extra == \"otel\"",
+        "marker_evaluates": false,
+        "installed_version": "1.41.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      },
+      {
+        "index": 88,
+        "requirement": "opentelemetry-semantic-conventions-ai>=0.4.1; extra == \"otel\"",
+        "normalized_name": "opentelemetry-semantic-conventions-ai",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.4.1",
+        "marker": "extra == \"otel\"",
+        "marker_evaluates": false,
+        "installed_version": "0.5.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "excluded_by_marker",
+        "exclusion_reason": "optional vLLM extra not selected; extra=''"
+      }
+    ]
+  },
+  "sdk": {
+    "source": "/data/brick1/boyjiang/ServerlessLLM/sllm_store/requirements.txt",
+    "counts": {
+      "satisfied": 10,
+      "missing": 3
+    },
+    "requirements": [
+      {
+        "index": 1,
+        "requirement": "accelerate>=1.7.0",
+        "normalized_name": "accelerate",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.7.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.12.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 2,
+        "requirement": "attrs>=22.2.0",
+        "normalized_name": "attrs",
+        "requested_dependency_extras": [],
+        "specifier": ">=22.2.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "26.1.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 3,
+        "requirement": "bitsandbytes==0.46.0",
+        "normalized_name": "bitsandbytes",
+        "requested_dependency_extras": [],
+        "specifier": "==0.46.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 4,
+        "requirement": "click==8.1.7",
+        "normalized_name": "click",
+        "requested_dependency_extras": [],
+        "specifier": "==8.1.7",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "8.1.7",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 5,
+        "requirement": "grpcio==1.76.0",
+        "normalized_name": "grpcio",
+        "requested_dependency_extras": [],
+        "specifier": "==1.76.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.76.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 6,
+        "requirement": "grpcio-tools==1.76.0",
+        "normalized_name": "grpcio-tools",
+        "requested_dependency_extras": [],
+        "specifier": "==1.76.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 7,
+        "requirement": "httpx>=0.27.0",
+        "normalized_name": "httpx",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.27.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.28.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 8,
+        "requirement": "peft>=0.16.0",
+        "normalized_name": "peft",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.16.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 9,
+        "requirement": "pillow>=10.3.0",
+        "normalized_name": "pillow",
+        "requested_dependency_extras": [],
+        "specifier": ">=10.3.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "12.2.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 10,
+        "requirement": "pydantic>=2.7.0",
+        "normalized_name": "pydantic",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.7.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.13.4",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 11,
+        "requirement": "torch>=2.7.0",
+        "normalized_name": "torch",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.7.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.10.0+cu129",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 12,
+        "requirement": "transformers>=4.52.4",
+        "normalized_name": "transformers",
+        "requested_dependency_extras": [],
+        "specifier": ">=4.52.4",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "5.5.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 13,
+        "requirement": "uvicorn[standard]>=0.15.0",
+        "normalized_name": "uvicorn",
+        "requested_dependency_extras": [
+          "standard"
+        ],
+        "specifier": ">=0.15.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.46.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      }
+    ]
+  },
+  "official_worker_profile": {
+    "source": "/data/brick1/boyjiang/ServerlessLLM/requirements-worker.txt",
+    "counts": {
+      "satisfied": 4,
+      "missing": 4,
+      "conflict": 1
+    },
+    "requirements": [
+      {
+        "index": 1,
+        "requirement": "accelerate>=1.7.0",
+        "normalized_name": "accelerate",
+        "requested_dependency_extras": [],
+        "specifier": ">=1.7.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "1.12.0",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 2,
+        "requirement": "datasets>=3.6.0",
+        "normalized_name": "datasets",
+        "requested_dependency_extras": [],
+        "specifier": ">=3.6.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "4.8.5",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 3,
+        "requirement": "GPUtil==1.4.0",
+        "normalized_name": "gputil",
+        "requested_dependency_extras": [],
+        "specifier": "==1.4.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 4,
+        "requirement": "peft>=0.15.2",
+        "normalized_name": "peft",
+        "requested_dependency_extras": [],
+        "specifier": ">=0.15.2",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 5,
+        "requirement": "ray==2.48.0",
+        "normalized_name": "ray",
+        "requested_dependency_extras": [],
+        "specifier": "==2.48.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 6,
+        "requirement": "speedtest-cli==2.1.3",
+        "normalized_name": "speedtest-cli",
+        "requested_dependency_extras": [],
+        "specifier": "==2.1.3",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": null,
+        "installed_version_satisfies_specifier": false,
+        "status": "missing",
+        "exclusion_reason": null
+      },
+      {
+        "index": 7,
+        "requirement": "torch>=2.7.0",
+        "normalized_name": "torch",
+        "requested_dependency_extras": [],
+        "specifier": ">=2.7.0",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "2.10.0+cu129",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 8,
+        "requirement": "transformers>=4.52.4",
+        "normalized_name": "transformers",
+        "requested_dependency_extras": [],
+        "specifier": ">=4.52.4",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "5.5.1",
+        "installed_version_satisfies_specifier": true,
+        "status": "satisfied",
+        "exclusion_reason": null
+      },
+      {
+        "index": 9,
+        "requirement": "vllm==0.11.2",
+        "normalized_name": "vllm",
+        "requested_dependency_extras": [],
+        "specifier": "==0.11.2",
+        "marker": null,
+        "marker_evaluates": true,
+        "installed_version": "0.19.1",
+        "installed_version_satisfies_specifier": false,
+        "status": "conflict",
+        "exclusion_reason": null
+      }
+    ],
+    "note": "Separate official worker profile pins vllm0.11.2; it is not a mandate to downgrade the snapshot guide vllm0.19.1 environment."
+  },
+  "transformers_resolution": {
+    "installed": "5.5.1",
+    "snapshot_readme_requirement": ">=4.57.1,<5.0.0",
+    "readme_satisfied": false,
+    "vllm_requirement": {
+      "index": 10,
+      "requirement": "transformers!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0",
+      "normalized_name": "transformers",
+      "requested_dependency_extras": [],
+      "specifier": "!=5.0.*,!=5.1.*,!=5.2.*,!=5.3.*,!=5.4.*,!=5.5.0,>=4.56.0",
+      "marker": null,
+      "marker_evaluates": true,
+      "installed_version": "5.5.1",
+      "installed_version_satisfies_specifier": true,
+      "status": "satisfied",
+      "exclusion_reason": null
+    },
+    "conclusion": "Source-level explanation: vLLM0.19.1 ships native KimiK25 model/config registry and v4/v5 branches, and its package constraint accepts5.5.1. This does not waive the model README upper bound or prove full runtime compatibility; documentation discrepancy stays unresolved pending model/service validation under separately authorized plan. No downgrade/upgrade/install performed."
+  },
+  "source_references": [
+    {
+      "source": "/data/brick1/boyjiang/ServerlessLLM/sllm_store/setup.py",
+      "line": 120,
+      "text": "install_requires = fetch_requirements(\"requirements.txt\")",
+      "context": [
+        "",
+        "install_requires = fetch_requirements(\"requirements.txt\")",
+        "",
+        "extras = {}",
+        "",
+        "extras[\"vllm\"] = ["
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/ServerlessLLM/sllm_store/setup.py",
+      "line": 236,
+      "text": "    install_requires=install_requires,",
+      "context": [
+        "    ],",
+        "    install_requires=install_requires,",
+        "    long_description=read_readme(),",
+        "    long_description_content_type=\"text/markdown\",",
+        "    extras_require=extras,",
+        "    entry_points={"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/README.md",
+      "line": 411,
+      "text": "The version requirement for `transformers` is `>=4.57.1, <5.0.0`.",
+      "context": [
+        "",
+        "The version requirement for `transformers` is `>=4.57.1, <5.0.0`.",
+        "",
+        "Deployment examples can be found in the [Model Deployment Guide](docs/deploy_guidance.md).",
+        "",
+        ""
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/docs/deploy_guidance.md",
+      "line": 19,
+      "text": "Nightly wheels may be unstable and are considered experimental. For stable production use, we recommend vLLM 0.19.1, which has been manually verified.",
+      "context": [
+        "",
+        "Nightly wheels may be unstable and are considered experimental. For stable production use, we recommend vLLM 0.19.1, which has been manually verified.",
+        "",
+        "Here is the example to serve this model on a H200 single node with TP8 via vLLM:",
+        "```bash",
+        "vllm serve $MODEL_PATH -tp 8 --mm-encoder-tp-mode data --trust-remote-code --tool-call-parser kimi_k2 --reasoning-parser kimi_k2"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/model_executor/models/registry.py",
+      "line": 425,
+      "text": "    \"KimiK25ForConditionalGeneration\": (\"kimi_k25\", \"KimiK25ForConditionalGeneration\"),",
+      "context": [
+        "    \"KimiVLForConditionalGeneration\": (\"kimi_vl\", \"KimiVLForConditionalGeneration\"),",
+        "    \"KimiK25ForConditionalGeneration\": (\"kimi_k25\", \"KimiK25ForConditionalGeneration\"),",
+        "    \"MoonshotKimiaForCausalLM\": (\"kimi_audio\", \"KimiAudioForConditionalGeneration\"),",
+        "    \"LightOnOCRForConditionalGeneration\": (",
+        "        \"lightonocr\",",
+        "        \"LightOnOCRForConditionalGeneration\","
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/model_executor/models/kimi_k25.py",
+      "line": 116,
+      "text": "        # Resolve token ID from the tokenizer because transformers v5",
+      "context": [
+        "",
+        "        # Resolve token ID from the tokenizer because transformers v5",
+        "        # may remap token IDs vs config.json.",
+        "        config_token_id = hf_config.media_placeholder_token_id",
+        "        resolved_token_id = tokenizer.convert_tokens_to_ids(\"<|media_pad|>\")",
+        "        is_valid_resolved = isinstance(resolved_token_id, int) and ("
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/model_executor/models/kimi_k25.py",
+      "line": 278,
+      "text": "class KimiK25ForConditionalGeneration(",
+      "context": [
+        ")",
+        "class KimiK25ForConditionalGeneration(",
+        "    nn.Module,",
+        "    SupportsMultiModal,",
+        "    SupportsPP,",
+        "    SupportsQuant,"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/configs/kimi_k25.py",
+      "line": 10,
+      "text": "from transformers import DeepseekV3Config",
+      "context": [
+        "",
+        "from transformers import DeepseekV3Config",
+        "from transformers.configuration_utils import PretrainedConfig",
+        "",
+        "",
+        "class KimiK25VisionConfig(PretrainedConfig):"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/configs/kimi_k25.py",
+      "line": 63,
+      "text": "class KimiK25Config(PretrainedConfig):",
+      "context": [
+        "",
+        "class KimiK25Config(PretrainedConfig):",
+        "    \"\"\"Kimi-K2.5 model configuration.",
+        "",
+        "    Kimi-K2.5 extends Kimi-K2 with vision support using video-chunks.",
+        "    A video-chunk consists of multiple consecutive frames"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/configs/kimi_k25.py",
+      "line": 78,
+      "text": "    model_type = \"kimi_k25\"",
+      "context": [
+        "",
+        "    model_type = \"kimi_k25\"",
+        "",
+        "    def __init__(",
+        "        self,",
+        "        vision_config: dict | KimiK25VisionConfig | None = None,"
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/config.py",
+      "line": 98,
+      "text": "    kimi_k25=\"KimiK25Config\",",
+      "context": [
+        "    kimi_vl=\"KimiVLConfig\",",
+        "    kimi_k25=\"KimiK25Config\",",
+        "    RefinedWeb=\"RWConfig\",  # For tiiuae/falcon-40b(-instruct)",
+        "    RefinedWebModel=\"RWConfig\",  # For tiiuae/falcon-7b(-instruct)",
+        "    jais=\"JAISConfig\",",
+        "    mlp_speculator=\"MLPSpeculatorConfig\","
+      ]
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-k2.6/downloads/vllm-0.19.1-cp38-abi3-manylinux_2_31_x86_64.whl!vllm/transformers_utils/config.py",
+      "line": 389,
+      "text": "    if Version(version(\"transformers\")) < Version(\"5.0.0\"):",
+      "context": [
+        "",
+        "    if Version(version(\"transformers\")) < Version(\"5.0.0\"):",
+        "        # Transformers v4 installed, legacy config fields may be present",
+        "        if (rope_scaling := getattr(config, \"rope_scaling\", None)) is not None:",
+        "            config.rope_parameters = rope_scaling",
+        "        if ("
+      ]
+    }
+  ]
+}

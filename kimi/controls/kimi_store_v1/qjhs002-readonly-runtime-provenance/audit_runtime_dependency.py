@@ -1,0 +1,28 @@
+import pathlib,json,hashlib,collections,email,packaging
+from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
+p=pathlib.Path('D:/Documents/codex/2026-10-24/new-chat/serverlessllm/kimi/controls/kimi_store_v1/qjhs002-cpu-00097ea/runtime-inventory-user-output.txt')
+b=p.read_bytes(); s=b.decode().replace(chr(13), chr(0)).replace(chr(0), "");d=json.JSONDecoder().raw_decode(s[s.index('{\n  "python"'):])[0]
+f=json.loads(pathlib.Path('work/runtime-dependency-inputs.json').read_text(encoding='utf-8'))
+env={'implementation_name':'cpython','implementation_version':'3.12.3','os_name':'posix','platform_machine':'x86_64','platform_python_implementation':'CPython','platform_release':'','platform_system':'Linux','platform_version':'','python_full_version':'3.12.3','python_version':'3.12','sys_platform':'linux','extra':''}
+installed={canonicalize_name(k):v for k,v in d['installed_distributions'].items()}
+def audit(reqs):
+ out=[]
+ for i,t in enumerate(reqs,1):
+  r=Requirement(t);active=r.marker is None or r.marker.evaluate(environment=env);v=installed.get(canonicalize_name(r.name));meets=v is not None and r.specifier.contains(v,prereleases=True)
+  out.append({'index':i,'requirement':t,'normalized_name':canonicalize_name(r.name),'requested_dependency_extras':sorted(r.extras),'specifier':str(r.specifier),'marker':str(r.marker) if r.marker else None,'marker_evaluates':active,'installed_version':v,'installed_version_satisfies_specifier':meets,'status':('satisfied' if meets else 'missing' if v is None else 'conflict') if active else 'excluded_by_marker','exclusion_reason':None if active else "optional vLLM extra not selected; extra=''"})
+ return out
+files=f['files'];sdk_path='/data/brick1/boyjiang/ServerlessLLM/sllm_store/requirements.txt';worker_path='/data/brick1/boyjiang/ServerlessLLM/requirements-worker.txt'
+v=audit(d['vllm_requirements']);sdk=audit(files[sdk_path]['text'].splitlines());worker=audit(files[worker_path]['text'].splitlines())
+metadata=next(o['text'] for n,o in files.items() if n.endswith('.dist-info/METADATA'));wheel_reqs=email.message_from_string(metadata).get_all('Requires-Dist')
+assert wheel_reqs==d['vllm_requirements']
+source_refs=[]
+keywords=['The version requirement','recommend vLLM 0.19.1','"KimiK25ForConditionalGeneration":','kimi_k25="KimiK25Config"','class KimiK25ForConditionalGeneration','class KimiK25Config','from transformers import DeepseekV3Config','if Version(version("transformers"))','Resolve token ID','model_type = "kimi_k25"','install_requires = fetch_requirements','install_requires=install_requires']
+for n,o in files.items():
+ lines=o['text'].splitlines()
+ for i,l in enumerate(lines,1):
+  if any(k in l for k in keywords):source_refs.append({'source':n,'line':i,'text':l,'context':lines[max(0,i-2):min(len(lines),i+4)]})
+result={'scope':'Read-only static direct-dependency closure from historical runtime inventory plus live host source reads; no container execution, installs, GPU, model, Store or weight payload access. Does not establish transitive extras closure or runtime/model compatibility.','packaging_evaluator_version':packaging.__version__,'runtime_inventory':{'path':str(p),'sha256':hashlib.sha256(b).hexdigest(),'bytes':len(b),'snapshot_not_fresh_probe':True,'python':d['python'],'modules':d['modules']},'marker_environment':env,'unobserved_marker_fields':['platform_release','platform_version'],'unobserved_fields_note':'Blank, not copied from evaluator Windows host; none of the 88 requirements reference these fields. Linux/x86_64 and CPython3.12.3 are specified target facts.','semantics':{'root_extra':'','dependency_extras':'fastapi[standard], mistral_common[image], uvicorn[standard] stay explicit. Version check covers root distributions only; their extra/transitive requirements need their own metadata, unavailable in this inventory.','prereleases':True,'pep440_local_versions':'torch==2.10.0 accepts installed 2.10.0+cu129 under PEP440; analogous audio/vision local versions accepted.'},'inputs':{n:{'sha256':o['sha256'],'bytes':o['bytes']} for n,o in files.items()},'vllm_wheel_metadata_requirements_equal_runtime_inventory':True,'vllm':{'counts':dict(collections.Counter(x['status'] for x in v)),'requirements':v},'sdk':{'source':sdk_path,'counts':dict(collections.Counter(x['status'] for x in sdk)),'requirements':sdk},'official_worker_profile':{'source':worker_path,'counts':dict(collections.Counter(x['status'] for x in worker)),'requirements':worker,'note':'Separate official worker profile pins vllm0.11.2; it is not a mandate to downgrade the snapshot guide vllm0.19.1 environment.'},'transformers_resolution':{'installed':'5.5.1','snapshot_readme_requirement':'>=4.57.1,<5.0.0','readme_satisfied':False,'vllm_requirement':next(x for x in v if x['normalized_name']=='transformers'),'conclusion':'Source-level explanation: vLLM0.19.1 ships native KimiK25 model/config registry and v4/v5 branches, and its package constraint accepts5.5.1. This does not waive the model README upper bound or prove full runtime compatibility; documentation discrepancy stays unresolved pending model/service validation under separately authorized plan. No downgrade/upgrade/install performed.'},'source_references':source_refs}
+pathlib.Path('work/runtime-dependency-closure.json').write_text(json.dumps(result,indent=2,ensure_ascii=False)+'\n',encoding='utf-8')
+print('vllm',result['vllm']['counts']);print('sdk',result['sdk']['counts']);print('SDK non-satisfied',[(x['requirement'],x['status'],x['installed_version']) for x in sdk if x['status']!='satisfied']);print('worker',result['official_worker_profile']['counts']);print('output SHA',hashlib.sha256(pathlib.Path('work/runtime-dependency-closure.json').read_bytes()).hexdigest())
+
