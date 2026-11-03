@@ -171,3 +171,13 @@ root只读核对六个源/测试文件及SHA，普通源码diff --check通过；
 用户回传的运行环境原始输出另存 `runtime-inventory-user-output.txt`：Python 3.12.3、Torch 2.10.0+cu129（compiled CUDA 12.9、CXX11 ABI=true）、vLLM 0.19.1 commit `gb1388b1fb`、Transformers 5.5.1、compressed-tensors 0.15.0.1。初始 inventory 未安装 `sllm_store`，须与后续包内导入结果分开看。SDK 声明依赖中仍缺 bitsandbytes==0.46.0、grpcio-tools==1.76.0、peft>=0.16.0；本次证据整理未重跑依赖解析器，不由版本清单推断完整兼容。
 
 S4a/S4b、完整模型转换、真实 Store 读回、GPU/TP8/八 rank 及原生服务均未通过；本节不能解除这些门槛。未归档二进制、权重、大日志或凭据；原始失败及 SONAME 错误收据均保留。
+
+## 002 CPU deadline guard 跨 SSH 探针（2026-11-03）
+
+已有 CPU 探针原始证据、冻结 guard 和启动计划存于 `qjhs002-guard-cpu-20261103-2034/`；本轮整理不重跑。负例故意改错 Created，身份检查拒绝且无 ready，错误清理也未获身份授权。正例 ready PID=1263200；root 从本轮工具原始输出确认原 SSH session 4790 已 Connection closed/exit0，新 SSH 于20:31:00仍见同 PID active。这两项当时未单独落 raw 文件，明确作为事后 root 观察叙述保存。
+
+正例在20:31:08期限到达后实际 `killed`→`stopped`，容器 exit137，最终20:32:31观察时 RestartCount=0，unit inactive/Result=success/ExecMainStatus=0，停止后约83秒未重启。该正例为 runc CPU sleep 容器，无 GPU DeviceRequests、无 privileged、无挂载和额外 devices；仅证明这一具体跨 SSH 主动 kill 探针通过。
+
+冻结 guard SHA 与运行目录原 `guard.sha256` 一致。两个运行 manifest 的 SHA 及所有小证据的 SHA/大小是在观察结束后补建，保存为 `post-observation-manifest.json`；不能冒称运行前已持久化 manifest SHA。原始 stdout/JSON、最终观察、启动计划、root 叙述均分别保留。
+
+该 CPU 结果不授予 GPU/模型/Store 运行权限，不证明 GPU 资源释放、逃逸子进程覆盖、GPU 独立预算及释放观察。S4a/S4b 的完整准入、独立审阅和实际资源/窗口核验仍独立要求。
