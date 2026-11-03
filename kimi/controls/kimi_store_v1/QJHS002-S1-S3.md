@@ -299,3 +299,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 7个实际PID+starttick身份均在13样本、60.104323秒跨度观察中absent，unit cgroup removed。unit runtime310ms来源root的交互TTY，不从已collected unit-final的0单调时间伪算。raw strace168118B仅留远端原run目录，SHA256=`788e44ccba51e416aa9d3840949a76af04fea3dc411c6d52e042688799303e40`，本地只保存trace-analysis首行摘要，无raw下载。
 
 这是CPU instrumented hook成功控制；原GPU故障未复现、根因仍未知、GPUstop不解除。source dd4b60b/新根唯一、GLM35/5/goal保持，本轮只归档已有结果，不启动新fixture。
+
+## 原失败 CID 的 PID-controller 拒绝已确认（2026-11-04，只读历史证据）
+
+`qjhs002-original-pids-rejection/` 保留20:48–20:55 journal筛选（374 records）及原kernel entry/cursor/bootID、独立源码审阅。原CID c6ae802…在20:49:07.951685出现 `cgroup: fork rejected by pids controller in /system.slice/docker-c6ae802…scope`；原始bootID与root报告当前boot相同。新增结论 `ORIGINAL_PID_CONTROLLER_REJECTION_CONFIRMED`，不改历史cuda-micro-failed-retained.json或正式失败终态。
+
+该路径是initial charging task/目标cgroup，不识别实际limiting ancestor；首个event打印一次不等于只拒绝一次。与同CID启动窗口hook pthread EAGAIN强关联，但kernel无PID/TID，具体hookthread、local128还是ancestor拒绝、任务数和压力来源仍未知；upstream5.15与Ubuntu补丁差异未核，不由当前CPU控制或ancestor快照追认历史。至少一次原始PID-controller拒绝已确证，不等于完整GPU故障根因闭环，更不授权调限或GPU重试。
+
+source dd4b60b、新根唯一、GPU FAILED_RETAINED/no-retry、GLM35/5/goal不变。本轮只归档五个指定小文件，不打包大booking或其他并发证据，不运行新计算。

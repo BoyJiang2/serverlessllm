@@ -1,0 +1,170 @@
+{
+  "checked_utc": "2026-11-03T17:44:28.862952+00:00",
+  "query": [
+    "/usr/bin/journalctl",
+    "--since",
+    "2026-11-03 20:48:00",
+    "--until",
+    "2026-11-03 20:55:00",
+    "--no-pager",
+    "-o",
+    "json"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "total_records": 374,
+  "exact_cid_records": [
+    {
+      "timestamp": "1793710146848148",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:49:06.848043823+08:00\" level=info msg=\"connecting to shim c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7\" address=\"unix:///run/containerd/s/5716165b7f509718d3fd5c84261b1fa77ba9f04d4fc9bb3021c16e1979fb2ff3\" namespace=moby protocol=ttrpc version=3",
+      "message_characters": 283
+    },
+    {
+      "timestamp": "1793710147549604",
+      "identifier": "systemd",
+      "pid": "1",
+      "message_prefix": "Started libcontainer container c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7.",
+      "message_characters": 96
+    },
+    {
+      "timestamp": "1793710147951685",
+      "identifier": "kernel",
+      "pid": null,
+      "message_prefix": "cgroup: fork rejected by pids controller in /system.slice/docker-c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7.scope",
+      "message_characters": 135
+    },
+    {
+      "timestamp": "1793710148231473",
+      "identifier": "systemd",
+      "pid": "1",
+      "message_prefix": "docker-c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7.scope: Deactivated successfully.",
+      "message_characters": 104
+    },
+    {
+      "timestamp": "1793710424637491",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:53:44.637426724+08:00\" level=error msg=\"failed to delete task\" error=\"rpc error: code = NotFound desc = container not created: not found\" id=c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7",
+      "message_characters": 225
+    },
+    {
+      "timestamp": "1793710424637803",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:53:44.637673139+08:00\" level=info msg=\"shim disconnected\" id=c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 namespace=moby",
+      "message_characters": 160
+    },
+    {
+      "timestamp": "1793710424637803",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:53:44.637692418+08:00\" level=info msg=\"cleaning up after shim disconnected\" id=c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 namespace=moby",
+      "message_characters": 178
+    },
+    {
+      "timestamp": "1793710424637803",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:53:44.637698693+08:00\" level=info msg=\"cleaning up dead shim\" id=c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 namespace=moby",
+      "message_characters": 164
+    },
+    {
+      "timestamp": "1793710424649411",
+      "identifier": "containerd",
+      "pid": "5263",
+      "message_prefix": "time=\"2026-11-03T20:53:44.649392771+08:00\" level=warning msg=\"warnings while cleaning up dead shim\" id=c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7 namespace=moby warnings=\"time=\\\"2026-11-03T20:53:44+08:00\\\" level=warning msg=\\\"failed to read init pid file\\\" error=\\\"open /run/containerd/io.containerd.runtime.v2.task/moby/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/init.pid: no such file or directory\\\" runtime=io.containerd.runc.v2\\n\"",
+      "message_characters": 478
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.664347853+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.664459220+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.664867223+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.665346106+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.665046506+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.665129338+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.665790253+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.666108365+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666250",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.666229118+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666776",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.666237819+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666776",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.666414255+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    },
+    {
+      "timestamp": "1793710424666776",
+      "identifier": "dockerd",
+      "pid": "5908",
+      "message_prefix": "time=\"2026-11-03T20:53:44.666706254+08:00\" level=error msg=\"Handler for GET /v1.46/containers/c6ae802f821246c41cf8982688ee6e68e412cdba9182cc11a1ec85ee64c056a7/json returned error: write unix /run/docker.sock->@: write: broken pipe\"",
+      "message_characters": 231
+    }
+  ],
+  "kernel_term_counts": {
+    "fork": 1,
+    "pids": 1
+  },
+  "limits": "No original OCI reconstruction; absence of logged event is not proof of absence of resource failure; unmatching messages not retained"
+}
