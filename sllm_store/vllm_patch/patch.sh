@@ -41,11 +41,14 @@ if [ ! -d "$VLLM_PATH" ]; then
 fi
 
 # Attempt a dry run of the patch to check if it's already applied
-if patch -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+if patch --batch --forward --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
     echo "vLLM patch is not applied. Applying the patch now..."
     # Apply the patch
-    patch -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
+    patch --batch --forward --fuzz=0 -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
     echo "Patch applied successfully."
-else
+elif patch --batch --force -R --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
     echo "vLLM patch has already been applied. Skipping..."
+else
+    echo "Error: vLLM patch conflicts with this installation; compatibility is unverified." >&2
+    exit 1
 fi
