@@ -243,3 +243,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 不记semantic PASS：实际PAD=163606，而官方配置PAD=163839、163606对应`<think>`；len163607/base163584只有23 added tokens，官方明确保留256槽至163839。Mistral警告来自宽泛检测，不是Kimi专属regex比较，不盲设fix_mistral_regex=True。官方Kimi Han/大小写分支pattern与TF generic不同；实际runtime pretokenizer及精确text IDs需下一独立CPU reference probe，当前只读计划未执行。receipt保持semantic_parity_verified=false、regex_warning_resolved=false。
 
 仅source/smoke证据，不证明S1模型兼容，README TF<5差异仍在；不修改生产代码、依赖或目标版本。GPU FAILED_RETAINED/no-retry边界不变，无新GPU计算。只读tokenizer源码小证据已归档，不挂载或执行checkpoint Python。
+
+## 用户最新规则覆盖：适配基线迁移完成（2026-11-03）
+
+今后仅修改 qjhs002 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`，覆盖历史唯一旧root要求；source仍00097ea、kimi-qjhs002-aligned-tail、origin BoyJiang2/serverlessllm.git。迁移收据核13源码/测试SHA与5artifact/alias；迁移后4core导入成功、CLI已知缺peft。证据见 `qjhs002-baseline-relocation/`，authority见ACTIVE-BASELINE.json。
+
+旧适配树same-FS rename至 `p0/baseline-relocation-20261103/retired-adapted-checkout`，保留build/history无大拷贝。旧root `/data/brick1/boyjiang/ServerlessLLM` 重建官方main9f50241，独立objects/无alternates、tracked/untracked clean、origin官方.git。服务器GitHub直clone两次TLS失败后，local clone --no-hardlinks复用已核原始Gitcommit，Windows上游main同9f；不称服务器网络clone成功。
+
+用户确认recursive scp；官方scp手册-r跟随symlink，proto类型变化因果关账。target普通1994B文件/元数据/diff先在服务器迁移目录保全，再仅target恢复Git120000 `../../proto/storage.proto`，内容95547af…不变；旧历史不改。未修改生产源码commit、未stage库/权重/环境，原repo用户dirty AGENTS不stage。迁移完成不等于适配完成，GPUstop/FAILED_RETAINED/no-retry及GLM冻结不变；不继续实验、不改goal。
