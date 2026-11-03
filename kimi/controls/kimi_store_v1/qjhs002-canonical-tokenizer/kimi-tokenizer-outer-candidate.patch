@@ -1,0 +1,294 @@
+--- a/sllm_store/vllm_patch/sllm_load.patch
++++ b/sllm_store/vllm_patch/sllm_load.patch
+@@ -329,3 +329,165 @@
+  
+          return None
+  
++--- a/vllm/tokenizers/hf.py
+++++ b/vllm/tokenizers/hf.py
++@@ -1,125 +1,158 @@
++ # SPDX-License-Identifier: Apache-2.0
++ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++ import contextlib
++ import copy
+++import json
++ from pathlib import Path
++ from typing import TypeAlias
++ 
++ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
+++from transformers import __version__ as transformers_version
+++from transformers.dynamic_module_utils import get_class_from_dynamic_module
++ 
++ from vllm.transformers_utils.config import get_sentence_transformer_tokenizer_config
++ 
++ from .protocol import TokenizerLike
++ 
++ HfTokenizer: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
++ 
++ 
++ def get_cached_tokenizer(tokenizer: HfTokenizer) -> HfTokenizer:
++     """
++     By default, transformers will recompute multiple tokenizer properties
++     each time they are called, leading to a significant slowdown.
++     This proxy caches these properties for faster access.
++     """
++     cached_tokenizer = copy.copy(tokenizer)
++ 
++     tokenizer_all_special_ids = tokenizer.all_special_ids
++     tokenizer_all_special_tokens = tokenizer.all_special_tokens
++     tokenizer_vocab = tokenizer.get_vocab()
++     tokenizer_len = len(tokenizer)
++ 
++     max_token_id = max(tokenizer_vocab.values())
++     max_chars_per_token = max(len(tok) for tok in tokenizer_vocab)
++ 
++     # Some tokenizers (e.g., QwenTokenizer) have special tokens that
++     # are added and included in the implementation of the vocab_size
++     # property, but not in get_vocab(); if there is an implementation
++     # of vocab size, we should take the greater value.
++     if hasattr(tokenizer, "vocab_size"):
++         with contextlib.suppress(NotImplementedError):
++             max_token_id = max(max_token_id, tokenizer.vocab_size)
++ 
++     class CachedTokenizer(tokenizer.__class__):  # type: ignore
++         @property
++         def all_special_ids(self) -> list[int]:
++             return tokenizer_all_special_ids
++ 
++         @property
++         def all_special_tokens(self) -> list[str]:
++             return tokenizer_all_special_tokens
++ 
++         @property
++         def max_token_id(self) -> int:
++             return max_token_id
++ 
++         @property
++         def max_chars_per_token(self) -> int:
++             return max_chars_per_token
++ 
++         def get_vocab(self) -> dict[str, int]:
++             return tokenizer_vocab
++ 
++         def __len__(self) -> int:
++             return tokenizer_len
++ 
++         def __reduce__(self):
++             return get_cached_tokenizer, (tokenizer,)
++ 
++     CachedTokenizer.__name__ = f"Cached{tokenizer.__class__.__name__}"
++ 
++     cached_tokenizer.__class__ = CachedTokenizer
++     return cached_tokenizer
++ 
++ 
++ class CachedHfTokenizer(TokenizerLike):
++     @classmethod
++     def from_pretrained(
++         cls,
++         path_or_repo_id: str | Path,
++         *args,
++         trust_remote_code: bool = False,
++         revision: str | None = None,
++         download_dir: str | None = None,
++         **kwargs,
++     ) -> HfTokenizer:
++         try:
++-            tokenizer = AutoTokenizer.from_pretrained(
+++            tokenizer_cls = AutoTokenizer
+++            if trust_remote_code is True and transformers_version == "5.5.1":
+++                tokenizer_path = Path(path_or_repo_id) / (kwargs.get("subfolder") or "")
+++                if tokenizer_path.is_dir() and (tokenizer_path / "config.json").is_file():
+++                    with (tokenizer_path / "config.json").open(encoding="utf-8") as config_file:
+++                        model_type = json.load(config_file).get("model_type")
+++                    if model_type == "kimi_k25":
+++                        with (tokenizer_path / "tokenizer_config.json").open(encoding="utf-8") as config_file:
+++                            tokenizer_config = json.load(config_file)
+++                        class_reference = "tokenization_kimi.TikTokenTokenizer"
+++                        if (
+++                            tokenizer_config.get("tokenizer_class") != "TikTokenTokenizer"
+++                            or tokenizer_config.get("auto_map", {}).get("AutoTokenizer")
+++                            != [class_reference, None]
+++                        ):
+++                            raise ValueError("Unexpected local Kimi tokenizer class or auto_map")
+++                        tokenizer_cls = get_class_from_dynamic_module(
+++                            class_reference,
+++                            str(tokenizer_path),
+++                            revision=revision,
+++                            cache_dir=download_dir,
+++                            **{
+++                                key: value
+++                                for key, value in kwargs.items()
+++                                if key in (
+++                                    "code_revision", "local_files_only", "token",
+++                                    "force_download", "proxies",
+++                                )
+++                            },
+++                        )
+++            tokenizer = tokenizer_cls.from_pretrained(
++                 path_or_repo_id,
++                 *args,
++                 trust_remote_code=trust_remote_code,
++                 revision=revision,
++                 cache_dir=download_dir,
++                 **kwargs,
++             )
++         except ValueError as e:
++             # If the error pertains to the tokenizer class not existing or not
++             # currently being imported,
++             # suggest using the --trust-remote-code flag.
++             if not trust_remote_code and (
++                 "does not exist or is not currently imported." in str(e)
++                 or "requires you to execute the tokenizer file" in str(e)
++             ):
++                 err_msg = (
++                     "Failed to load the tokenizer. If the tokenizer "
++                     "is a custom tokenizer not yet available in the "
++                     "HuggingFace transformers library, consider "
++                     "setting `trust_remote_code=True` in LLM or using "
++                     "the `--trust-remote-code` flag in the CLI."
++                 )
++                 raise RuntimeError(err_msg) from e
++             else:
++                 raise e
++ 
++         # The special_tokens in tokenizer should also be
++         # controlled by do_lower_case in encoder_config
++         encoder_config = get_sentence_transformer_tokenizer_config(
++             path_or_repo_id, revision
++         )
++         if isinstance(encoder_config, dict) and encoder_config.get(
++             "do_lower_case", False
++         ):
++             special_tokens_map = {
++                 k: v.lower() for k, v in tokenizer.special_tokens_map.items()
++             }
++             tokenizer.add_special_tokens(special_tokens_map)
++ 
++         return get_cached_tokenizer(tokenizer)
+--- /dev/null
++++ b/sllm_store/tests/python/test_vllm_kimi_tokenizer.py
+@@ -0,0 +1,123 @@
++"""Exercise the canonical HF factory postimage carried by sllm_load.patch."""
++import ast
++import json
++from pathlib import Path
++import tempfile
++import unittest
++from unittest.mock import Mock
++
++
++def factory_source():
++    patch = Path(__file__).resolve().parents[2] / "vllm_patch/sllm_load.patch"
++    lines = patch.read_text().split("--- a/vllm/tokenizers/hf.py\n", 1)[1].splitlines(True)
++    source = "".join(line[1:] for line in lines[1:] if line.startswith((" ", "+")) and not line.startswith("+++"))
++    tree = ast.parse(source)
++    factory = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "CachedHfTokenizer")
++    method = next(node for node in factory.body if isinstance(node, ast.FunctionDef) and node.name == "from_pretrained")
++    method.decorator_list = []
++    return ast.fix_missing_locations(ast.Module(body=[method], type_ignores=[]))
++
++
++class TestKimiTokenizerFactory(unittest.TestCase):
++    def setUp(self):
++        self.tmp = tempfile.TemporaryDirectory()
++        self.addCleanup(self.tmp.cleanup)
++        self.path = Path(self.tmp.name)
++        (self.path / "config.json").write_text(json.dumps({"model_type": "kimi_k25"}))
++        self.mapping = {"tokenizer_class": "TikTokenTokenizer", "auto_map": {"AutoTokenizer": ["tokenization_kimi.TikTokenTokenizer", None]}}
++        self.write_mapping(self.mapping)
++        self.tokenizer = Mock()
++        self.tokenizer.special_tokens_map = {"bos_token": "[BOS]"}
++        self.auto = Mock()
++        self.auto.from_pretrained.return_value = self.tokenizer
++        self.official = Mock()
++        self.official.from_pretrained.return_value = self.tokenizer
++        self.loader = Mock(return_value=self.official)
++        self.encoder = Mock(return_value={})
++        self.cached = Mock(return_value=object())
++        self.env = {"Path": Path, "json": json, "AutoTokenizer": self.auto,
++                    "transformers_version": "5.5.1", "get_class_from_dynamic_module": self.loader,
++                    "get_sentence_transformer_tokenizer_config": self.encoder,
++                    "get_cached_tokenizer": self.cached, "HfTokenizer": object}
++        exec(compile(factory_source(), "sllm_load.patch:hf.py", "exec"), self.env)
++        self.factory = type("Factory", (), {"from_pretrained": classmethod(self.env["from_pretrained"])})
++
++    def write_mapping(self, mapping):
++        (self.path / "tokenizer_config.json").write_text(json.dumps(mapping))
++
++    def call(self, **kwargs):
++        return self.factory.from_pretrained(self.path, trust_remote_code=True, **kwargs)
++
++    def test_target_arguments_and_shared_tail(self):
++        kwargs = {"code_revision": "code", "local_files_only": True, "token": "token",
++                  "force_download": False, "proxies": {"https": "proxy"}, "subfolder": "",
++                  "use_fast": False}
++        self.encoder.return_value = {"do_lower_case": True}
++        result = self.factory.from_pretrained(self.path, "positional", trust_remote_code=True,
++                                             revision="revision", download_dir="cache", **kwargs)
++        self.loader.assert_called_once_with("tokenization_kimi.TikTokenTokenizer", str(self.path),
++                                            revision="revision", cache_dir="cache",
++                                            **{k: v for k, v in kwargs.items() if k not in ("use_fast", "subfolder")})
++        self.official.from_pretrained.assert_called_once_with(self.path, "positional", trust_remote_code=True,
++                                                             revision="revision", cache_dir="cache", **kwargs)
++        self.auto.from_pretrained.assert_not_called()
++        self.encoder.assert_called_once_with(self.path, "revision")
++        self.tokenizer.add_special_tokens.assert_called_once_with({"bos_token": "[bos]"})
++        self.cached.assert_called_once_with(self.tokenizer)
++        self.assertIs(result, self.cached.return_value)
++
++    def test_other_profiles_keep_auto(self):
++        for trust, version, model in [(False, "5.5.1", "kimi_k25"), (True, "4.57.1", "kimi_k25"),
++                                      (True, "5.5.1", "other"), (1, "5.5.1", "kimi_k25")]:
++            with self.subTest(trust=trust, version=version, model=model):
++                self.env["transformers_version"] = version
++                (self.path / "config.json").write_text(json.dumps({"model_type": model}))
++                self.auto.reset_mock()
++                self.factory.from_pretrained(self.path, trust_remote_code=trust, subfolder=None)
++                self.loader.assert_not_called()
++                self.auto.from_pretrained.assert_called_once()
++
++    def test_invalid_target_mapping_fails_closed(self):
++        for mapping in [{}, {"tokenizer_class": "Other", "auto_map": self.mapping["auto_map"]},
++                        {"tokenizer_class": "TikTokenTokenizer", "auto_map": {"AutoTokenizer": ["other--tokenization_kimi.TikTokenTokenizer", None]}}]:
++            with self.subTest(mapping=mapping):
++                self.write_mapping(mapping)
++                with self.assertRaisesRegex(ValueError, "Unexpected local Kimi"):
++                    self.call()
++                self.loader.assert_not_called()
++                self.auto.from_pretrained.assert_not_called()
++                self.cached.assert_not_called()
++
++    def test_dynamic_loader_failure_propagates(self):
++        error = ImportError("reviewed local module import failed")
++        self.loader.side_effect = error
++        with self.assertRaises(ImportError) as caught:
++            self.call()
++        self.assertIs(caught.exception, error)
++        self.auto.from_pretrained.assert_not_called()
++        self.official.from_pretrained.assert_not_called()
++        self.cached.assert_not_called()
++
++    def test_official_constructor_failure_propagates(self):
++        error = ValueError("official constructor rejected input")
++        self.official.from_pretrained.side_effect = error
++        with self.assertRaises(ValueError) as caught:
++            self.call()
++        self.assertIs(caught.exception, error)
++        self.auto.from_pretrained.assert_not_called()
++        self.cached.assert_not_called()
++
++    def test_subfolder_source_and_original_constructor_arguments(self):
++        sub = self.path / "nested"
++        sub.mkdir()
++        for name in ["config.json", "tokenizer_config.json"]:
++            (sub / name).write_bytes((self.path / name).read_bytes())
++        self.call(subfolder="nested", local_files_only=True)
++        self.assertEqual(self.loader.call_args.args[1], str(sub))
++        self.assertNotIn("subfolder", self.loader.call_args.kwargs)
++        self.assertEqual(self.official.from_pretrained.call_args.args[0], self.path)
++        self.assertEqual(self.official.from_pretrained.call_args.kwargs["subfolder"], "nested")
++
++
++if __name__ == "__main__":
++    unittest.main()

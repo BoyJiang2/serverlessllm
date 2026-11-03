@@ -1,0 +1,493 @@
+diff --git a/vllm/model_executor/model_loader/__init__.py b/vllm/model_executor/model_loader/__init__.py
+--- a/vllm/model_executor/model_loader/__init__.py
++++ b/vllm/model_executor/model_loader/__init__.py
+@@ -18,6 +18,7 @@
+ )
+ from vllm.model_executor.model_loader.sharded_state_loader import ShardedStateLoader
+ from vllm.model_executor.model_loader.tensorizer_loader import TensorizerLoader
++from vllm.model_executor.model_loader.sllm_loader import ServerlessLLMLoader
+ from vllm.model_executor.model_loader.utils import (
+     get_architecture_class_name,
+     get_model_architecture,
+@@ -44,6 +45,7 @@
+     "safetensors",
+     "sharded_state",
+     "tensorizer",
++    "serverless_llm",
+ ]
+ _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
+     "auto": DefaultModelLoader,
+@@ -61,6 +63,7 @@
+     "safetensors": DefaultModelLoader,
+     "sharded_state": ShardedStateLoader,
+     "tensorizer": TensorizerLoader,
++    "serverless_llm": ServerlessLLMLoader,
+ }
+ 
+ 
+diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_executor/model_loader/sllm_loader.py
+new file mode 100644
+--- /dev/null
++++ b/vllm/model_executor/model_loader/sllm_loader.py
+@@ -0,0 +1,160 @@
++import torch
++from torch import nn
++import collections
++import os
++import gc
++from typing import Dict, Optional
++from vllm.config import VllmConfig, ModelConfig
++from vllm.config.load import LoadConfig
++from vllm.model_executor.model_loader.base_loader import BaseModelLoader
++from vllm.model_executor.model_loader.utils import (
++    initialize_model)
++from vllm.utils.torch_utils import set_default_torch_dtype
++
++class ServerlessLLMLoader(BaseModelLoader):
++    # DEFAULT_PATTERN = "model-rank-{rank}-part-{part}.safetensors"
++
++    def __init__(self, load_config: LoadConfig):
++        super().__init__(load_config)
++        extra_config = ({} if load_config.model_loader_extra_config is None
++                        else load_config.model_loader_extra_config.copy())
++        # self.pattern = extra_config.pop("pattern", self.DEFAULT_PATTERN)
++        if extra_config:
++            raise ValueError(f"Unexpected extra config keys for load format "
++                             f"{load_config.load_format}: "
++                             f"{load_config.model_loader_extra_config.keys()}")
++
++    @staticmethod
++    def _filter_subtensors(
++            tensors: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
++        """
++        Filter out all tensors that share the same memory or a subset of the
++        memory of another tensor.
++        """
++        same_storage_groups = collections.defaultdict(list)
++        for key, tensor in tensors.items():
++            if tensor.numel():
++                ptr = tensor.untyped_storage().data_ptr()
++                same_storage_groups[tensor.device, ptr].append((key, tensor))
++
++        def get_end_ptr(tensor: torch.Tensor) -> int:
++            return tensor.view(-1)[-1].data_ptr() + tensor.element_size()
++
++        result = {}
++        for group in same_storage_groups.values():
++            for k, t in group:
++                a, b = t.data_ptr(), get_end_ptr(t)
++                for k2, t2 in group:
++                    if not t2.is_contiguous():
++                        continue
++                    a2, b2 = t2.data_ptr(), get_end_ptr(t2)
++                    if a < a2 or b2 < b:
++                        continue
++                    if a2 < a or b < b2 or not t.is_contiguous():
++                        break  # t2 covers strictly more memory than t.
++                    if k2 > k:
++                        # Same tensors, keep the one with the longer key.
++                        break
++                else:
++                    result[k] = t
++        return result
++        
++    def load_model(
++        self,
++        vllm_config: VllmConfig,
++        model_config: ModelConfig,
++        prefix: str = "",
++    ) -> nn.Module:
++        from sllm_store.torch import load_dict
++        from vllm.distributed import get_tensor_model_parallel_rank
++        
++        assert os.path.isdir(model_config.model)
++        
++        rank = get_tensor_model_parallel_rank()
++
++        local_model_path = model_config.model
++        local_model_path = os.path.join(local_model_path, f"rank_{rank}")
++
++        def remove_prefix(path, prefix):
++            # Normalize the paths to ensure consistency across different platforms
++            path = os.path.normpath(path)
++            prefix = os.path.normpath(prefix)
++            
++            # Check if the path starts with the prefix
++            if path.startswith(prefix):
++                # Return the path without the prefix
++                return path[len(prefix):].lstrip(os.sep)
++            
++            # Return the original path if the prefix doesn't exist
++            return path
++        
++        # vLLM needs a local model path to read model config but
++        # ServerlessLLM Store requires a global model path as the model ID
++        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
++        model_path = remove_prefix(local_model_path, storage_path)
++        
++        with set_default_torch_dtype(model_config.dtype):
++            # with torch.device(device_config.device):
++            with torch.device("cpu"):
++                model = initialize_model(
++                    vllm_config=vllm_config,
++                    model_config=model_config,
++                    prefix=prefix,
++                )
++                model = model.eval()
++            # set all parameters to meta device
++            state_dict = self._filter_subtensors(model.state_dict())
++            key_list = list(state_dict.keys())
++            
++            for key, param in model.named_parameters(recurse=True):
++                if key in key_list:
++                    param.data = torch.empty(1, device="cuda")
++            gc.collect()
++            
++            device_id = torch.cuda.current_device()
++            device_map = {"": device_id}
++            # Note: storage path is already included in the local model path
++            sllm_state_dict = load_dict(model_path, device_map)
++            
++            for key, param in model.named_parameters(recurse=True):
++                if key in key_list:
++                    tensor = sllm_state_dict[key]
++                    param.data = tensor
++                    state_dict.pop(key)
++            if state_dict:
++                raise ValueError(
++                    f"Missing keys {tuple(state_dict)} in loaded state!")
++            
++            for name, buffer in model.named_buffers(recurse=True):
++                if buffer.device.type != 'cuda':
++                    buffer.data = buffer.data.to(f'cuda:{device_id}')
++            
++        return model
++    
++    def download_model(self, model_config: ModelConfig) -> None:
++        pass
++
++    def load_weights(self, model, model_config):
++        pass
++
++    @staticmethod
++    def save_model(
++        model: torch.nn.Module,
++        path: str,
++        pattern: Optional[str] = None,
++        max_size: Optional[int] = None,
++    ) -> None:
++        from vllm.distributed import get_tensor_model_parallel_rank
++        from sllm_store.torch import save_dict
++        
++        rank = get_tensor_model_parallel_rank()
++        state_dict = ServerlessLLMLoader._filter_subtensors(model.state_dict())
++        
++        # move all tensors to CPU
++        for key, tensor in state_dict.items():
++            state_dict[key] = tensor.cpu().contiguous()
++
++        save_path = os.path.join(path, f"rank_{rank}")
++        if not os.path.exists(save_path):
++            os.makedirs(save_path)
++        save_dict(state_dict, save_path)
+diff --git a/vllm/v1/engine/core.py b/vllm/v1/engine/core.py
+--- a/vllm/v1/engine/core.py
++++ b/vllm/v1/engine/core.py
+@@ -725,6 +725,17 @@
+             path=path, pattern=pattern, max_size=max_size
+         )
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++
++        self.model_executor.save_serverless_llm_state(
++            path=path, pattern=pattern, max_size=max_size
++        ) 
++
+     def collective_rpc(
+         self,
+         method: str | Callable[..., _R],
+diff --git a/vllm/v1/engine/core_client.py b/vllm/v1/engine/core_client.py
+--- a/vllm/v1/engine/core_client.py
++++ b/vllm/v1/engine/core_client.py
+@@ -190,6 +190,14 @@
+     ) -> None:
+         raise NotImplementedError
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        self.engine_core.save_serverless_llm_state(path, pattern, max_size)
++
+     def collective_rpc(
+         self,
+         method: str | Callable[..., _R],
+@@ -870,6 +878,14 @@
+     ) -> None:
+         self.call_utility("save_sharded_state", path, pattern, max_size)
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++        self.call_utility("save_serverless_llm_state", path, pattern, max_size)
++
+ 
+ class AsyncMPClient(MPClient):
+     """Asyncio-compatible client for multi-proc EngineCore."""
+@@ -1108,6 +1124,16 @@
+         self, path: str, pattern: str | None = None, max_size: int | None = None
+     ) -> None:
+         await self.call_utility_async("save_sharded_state", path, pattern, max_size)
++
++    async def save_serverless_llm_state_async(
++                                        self,
++                                        path: str,
++                                        pattern: str | None = None,
++                                        max_size: int | None = None,
++                                        ) -> None:
++        await self.call_utility_async("save_serverless_llm_state", path, pattern, 
++                                      max_size)
++
+ 
+     async def collective_rpc_async(
+         self,
+diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
+--- a/vllm/v1/executor/abstract.py
++++ b/vllm/v1/executor/abstract.py
+@@ -258,6 +258,18 @@
+         self.collective_rpc(
+             "save_sharded_state",
+             kwargs=dict(path=path, pattern=pattern, max_size=max_size),
++        )
++
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++        
++        self.collective_rpc(
++            "save_serverless_llm_state",
++            kwargs=dict(path=path, pattern=pattern, max_size=max_size)
+         )
+ 
+     @abstractmethod
+diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
+--- a/vllm/v1/worker/gpu_model_runner.py
++++ b/vllm/v1/worker/gpu_model_runner.py
+@@ -4990,6 +4990,20 @@
+                     weights_not_loaded,
+                 )
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        from vllm.model_executor.model_loader import ServerlessLLMLoader
++        ServerlessLLMLoader.save_model(
++            self.model,
++            path,
++            pattern=pattern,
++            max_size=max_size,
++        )
++
+     def _get_prompt_logprobs_dict(
+         self,
+         hidden_states: torch.Tensor,
+diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+--- a/vllm/v1/worker/gpu_worker.py
++++ b/vllm/v1/worker/gpu_worker.py
+@@ -827,6 +827,18 @@
+             all_gather_group=get_tp_group(),
+             all_gather_tensors=all_gather_tensors,
+         )
++        
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        self.model_runner.save_serverless_llm_state(
++            path,
++            pattern=pattern,
++            max_size=max_size,
++        )
+ 
+         return None
+ 
+--- a/vllm/tokenizers/hf.py
++++ b/vllm/tokenizers/hf.py
+@@ -1,125 +1,158 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ import contextlib
+ import copy
++import json
+ from pathlib import Path
+ from typing import TypeAlias
+ 
+ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
++from transformers import __version__ as transformers_version
++from transformers.dynamic_module_utils import get_class_from_dynamic_module
+ 
+ from vllm.transformers_utils.config import get_sentence_transformer_tokenizer_config
+ 
+ from .protocol import TokenizerLike
+ 
+ HfTokenizer: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
+ 
+ 
+ def get_cached_tokenizer(tokenizer: HfTokenizer) -> HfTokenizer:
+     """
+     By default, transformers will recompute multiple tokenizer properties
+     each time they are called, leading to a significant slowdown.
+     This proxy caches these properties for faster access.
+     """
+     cached_tokenizer = copy.copy(tokenizer)
+ 
+     tokenizer_all_special_ids = tokenizer.all_special_ids
+     tokenizer_all_special_tokens = tokenizer.all_special_tokens
+     tokenizer_vocab = tokenizer.get_vocab()
+     tokenizer_len = len(tokenizer)
+ 
+     max_token_id = max(tokenizer_vocab.values())
+     max_chars_per_token = max(len(tok) for tok in tokenizer_vocab)
+ 
+     # Some tokenizers (e.g., QwenTokenizer) have special tokens that
+     # are added and included in the implementation of the vocab_size
+     # property, but not in get_vocab(); if there is an implementation
+     # of vocab size, we should take the greater value.
+     if hasattr(tokenizer, "vocab_size"):
+         with contextlib.suppress(NotImplementedError):
+             max_token_id = max(max_token_id, tokenizer.vocab_size)
+ 
+     class CachedTokenizer(tokenizer.__class__):  # type: ignore
+         @property
+         def all_special_ids(self) -> list[int]:
+             return tokenizer_all_special_ids
+ 
+         @property
+         def all_special_tokens(self) -> list[str]:
+             return tokenizer_all_special_tokens
+ 
+         @property
+         def max_token_id(self) -> int:
+             return max_token_id
+ 
+         @property
+         def max_chars_per_token(self) -> int:
+             return max_chars_per_token
+ 
+         def get_vocab(self) -> dict[str, int]:
+             return tokenizer_vocab
+ 
+         def __len__(self) -> int:
+             return tokenizer_len
+ 
+         def __reduce__(self):
+             return get_cached_tokenizer, (tokenizer,)
+ 
+     CachedTokenizer.__name__ = f"Cached{tokenizer.__class__.__name__}"
+ 
+     cached_tokenizer.__class__ = CachedTokenizer
+     return cached_tokenizer
+ 
+ 
+ class CachedHfTokenizer(TokenizerLike):
+     @classmethod
+     def from_pretrained(
+         cls,
+         path_or_repo_id: str | Path,
+         *args,
+         trust_remote_code: bool = False,
+         revision: str | None = None,
+         download_dir: str | None = None,
+         **kwargs,
+     ) -> HfTokenizer:
+         try:
+-            tokenizer = AutoTokenizer.from_pretrained(
++            tokenizer_cls = AutoTokenizer
++            if trust_remote_code is True and transformers_version == "5.5.1":
++                tokenizer_path = Path(path_or_repo_id) / (kwargs.get("subfolder") or "")
++                if tokenizer_path.is_dir() and (tokenizer_path / "config.json").is_file():
++                    with (tokenizer_path / "config.json").open(encoding="utf-8") as config_file:
++                        model_type = json.load(config_file).get("model_type")
++                    if model_type == "kimi_k25":
++                        with (tokenizer_path / "tokenizer_config.json").open(encoding="utf-8") as config_file:
++                            tokenizer_config = json.load(config_file)
++                        class_reference = "tokenization_kimi.TikTokenTokenizer"
++                        if (
++                            tokenizer_config.get("tokenizer_class") != "TikTokenTokenizer"
++                            or tokenizer_config.get("auto_map", {}).get("AutoTokenizer")
++                            != [class_reference, None]
++                        ):
++                            raise ValueError("Unexpected local Kimi tokenizer class or auto_map")
++                        tokenizer_cls = get_class_from_dynamic_module(
++                            class_reference,
++                            str(tokenizer_path),
++                            revision=revision,
++                            cache_dir=download_dir,
++                            **{
++                                key: value
++                                for key, value in kwargs.items()
++                                if key in (
++                                    "code_revision", "local_files_only", "token",
++                                    "force_download", "proxies",
++                                )
++                            },
++                        )
++            tokenizer = tokenizer_cls.from_pretrained(
+                 path_or_repo_id,
+                 *args,
+                 trust_remote_code=trust_remote_code,
+                 revision=revision,
+                 cache_dir=download_dir,
+                 **kwargs,
+             )
+         except ValueError as e:
+             # If the error pertains to the tokenizer class not existing or not
+             # currently being imported,
+             # suggest using the --trust-remote-code flag.
+             if not trust_remote_code and (
+                 "does not exist or is not currently imported." in str(e)
+                 or "requires you to execute the tokenizer file" in str(e)
+             ):
+                 err_msg = (
+                     "Failed to load the tokenizer. If the tokenizer "
+                     "is a custom tokenizer not yet available in the "
+                     "HuggingFace transformers library, consider "
+                     "setting `trust_remote_code=True` in LLM or using "
+                     "the `--trust-remote-code` flag in the CLI."
+                 )
+                 raise RuntimeError(err_msg) from e
+             else:
+                 raise e
+ 
+         # The special_tokens in tokenizer should also be
+         # controlled by do_lower_case in encoder_config
+         encoder_config = get_sentence_transformer_tokenizer_config(
+             path_or_repo_id, revision
+         )
+         if isinstance(encoder_config, dict) and encoder_config.get(
+             "do_lower_case", False
+         ):
+             special_tokens_map = {
+                 k: v.lower() for k, v in tokenizer.special_tokens_map.items()
+             }
+             tokenizer.add_special_tokens(special_tokens_map)
+ 
+         return get_cached_tokenizer(tokenizer)

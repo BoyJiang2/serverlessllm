@@ -267,3 +267,13 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 实际original/cached/pickle恢复三个对象均匹配23 named ID、256 reserved槽和12 gold语料精确IDs；PAD163839/UNK163838/vocab163840，torch CUDA未初始化。pickle6733495B仅在内存，无序列化payload文件归档；postcheck容器exited0、8 GPU全0。receipt逐字段等于原stdout。
 
 这是直接class CPU路径验证，不是生产修复：native CLI/LLM factory仍未接入，生产修改候选仅work且未apply；`vllm-tokenizer-production-api-review.md`明确真实factory位置及调用边界。既有支持路径选择引用 `qjhs002-tokenizer-core-divergence/kimi-tokenizer-support-path-selection.md`。不证明chat/tools/model/GPU、S4a官方读回或原生服务；TF README版本差异和所有GPUstop/no-retry保持。唯一适配新root `/data/brick1/boyjiang/kimi-new/ServerlessLLM`、source00097ea不变，无新生产/依赖/goal改动。
+
+## S5 真实 canonical tokenizer factory CPU 通过；源码 dd4b60b 已发布（2026-11-04）
+
+`qjhs002-canonical-tokenizer/` 保留已完成unit/真实factory CPU/安装树干跑及源码发布证据。newroot只提交官方 `sllm_store/vllm_patch/sllm_load.patch` 与 `tests/python/test_vllm_kimi_tokenizer.py`，source=`dd4b60bb9b19183fc45896d5b7fd778a9f98ad44`，non-force推至kimi-qjhs002-aligned-tail且tracking已CAS更新。此前7个ServerlessLLM生产路径计数不增，测试变7；runtime patched target增加hf.py hunk属于同一inner patch，不是新codec/框架。
+
+服务器实际6factory unit/0.017s与1loader/0.003s通过；local6unit通过。normal get_tokenizer未传tokenizer_cls，真实HF factory通过candidate只读overlay运行，23 named/256 reserved/12 gold、kwargs encode/decode、cached/pickle、真实HF nested subfolder同gold均通过，PAD163839/vocab163840/CUDAfalse。标准encoder/cache tail保留。仅TF5.5.1+strict trust=True+local Kimi config+exact mapper选择官方class，失败不generic回退，其他profile/None子目录/参数由unit覆盖。
+
+原inner前12057B保留；new hf candidate SHA=`0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480`，whole inner SHA=`a734b0864c0bff21357db8b83ab1a46955abb381e136bc506f4c752067acab53`。candidate-manifest是最初静态阶段历史收据，其“未测试”状态由本节实际证据覆盖，原文件不改。whole inner实际安装树strict forward0/reverse1、全部target unchanged，classification=unapplied：不可变镜像未安装完整patch，sync不是部署批准。
+
+唯一适配根仍 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`；旧root HEAD仍9f，本轮未触；source-final小快照有untracked models/，不据此称当前全树clean或擅自清理。仅CPU factory限定通过，不证明chat/tools/model/Store/GPU/S4a官方读回，TF README差异与GPUstop/no-retry、GLM35/5及goal状态均保持。

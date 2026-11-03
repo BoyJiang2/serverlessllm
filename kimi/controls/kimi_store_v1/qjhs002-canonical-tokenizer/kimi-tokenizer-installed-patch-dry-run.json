@@ -1,0 +1,63 @@
+{
+  "vllm_path": "/usr/local/lib/python3.12/dist-packages/vllm",
+  "patch_sha256": "a734b0864c0bff21357db8b83ab1a46955abb381e136bc506f4c752067acab53",
+  "before": {
+    "model_executor/model_loader/__init__.py": "a8b9804eba44d4f20901db9528825aa69095fb159766f76079cf2db82095b3e4",
+    "model_executor/model_loader/sllm_loader.py": null,
+    "tokenizers/hf.py": "f462103da34122052402a996c127512d1e1c5d0aa25fc130cf97d4082a92f6f8",
+    "v1/engine/core.py": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+    "v1/engine/core_client.py": "ebad9d4c1277269fdbdcebdef98c1e242636b6e65018ed7cb37d86e9563d7e88",
+    "v1/executor/abstract.py": "81fdcce013b59818401d45ab14e7b16e96ff7c4858af402edbac4455931f865e",
+    "v1/worker/gpu_model_runner.py": "3afc290d3df1be3df1b89b9b35942695f5896c7729f608d6c44580899212c301",
+    "v1/worker/gpu_worker.py": "ffbd4567a25e0a82ca5c714b75e86c7353cedb6fc5c2814b22f3c91afb1c88b1"
+  },
+  "after": {
+    "model_executor/model_loader/__init__.py": "a8b9804eba44d4f20901db9528825aa69095fb159766f76079cf2db82095b3e4",
+    "model_executor/model_loader/sllm_loader.py": null,
+    "tokenizers/hf.py": "f462103da34122052402a996c127512d1e1c5d0aa25fc130cf97d4082a92f6f8",
+    "v1/engine/core.py": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+    "v1/engine/core_client.py": "ebad9d4c1277269fdbdcebdef98c1e242636b6e65018ed7cb37d86e9563d7e88",
+    "v1/executor/abstract.py": "81fdcce013b59818401d45ab14e7b16e96ff7c4858af402edbac4455931f865e",
+    "v1/worker/gpu_model_runner.py": "3afc290d3df1be3df1b89b9b35942695f5896c7729f608d6c44580899212c301",
+    "v1/worker/gpu_worker.py": "ffbd4567a25e0a82ca5c714b75e86c7353cedb6fc5c2814b22f3c91afb1c88b1"
+  },
+  "unchanged": true,
+  "classification": "unapplied",
+  "results": {
+    "forward": {
+      "argv": [
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "--dry-run",
+        "-p2",
+        "--directory",
+        "/usr/local/lib/python3.12/dist-packages/vllm",
+        "--input",
+        "/src/sllm_store/vllm_patch/sllm_load.patch",
+        "--forward"
+      ],
+      "returncode": 0,
+      "stdout": "File model_executor/model_loader/__init__.py is read-only; trying to patch anyway\nchecking file model_executor/model_loader/__init__.py\nchecking file model_executor/model_loader/sllm_loader.py\nFile v1/engine/core.py is read-only; trying to patch anyway\nchecking file v1/engine/core.py\nFile v1/engine/core_client.py is read-only; trying to patch anyway\nchecking file v1/engine/core_client.py\nFile v1/executor/abstract.py is read-only; trying to patch anyway\nchecking file v1/executor/abstract.py\nFile v1/worker/gpu_model_runner.py is read-only; trying to patch anyway\nchecking file v1/worker/gpu_model_runner.py\nFile v1/worker/gpu_worker.py is read-only; trying to patch anyway\nchecking file v1/worker/gpu_worker.py\nFile tokenizers/hf.py is read-only; trying to patch anyway\nchecking file tokenizers/hf.py\n",
+      "stderr": ""
+    },
+    "reverse": {
+      "argv": [
+        "patch",
+        "--batch",
+        "--fuzz=0",
+        "--dry-run",
+        "-p2",
+        "--directory",
+        "/usr/local/lib/python3.12/dist-packages/vllm",
+        "--input",
+        "/src/sllm_store/vllm_patch/sllm_load.patch",
+        "--force",
+        "--reverse"
+      ],
+      "returncode": 1,
+      "stdout": "File model_executor/model_loader/__init__.py is read-only; trying to patch anyway\nchecking file model_executor/model_loader/__init__.py\nHunk #1 FAILED at 18.\nHunk #2 FAILED at 45.\nHunk #3 FAILED at 63.\n3 out of 3 hunks FAILED\nThe next patch, when reversed, would delete the file model_executor/model_loader/sllm_loader.py,\nwhich does not exist!  Applying it anyway.\nchecking file model_executor/model_loader/sllm_loader.py\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED\nFile v1/engine/core.py is read-only; trying to patch anyway\nchecking file v1/engine/core.py\nHunk #1 FAILED at 725.\n1 out of 1 hunk FAILED\nFile v1/engine/core_client.py is read-only; trying to patch anyway\nchecking file v1/engine/core_client.py\nHunk #1 FAILED at 190.\nHunk #2 FAILED at 878.\nHunk #3 FAILED at 1124.\n3 out of 3 hunks FAILED\nFile v1/executor/abstract.py is read-only; trying to patch anyway\nchecking file v1/executor/abstract.py\nHunk #1 FAILED at 258.\n1 out of 1 hunk FAILED\nFile v1/worker/gpu_model_runner.py is read-only; trying to patch anyway\nchecking file v1/worker/gpu_model_runner.py\nHunk #1 FAILED at 4990.\n1 out of 1 hunk FAILED\nFile v1/worker/gpu_worker.py is read-only; trying to patch anyway\nchecking file v1/worker/gpu_worker.py\nHunk #1 FAILED at 827.\n1 out of 1 hunk FAILED\nFile tokenizers/hf.py is read-only; trying to patch anyway\nchecking file tokenizers/hf.py\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED\n",
+      "stderr": ""
+    }
+  }
+}
