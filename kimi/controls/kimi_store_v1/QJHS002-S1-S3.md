@@ -235,3 +235,11 @@ S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storag
 实际类 `vllm.transformers_utils.configs.kimi_k25.KimiK25Config`，安装包文件SHA256=`c7b79b5b0369ba3f4f756fede58c552cbc452a8447322c927405638af1fbc984`与wheel源相同；text class=DeepseekV3Config，hidden/moe/expert/layer/head/vocab=7168/2048/384/61/64/163840。torch.cuda.is_initialized=false，trust_remote_code=false、config_format=hf、local_files_only=true。仅bind config.json与probe，不挂权重/tokenizer/SDK；root记录runc/noGPU/netnone/只读/user2147/cpu1/mem4g/pids256/tmp256m，离线HF缓存位于tmp，PID1 timeout60/kill10、host timeout90/kill5。两容器均停止、后验8 GPU全0。仅原生配置CPU路径通过，不是完整模型、tokenizer或GPU兼容，不豁免README TF<5与实际5.5.1差异。
 
 追加双端proto内容pin：002 target与普通proto均SHA256=`95547af27bb76f8acf61fac5692e0b612e8ac57a42d89ffcab2bd029630bbc5b`；003对应target同SHA，Git链接文本仍`../../proto/storage.proto`。内容相同不解决类型变化来源；复制方式已问用户未答，不恢复/纳管proto。GPU FAILED_RETAINED/no-retry边界保持，无新源码修改或goal状态更新。
+
+## Native tokenizer CPU smoke 通过，但语义差异明确（2026-11-03）
+
+`qjhs002-native-tokenizer-smoke/` 保留实际stdout/stderr、postcheck、receipt及只读regex/特殊ID审计。HF5.5.1 native fallback构造和单样本roundtrip成功、容器exit0、CUDA未初始化、后验8 GPU全0；仅挂5资产2809638B、无权重/remote Python/SDK/Store，offline/noGPU/只读镜像、UID2147与显式tmp缓存。来源准入引用既有 `qjhs002-native-config-cpu/runtime-native-config-admission.json`，不重复。
+
+不记semantic PASS：实际PAD=163606，而官方配置PAD=163839、163606对应`<think>`；len163607/base163584只有23 added tokens，官方明确保留256槽至163839。Mistral警告来自宽泛检测，不是Kimi专属regex比较，不盲设fix_mistral_regex=True。官方Kimi Han/大小写分支pattern与TF generic不同；实际runtime pretokenizer及精确text IDs需下一独立CPU reference probe，当前只读计划未执行。receipt保持semantic_parity_verified=false、regex_warning_resolved=false。
+
+仅source/smoke证据，不证明S1模型兼容，README TF<5差异仍在；不修改生产代码、依赖或目标版本。GPU FAILED_RETAINED/no-retry边界不变，无新GPU计算。只读tokenizer源码小证据已归档，不挂载或执行checkpoint Python。
