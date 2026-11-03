@@ -1,0 +1,142 @@
+{
+  "archive_bytes": 8261632,
+  "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+  "logical_weight_shape": [
+    7168,
+    2048
+  ],
+  "payload_bytes": 8257544,
+  "quantization": {
+    "config_groups": {
+      "group_0": {
+        "input_activations": null,
+        "output_activations": null,
+        "targets": [
+          "Linear"
+        ],
+        "weights": {
+          "actorder": null,
+          "block_structure": null,
+          "dynamic": false,
+          "group_size": 32,
+          "num_bits": 4,
+          "observer": "minmax",
+          "observer_kwargs": {},
+          "strategy": "group",
+          "symmetric": true,
+          "type": "int"
+        }
+      }
+    },
+    "format": "pack-quantized",
+    "ignore": [
+      "re:.*self_attn.*",
+      "re:.*shared_experts.*",
+      "re:.*mlp\\.(gate|up|gate_up|down)_proj.*",
+      "re:.*lm_head.*",
+      "re:vision_tower.*",
+      "re:mm_projector.*"
+    ],
+    "kv_cache_scheme": null,
+    "quant_method": "compressed-tensors",
+    "quantization_status": "compressed"
+  },
+  "raw_sha256": {
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": "c440443a46091667c132cd93131fd3dec4f420309ed134d418d8cf4247e31963",
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": "78053b2804dac91c8fa00756ccb2c7a3e96c61a0ea1c88ca81b246810d36e86e",
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": "68d89fd501bef3663f80787cb8ad23be91d56afa7db1e1f93cf6e07fe4f20433"
+  },
+  "source_headers": {
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": {
+      "data_offsets": [
+        1536,
+        7341568
+      ],
+      "dtype": "I32",
+      "shape": [
+        7168,
+        256
+      ]
+    },
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": {
+      "data_offsets": [
+        8455741952,
+        8456659456
+      ],
+      "dtype": "BF16",
+      "shape": [
+        7168,
+        64
+      ]
+    },
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": {
+      "data_offsets": [
+        7341568,
+        7341576
+      ],
+      "dtype": "I32",
+      "shape": [
+        2
+      ]
+    }
+  },
+  "stage": "SAVE_ONLY",
+  "tensor_index": {
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": [
+      0,
+      7340032,
+      [
+        7168,
+        256
+      ],
+      [
+        256,
+        1
+      ],
+      "torch.int32"
+    ],
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": [
+      7340032,
+      917504,
+      [
+        7168,
+        64
+      ],
+      [
+        64,
+        1
+      ],
+      "torch.bfloat16"
+    ],
+    "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": [
+      8257536,
+      8,
+      [
+        2
+      ],
+      [
+        1
+      ],
+      "torch.int32"
+    ]
+  },
+  "total_archive_bytes": 8261992,
+  "scope": "Official save_dict plus archive raw-bit validation only; no official load_dict readback, no full model conversion, no GPU/Store start",
+  "source_commit": "00097eaafd60dbae262a954a29863b5c633aade9",
+  "archive_location": "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component",
+  "tensor_data_sha256": "4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8",
+  "tensor_index_sha256": "5fbcb6f759d0b473f6ed41ef21a825ca020c44d51c489e8af813c75e3a5b8993",
+  "container_exit_code": 0,
+  "post_run_gpu_used_mib": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "status": "S4A_SAVE_ONLY_PASS_READBACK_NOT_RUN",
+  "gpu_status": "FAILED_RETAINED; no retry or escalation"
+}

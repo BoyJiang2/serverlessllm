@@ -205,3 +205,11 @@ S4a/S4b、完整模型转换、真实 Store 读回、GPU/TP8/八 rank 及原生�
 hook #4 报 Go startup pthread_create EAGAIN；128 PID 限制仅候选，实际 OCI/cgroup post-cleanup 已 gone，未证实因果。只保留512字符以内错误摘录及完整错误/原 inspect SHA，不提交 full inspect、Config.Env 或172k错误栈。FAILED_RETAINED_RELEASE_VERIFIED 仅表示失败保留且所列释放观察完成；停止 GPU 升级、不重试，未来任何 GPU 工作须新诊断/审阅与完整 gate。
 
 同批保留既有 CPU installed-vLLM 补丁干跑：同不可变镜像、runc/noGPU/只读树，安装路径 `/usr/local/lib/python3.12/dist-packages/vllm`，inner patch `4d6271fa7cce8e47ccbc10a39812075d3e806426b8cf0a83b42632e807110f84`；forward `--batch --fuzz=0 --dry-run -p2` rc0、forced reverse rc1、全部 target before==after，classification=unapplied。未应用实际环境，不称运行兼容；本次归档未重新运行。
+
+## S4a 真实组件 CPU SAVE_ONLY 半程通过（2026-11-03）
+
+`qjhs002-s4a-save-only/` 保留已有实际 CPU 日志及最后 JSON receipt。官方 save_dict 保存一个真实 packed component，并对 archive 的原始位逐项比对通过：I32 packed[7168,256]、BF16 scale[7168,64]、I32 shape[2]，shape 实值[7168,2048]；payload=8257544B、tensor.data_0=8261632B、含索引总计8261992B。容器 exited0，后验8 GPU使用量均0。
+
+archive 仅保留于002 `p0/s4a-saveonly-20261103-2103/packed-component`，未下载/纳管payload；tensor.data_0 SHA256=`4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8`。实际源码仍00097ea；SDK _C=41d2409…、_checkpoint_store=f757a8e…（完整SHA见验证日志），proto类型T保留且原因未知。versioned libglog.so.0.6.0/.1作为未跟踪编译artifact保留，不stage .so、不改ignore。
+
+这只是 S4a 保存半程 PASS：archive raw-bit 比对不是官方 load_dict 读回，不是完整转换。真实 Store/CUDA 读回、GPU资源释放及完整模型/TP8/原生服务仍未通过；GPU FAILED_RETAINED、预算超限和 no-retry 边界不变。当前CDI fallback即使另有枚举，也不是失败当次实际OCI证据，不据此给hook#4定因。此轮仅归档已有证据，无新计算。
