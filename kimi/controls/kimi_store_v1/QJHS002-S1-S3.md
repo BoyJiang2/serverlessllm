@@ -227,3 +227,11 @@ archive 仅保留于002 `p0/s4a-saveonly-20261103-2103/packed-component`，未�
 hook ELF内联buildinfo实际Go1.26.0/CGO_ENABLED=1，区别runc自身Go1.25.9；host glibc2.35。当前daemon及可读祖先pids无上限、events max0，不追认失败时不存在PID限制；缺失字段记unavailable，不当0。runc createContainer在应用UID/rlimits/seccomp设置前，应用参数不能直接解释hook；Go源码行号与保留栈仍有精确对应缺口。EAGAIN有多种原因，仍无当次OCI/hook限额证据，不重试GPU/不绕过hook。
 
 S2双端只读：003原HEAD9f50241的storage.proto仍symlink `../../proto/storage.proto`，mtime/birth 11:32:16.945592703；002普通文件birth12:51:06、mtime11:32:16截秒，target也相近复制式birth。root补充README/Git目录12:50复制式birth。这支持迁移解引用推断，未找到具体复制命令，用户方式尚待确认；不恢复或纳管proto。源码仍00097ea且未修改，未纳管libs/环境/凭据。此轮仅归档既有只读证据，无新GPU/模型/Store/容器计算，所有GPU停止边界保持。
+
+## 原生 Kimi config CPU 实际通过，初次 UID 缓存失败保留（2026-11-03）
+
+`qjhs002-native-config-cpu/` 保存来源审阅、同脚本两次CPU输出和回执。首次在Torch默认Inductor缓存选路径时因镜像无UID2147账户，`getpwuid` KeyError、exit1，尚未进入Kimi配置；失败完整保留。读取官方cache_dir_utils.py确认支持后，仅本次Docker env设 `TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor`，第二次exit0；未改系统账户、源码或依赖。
+
+实际类 `vllm.transformers_utils.configs.kimi_k25.KimiK25Config`，安装包文件SHA256=`c7b79b5b0369ba3f4f756fede58c552cbc452a8447322c927405638af1fbc984`与wheel源相同；text class=DeepseekV3Config，hidden/moe/expert/layer/head/vocab=7168/2048/384/61/64/163840。torch.cuda.is_initialized=false，trust_remote_code=false、config_format=hf、local_files_only=true。仅bind config.json与probe，不挂权重/tokenizer/SDK；root记录runc/noGPU/netnone/只读/user2147/cpu1/mem4g/pids256/tmp256m，离线HF缓存位于tmp，PID1 timeout60/kill10、host timeout90/kill5。两容器均停止、后验8 GPU全0。仅原生配置CPU路径通过，不是完整模型、tokenizer或GPU兼容，不豁免README TF<5与实际5.5.1差异。
+
+追加双端proto内容pin：002 target与普通proto均SHA256=`95547af27bb76f8acf61fac5692e0b612e8ac57a42d89ffcab2bd029630bbc5b`；003对应target同SHA，Git链接文本仍`../../proto/storage.proto`。内容相同不解决类型变化来源；复制方式已问用户未答，不恢复/纳管proto。GPU FAILED_RETAINED/no-retry边界保持，无新源码修改或goal状态更新。

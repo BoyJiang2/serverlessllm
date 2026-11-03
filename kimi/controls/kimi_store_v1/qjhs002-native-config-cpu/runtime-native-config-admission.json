@@ -1,0 +1,123 @@
+{
+  "status": "SOURCE_REVIEW_ONLY_NO_EXECUTION",
+  "input_sha256": "5c992223b0b4990b345e46c5123ac75833f3ceaf3b83d17fb9ebdf37c4e8beb6",
+  "files_sha256": {
+    "vllm/transformers_utils/config.py": "477f97b5ff5b0596f579d65a29b3fa17daf943d8ca39ffaf1514a52de5205fbe",
+    "vllm/transformers_utils/tokenizer.py": "bf82ed17fd43e7f6aa8ffd5ca6ff5de7714db155005aab57e3ea2c46f914fabb",
+    "vllm/transformers_utils/configs/kimi_k25.py": "c7b79b5b0369ba3f4f756fede58c552cbc452a8447322c927405638af1fbc984",
+    "vllm/tokenizers/__init__.py": "177c4f52ebc72597d409e2c898b598c830596be7bfd5a3258f7ed27d4647aff0",
+    "vllm/tokenizers/deepseek_v32.py": "b70400ec8f59d88f01f0807baf313ee13706885bc729cf04663326524566dbf8",
+    "vllm/tokenizers/deepseek_v32_encoding.py": "de35f50905beb66a21f9807cc36bb19bf8d6768dde50770fb639e7432be354b5",
+    "vllm/tokenizers/detokenizer_utils.py": "9f2216dde3b41fba2f494cb21ede2619b9a628eaf7229fa30202bedc13792974",
+    "vllm/tokenizers/grok2.py": "3c2ac95b8fd38c292f76cea52341ddf8dba4a390caa17b76a154df9a7c233bd8",
+    "vllm/tokenizers/hf.py": "f462103da34122052402a996c127512d1e1c5d0aa25fc130cf97d4082a92f6f8",
+    "vllm/tokenizers/kimi_audio.py": "ab3a8063ab50b97ed5ed95f2428baf39a6ab3bf0215eaf618612c002d9655996",
+    "vllm/tokenizers/mistral.py": "1e5891b128bfe8d97274fe28446c90f9f0515d14235cd34b595b8229ec3ef820",
+    "vllm/tokenizers/protocol.py": "6eb7b47b5e0c21b0a51a8307d888cc075742dcee440eac2f6b8bb756a30876dd",
+    "vllm/tokenizers/qwen_vl.py": "b23d9ed73dc663e64f908d12e293ea71d8d675a80da490252dfc6ae62573a260",
+    "vllm/tokenizers/registry.py": "ccbb9516921c99f2f12b5b1c86a430bf0d4090acb4050fcb7282f388f44c5e50",
+    "transformers/models/auto/tokenization_auto.py": "420a01868d9748ddb2c165d3f76f0647e504d73506afc87f872c2d00e3c1c613",
+    "transformers/tokenization_utils_tokenizers.py": "2a41b4e2ab5a3f467ce6ab9efa818cbd9442260c08b2d6e16eec33a4a56b3883",
+    "transformers/convert_slow_tokenizer.py": "7c17d04c3bc9b97ca806f777e80be9ae93123b96f090a3f741317a344121355b",
+    "transformers/tokenization_utils_base.py": "6c60e0607c9b298a891293d02af4527ea2444341a644bd218f5d4fc6ccc615b8"
+  },
+  "api_signatures": [
+    {
+      "file": "vllm/transformers_utils/config.py",
+      "line": 612,
+      "signature": "model: str | Path, trust_remote_code: bool, revision: str | None=None, code_revision: str | None=None, config_format: str | ConfigFormat='auto', hf_overrides_kw: dict[str, Any] | None=None, hf_overrides_fn: Callable[[PretrainedConfig], PretrainedConfig] | None=None, **kwargs",
+      "returns": "PretrainedConfig"
+    },
+    {
+      "file": "vllm/tokenizers/registry.py",
+      "line": 94,
+      "signature": "tokenizer_name: str | Path, *args, runner_type: 'RunnerType'='generate', tokenizer_mode: str='auto', **kwargs",
+      "returns": null
+    },
+    {
+      "file": "vllm/tokenizers/registry.py",
+      "line": 195,
+      "signature": "tokenizer_name: str | Path, *args, tokenizer_cls: type[_T]=TokenizerLike, trust_remote_code: bool=False, revision: str | None=None, download_dir: str | None=None, **kwargs",
+      "returns": "_T"
+    }
+  ],
+  "suggested_config_call": "get_config('/checkpoint', trust_remote_code=False, config_format='hf', local_files_only=True)",
+  "suggested_tokenizer_call": "get_tokenizer('/checkpoint', trust_remote_code=False, tokenizer_mode='hf', local_files_only=True)",
+  "imports": [
+    "from vllm.transformers_utils.config import get_config",
+    "from vllm.tokenizers import get_tokenizer"
+  ],
+  "config_scope": "Only config parser/native config objects and RoPE normalization; no VllmConfig/ModelConfig/LLM/model class/Store/tensor construction. config_format=hf eliminates unrelated Mistral format detection.",
+  "tokenizer_scope": "Load native Transformers TokenizersBackend through official vLLM wrapper; may convert 2,795,286-byte local tiktoken.model to in-memory BPE and cache vocab. No encode/generate necessary to establish construction. It is not automatically the historical remote TikTokenTokenizer implementation, so success is not tokenizer behavioral parity.",
+  "config_source_path": [
+    "config.py:612 get_config",
+    "config.py:169 HFConfigParser enforces local_files_only from HF_HUB_OFFLINE",
+    "config.py:205-220 native Kimi config AutoConfig registration and trust_remote_code=False",
+    "configs/kimi_k25.py:80 native KimiK25Config creates DeepseekV3Config + vision config",
+    "config.py:785-792 patch_rope_parameters on config/subconfigs"
+  ],
+  "tokenizer_source_path": [
+    "vllm/tokenizers/registry.py get_tokenizer -> CachedHfTokenizer.from_pretrained",
+    "vllm/tokenizers/hf.py:85 AutoTokenizer.from_pretrained passes trust_remote_code",
+    "transformers/models/auto/tokenization_auto.py:361 kimi_k25 in incorrect hub tokenizer class list",
+    ":754-756 clears remote tokenizer auto_map for kimi_k25",
+    ":789-793 falls back to TokenizersBackend when TikTokenTokenizer name unavailable",
+    "transformers/tokenization_utils_base.py:1674-1687 discovers local tiktoken.model without tokenizer.json",
+    "transformers/tokenization_utils_tokenizers.py:211-284 .model SentencePiece attempt -> TikToken converter fallback"
+  ],
+  "expected_missing_dependencies": "No known missing dependency on these selected native config/tokenizer paths from existing inventory. SDK bitsandbytes/grpcio-tools/peft gaps belong to SDK and are not required by these direct calls. Transitive import/native library failures remain possible and should be reported without installing or changing trust flags.",
+  "asset_bounds": [
+    {
+      "name": "chat_template.jinja",
+      "bytes": 4022,
+      "is_symlink": false
+    },
+    {
+      "name": "config.json",
+      "bytes": 5416,
+      "is_symlink": false,
+      "sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899"
+    },
+    {
+      "name": "generation_config.json",
+      "bytes": 52,
+      "is_symlink": false,
+      "sha256": "5431db52f431099f309ece737670e977de148f8cfd5340e920ff1f44d7cff596"
+    },
+    {
+      "name": "tiktoken.model",
+      "bytes": 2795286,
+      "is_symlink": false
+    },
+    {
+      "name": "tokenizer_config.json",
+      "bytes": 4862,
+      "is_symlink": false,
+      "sha256": "12fcab43d2b6068f46769f5ff373960bf7c17a94d7abbc50e2491306b2f6cf58"
+    }
+  ],
+  "risks": [
+    "Native vllm module imports torch and platform utility modules; no GPU device exposure or allocation request is allowed, but platform capability probing during import can fail in CPU-only runtime.",
+    "Readonly root requires an explicitly bounded writable /tmp tmpfs for ordinary library/cache use; HF_HOME/XDG_CACHE_HOME/TIKTOKEN_CACHE_DIR should point under it. Do not write snapshot. Set PYTHONDONTWRITEBYTECODE=1.",
+    "TokenizersBackend may emit SentencePiece parse warnings for tiktoken.model before fallback; capture exception and do not switch trust_remote_code=True or install dependencies.",
+    "Token conversion uses CPU and in-memory vocab objects; memory4g/cpu1/pids256 and inner timeout60/kill10 plus external bounded cleanup remain required. Resource cap adequacy cannot be claimed from source alone.",
+    "CPU config/tokenizer success only establishes those native APIs on exact image/snapshot/TF versions; model README upper bound remains a documented difference, and model/weights/Store/GPU/native service compatibility remains unproven."
+  ],
+  "proposed_observations": [
+    "Preserve exact image ID, script SHA, snapshot config/tokenizer SHA and requested OCI limits, runtime, noGPU/no-network/readonly binds.",
+    "Emit phase_start and phase_end separately for config and tokenizer, actual object module/class, get_text_config class, model_type/architecture, hidden_size and compressed-tensors metadata; do not serialize full config.",
+    "For tokenizer emit class/module/is_fast/vocab_size/len plus known special token ID lookups; no model/tensors and no remote code modules imported.",
+    "Record duration/RSS/process exit/OOM flags plus bounded container exit/Pid0 observation; no GPU release claim from CPU test."
+  ],
+  "config_review": {
+    "verdict": "PASS_SOURCE_SCOPE",
+    "meaning": "No source-level scope blocker for offline read-only CPU-only native get_config plus get_hf_text_config within proposed hard limits. Not an execution success or model compatibility verdict.",
+    "get_hf_text_config": {
+      "signature": "config: PretrainedConfig",
+      "line": 1047,
+      "source": "def get_hf_text_config(config: PretrainedConfig):\n    \"\"\"Get the \"sub\" config relevant to llm for multi modal models.\n    No op for pure text models.\n    \"\"\"\n    text_config = config.get_text_config()\n\n    if text_config is not config and not hasattr(text_config, \"num_attention_heads\"):\n        raise ValueError(\n            \"The text_config extracted from the model config does not have \"\n            \"`num_attention_heads` attribute. This indicates a mismatch \"\n            \"between the model config and vLLM's expectations. Please \"\n            \"ensure that the model config is compatible with vLLM.\"\n        )\n\n    return text_config"
+    },
+    "passive_cuda_observation": "torch.cuda.is_initialized() before and after only; no cuda.init/is_available/device_count/synchronize.",
+    "auto_format_note": "Root may retain default auto; local config.json yields hf after format-detection file checks. Explicit hf minimizes path."
+  }
+}
