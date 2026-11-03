@@ -2,7 +2,7 @@
   "cleanup_timer_scheduler_probe": "Result=success; ExecMainStatus=0; not proof of CUDA cleanup",
   "expected_image_config": "sha256:6a7fb919dcd7bf67b14c9a533e1ff53c2384ebbe9c2562f42aa23674fd25350a",
   "gpu_success": false,
-  "phase": "weights_hash_verified_image_pull_in_progress",
+  "phase": "weights_verified_durable_image_cache_download",
   "source_head": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
   "model": "Qwen/Qwen3-8B",
   "image_checkout_equivalence": "not verified; official published image and checkout identities are distinct evidence",
@@ -17,5 +17,18 @@
     "official Transformers conversion and cluster deploy/chat",
     "official standalone loader validation and cleanup observation"
   ],
-  "source_checkout": "qjhs002:/data/brick1/boyjiang/ServerlessLLM"
+  "source_checkout": "qjhs002:/data/brick1/boyjiang/ServerlessLLM",
+  "historical_image_attempt": {
+    "exit_codes": "not observed",
+    "status": "SSH connection closed; remote children absent; expected image absent at 2026-11-04T00:57+08:00",
+    "old_receipt_status": "streaming is stale and does not prove liveness"
+  },
+  "active_image_transfer": {
+    "deadline": "2026-11-04T03:10:00+08:00",
+    "max_workers": 4,
+    "pid": 2802683,
+    "manifest_sha256": "470039cd917ca13febc1a5d04578e60850fbc9b1604dc5cdf4ad53561fd9035e",
+    "cache": "/data/brick1/boyjiang/ServerlessLLM/models/.baseline-tools/oci-layer-cache",
+    "status": "requires live PID and receipt checks"
+  }
 }
