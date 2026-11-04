@@ -1,0 +1,58 @@
+{
+  "status": "V5_SINGLE_EXPRESSION_SEMANTIC_DIFF_AND_ACTUAL_INTERFACE_AST_REGRESSION_PASS_NOT_RUNTIME",
+  "source_commit_unchanged": "c99e55cdd9828fc05475d066211fda85d4a3a474",
+  "frozen_v4_spec_sha256": "c2dec6bc2e5014b3c73a17dea7d9a5b2b823e3693db5b196e35e20638858506c",
+  "frozen_v4_command_sha256": "c7d4bfebe205bb1a370d5d94068a93cdfa7b49a1d518e1d3a7452c83a4f84b8d",
+  "v5_spec_sha256": "db46f283b4bfe4b856077dd555ecc397e7cdacde40f2fd8ae2f2d0b487dc8a75",
+  "v5_command_sha256": "5e89ba56638302f0c59cba448286152168a6343ecc98f1baea280395ff5b8bcd",
+  "root_inline_delta_exactly_one_CUDA_VISIBLE_DEVICES_expression": true,
+  "request_CUDA_numeric_0_to_7": true,
+  "request_NVIDIA_still_exact8UUID": true,
+  "USER_fix_preserved": true,
+  "no_CUDA_DEVICE_ORDER_added": true,
+  "spec_only_new_run_status": true,
+  "all_other_protocol_resource_budget_API_ownership_validation_unchanged": true,
+  "actual_sources": {
+    "interface": {
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/platforms/interface.py",
+      "bytes": 26044,
+      "sha256": "fe5383904d94e116d2fcc47471ef56dc53efac079315368f708aae3f132a0151"
+    },
+    "cuda": {
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/platforms/cuda.py",
+      "bytes": 24196,
+      "sha256": "b987bdd4d6156843d5a58e4731dd5496708b76e6dcb009f01abb4047d965e50c"
+    }
+  },
+  "actual_function_lines": [
+    209,
+    221
+  ],
+  "old_UUID_ValueError_all_logical_devices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "new_numeric_int_mapping_all_logical_devices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "new_once_base_absent": true,
+  "syntax_compile": true,
+  "limitations": [
+    "Actual env ordinal-to-physical UUID order is NOT established by int parsing. Runtime must prove eachpayloaddevice_uuid==approvedUUIDS[tp_rank] andhostPIDNS/cgroup/physicalapp mapping orfailclosed.",
+    "NoCUDA_DEVICE_ORDER, device ownership relaxation, microvalidator source edit or source patch introduced.",
+    "Pureactual-sourceAST with controlledenvironment; no Torch/vLLM import, GPU, Dockercreate/start, model/weight read, Git or source edits. Readonlysourcecopyfromstoppedownedcontainerinmemory only."
+  ]
+}
