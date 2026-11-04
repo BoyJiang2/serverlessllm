@@ -323,3 +323,11 @@ active仅新增并stage三个任务文件：`sllm_store/tests/guard_cuda_micro.p
 `qjhs002-guard-source-candidate/` 保留4offline PASS、旧2scope缺陷EXPECTED2FAIL、guard独审允许单次bounded CPU fault scope、normal-exit probe独审及CPU recipe。recipe状态NOT_EXECUTED；offline不验证kernel cgroup/pidfd，声明时限/预算不算guard实测或GPU准入。旧75ba rejected源码不是当前候选，不替换历史；probe仅marker及去掉hold支持正常退出，原GPU payload不改。
 
 本轮无容器/probe运行，正式CPU注入尚未执行，GPUstop/GLM35/5/goal均保持。源码与证据commit本地/服务器保留，待GitHub网络恢复后普通push并核SHA，不force。
+
+## CPU1 FAILED_RETAINED 与日志有界修复源码发布（2026-11-04）
+
+`qjhs002-cpu1-failed-bounded-log/` 保留CPU1小证据；终态FAILED_RETAINED，失败event_log_cap。scopekill25.0196s、runc KILL28.0258s、quiet60.009s仅组件事实，不等于overall PASS。原8MB event log与raw OCI仅远端root保护保留，未下载。
+
+source a54102a4559ab4ecbf510ea9df30f66519b0ff00（parent b1f14fe）仅提交guard938、test887、实际executed driver504三文件。先capture/stage504后通知root，本轮不覆盖后续CPU2的RUN/guardSHA修改；guard日志修复5offline PASS+独立source-scope PASS不等于新kernel实测。direct GitHub push成功，source及证据旧pending b1/ac6均已公开并核SHA；server source tracking以CAS e4da→a541，此前pending历史原收据保留，此处覆盖其当前发布状态。
+
+新root唯一，glog/用户AGENTS不stage，无新容器或probe；GPUstop/GLM35/5/goal不变。
