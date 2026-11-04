@@ -67,9 +67,14 @@ class ConfirmModelErrorTest(unittest.TestCase):
         error = RpcError("internal")
         client = self.client(error)
         state = object()
+        def nonblocking(model_path, device_map, storage_path, *, _confirm_before_restore=False):
+            self.assertTrue(_confirm_before_restore)
+            client.confirm_model_loaded(model_path, "replica")
+            return "replica", state
+
         namespace = {
             "os": os, "Dict": Dict, "Optional": Optional, "Union": Union,
-            "load_dict_non_blocking": mock.Mock(return_value=("replica", state)),
+            "load_dict_non_blocking": mock.Mock(side_effect=nonblocking),
             "SllmStoreClient": lambda _: client,
         }
         exec(compile(self.load_node, "<torch-load-dict>", "exec"), namespace)
