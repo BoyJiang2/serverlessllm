@@ -2,6 +2,9 @@
 import copy
 import importlib.util
 import pathlib
+import os
+import json
+import subprocess
 import unittest
 
 spec = importlib.util.spec_from_file_location('tp8_controller', pathlib.Path(__file__).resolve().parents[1]/'gpu512_once_controller.py')
@@ -51,5 +54,36 @@ class ConfigurationTest(unittest.TestCase):
                 controller.validate_configuration(row)
         row = self.configuration(); row['HostConfig']['NetworkMode'] = 'host'
         with self.assertRaises(AssertionError): controller.validate_configuration(row)
+
+class RealTorchrunCpuTest(unittest.TestCase):
+    @unittest.skipUnless(os.environ.get('KIMI_REAL_TORCHRUN_CPU_TEST') == '1', 'requires reviewed immutable CPU-only runtime')
+    def test_actual_static_worker_environment(self):
+        self.assertFalse(list(pathlib.Path('/dev').glob('nvidia*')))
+        self.assertEqual(os.environ.get('CUDA_VISIBLE_DEVICES'), '')
+        self.assertEqual(os.environ.get('NVIDIA_VISIBLE_DEVICES'), 'void')
+        configuration = ConfigurationTest().configuration()
+        controller.validate_configuration(configuration)
+        # This fixture is accepted by the same exact-command admission used by
+        # the real controller. Only replace the worker after --no-python.
+        command = configuration['Config']['Cmd']
+        prefix = command[:command.index('--no-python')+1]
+        worker = ("import json,os,pathlib,sys; "
+                  "assert 'torch' not in sys.modules; "
+                  "assert not list(pathlib.Path('/dev').glob('nvidia*')); "
+                  "print(json.dumps({'event':'CPU_STATIC_WORKER_ENV',**{k:os.environ.get(k) for k in "
+                  "('RANK','LOCAL_RANK','WORLD_SIZE','MASTER_ADDR','MASTER_PORT','CUDA_VISIBLE_DEVICES','NVIDIA_VISIBLE_DEVICES')}}),flush=True)")
+        result = subprocess.run(['/usr/bin/python3',*prefix,'/usr/bin/python3','-I','-c',worker],
+                                capture_output=True,text=True,timeout=25)
+        self.assertEqual(result.returncode,0,result.stderr[-6000:])
+        rows = [json.loads(line) for line in result.stdout.splitlines() if line.startswith('{')]
+        self.assertEqual(len(rows),8,result.stdout)
+        self.assertEqual({int(row['RANK']) for row in rows},set(range(8)))
+        for row in rows:
+            self.assertEqual(row['event'],'CPU_STATIC_WORKER_ENV')
+            self.assertEqual(row['LOCAL_RANK'],row['RANK'])
+            self.assertEqual(row['WORLD_SIZE'],'8')
+            self.assertEqual((row['MASTER_ADDR'],row['MASTER_PORT']),('127.0.0.1','29500'))
+            self.assertEqual((row['CUDA_VISIBLE_DEVICES'],row['NVIDIA_VISIBLE_DEVICES']),('','void'))
+        print(json.dumps({'event':'CPU_STATIC_RENDEZVOUS_ENV_PASS','command_prefix':prefix,'workers':rows}),flush=True)
 
 if __name__ == '__main__': unittest.main()
