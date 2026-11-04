@@ -343,3 +343,11 @@ qjhs002-cpu2-guard-pass保留10个小证据含完整17542B guard-events及fresh 
 qjhs002-gpu512-source-only保留独审、计划、stopped profile及源码。active仅新增controller一文件，source b8682b2a9ce4857564a088a3efcf4290cfab7476，SHA7e8e2f04e22eaa0af78418b0d14e3fca78ae08d0509466d007a03796f482f2a7，GitHub/source tracking核验。唯一CID9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9已create未start，实际Pids512，其余旧profile字段及ENVhash逐项相同。
 
 独审SOURCE_REVIEW_PASS_CONDITIONAL_ON_FRESH_ADMISSION；未有CUDA PASS，source同步不等于GPU准入。root须安全边界停止Git后fresh booking/resource/full budget及ARM；本轮不start、不改controller，历史失败/GLM/goal不变。
+
+## 唯一GPU512正式终态 FAILED_RETAINED，不再重试（2026-11-04）
+
+qjhs002-gpu512-failed-retained保留已导出小证据。controller断言容器ExitCode失败，Stateexited/exit1/Pid0/Restart0/noOOM；root观察Python marker后torch.cuda.device_count()==1断言失败，无CUDA marker。guard终态abort_requested/quiet60.027080，observer peak0/quiet60.316816；root确认二者MainPID0且已stop专属unit。仅释放观察/组件事实，不称CUDA PASS。
+
+ConfigEnv实际NVIDIA_VISIBLE_DEVICES=void、CUDA_VISIBLE_DEVICES空；首版OCI同空且重复NVVISIBLE UUID。guard发生两次OCI选择；raw仅首版dd3c…，第二73b3…仅安全摘要，不能将首版raw称最终完整OCI。实际scope pids512且捕获events max0，不等于完整PID因素解除；exactCID kernel query rc1/no entries不是内核证明无PID拒绝。完整root rawOCI不下载，精确任务身份postcheck及Torch mask静态解读待另补。
+
+source仍b8682b2，无代码修改；原始GPU/CPU1历史失败不改，本次不再start/retry，模型/Store/TP8/goal/GLM35/5保持边界。本轮仅归档，未启动计算。

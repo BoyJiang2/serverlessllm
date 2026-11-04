@@ -1,0 +1,93 @@
+{
+  "status": "GPU512_FAILED_RETAINED_NO_RETRY",
+  "source_commit": "b8682b2a9ce4857564a088a3efcf4290cfab7476",
+  "runtime_summary": {
+    "cid": "9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 1,
+      "Error": "",
+      "StartedAt": "2026-11-04T02:23:10.187709308Z",
+      "FinishedAt": "2026-11-04T02:23:13.182279045Z"
+    },
+    "restart_count": 0,
+    "container_gpu_env": [
+      "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+      "NVIDIA_VISIBLE_DEVICES=void",
+      "CUDA_VISIBLE_DEVICES="
+    ],
+    "oci_gpu_env": [
+      "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+      "NVIDIA_VISIBLE_DEVICES=void",
+      "CUDA_VISIBLE_DEVICES=",
+      "NVIDIA_VISIBLE_DEVICES=GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+    ],
+    "oci_devices": null,
+    "oci_sha256": "dd3c3ad26fe9bc7a68db04e17cf0fa96fce9fa16e4eaac55b3aebfb35acc7a30"
+  },
+  "guard_final": {
+    "status": "FAILED_RETAINED",
+    "cid": "9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.02708047098713,
+    "max_cycle_seconds": 0.30353412101976573,
+    "raw_oci_sha256": "dd3c3ad26fe9bc7a68db04e17cf0fa96fce9fa16e4eaac55b3aebfb35acc7a30",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 300966.84251285,
+    "pinned_identities": [
+      {
+        "pid": 1739478,
+        "startticks": 30096367,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 1739490,
+        "startticks": 30096368,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "observer_final": {
+    "gpu_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "quiet_seconds": 60.316816216974985,
+    "peak_mib": 0
+  },
+  "controller_terminal": "Assertion on container ExitCode; root confirmed terminal and stopped dedicated units",
+  "python_marker": "Root observed Python entry marker followed by torch.cuda.device_count()==1 assertion failure",
+  "CUDA_compute_marker_seen": false,
+  "CUDA_PASS": false,
+  "kernel_query": {
+    "argv": [
+      "journalctl",
+      "-k",
+      "--since=@1793758955",
+      "--until=@1793759114",
+      "-g",
+      "9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9",
+      "-o",
+      "json",
+      "--no-pager"
+    ],
+    "returncode": 1,
+    "stderr": "",
+    "records": 0
+  },
+  "kernel_limit": "rc1/no records does not prove absence of PID-controller factors",
+  "OCI_limit": "Two selected OCI hashes occurred. Only first dd3c raw was retained root-protected; second73b3 has guard safe summary only. First raw is not final complete OCI.",
+  "mask_facts": "ConfigEnv NVIDIA_VISIBLE_DEVICES=void and CUDA_VISIBLE_DEVICES empty; first OCI includes same masks and duplicate NVIDIA_VISIBLE_DEVICES UUID. Interpretation pending static Torch source review.",
+  "raw_OCI_downloaded": false,
+  "exact_identity_postcheck": "Root will supplement; do not infer absent from State.Pid0 alone",
+  "no_start_or_retry": true,
+  "historical_CPU1_and_original_GPU_receipts_modified": false
+}
