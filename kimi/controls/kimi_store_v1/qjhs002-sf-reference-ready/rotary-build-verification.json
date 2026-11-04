@@ -1,0 +1,53 @@
+{
+  "status": "SOURCE_ONLY_PLATFORM_GUARD_CPU15_PASS_NOT_GPU_VALIDATION",
+  "patch_sha256": "45c2455ecfdfd12b562cfb04b472966dee7d43029d7128ddced9d75b9ee53795",
+  "build_manifest_sha256": "997870a2d5e7d28edba0090f05cfe77fa0d6101a518845fcef6efe686eeb3440",
+  "tests": {
+    "test_vllm_loader_interface.py": {
+      "sha256": "a0fdc399d0f7dcb2b889427774c696934e9184760f73b8418a55ca3cba343d99",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_diagnostic_logging_failure_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_does_not_collect_metadata_or_touch_cuda (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_preserves_model_exception (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_failed_load_reports_existing_partial_model_without_success_claim (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_metadata_capture_has_no_tensor_payload_or_store_calls (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_model_failure_captures_peak_before_reset_and_preserves_identity (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_peak_alias_backend_and_empty_metadata_before_reset (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_physical_uuid_normalizes_torch_metadata_without_rank_ordinal_assumption (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_snapshot_failure_remains_missing_and_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_selected_model_config_and_prefix_reach_initializer (test_vllm_loader_interface.LoaderInterfaceTest) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.034s\n\nOK\n"
+    },
+    "test_vllm_rotary_platform.py": {
+      "sha256": "019b09eccd83828981186bd9c146c370fba9c99f79818f25a1371c677f35d848",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_cuda_skips_external_namespace_probe_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_existing_external_import_is_preserved (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_missing_package_keeps_existing_native_fallback_selection (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_original_cuda_namespace_condition_reproduces_missing_ops (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_patch_only_changes_platform_guard_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK\n"
+    }
+  },
+  "old47bd_v1_v2_v3_build_outputs_unchanged": true,
+  "v4prior8outputshashes_equal_v3": true,
+  "all9_syntax_compile": "PASS",
+  "actual_common_forward_cuda_hip_cpu_native_static_AST_unchanged": true,
+  "source_path_contract": "common.forward_cuda226-247 imports vllm.vllm_flash_attn.layers.rotary.apply_rotary_emb; bundledlayers imports ..ops.triton.rotary.apply_rotary. Bothactualfilespresent verifiedreadonly. Externalflash_attn.ops usedonlyHIPoptionalbranch.",
+  "package_inventory": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/flash-attn-package-readonly-file-inventory.json",
+    "sha256": "c835623f1462dcb37e8dbc161ceaceff2fa751d5b9d8d7212971a66dbce7a89e",
+    "files": 94,
+    "total_file_bytes": 3625358,
+    "top_level_children": [
+      "cute"
+    ],
+    "external_ops_present": false,
+    "distribution_hint": "cute.__init__ reads importlib.metadata.version(fa4); actualdistversionnotimported/verified. ThisisFA4namespace, notassumedcorruptFA2package."
+  },
+  "actual_rotary_sources": {
+    "common.py_original": "edc44caa8f697fdc7cea2195c525cf45d232cff8b488de5c4c41ba4e494ad837",
+    "base.py": "32e2145231012f98c8c613cc37dfe621996a3508af77ee7e0265baefde5c1139",
+    "vllm_flash_attn/layers/rotary.py": "b826cc3339488815b26f974135a8f53d44149d019b4c82e1ad4240a6ec0e28c4",
+    "vllm_flash_attn/ops/triton/rotary.py": "f1f4bf9a0b28cc544fa882b60628d74b8923e8b47e1f8438a7af43fa7b5061e4"
+  },
+  "SFmountonly": [
+    "tokenizers/hf.py",
+    "v1/worker/gpu_model_runner.py",
+    "model_executor/layers/rotary_embedding/common.py"
+  ],
+  "limits": [
+    "No Torch/vLLM/ModelRunner/rotarypackage imported byhostASTtests; noGPU/CPUcontainer/Store/weightpayload/import kernel executed",
+    "Fivefocusedrotarytests reproduceoriginalCUDA namespace missingops, proveCUDAdoesnotprobeexternal, HIPexistingimport/nativefallbackselection preserved, andonlyimport+oneconditionchanged",
+    "Tenexistingload-evidencetests remainPASS",
+    "NoactualcompiledCUDArotary correctness/completeSFmodel proof yet; no install/download/newimage/shim/loader/codec orparameterblindtrial"
+  ],
+  "no_source_commit_or_push_performed": true
+}
