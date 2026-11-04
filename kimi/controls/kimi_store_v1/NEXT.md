@@ -1,3 +1,11 @@
+## 11/4 静态八卡探针失败保留；指定首分片 CPU 完整读取及逐位比较通过
+
+两次运行源码均为已推送并核验的 2b92e4aa7baf340ddceef252bb4a711a75e05bbb。静态八卡容器7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41：worker在Torch导入前tp8_environment报ValueError；NCCL初始化及all-ranks-ready时间均null，八卡采样峰值均4MiB，不能称CUDA/NCCL通过。guard abort失败保留，释放quiet60.005秒、观察quiet60.290秒，最终自有身份/scope消失且八卡零占用。实际历史execve未采集，源码和日志线索不能证明实际启动参数根因；遵守用户停止指令，不继续修改或重试探针。
+
+并行CPU容器986f29d4d0e63229b675530cafde48fceda66bb44e669f8900b3331f1c82940e成功读取指定 model-00001-of-000064.safetensors 完整995001888字节，顺序读取1.385760秒、684.756429MiB/s；safetensors.safe_open读取12个BF16张量，全部原始字节与文件offset逐块一致。全文件SHA cb6e037206c1936876c33f348bc644fd6f9f4d7ac973f8906359977c1eaebd43，事后与10月28日官方metadata及ModelScope对应条目匹配；追加比较单独保存，原运行external_fullfile_gold=null不改写。释放观察完成，收据、原始证据哈希及独审身份见两个新目录的ACTIVE-BASELINE.json。
+
+该首分片没有I32，故不证明packed INT4/I32读取覆盖；缓存未控制，吞吐不称冷盘结果。单分片读取不证明完整模型转换、八rank恢复、稳定推理或原生服务通过。历史失败、金标、GLM35/5均保留；无新增模型、Store或重试运行。
+
 ## 11/4 八卡动态 rendezvous 小探针失败保留；释放观察已完成
 
 源码 eddd42a278c182c188805f7e6fa92bafabc1506b，一次容器 f5f49c5bd02a8e79158560a2541263a1f199fbea8472c94e17e6829a952a7583 在 GO60 截止前反复遇到 torchrun 动态 rendezvous 主机名解析失败，没有 rank 进入 Python，没有 CUDA/NCCL 通过。控制器与守护失败保持，guard abort_requested 不改判；容器退出137、OOMKilled=false，不能将137解释为已证实OOM。18份原始小证据仅在服务器 public 目录，收据及哈希见 qjhs002-tp8-micro-dynamic-failed。

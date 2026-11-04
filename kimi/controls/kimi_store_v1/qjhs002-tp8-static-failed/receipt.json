@@ -1,0 +1,174 @@
+{
+  "status": "FAILED_RETAINED_RELEASE_OBSERVED",
+  "cid": "7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41",
+  "source_commit": "2b92e4aa7baf340ddceef252bb4a711a75e05bbb",
+  "raw_remote": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-static-20261104-public",
+  "raw_sha256": {
+    "prepared.json": "7faeb7c24a0f50b412a8964dfea0ac4ae6da7582d7de3c89a41f1e551e3b2ef8",
+    "kernel-before.json": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+    "kernel-after.json": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+    "observer-ready.json": "e2749b973d4b359e75ce26b7213dc6b407fcfc3f79e96772a427a7ddf28d01d8",
+    "observer-final.json": "3625fe2374264f0bae3d0a77bd88f19a7834b5d4fb1cb45a55682b99858c3ec4",
+    "guard-final.json": "7669900176a162d4e02b7a573bae61baff66b21ca6b7bf29a25d4b8858589ed1",
+    "controller-failed.json": "bb5752e4d94e629fdc56f31263d668515f36d97cf3ec3f3bea66c2ab303eb920",
+    "ARMED.json": "b586b6543b92d516b580e2d6594d3277bb90af6683f125add6fc2dddeac69595",
+    "GO.json": "e7201fe708740bc2ab1a78ff1947e89819f06e39f72a4d8e8394a92d6aa29efd",
+    "GO-ACK.json": "6a889553cb9605bc0ea42c0cb44d4c370aa49d84a36573a690804cc48c8f67af",
+    "guard-events.jsonl": "a3f1c39eefe7a18145c604f12ceea9ab288b0e394748dc09f53d08f7ef9b3cf6",
+    "gpu-observer.jsonl": "aa8693491db2058cc72746b2f102e70cb994f725e6db867047ecd0b5fa9f2fb0",
+    "root-postcheck.json": "977b85930cf4f600e46afee7edd0ac42fb3f626175a8b82d3056c2c45866ef16",
+    "docker-start.stdout": "4d91dc8a05b39f52de779e670f805d110b9d21f5ca239a1c30321017a5955b5a",
+    "docker-start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-logs.json": "14a79e47f9d05e043a0905c007fc481750df0eef6d5f43caf5f22f5202a0ea42",
+    "outer-journal.json": "c3a9562daaebc3fa6d81d4532e6459588e74bc9bf8961196d25150a7dac82a13",
+    "docker-inspect-selected.json": "57019c0587b477bed53f57017c53cc19b644cfbeb58fc2bad02a7fd95a924d7b"
+  },
+  "guard": {
+    "status": "FAILED_RETAINED",
+    "cid": "7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.00503081997158,
+    "max_cycle_seconds": 0.21017891098745167,
+    "raw_oci_sha256": "bf1d7234a471cfc7984dd20f3021b01424ccbdbf86c08ab8e4d3d0b6d5c2e21c",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 325084.762086426,
+    "pinned_identities": [
+      {
+        "pid": 4059385,
+        "startticks": 32507799,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 4059397,
+        "startticks": 32507800,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "postcheck": {
+    "epoch": 1793783277.7030451,
+    "cid": "7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41",
+    "units_before_stop": {
+      "controller": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "LoadState": "loaded",
+        "ActiveState": "failed"
+      },
+      "guard": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "LoadState": "loaded",
+        "ActiveState": "failed"
+      },
+      "observer": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "LoadState": "loaded",
+        "ActiveState": "active"
+      }
+    },
+    "identities": [
+      {
+        "pid": 4059385,
+        "startticks": 32507799,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      },
+      {
+        "pid": 4059397,
+        "startticks": 32507800,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      }
+    ],
+    "scope_removed": true,
+    "all8gpus": [
+      {
+        "uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+        "used": "0 MiB",
+        "processes": []
+      }
+    ],
+    "raw_oci_sha256": "bf1d7234a471cfc7984dd20f3021b01424ccbdbf86c08ab8e4d3d0b6d5c2e21c",
+    "raw_oci_mode": "0o600",
+    "oci_visibility": {
+      "CUDA_VISIBLE_DEVICES": "GPU-736d7f37-f647-b82d-ab11-693753ac6822,GPU-c5510474-1f6d-03f1-c57f-476db275c5cb,GPU-d8081222-9816-41e4-68f8-ecbb13de6855,GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f,GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242,GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a,GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b,GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+      "NVIDIA_VISIBLE_DEVICES": "GPU-736d7f37-f647-b82d-ab11-693753ac6822,GPU-c5510474-1f6d-03f1-c57f-476db275c5cb,GPU-d8081222-9816-41e4-68f8-ecbb13de6855,GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f,GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242,GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a,GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b,GPU-21336138-6e64-ec08-305b-26c99d661ab9"
+    }
+  },
+  "observer": {
+    "gpu_uuids": [
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9"
+    ],
+    "quiet_seconds": 60.28997643495677,
+    "peak_mib_by_uuid": {
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 4,
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 4,
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 4,
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 4,
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 4,
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 4,
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 4,
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 4
+    }
+  },
+  "nccl_init_seconds": null,
+  "all_ranks_ready_seconds": null,
+  "failure": "All8workerPython ValueError at tp8_environment line22, beforeTorchimport/NCCLinit; no historical syscall trace captured; no further probe edits/retry"
+}
