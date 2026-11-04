@@ -1,0 +1,1097 @@
+{
+  "status": "OFFICIAL_FULL_SAFETENSORS_TP8_REFERENCE_AAB_NORMAL_EXIT_RELEASE_PASS_SAMPLED_LOWER_BOUND",
+  "run_id": "kimi-sf-tp8-reference-optional-mempeak-20261105-once",
+  "cid": "cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c",
+  "source_commit": "41e35fc864628fe6fbad3d25b4d89c905e8b612f",
+  "spec_sha256": "56ce9adb90e2e449c6b5e1ed791a8d5351cbca0b932824fdf4973dc6fdc2ea9f",
+  "command_sha256": "5aadb98e8d40d9dc5a9e2d900f6dc98d69f6c24faaf6afe2259b492ac64bef51",
+  "evidence_version_before_run": "6d3d603b2feb2eb6210da96aec6b8f4eaac78cad",
+  "controller_elapsed_seconds": 609.68074832001,
+  "units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "362628891246",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "362019152765"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "362627349321",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "362019804462"
+    },
+    "observer": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "362628498868",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "362019494077"
+    }
+  },
+  "guard_quiet_seconds": 60.01686822803458,
+  "observer_quiet_seconds": 60.53556888003368,
+  "monitor": {
+    "samples": 848,
+    "memory_samples": 848,
+    "gaps": 0,
+    "max_query_seconds": 1.6850343290134333,
+    "max_memory_interval_seconds": 2.0555309380288236,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+  },
+  "peak_mib_by_uuid": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 116595,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 116513,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 116513,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 116513,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 116513,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 116513,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 116513,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 116513
+  },
+  "load_summaries": [
+    {
+      "tp_rank": 0,
+      "pid": 964,
+      "device": "cuda:0",
+      "device_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03344352898420766,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 1,
+      "pid": 965,
+      "device": "cuda:1",
+      "device_uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03483841096749529,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 2,
+      "pid": 966,
+      "device": "cuda:2",
+      "device_uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03487903403583914,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 3,
+      "pid": 967,
+      "device": "cuda:3",
+      "device_uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03520269499858841,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 4,
+      "pid": 968,
+      "device": "cuda:4",
+      "device_uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03284403501311317,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 5,
+      "pid": 969,
+      "device": "cuda:5",
+      "device_uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03315667202696204,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 6,
+      "pid": 970,
+      "device": "cuda:6",
+      "device_uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.033276812988333404,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    },
+    {
+      "tp_rank": 7,
+      "pid": 971,
+      "device": "cuda:7",
+      "device_uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.033260449999943376,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "buffer_count": 367
+    }
+  ],
+  "api_ready_seconds_from_go": 539.1454132999643,
+  "api_aab_validated": [
+    {
+      "content": " 4",
+      "token_ids": [
+        19,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        38490,
+        220,
+        17,
+        10,
+        17,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        28557,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    },
+    {
+      "content": " 4",
+      "token_ids": [
+        19,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        38490,
+        220,
+        17,
+        10,
+        17,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        28557,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    },
+    {
+      "content": " 1,2,3,4,5",
+      "token_ids": [
+        16,
+        11,
+        17,
+        11,
+        18,
+        11,
+        19,
+        11,
+        20,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        3922,
+        658,
+        220,
+        16,
+        308,
+        220,
+        20,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        6531,
+        35627,
+        28512,
+        673,
+        146238,
+        11,
+        2932,
+        14803,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    }
+  ],
+  "api_responses": [
+    {
+      "event": "SF_API_READY",
+      "monotonic": 362559.043673331,
+      "served_model": "kimi-k2.6-sf-reference"
+    },
+    {
+      "event": "SF_API_RESPONSE",
+      "index": 0,
+      "request": {
+        "model": "kimi-k2.6-sf-reference",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Compute 2+2. Reply only with the digit."
+          }
+        ],
+        "temperature": 0,
+        "seed": 0,
+        "top_p": 1,
+        "n": 1,
+        "max_tokens": 32,
+        "stream": false,
+        "return_token_ids": true,
+        "chat_template_kwargs": {
+          "thinking": false,
+          "preserve_thinking": false
+        }
+      },
+      "response": {
+        "id": "chatcmpl-ae4930c4836d8d44",
+        "object": "chat.completion",
+        "created": 1793820585,
+        "model": "kimi-k2.6-sf-reference",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": " 4",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [],
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": 163586,
+            "token_ids": [
+              19,
+              163586
+            ]
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "prompt_tokens": 21,
+          "total_tokens": 23,
+          "completion_tokens": 2,
+          "prompt_tokens_details": null
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": [
+          163587,
+          2482,
+          163601,
+          38490,
+          220,
+          17,
+          10,
+          17,
+          13,
+          84156,
+          1609,
+          472,
+          276,
+          28557,
+          13,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "kv_transfer_params": null
+      },
+      "seconds": 1.150662416999694,
+      "monotonic": 362560.194389326
+    },
+    {
+      "event": "SF_API_RESPONSE",
+      "index": 1,
+      "request": {
+        "model": "kimi-k2.6-sf-reference",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Compute 2+2. Reply only with the digit."
+          }
+        ],
+        "temperature": 0,
+        "seed": 0,
+        "top_p": 1,
+        "n": 1,
+        "max_tokens": 32,
+        "stream": false,
+        "return_token_ids": true,
+        "chat_template_kwargs": {
+          "thinking": false,
+          "preserve_thinking": false
+        }
+      },
+      "response": {
+        "id": "chatcmpl-bb313730627a4618",
+        "object": "chat.completion",
+        "created": 1793820586,
+        "model": "kimi-k2.6-sf-reference",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": " 4",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [],
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": 163586,
+            "token_ids": [
+              19,
+              163586
+            ]
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "prompt_tokens": 21,
+          "total_tokens": 23,
+          "completion_tokens": 2,
+          "prompt_tokens_details": null
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": [
+          163587,
+          2482,
+          163601,
+          38490,
+          220,
+          17,
+          10,
+          17,
+          13,
+          84156,
+          1609,
+          472,
+          276,
+          28557,
+          13,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "kv_transfer_params": null
+      },
+      "seconds": 0.11041057901456952,
+      "monotonic": 362560.30486809
+    },
+    {
+      "event": "SF_API_RESPONSE",
+      "index": 2,
+      "request": {
+        "model": "kimi-k2.6-sf-reference",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from 1 to 5. Reply only with the five digits separated by commas, without spaces."
+          }
+        ],
+        "temperature": 0,
+        "seed": 0,
+        "top_p": 1,
+        "n": 1,
+        "max_tokens": 32,
+        "stream": false,
+        "return_token_ids": true,
+        "chat_template_kwargs": {
+          "thinking": false,
+          "preserve_thinking": false
+        }
+      },
+      "response": {
+        "id": "chatcmpl-8fad2611204fad09",
+        "object": "chat.completion",
+        "created": 1793820586,
+        "model": "kimi-k2.6-sf-reference",
+        "choices": [
+          {
+            "index": 0,
+            "message": {
+              "role": "assistant",
+              "content": " 1,2,3,4,5",
+              "refusal": null,
+              "annotations": null,
+              "audio": null,
+              "function_call": null,
+              "tool_calls": [],
+              "reasoning": null
+            },
+            "logprobs": null,
+            "finish_reason": "stop",
+            "stop_reason": 163586,
+            "token_ids": [
+              16,
+              11,
+              17,
+              11,
+              18,
+              11,
+              19,
+              11,
+              20,
+              163586
+            ]
+          }
+        ],
+        "service_tier": null,
+        "system_fingerprint": null,
+        "usage": {
+          "prompt_tokens": 30,
+          "total_tokens": 40,
+          "completion_tokens": 10,
+          "prompt_tokens_details": null
+        },
+        "prompt_logprobs": null,
+        "prompt_token_ids": [
+          163587,
+          2482,
+          163601,
+          3922,
+          658,
+          220,
+          16,
+          308,
+          220,
+          20,
+          13,
+          84156,
+          1609,
+          472,
+          276,
+          6531,
+          35627,
+          28512,
+          673,
+          146238,
+          11,
+          2932,
+          14803,
+          13,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "kv_transfer_params": null
+      },
+      "seconds": 0.1903175109764561,
+      "monotonic": 362560.495247676
+    },
+    {
+      "event": "SF_API_AAB_PASS",
+      "validated": [
+        {
+          "content": " 4",
+          "token_ids": [
+            19,
+            163586
+          ],
+          "prompt_token_ids": [
+            163587,
+            2482,
+            163601,
+            38490,
+            220,
+            17,
+            10,
+            17,
+            13,
+            84156,
+            1609,
+            472,
+            276,
+            28557,
+            13,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ]
+        },
+        {
+          "content": " 4",
+          "token_ids": [
+            19,
+            163586
+          ],
+          "prompt_token_ids": [
+            163587,
+            2482,
+            163601,
+            38490,
+            220,
+            17,
+            10,
+            17,
+            13,
+            84156,
+            1609,
+            472,
+            276,
+            28557,
+            13,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ]
+        },
+        {
+          "content": " 1,2,3,4,5",
+          "token_ids": [
+            16,
+            11,
+            17,
+            11,
+            18,
+            11,
+            19,
+            11,
+            20,
+            163586
+          ],
+          "prompt_token_ids": [
+            163587,
+            2482,
+            163601,
+            3922,
+            658,
+            220,
+            16,
+            308,
+            220,
+            20,
+            13,
+            84156,
+            1609,
+            472,
+            276,
+            6531,
+            35627,
+            28512,
+            673,
+            146238,
+            11,
+            2932,
+            14803,
+            13,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ]
+        }
+      ],
+      "monotonic": 362560.495306871
+    }
+  ],
+  "ownership": {
+    "workers": [
+      {
+        "rank": 0,
+        "container_pid": 964,
+        "host_identity": {
+          "pid": 3437855,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+        "cuda_device": "cuda:0"
+      },
+      {
+        "rank": 1,
+        "container_pid": 965,
+        "host_identity": {
+          "pid": 3437856,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+        "cuda_device": "cuda:1"
+      },
+      {
+        "rank": 2,
+        "container_pid": 966,
+        "host_identity": {
+          "pid": 3437857,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+        "cuda_device": "cuda:2"
+      },
+      {
+        "rank": 3,
+        "container_pid": 967,
+        "host_identity": {
+          "pid": 3437858,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+        "cuda_device": "cuda:3"
+      },
+      {
+        "rank": 4,
+        "container_pid": 968,
+        "host_identity": {
+          "pid": 3437859,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+        "cuda_device": "cuda:4"
+      },
+      {
+        "rank": 5,
+        "container_pid": 969,
+        "host_identity": {
+          "pid": 3437860,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+        "cuda_device": "cuda:5"
+      },
+      {
+        "rank": 6,
+        "container_pid": 970,
+        "host_identity": {
+          "pid": 3437861,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+        "cuda_device": "cuda:6"
+      },
+      {
+        "rank": 7,
+        "container_pid": 971,
+        "host_identity": {
+          "pid": 3437862,
+          "startticks": 36205352,
+          "cgroup": "0::/system.slice/docker-cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c.scope"
+        },
+        "physical_uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+        "cuda_device": "cuda:7"
+      }
+    ],
+    "physical_gpu_snapshot": {
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822": {
+        "used_mib": 116347,
+        "processes": [
+          "3437855"
+        ]
+      },
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": {
+        "used_mib": 116265,
+        "processes": [
+          "3437856"
+        ]
+      },
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": {
+        "used_mib": 116265,
+        "processes": [
+          "3437857"
+        ]
+      },
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": {
+        "used_mib": 116265,
+        "processes": [
+          "3437858"
+        ]
+      },
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": {
+        "used_mib": 116265,
+        "processes": [
+          "3437859"
+        ]
+      },
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": {
+        "used_mib": 116265,
+        "processes": [
+          "3437860"
+        ]
+      },
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": {
+        "used_mib": 116265,
+        "processes": [
+          "3437861"
+        ]
+      },
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9": {
+        "used_mib": 116265,
+        "processes": [
+          "3437862"
+        ]
+      }
+    },
+    "host_cgroup_memory": {
+      "memory.max": "1374389534720\n",
+      "memory.current": "25224818688\n",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+      "memory.stat": "anon 23969710080\nfile 1030516736\nkernel_stack 8257536\npagetables 92196864\npercpu 8640\nsock 262144\nshmem 1030438912\nfile_mapped 457555968\nfile_dirty 0\nfile_writeback 0\nswapcached 0\nanon_thp 6658457600\nfile_thp 0\nshmem_thp 0\ninactive_anon 24915988480\nactive_anon 109080576\ninactive_file 40960\nactive_file 36864\nunevictable 0\nslab_reclaimable 54521424\nslab_unreclaimable 24839496\nslab 79360920\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgfault 129651672\npgmajfault 0\npgrefill 0\npgscan 0\npgsteal 0\npgactivate 90676\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nthp_fault_alloc 9775\nthp_collapse_alloc 4\n",
+      "memory.swap.max": "0\n",
+      "pids.max": "4096\n",
+      "pids.current": "504\n",
+      "pids.events": "max 0\n",
+      "memory.peak": null
+    },
+    "memory_peak_availability": {
+      "status": "UNAVAILABLE_ON_LIVE_OWNED_CGROUP",
+      "available": false,
+      "reason": "not exposed on live owned cgroup"
+    },
+    "sampling_note": "One post-inference ownership snapshot, not continuous driver peak"
+  },
+  "oci_tmp_mount": [
+    {
+      "destination": "/tmp",
+      "type": "tmpfs",
+      "source": "tmpfs",
+      "options": [
+        "rprivate",
+        "rw",
+        "exec",
+        "nosuid",
+        "nodev",
+        "size=8g",
+        "mode=1777"
+      ]
+    }
+  ],
+  "exit_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-04T19:20:46.457721233Z",
+    "FinishedAt": "2026-11-04T19:29:53.558585325Z"
+  },
+  "restart_count": 0,
+  "final_gpus_zero": true,
+  "all_owned_scope_and_processes_gone": true,
+  "model_log_bytes": 8119349,
+  "model_log_sha256": "1b49458ddfa2afea3e5f55963f1c8d69dd0b511b6b83f81594332daa94a51b62",
+  "full_load_metadata_bytes": 8071154,
+  "full_load_metadata_sha256": "f29b19f5ae351c9d8256ed2c60007ae25f863a598c9c3b194a5ef3102370f01f",
+  "public_files": {
+    "controller-final.json": {
+      "bytes": 3696,
+      "sha256": "99655c29dd9f1a3ed3a7495670008c69181d6c92965441caac5142a437c72635"
+    },
+    "prepared.json": {
+      "bytes": 3444,
+      "sha256": "b284b6737d78923a7afa154a7f5bcecb100b29cb6bc5ee0c73702ebae2875674"
+    },
+    "inspect-created.json": {
+      "bytes": 15505,
+      "sha256": "8eae04670d58fa5f6f0f6d1b8b47b3fee4e46282d28d5bc562e3569c5d223237"
+    },
+    "inspect-exited.json": {
+      "bytes": 16082,
+      "sha256": "5a957f2e0e475bc80b8543b687349cb0db339efeb3cb49b2966a0c23055748e3"
+    },
+    "guard-final.json": {
+      "bytes": 725,
+      "sha256": "13f2e3569edf58aa99bbe941b80ebca777f8037b16742b2cfb14fa221caec62a"
+    },
+    "observer-final.json": {
+      "bytes": 1076,
+      "sha256": "493e382da8b45b1268dedfd38a9295ae94fc682ec52f5d0783623d613d0c594c"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "fd7b448fa8e2c35542598bb05c2f0edf0c7bc0558e9d437c79383263f50b8bf3"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "1d96801484908eb2b671f4bf19a13126ce1c6291d282bebebf8550e341e0299f"
+    },
+    "ARMED.json": {
+      "bytes": 314,
+      "sha256": "5881fe4ff4366085a7c9c3d9f55144119a264cf7dc9a159ee94b9d8e715609cb"
+    },
+    "api-client.stdout": {
+      "bytes": 4614,
+      "sha256": "ffbfa50c28e3af345eeddf469c84d1a27a7da8e3ee14f5b8a45bc6a8b4396ba8"
+    },
+    "api-client.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "api-accepted.json": {
+      "bytes": 4678,
+      "sha256": "8d2e9347bb487b47da07cd3e087d99693088dffd7f364b2bd159c84d08feb5f5"
+    },
+    "normal-exit.json": {
+      "bytes": 212,
+      "sha256": "be946d2ca69b811c648f88dec1cc39f72edfba9c21c6ac8f74c9b0ab7ba04c44"
+    },
+    "rank-scope-gpu-ownership.json": {
+      "bytes": 4377,
+      "sha256": "142789ef76de1d66eb1ad9b40dbc0223334d415623bb13a83e4ba551bc3fc1bc"
+    },
+    "gpu-post-inference.json": {
+      "bytes": 779,
+      "sha256": "0d2bb1132afa717962c4a295b9c9d3997184f082e6dd968f7efa2fc9da2e7821"
+    },
+    "gpu-final-release.json": {
+      "bytes": 667,
+      "sha256": "adb0a250f34520f2749170bce27f380953679cb5286343171a25a393189385e8"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    }
+  },
+  "limitations": [
+    "No model, engine, Dockercreate/start, weightpayloadread orGPUruntime executed in preparation",
+    "Freshwhole-nodebooking/resourceadmission andindependentreview beforeexecution; delegateduserautonomydoesnotremovegates",
+    "ExactlyonefullSF attempt, no automaticretry orStoreconversion",
+    "Onlytwo readonlypackageoverlays+completecheckpointRO; nosource/environment/image/frameworkcreation",
+    "Registeredstorageevidence excludesnonregisterednativeworkspace; Torchpeak exactonlyallocator loadboundary, driverobservations sampledlowerbounds withgaps. Noexactdriverpeakclaim.",
+    "Allcache/tmpcombined8GiBtmpfs hardcap; capacitynotproven, failurepreserved noextension",
+    "NoGit/sync duringformalmodelrunand>=60release; rawlogs rootprivate serveronly",
+    "Host memory.peak unavailable: explicit None plus availability reason; no reconstructed exact CPU peak.",
+    "Physical GPU peaks are sampled lower bounds, not exact continuous driver peaks.",
+    "No Store conversion, restored inference or native ServerlessLLM service proof is implied.",
+    "Historical five SF failed attempts retain failure status."
+  ],
+  "recorded_epoch": 1793820749.3855772
+}

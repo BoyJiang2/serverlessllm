@@ -1,0 +1,256 @@
+{
+  "gold_id": "kimi-k2.6-official-sf-tp8-reference-v1-20261105",
+  "status": "FROZEN_FROM_COMPLETE_INDEPENDENTLY_REVIEWED_SF_RUNTIME_PASS",
+  "source_run": "kimi-sf-tp8-reference-optional-mempeak-20261105-once",
+  "cid": "cc8b86dd04e84a0f1c02ae3d33704d9cb6f196a872fae7de129c84a612ae529c",
+  "source_commit": "41e35fc864628fe6fbad3d25b4d89c905e8b612f",
+  "runtime_image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "checkpoint": "/data/brick1/boyjiang/kimi-new/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+  "model_config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+  "spec_sha256": "56ce9adb90e2e449c6b5e1ed791a8d5351cbca0b932824fdf4973dc6fdc2ea9f",
+  "command_sha256": "5aadb98e8d40d9dc5a9e2d900f6dc98d69f6c24faaf6afe2259b492ac64bef51",
+  "pass_receipt_sha256": "b261e2b2ecf8140dbf3e597594b0be459ba90e54fea81be53024b7da8ad71c3a",
+  "independent_review_sha256": "651a67bce6a2d9865c0c978137a29769bfbc7aea81bc2e54ae73e60cc8b0539f",
+  "model_cli": [
+    "serve",
+    "/checkpoint",
+    "-tp",
+    "8",
+    "--mm-encoder-tp-mode",
+    "data",
+    "--trust-remote-code",
+    "--tool-call-parser",
+    "kimi_k2",
+    "--reasoning-parser",
+    "kimi_k2",
+    "--load-format",
+    "safetensors",
+    "--safetensors-load-strategy",
+    "lazy",
+    "--distributed-executor-backend",
+    "mp",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8000",
+    "--served-model-name",
+    "kimi-k2.6-sf-reference",
+    "--max-model-len",
+    "2048",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "2048",
+    "--gpu-memory-utilization",
+    "0.8"
+  ],
+  "env": {
+    "HOME": "/tmp",
+    "HF_HOME": "/tmp/hf",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "VLLM_HOST_IP": "127.0.0.1",
+    "SLLM_CAPTURE_LOAD_EVIDENCE": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "USER": "boyjiang"
+  },
+  "overlays": [
+    {
+      "source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+      "sha256": "0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480"
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/v1/worker/gpu_model_runner.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "f57d591e0f8b4dcd1ed3fb6cbbe8cf83d75deacdceb80a2d4a10c31b91ea7863"
+    },
+    {
+      "source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+      "sha256": "d1e2609c0f43f2de1ad3222205b3ca87dc607774e46d53319a68dcdb8b03d2c0"
+    }
+  ],
+  "requests": [
+    {
+      "model": "kimi-k2.6-sf-reference",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compute 2+2. Reply only with the digit."
+        }
+      ],
+      "temperature": 0,
+      "seed": 0,
+      "top_p": 1,
+      "n": 1,
+      "max_tokens": 32,
+      "stream": false,
+      "return_token_ids": true,
+      "chat_template_kwargs": {
+        "thinking": false,
+        "preserve_thinking": false
+      }
+    },
+    {
+      "model": "kimi-k2.6-sf-reference",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Compute 2+2. Reply only with the digit."
+        }
+      ],
+      "temperature": 0,
+      "seed": 0,
+      "top_p": 1,
+      "n": 1,
+      "max_tokens": 32,
+      "stream": false,
+      "return_token_ids": true,
+      "chat_template_kwargs": {
+        "thinking": false,
+        "preserve_thinking": false
+      }
+    },
+    {
+      "model": "kimi-k2.6-sf-reference",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Count from 1 to 5. Reply only with the five digits separated by commas, without spaces."
+        }
+      ],
+      "temperature": 0,
+      "seed": 0,
+      "top_p": 1,
+      "n": 1,
+      "max_tokens": 32,
+      "stream": false,
+      "return_token_ids": true,
+      "chat_template_kwargs": {
+        "thinking": false,
+        "preserve_thinking": false
+      }
+    }
+  ],
+  "expected": [
+    {
+      "content": " 4",
+      "token_ids": [
+        19,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        38490,
+        220,
+        17,
+        10,
+        17,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        28557,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    },
+    {
+      "content": " 4",
+      "token_ids": [
+        19,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        38490,
+        220,
+        17,
+        10,
+        17,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        28557,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    },
+    {
+      "content": " 1,2,3,4,5",
+      "token_ids": [
+        16,
+        11,
+        17,
+        11,
+        18,
+        11,
+        19,
+        11,
+        20,
+        163586
+      ],
+      "prompt_token_ids": [
+        163587,
+        2482,
+        163601,
+        3922,
+        658,
+        220,
+        16,
+        308,
+        220,
+        20,
+        13,
+        84156,
+        1609,
+        472,
+        276,
+        6531,
+        35627,
+        28512,
+        673,
+        146238,
+        11,
+        2932,
+        14803,
+        13,
+        163586,
+        163588,
+        69702,
+        163601,
+        163606,
+        163607
+      ]
+    }
+  ],
+  "expected_finish_reason": "stop",
+  "comparison": "Same tokenizer/prompt and generated token IDs plus exact raw content; semantic digit checks as original spec. AA identity remains required.",
+  "boundaries": [
+    "New SF-stage gold only; earlier component gold and all failures remain unchanged.",
+    "No Store/restoration/native-service success inferred.",
+    "No fresh full-checkpoint payload SHA256 verification is claimed; complete functional SF read and existing historical asset provenance are distinct."
+  ],
+  "frozen_epoch": 1793820959.1313276
+}
