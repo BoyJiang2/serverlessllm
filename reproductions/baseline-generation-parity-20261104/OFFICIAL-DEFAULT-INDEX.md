@@ -16,4 +16,8 @@
 服务器根目录：/data/brick1/boyjiang/ServerlessLLM/models/
 对应任务目录带点号和日期后缀，例如.qwen3-official-random-cached-20261104/；脚本在scripts/，结果在results/，临时模型仅在专用storage/。唯一源码checkout、共享SDK、原始权重及Kimi源码均不改动。
 
-状态：默认配置脚本整理中；Qwen GPU预检与正式实验、Llama cached30均尚未执行。预算依次为780、3780、1980秒（共6540秒，含每次至少60秒释放观察及清理/取证余量）。不在正式测量或释放观察期间进行Git/同步。
+状态：默认配置全部验收通过。两模型每种格式random30与cached30；共120对token全部匹配。Qwen两组与Llama cached为本轮执行，Llama random复用已有通过记录。每轮实际生成50新token。至少60秒释放观察通过，临时模型副本清理完毕。
+
+服务端统一报告：/data/brick1/boyjiang/ServerlessLLM/models/.official-default-20261104/REPORT.md
+服务端完整统计：同目录SUMMARY.json；每组原始数据的绝对路径、SHA256均在SUMMARY.json内。新预检、Qwen正式、Llama cached30的启动/退出/释放证据放在同目录metadata/中。
+本地仅保留小型代码/索引/摘要，重复原始数据在服务端SHA核验后清理。
