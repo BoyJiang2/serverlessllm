@@ -1,3 +1,9 @@
+## 11/4 CDI execve 环境诊断提案：仅源码审阅通过，待用户批准及新准入
+
+已完成一次性诊断命令数据的独立审阅与7项纯解析CPU检查，状态SOURCE_ONLY_REVIEWED_REQUIRES_USER_APPROVAL。最终命令及规格仅存在服务器任务证据目录，身份见qjhs002-cdi-execve-diagnostic-proposal/receipt.json；现行源码仍6220a93ec7b0de5d6c813ae28d7a36974632354e，未修改GPU/NCCL探针。最终协议使用SIGUSR1释放，旧SIGCONT提案已被取代。此前host strace格式夹具的exact-two-env断言失败另行保留，不改判通过。
+
+本提案尚未执行真实trace、容器或GPU诊断。实际运行必须先取得用户对一次诊断的明确批准，再核验新预约、资源、完整预算和独立守护；不能把本次审阅/CPU解析通过当作运行批准。原始完整环境trace若产生，仅服务器root0600保存，不进入本机或Git，公开资料只含允许的环境键/rank及argv哈希。历史GPU失败和证据局限保持；无新推理、Store或模型转换运行，goal保持active。
+
 ## 11/4 真实 CPU torchrun 静态 rendezvous 环境验证通过
 
 源码6220a93ec7b0de5d6c813ae28d7a36974632354e已推送并核验GitHub；本次仅在既有测试中增加受控CPU运行项，控制器和GPU探针未变。实际容器a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca运行六项测试，全部通过且零跳过；八个真实CPU worker分别输出rank0–7，MASTER_ADDR=127.0.0.1、MASTER_PORT=29500，CUDA为空、NVIDIA为void。容器、控制器及守护均实际退出0；守护完成60.028秒释放观察，身份及scope清理通过。13份原始小证据仅在服务器，收据和独审SHA见qjhs002-static-rendezvous-cpu-pass。
