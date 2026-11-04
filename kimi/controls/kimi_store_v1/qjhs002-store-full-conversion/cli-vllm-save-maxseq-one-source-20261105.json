@@ -1,0 +1,34 @@
+{
+  "status": "OFFICIAL_CLI_SAVE_MAXSEQ1_SOURCE_AND_FIVE_HOST_MOCK_TESTS_PASS_NOT_CONVERSION",
+  "recorded_utc": "2026-11-04T22:08:04.131427+00:00",
+  "cli_path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/cli.py",
+  "cli_sha256": "a4cc2919322a54a8b1870c37ceb166aeb80ce83349c91988bd6b91021fab6671",
+  "test_path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_cli_vllm_options.py",
+  "test_sha256": "44679808685cda423d4a5d81cbba803ce5282e461331389d0628459be98e0e33",
+  "baseline_cli_sha256": "a32d8e5201f7d4d910b97faa138b4cfe19f22c5388b5d78c4eadf2ba3facae8b",
+  "one_line_reverse_delta_exact_baseline_SHA": true,
+  "source_diff": "--- before/cli.py\n+++ after/cli.py\n@@ -92,6 +92,7 @@\n                 num_gpu_blocks_override=1,\n                 enforce_eager=True,\n                 max_model_len=1,\n+                max_num_seqs=1,\n                 **llm_options,\n             )\n             model_path = os.path.join(storage_path, model_name)\n",
+  "independent_budget_source_path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-writer-maxseq-one-independent-source-budget-20261105.json",
+  "independent_budget_source_sha256": "df814663648073a07a2a568579095a4500117596f346812189f3d36a170b88b3",
+  "test_command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "sllm_store/tests/python",
+    "-p",
+    "test_cli_vllm_options.py",
+    "-v"
+  ],
+  "test_exit_code": 0,
+  "test_stdout": "",
+  "test_stderr": "test_cli_reaches_real_writer_with_bfloat16_trust_and_data_mode (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_full_main_vllm_entry_does_not_import_optional_peft_backend (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_invalid_cli_options_do_not_reach_writer (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_legacy_sdk_and_cli_defaults_omit_version_specific_mm_kwarg (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_sdk_accepts_explicit_options (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.039s\n\nOK\n",
+  "scope": "All official vLLM save writer constructions now use max_num_seqs1 with existing max_model_len1,num_gpu_blocks_override1,enforce_eagerTrue. This deliberately changes startup profiling/cache scale for every vLLM-save model, not only Kimi. Public signatures/CLI flags/defaults and non-save/backend/load logic unchanged.",
+  "limitations": [
+    "Host tests execute real CLI Python body with FakeLLM; no actual Torch/vLLM import, container, GPU, conversion or Git.",
+    "Actual supported shape/resource inference comes from separate pinned source-budget audit, not this mock test.",
+    "No full-model startup memory or file-write throughput PASS implied."
+  ]
+}

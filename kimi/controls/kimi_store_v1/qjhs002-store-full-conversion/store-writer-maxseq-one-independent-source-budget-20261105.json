@@ -1,0 +1,188 @@
+{
+  "status": "READONLY_SOURCE_AND_STDLIB_AST_CARDINALITY_BOUND_NOT_GPU_BYTE_PEAK",
+  "source_sha256": {
+    "engine/arg_utils.py": "b576b4e3156e7669857e2ed6cbd9a4ac50062472501bc39a80d3642991b5f362",
+    "multimodal/encoder_budget.py": "76aaf25bb8755f7232c5f89cd15173a2bb08d8cdaaaa10797199a49448a5b49b",
+    "envs.py": "0878b5ca5379317b3f9f0fe65d9414c62f0a3a3400f79baeb07419507b933e5d"
+  },
+  "batch_default_fixture": "actual observed >=70GiB/nonA100 LLM16384/1024 source branch stubbed context dictionary at None only for method control-flow; not runtime hardware query",
+  "actual_default_resolution": [
+    {
+      "maxseq_input": null,
+      "chunked_prefill": false,
+      "resolved_tokens": 1024,
+      "resolved_seqs": 1024
+    },
+    {
+      "maxseq_input": null,
+      "chunked_prefill": true,
+      "resolved_tokens": 1024,
+      "resolved_seqs": 1024
+    },
+    {
+      "maxseq_input": 1,
+      "chunked_prefill": false,
+      "resolved_tokens": 1,
+      "resolved_seqs": 1
+    },
+    {
+      "maxseq_input": 1,
+      "chunked_prefill": true,
+      "resolved_tokens": 1,
+      "resolved_seqs": 1
+    }
+  ],
+  "MM_source_method_cases": [
+    {
+      "T": 1,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        2048,
+        2048
+      ]
+    },
+    {
+      "T": 1,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        2048,
+        2048
+      ]
+    },
+    {
+      "T": 32,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        64,
+        64
+      ]
+    },
+    {
+      "T": 32,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        64,
+        64
+      ]
+    },
+    {
+      "T": 1024,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        2,
+        2
+      ]
+    },
+    {
+      "T": 1024,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        2,
+        2
+      ]
+    },
+    {
+      "T": 2048,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    },
+    {
+      "T": 2048,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    },
+    {
+      "T": 8192,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    },
+    {
+      "T": 8192,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    },
+    {
+      "T": 65536,
+      "chunked": false,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    },
+    {
+      "T": 65536,
+      "chunked": true,
+      "save_prompt_batch": [
+        1,
+        1
+      ],
+      "SF_prompt_batch": [
+        1,
+        1
+      ]
+    }
+  ],
+  "proof": "For max_model_len1 and explicit max_num_seqs1 with unsetbatch, actual EngineArgs gives batch1 independent chunkedprefill. Encoder budget=max(1,T), max_items_per_prompt1, outermax1 yields exactly1 profiled maximum vision item; SF seq1/batch2048 gives at least1 identical maximum item. Kimi dummyitem ignoresseq_len and fixed3000x3000 chooses maximumimage/video item. Bytepeak/kernelworkspace still needs actual observed caps; not mathematical GPUbyte bound.",
+  "existing_env_override_search": "No MAX_NUM_SEQS or MAX_NUM_BATCHED_TOKENS name found in actualenvs.py; existingSDKCLI/helper does not pass those EngineArgs knobs.",
+  "offline_fixture_correction": "First AST harness used string usagecontext and raised AttributeError on logger .value; corrected only stub context to None with exact default dictionary values. No actual vLLM/Torch runtime attempted.",
+  "limits": [
+    "NoTorch/vLLM import, compiler/containercreate/start/GPU/runtime/Git action",
+    "MM AST fixture uses positiveT representatives; algebra establishes cardinality, not kernelmemory monotonicity"
+  ]
+}

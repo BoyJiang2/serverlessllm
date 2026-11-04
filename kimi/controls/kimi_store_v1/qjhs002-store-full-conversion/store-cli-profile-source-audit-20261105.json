@@ -1,0 +1,115 @@
+{
+  "status": "READONLY_REAL_SOURCE_AST_PROFILE_CONTROL_AUDIT_NOT_RUNTIME_OR_PEAK_PROOF",
+  "epoch": 1793829911.4038773,
+  "source_image": "ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "stopped_CID": "4001f3d943717ec521afe25cbe127116cacdf10c9d3697eba295e24245bf328a",
+  "sources": {
+    "engine/arg_utils.py": "b576b4e3156e7669857e2ed6cbd9a4ac50062472501bc39a80d3642991b5f362",
+    "config/vllm.py": "1c1e1ad1fdcb5873bce60464c8dad303ac62e7978b322ccedf1a6d85288d3666",
+    "config/scheduler.py": "011cb6cda6625e9f05fc0a6479061e94ec5a449d984685f19985243e91c45a2d",
+    "v1/worker/gpu_worker.py": "ffbd4567a25e0a82ca5c714b75e86c7353cedb6fc5c2814b22f3c91afb1c88b1",
+    "v1/worker/gpu_model_runner.py": "3afc290d3df1be3df1b89b9b35942695f5896c7729f608d6c44580899212c301",
+    "v1/engine/core.py": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+    "v1/core/kv_cache_utils.py": "3bccb51ba52e0a42422ff2f91ee55cf82ae1a71f8a839fa97281352d324da1a4",
+    "multimodal/encoder_budget.py": "76aaf25bb8755f7232c5f89cd15173a2bb08d8cdaaaa10797199a49448a5b49b",
+    "v1/core/encoder_cache_manager.py": "c86d3e5ae0c018bd258e862dc597db5b5ba5c9a63dde4d19ebccbc9b61cfe432",
+    "model_executor/models/kimi_k25.py": "72541f4debfb3d9642884d4e4d86dccecbec0ddf187727d7e96a4639c74f69ba"
+  },
+  "actual_argutils_AST_calculations_with_stub_H20_properties": [
+    {
+      "explicit_max_num_seqs": null,
+      "chunked": true,
+      "resolved_tokens": 1024,
+      "resolved_sequences": 1024
+    },
+    {
+      "explicit_max_num_seqs": 1,
+      "chunked": true,
+      "resolved_tokens": 1,
+      "resolved_sequences": 1
+    },
+    {
+      "explicit_max_num_seqs": 1,
+      "chunked": false,
+      "resolved_tokens": 1,
+      "resolved_sequences": 1
+    }
+  ],
+  "actual_MM_getmaxitems_AST_cases": [
+    {
+      "tokens_per_item_stub": 1,
+      "chunked": true,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 1,
+      "chunked": false,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 256,
+      "chunked": true,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 256,
+      "chunked": false,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 2304,
+      "chunked": true,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 2304,
+      "chunked": false,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 16384,
+      "chunked": true,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 16384,
+      "chunked": false,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 1000000,
+      "chunked": true,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    },
+    {
+      "tokens_per_item_stub": 1000000,
+      "chunked": false,
+      "max_per_prompt": 1,
+      "max_per_batch": 1
+    }
+  ],
+  "source_facts": {
+    "balanced_default": "config/vllm.py326",
+    "H20_defaults": "arg_utils2024-2105,16384tokens1024seqs; actualruntimeplatformquerynotexecuted",
+    "clip": "arg_utils2213-2240 clipsdefaulttokens to seqs*max_model_len; maxseq1->tokens1 without a batchflag",
+    "profiling_not_skipped": "EngineCore229-259 determine_available_memory before getKVconfigs; gpu_worker332-370 runsprofile; kv_cache_utils823-836 onlylateroneblockoverride",
+    "eager": "gpu_worker380 onlyskipsCUDAgraphestimate; profile_run stillMMencoder/text/sampler",
+    "dummy_MM_fixed_geometry": "kimi_k25.py167-204 choosesfixedMaxImageTokenMeta dimensions/num_frames_per_chunk; get_dummy_mm_data ignoresseq_len andreturnsonechosenitem",
+    "MM_upper_bound": "encoder_budget140-180 maxitemsperprompt=max(1,min(limit,maxmodel_len//itemtokens)); newlen1/seq1 =>1; scheduler234-235 encoderbasebudget=tokens1; encoder_cache_manager309-316 max(1,itemtokens) =>oneencoderitem. Actualimage/video maximumgeometrynotreducedbyseqflag."
+  },
+  "minimal_proposal": "Only optional--max-num-seqs(defaultNone) officialCLI/SDKforward; Kimi conversion explicit1; preservemax_model_len1/num_gpu_blocks_override1/enforce_eagerTrue, no batch/maxlen/KVextraopts orenvhack. ExistingCLI currentlycannotforward this existingLLMEngineArg. Root must authorize source implementation/review separately.",
+  "limitations": [
+    "No Torch/vLLM/config/model/PIL/media construction imported orruntimeperformed; source functions executedonlywithstdlibstubs, no devicequery.",
+    "No absoluteprofilingGPUpeak derived. Currentuncontrolled1024seq writer cannotborrowSF1seq/2048tokens timing/peak as sameprofile; arbitraryobservationalcap alone doesnotclose prebudget.",
+    "Proposedseq1 boundsdecoder/sampler to1 andMMdummycount1 fromsource; originalmaximumvisionitemstillpresent. CPUdict617GB/inputcache/tmpfs and existingfullresource/guard budgets remain independentlyrequired."
+  ]
+}
