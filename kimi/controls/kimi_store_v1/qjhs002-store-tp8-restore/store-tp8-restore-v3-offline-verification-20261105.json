@@ -1,0 +1,33 @@
+{
+  "status": "V3_PURE_STDLIB_PID1_PARK_ROOT_ABORT_DELTA_PASS_NOT_RUNTIME",
+  "spec_sha256": "31cff0b63d46592090d9d938c61e9caf40e3675d71ea760e90ae42a6da92245f",
+  "command_sha256": "237b0538ce4b6d6ea07afe3e842860c94fad1368700adfbe88c06521187a061c",
+  "actual_extracted_launcher_except_events": [
+    "server:TERM",
+    "server:wait",
+    "server:KILL",
+    "server:wait",
+    "PID1:park"
+  ],
+  "marker_payload": {
+    "error_type": "OriginalError",
+    "error": "kept-primary",
+    "reason": "Store could not be reaped; original failure retained; aggregate guard required, not IPCsafe"
+  },
+  "checks": [
+    "StoreTERMKILLwait_exhausted_beforepark",
+    "no_model_signal_or_raise_beforepark",
+    "injected_sleep_sentinel_breaks_park_without_permanentsleep",
+    "primaryexception_recorded_inGUARD_REQUIRED",
+    "actualrootmarker_raises_then_actualouterABORTtouch_mode600",
+    "resource_budget_unchangedV2",
+    "reference_still_once",
+    "all4inline_bodies_compile",
+    "hostmeminfo_final_namedfields_nozero_fallback"
+  ],
+  "prior_v2_verification": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-tp8-restore-v2-offline-verification-20261105.json",
+    "sha256": "ae21ed9e3b5346a152dbfd8ac3697adf8eb87f95282c9aa2a64f3c49687d273f"
+  },
+  "scope": "actualinlineAST/fakePopen/fakesleep sentinel+realtempfile ABORT only; noLinuxPIDnamespace/newcontainer/Torch/GPU/Store/pool proof. V1/V2 unexecuted untouched; originalfailure notIPCsafe PASS."
+}
