@@ -467,3 +467,12 @@ source24bf5af6eab98e6429dbdf0fd898eac9364029d8（parent47bd）仅6tests/probe/gu
 证据：`../../evidence/qjhs002-sdk-mixed-empty-failure-20261105/`、`../../evidence/qjhs002-empty-pointer-cpu-build-20261105/`、`../../evidence/qjhs002-mixed-empty-pointer-fix-20261105/`。修正版SDK receipt SHA256 `2eb89a0fff37d6bf4ef83909b08a4cfa9c29b8e7214f7dd3917410db6bddabd7`，独审 `586ba34c8f0ed8ac6470085dc7b7df1f692901555c8bd5c1e26f63a83ea5bf67`。GitHub代码分支 `kimi-qjhs002-aligned-tail` 已核验SHA `6de724070642153bf8efb9133bf0fe0ef4e4fbfd`，SDK证据main已核验 `7deb79e996e709e4d82e27c189115dde1e14cd4d`。
 
 后续恢复限制另记：CPU弱引用消失不证明Torch reserved已归还driver；当前loader在CPU构造下仅vision/projector显式使用GPU，尚无旧77GB缓存或OOM实证，不预设新增切分或重写loader。实际恢复必须记录allocated/reserved/driverfree及峰值，不能绕过显存与所有权门槛。当前AllocateCudaMemory未检查CUDA返回码的既有局限亦未被本组件成功覆盖。
+## 2026-11-05 追加：完整官方 Store 转换 PASS，恢复待运行
+
+实际run `kimi-store-full-conversion-20261105-once`，完整CID `6256f61124149fef3dcf80bfa5af8ed2592b07c921176ace7b691848e051a159`。官方保存CLI通过标准LLM/RPC调用八rank；CPU临时字典及O_DIRECT写入完成。每rank1912项（240 empty）、8个物理分区，shape/stride/dtype/size/offset/分区范围校验通过；32项复制小资产SHA与输入一致。逻辑payload共617000533376B，物理data共617000763392B；未读取617GB payload作全量hash，不据元数据声称完整数值恢复已过。
+
+容器0、三个loaded native单元均0；scope及原worker/runtime身份消失。全程678.129s，guard quiet60.015s、八卡observer quiet60.544s；947次采样无缺测，各卡峰值采样下界78597MiB。290次主机内存样本：cgroup.current最大644183592960B，host MemAvailable最小1367782420480B，OOM/oom_kill均0。内核未提供memory.peak，按live owned cgroup证明记录None；不重建瞬时峰。八rank原生DEBUG profile均保留，四内存字段为0.01GiB舍入增量/估算，不能当全程精确绝对峰。
+
+代码分支 `kimi-qjhs002-aligned-tail` SHA `795dbacac757fa83471d39c0d76c8b5f02430e51`（保存writer仅加max_num_seqs=1，与原maxlen1/oneblock/eager一致；5项回归、独审及GitHubSHA已核）。实际证据main已核 `fce661fa8089a8bcfcac595f336e3c2b5324f0e1`。实际receipt-v2 SHA `521f7538b9a2474960c4c7e4190ec73acb84c92f10934924abd5eb69dac66d34`，独审 `3054f79b2652e2af92df597d068d132de860805a5ce0c9fb2e4dfd46f5409c18`，见 `../../evidence/qjhs002-official-full-store-conversion-20261105/`。未修改旧spec/raw final：旧source-candidate说明属于准备态；外部single-launch准入与新receipt记录实际执行。首derived profile提取器错用字段名导致0行，v2从原日志核8rank英文DEBUG，原始运行未变。
+
+唯一转换输出保留在 qjhs002 `/data/brick1/boyjiang/kimi-new/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference`；后续恢复只读挂载，不重复转换/复制权重。当前S4b已完成SF参考与完整Store保存；八rank恢复、SF AAB精确对照及ServerlessLLM原生创建/推理/删除/重拉起均仍待验证。新恢复候选须重新核验640GiB锁页池、64MiB块、完整RAM/窗口/独审/守护与释放预算，不能复用小组件资源或仅凭保存成功启动未经审阅入口。GLM35/5、所有失败及金标均保持。
