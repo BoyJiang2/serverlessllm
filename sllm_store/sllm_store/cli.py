@@ -68,6 +68,8 @@ class VllmModelDownloader:
         local_model_path: Optional[str] = None,
         pattern: Optional[str] = None,
         max_size: Optional[int] = None,
+        trust_remote_code: bool = False,
+        mm_encoder_tp_mode: Optional[str] = None,
     ):
         import gc
         from tempfile import TemporaryDirectory
@@ -81,6 +83,9 @@ class VllmModelDownloader:
 
         def _run_writer(input_dir, model_name):
             # load models from the input directory
+            llm_options = {"trust_remote_code": trust_remote_code}
+            if mm_encoder_tp_mode is not None:
+                llm_options["mm_encoder_tp_mode"] = mm_encoder_tp_mode
             llm_writer = LLM(
                 model=input_dir,
                 download_dir=input_dir,
@@ -89,6 +94,7 @@ class VllmModelDownloader:
                 num_gpu_blocks_override=1,
                 enforce_eager=True,
                 max_model_len=1,
+                **llm_options,
             )
             model_path = os.path.join(storage_path, model_name)
             model_executer = llm_writer.llm_engine.engine_core  # For engine V1
@@ -236,6 +242,24 @@ def start(
     help="Model name from HuggingFace model hub",
 )
 @click.option("--backend", type=str, required=True, help="Backend")
+@click.option(
+    "--dtype",
+    type=click.Choice(["auto", "float16", "bfloat16", "float32"]),
+    default="float16",
+    help="Model dtype for the vLLM backend",
+)
+@click.option(
+    "--trust-remote-code",
+    is_flag=True,
+    default=False,
+    help="Trust model code for the vLLM backend",
+)
+@click.option(
+    "--mm-encoder-tp-mode",
+    type=click.Choice(["weights", "data"]),
+    default=None,
+    help="Multimodal encoder TP mode for the vLLM backend",
+)
 @click.option("--adapter-name", type=str, help="Name of the LoRA adapter")
 @click.option(
     "--tensor-parallel-size", type=int, default=1, help="Tensor parallel size"
@@ -255,6 +279,9 @@ def save(
     tensor_parallel_size,
     local_model_path,
     storage_path,
+    dtype="float16",
+    trust_remote_code=False,
+    mm_encoder_tp_mode=None,
 ):
     """
     Saves a model to the sllm-store's storage.
@@ -275,10 +302,12 @@ def save(
             storage_path = os.path.join(storage_path, "vllm")
             downloader.download_vllm_model(
                 model_name,
-                "float16",
+                dtype,
                 tensor_parallel_size=tensor_parallel_size,
                 storage_path=storage_path,
                 local_model_path=local_model_path,
+                trust_remote_code=trust_remote_code,
+                mm_encoder_tp_mode=mm_encoder_tp_mode,
             )
         elif backend == "transformers":
             if adapter_name:
