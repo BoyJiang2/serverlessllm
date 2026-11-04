@@ -1,0 +1,50 @@
+{
+  "status": "SOURCE_REVIEWED_READY_FOR_FRESH_RESOURCE_ADMISSION_NOT_MODEL_PASS",
+  "source_commit": "c99e55cdd9828fc05475d066211fda85d4a3a474",
+  "spec": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-tp8-full-reference-concrete-spec-v2-20261105.json",
+    "sha256": "db5bcc26c78db0caf0338fa3e6154bcf093b701b084cc1f2ad88b589d930e2e0"
+  },
+  "command": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-tp8-full-reference-manual-root-command-v3-20261105.json",
+    "sha256": "bc1569e69a0047ccbf1eba49dc4ed5ce1794360ed3a07b395508cb1bc4781063"
+  },
+  "cpu_protocol_checks": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-tp8-full-reference-command-v3-cpu-verification-20261105.json",
+    "sha256": "ff8657619ae407e4b0c652159a51fb9cbfbc128b7c90e34639cb1701655ba752"
+  },
+  "independent_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-tp8-full-reference-v3-fixed-independent-review-20261105.md",
+    "sha256": "9dc154f3a1c5c7d31f4aeb918f33c9d66f2e7bb833caa8f964fba48ea6b8f79f"
+  },
+  "load_evidence_build_manifest": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/vllm-load-evidence-build-v3/build-manifest.json",
+    "sha256": "22570918927b4e56dff86316ff1c3d33b48c9cc3e6e20813c60482466ee1e38b"
+  },
+  "load_evidence_cpu_checks": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/vllm-load-evidence-build-v3/cpu-verification.json",
+    "sha256": "5a1c298f4d7a32c7d76bc2dc1a18331cfeeeabc504efa4c08540079bb18f789e"
+  },
+  "load_evidence_source_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/vllm-load-evidence-v3-independent-review-20261105.md",
+    "sha256": "bfa2827e05185fdd20ba84ce6da010e24e239a070fd5bab2a26f9812e7eb0128"
+  },
+  "physical_guard_calibration": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/guard-normal-cpu-cal-validated-receipt.json",
+    "sha256": "1156d0d18ffdab95e65a391b5a996a47e0e5320e92a3b0b78ba223ddf9ecfd47"
+  },
+  "historical_weight_integrity_and_network_cache_source": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-network-cache-and-historical-weight-integrity-readonly.json",
+    "sha256": "31ed00c0028144dea9eaa3d5bcc5b9c59f19e06ebc9b7deab9f0ecca16731347"
+  },
+  "full_budget_seconds": 2100,
+  "full_model_executed": false,
+  "authorization": "User delegated automatic execution and decisions; existing failure-stop/review/resource gates retained",
+  "scope": "Exactly one official SF TP8 reference using complete checkpoint readonly, two package overlays and AA/B real API correctness; no Store conversion/native-service execution in this attempt",
+  "limits": [
+    "No hard preallocation limit for GPU weights claimed; conservative capacity plan plus known allocator/driver/cap checks, sampled NVML and independent scoped cleanup",
+    "All recorded allocator/reserved peaks, driver boundary and NVML snapshots must honor128GiB policy; sampling still not continuous physical peak",
+    "Historical64download hashes verified; currentcopiedpath64sizes/headers/index matched, not a fresh current full-payload hash proof",
+    "Observer query gaps produce qualified telemetry status, not complete coverage; failed/missing load records cannot pass"
+  ]
+}

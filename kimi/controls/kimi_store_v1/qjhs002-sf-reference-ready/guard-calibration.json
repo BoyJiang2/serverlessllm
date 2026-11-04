@@ -1,0 +1,186 @@
+{
+  "status": "NORMAL_MARKER_CPU_CALIBRATION_POSITIVE_AND_SPOOF_FENCING_PASS",
+  "source_commit_at_run": "61f0ab0fc41996f5a1598a0b24f6fa54df44e560",
+  "guard_sha256": "cd8ab416f4d34ae1208d734cbddd5f4dead996b13d72d5733c832926eeba9a2e",
+  "command_sha256": "fdbedc670cee04150259748f09428150d4c9510340e5b45d57e5d8772c186a94",
+  "runtime_native_elapsed_seconds": 75.919869,
+  "cases": [
+    {
+      "label": "valid",
+      "cid": "00bafadfcdfd67acb7629cb670a42cc2b78cd845ddf5aa4316957ad8f6b1136a",
+      "guard": {
+        "status": "KERNEL_CLEANUP_RELEASE_PASS",
+        "cid": "00bafadfcdfd67acb7629cb670a42cc2b78cd845ddf5aa4316957ad8f6b1136a",
+        "failures": [],
+        "quiet_seconds": 60.01660351798637,
+        "max_cycle_seconds": 0.1138669479987584,
+        "raw_oci_sha256": "d3bb6248381c1910f6ef46ce75ffbd519e7fdb2c9bd805bbf5b45673ef6ed9ea",
+        "oci_seen": true,
+        "scope_seen": true,
+        "abort_monotonic": null,
+        "pinned_identities": [
+          {
+            "pid": 2636873,
+            "startticks": 35423577,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 2636883,
+            "startticks": 35423577,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          }
+        ],
+        "normal_completion_monotonic": 354251.294057427,
+        "normal_cleanup_monotonic": 354251.328857205
+      },
+      "guard_exit": {
+        "Type": "exec",
+        "Restart": "no",
+        "TimeoutStopUSec": "3s",
+        "RuntimeMaxUSec": "3min",
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "KillMode": "control-group",
+        "FinalKillSignal": "9",
+        "SendSIGKILL": "yes",
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "ActiveEnterTimestampMonotonic": "354235618682"
+      },
+      "container_exit": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-04T17:11:02.290533387Z",
+        "FinishedAt": "2026-11-04T17:11:17.758525054Z"
+      }
+    },
+    {
+      "label": "spoof",
+      "cid": "9e4dc9d873136b58d51989c5a343a52639bfd8772ac3c481e3302c626f8d534f",
+      "guard": {
+        "status": "FAILED_RETAINED",
+        "cid": "9e4dc9d873136b58d51989c5a343a52639bfd8772ac3c481e3302c626f8d534f",
+        "failures": [
+          "normal_marker_invalid"
+        ],
+        "quiet_seconds": 60.013703922973946,
+        "max_cycle_seconds": 0.10668054601410404,
+        "raw_oci_sha256": "d7d638de7b05bc71627c2b3d87215fd1ae174fc5381e8ff4c747f1961a11e651",
+        "oci_seen": true,
+        "scope_seen": true,
+        "abort_monotonic": 354241.426602175,
+        "pinned_identities": [
+          {
+            "pid": 2637084,
+            "startticks": 35423645,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 2637094,
+            "startticks": 35423646,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 2638143,
+            "startticks": 35424142,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 2638156,
+            "startticks": 35424143,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          }
+        ],
+        "normal_completion_monotonic": null,
+        "normal_cleanup_monotonic": null
+      },
+      "guard_exit": {
+        "Type": "exec",
+        "Restart": "no",
+        "TimeoutStopUSec": "3s",
+        "RuntimeMaxUSec": "3min",
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "KillMode": "control-group",
+        "FinalKillSignal": "9",
+        "SendSIGKILL": "yes",
+        "LoadState": "loaded",
+        "ActiveState": "failed",
+        "ActiveEnterTimestampMonotonic": "354236328744"
+      },
+      "container_exit": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-11-04T17:11:02.971446301Z",
+        "FinishedAt": "2026-11-04T17:11:08.012564801Z"
+      }
+    }
+  ],
+  "cross_cid_fencing": {
+    "bad_cid": "9e4dc9d873136b58d51989c5a343a52639bfd8772ac3c481e3302c626f8d534f",
+    "bad_scope_killed": true,
+    "valid_cid": "00bafadfcdfd67acb7629cb670a42cc2b78cd845ddf5aa4316957ad8f6b1136a",
+    "valid_still_running_identity": {
+      "pid": 2636896,
+      "startticks": 35423579,
+      "cgroup": "0::/system.slice/docker-00bafadfcdfd67acb7629cb670a42cc2b78cd845ddf5aa4316957ad8f6b1136a.scope"
+    },
+    "monotonic": 354241.548224585
+  },
+  "all_owned_resources_released": true,
+  "negative_guard_failure_retained_not_promoted": true,
+  "no_gpu_model_or_weights": true,
+  "server_public_directory": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-guard-normal-cpu-calibration-20261105-once-public",
+  "server_evidence_sha256": {
+    "cross-cid-fencing.json": "515a710b7de303947e800ef0ddfac3853f42b0a7e89de3351727885f136cc87c",
+    "controller-final.json": "a71c76dafa5c0c7f9238187f9acf87aa2386b1503a17f1f0a0c97b5c4b4d51f5",
+    "kernel-after.json": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+    "postcheck.json": "26bbf73ec7f671bf8d40ee4d8f1a5facba7d5d6dcccaba2286678444e1c5ceb3",
+    "valid/ARMED.json": "971bd5b8d4525be353d6d1c823d3b3e18c30dad052f42c2efef10b8a87827392",
+    "valid/GO.json": "04aa517f84cdf03ea476f876681872859750462c943141b48d534b0ee04e683b",
+    "valid/GO-ACK.json": "2b65cf790e2f5ba47a85d3bfe1cb0db7dfda2e829f2f3e5d9712c2f9cd07d101",
+    "valid/running-identity.json": "4a3dad8425e3d494202613c52d16211cc8f75f29df5fa9ce792ea1eb6a22f44c",
+    "valid/normal-exit.json": "cdfaff3aeff70d41966104368470e541188465f42b823aee6fa348a238d00a94",
+    "valid/guard-final.json": "b6e61b80db06f861279df5b63954511d7e40f0f6f13b827c09bb2c89f7be0dc6",
+    "valid/guard-cgroup-events.jsonl": "a682d972b138c944f38819d39df0fd1e717a7995d63899bf2c4e2a70d2723bf8",
+    "spoof/ARMED.json": "51d83261f3a4b93bb0bfac3ed5681328867125881ad443fe3c9b298e30614ca1",
+    "spoof/GO.json": "10bbd921d819c43ce4952bf9318634466336b032664cb6169bf4036279976def",
+    "spoof/GO-ACK.json": "0784fd46bc701aba00fcee723c790898d0383146e35364a032fd9d39d8e8849e",
+    "spoof/running-identity.json": "6553f35a482f31af7a5385a2dada207d91895fcd28c1744689368a8a0222842b",
+    "spoof/normal-exit.json": "1e2992af962ed6461591bb0f93b74ad0222bd4830a360bc8c95fb1832f81f9fa",
+    "spoof/guard-final.json": "bcb96a289783f4ca0a3214ae3e144f30cc96e86019e7b355f300c5171efa190d",
+    "spoof/guard-cgroup-events.jsonl": "0857a3a3cd8000b7681b666a97bd4eff4f6713c95d8d8eaa123b7fda0346fdd9"
+  },
+  "independent_result_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/guard-normal-completion-cpu-calibration-result-independent-review-20261105.md",
+    "sha256": "4cd9933a4f8b4646ba8d730ae4ecf130503ce0b05b55046ead4ad0e2f44e7b8f"
+  },
+  "limitations": [
+    "CPU containment/release proof only; no full model or CUDA allocator measurement"
+  ],
+  "recorded_at_utc": "2026-11-04T18:00:05.735867+00:00"
+}

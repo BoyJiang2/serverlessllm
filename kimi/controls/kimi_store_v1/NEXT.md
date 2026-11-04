@@ -1,3 +1,13 @@
+## 11/5 新守护物理校准及加载统计补丁已通过；完整官方SF单次方案待新鲜准入
+
+守护正常完成选项默认关闭，源码127b731已推送；物理双CID CPU校准源版本61f0ab0完成75.919869秒。正例00bafadf自然退出，可信标记后实际scope空/身份消失才提前开始quiet60.016604秒，guard退出0且无强制信号；反例9e4dc9d8伪造身份被拒绝并只清理目标scope，guard以FAILED_RETAINED/normal_marker_invalid/退出1保留，quiet60.013704秒。当时正例以原PID/startticks仍运行，跨CID隔离有实际证明。18份证据与独审4cd9933a一致，原始OCI均root0600、无NVIDIA设备/钩子，模型/权重/GPU均未运行。收据见 qjhs002-sf-reference-ready/guard-calibration.json。
+
+官方GPUModelRunner对应补丁已以61f0ab0及后续c99e55c提交并推送核验；新增默认关闭的重置前加载/重排证据，成功与失败均尝试采集、诊断错误不覆盖原模型异常。结构化PID与实际物理UUID绑定TP rank，不以CUDA ordinal猜测物理GPU。10项纯CPU回归、8文件严格正反补丁干跑与语法编译、独审bfa2827e通过；旧47bd/v1/v2构建保持。注册Tensor/Storage只是可见权重元数据，非注册workspace/原生分配及连续驱动物理峰值的覆盖局限明确，不预设新codec。
+
+完整SF一次方案bc1569e6及规格db5bcc26已经独审9dc154f3：官方vllm serve +完整64分片RO、HF0d与runner f57两项RO覆盖、TP8/MP/data模式、上下文及batch2048/并发1/gpuutil0.8，不设KVbytes跳过原生profiling，不零MM或eager绕行。三次AA/B真实请求须语义正确、非空、正常stop，AA的prompt/generated token IDs完全相同；必须有8rank实际加载成功/quant/backend/storage/allocator峰值记录及物理PID/UUID证据。NVML已知样本、Torch分配/保留峰值及驱动边界均不能超过128GiB观测政策，有缺测只可限定遥测结论。完整2100秒包括独立守护、释放>=60和取证余量；所有独立单元受实际outer绝对截止约束。初版12a30与v2发现及记录保留，未曾启动完整模型。
+
+按用户自主授权继续，但仍须先新鲜核验预约、宿主/GPU/磁盘、源码/模型资产身份和全部最大预算，之后只运行一次官方SF；失败先停止查因再审阅最小修复，不盲目重试。历史64分片下载SHA与官方金标一致，当前目录64文件大小/头/索引核对完成，但未宣称当前复制目录刚做过完整payload新哈希。完整Store转换/恢复及原生服务尚未运行，goal继续active。
+
 ## 11/5 修正版CPU tokenizer/processor实测通过；按用户自主授权继续，完整SF仍先过门槛
 
 获准628e9d5e方案的一次容器b01d7ee2728acf98f9122e70fdcbe84827be290f2db63d756f57cb608608d923完成真实canonical tokenizer的12组金标、23命名ID、256保留槽位、163840词表及pickle/真实subfolder检查，原生图像processor及Kimi processor构造均通过。控制器/守护实际退出0，native总耗时120.372991秒，guard quiet60.001411秒，scope和自有身份清理完整，无GPU设备/钩子/权重暴露。仅显式缓存目录与旧失败不同，镜像、UID、金标、验证体及20个只读挂载不变。11份原始公开证据及全部输入SHA独审通过，固定c1950b5c；小收据见 qjhs002-processor-cpu-cache-pass/receipt.json。旧UID导入失败保持，CPU构造通过不代表模型/mediaforward/转换/Store通过。
