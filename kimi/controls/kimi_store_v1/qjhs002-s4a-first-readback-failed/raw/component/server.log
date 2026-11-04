@@ -1,0 +1,72 @@
+INFO 11-04 04:50:08 server.py:40] StorageServicer: storage_path=/store, mem_pool_size=67108864, num_thread=1, chunk_size=1048576, registration_required=True
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20261104 04:50:08.798003   471 checkpoint_store.cpp:41] Number of GPUs: 1
+I20261104 04:50:08.798053   471 checkpoint_store.cpp:43] I/O threads: 1, chunk size: 1MB
+I20261104 04:50:08.798059   471 checkpoint_store.cpp:45] Storage path: "/store"
+I20261104 04:50:08.982065   471 checkpoint_store.cpp:71] GPU 0 UUID: 736d7f37-f647-b82d-ab11-693753ac6822
+I20261104 04:50:08.982153   471 pinned_memory_pool.cpp:29] Creating PinnedMemoryPool with 64 buffers of 1048576 bytes
+I20261104 04:50:09.006647   471 checkpoint_store.cpp:83] Memory pool created with 0GB
+INFO 11-04 04:50:09 server.py:231] Starting gRPC server on 127.0.0.1:8073
+I20261104 04:50:11.787177   471 model.cpp:53] Tensor file "/store/packed-component/tensor.data_1" does not exist
+I20261104 04:50:11.787236   471 checkpoint_store.cpp:106] Model packed-component is registered
+I20261104 04:50:11.952721   514 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 8 buffers free buffers 56 total buffers 64
+INFO 11-04 04:50:11 server.py:114] LoadModel: success packed-component with target 1
+I20261104 04:50:11.952791   514 model.cpp:120] Loading model packed-component size 8261632 to host
+I20261104 04:50:11.952800   514 model.cpp:134] Loading model packed-component to host with 1 threads, 8 chunks, 1048576 chunk size, 8 chunks per thread
+I20261104 04:50:11.952905   515 model.cpp:155] Thread 0 starting from partition 0 offset 0
+INFO 11-04 04:50:11 server.py:114] LoadModel: success packed-component with target 2
+I20261104 04:50:11.955127   516 checkpoint_store.cpp:209] Loading model packed-component
+I20261104 04:50:11.955427   516 model.cpp:269] Creating replica 250c6bcd-5b4d-48a1-a881-3b13ba0b2fd7
+I20261104 04:50:11.955441   516 model.cpp:273] Creating queue for device 0
+I20261104 04:50:11.955446   516 model.cpp:279] Created replica 250c6bcd-5b4d-48a1-a881-3b13ba0b2fd7
+I20261104 04:50:11.955498   516 model.cpp:290] Dispatcher started for model packed-component
+I20261104 04:50:11.955536   516 model.cpp:343] Waiting for model packed-component num tasks 1 state 3
+I20261104 04:50:11.961216   514 model.cpp:250] Finished loading model packed-component from disk
+I20261104 04:50:11.961370   518 model.cpp:336] Finished loading tensor from memory to device 0
+INFO 11-04 04:50:11 server.py:137] Confirm model packed-component replica 250c6bcd-5b4d-48a1-a881-3b13ba0b2fd7 success
+I20261104 04:50:12.120942   471 pinned_memory.cpp:23] Deallocating 8 memory chunks
+I20261104 04:50:12.120980   471 pinned_memory_pool.cpp:98] Deallocated 8 buffers
+INFO 11-04 04:50:12 server.py:168] UnloadModel: success packed-component
+INFO 11-04 04:50:12 server.py:237] Shutting down gRPC server
+Traceback (most recent call last):
+  File "/source/sllm_store/sllm_store/server.py", line 235, in serve
+    await server.wait_for_termination()
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 185, in wait_for_termination
+    return await self._server.wait_for_termination(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1095, in wait_for_termination
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/source/sllm_store/sllm_store/server.py", line 238, in serve
+    await server.stop(5)
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 160, in stop
+    await self._server.shutdown(grace)
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1077, in shutdown
+  File "/usr/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+I20261104 04:50:12.675181   471 checkpoint_store.cpp:279] Unloading model packed-component
+W20261104 04:50:12.675238   471 model.cpp:475] Model packed-component is not allocated
+E20261104 04:50:12.675243   471 checkpoint_store.cpp:282] Failed to free memory for model packed-component
+I20261104 04:50:12.675254   471 checkpoint_store.cpp:286] All models unloaded from memory

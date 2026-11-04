@@ -407,3 +407,11 @@ qjhs002-s4a-graceful-success保留独审附录及active23CPU PASS；source8c2696
 qjhs002-s4a-final-controller-no-run归档final controllerc74a5c/manifest69cf4d、独审终稿、exact24CPU核验及最少字段windowrecheck。source5d197a9b91658ebe2e84de338173b07e21c1bc7e已公开（含旧b939历史）；manifest.source_commit8c是组件input源码基线，actual launchHEAD将是5d，不混淆。24exact含3ELF/2archive/gold/guard938，manifest自身不pin避免循环。旧96f133/4ce122 JSON语义同仅格式化字节差异保留审计；最终统一69cf。proto real ROOT/sllm_store/proto/storage.proto及packagedsymlink未改，旧ROOT/proto猜测导致只读pin生成失败已纠正。归档plan旧1d6fc中间SHA由本节finalc74及终审覆盖，不作为可运行版本。
 
 最终预算检查仅加强gate：独立service<=fullstart32发起、actual native140/stop3/ActiveEnter+143<=fullstart178在Dockerstart前核，guard25/65+60/full180未改。11:58原预约至12不足180，NO_RUN_INSUFFICIENT_WINDOW；新12–19同用户autoscaling预约不自动授权Kimi，待用户回答前不运行。source发布/技术条件支持不等于runtime授权，无Store/GPU/newcontainer或goalcomplete，历史gold/fail/AGENTS保护。
+
+## 唯一正式S4a整体 FAILED_RETAINED，局部数据/alias证据通过（2026-11-04）
+
+qjhs002-s4a-first-readback-failed保留用户批准admission、实际小证据及receipt。client0，三tensor原始位SHA/metadata一致，driver lastaliasheld/drop各8388608B，局部REAL_THREE_TENSOR_ROUNDTRIP_AND_LAST_ALIAS_RELEASE_PASS；但server SIGINT后-2，parent7.276s在server_stop失败，整体FAILED_RETAINED，不用局部pass覆盖。
+
+guardquiet60.0115/observerquiet60.5789、实际MainPID0、GPU0/noProcess、exactruntime identities absent/scopegone，专属units已stop。PIDscope曾629145→512实际采样保留，不当精确峰值/阈值证据；首rawOCI仅remote0600，后续版本只safe摘要，首raw不当最终完整OCI。grpc第三方环境源码不提交，仅留hash及服务器副本；rootrawOCI不下载。
+
+source5d不变，无重试或新Store/GPU/CPU执行，本轮仅失败证据归档。历史fail/gold/GLM35/5/goal保持，不称整体S4a通过或模型/Store转换/TP8通过。

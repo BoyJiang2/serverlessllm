@@ -1,0 +1,265 @@
+{
+  "status": "FAILED_RETAINED",
+  "source_commit": "5d197a9b91658ebe2e84de338173b07e21c1bc7e",
+  "run_id": "s4a-readback-once-20261104",
+  "cid": "191b87c2e91bda29ebdc92b79443dd0f7c36f443ac57fb82460c493a9afdcd0a",
+  "user_approved_autoscaling_window": true,
+  "parent": {
+    "barrier": "SERVER_REAPED_CLIENT_ALREADY_EXITED_NO_BARRIER",
+    "client_returncode": 0,
+    "elapsed_from_go": 7.276040884025861,
+    "error": "AssertionError('server did not exit zero after SIGINT')",
+    "forced": true,
+    "run_id": "s4a-readback-once-20261104",
+    "server_returncode": -2,
+    "server_stop_kind": "FAILURE_TERM_KILL_FALLBACK",
+    "stage": "server_stop",
+    "status": "FAILED_RETAINED"
+  },
+  "component_subresult": "REAL_THREE_TENSOR_ROUNDTRIP_AND_LAST_ALIAS_RELEASE_PASS",
+  "component": {
+    "archive_bytes": 8261632,
+    "driver_free_bytes": {
+      "before_load": 149428043776,
+      "last_alias_dropped": 149428043776,
+      "last_alias_held": 149419655168,
+      "total": 150110011392
+    },
+    "payload_bytes": 8257544,
+    "raw_sha256": {
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": "c440443a46091667c132cd93131fd3dec4f420309ed134d418d8cf4247e31963",
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": "78053b2804dac91c8fa00756ccb2c7a3e96c61a0ea1c88ca81b246810d36e86e",
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": "68d89fd501bef3663f80787cb8ad23be91d56afa7db1e1f93cf6e07fe4f20433"
+    },
+    "restored_raw_sha256": {
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": "c440443a46091667c132cd93131fd3dec4f420309ed134d418d8cf4247e31963",
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": "78053b2804dac91c8fa00756ccb2c7a3e96c61a0ea1c88ca81b246810d36e86e",
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": "68d89fd501bef3663f80787cb8ad23be91d56afa7db1e1f93cf6e07fe4f20433"
+    },
+    "stage": "OFFICIAL_COMPONENT_ROUNDTRIP",
+    "tensor_index": {
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_packed": [
+        0,
+        7340032,
+        [
+          7168,
+          256
+        ],
+        [
+          256,
+          1
+        ],
+        "torch.int32"
+      ],
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_scale": [
+        7340032,
+        917504,
+        [
+          7168,
+          64
+        ],
+        [
+          64,
+          1
+        ],
+        "torch.bfloat16"
+      ],
+      "language_model.model.layers.1.mlp.experts.0.down_proj.weight_shape": [
+        8257536,
+        8,
+        [
+          2
+        ],
+        [
+          1
+        ],
+        "torch.int32"
+      ]
+    },
+    "total_archive_bytes": 8261992
+  },
+  "driver_held_delta_bytes": 8388608,
+  "driver_drop_delta_bytes": 8388608,
+  "guard": {
+    "status": "FAILED_RETAINED",
+    "cid": "191b87c2e91bda29ebdc92b79443dd0f7c36f443ac57fb82460c493a9afdcd0a",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.015271087002475,
+    "max_cycle_seconds": 0.08848738798405975,
+    "raw_oci_sha256": "393e5b5ec6b5025df30dbd8f6364f522f0f6b24565dbf715a195a6b1fd43af39",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 309786.526326133,
+    "pinned_identities": [
+      {
+        "pid": 2596482,
+        "startticks": 30977920,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 2596494,
+        "startticks": 30977920,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "observer": {
+    "gpu_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "quiet_seconds": 60.5788565830444,
+    "peak_mib": 651
+  },
+  "postcheck": {
+    "cid": "191b87c2e91bda29ebdc92b79443dd0f7c36f443ac57fb82460c493a9afdcd0a",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 1,
+      "Error": "",
+      "StartedAt": "2026-11-04T04:50:05.716440373Z",
+      "FinishedAt": "2026-11-04T04:50:12.957215867Z"
+    },
+    "restart_count": 0,
+    "identities": [
+      {
+        "pid": 2596482,
+        "same_identity_present": false
+      },
+      {
+        "pid": 2596494,
+        "same_identity_present": false
+      }
+    ],
+    "scope_removed": true,
+    "units": {
+      "controller": {
+        "TimeoutStopUSec": "1s",
+        "RuntimeMaxUSec": "2min 57s",
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "ActiveState": "failed",
+        "ActiveEnterTimestampMonotonic": "309778400626"
+      },
+      "guard": {
+        "TimeoutStopUSec": "3s",
+        "RuntimeMaxUSec": "2min 20s",
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "ActiveState": "failed",
+        "ActiveEnterTimestampMonotonic": "309779055444"
+      },
+      "observer": {
+        "TimeoutStopUSec": "3s",
+        "RuntimeMaxUSec": "2min 20s",
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "ActiveState": "active",
+        "ActiveEnterTimestampMonotonic": "309778777477"
+      }
+    },
+    "gpu_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "used": "0 MiB",
+    "processes": [],
+    "checked_epoch": 1793767909.867817
+  },
+  "protected_OCI": {
+    "raw_oci_sha256": "393e5b5ec6b5025df30dbd8f6364f522f0f6b24565dbf715a195a6b1fd43af39",
+    "raw_oci_mode": "0o600",
+    "raw_oci_remote": "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-readback-once-20261104/oci.raw.json",
+    "container_retained_stopped": true
+  },
+  "sampled_container_pids_peak": 140,
+  "sampled_container_pids_limits": [
+    "512",
+    "629145"
+  ],
+  "sampled_container_pids_events": [
+    "max 0"
+  ],
+  "kernel_query": {
+    "journal_returncode": 0,
+    "cid": "191b87c2e91bda29ebdc92b79443dd0f7c36f443ac57fb82460c493a9afdcd0a",
+    "matched_records": [],
+    "limitation": "No matching record does not exclude PID factors",
+    "query_stderr": ""
+  },
+  "post_run_input_verification": {
+    "status": "POST_RUN_INPUT24_PASS",
+    "files": 24,
+    "units_after_stop": {
+      "controller": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainExitTimestampMonotonic": "309847315788",
+        "ExecMainStatus": "1",
+        "ActiveState": "failed"
+      },
+      "guard": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainExitTimestampMonotonic": "309846572452",
+        "ExecMainStatus": "1",
+        "ActiveState": "failed"
+      },
+      "observer": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainExitTimestampMonotonic": "0",
+        "ExecMainStatus": "0",
+        "ActiveState": "inactive"
+      }
+    }
+  },
+  "no_retry": true,
+  "full_model_conversion_TP8_run": false,
+  "goal_complete": false,
+  "limits": [
+    "Whole attempt failed despite component subresult",
+    "Server trace does not prove repeated SIGINT or grpc shared-future cancellation as unique root cause",
+    "forced true means fallback entered, not proof KILL was sent",
+    "No cooperative barrier PASS: client already exited",
+    "PID peak is sampled, not minimum quota; transient cgroup limit629145 observed before512",
+    "Only first full raw OCI retained remote0600; later version only safe selected summary",
+    "Root cgroup PID files unavailable are null, not zero",
+    "Observer651MiB is sampled context-inclusive peak, not full-model peak",
+    "No matching kernel CID record does not exclude PID factors"
+  ],
+  "raw_evidence_sha256": {
+    "ARMED.json": "0cd8ba2e132db4e8c76e360d63d36c07e687526d31410c98c6cf0e1ab53a31ad",
+    "component\\client.log": "9fd3f4d41b265f585af442b55445e52c53f97d223dd03a1950c987b6b553d177",
+    "component\\result.json": "26bb32baaefb4751bd48ba5f439eef8d8a4007b3fb5eabc5fe30ce9474c3ba5b",
+    "component\\server.log": "cb8beced93c37aa0834cb6a5dd71f58fa572cdd4c0097e3535846c88fb86ef4e",
+    "component-go.json": "1fba9b60f50487f4409c3c960987794257a754e5a188a88c81967a88bb219149",
+    "container-final-profile.json": "b78086f73cc3d6d3d67104676831ccbc64426f37852ea0d0208d04b101521835",
+    "controller-failed.json": "9d514234a5145a2d4adcf4716c86b65a081cc836c26623b6a0cbe5148b371ecf",
+    "docker-start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-start.stdout": "088e65248b0b5ba0b7fcc95ff1ce0516a503c42713f9cb7589dda4164dd7ecb2",
+    "GO-ACK.json": "387d4ab213eb12e83eac86ace285fb5e3f8342d76c089dc7e8e02fbd1a7e0340",
+    "gpu-observer.jsonl": "3a8ee9f43d38313d059ca3b160437bb679049a9c9eff16ab9e737b5477a28d1b",
+    "grpc-aio-server.py": "e0b6e61e730c2d567375dc77139f010b8a6bad2944cfb3c0146a31ee961b6c9b",
+    "guard-events.jsonl": "fc655fc18e969b6e1ab54e194da2e257c8d1a26a4b996c8a39a1a7835d93443a",
+    "guard-final.json": "f6453f7fbf48930ccf4e65b32d1a7229e7012b5df65b7c224a4e612ee32eceee",
+    "kernel-cid-query.json": "c4966874df8fc8206de0b6a0e334c9ae378a2f7a462c8a9d88923889a2b36c9c",
+    "observer-final.json": "78f73179c3d2e2b0981368b8f8b4171be02ec3a682efe0894c2e777fd89b65b3",
+    "outer-controller.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outer-controller.stderr": "8208f1dff670822d66ed83f23f29e80dc076dbe802dcd544cafcedba0238e567",
+    "post-run-inputs-units.json": "6b4220807683eeed8279318584ea2717d488f9d8993c666ccdcb3e4f5218ebf5",
+    "postcheck.json": "cbb75704768c7a685c6a82f88d4d6545bfd952fd244ad35db71183211c1e85c5",
+    "prepared.json": "34fa0fe430c163f55fd655546936238e5b4a9041f139c501994daa0d6251ba8d",
+    "protected-evidence.json": "965436d343a76ae6fcf3381c947599cde6f72a67bff308986a79ddb92f6f6ef8"
+  }
+}
