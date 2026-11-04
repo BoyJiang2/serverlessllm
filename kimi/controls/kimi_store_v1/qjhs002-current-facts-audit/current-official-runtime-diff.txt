@@ -1,0 +1,150 @@
+diff --git a/sllm_store/csrc/checkpoint/checkpoint.cpp b/sllm_store/csrc/checkpoint/checkpoint.cpp
+index 58c3b6b..0573950 100644
+--- a/sllm_store/csrc/checkpoint/checkpoint.cpp
++++ b/sllm_store/csrc/checkpoint/checkpoint.cpp
+@@ -34,6 +34,7 @@
+ #include <fstream>
+ #include <future>
+ #include <iostream>
++#include <memory>
+ #include <string>
+ #include <thread>
+ #include <unordered_map>
+@@ -117,7 +118,12 @@ std::unordered_map<std::string, torch::Tensor> RestoreTensors(
+     const std::unordered_map<int, std::unordered_map<std::string, uint64_t>>&
+         tensor_device_offsets) {
+   std::unordered_map<std::string, torch::Tensor> state_dict;
+-  std::unordered_set<void*> handled_memory;
++  // Consume the allocations; every returned storage keeps its base alive.
++  std::unordered_map<void*, std::shared_ptr<void>> memory_owners;
++  for (const auto& [device, base_address] : memory_base_address) {
++    memory_owners.try_emplace(
++        base_address, base_address, [](void* ptr) { cudaFree(ptr); });
++  }
+   for (const auto& [device, tensor_offset] : tensor_device_offsets) {
+     for (const auto& p : tensor_offset) {
+       std::string name = p.first;
+@@ -130,22 +136,12 @@ std::unordered_map<std::string, torch::Tensor> RestoreTensors(
+         at::ScalarType dtype = stringToScalarType(type_str);
+         // std::cerr << name << " " << sizes << " " << strides << " " << dtype
+         // << std::endl;
+-        if (p.second == 0 &&
+-            handled_memory.find(base_address) == handled_memory.end()) {
+-          torch::Tensor real_tensor = torch::from_blob(
+-              reinterpret_cast<void*>(offset), c10::makeArrayRef(sizes),
+-              c10::makeArrayRef(strides), [](void* ptr) { cudaFree(ptr); },
+-              torch::TensorOptions().device(tensor_device).dtype(dtype));
+-          state_dict[name] = real_tensor;
+-          handled_memory.insert(base_address);
+-          // std::cerr << "Tensor " << name << " is restored to device " <<
+-          // device << std::endl;
+-        } else {
+-          torch::Tensor real_tensor = torch::from_blob(
+-              reinterpret_cast<void*>(offset), sizes, strides, [](void* ptr) {},
+-              torch::TensorOptions().device(tensor_device).dtype(dtype));
+-          state_dict[name] = real_tensor;
+-        }
++        auto owner = memory_owners.at(base_address);
++        torch::Tensor real_tensor = torch::from_blob(
++            reinterpret_cast<void*>(offset), c10::makeArrayRef(sizes),
++            c10::makeArrayRef(strides), [owner](void* ptr) {},
++            torch::TensorOptions().device(tensor_device).dtype(dtype));
++        state_dict[name] = real_tensor;
+       } else {
+         std::cerr << "Cannot find device " << device << std::endl;
+         exit(1);
+diff --git a/sllm_store/csrc/sllm_store/model.cpp b/sllm_store/csrc/sllm_store/model.cpp
+index 2837962..e9e21c6 100644
+--- a/sllm_store/csrc/sllm_store/model.cpp
++++ b/sllm_store/csrc/sllm_store/model.cpp
+@@ -361,19 +361,28 @@ int Model::ToGpu(
+   } else {
+     gpu_replica->state_ = MemoryState::LOADED;
+   }
+-  gpu_replica->cv_.notify_all();
+-
+-  // TODO: move to background thread
++  bool ipc_close_failed = false;
+   for (auto& [device_id, device_ptr_list] : gpu_replica->device_ptrs_) {
+-    cudaSetDevice(device_id);
++    cudaError_t device_err = cudaSetDevice(device_id);
++    if (device_err != cudaSuccess) {
++      LOG(ERROR) << "Failed to select device for IPC close " << device_id
++                 << " error: " << cudaGetErrorString(device_err);
++      ipc_close_failed = true;
++      continue;
++    }
+     for (auto device_ptr : device_ptr_list) {
+       cudaError_t err = cudaIpcCloseMemHandle(device_ptr);
+       if (err != cudaSuccess) {
+         LOG(ERROR) << "Failed to close memory handle for device " << device_id
+                    << " error: " << cudaGetErrorString(err);
++        ipc_close_failed = true;
+       }
+     }
+   }
++  if (ipc_close_failed) {
++    gpu_replica->state_ = MemoryState::INTERRUPTED;
++  }
++  gpu_replica->cv_.notify_all();
+ 
+   if (gpu_replica->state_ == MemoryState::INTERRUPTED) {
+     LOG(ERROR) << "Model " << model_path_ << " replica " << replica_uuid
+diff --git a/sllm_store/sllm_store/client.py b/sllm_store/sllm_store/client.py
+index 8efead6..fb0d3ae 100644
+--- a/sllm_store/sllm_store/client.py
++++ b/sllm_store/sllm_store/client.py
+@@ -126,10 +126,11 @@ class SllmStoreClient:
+         except grpc.RpcError as e:
+             if e.code() == grpc.StatusCode.CANCELLED:
+                 logger.error("Model not loaded")
+-                return False
+             else:
+                 logger.error(f"Error: {e}")
+-                return False
++            raise RuntimeError(
++                f"Model {model_path} replica {replica_uuid} was not confirmed"
++            ) from e
+ 
+     def register_model(self, model_path) -> int:
+         logger.info(f"register_model: {model_path}")
+diff --git a/sllm_store/sllm_store/torch.py b/sllm_store/sllm_store/torch.py
+index 6b1920d..3598047 100644
+--- a/sllm_store/sllm_store/torch.py
++++ b/sllm_store/sllm_store/torch.py
+@@ -85,13 +85,10 @@ def load_dict(
+     device_map: Dict[str, int],
+     storage_path: Optional[str] = None,
+ ):
+-    replica_uuid, state_dict = load_dict_non_blocking(
+-        model_path, device_map, storage_path
++    _, state_dict = load_dict_non_blocking(
++        model_path, device_map, storage_path, _confirm_before_restore=True
+     )
+ 
+-    client = SllmStoreClient("127.0.0.1:8073")
+-    client.confirm_model_loaded(model_path, replica_uuid)
+-
+     return state_dict
+ 
+ 
+@@ -99,6 +96,8 @@ def load_dict_non_blocking(
+     model_path: Optional[Union[str, os.PathLike]],
+     device_map: Dict[str, int],
+     storage_path: Optional[str] = None,
++    *,
++    _confirm_before_restore: bool = False,
+ ):
+     client = SllmStoreClient("127.0.0.1:8073")
+     ret = client.load_into_cpu(model_path)
+@@ -152,6 +151,10 @@ def load_dict_non_blocking(
+     if not ret:
+         raise ValueError(f"Failed to load model {model_path} into GPU")
+ 
++    if _confirm_before_restore:
++        # Blocking callers establish copy completion and IPC close before ownership.
++        client.confirm_model_loaded(model_path, replica_uuid)
++
+     # load model state_dict
+     start = time.time()
+     state_dict = restore_tensors(
