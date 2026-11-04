@@ -1,0 +1,106 @@
+{
+  "status": "PREPARED_CPU_BUILD_1260_FINAL_NOT_EXECUTED_PENDING_REVIEW",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "host_source_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+  "host_new_output_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1",
+  "container_mounts": {
+    "/source": "active source readonly",
+    "/build": "unique new output readonly-false; must initially be empty"
+  },
+  "runtime_profile": {
+    "runtime": "runc",
+    "network": "none",
+    "read_only_root": true,
+    "no_nvidia_device_or_hook": true,
+    "cpus": 4,
+    "memory_GiB": 64,
+    "pids_limit": 512,
+    "tmpfs": "/tmp:rw,exec,nosuid,nodev,size=8g,mode=1777",
+    "shm_bytes": 67108864
+  },
+  "environment": {
+    "HOME": "/tmp",
+    "USER": "boyjiang",
+    "HF_HOME": "/tmp/hf",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "TORCH_EXTENSIONS_DIR": "/tmp/torch_extensions",
+    "CUDA_HOME": "/usr/local/cuda",
+    "CC": "/usr/bin/x86_64-linux-gnu-gcc-13",
+    "CXX": "/usr/bin/x86_64-linux-gnu-g++-13",
+    "MAX_JOBS": "1",
+    "TORCH_CUDA_ARCH_LIST": "9.0",
+    "PYTORCH_NVML_BASED_CUDA_CHECK": "1",
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "complete_hard_budget_seconds": 1260,
+  "budget_components_seconds": {
+    "body_phase_bound": 1080,
+    "cleanup_and_guard_release_and_outer_margin": 180
+  },
+  "body_native_timeout_max_seconds": 1080,
+  "normal_marker": "SDK_EMPTY_POINTER_BUILD_AND_CPU_OWNERSHIP_PASS",
+  "normal_marker_enables_existing_guard_early_release": true,
+  "GPU_observer": "NONE CPU-only; existing independent guard normal marker path only.",
+  "output_budget_bytes": 8589934592,
+  "minimum_free_bytes_before_admission": 17179869184,
+  "output_budget_limit": "8GiB planning cap checked postbuild; not a directory quota or instantaneous peak guarantee. Native resource budgets and guard remain mandatory.",
+  "source_pins": {
+    "sllm_store/csrc/checkpoint/aligned_buffer.cpp": "cd633974fc5b2b8f0d3c871000343cf1cef2ca87f1aee1b7036bb9bbcc84c2f4",
+    "sllm_store/csrc/checkpoint/checkpoint.cpp": "89c3d9b1d19d01608f791f1ce4479c956243914b01a1bd857057123960dac2e0",
+    "sllm_store/csrc/checkpoint/checkpoint_py.cpp": "0faa0dd95dc2f8026d71bb457dbf2ca545dd3b3698e9b0c24ae041fab7292521",
+    "sllm_store/csrc/checkpoint/tensor_writer.cpp": "9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404",
+    "sllm_store/csrc/checkpoint/aligned_buffer.h": "cddf69b9d01e7bcb828f060e3c10f5aae738829412ec651cd054f8386aa3e539",
+    "sllm_store/csrc/checkpoint/checkpoint.h": "7418cc5f92d386974c5a5758e13e79f602f0590320cda91ebff90772768a8c06",
+    "sllm_store/csrc/checkpoint/progress_bar.h": "49897bb3ad9a52bbfebcb098450ed54c71e11bb6424276129af963a60df68155",
+    "sllm_store/csrc/checkpoint/tensor_writer.h": "375567415fffb7f1b7916c528b5b53ac9ca7a22ed17cb5dcfa3b8f3ef4b73363",
+    "sllm_store/tests/python/test_restore_ownership.py": "b764ba4590ff9ae2e13f8a4bfd85248ebfb67b60fe83ab8b62643efcd670375a"
+  },
+  "python_body": "import hashlib, importlib.util, json, os, pathlib, subprocess, sys, sysconfig, time\nstarted = time.monotonic()\nroot, out = pathlib.Path('/source'), pathlib.Path('/build')\nassert out.is_dir() and not list(out.iterdir()), 'output must be a new empty dedicated directory'\ndef digest(path):\n    h = hashlib.sha256()\n    with open(path, 'rb') as f:\n        for block in iter(lambda: f.read(8 << 20), b''):\n            h.update(block)\n    return h.hexdigest()\npins = {'sllm_store/csrc/checkpoint/aligned_buffer.cpp': 'cd633974fc5b2b8f0d3c871000343cf1cef2ca87f1aee1b7036bb9bbcc84c2f4', 'sllm_store/csrc/checkpoint/checkpoint.cpp': '89c3d9b1d19d01608f791f1ce4479c956243914b01a1bd857057123960dac2e0', 'sllm_store/csrc/checkpoint/checkpoint_py.cpp': '0faa0dd95dc2f8026d71bb457dbf2ca545dd3b3698e9b0c24ae041fab7292521', 'sllm_store/csrc/checkpoint/tensor_writer.cpp': '9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404', 'sllm_store/csrc/checkpoint/aligned_buffer.h': 'cddf69b9d01e7bcb828f060e3c10f5aae738829412ec651cd054f8386aa3e539', 'sllm_store/csrc/checkpoint/checkpoint.h': '7418cc5f92d386974c5a5758e13e79f602f0590320cda91ebff90772768a8c06', 'sllm_store/csrc/checkpoint/progress_bar.h': '49897bb3ad9a52bbfebcb098450ed54c71e11bb6424276129af963a60df68155', 'sllm_store/csrc/checkpoint/tensor_writer.h': '375567415fffb7f1b7916c528b5b53ac9ca7a22ed17cb5dcfa3b8f3ef4b73363', 'sllm_store/tests/python/test_restore_ownership.py': 'b764ba4590ff9ae2e13f8a4bfd85248ebfb67b60fe83ab8b62643efcd670375a'}\nfor rel, expected in pins.items():\n    assert digest(root / rel) == expected, ('source drift', rel)\nassert os.environ['CUDA_VISIBLE_DEVICES'] == ''\nassert os.environ['NVIDIA_VISIBLE_DEVICES'] == 'void'\nassert os.environ['TORCH_CUDA_ARCH_LIST'] == '9.0'\nassert os.environ['PYTORCH_NVML_BASED_CUDA_CHECK'] == '1'\nold = {'sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so': '41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e', 'sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so': 'f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3', 'sllm_store/sllm_store/libglog.so.0.6.0': 'd76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6'}\nfor rel, expected in old.items():\n    assert digest(root / rel) == expected, ('frozen old artifact drift', rel)\nimport torch\nassert not list(pathlib.Path('/dev').glob('nvidia*'))\nassert not torch.cuda.is_initialized()\nabi = {'python': sys.version, 'extension_suffix': sysconfig.get_config_var('EXT_SUFFIX'),\n       'torch': torch.__version__, 'torch_git': torch.version.git_version,\n       'torch_cuda': torch.version.cuda, 'cxx11_abi': torch._C._GLIBCXX_USE_CXX11_ABI}\nassert abi['torch'] == '2.10.0+cu129' and abi['torch_cuda'] == '12.9'\ntools = {}\nfor path in ['/usr/bin/x86_64-linux-gnu-g++-13', '/usr/bin/x86_64-linux-gnu-gcc-13',\n             '/usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus', '/usr/bin/ninja',\n             '/usr/local/cuda/bin/nvcc', '/usr/bin/readelf']:\n    real = str(pathlib.Path(path).resolve(strict=True))\n    tools[path] = {'realpath': real, 'sha256': digest(real)}\nfor path in ['/usr/include/python3.12/Python.h', '/usr/include/c++/13/vector',\n             '/usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h',\n             '/usr/local/cuda/include/cuda_runtime.h', '/usr/local/cuda/include/nvml.h']:\n    tools[path] = {'sha256': digest(path)}\nsubprocess.run([sys.executable, '-c', \"from pathlib import Path\\nimport os, torch\\nfrom setuptools import setup\\nfrom torch.utils.cpp_extension import BuildExtension, CUDAExtension\\nassert not torch.cuda.is_initialized()\\nos.chdir('/build')\\nsetup(name='sllm-empty-pointer-C', packages=[],\\n      ext_modules=[CUDAExtension(name='_C', sources=[str(Path('/source') / p) for p in ['sllm_store/csrc/checkpoint/aligned_buffer.cpp', 'sllm_store/csrc/checkpoint/checkpoint.cpp', 'sllm_store/csrc/checkpoint/checkpoint_py.cpp', 'sllm_store/csrc/checkpoint/tensor_writer.cpp']],\\n          extra_compile_args=['-O3', '-g0'],\\n          extra_link_args=['-Wl,-rpath,$ORIGIN:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64'])],\\n      cmdclass={'build_ext': BuildExtension.with_options(use_ninja=True)},\\n      script_args=['build_ext', '--build-temp', '/build/obj', '--build-lib', '/build'])\\nassert not torch.cuda.is_initialized()\\nprint('SDK_C_PURE_BUILD_NO_CUDA_INIT', flush=True)\\n\"], check=True, timeout=600)\nelf = out / ('_C' + abi['extension_suffix'])\nassert elf.is_file(), 'expected exact Python ABI filename'\nassert elf.stat().st_size < (64 << 20)\nassert sum(p.stat().st_size for p in out.rglob('*') if p.is_file()) <= (8 << 30)\nmetadata = {}\nfor path, args in [('/usr/bin/x86_64-linux-gnu-g++-13', ['--version']),\n                   ('/usr/local/cuda/bin/nvcc', ['--version']), ('/usr/bin/ninja', ['--version'])]:\n    tools[path]['version_output'] = subprocess.run([path] + args, check=True, capture_output=True, text=True, timeout=5).stdout\nfor name, args in {'notes': ['readelf', '-n', str(elf)],\n                   'dynamic': ['readelf', '-d', str(elf)],\n                   'symbol_versions': ['readelf', '--version-info', str(elf)],\n                   'compiler_comment': ['readelf', '-p', '.comment', str(elf)],\n                   'dependencies': ['ldd', str(elf)]}.items():\n    q = subprocess.run(args, check=True, capture_output=True, text=True, timeout=10)\n    metadata[name] = q.stdout\nassert 'not found' not in metadata['dependencies']\ndependencies = {}\nfor line in metadata['dependencies'].splitlines():\n    fields = line.split()\n    path = fields[2] if len(fields) > 2 and fields[1] == '=>' else (fields[0] if fields else '')\n    if path.startswith('/') and pathlib.Path(path).is_file():\n        dependencies[path] = digest(pathlib.Path(path).resolve())\n# Explicit CPU-only ABI-import gate, after exact filename/source/dependency checks.\nassert not torch.cuda.is_initialized()\nspec = importlib.util.spec_from_file_location('_C', elf)\nmodule = importlib.util.module_from_spec(spec)\nspec.loader.exec_module(module)\nassert all(hasattr(module, name) for name in ('restore_tensors', 'save_tensors', 'allocate_cuda_memory'))\nassert not torch.cuda.is_initialized()\nsubprocess.run([sys.executable, '-I', '-c', \"import json,pathlib,sys,unittest\\nassert not list(pathlib.Path('/dev').glob('nvidia*'))\\nimport torch\\nassert not torch.cuda.is_initialized()\\nloader=unittest.TestLoader();suite=loader.discover('/source/sllm_store/tests/python',pattern='test_restore_ownership.py')\\ndef flatten(suite):\\n for test in suite:\\n  if isinstance(test,unittest.TestSuite):yield from flatten(test)\\n  else:yield test\\nnames=[test.id().rsplit('.',1)[1] for test in flatten(suite)]\\nexpected={'test_lifetimes','test_empty_one_past_keeps_base_alive'}\\nassert len(names)==2 and set(names)==expected and not loader.errors\\nresult=unittest.TextTestRunner(stream=sys.stderr,verbosity=2).run(suite)\\nassert result.testsRun==2 and result.wasSuccessful() and not any((result.errors,result.failures,result.skipped,result.expectedFailures,result.unexpectedSuccesses))\\nassert not torch.cuda.is_initialized() and not list(pathlib.Path('/dev').glob('nvidia*'))\\nprint(json.dumps({'event':'CPU_CPP_OWNERSHIP_TWO_TESTS_PASS','test_names':names,'testsRun':2,'errors':0,'failures':0,'skipped':0}),flush=True)\\n\"], check=True, timeout=300)\nfor rel, expected in pins.items():\n    assert digest(root / rel) == expected, ('source changed during build', rel)\nfor rel, expected in old.items():\n    assert digest(root / rel) == expected, ('old artifact changed', rel)\nassert not torch.cuda.is_initialized()\nninja = {str(p.relative_to(out)): {'sha256': digest(p), 'compile_link_text': p.read_text()}\n         for p in out.rglob('build.ninja')}\nassert ninja, 'actual compile/link instructions missing'\nmanifest = {'status': 'SDK_EMPTY_POINTER_BUILD_AND_CPU_OWNERSHIP_PASS', 'abi': abi,\n            'source_pins': pins, 'old_artifact_pins': old, 'toolchain': tools,\n            'actual_ninja_compile_link_instructions': ninja,\n            'elf_path': str(elf), 'elf_sha256': digest(elf), 'elf_metadata': metadata,\n            'linked_dependency_sha256': dependencies,\n            'cuda_initialized': False, 'elapsed_seconds': time.monotonic() - started,\n            'limits': ['CPU build/ABI import/extracted-function lifetime regression only; no CUDA, IPC or Store proof',\n                       'Fresh compile; not bitwise reproduction of old ELF41d']}\n(out / 'build-manifest.json').write_text(json.dumps(manifest, indent=2) + '\\n')\nprint(json.dumps(manifest), flush=True)\nprint('SDK_EMPTY_POINTER_BUILD_AND_CPU_OWNERSHIP_PASS', flush=True)\n",
+  "python_body_sha256": "2243ed332251614e986d03851c0139b9ae793656af867ec086c9c868f6a194c2",
+  "builder_python_sha256": "7c33e619aa88ed5cb0a948944612cdcdda61eee73bb9fa327059e20c2175a11b",
+  "compiler_path_evidence": "Correctly URL-encoded Docker archive HEAD confirms tripletg++13, genericaliases, C++13 headers, Python3.12 headers, CUDA/NVML headers and libstdc++ linker/runtime exist in stopped ec5. Earlier unescaped-plus query404 results were invalid path checks, corrected here; not a runtime failure.",
+  "pure_CPU_build_source_facts": {
+    "cpp_extension_sha256": "8c8c3c90aada79b4ee8aa77d01be1be4f94d172a8adb333dccad43d6b6aab661",
+    "cuda_init_py_sha256": "0161199fa03888a8744550727d1026a82f140c8dd31b265a26b41115f7dc857d",
+    "rationale": "cpp_extension._find_cuda_home does call torch.cuda.is_available. PYTORCH_NVML_BASED_CUDA_CHECK=1 plus empty CUDA_VISIBLE_DEVICES makes installed _device_count_nvml return0 before NVML/driver discovery. Explicit arch9.0 avoids capability autodetection. Runtime proof still requires CUDA not initialized and no NVIDIA devices/hooks."
+  },
+  "CMake_route": "Not used; no offline third-party cache verified, no FetchContent/network/CMake edits. Uses installed official CUDAExtension+BuildExtension on exact4project_C sources only.",
+  "frozen_limits": [
+    "Source89c3 and testb764 only this patch; schema/order/nonempty/owner unchanged.",
+    "No special-lstdc++ override needed with verified existing tripletg++13.",
+    "Explicit CPU ABI-import of new_C is part of proposed scope only AFTER source/ABI filename/dependency checks; calls no CUDA functions.",
+    "Do not overwrite original_C41d/_checkpoint_store/glog.",
+    "No GPU/Store retry included.",
+    "This JSON is command data, not a new Python wrapper/source file or deployment framework."
+  ],
+  "supersedes_preliminary_plan_sha256": "bdefdf93d554005777591ac77674f76ecc16252c1117ba5c6aa2d9d697644d01",
+  "previous_review_draft_not_executed_sha256": "179b942c9c8cc89613fcd6114f1c696eb98916d34a6da1dc039a164921bf8f6f",
+  "changes_from_previous_draft": "Capture actual compiler/nvcc/ninja version outputs, ELF symbol versions/.comment and complete generated Ninja compile/link flags.",
+  "guard_budget": {
+    "deadline": 1080,
+    "kill_after": 3,
+    "overall": 1120,
+    "release": 60,
+    "native_runtime": 1200,
+    "native_stop": 3,
+    "pre_rpc_required": 1206,
+    "post_activation_required": 1203
+  },
+  "outer_budget": {
+    "native_runtime": 1257,
+    "stop": 1,
+    "actual_deadline_from_activation": 1258,
+    "maximum_preparation_before_GO": 50
+  },
+  "frozen_old_artifact_pins": {
+    "sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+    "sllm_store/sllm_store/libglog.so.0.6.0": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6"
+  },
+  "supersedes_1200_unexecuted_proposal_sha256": "d167c5957b774fb24247fa61e780b90ffe5ae4c231dfdeaf67399f5dce23be66",
+  "budget_note": "GO-anchored guard deadline1080 is the hard execution cap, including container startup. Body phases may fail at that cap; root must not extend for late startup. Native guard overall1120+quiet60=1180 fits native1200; native+stop1203 and RPC3 pre1206 fit outer1258 with preparation<=50."
+}

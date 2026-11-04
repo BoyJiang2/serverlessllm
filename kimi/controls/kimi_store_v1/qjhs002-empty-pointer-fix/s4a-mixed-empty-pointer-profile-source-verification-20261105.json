@@ -1,0 +1,75 @@
+{
+  "status": "EMPTY_POINTER_DISTINCT_PROFILE_SOURCE_23_STDLIB_TESTS_PASS_NO_BUILD_NO_RUNTIME",
+  "epoch": 1793827592.2865872,
+  "files": {
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_kimi_tensor_component.py": {
+      "sha256": "5b70e4760dae51b887198faed6f59e6ed8b88ae8a7e8ad2345c55f9aadd91f29",
+      "bytes": 26905
+    },
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/s4a_component_runner.py": {
+      "sha256": "5dd32ba458224f94ae359c12fc3304a610ea62354289f990eb83e6028142a759",
+      "bytes": 10877
+    },
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/s4a_root_controller.py": {
+      "sha256": "f02ae256d4cfec86608d733476b64291248b1f20901c4bb8ca05d908992dffdb",
+      "bytes": 43954
+    },
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_mixed_empty_component.py": {
+      "sha256": "6c1a46cf8719271caf02245496b37bb15b27375ad42d67b7f7b40c1761862f8d",
+      "bytes": 10646
+    }
+  },
+  "new_RUN": "kimi-s4a-mixed-empty-pointer-fix-20261105-once",
+  "new_pins_path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/s4a-mixed-empty-pointer-fix-input-pins-20261105.json",
+  "unique_versioned_C_source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+  "new_ELF_sha256": null,
+  "new_ELF_hash_note": "Not built by this author; root freezes actual hash after independently reviewed versioned build; no guessed digest",
+  "old_host_C_sha256": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+  "original3gold_constants_unchanged": true,
+  "immutable_gold_before_after": {
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-gold-save-only-receipt.json": "3817c2e7b942af18388478823c01063cf3ce2f969c6ff9107e36c79b78300ea5",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component/tensor_index.json": "5fbcb6f759d0b473f6ed41ef21a825ca020c44d51c489e8af813c75e3a5b8993",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component/tensor.data_0": "4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8"
+  },
+  "CRLF_preserved": true,
+  "checks": [
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python",
+        "-p",
+        "test_mixed_empty_component.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_changed_original_index_is_rejected (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_existing_or_traversal_destination_is_rejected (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_imported_extension_hash_mismatch_or_missing_is_rejected (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_imported_extension_hash_records_actual_file (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_invalid_empty_stride_is_rejected (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_native_postcheck_rejects_late_actual_activation (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_native_precheck_rejects_before_launch (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_pointer_fix_profile_is_distinct_and_overlay_is_opt_in (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_runner_forwards_extension_pin_only_when_explicit (test_mixed_empty_component.MixedEmptySourceTest) ... ok\ntest_seven_key_mixed_archive_keeps_source_files_and_zero_metadata (test_mixed_empty_component.MixedEmptySourceTest) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.063s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python",
+        "-p",
+        "test_component_*.py",
+        "-v"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_actual_finally_retains_owner_and_primary_until_exit_ack (test_component_barrier.BarrierTests) ... ok\ntest_alive_server_no_ack_and_verified_reap_ack (test_component_barrier.BarrierTests) ... ok\ntest_client_crash_is_not_barrier (test_component_barrier.BarrierTests) ... ok\ntest_delayed_server_killed_reaped_before_ack_and_client_stop (test_component_barrier.BarrierTests) ... ok\ntest_expired_deadline_still_stops_server_first (test_component_barrier.BarrierTests) ... ok\ntest_nonzero_server_never_graceful_pass (test_component_barrier.BarrierTests) ... ok\ntest_server_sigint_timeout_never_graceful_pass (test_component_barrier.BarrierTests) ... ok\ntest_success_server_sigint_zero_and_verified_reap (test_component_barrier.BarrierTests) ... ok\ntest_unreapable_server_neither_ack_nor_client_stop (test_component_barrier.BarrierTests) ... ok\ntest_actual_finally (test_component_cleanup.CleanupTests) ... ok\ntest_rejections (test_component_existing_archive.ArchiveTests) ... ok\ntest_symlink_rejections (test_component_existing_archive.ArchiveTests) ... ok\ntest_valid_archive (test_component_existing_archive.ArchiveTests) ... ok\n\n----------------------------------------------------------------------\nRan 13 tests in 0.235s\n\nOK\n"
+    }
+  ],
+  "runtime_delta": "Explicit--empty-pointer-fix depends on mixedempty/runonce, distinctRUN+pins, onefixedRO_Cfileoverlay; expectedactualimportSHA sentviaexistingrunner andrecordedbyclientbeforeload+final andcheckedbyroot; defaultoldmixednooverlay/hasharg",
+  "resource_and_budget_unchanged": "singleUUID/CPU1/2GiB/PID512/SHM64MiB/tmp64MiB/cap2048MiB/pool64MiB/chunk1MiB/thread1/full220/outer217+1/inner180+3/GO25and8/16/21/release60",
+  "historical_run_prepared_pins_gold_not_modified": true,
+  "no_Torch_SDK_build_container_GPU_or_Git": true
+}
