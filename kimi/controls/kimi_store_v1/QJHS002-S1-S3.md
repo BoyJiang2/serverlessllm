@@ -437,3 +437,11 @@ qjhs002-revised-s4a-ready保留独审cb169终稿及实际CPU24项PASS/newBASEabs
 修正版source47bd发布补充：另获root授权一次有界重推已成功，GitHubSHA核47bd、server tracking Ada→47bd CAS成功。身份gate=FIXED_REVIEWED_DUAL_COPY_SHA_SATISFIED，GitHub发布与runtime技术身份分开，不另造用户gate；此前失败历史保留。用户新一次修正版批准及freshwindow/resource/guard门槛仍独立且尚待批准，本轮未运行。
 
 事实表snapshot说明：CURRENT-S1-S3-AND-PATCH-SCOPE旧主体绑定5d快照8生产；当前47bd包含Ada官方server.py最小shutdown修复，为第9生产文件，不以旧表8项冒称当前。身份gate独审最终827a093附录另存，用户新trial批准仍待答复。
+
+## 用户批准唯一修正版窄S4a组件 PASS（2026-11-04）
+
+qjhs002-s4a-revised-narrow-pass仅保存小receipt、admission/preflight、units-afterstop、独审a7db与远端20SHA清单。原始20日志/code仅服务器p0/s4a-readback-revised-20261104-public保留，manifest8459b167…已root readonly核验，不下载raw包/源码副本；rawOCI仍root0600远端。
+
+终态S4A_COMPONENT_ORDERED_STOP_RELEASE_PASS：controller85.864s，parent7.297s/client0/server0/SIGINT_GRACEFUL/forcedFalse，三tensor rawhash+metadata一致及lastalias driver释放证据；guardquiet60.025/observerquiet60.063，采样peak651MiB，3units实际exit0/PID0后stop，freshSSHinactive/dead，GPU0/noProc/exactidentitiesgone/scopegone。PIDcurrent采样最大129，limit曾629145→512，仅实际采样非精确peak/最小阈值因果证明。
+
+旧S4a FAILED/原128fail/9fe3maskfail/CPU1eventcap均保留。仅一个packed组件官方readback+成功路径ordered stop/release通过，不是全模型/转换/TP8或S5全面ownership完成；用户本次一次额度已完成，不启动更多运行，goal不complete。source47bd不变，无空sourcecommit。本轮依用户磁盘要求仅本地必要小证据，raw/code优先服务器。
