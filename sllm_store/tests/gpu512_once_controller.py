@@ -1,21 +1,22 @@
 """One bounded eight-rank CUDA/NCCL micro; no model or Store."""
 import argparse, hashlib, json, os, pathlib, re, subprocess, time
-import xml.etree.ElementTree as ET
 import math
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-RUN = 'kimi-tp8-cuda-nccl-micro-cdi-20261104'
+RUN = 'kimi-tp8-cuda-nccl-micro-cdi2-20261104'
 BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')/RUN
 UUIDS = ['GPU-736d7f37-f647-b82d-ab11-693753ac6822','GPU-c5510474-1f6d-03f1-c57f-476db275c5cb','GPU-d8081222-9816-41e4-68f8-ecbb13de6855','GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f','GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242','GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a','GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b','GPU-21336138-6e64-ec08-305b-26c99d661ab9']
 IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
 OBSERVER = ROOT/'sllm_store/tests/s4a_root_controller.py'
 PROBE = ROOT/'sllm_store/tests/cuda_micro_probe.py'
-PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'07d2c986fef6750083d195ccf2587f02261f359dcdcdff1794c237c73c9569e2'}
+PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'f5e0d1ef0dde38a5abd4a3c8b48aebd541ff8ac3a89c110709bbd76b2084baca', PROBE:'07d2c986fef6750083d195ccf2587f02261f359dcdcdff1794c237c73c9569e2'}
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
+NVIDIA_SMI = '/usr/bin/nvidia-smi'
+GPU_QUERY_TIMEOUT = 15
 
-def call(argv):
-    return subprocess.check_output(argv, text=True, timeout=3)
+def call(argv, timeout=3):
+    return subprocess.check_output(argv, text=True, timeout=timeout)
 
 def save(name, row):
     path = BASE/name
@@ -42,10 +43,26 @@ def healthy(unit, finalname):
     return row
 
 def gpu():
-    rows = ET.fromstring(call(['/usr/bin/nvidia-smi', '-q', '-x'])).findall('gpu')
-    assert len(rows) == 8 and {r.findtext('uuid') for r in rows} == set(UUIDS)
-    return {r.findtext('uuid'): {'used_mib': int(r.findtext('fb_memory_usage/used').split()[0]),
-            'processes': [p.findtext('pid') for p in r.findall('processes/process_info')]} for r in rows}
+    # Narrow queries avoid collecting unrelated driver fields.
+    memory = call([NVIDIA_SMI, '--query-gpu=uuid,memory.used', '--format=csv,noheader,nounits'],
+                  timeout=GPU_QUERY_TIMEOUT)
+    apps = call([NVIDIA_SMI, '--query-compute-apps=gpu_uuid,pid', '--format=csv,noheader'],
+                timeout=GPU_QUERY_TIMEOUT)
+    used = {}
+    for line in memory.splitlines():
+        if line.strip():
+            uuid, mib = [field.strip() for field in line.split(',')]
+            assert uuid not in used, 'duplicate GPU memory row'
+            used[uuid] = int(mib)
+            assert used[uuid] >= 0, 'negative GPU memory'
+    processes = {}
+    for line in apps.splitlines():
+        if line.strip():
+            uuid, pid = [field.strip() for field in line.split(',')]
+            assert pid.isdecimal() and int(pid) > 0, 'invalid GPU process PID'
+            processes.setdefault(uuid, []).append(pid)
+    assert len(used) == 8 and set(used) == set(UUIDS)
+    return {uuid: {'used_mib': used[uuid], 'processes': processes.get(uuid, [])} for uuid in UUIDS}
 
 def validate_messages(messages):
     rows = [m for m in messages if m.get('event') == 'TP8_CUDA_NCCL_MICRO_PASS']
@@ -97,6 +114,10 @@ def validate_create_request(row):
     assert mount['Source'] == str(ROOT/'sllm_store') and mount['Destination'] == '/source/sllm_store' and not mount['RW']
 
 def service(unit, argv, remain=False):
+    outer = unitprops(RUN+'-controller.service')
+    deadline = int(outer['ActiveEnterTimestampMonotonic'])/1e6+218
+    assert int(outer['ActiveEnterTimestampMonotonic']) > 0
+    assert time.monotonic()+186 <= deadline, 'independent service exceeds outer budget'
     call(['/usr/bin/systemd-run', '--unit='+unit, '--property=Type=exec',
           '--property=RuntimeMaxSec=180', '--property=TimeoutStopSec=3',
           '--property=Restart=no', '--property=KillMode=control-group',
@@ -105,6 +126,20 @@ def service(unit, argv, remain=False):
           *(['--property=RemainAfterExit=yes'] if remain else []),
           '--property=StandardOutput=append:'+str(BASE/(unit+'.stdout')),
           '--property=StandardError=append:'+str(BASE/(unit+'.stderr')), *argv])
+    actual = unitprops(unit)
+    assert actual['RuntimeMaxUSec'] == '3min' and actual['TimeoutStopUSec'] == '3s'
+    assert int(actual['ActiveEnterTimestampMonotonic']) > 0
+    assert int(actual['ActiveEnterTimestampMonotonic'])/1e6+183 <= deadline
+
+def monitor_status(observed):
+    monitor = observed['monitor']
+    assert isinstance(monitor['gaps'], int) and monitor['gaps'] >= 0
+    assert monitor['samples'] > 0 and monitor['memory_samples'] >= monitor['samples']
+    assert all(math.isfinite(monitor[k]) and monitor[k] >= 0 for k in ('max_query_seconds', 'max_memory_interval_seconds'))
+    assert monitor['peak_kind'] == 'SAMPLED_LOWER_BOUND'
+    expected = 'SAMPLED_WITH_QUERY_GAPS' if monitor['gaps'] else 'SAMPLED_NO_QUERY_ERRORS'
+    assert monitor['peak_coverage'] == expected
+    return 'TP8_MICRO_COMPUTE_RELEASE_PASS_TELEMETRY_GAPS' if monitor['gaps'] else 'TP8_MICRO_NORMAL_EXIT_RELEASE_PASS'
 
 def controller(expiry, expected_sha):
     started = time.monotonic(); start_epoch = time.time()
@@ -116,6 +151,9 @@ def controller(expiry, expected_sha):
     assert outer['Type'] == 'exec' and int(outer['MainPID']) == os.getpid()
     assert outer['RuntimeMaxUSec'] == '3min 37s' and outer['TimeoutStopUSec'] == '1s'
     assert outer['Restart'] == 'no' and outer['KillMode'] == 'control-group' and outer['SendSIGKILL'] == 'yes' and outer['FinalKillSignal'] == '9'
+    assert int(outer['ActiveEnterTimestampMonotonic']) > 0
+    started = int(outer['ActiveEnterTimestampMonotonic'])/1e6
+    assert started <= time.monotonic()
     assert not BASE.exists()
     assert all(r == {'used_mib':0, 'processes':[]} for r in gpu().values())
     BASE.mkdir(mode=0o700)
@@ -201,15 +239,17 @@ def controller(expiry, expected_sha):
         assert (BASE/'oci.raw.json').stat().st_mode & 0o777 == 0o600
         observed = json.loads((BASE/'observer-final.json').read_text())
         assert observed['gpu_uuids'] == UUIDS and observed['quiet_seconds'] >= 60
+        status = monitor_status(observed)
         assert set(observed['peak_mib_by_uuid']) == set(UUIDS) and max(observed['peak_mib_by_uuid'].values()) <= 2048
         for unit, name in ((guardunit,'guard-final.json'), (observerunit,'observer-final.json')):
             while int(healthy(unit,name)['MainPID']) != 0:
                 assert time.monotonic()-started < 200; time.sleep(.05)
+        assert time.monotonic()+2*GPU_QUERY_TIMEOUT+6 <= started+218, 'final queries exceed outer budget'
         assert all(r == {'used_mib':0,'processes':[]} for r in gpu().values())
         assert not pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cid+'.scope').exists()
         for path, digest in PINS.items(): assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
         assert hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest() == expected_sha
-        save('controller-final.json', {'status':'TP8_MICRO_NORMAL_EXIT_RELEASE_PASS','cid':cid,'elapsed':time.monotonic()-started,'guard':final,'observer':observed,'guard_exit':unitprops(guardunit),'observer_exit':unitprops(observerunit)})
+        save('controller-final.json', {'status':status,'cid':cid,'elapsed':time.monotonic()-started,'guard':final,'observer':observed,'guard_exit':unitprops(guardunit),'observer_exit':unitprops(observerunit)})
     except BaseException as error:
         (BASE/'ABORT').touch(exist_ok=True)
         save('controller-failed.json', {'status':'FAILED_RETAINED','cid':cid,'error_type': type(error).__name__, 'error': str(error), 'go': go,'elapsed':time.monotonic()-started})

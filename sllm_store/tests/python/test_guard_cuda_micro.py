@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import time
 import types
@@ -126,11 +127,14 @@ class BudgetAndObserverTest(unittest.TestCase):
     def observer_namespace(self, base):
         import math
         import re
-        import xml.etree.ElementTree as ET
+        import subprocess
         tree = ast.parse((Path(__file__).resolve().parents[1]/'s4a_root_controller.py').read_text())
         ns = dict(BASE=base,UUID='GPU-'+'0'*36,pathlib=__import__('pathlib'),math=math,
-                  re=re,ET=ET,os=os,json=json,time=time)
-        execute([n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in
+                  re=re,os=os,json=json,time=time,subprocess=subprocess)
+        wanted = ('NVIDIA_SMI','GPU_QUERY_TIMEOUT','MAX_CONSECUTIVE_GPU_QUERY_FAILURES','SAMPLE_INTERVAL_SECONDS')
+        constants = [n for n in tree.body if isinstance(n,ast.Assign)
+                     and any(getattr(t,'id',None) in wanted for t in n.targets)]
+        execute(constants + [n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in
                  ('save','gpu_states','observer')],ns)
         return ns
 
@@ -138,9 +142,7 @@ class BudgetAndObserverTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             ns=self.observer_namespace(Path(d))
             uuids=['GPU-'+str(i)*36 for i in range(8)]
-            ns['call']=lambda argv:'<nvidia_smi_log>'+''.join(
-                '<gpu><uuid>'+u+'</uuid><fb_memory_usage><used>0 MiB</used></fb_memory_usage></gpu>'
-                for u in uuids[:-1])+'</nvidia_smi_log>'
+            ns['call']=lambda argv, timeout=None:'\n'.join(u+', 0' for u in uuids[:-1])
             with self.assertRaises(AssertionError):ns['gpu_states'](uuids)
             with self.assertRaises(AssertionError):ns['gpu_states']([uuids[0]]*8)
 
@@ -152,10 +154,10 @@ class BudgetAndObserverTest(unittest.TestCase):
             ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
                 sleep=lambda seconds:setattr(clock,'now',clock.now+seconds))
             uuids=['GPU-'+str(i)*36 for i in range(8)]
-            def query(argv):
-                return '<nvidia_smi_log>'+''.join('<gpu><uuid>'+u+
-                    '</uuid><fb_memory_usage><used>'+str(10 if i==7 and 110<=clock.now<120 else 0)+
-                    ' MiB</used></fb_memory_usage><processes/></gpu>' for i,u in enumerate(uuids))+'</nvidia_smi_log>'
+            def query(argv, timeout=None):
+                if '--query-gpu=uuid,memory.used' not in argv: return ''
+                return '\n'.join(u+', '+str(10 if i==7 and 110<=clock.now<120 else 0)
+                                 for i,u in enumerate(uuids))
             ns['call']=query
             ns['observer'](base,uuids,175,2048)
             result=json.loads((base/'observer-final.json').read_text())
@@ -170,18 +172,138 @@ class BudgetAndObserverTest(unittest.TestCase):
             ns=self.observer_namespace(base);clock=types.SimpleNamespace(now=100.0)
             ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
                 sleep=lambda seconds:setattr(clock,'now',clock.now+seconds))
-            ns['call']=lambda argv:'<nvidia_smi_log><gpu><uuid>'+ns['UUID']+'</uuid><fb_memory_usage><used>0 MiB</used></fb_memory_usage><processes/></gpu></nvidia_smi_log>'
+            ns['call']=lambda argv, timeout=None:(ns['UUID']+', 0'
+                if '--query-gpu=uuid,memory.used' in argv else '')
             ns['observer']()
             result=json.loads((base/'observer-final.json').read_text())
-            self.assertEqual(set(result),{'gpu_uuid','quiet_seconds','peak_mib'})
+            self.assertEqual(set(result),{'gpu_uuid','quiet_seconds','peak_mib','monitor'})
+            self.assertEqual(result['monitor']['peak_kind'],'SAMPLED_LOWER_BOUND')
         with tempfile.TemporaryDirectory() as d:
             base=Path(d);ns=self.observer_namespace(base);calls=[]
-            def query(argv):
+            def query(argv, timeout=None):
+                if '--query-gpu=uuid,memory.used' not in argv: return ''
                 calls.append(1)
-                return '<nvidia_smi_log><gpu><uuid>'+ns['UUID']+'</uuid><fb_memory_usage><used>'+('0' if len(calls)==1 else '2049')+' MiB</used></fb_memory_usage></gpu></nvidia_smi_log>'
+                return ns['UUID']+', '+('0' if len(calls)==1 else '2049')
             ns['call']=query
             with self.assertRaises(AssertionError):ns['observer']()
             self.assertTrue((base/'ABORT').exists())
+
+    def test_slow_query_is_a_gap_not_a_failure(self):
+        # The observer used to abort the whole run when one nvidia-smi query
+        # exceeded the call cap. Missing evidence must be recorded as a gap and
+        # must restart the quiet window instead of failing the experiment.
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);(base/'normal-exit.json').touch()
+            ns=self.observer_namespace(base);clock=types.SimpleNamespace(now=100.0)
+            ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
+                sleep=lambda seconds:setattr(clock,'now',clock.now+seconds))
+            state={'n':0}
+            def query(argv, timeout=None):
+                if '--query-gpu=uuid,memory.used' not in argv: return ''
+                state['n']+=1
+                if state['n']==3:
+                    clock.now+=4.0
+                    raise subprocess.TimeoutExpired(argv, timeout or 0)
+                return ns['UUID']+', 0'
+            ns['call']=query
+            ns['observer'](base,[ns['UUID']],175,2048)
+            self.assertFalse((base/'ABORT').exists())
+            self.assertEqual(json.loads((base/'observer-final.json').read_text())['quiet_seconds'],60)
+            lines=[json.loads(line) for line in (base/'gpu-observer.jsonl').read_text().splitlines()]
+            gaps=[line for line in lines if 'sample_error' in line]
+            self.assertEqual(len(gaps),1)
+            self.assertEqual(gaps[0]['sample_error']['consecutive'],1)
+            monitor=json.loads((base/'observer-final.json').read_text())['monitor']
+            self.assertEqual(lines[-1]['monitor_summary'],monitor)
+            self.assertEqual(monitor['gaps'],1)
+            self.assertEqual(monitor['peak_coverage'],'SAMPLED_WITH_QUERY_GAPS')
+            self.assertGreaterEqual(monitor['max_query_seconds'],4)
+            self.assertGreaterEqual(monitor['max_memory_interval_seconds'],4)
+
+    def test_sustained_monitor_blackout_aborts(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);(base/'normal-exit.json').touch()
+            ns=self.observer_namespace(base);state={'n':0}
+            def query(argv, timeout=None):
+                if '--query-gpu=uuid,memory.used' not in argv: return ''
+                state['n']+=1
+                if state['n']>1: raise subprocess.TimeoutExpired(argv, timeout or 0)
+                return ns['UUID']+', 0'
+            ns['call']=query
+            with self.assertRaises(AssertionError):ns['observer'](base,[ns['UUID']],175,2048)
+            self.assertTrue((base/'ABORT').exists())
+
+    def test_returned_duplicate_and_negative_memory_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.observer_namespace(Path(d));u=ns['UUID']
+            for memory in (u+', 2049\n'+u+', 0',u+', -1',u+', nan'):
+                with self.subTest(memory=memory):
+                    ns['call']=lambda argv,timeout=None:memory
+                    with self.assertRaises((AssertionError,ValueError)):ns['gpu_states']([u])
+
+    def test_over_limit_memory_cannot_be_hidden_by_apps_timeout(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);ns=self.observer_namespace(base);count={'memory':0,'apps':0}
+            def query(argv,timeout=None):
+                if '--query-gpu=uuid,memory.used' in argv:
+                    count['memory']+=1
+                    return ns['UUID']+', '+('0' if count['memory']==1 else '2049')
+                count['apps']+=1
+                if count['apps']>1:raise subprocess.TimeoutExpired(argv,timeout)
+                return ''
+            ns['call']=query
+            with self.assertRaisesRegex(AssertionError,'memory exceeds limit'):ns['observer']()
+            self.assertEqual(count['apps'],1)
+            self.assertTrue((base/'ABORT').exists())
+            rows=[json.loads(s) for s in (base/'gpu-observer.jsonl').read_text().splitlines()]
+            self.assertEqual(rows[-1]['memory_mib_by_uuid'][ns['UUID']],2049)
+
+    def test_partial_memory_is_retained_and_apps_gap_resets_quiet(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);(base/'normal-exit.json').touch();ns=self.observer_namespace(base)
+            clock=types.SimpleNamespace(now=100.0);count={'memory':0,'apps':0}
+            ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
+                sleep=lambda s:setattr(clock,'now',clock.now+s))
+            def query(argv,timeout=None):
+                if '--query-gpu=uuid,memory.used' in argv:
+                    count['memory']+=1
+                    return ns['UUID']+', '+('17' if count['memory']==3 else '0')
+                count['apps']+=1
+                if count['apps']==3:
+                    clock.now+=4
+                    raise subprocess.TimeoutExpired(argv,timeout)
+                return ''
+            ns['call']=query;ns['observer']()
+            row=json.loads((base/'observer-final.json').read_text())
+            self.assertEqual(row['peak_mib'],17)
+            self.assertEqual(row['monitor']['gaps'],1)
+            self.assertGreater(row['monitor']['memory_samples'],row['monitor']['samples'])
+            self.assertGreaterEqual(clock.now,165)
+
+    def test_slow_success_is_reported_and_late_query_cannot_pass(self):
+        for late in (False,True):
+            with self.subTest(late=late),tempfile.TemporaryDirectory() as d:
+                base=Path(d);(base/'normal-exit.json').touch();ns=self.observer_namespace(base)
+                clock=types.SimpleNamespace(now=100.0);count={'memory':0}
+                ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
+                    sleep=lambda s:setattr(clock,'now',clock.now+s))
+                def query(argv,timeout=None):
+                    if '--query-gpu=uuid,memory.used' not in argv:return ''
+                    count['memory']+=1
+                    if count['memory']==2:clock.now+=180 if late else 10
+                    return ns['UUID']+', 0'
+                ns['call']=query
+                if late:
+                    with self.assertRaisesRegex(AssertionError,'exceeded deadline'):ns['observer']()
+                    self.assertFalse((base/'observer-final.json').exists())
+                    self.assertTrue((base/'ABORT').exists())
+                else:
+                    ns['observer']()
+                    row=json.loads((base/'observer-final.json').read_text())['monitor']
+                    self.assertEqual(row['gaps'],0)
+                    self.assertEqual(row['max_query_seconds'],10)
+                    self.assertGreaterEqual(row['max_memory_interval_seconds'],10)
+                    self.assertEqual(row['peak_kind'],'SAMPLED_LOWER_BOUND')
 
 
 if __name__ == "__main__":

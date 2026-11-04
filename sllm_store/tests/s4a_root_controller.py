@@ -1,15 +1,19 @@
 """S4a root integration draft; no execution authorization."""
 import argparse, hashlib, json, math, os, pathlib, re, subprocess, time
-import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
 BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/s4a-readback-revised-20261104')
 UUID = 'GPU-736d7f37-f647-b82d-ab11-693753ac6822'
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
+NVIDIA_SMI = '/usr/bin/nvidia-smi'
+CALL_TIMEOUT = 3
+GPU_QUERY_TIMEOUT = 15
+MAX_CONSECUTIVE_GPU_QUERY_FAILURES = 3
+SAMPLE_INTERVAL_SECONDS = .5
 
-def call(argv):
-    return subprocess.check_output(argv, text=True, timeout=3)
+def call(argv, timeout=CALL_TIMEOUT):
+    return subprocess.check_output(argv, text=True, timeout=timeout)
 
 def save(name, row, mode=0o600, base=None):
     base = BASE if base is None else base
@@ -42,11 +46,7 @@ def healthy(unit, finalname):
     return row
 
 def gpu():
-    raw = call(['/usr/bin/nvidia-smi', '--id='+UUID, '-q', '-x'])
-    row = ET.fromstring(raw).find('gpu')
-    assert row.findtext('uuid') == UUID
-    return {'used_mib': int(row.findtext('fb_memory_usage/used').split()[0]),
-            'processes': [p.findtext('pid') for p in row.findall('processes/process_info')]}
+    return gpu_states([UUID])[UUID]
 
 def service(unit, argv, remain=False):
     full_start = json.loads((BASE/'prepared.json').read_text())['preparation_started']
@@ -60,14 +60,37 @@ def service(unit, argv, remain=False):
           '--property=StandardOutput=append:'+str(BASE/(unit+'.stdout')),
           '--property=StandardError=append:'+str(BASE/(unit+'.stderr')), *argv])
 
-def gpu_states(uuids):
+def gpu_states(uuids, observe_memory=None):
     assert len(uuids) in (1, 8) and len(set(uuids)) == len(uuids)
     assert all(re.fullmatch(r'GPU-[0-9a-fA-F-]{36}', uuid) for uuid in uuids)
-    raw = call(['/usr/bin/nvidia-smi', '-q', '-x'])
-    rows = [row for row in ET.fromstring(raw).findall('gpu') if row.findtext('uuid') in uuids]
-    assert len(rows) == len(uuids) and {row.findtext('uuid') for row in rows} == set(uuids)
-    return {row.findtext('uuid'): {'used_mib': int(row.findtext('fb_memory_usage/used').split()[0]),
-            'processes': [p.findtext('pid') for p in row.findall('processes/process_info')]} for row in rows}
+    # Query only the memory and process fields needed for release observation.
+    try:
+        memory = call([NVIDIA_SMI, '--id='+','.join(uuids), '--query-gpu=uuid,memory.used',
+                       '--format=csv,noheader,nounits'], timeout=GPU_QUERY_TIMEOUT)
+    except (subprocess.SubprocessError, OSError) as error:
+        raise RuntimeError('GPU memory query failed: '+str(error)) from error
+    used = {}
+    for line in memory.splitlines():
+        if line.strip():
+            uuid, mib = [field.strip() for field in line.split(',')]
+            assert uuid not in used, 'duplicate GPU memory row'
+            used[uuid] = int(mib)
+            assert used[uuid] >= 0, 'negative GPU memory'
+    assert set(used) == set(uuids), 'GPU inventory differs from the requested set'
+    if observe_memory is not None:
+        observe_memory(used)
+    try:
+        apps = call([NVIDIA_SMI, '--query-compute-apps=gpu_uuid,pid',
+                     '--format=csv,noheader'], timeout=GPU_QUERY_TIMEOUT)
+    except (subprocess.SubprocessError, OSError) as error:
+        raise RuntimeError('GPU process query failed: '+str(error)) from error
+    processes = {}
+    for line in apps.splitlines():
+        if line.strip():
+            uuid, pid = [field.strip() for field in line.split(',')]
+            assert pid.isdecimal() and int(pid) > 0, 'invalid GPU process PID'
+            processes.setdefault(uuid, []).append(pid)
+    return {uuid: {'used_mib': used[uuid], 'processes': processes.get(uuid, [])} for uuid in uuids}
 
 
 def observer(evidence=None, uuids=None, seconds=135, limit_mib=2048):
@@ -77,32 +100,63 @@ def observer(evidence=None, uuids=None, seconds=135, limit_mib=2048):
     assert math.isfinite(seconds) and seconds > 60 and limit_mib > 0
     start = time.monotonic(); quiet = None; peaks = {uuid: 0 for uuid in uuids}
     zero = {'used_mib': 0, 'processes': []}
+    consecutive = 0; samples = 0; gaps = 0; memory_samples = 0
+    max_query_seconds = 0.0; max_memory_interval = 0.0; last_memory = None
     try:
         states = gpu_states(uuids)
         assert all(row == zero for row in states.values())
+        last_memory = time.monotonic()
         identity = {'gpu_uuid': uuids[0]} if len(uuids) == 1 else {'gpu_uuids': uuids}
         save('observer-ready.json', {'pid': os.getpid(), **identity}, base=base)
         with (base/'gpu-observer.jsonl').open('x') as stream:
+            def record_memory(used):
+                nonlocal memory_samples, max_memory_interval, last_memory
+                now = time.monotonic()
+                if last_memory is not None:
+                    max_memory_interval = max(max_memory_interval, now-last_memory)
+                last_memory = now; memory_samples += 1
+                for uuid, mib in used.items(): peaks[uuid] = max(peaks[uuid], mib)
+                stream.write(json.dumps({'mono': now, 'memory_mib_by_uuid': used})+'\n'); stream.flush()
+                assert max(used.values()) <= limit_mib, 'observed GPU memory exceeds limit'
             while time.monotonic()-start < seconds:
-                states = gpu_states(uuids)
-                for uuid, row in states.items():
-                    peaks[uuid] = max(peaks[uuid], row['used_mib'])
+                began = time.monotonic()
+                try:
+                    states = gpu_states(uuids, record_memory)
+                except RuntimeError as error:
+                    # A failed query leaves a gap and restarts the quiet window.
+                    consecutive += 1; gaps += 1; quiet = None
+                    max_query_seconds = max(max_query_seconds, time.monotonic()-began)
+                    stream.write(json.dumps({'mono': time.monotonic(), 'sample_error':
+                        {'error': str(error), 'seconds': time.monotonic()-began,
+                         'consecutive': consecutive}})+'\n'); stream.flush()
+                    assert consecutive < MAX_CONSECUTIVE_GPU_QUERY_FAILURES, 'observer monitor blackout'
+                    time.sleep(SAMPLE_INTERVAL_SECONDS); continue
+                max_query_seconds = max(max_query_seconds, time.monotonic()-began)
+                assert time.monotonic()-start < seconds, 'observer query exceeded deadline'
+                consecutive = 0; samples += 1
                 row = states[uuids[0]] if len(uuids) == 1 else {'gpus': states}
                 stream.write(json.dumps({'mono': time.monotonic(), **row})+'\n'); stream.flush()
-                assert all(row['used_mib'] <= limit_mib for row in states.values())
                 if (base/'normal-exit.json').exists() or (base/'ABORT').exists():
                     if any(row != zero for row in states.values()):
-                        quiet = None; time.sleep(.5); continue
+                        quiet = None; time.sleep(SAMPLE_INTERVAL_SECONDS); continue
                     quiet = quiet or time.monotonic()
                     if time.monotonic()-quiet >= 60:
                         peak = {'peak_mib': peaks[uuids[0]]} if len(uuids) == 1 else {'peak_mib_by_uuid': peaks}
-                        save('observer-final.json', {**identity, 'quiet_seconds': time.monotonic()-quiet, **peak}, base=base)
+                        monitor = {'samples': samples, 'memory_samples': memory_samples, 'gaps': gaps,
+                                   'max_query_seconds': max_query_seconds,
+                                   'max_memory_interval_seconds': max_memory_interval,
+                                   'peak_kind': 'SAMPLED_LOWER_BOUND',
+                                   'peak_coverage': 'SAMPLED_WITH_QUERY_GAPS' if gaps else 'SAMPLED_NO_QUERY_ERRORS'}
+                        save('observer-final.json', {**identity, 'quiet_seconds': time.monotonic()-quiet,
+                             **peak, 'monitor': monitor}, base=base)
+                        stream.write(json.dumps({'mono': time.monotonic(), 'monitor_summary': monitor})+'\n'); stream.flush()
                         return
-                time.sleep(.5)
+                time.sleep(SAMPLE_INTERVAL_SECONDS)
         raise TimeoutError('observer deadline')
     except BaseException:
         (base/'ABORT').touch(exist_ok=True)
         raise
+
 
 
 RUN = 's4a-readback-revised-20261104'

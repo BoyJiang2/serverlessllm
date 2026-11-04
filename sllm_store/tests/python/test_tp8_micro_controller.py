@@ -6,6 +6,7 @@ import os
 import json
 import subprocess
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('tp8_controller', pathlib.Path(__file__).resolve().parents[1]/'gpu512_once_controller.py')
 controller = importlib.util.module_from_spec(spec)
@@ -66,6 +67,38 @@ class ConfigurationTest(unittest.TestCase):
                 controller.validate_create_request(row)
         row = self.configuration(); row['HostConfig']['NetworkMode'] = 'host'
         with self.assertRaises(AssertionError): controller.validate_create_request(row)
+
+class MonitorAndBudgetTest(unittest.TestCase):
+    def test_duplicate_and_negative_baseline_memory_rejected(self):
+        memory='\n'.join(u+', 0' for u in controller.UUIDS)
+        for extra in ('\n'+controller.UUIDS[0]+', 2049', ''):
+            value=memory+extra if extra else memory.replace(', 0',', -1',1)
+            with self.subTest(extra=extra),patch.object(controller,'call',side_effect=[value,'']):
+                with self.assertRaises(AssertionError):controller.gpu()
+
+    def test_gaps_qualify_success_and_peak_evidence(self):
+        for gaps,status in [(0,'TP8_MICRO_NORMAL_EXIT_RELEASE_PASS'),
+                            (1,'TP8_MICRO_COMPUTE_RELEASE_PASS_TELEMETRY_GAPS')]:
+            row={'monitor':{'samples':2,'memory_samples':3,'gaps':gaps,
+                 'max_query_seconds':10,'max_memory_interval_seconds':12,
+                 'peak_kind':'SAMPLED_LOWER_BOUND',
+                 'peak_coverage':'SAMPLED_WITH_QUERY_GAPS' if gaps else 'SAMPLED_NO_QUERY_ERRORS'}}
+            self.assertEqual(controller.monitor_status(row),status)
+            row['monitor']['peak_coverage']='COMPLETE'
+            with self.assertRaises(AssertionError):controller.monitor_status(row)
+
+    def test_service_refuses_late_launch_before_systemd_run(self):
+        outer={'ActiveEnterTimestampMonotonic':'100000000'}
+        for now,stamp,allowed in [(133,133,False),(132,135,True),(132,136,False)]:
+            actual={'ActiveEnterTimestampMonotonic':str(stamp*1000000),
+                    'RuntimeMaxUSec':'3min','TimeoutStopUSec':'3s'}
+            with self.subTest(now=now,stamp=stamp),patch.object(controller,'unitprops',side_effect=[outer,actual]), \
+                 patch.object(controller.time,'monotonic',return_value=now),patch.object(controller,'call') as run:
+                if allowed:controller.service('fixture.service',['/bin/true'])
+                else:
+                    with self.assertRaises(AssertionError):controller.service('fixture.service',['/bin/true'])
+                self.assertEqual(run.call_count,0 if now==133 else 1)
+
 
 class RealTorchrunCpuTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('KIMI_REAL_TORCHRUN_CPU_TEST') == '1', 'requires reviewed immutable CPU-only runtime')
