@@ -1,0 +1,30 @@
+{
+  "epoch": 1793822625.320298,
+  "patch_sha256": "7197686c011c3c30d468ba9c497c6f047ce64b4d73ee56e1055e5f6bf1f6a577",
+  "checks": [
+    {
+      "test": "test_vllm_loader_interface.py",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_diagnostic_logging_failure_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_does_not_collect_metadata_or_touch_cuda (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_preserves_model_exception (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_failed_load_reports_existing_partial_model_without_success_claim (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_metadata_capture_has_no_tensor_payload_or_store_calls (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_model_failure_captures_peak_before_reset_and_preserves_identity (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_peak_alias_backend_and_empty_metadata_before_reset (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_physical_uuid_normalizes_torch_metadata_without_rank_ordinal_assumption (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_snapshot_failure_remains_missing_and_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_selected_model_config_and_prefix_reach_initializer (test_vllm_loader_interface.LoaderInterfaceTest) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.034s\n\nOK\n"
+    },
+    {
+      "test": "test_vllm_rotary_platform.py",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_cuda_skips_external_namespace_probe_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_existing_external_import_is_preserved (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_missing_package_keeps_existing_native_fallback_selection (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_original_cuda_namespace_condition_reproduces_missing_ops (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_patch_only_changes_platform_guard_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK\n"
+    },
+    {
+      "test": "test_cli_vllm_options.py",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_cli_reaches_real_writer_with_bfloat16_trust_and_data_mode (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_invalid_cli_options_do_not_reach_writer (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_legacy_sdk_and_cli_defaults_omit_version_specific_mm_kwarg (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\ntest_sdk_accepts_explicit_options (test_cli_vllm_options.VllmSaveOptionsTest) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.031s\n\nOK\n"
+    },
+    {
+      "test": "test_vllm_patch_status.py",
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_unapplied_applied_and_conflict (test_vllm_patch_status.PatchStatusTest) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.018s\n\nOK\n"
+    }
+  ]
+}

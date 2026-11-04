@@ -1,0 +1,99 @@
+{
+  "status": "CPU_FOUR_POSITIVE_LOADER_STATE_REGRESSIONS_SPEC_NOT_EXECUTED_REQUIRES_REVIEW",
+  "run_id": "kimi-store-loader-contract-cpu-positive-20261105-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "entrypoint": "/usr/bin/python3",
+  "cmd": [
+    "-I",
+    "-c",
+    "import json,pathlib,sys,unittest\nassert not list(pathlib.Path('/dev').glob('nvidia*'))\nimport torch\nassert not torch.cuda.is_initialized()\nexpected={\n 'test_marlin_empty_g_idx_round_trip',\n 'test_persistent_attention_scale_round_trip',\n 'test_same_parameter_module_alias_round_trip',\n 'test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved',\n}\ndef flatten(suite):\n for test in suite:\n  if isinstance(test,unittest.TestSuite):yield from flatten(test)\n  else:yield test\ndef verify_positive(result,names):\n assert len(names)==4 and set(names)==expected and result.testsRun==4\n assert result.wasSuccessful() and not result.errors and not result.failures and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses\nloader=unittest.TestLoader();suite=loader.discover('/work/sllm_store/tests/python',pattern='test_vllm_loader_state.py');names=[test.id().rsplit('.',1)[1] for test in flatten(suite)]\nprint(json.dumps({'event':'CPU_LOADER_STATE_DISCOVERY','test_names':names,'discovery_errors':loader.errors}),flush=True)\nassert len(names)==4 and set(names)==expected\nresult=unittest.TextTestRunner(stream=sys.stderr,verbosity=2).run(suite)\nprint(json.dumps({'event':'CPU_LOADER_STATE_RESULT','test_names':names,'tests_run':result.testsRun,'errors':len(result.errors),'failures':len(result.failures),'skipped':len(result.skipped),'expected_failures':len(result.expectedFailures),'unexpected_successes':len(result.unexpectedSuccesses),'scope':'real Torch CPU tensors; FakeStore in-process clone/archive only; no SDK Store service/archive/GPU/model'}),flush=True)\nverify_positive(result,names)\nassert not torch.cuda.is_initialized() and not list(pathlib.Path('/dev').glob('nvidia*'))\nprint('CPU_LOADER_STATE_ROUNDTRIP_PASS_NOT_STORE_GPU',flush=True)\n"
+  ],
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "HF_HOME": "/tmp/hf",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "USER": "boyjiang"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+      "Target": "/work/sllm_store/vllm_patch/sllm_load.patch",
+      "ReadOnly": true,
+      "sha256": "7197686c011c3c30d468ba9c497c6f047ce64b4d73ee56e1055e5f6bf1f6a577",
+      "bytes": 34470
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_state.py",
+      "Target": "/work/sllm_store/tests/python/test_vllm_loader_state.py",
+      "ReadOnly": true,
+      "sha256": "bd7a48c6a8c20db13d42b2b185c70f73b8a48dc533a9f2c4f12d2c6261a848bd",
+      "bytes": 7089
+    }
+  ],
+  "host_config": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=134217728,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "user": "2147:2147",
+  "budget": {
+    "full_seconds": 220,
+    "outer_runtime_seconds": 217,
+    "outer_stop_seconds": 1,
+    "guard_deadline": 60,
+    "guard_kill_after": 3,
+    "guard_overall": 100,
+    "guard_native_seconds": 180,
+    "guard_stop_seconds": 3,
+    "release_seconds": 60
+  },
+  "scope": "Actual Torch CPU four loader-state fixtures, FakeStore clone/archive only. No native SDK Store, model, GPU, weights or environment installation.",
+  "requirements": [
+    "Fresh reservation and root independent guard before runtime",
+    "Verify all literal mount SHA before create and after run",
+    "runc no NVIDIA hook/device; actual OCI proof; capture cgroup ancestors and kernel",
+    "Reuse existing guard ARM10/ACK2, no CPU observer GPU claim",
+    "actual native deadlines fit full bound before starting child",
+    "container+startclient exit0, noOOM/restart; guard actual exit0 and quiet>=60; root PID/scope cleanup",
+    "Failure retained without automatic retry; no dependency installation or extra assets on failure",
+    "No Git/sync during formal runtime or release"
+  ],
+  "revision_basis": {
+    "profile": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-loader-contract-cpu-baseline-20261105-spec.json",
+    "protocol": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-loader-contract-cpu-baseline-20261105-manual-root-command.json",
+    "changes": "Only entry acceptance changes to four exact positive tests with source/patch/test pins and freshonce ID; CPUresource+guardprotocol unchanged; stale child_timeout_seconds_each metadata removed (actualGO60 remains)."
+  },
+  "source_commit": "89ad61dd6b855367e76a592f05cba59765a16e85"
+}
