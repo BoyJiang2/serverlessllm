@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 import math
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-RUN = 'kimi-tp8-cuda-nccl-micro-20261104'
+RUN = 'kimi-tp8-cuda-nccl-micro-static-20261104'
 BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')/RUN
 UUIDS = ['GPU-736d7f37-f647-b82d-ab11-693753ac6822','GPU-c5510474-1f6d-03f1-c57f-476db275c5cb','GPU-d8081222-9816-41e4-68f8-ecbb13de6855','GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f','GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242','GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a','GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b','GPU-21336138-6e64-ec08-305b-26c99d661ab9']
 IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
@@ -69,7 +69,7 @@ def validate_configuration(row):
     env = dict(value.split('=',1) for value in config['Env'])
     assert env['CUDA_VISIBLE_DEVICES'] == env['NVIDIA_VISIBLE_DEVICES'] == ','.join(UUIDS)
     assert config['Entrypoint'] == ['python3']
-    assert config['Cmd'] == ['-I','-m','torch.distributed.run','--standalone','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
+    assert config['Cmd'] == ['-I','-m','torch.distributed.run','--rdzv-backend=static','--nnodes=1','--node-rank=0','--master-addr=127.0.0.1','--master-port=29500','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
     assert all(env[name] == '1' for name in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS'))
     assert host['Tmpfs'] == {'/tmp':'rw,nosuid,nodev,size=64m'}
     assert any(limit['Name'] == 'core' and limit['Soft'] == limit['Hard'] == 0 for limit in host['Ulimits'])
@@ -106,7 +106,7 @@ def controller(expiry, expected_sha):
         env = ['CUDA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_DRIVER_CAPABILITIES=compute,utility', 'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1']
         argv = DOCKER+['create','--name',RUN,'--runtime=nvidia','--network=none','--read-only','--user=2147:2147','--cpus=32','--memory=16g','--memory-swap=16g','--pids-limit=4096','--shm-size=1g','--ulimit=core=0','--tmpfs=/tmp:rw,nosuid,nodev,size=64m','--mount=type=bind,src='+str(ROOT/'sllm_store')+',dst=/source/sllm_store,readonly']
         for value in env: argv += ['--env',value]
-        argv += ['--entrypoint=python3',IMAGE,'-I','-m','torch.distributed.run','--standalone','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
+        argv += ['--entrypoint=python3',IMAGE,'-I','-m','torch.distributed.run','--rdzv-backend=static','--nnodes=1','--node-rank=0','--master-addr=127.0.0.1','--master-port=29500','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
         cid = subprocess.check_output(argv, text=True, timeout=10).strip()
         assert re.fullmatch('[0-9a-f]{64}', cid)
         receipt = {'cid':cid,'image':IMAGE,'gpu_uuids':UUIDS,'pids_limit':4096,'argv':argv,'started':started,'epoch':start_epoch,'budget_seconds':220,'outer':outer,'source_sha256':{str(p):d for p,d in PINS.items()},'controller_sha256':expected_sha}

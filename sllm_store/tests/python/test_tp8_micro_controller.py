@@ -32,4 +32,24 @@ class AcceptanceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 controller.validate_messages(rows)
 
+class ConfigurationTest(unittest.TestCase):
+    def configuration(self):
+        return {'Image':controller.IMAGE,
+                'HostConfig':{'PidsLimit':4096,'Memory':16*(1<<30),'MemorySwap':16*(1<<30),'NanoCpus':32*10**9,'ShmSize':1<<30,'ReadonlyRootfs':True,'NetworkMode':'none','Runtime':'nvidia','RestartPolicy':{'Name':'no'},'Tmpfs':{'/tmp':'rw,nosuid,nodev,size=64m'},'Ulimits':[{'Name':'core','Soft':0,'Hard':0}]},
+                'Config':{'User':'2147:2147','Env':['CUDA_VISIBLE_DEVICES='+','.join(controller.UUIDS),'NVIDIA_VISIBLE_DEVICES='+','.join(controller.UUIDS),'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1'],
+                          'Entrypoint':['python3'],'Cmd':['-I','-m','torch.distributed.run','--rdzv-backend=static','--nnodes=1','--node-rank=0','--master-addr=127.0.0.1','--master-port=29500','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']},
+                'Mounts':[{'Source':str(controller.ROOT/'sllm_store'),'Destination':'/source/sllm_store','RW':False}]}
+
+    def test_static_loopback_configuration(self):
+        controller.validate_configuration(self.configuration())
+
+    def test_reject_dynamic_hostname_restart_or_network_change(self):
+        for old, new in [('--rdzv-backend=static','--standalone'),('--master-addr=127.0.0.1','--master-addr=unresolvable-host'),('--max_restarts=0','--max_restarts=1')]:
+            row = self.configuration()
+            row['Config']['Cmd'] = [new if flag == old else flag for flag in row['Config']['Cmd']]
+            with self.subTest(flag=old), self.assertRaises(AssertionError):
+                controller.validate_configuration(row)
+        row = self.configuration(); row['HostConfig']['NetworkMode'] = 'host'
+        with self.assertRaises(AssertionError): controller.validate_configuration(row)
+
 if __name__ == '__main__': unittest.main()
