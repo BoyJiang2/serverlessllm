@@ -69,6 +69,7 @@ class VllmSaveOptionsTest(unittest.TestCase):
         self.assertEqual((kwargs["dtype"], kwargs["trust_remote_code"], kwargs["mm_encoder_tp_mode"]),
                          ("bfloat16", True, "data"))
         self.assertEqual(kwargs["tensor_parallel_size"], 8)
+        self.assertEqual(kwargs["max_num_seqs"], 1)
         self.assertEqual(kwargs["model"], str(self.input))
         self.assertEqual(self.save_calls[0]["path"], str(self.storage / "vllm" / "fixture"))
 
@@ -77,6 +78,7 @@ class VllmSaveOptionsTest(unittest.TestCase):
             storage_path=str(self.storage), local_model_path=str(self.input),
             trust_remote_code=True, mm_encoder_tp_mode="data")
         self.assertEqual(self.llm_calls[0]["dtype"], "bfloat16")
+        self.assertEqual(self.llm_calls[0]["max_num_seqs"], 1)
         self.assertIs(self.llm_calls[0]["trust_remote_code"], True)
         self.assertEqual(self.llm_calls[0]["mm_encoder_tp_mode"], "data")
 
@@ -90,7 +92,7 @@ class VllmSaveOptionsTest(unittest.TestCase):
             self.assertEqual(kwargs["dtype"], "float16")
             self.assertFalse(kwargs.get("trust_remote_code", False))
             self.assertNotIn("mm_encoder_tp_mode", kwargs)
-            self.assertEqual((kwargs["num_gpu_blocks_override"], kwargs["enforce_eager"], kwargs["max_model_len"]), (1, True, 1))
+            self.assertEqual((kwargs["num_gpu_blocks_override"], kwargs["enforce_eager"], kwargs["max_model_len"], kwargs["max_num_seqs"]), (1, True, 1, 1))
 
     def test_invalid_cli_options_do_not_reach_writer(self):
         for option, value in [("--dtype", "invalid"), ("--mm-encoder-tp-mode", "invalid")]:
@@ -128,6 +130,7 @@ class VllmSaveOptionsTest(unittest.TestCase):
         self.assertEqual(exit.exception.code, 0)
         self.assertFalse(attempted)
         self.assertEqual(len(self.llm_calls), 1)
+        self.assertEqual(self.llm_calls[0]["max_num_seqs"], 1)
         self.assertEqual((self.llm_calls[0]["dtype"], self.llm_calls[0]["trust_remote_code"],
                           self.llm_calls[0]["mm_encoder_tp_mode"], self.llm_calls[0]["tensor_parallel_size"]),
                          ("bfloat16", True, "data", 8))

@@ -92,6 +92,7 @@ class VllmModelDownloader:
                 num_gpu_blocks_override=1,
                 enforce_eager=True,
                 max_model_len=1,
+                max_num_seqs=1,
                 **llm_options,
             )
             model_path = os.path.join(storage_path, model_name)
