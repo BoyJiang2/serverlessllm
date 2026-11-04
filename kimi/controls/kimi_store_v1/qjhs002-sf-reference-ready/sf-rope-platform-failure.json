@@ -1,0 +1,510 @@
+{
+  "run_id": "kimi-sf-tp8-reference-rope-platform-20261105-once",
+  "cid": "ec546cffe90bda3762947f98f33ec96abc48454b5fe216b09a8ba59e75f7c7f6",
+  "status": "FAILED_RETAINED_AFTER_COMPLETE_LOAD_TRITON_ELF_MAPPING_ON_NOEXEC_TMPFS",
+  "source_commit": "41e35fc864628fe6fbad3d25b4d89c905e8b612f",
+  "controller": {
+    "status": "FAILED_RETAINED",
+    "cid": "ec546cffe90bda3762947f98f33ec96abc48454b5fe216b09a8ba59e75f7c7f6",
+    "go": 360084.151275712,
+    "error_type": "AssertionError",
+    "error": "",
+    "elapsed": 524.4541488880059
+  },
+  "early_abort_fatal_log_reason": "existing authenticated ABORT after fatal worker compile error; no readiness deadline extension",
+  "guard_quiet_seconds": 60.00403222901514,
+  "observer_quiet_seconds": 60.44715380499838,
+  "observer_monitor": {
+    "samples": 819,
+    "memory_samples": 819,
+    "gaps": 0,
+    "max_query_seconds": 1.5387600519461557,
+    "max_memory_interval_seconds": 2.1216737820068374,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+  },
+  "gpu_peak_mib_by_uuid": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 78593,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 78593,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 78593,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 78593,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 78593,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 78593,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 78593,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 78593
+  },
+  "container": {
+    "id": "ec546cffe90bda3762947f98f33ec96abc48454b5fe216b09a8ba59e75f7c7f6",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-11-04T18:48:30.730121389Z",
+      "FinishedAt": "2026-11-04T18:57:14.028569645Z"
+    },
+    "restart_count": 0,
+    "host_config": {
+      "PidsLimit": 4096,
+      "ShmSize": 8589934592,
+      "Memory": 1374389534720,
+      "MemorySwap": 1374389534720,
+      "NanoCpus": 32000000000,
+      "NetworkMode": "none",
+      "Runtime": "nvidia",
+      "Tmpfs": {
+        "/tmp": "rw,nosuid,nodev,size=8g,mode=1777"
+      }
+    }
+  },
+  "units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "360670931512",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "ActiveEnterTimestampMonotonic": "360083436616"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "360669438663",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "ActiveEnterTimestampMonotonic": "360084087262"
+    },
+    "observer": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "360670586427",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ActiveEnterTimestampMonotonic": "360083776266"
+    }
+  },
+  "model_log_sha256": "4639024c93749133fde4c1526ef554d8a88997d25ca38ea014401ec76e703951",
+  "model_log_bytes": 8139267,
+  "complete_64_shard_progress": "Loading safetensors checkpoint shards: 100% Completed | 64/64 [05:44<00:00,  5.38s/it]",
+  "load_completed_records": 8,
+  "load_boundary_only_validation": true,
+  "load_summaries": [
+    {
+      "tp_rank": 0,
+      "pid": 965,
+      "device": "cuda:0",
+      "device_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03538482100702822,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 1,
+      "pid": 966,
+      "device": "cuda:1",
+      "device_uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.034505663032177836,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 2,
+      "pid": 967,
+      "device": "cuda:2",
+      "device_uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.033020130009390414,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 3,
+      "pid": 968,
+      "device": "cuda:3",
+      "device_uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03398295398801565,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 4,
+      "pid": 969,
+      "device": "cuda:4",
+      "device_uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.034724890952929854,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 5,
+      "pid": 970,
+      "device": "cuda:5",
+      "device_uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03290441702120006,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 6,
+      "pid": 971,
+      "device": "cuda:6",
+      "device_uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.033222665020730346,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    },
+    {
+      "tp_rank": 7,
+      "pid": 972,
+      "device": "cuda:7",
+      "device_uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+      "load_completed": true,
+      "load_error_type": null,
+      "memory": {
+        "allocated_bytes": 77364896256,
+        "driver_free_bytes": 67699343360,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 79417485312,
+        "peak_reserved_bytes": 80520151040,
+        "reserved_bytes": 80520151040
+      },
+      "unique_registered_storage_bytes": 77158630320,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      },
+      "capture_seconds": 0.03488300897879526,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "registered_tensor_count": 2762,
+      "registered_storage_count": 1914,
+      "empty_g_idx_count": 240,
+      "empty_g_idx_examples": [
+        "language_model.model.layers.1.mlp.experts.w13_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w2_weight_g_idx",
+        "language_model.model.layers.1.mlp.experts.w13_g_idx_sort_indices",
+        "language_model.model.layers.1.mlp.experts.w2_g_idx_sort_indices"
+      ],
+      "dtype_counts": {
+        "torch.bfloat16": 1978,
+        "torch.float32": 424,
+        "torch.int32": 360
+      }
+    }
+  ],
+  "full_raw_load_records_sha256": "eaa859aa5773b339a100f55f1fea743e81bb33afd10c02a0325ea29a5c8ac69d",
+  "full_raw_load_records_bytes": 8071095,
+  "actual_oci_tmp_mount": [
+    {
+      "destination": "/tmp",
+      "type": "tmpfs",
+      "source": "tmpfs",
+      "options": [
+        "noexec",
+        "rprivate",
+        "rw",
+        "nosuid",
+        "nodev",
+        "size=8g",
+        "mode=1777"
+      ]
+    }
+  ],
+  "actual_runtime_mountinfo": {
+    "pid": 3211152,
+    "rows": [
+      "6346 6341 0:431 / /tmp rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=8388608k,inode64"
+    ],
+    "epoch": 1793818612.272119
+  },
+  "api_accepted": false,
+  "full_model_pass": false,
+  "store_started": false,
+  "limitations": [
+    "No inference/API pass; complete rank ownership acceptance after API was not reached.",
+    "No historical mmap syscall errno captured; noexec configuration conflicts with JIT ELF executable mapping, not proof of sole cause.",
+    "Allocator load peaks and registered snapshots differ from sampled physical driver peaks."
+  ],
+  "public_files": {
+    "controller-failed.json": {
+      "bytes": 203,
+      "sha256": "b13f16e81ee3b1200252449ebd7268e3d798b5135067307500e9243c2c251fa9"
+    },
+    "prepared.json": {
+      "bytes": 3437,
+      "sha256": "454e2d3ccc2bc2c948e715bb5569ddcbbf0b6b19766432591ab49830643db884"
+    },
+    "guard-final.json": {
+      "bytes": 968,
+      "sha256": "bd0d317615a3ef7264b6fcb77ee4f60d4e329fa887061e84f50a167b0eb5b6ce"
+    },
+    "observer-final.json": {
+      "bytes": 1068,
+      "sha256": "ff930c6d7b57e9d3cdb617e95676571aea3b5f3070cc6cee2f0c0cb5b8758000"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "4521140b983cf763f4cc0d204d408f05f01480ec59a45e4ea5c3de46a376fe60"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "f1a01bcff02a6799448e6164dbcce6b0864933c52810e80ebf2a7ff39720515b"
+    },
+    "ARMED.json": {
+      "bytes": 314,
+      "sha256": "2e1b2cc459936fb169c7b43d6e44fbf11769dac42168358c57117bedc543f144"
+    },
+    "api-client.stderr": {
+      "bytes": 17,
+      "sha256": "41efca96946b9c6f5fbe16ba9b43e70c4396fe28030633bda45ddc9005075e14"
+    },
+    "api-client.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    },
+    "tmp-runtime-mountinfo.json": {
+      "bytes": 151,
+      "sha256": "fc21418134192f613f7e87dee3855a259000e4e4fa67d9d9e90f849340aa569b"
+    },
+    "external-fatal-diagnosis.json": {
+      "bytes": 381,
+      "sha256": "c9798a6260fa2b942b38f13ed3a081f83d5bfec8c7038c115ab19fb6a0866dda"
+    }
+  },
+  "recorded_epoch": 1793818857.3672278
+}
