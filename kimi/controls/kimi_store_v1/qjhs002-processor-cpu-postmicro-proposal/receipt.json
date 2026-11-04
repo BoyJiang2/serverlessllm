@@ -1,0 +1,89 @@
+{
+  "status": "SOURCE_REVIEWED_REQUIRES_NEW_CPU_RUNTIME_APPROVAL",
+  "recorded_at_utc": "2026-11-04T15:39:02.388778+00:00",
+  "source_commit": "3d362cdd1dd5d625d11a402e93f43b54129217b1",
+  "prior_gpu_milestone_evidence_commit": "bbc7cfce961bd2ec96d9328316d3447d31fc1835",
+  "run_id": "kimi-canonical-processor-cpu-postmicro-20261104-once",
+  "artifacts": {
+    "spec": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/canonical-processor-cpu-postmicro-concrete-spec.json",
+      "sha256": "c75398b24c0cb7dda2ca6408e97d31b817eb217986a5914f89fc17833a0b560a"
+    },
+    "command": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/canonical-processor-cpu-postmicro-manual-root-command-v2.json",
+      "sha256": "24e534f3e4518ce604540a351505569d71ba678f0206972c036f5249a75223ec"
+    },
+    "preparation_checks": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/canonical-processor-cpu-postmicro-preparation-verification.json",
+      "sha256": "978259b9888512d27e1b32ba3f1ec1a392cdddf108c88babe609ce7610ebb686"
+    },
+    "atomic_publication_checks": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/canonical-processor-cpu-postmicro-command-v2-verification.json",
+      "sha256": "b08572e5c1d49698b48a1d45be052c213474339ab5797d4381c4ce63e7dc7749"
+    },
+    "sf_readiness": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/sf-tp8-post-micro-readiness-20261104.json",
+      "sha256": "4a913b49922105752e4fb3cac3438f5bc58b73bdba3b8631aaf961da73bd1b06"
+    },
+    "independent_review": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/canonical-processor-cpu-postmicro-v2-independent-review.md",
+      "sha256": "6007b94f446ee2575aebb43369b589c706b33ade5ebfd847c57a81e0813b630b"
+    }
+  },
+  "readonly_mount_count": 20,
+  "unique_small_input_files": 13,
+  "unique_small_input_bytes": 2889188,
+  "namespace": "Frozen7-file checkpoint gold view; separate10-file model processor view; no checkpoint directory or safetensors mounted",
+  "scope": "Canonical tokenizer gold plus native image processor constructor and native Kimi processor constructor only; no pixels/video/model/engine/Store/weights/GPU",
+  "resource_envelope": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=134217728,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "budget": {
+    "full_seconds": 220,
+    "outer_runtime_seconds": 217,
+    "outer_stop_seconds": 1,
+    "guard_deadline": 60,
+    "guard_kill_after": 3,
+    "guard_overall": 100,
+    "guard_native_seconds": 180,
+    "guard_stop_seconds": 3,
+    "child_timeout_seconds_each": 25,
+    "release_seconds": 60
+  },
+  "failure_policy": "one CPU run; failure retained; no automatic retry, dependency install, extra assets, full-model or GPU escalation",
+  "runtime_approved": false,
+  "runtime_executed": false,
+  "v1_command_not_for_execution": "16f714a4 superseded by v2 atomic JSON publication; preserved immutable",
+  "original_cpu_bodies_unchanged": true,
+  "original_cpu_bodies_compile": true,
+  "limitations": [
+    "GPU micro does not prove vLLM model compatibility",
+    "Staged HF patch only readonly-mounted into this CPU container; image/package tree unchanged",
+    "CPU factory/constructor success would not prove media forward, fullmodel inference, conversion, save/restore or services",
+    "Fresh valid CPU reservation, resources, maximum full budget and independent guard admission still required before executing"
+  ]
+}

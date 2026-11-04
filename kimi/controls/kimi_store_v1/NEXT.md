@@ -1,3 +1,11 @@
+## 11/4 完整SF模型前的CPU tokenizer/processor小资产方案已独审，待新批准
+
+八卡CUDA/NCCL一次小探针已通过并推送核验证据bbc7cfce，源码仍3d362cdd。下一步CPU一次方案使用runc、无NVIDIA设备/钩子、networknone、只读rootfs；CPU4/内存8GiB/PID512/tmp128MiB。20个精确只读挂载合计13个唯一小文件2889188字节，保持7文件checkpoint金标视图，另设10文件model processor视图；不挂载完整checkpoint目录或任何safetensors。仅只读覆盖已有hf.py兼容修复，镜像及安装树不变，不先部署完整Store补丁。
+
+父/子命令与冻结原版正文完全相同且静态编译通过；JSON转义是正常编码，没有原嵌套-c语法错误。v1一次命令16f714保留，因GO文件非原子发布竞争已被v2的24e534f3取代，不执行旧版。v2复用既有临时文件O_EXCL/flush/fsync/rename/目录fsync流程，磁盘负例检查通过，独审固定6007b94f。完整220秒含独立守护至少60秒释放，实际outer激活时间控制guard前后绝对准入。具体身份见 qjhs002-processor-cpu-postmicro-proposal/receipt.json；尚未创建或启动CPU容器，须新的明确CPU批准及新预约/预算/资源/守护核验。
+
+只读核验64分片文件大小共595177988208字节（554.303GiB），均分69.288GiB/卡仅是算术下界，不是模型峰值预算；未为此读任何权重内容。官方H200 TP8示例、实际H20节点和镜像TF5.5.1之间仍须按证据核验。完整模型还缺加载/编译最大预算、真实所有权与GPU/主机峰值硬界、请求上限及稳定响应金标。CPU构造通过也不能证明模型、媒体forward、Store转换/恢复或原生服务；未授予后续GPU/完整模型运行许可，goal继续active。
+
 ## 11/4 获准的一次 CSV 八卡 CUDA/NCCL 小探针及释放观察通过
 
 源码3d362cdd、受审方案1b7b30aa的一次容器7a206d127087d9c28755cc38e006157f7ade5fd236ba5c6dfb34e43928d2b646完成八rank各1MiB真实CUDA计算与NCCL all-reduce，八rank原始张量SHA与金标一致。控制器、观察器和独立守护均实际退出0；正式native起止耗时121.314324秒，在220秒内。GPU共同quiet60.554615秒、守护quiet60.013637秒，自有身份消失、scope移除，容器退出0、无OOM或重启。完整证据与独审固定身份见 qjhs002-cdi2-cuda-nccl-micro-pass/receipt.json；原始日志/OCI和15份公开证据全部保留服务器，仅6572字节收据入本机/Git。
