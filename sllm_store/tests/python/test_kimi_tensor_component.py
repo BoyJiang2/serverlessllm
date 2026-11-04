@@ -14,6 +14,8 @@ import pathlib
 import struct
 import re
 import sys
+import socket
+import signal
 
 import torch
 from safetensors import safe_open
@@ -206,6 +208,47 @@ def save_component(args):
     return state, evidence
 
 
+
+def server_has_exited(pid, expected_startticks):
+    try:
+        ticks = int(pathlib.Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()[19])
+    except FileNotFoundError:
+        return True
+    return ticks != expected_startticks
+
+
+def wait_server_failure_barrier(args, primary):
+    # Caller holds its original exception/traceback and CUDA references until ACK.
+    try:
+        with socket.socket(fileno=args.failure_barrier_fd) as channel:
+            channel.sendall(json.dumps({"failure": repr(primary)[:256]}).encode() + b"\n")
+            data = b""
+            while not data.endswith(b"\n") and len(data) <= 1024:
+                part = channel.recv(1024)
+                if not part:
+                    break
+                data += part
+            ack = json.loads(data)
+            require(ack == {"server_exited": True, "pid": args.server_pid,
+                            "startticks": args.server_startticks}
+                    and server_has_exited(args.server_pid, args.server_startticks),
+                    "failure barrier has no verified server exit ACK")
+            print(json.dumps({"failure_barrier": "SERVER_EXIT_VERIFIED", "error": repr(primary)[:1024]}),
+                  file=sys.stderr, flush=True)
+            return
+    except BaseException as barrier_error:
+        print(json.dumps({"failure_barrier": "FAILED_RETAINED", "error": repr(barrier_error)[:1024]}),
+              file=sys.stderr, flush=True)
+    # EOF/malformed ACK never permits cleanup or process exit. Guard may force-stop
+    # this failed attempt; that is not evidence of a cooperative barrier.
+    while True:
+        try:
+            signal.pause()
+        except BaseException:
+            pass
+
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=pathlib.Path, required=False)
@@ -217,7 +260,14 @@ def main():
     parser.add_argument("--save-only", action="store_true")
     parser.add_argument("--existing-archive", action="store_true")
     parser.add_argument("--receipt", type=pathlib.Path)
+    parser.add_argument("--failure-barrier-fd", type=int)
+    parser.add_argument("--server-pid", type=int)
+    parser.add_argument("--server-startticks", type=int)
     args = parser.parse_args()
+    if not args.save_only:
+        require(all(value is not None for value in
+                    (args.failure_barrier_fd, args.server_pid, args.server_startticks)),
+                "readback requires the dedicated parent failure barrier")
     if args.existing_archive:
         require(args.receipt is not None and not args.save_only,
                 "existing archive requires receipt and readback")
@@ -289,6 +339,8 @@ def main():
             evidence["stage"] = "OFFICIAL_COMPONENT_ROUNDTRIP"
         finally:
             primary = sys.exc_info()[1]
+            if primary is not None:
+                wait_server_failure_barrier(args, primary)
             cleanup_errors = []
             try:
                 actual = None
@@ -299,7 +351,7 @@ def main():
                 cleanup_errors.append("GPU cleanup: " + repr(error))
             finally:
                 try:
-                    if load_attempted:
+                    if load_attempted and primary is None:
                         require(client.unload_from_cpu(args.archive), "official CPU unload failed")
                 except Exception as error:
                     cleanup_errors.append("CPU unload: " + repr(error))

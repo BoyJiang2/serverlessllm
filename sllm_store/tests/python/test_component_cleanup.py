@@ -34,7 +34,7 @@ class CleanupTests(unittest.TestCase):
             ("unload_false", True, ("unload",), False),
             ("close_failure", True, ("close",), False),
             ("primary_and_sync", True, ("sync",), True),
-            ("primary_and_all_cleanup", True, ("sync", "unload", "close"), True),
+            ("primary_and_remaining_cleanup", True, ("sync", "close"), True),
             ("not_loaded", False, (), False),
             ("not_loaded_primary", False, (), True),
             ("not_loaded_sync_failure", False, ("sync",), False),
@@ -60,6 +60,7 @@ class CleanupTests(unittest.TestCase):
                 primary = ValueError("original failure") if has_primary else None
                 namespace = {
                     "sys": sys, "json": json, "require": require,
+                    "wait_server_failure_barrier": operation("barrier"),
                     "primary_error": primary, "load_attempted": loaded,
                     "actual": object(),
                     "restored": types.SimpleNamespace(clear=operation("clear")),
@@ -78,8 +79,9 @@ class CleanupTests(unittest.TestCase):
                         exec(CODE, namespace)
                     except Exception as error:
                         caught = error
-                self.assertEqual(events, ["clear", "collect", "sync"]
-                                 + (["unload"] if loaded else []) + ["close"])
+                self.assertEqual(events, (["barrier"] if has_primary else [])
+                                 + ["clear", "collect", "sync"]
+                                 + (["unload"] if loaded and not has_primary else []) + ["close"])
                 self.assertIsNone(namespace["actual"])
                 if has_primary:
                     self.assertIs(caught, primary)
