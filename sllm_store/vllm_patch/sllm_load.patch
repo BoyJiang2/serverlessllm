@@ -719,3 +719,66 @@ diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
              tokenizer.add_special_tokens(special_tokens_map)
  
          return get_cached_tokenizer(tokenizer)
+diff --git a/vllm/model_executor/layers/rotary_embedding/common.py b/vllm/model_executor/layers/rotary_embedding/common.py
+--- a/vllm/model_executor/layers/rotary_embedding/common.py
++++ b/vllm/model_executor/layers/rotary_embedding/common.py
+@@ -1,25 +1,26 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ 
+ import math
+ from importlib.util import find_spec
+ 
+ import torch
+ 
+ from vllm.logger import init_logger
+ from vllm.model_executor.custom_op import CustomOp
++from vllm.platforms import current_platform
+ from vllm.utils.torch_utils import direct_register_custom_op
+ 
+ logger = init_logger(__name__)
+ 
+ 
+ # common functions
+ def rotate_neox(x: torch.Tensor) -> torch.Tensor:
+     x1 = x[..., : x.shape[-1] // 2]
+     x2 = x[..., x.shape[-1] // 2 :]
+     return torch.cat((-x2, x1), dim=-1)
+ 
+ 
+ def rotate_gptj(x: torch.Tensor) -> torch.Tensor:
+     x1 = x[..., ::2]
+     x2 = x[..., 1::2]
+@@ -122,31 +123,31 @@
+ @CustomOp.register("apply_rotary_emb")
+ class ApplyRotaryEmb(CustomOp):
+     # --8<-- [end:apply_rotary_emb]
+ 
+     def __init__(
+         self,
+         enforce_enable: bool = False,
+         is_neox_style: bool = True,
+         enable_fp32_compute: bool = False,
+     ) -> None:
+         super().__init__(enforce_enable=enforce_enable)
+         self.is_neox_style = is_neox_style
+         self.enable_fp32_compute = enable_fp32_compute
+ 
+         self.apply_rotary_emb_flash_attn = None
+-        if find_spec("flash_attn") is not None:
++        if current_platform.is_rocm() and find_spec("flash_attn") is not None:
+             from flash_attn.ops.triton.rotary import apply_rotary
+ 
+             self.apply_rotary_emb_flash_attn = apply_rotary
+ 
+     @staticmethod
+     def forward_static(
+         x: torch.Tensor,
+         cos: torch.Tensor,
+         sin: torch.Tensor,
+         is_neox_style: bool = True,
+         enable_fp32_compute: bool = False,
+     ) -> torch.Tensor:
+         """
+         Args:
+             x: [batch_size (optional), seq_len, num_heads, head_size]
