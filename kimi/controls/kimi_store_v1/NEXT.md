@@ -1,3 +1,9 @@
+## 11/4 真实 CPU torchrun 静态 rendezvous 环境验证通过
+
+源码6220a93ec7b0de5d6c813ae28d7a36974632354e已推送并核验GitHub；本次仅在既有测试中增加受控CPU运行项，控制器和GPU探针未变。实际容器a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca运行六项测试，全部通过且零跳过；八个真实CPU worker分别输出rank0–7，MASTER_ADDR=127.0.0.1、MASTER_PORT=29500，CUDA为空、NVIDIA为void。容器、控制器及守护均实际退出0；守护完成60.028秒释放观察，身份及scope清理通过。13份原始小证据仅在服务器，收据和独审SHA见qjhs002-static-rendezvous-cpu-pass。
+
+本次证明静态rendezvous入口在该CPU配置下正常传递MASTER环境；此前静态GPU失败发生在Torch导入前的可见性检查，是另一个断点。本次没有GPU运行或重试，也不补造历史GPU worker execve/environ。已有GPU失败、CPU分片结果和金标保持；完整GPU/NCCL、模型、转换、恢复及原生服务仍未通过，goal保持active。
+
 ## 11/4 追加 CDI 只读取证：支持环境改写机制，实际 worker execve 仍缺失
 
 现存CDI配置的containerEdits.env明确包含NVIDIA_VISIBLE_DEVICES=void，配置mtime早于失败探针；独立逐项核验实际后续OCI的13个nvidia-ctk hook与CDI编辑匹配。这为runtime阶段改写可见性变量提供具体证据支持，仍不是最终worker环境或精确写入者的直接证明：历史execve/environ没有采集，后续OCI只保留选字段且env过滤未包含可见性变量，mtime也不等于不可变历史内容证据。三份服务器原始报告及SHA见 qjhs002-tp8-static-failed/cdi-forensic-reference.json。

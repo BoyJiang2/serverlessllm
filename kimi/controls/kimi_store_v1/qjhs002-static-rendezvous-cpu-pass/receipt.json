@@ -1,0 +1,214 @@
+{
+  "status": "STATIC_RDZV_CPU_ENV_NORMAL_EXIT_RELEASE_PASS",
+  "source_commit": "6220a93ec7b0de5d6c813ae28d7a36974632354e",
+  "cid": "a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca",
+  "results": [
+    {
+      "event": "CPU_STATIC_RENDEZVOUS_ENV_PASS",
+      "command_prefix": [
+        "-I",
+        "-m",
+        "torch.distributed.run",
+        "--rdzv-backend=static",
+        "--nnodes=1",
+        "--node-rank=0",
+        "--master-addr=127.0.0.1",
+        "--master-port=29500",
+        "--nproc_per_node=8",
+        "--max_restarts=0",
+        "--no-python"
+      ],
+      "workers": [
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "1",
+          "LOCAL_RANK": "1",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "0",
+          "LOCAL_RANK": "0",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "2",
+          "LOCAL_RANK": "2",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "3",
+          "LOCAL_RANK": "3",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "4",
+          "LOCAL_RANK": "4",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "5",
+          "LOCAL_RANK": "5",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "6",
+          "LOCAL_RANK": "6",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        },
+        {
+          "event": "CPU_STATIC_WORKER_ENV",
+          "RANK": "7",
+          "LOCAL_RANK": "7",
+          "WORLD_SIZE": "8",
+          "MASTER_ADDR": "127.0.0.1",
+          "MASTER_PORT": "29500",
+          "CUDA_VISIBLE_DEVICES": "",
+          "NVIDIA_VISIBLE_DEVICES": "void"
+        }
+      ]
+    },
+    {
+      "status": "STATIC_RDZV_CPU_ENV_NORMAL_PASS",
+      "tests_run": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "scope": "CPU static torchrun8worker MASTER env only; no CUDA/NCCL/model/Store"
+    }
+  ],
+  "controller": {
+    "status": "STATIC_RDZV_CPU_ENV_NORMAL_EXIT_RELEASE_PASS",
+    "cid": "a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca",
+    "guard": {
+      "status": "KERNEL_CLEANUP_RELEASE_PASS",
+      "cid": "a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca",
+      "failures": [],
+      "quiet_seconds": 60.02833884698339,
+      "max_cycle_seconds": 0.40584780799690634,
+      "raw_oci_sha256": "089f0cb2498fb2e6ac68983d0c8aa41e8461f426288be9e3ef9e6a9b4cefc19e",
+      "oci_seen": true,
+      "scope_seen": true,
+      "abort_monotonic": null,
+      "pinned_identities": [
+        {
+          "pid": 30728,
+          "startticks": 32673942,
+          "exe": "/usr/bin/containerd-shim-runc-v2",
+          "cgroup": "0::/system.slice/containerd.service"
+        },
+        {
+          "pid": 30739,
+          "startticks": 32673943,
+          "exe": "/usr/bin/runc",
+          "cgroup": "0::/system.slice/containerd.service"
+        }
+      ]
+    },
+    "guard_exit": {
+      "Type": "exec",
+      "Restart": "no",
+      "TimeoutStopUSec": "3s",
+      "RuntimeMaxUSec": "3min",
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "KillMode": "control-group",
+      "FinalKillSignal": "9",
+      "SendSIGKILL": "yes",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "326739267658"
+    },
+    "elapsed": 120.34310941997683
+  },
+  "postcheck": {
+    "epoch": 1793784918.8945193,
+    "cid": "a0e9dde1a5cbbe0e4468329594520aa77a7160382db28b4a16ed5f9c30f9deca",
+    "units_before_stop": {
+      "controller": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "LoadState": "loaded"
+      },
+      "guard": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "LoadState": "loaded"
+      }
+    },
+    "identities": [
+      {
+        "pid": 30728,
+        "startticks": 32673942,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      },
+      {
+        "pid": 30739,
+        "startticks": 32673943,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      }
+    ],
+    "scope_removed": true,
+    "raw_oci_mode": "0o600",
+    "raw_oci_sha256": "089f0cb2498fb2e6ac68983d0c8aa41e8461f426288be9e3ef9e6a9b4cefc19e"
+  },
+  "raw_remote": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-static-rendezvous-env-cpu-20261104-once-public",
+  "raw_sha256": {
+    "prepared.json": "8b058b673bf192f0fa703b1e5bf28a10326bf1dbfc80bb60554691ba6e0d3964",
+    "ARMED.json": "cc36dda21016091f4aebcafd04ed151a8d75ac070d1d4e1cbba08d4f00e08323",
+    "GO.json": "135a20114157c1de339fd1a90f022d42edcd3d56698bf59f45c02460f293329c",
+    "GO-ACK.json": "001f9948986f510f9c8baad5d874a69ac6c834b799feabb605e135e227aa7269",
+    "guard-final.json": "2500c60627296c2822a636b95af1384f62f4704111aa8a49958c0fc6d828594a",
+    "controller-final.json": "c342431f61b0d1f22da21703b7718190240e58ef0cc73058d1f650dff59f5209",
+    "guard-events.jsonl": "585cf62ba802bd6b444a9d5fe946c651693e28096ee05bc2d37378882797af0c",
+    "logs.json": "a24602972b52f8554766107c4c4bbc97acaf5591118ee40791ecf58d25460c93",
+    "kernel-after.json": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+    "root-postcheck.json": "7fdeb798a2eeb2371af64bc2f92b6fdd7c9491e34d7654409f65e38848c501fe",
+    "start.stdout": "69e6f614976bd220eee081c2c662eb283e8c8fab2d071575e3020e1dd7fbacde",
+    "start.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docker-inspect-selected.json": "4bdc8ae1abd65e550aa21532b55fb1864aeef493a1f4590bc08d40efd08a9855"
+  },
+  "scope": "actual8CPUworkers correctMASTER127:29500 only; noGPU/NCCL, nothistoricalGPUexecveproof"
+}
