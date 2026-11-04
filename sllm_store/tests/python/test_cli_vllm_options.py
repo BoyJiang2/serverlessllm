@@ -1,5 +1,6 @@
 """AST-isolated CLI tests: no Torch/vLLM imports, downloads or shared model paths."""
 import ast
+import builtins
 import logging
 import os
 from pathlib import Path
@@ -96,6 +97,41 @@ class VllmSaveOptionsTest(unittest.TestCase):
             result = CliRunner().invoke(self.command, self.arguments() + [option, value])
             self.assertEqual(result.exit_code, 2)
         self.assertFalse(self.llm_calls)
+
+    def test_full_main_vllm_entry_does_not_import_optional_peft_backend(self):
+        attempted = []
+        original_import = builtins.__import__
+
+        def without_peft(name, *args, **kwargs):
+            if name == "peft" or name.startswith("peft.") or name == "sllm_store.transformers":
+                attempted.append(name)
+                raise ModuleNotFoundError(name)
+            return original_import(name, *args, **kwargs)
+
+        package = types.ModuleType("sllm_store")
+        package.__path__ = []
+        modules = {
+            "sllm_store": package,
+            "sllm_store.server": types.SimpleNamespace(serve=None),
+            "sllm_store.logger": types.SimpleNamespace(init_logger=logging.getLogger),
+            "sllm_store.utils": types.SimpleNamespace(to_num_bytes=lambda value: int(value)),
+            "transformers": types.SimpleNamespace(AutoModelForCausalLM=object,
+                AutoConfig=object, AutoTokenizer=object, BitsAndBytesConfig=object),
+        }
+        namespace = {"__name__": "sllm_store.cli", "__file__": str(ENTRY)}
+        arguments = ["sllm-store", "save"] + self.arguments() + ["--dtype", "bfloat16",
+            "--trust-remote-code", "--mm-encoder-tp-mode", "data", "--tensor-parallel-size", "8"]
+        with patch.dict(sys.modules, modules), patch("builtins.__import__", without_peft):
+            exec(compile(ENTRY.read_text(), str(ENTRY), "exec"), namespace)
+            with patch.object(sys, "argv", arguments), self.assertRaises(SystemExit) as exit:
+                namespace["main"]()
+        self.assertEqual(exit.exception.code, 0)
+        self.assertFalse(attempted)
+        self.assertEqual(len(self.llm_calls), 1)
+        self.assertEqual((self.llm_calls[0]["dtype"], self.llm_calls[0]["trust_remote_code"],
+                          self.llm_calls[0]["mm_encoder_tp_mode"], self.llm_calls[0]["tensor_parallel_size"]),
+                         ("bfloat16", True, "data", 8))
+        self.assertEqual(self.save_calls[0]["path"], str(self.storage / "vllm" / "fixture"))
 
 
 if __name__ == "__main__":

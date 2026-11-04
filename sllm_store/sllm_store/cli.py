@@ -30,14 +30,12 @@ import click
 from sllm_store.server import serve
 from sllm_store.logger import init_logger
 from sllm_store.utils import to_num_bytes
-from sllm_store.transformers import save_model, save_lora, load_model, load_lora
 from transformers import (
     AutoModelForCausalLM,
     AutoConfig,
     AutoTokenizer,
     BitsAndBytesConfig,
 )
-from peft import PeftModel
 
 
 def resolve_storage_path(cli_path: Optional[str]) -> str:
@@ -310,7 +308,11 @@ def save(
                 mm_encoder_tp_mode=mm_encoder_tp_mode,
             )
         elif backend == "transformers":
+            from sllm_store.transformers import save_model, save_lora
+
             if adapter_name:
+                from peft import PeftModel
+
                 config = AutoConfig.from_pretrained(
                     model_name,
                     trust_remote_code=True,
@@ -422,6 +424,8 @@ def load(
             example_inferences("vllm", model=llm)
 
         elif backend == "transformers":
+            from sllm_store.transformers import load_model, load_lora
+
             # warm up the GPU
             num_gpus = torch.cuda.device_count()
             for i in range(num_gpus):
