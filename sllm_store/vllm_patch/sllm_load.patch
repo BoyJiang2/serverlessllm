@@ -286,10 +286,234 @@ diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
 diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
 --- a/vllm/v1/worker/gpu_model_runner.py
 +++ b/vllm/v1/worker/gpu_model_runner.py
-@@ -4990,6 +4990,20 @@
+@@ -4,6 +4,7 @@
+ import functools
+ import gc
+ import itertools
++import os
+ import threading
+ import time
+ from collections import defaultdict
+@@ -4744,67 +4745,156 @@
+ 
+         try:
+             with DeviceMemoryProfiler() as m:
+-                time_before_load = time.perf_counter()
+-                if load_dummy_weights:
+-                    self.load_config.load_format = "dummy"
+-                model_loader = get_model_loader(self.load_config)
+-                self.model = model_loader.load_model(
+-                    vllm_config=self.vllm_config, model_config=self.model_config
+-                )
+-                if self.lora_config:
+-                    self.model = self.load_lora_model(
+-                        self.model, self.vllm_config, self.device
++                load_error = None
++                try:
++                    time_before_load = time.perf_counter()
++                    if load_dummy_weights:
++                        self.load_config.load_format = "dummy"
++                    model_loader = get_model_loader(self.load_config)
++                    self.model = model_loader.load_model(
++                        vllm_config=self.vllm_config, model_config=self.model_config
+                     )
+-                if hasattr(self, "drafter"):
+-                    logger.info_once("Loading drafter model...")
+-                    self.drafter.load_model(self.model)
+-                    if (
+-                        hasattr(self.drafter, "model")
+-                        and is_mixture_of_experts(self.drafter.model)
+-                        and self.parallel_config.enable_eplb
+-                    ):
+-                        assert not self.parallel_config.enable_elastic_ep, (
+-                            "Elastic EP is not supported with drafter model."
++                    if self.lora_config:
++                        self.model = self.load_lora_model(
++                            self.model, self.vllm_config, self.device
+                         )
+-                        spec_config = self.vllm_config.speculative_config
+-                        assert spec_config is not None
+-                        assert spec_config.draft_model_config is not None
+-                        logger.info_once(
+-                            "EPLB is enabled for drafter model %s.",
+-                            spec_config.draft_model_config.model,
+-                        )
+-                        if self.eplb_state is None:
+-                            self.eplb_state = EplbState(
+-                                self.parallel_config, self.device
++                    if hasattr(self, "drafter"):
++                        logger.info_once("Loading drafter model...")
++                        self.drafter.load_model(self.model)
++                        if (
++                            hasattr(self.drafter, "model")
++                            and is_mixture_of_experts(self.drafter.model)
++                            and self.parallel_config.enable_eplb
++                        ):
++                            assert not self.parallel_config.enable_elastic_ep, (
++                                "Elastic EP is not supported with drafter model."
+                             )
+-                        self.eplb_state.add_model(
+-                            self.drafter.model,
+-                            spec_config.draft_model_config,
+-                        )
+-                        eplb_models += 1
+-
+-                if self.use_aux_hidden_state_outputs:
+-                    if not supports_eagle3(self.get_model()):
+-                        raise RuntimeError(
+-                            "Model does not support EAGLE3 interface but "
+-                            "aux_hidden_state_outputs was requested"
+-                        )
+-
+-                    # Try to get auxiliary layers from speculative config,
+-                    # otherwise use model's default layers
+-                    aux_layers = self._get_eagle3_aux_layers_from_config()
+-                    if aux_layers:
+-                        logger.info(
+-                            "Using auxiliary layers from speculative config: %s",
+-                            aux_layers,
+-                        )
+-                    else:
+-                        aux_layers = (
+-                            self.model.get_eagle3_default_aux_hidden_state_layers()
+-                        )
+-
+-                    self.model.set_aux_hidden_state_layers(aux_layers)
+-                time_after_load = time.perf_counter()
++                            spec_config = self.vllm_config.speculative_config
++                            assert spec_config is not None
++                            assert spec_config.draft_model_config is not None
++                            logger.info_once(
++                                "EPLB is enabled for drafter model %s.",
++                                spec_config.draft_model_config.model,
++                            )
++                            if self.eplb_state is None:
++                                self.eplb_state = EplbState(
++                                    self.parallel_config, self.device
++                                )
++                            self.eplb_state.add_model(
++                                self.drafter.model,
++                                spec_config.draft_model_config,
++                            )
++                            eplb_models += 1
++
++                    if self.use_aux_hidden_state_outputs:
++                        if not supports_eagle3(self.get_model()):
++                            raise RuntimeError(
++                                "Model does not support EAGLE3 interface but "
++                                "aux_hidden_state_outputs was requested"
++                            )
++
++                        # Try to get auxiliary layers from speculative config,
++                        # otherwise use model's default layers
++                        aux_layers = self._get_eagle3_aux_layers_from_config()
++                        if aux_layers:
++                            logger.info(
++                                "Using auxiliary layers from speculative config: %s",
++                                aux_layers,
++                            )
++                        else:
++                            aux_layers = (
++                                self.model.get_eagle3_default_aux_hidden_state_layers()
++                            )
++
++                        self.model.set_aux_hidden_state_layers(aux_layers)
++                    time_after_load = time.perf_counter()
++                except BaseException as error:
++                    load_error = error
++                    raise
++                finally:
++                    captured_memory = None
++                    try:
++                        if os.environ.get("SLLM_CAPTURE_LOAD_EVIDENCE") == "1":
++                            import json
++
++                            capture_started = time.perf_counter()
++                            torch.cuda.synchronize(self.device)
++                            memory = {
++                                "allocated_bytes": torch.cuda.memory_allocated(self.device),
++                                "reserved_bytes": torch.cuda.memory_reserved(self.device),
++                                "peak_allocated_bytes": torch.cuda.max_memory_allocated(self.device),
++                                "peak_reserved_bytes": torch.cuda.max_memory_reserved(self.device),
++                            }
++                            free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
++                            memory.update(driver_free_bytes=free_bytes, driver_total_bytes=total_bytes)
++                            captured_memory = memory
++                            model = getattr(self, "model", None)
++                            registered = []
++                            storages = {}
++                            quant_methods = defaultdict(int)
++                            kernel_backends = defaultdict(int)
++                            for _, module in (model.named_modules() if model is not None else ()):
++                                method = getattr(module, "quant_method", None)
++                                if method is not None:
++                                    method_name = type(method).__module__ + "." + type(method).__qualname__
++                                    quant_methods[method_name] += 1
++                                    backend = getattr(method, "kernel_backend", None)
++                                    if backend is not None:
++                                        kernel_backends[method_name + ":" + str(backend)] += 1
++                            for kind, tensors in (
++                                ("parameter", model.named_parameters(remove_duplicate=False) if model is not None else ()),
++                                ("buffer", model.named_buffers(remove_duplicate=False) if model is not None else ()),
++                            ):
++                                for name, tensor in tensors:
++                                    storage = tensor.untyped_storage()
++                                    storage_key = (str(tensor.device), storage.data_ptr())
++                                    if tensor.device.type == "meta" or storage.nbytes() == 0:
++                                        storage_key = (kind, name)
++                                    if storage_key not in storages:
++                                        storages[storage_key] = {
++                                            "storage_id": len(storages), "device": str(tensor.device),
++                                            "bytes": storage.nbytes(), "names": [],
++                                        }
++                                    owner = storages[storage_key]
++                                    owner["names"].append(kind + ":" + name)
++                                    registered.append({
++                                        "kind": kind, "name": name, "device": str(tensor.device),
++                                        "shape": list(tensor.shape), "stride": list(tensor.stride()),
++                                        "dtype": str(tensor.dtype),
++                                        "bytes": tensor.numel() * tensor.element_size(),
++                                        "storage_id": owner["storage_id"],
++                                        "storage_offset": tensor.storage_offset(),
++                                    })
++                            logger.info("SLLM_LOAD_EVIDENCE %s", json.dumps({
++                                "event": "SLLM_LOAD_EVIDENCE", "pid": os.getpid(),
++                                "tp_rank": get_tp_group().rank_in_group, "device": str(self.device),
++                                "phase": "load_boundary_before_profiler_exit_reset",
++                                "load_completed": load_error is None,
++                                "load_error_type": None if load_error is None else type(load_error).__name__,
++                                "registered_model_available": model is not None,
++                                "memory": memory, "quant_method_counts": dict(quant_methods) if model is not None else None,
++                                "kernel_backend_counts": dict(kernel_backends) if model is not None else None,
++                                "registered_tensors": registered if model is not None else None,
++                                "registered_storages": list(storages.values()) if model is not None else None,
++                                "unique_registered_storage_bytes": sum(x["bytes"] for x in storages.values()) if model is not None else None,
++                                "empty_g_idx_keys": [x["name"] for x in registered
++                                                     if "g_idx" in x["name"] and x["bytes"] == 0] if model is not None else None,
++                                "capture_seconds": time.perf_counter() - capture_started,
++                                "synchronized": True,
++                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
++                            }, sort_keys=True))
++                    except BaseException as evidence_error:
++                        try:
++                            logger.warning("SLLM_LOAD_EVIDENCE_MISSING %s", json.dumps({
++                                "event": "SLLM_LOAD_EVIDENCE_MISSING",
++                                "load_completed": load_error is None,
++                                "capture_error_type": type(evidence_error).__name__,
++                                "memory": captured_memory,
++                            }, sort_keys=True))
++                        except BaseException:
++                            pass
++                        if load_error is None and not isinstance(evidence_error, Exception):
++                            raise
+             self.model_memory_usage = m.consumed_memory
+         except torch.cuda.OutOfMemoryError as e:
+             msg = (
+@@ -4989,6 +5079,20 @@
+                     "Following weights were not loaded from checkpoint: %s",
                      weights_not_loaded,
                  )
- 
++
 +    def save_serverless_llm_state(
 +        self,
 +        path: str,
@@ -303,10 +527,9 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +            pattern=pattern,
 +            max_size=max_size,
 +        )
-+
+ 
      def _get_prompt_logprobs_dict(
          self,
-         hidden_states: torch.Tensor,
 diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
 --- a/vllm/v1/worker/gpu_worker.py
 +++ b/vllm/v1/worker/gpu_worker.py
