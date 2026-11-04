@@ -296,6 +296,20 @@ def wait_server_failure_barrier(args, primary):
 
 
 
+
+def checkpoint_extension_identity(module, expected_sha256):
+    """Record the actual imported checkpoint extension for the fixed profile."""
+    path = pathlib.Path(module.__file__)
+    require(re.fullmatch("[0-9a-f]{64}", expected_sha256) is not None, "invalid extension pin")
+    require(path.is_file() and not path.is_symlink() and path.stat().st_size <= LIMIT,
+            "invalid imported extension file")
+    with path.open("rb") as stream:
+        data = stream.read(LIMIT + 1)
+    require(len(data) <= LIMIT and hashlib.sha256(data).hexdigest() == expected_sha256,
+            "imported checkpoint extension hash mismatch")
+    return {"file": str(path), "sha256": expected_sha256}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint", type=pathlib.Path, required=False)
@@ -305,6 +319,7 @@ def main():
     parser.add_argument("--archive", required=True,
                         help="New relative archive name under --storage")
     parser.add_argument("--mixed-empty-archive", help="Opt in: new mixed archive from immutable three-tensor gold")
+    parser.add_argument("--expected-c-sha256")
     parser.add_argument("--save-only", action="store_true")
     parser.add_argument("--existing-archive", action="store_true")
     parser.add_argument("--receipt", type=pathlib.Path)
@@ -312,6 +327,15 @@ def main():
     parser.add_argument("--server-pid", type=int)
     parser.add_argument("--server-startticks", type=int)
     args = parser.parse_args()
+    extension = None
+    if args.expected_c_sha256 is not None:
+        require(args.existing_archive and args.mixed_empty_archive and not args.save_only,
+                "extension pin requires mixed existing-gold readback")
+        import sllm_store._C as checkpoint_extension
+        extension = checkpoint_extension_identity(checkpoint_extension, args.expected_c_sha256)
+        require(extension["file"] == "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+                "checkpoint extension imported from unexpected path")
+        print(json.dumps({"stage": "IMPORTED_CHECKPOINT_EXTENSION", "checkpoint_extension": extension}), flush=True)
     if not args.save_only:
         require(all(value is not None for value in
                     (args.failure_barrier_fd, args.server_pid, args.server_startticks)),
@@ -328,6 +352,8 @@ def main():
     if args.mixed_empty_archive:
         require(args.existing_archive and not args.save_only, "mixed mode requires existing gold and readback")
         source_paths = save_mixed_empty_archive(args, state, evidence)
+    if extension is not None:
+        evidence["checkpoint_extension"] = extension
     archive_bytes = evidence["archive_bytes"]
     names = list(GOLD_INDEX)
     if not args.save_only:

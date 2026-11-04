@@ -331,12 +331,15 @@ def controller(expiry):
             except subprocess.TimeoutExpired:
                 child.kill(); child.wait(timeout=2)
 
-def mixed_empty_controller(expiry, pins_sha256):
+def mixed_empty_controller(expiry, pins_sha256, empty_pointer_fix=False):
     """Opt-in seven-tensor SDK component; legacy S4a profiles remain frozen."""
     global BASE, RUN
-    RUN = 'kimi-s4a-mixed-empty-20261105-once'
+    RUN = ('kimi-s4a-mixed-empty-pointer-fix-20261105-once' if empty_pointer_fix
+           else 'kimi-s4a-mixed-empty-20261105-once')
     BASE = ROOT.parent.parent/'kimi-k2.6/p0'/RUN
-    pinfile = BASE.parent/'s4b-readonly-20261104/s4a-mixed-empty-input-pins-20261105.json'
+    pinfile = BASE.parent/'s4b-readonly-20261104'/('s4a-mixed-empty-pointer-fix-input-pins-20261105.json'
+        if empty_pointer_fix else 's4a-mixed-empty-input-pins-20261105.json')
+    versioned_c = ROOT/'sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so'
     provenance = pinfile.parent/'sf-pass-four-empty-gidx-metadata.json'
     assert os.geteuid() == 0 and math.isfinite(expiry) and time.time()+220 < expiry
     assert re.fullmatch('[0-9a-f]{64}', pins_sha256)
@@ -358,7 +361,9 @@ def mixed_empty_controller(expiry, pins_sha256):
         'sllm_store/sllm_store/libglog.so.0.6.0']
     required = [ROOT/name for name in source_names]+[RECEIPT,STORE/'packed-component/tensor.data_0',
         STORE/'packed-component/tensor_index.json',provenance]
+    if empty_pointer_fix: required.append(versioned_c)
     assert set(pins['files']) == {str(path) for path in required}
+    if empty_pointer_fix: assert re.fullmatch('[0-9a-f]{64}', pins['files'][str(versioned_c)])
     assert re.fullmatch('[0-9a-f]{40}', pins['source_commit'])
     anchors = {str(RECEIPT): '3817c2e7b942af18388478823c01063cf3ce2f969c6ff9107e36c79b78300ea5',
         str(STORE/'packed-component/tensor.data_0'): '4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8',
@@ -369,6 +374,8 @@ def mixed_empty_controller(expiry, pins_sha256):
         str(ROOT/'sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so'): 'f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3',
         str(ROOT/'sllm_store/sllm_store/libglog.so.0.6.0'): 'd76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6'}
     assert all(pins['files'][path] == digest for path,digest in anchors.items())
+    if empty_pointer_fix:
+        assert pins['files'][str(versioned_c)] != anchors[str(ROOT/'sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so')], 'fixed profile cannot select old checkpoint extension'
     def check_inputs():
         with pinfile.open('rb') as stream: pin_data = stream.read(65537)
         assert len(pin_data) <= 65536 and hashlib.sha256(pin_data).hexdigest() == pins_sha256
@@ -424,6 +431,9 @@ def mixed_empty_controller(expiry, pins_sha256):
         command = ['-I','/source/sllm_store/tests/python/s4a_component_runner.py','--storage','/store',
             '--archive','packed-component','--receipt','/reference/receipt.json','--evidence','/evidence/component',
             '--go-file','/control/component-go.json','--run-id',RUN,'--mixed-empty-archive','mixed-empty']
+        if empty_pointer_fix:
+            mounts.append((versioned_c,'/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so',True))
+            command += ['--expected-c-sha256',pins['files'][str(versioned_c)]]
         argv = DOCKER+['create','--name',RUN,'--runtime=nvidia','--gpus','device='+UUID,'--restart=no',
             '--network=none','--user','2147:2147','--cpus=1','--memory=2g','--memory-swap=2g','--pids-limit=512','--shm-size=64m',
             '--ulimit','core=0','--read-only','--tmpfs','/tmp:rw,exec,size=64m']
@@ -486,6 +496,11 @@ def mixed_empty_controller(expiry, pins_sha256):
         assert parent['server_stop_kind'] == 'SIGINT_GRACEFUL' and parent['elapsed_from_go'] <= 21
         records = [json.loads(line) for line in (BASE/'data/component/client.log').read_text().splitlines() if line.startswith('{')]
         component = records[-1]; gold = json.loads(RECEIPT.read_text())
+        if empty_pointer_fix:
+            imported = [row for row in records if row.get('stage') == 'IMPORTED_CHECKPOINT_EXTENSION']
+            expected_extension = {'file':'/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so','sha256':pins['files'][str(versioned_c)]}
+            assert len(imported) == 1 and imported[0]['checkpoint_extension'] == expected_extension
+            assert component['checkpoint_extension'] == expected_extension
         assert component['stage'] == 'OFFICIAL_MIXED_EMPTY_COMPONENT_ROUNDTRIP' and component['payload_bytes'] == 8257544
         assert component['empty_metadata_source_sha256'] == anchors[str(provenance)] and component['physical_gpu_uuid'] == UUID
         empty_names = [row['name'] for row in json.loads(provenance.read_text())['tensors']]
@@ -558,6 +573,7 @@ if __name__ == '__main__':
     parser.add_argument('--booking-expiry-epoch', type=float)
     parser.add_argument('--mixed-empty', action='store_true')
     parser.add_argument('--pins-sha256')
+    parser.add_argument('--empty-pointer-fix', action='store_true')
     parser.add_argument('--observer-evidence', type=pathlib.Path)
     parser.add_argument('--observer-uuid', action='append')
     parser.add_argument('--observer-seconds', type=float, default=135)
@@ -566,7 +582,8 @@ if __name__ == '__main__':
     if args.observer: observer(args.observer_evidence, args.observer_uuid, args.observer_seconds, args.observer_limit_mib)
     elif args.mixed_empty:
         assert args.run_once and not args.create_only and args.booking_expiry_epoch is not None and args.pins_sha256
-        mixed_empty_controller(args.booking_expiry_epoch,args.pins_sha256)
+        mixed_empty_controller(args.booking_expiry_epoch,args.pins_sha256,args.empty_pointer_fix)
+    elif args.empty_pointer_fix: parser.error('--empty-pointer-fix requires --mixed-empty --run-once')
     elif args.create_only: prepare()
     elif args.run_once:
         assert args.booking_expiry_epoch is not None

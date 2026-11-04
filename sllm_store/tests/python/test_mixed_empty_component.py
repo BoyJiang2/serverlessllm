@@ -3,6 +3,7 @@ import ast
 import hashlib
 import json
 import pathlib
+import re
 import tempfile
 import types
 import unittest
@@ -89,6 +90,66 @@ class MixedEmptySourceTest(unittest.TestCase):
         ns["save_dict"] = changed
         with self.assertRaisesRegex(AssertionError, "empty index"):
             ns["save_mixed_empty_archive"](args, state, evidence)
+
+    def extension_check(self):
+        tree = ast.parse((ROOT / "tests/python/test_kimi_tensor_component.py").read_text())
+        functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)
+                     and n.name in ("require", "checkpoint_extension_identity")]
+        namespace = dict(pathlib=pathlib, re=re, hashlib=hashlib, LIMIT=16 << 20)
+        exec(compile(ast.Module(body=functions, type_ignores=[]), "<imported-extension-source>", "exec"), namespace)
+        return namespace["checkpoint_extension_identity"]
+
+    def test_imported_extension_hash_records_actual_file(self):
+        with tempfile.TemporaryDirectory(prefix="sllm-extension-source-") as folder:
+            path = pathlib.Path(folder) / "_C.so"
+            path.write_bytes(b"fake unit extension, never imported")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            result = self.extension_check()(types.SimpleNamespace(__file__=str(path)), digest)
+            self.assertEqual(result, {"file": str(path), "sha256": digest})
+
+    def test_imported_extension_hash_mismatch_or_missing_is_rejected(self):
+        with tempfile.TemporaryDirectory(prefix="sllm-extension-source-") as folder:
+            path = pathlib.Path(folder) / "_C.so"
+            path.write_bytes(b"fake unit extension")
+            module = types.SimpleNamespace(__file__=str(path))
+            with self.assertRaisesRegex(AssertionError, "hash mismatch"):
+                self.extension_check()(module, "0" * 64)
+            with self.assertRaisesRegex(AssertionError, "invalid extension pin"):
+                self.extension_check()(module, "not-a-hash")
+            path.unlink()
+            with self.assertRaisesRegex(AssertionError, "invalid imported"):
+                self.extension_check()(module, "0" * 64)
+
+    def test_pointer_fix_profile_is_distinct_and_overlay_is_opt_in(self):
+        tree = ast.parse((ROOT / "tests/s4a_root_controller.py").read_text())
+        function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "mixed_empty_controller")
+        names = {"RUN", "BASE", "pinfile", "versioned_c"}
+        assignments = [n for n in function.body if isinstance(n, ast.Assign)
+                       and isinstance(n.targets[0], ast.Name) and n.targets[0].id in names]
+        overlay = next(n for n in ast.walk(function) if isinstance(n, ast.If)
+                       and ast.unparse(n.test) == "empty_pointer_fix"
+                       and any(isinstance(v, ast.Expr) and isinstance(v.value, ast.Call)
+                               and ast.unparse(v.value.func) == "mounts.append" for v in n.body))
+        for enabled in (False, True):
+            ns = dict(ROOT=pathlib.Path("/data/brick1/boyjiang/kimi-new/ServerlessLLM"), empty_pointer_fix=enabled)
+            exec(compile(ast.Module(body=assignments, type_ignores=[]), "<fixed-profile-source>", "exec"), ns)
+            expected = "kimi-s4a-mixed-empty-pointer-fix-20261105-once" if enabled else "kimi-s4a-mixed-empty-20261105-once"
+            self.assertEqual(ns["RUN"], expected)
+            self.assertEqual(ns["pinfile"].name, "s4a-mixed-empty-pointer-fix-input-pins-20261105.json" if enabled else "s4a-mixed-empty-input-pins-20261105.json")
+            ns.update(mounts=[], command=[], pins={"files": {str(ns["versioned_c"]): "a" * 64}})
+            exec(compile(ast.Module(body=[overlay], type_ignores=[]), "<fixed-overlay-source>", "exec"), ns)
+            self.assertEqual(ns["mounts"], [(ns["versioned_c"], "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so", True)] if enabled else [])
+            self.assertEqual(ns["command"], ["--expected-c-sha256", "a" * 64] if enabled else [])
+
+    def test_runner_forwards_extension_pin_only_when_explicit(self):
+        tree = ast.parse((ROOT / "tests/python/s4a_component_runner.py").read_text())
+        function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "main")
+        branch = next(n for n in ast.walk(function) if isinstance(n, ast.If)
+                      and ast.unparse(n.test) == "args.expected_c_sha256 is not None")
+        for digest in (None, "b" * 64):
+            ns = dict(args=types.SimpleNamespace(expected_c_sha256=digest), command=[])
+            exec(compile(ast.Module(body=[branch], type_ignores=[]), "<runner-extension-source>", "exec"), ns)
+            self.assertEqual(ns["command"], [] if digest is None else ["--expected-c-sha256", digest])
 
     def launch(self, now, actual_enter):
         tree = ast.parse((ROOT / "tests/s4a_root_controller.py").read_text())

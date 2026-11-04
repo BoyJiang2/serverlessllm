@@ -105,7 +105,9 @@ def main():
     parser.add_argument("--go-file", type=pathlib.Path, required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--mixed-empty-archive")
+    parser.add_argument("--expected-c-sha256")
     args = parser.parse_args()
+    assert args.expected_c_sha256 is None or args.mixed_empty_archive, "extension pin requires mixed mode"
     assert all(path.is_absolute() for path in (args.storage, args.receipt, args.evidence))
     expected_go = pathlib.Path("/control/component-go.json") if args.mixed_empty_archive else args.evidence.parent / "component-go.json"
     assert args.go_file == expected_go, "unexpected GO metadata path"
@@ -163,6 +165,8 @@ def main():
                    "--server-startticks", str(server_identity[1])]
         if args.mixed_empty_archive:
             command += ["--mixed-empty-archive", args.mixed_empty_archive]
+        if args.expected_c_sha256 is not None:
+            command += ["--expected-c-sha256", args.expected_c_sha256]
         try:
             client = subprocess.Popen(command, env=env, pass_fds=(child_channel.fileno(),),
                                       stdout=client_log, stderr=subprocess.STDOUT)
