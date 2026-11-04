@@ -395,3 +395,9 @@ qjhs002-s4a-cooperative-barrier保留独审source-only PASS及active20tests PASS
 父进程stdlib-only，official serve/client同container；absolute GO+8/16/21余4，client异常保异常/owner等server PID/startticks verified reap ACK才clear；server不能reap不ACK、不先杀client，park交nativeguard且FAIL。ACK_SENT不等client完成barrier，clientcrash=NO_BARRIER；成功alias eagerfree须先于serverstop。-I显式SDK路径/LD prepend保留image原path。
 
 这仅cooperative CPU准备，不是运行授权或S5全面修复；仍缺root controller写0644 component-go metadata/mounts/identity/runtime核验。无Store/GPU/新container运行，旧officialroot及goal不改。ACTIVE当前UTC时间/scope已纠正：获批correctedmicro组合配置已PASS，历史fail保留；S4a/fullmodel/Storeconversion/TP8未run，下一runtime仍需独立gates，不将历史stop误写所有futureGPU绝对禁止。
+
+## S4a success正常服务exit0条件tiny修复（2026-11-04）
+
+qjhs002-s4a-graceful-success保留独审附录及active23CPU PASS；source8c2696513dced00f9d403acda37c089dc1895b1e（parentc0a）仅runner b5e8与barriertest68c3两文件，GitHub/servertracking核验。success path核owned PID/startticks后SIGINT，利用官方asyncio serve cancel/stop5，原GO21内wait必须rc0+verifiedreap；结果记录server/clientcodes、stopkind、forced。非0/timeout整体FAIL走原server-firstTERM/KILL，failure path不改；forced=True仅表示进入fallback，不伪称必发KILL。
+
+这是source-only/23mock CPU准备，不是实际signal/Store/GPU/runtime通过，不承诺stop延迟。此前SIGTERM/KILL不能称正常exit0的歧义已修；其他barrier局限/下一controller准入仍保持。无新Store/GPU、旧root/历史/AGENTS/goal不动。
