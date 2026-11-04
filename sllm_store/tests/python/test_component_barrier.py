@@ -40,12 +40,18 @@ class Process:
         self.label, self.pid, self.events = label, pid, events
         self.alive, self.reaped = True, False
         self.resistant, self.stuck = resistant, stuck
+        self.returncode = 0
 
     def poll(self):
         if not self.alive:
             self.reaped = True
-            return 0
+            return self.returncode
         return None
+
+    def send_signal(self, sig):
+        self.events.append(self.label + ":SIGINT")
+        if not self.resistant:
+            self.alive = False
 
     def terminate(self):
         self.events.append(self.label + ":TERM")
@@ -62,7 +68,7 @@ class Process:
             raise subprocess.TimeoutExpired(self.label, timeout)
         self.reaped = True
         self.events.append(self.label + ":REAP")
-        return 0
+        return self.returncode
 
 
 class BarrierTests(unittest.TestCase):
@@ -76,6 +82,25 @@ class BarrierTests(unittest.TestCase):
         self.patch.start()
         self.addCleanup(self.patch.stop)
         self.channel = types.SimpleNamespace(sendall=lambda data: self.events.append("ACK"))
+
+    def test_success_server_sigint_zero_and_verified_reap(self):
+        self.assertTrue(runner.graceful_server_stop(self.server, (11, 7),
+                                                  runner.time.monotonic() + 5))
+        self.assertEqual(self.events, ["server:SIGINT", "server:REAP"])
+        self.assertTrue(self.server.reaped)
+
+    def test_nonzero_server_never_graceful_pass(self):
+        self.server.returncode = -15
+        self.assertFalse(runner.graceful_server_stop(self.server, (11, 7),
+                                                   runner.time.monotonic() + 5))
+        self.assertTrue(self.server.reaped)
+
+    def test_server_sigint_timeout_never_graceful_pass(self):
+        self.server.resistant = True
+        with self.assertRaises(subprocess.TimeoutExpired):
+            runner.graceful_server_stop(self.server, (11, 7), runner.time.monotonic() + 5)
+        self.assertTrue(self.server.alive)
+        self.assertEqual(self.events, ["server:SIGINT"])
 
     def test_alive_server_no_ack_and_verified_reap_ack(self):
         self.assertFalse(runner.acknowledge_exit(self.channel, self.server, (11, 7)))

@@ -49,6 +49,13 @@ def stop_owned(process, identity, deadline):
     return verified_exit(process, identity)
 
 
+def graceful_server_stop(server, identity, deadline):
+    assert server.poll() is None and startticks(server.pid) == identity[1], "server identity changed"
+    server.send_signal(signal.SIGINT)
+    return (server.wait(timeout=max(0, deadline - time.monotonic())) == 0
+            and verified_exit(server, identity))
+
+
 def acknowledge_exit(channel, server, identity):
     if not verified_exit(server, identity):
         return False
@@ -114,7 +121,9 @@ def main():
     client_end = go_monotonic + 16
     stop_end = go_monotonic + 21
     server = client = channel = None
-    result = {"status": "FAILED_RETAINED", "stage": "startup", "run_id": args.run_id}
+    result = {"status": "FAILED_RETAINED", "stage": "startup", "run_id": args.run_id,
+              "server_returncode": None, "client_returncode": None,
+              "server_stop_kind": "NOT_STARTED", "forced": False}
     logs = []
     try:
         with socket.socket() as probe:
@@ -158,21 +167,27 @@ def main():
         assert ready, "client cutoff exceeded"
         message = channel.recv(2048)
         assert not message, "client requested failure barrier: " + message.decode(errors="replace")
-        assert client.wait(timeout=max(0, client_end - time.monotonic())) == 0, "client failed"
+        result["client_returncode"] = client.wait(timeout=max(0, client_end - time.monotonic()))
+        assert result["client_returncode"] == 0, "client failed"
         # EOF alone is not success; require the component's final roundtrip receipt.
         records = [json.loads(line) for line in (args.evidence / "client.log").read_text().splitlines()
                    if line.startswith("{")]
         assert records[-1]["stage"] == "OFFICIAL_COMPONENT_ROUNDTRIP", "roundtrip receipt absent"
         result["stage"] = "server_stop"
-        assert stop_owned(server, server_identity, stop_end), "server stop/reap failed"
+        result["server_stop_kind"] = "SIGINT_REQUESTED"
+        assert graceful_server_stop(server, server_identity, stop_end), "server did not exit zero after SIGINT"
+        result["server_stop_kind"] = "SIGINT_GRACEFUL"
         result.update(status="COMPONENT_ROUNDTRIP_ORDERED_STOP_PASS", stage="complete")
     except BaseException as error:
         result["error"] = repr(error)
         if server is not None:
+            result.update(forced=True, server_stop_kind="FAILURE_TERM_KILL_FALLBACK")
             if client is not None:
                 safe = failure_order(server, server_identity, client, client_identity, channel, stop_end)
             else:
                 safe = stop_owned(server, server_identity, stop_end)
+            result.update(server_returncode=server.poll(),
+                          client_returncode=client.poll() if client is not None else None)
             if not safe:
                 result["barrier"] = "UNVERIFIED_NATIVE_GUARD_REQUIRED"
                 (args.evidence / "result.json").write_text(json.dumps(result, sort_keys=True))
@@ -184,6 +199,8 @@ def main():
             channel.close()
         for log in logs:
             log.close()
+    result.update(server_returncode=server.poll() if server is not None else None,
+                  client_returncode=client.poll() if client is not None else None)
     result["elapsed_from_go"] = time.monotonic() - go_monotonic
     (args.evidence / "result.json").write_text(json.dumps(result, sort_keys=True))
     print(json.dumps(result), flush=True)
