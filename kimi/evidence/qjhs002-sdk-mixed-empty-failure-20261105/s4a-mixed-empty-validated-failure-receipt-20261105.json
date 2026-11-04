@@ -1,0 +1,187 @@
+{
+  "status": "FAILED_RETAINED",
+  "run_id": "kimi-s4a-mixed-empty-20261105-once",
+  "container_id": "1b18263e0d27b19ad8f4da4ab22b2a573e9b648ec6d9649e598c91fd12e61a0c",
+  "validated_epoch": 1793827369.5638537,
+  "source_commit": "60481ce59da9f522feb69e47b78641425984d152",
+  "failure": "Official SDK confirmation completed; RestoreTensors/from_blob raised host-unregistered pointer RuntimeError before restored tensor values or ownership checks completed.",
+  "controller_elapsed_seconds": 7.9544532399741,
+  "guard": {
+    "status": "FAILED_RETAINED",
+    "cid": "1b18263e0d27b19ad8f4da4ab22b2a573e9b648ec6d9649e598c91fd12e61a0c",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.00408945500385,
+    "max_cycle_seconds": 0.49751898599788547,
+    "raw_oci_sha256": "bdabf37230b26ef8e7bd50f2a7fc13f3d6e783326942e2643358b0c3e6319c1c",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 368032.040382002,
+    "pinned_identities": [
+      {
+        "pid": 4020425,
+        "startticks": 36802484,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 4020436,
+        "startticks": 36802484,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "observer": {
+    "gpu_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "quiet_seconds": 60.69358777796151,
+    "peak_mib": 327,
+    "monitor": {
+      "samples": 92,
+      "memory_samples": 92,
+      "gaps": 0,
+      "max_query_seconds": 0.4056128470110707,
+      "max_memory_interval_seconds": 0.887085213966202,
+      "peak_kind": "SAMPLED_LOWER_BOUND",
+      "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+    }
+  },
+  "units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "Id": "kimi-s4a-mixed-empty-20261105-once-controller.service",
+      "LoadState": "loaded",
+      "ActiveState": "failed"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "Id": "kimi-s4a-mixed-empty-20261105-once-guard.service",
+      "LoadState": "loaded",
+      "ActiveState": "failed"
+    },
+    "observer": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "Id": "kimi-s4a-mixed-empty-20261105-once-observer.service",
+      "LoadState": "loaded",
+      "ActiveState": "active"
+    }
+  },
+  "container_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 1,
+    "Error": "",
+    "StartedAt": "2026-11-04T21:00:51.358155515Z",
+    "FinishedAt": "2026-11-04T21:00:58.46008975Z"
+  },
+  "restart_count": 0,
+  "scope_absent": true,
+  "pinned_process_identities_absent": true,
+  "original_gold_and_archive_sha256": {
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-gold-save-only-receipt.json": "3817c2e7b942af18388478823c01063cf3ce2f969c6ff9107e36c79b78300ea5",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component/tensor.data_0": "4920e225718ab1a21e9dd771438c7f1c3c86277b76adfc5c86f91954569a80d8",
+    "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component/tensor_index.json": "5fbcb6f759d0b473f6ed41ef21a825ca020c44d51c489e8af813c75e3a5b8993"
+  },
+  "offset_derivation": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/s4a-mixed-empty-failure-offset-derivation.json",
+    "sha256": "ebfab4df94231a60f67d40f120dfef81e18fd96cef25b04e71c670354a730865"
+  },
+  "limits": [
+    "Does not prove successful SDK restoration, empty ownership or full model conversion.",
+    "Empty device offsets equal one-past allocation by actual official helper calculation; cudaPointerGetAttributes call argument was not directly traced, so source/geometry supports diagnosis but does not directly prove the exact failing tensor.",
+    "Observer peak is a sampled lower bound; cgroup disappears after cleanup, raw during-run snapshots retained."
+  ],
+  "public_files": {
+    "ARMED.json": {
+      "bytes": 309,
+      "sha256": "d2d6cc22b6034e32a0bfab44ff5ad768389fdf156c4e3b97b68d84800b3bb86f"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "ed4b1fbe30a36f6e4c50911ba10759daa59f51ba3213b596f02af3de5996f901"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "475348615034ffaaec127033d5af3ea6f48d076a26b943c768fbf386579d99ad"
+    },
+    "container-after-sanitized.json": {
+      "bytes": 2421,
+      "sha256": "59ef1e51f64f26b404347095f7a2792900bc2a9c4b2b830d187df445ee4052b7"
+    },
+    "controller-failed.json": {
+      "bytes": 148,
+      "sha256": "c72184eae68cec288a2ea6bdccedff5e6b1e96a1ada1de467c719423273fdc9a"
+    },
+    "data/component/client.log": {
+      "bytes": 2100,
+      "sha256": "713eef6c887b7e84d7100f7f783d2ce780908ebe94cc652a5d655940cd3e4ded"
+    },
+    "data/component/result.json": {
+      "bytes": 497,
+      "sha256": "b9d21ab09f003cae789384533165c74fbd22c750fb7b0230750bd2ebd3fd5f46"
+    },
+    "data/component/server.log": {
+      "bytes": 2514,
+      "sha256": "18ac4d8d4f6c1987b0e20714d857e3fd535cd789512f4f39ea11581193297c1b"
+    },
+    "gpu-observer.jsonl": {
+      "bytes": 14764,
+      "sha256": "9652bf65817c222bae3275a2fb2d5eeb9902c6af73ddfc75ee2dc48bfaf8bdf1"
+    },
+    "guard-events.jsonl": {
+      "bytes": 39591,
+      "sha256": "18e70d626f866fd2d029567654b9ea792a929030cb1b821d0e615e2209ec169b"
+    },
+    "guard-final.json": {
+      "bytes": 648,
+      "sha256": "25edf6eecbc5d5db098ac01733e42e1b336d99d38543a18bae501dd1c9ff1076"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    },
+    "observer-final.json": {
+      "bytes": 341,
+      "sha256": "0f5354dfa3f69ee09b0be878ae2651429ea0b5f8bf194245dadd3b7e38770106"
+    },
+    "observer-ready-identity.json": {
+      "bytes": 40,
+      "sha256": "d1821722f5a4bc049170c7b2946f5e2b627df9661b2580d21e12aa7dcb667de3"
+    },
+    "observer-ready.json": {
+      "bytes": 72,
+      "sha256": "2a0b3651aa9879bb604fdc3107f078f21eba9681a7ec60d021ed9422f0a7b941"
+    },
+    "oci-sanitized-no-env.json": {
+      "bytes": 21979,
+      "sha256": "eb0bd897c3cbeab43bdba82dcbc28b7d847fa7dfab88cef99b0261d7d90f0c33"
+    },
+    "prepared.json": {
+      "bytes": 2336,
+      "sha256": "2fc9d765e760d6566173bcf1925ddb813fc5d86f3d085e1a1e40dd3e88c354e0"
+    },
+    "store/mixed-empty/tensor_index.json": {
+      "bytes": 806,
+      "sha256": "bc11dd319201a9f3535ce408c62c9acddf1e50a55854698ad9d2ab87a79db50e"
+    },
+    "units-after.json": {
+      "bytes": 718,
+      "sha256": "b8b45a9e83bfb4a8ae84d2882c7d5903b365898c6ecb2fc52c1fa9419b753455"
+    }
+  }
+}

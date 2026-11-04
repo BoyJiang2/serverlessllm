@@ -1,0 +1,140 @@
+{
+  "status": "READONLY_EMPTY_FROM_BLOB_POINTER_SOURCE_BOUNDARY_AUDIT_NOT_NEW_RUNTIME_PROOF",
+  "recorded_utc": "2026-11-04T21:09:55.416175+00:00",
+  "failed_run": "kimi-s4a-mixed-empty-20261105-once",
+  "failed_cid": "1b18263e0d27b19ad8f4da4ab22b2a573e9b648ec6d9649e598c91fd12e61a0c",
+  "source_commit_reported_by_root": "60481ce59da9f522feb69e47b78641425984d152",
+  "actual_index_derivation": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/s4a-mixed-empty-failure-offset-derivation.json",
+    "sha256": "ebfab4df94231a60f67d40f120dfef81e18fd96cef25b04e71c670354a730865",
+    "index_sha256": "bc11dd319201a9f3535ce408c62c9acddf1e50a55854698ad9d2ab87a79db50e",
+    "independent_actual_SDK_AST_calculation_matches": true,
+    "device_memory_bytes": 8257544,
+    "nonempty_offsets": [
+      0,
+      7340032,
+      8257536
+    ],
+    "empty_count": 4,
+    "all_empty_offsets": 8257544,
+    "empty_offset_equals_allocation_length": true,
+    "archive_file_padded_bytes_reported_by_root": 8261632,
+    "padding_not_part_of_GPU_allocation": true
+  },
+  "actual_source_pins": {
+    "sllm_store/csrc/checkpoint/checkpoint.cpp": "95c798dad020bcfca4d3ec0693da2b4a85595150ec7051a15e11cf679af7e93a",
+    "sllm_store/sllm_store/utils.py": "c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217",
+    "sllm_store/sllm_store/device_map_utils.py": "d15e8888b8c04230f958d71c2f731acdaed97ea4d78dc1a2c7b0f4ec7238c4de",
+    "sllm_store/sllm_store/torch.py": "1dd5eb72393c67f2d51128c0bf4abb9e8508e5509cc4b42e666ae0b6da2d7adc"
+  },
+  "source_chain": [
+    {
+      "path": "sllm_store/sllm_store/utils.py",
+      "lines": "72-87,90-118",
+      "fact": "Memory size sums unique offset/size records. Empty record retains current destination offset without increasing allocation. Four identical empty records share the same end offset."
+    },
+    {
+      "path": "sllm_store/csrc/checkpoint/checkpoint.cpp",
+      "lines": "113-151",
+      "fact": "Restore creates one shared base owner per allocation; every tensor receives base+calculated_offset and a deleter capturing that owner. Same operation is used for empty and nonempty shapes."
+    },
+    {
+      "installed_path": "/usr/local/lib/python3.12/dist-packages/torch/include/ATen/ops/from_blob.h",
+      "sha256": "d9a535ba58c0fbec40d44da55256353b04de9f799663cefc43ab308d79f1f2a1",
+      "lines": "108-120",
+      "fact": "Used overload leaves optional target_device unspecified; options device alone is separate from target_device."
+    },
+    {
+      "installed_path": "/usr/local/lib/python3.12/dist-packages/torch/include/ATen/Context.h",
+      "sha256": "5b83eb64d3135a25a40acff22f5a63ec1b0bb5a582c4e948853f5d20ac14e19d",
+      "lines": "105-112",
+      "fact": "getDeviceFromPtr delegates nonCPU pointers through accelerator hooks."
+    },
+    {
+      "installed_path": "/usr/local/lib/python3.12/dist-packages/torch/include/ATen/cuda/CUDADevice.h",
+      "sha256": "89b3945800ac32f0b02648fc56cf8969201a70b8df78f536e629185ee13487ab",
+      "fact": "Calls cudaPointerGetAttributes then rejects cudaMemoryTypeUnregistered with the exact observed exception message."
+    }
+  ],
+  "torch_identity": {
+    "version_file_sha256": "259478d2367e87d7f8c8e0aa21b1f4b76ab329f0f1e573214dd842052ebff7d1",
+    "version": "2.10.0+cu129",
+    "cuda": "12.9",
+    "git_version": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+    "read_method": "Bounded docker cp stopped immutable source CID4001; text/header only, no imports or container start"
+  },
+  "official_references": [
+    {
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/templates/Functions.cpp",
+      "lines": "7-28",
+      "fact": "TensorMaker resolves CUDA pointer device before computing storage size; zero shape does not skip pointer validation."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/CUDADevice.h",
+      "lines": "9-18",
+      "fact": "Exact unregistered pointer exception check."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/pytorch/pytorch/449b1768410104d3ed79d3bcfe4ba1d65c7f22c0/aten/src/ATen/cuda/detail/CUDAHooks.cpp",
+      "lines": "99-101",
+      "fact": "CUDA hook routes to getDeviceFromPtr."
+    }
+  ],
+  "existing_ELF_identity": {
+    "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+    "bytes": 398168,
+    "sha256": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "gnu_build_id": "ef24fb762a61ab144f5cd8b48d4a320dbc2abdee",
+    "compiler_comment": "GCC: (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+    "runpath": "$ORIGIN:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64",
+    "needed": [
+      "libtorch.so",
+      "libtorch_python.so",
+      "libcudart.so.12",
+      "libtorch_cpu.so",
+      "libtorch_cuda.so",
+      "libc10.so",
+      "libstdc++.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6"
+    ],
+    "provenance_limit": "ELF identity does not prove complete reproducible build/source correspondence. No CMakeCache/build.ninja/compile_commands found in bounded current sllm_store/build metadata inspection."
+  },
+  "existing_build_assets": {
+    "active_source_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+    "existing_image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "known_recipe_paths": [
+      "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/CMakeLists.txt",
+      "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/setup.py",
+      "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/cpp_build.sh",
+      "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/Dockerfile.builder"
+    ],
+    "cache_environment_path_status": "No complete existing build-cache/toolchain invocation manifest located in bounded current build inspection; awaiting separate build-asset review. No environment created/installed/compiled."
+  },
+  "minimal_proposed_change": {
+    "file": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/checkpoint/checkpoint.cpp",
+    "function": "RestoreTensors",
+    "rule": "If sizes contains a zero dimension, use existing allocation base as from_blob data pointer; otherwise retain original base+offset. Keep dtype/sizes/strides and same shared owner/deleter unchanged.",
+    "not_changed": [
+      "Archive schema and offsets",
+      "Writer/chunk sorting",
+      "Nonempty tensor addressing",
+      "Target-device validation bypass",
+      "Codec/loader/expert slicing",
+      "All-empty/no-valid-allocation support"
+    ]
+  },
+  "passing_standards": [
+    "Focused CPU C++/stub regression verifies zero shape at end selects valid base and nonzero selects exact base+offset; existing shape/stride/dtype/owner contract unchanged.",
+    "Compile only current authorized source using existing environment into a new versioned artifact; retain original41d ELF and capture toolchain/source/ELF pins.",
+    "Independent source/build review and explicit bounded fresh runtime gate before retry.",
+    "One separately admitted mixed 7tensor official save/load run: original3 raw values bitexact; four empties exactshape384x0/stride1,1/int32; normal shutdown and original owner/IPC barriers; >=60s release and actual unit exits.",
+    "Full Store conversion remains paused until that component gate passes."
+  ],
+  "limits": [
+    "Exact allocation-tail geometry is independently established. Historical cudaPointerGetAttributes arguments and exact failing tensor were not captured; geometry plus exception/source chain is not a direct syscall trace or exclusive-cause proof.",
+    "Current first mixed attempt remains failed; no failure/budget promotion.",
+    "No new GPU/CPU container, package import, build, source edit, schema edit, weight payload or Git performed by this audit.",
+    "Pure stdlib actual-source offset computation is not a CUDA probe."
+  ]
+}

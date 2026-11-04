@@ -1,0 +1,93 @@
+{
+  "Id": "1b18263e0d27b19ad8f4da4ab22b2a573e9b648ec6d9649e598c91fd12e61a0c",
+  "Image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "State": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 1,
+    "Error": "",
+    "StartedAt": "2026-11-04T21:00:51.358155515Z",
+    "FinishedAt": "2026-11-04T21:00:58.46008975Z"
+  },
+  "RestartCount": 0,
+  "Mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-saveonly-20261103-2103/packed-component",
+      "Destination": "/store/packed-component",
+      "Mode": "",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-gold-save-only-receipt.json",
+      "Destination": "/reference/receipt.json",
+      "Mode": "",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-s4a-mixed-empty-20261105-once/data",
+      "Destination": "/evidence",
+      "Mode": "",
+      "RW": true,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-s4a-mixed-empty-20261105-once/control",
+      "Destination": "/control",
+      "Mode": "",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store",
+      "Destination": "/source/sllm_store",
+      "Mode": "",
+      "RW": false,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-s4a-mixed-empty-20261105-once/store",
+      "Destination": "/store",
+      "Mode": "",
+      "RW": true,
+      "Propagation": "rprivate"
+    }
+  ],
+  "HostConfig": {
+    "PidsLimit": 512,
+    "Memory": 2147483648,
+    "MemorySwap": 2147483648,
+    "NanoCpus": 1000000000,
+    "ShmSize": 67108864,
+    "NetworkMode": "none",
+    "DeviceRequests": [
+      {
+        "Driver": "",
+        "Count": 0,
+        "DeviceIDs": [
+          "GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+        ],
+        "Capabilities": [
+          [
+            "gpu"
+          ]
+        ],
+        "Options": {}
+      }
+    ],
+    "Runtime": "nvidia",
+    "ReadonlyRootfs": true
+  }
+}

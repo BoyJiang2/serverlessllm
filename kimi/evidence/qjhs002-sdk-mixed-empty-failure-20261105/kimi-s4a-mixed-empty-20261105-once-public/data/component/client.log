@@ -1,0 +1,25 @@
+Saving tensors: 14% [==========>                                                           ] 14 %Saving tensors: 28% [====================>                                                 ] 28 %Saving tensors: 42% [==============================>                                       ] 42 %Saving tensors: 57% [========================================>                             ] 57 %INFO 11-04 21:00:57 client.py:136] register_model: mixed-empty
+INFO 11-04 21:00:57 client.py:144] Model registered
+DEBUG 11-04 21:00:57 torch.py:136] allocate_cuda_memory takes 0.0011887550354003906 seconds
+DEBUG 11-04 21:00:57 client.py:72] load_into_gpu: mixed-empty, a23b209a-d22f-4cf7-bbab-3193d6b3d1a9
+INFO 11-04 21:00:57 client.py:113] Model loaded: mixed-empty, a23b209a-d22f-4cf7-bbab-3193d6b3d1a9
+INFO 11-04 21:00:57 client.py:117] confirm_model_loaded: mixed-empty, a23b209a-d22f-4cf7-bbab-3193d6b3d1a9
+INFO 11-04 21:00:57 client.py:125] Model loaded
+{"failure_barrier": "SERVER_EXIT_VERIFIED", "error": "RuntimeError('The specified pointer resides on host memory and is not registered with any CUDA device.')"}
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/source/sllm_store/tests/python/test_kimi_tensor_component.py", line 447, in <module>
+    main()
+  File "/source/sllm_store/tests/python/test_kimi_tensor_component.py", line 356, in main
+    restored = load_dict(args.archive, {"": 0}, str(args.storage.resolve()))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/source/sllm_store/sllm_store/torch.py", line 88, in load_dict
+    _, state_dict = load_dict_non_blocking(
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/source/sllm_store/sllm_store/torch.py", line 160, in load_dict_non_blocking
+    state_dict = restore_tensors(
+                 ^^^^^^^^^^^^^^^^
+RuntimeError: The specified pointer resides on host memory and is not registered with any CUDA device.

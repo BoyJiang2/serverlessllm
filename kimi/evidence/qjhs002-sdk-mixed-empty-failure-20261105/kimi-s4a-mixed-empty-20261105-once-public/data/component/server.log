@@ -1,0 +1,26 @@
+INFO 11-04 21:00:54 server.py:40] StorageServicer: storage_path=/store, mem_pool_size=67108864, num_thread=1, chunk_size=1048576, registration_required=True
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20261104 21:00:54.511313   471 checkpoint_store.cpp:41] Number of GPUs: 1
+I20261104 21:00:54.511351   471 checkpoint_store.cpp:43] I/O threads: 1, chunk size: 1MB
+I20261104 21:00:54.511356   471 checkpoint_store.cpp:45] Storage path: "/store"
+I20261104 21:00:54.724134   471 checkpoint_store.cpp:71] GPU 0 UUID: 736d7f37-f647-b82d-ab11-693753ac6822
+I20261104 21:00:54.724215   471 pinned_memory_pool.cpp:29] Creating PinnedMemoryPool with 64 buffers of 1048576 bytes
+I20261104 21:00:54.750380   471 checkpoint_store.cpp:83] Memory pool created with 0GB
+INFO 11-04 21:00:54 server.py:231] Starting gRPC server on 127.0.0.1:8073
+I20261104 21:00:57.565878   471 model.cpp:53] Tensor file "/store/mixed-empty/tensor.data_1" does not exist
+I20261104 21:00:57.565927   471 checkpoint_store.cpp:106] Model mixed-empty is registered
+INFO 11-04 21:00:57 server.py:114] LoadModel: success mixed-empty with target 1
+I20261104 21:00:57.759506   514 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 8 buffers free buffers 56 total buffers 64
+I20261104 21:00:57.759554   514 model.cpp:120] Loading model mixed-empty size 8261632 to host
+I20261104 21:00:57.759559   514 model.cpp:134] Loading model mixed-empty to host with 1 threads, 8 chunks, 1048576 chunk size, 8 chunks per thread
+I20261104 21:00:57.759702   515 model.cpp:155] Thread 0 starting from partition 0 offset 0
+INFO 11-04 21:00:57 server.py:114] LoadModel: success mixed-empty with target 2
+I20261104 21:00:57.761579   516 checkpoint_store.cpp:209] Loading model mixed-empty
+I20261104 21:00:57.761900   516 model.cpp:269] Creating replica a23b209a-d22f-4cf7-bbab-3193d6b3d1a9
+I20261104 21:00:57.761909   516 model.cpp:273] Creating queue for device 0
+I20261104 21:00:57.761914   516 model.cpp:279] Created replica a23b209a-d22f-4cf7-bbab-3193d6b3d1a9
+I20261104 21:00:57.762296   516 model.cpp:290] Dispatcher started for model mixed-empty
+I20261104 21:00:57.762377   516 model.cpp:343] Waiting for model mixed-empty num tasks 1 state 3
+I20261104 21:00:57.767270   514 model.cpp:250] Finished loading model mixed-empty from disk
+I20261104 21:00:57.767434   518 model.cpp:336] Finished loading tensor from memory to device 0
+INFO 11-04 21:00:57 server.py:137] Confirm model mixed-empty replica a23b209a-d22f-4cf7-bbab-3193d6b3d1a9 success
