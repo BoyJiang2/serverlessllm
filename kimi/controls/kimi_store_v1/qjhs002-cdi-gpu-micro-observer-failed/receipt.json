@@ -1,0 +1,410 @@
+{
+  "status": "FAILED_RETAINED",
+  "classification": "OBSERVER_NVML_QUERY_TIMEOUT_ABORT",
+  "cid": "47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8",
+  "source_commit": "4e663bbe02aa59451dbc03e105acabfa8486e18d",
+  "controller_failure": {
+    "status": "FAILED_RETAINED",
+    "cid": "47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8",
+    "error_type": "AssertionError",
+    "error": "",
+    "go": 339519.909157872,
+    "elapsed": 8.916902214987203
+  },
+  "original_guard": {
+    "status": "FAILED_RETAINED",
+    "cid": "47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.02572943398263,
+    "max_cycle_seconds": 0.22215904103359208,
+    "raw_oci_sha256": "d27ae5bf8376a64cf76316a6f6f86bc960ef20223fc176ef146bc15397adf55a",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 339525.850619877,
+    "pinned_identities": [
+      {
+        "pid": 1232035,
+        "startticks": 33951998,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 1232045,
+        "startticks": 33951998,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 1234045,
+        "startticks": 33952585,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 1234053,
+        "startticks": 33952585,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "original_observer_final_present": false,
+  "original_budget_seconds": 220,
+  "original_observer_release_pass": false,
+  "error": {
+    "exception_type": "subprocess.TimeoutExpired",
+    "operation": [
+      "/usr/bin/nvidia-smi",
+      "-q",
+      "-x"
+    ],
+    "timeout_seconds": 3,
+    "source": "sllm_store/tests/s4a_root_controller.py:12 via gpu_states at66",
+    "stderr_raw_sha256": "ac8a75a38b7d457f1a1e21cdd5b91d99bf344f52fc9ac6e21151793c32187b8f",
+    "native_unit_exit": 1,
+    "causal_chain": "Observer timeout ->ABORT ->guard terminatedownedcontainer; rawstderr/journalsprivate",
+    "underlying_blocking_syscall": "NOT_CAPTURED_DURING_FAILED_STARTUP"
+  },
+  "container_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 137,
+    "Error": "",
+    "StartedAt": "2026-11-04T13:05:46.497902274Z",
+    "FinishedAt": "2026-11-04T13:05:52.433317239Z"
+  },
+  "worker_marker_counts": {},
+  "nccl_init_seconds": null,
+  "all_rank_ready_seconds": null,
+  "workload_gpu_peak_mib": null,
+  "partial_observed_mib_before_query_timeout": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 0,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 0,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 0,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 0,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 0,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 0,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 0,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 0
+  },
+  "partial_observation_sample_count": 2,
+  "supplemental_release_only": {
+    "gpu_uuids": [
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9"
+    ],
+    "quiet_seconds": 60.19939184997929,
+    "peak_mib_by_uuid": {
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 0,
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 0,
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 0,
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 0,
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 0,
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 0,
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 0,
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 0
+    }
+  },
+  "supplemental_metadata": {
+    "scope": "SUPPLEMENTAL_READ_ONLY_RELEASE_AUDIT, no workload start, no originalPASSrepair",
+    "epoch": 1793797941.5514352,
+    "original_status": "FAILED_RETAINED",
+    "original_observer_failure": "nvidia-smi -q -x TimeoutExpired3s",
+    "separate_budget_seconds": 83,
+    "observation_minimum_seconds": 60
+  },
+  "postcheck": {
+    "status": "FAILED_RETAINED_WITH_SEPARATE_SUPPLEMENTAL_RELEASE_AUDIT",
+    "epoch": 1793798372.3364294,
+    "cid": "47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8",
+    "source_sha256": {
+      "cuda_micro_probe.py": "07d2c986fef6750083d195ccf2587f02261f359dcdcdff1794c237c73c9569e2",
+      "gpu512_once_controller.py": "4cae6195dad32609ee7f5c9cb4ec18daf4cbd512f59e884365e4012cfa3b4d8f",
+      "python/test_cuda_micro_probe.py": "9bda751d180d195a8ea74b6974d83caf623f1bd9b272889a276ed3446c21d4db",
+      "python/test_tp8_micro_controller.py": "dafe71e5208e0c7d0bb090d2171bc79fa1ca4f373d311a62816e25c5eaf9b77b"
+    },
+    "units_before_stop": {
+      "controller": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "ControlGroup": "",
+        "LoadState": "loaded",
+        "ActiveState": "failed"
+      },
+      "guard": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "ControlGroup": "",
+        "LoadState": "loaded",
+        "ActiveState": "failed"
+      },
+      "observer": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "ControlGroup": "",
+        "LoadState": "loaded",
+        "ActiveState": "failed"
+      },
+      "release-audit": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "0",
+        "ControlGroup": "",
+        "LoadState": "loaded",
+        "ActiveState": "active"
+      }
+    },
+    "identities": [
+      {
+        "pid": 1232035,
+        "startticks": 33951998,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      },
+      {
+        "pid": 1232045,
+        "startticks": 33951998,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      },
+      {
+        "pid": 1234045,
+        "startticks": 33952585,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      },
+      {
+        "pid": 1234053,
+        "startticks": 33952585,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service",
+        "same_identity_alive": false
+      }
+    ],
+    "scope_removed": true,
+    "all8gpus": [
+      {
+        "uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+        "used": "0 MiB",
+        "processes": []
+      },
+      {
+        "uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+        "used": "0 MiB",
+        "processes": []
+      }
+    ],
+    "original_observer_final_missing": true,
+    "supplemental_release": {
+      "gpu_uuids": [
+        "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+        "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+        "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+        "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+        "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+        "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+        "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+        "GPU-21336138-6e64-ec08-305b-26c99d661ab9"
+      ],
+      "quiet_seconds": 60.19939184997929,
+      "peak_mib_by_uuid": {
+        "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 0,
+        "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 0,
+        "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 0,
+        "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 0,
+        "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 0,
+        "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 0,
+        "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 0,
+        "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 0
+      }
+    },
+    "supplemental_release_metadata": {
+      "scope": "SUPPLEMENTAL_READ_ONLY_RELEASE_AUDIT, no workload start, no originalPASSrepair",
+      "epoch": 1793797941.5514352,
+      "original_status": "FAILED_RETAINED",
+      "original_observer_failure": "nvidia-smi -q -x TimeoutExpired3s",
+      "separate_budget_seconds": 83,
+      "observation_minimum_seconds": 60
+    },
+    "raw_oci_sha256": "d27ae5bf8376a64cf76316a6f6f86bc960ef20223fc176ef146bc15397adf55a",
+    "raw_oci_mode": "0o600"
+  },
+  "idle_syscall_baseline": {
+    "status": "NVML_IDLE_READONLY_SYSCALL_AUDIT_RECORDED",
+    "epoch": 1793798843.0169923,
+    "query_returncode": 0,
+    "elapsed_with_strace_seconds": 1.4666524039930664,
+    "query_timeout_seconds": 3,
+    "completed_syscall_counts": {
+      "futex": 3,
+      "clone3": 1,
+      "poll": 1,
+      "ioctl": 1498
+    },
+    "slowest_completed_syscalls": [
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003286
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003216
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003173
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003162
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.00316
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.00316
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003157
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003155
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003135
+      },
+      {
+        "syscall": "ioctl",
+        "seconds": 0.003124
+      }
+    ],
+    "unfinished_trace_lines": 4,
+    "clone_eagain_count": 0,
+    "raw_trace_sha256": "41199c59bc83ce469b269753bf13f4649a17cbd95f10e640784715bf6d1bffd9",
+    "raw_trace_bytes": 213816,
+    "scope": "One hostNVMLmetadataquery only, no container/CUDA/NCCL/weights; idlebaseline not failedstartup reproduction"
+  },
+  "public_remote": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104-public",
+  "public_sha256": {
+    "ARMED.json": "2ce2a987654f8d532341aaf291f32f4a1283a705908fd62616627742dbae8728",
+    "GO.json": "445d0c44b348059935e32b3ebb4cf770f0061ac5ca69c112fed116a23250a183",
+    "GO-ACK.json": "ec2cc5df506c71c5d48b9b57d5d7e74d2b69001f17f40c81a759c0b3fdb56235",
+    "guard-final.json": "dde2316731b9b8e76a83ec8773be4cb221928502d1c93ddd07202109f1dc483a",
+    "controller-failed.json": "5da2901acd03ba5e917908741851e35c38d046ce03bf95060db0ce96f931cd32",
+    "gpu-observer.jsonl": "b85c02ee24b41d819305c9c1f0dedc57767afbd7998aa82df27d8f464f527f45",
+    "root-postcheck.json": "d12b900976eb5230a9c15f8f535b6aad306fb8b59b4cc64090ef147ddbff2fd3",
+    "prepared-selected.json": "4d4fbf22a1bc84a3aff6534987cc0dd9f682fe649d7c89793b3a823737797aea",
+    "inspect-exited-selected.json": "d2438c8cf2feb7885a29c67e1b574a25486978ad201f099d0d4efcc28c255e19",
+    "observer-error-summary.json": "7497242d85db41aa1793811697c73ab96793a9571bab782406ccb197dc465b02",
+    "guard-events-sanitized.jsonl": "d487ba0192ec38ace2d3209ee7c69c70d93949fb7c7625cc74470ee58e2255a1",
+    "nvml-idle-syscall-baseline.json": "66b41536ee7630dd721c069d57e71e333194387a9fbd625a979b6c29233bd3bb",
+    "kernel-summary.json": "acc3e8cc7e8e29ab7eb4a8ac120355799fc43e3cfdb9b84e7bc950cbbd168a44",
+    "supplemental-release-only/audit-metadata.json": "2809d4b2d4dd3ac7eac4a37de4bf0e02ea447b7c342799e097ab2864dc3c8c4c",
+    "supplemental-release-only/observer-ready.json": "8308ed9e43c88c65e342a8470eabd8b57a85a9dc5933c005db40feee5aeee28c",
+    "supplemental-release-only/observer-final.json": "0843f0eb76c411ad386a8b8585fd2442c8dbbd881d14cdaf3e597adf679b4e15",
+    "supplemental-release-only/gpu-observer.jsonl": "2ffc7bb3a1f6f56a30be614ffe5b8f9976bb15f8f54ac19763b384e19a12812f"
+  },
+  "private_raw_references": {
+    "oci.raw.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/oci.raw.json",
+      "sha256": "d27ae5bf8376a64cf76316a6f6f86bc960ef20223fc176ef146bc15397adf55a",
+      "bytes": 16134,
+      "mode": "0o600"
+    },
+    "live-collection-1.private.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/live-collection-1.private.json",
+      "sha256": "2b19088a79421748d5d1864d91699a8f5f7b8460b508ab8525dccd56b4e71d11",
+      "bytes": 14134,
+      "mode": "0o600"
+    },
+    "failure-system-collection.private.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/failure-system-collection.private.json",
+      "sha256": "48748a2e30efb6a203a5f78ec37e3c1891fec13ecb0cf21ba2329350bf029aae",
+      "bytes": 53636,
+      "mode": "0o600"
+    },
+    "kimi-tp8-cuda-nccl-micro-cdi-20261104-observer.service.stderr": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/kimi-tp8-cuda-nccl-micro-cdi-20261104-observer.service.stderr",
+      "sha256": "ac8a75a38b7d457f1a1e21cdd5b91d99bf344f52fc9ac6e21151793c32187b8f",
+      "bytes": 1498,
+      "mode": "0o644"
+    },
+    "kernel-after.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/kernel-after.json",
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+      "bytes": 63,
+      "mode": "0o600"
+    },
+    "guard-events.jsonl": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/guard-events.jsonl",
+      "sha256": "ff54bf542d06b6514a65b1656ff6e8476b439ba8f1da940bb7757a8ce491f78c",
+      "bytes": 36625,
+      "mode": "0o644"
+    },
+    "nvml-idle-syscall-audit/query.private.trace": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi-20261104/nvml-idle-syscall-audit/query.private.trace",
+      "sha256": "41199c59bc83ce469b269753bf13f4649a17cbd95f10e640784715bf6d1bffd9",
+      "bytes": 213816,
+      "mode": "0o600"
+    }
+  },
+  "limitations": "No CUDA/NCCL success; no full-model/Store. Originalobserverfailed and peakintervalmissing. Supplemental release separatelybudgetedreadonlycleanup AFTER originalrun, doesnotrepairoriginalfailure/budget. Idletraceafterfailure doesnotidentifyhistoricalblockedstartup syscall."
+}

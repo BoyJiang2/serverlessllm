@@ -1,3 +1,11 @@
+## 11/4 获准的 CDI 计算小探针失败保留：原观察器3秒查询超时
+
+源码4e663bbe02aa59451dbc03e105acabfa8486e18d未变；一次容器47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8的原观察器nvidia-smi -q -x触发3秒TimeoutExpired，继而ABORT，守护强制结束容器137且OOMKilled=false。控制器8.9169秒失败，guard abort失败保留并完成quiet60.0257秒。没有worker/TensorPASS，原observer-final缺失，workload峰值、NCCL初始化、all-rank-ready均null；超时前零值采样不能证明峰值为零。
+
+原正式运行结束后另用80+3秒预算做补充只读释放观察，八卡共同零占用60.199秒。该观察明确在原220秒之外，只关闭释放取证义务，不能补成原探针通过或原预算PASS。随后一次空闲宿主NVML元数据strace查询在3秒上限内返回0、耗时1.46665秒，1498个完整ioctl最慢3.286毫秒，另有4行unfinished；这不是失败启动的复现或历史卡点证明。213816B完整rawtrace仅服务器root0600保存，不下载或入Git。
+
+17份公开证据、原失败与补充审计分别见qjhs002-cdi-gpu-micro-observer-failed收据；独立审阅身份已固定。不修改探针/观察器/超时，不自动重试；下一次观察器追踪提案需新的用户批准。GPU/NCCL计算及完整模型路径仍未通过，goal保持active。
+
 ## 11/4 用户四文件 CDI 探针补丁已完整审阅并发布；仍未批准 GPU 重试
 
 用户四文件补丁以0610AEC三文件及后续4e663测试文件两个提交保留，源码分支kimi-qjhs002-aligned-tail最终4e663bbe02aa59451dbc03e105acabfa8486e18d已推送并核验GitHub SHA，四个当前文件与HEAD blob哈希一致。补丁包含worker MASTER校验、实际送达环境报告及create_request重命名并更新调用者。独立审阅通过，宿主CPU检查26项：25通过、1项真实镜像集成显式跳过；不将跳过记作运行通过。源码和三份服务器证据身份见qjhs002-user-cdi-probe-source-reviewed/receipt.json。
