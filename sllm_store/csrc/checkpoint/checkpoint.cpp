@@ -29,6 +29,7 @@
 #include <torch/torch.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -133,6 +134,9 @@ std::unordered_map<std::string, torch::Tensor> RestoreTensors(
 
         torch::Device tensor_device(torch::kCUDA, device);
         auto [sizes, strides, type_str] = meta_state_dict.at(name);
+        if (std::find(sizes.begin(), sizes.end(), 0) != sizes.end()) {
+          offset = reinterpret_cast<uint64_t>(base_address);
+        }
         at::ScalarType dtype = stringToScalarType(type_str);
         // std::cerr << name << " " << sizes << " " << strides << " " << dtype
         // << std::endl;

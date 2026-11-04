@@ -33,6 +33,7 @@ class RestoreOwnershipTest(unittest.TestCase):
         function = function.replace("cudaFree(", "test_cuda_free(")
         code = r"""
 #include <torch/extension.h>
+#include <algorithm>
 #include <cstdlib>
 #include <memory>
 #include <stdexcept>
@@ -68,6 +69,10 @@ void check_case(int mode) {
     if (mode == 0 || mode == 1) offsets["first"] = 0;
     if (mode == 1) offsets["alias"] = 0;
     if (mode == 3) offsets.clear();
+    if (mode == 5) {
+      meta["empty"] = {{384, 0}, {1, 1}, "torch.int32"};
+      offsets["empty"] = 8192;
+    }
     std::unordered_map<int, void*> pointers{{0, base}};
     std::unordered_map<int, std::unordered_map<std::string, uint64_t>>
         device_offsets{{0, offsets}};
@@ -87,6 +92,25 @@ void check_case(int mode) {
     if (mode == 3) {
       TORCH_CHECK(state.empty() && frees == 1,
                   "unused allocation was not released");
+      return;
+    }
+    TORCH_CHECK(state.at("tail").data_ptr() == static_cast<char*>(base) + 4096,
+                "nonempty pointer must retain its original offset");
+    if (mode == 5) {
+      auto survivor = state.at("empty");
+      TORCH_CHECK(survivor.storage().data_ptr().get() == base,
+                  "empty one-past pointer must use allocation base");
+      TORCH_CHECK(survivor.numel() == 0 && survivor.size(0) == 384 &&
+                      survivor.size(1) == 0 && survivor.stride(0) == 1 &&
+                      survivor.stride(1) == 1 &&
+                      survivor.scalar_type() == torch::kInt32,
+                  "empty shape, stride or dtype changed");
+      state.clear();
+      TORCH_CHECK(frees == 0, "allocation released while only empty owner held");
+      TORCH_CHECK(survivor.storage().data_ptr().get() == base,
+                  "empty survivor lost allocation ownership");
+      survivor = torch::Tensor();
+      TORCH_CHECK(frees == 1, "empty final owner must release exactly once");
       return;
     }
     state.at("tail").fill_(777);
@@ -138,6 +162,9 @@ void check_case(int mode) {
         for mode in range(5):
             with self.subTest(mode=mode):
                 self.extension.check_case(mode)
+
+    def test_empty_one_past_keeps_base_alive(self):
+        self.extension.check_case(5)
 
 
 if __name__ == "__main__":
