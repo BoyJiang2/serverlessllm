@@ -8,6 +8,7 @@ import pathlib
 import re
 import select
 import signal
+import stat
 import time
 
 p = argparse.ArgumentParser()
@@ -18,6 +19,7 @@ p.add_argument('--runc-root', default='/var/run/docker/runtime-runc/moby')
 p.add_argument('--deadline', type=float, default=25)
 p.add_argument('--kill-after', type=float, default=3)
 p.add_argument('--overall', type=float, default=65, help='cleanup cutoff; release60 is additional')
+p.add_argument('--normal-exit-marker', action='store_true', help='opt in to authenticated normal-exit.json after natural shutdown')
 a = p.parse_args()
 assert os.geteuid() == 0 and re.fullmatch('[0-9a-f]{64}', a.cid)
 assert all(math.isfinite(v) for v in (a.deadline, a.kill_after, a.overall))
@@ -35,7 +37,7 @@ log = (base / 'guard-events.jsonl').open('x', encoding='utf-8', buffering=1)
 armed_at = time.monotonic()
 nonce = os.urandom(16).hex()
 pins, last, failures = {}, {}, set()
-scopefd = raw_sha = go_at = quiet = abort_at = None
+scopefd = raw_sha = go_at = quiet = abort_at = normal_at = normal_trigger = None
 oci_seen = scope_seen = False
 log_bytes = 0
 max_cycle = 0.0
@@ -71,6 +73,35 @@ def read(path, limit=32768):
         raw = f.read(limit + 1)
     if len(raw) > limit: raise ValueError('bounded metadata read exceeded')
     return raw
+
+
+def normal_completion(path, cid, arm_nonce, go, now, deadline):
+    directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        parent = os.fstat(directory)
+        if parent.st_uid != 0 or stat.S_IMODE(parent.st_mode) != 0o700:
+            raise ValueError('normal marker directory must be root private')
+        fd = os.open(path.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+        try:
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_uid != 0 or stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1 or info.st_size > 4096:
+                raise ValueError('unsafe normal marker')
+            raw = os.read(fd, 4097)
+            if len(raw) > 4096: raise ValueError('normal marker too large')
+        finally: os.close(fd)
+    finally: os.close(directory)
+    row = json.loads(raw)
+    if not isinstance(row, dict) or set(row) != {'cid','nonce','go_monotonic','completion_monotonic','exit_code'}:
+        raise ValueError('normal marker fields')
+    if row['cid'] != cid or row['nonce'] != arm_nonce or type(row['exit_code']) is not int or row['exit_code'] != 0:
+        raise ValueError('normal marker identity or exit')
+    for key in ('go_monotonic','completion_monotonic'):
+        if type(row[key]) not in (int,float) or not math.isfinite(row[key]):
+            raise ValueError('normal marker timestamp')
+    completed = row['completion_monotonic']
+    if row['go_monotonic'] != go or not go <= completed <= min(now, go+deadline):
+        raise ValueError('normal marker time mismatch')
+    return completed
 
 
 def startticks(pid):
@@ -210,7 +241,7 @@ try:
         failures.add('GO_ACK_publish'); abort_at = time.monotonic()
         emit('GO_ACK_error', error_type=type(error).__name__)
     emit('GO', go_monotonic=go_at)
-    while time.monotonic() < go_at + a.overall + 60:
+    while time.monotonic() < go_at + a.overall + 60 and (normal_trigger is None or time.monotonic() < normal_trigger + a.overall - a.deadline + 60):
         cycle = time.monotonic()
         try: live = scan()
         except Exception as error:
@@ -221,7 +252,18 @@ try:
         now = time.monotonic()
         if abort_at is None and os.path.lexists(base / 'ABORT'):
             abort_at = now; failures.add('abort_requested'); emit('ABORT', reason='run_abort_file_present')
-        trigger = min(go_at + a.deadline, abort_at if abort_at is not None else float('inf'))
+        if a.normal_exit_marker and normal_at is None and os.path.lexists(base / 'normal-exit.json'):
+            try:
+                normal_at = normal_completion(base / 'normal-exit.json', a.cid, nonce, go_at, now, a.deadline)
+                emit('normal_completion_authenticated', completion_monotonic=normal_at)
+            except Exception as error:
+                failures.add('normal_marker_invalid')
+                if abort_at is None: abort_at = now
+                emit('normal_marker_error', error_type=type(error).__name__)
+        if a.normal_exit_marker and normal_at is not None and normal_trigger is None and not failures and abort_at is None and now < go_at + a.deadline and not live and empty and oci_seen and scope_seen and raw_sha is not None:
+            normal_trigger = now
+            emit('normal_cleanup_started', completion_monotonic=normal_at)
+        trigger = min(go_at + a.deadline, abort_at if abort_at is not None else float('inf'), normal_trigger if normal_trigger is not None else float('inf'))
         if now >= trigger:
             if not empty:
                 try: kill_scope()
@@ -235,7 +277,8 @@ try:
                         except OSError as error:
                             failures.add('pidfd_signal'); emit('pidfd_error', error_type=type(error).__name__); continue
                         pin[flag] = True
-            if quiet is None and now >= go_at + a.overall: failures.add(f'cleanup_exceeded_GO{a.overall:g}')
+            cleanup_cutoff = min(go_at + a.overall, normal_trigger + a.overall - a.deadline if normal_trigger is not None else float('inf'))
+            if quiet is None and now >= cleanup_cutoff: failures.add('normal_cleanup_exceeded' if normal_trigger is not None else f'cleanup_exceeded_GO{a.overall:g}')
             if not live and empty:
                 quiet = quiet or now
                 if now - quiet >= 60: break
@@ -245,6 +288,7 @@ try:
     if not oci_seen or not scope_seen or raw_sha is None: failures.add('required_OCI_or_scope_missing')
     if quiet is None or time.monotonic()-quiet < 60: failures.add('release60_incomplete')
     result = {'status': 'FAILED_RETAINED' if failures else 'KERNEL_CLEANUP_RELEASE_PASS', 'cid': a.cid, 'failures': sorted(failures), 'quiet_seconds': None if quiet is None else time.monotonic()-quiet, 'max_cycle_seconds': max_cycle, 'raw_oci_sha256': raw_sha, 'oci_seen': oci_seen, 'scope_seen': scope_seen, 'abort_monotonic': abort_at, 'pinned_identities': [pin['row'] for pin in pins.values()]}
+    if a.normal_exit_marker: result.update(normal_completion_monotonic=normal_at, normal_cleanup_monotonic=normal_trigger)
     emit('final', **result)
     atomic('guard-final.json', json.dumps(result).encode())
     if failures: raise SystemExit(1)

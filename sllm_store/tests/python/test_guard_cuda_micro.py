@@ -107,7 +107,7 @@ class GuardCudaMicroTest(unittest.TestCase):
         # The first cutoff check must precede the first assignment to quiet.
         body = triggered.body
         execute(body[body.index(cutoff):body.index(quiet)], dict(self.ns, quiet=None, now=66.0, go_at=0.0,
-                a=types.SimpleNamespace(overall=65), failures=(failures := set())))
+                a=types.SimpleNamespace(overall=65), cleanup_cutoff=65, normal_trigger=None, failures=(failures := set())))
         self.assertIn("cleanup_exceeded_GO65", failures)
 
 
@@ -116,7 +116,7 @@ class BudgetAndObserverTest(unittest.TestCase):
         import math
         nodes = [n for n in TREE.body if isinstance(n, ast.Assert) and 'a.deadline' in ast.unparse(n)]
         self.assertEqual(len(nodes), 2)
-        for deadline, kill, overall, valid in [(25,3,65,True),(60,3,100,True),
+        for deadline, kill, overall, valid in [(25,3,65,True),(60,3,100,True),(1800,3,1840,True),
                 (float('nan'),3,100,False),(60,3,float('inf'),False),
                 (0,3,40,False),(60,2,100,False),(60,3,63,False),(60,3,101,False)]:
             ns = dict(a=types.SimpleNamespace(deadline=deadline,kill_after=kill,overall=overall),math=math)
@@ -304,6 +304,111 @@ class BudgetAndObserverTest(unittest.TestCase):
                     self.assertEqual(row['max_query_seconds'],10)
                     self.assertGreaterEqual(row['max_memory_interval_seconds'],10)
                     self.assertEqual(row['peak_kind'],'SAMPLED_LOWER_BOUND')
+
+
+class NormalCompletionTest(unittest.TestCase):
+    def validator(self, base, owner=0):
+        import math, stat
+        ns = dict(os=os,stat=stat,json=json,math=math)
+        execute([n for n in TREE.body if isinstance(n,ast.FunctionDef) and n.name=='normal_completion'],ns)
+        original = os.fstat
+        def ownership(fd):
+            row=original(fd)
+            return types.SimpleNamespace(st_mode=row.st_mode,st_uid=owner,st_nlink=row.st_nlink,st_size=row.st_size)
+        return ns['normal_completion'], ownership
+
+    def marker(self, base, **changes):
+        row=dict(cid='c'*64,nonce='nonce',go_monotonic=10.0,completion_monotonic=20.0,exit_code=0)
+        row.update(changes);path=base/'normal-exit.json';path.write_text(json.dumps(row));path.chmod(0o600)
+        return path
+
+    def test_valid_and_spoofed_or_invalid_timestamps(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);validate,ownership=self.validator(base)
+            path=self.marker(base)
+            with patch.object(os,'fstat',side_effect=ownership):
+                self.assertEqual(validate(path,'c'*64,'nonce',10.0,30.0,100),20.0)
+            for change in [dict(cid='d'*64),dict(nonce='wrong'),dict(go_monotonic=9.0),dict(go_monotonic=True),
+                           dict(completion_monotonic=float('nan')),dict(completion_monotonic=float('inf')),
+                           dict(completion_monotonic=31.0),dict(completion_monotonic=9.0),dict(completion_monotonic='20'),
+                           dict(exit_code=True),dict(exit_code=1)]:
+                path=self.marker(base,**change)
+                with self.subTest(change=change),patch.object(os,'fstat',side_effect=ownership),self.assertRaises(ValueError):
+                    validate(path,'c'*64,'nonce',10.0,30.0,100)
+
+    def test_marker_permissions_owner_symlink_and_hardlink(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);validate,ownership=self.validator(base);path=self.marker(base)
+            path.chmod(0o644)
+            with patch.object(os,'fstat',side_effect=ownership),self.assertRaises(ValueError):validate(path,'c'*64,'nonce',10,30,100)
+            path.chmod(0o600);_,wrong_owner=self.validator(base,owner=123)
+            with patch.object(os,'fstat',side_effect=wrong_owner),self.assertRaises(ValueError):validate(path,'c'*64,'nonce',10,30,100)
+            os.link(path,base/'alias')
+            with patch.object(os,'fstat',side_effect=ownership),self.assertRaises(ValueError):validate(path,'c'*64,'nonce',10,30,100)
+            (base/'alias').unlink();path.rename(base/'real');path.symlink_to(base/'real')
+            with patch.object(os,'fstat',side_effect=ownership),self.assertRaises(OSError):validate(path,'c'*64,'nonce',10,30,100)
+            path.unlink();os.mkfifo(path,0o600)
+            with patch.object(os,'fstat',side_effect=ownership),self.assertRaises(ValueError):validate(path,'c'*64,'nonce',10,30,100)
+
+    def loop(self, base, enabled=True, invalid=False, live_until=0, empty_after=0, foreign=False, aborted=False, reappear=None):
+        import signal
+        clock=types.SimpleNamespace(now=1.0);signals=[];kills=[];events=[]
+        (base/'normal-exit.json').touch()
+        if aborted:(base/'ABORT').touch()
+        def scan():
+            return [dict(fd=999,row={'pid':999},term=False,kill=False)] if clock.now<live_until else []
+        def snapshot():
+            if foreign:raise ValueError('foreign scope generation without fresh OCI')
+            return clock.now>=empty_after and not (reappear is not None and reappear[0]<=clock.now<reappear[1])
+        def validate(*args):
+            if invalid:raise ValueError('invalid marker')
+            return 1.0
+        def kill():
+            kills.append(clock.now)
+            if foreign:raise ValueError('scope inode mismatch')
+        ns=dict(time=types.SimpleNamespace(monotonic=lambda:clock.now,sleep=lambda s:setattr(clock,'now',clock.now+s)),
+                a=types.SimpleNamespace(normal_exit_marker=enabled,deadline=25.0,overall=65.0,kill_after=3,cid='c'*64),
+                base=base,go_at=0.0,normal_at=None,normal_trigger=None,quiet=None,abort_at=None,nonce='nonce',
+                failures=set(),pins={},scan=scan,snapshot=snapshot,normal_completion=validate,kill_scope=kill,
+                signal=signal,os=os,max_cycle=0.0,oci_seen=True,scope_seen=True,raw_sha='hash',
+                emit=lambda kind,**data:events.append(kind))
+        loop=next(n for n in MAIN.body if isinstance(n,ast.While) and 'a.overall' in ast.unparse(n.test))
+        with patch.object(signal,'pidfd_send_signal',side_effect=lambda *args:signals.append(args)):execute([loop],ns)
+        ns.update(clock=clock,signals=signals,kills=kills,events=events)
+        return ns
+
+    def test_normal_release_starts_after_actual_death_not_marker_time(self):
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.loop(Path(d),live_until=5,empty_after=7)
+            self.assertFalse(ns['failures']);self.assertGreaterEqual(ns['normal_trigger'],7)
+            self.assertGreaterEqual(ns['clock'].now-ns['quiet'],60)
+            self.assertGreaterEqual(ns['clock'].now,67)
+            self.assertFalse(ns['signals']);self.assertFalse(ns['kills'])
+
+    def test_reappearing_owned_resources_reset_quiet_and_keep_cleanup_margin(self):
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.loop(Path(d),reappear=(10,12))
+            self.assertFalse(ns['failures']);self.assertTrue(ns['kills'])
+            self.assertGreaterEqual(ns['quiet'],12)
+            self.assertGreaterEqual(ns['clock'].now-ns['quiet'],60)
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.loop(Path(d),reappear=(50,52))
+            self.assertIn('normal_cleanup_exceeded',ns['failures'])
+
+    def test_default_off_keeps_deadline_even_with_marker(self):
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.loop(Path(d),enabled=False)
+            self.assertIsNone(ns['normal_at']);self.assertIsNone(ns['normal_trigger'])
+            self.assertGreaterEqual(ns['quiet'],25)
+            self.assertGreaterEqual(ns['clock'].now,85)
+            self.assertNotIn('normal_completion_authenticated',ns['events'])
+
+    def test_invalid_abort_and_foreign_scope_never_become_normal_pass(self):
+        for kwargs,expected in [(dict(invalid=True),'normal_marker_invalid'),(dict(aborted=True),'abort_requested'),(dict(foreign=True),'capture')]:
+            with self.subTest(kwargs=kwargs),tempfile.TemporaryDirectory() as d:
+                ns=self.loop(Path(d),**kwargs)
+                self.assertIn(expected,ns['failures']);self.assertIsNone(ns['normal_trigger'])
+                if kwargs.get('foreign'):self.assertIsNone(ns['quiet']);self.assertIn('scope_kill',ns['failures'])
 
 
 if __name__ == "__main__":
