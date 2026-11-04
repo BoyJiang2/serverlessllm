@@ -1,3 +1,9 @@
+## 11/4 获准的一次 execve 环境诊断通过；旧可见性校验确实拒绝实际 worker 环境
+
+源码6220a93ec7b0de5d6c813ae28d7a36974632354e、受审46dd命令的一次诊断容器5becc32afb7c0f1d9fbafddc9c2a99599566405de00386b3b7ad2163bb797ef0成功捕获9条成功execve（torchrun父进程及8个worker）。实际worker CUDA含8个目标UUID、NVIDIA_VISIBLE_DEVICES=void，MASTER_ADDR=127.0.0.1、MASTER_PORT=29500；将这8份实测环境输入原110101dd校验函数，8份均被“两个可见性变量必须相等”条件拒绝。完整环境原始trace66669B仅服务器root0600保存，不下载、不入Git；公开收据只含限定字段及哈希。
+
+控制器122.919秒、守护quiet60.014秒、观察quiet60.809秒；所有相关单元实际退出0，4个自有runtime/tracer身份消失、scope删除、八卡零占用。16份公开证据及独审SHA见qjhs002-cdi-execve-env-pass/ACTIVE-BASELINE.json。这是环境诊断通过，不是CUDA/NCCL计算通过，不追认历史失败为成功。后续helper候选若变化，原46dd身份必须failclosed，历史命令/回执不改写；计算探针修复是另一项源码候选，当前未批准GPU重试。完整模型、Store转换/恢复和原生服务仍未通过，goal保持active。
+
 ## 11/4 CDI execve 环境诊断提案：仅源码审阅通过，待用户批准及新准入
 
 已完成一次性诊断命令数据的独立审阅与7项纯解析CPU检查，状态SOURCE_ONLY_REVIEWED_REQUIRES_USER_APPROVAL。最终命令及规格仅存在服务器任务证据目录，身份见qjhs002-cdi-execve-diagnostic-proposal/receipt.json；现行源码仍6220a93ec7b0de5d6c813ae28d7a36974632354e，未修改GPU/NCCL探针。最终协议使用SIGUSR1释放，旧SIGCONT提案已被取代。此前host strace格式夹具的exact-two-env断言失败另行保留，不改判通过。
