@@ -387,3 +387,11 @@ qjhs002-blocking-confirm-order保存独审含packaging附录、旧realAST2FAIL/�
 load_dict传private kw-only True并删除重复confirm，default nonblocking False不变；submitTrue先成功Confirm（copy完成+IPC全close）再RestoreTensors，避免blocking callee异常时提前释放已交付owner。不是c947提前clear/free方案，c947拒绝仍保持。实际路径包装及真实client confirm原cause未削弱，mock14PASS不是native IPC/GPU证明。
 
 RPC/confirm失败时rawclient allocation仍需未来component server-before-client明确barrier；nonblocking/S5 globalfailurepending，不称全面ownership或真实GPUfree。next-plan最终选择blocking-only；proto fence仅备用，不新建active-cancel框架或作为窄S4a前置。无新C++编译、Store/GPU/权重copy或模型/TP8/goalcomplete，原fail/gold保持。
+
+## 窄 cooperative barrier CPU准备源码发布（2026-11-04）
+
+qjhs002-s4a-cooperative-barrier保留独审source-only PASS及active20tests PASS（6barrier+1cleanup+3archive+7blocking+3confirm）。source c0a89dab91a11438530c7c8ca4c9cb80262fd9d0（parentae49）仅4获审组件runner/test文件，逐对象SHA匹配，GitHub/source tracking已核。
+
+父进程stdlib-only，official serve/client同container；absolute GO+8/16/21余4，client异常保异常/owner等server PID/startticks verified reap ACK才clear；server不能reap不ACK、不先杀client，park交nativeguard且FAIL。ACK_SENT不等client完成barrier，clientcrash=NO_BARRIER；成功alias eagerfree须先于serverstop。-I显式SDK路径/LD prepend保留image原path。
+
+这仅cooperative CPU准备，不是运行授权或S5全面修复；仍缺root controller写0644 component-go metadata/mounts/identity/runtime核验。无Store/GPU/新container运行，旧officialroot及goal不改。ACTIVE当前UTC时间/scope已纠正：获批correctedmicro组合配置已PASS，历史fail保留；S4a/fullmodel/Storeconversion/TP8未run，下一runtime仍需独立gates，不将历史stop误写所有futureGPU绝对禁止。

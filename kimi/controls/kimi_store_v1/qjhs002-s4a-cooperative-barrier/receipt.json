@@ -1,0 +1,28 @@
+{
+  "status": "COOPERATIVE_BARRIER_SOURCE_ONLY_CPU20_PASS",
+  "source_commit": "c0a89dab91a11438530c7c8ca4c9cb80262fd9d0",
+  "parent": "ae49c965d64ded15af639e31838b4ddf0b6bb452",
+  "source_hashes": {
+    "s4a_component_runner.py": "b631fc291851d223b199efd07ba037a2574d2f92e0d9a3c47f49d62dae2fbb24",
+    "test_kimi_tensor_component.py": "7af76fda0b764a753e380de5b3c96d4e2c768ecf5c6de730d95ec018af89c1fe",
+    "test_component_barrier.py": "926ef9f81fb8dc6eed141df1ed8dee14cbbc30f54af28e12de82689c38e17c4a",
+    "test_component_cleanup.py": "dc83cf2c53074ce1601eda57536f049cca4da400fbc79eb3c96d078b101cdba7"
+  },
+  "CPU_pass": {
+    "count": 20,
+    "composition": "6barrier+1cleanup+3archive+7blocking+3confirm"
+  },
+  "timing": "Absolute GO+8/16/21 cutoffs with4seconds remaining",
+  "protocol": [
+    "Parent stdlib-only; official serve/client same container",
+    "Client abnormal finally retains exception/owner until verified server PID+startticks reaped ACK, then clears",
+    "Unreaped server -> no ACK/no first client kill; park for native guard and FAIL",
+    "ACK_SENT is not client completed barrier; client crash is NO_BARRIER",
+    "Success eager last alias free must precede server stop"
+  ],
+  "packaging": "-I explicit SDK path and LD prepend retaining original image path",
+  "pending": "Root S4a controller for0644 component-go metadata/mounts/identity/runtime validation not implemented",
+  "runtime_authorized": false,
+  "S5_global_failure_cleanup_complete": false,
+  "Store_GPU_or_new_container_started": false
+}
