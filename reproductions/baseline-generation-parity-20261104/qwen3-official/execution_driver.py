@@ -81,10 +81,10 @@ def run(folder, command, budget, admission):
     write(folder / 'final-inspect.json', inspected)
     assert state['ExitCode'] == 0 and not state['OOMKilled'], 'benchmark failed; no automatic retry'
 
-def retrieve(folder, remote, phase, n):
+def retrieve(folder, remote, phase, n, stem):
     rows = []
     for fmt in ('safetensors', 'sllm'):
-        name = f'Qwen_Qwen3-8B_{fmt}_{n}_{phase}.json'
+        name = f'{stem}_{fmt}_{n}_{phase}.json'
         data = ssh('cat ' + shlex.quote(remote + '/results/' + phase + '/' + name))
         path = folder / 'results' / phase / name
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -98,19 +98,31 @@ def retrieve(folder, remote, phase, n):
     return rows
 
 
+
 probe=OUT/'qwen3-official-fp16-probe'
 final=OUT/'qwen3-official-random-cached'
+llama=OUT/'llama31-default-cached30'
 original=json.loads((OUT/'llama31-buffer-parity-final/registration.json').read_text())['command']
-def command(name,maximum):
- result=[x.replace('llama31-buffer-parity-final-20261104',name).replace('Llama-3.1-8B-Instruct','Qwen3-8B').replace('RuntimeMaxUSec=uint64 3600000000','RuntimeMaxUSec=uint64 '+str(maximum*1000000)) for x in original]
+def command(name,maximum,qwen=True):
+ result=[x.replace('llama31-buffer-parity-final-20261104',name).replace('RuntimeMaxUSec=uint64 3600000000','RuntimeMaxUSec=uint64 '+str(maximum*1000000)) for x in original]
+ if qwen:result=[x.replace('Llama-3.1-8B-Instruct','Qwen3-8B') for x in result]
+ else:
+  result=[x.replace(MODELS+'.'+name+'/scripts',MODELS+'.llama31-buffer-parity-final-20261104/scripts') for x in result]
+  k=result.index('--entrypoint')
+  result[k:k]=['--mount','type=bind,src='+MODELS+'.'+name+'/scripts/run-experiment.sh,dst=/scripts/run-experiment.sh,readonly']
  return result
-run(probe,command('qwen3-official-fp16-probe-20261104',600),780,booking(4800))
-retrieve(probe,MODELS+'.qwen3-official-fp16-probe-20261104','random',1)
-write(probe/'verified-summary.json',dict(status='FP16_FULL_PARAMETER_BUFFER_CONFIG_TOKEN_PAIR_VERIFIED'))
+run(probe,command('qwen3-official-fp16-probe-20261104',600),780,booking(6540))
+retrieve(probe,MODELS+'.qwen3-official-fp16-probe-20261104','random',1,'Qwen_Qwen3-8B')
+write(probe/'verified-summary.json',dict(status='FP16_FULL_PARAMETER_BUFFER_CONFIG_TOKEN_PAIR_VERIFIED',not_formal_sample=True))
 print('QWEN_OFFICIAL_FP16_PROBE_PASSED',flush=True)
-run(final,command('qwen3-official-random-cached-20261104',3600),3780,booking(3780))
-retrieve(final,MODELS+'.qwen3-official-random-cached-20261104','random',30)
-retrieve(final,MODELS+'.qwen3-official-random-cached-20261104','cached',5)
-write(final/'verified-summary.json',dict(status='OFFICIAL_PROTOCOL_PAIRED_OUTPUT_VERIFIED',random_pairs=30,cached_pairs=5,dtype='float16',prompt='The quick brown fox jumps over the lazy dog.',max_new_tokens=50))
+run(final,command('qwen3-official-random-cached-20261104',3600),3780,booking(5760))
+retrieve(final,MODELS+'.qwen3-official-random-cached-20261104','random',30,'Qwen_Qwen3-8B')
+retrieve(final,MODELS+'.qwen3-official-random-cached-20261104','cached',30,'Qwen_Qwen3-8B')
+write(final/'verified-summary.json',dict(status='OFFICIAL_DEFAULT_PROTOCOL_PAIRED_OUTPUT_VERIFIED',random_pairs=30,cached_pairs=30,dtype='float16',prompt='The quick brown fox jumps over the lazy dog.',max_new_tokens=50))
 assert int(ssh('find '+shlex.quote(MODELS+'.qwen3-official-random-cached-20261104/storage')+' -mindepth 1 | wc -l'))==0
-print('QWEN_OFFICIAL_RANDOM30_CACHED5_PARITY_PASSED',flush=True)
+print('QWEN_OFFICIAL_DEFAULT_RANDOM30_CACHED30_PASSED',flush=True)
+run(llama,command('llama31-default-cached30-20261104',1800,False),1980,booking(1980))
+retrieve(llama,MODELS+'.llama31-default-cached30-20261104','cached',30,'meta-llama_Llama-3.1-8B-Instruct')
+write(llama/'verified-summary.json',dict(status='OFFICIAL_DEFAULT_CACHED30_PAIRED_OUTPUT_VERIFIED',cached_pairs=30,random30_evidence='llama31-buffer-parity-final/results/random',random30_reexecuted=False,dtype='float16'))
+assert int(ssh('find '+shlex.quote(MODELS+'.llama31-default-cached30-20261104/storage')+' -mindepth 1 | wc -l'))==0
+print('ALL_OFFICIAL_DEFAULT_PROTOCOL_CHECKS_PASSED',flush=True)
