@@ -1,0 +1,23 @@
+--- generation-config-only
++++ generation-config-and-buffer-dtype
+@@ -220,7 +220,8 @@
+             model = _class.from_config(
+                 config,
+                 trust_remote_code=True,
+-            ).to(config.torch_dtype)
++                torch_dtype=config.torch_dtype,
++            )
+         model.tie_weights()
+         logger.debug(f"load model takes {time.time() - start} seconds")
+ 
+@@ -296,8 +297,8 @@
+     with init_empty_weights():
+         module = importlib.import_module("transformers")
+         _class = getattr(module, hf_model_class)
+-        model = _class.from_config(config, trust_remote_code=True).to(
+-            config.torch_dtype
++        model = _class.from_config(
++            config, trust_remote_code=True, torch_dtype=config.torch_dtype
+         )
+ 
+     model.tie_weights()
