@@ -449,3 +449,21 @@ qjhs002-s4a-revised-narrow-pass仅保存小receipt、admission/preflight、units
 ## 8rank micro/jointguard source-only安全边界
 
 source24bf5af6eab98e6429dbdf0fd898eac9364029d8（parent47bd）仅6tests/probe/guard任务文件，终审3c6a已核；hostCPU17PASS及outergate4mockPASS不证明kernel/GPU运行。未来220budget、guard60/3/100、8UUID共同60release及CPUfaultnative217+1自门槛已source准备；旧25默认未弱化、原S4apins冻结不重跑。build47bd manifest267ccd strictbefore0/1 after1/0 compile8仅server保留未部署。qjhs002-tp8-micro-source-only只本地最小receipt/remoteSHA引用，不拉raw/source/build。无runtime/新env/GLM/goal改动。
+
+## 2026-11-05 追加：SF TP8参考与真实 mixed-empty SDK闭环
+
+本节为后续实测更新；此前失败、金标、预算及审阅记录保持。当前唯一适配源码为 qjhs002 `/data/brick1/boyjiang/kimi-new/ServerlessLLM`，旧 `/data/brick1/boyjiang/ServerlessLLM` 保留官方基线。用户已授权后续自行决断；每次正式执行仍核验预约、资源、完整预算、独审及独立守护，同类失败不盲目重跑，正式执行与释放观察不做Git/同步。
+
+| 项目 | 当前证据与边界 |
+| --- | --- |
+| 运行版本 | 既有ec5镜像：Torch2.10.0+cu129、vLLM0.19.1+gb1388b1fb、Transformers5.5.1。官方0.11.2依赖和旧0.9.0.1文档不是已实测Kimi兼容目标。 |
+| 官方SF TP8 | 完整64分片、八rank、原生Marlin INT4，AAB请求重复输出与tokenIDs稳定；参考PASS及独立金标见 `qjhs002-sf-reference-ready/sf-reference-pass.json`、`sf-reference-gold-v1.json`。该阶段PASS不等于Store恢复或原生服务PASS。 |
+| 真实mixed SDK原尝试 | `kimi-s4a-mixed-empty-20261105-once` 保持FAILED_RETAINED：传输确认后from_blob报host-unregistered pointer；实际四empty设备偏移等于8257544B分配末端。源码/几何支持one-past诊断，未直接跟踪cudaPointerGetAttributes实参。guard/observer均完成60秒释放。 |
+| 最小C++修复 | f52490a：仅零形状使用已有有效base，保留非空偏移、shape/stride/dtype及shared owner。旧_C SHA41d2409…保留，新_C仅版本化保存；CPU构建、ABI和两项真实Torch C++测试（含原5模式与新empty模式）PASS，不能据此称CUDA通过。 |
+| 修正版真实SDK | `kimi-s4a-mixed-empty-pointer-fix-20261105-once` 整体PASS：原三真实packed I32/BF16scale/I32shape的原始位与金标一致，另四个SF元数据等价空张量一致；仅剩empty时仍持有分配，最后释放8388608B，driver free恢复原值。实际导入_C SHA9d629824…双重核验；server/client/container均0，三native单元0，scope及runtime身份消失；guard60.024s/observer60.626s，完整86.075s。采样峰值327MiB为下界，非瞬时峰值。 |
+| CLI缺口 | 6de7240：仅将Transformers/PEFT专用导入移入对应backend/adapter分支，镜像无需为vLLM安装PEFT。5项真实Click、mock模型测试与独审通过；尚不证明真实完整CLI转换执行。 |
+| 下一阶段 | 完整官方Store转换方案正在审查，尚未启动；八rank恢复及SF金标对照、ServerlessLLM原生创建/推理/删除/重拉起也未通过。GLM原35成功/5失败冻结，无R24。 |
+
+证据：`../../evidence/qjhs002-sdk-mixed-empty-failure-20261105/`、`../../evidence/qjhs002-empty-pointer-cpu-build-20261105/`、`../../evidence/qjhs002-mixed-empty-pointer-fix-20261105/`。修正版SDK receipt SHA256 `2eb89a0fff37d6bf4ef83909b08a4cfa9c29b8e7214f7dd3917410db6bddabd7`，独审 `586ba34c8f0ed8ac6470085dc7b7df1f692901555c8bd5c1e26f63a83ea5bf67`。GitHub代码分支 `kimi-qjhs002-aligned-tail` 已核验SHA `6de724070642153bf8efb9133bf0fe0ef4e4fbfd`，SDK证据main已核验 `7deb79e996e709e4d82e27c189115dde1e14cd4d`。
+
+后续恢复限制另记：CPU弱引用消失不证明Torch reserved已归还driver；当前loader在CPU构造下仅vision/projector显式使用GPU，尚无旧77GB缓存或OOM实证，不预设新增切分或重写loader。实际恢复必须记录allocated/reserved/driverfree及峰值，不能绕过显存与所有权门槛。当前AllocateCudaMemory未检查CUDA返回码的既有局限亦未被本组件成功覆盖。
