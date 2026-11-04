@@ -371,3 +371,11 @@ qjhs002-visible-gpu-micro-pass保存controller终态GPU512_MICRO_NORMAL_EXIT_REL
 qjhs002-s4a-readback-readonly保留READONLY未run计划、11文件SHA映射及archive/index/SDK/glog新hash（匹配既有收据），不重复源文本或下载payload。当前官方serve绕CLI peft无需新增依赖；64MiB仅host pool，Ctor无CudaMemoryPool；calculate_device_memory/native Allocate请求8257544B；RestoreTensors共享base owner；confirm RPC失败已raise，无新patch理由。
 
 Torch allocator peak不含native CUDA，后续须driver/NVML及保留alias/最终view生命周期证据，不能仅进程退出称所有权释放。未知耗时不另立硬gate；readiness/client/shutdown cutoffs应拟合GO25/cleanup65/release60/full180，超时failclosed，不盲改guard。现有draft重save/读checkpoint，最小existing-archive+receipt分支和CPU bad-input tests仍未实现，不新codec/loader/framework。本轮无Store/新GPU、无源码改动，sourcecc3不空commit，gold/history/GLM/goal保持，READBACK_NOT_RUN。
+
+## S4a CPU准备源码公开；SDK失败清理候选拒绝（2026-11-04）
+
+qjhs002-s4a-cpu-preparation保留获审3组件测试源码、stdlib3focused+1cleanup PASS（含Linuxsymlink）、既有8MB真实archive三tensor raw/index/gold CPU验证PASS。Tensor构造为stub，无Torch/SDK/GPU/Store/readback；新gold小receipt仅运行assetcopy，历史gold不改。source838bfe7309506370aa9ad8ab70988a4c7b42706d（parentcc3），只stage3tests，CRLF源码原字节哈希保留、CR-aware diff check通过，GitHub/source tracking已核。
+
+S5 c947本地草稿独审REJECT_C947_CANDIDATE_FOR_DEPLOYMENT：RPCerror可能server仍借IPC，owner.clear可能UAF；旧2FAIL/新6mockPASS不证明IPC安全，不可部署。官方torch.py仍原a4fb54…，root未采纳SDK改动，草稿不作为生产stage。14源SHAmap保留而不重复全文，无新codec/loader/framework。
+
+CPU准备PASS不是运行授权，readback未run，无模型/Store/TP8/GPU运行或goalcomplete；原fail/gold保持，glog/AGENTS不stage。

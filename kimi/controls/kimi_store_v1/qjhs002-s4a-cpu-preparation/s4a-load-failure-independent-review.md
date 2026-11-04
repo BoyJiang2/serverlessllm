@@ -1,0 +1,20 @@
+# S5 failure-ownership candidate independent review
+
+Verdict: REJECT_C947_CANDIDATE_FOR_DEPLOYMENT. No runtime authorization. Source reads only; reviewer did not run tests or SDK/Store/GPU/remote/Git/sync operations.
+
+Candidate work/s4a_torch_candidate.py SHA256 c947ed3e545f3b7d690b42811459b48ad2769865dc8f98baa1dffd0bfb42e2cb. Exact model.cpp snapshot SHA256 6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509. Source scope: official-readback-source client.py, server.py, checkpoint_store.cpp, checkpoint.cpp, model.cpp, model.h, storage.proto, torch.py; candidate patch and CPU mock test.
+
+Confirmed defect: except BaseException: state_dict.clear() executes after ambiguous load_into_gpu failure. Exact client maps grpc transport errors to False. Server LoadModelAsync schedules LoadModelFromMemAsync and returns while its std::async task can still open IPC and copy. A lost response/cancellation is compatible with an accepted live remote borrow. Clearing the last native allocation owner can cudaFree before remote cudaIpcCloseMemHandle, violating exporter/importer lifetime. Calling this eager cleanup success would replace a leak with premature free risk. Even some server-side INTERNAL results cannot be treated as a definitive no-borrow classification without proving which layer rejected them.
+
+CPU new-six-PASS evidence models only local owner lifetime; fake gpu has no remote borrower or delayed acknowledgment. Those results cannot approve RPC-failure freeing. Add an acceptance regression that marks a remote borrow active, loses response, retains the error/traceback, and asserts allocation stays alive until a definitive release acknowledgment. Existing test_rpc_false_releases_while_traceback_retained and exception variant currently assert the unsafe behavior for ambiguous submissions. Pre-submit handles failure may safely free locally; this is a distinct state.
+
+Existing exact acknowledgment semantics:
+- ToGpu waits dispatch and copy futures, takes mutex, attempts all cudaIpcCloseMemHandle calls, marks INTERRUPTED on any close error, and only then notifies.
+- WaitInGpu takes the same mutex; return zero requires LOADED after this close section. Therefore an existing ConfirmModel successful response for this replica proves copy completion and successful IPC close on that path. No new RPC is inherently needed for that success fact.
+- ConfirmModel error is not equivalent: INTERRUPTED conflates copy error and close failure. Transport error loses the acknowledgment. Unknown replica WaitInGpu can wait indefinitely, so blindly calling confirm after an unaccepted request is not a bounded recovery.
+- CPU UnloadModel/FreeHost waits only replicas already registered as LOADING. It does not fence a submitted async task that has not yet registered a replica; it is not a general post-transport-failure release acknowledgment.
+- Existing load_dict confirmation-failure ownership also needs explicit consideration; success-path ownership does not establish safe release on ambiguous confirmation failure.
+
+Smallest safe direction: keep pure UUID/offset/replica metadata work before native allocation; establish RAII ownership and safely release pre-submit failures only. Once an IPC request may have been submitted, preserve ownership until existing ConfirmModel succeeds or the owning isolated server is confirmed stopped before exporter release. If neither can be proved, mark FAILED_RETAINED and do not eagerly clear. A scoped component/service lifecycle can coordinate server-stop-before-client-release, but that requires explicit reviewed ownership handoff; a hidden global retention registry or new framework is not justified. Do not implement only a submission boolean then let the local owner naturally destruct on exception, since that still frees without a release fence.
+
+RestoreTensors consumes allocations with C++ shared owners before view construction; its own C++ failure unwind already frees. Do not add blanket external cudaFree. No candidate modification was made by this reviewer. S4a existing-archive source-review verdict remains limited to CPU preparation and does not resolve this S5 failure-path gap.
