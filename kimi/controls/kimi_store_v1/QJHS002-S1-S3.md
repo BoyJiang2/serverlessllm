@@ -379,3 +379,11 @@ qjhs002-s4a-cpu-preparation保留获审3组件测试源码、stdlib3focused+1cle
 S5 c947本地草稿独审REJECT_C947_CANDIDATE_FOR_DEPLOYMENT：RPCerror可能server仍借IPC，owner.clear可能UAF；旧2FAIL/新6mockPASS不证明IPC安全，不可部署。官方torch.py仍原a4fb54…，root未采纳SDK改动，草稿不作为生产stage。14源SHAmap保留而不重复全文，无新codec/loader/framework。
 
 CPU准备PASS不是运行授权，readback未run，无模型/Store/TP8/GPU运行或goalcomplete；原fail/gold保持，glog/AGENTS不stage。
+
+## Blocking确认先于RestoreTensors最小顺序修复（2026-11-04，source-only）
+
+qjhs002-blocking-confirm-order保存独审含packaging附录、旧realAST2FAIL/新7mockPASS、active实际14stdlib PASS（7ordering+3confirm+3archive+1cleanup）。source ae49c965d64ded15af639e31838b4ddf0b6bb452（parent838）仅torch.py/ordering test/confirm error test三文件。SDK SHA1dd5eb…、两test SHA f8e51d…/bf4ab5…核实际提交对象一致，GitHub/source tracking已核；glog/AGENTS保护。
+
+load_dict传private kw-only True并删除重复confirm，default nonblocking False不变；submitTrue先成功Confirm（copy完成+IPC全close）再RestoreTensors，避免blocking callee异常时提前释放已交付owner。不是c947提前clear/free方案，c947拒绝仍保持。实际路径包装及真实client confirm原cause未削弱，mock14PASS不是native IPC/GPU证明。
+
+RPC/confirm失败时rawclient allocation仍需未来component server-before-client明确barrier；nonblocking/S5 globalfailurepending，不称全面ownership或真实GPUfree。next-plan最终选择blocking-only；proto fence仅备用，不新建active-cancel框架或作为窄S4a前置。无新C++编译、Store/GPU/权重copy或模型/TP8/goalcomplete，原fail/gold保持。

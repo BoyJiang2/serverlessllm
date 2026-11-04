@@ -1,0 +1,25 @@
+test_blocking_confirm_before_restore (__main__.OrderingTests.test_blocking_confirm_before_restore) ... FAIL
+test_native_restore_exception_free_only_after_closed_ack (__main__.OrderingTests.test_native_restore_exception_free_only_after_closed_ack) ... FAIL
+
+======================================================================
+FAIL: test_blocking_confirm_before_restore (__main__.OrderingTests.test_blocking_confirm_before_restore)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-11-03\kimi-k2-6-goal-qjhs002-data\work\test_s4a_blocking_confirm.py", line 94, in test_blocking_confirm_before_restore
+    self.assertFalse(status["restored_while_borrowed"], events)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : ['allocate', 'submit', 'restore', 'confirm', 'closed_ack']
+
+======================================================================
+FAIL: test_native_restore_exception_free_only_after_closed_ack (__main__.OrderingTests.test_native_restore_exception_free_only_after_closed_ack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-11-03\kimi-k2-6-goal-qjhs002-data\work\test_s4a_blocking_confirm.py", line 100, in test_native_restore_exception_free_only_after_closed_ack
+    self.assertFalse(status["borrowed"], events)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false : ['allocate', 'submit', 'restore', 'native_owner_free']
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+FAILED (failures=2)

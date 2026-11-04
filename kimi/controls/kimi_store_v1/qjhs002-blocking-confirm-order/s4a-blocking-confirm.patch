@@ -1,0 +1,37 @@
+--- a/sllm_store/sllm_store/torch.py
++++ b/sllm_store/sllm_store/torch.py
+@@ -85,12 +85,9 @@
+     device_map: Dict[str, int],
+     storage_path: Optional[str] = None,
+ ):
+-    replica_uuid, state_dict = load_dict_non_blocking(
+-        model_path, device_map, storage_path
++    _, state_dict = load_dict_non_blocking(
++        model_path, device_map, storage_path, _confirm_before_restore=True
+     )
+-
+-    client = SllmStoreClient("127.0.0.1:8073")
+-    client.confirm_model_loaded(model_path, replica_uuid)
+ 
+     return state_dict
+ 
+@@ -99,6 +96,8 @@
+     model_path: Optional[Union[str, os.PathLike]],
+     device_map: Dict[str, int],
+     storage_path: Optional[str] = None,
++    *,
++    _confirm_before_restore: bool = False,
+ ):
+     client = SllmStoreClient("127.0.0.1:8073")
+     ret = client.load_into_cpu(model_path)
+@@ -152,6 +151,10 @@
+     if not ret:
+         raise ValueError(f"Failed to load model {model_path} into GPU")
+ 
++    if _confirm_before_restore:
++        # Blocking callers establish copy completion and IPC close before ownership.
++        client.confirm_model_loaded(model_path, replica_uuid)
++
+     # load model state_dict
+     start = time.time()
+     state_dict = restore_tensors(

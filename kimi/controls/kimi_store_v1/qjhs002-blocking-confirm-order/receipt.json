@@ -1,0 +1,18 @@
+{
+  "status": "BLOCKING_CONFIRM_ORDER_SOURCE_PUBLISHED_CPU14_PASS",
+  "source_commit": "ae49c965d64ded15af639e31838b4ddf0b6bb452",
+  "parent": "838bfe7309506370aa9ad8ab70988a4c7b42706d",
+  "SDK_torch_sha256": "1dd5eb72393c67f2d51128c0bf4abb9e8508e5509cc4b42e666ae0b6da2d7adc",
+  "behavior": "Blocking load_dict passes private kw-only True; successful confirm(copy done+IPC closed) precedes RestoreTensors; duplicate confirm removed; default nonblocking False unchanged",
+  "CPU_evidence": {
+    "old_real_AST_expected_failures": 2,
+    "new_ordering_mock_pass": 7,
+    "deployed_stdlib_tests_pass": 14,
+    "composition": "7ordering+3confirm+3archive+1cleanup"
+  },
+  "scope": "Source-only CPU protocol/packaging; no Store/GPU/C++ build",
+  "c947_candidate": "Rejected, not adopted",
+  "pending": "RPC/confirm failures retain raw allocation in client context; future server-before-client barrier required; nonblocking/global S5 failure cleanup unresolved",
+  "GPU_eager_free_verified": false,
+  "runtime_authorization": false
+}
