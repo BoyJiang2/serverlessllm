@@ -10,7 +10,7 @@ UUIDS = ['GPU-736d7f37-f647-b82d-ab11-693753ac6822','GPU-c5510474-1f6d-03f1-c57f
 IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
 OBSERVER = ROOT/'sllm_store/tests/s4a_root_controller.py'
 PROBE = ROOT/'sllm_store/tests/cuda_micro_probe.py'
-PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'22c2686044cbf6a25065e171671949850dbf0c16df5f0b5b3a8f99ecb1f21cae'}
+PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'110101ddbf265d955c1d0db570d0ccea1442fea27f8d19256fa7053eeac71215'}
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
 
@@ -57,13 +57,16 @@ def validate_messages(messages):
         assert row['payload_bytes'] == 1048576 and row['dtype'] == 'torch.float32'
         assert row['reduced_value'] == 28 and row['raw_sha256'] == '2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814'
         assert row['allocator_peak_bytes'] >= 1048576
+        assert all(isinstance(row[key],(int,float)) and math.isfinite(row[key]) and row[key] >= 0 for key in ('python_entered_monotonic','rank_ready_monotonic','nccl_init_seconds'))
+        assert row['rank_ready_monotonic'] >= row['python_entered_monotonic']
+        assert row['nccl_init_seconds'] <= row['rank_ready_monotonic']-row['python_entered_monotonic']
     return rows
 
 def validate_configuration(row):
     host = row['HostConfig']; config = row['Config']
     assert row['Image'] == IMAGE and host['PidsLimit'] == 4096
     assert host['Memory'] == host['MemorySwap'] == 16*(1<<30)
-    assert host['NanoCpus'] == 32*10**9 and host['ShmSize'] == 1<<30
+    assert host['NanoCpus'] == 32*10**9 and host['ShmSize'] == 8*(1<<30)
     assert host['ReadonlyRootfs'] and host['NetworkMode'] == 'none' and host['Runtime'] == 'nvidia'
     assert host['RestartPolicy']['Name'] == 'no' and config['User'] == '2147:2147'
     env = dict(value.split('=',1) for value in config['Env'])
@@ -104,7 +107,7 @@ def controller(expiry, expected_sha):
     guardunit = RUN+'-guard.service'; observerunit = RUN+'-observer.service'
     try:
         env = ['CUDA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_DRIVER_CAPABILITIES=compute,utility', 'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1']
-        argv = DOCKER+['create','--name',RUN,'--runtime=nvidia','--network=none','--read-only','--user=2147:2147','--cpus=32','--memory=16g','--memory-swap=16g','--pids-limit=4096','--shm-size=1g','--ulimit=core=0','--tmpfs=/tmp:rw,nosuid,nodev,size=64m','--mount=type=bind,src='+str(ROOT/'sllm_store')+',dst=/source/sllm_store,readonly']
+        argv = DOCKER+['create','--name',RUN,'--runtime=nvidia','--network=none','--read-only','--user=2147:2147','--cpus=32','--memory=16g','--memory-swap=16g','--pids-limit=4096','--shm-size=8g','--ulimit=core=0','--tmpfs=/tmp:rw,nosuid,nodev,size=64m','--mount=type=bind,src='+str(ROOT/'sllm_store')+',dst=/source/sllm_store,readonly']
         for value in env: argv += ['--env',value]
         argv += ['--entrypoint=python3',IMAGE,'-I','-m','torch.distributed.run','--rdzv-backend=static','--nnodes=1','--node-rank=0','--master-addr=127.0.0.1','--master-port=29500','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
         cid = subprocess.check_output(argv, text=True, timeout=10).strip()
@@ -161,7 +164,15 @@ def controller(expiry, expected_sha):
         logs = call(DOCKER+['logs', '--tail', '200', cid])
         save('docker-logs.json',{'text':logs})
         messages = [json.loads(line) for line in logs.splitlines() if line.startswith('{')]
-        validate_messages(messages)
+        rank_results = validate_messages(messages)
+        ready = [m for m in messages if m.get('event') == 'TP8_RANK_READY']
+        assert len(ready) == 8 and {r['rank'] for r in ready} == set(range(8))
+        for r in ready:
+            final = next(m for m in rank_results if m['rank'] == r['rank'])
+            assert all(r[key] == final[key] for key in ('python_entered_monotonic','rank_ready_monotonic','nccl_init_seconds'))
+        all_ready = max(r['rank_ready_monotonic'] for r in rank_results)
+        assert min(r['python_entered_monotonic'] for r in rank_results) >= go
+        save('rank-timing.json',{'all_eight_ready_seconds_from_go':all_ready-go,'all_eight_ready_seconds_from_first_python':all_ready-min(r['python_entered_monotonic'] for r in rank_results),'per_rank':rank_results})
         assert child.wait(timeout=3) == 0
         save('normal-exit.json', {'state': row['State'], 'messages': messages})
         while not all((BASE/name).exists() for name in ('guard-final.json', 'observer-final.json')):

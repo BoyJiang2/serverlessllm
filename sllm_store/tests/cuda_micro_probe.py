@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import os
+import time
 import uuid
 from datetime import timedelta
 
@@ -33,6 +34,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tp8", action="store_true")
     args = parser.parse_args()
+    python_entered_monotonic = time.monotonic()
     rank, visible = tp8_environment(os.environ) if args.tp8 else (0, None)
     print(json.dumps({"event": "PYTHON_ENTERED"}), flush=True)
     import torch
@@ -59,7 +61,11 @@ def main():
     torch.cuda.reset_peak_memory_stats(rank)
     before, total = torch.cuda.mem_get_info(rank)
     distributed = torch.distributed
-    distributed.init_process_group(backend="nccl", timeout=timedelta(seconds=20))
+    nccl_init_started = time.monotonic()
+    distributed.init_process_group(backend="nccl", timeout=timedelta(seconds=20), device_id=torch.device(f"cuda:{rank}"))
+    rank_ready_monotonic = time.monotonic()
+    nccl_init_seconds = rank_ready_monotonic - nccl_init_started
+    print(json.dumps({"event":"TP8_RANK_READY", "rank":rank, "python_entered_monotonic":python_entered_monotonic, "rank_ready_monotonic":rank_ready_monotonic, "nccl_init_seconds":nccl_init_seconds}), flush=True)
     try:
         value = torch.full((1 << 18,), rank, dtype=torch.float32, device=f"cuda:{rank}")
         distributed.all_reduce(value)
@@ -78,6 +84,7 @@ def main():
         distributed.destroy_process_group()
     after, _ = torch.cuda.mem_get_info(rank)
     print(json.dumps({"event": "TP8_CUDA_NCCL_MICRO_PASS", "rank": rank,
+          "python_entered_monotonic":python_entered_monotonic, "rank_ready_monotonic":rank_ready_monotonic, "nccl_init_seconds":nccl_init_seconds,
           "local_rank": rank, "world_size": 8, "device_count": 8,
           "device_uuid": physical_uuid, "torch": torch.__version__, "cuda": torch.version.cuda,
           "payload_bytes": 1 << 20, "dtype": "torch.float32", "reduced_value": 28,

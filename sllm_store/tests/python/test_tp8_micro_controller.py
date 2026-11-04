@@ -12,7 +12,7 @@ class AcceptanceTest(unittest.TestCase):
     def messages(self):
         rows = [{'event':'PYTHON_ENTERED'} for _ in range(8)]
         for rank, uuid in enumerate(controller.UUIDS):
-            rows.append({'event':'TP8_CUDA_NCCL_MICRO_PASS','rank':rank,'local_rank':rank,'world_size':8,'device_count':8,'device_uuid':uuid,'payload_bytes':1048576,'dtype':'torch.float32','reduced_value':28,'raw_sha256':'2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814','allocator_peak_bytes':1048576})
+            rows.append({'event':'TP8_CUDA_NCCL_MICRO_PASS','rank':rank,'local_rank':rank,'world_size':8,'device_count':8,'device_uuid':uuid,'payload_bytes':1048576,'dtype':'torch.float32','reduced_value':28,'raw_sha256':'2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814','allocator_peak_bytes':1048576,'python_entered_monotonic':100.0,'rank_ready_monotonic':102.0,'nccl_init_seconds':1.0})
         return rows
 
     def test_complete_result(self):
@@ -27,7 +27,7 @@ class AcceptanceTest(unittest.TestCase):
         with self.assertRaises(AssertionError): controller.validate_messages(rows)
 
     def test_wrong_binding_collective_or_payload(self):
-        for key, value in [('device_uuid',controller.UUIDS[1]),('local_rank',1),('world_size',7),('device_count',7),('payload_bytes',1),('dtype','torch.float16'),('reduced_value',27),('raw_sha256','0'*64),('allocator_peak_bytes',0)]:
+        for key, value in [('device_uuid',controller.UUIDS[1]),('local_rank',1),('world_size',7),('device_count',7),('payload_bytes',1),('dtype','torch.float16'),('reduced_value',27),('raw_sha256','0'*64),('allocator_peak_bytes',0),('nccl_init_seconds',float('nan')),('rank_ready_monotonic',99.0)]:
             rows = self.messages(); rows[8][key] = value
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 controller.validate_messages(rows)
@@ -35,7 +35,7 @@ class AcceptanceTest(unittest.TestCase):
 class ConfigurationTest(unittest.TestCase):
     def configuration(self):
         return {'Image':controller.IMAGE,
-                'HostConfig':{'PidsLimit':4096,'Memory':16*(1<<30),'MemorySwap':16*(1<<30),'NanoCpus':32*10**9,'ShmSize':1<<30,'ReadonlyRootfs':True,'NetworkMode':'none','Runtime':'nvidia','RestartPolicy':{'Name':'no'},'Tmpfs':{'/tmp':'rw,nosuid,nodev,size=64m'},'Ulimits':[{'Name':'core','Soft':0,'Hard':0}]},
+                'HostConfig':{'PidsLimit':4096,'Memory':16*(1<<30),'MemorySwap':16*(1<<30),'NanoCpus':32*10**9,'ShmSize':8*(1<<30),'ReadonlyRootfs':True,'NetworkMode':'none','Runtime':'nvidia','RestartPolicy':{'Name':'no'},'Tmpfs':{'/tmp':'rw,nosuid,nodev,size=64m'},'Ulimits':[{'Name':'core','Soft':0,'Hard':0}]},
                 'Config':{'User':'2147:2147','Env':['CUDA_VISIBLE_DEVICES='+','.join(controller.UUIDS),'NVIDIA_VISIBLE_DEVICES='+','.join(controller.UUIDS),'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1'],
                           'Entrypoint':['python3'],'Cmd':['-I','-m','torch.distributed.run','--rdzv-backend=static','--nnodes=1','--node-rank=0','--master-addr=127.0.0.1','--master-port=29500','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']},
                 'Mounts':[{'Source':str(controller.ROOT/'sllm_store'),'Destination':'/source/sllm_store','RW':False}]}
