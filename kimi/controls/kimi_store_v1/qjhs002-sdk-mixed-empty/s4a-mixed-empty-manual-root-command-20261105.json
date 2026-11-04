@@ -1,0 +1,29 @@
+{
+  "status": "SOURCE_REVIEWED_FIXED_COMMAND_REQUIRES_FRESH_ADMISSION_NOT_EXECUTED",
+  "argv": [
+    "/usr/bin/systemd-run",
+    "--unit=kimi-s4a-mixed-empty-20261105-once-controller.service",
+    "--property=Type=exec",
+    "--property=RuntimeMaxSec=217",
+    "--property=TimeoutStopSec=1",
+    "--property=Restart=no",
+    "--property=KillMode=control-group",
+    "--property=SendSIGKILL=yes",
+    "--property=FinalKillSignal=SIGKILL",
+    "--property=RemainAfterExit=yes",
+    "/usr/bin/python3",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/s4a_root_controller.py",
+    "--run-once",
+    "--mixed-empty",
+    "--pins-sha256",
+    "16540fb8e2fff8c20240f3ec2c1db7e294848688be3dd4bb8b42763bfe315587",
+    "--booking-expiry-epoch",
+    "FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED"
+  ],
+  "source_commit": "60481ce59da9f522feb69e47b78641425984d152",
+  "input_pins_sha256": "16540fb8e2fff8c20240f3ec2c1db7e294848688be3dd4bb8b42763bfe315587",
+  "source_controller_sha256": "f52911127c0155cf17839331b09bd97568ea7e24eb98ac3c6eff12323e73d4df",
+  "budget_seconds": 220,
+  "run_id": "kimi-s4a-mixed-empty-20261105-once",
+  "no_checkpoint_or_model": true
+}
