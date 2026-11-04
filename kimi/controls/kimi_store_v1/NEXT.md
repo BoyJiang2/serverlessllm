@@ -1,3 +1,9 @@
+## 11/4 用户四文件 CDI 探针补丁已完整审阅并发布；仍未批准 GPU 重试
+
+用户四文件补丁以0610AEC三文件及后续4e663测试文件两个提交保留，源码分支kimi-qjhs002-aligned-tail最终4e663bbe02aa59451dbc03e105acabfa8486e18d已推送并核验GitHub SHA，四个当前文件与HEAD blob哈希一致。补丁包含worker MASTER校验、实际送达环境报告及create_request重命名并更新调用者。独立审阅通过，宿主CPU检查26项：25通过、1项真实镜像集成显式跳过；不将跳过记作运行通过。源码和三份服务器证据身份见qjhs002-user-cdi-probe-source-reviewed/receipt.json。
+
+本次仅SOURCE_ONLY源码与CPU检查里程碑，不批准或执行GPU张量/NCCL重试；此前真实execve环境诊断PASS保持独立结论。金标、历史失败及停止规则不变，完整模型、转换、恢复和原生服务仍未通过，goal继续active。
+
 ## 11/4 获准的一次 execve 环境诊断通过；旧可见性校验确实拒绝实际 worker 环境
 
 源码6220a93ec7b0de5d6c813ae28d7a36974632354e、受审46dd命令的一次诊断容器5becc32afb7c0f1d9fbafddc9c2a99599566405de00386b3b7ad2163bb797ef0成功捕获9条成功execve（torchrun父进程及8个worker）。实际worker CUDA含8个目标UUID、NVIDIA_VISIBLE_DEVICES=void，MASTER_ADDR=127.0.0.1、MASTER_PORT=29500；将这8份实测环境输入原110101dd校验函数，8份均被“两个可见性变量必须相等”条件拒绝。完整环境原始trace66669B仅服务器root0600保存，不下载、不入Git；公开收据只含限定字段及哈希。
