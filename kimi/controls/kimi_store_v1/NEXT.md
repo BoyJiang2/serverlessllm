@@ -1,3 +1,9 @@
+## 11/4 CPU 守护 60 秒预算实际校准通过；八卡探针尚未执行
+
+qjhs002 当前适配源码 24bf5af6eab98e6429dbdf0fd898eac9364029d8。一次真实 CPU 故障注入完整容器 ID 9ac60aad1f97272bfb6d11f1f237a8621d90cc1a693560ae9bbe639d1517cb89，scope kill 在 GO+60.0209 秒、runc SIGKILL 在 GO+63.0286 秒，均早于原生 80 秒兜底；守护正常退出并观察释放 60.0072 秒，控制器总计 123.2716 秒。独立复核及最终身份/cgroup/GPU 清理核验通过；原始 OCI root:0600、SHA d46d8d283f79bb4e90c1f3f7d63cf00e9dd79c7e704231d3bfe290c683bae2df，仅存服务器。15 份小证据与审阅身份见 qjhs002-tp8-guard-cpu-calibration/ACTIVE-BASELINE.json；这里只提交小收据，不提交原始日志。
+
+本次仅证明该 CPU 故障条件下扩展守护预算生效，不证明 GPU、八卡 NCCL、完整模型、Store 或原生服务通过。已有历史失败、金标、S4a 通过与 GLM35/5 均不变。下一步复用现有控制器补齐八卡全部 rank 的验收，再核验有效预约、完整预算、独立审阅和守护后执行一次有界探针；正式运行及释放观察期间禁止 Git/同步。
+
 ## 11/3 用户要求同步：最新本地工作已上传远端
 
 现有p0/local-work.tar.gz已上传commit1a0db62完整178文件、源码4749584B、压缩1230677B，附local-work-manifest.json及local-work-receipt.json；独立SSH逐文件SHA验证通过。仅传输源码/测试/审阅/接续资料，不包含权重/Store/环境/镜像。旧p0/code的844冻结清单未变，未启动容器/计算。最新可执行源码批准仍仅ab134f0的PASS_SOURCE_ONLY，无runtime准入。完整收据见source-bundle-materialization.json.remote_local_work_transfers。
