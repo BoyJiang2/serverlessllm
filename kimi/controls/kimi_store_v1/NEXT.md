@@ -1,3 +1,9 @@
+## 11/4 追加 CDI 只读取证：支持环境改写机制，实际 worker execve 仍缺失
+
+现存CDI配置的containerEdits.env明确包含NVIDIA_VISIBLE_DEVICES=void，配置mtime早于失败探针；独立逐项核验实际后续OCI的13个nvidia-ctk hook与CDI编辑匹配。这为runtime阶段改写可见性变量提供具体证据支持，仍不是最终worker环境或精确写入者的直接证明：历史execve/environ没有采集，后续OCI只保留选字段且env过滤未包含可见性变量，mtime也不等于不可变历史内容证据。三份服务器原始报告及SHA见 qjhs002-tp8-static-failed/cdi-forensic-reference.json。
+
+不修改探针、不重试、不改宿主配置；原静态失败和CPU首分片通过均保持。当前适配goal继续active，完整模型路径和最终根因尚未闭环。
+
 ## 11/4 静态八卡探针失败保留；指定首分片 CPU 完整读取及逐位比较通过
 
 两次运行源码均为已推送并核验的 2b92e4aa7baf340ddceef252bb4a711a75e05bbb。静态八卡容器7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41：worker在Torch导入前tp8_environment报ValueError；NCCL初始化及all-ranks-ready时间均null，八卡采样峰值均4MiB，不能称CUDA/NCCL通过。guard abort失败保留，释放quiet60.005秒、观察quiet60.290秒，最终自有身份/scope消失且八卡零占用。实际历史execve未采集，源码和日志线索不能证明实际启动参数根因；遵守用户停止指令，不继续修改或重试探针。

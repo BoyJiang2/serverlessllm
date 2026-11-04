@@ -1,0 +1,27 @@
+{
+  "status": "READONLY_CDI_FORENSIC_SUPPORT_NOT_FINAL_PROCESS_PROOF",
+  "source_commit": "2b92e4aa7baf340ddceef252bb4a711a75e05bbb",
+  "failed_receipt_sha256": "a128fce1347b1253dad62e79a533f8a12dbd923214eda105d6534619ea1841db",
+  "cid": "7c566de8d9c3d06a427e1da50190f3be11d6eb1427c7da4c5833bf83f1a6ea41",
+  "server_files": [
+    {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/tp8-static-cdi-env-readonly.json",
+      "sha256": "cfc36bf60dceeac973c29cca09f415cc38f583e7d3a5dcfaee6df42fe1cd3867",
+      "bytes": 15042
+    },
+    {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/tp8-static-cdi-config-stat.json",
+      "sha256": "89cc805973e0aa0b454513aeca0e8d9cf7ce9fb82ceec505e53a3aa8f1ce061b",
+      "bytes": 585
+    },
+    {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/official-sf-tp8-reference-analysis.md",
+      "sha256": "75a8401b9fca38bce80adda55830b0e81278a29195cf7b87dbd14b509bf1049d",
+      "bytes": 16846
+    }
+  ],
+  "observations": "CDI yaml top-level containerEdits.env includes NVIDIA_VISIBLE_DEVICES=void. Config mtime precedes probe. All13 selected actual OCI nvidia-ctk hooks match CDI edits.",
+  "inference": "Supports runtime visibility rewrite as a concrete mechanism; does not directly capture final worker environment or prove exact writer",
+  "limits": "mtime is not immutable historical content proof. Only first full raw OCI retained; selected later OCI env filter excluded visibility fields; actual worker execve/environ absent.",
+  "boundary": "No probe edit, retry, host config mutation or new runtime; original failure preserved; goal remains active and incomplete"
+}
