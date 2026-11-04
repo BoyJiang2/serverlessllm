@@ -1,0 +1,31 @@
+{
+  "status": "S4A_READONLY_PREPARATION_READBACK_NOT_RUN",
+  "source_commit": "cc3fd227227c45f6934aba98ca35408294ba1a59",
+  "source_changes": false,
+  "evidence": "Eleven source SHA map and fresh small archive/SDK hashes; no repeated full source copies",
+  "current_source_facts": [
+    "Official async server.serve avoids CLI peft with no new dependency",
+    "64MiB is host pinned pool; constructor does not instantiate CudaMemoryPool",
+    "calculate_device_memory and native Allocate request8257544 bytes",
+    "RestoreTensors shares base owner across views",
+    "confirm RPC failure raises; no new patch justified"
+  ],
+  "remaining_verification": [
+    "Existing-archive/receipt branch and focused CPU bad-input tests not implemented",
+    "Runtime official original-bit load_dict readback and alias lifetime/final-view release unproven",
+    "Native CUDA excluded from Torch allocator peak; measure driver and NVML",
+    "Process exit alone is not eager ownership release proof"
+  ],
+  "planned_limits": {
+    "GO_seconds": 25,
+    "cleanup_cutoff_seconds": 65,
+    "release_seconds": 60,
+    "full_budget_seconds": 180,
+    "unknown_latency_is_not_new_gate": true,
+    "timeout_result": "FAILED_RETAINED"
+  },
+  "new_execution_authorized": false,
+  "Store_or_new_GPU_started": false,
+  "model_Store_TP8_verified": false,
+  "goal_complete": false
+}

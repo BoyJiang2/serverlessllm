@@ -365,3 +365,9 @@ visible-env路径说明：candidate布局 `tests/test_prepare_cuda_micro.py` 的
 qjhs002-visible-gpu-micro-pass保存controller终态GPU512_MICRO_NORMAL_EXIT_RELEASE_PASS及实际PYTHON_ENTERED/CUDA_MICRO_COMPUTE_PASS；容器normal exit0/Pid0/Restart0，H20-3e，payload/allocator peak1MiB、reserved2MiB。guard exit0无failures/quiet60.022521385，observer exit0/quiet60.591078338/采样peak21MiB，elapsed85.794381s。exact shim1812212/runc1812224 startticks身份均absent、scope removed；两unit MainPID0/Code1Status0/success捕获后root stop专属units。
 
 成功配置是PID512加两visibility ENV同UUID override，不宣称单PID唯一根因或最小阈值。首raw OCI19bb仅remote0600保留，guard selected可能多版本重写，首raw不当最终完整OCI；kernelqueryrc1/records0不排除PID因素。原128fail、9fe3maskfail、CPU1eventcap均原样。仅1MiB CUDA微探针及释放通过，不证明模型/Store/TP8/S4a读回；sourcecc3/controller6597/guard938不变，无空sourcecommit，goal不complete。
+
+## S4a 下一步只读源码与身份核验（2026-11-04）
+
+qjhs002-s4a-readback-readonly保留READONLY未run计划、11文件SHA映射及archive/index/SDK/glog新hash（匹配既有收据），不重复源文本或下载payload。当前官方serve绕CLI peft无需新增依赖；64MiB仅host pool，Ctor无CudaMemoryPool；calculate_device_memory/native Allocate请求8257544B；RestoreTensors共享base owner；confirm RPC失败已raise，无新patch理由。
+
+Torch allocator peak不含native CUDA，后续须driver/NVML及保留alias/最终view生命周期证据，不能仅进程退出称所有权释放。未知耗时不另立硬gate；readiness/client/shutdown cutoffs应拟合GO25/cleanup65/release60/full180，超时failclosed，不盲改guard。现有draft重save/读checkpoint，最小existing-archive+receipt分支和CPU bad-input tests仍未实现，不新codec/loader/framework。本轮无Store/新GPU、无源码改动，sourcecc3不空commit，gold/history/GLM/goal保持，READBACK_NOT_RUN。
