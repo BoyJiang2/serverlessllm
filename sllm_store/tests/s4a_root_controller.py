@@ -26,10 +26,14 @@ def save(name, row, mode=0o600):
 
 def unitprops(unit):
     return dict(line.split('=',1) for line in call(['/usr/bin/systemctl','show',unit,
-        '--property=MainPID,ExecMainCode,ExecMainStatus,Result,ActiveState']).splitlines())
+        '--property=MainPID,ExecMainCode,ExecMainStatus,Result,ActiveState,ActiveEnterTimestampMonotonic,RuntimeMaxUSec,TimeoutStopUSec']).splitlines())
 
 def healthy(unit, finalname):
     row = unitprops(unit)
+    full_start = json.loads((BASE/'prepared.json').read_text())['preparation_started']
+    assert row['RuntimeMaxUSec'] == '2min 20s' and row['TimeoutStopUSec'] == '3s'
+    assert int(row['ActiveEnterTimestampMonotonic']) > 0
+    assert int(row['ActiveEnterTimestampMonotonic'])/1e6 + 143 <= full_start + 178
     if int(row['MainPID']) == 0:
         assert (BASE/finalname).exists() and row['ExecMainCode'] == '1' and row['ExecMainStatus'] == '0' and row['Result'] == 'success'
     else:
@@ -44,6 +48,8 @@ def gpu():
             'processes': [p.findtext('pid') for p in row.findall('processes/process_info')]}
 
 def service(unit, argv, remain=False):
+    full_start = json.loads((BASE/'prepared.json').read_text())['preparation_started']
+    assert time.monotonic() - full_start <= 32, 'independent service deadline exceeds full budget'
     call(['/usr/bin/systemd-run', '--unit='+unit, '--property=Type=exec',
           '--property=RuntimeMaxSec=140', '--property=TimeoutStopSec=3',
           '--property=Restart=no', '--property=KillMode=control-group',
