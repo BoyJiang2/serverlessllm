@@ -45,7 +45,7 @@ class PrepareCudaMicroTest(unittest.TestCase):
                        "subprocess": types.SimpleNamespace(check_output=output)}
             with patch.dict(sys.modules, modules), patch.object(sys, "argv", [str(ENTRY), *arguments, *names]), contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                 runpy.run_path(str(ENTRY), run_name="__main__")
-            receipt = json.loads((p0 / "cuda-micro-pids512-20261104" / "prepared.json").read_text())
+            receipt = json.loads((p0 / "cuda-micro-pids512-visible-20261104" / "prepared.json").read_text())
             self.assertFalse(any("start" in c for c in commands))
             return receipt
 
@@ -56,6 +56,12 @@ class PrepareCudaMicroTest(unittest.TestCase):
         receipt = self.invoke(["--pids-limit", "512"])
         self.assertEqual(receipt["pids_limit"], 512)
         self.assertEqual(receipt["source_commit"], "d" * 40)
+        self.assertEqual(receipt["nonce"], "cuda-micro-pids512-visible-20261104")
+        command = receipt["command"]
+        environments = [command[index+1] for index, value in enumerate(command) if value == "--env"]
+        uuid = "GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+        for variable in ("CUDA_VISIBLE_DEVICES", "NVIDIA_VISIBLE_DEVICES"):
+            self.assertEqual([value for value in environments if value.startswith(variable+"=")], [variable+"="+uuid])
         for flag in ("--pids-limit=512", "--runtime=nvidia", "--cpus=1", "--memory=2g", "--memory-swap=2g", "--network=none", "--restart=no"):
             self.assertIn(flag, receipt["command"])
 

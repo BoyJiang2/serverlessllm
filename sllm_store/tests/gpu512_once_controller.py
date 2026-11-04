@@ -3,7 +3,7 @@ import argparse, hashlib, json, os, pathlib, re, subprocess, time
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/cuda-micro-pids512-20261104')
+BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/cuda-micro-pids512-visible-20261104')
 UUID = 'GPU-736d7f37-f647-b82d-ab11-693753ac6822'
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
@@ -92,8 +92,8 @@ def controller(expiry):
         return row
     initial = inspect(); assert not initial['State']['Running'] and initial['State']['Status'] == 'created'
     assert gpu() == {'used_mib': 0, 'processes': []}
-    guardunit = 'kimi-cuda-pids512-20261104-guard.service'
-    observerunit = 'kimi-cuda-pids512-20261104-observer.service'
+    guardunit = 'kimi-cuda-pids512-visible-20261104-guard.service'
+    observerunit = 'kimi-cuda-pids512-visible-20261104-observer.service'
     go = None; child = None; observer_started = guard_started = False
     try:
         service(observerunit, ['/usr/bin/python3', str(pathlib.Path(__file__).resolve()), '--observer'], True)

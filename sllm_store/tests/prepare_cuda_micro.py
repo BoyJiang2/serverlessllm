@@ -10,7 +10,7 @@ root=pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
 p0=pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')
 image='sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
 uuid='GPU-736d7f37-f647-b82d-ab11-693753ac6822'
-nonce='cuda-micro-pids512-20261104'
+nonce='cuda-micro-pids512-visible-20261104'
 assert subprocess.check_output(['hostname'],text=True).strip()=='qjhs2'
 source_commit=subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()
 directory=p0/nonce;directory.mkdir()
@@ -21,7 +21,7 @@ for filename in args.sources:
     sources[filename]=hashlib.sha256(path.read_bytes()).hexdigest()
 assert len(sources)==2
 probe=next(p0/name for name in sources if name.startswith('cuda-micro-probe-'))
-command=['/usr/bin/docker','--host','unix:///var/run/docker.sock','create','--name','kimi-'+nonce,'--runtime=nvidia','--gpus','device='+uuid,'--restart=no','--network=none','--user','2147:2147','--cpus=1','--memory=2g','--memory-swap=2g','--pids-limit='+str(args.pids_limit),'--ulimit','core=0','--read-only','--tmpfs','/tmp:rw,exec,size=64m','--env','OMP_NUM_THREADS=1','--env','MKL_NUM_THREADS=1','--env','OPENBLAS_NUM_THREADS=1','--env','NVIDIA_DRIVER_CAPABILITIES=compute,utility','--label','sllm.kimi.run='+nonce,'--mount','type=bind,src='+str(probe)+',dst=/probe.py,readonly','--entrypoint','/usr/bin/timeout',image,'--signal=TERM','--kill-after=5','45','/usr/bin/python3','-I','/probe.py']
+command=['/usr/bin/docker','--host','unix:///var/run/docker.sock','create','--name','kimi-'+nonce,'--runtime=nvidia','--gpus','device='+uuid,'--restart=no','--network=none','--user','2147:2147','--cpus=1','--memory=2g','--memory-swap=2g','--pids-limit='+str(args.pids_limit),'--ulimit','core=0','--read-only','--tmpfs','/tmp:rw,exec,size=64m','--env','OMP_NUM_THREADS=1','--env','MKL_NUM_THREADS=1','--env','OPENBLAS_NUM_THREADS=1','--env','CUDA_VISIBLE_DEVICES='+uuid,'--env','NVIDIA_VISIBLE_DEVICES='+uuid,'--env','NVIDIA_DRIVER_CAPABILITIES=compute,utility','--label','sllm.kimi.run='+nonce,'--mount','type=bind,src='+str(probe)+',dst=/probe.py,readonly','--entrypoint','/usr/bin/timeout',image,'--signal=TERM','--kill-after=5','45','/usr/bin/python3','-I','/probe.py']
 cid=subprocess.check_output(command,text=True).strip()
 row=json.loads(subprocess.check_output(['/usr/bin/docker','--host','unix:///var/run/docker.sock','inspect',cid],text=True))[0]
 assert row['Id']==cid and row['Image']==image and not row['State']['Running']
