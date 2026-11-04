@@ -2,13 +2,13 @@
 import hashlib,json,os,pathlib,select,signal,subprocess,time
 ROOT=pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
 GUARD=ROOT/'sllm_store/tests/guard_cuda_micro.py'
-RUN='kimi-guard-fault-cpu-20261104-once'
+RUN='kimi-guard-fault-cpu-20261104-logfix-once'
 BASE=pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')/RUN
 CID=hashlib.sha256(RUN.encode()).hexdigest()
 GUARD_UNIT=RUN+'-guard.service'; PARENT_UNIT=RUN+'-launcher.service'
 SCOPE='docker-'+CID+'.scope'; CG=pathlib.Path('/sys/fs/cgroup/system.slice')/SCOPE
 assert os.geteuid()==0 and not BASE.exists()
-assert hashlib.sha256(GUARD.read_bytes()).hexdigest()=='48c3729fb1d6137f3bd44bc3c87ffe18da40dd101b5afaf280ed2f794910b59d'
+assert hashlib.sha256(GUARD.read_bytes()).hexdigest()=='9387374428ae285f9740a4fe6f638aec2ba781384a5a9fdc01b47f6b2249ea3d'
 BASE.mkdir(mode=0o700); bundle=BASE/CID; bundle.mkdir(); state=BASE/'runc-state'; state.mkdir()
 rootfs=bundle/'rootfs';rootfs.mkdir()
 for name in ('dev','proc','sys'): (rootfs/name).mkdir()
