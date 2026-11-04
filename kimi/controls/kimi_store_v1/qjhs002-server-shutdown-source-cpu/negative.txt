@@ -1,0 +1,44 @@
+test_single_cancel_stops_normally (__main__.ShutdownTests) ... ERROR
+
+======================================================================
+ERROR: test_single_cancel_stops_normally (__main__.ShutdownTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/server.py", line 235, in serve
+    await server.wait_for_termination()
+  File "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_server_shutdown.py", line 36, in wait_for_termination
+    await self.shutdown
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/server.py", line 238, in serve
+    await server.stop(5)
+  File "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_server_shutdown.py", line 47, in stop
+    await asyncio.wait_for(asyncio.shield(self.shutdown), timeout=grace)
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 445, in wait_for
+    return fut.result()
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_server_shutdown.py", line 79, in test_single_cancel_stops_normally
+    self.assertIsNone(await asyncio.wait_for(self.task, .5))
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 445, in wait_for
+    return fut.result()
+asyncio.exceptions.CancelledError
+
+----------------------------------------------------------------------
+Ran 1 test in 0.009s
+
+FAILED (errors=1)

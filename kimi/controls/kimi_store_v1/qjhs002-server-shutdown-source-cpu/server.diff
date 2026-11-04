@@ -1,0 +1,18 @@
+--- a/sllm_store/sllm_store/server.py
++++ b/sllm_store/sllm_store/server.py
+@@ -231,8 +231,14 @@
+     logger.info(f"Starting gRPC server on {listen_addr}")
+     await server.start()
+ 
++    termination_task = asyncio.create_task(server.wait_for_termination())
+     try:
+-        await server.wait_for_termination()
++        await asyncio.shield(termination_task)
+     except (KeyboardInterrupt, asyncio.CancelledError):
+         logger.info("Shutting down gRPC server")
+         await server.stop(5)
++        await termination_task
++    finally:
++        if not termination_task.done():
++            termination_task.cancel()
++        await asyncio.gather(termination_task, return_exceptions=True)

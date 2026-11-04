@@ -415,3 +415,9 @@ qjhs002-s4a-first-readback-failed保留用户批准admission、实际小证据�
 guardquiet60.0115/observerquiet60.5789、实际MainPID0、GPU0/noProcess、exactruntime identities absent/scopegone，专属units已stop。PIDscope曾629145→512实际采样保留，不当精确峰值/阈值证据；首rawOCI仅remote0600，后续版本只safe摘要，首raw不当最终完整OCI。grpc第三方环境源码不提交，仅留hash及服务器副本；rootrawOCI不下载。
 
 source5d不变，无重试或新Store/GPU/CPU执行，本轮仅失败证据归档。历史fail/gold/GLM35/5/goal保持，不称整体S4a通过或模型/Store转换/TP8通过。
+
+## Server shutdown最小源码修复，hostCPU6 PASS（2026-11-04）
+
+qjhs002-server-shutdown-source-cpu保留旧负例exit1/新6hostCPU PASS、source diff/原server快照、独审最新附录。source adaeff41b060227bcdd37b4dd1b0a7961523425e（parent5d）只stage官方server.py e7cb2235…及test_server_shutdown.py aa49dcb7…，GitHub/source tracking已核；保留shield termination task，stop5/join，finally cancel/gather owned waiter，原stop错误/第二cancel不吞。
+
+状态SERVER_SHUTDOWN_SOURCE_ONLY_HOST_CPU6_PASS，实际image grpc尚未CPU验证，无Store/GPU/container运行；旧S4a整体FAILED_RETAINED与旧server6f pin不更新，不据此自动重试。source发布不等于runtime准入，历史/AGENTS/glog/manifest不动。
