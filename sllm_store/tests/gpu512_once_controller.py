@@ -1,10 +1,16 @@
-"""Review draft: one prepared container; no booking or container creation here."""
+"""One bounded eight-rank CUDA/NCCL micro; no model or Store."""
 import argparse, hashlib, json, os, pathlib, re, subprocess, time
 import xml.etree.ElementTree as ET
+import math
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/cuda-micro-pids512-visible-20261104')
-UUID = 'GPU-736d7f37-f647-b82d-ab11-693753ac6822'
+RUN = 'kimi-tp8-cuda-nccl-micro-20261104'
+BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')/RUN
+UUIDS = ['GPU-736d7f37-f647-b82d-ab11-693753ac6822','GPU-c5510474-1f6d-03f1-c57f-476db275c5cb','GPU-d8081222-9816-41e4-68f8-ecbb13de6855','GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f','GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242','GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a','GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b','GPU-21336138-6e64-ec08-305b-26c99d661ab9']
+IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
+OBSERVER = ROOT/'sllm_store/tests/s4a_root_controller.py'
+PROBE = ROOT/'sllm_store/tests/cuda_micro_probe.py'
+PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'22c2686044cbf6a25065e171671949850dbf0c16df5f0b5b3a8f99ecb1f21cae'}
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
 
@@ -25,7 +31,7 @@ def save(name, row):
 
 def unitprops(unit):
     return dict(line.split('=',1) for line in call(['/usr/bin/systemctl','show',unit,
-        '--property=MainPID,ExecMainCode,ExecMainStatus,Result,ActiveState']).splitlines())
+        '--property=Type,LoadState,MainPID,ExecMainCode,ExecMainStatus,Result,ActiveState,RuntimeMaxUSec,TimeoutStopUSec,ActiveEnterTimestampMonotonic,Restart,KillMode,SendSIGKILL,FinalKillSignal']).splitlines())
 
 def healthy(unit, finalname):
     row = unitprops(unit)
@@ -36,15 +42,44 @@ def healthy(unit, finalname):
     return row
 
 def gpu():
-    raw = call(['/usr/bin/nvidia-smi', '--id='+UUID, '-q', '-x'])
-    row = ET.fromstring(raw).find('gpu')
-    assert row.findtext('uuid') == UUID
-    return {'used_mib': int(row.findtext('fb_memory_usage/used').split()[0]),
-            'processes': [p.findtext('pid') for p in row.findall('processes/process_info')]}
+    rows = ET.fromstring(call(['/usr/bin/nvidia-smi', '-q', '-x'])).findall('gpu')
+    assert len(rows) == 8 and {r.findtext('uuid') for r in rows} == set(UUIDS)
+    return {r.findtext('uuid'): {'used_mib': int(r.findtext('fb_memory_usage/used').split()[0]),
+            'processes': [p.findtext('pid') for p in r.findall('processes/process_info')]} for r in rows}
+
+def validate_messages(messages):
+    rows = [m for m in messages if m.get('event') == 'TP8_CUDA_NCCL_MICRO_PASS']
+    assert len(rows) == 8 and {r['rank'] for r in rows} == set(range(8))
+    assert len([m for m in messages if m.get('event') == 'PYTHON_ENTERED']) == 8
+    for row in rows:
+        assert row['local_rank'] == row['rank'] and row['world_size'] == row['device_count'] == 8
+        assert row['device_uuid'] == UUIDS[row['rank']]
+        assert row['payload_bytes'] == 1048576 and row['dtype'] == 'torch.float32'
+        assert row['reduced_value'] == 28 and row['raw_sha256'] == '2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814'
+        assert row['allocator_peak_bytes'] >= 1048576
+    return rows
+
+def validate_configuration(row):
+    host = row['HostConfig']; config = row['Config']
+    assert row['Image'] == IMAGE and host['PidsLimit'] == 4096
+    assert host['Memory'] == host['MemorySwap'] == 16*(1<<30)
+    assert host['NanoCpus'] == 32*10**9 and host['ShmSize'] == 1<<30
+    assert host['ReadonlyRootfs'] and host['NetworkMode'] == 'none' and host['Runtime'] == 'nvidia'
+    assert host['RestartPolicy']['Name'] == 'no' and config['User'] == '2147:2147'
+    env = dict(value.split('=',1) for value in config['Env'])
+    assert env['CUDA_VISIBLE_DEVICES'] == env['NVIDIA_VISIBLE_DEVICES'] == ','.join(UUIDS)
+    assert config['Entrypoint'] == ['python3']
+    assert config['Cmd'] == ['-I','-m','torch.distributed.run','--standalone','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
+    assert all(env[name] == '1' for name in ('OMP_NUM_THREADS','MKL_NUM_THREADS','OPENBLAS_NUM_THREADS'))
+    assert host['Tmpfs'] == {'/tmp':'rw,nosuid,nodev,size=64m'}
+    assert any(limit['Name'] == 'core' and limit['Soft'] == limit['Hard'] == 0 for limit in host['Ulimits'])
+    assert len(row['Mounts']) == 1
+    mount = row['Mounts'][0]
+    assert mount['Source'] == str(ROOT/'sllm_store') and mount['Destination'] == '/source/sllm_store' and not mount['RW']
 
 def service(unit, argv, remain=False):
     call(['/usr/bin/systemd-run', '--unit='+unit, '--property=Type=exec',
-          '--property=RuntimeMaxSec=140', '--property=TimeoutStopSec=3',
+          '--property=RuntimeMaxSec=180', '--property=TimeoutStopSec=3',
           '--property=Restart=no', '--property=KillMode=control-group',
           '--property=SendSIGKILL=yes', '--property=FinalKillSignal=SIGKILL',
           '--property=MemoryMax=256M', '--property=TasksMax=64',
@@ -52,62 +87,61 @@ def service(unit, argv, remain=False):
           '--property=StandardOutput=append:'+str(BASE/(unit+'.stdout')),
           '--property=StandardError=append:'+str(BASE/(unit+'.stderr')), *argv])
 
-def observer():
-    start = time.monotonic(); quiet = None; peak = 0
+def controller(expiry, expected_sha):
+    started = time.monotonic(); start_epoch = time.time()
+    assert os.geteuid() == 0 and math.isfinite(expiry) and time.time()+220 < expiry
+    assert hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest() == expected_sha
+    for path, digest in PINS.items():
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+    outer = unitprops(RUN+'-controller.service')
+    assert outer['Type'] == 'exec' and int(outer['MainPID']) == os.getpid()
+    assert outer['RuntimeMaxUSec'] == '3min 37s' and outer['TimeoutStopUSec'] == '1s'
+    assert outer['Restart'] == 'no' and outer['KillMode'] == 'control-group' and outer['SendSIGKILL'] == 'yes' and outer['FinalKillSignal'] == '9'
+    assert not BASE.exists()
+    assert all(r == {'used_mib':0, 'processes':[]} for r in gpu().values())
+    BASE.mkdir(mode=0o700)
+    cid = None; go = None; child = None; observer_started = guard_started = False
+    guardunit = RUN+'-guard.service'; observerunit = RUN+'-observer.service'
     try:
-        assert gpu() == {'used_mib': 0, 'processes': []}
-        save('observer-ready.json', {'pid': os.getpid(), 'gpu_uuid': UUID})
-        with (BASE/'gpu-observer.jsonl').open('x') as stream:
-            while time.monotonic()-start < 135:
-                row = gpu(); peak = max(peak, row['used_mib'])
-                stream.write(json.dumps({'mono': time.monotonic(), **row})+'\n'); stream.flush()
-                assert row['used_mib'] <= 2048
-                if (BASE/'normal-exit.json').exists() or (BASE/'ABORT').exists():
-                    if row != {'used_mib': 0, 'processes': []}:
-                        quiet = None; time.sleep(.5); continue
-                    quiet = quiet or time.monotonic()
-                    if time.monotonic()-quiet >= 60:
-                        save('observer-final.json', {'gpu_uuid': UUID, 'quiet_seconds': time.monotonic()-quiet, 'peak_mib': peak})
-                        return
-                time.sleep(.5)
-        raise TimeoutError('observer deadline')
-    except BaseException:
-        (BASE/'ABORT').touch(exist_ok=True)
-        raise
-
-def controller(expiry):
-    started = time.monotonic()
-    assert os.geteuid() == 0 and time.time()+180 < expiry
-    receipt = json.loads((BASE/'prepared.json').read_text()); cid = receipt['cid']
-    assert re.fullmatch('[0-9a-f]{64}', cid)
-    assert receipt['gpu_uuid'] == UUID and receipt['pids_limit'] == 512
-    assert hashlib.sha256(GUARD.read_bytes()).hexdigest() == '9387374428ae285f9740a4fe6f638aec2ba781384a5a9fdc01b47f6b2249ea3d'
-    for name, digest in receipt['script_sha256'].items():
-        assert pathlib.Path(name).name == name
-        assert hashlib.sha256((BASE.parent/name).read_bytes()).hexdigest() == digest
-    def inspect():
-        row = json.loads(call(DOCKER+['inspect', cid]))[0]
-        assert row['Id'] == cid and row['Image'] == receipt['image']
-        assert row['HostConfig']['PidsLimit'] == 512
-        return row
-    initial = inspect(); assert not initial['State']['Running'] and initial['State']['Status'] == 'created'
-    assert gpu() == {'used_mib': 0, 'processes': []}
-    guardunit = 'kimi-cuda-pids512-visible-20261104-guard.service'
-    observerunit = 'kimi-cuda-pids512-visible-20261104-observer.service'
-    go = None; child = None; observer_started = guard_started = False
-    try:
-        service(observerunit, ['/usr/bin/python3', str(pathlib.Path(__file__).resolve()), '--observer'], True)
+        env = ['CUDA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_VISIBLE_DEVICES='+','.join(UUIDS), 'NVIDIA_DRIVER_CAPABILITIES=compute,utility', 'OMP_NUM_THREADS=1','MKL_NUM_THREADS=1','OPENBLAS_NUM_THREADS=1']
+        argv = DOCKER+['create','--name',RUN,'--runtime=nvidia','--network=none','--read-only','--user=2147:2147','--cpus=32','--memory=16g','--memory-swap=16g','--pids-limit=4096','--shm-size=1g','--ulimit=core=0','--tmpfs=/tmp:rw,nosuid,nodev,size=64m','--mount=type=bind,src='+str(ROOT/'sllm_store')+',dst=/source/sllm_store,readonly']
+        for value in env: argv += ['--env',value]
+        argv += ['--entrypoint=python3',IMAGE,'-I','-m','torch.distributed.run','--standalone','--nproc_per_node=8','--max_restarts=0','--no-python','/usr/bin/python3','-I','/source/sllm_store/tests/cuda_micro_probe.py','--tp8']
+        cid = subprocess.check_output(argv, text=True, timeout=10).strip()
+        assert re.fullmatch('[0-9a-f]{64}', cid)
+        receipt = {'cid':cid,'image':IMAGE,'gpu_uuids':UUIDS,'pids_limit':4096,'argv':argv,'started':started,'epoch':start_epoch,'budget_seconds':220,'outer':outer,'source_sha256':{str(p):d for p,d in PINS.items()},'controller_sha256':expected_sha}
+        save('prepared.json',receipt)
+        kernel = subprocess.run(['/usr/bin/journalctl','-k','--since=@'+str(receipt['epoch']-2),'--no-pager','-n','200','-o','short-iso'],capture_output=True,text=True,timeout=3)
+        save('kernel-before.json',{'returncode':kernel.returncode,'stdout':kernel.stdout,'stderr':kernel.stderr})
+        def inspect():
+            row = json.loads(call(DOCKER+['inspect', cid]))[0]
+            assert row['Id'] == cid and row['Image'] == receipt['image']
+            assert row['HostConfig']['PidsLimit'] == 4096
+            return row
+        initial = inspect(); validate_configuration(initial)
+        save('docker-inspect-created.json',initial)
+        assert not initial['State']['Running'] and initial['State']['Status'] == 'created'
+        assert all(r == {'used_mib': 0, 'processes': []} for r in gpu().values())
+        observer_argv = ['/usr/bin/python3', str(OBSERVER), '--observer', '--observer-evidence', str(BASE), '--observer-seconds','175','--observer-limit-mib','2048']
+        for uuid in UUIDS: observer_argv += ['--observer-uuid',uuid]
+        service(observerunit, observer_argv, True)
         observer_started = True
         while not (BASE/'observer-ready.json').exists():
-            assert time.monotonic()-started < 5; time.sleep(.03)
-        service(guardunit, ['/usr/bin/python3', str(GUARD), cid, str(BASE)], True)
+            assert time.monotonic()-started < 20; time.sleep(.03)
+        service(guardunit, ['/usr/bin/python3', str(GUARD), cid, str(BASE),'--deadline','60','--kill-after','3','--overall','100'], True)
         guard_started = True
         armed_deadline = time.monotonic()+7
         while not (BASE/'ARMED.json').exists():
             assert time.monotonic() < armed_deadline; time.sleep(.03)
         armed = json.loads((BASE/'ARMED.json').read_text()); assert armed['cid'] == cid
-        props = dict(line.split('=', 1) for line in call(['/usr/bin/systemctl', 'show', guardunit, '--property=MainPID,RuntimeMaxUSec,TimeoutStopUSec']).splitlines())
-        assert int(props['MainPID']) == armed['guard_pid'] and props['RuntimeMaxUSec'] == '2min 20s' and props['TimeoutStopUSec'] == '3s'
+        props = unitprops(guardunit)
+        assert int(props['MainPID']) == armed['guard_pid']
+        assert (armed['deadline_seconds'],armed['kill_after_seconds'],armed['cleanup_seconds'],armed['release_seconds']) == (60,3,100,60)
+        for unit in (guardunit,observerunit):
+            actual = unitprops(unit)
+            assert actual['RuntimeMaxUSec'] == '3min' and actual['TimeoutStopUSec'] == '3s'
+            assert int(actual['ActiveEnterTimestampMonotonic'])/1e6+183 <= started+218
+        assert time.monotonic()-started < 32
         assert int((pathlib.Path('/proc')/str(armed['guard_pid'])/'stat').read_text().rsplit(')',1)[1].split()[19]) == armed['guard_startticks']
         go = time.monotonic(); save('GO.json', {'cid': cid, 'nonce': armed['nonce'], 'monotonic': go})
         while not (BASE/'GO-ACK.json').exists():
@@ -117,21 +151,21 @@ def controller(expiry):
         with (BASE/'docker-start.stdout').open('x') as out, (BASE/'docker-start.stderr').open('x') as err:
             child = subprocess.Popen(DOCKER+['start', cid], stdout=out, stderr=err)
         while True:
-            assert not (BASE/'ABORT').exists() and time.monotonic()-go < 25
+            assert not (BASE/'ABORT').exists() and time.monotonic()-go < 60
             healthy(observerunit, 'observer-final.json'); healthy(guardunit, 'guard-final.json')
             row = inspect()
             if row['State']['Status'] == 'exited': break
             time.sleep(.2)
-        assert row['State']['ExitCode'] == 0 and row['State']['Pid'] == 0
-        logs = call(DOCKER+['logs', '--tail', '20', cid])
+        assert row['State']['ExitCode'] == 0 and row['State']['Pid'] == 0 and not row['State']['OOMKilled'] and row['RestartCount'] == 0
+        save('docker-inspect-exited.json',row)
+        logs = call(DOCKER+['logs', '--tail', '200', cid])
+        save('docker-logs.json',{'text':logs})
         messages = [json.loads(line) for line in logs.splitlines() if line.startswith('{')]
-        assert any(m.get('event') == 'PYTHON_ENTERED' for m in messages)
-        compute = next(m for m in messages if m.get('event') == 'CUDA_MICRO_COMPUTE_PASS')
-        assert compute['payload_bytes'] == 1048576 and compute['allocator_peak_bytes'] >= 1048576
+        validate_messages(messages)
         assert child.wait(timeout=3) == 0
         save('normal-exit.json', {'state': row['State'], 'messages': messages})
         while not all((BASE/name).exists() for name in ('guard-final.json', 'observer-final.json')):
-            assert not (BASE/'ABORT').exists() and time.monotonic()-started < 165
+            assert not (BASE/'ABORT').exists() and time.monotonic()-started < 200
             healthy(observerunit, 'observer-final.json'); healthy(guardunit, 'guard-final.json')
             time.sleep(.2)
         final = json.loads((BASE/'guard-final.json').read_text())
@@ -139,16 +173,24 @@ def controller(expiry):
         assert hashlib.sha256((BASE/'oci.raw.json').read_bytes()).hexdigest() == final['raw_oci_sha256']
         assert (BASE/'oci.raw.json').stat().st_mode & 0o777 == 0o600
         observed = json.loads((BASE/'observer-final.json').read_text())
-        assert observed['gpu_uuid'] == UUID and observed['quiet_seconds'] >= 60 and observed['peak_mib'] <= 2048
+        assert observed['gpu_uuids'] == UUIDS and observed['quiet_seconds'] >= 60
+        assert set(observed['peak_mib_by_uuid']) == set(UUIDS) and max(observed['peak_mib_by_uuid'].values()) <= 2048
         for unit, name in ((guardunit,'guard-final.json'), (observerunit,'observer-final.json')):
             while int(healthy(unit,name)['MainPID']) != 0:
-                assert time.monotonic()-started < 165; time.sleep(.05)
-        save('controller-final.json', {'status': 'GPU512_MICRO_NORMAL_EXIT_RELEASE_PASS', 'elapsed': time.monotonic()-started, 'guard': final})
+                assert time.monotonic()-started < 200; time.sleep(.05)
+        assert all(r == {'used_mib':0,'processes':[]} for r in gpu().values())
+        assert not pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cid+'.scope').exists()
+        for path, digest in PINS.items(): assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+        assert hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest() == expected_sha
+        save('controller-final.json', {'status':'TP8_MICRO_NORMAL_EXIT_RELEASE_PASS','cid':cid,'elapsed':time.monotonic()-started,'guard':final,'observer':observed,'guard_exit':unitprops(guardunit),'observer_exit':unitprops(observerunit)})
     except BaseException as error:
         (BASE/'ABORT').touch(exist_ok=True)
-        save('controller-failed.json', {'error_type': type(error).__name__, 'error': str(error), 'go': go})
+        save('controller-failed.json', {'status':'FAILED_RETAINED','cid':cid,'error_type': type(error).__name__, 'error': str(error), 'go': go,'elapsed':time.monotonic()-started})
+        if cid is not None:
+            try: save('docker-inspect-failed.json',json.loads(call(DOCKER+['inspect',cid]))[0])
+            except Exception: pass
         # Keep the independent services alive through cleanup/release; no Docker kill.
-        while time.monotonic()-started < 170:
+        while time.monotonic()-started < 205:
             pending = []
             for unit, launched in ((guardunit,guard_started),(observerunit,observer_started)):
                 if launched:
@@ -158,6 +200,12 @@ def controller(expiry):
             time.sleep(.2)
         raise
     finally:
+        try:
+            kernel = subprocess.run(['/usr/bin/journalctl','-k','--since=@'+str(start_epoch-2),'--no-pager','-n','200','-o','short-iso'],capture_output=True,text=True,timeout=3)
+            save('kernel-after.json',{'returncode':kernel.returncode,'stdout':kernel.stdout,'stderr':kernel.stderr})
+        except Exception as error:
+            try: save('kernel-after-error.json',{'error_type':type(error).__name__,'error':str(error)})
+            except Exception: pass
         if child is not None and child.poll() is None:
             child.terminate()
             try: child.wait(timeout=2)
@@ -166,10 +214,7 @@ def controller(expiry):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--observer', action='store_true')
-    parser.add_argument('--booking-expiry-epoch', type=float)
+    parser.add_argument('--booking-expiry-epoch', type=float, required=True)
+    parser.add_argument('--expected-controller-sha', required=True)
     args = parser.parse_args()
-    if args.observer: observer()
-    else:
-        assert args.booking_expiry_epoch is not None
-        controller(args.booking_expiry_epoch)
+    controller(args.booking_expiry_epoch, args.expected_controller_sha)
