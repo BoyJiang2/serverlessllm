@@ -1,0 +1,152 @@
+{
+  "status": "CPU_FOUR_LOADER_STATE_ROUNDTRIPS_NORMAL_EXIT_RELEASE_PASS_NOT_STORE_GPU",
+  "run_id": "kimi-store-loader-contract-cpu-positive-20261105-once",
+  "cid": "595f28034eb66cd514f7514b862a41b82e84c87b10de226782763793b6a99bc0",
+  "source_commit": "89ad61dd6b855367e76a592f05cba59765a16e85",
+  "patch_sha256": "7197686c011c3c30d468ba9c497c6f047ce64b4d73ee56e1055e5f6bf1f6a577",
+  "fixture_sha256": "bd7a48c6a8c20db13d42b2b185c70f73b8a48dc533a9f2c4f12d2c6261a848bd",
+  "evidence_before_run": "109f046eb63491474ae69ac1e17109aa359079d7",
+  "actual_controller_elapsed": 120.3426200649701,
+  "guard_quiet_seconds": 60.00336010399042,
+  "native_units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "365197398428",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "365077024581"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "365197228597",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "365077098090"
+    }
+  },
+  "exit_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-04T20:11:43.774961881Z",
+    "FinishedAt": "2026-11-04T20:11:45.58318992Z"
+  },
+  "test_result": {
+    "event": "CPU_LOADER_STATE_RESULT",
+    "test_names": [
+      "test_marlin_empty_g_idx_round_trip",
+      "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+      "test_persistent_attention_scale_round_trip",
+      "test_same_parameter_module_alias_round_trip"
+    ],
+    "tests_run": 4,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "scope": "real Torch CPU tensors; FakeStore in-process clone/archive only; no SDK Store service/archive/GPU/model"
+  },
+  "events": [
+    {
+      "event": "CPU_LOADER_STATE_DISCOVERY",
+      "test_names": [
+        "test_marlin_empty_g_idx_round_trip",
+        "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+        "test_persistent_attention_scale_round_trip",
+        "test_same_parameter_module_alias_round_trip"
+      ],
+      "discovery_errors": []
+    },
+    {
+      "event": "CPU_LOADER_STATE_RESULT",
+      "test_names": [
+        "test_marlin_empty_g_idx_round_trip",
+        "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+        "test_persistent_attention_scale_round_trip",
+        "test_same_parameter_module_alias_round_trip"
+      ],
+      "tests_run": 4,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "expected_failures": 0,
+      "unexpected_successes": 0,
+      "scope": "real Torch CPU tensors; FakeStore in-process clone/archive only; no SDK Store service/archive/GPU/model"
+    }
+  ],
+  "actual_oci_no_nvidia_devices_or_hooks": true,
+  "actual_scope_gone": true,
+  "actual_resources": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=128m,mode=1777"
+    }
+  },
+  "public_files": {
+    "controller-final.json": {
+      "bytes": 1159,
+      "sha256": "1b75f8433408b62705db4c9f7e5c3302e46ff3237e648f0666bf8177cf5ce7f4"
+    },
+    "prepared.json": {
+      "bytes": 3687,
+      "sha256": "2ddf088a1e5ccdc31f65015d07dfc11502dffe3e687fb36ed2065ce5ed941823"
+    },
+    "inspect-created.json": {
+      "bytes": 16615,
+      "sha256": "0738233c2dc65d60761cdc25e4fa04297f9b6cf35d22b4d877f5613f4ab38a35"
+    },
+    "inspect-exited.json": {
+      "bytes": 17191,
+      "sha256": "421212a850578949100567d2392f3e7e0200d14d3dbdec0b267c944b6febdf26"
+    },
+    "guard-final.json": {
+      "bytes": 630,
+      "sha256": "a4905fb76c689b8b9731e7cc690e3eb379bcd307840454b6dc3f98858a9944e1"
+    },
+    "ARMED.json": {
+      "bytes": 311,
+      "sha256": "3c6bb4c0f72898b472ed428b587b7ce85cb79ea4f47e18c6dea50f43816b6b4c"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "ee72510daa004f246a4ff9dc1cbd414978b228efea5778fdbcaf6b16193a5e67"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "c474f4c56df69beb23bcec8d966d38d2b19e9cdcc794a4f8dea359afc2c2152c"
+    },
+    "logs.json": {
+      "bytes": 885,
+      "sha256": "54fb28d6e20c3a074dd97b857559c559a265e046059b969bba50043bf17d3dc8"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    }
+  },
+  "limitations": [
+    "Actual real Torch CPU four cases pass: empty keys, persistent buffer, same-Parameter alias and old snapshot release/nonpersistent buffer.",
+    "FakeStore in-process clone/archive and CUDA-to-CPU fixture only; no real SDK Store bytes or GPU restore.",
+    "Marlin/MLA nonregistered runtime auxiliary initialization is a separate unvalidated gap.",
+    "No new gold or historical failure reset."
+  ],
+  "recorded_epoch": 1793823409.1344674
+}

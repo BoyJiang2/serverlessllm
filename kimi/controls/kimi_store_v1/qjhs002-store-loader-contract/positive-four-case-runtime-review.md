@@ -1,0 +1,13 @@
+# Independent positive loader CPU runtime review (2026-11-05)
+
+Verdict: CPU_FOUR_LOADER_STATE_ROUNDTRIPS_NORMAL_EXIT_RELEASE_PASS_NOT_STORE_GPU. Four desired regression tests physically passed with actual Torch CPU tensors; no native SDK Store or GPU restoration is established.
+
+Validated receipt659c558dfe80563362bfa1b36995e925d29b04979cd4a1941d7f9bed3dec2c0a; CID595f28034eb66cd514f7514b862a41b82e84c87b10de226782763793b6a99bc0; source89ad61dd6b855367e76a592f05cba59765a16e85; historical runtime patch7197686c011c3c30d468ba9c497c6f047ce64b4d73ee56e1055e5f6bf1f6a577/testbd7a48c6a8c20db13d42b2b185c70f73b8a48dc533a9f2c4f12d2c6261a848bd; pre-run evidence109f046eb63491474ae69ac1e17109aa359079d7. Subsequent source work does not change these frozen run identities or invalidate historical artifact hashes.
+
+Independently verified all10 public file byte counts/SHA256. Rawlogs discovery has exactlythe4namedcases with no discoveryerrors; resulttests_run4 and zeroerrors/failures/skips/expectedFailures/unexpectedSuccesses; exactpositive marker occurs once. Cases cover empty int32 g_idx, persistent scale value/storage, originalParameter/module alias identity/storage/customattribute, oldsnapshot weakref release beforeStore load plus nonpersistentbuffer preservation. This is now actual positive CPU evidence separate from preserved old3-error baseline.
+
+Actual create inspect exactCID and2ROsource mounts/resourceprofile verified: runc/noNetwork/read-onlyrootfs/CPU4/memory8GiB/PID512/SHM64MiB/tmp128MiB. NoNVIDIAdevices/hooks is frozen controller's hashchecked root-private OCI attestation; no rawOCI downloaded here. Containerexited0/noOOM, controller/guard loadednativeunits actual0 andMainPID0. Controller120.342620s/nativeactivation-to-exit120.373847s fits220, guardquiet60.003360 with no failures/ABORT. Scope and pinnedruntimeidentity disappearance independently metadata-rechecked using cgroup path and /proc startticks, without workload/GPU query. Kernelafter returned0/noentries without universal-event claim.
+
+FixtureStore is in-process clone/archive and CUDAoperations mapped toCPU, so no real SDK archive bytes, zero-byte mixedtensor IPC, physicalGPUownership/peak or fullmodelrestore proof. Nonregistered Marlin workspace/MLA runtime auxiliaries remain separate gaps; fourstate regressions do not validate them. No fullStoreconversion/native service or newgold claimed. Historical failures/previousfixedreviews remain intact.
+
+Reviewer performed no Torch import/container/model/GPU/Store execution, Git, weightsread or source edits. Only this small server-side review and living review note were written.
