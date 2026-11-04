@@ -331,3 +331,9 @@ active仅新增并stage三个任务文件：`sllm_store/tests/guard_cuda_micro.p
 source a54102a4559ab4ecbf510ea9df30f66519b0ff00（parent b1f14fe）仅提交guard938、test887、实际executed driver504三文件。先capture/stage504后通知root，本轮不覆盖后续CPU2的RUN/guardSHA修改；guard日志修复5offline PASS+独立source-scope PASS不等于新kernel实测。direct GitHub push成功，source及证据旧pending b1/ac6均已公开并核SHA；server source tracking以CAS e4da→a541，此前pending历史原收据保留，此处覆盖其当前发布状态。
 
 新root唯一，glog/用户AGENTS不stage，无新容器或probe；GPUstop/GLM35/5/goal不变。
+
+## CPU2正式守护机制验证通过（2026-11-04）
+
+qjhs002-cpu2-guard-pass保留10个小证据含完整17542B guard-events及fresh booking；raw OCI0600仅远端保护不下载。source870a25ef22dd8fb80f1cea4cab0a5c34b0e47a42（parenta541）只改实际driver208b的RUN/guardSHA两个常量，AST归一化完全相同，GitHub/source tracking已核。
+
+终态KERNEL_CLEANUP_RELEASE_PASS，failures空；scopekill GO25.0168160、runc KILL28.0187818早于native40，quiet60.020760858；root确认driver返回prompt、guard正常Code1/Status0/success后专属unit已stop。CPU1保持FAILED_RETAINED/event_log_cap，不覆盖。仅CPU守护机制通过，不等于CUDA/GPU准入或原故障完整根因；GPUstop/GLM35/5/goal保持，本轮不新运行。
