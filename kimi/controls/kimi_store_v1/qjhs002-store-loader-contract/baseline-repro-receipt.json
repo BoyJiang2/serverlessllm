@@ -1,0 +1,139 @@
+{
+  "status": "CPU_BASELINE_EXPECTED_CONTRACT_FAILURES_REPRODUCED_RELEASE_PASS_NOT_MODEL_NOT_STORE",
+  "run_id": "kimi-store-loader-contract-cpu-baseline-20261105-once",
+  "cid": "3385160ebdf1c4611710b85c0dc75b09f9280a301f5ecf3be257ca8fc7c760ae",
+  "source_commit": "9f24371d5f5ff335633a61d357ac2a7e9a533a86",
+  "patch_sha256": "45c2455ecfdfd12b562cfb04b472966dee7d43029d7128ddced9d75b9ee53795",
+  "fixture_sha256": "978df22ecaed7f3f81491c2061374a3b0a6dd775241fa9cfcb6b594cc95182fd",
+  "evidence_before_run": "70eba6185c569bc6a13d214783518bb3b80bbfb3",
+  "actual_controller_elapsed": 120.27452907897532,
+  "guard_quiet_seconds": 60.02187510795193,
+  "native_units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "364250281680",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "364129972896"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "364250159561",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "364130045487"
+    }
+  },
+  "exit_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-04T19:55:56.68941592Z",
+    "FinishedAt": "2026-11-04T19:55:58.444035567Z"
+  },
+  "expected_errors": {
+    "event": "LOADER_CONTRACT_BASELINE_ERRORS",
+    "tests_run": 3,
+    "errors": 3,
+    "failures": 0,
+    "captured": [
+      {
+        "test_method": "test_marlin_empty_g_idx_round_trip",
+        "exception_type": "builtins.KeyError",
+        "args": [
+          "w13_weight_g_idx"
+        ],
+        "traceback": "Traceback (most recent call last):\n  File \"/usr/lib/python3.12/unittest/case.py\", line 58, in testPartExecutor\n    yield\n  File \"/usr/lib/python3.12/unittest/case.py\", line 634, in run\n    self._callTestMethod(testMethod)\n  File \"/usr/lib/python3.12/unittest/case.py\", line 589, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 84, in test_marlin_empty_g_idx_round_trip\n    result, archive = self.round_trip(saved, restored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 71, in round_trip\n    result = cls.__new__(cls).load_model(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<official-sllm-loader>\", line 121, in load_model\nKeyError: 'w13_weight_g_idx'\n"
+      },
+      {
+        "test_method": "test_persistent_attention_scale_round_trip",
+        "exception_type": "builtins.ValueError",
+        "args": [
+          "Missing keys ('_k_scale',) in loaded state!"
+        ],
+        "traceback": "Traceback (most recent call last):\n  File \"/usr/lib/python3.12/unittest/case.py\", line 58, in testPartExecutor\n    yield\n  File \"/usr/lib/python3.12/unittest/case.py\", line 634, in run\n    self._callTestMethod(testMethod)\n  File \"/usr/lib/python3.12/unittest/case.py\", line 589, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 94, in test_persistent_attention_scale_round_trip\n    result, archive = self.round_trip(saved, restored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 71, in round_trip\n    result = cls.__new__(cls).load_model(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<official-sllm-loader>\", line 125, in load_model\nValueError: Missing keys ('_k_scale',) in loaded state!\n"
+      },
+      {
+        "test_method": "test_same_parameter_module_alias_round_trip",
+        "exception_type": "builtins.ValueError",
+        "args": [
+          "Missing keys ('mla_attn.fused_qkv_a_proj.weight',) in loaded state!"
+        ],
+        "traceback": "Traceback (most recent call last):\n  File \"/usr/lib/python3.12/unittest/case.py\", line 58, in testPartExecutor\n    yield\n  File \"/usr/lib/python3.12/unittest/case.py\", line 634, in run\n    self._callTestMethod(testMethod)\n  File \"/usr/lib/python3.12/unittest/case.py\", line 589, in _callTestMethod\n    if method() is not None:\n       ^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 110, in test_same_parameter_module_alias_round_trip\n    result, archive = self.round_trip(saved, restored)\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/sllm_store/tests/python/test_vllm_loader_state.py\", line 71, in round_trip\n    result = cls.__new__(cls).load_model(\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<official-sllm-loader>\", line 125, in load_model\nValueError: Missing keys ('mla_attn.fused_qkv_a_proj.weight',) in loaded state!\n"
+      }
+    ]
+  },
+  "actual_oci_no_nvidia_devices_or_hooks": true,
+  "actual_scope_gone": true,
+  "actual_resources": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=128m,mode=1777"
+    }
+  },
+  "public_files": {
+    "controller-final.json": {
+      "bytes": 1172,
+      "sha256": "d3bf8f2f74d93b168fb9a187d828ba1a4d3eb0b86e0093b2a6b93a179eb0b5c6"
+    },
+    "prepared.json": {
+      "bytes": 3896,
+      "sha256": "b9623fdb62630a312beef389cbf947ed89fb685415755eeb9c38dcf1a0e8fe98"
+    },
+    "inspect-created.json": {
+      "bytes": 17032,
+      "sha256": "fce8d81688f3bc02b3083d4f3b078793ca64ee9e8361d296cb6340a57fb40734"
+    },
+    "inspect-exited.json": {
+      "bytes": 17608,
+      "sha256": "78b5a700dbf0c21868e12906341d7a8178a9d825053ab761c7e4cc6d32d70a75"
+    },
+    "guard-final.json": {
+      "bytes": 630,
+      "sha256": "306cd935536aff8f704408baded6c37cd871cfc7605c5c98f625b3cd294d642a"
+    },
+    "ARMED.json": {
+      "bytes": 311,
+      "sha256": "bb5dce15a28b24702200556d0b8f0d9a80a13811aacc8de4f2c6f27256e99fd7"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "179f81a75c84505ed2dff016036570e8eedc405b2d529f2c3881a5233e4c66b7"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "47e91d9b6e46ea95f837ee56074e8414393ae326d301d6287f7bbd4a2524fc60"
+    },
+    "logs.json": {
+      "bytes": 3521,
+      "sha256": "346a8398397c74e09e451ea29805fd81024c31f6003efb974e231ee51b1027de"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    }
+  },
+  "limitations": [
+    "Exactly three desired regression errors were reproduced; this is not unit-test green or fixed loader proof.",
+    "Real Torch CPU tensors/state_dict/alias/storage; Store mocked in-process and CUDA operations mapped to CPU. No GPU/actual Store/model weights loaded.",
+    "No changed historical SF gold or failed attempts."
+  ],
+  "recorded_epoch": 1793822380.8266957
+}
