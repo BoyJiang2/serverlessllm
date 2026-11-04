@@ -435,3 +435,5 @@ qjhs002-revised-s4a-ready保留独审cb169终稿及实际CPU24项PASS/newBASEabs
 新nonce/core/pins之外预算/全部success判据不变，原失败保留。新GPUtrial approval仍PENDING_USER_ANSWER，无newBASE/container/start，资源窗口授权不重置消耗过的一次额度。本轮只源码/证据发布准备，无runtime/新环境或goalcomplete。
 
 修正版source47bd发布补充：另获root授权一次有界重推已成功，GitHubSHA核47bd、server tracking Ada→47bd CAS成功。身份gate=FIXED_REVIEWED_DUAL_COPY_SHA_SATISFIED，GitHub发布与runtime技术身份分开，不另造用户gate；此前失败历史保留。用户新一次修正版批准及freshwindow/resource/guard门槛仍独立且尚待批准，本轮未运行。
+
+事实表snapshot说明：CURRENT-S1-S3-AND-PATCH-SCOPE旧主体绑定5d快照8生产；当前47bd包含Ada官方server.py最小shutdown修复，为第9生产文件，不以旧表8项冒称当前。身份gate独审最终827a093附录另存，用户新trial批准仍待答复。
