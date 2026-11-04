@@ -427,3 +427,9 @@ qjhs002-server-shutdown-source-cpu保留旧负例exit1/新6hostCPU PASS、source
 qjhs002-empty-grpc-cpu-pass保存独审e6ee183终稿、15raw小文件及spec/admission/stopunit。actual old/new serve AST在同真实image CPU对照：old -2/new0，各SIGINT1次、main task cancelling1，imageCPU6回归PASS；仅emptygrpc机制，无Torch/SDK/Store/GPU。容器exit0/Restart0/noOOM，guardexit0无失败quiet60.025s，exactruntime身份gone/scopegone、GPU0/noProc，postcheck137.03s<180。root停两专属units，fresh nativeSSH inactive/dead/MainPID0；确切已停CPUcontainer删除且inspect不存在。
 
 rawOCI仅remote root0600不下载。source tested Ada已公开，但controller/manifest有另一prepare工作中，不stage/覆盖/提交它们、不称worktreeclean。旧S4a wholeFAILED/server-2仍原样、未重试，不由本CPU机制PASS推断Store真实退出/GPU通过；用户未批准GPU重试。本轮仅证据归档，无新计算，goal/历史/AGENTS/glog保持。
+
+## Revised S4a source准备，用户新trial批准待定（2026-11-04）
+
+qjhs002-revised-s4a-ready保留独审cb169终稿及实际CPU24项PASS/newBASEabsent/oldfailedBASEretained；source47bd2ced31ec0e6e0ea2394047e31e46d86d5351（parentAda）仅controller660da/pins346bb两文件。launch_source_commit已填确切47bd非None；一次directGitHub443失败，publicationpending，servertracking仍Ada，不称已公开。
+
+新nonce/core/pins之外预算/全部success判据不变，原失败保留。新GPUtrial approval仍PENDING_USER_ANSWER，无newBASE/container/start，资源窗口授权不重置消耗过的一次额度。本轮只源码/证据发布准备，无runtime/新环境或goalcomplete。
