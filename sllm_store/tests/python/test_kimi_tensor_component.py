@@ -8,6 +8,7 @@ No test/service is started by importing this file. Evidence/archive are retained
 """
 import argparse
 import gc
+import os
 import hashlib
 import json
 import pathlib
@@ -110,6 +111,52 @@ def read_existing_archive(args):
     return state, {"stage": "EXISTING_ARCHIVE_VALIDATED", "archive_bytes": 8261632,
                    "payload_bytes": 8257544, "raw_sha256": GOLD_RAW_SHA,
                    "tensor_index": index, "total_archive_bytes": 8261992}
+
+
+
+# Metadata from the successful full-SF run, not additional checkpoint values.
+EMPTY_METADATA_SOURCE_SHA = "2f1ed4b7610f651c8538320b30d6f8a17de8aa3a7b4ef171b7638e00dd1a212b"
+EMPTY_NAMES = tuple("language_model.model.layers.1.mlp.experts." + suffix for suffix in (
+    "w13_weight_g_idx", "w2_weight_g_idx", "w13_g_idx_sort_indices", "w2_g_idx_sort_indices"))
+
+
+def save_mixed_empty_archive(args, state, evidence):
+    relative = pathlib.Path(args.mixed_empty_archive)
+    require(not relative.is_absolute() and relative.parts
+            and all(part not in (".", "..") for part in relative.parts),
+            "mixed archive must be a new relative path")
+    destination = args.storage / relative
+    require(not destination.exists() and not destination.is_symlink(), "mixed archive already exists")
+    require(all(not path.is_symlink() for path in destination.parents), "mixed archive symlink parent")
+    reference = args.storage / args.archive
+    source_paths = [reference / name for name in GOLD_FILE_SHA] + [args.receipt]
+    before = {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in source_paths}
+    for name in EMPTY_NAMES:
+        state[name] = torch.empty_strided((384, 0), (1, 1), dtype=torch.int32)
+        require(state[name].untyped_storage().nbytes() == 0, "empty metadata has payload storage")
+    save_dict(state, str(destination))
+    files = {path.name: path for path in destination.iterdir()}
+    require(set(files) == set(GOLD_FILE_SHA)
+            and all(path.is_file() and not path.is_symlink() for path in files.values()),
+            "mixed archive files differ")
+    require(sum(path.stat().st_size for path in files.values()) <= LIMIT, "mixed archive exceeds 16MiB")
+    index = json.loads(files["tensor_index.json"].read_text())
+    require(set(index) == set(GOLD_INDEX) | set(EMPTY_NAMES), "mixed archive must retain exactly seven keys")
+    require(all(index[name] == value for name, value in GOLD_INDEX.items()), "original three index entries changed")
+    for name in EMPTY_NAMES:
+        offset, size, shape, stride, dtype = index[name]
+        require(type(offset) is int and 0 <= offset <= 8261632 and size == 0
+                and shape == [384, 0] and stride == [1, 1] and dtype == "torch.int32",
+                "empty index metadata differs: " + name)
+    require(hashlib.sha256(files["tensor.data_0"].read_bytes()).hexdigest()
+            == GOLD_FILE_SHA["tensor.data_0"], "mixed archive changed original raw data")
+    args.archive = args.mixed_empty_archive
+    evidence.update(stage="MIXED_EMPTY_SAVED", tensor_index=index,
+                    empty_metadata_source_sha256=EMPTY_METADATA_SOURCE_SHA,
+                    empty_names=list(EMPTY_NAMES), source_file_sha256=before,
+                    archive_bytes=files["tensor.data_0"].stat().st_size,
+                    total_archive_bytes=sum(path.stat().st_size for path in files.values()))
+    return source_paths
 
 
 def save_component(args):
@@ -257,6 +304,7 @@ def main():
     parser.add_argument("--storage", type=pathlib.Path, required=True)
     parser.add_argument("--archive", required=True,
                         help="New relative archive name under --storage")
+    parser.add_argument("--mixed-empty-archive", help="Opt in: new mixed archive from immutable three-tensor gold")
     parser.add_argument("--save-only", action="store_true")
     parser.add_argument("--existing-archive", action="store_true")
     parser.add_argument("--receipt", type=pathlib.Path)
@@ -276,14 +324,24 @@ def main():
         require(args.checkpoint is not None and args.component is not None,
                 "save requires checkpoint and component")
         state, evidence = save_component(args)
+    source_paths = []
+    if args.mixed_empty_archive:
+        require(args.existing_archive and not args.save_only, "mixed mode requires existing gold and readback")
+        source_paths = save_mixed_empty_archive(args, state, evidence)
     archive_bytes = evidence["archive_bytes"]
     names = list(GOLD_INDEX)
     if not args.save_only:
         require(torch.cuda.is_available() and torch.cuda.device_count() == 1,
                 "official load_dict requires exactly one approved visible GPU")
+        if args.mixed_empty_archive:
+            expected_uuid = os.environ["CUDA_VISIBLE_DEVICES"]
+            actual_uuid = str(torch.cuda.get_device_properties(0).uuid)
+            if not actual_uuid.startswith("GPU-"): actual_uuid = "GPU-" + actual_uuid
+            require(actual_uuid == expected_uuid, "mixed component physical GPU UUID differs")
+            evidence["physical_gpu_uuid"] = actual_uuid
         client = SllmStoreClient("127.0.0.1:8073")
         restored = {}
-        actual = None
+        actual = empty_alias = None
         load_attempted = False
         try:
             require(client.get_server_config()
@@ -310,13 +368,14 @@ def main():
                 require(raw_bytes(actual_cpu) == raw_bytes(expected),
                         "restored raw bits mismatch: " + name)
                 digest = hashlib.sha256(raw_bytes(actual_cpu)).hexdigest()
-                require(digest == GOLD_RAW_SHA[name], "restored gold hash mismatch: " + name)
+                require(digest == (GOLD_RAW_SHA[name] if name in GOLD_RAW_SHA else hashlib.sha256(b"").hexdigest()), "restored gold hash mismatch: " + name)
                 evidence["restored_raw_sha256"][name] = digest
                 require(torch.equal(actual_cpu, expected),
                         "restored numeric mismatch: " + name)
                 del actual, actual_cpu
             # Keep only the packed alias: all tensors share one native allocation.
             actual = restored[names[0]]
+            empty_alias = restored[EMPTY_NAMES[0]] if args.mixed_empty_archive else None
             restored.clear()
             gc.collect()
             torch.cuda.synchronize()
@@ -328,6 +387,17 @@ def main():
             actual = None
             gc.collect()
             torch.cuda.synchronize()
+            if args.mixed_empty_archive:
+                free_empty, _ = torch.cuda.mem_get_info(0)
+                require(empty_alias.numel() == 0 and empty_alias.dtype == torch.int32
+                        and list(empty_alias.shape) == [384, 0] and list(empty_alias.stride()) == [1, 1],
+                        "final empty alias metadata changed")
+                require(free_before - free_empty >= evidence["payload_bytes"],
+                        "empty alias did not retain native allocation")
+                evidence["driver_free_empty_alias_held"] = free_empty
+                empty_alias = None
+                gc.collect()
+                torch.cuda.synchronize()
             free_after, _ = torch.cuda.mem_get_info(0)
             evidence["driver_free_bytes"] = {"before_load": free_before,
                 "last_alias_held": free_alias, "last_alias_dropped": free_after,
@@ -336,14 +406,20 @@ def main():
                   flush=True)
             require(free_after - free_alias >= evidence["payload_bytes"],
                     "driver does not show final alias allocation release")
-            evidence["stage"] = "OFFICIAL_COMPONENT_ROUNDTRIP"
+            if args.mixed_empty_archive:
+                require(free_after - evidence["driver_free_empty_alias_held"] >= evidence["payload_bytes"],
+                        "dropping final empty alias did not release allocation")
+                require({str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in source_paths}
+                        == evidence["source_file_sha256"], "immutable gold source changed")
+            evidence["stage"] = ("OFFICIAL_MIXED_EMPTY_COMPONENT_ROUNDTRIP" if args.mixed_empty_archive
+                                 else "OFFICIAL_COMPONENT_ROUNDTRIP")
         finally:
             primary = sys.exc_info()[1]
             if primary is not None:
                 wait_server_failure_barrier(args, primary)
             cleanup_errors = []
             try:
-                actual = None
+                actual = empty_alias = None
                 restored.clear()
                 gc.collect()
                 torch.cuda.synchronize()

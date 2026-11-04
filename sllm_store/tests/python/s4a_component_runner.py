@@ -104,12 +104,17 @@ def main():
     parser.add_argument("--evidence", type=pathlib.Path, required=True)
     parser.add_argument("--go-file", type=pathlib.Path, required=True)
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--mixed-empty-archive")
     args = parser.parse_args()
     assert all(path.is_absolute() for path in (args.storage, args.receipt, args.evidence))
-    assert args.go_file == args.evidence.parent / "component-go.json", "unexpected GO metadata path"
+    expected_go = pathlib.Path("/control/component-go.json") if args.mixed_empty_archive else args.evidence.parent / "component-go.json"
+    assert args.go_file == expected_go, "unexpected GO metadata path"
     assert all(not path.is_symlink() for path in (args.go_file, *args.go_file.parents))
     info = args.go_file.stat()
     assert stat.S_ISREG(info.st_mode) and stat.S_IMODE(info.st_mode) == 0o644 and info.st_size <= 1024
+    if args.mixed_empty_archive:
+        assert info.st_uid == 0 and args.go_file.parent.stat().st_uid == 0
+        assert stat.S_IMODE(args.go_file.parent.stat().st_mode) == 0o755
     go = json.loads(args.go_file.read_text())
     assert set(go) == {"monotonic", "run_id"} and go["run_id"] == args.run_id
     go_monotonic = float(go["monotonic"])
@@ -156,6 +161,8 @@ def main():
                    "--existing-archive", "--failure-barrier-fd", str(child_channel.fileno()),
                    "--server-pid", str(server_identity[0]),
                    "--server-startticks", str(server_identity[1])]
+        if args.mixed_empty_archive:
+            command += ["--mixed-empty-archive", args.mixed_empty_archive]
         try:
             client = subprocess.Popen(command, env=env, pass_fds=(child_channel.fileno(),),
                                       stdout=client_log, stderr=subprocess.STDOUT)
@@ -172,7 +179,8 @@ def main():
         # EOF alone is not success; require the component's final roundtrip receipt.
         records = [json.loads(line) for line in (args.evidence / "client.log").read_text().splitlines()
                    if line.startswith("{")]
-        assert records[-1]["stage"] == "OFFICIAL_COMPONENT_ROUNDTRIP", "roundtrip receipt absent"
+        expected_stage = "OFFICIAL_MIXED_EMPTY_COMPONENT_ROUNDTRIP" if args.mixed_empty_archive else "OFFICIAL_COMPONENT_ROUNDTRIP"
+        assert records[-1]["stage"] == expected_stage, "roundtrip receipt absent"
         result["stage"] = "server_stop"
         result["server_stop_kind"] = "SIGINT_REQUESTED"
         assert graceful_server_stop(server, server_identity, stop_end), "server did not exit zero after SIGINT"
