@@ -1,0 +1,22 @@
+{
+  "base": "official 9f50241; task-only overlays",
+  "files": {
+    "benchmark_utils.py": "7c2fa5d678ed64e2608ed84a64f748efb04453c22c84bc0af62bf612648e1791",
+    "device_map_utils_compat.py": "f3da2c648601eaddf39066566c895efaa61a35fbf5cdd87ec482683289136605",
+    "download_models.py": "de06f3fabc33cc028871466c0fee8c64dbb212de57250aa261d04395dd180c55",
+    "generate_report.py": "e72e3a3366f235505414717a6dbe40724afee1aa85ef477fcfc27af424dba353",
+    "run-benchmark.sh": "5959c8258481c3a9ee7ba6e409c3b02bcae794ab9d9e0ef264c243973ed9a155",
+    "run-experiment.sh": "7a88c4c36ab49939894d8e1e5551ccafffee0f0965c37925b3b2ef6b84db38bd",
+    "sllm-store": "1910b511f07a3e3d0fcd1ade302eae76d9774e2d77499a69527ebdffd515eba7",
+    "test_loading.py": "367eca30fcaba51aa556a00e93782b0ca6b290f74540cf547e0a15293e120f4f"
+  },
+  "changes": [
+    "restore saved generation_config in SLLM timed loader",
+    "require actual generation config equals original SafeTensors baseline before generation",
+    "same prompt and maximum50 tokens",
+    "same fixed random replica order for both backends",
+    "paired sampling seeds varying by measurement index",
+    "generation timing synchronizes CUDA on both backends",
+    "record input/output token IDs and config; original loading timer remains"
+  ]
+}

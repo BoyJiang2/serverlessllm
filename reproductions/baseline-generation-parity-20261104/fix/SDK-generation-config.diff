@@ -1,0 +1,46 @@
+--- official/sllm_store/transformers.py
++++ task/sllm_store/transformers.py
+@@ -52,7 +52,7 @@
+     quantize,
+ )
+ from torch import nn
+-from transformers import AutoConfig
++from transformers import AutoConfig, GenerationConfig
+ import importlib
+ from peft import (
+     PeftModel,
+@@ -147,18 +147,8 @@
+     fully_parallel: bool = False,
+     hf_model_class: str = "AutoModelForCausalLM",
+ ):
+-    if fully_parallel:
+-        return fully_parallel_load(
+-            model_path=model_path,
+-            hf_model_class=hf_model_class,
+-            device_map=device_map,
+-            torch_dtype=torch_dtype,
+-            quantization_config=quantization_config,
+-            storage_path=storage_path,
+-        )
+-    # if fully_parallel is disabled, we still try to parallelize the model
+-    # initialization and data loading in the best effort
+-    return best_effort_load(
++    load_fn = fully_parallel_load if fully_parallel else best_effort_load
++    model = load_fn(
+         model_path=model_path,
+         hf_model_class=hf_model_class,
+         device_map=device_map,
+@@ -166,6 +156,13 @@
+         quantization_config=quantization_config,
+         storage_path=storage_path,
+     )
++    root = storage_path or os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
++    checkpoint = os.path.join(root, model_path)
++    if model.can_generate() and os.path.isfile(os.path.join(checkpoint, "generation_config.json")):
++        model.generation_config = GenerationConfig.from_pretrained(
++            checkpoint, local_files_only=True
++        )
++    return model
+ 
+ 
+ def fully_parallel_load(

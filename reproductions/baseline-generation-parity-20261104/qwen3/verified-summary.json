@@ -1,0 +1,49 @@
+{
+  "status": "BASELINE_PARITY_VERIFIED",
+  "measured_runs": 12,
+  "warmup_runs": 1,
+  "parameter_hash_equal": true,
+  "generation_config_equal": true,
+  "paired_seed_token_ids_equal": true,
+  "distinct_sequences_across_three_seeds": 3,
+  "results": {
+    "cold": {
+      "safetensors": {
+        "n": 3,
+        "median_load_seconds": 9.22295987099642,
+        "median_generation_seconds": 1.3095861740293913,
+        "generated_tokens": [
+          50
+        ]
+      },
+      "serverless": {
+        "n": 3,
+        "median_load_seconds": 2.653447289019823,
+        "median_generation_seconds": 1.360781705006957,
+        "generated_tokens": [
+          50
+        ]
+      },
+      "load_speedup": 3.4758406202986447
+    },
+    "warm": {
+      "safetensors": {
+        "n": 3,
+        "median_load_seconds": 2.760967297013849,
+        "median_generation_seconds": 1.3572363780112937,
+        "generated_tokens": [
+          50
+        ]
+      },
+      "serverless": {
+        "n": 3,
+        "median_load_seconds": 0.532066854997538,
+        "median_generation_seconds": 1.3172201149864122,
+        "generated_tokens": [
+          50
+        ]
+      },
+      "load_speedup": 5.189136047624362
+    }
+  }
+}
