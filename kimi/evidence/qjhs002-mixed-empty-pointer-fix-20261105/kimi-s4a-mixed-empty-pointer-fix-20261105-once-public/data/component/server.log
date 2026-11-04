@@ -1,0 +1,34 @@
+INFO 11-04 21:45:54 server.py:40] StorageServicer: storage_path=/store, mem_pool_size=67108864, num_thread=1, chunk_size=1048576, registration_required=True
+WARNING: Logging before InitGoogleLogging() is written to STDERR
+I20261104 21:45:54.539438   469 checkpoint_store.cpp:41] Number of GPUs: 1
+I20261104 21:45:54.539477   469 checkpoint_store.cpp:43] I/O threads: 1, chunk size: 1MB
+I20261104 21:45:54.539482   469 checkpoint_store.cpp:45] Storage path: "/store"
+I20261104 21:45:54.782881   469 checkpoint_store.cpp:71] GPU 0 UUID: 736d7f37-f647-b82d-ab11-693753ac6822
+I20261104 21:45:54.782963   469 pinned_memory_pool.cpp:29] Creating PinnedMemoryPool with 64 buffers of 1048576 bytes
+I20261104 21:45:54.813190   469 checkpoint_store.cpp:83] Memory pool created with 0GB
+INFO 11-04 21:45:54 server.py:231] Starting gRPC server on 127.0.0.1:8073
+I20261104 21:45:57.667497   469 model.cpp:53] Tensor file "/store/mixed-empty/tensor.data_1" does not exist
+I20261104 21:45:57.667550   469 checkpoint_store.cpp:106] Model mixed-empty is registered
+INFO 11-04 21:45:57 server.py:114] LoadModel: success mixed-empty with target 1
+I20261104 21:45:57.860633   512 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 8 buffers free buffers 56 total buffers 64
+I20261104 21:45:57.860683   512 model.cpp:120] Loading model mixed-empty size 8261632 to host
+I20261104 21:45:57.860688   512 model.cpp:134] Loading model mixed-empty to host with 1 threads, 8 chunks, 1048576 chunk size, 8 chunks per thread
+I20261104 21:45:57.861091   513 model.cpp:155] Thread 0 starting from partition 0 offset 0
+INFO 11-04 21:45:57 server.py:114] LoadModel: success mixed-empty with target 2
+I20261104 21:45:57.862676   514 checkpoint_store.cpp:209] Loading model mixed-empty
+I20261104 21:45:57.863011   514 model.cpp:269] Creating replica ccc1ceac-39b5-463d-9692-c3890c08fad6
+I20261104 21:45:57.863020   514 model.cpp:273] Creating queue for device 0
+I20261104 21:45:57.863025   514 model.cpp:279] Created replica ccc1ceac-39b5-463d-9692-c3890c08fad6
+I20261104 21:45:57.863072   514 model.cpp:290] Dispatcher started for model mixed-empty
+I20261104 21:45:57.863391   514 model.cpp:343] Waiting for model mixed-empty num tasks 1 state 3
+I20261104 21:45:57.870662   512 model.cpp:250] Finished loading model mixed-empty from disk
+I20261104 21:45:57.870780   516 model.cpp:336] Finished loading tensor from memory to device 0
+INFO 11-04 21:45:57 server.py:137] Confirm model mixed-empty replica ccc1ceac-39b5-463d-9692-c3890c08fad6 success
+I20261104 21:45:58.072283   469 pinned_memory.cpp:23] Deallocating 8 memory chunks
+I20261104 21:45:58.072320   469 pinned_memory_pool.cpp:98] Deallocated 8 buffers
+INFO 11-04 21:45:58 server.py:168] UnloadModel: success mixed-empty
+INFO 11-04 21:45:58 server.py:238] Shutting down gRPC server
+I20261104 21:45:58.554442   469 checkpoint_store.cpp:279] Unloading model mixed-empty
+W20261104 21:45:58.554497   469 model.cpp:475] Model mixed-empty is not allocated
+E20261104 21:45:58.554502   469 checkpoint_store.cpp:282] Failed to free memory for model mixed-empty
+I20261104 21:45:58.554510   469 checkpoint_store.cpp:286] All models unloaded from memory
