@@ -1,3 +1,11 @@
+## 11/5 修正版CPU tokenizer/processor实测通过；按用户自主授权继续，完整SF仍先过门槛
+
+获准628e9d5e方案的一次容器b01d7ee2728acf98f9122e70fdcbe84827be290f2db63d756f57cb608608d923完成真实canonical tokenizer的12组金标、23命名ID、256保留槽位、163840词表及pickle/真实subfolder检查，原生图像processor及Kimi processor构造均通过。控制器/守护实际退出0，native总耗时120.372991秒，guard quiet60.001411秒，scope和自有身份清理完整，无GPU设备/钩子/权重暴露。仅显式缓存目录与旧失败不同，镜像、UID、金标、验证体及20个只读挂载不变。11份原始公开证据及全部输入SHA独审通过，固定c1950b5c；小收据见 qjhs002-processor-cpu-cache-pass/receipt.json。旧UID导入失败保持，CPU构造通过不代表模型/mediaforward/转换/Store通过。
+
+只读元数据核对64分片和索引：208550张量、声明payload595148192736字节，逻辑JSON元数据请求共53392910字节，类型BF16/I32/F32；header范围/形状字节及完整索引映射一致。不显式请求/解码tensor payload，不排除Python/系统预读，不是完整文件内容哈希或完整模型验收。官方量化/TP/视觉复制、重排临时所有权及Store恢复条件冲突源码证据身份见同目录sf-source-readiness.json，完整原件仅服务器保存。Store成功路径直接共享GPU存储已有能力，初始化仍非meta；若实际Marlin空g_idx被保存过滤，恢复构造器key期待存在条件冲突，须结合真实SF状态再决定最小修改，不新增codec/loader/专家切分。
+
+用户最新明确“后面你自动执行 我要去睡觉了 自行决断”，后续在既有goal内自主决定执行，不逐项等待确认；预约/资源/完整预算/独审/守护和失败停止规则不降低，仍先停止查因再审阅最小修正，不盲目重试。完整SF运行准备发现两个具体缺口：正常完成守护仍等待deadline，以及官方profiler退出先重置peak导致加载/重排峰值丢失。仅在现有guard和官方GPUModelRunner对应补丁补充，回归/干跑/独审及新守护CPU校准通过后才执行完整SF TP8；当前尚未启动完整模型或Store。源码正在原适配目录修改，不能把旧HEAD一致当作干净状态；goal继续active。
+
 ## 11/5 一次CPU验证在导入缓存路径失败并释放；最小环境修正已独审，未重跑
 
 获准24e534方案的一次容器51b45db354109c61b038c662667bbaf221cb00df2e67cb53fa203fd75caf7398在4.276秒记录失败。vLLM env_override导入TorchDynamo时，默认TorchInductor缓存路径调用getpass.getuser，实际OCI无用户名环境变量、UID2147在镜像账号数据库不存在，抛KeyError。未到tokenizer金标，processor子进程未执行，不能判断Kimi兼容性失败。容器退出1、无OOM/重启；控制器/守护实际退出1，guard保留FAILED_RETAINED/abort_requested，同时完成quiet60.018682秒；正式总耗时64.545633秒。11份原始公开证据SHA及清理独审通过，scope及自有身份消失，无NVIDIA设备或钩子，20项输入哈希保持。既有GPU小探针PASS不变，旧CPU失败不改判；元数据核验在正式运行后，不追加或补造释放观察。
