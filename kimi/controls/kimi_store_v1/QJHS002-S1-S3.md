@@ -337,3 +337,9 @@ source a54102a4559ab4ecbf510ea9df30f66519b0ff00（parent b1f14fe）仅提交guar
 qjhs002-cpu2-guard-pass保留10个小证据含完整17542B guard-events及fresh booking；raw OCI0600仅远端保护不下载。source870a25ef22dd8fb80f1cea4cab0a5c34b0e47a42（parenta541）只改实际driver208b的RUN/guardSHA两个常量，AST归一化完全相同，GitHub/source tracking已核。
 
 终态KERNEL_CLEANUP_RELEASE_PASS，failures空；scopekill GO25.0168160、runc KILL28.0187818早于native40，quiet60.020760858；root确认driver返回prompt、guard正常Code1/Status0/success后专属unit已stop。CPU1保持FAILED_RETAINED/event_log_cap，不覆盖。仅CPU守护机制通过，不等于CUDA/GPU准入或原故障完整根因；GPUstop/GLM35/5/goal保持，本轮不新运行。
+
+## GPU512 source-only安全边界发布（2026-11-04）
+
+qjhs002-gpu512-source-only保留独审、计划、stopped profile及源码。active仅新增controller一文件，source b8682b2a9ce4857564a088a3efcf4290cfab7476，SHA7e8e2f04e22eaa0af78418b0d14e3fca78ae08d0509466d007a03796f482f2a7，GitHub/source tracking核验。唯一CID9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9已create未start，实际Pids512，其余旧profile字段及ENVhash逐项相同。
+
+独审SOURCE_REVIEW_PASS_CONDITIONAL_ON_FRESH_ADMISSION；未有CUDA PASS，source同步不等于GPU准入。root须安全边界停止Git后fresh booking/resource/full budget及ARM；本轮不start、不改controller，历史失败/GLM/goal不变。

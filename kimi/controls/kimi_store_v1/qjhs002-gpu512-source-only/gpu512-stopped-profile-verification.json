@@ -1,0 +1,79 @@
+{
+  "cid": "9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9",
+  "profile_matches_historical_except_pids_and_declared_name_mount_probe_changes": true,
+  "actual_pids_limit": 512,
+  "same_env_hash": "5110807f1eabbc017e87f149864bde608357f93042b8b88ff8a5a85e40a312ff",
+  "selected_actual": {
+    "Id": "9fe3e1129a2d700c3acb9d36d37945d937906e4d680ff8b2a0766941fba6a1e9",
+    "Image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "State": {
+      "Status": "created",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "0001-01-01T00:00:00Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "HostConfig": {
+      "Runtime": "nvidia",
+      "DeviceRequests": [
+        {
+          "Driver": "",
+          "Count": 0,
+          "DeviceIDs": [
+            "GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+          ],
+          "Capabilities": [
+            [
+              "gpu"
+            ]
+          ],
+          "Options": {}
+        }
+      ],
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "NetworkMode": "none",
+      "NanoCpus": 1000000000,
+      "Memory": 2147483648,
+      "MemorySwap": 2147483648,
+      "Ulimits": [
+        {
+          "Name": "core",
+          "Hard": 0,
+          "Soft": 0
+        }
+      ],
+      "ReadonlyRootfs": true,
+      "Tmpfs": {
+        "/tmp": "rw,exec,size=64m"
+      },
+      "CapAdd": null,
+      "CapDrop": null,
+      "SecurityOpt": null
+    },
+    "Config": {
+      "User": "2147:2147",
+      "Image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+      "Entrypoint": [
+        "/usr/bin/timeout"
+      ],
+      "Cmd": [
+        "--signal=TERM",
+        "--kill-after=5",
+        "45",
+        "/usr/bin/python3",
+        "-I",
+        "/probe.py"
+      ]
+    },
+    "env_sha256": "5110807f1eabbc017e87f149864bde608357f93042b8b88ff8a5a85e40a312ff"
+  }
+}
