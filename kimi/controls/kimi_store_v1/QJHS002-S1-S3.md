@@ -401,3 +401,9 @@ qjhs002-s4a-cooperative-barrier保留独审source-only PASS及active20tests PASS
 qjhs002-s4a-graceful-success保留独审附录及active23CPU PASS；source8c2696513dced00f9d403acda37c089dc1895b1e（parentc0a）仅runner b5e8与barriertest68c3两文件，GitHub/servertracking核验。success path核owned PID/startticks后SIGINT，利用官方asyncio serve cancel/stop5，原GO21内wait必须rc0+verifiedreap；结果记录server/clientcodes、stopkind、forced。非0/timeout整体FAIL走原server-firstTERM/KILL，failure path不改；forced=True仅表示进入fallback，不伪称必发KILL。
 
 这是source-only/23mock CPU准备，不是实际signal/Store/GPU/runtime通过，不承诺stop延迟。此前SIGTERM/KILL不能称正常exit0的歧义已修；其他barrier局限/下一controller准入仍保持。无新Store/GPU、旧root/历史/AGENTS/goal不动。
+
+## 最终S4a controller公开，窗口不足未运行（2026-11-04）
+
+qjhs002-s4a-final-controller-no-run归档final controllerc74a5c/manifest69cf4d、独审终稿、exact24CPU核验及最少字段windowrecheck。source5d197a9b91658ebe2e84de338173b07e21c1bc7e已公开（含旧b939历史）；manifest.source_commit8c是组件input源码基线，actual launchHEAD将是5d，不混淆。24exact含3ELF/2archive/gold/guard938，manifest自身不pin避免循环。旧96f133/4ce122 JSON语义同仅格式化字节差异保留审计；最终统一69cf。proto real ROOT/sllm_store/proto/storage.proto及packagedsymlink未改，旧ROOT/proto猜测导致只读pin生成失败已纠正。归档plan旧1d6fc中间SHA由本节finalc74及终审覆盖，不作为可运行版本。
+
+最终预算检查仅加强gate：独立service<=fullstart32发起、actual native140/stop3/ActiveEnter+143<=fullstart178在Dockerstart前核，guard25/65+60/full180未改。11:58原预约至12不足180，NO_RUN_INSUFFICIENT_WINDOW；新12–19同用户autoscaling预约不自动授权Kimi，待用户回答前不运行。source发布/技术条件支持不等于runtime授权，无Store/GPU/newcontainer或goalcomplete，历史gold/fail/AGENTS保护。
