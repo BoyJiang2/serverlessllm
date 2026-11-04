@@ -1,0 +1,46 @@
+{
+  "status": "V4_ENV_ONLY_SEMANTIC_DIFF_AND_ACTUAL_SOURCE_OFFLINE_REGRESSION_PASS_NOT_RUNTIME",
+  "failed_source_cid": "6ee7d4b1196258478ffb5c2800659a7f0f2c6ec0029611b406cc642e9091b12a",
+  "source_commit_unchanged": "c99e55cdd9828fc05475d066211fda85d4a3a474",
+  "frozen_spec_sha256": "db5bcc26c78db0caf0338fa3e6154bcf093b701b084cc1f2ad88b589d930e2e0",
+  "frozen_v3_command_sha256": "bc1569e69a0047ccbf1eba49dc4ed5ce1794360ed3a07b395508cb1bc4781063",
+  "v4_spec_sha256": "c2dec6bc2e5014b3c73a17dea7d9a5b2b823e3693db5b196e35e20638858506c",
+  "v4_command_sha256": "c7d4bfebe205bb1a370d5d94068a93cdfa7b49a1d518e1d3a7452c83a4f84b8d",
+  "semantic_delta_only": [
+    "env.USER=boyjiang",
+    "fresh run_id/outerunit",
+    "new spec path/SHA reference",
+    "status metadata"
+  ],
+  "root_inline_exact_byte_equal_to_v3": true,
+  "all_client_CLI_resource_budget_guard_overlays_unchanged": true,
+  "syntax_compile": true,
+  "new_once_base_absent": true,
+  "actual_sources": {
+    "cache": {
+      "path": "/usr/local/lib/python3.12/dist-packages/torch/_inductor/runtime/cache_dir_utils.py",
+      "sha256": "54c32dfbbf15547a4013dd250d1edc3412dcf69c44de6139a45ba11a7ca1d55d",
+      "bytes": 1444
+    },
+    "getpass": {
+      "path": "/usr/lib/python3.12/getpass.py",
+      "sha256": "e74fd445337ff503223dd8aa4bdd7d04917067d00c796a10bedb7a1381a4960a",
+      "bytes": 5990
+    },
+    "codecache": {
+      "path": "/usr/local/lib/python3.12/dist-packages/torch/_inductor/codecache.py",
+      "sha256": "23eb23b775e065d7f45154108a6ed71d8f054f7dbb3fd844404321f96b8a16fb",
+      "bytes": 174487
+    }
+  },
+  "actual_codecache_direct_header_assignment_line": 2669,
+  "old_HOME_and_TORCHINDUCTOR_CACHE_DIR_still_uid2147_KeyError": true,
+  "USER_boyjiang_fixes_actual_getpass_default_cache_and_header_assignment": true,
+  "expected_header_dir": "/tmp/torchinductor_boyjiang/precompiled_headers",
+  "limitations": [
+    "PureAST-extracted actual getuser/default_cache_dir/_HEADER_DIR assignment with mockedmissingUID pwd and/tmp directory selection; no Torch module import/cache creation",
+    "No Dockercreate/start/GPU/model/weights/Git/source modification; readonly stopped-container source reads only",
+    "USER is process environment naming for getpass; no passwd entry, UID, capabilities, image or serviceidentity changed",
+    "New whole-model run requires independent review/publication and fresh actual admission; previous failure retained"
+  ]
+}
