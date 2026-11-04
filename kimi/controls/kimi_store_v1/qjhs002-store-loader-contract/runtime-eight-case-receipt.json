@@ -1,0 +1,164 @@
+{
+  "status": "CPU_EIGHT_RESTORE_STATE_AND_RUNTIME_NORMAL_EXIT_RELEASE_PASS_NOT_STORE_GPU",
+  "run_id": "kimi-store-restore-runtime-cpu-20261105-once",
+  "cid": "81e2b222f1e2c0e42e099121ef6ae7fb12decafd7d7b28aa4ae84688715880a6",
+  "source_commit": "8827f0a4559fd8bd0f84a9c5c370c95c681c3d38",
+  "patch_sha256": "2d8f70314c009112a14f137615e5a58325ba1fb938ce9030e2f46d3cd78aa995",
+  "state_fixture_sha256": "9676dec964fe33b37d67004096d660fc8b03eca9d158b0d8fe04f4f8451ca84e",
+  "runtime_fixture_sha256": "d7c6a4144b3f59f77a5b3fc2ea8bcaefdfaf9e638cd0b4a489bbe3b18fa39fee",
+  "evidence_before_run": "dd752e3e4244e3b13bba1b9edfc87e5ccf1a5540",
+  "actual_controller_elapsed": 120.27226865396369,
+  "guard_quiet_seconds": 60.01527521299431,
+  "native_units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "366388607779",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "366268301599"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "366388512138",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "366268373762"
+    }
+  },
+  "exit_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-04T20:31:35.030097893Z",
+    "FinishedAt": "2026-11-04T20:31:36.825290552Z"
+  },
+  "test_result": {
+    "event": "CPU_RESTORE_EIGHT_TEST_RESULT",
+    "test_names": [
+      "test_marlin_empty_g_idx_round_trip",
+      "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+      "test_persistent_attention_scale_round_trip",
+      "test_runtime_hook_sees_restored_parameter_once_without_repack",
+      "test_same_parameter_module_alias_round_trip",
+      "test_marlin_runtime_helper_only_uses_existing_workspace_utility",
+      "test_restore_initializes_runtime_then_native_attention_without_repack",
+      "test_standard_quant_then_attention_then_torchao_order"
+    ],
+    "tests_run": 8,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "expected_failures": 0,
+    "unexpected_successes": 0,
+    "scope": "five real Torch CPU/FakeStore in-process clone fixtures plus three AST mocks; no native SDK Store/GPU/model or math-equivalence proof"
+  },
+  "events": [
+    {
+      "event": "CPU_RESTORE_EIGHT_TEST_DISCOVERY",
+      "test_names": [
+        "test_marlin_empty_g_idx_round_trip",
+        "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+        "test_persistent_attention_scale_round_trip",
+        "test_runtime_hook_sees_restored_parameter_once_without_repack",
+        "test_same_parameter_module_alias_round_trip",
+        "test_marlin_runtime_helper_only_uses_existing_workspace_utility",
+        "test_restore_initializes_runtime_then_native_attention_without_repack",
+        "test_standard_quant_then_attention_then_torchao_order"
+      ],
+      "discovery_errors": []
+    },
+    {
+      "event": "CPU_RESTORE_EIGHT_TEST_RESULT",
+      "test_names": [
+        "test_marlin_empty_g_idx_round_trip",
+        "test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved",
+        "test_persistent_attention_scale_round_trip",
+        "test_runtime_hook_sees_restored_parameter_once_without_repack",
+        "test_same_parameter_module_alias_round_trip",
+        "test_marlin_runtime_helper_only_uses_existing_workspace_utility",
+        "test_restore_initializes_runtime_then_native_attention_without_repack",
+        "test_standard_quant_then_attention_then_torchao_order"
+      ],
+      "tests_run": 8,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0,
+      "expected_failures": 0,
+      "unexpected_successes": 0,
+      "scope": "five real Torch CPU/FakeStore in-process clone fixtures plus three AST mocks; no native SDK Store/GPU/model or math-equivalence proof"
+    }
+  ],
+  "actual_oci_no_nvidia_devices_or_hooks": true,
+  "actual_scope_gone": true,
+  "actual_resources": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=128m,mode=1777"
+    }
+  },
+  "public_files": {
+    "controller-final.json": {
+      "bytes": 1163,
+      "sha256": "fae7b6555d780621d58f3a40cbb1570397761772b2f1cc99172821506ba02d10"
+    },
+    "prepared.json": {
+      "bytes": 4280,
+      "sha256": "c6ee786ccc07fdafe62af26e705fb20af6dd887e9a73b35ce40888cfc2cf20f6"
+    },
+    "inspect-created.json": {
+      "bytes": 17893,
+      "sha256": "c7fff782147ad4a0054bba83f8f5e8d4251722cb477f68e3fd91d0fa20c074e5"
+    },
+    "inspect-exited.json": {
+      "bytes": 18470,
+      "sha256": "930c51f67db93182618d53b873e20799a28ea077ad5512ea4197210ced67277e"
+    },
+    "guard-final.json": {
+      "bytes": 630,
+      "sha256": "ed48e06a8a044c3fb7e22b4c5f1282995f927cf63ebcd5ab1ea829192a7907a1"
+    },
+    "ARMED.json": {
+      "bytes": 311,
+      "sha256": "cdf98a14fe5cea3d8b16350bc12ade067c97f96ec96b1141c7a9e6046c0407a7"
+    },
+    "GO.json": {
+      "bytes": 150,
+      "sha256": "8355111613e402a7dbe8a9d328b63f773ff8d3f9315740d15054e1db97386e47"
+    },
+    "GO-ACK.json": {
+      "bytes": 108,
+      "sha256": "58a14c4b0e9df4d2c832e3f849c88df274b3ce10e2137ca80df3ef8f98c37241"
+    },
+    "logs.json": {
+      "bytes": 1482,
+      "sha256": "6f0cd514c1efb1ba5467e7fc9846359b81c9707146489fc6c690e88ac26fa740"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    }
+  },
+  "limitations": [
+    "Five real Torch CPU FakeStore clone/archive cases and three AST mocks passed; CUDA mapped to CPU.",
+    "Actual native SDK mixed-empty/Store, restored GPU inference, weights peak and math equivalence still not proven.",
+    "Original SF gold/five SF failures and earlier CPU evidence remain unchanged."
+  ],
+  "recorded_epoch": 1793824579.8705902
+}
