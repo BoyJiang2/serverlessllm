@@ -1,0 +1,78 @@
+{
+  "Id": "1aef5fb114350f7792eaa4628535bc07490e891dd5707127b8ffce3f9bb74f84",
+  "State": {
+    "Status": "created",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "0001-01-01T00:00:00Z",
+    "FinishedAt": "0001-01-01T00:00:00Z"
+  },
+  "PidsLimit": 512,
+  "Image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "HostConfig": {
+    "Runtime": "nvidia",
+    "DeviceRequests": [
+      {
+        "Driver": "",
+        "Count": 0,
+        "DeviceIDs": [
+          "GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+        ],
+        "Capabilities": [
+          [
+            "gpu"
+          ]
+        ],
+        "Options": {}
+      }
+    ],
+    "RestartPolicy": {
+      "Name": "no",
+      "MaximumRetryCount": 0
+    },
+    "NetworkMode": "none",
+    "NanoCpus": 1000000000,
+    "Memory": 2147483648,
+    "MemorySwap": 2147483648,
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Hard": 0,
+        "Soft": 0
+      }
+    ],
+    "ReadonlyRootfs": true,
+    "Tmpfs": {
+      "/tmp": "rw,exec,size=64m"
+    },
+    "CapAdd": null,
+    "CapDrop": null,
+    "SecurityOpt": null
+  },
+  "Config": {
+    "User": "2147:2147",
+    "Image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "Entrypoint": [
+      "/usr/bin/timeout"
+    ],
+    "Cmd": [
+      "--signal=TERM",
+      "--kill-after=5",
+      "45",
+      "/usr/bin/python3",
+      "-I",
+      "/probe.py"
+    ]
+  },
+  "gpu_env": {
+    "CUDA_VISIBLE_DEVICES": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "NVIDIA_VISIBLE_DEVICES": "GPU-736d7f37-f647-b82d-ab11-693753ac6822"
+  },
+  "other_env_sha256": "bdfa8b989793fe1b6fdf76773dc1f317a582d6d4c4af9098aaf5fa56e719f466"
+}

@@ -359,3 +359,9 @@ qjhs002-visible-env-proposal保存3文件候选/patch/hash、独审PASS_NO_EXECU
 安装Torch源码确认空CUDA_VISIBLE_DEVICES解析为空可见设备；不等于证明物理device injection/accessibility，第二OCI只有安全摘要限制不消除。原9fe3一次额度已执行FAILED_RETAINED，下次create/start/GPU须用户另行批准。本轮没有新create/start或运行controller，源码同步不授新执行权限。原失败/原始root OCI不改不下载，模型/Store/GLM/goal保持。
 
 visible-env路径说明：candidate布局 `tests/test_prepare_cuda_micro.py` 的真实active source路径为 `sllm_store/tests/python/test_prepare_cuda_micro.py`；另外两项真实路径为 `sllm_store/tests/prepare_cuda_micro.py`、`sllm_store/tests/gpu512_once_controller.py`。候选布局不是部署测试路径。
+
+## 用户批准唯一修正版微探针 PASS（2026-11-04）
+
+qjhs002-visible-gpu-micro-pass保存controller终态GPU512_MICRO_NORMAL_EXIT_RELEASE_PASS及实际PYTHON_ENTERED/CUDA_MICRO_COMPUTE_PASS；容器normal exit0/Pid0/Restart0，H20-3e，payload/allocator peak1MiB、reserved2MiB。guard exit0无failures/quiet60.022521385，observer exit0/quiet60.591078338/采样peak21MiB，elapsed85.794381s。exact shim1812212/runc1812224 startticks身份均absent、scope removed；两unit MainPID0/Code1Status0/success捕获后root stop专属units。
+
+成功配置是PID512加两visibility ENV同UUID override，不宣称单PID唯一根因或最小阈值。首raw OCI19bb仅remote0600保留，guard selected可能多版本重写，首raw不当最终完整OCI；kernelqueryrc1/records0不排除PID因素。原128fail、9fe3maskfail、CPU1eventcap均原样。仅1MiB CUDA微探针及释放通过，不证明模型/Store/TP8/S4a读回；sourcecc3/controller6597/guard938不变，无空sourcecommit，goal不complete。

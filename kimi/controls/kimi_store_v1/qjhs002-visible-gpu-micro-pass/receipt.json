@@ -1,0 +1,94 @@
+{
+  "status": "GPU512_MICRO_NORMAL_EXIT_RELEASE_PASS",
+  "source_commit": "cc3fd227227c45f6934aba98ca35408294ba1a59",
+  "controller_sha256": "6597e091d333e14c3a76f7e5365907cd371ddfc09733e6abe813f06985adb655",
+  "guard_sha256": "9387374428ae285f9740a4fe6f638aec2ba781384a5a9fdc01b47f6b2249ea3d",
+  "controller": {
+    "status": "GPU512_MICRO_NORMAL_EXIT_RELEASE_PASS",
+    "elapsed": 85.7943813779857,
+    "guard": {
+      "status": "KERNEL_CLEANUP_RELEASE_PASS",
+      "cid": "1aef5fb114350f7792eaa4628535bc07490e891dd5707127b8ffce3f9bb74f84",
+      "failures": [],
+      "quiet_seconds": 60.022521384991705,
+      "max_cycle_seconds": 0.2250553629710339,
+      "raw_oci_sha256": "19bb28ff461efed0c25d376a1aacc6b39f2bdfb36aaee37ec451148ac6bfbf89",
+      "oci_seen": true,
+      "scope_seen": true,
+      "abort_monotonic": null,
+      "pinned_identities": [
+        {
+          "pid": 1812212,
+          "startticks": 30170200,
+          "exe": "/usr/bin/containerd-shim-runc-v2",
+          "cgroup": "0::/system.slice/containerd.service"
+        },
+        {
+          "pid": 1812224,
+          "startticks": 30170201,
+          "exe": "/usr/bin/runc",
+          "cgroup": "0::/system.slice/containerd.service"
+        }
+      ]
+    }
+  },
+  "normal_exit": {
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-04T02:35:28.523683131Z",
+      "FinishedAt": "2026-11-04T02:35:31.98098183Z"
+    },
+    "messages": [
+      {
+        "event": "PYTHON_ENTERED"
+      },
+      {
+        "event": "CUDA_MICRO_COMPUTE_PASS",
+        "torch": "2.10.0+cu129",
+        "cuda": "12.9",
+        "device": "NVIDIA H20-3e",
+        "payload_bytes": 1048576,
+        "allocator_peak_bytes": 1048576,
+        "allocator_reserved_peak_bytes": 2097152,
+        "scope": "one MiB CUDA arithmetic and CPU copy only; normal exit expected"
+      }
+    ]
+  },
+  "observer": {
+    "gpu_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+    "quiet_seconds": 60.591078337980434,
+    "peak_mib": 21
+  },
+  "exact_postcheck": {
+    "identities": [
+      {
+        "pid": 1812212,
+        "same_identity_present": false
+      },
+      {
+        "pid": 1812224,
+        "same_identity_present": false
+      }
+    ],
+    "scope_removed": true
+  },
+  "successful_configuration": "PID512 plus both NVIDIA_VISIBLE_DEVICES and CUDA_VISIBLE_DEVICES explicit same GPU UUID",
+  "causation_limit": "Not a proof that PID limit alone was root cause or512 is minimum threshold",
+  "raw_OCI_limit": "First raw19bb retained remote0600; selected OCI may have later rewritten versions, not final complete raw proof",
+  "kernel_query_limit": "rc1/records0 does not exclude PID factors",
+  "scope": "One MiB CUDA arithmetic and CPU copy, normal exit and >=60s release only; no model/Store/TP8/S4a readback",
+  "historical_failures_retained": [
+    "original128startup",
+    "9fe3maskfailure",
+    "CPU1event_log_cap"
+  ],
+  "goal_complete": false
+}
