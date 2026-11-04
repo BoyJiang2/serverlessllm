@@ -158,11 +158,18 @@ def snapshot():
     state = {}
     for path in (scope, scope.parent, cgroot):
         row = {}
-        for name in ('cgroup.events','cgroup.procs','pids.max','pids.current','pids.events','memory.events'):
+        names = ('cgroup.events','pids.max','pids.current','pids.events','memory.events')
+        if path == scope: names += ('cgroup.procs',)
+        for name in names:
             try: row[name] = read(path / name).decode().strip()
             except FileNotFoundError: row[name] = None
         state[str(path)] = row
-    if last.get('cgroups') != state: last['cgroups'] = state; emit('cgroups', selected=state)
+    signature = {'scope': state[str(scope)], 'ancestor_limits': {
+        path: {name: row[name] for name in ('pids.max','pids.events')}
+        for path, row in state.items() if path != str(scope)}}
+    if last.get('cgroup_signature') != signature or time.monotonic() - last.get('cgroup_log_at', float('-inf')) >= 5:
+        last.update(cgroup_signature=signature, cgroup_log_at=time.monotonic())
+        emit('cgroups', selected=state)
     events = state[str(scope)]['cgroup.events']
     return events is None or 'populated 0' in events.splitlines()
 

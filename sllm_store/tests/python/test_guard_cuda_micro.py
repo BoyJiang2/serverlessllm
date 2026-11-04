@@ -68,6 +68,27 @@ class GuardCudaMicroTest(unittest.TestCase):
             self.ns["snapshot"]()
         self.assertEqual((self.ns["scope"] / "cgroup.kill").read_text(), "")
 
+    def test_ancestor_current_churn_is_bounded_but_limits_and_scope_changes_are_kept(self):
+        captured = []
+        self.ns["emit"] = lambda kind, **data: captured.append((kind, data))
+        self.ns["time"] = types.SimpleNamespace(monotonic=lambda: 100.0)
+        parent = self.ns["scope"].parent
+        (parent / "pids.events").write_text("max 0")
+        for value in range(200):
+            (parent / "pids.current").write_text(str(value))
+            self.ns["snapshot"]()
+        self.assertEqual(len([r for r in captured if r[0] == "cgroups"]), 1)
+        (parent / "pids.events").write_text("max 1")
+        self.ns["snapshot"]()
+        (self.ns["scope"] / "pids.current").write_text("2")
+        self.ns["snapshot"]()
+        groups = [r[1]["selected"] for r in captured if r[0] == "cgroups"]
+        self.assertEqual(len(groups), 3)
+        self.assertNotIn("cgroup.procs", groups[-1][str(parent)])
+        self.ns["time"] = types.SimpleNamespace(monotonic=lambda: 106.0)
+        self.ns["snapshot"]()
+        self.assertEqual(len([r for r in captured if r[0] == "cgroups"]), 4)
+
     def test_ack_directory_fsync_error_stays_in_cleanup_path(self):
         ack = next(n for n in MAIN.body if isinstance(n, ast.Try) and any(isinstance(x, ast.Constant) and x.value == "GO-ACK.json" for x in ast.walk(n)))
         self.ns.update(a=types.SimpleNamespace(cid="c" * 64), go_at=1.0, failures=set(), abort_at=None)
