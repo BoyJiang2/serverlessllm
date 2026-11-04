@@ -294,7 +294,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
  import threading
  import time
  from collections import defaultdict
-@@ -4744,67 +4745,156 @@
+@@ -4744,67 +4745,161 @@
  
          try:
              with DeviceMemoryProfiler() as m:
@@ -427,6 +427,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                    try:
 +                        if os.environ.get("SLLM_CAPTURE_LOAD_EVIDENCE") == "1":
 +                            import json
++                            import uuid
 +
 +                            capture_started = time.perf_counter()
 +                            torch.cuda.synchronize(self.device)
@@ -439,6 +440,9 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                            free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
 +                            memory.update(driver_free_bytes=free_bytes, driver_total_bytes=total_bytes)
 +                            captured_memory = memory
++                            device_uuid = "GPU-" + str(uuid.UUID(
++                                str(torch.cuda.get_device_properties(self.device).uuid).removeprefix("GPU-")
++                            ))
 +                            model = getattr(self, "model", None)
 +                            registered = []
 +                            storages = {}
@@ -479,6 +483,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                            logger.info("SLLM_LOAD_EVIDENCE %s", json.dumps({
 +                                "event": "SLLM_LOAD_EVIDENCE", "pid": os.getpid(),
 +                                "tp_rank": get_tp_group().rank_in_group, "device": str(self.device),
++                                "device_uuid": device_uuid,
 +                                "phase": "load_boundary_before_profiler_exit_reset",
 +                                "load_completed": load_error is None,
 +                                "load_error_type": None if load_error is None else type(load_error).__name__,
@@ -509,7 +514,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
              self.model_memory_usage = m.consumed_memory
          except torch.cuda.OutOfMemoryError as e:
              msg = (
-@@ -4989,6 +5079,20 @@
+@@ -4989,6 +5084,20 @@
                      "Following weights were not loaded from checkpoint: %s",
                      weights_not_loaded,
                  )

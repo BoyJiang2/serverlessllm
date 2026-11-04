@@ -143,6 +143,8 @@ class LoadEvidenceTest(unittest.TestCase):
             memory_reserved=lambda _: 128, max_memory_allocated=capture,
             max_memory_reserved=lambda _: state["reserved_peak"],
             mem_get_info=lambda _: (900, 1000),
+            get_device_properties=mock.Mock(return_value=types.SimpleNamespace(
+                uuid="GPU-736d7f37-f647-b82d-ab11-693753ac6822")),
         )
         logger = mock.Mock()
         instance = types.SimpleNamespace(device="cuda:0", load_config=object(),
@@ -184,6 +186,8 @@ class LoadEvidenceTest(unittest.TestCase):
         self.assertTrue(row["load_completed"])
         self.assertEqual(row["tp_rank"], 3)
         self.assertEqual(row["pid"], 123)
+        self.assertEqual(row["device_uuid"], "GPU-736d7f37-f647-b82d-ab11-693753ac6822")
+        namespace["torch"].cuda.get_device_properties.assert_called_once_with("cuda:0")
         self.assertEqual(row["empty_g_idx_keys"], ["weight_g_idx"])
         self.assertEqual(row["unique_registered_storage_bytes"], 96)
         self.assertEqual(row["registered_storages"][0]["names"], ["parameter:weight", "parameter:alias"])
@@ -193,6 +197,18 @@ class LoadEvidenceTest(unittest.TestCase):
         self.assertIn("nonregistered workspace", row["coverage"])
         self.assertNotIn("workspace", row["registered_tensors"][0])
         namespace["torch"].cuda.synchronize.assert_called_once_with("cuda:0")
+
+    def test_physical_uuid_normalizes_torch_metadata_without_rank_ordinal_assumption(self):
+        import json
+        for raw in ["736D7F37-F647-B82D-AB11-693753AC6822", "GPU-736d7f37-f647-b82d-ab11-693753ac6822"]:
+            with self.subTest(raw=raw):
+                namespace, _, _ = self.namespace()
+                namespace["torch"].cuda.get_device_properties.return_value.uuid = raw
+                exec(self.context(), namespace)
+                row = json.loads(namespace["logger"].info.call_args.args[1])
+                self.assertEqual(row["device_uuid"], "GPU-736d7f37-f647-b82d-ab11-693753ac6822")
+                self.assertEqual(row["tp_rank"], 3)
+                namespace["torch"].cuda.get_device_properties.assert_called_once_with("cuda:0")
 
     def test_model_failure_captures_peak_before_reset_and_preserves_identity(self):
         import json
