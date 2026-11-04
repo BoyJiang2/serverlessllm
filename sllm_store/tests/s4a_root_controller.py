@@ -1,5 +1,5 @@
 """S4a root integration draft; no execution authorization."""
-import argparse, hashlib, json, os, pathlib, re, subprocess, time
+import argparse, hashlib, json, math, os, pathlib, re, subprocess, time
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
@@ -11,16 +11,17 @@ DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
 def call(argv):
     return subprocess.check_output(argv, text=True, timeout=3)
 
-def save(name, row, mode=0o600):
-    path = BASE/name
+def save(name, row, mode=0o600, base=None):
+    base = BASE if base is None else base
+    path = base/name
     assert not path.exists()
-    temporary = BASE/(name+'.tmp')
+    temporary = base/(name+'.tmp')
     fd = os.open(temporary, os.O_WRONLY|os.O_CREAT|os.O_EXCL, mode)
     os.fchmod(fd, mode)
     with os.fdopen(fd, 'w') as stream:
         json.dump(row, stream); stream.flush(); os.fsync(stream.fileno())
     os.replace(temporary, path)
-    fd = os.open(BASE, os.O_DIRECTORY)
+    fd = os.open(base, os.O_DIRECTORY)
     try: os.fsync(fd)
     finally: os.close(fd)
 
@@ -59,27 +60,48 @@ def service(unit, argv, remain=False):
           '--property=StandardOutput=append:'+str(BASE/(unit+'.stdout')),
           '--property=StandardError=append:'+str(BASE/(unit+'.stderr')), *argv])
 
-def observer():
-    start = time.monotonic(); quiet = None; peak = 0
+def gpu_states(uuids):
+    assert len(uuids) in (1, 8) and len(set(uuids)) == len(uuids)
+    assert all(re.fullmatch(r'GPU-[0-9a-fA-F-]{36}', uuid) for uuid in uuids)
+    raw = call(['/usr/bin/nvidia-smi', '-q', '-x'])
+    rows = [row for row in ET.fromstring(raw).findall('gpu') if row.findtext('uuid') in uuids]
+    assert len(rows) == len(uuids) and {row.findtext('uuid') for row in rows} == set(uuids)
+    return {row.findtext('uuid'): {'used_mib': int(row.findtext('fb_memory_usage/used').split()[0]),
+            'processes': [p.findtext('pid') for p in row.findall('processes/process_info')]} for row in rows}
+
+
+def observer(evidence=None, uuids=None, seconds=135, limit_mib=2048):
+    base = BASE if evidence is None else pathlib.Path(evidence)
+    uuids = [UUID] if uuids is None else uuids
+    assert base.is_absolute() and base.is_dir() and not base.is_symlink()
+    assert math.isfinite(seconds) and seconds > 60 and limit_mib > 0
+    start = time.monotonic(); quiet = None; peaks = {uuid: 0 for uuid in uuids}
+    zero = {'used_mib': 0, 'processes': []}
     try:
-        assert gpu() == {'used_mib': 0, 'processes': []}
-        save('observer-ready.json', {'pid': os.getpid(), 'gpu_uuid': UUID})
-        with (BASE/'gpu-observer.jsonl').open('x') as stream:
-            while time.monotonic()-start < 135:
-                row = gpu(); peak = max(peak, row['used_mib'])
+        states = gpu_states(uuids)
+        assert all(row == zero for row in states.values())
+        identity = {'gpu_uuid': uuids[0]} if len(uuids) == 1 else {'gpu_uuids': uuids}
+        save('observer-ready.json', {'pid': os.getpid(), **identity}, base=base)
+        with (base/'gpu-observer.jsonl').open('x') as stream:
+            while time.monotonic()-start < seconds:
+                states = gpu_states(uuids)
+                for uuid, row in states.items():
+                    peaks[uuid] = max(peaks[uuid], row['used_mib'])
+                row = states[uuids[0]] if len(uuids) == 1 else {'gpus': states}
                 stream.write(json.dumps({'mono': time.monotonic(), **row})+'\n'); stream.flush()
-                assert row['used_mib'] <= 2048
-                if (BASE/'normal-exit.json').exists() or (BASE/'ABORT').exists():
-                    if row != {'used_mib': 0, 'processes': []}:
+                assert all(row['used_mib'] <= limit_mib for row in states.values())
+                if (base/'normal-exit.json').exists() or (base/'ABORT').exists():
+                    if any(row != zero for row in states.values()):
                         quiet = None; time.sleep(.5); continue
                     quiet = quiet or time.monotonic()
                     if time.monotonic()-quiet >= 60:
-                        save('observer-final.json', {'gpu_uuid': UUID, 'quiet_seconds': time.monotonic()-quiet, 'peak_mib': peak})
+                        peak = {'peak_mib': peaks[uuids[0]]} if len(uuids) == 1 else {'peak_mib_by_uuid': peaks}
+                        save('observer-final.json', {**identity, 'quiet_seconds': time.monotonic()-quiet, **peak}, base=base)
                         return
                 time.sleep(.5)
         raise TimeoutError('observer deadline')
     except BaseException:
-        (BASE/'ABORT').touch(exist_ok=True)
+        (base/'ABORT').touch(exist_ok=True)
         raise
 
 
@@ -261,8 +283,12 @@ if __name__ == '__main__':
     parser.add_argument('--create-only', action='store_true')
     parser.add_argument('--run-once', action='store_true')
     parser.add_argument('--booking-expiry-epoch', type=float)
+    parser.add_argument('--observer-evidence', type=pathlib.Path)
+    parser.add_argument('--observer-uuid', action='append')
+    parser.add_argument('--observer-seconds', type=float, default=135)
+    parser.add_argument('--observer-limit-mib', type=int, default=2048)
     args = parser.parse_args()
-    if args.observer: observer()
+    if args.observer: observer(args.observer_evidence, args.observer_uuid, args.observer_seconds, args.observer_limit_mib)
     elif args.create_only: prepare()
     elif args.run_once:
         assert args.booking_expiry_epoch is not None

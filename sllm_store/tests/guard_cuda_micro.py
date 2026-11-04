@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import math
 import os
 import pathlib
 import re
@@ -19,7 +20,8 @@ p.add_argument('--kill-after', type=float, default=3)
 p.add_argument('--overall', type=float, default=65, help='cleanup cutoff; release60 is additional')
 a = p.parse_args()
 assert os.geteuid() == 0 and re.fullmatch('[0-9a-f]{64}', a.cid)
-assert (a.deadline, a.kill_after, a.overall) == (25, 3, 65)
+assert all(math.isfinite(v) for v in (a.deadline, a.kill_after, a.overall))
+assert a.kill_after == 3 and 0 < a.deadline and a.deadline + 3 < a.overall <= a.deadline + 40
 base = a.evidence.resolve(strict=True)
 assert a.evidence.is_absolute() and not a.evidence.is_symlink() and base.is_dir()
 runc_root = pathlib.Path(a.runc_root).resolve()
@@ -189,7 +191,7 @@ def kill_scope():
 
 try:
     assert not scan() and not failures, 'CID already active or pre-ARM discovery failed'
-    armed = {'cid': a.cid, 'nonce': nonce, 'guard_pid': os.getpid(), 'guard_startticks': startticks(os.getpid()), 'armed_monotonic': armed_at}
+    armed = {'cid': a.cid, 'nonce': nonce, 'guard_pid': os.getpid(), 'guard_startticks': startticks(os.getpid()), 'armed_monotonic': armed_at, 'deadline_seconds': a.deadline, 'kill_after_seconds': a.kill_after, 'cleanup_seconds': a.overall, 'release_seconds': 60}
     atomic('ARMED.json', json.dumps(armed).encode())
     emit('ARMED', **armed)
     while go_at is None:
@@ -233,7 +235,7 @@ try:
                         except OSError as error:
                             failures.add('pidfd_signal'); emit('pidfd_error', error_type=type(error).__name__); continue
                         pin[flag] = True
-            if quiet is None and now >= go_at + a.overall: failures.add('cleanup_exceeded_GO65')
+            if quiet is None and now >= go_at + a.overall: failures.add(f'cleanup_exceeded_GO{a.overall:g}')
             if not live and empty:
                 quiet = quiet or now
                 if now - quiet >= 60: break

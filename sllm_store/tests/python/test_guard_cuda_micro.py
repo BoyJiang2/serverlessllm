@@ -110,5 +110,79 @@ class GuardCudaMicroTest(unittest.TestCase):
         self.assertIn("cleanup_exceeded_GO65", failures)
 
 
+class BudgetAndObserverTest(unittest.TestCase):
+    def test_budget_defaults_new_and_invalid(self):
+        import math
+        nodes = [n for n in TREE.body if isinstance(n, ast.Assert) and 'a.deadline' in ast.unparse(n)]
+        self.assertEqual(len(nodes), 2)
+        for deadline, kill, overall, valid in [(25,3,65,True),(60,3,100,True),
+                (float('nan'),3,100,False),(60,3,float('inf'),False),
+                (0,3,40,False),(60,2,100,False),(60,3,63,False),(60,3,101,False)]:
+            ns = dict(a=types.SimpleNamespace(deadline=deadline,kill_after=kill,overall=overall),math=math)
+            if valid: execute(nodes,ns)
+            else:
+                with self.assertRaises(AssertionError):execute(nodes,ns)
+
+    def observer_namespace(self, base):
+        import math
+        import re
+        import xml.etree.ElementTree as ET
+        tree = ast.parse((Path(__file__).resolve().parents[1]/'s4a_root_controller.py').read_text())
+        ns = dict(BASE=base,UUID='GPU-'+'0'*36,pathlib=__import__('pathlib'),math=math,
+                  re=re,ET=ET,os=os,json=json,time=time)
+        execute([n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in
+                 ('save','gpu_states','observer')],ns)
+        return ns
+
+    def test_missing_or_duplicate_gpu_is_rejected(self):
+        with tempfile.TemporaryDirectory() as d:
+            ns=self.observer_namespace(Path(d))
+            uuids=['GPU-'+str(i)*36 for i in range(8)]
+            ns['call']=lambda argv:'<nvidia_smi_log>'+''.join(
+                '<gpu><uuid>'+u+'</uuid><fb_memory_usage><used>0 MiB</used></fb_memory_usage></gpu>'
+                for u in uuids[:-1])+'</nvidia_smi_log>'
+            with self.assertRaises(AssertionError):ns['gpu_states'](uuids)
+            with self.assertRaises(AssertionError):ns['gpu_states']([uuids[0]]*8)
+
+    def test_eight_gpu_joint_quiet_and_peaks(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);(base/'normal-exit.json').touch()
+            ns=self.observer_namespace(base)
+            clock=types.SimpleNamespace(now=100.0)
+            ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
+                sleep=lambda seconds:setattr(clock,'now',clock.now+seconds))
+            uuids=['GPU-'+str(i)*36 for i in range(8)]
+            def query(argv):
+                return '<nvidia_smi_log>'+''.join('<gpu><uuid>'+u+
+                    '</uuid><fb_memory_usage><used>'+str(10 if i==7 and 110<=clock.now<120 else 0)+
+                    ' MiB</used></fb_memory_usage><processes/></gpu>' for i,u in enumerate(uuids))+'</nvidia_smi_log>'
+            ns['call']=query
+            ns['observer'](base,uuids,175,2048)
+            result=json.loads((base/'observer-final.json').read_text())
+            self.assertEqual(result['quiet_seconds'],60)
+            self.assertGreaterEqual(clock.now,180)
+            self.assertEqual(result['peak_mib_by_uuid'][uuids[7]],10)
+            self.assertEqual(len(result['peak_mib_by_uuid']),8)
+
+    def test_single_schema_and_card_limit_abort(self):
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);(base/'normal-exit.json').touch()
+            ns=self.observer_namespace(base);clock=types.SimpleNamespace(now=100.0)
+            ns['time']=types.SimpleNamespace(monotonic=lambda:clock.now,
+                sleep=lambda seconds:setattr(clock,'now',clock.now+seconds))
+            ns['call']=lambda argv:'<nvidia_smi_log><gpu><uuid>'+ns['UUID']+'</uuid><fb_memory_usage><used>0 MiB</used></fb_memory_usage><processes/></gpu></nvidia_smi_log>'
+            ns['observer']()
+            result=json.loads((base/'observer-final.json').read_text())
+            self.assertEqual(set(result),{'gpu_uuid','quiet_seconds','peak_mib'})
+        with tempfile.TemporaryDirectory() as d:
+            base=Path(d);ns=self.observer_namespace(base);calls=[]
+            def query(argv):
+                calls.append(1)
+                return '<nvidia_smi_log><gpu><uuid>'+ns['UUID']+'</uuid><fb_memory_usage><used>'+('0' if len(calls)==1 else '2049')+' MiB</used></fb_memory_usage></gpu></nvidia_smi_log>'
+            ns['call']=query
+            with self.assertRaises(AssertionError):ns['observer']()
+            self.assertTrue((base/'ABORT').exists())
+
+
 if __name__ == "__main__":
     unittest.main()
