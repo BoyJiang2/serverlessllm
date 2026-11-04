@@ -445,3 +445,7 @@ qjhs002-s4a-revised-narrow-pass仅保存小receipt、admission/preflight、units
 终态S4A_COMPONENT_ORDERED_STOP_RELEASE_PASS：controller85.864s，parent7.297s/client0/server0/SIGINT_GRACEFUL/forcedFalse，三tensor rawhash+metadata一致及lastalias driver释放证据；guardquiet60.025/observerquiet60.063，采样peak651MiB，3units实际exit0/PID0后stop，freshSSHinactive/dead，GPU0/noProc/exactidentitiesgone/scopegone。PIDcurrent采样最大129，limit曾629145→512，仅实际采样非精确peak/最小阈值因果证明。
 
 旧S4a FAILED/原128fail/9fe3maskfail/CPU1eventcap均保留。仅一个packed组件官方readback+成功路径ordered stop/release通过，不是全模型/转换/TP8或S5全面ownership完成；用户本次一次额度已完成，不启动更多运行，goal不complete。source47bd不变，无空sourcecommit。本轮依用户磁盘要求仅本地必要小证据，raw/code优先服务器。
+
+## 8rank micro/jointguard source-only安全边界
+
+source24bf5af6eab98e6429dbdf0fd898eac9364029d8（parent47bd）仅6tests/probe/guard任务文件，终审3c6a已核；hostCPU17PASS及outergate4mockPASS不证明kernel/GPU运行。未来220budget、guard60/3/100、8UUID共同60release及CPUfaultnative217+1自门槛已source准备；旧25默认未弱化、原S4apins冻结不重跑。build47bd manifest267ccd strictbefore0/1 after1/0 compile8仅server保留未部署。qjhs002-tp8-micro-source-only只本地最小receipt/remoteSHA引用，不拉raw/source/build。无runtime/新env/GLM/goal改动。
