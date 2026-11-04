@@ -1,0 +1,156 @@
+{
+  "status": "TP8_CUDA_NCCL_MICRO_NORMAL_EXIT_RELEASE_PASS",
+  "run_id": "kimi-tp8-cuda-nccl-micro-cdi2-20261104",
+  "cid": "7a206d127087d9c28755cc38e006157f7ade5fd236ba5c6dfb34e43928d2b646",
+  "source_commit": "3d362cdd1dd5d625d11a402e93f43b54129217b1",
+  "approved_command_sha256": "1b7b30aa2ed2f4bbf0f70db62315ae159b9953b7ed3ca71e5e318be6c7430abd",
+  "runtime_elapsed_seconds": 121.31432400003541,
+  "controller_recorded_elapsed_seconds": 121.2953572080005,
+  "all_units_actual_exit_zero": true,
+  "all_owned_identities_absent": true,
+  "scope_removed": true,
+  "container_exit_code": 0,
+  "container_oom_killed": false,
+  "restart_count": 0,
+  "all_eight_rank_tensor_gold_pass": true,
+  "nccl_init_seconds_by_rank": {
+    "1": 1.5352184450021014,
+    "0": 1.4996740890201181,
+    "2": 1.5460359450080432,
+    "7": 1.5491994009935297,
+    "6": 2.014460253994912,
+    "5": 1.5958964079618454,
+    "3": 1.5836718369973823,
+    "4": 1.556905512989033
+  },
+  "all_eight_ready_seconds_from_go": 12.438286656979471,
+  "all_eight_ready_seconds_from_first_python": 6.777368863986339,
+  "sampled_peak_mib_by_uuid": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 1093,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 1093,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 1093,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 1093,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 1093,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 1093,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 1093,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 1093
+  },
+  "allocator_peak_bytes_by_rank": {
+    "1": 1048576,
+    "0": 1048576,
+    "2": 1048576,
+    "7": 1048576,
+    "6": 1048576,
+    "5": 1048576,
+    "3": 1048576,
+    "4": 1048576
+  },
+  "monitor": {
+    "samples": 96,
+    "memory_samples": 96,
+    "gaps": 0,
+    "max_query_seconds": 1.7840166329988278,
+    "max_memory_interval_seconds": 2.044848070014268,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+  },
+  "gpu_quiet_seconds": 60.554615070985164,
+  "guard_quiet_seconds": 60.01363661995856,
+  "actual_oci_raw": {
+    "server_path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi2-20261104/oci.raw.json",
+    "sha256": "ce3bb818c3073480361d327f1575c9809f119a6af17d5d8f0f3962764469cfdb",
+    "mode": "0o600",
+    "configured_pid_limit": 4096,
+    "shm_mount": [
+      {
+        "destination": "/dev/shm",
+        "type": "tmpfs",
+        "source": "shm",
+        "options": [
+          "nosuid",
+          "noexec",
+          "nodev",
+          "mode=1777",
+          "size=8589934592"
+        ]
+      }
+    ]
+  },
+  "cgroup_pid_history_summary": {
+    "/sys/fs/cgroup/system.slice/docker-7a206d127087d9c28755cc38e006157f7ade5fd236ba5c6dfb34e43928d2b646.scope": {
+      "pids_max_observed": [
+        "4096",
+        "629145"
+      ],
+      "pids_current_sampled_peak": 75,
+      "pids_events_observed": [
+        "max 0"
+      ],
+      "samples": 79,
+      "available_samples": 57
+    },
+    "/sys/fs/cgroup/system.slice": {
+      "pids_max_observed": [
+        "max"
+      ],
+      "pids_current_sampled_peak": 3791,
+      "pids_events_observed": [
+        "max 0"
+      ],
+      "samples": 79,
+      "available_samples": 79
+    },
+    "/sys/fs/cgroup": {
+      "pids_max_observed": [],
+      "pids_current_sampled_peak": null,
+      "pids_events_observed": [],
+      "samples": 79,
+      "available_samples": 0
+    }
+  },
+  "kernel_evidence_summary": {
+    "kernel-before.json": {
+      "returncode": 0,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+      "cid_matching_lines": []
+    },
+    "kernel-after.json": {
+      "returncode": 0,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7",
+      "cid_matching_lines": []
+    }
+  },
+  "metadata_audit_outside_runtime_budget": true,
+  "extra_postruntime_gpu_query_or_release_probe_executed": false,
+  "runtime_gpu_zero_proof": "Pinned controller final gpu() assertion before actual successful native exit; no extra fabricated samples",
+  "server_public_evidence_directory": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-tp8-cuda-nccl-micro-cdi2-20261104-public",
+  "server_evidence_sha256": {
+    "prepared.json": "43df8722d6d055dbc6e7232001011b674ce90a63872ca686b25f4a8b1b4f2346",
+    "ARMED.json": "d7459bf6585a102495b3005f3d762431458fcd97d5ceb14400f771177b6df4e4",
+    "GO.json": "3b1a73f8bf02778b7b6b4eb5b941f455be6ef6e7b043951c2832edcf7fc9f3a1",
+    "GO-ACK.json": "2ab57f70aa80ae967108215f99446e389189755f23147b007827118f7afa1380",
+    "observer-ready.json": "dc6d18358084cb88f372732c4131e04926b562e6e38958157c364bf1de1a45f8",
+    "observer-final.json": "208ba29d1415354dc3fe1d3eaef4df260a8b728a7beb096e3cd2691959de43cd",
+    "guard-final.json": "13d8a148bc9ad0856af5a68b4daf04034a19006e520c646385bf04806dda94fb",
+    "rank-timing.json": "f6b7e6cb744ceb5e534351c0e2fa7d35788ec453954982337e4cf7f6cbc3d991",
+    "normal-exit.json": "dfec1f8b1a85bbabeb490943ac83811f39742562764c1dbbf4b6a78e23a8089e",
+    "controller-final.json": "a347c69be93d0e43c12013636dda9b093bed6397e8bceec6c4c4608ee170e144",
+    "docker-logs.json": "c83edb5e2cf406e792df4868a8ac03e53b83477ee6bc42103ff867bc22359559",
+    "postcheck.json": "74d0a7801e205b8de4ce14495b5e02b412af274998bd52f4ea74ba66ea2ab817",
+    "cgroup-history.jsonl": "0e712dc864e22cc5a0d051b1976d3fd8bea5710bf347bd65cbfb80b641e4e4e0",
+    "actual-oci-selected.json": "3977806210cf2010d0a12bdf9647b8f40042cb572972f0dcddf81a87639c5b9c",
+    "kernel-evidence-summary.json": "5e605dc0ac35d2f1661d0e85e47943535d341e9bede450f58684eaa9d38cf6c8"
+  },
+  "independent_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/tp8-cdi2-runtime-independent-review.md",
+    "sha256": "7e007e8390f0eb4df1c0cac97e18000c0801f358a5569355604b5e02caaf2a1b"
+  },
+  "limitations": [
+    "One MiB per rank CUDA/NCCL micro only; no model, Store, complete conversion, or TP8 model inference",
+    "All memory peaks are sampled lower bounds; zero query errors does not imply continuous coverage",
+    "Initial cgroup pids.max transient629145 then configured4096; root pids files unavailable; no minimum-threshold or historical failure causal claim",
+    "Optional extra postruntime GPU query refused by remaining-budget gate before execution; subsequent metadata-only validation does not extend original121.314s runtime or add release observations",
+    "Historical failures immutable; success supports this exact revised configuration only"
+  ],
+  "recorded_at_utc": "2026-11-04T15:23:38.703866+00:00"
+}
