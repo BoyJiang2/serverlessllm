@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "/reference/server-before.py", line 235, in serve
+    await server.wait_for_termination()
+  File "<string>", line 36, in wait_for_termination
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 185, in wait_for_termination
+    return await self._server.wait_for_termination(timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1095, in wait_for_termination
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "<string>", line 56, in main
+  File "/reference/server-before.py", line 238, in serve
+    await server.stop(5)
+  File "<string>", line 45, in stop
+  File "/usr/local/lib/python3.12/dist-packages/grpc/aio/_server.py", line 160, in stop
+    await self._server.shutdown(grace)
+  File "src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi", line 1077, in shutdown
+  File "/usr/lib/python3.12/asyncio/tasks.py", line 520, in wait_for
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<string>", line 63, in <module>
+  File "/usr/lib/python3.12/asyncio/runners.py", line 194, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt

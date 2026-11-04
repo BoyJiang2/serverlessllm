@@ -1,0 +1,278 @@
+{
+  "status": "EMPTY_GRPC_CPU_CONTRAST_AND_RELEASE_PASS",
+  "source_commit": "adaeff41b060227bcdd37b4dd1b0a7961523425e",
+  "scope": "One CPU-only empty grpc contrast of actual old/new serve AST; no Torch/SDK/Store/GPU/model/TP8",
+  "cid": "c3086c4f4b39c74df3aaeead198421cc39db8e9f66931e3e248156126f347728",
+  "old_returncode": -2,
+  "new_returncode": 0,
+  "signals_each": 1,
+  "main_task_cancelling_each": 1,
+  "image_cpu_regressions_passed": 6,
+  "contrast": {
+    "status": "EMPTY_GRPC_CPU_OLD_FAIL_NEW_PASS",
+    "results": {
+      "old": {
+        "returncode": -2,
+        "records": [
+          {
+            "stage": "LOG",
+            "mode": "old",
+            "message": "Starting gRPC server on 127.0.0.1:0"
+          },
+          {
+            "stage": "SERVER_STARTED",
+            "mode": "old"
+          },
+          {
+            "stage": "WAIT_BEGIN",
+            "mode": "old"
+          },
+          {
+            "stage": "SIGINT",
+            "mode": "old",
+            "count": 1
+          },
+          {
+            "stage": "WAIT_ERROR",
+            "mode": "old",
+            "error_type": "CancelledError"
+          },
+          {
+            "stage": "LOG",
+            "mode": "old",
+            "message": "Shutting down gRPC server"
+          },
+          {
+            "stage": "STOP_BEGIN",
+            "mode": "old",
+            "grace": 5,
+            "cancelling": 1
+          },
+          {
+            "stage": "STOP_ERROR",
+            "mode": "old",
+            "error_type": "CancelledError"
+          },
+          {
+            "stage": "FINAL",
+            "mode": "old",
+            "signals": 1,
+            "cancelling": 1,
+            "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+            "grpc_version": "1.76.0",
+            "source_sha256": "6f396524fc1f7aa6f998d1030fe0445a8025cd2b7e3cfa6755bf8163ce2c61e6",
+            "forbidden_modules": []
+          },
+          {
+            "stage": "OUTCOME",
+            "mode": "old",
+            "error_type": "KeyboardInterrupt"
+          }
+        ]
+      },
+      "new": {
+        "returncode": 0,
+        "records": [
+          {
+            "stage": "LOG",
+            "mode": "new",
+            "message": "Starting gRPC server on 127.0.0.1:0"
+          },
+          {
+            "stage": "SERVER_STARTED",
+            "mode": "new"
+          },
+          {
+            "stage": "WAIT_BEGIN",
+            "mode": "new"
+          },
+          {
+            "stage": "SIGINT",
+            "mode": "new",
+            "count": 1
+          },
+          {
+            "stage": "LOG",
+            "mode": "new",
+            "message": "Shutting down gRPC server"
+          },
+          {
+            "stage": "STOP_BEGIN",
+            "mode": "new",
+            "grace": 5,
+            "cancelling": 1
+          },
+          {
+            "stage": "WAIT_END",
+            "mode": "new"
+          },
+          {
+            "stage": "STOP_END",
+            "mode": "new"
+          },
+          {
+            "stage": "FINAL",
+            "mode": "new",
+            "signals": 1,
+            "cancelling": 1,
+            "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+            "grpc_version": "1.76.0",
+            "source_sha256": "e7cb2235b9aa98eb4f358f75fecdcfd36423467bf571df49efedf87378c81af9",
+            "forbidden_modules": []
+          },
+          {
+            "stage": "OUTCOME",
+            "mode": "new",
+            "returned_normally": true
+          }
+        ]
+      },
+      "host_fake_tests_in_image": {
+        "returncode": 0,
+        "stderr": "test_hanging_stop_test_deadline_is_failure (__main__.ShutdownTests.test_hanging_stop_test_deadline_is_failure) ... ok\ntest_natural_termination (__main__.ShutdownTests.test_natural_termination) ... ok\ntest_second_cancel_remains_failure (__main__.ShutdownTests.test_second_cancel_remains_failure) ... ok\ntest_single_cancel_stops_normally (__main__.ShutdownTests.test_single_cancel_stops_normally) ... ok\ntest_stop_original_exception_identity (__main__.ShutdownTests.test_stop_original_exception_identity) ... ok\ntest_waiter_original_exception_propagates (__main__.ShutdownTests.test_waiter_original_exception_propagates) ... ok\n\n----------------------------------------------------------------------\nRan 6 tests in 0.061s\n\nOK\n"
+      }
+    }
+  },
+  "guard": {
+    "status": "KERNEL_CLEANUP_RELEASE_PASS",
+    "cid": "c3086c4f4b39c74df3aaeead198421cc39db8e9f66931e3e248156126f347728",
+    "failures": [],
+    "quiet_seconds": 60.02542469894979,
+    "max_cycle_seconds": 0.10780485701980069,
+    "raw_oci_sha256": "b7a95f3658890184d1f65cb3ee7bbaf6cf6923ed69ccf89f913566fc5b899e37",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": null,
+    "pinned_identities": [
+      {
+        "pid": 2702540,
+        "startticks": 31084835,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 2702551,
+        "startticks": 31084836,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ]
+  },
+  "postcheck": {
+    "status": "CPU_GRPC_CONTRAST_AND_RELEASE_PASS",
+    "cid": "c3086c4f4b39c74df3aaeead198421cc39db8e9f66931e3e248156126f347728",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-04T05:07:54.871293444Z",
+      "FinishedAt": "2026-11-04T05:07:59.07743108Z"
+    },
+    "restart_count": 0,
+    "identity_postcheck": [
+      {
+        "pid": 2702540,
+        "same_identity_present": false
+      },
+      {
+        "pid": 2702551,
+        "same_identity_present": false
+      }
+    ],
+    "scope_removed": true,
+    "units": {
+      "guard": {
+        "TimeoutStopUSec": "3s",
+        "RuntimeMaxUSec": "2min 20s",
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "active"
+      },
+      "starter": {
+        "TimeoutStopUSec": "1s",
+        "RuntimeMaxUSec": "30s",
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainStatus": "0",
+        "ActiveState": "active"
+      }
+    },
+    "full_elapsed_at_postcheck": 137.02965441800188,
+    "gpu_used": "0 MiB",
+    "gpu_processes": [],
+    "runtime": "runc",
+    "device_requests": null,
+    "devices": [],
+    "oci_hooks": [
+      "/proc/5908/exe"
+    ],
+    "raw_oci_sha256": "b7a95f3658890184d1f65cb3ee7bbaf6cf6923ed69ccf89f913566fc5b899e37",
+    "raw_oci_mode": "0o600",
+    "mounts": [
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store",
+        "Destination": "/source",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/s4a-server-shutdown-cpu-20261104-once/server-before.py",
+        "Destination": "/reference/server-before.py",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/kimi-k2.6/p0/grpc-empty-cpu-once-20261104",
+        "Destination": "/evidence",
+        "Mode": "",
+        "RW": true,
+        "Propagation": "rprivate"
+      }
+    ],
+    "pids_limit": 512
+  },
+  "owned_container_cleanup": {
+    "cid": "c3086c4f4b39c74df3aaeead198421cc39db8e9f66931e3e248156126f347728",
+    "removed_stopped_container": true,
+    "inspect_returncode": 1
+  },
+  "spec_sha256": "848ebe66d51e737acae71ee9c83e5233eb7c203b0eb67b5d61f696511c380583",
+  "historical_S4a_status": "FAILED_RETAINED",
+  "S4a_gpu_retry_authorized": false,
+  "goal_complete": false,
+  "limits": [
+    "Empty grpc CPU evidence does not prove corrected Store/GPU roundtrip or full-model behavior",
+    "S4a failed receipt/prepared/ID unchanged; no GPU retry performed",
+    "Guard rawOCI remains root0600 remote; selected summaries do not replace all spec versions",
+    "GPU0 is postcheck, not continuous GPU peak monitoring for this CPU-only diagnostic"
+  ],
+  "raw_evidence_sha256": {
+    "cpu-grpc-result.json": "3b0e9cfd6b88747dea035f2bb7f63f2d01f29699209bb813997dfb5098dc7bef",
+    "cpu6.stderr": "9f689f5024e62f843393daadae2e3314b2807205a6977a27941e87f42aea8765",
+    "cpu6.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guard-events.jsonl": "9ecc8228f5d5fbca95f949b60efafc9efc49b8446bb83b54ef60d4dd05cd8c95",
+    "guard-final.json": "e82b1948a6aafcbcc25e0d1ee9eb0388aa7c148242349bc0096f9d5ecb091fcf",
+    "guard.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "guard.stdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "new.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "new.stdout": "007c0ca88b11cdb1a96f5ae1caec02775178dce0a09e95a1289fdad3dc3d6239",
+    "old.stderr": "3975aec41f450bda635d92e8927720e3f3c5735bf4cdf40da975b3249cbe8f71",
+    "old.stdout": "35715c010d58a7febc6b33350054562a25880be94e01141e2ae9812283708df9",
+    "owned-container-cleanup.json": "853fc75c794b2525b762255a0a5de54d10c9b39a83c90bbcad3560d09fd01763",
+    "postcheck.json": "e079d29c90b5c936ceb1f83098e84085ba6b7dd45acfc744cd3de34e98e88807",
+    "starter.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "starter.stdout": "1963876c8b80fca58aaafb88883f93031fc942bb3453e935586d4c627b9d1ba3"
+  }
+}
