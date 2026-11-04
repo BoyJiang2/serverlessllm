@@ -1,0 +1,24 @@
+{
+  "status": "V7_EXACT_TWO_TMPFS_STRINGS_AST_CONFIG_AND_SYNTAX_CHECKS_PASS_NOT_RUNTIME",
+  "frozen_v6_spec_sha256": "e8e65fa59f95abbba43df136df6e38304370ca4d7e2c21ffbed0f00a3134319c",
+  "frozen_v6_command_sha256": "f2117b92abc906a48670cc6817c0cecaee03aabad3bab80cfef075c062d4e434",
+  "v7_spec_sha256": "97c631812904abd83ca066f6f346a6b2f06457eb16bc896df9c260e28ff1a794",
+  "v7_command_sha256": "0a116394c4d54f70e2b8ead1d0b9d7040ad6bb7b2278afeef7ed6ab59c2244cc",
+  "root_inline_exact_two_string_replacements_and_no_other_byte_changes": true,
+  "old_tmpfs_request": "rw,nosuid,nodev,size=8g,mode=1777",
+  "new_tmpfs_request": "rw,exec,nosuid,nodev,size=8g,mode=1777",
+  "actual_Docker_argv_and_HostConfig_assertion_match_exec_request": true,
+  "old_nonexec_request_rejected_by_new_assertion": true,
+  "all_noSUID_noDEV_size_mode_resources_network_caps_paths_budget_unchanged": true,
+  "spec_only_new_run_status": true,
+  "source_commit_and_three_overlays_unchanged": true,
+  "three_overlay_hashes_verified": true,
+  "syntax_compile": true,
+  "new_once_base_absent": true,
+  "limitations": [
+    "Adds only exec to existing8GiB/tmp tmpfs; no newJITpath/dependency/capability/network/memory/budget orprobe.",
+    "HistoricalfailedELFmapping syscallerrno wasnotcaptured; noexec barrier is independently observed but this doesnotprove it was the sole cause or that nextmodel executionwillpass.",
+    "PureAST/configuration/compile checks; no containercreate/start, GPU, model, Torch/vLLM import, weightread, Git or source changes.",
+    "Runtime must separately prove actual OCI/mountinfo /tmp executable and preservehistoricalV6failure."
+  ]
+}

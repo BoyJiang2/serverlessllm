@@ -1,0 +1,91 @@
+{
+  "status": "READONLY_SOURCE_AND_RUNTIME_MOUNT_CONFLICT_AUDIT_NOT_SYSCALL_ERRNO_PROOF",
+  "recorded_utc": "2026-11-04T18:59:27.957126+00:00",
+  "runtime_facts_reported_by_root": {
+    "stage": "V6 all64safetensorfiles/all8load_completed records present, laterTorchTritoncompile failed; no inferencePASS",
+    "error_path": "/tmp/.triton/cache/.../cuda_utils.cpython-312-x86_64-linux-gnu.so",
+    "error": "ImportError: failed to map segment from shared object",
+    "raw_oci_tmp_options": [
+      "noexec",
+      "rprivate",
+      "rw",
+      "nosuid",
+      "nodev",
+      "size=8g",
+      "mode=1777"
+    ],
+    "live_mountinfo_pid": 3211152,
+    "live_mountinfo_tmp_line": "/tmp rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,size=8388608k",
+    "mount_evidence": "Root read actual/proc/3211152/mountinfo and saved tmp-runtime-mountinfo.json; this audit doesnotclaim independentreadingofthatrootprotectedfile",
+    "termination": "RoottriggeredexistingABORT with external-fatal-diagnosis evidence; releaseongoing duringthisaudit; no newworkloadstarted"
+  },
+  "installed_image_source_audit": {
+    "stopped_immutable_cid": "4001f3d943717ec521afe25cbe127116cacdf10c9d3697eba295e24245bf328a",
+    "read_method": "Bounded individualdocker cp toinmemorytar, text/ASTonly, noimport/containerstart/cacheextraction",
+    "triton/backends/nvidia/driver.py": {
+      "absolute_path": "/usr/local/lib/python3.12/dist-packages/triton/backends/nvidia/driver.py",
+      "sha256": "4ad4b4440aa4a5ee15ac2382ae78a7aa8029986c22ec2acbd072a91810e85e94",
+      "lines": "54-68",
+      "fact": "CudaUtils constructs cuda_utils bycompile_module_from_src(driver.c), thenusescompiledPythonextension."
+    },
+    "triton/runtime/build.py": {
+      "absolute_path": "/usr/local/lib/python3.12/dist-packages/triton/runtime/build.py",
+      "sha256": "26c6ddd4dba3534ce54790f12d2b75729f51e467c48b2f740dd62b7c75a85b39",
+      "lines": "20-49,65-97",
+      "fact": "_build invokesCcompiler-shared-fPIC andproducesEXT_SUFFIX.so. compile_module_from_src loads existingcache orbuilds/writescache, then_load_module_from_path usesimportlib.spec_from_file_location/module_from_spec/exec_module. Cachedloaderror maytriggeronecompilebutfinalimportstillrequiressharedobjectmapping."
+    },
+    "triton/runtime/cache.py": {
+      "absolute_path": "/usr/local/lib/python3.12/dist-packages/triton/runtime/cache.py",
+      "sha256": "0355c3e3452fa4500122244b8fff8864f22bc05c417a3d6f5dada9f2e92f8040",
+      "lines": "40-57",
+      "fact": "Defaultcache storageusesknobs.cache.dir/key; actualerrorpathliesontheobserved/tmpmount."
+    },
+    "triton/knobs.py": {
+      "absolute_path": "/usr/local/lib/python3.12/dist-packages/triton/knobs.py",
+      "sha256": "d84bda664f733f0547f9f4397c2dab11da1f9c58f974a840a3f1c61ea48c76fa",
+      "lines": "342-352",
+      "fact": "HOME/tmp meansdefaultTritoncache/tmp/.triton/cache, no newcachelocationrequiredforthisfix."
+    }
+  },
+  "official_references": [
+    {
+      "url": "https://raw.githubusercontent.com/moby/moby/v27.0.3/daemon/oci_linux.go",
+      "lines": "519-532",
+      "fact": "Moby27.0.3 daemonstartsrequestedtmpfsmountoptionswithnoexec,nosuid,nodev,defaultpropagation,appendsuseroptions,MergeTmpfsOptions createsOCI mount. Thismatchesactualnoexec observation; installeddaemonbinarycommitnotfreshlymeasuredbythissourceaudit."
+    },
+    {
+      "url": "https://docs.docker.com/engine/storage/tmpfs/",
+      "section": "Options for --tmpfs",
+      "fact": "Explicitexec/noexec are supportedtmpfsoptions; size/mode/nosuid/nodev canberetained. tmpfsusagecountsagainstcontainermemory."
+    },
+    {
+      "url": "https://man7.org/linux/man-pages/man2/mmap.2.html",
+      "section": "ERRORS: EPERM",
+      "fact": "PROT_EXECmappingoffileonno-execfilesystem isrejectedwithEPERM."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/master/elf/dl-map-segments.h",
+      "lines": "123-132",
+      "fact": "Sharedobjectsegmentloader passesELFsegmentprotectionsto mmap; MAP_FAILED returnsDL_MAP_SEGMENTS_ERROR_MAP_SEGMENT."
+    },
+    {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/master/elf/dl-load.h",
+      "lines": "108-117",
+      "fact": "DL_MAP_SEGMENTS_ERROR_MAP_SEGMENT textisfailedtomapsegmentfromsharedobject. Upstreamimplementationreference, notproofinstalledglibccommit/actualerrno."
+    }
+  ],
+  "minimal_proposed_profile_delta": {
+    "tmpfs_before": "/tmp:rw,nosuid,nodev,size=8g,mode=1777",
+    "tmpfs_after": "/tmp:rw,exec,nosuid,nodev,size=8g,mode=1777",
+    "source_or_package_changes": "Noneindicated; noTorch/Triton/loader/codec changes, install, imagechange, cachecopy orchmod requiredbythissourceconflict",
+    "retained": "ROrootfs,nosuid,nodev,privatepropagation,8GiBtmpfscap,mode1777,SHM/resources/network/deviceUUID guards/timebudget unchanged",
+    "future_acceptance": "In anyseparatelyadmittedrun verifyactualOCI andlive/tmpmount noexec absent whileallretainedflags/resourcecaps intact; thencompiledextensionimport andnormalinference mustactuallypass. Merelyrequestingexecflagisnotruntimeproof."
+  },
+  "causal_scope": [
+    "Observedactualnoexecmount iscategoricallyincompatiblewithrequiredexecutableELFfilebackedsegments; existingTritonimportpath providesspecificnecessaryconfigurationfix.",
+    "No historical mmap syscall/errno orstracewascollected, so this isNOTsolecauseproof or proofallmappingerrorsareEPERM. ENOMEM/othermappingerrors canproducegenericloadertext too.",
+    "Fullweightsloadrecords areseparatefromTorchTritoncompile/inference acceptance; retainV6FAILED history andnostoreconversion.",
+    "Explicitexec removesidentifiedmountconflict butdoesnotprovecompletekernelcompile/inference orabsenceofotherblockers.",
+    "No newprobe/runtime/Git/sync/sourcechange, compiledcacheexport orTensorpayloadreadperformedforthisaudit."
+  ]
+}
