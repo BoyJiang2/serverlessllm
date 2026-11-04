@@ -1,0 +1,70 @@
+{
+  "status": "READONLY_SOURCE_RPC_INTERFACE_COMPATIBLE_NOT_TRANSPORT_OR_CONVERSION_RUNTIME_PROOF",
+  "source_version": "loader-state-v5 at89ad61dd6b855367e76a592f05cba59765a16e85; subsequentauxcandidate reviewed separately",
+  "cli_sha256": "b3974c13a64bd80f0253cf1e187e3e81e6a6503f2c8ce4dd0d7c5fbe65ca4d5e",
+  "staged_nine_modules": {
+    "model_executor/model_loader/__init__.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/model_executor/model_loader/__init__.py",
+      "sha256": "87ab7dbfff7989abc3fc374bd37f57a4e8803e0daf9138159e70b712b6dfc129"
+    },
+    "model_executor/model_loader/sllm_loader.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/model_executor/model_loader/sllm_loader.py",
+      "sha256": "58d8f517bdede957452943839d22bdbbaa04109c4b1b75dcee06d70c719402ae"
+    },
+    "v1/engine/core.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/v1/engine/core.py",
+      "sha256": "d845e79c9df852247af53f4a478d1fd577cf0f637b5d48778c6c5fc6418d87f2"
+    },
+    "v1/engine/core_client.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/v1/engine/core_client.py",
+      "sha256": "e87517c666d828ac6a896a9ba25f85f3c71f66753f37b89f1fb5e97f74570ab8"
+    },
+    "v1/executor/abstract.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/v1/executor/abstract.py",
+      "sha256": "a5e4c315afe67125f49023dcd335164af972aff9d9453899bdbe42a01ab0ab8b"
+    },
+    "v1/worker/gpu_model_runner.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/v1/worker/gpu_model_runner.py",
+      "sha256": "f57d591e0f8b4dcd1ed3fb6cbbe8cf83d75deacdceb80a2d4a10c31b91ea7863"
+    },
+    "v1/worker/gpu_worker.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/v1/worker/gpu_worker.py",
+      "sha256": "6260a6b4cdb03bf059bbab2bb37c9ef19c7742ab7863effe2e9226300a04cf73"
+    },
+    "tokenizers/hf.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/tokenizers/hf.py",
+      "sha256": "0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480"
+    },
+    "model_executor/layers/rotary_embedding/common.py": {
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-loader-state-v5/model_executor/layers/rotary_embedding/common.py",
+      "sha256": "d1e2609c0f43f2de1ad3222205b3ca87dc607774e46d53319a68dcdb8b03d2c0"
+    }
+  },
+  "installed_readonly_sources": {
+    "entrypoints/llm.py": "68f573207aeb3f655c20b5e9d2035740cac99f68d3f11bec824e462e177b9eb7",
+    "v1/engine/llm_engine.py": "6a948e25ece97656fe033d658925b0db03b136e4221dc3c00176b293cb667a9e",
+    "envs.py": "0878b5ca5379317b3f9f0fe65d9414c62f0a3a3400f79baeb07419507b933e5d",
+    "config/parallel.py": "308996eda88b1cd0904dc6918d3d2140dfa4620c8a80e73705cf209d443c4478",
+    "v1/executor/multiproc_executor.py": "2011e7d3024f1f230db98b88acc63856ca4d1e74b77f676d8a8a66c4e0dc01ad"
+  },
+  "chain": [
+    "CLI _run_writer LLM.llm_engine.engine_core.save_serverless_llm_state(path=model_path,pattern=pattern,max_size=max_size)",
+    "Offline LLM\u2192LLMEngine.from_engine_args\u2192EngineCoreClient.make_client(asyncio_mode=False)",
+    "default VLLM_ENABLE_V1_MULTIPROCESSING=1\u2192SyncMPClient.save\u2192call_utility(name,path,pattern,max_size); env0\u2192InprocClient inheritedbase.save\u2192engine_core.save direct",
+    "EngineCoreProc utility dispatch/getattr/_convert_msgspec_args\u2192EngineCore.save\u2192model_executor.save",
+    "Executor.save\u2192collective_rpc(save_serverless_llm_state,kwargs={path,pattern,max_size}) non_blockFalse unique_reply_rankNone\u2192allworkerresponsequeues",
+    "gpu_worker.save\u2192gpu_model_runner.save\u2192ServerlessLLMLoader.save_model(self.model,path,pattern,max_size)\u2192getTPRank/rank_N/save_dict"
+  ],
+  "source_interface_conclusions": [
+    "path/optionalpattern/optionalmax_size names andpositional ordering compatible throughall synchronousSDKstages",
+    "SyncutilitysuccessNone wrappedUtilityResult(None); _process_utility_output assertswrapperexists thenfuture.set_result(None), soNone isvalidsuccess",
+    "WorkerFAILURE\u2192MPexecutorRuntimeError\u2192EngineCoreProc failure_message\u2192clientFuture.set_exception(Exception)\u2192SDKRuntimeErrorfromcause; nofalse success onpropagatederror",
+    "OfflineTP8 defaultworkerbackend MP onlyiflocalcapacityfits/noRayplacementgroup/noexternal-launcher/DPoverride; capture actualconfig. TP1 choosesuni. EnginecoreMPmode separatefromworkerbackend."
+  ],
+  "limits": [
+    "Terminalsave_modelcurrentlyacceptsbutdoesNOTusepattern/max_size; no filesize/shardingguarantee fromtheseparameters.",
+    "RPC get_response raisesatfirstworkerfailure ratherthandrainingremainingwriters. Failure return doesnotmeanallrankwritersstopped. CLI exception rmtree isnotquiescenceproof; nativeCIDguard mustaggregate containmentbeforeacceptance/cleanup.",
+    "Internalcall_utility/Future.wait defaults noRPCtimeout; formalnative/guard/globalbudgetsremainmandatory.",
+    "Readonlyoriginalsource/extractedinterfaces only; no newmocktests/transport/model/Store conversion executed. SFthreeROoverlays do notinstallfullSDKchain: stagednine(nowauxeleven) modules must be bound andhashedbeforeactualsave."
+  ]
+}

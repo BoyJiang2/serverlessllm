@@ -1,0 +1,11 @@
+# Official Store save RPC: read-only compatibility audit
+
+Verdict: the actual vLLM0.19.1 synchronous SDK interface chain is source-compatible. This is not a transport, full-conversion or Store runtime pass. Exact installed-source and staged-nine-module identities are recorded in the companion JSON.
+
+CLI VllmModelDownloader._run_writer reaches LLM.llm_engine.engine_core.save_serverless_llm_state(path, pattern, max_size). Actual offline LLM calls LLMEngine.from_engine_args, whose default VLLM_ENABLE_V1_MULTIPROCESSING=1 selects SyncMPClient; env0 selects InprocClient. The latter inherits the direct engine_core delegate. EngineCore MP mode is distinct from the worker executor: TP8 normally defaults to local MP if GPUs fit and no Ray placement/DP/external override is present, but actual configuration must be recorded.
+
+SyncMPClient.call_utility sends method name plus the same three positional values. EngineCoreProc dispatches through getattr and typed argument conversion; EngineCore forwards named kwargs to Executor.save, which invokes collective_rpc on every worker. GPU worker delegates to model runner, then ServerlessLLMLoader.save_model with the same values. All signatures/defaults agree. Success None is wrapped in UtilityResult(None), so the client correctly receives None. Worker errors become executor RuntimeError, utility failure_message and client Future exception, then the SDK wraps the cause rather than claiming success.
+
+Two limits must remain explicit. Terminal save_model does not currently consume pattern/max_size, so propagation is not evidence of size limits or filename-pattern semantics. Also, the MP executor raises on the first failed worker response; remaining writers may still be active. CLI exception cleanup/rmtree does not prove quiescence. The owned CID guard must aggregate shutdown and resource release; no failure-return shortcut may authorize cleanup of active writers or promote a partial archive.
+
+The audit used only bounded readonly stopped-image source streams and local staged source/hash reads. No Torch/vLLM import, new tests, container create/start, GPU, Store action, source edit or Git operation occurred. The previous SF reference mounted only three files; actual SDK save requires the full reviewed module overlay set, which will grow to eleven for the independently reviewed runtime-aux helpers.

@@ -1,0 +1,107 @@
+{
+  "status": "CPU_RESTORE_EIGHT_FIXTURES_SPEC_NOT_EXECUTED_PENDING_REVIEW",
+  "run_id": "kimi-store-restore-runtime-cpu-20261105-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "entrypoint": "/usr/bin/python3",
+  "cmd": [
+    "-I",
+    "-c",
+    "import json,pathlib,sys,unittest\nassert not list(pathlib.Path('/dev').glob('nvidia*'))\nimport torch\nassert not torch.cuda.is_initialized()\nexpected={'test_standard_quant_then_attention_then_torchao_order', 'test_marlin_empty_g_idx_round_trip', 'test_marlin_runtime_helper_only_uses_existing_workspace_utility', 'test_same_parameter_module_alias_round_trip', 'test_persistent_attention_scale_round_trip', 'test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved', 'test_restore_initializes_runtime_then_native_attention_without_repack', 'test_runtime_hook_sees_restored_parameter_once_without_repack'}\ndef flatten(suite):\n for test in suite:\n  if isinstance(test,unittest.TestSuite):yield from flatten(test)\n  else:yield test\ndef verify_positive(result,names):\n assert len(names)==8 and set(names)==expected and result.testsRun==8\n assert result.wasSuccessful() and not result.errors and not result.failures and not result.skipped and not result.expectedFailures and not result.unexpectedSuccesses\nloader=unittest.TestLoader();suite=unittest.TestSuite()\nfor pattern in ('test_vllm_loader_state.py','test_vllm_restore_runtime.py'):\n suite.addTests(loader.discover('/work/sllm_store/tests/python',pattern=pattern))\nnames=[test.id().rsplit('.',1)[1] for test in flatten(suite)]\nprint(json.dumps({'event':'CPU_RESTORE_EIGHT_TEST_DISCOVERY','test_names':names,'discovery_errors':loader.errors}),flush=True)\nassert len(names)==8 and set(names)==expected\nresult=unittest.TextTestRunner(stream=sys.stderr,verbosity=2).run(suite)\nprint(json.dumps({'event':'CPU_RESTORE_EIGHT_TEST_RESULT','test_names':names,'tests_run':result.testsRun,'errors':len(result.errors),'failures':len(result.failures),'skipped':len(result.skipped),'expected_failures':len(result.expectedFailures),'unexpected_successes':len(result.unexpectedSuccesses),'scope':'five real Torch CPU/FakeStore in-process clone fixtures plus three AST mocks; no native SDK Store/GPU/model or math-equivalence proof'}),flush=True)\nverify_positive(result,names)\nassert not torch.cuda.is_initialized() and not list(pathlib.Path('/dev').glob('nvidia*'))\nprint('CPU_RESTORE_STATE_AND_RUNTIME_EIGHT_TESTS_PASS_NOT_STORE_GPU',flush=True)\n"
+  ],
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "HF_HOME": "/tmp/hf",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "USER": "boyjiang"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+      "Target": "/work/sllm_store/vllm_patch/sllm_load.patch",
+      "ReadOnly": true,
+      "sha256": "2d8f70314c009112a14f137615e5a58325ba1fb938ce9030e2f46d3cd78aa995",
+      "bytes": 41458
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_state.py",
+      "Target": "/work/sllm_store/tests/python/test_vllm_loader_state.py",
+      "ReadOnly": true,
+      "sha256": "9676dec964fe33b37d67004096d660fc8b03eca9d158b0d8fe04f4f8451ca84e",
+      "bytes": 8015
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_restore_runtime.py",
+      "Target": "/work/sllm_store/tests/python/test_vllm_restore_runtime.py",
+      "ReadOnly": true,
+      "sha256": "d7c6a4144b3f59f77a5b3fc2ea8bcaefdfaf9e638cd0b4a489bbe3b18fa39fee",
+      "bytes": 5491
+    }
+  ],
+  "host_config": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,nosuid,nodev,size=134217728,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "user": "2147:2147",
+  "budget": {
+    "full_seconds": 220,
+    "outer_runtime_seconds": 217,
+    "outer_stop_seconds": 1,
+    "guard_deadline": 60,
+    "guard_kill_after": 3,
+    "guard_overall": 100,
+    "guard_native_seconds": 180,
+    "guard_stop_seconds": 3,
+    "release_seconds": 60
+  },
+  "scope": "Five actual Torch CPU/FakeStore clone/archive fixtures plus three stdlib AST mocks; not native SDK Store, GPU, complete model, numerical inference parity or native allocation proof.",
+  "requirements": [
+    "Fresh reservation and root independent guard before runtime",
+    "Verify all literal mount SHA before create and after run",
+    "runc no NVIDIA hook/device; actual OCI proof; capture cgroup ancestors and kernel",
+    "Reuse existing guard ARM10/ACK2, no CPU observer GPU claim",
+    "actual native deadlines fit full bound before starting child",
+    "container+startclient exit0, noOOM/restart; guard actual exit0 and quiet>=60; root PID/scope cleanup",
+    "Failure retained without automatic retry; no dependency installation or extra assets on failure",
+    "No Git/sync during formal runtime or release"
+  ],
+  "revision_basis": {
+    "profile": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-loader-contract-cpu-positive-20261105-spec.json",
+    "protocol": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-loader-contract-cpu-positive-20261105-manual-root-command.json",
+    "changes": "Freshonce/source/pins+thirdsmallROtestfile and exactfive+threepositiveentry; originalCPUguard/resources/budget unchanged."
+  },
+  "source_commit": "8827f0a4559fd8bd0f84a9c5c370c95c681c3d38"
+}

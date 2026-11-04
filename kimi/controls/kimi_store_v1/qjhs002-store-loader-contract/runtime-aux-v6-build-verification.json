@@ -1,0 +1,29 @@
+{
+  "status": "HOST_STDLIB_AST_MOCK_18_PASS_NOT_REAL_TORCH",
+  "patch_sha256": "2d8f70314c009112a14f137615e5a58325ba1fb938ce9030e2f46d3cd78aa995",
+  "test_loader_state_sha256": "9676dec964fe33b37d67004096d660fc8b03eca9d158b0d8fe04f4f8451ca84e",
+  "test_runtime_sha256": "d7c6a4144b3f59f77a5b3fc2ea8bcaefdfaf9e638cd0b4a489bbe3b18fa39fee",
+  "tests": {
+    "test_vllm_restore_runtime.py": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_marlin_runtime_helper_only_uses_existing_workspace_utility (test_vllm_restore_runtime.RestoreRuntimeTest) ... ok\ntest_restore_initializes_runtime_then_native_attention_without_repack (test_vllm_restore_runtime.RestoreRuntimeTest) ... ok\ntest_standard_quant_then_attention_then_torchao_order (test_vllm_restore_runtime.RestoreRuntimeTest) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.003s\n\nOK\n",
+      "tests": 3
+    },
+    "test_vllm_loader_interface.py": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_diagnostic_logging_failure_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_does_not_collect_metadata_or_touch_cuda (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_disabled_default_preserves_model_exception (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_failed_load_reports_existing_partial_model_without_success_claim (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_metadata_capture_has_no_tensor_payload_or_store_calls (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_model_failure_captures_peak_before_reset_and_preserves_identity (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_peak_alias_backend_and_empty_metadata_before_reset (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_physical_uuid_normalizes_torch_metadata_without_rank_ordinal_assumption (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_snapshot_failure_remains_missing_and_cannot_mask_model_error (test_vllm_loader_interface.LoadEvidenceTest) ... ok\ntest_selected_model_config_and_prefix_reach_initializer (test_vllm_loader_interface.LoaderInterfaceTest) ... ok\n\n----------------------------------------------------------------------\nRan 10 tests in 0.035s\n\nOK\n",
+      "tests": 10
+    },
+    "test_vllm_rotary_platform.py": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "test_cuda_skips_external_namespace_probe_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_existing_external_import_is_preserved (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_hip_missing_package_keeps_existing_native_fallback_selection (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_original_cuda_namespace_condition_reproduces_missing_ops (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\ntest_patch_only_changes_platform_guard_and_import (test_vllm_rotary_platform.RotaryPlatformTest) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.003s\n\nOK\n",
+      "tests": 5
+    }
+  },
+  "actual_Torch_five_tests": "NOT_RUN_PENDING_ROOT_BOUNDED_CPU",
+  "no_runtime_imports": "No Torch/vLLM imports; AST extraction with stdlib mocks only",
+  "SDK_mixed_empty": "NOT_RUN_SEPARATE_GATE"
+}
