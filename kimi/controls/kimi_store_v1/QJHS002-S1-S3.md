@@ -433,3 +433,5 @@ rawOCI仅remote root0600不下载。source tested Ada已公开，但controller/m
 qjhs002-revised-s4a-ready保留独审cb169终稿及实际CPU24项PASS/newBASEabsent/oldfailedBASEretained；source47bd2ced31ec0e6e0ea2394047e31e46d86d5351（parentAda）仅controller660da/pins346bb两文件。launch_source_commit已填确切47bd非None；一次directGitHub443失败，publicationpending，servertracking仍Ada，不称已公开。
 
 新nonce/core/pins之外预算/全部success判据不变，原失败保留。新GPUtrial approval仍PENDING_USER_ANSWER，无newBASE/container/start，资源窗口授权不重置消耗过的一次额度。本轮只源码/证据发布准备，无runtime/新环境或goalcomplete。
+
+修正版source47bd发布补充：另获root授权一次有界重推已成功，GitHubSHA核47bd、server tracking Ada→47bd CAS成功。身份gate=FIXED_REVIEWED_DUAL_COPY_SHA_SATISFIED，GitHub发布与runtime技术身份分开，不另造用户gate；此前失败历史保留。用户新一次修正版批准及freshwindow/resource/guard门槛仍独立且尚待批准，本轮未运行。
