@@ -1,0 +1,156 @@
+{
+  "status": "CPU_BUILD_ABI_AND_REAL_TORCH_CPP_OWNERSHIP_PASS_NOT_CUDA_OR_STORE",
+  "run_id": "kimi-sdk-empty-pointer-build-cpu-20261105-once",
+  "container_id": "3ecaec5355d7accd958c72b254bde1de55dbfe31bee9ab0c8373fcdc00d0974e",
+  "source_commit": "e55bf12da36e111dc7ebef124b992aac353f8c31",
+  "source_patch_commit": "f52490a2e8abebc1657a2c78f57b067318da94b9",
+  "controller": {
+    "status": "SDK_EMPTY_POINTER_CPU_BUILD_ABI_OWNERSHIP_NORMAL_EXIT_RELEASE_PASS_NOT_GPU_STORE",
+    "cid": "3ecaec5355d7accd958c72b254bde1de55dbfe31bee9ab0c8373fcdc00d0974e",
+    "guard": {
+      "status": "KERNEL_CLEANUP_RELEASE_PASS",
+      "cid": "3ecaec5355d7accd958c72b254bde1de55dbfe31bee9ab0c8373fcdc00d0974e",
+      "failures": [],
+      "quiet_seconds": 60.00428407796426,
+      "max_cycle_seconds": 0.07898043695604429,
+      "raw_oci_sha256": "c62f24fc3769b0bb6c7275043bda95bde7e21fbca690e111724f14b3f8369422",
+      "oci_seen": true,
+      "scope_seen": true,
+      "abort_monotonic": null,
+      "pinned_identities": [
+        {
+          "pid": 27533,
+          "startticks": 37008858,
+          "exe": "/usr/bin/containerd-shim-runc-v2",
+          "cgroup": "0::/system.slice/containerd.service"
+        },
+        {
+          "pid": 27544,
+          "startticks": 37008859,
+          "exe": "/usr/bin/runc",
+          "cgroup": "0::/system.slice/containerd.service"
+        }
+      ],
+      "normal_completion_monotonic": 370142.516441294,
+      "normal_cleanup_monotonic": 370142.537186502
+    },
+    "guard_exit": {
+      "Type": "exec",
+      "Restart": "no",
+      "TimeoutStopUSec": "3s",
+      "RuntimeMaxUSec": "20min",
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "KillMode": "control-group",
+      "FinalKillSignal": "9",
+      "SendSIGKILL": "yes",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "370088447262"
+    },
+    "elapsed": 114.2283512079739,
+    "artifact_manifest_sha256": "4d6514e8368b830b8eecd3a6c3e148af04b9cbf18f955ec6b9244be5e934b836",
+    "new_elf_sha256": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5"
+  },
+  "units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "Id": "kimi-sdk-empty-pointer-build-cpu-20261105-once-controller.service",
+      "LoadState": "loaded"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "Id": "kimi-sdk-empty-pointer-build-cpu-20261105-once-guard.service",
+      "LoadState": "loaded"
+    }
+  },
+  "build_elapsed_seconds": 53.25315166905057,
+  "new_elf_path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+  "new_elf_sha256": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5",
+  "old_artifact_sha256": {
+    "sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+    "sllm_store/sllm_store/libglog.so.0.6.0": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6"
+  },
+  "output_total_bytes": 1774991,
+  "test_scope": "Two strict tests: actual extracted production RestoreTensors with CPU device/cudaFree stub. Original five lifetime modes plus sixth empty one-past mode; actual Torch from_blob. Exact nonempty offset, empty shape384x0/stride1,1/int32, final-empty-only base retention and exactly once final free. No skips.",
+  "limits": [
+    "No CUDA, IPC, native SDK readback or full Store conversion success implied.",
+    "Fresh compile with captured toolchain/link dependencies; not bitwise reproduction of historical old ELF.",
+    "8GiB output planning bound verified after build, not a directory hard quota.",
+    "OCI has ordinary Docker libnetwork-setkey prestart hook despite network=none; no NVIDIA hook or NVIDIA devices. An overstrict post-run exporter assertion rejecting any hook was corrected; runtime result unchanged."
+  ],
+  "public_files": {
+    "prepared.json": {
+      "bytes": 10911,
+      "sha256": "cdecb6d2871e8183ce4829373c1b519c553668a823c46b3ac23527497d2f87da"
+    },
+    "controller-final.json": {
+      "bytes": 1443,
+      "sha256": "630325ea613a65387491ca92e72d7c4f390404ca6e9c4a722db94c594864d245"
+    },
+    "guard-final.json": {
+      "bytes": 722,
+      "sha256": "47e8cb2808b057c4644fbd7eac1abb8bb3a106782120f86c243d10d736405ff9"
+    },
+    "guard-events.jsonl": {
+      "bytes": 39182,
+      "sha256": "cac41c06bd8faa02422e8460a6f9cc0e9a386a574214d1f7960036a194d1c095"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    },
+    "artifact-provenance.json": {
+      "bytes": 1884,
+      "sha256": "88467eaa5697f07fc511d396b614a087abd2bb918636efa59947dfe24b8b6879"
+    },
+    "normal-exit.json": {
+      "bytes": 211,
+      "sha256": "d41bd812690e06104d86a21918cece9f21c4b00c58104c3b14cece5d5bf2c058"
+    },
+    "ARMED.json": {
+      "bytes": 312,
+      "sha256": "9a0ac5f147457ff8a73728df8f7da143d8c92193da1b13b0dae16f29a5f19c34"
+    },
+    "GO.json": {
+      "bytes": 150,
+      "sha256": "0edb6c0ef3d2dcac19e1546d4a2fc4db5d6ea0e2dfedb5c4f9199323ad61e8be"
+    },
+    "GO-ACK.json": {
+      "bytes": 108,
+      "sha256": "7b0b35895297a025fe9436f2df1c5695100eba6d1e62e161796321c334c54832"
+    },
+    "container.stdout": {
+      "bytes": 31163,
+      "sha256": "7d4d526c9b345ee80098c66a4218bbc4ea0fc25af27092057e9441a2ced6966c"
+    },
+    "container.stderr": {
+      "bytes": 546,
+      "sha256": "69cbc02f629802a5f7b8a4cfb1e3c5a29a2de31b1f0f40978de9cd5036418e07"
+    },
+    "build-manifest.json": {
+      "bytes": 26338,
+      "sha256": "4d6514e8368b830b8eecd3a6c3e148af04b9cbf18f955ec6b9244be5e934b836"
+    },
+    "container-exited-sanitized.json": {
+      "bytes": 1206,
+      "sha256": "16cb4723160913f98cf381d7f917cd4aebbbd5f580d854f03cff8decf7407667"
+    },
+    "oci-sanitized-no-env.json": {
+      "bytes": 18212,
+      "sha256": "cca36f407d248a5f0fe8411ad8d7918a1bada564e94cb5b89f0abec32e7a7977"
+    },
+    "units-after.json": {
+      "bytes": 442,
+      "sha256": "681ffc00241ebaaad61d34de5921261ae6e7157b52f6055fd857abf746017a34"
+    }
+  }
+}
