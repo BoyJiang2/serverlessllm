@@ -3,7 +3,7 @@ import argparse, hashlib, json, os, pathlib, re, subprocess, time
 import xml.etree.ElementTree as ET
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/s4a-readback-once-20261104')
+BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0/s4a-readback-revised-20261104')
 UUID = 'GPU-736d7f37-f647-b82d-ab11-693753ac6822'
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
@@ -83,7 +83,7 @@ def observer():
         raise
 
 
-RUN = 's4a-readback-once-20261104'
+RUN = 's4a-readback-revised-20261104'
 IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
 STORE = BASE.parent/'s4a-saveonly-20261103-2103'
 RECEIPT = BASE.parent/'s4a-gold-save-only-receipt.json'
@@ -93,7 +93,7 @@ PINFILE = ROOT/'sllm_store/tests/s4a-readback-input-pins.json'
 def verify_inputs():
     assert call(['hostname']).strip() == 'qjhs2'
     pins = json.loads(PINFILE.read_text())
-    assert pins['source_commit'] == '8c2696513dced00f9d403acda37c089dc1895b1e'
+    assert pins['source_commit'] == 'adaeff41b060227bcdd37b4dd1b0a7961523425e'
     required = [ROOT/name for name in ['sllm_store/README.md', 'sllm_store/sllm_store/server.py', 'sllm_store/sllm_store/torch.py', 'sllm_store/sllm_store/cli.py', 'sllm_store/csrc/sllm_store/pinned_memory_pool.cpp', 'sllm_store/csrc/sllm_store/cuda_memory_pool.cpp', 'sllm_store/csrc/sllm_store/checkpoint_store.cpp', 'sllm_store/csrc/checkpoint/checkpoint.cpp', 'sllm_store/sllm_store/__init__.py', 'sllm_store/sllm_store/utils.py', 'sllm_store/sllm_store/client.py', 'sllm_store/csrc/sllm_store/model.cpp', 'sllm_store/csrc/sllm_store/model.h', 'sllm_store/proto/storage.proto']]
     required += [ROOT/'sllm_store/tests/python/s4a_component_runner.py', ROOT/'sllm_store/tests/python/test_kimi_tensor_component.py', GUARD, pathlib.Path(__file__).resolve(), RECEIPT, STORE/'packed-component/tensor.data_0', STORE/'packed-component/tensor_index.json']
     required += [ROOT/'sllm_store/sllm_store'/name for name in ('_C.cpython-312-x86_64-linux-gnu.so','_checkpoint_store.cpython-312-x86_64-linux-gnu.so','libglog.so.0.6.0')]
@@ -170,8 +170,8 @@ def controller(expiry):
         return row
     initial = inspect(); assert not initial['State']['Running'] and initial['State']['Status'] == 'created'
     assert gpu() == {'used_mib': 0, 'processes': []}
-    guardunit = 'kimi-s4a-readback-once-20261104-guard.service'
-    observerunit = 'kimi-s4a-readback-once-20261104-observer.service'
+    guardunit = 'kimi-s4a-readback-revised-20261104-guard.service'
+    observerunit = 'kimi-s4a-readback-revised-20261104-observer.service'
     go = None; child = None; observer_started = guard_started = False
     try:
         service(observerunit, ['/usr/bin/python3', str(pathlib.Path(__file__).resolve()), '--observer'], True)
@@ -267,7 +267,7 @@ if __name__ == '__main__':
     elif args.run_once:
         assert args.booking_expiry_epoch is not None
         native = dict(line.split('=',1) for line in call(['/usr/bin/systemctl','show',
-            'kimi-s4a-readback-once-20261104-controller.service',
+            'kimi-s4a-readback-revised-20261104-controller.service',
             '--property=RuntimeMaxUSec,TimeoutStopUSec,KillMode,MainPID,SendSIGKILL,Type,Restart']).splitlines())
         assert native['RuntimeMaxUSec'] == '2min 57s' and native['TimeoutStopUSec'] == '1s'
         assert native['KillMode'] == 'control-group' and int(native['MainPID']) == os.getpid()
