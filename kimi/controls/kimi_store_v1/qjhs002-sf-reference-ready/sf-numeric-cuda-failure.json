@@ -1,0 +1,362 @@
+{
+  "run_id": "kimi-sf-tp8-reference-numeric-cuda-20261105-once",
+  "cid": "5dcf8ef637645f56bc34cc5e590de3d452a14db04a8b2593d9efc4044bcc4e59",
+  "status": "FAILED_RETAINED_MODEL_CONSTRUCTION_FLASH_ATTN_ROTARY_MISSING",
+  "source_commit": "c99e55cdd9828fc05475d066211fda85d4a3a474",
+  "controller": {
+    "status": "FAILED_RETAINED",
+    "cid": "5dcf8ef637645f56bc34cc5e590de3d452a14db04a8b2593d9efc4044bcc4e59",
+    "go": 358977.123065534,
+    "error_type": "AssertionError",
+    "error": "",
+    "elapsed": 62.69749423401663
+  },
+  "guard_quiet_seconds": 60.00175641902024,
+  "observer_quiet_seconds": 60.53565987898037,
+  "observer_monitor": {
+    "samples": 155,
+    "memory_samples": 155,
+    "gaps": 0,
+    "max_query_seconds": 1.7260504869627766,
+    "max_memory_interval_seconds": 1.8177870179642923,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+  },
+  "gpu_peak_mib_by_uuid": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 3295,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 3135,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 3295,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 3295,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 3295,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 3135,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 3295,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 3295
+  },
+  "container": {
+    "id": "5dcf8ef637645f56bc34cc5e590de3d452a14db04a8b2593d9efc4044bcc4e59",
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 1,
+      "Error": "",
+      "StartedAt": "2026-11-04T18:30:03.701436265Z",
+      "FinishedAt": "2026-11-04T18:31:05.504702082Z"
+    },
+    "restart_count": 0,
+    "host_config": {
+      "PidsLimit": 4096,
+      "ShmSize": 8589934592,
+      "Memory": 1374389534720,
+      "MemorySwap": 1374389534720,
+      "NanoCpus": 32000000000,
+      "NetworkMode": "none",
+      "Runtime": "nvidia"
+    }
+  },
+  "units": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "359100140487",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "ActiveEnterTimestampMonotonic": "358976412401"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "359099148168",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "ActiveEnterTimestampMonotonic": "358977058819"
+    },
+    "observer": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "359099680618",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ActiveEnterTimestampMonotonic": "358976748404"
+    }
+  },
+  "model_log_sha256": "34563cec8d4985e7bde1ee5949b38672f10decb929b02951cf92d465c3c9ca84",
+  "model_log_bytes": 123119,
+  "weight_load_records": 8,
+  "load_completed_records": 0,
+  "load_failure_records": [
+    {
+      "capture_seconds": 0.0007075229659676552,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:5",
+      "device_uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 968,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 5,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.0010158439981751144,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:1",
+      "device_uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 964,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 1,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.000548402953427285,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:0",
+      "device_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 963,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 0,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.0005713229766115546,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:4",
+      "device_uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 967,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 4,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.000563542009331286,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:2",
+      "device_uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 965,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 2,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.0006673799944110215,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:7",
+      "device_uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 970,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 7,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.0005880679818801582,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:3",
+      "device_uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 966,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 3,
+      "unique_registered_storage_bytes": null
+    },
+    {
+      "capture_seconds": 0.0005596550181508064,
+      "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+      "device": "cuda:6",
+      "device_uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "empty_g_idx_keys": null,
+      "event": "SLLM_LOAD_EVIDENCE",
+      "kernel_backend_counts": null,
+      "load_completed": false,
+      "load_error_type": "ModuleNotFoundError",
+      "memory": {
+        "allocated_bytes": 1371566592,
+        "driver_free_bytes": 146655019008,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1506833408,
+        "peak_reserved_bytes": 1564475392,
+        "reserved_bytes": 1564475392
+      },
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "pid": 969,
+      "quant_method_counts": null,
+      "registered_model_available": false,
+      "registered_storages": null,
+      "registered_tensors": null,
+      "synchronized": true,
+      "tp_rank": 6,
+      "unique_registered_storage_bytes": null
+    }
+  ],
+  "full_model_pass": false,
+  "store_started": false,
+  "public_files": {
+    "controller-failed.json": {
+      "bytes": 203,
+      "sha256": "5b577bee084fe88e6fb4258398644f57211a5a4d1be7cb45c08882ac99f1cf1a"
+    },
+    "prepared.json": {
+      "bytes": 3159,
+      "sha256": "0d9f3dbc64780656e76510c9a2cc1365fa8af95791c7a2f6e785d555fdd93adb"
+    },
+    "guard-final.json": {
+      "bytes": 718,
+      "sha256": "aaff11b4508160b9b761b221bb12013bb85b9f99fb6467a87002c9682ffd9123"
+    },
+    "observer-final.json": {
+      "bytes": 1060,
+      "sha256": "464e8b44559ad08ea41e7d8446269490bd1033d653a7cdcf7a9932ffdb48790a"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "b0e5410b3c3e3c20286ade06eda93a9befe52373a226cbf8ee2d3842c19ae23a"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "5667ee68348925ed414a199184b36e7e07f1ca7c6f0014149b065562753e4922"
+    },
+    "ARMED.json": {
+      "bytes": 314,
+      "sha256": "a892cdd022e4d334d8f4c7fe3f68bf882e8f5eecc8883754860311e39825dc63"
+    },
+    "api-client.stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "api-client.stdout": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "kernel-after.json": {
+      "bytes": 63,
+      "sha256": "8604a31e95dd9ebbfaded43db95db6892e1967c58d67544b130c92b0cf6536a7"
+    }
+  },
+  "recorded_epoch": 1793817204.3090694
+}
