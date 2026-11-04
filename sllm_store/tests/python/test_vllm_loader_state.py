@@ -48,6 +48,7 @@ class LoaderStateTest(unittest.TestCase):
             ModelConfig=object, Dict=Dict, Optional=Optional, nn=nn,
             collections=collections, os=os, gc=gc,
             initialize_model=lambda **kwargs: restored_model,
+            process_attention_weights_after_loading=lambda *args: None,
             set_default_torch_dtype=lambda _: contextlib.nullcontext(),
             torch=types.SimpleNamespace(
                 Tensor=torch.Tensor, nn=nn,
@@ -150,6 +151,26 @@ class LoaderStateTest(unittest.TestCase):
         self.assertIs(result.weight, parameter)
         self.assertEqual(result.generated.item(), 11.0)
         self.assertNotIn("generated", archive)
+
+
+    def test_runtime_hook_sees_restored_parameter_once_without_repack(self):
+        saved, restored = nn.Module(), nn.Module()
+        saved.weight = nn.Parameter(torch.tensor([7.0]))
+        restored.weight = nn.Parameter(torch.tensor([0.0]))
+        calls = []
+
+        def prepare_runtime(layer):
+            self.assertIs(layer, restored)
+            self.assertEqual(layer.weight.item(), 7.0)
+            calls.append(layer)
+
+        restored.quant_method = types.SimpleNamespace(
+            prepare_runtime_for_restored_weights=prepare_runtime,
+            process_weights_after_loading=mock.Mock(
+                side_effect=AssertionError("must not repack restored weights")))
+        self.round_trip(saved, restored)
+        self.assertEqual(calls, [restored])
+        restored.quant_method.process_weights_after_loading.assert_not_called()
 
 
 
