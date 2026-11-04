@@ -1,3 +1,11 @@
+## 11/5 一次CPU验证在导入缓存路径失败并释放；最小环境修正已独审，未重跑
+
+获准24e534方案的一次容器51b45db354109c61b038c662667bbaf221cb00df2e67cb53fa203fd75caf7398在4.276秒记录失败。vLLM env_override导入TorchDynamo时，默认TorchInductor缓存路径调用getpass.getuser，实际OCI无用户名环境变量、UID2147在镜像账号数据库不存在，抛KeyError。未到tokenizer金标，processor子进程未执行，不能判断Kimi兼容性失败。容器退出1、无OOM/重启；控制器/守护实际退出1，guard保留FAILED_RETAINED/abort_requested，同时完成quiet60.018682秒；正式总耗时64.545633秒。11份原始公开证据SHA及清理独审通过，scope及自有身份消失，无NVIDIA设备或钩子，20项输入哈希保持。既有GPU小探针PASS不变，旧CPU失败不改判；元数据核验在正式运行后，不追加或补造释放观察。
+
+实际镜像Torch cache_dir_utils.py SHA54c32dfb、14–27行证明TORCHINDUCTOR_CACHE_DIR可绕过出错用户名查询。新CPU方案628e9d5e仅加TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor并用新一次ID，复用已有128MiB私有tmpfs，不修改镜像、UID/账号、依赖、源码、验证正文、金标或资源挂载。实际SDK函数AST离线回归复现未设值KeyError，并验证显式路径创建/重复使用时不调用getuser；这不是重跑容器或兼容性PASS。方案独审2caf9d7c通过；失败及新方案身份见 qjhs002-processor-cpu-import-failed。仍待新的单次CPU批准及新窗口/资源/完整220秒/守护核验，失败不自动重试。
+
+完整模型只读源码审计保留服务器official-sf-quant-ownership-source-audit.json（673a0680）。官方已有compressed-tensors packed INT4/group32路径，没有新增codec依据；TP8默认EP关闭，各rank保留所有384专家的TP切片，不能预设每卡48专家。视觉data模式及projector存在复制，Marlin重排/scale变换及参数替换有新旧存储共存。Hopper预计Marlin仍须实际日志证明，不能把源码路径当成运行后端、峰值或所有权验收。完整SF模型/Store转换与恢复/原生服务均未启动，goal继续active。
+
 ## 11/4 完整SF模型前的CPU tokenizer/processor小资产方案已独审，待新批准
 
 八卡CUDA/NCCL一次小探针已通过并推送核验证据bbc7cfce，源码仍3d362cdd。下一步CPU一次方案使用runc、无NVIDIA设备/钩子、networknone、只读rootfs；CPU4/内存8GiB/PID512/tmp128MiB。20个精确只读挂载合计13个唯一小文件2889188字节，保持7文件checkpoint金标视图，另设10文件model processor视图；不挂载完整checkpoint目录或任何safetensors。仅只读覆盖已有hf.py兼容修复，镜像及安装树不变，不先部署完整Store补丁。

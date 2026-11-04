@@ -1,0 +1,81 @@
+{
+  "status": "CPU_IMPORT_FAILURE_RETAINED_NOT_TOKENIZER_OR_PROCESSOR_COMPATIBILITY_FAILURE",
+  "source_commit": "3d362cdd1dd5d625d11a402e93f43b54129217b1",
+  "approved_command_sha256": "24e534f3e4518ce604540a351505569d71ba678f0206972c036f5249a75223ec",
+  "run_id": "kimi-canonical-processor-cpu-postmicro-20261104-once",
+  "cid": "51b45db354109c61b038c662667bbaf221cb00df2e67cb53fa203fd75caf7398",
+  "first_failure_elapsed_seconds": 4.276122732961085,
+  "runtime_native_elapsed_seconds": 64.545633,
+  "container_exit_code": 1,
+  "oom_killed": false,
+  "restart_count": 0,
+  "guard_status": "FAILED_RETAINED",
+  "guard_failures": [
+    "abort_requested"
+  ],
+  "guard_quiet_seconds": 60.018681868037675,
+  "actual_units_exit": {
+    "-controller": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "349548582648",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "LoadState": "loaded",
+      "ActiveState": "failed",
+      "ActiveEnterTimestampMonotonic": "349484037015"
+    },
+    "-guard": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "349548364077",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "LoadState": "loaded",
+      "ActiveState": "failed",
+      "ActiveEnterTimestampMonotonic": "349484118757"
+    }
+  },
+  "all_owned_runtime_identities_absent": true,
+  "container_scope_removed": true,
+  "no_nvidia_devices_or_hooks": true,
+  "actual_environment_selected": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "HOME": null,
+    "USER": null,
+    "LOGNAME": null,
+    "LNAME": null,
+    "USERNAME": null,
+    "TORCHINDUCTOR_CACHE_DIR": null,
+    "HF_HOME": "/tmp/hf"
+  },
+  "failure": "vLLM env_override imports TorchDynamo; default TorchInductor cache path calls getpass.getuser; uid2147 absent from image account database -> KeyError",
+  "tokenizer_gold_cases": "NOT_REACHED",
+  "native_processor_child": "NOT_EXECUTED",
+  "actual_oci_raw_sha256": "59e0f2dee01b5714eab6fb36b14017b470673d39f98eaee38ab9451298432c3d",
+  "server_public_directory": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-canonical-processor-cpu-postmicro-20261104-once-public",
+  "server_public_sha256": {
+    "prepared.json": "d1d97f167961fb4f25418938bdeb227480a55a5ace4916306be0885dc4d11ffe",
+    "ARMED.json": "6c8595c9f0ab59e975e5aaa5663e8a0609857a7e979b59b820769863f237e8bc",
+    "GO.json": "813796c00befd263a8b78a65cf55364a969ef5de714f7fb37d180aaf90f75630",
+    "GO-ACK.json": "efcfafbf812cc391ba96316fdf94073230a48c9c7111bc4d918a6c7884d6acbd",
+    "controller-failed.json": "6ad4e558509d0db891442176ed5955a1ba653c8062fd0551e5efae0a0b794b18",
+    "guard-final.json": "a8fcd590aa922625ca0eaecee89eae8a9685548a1de575b7afad3d2b61fbb396",
+    "failure-raw-logs.json": "26f026380b67fc8206853a519ae99917f07155a1abfc243da73a6ee62dcd4a46",
+    "timely-cpu-oci-metadata.json": "acb9a07d514dfb1b27ccedf003d42d1e763cb3d1200cb3c58256d6277922a63e",
+    "postcheck.json": "0235691407e24d5f2447555998830bf7805772d010ff14d3b8fc8be38a1c2b93",
+    "cgroup-history.jsonl": "648c8fbeb70c244a4331a14b451c0f9d0a57acca0edbb0499cbb2da489b30630",
+    "kernel-evidence-summary.json": "659a5bf45ac904384ed6f64c06cc1a7ca473db775d7b936430562eef808cb1ab"
+  },
+  "independent_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/cpu-cache-20261105-independent-review.md",
+    "sha256": "2caf9d7cb819da100fb698ff6abbd5ad6acbadd54429bf96f2aa7c45c1adf274"
+  },
+  "metadata_validation_outside_runtime_budget": true,
+  "no_extra_runtime_or_gpu_queries": true,
+  "no_automatic_retry": true,
+  "gpu_micro_pass_preserved": true,
+  "compatibility_outcome": "NOT_DETERMINED",
+  "recorded_at_utc": "2026-11-04T16:08:15.758133+00:00"
+}
