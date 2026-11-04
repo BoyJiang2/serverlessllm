@@ -357,3 +357,5 @@ source仍b8682b2，无代码修改；原始GPU/CPU1历史失败不改，本次�
 qjhs002-visible-env-proposal保存3文件候选/patch/hash、独审PASS_NO_EXECUTION_AUTHORIZATION、remote4offline PASS、实际Torch静态解读与GPU512精确身份postcheck及失败probe日志。source cc3fd227227c45f6934aba98ca35408294ba1a59（parentb868），仅prepare/test/controller三文件，GitHub/source tracking已核。两visibility ENV显式指定同UUID、新nonce cuda-micro-pids512-visible-20261104/controller BASE两unit对应；PID仍显式512，其余保持。
 
 安装Torch源码确认空CUDA_VISIBLE_DEVICES解析为空可见设备；不等于证明物理device injection/accessibility，第二OCI只有安全摘要限制不消除。原9fe3一次额度已执行FAILED_RETAINED，下次create/start/GPU须用户另行批准。本轮没有新create/start或运行controller，源码同步不授新执行权限。原失败/原始root OCI不改不下载，模型/Store/GLM/goal保持。
+
+visible-env路径说明：candidate布局 `tests/test_prepare_cuda_micro.py` 的真实active source路径为 `sllm_store/tests/python/test_prepare_cuda_micro.py`；另外两项真实路径为 `sllm_store/tests/prepare_cuda_micro.py`、`sllm_store/tests/gpu512_once_controller.py`。候选布局不是部署测试路径。
