@@ -64,15 +64,17 @@ new file mode 100644
 +        memory of another tensor.
 +        """
 +        same_storage_groups = collections.defaultdict(list)
++        result = {}
 +        for key, tensor in tensors.items():
-+            if tensor.numel():
++            if not tensor.numel():
++                result[key] = tensor
++            else:
 +                ptr = tensor.untyped_storage().data_ptr()
 +                same_storage_groups[tensor.device, ptr].append((key, tensor))
 +
 +        def get_end_ptr(tensor: torch.Tensor) -> int:
 +            return tensor.view(-1)[-1].data_ptr() + tensor.element_size()
 +
-+        result = {}
 +        for group in same_storage_groups.values():
 +            for k, t in group:
 +                a, b = t.data_ptr(), get_end_ptr(t)
@@ -134,29 +136,27 @@ new file mode 100644
 +                    prefix=prefix,
 +                )
 +                model = model.eval()
-+            # set all parameters to meta device
 +            state_dict = self._filter_subtensors(model.state_dict())
-+            key_list = list(state_dict.keys())
-+            
-+            for key, param in model.named_parameters(recurse=True):
-+                if key in key_list:
-+                    param.data = torch.empty(1, device="cuda")
++            key_list = list(state_dict)
++            bindings = dict(model.named_parameters(
++                recurse=True, remove_duplicate=False))
++            bindings.update(model.named_buffers(
++                recurse=True, remove_duplicate=False))
++            del state_dict
++            # Release constructor storage before allocating the restored rank.
++            for key in key_list:
++                tensor = bindings[key]
++                tensor.data = torch.empty(0, dtype=tensor.dtype, device="cpu")
 +            gc.collect()
-+            
++
 +            device_id = torch.cuda.current_device()
 +            device_map = {"": device_id}
 +            # Note: storage path is already included in the local model path
 +            sllm_state_dict = load_dict(model_path, device_map)
-+            
-+            for key, param in model.named_parameters(recurse=True):
-+                if key in key_list:
-+                    tensor = sllm_state_dict[key]
-+                    param.data = tensor
-+                    state_dict.pop(key)
-+            if state_dict:
-+                raise ValueError(
-+                    f"Missing keys {tuple(state_dict)} in loaded state!")
-+            
++
++            for key in key_list:
++                bindings[key].data = sllm_state_dict[key]
++
 +            for name, buffer in model.named_buffers(recurse=True):
 +                if buffer.device.type != 'cuda':
 +                    buffer.data = buffer.data.to(f'cuda:{device_id}')

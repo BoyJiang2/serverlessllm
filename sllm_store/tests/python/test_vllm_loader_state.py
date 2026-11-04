@@ -8,6 +8,7 @@ import pathlib
 import tempfile
 import types
 import unittest
+import weakref
 from typing import Dict, Optional
 from unittest import mock
 
@@ -16,7 +17,7 @@ from torch import nn
 
 
 class LoaderStateTest(unittest.TestCase):
-    def round_trip(self, saved_model, restored_model):
+    def round_trip(self, saved_model, restored_model, before_load=None):
         patch = (pathlib.Path(__file__).resolve().parents[2]
                  / "vllm_patch/sllm_load.patch").read_text()
         section = patch.split(
@@ -31,7 +32,11 @@ class LoaderStateTest(unittest.TestCase):
         store = types.ModuleType("sllm_store.torch")
         store.save_dict = lambda state, path: archive.update(
             (key, tensor.clone()) for key, tensor in state.items())
-        store.load_dict = lambda *args: archive
+        def load_dict(*args):
+            if before_load is not None:
+                before_load()
+            return archive
+        store.load_dict = load_dict
         store_package = types.ModuleType("sllm_store")
         store_package.__path__ = []
         vllm = types.ModuleType("vllm")
@@ -114,6 +119,38 @@ class LoaderStateTest(unittest.TestCase):
         self.assertEqual(parameter.untyped_storage().data_ptr(),
                          next(iter(archive.values())).untyped_storage().data_ptr())
         self.assertTrue(hasattr(parameter, "weight_loader"))
+
+    def test_old_snapshot_released_before_store_and_nonpersistent_buffer_preserved(self):
+        snapshots = []
+
+        class Model(nn.Module):
+            def __init__(self, value):
+                super().__init__()
+                self.weight = nn.Parameter(torch.full((2, 2), value))
+                self.register_buffer("_k_scale", torch.tensor(value))
+                self.register_buffer("generated", torch.tensor(11.0),
+                                     persistent=False)
+
+            def state_dict(self, *args, **kwargs):
+                state = super().state_dict(*args, **kwargs)
+                snapshots.extend(weakref.ref(tensor) for tensor in state.values())
+                return state
+
+        saved, restored = Model(7.0), Model(0.0)
+        parameter = restored.weight
+
+        def before_load():
+            self.assertTrue(snapshots)
+            self.assertTrue(all(reference() is None for reference in snapshots))
+            self.assertEqual(restored.weight.numel(), 0)
+            self.assertEqual(restored._k_scale.numel(), 0)
+            self.assertEqual(restored.generated.item(), 11.0)
+
+        result, archive = self.round_trip(saved, restored, before_load)
+        self.assertIs(result.weight, parameter)
+        self.assertEqual(result.generated.item(), 11.0)
+        self.assertNotIn("generated", archive)
+
 
 
 if __name__ == "__main__":
