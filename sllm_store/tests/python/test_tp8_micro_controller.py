@@ -15,7 +15,7 @@ class AcceptanceTest(unittest.TestCase):
     def messages(self):
         rows = [{'event':'PYTHON_ENTERED'} for _ in range(8)]
         for rank, uuid in enumerate(controller.UUIDS):
-            rows.append({'event':'TP8_CUDA_NCCL_MICRO_PASS','rank':rank,'local_rank':rank,'world_size':8,'device_count':8,'device_uuid':uuid,'payload_bytes':1048576,'dtype':'torch.float32','reduced_value':28,'raw_sha256':'2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814','allocator_peak_bytes':1048576,'python_entered_monotonic':100.0,'rank_ready_monotonic':102.0,'nccl_init_seconds':1.0})
+            rows.append({'event':'TP8_CUDA_NCCL_MICRO_PASS','rank':rank,'local_rank':rank,'world_size':8,'device_count':8,'device_uuid':uuid,'cuda_visible_count':8,'nvidia_visible':'void','master_addr':'127.0.0.1','master_port':'29500','payload_bytes':1048576,'dtype':'torch.float32','reduced_value':28,'raw_sha256':'2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814','allocator_peak_bytes':1048576,'python_entered_monotonic':100.0,'rank_ready_monotonic':102.0,'nccl_init_seconds':1.0})
         return rows
 
     def test_complete_result(self):
@@ -35,6 +35,18 @@ class AcceptanceTest(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(AssertionError):
                 controller.validate_messages(rows)
 
+    def test_wrong_delivered_environment(self):
+        # The controller pins what the worker actually received, so a runtime that
+        # stops rewriting to "void", or a rendezvous that silently falls back to a
+        # resolvable hostname, fails here instead of passing unnoticed.
+        for key, value in [('nvidia_visible',','.join(controller.UUIDS)),('nvidia_visible','all'),
+                           ('nvidia_visible',None),('master_addr','localhost'),('master_addr','::1'),
+                           ('master_port','29501'),('master_port',29500),('cuda_visible_count',7),
+                           ('cuda_visible_count',None)]:
+            rows = self.messages(); rows[8][key] = value
+            with self.subTest(key=key, value=value), self.assertRaises((AssertionError, KeyError)):
+                controller.validate_messages(rows)
+
 class ConfigurationTest(unittest.TestCase):
     def configuration(self):
         return {'Image':controller.IMAGE,
@@ -44,16 +56,16 @@ class ConfigurationTest(unittest.TestCase):
                 'Mounts':[{'Source':str(controller.ROOT/'sllm_store'),'Destination':'/source/sllm_store','RW':False}]}
 
     def test_static_loopback_configuration(self):
-        controller.validate_configuration(self.configuration())
+        controller.validate_create_request(self.configuration())
 
     def test_reject_dynamic_hostname_restart_or_network_change(self):
         for old, new in [('--rdzv-backend=static','--standalone'),('--master-addr=127.0.0.1','--master-addr=unresolvable-host'),('--max_restarts=0','--max_restarts=1')]:
             row = self.configuration()
             row['Config']['Cmd'] = [new if flag == old else flag for flag in row['Config']['Cmd']]
             with self.subTest(flag=old), self.assertRaises(AssertionError):
-                controller.validate_configuration(row)
+                controller.validate_create_request(row)
         row = self.configuration(); row['HostConfig']['NetworkMode'] = 'host'
-        with self.assertRaises(AssertionError): controller.validate_configuration(row)
+        with self.assertRaises(AssertionError): controller.validate_create_request(row)
 
 class RealTorchrunCpuTest(unittest.TestCase):
     @unittest.skipUnless(os.environ.get('KIMI_REAL_TORCHRUN_CPU_TEST') == '1', 'requires reviewed immutable CPU-only runtime')
@@ -62,7 +74,7 @@ class RealTorchrunCpuTest(unittest.TestCase):
         self.assertEqual(os.environ.get('CUDA_VISIBLE_DEVICES'), '')
         self.assertEqual(os.environ.get('NVIDIA_VISIBLE_DEVICES'), 'void')
         configuration = ConfigurationTest().configuration()
-        controller.validate_configuration(configuration)
+        controller.validate_create_request(configuration)
         # This fixture is accepted by the same exact-command admission used by
         # the real controller. Only replace the worker after --no-python.
         command = configuration['Config']['Cmd']
