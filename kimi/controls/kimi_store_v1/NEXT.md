@@ -1,3 +1,9 @@
+## 11/4 八卡动态 rendezvous 小探针失败保留；释放观察已完成
+
+源码 eddd42a278c182c188805f7e6fa92bafabc1506b，一次容器 f5f49c5bd02a8e79158560a2541263a1f199fbea8472c94e17e6829a952a7583 在 GO60 截止前反复遇到 torchrun 动态 rendezvous 主机名解析失败，没有 rank 进入 Python，没有 CUDA/NCCL 通过。控制器与守护失败保持，guard abort_requested 不改判；容器退出137、OOMKilled=false，不能将137解释为已证实OOM。18份原始小证据仅在服务器 public 目录，收据及哈希见 qjhs002-tp8-micro-dynamic-failed。
+
+守护释放 quiet60.014 秒、八卡观察共同 quiet60.381 秒；最终四个自有 runtime 身份均消失、scope删除、八卡零占用且无进程。释放成功不追认探针成功。原始OCI SHA3e3b39a4aa8573df57c06273c0c611a6f898ce3b4d48d939929b5c0846d4a5e8，root0600保留。历史失败和审阅不覆盖；后续静态 loopback 提案即使源码/CPU检查通过，也必须独立审阅并取得明确的一次重试批准，不能自动重跑。完整模型、转换、恢复与原生服务仍未通过。
+
 ## 11/4 CPU 守护 60 秒预算实际校准通过；八卡探针尚未执行
 
 qjhs002 当前适配源码 24bf5af6eab98e6429dbdf0fd898eac9364029d8。一次真实 CPU 故障注入完整容器 ID 9ac60aad1f97272bfb6d11f1f237a8621d90cc1a693560ae9bbe639d1517cb89，scope kill 在 GO+60.0209 秒、runc SIGKILL 在 GO+63.0286 秒，均早于原生 80 秒兜底；守护正常退出并观察释放 60.0072 秒，控制器总计 123.2716 秒。独立复核及最终身份/cgroup/GPU 清理核验通过；原始 OCI root:0600、SHA d46d8d283f79bb4e90c1f3f7d63cf00e9dd79c7e704231d3bfe290c683bae2df，仅存服务器。15 份小证据与审阅身份见 qjhs002-tp8-guard-cpu-calibration/ACTIVE-BASELINE.json；这里只提交小收据，不提交原始日志。
