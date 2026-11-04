@@ -1,3 +1,11 @@
+## 11/4 启动期 NVML 观察器追踪提案已审阅，尚未执行、需新批准
+
+在原源码4e663及控制器4cae不变的基础上，准备新RUN kimi-tp8-nvml-startup-trace-20261104的一次诊断；仅在内存载入既有控制器并为观察器查询包裹prlimit/strace，保持8GPU1MiB计算、静态rendezvous、shm8GiB、networknone、原3秒查询和守护预算。最终服务器命令d0a73ac6、代理CPU检查及root独立6项AST/预算检查通过，证据身份见qjhs002-nvml-startup-trace-proposal/receipt.json。
+
+本提案PRE now+186与POST实际独立单元activation+183均受真实outer218截止约束，避免内层重新起算预算。失败后的只读释放审计仅在原单元和自有资源终止、scope/身份消失且余量至少87秒时运行80+3审计，仍重新抛出原失败，不改判或自动重试。原始trace仅服务器root0600保存、128MB硬上限，不含env/execve/read/write，不下载或提交原始内容。
+
+状态PREPARED_REVIEWED_NOT_EXECUTED_REQUIRES_NEW_APPROVAL。尚未进行这次GPU/观察器追踪，必须先取得新的用户明确批准并核验预约、资源、完整预算及独立守护。追踪会增加PID和时序开销，可能改变失败时机，不能当作未追踪性能基准。历史观察器失败保持，goal继续active。
+
 ## 11/4 获准的 CDI 计算小探针失败保留：原观察器3秒查询超时
 
 源码4e663bbe02aa59451dbc03e105acabfa8486e18d未变；一次容器47e9e0aa2fe771da81afe629983fb3b59ae881a0699f80b9363abff50c94ecf8的原观察器nvidia-smi -q -x触发3秒TimeoutExpired，继而ABORT，守护强制结束容器137且OOMKilled=false。控制器8.9169秒失败，guard abort失败保留并完成quiet60.0257秒。没有worker/TensorPASS，原observer-final缺失，workload峰值、NCCL初始化、all-rank-ready均null；超时前零值采样不能证明峰值为零。

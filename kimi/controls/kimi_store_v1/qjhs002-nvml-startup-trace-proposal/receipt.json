@@ -1,0 +1,37 @@
+{
+  "status": "PREPARED_REVIEWED_NOT_EXECUTED_REQUIRES_NEW_APPROVAL",
+  "source_commit": "4e663bbe02aa59451dbc03e105acabfa8486e18d",
+  "source_changed": false,
+  "controller_sha256": "4cae6195dad32609ee7f5c9cb4ec18daf4cbd512f59e884365e4012cfa3b4d8f",
+  "new_run": "kimi-tp8-nvml-startup-trace-20261104",
+  "server_artifacts": [
+    {
+      "sha256": "d0a73ac6bf2ed671ab373ce3a78cfe6a2969d8cef884b92e01d4dd43344d9b75",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/nvml-startup-observer-trace-manual-root-command.json",
+      "bytes": 10403
+    },
+    {
+      "sha256": "084cc484d6a20857efbcdc0378b0e2415a81a84213f02ca81937f501b819673d",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/nvml-startup-observer-trace-cpu-verification.json",
+      "bytes": 1129
+    },
+    {
+      "sha256": "0cff9485a58297f894b27e8602999d4009033dba0eb4c086b12315b3fdce3ac1",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/root-nvml-startup-trace-budget-cpu-verification.json",
+      "bytes": 549
+    },
+    {
+      "sha256": "2ba93bb01ab9c38cad138e3bd0bbc423825af7917a94d0bf77ecc2f4f35eec78",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/tp8-micro-independent-source-review.md",
+      "bytes": 56649
+    }
+  ],
+  "proposal": "Existing controller loaded in memory with newRUN/BASE; only observer query wrapped prlimit128MB/strace syscall tracing, no environment/execve/read/write",
+  "unchanged_conditions": "8GPU1MiB collective, staticrendezvous, resources,shm8GiB,networknone,query3s,guard60/3/100,native180+3,full220outer217+1",
+  "budget_gates": "PRE now+186 and POSTactual nativeunit activation+183 both <=true outer218; no inner reset. Failure audit only owned unitsMainPID0/cgroups empty/CIDstopped/scopegone/pinnedidentitiesgone and remaining>=87, auditnative80+3 insideouter218",
+  "failure_contract": "Always re-raise original failure; no automatic retry or failure relabel",
+  "privacy": "Raw syscalltrace serverroot0600 cap128MB only, no local/Git raw or command downloads",
+  "limitation": "Tracer adds PID/timing overhead and may change failure timing; diagnostic is not untraced benchmark",
+  "admission": "Fresh explicit one-shot user approval plus booking/resources/full budget/independent guard required; prepared only, no real diagnostic run",
+  "history": "Previous observer failure retained; no probe/observer timeout/source changes; goal active"
+}
