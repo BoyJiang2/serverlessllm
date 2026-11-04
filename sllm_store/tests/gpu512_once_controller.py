@@ -4,13 +4,13 @@ import xml.etree.ElementTree as ET
 import math
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
-RUN = 'kimi-tp8-cuda-nccl-micro-static-20261104'
+RUN = 'kimi-tp8-cuda-nccl-micro-cdi-20261104'
 BASE = pathlib.Path('/data/brick1/boyjiang/kimi-k2.6/p0')/RUN
 UUIDS = ['GPU-736d7f37-f647-b82d-ab11-693753ac6822','GPU-c5510474-1f6d-03f1-c57f-476db275c5cb','GPU-d8081222-9816-41e4-68f8-ecbb13de6855','GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f','GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242','GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a','GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b','GPU-21336138-6e64-ec08-305b-26c99d661ab9']
 IMAGE = 'sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27'
 OBSERVER = ROOT/'sllm_store/tests/s4a_root_controller.py'
 PROBE = ROOT/'sllm_store/tests/cuda_micro_probe.py'
-PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'110101ddbf265d955c1d0db570d0ccea1442fea27f8d19256fa7053eeac71215'}
+PINS = {ROOT/'sllm_store/tests/guard_cuda_micro.py': '2b5726e497e2f6e8883adb2c676937ce628c03ecde85d62c42eb6750944cec4b', OBSERVER:'44dcadf48df1fd997872c86705f99ff749da6ee123297cea3892b816fbb77464', PROBE:'07d2c986fef6750083d195ccf2587f02261f359dcdcdff1794c237c73c9569e2'}
 GUARD = ROOT/'sllm_store/tests/guard_cuda_micro.py'
 DOCKER = ['/usr/bin/docker', '--host', 'unix:///var/run/docker.sock']
 
@@ -54,6 +54,13 @@ def validate_messages(messages):
     for row in rows:
         assert row['local_rank'] == row['rank'] and row['world_size'] == row['device_count'] == 8
         assert row['device_uuid'] == UUIDS[row['rank']]
+        assert row['cuda_visible_count'] == 8
+        # Delivery, reported by the worker itself in the same run that completed the
+        # collective: CDI rewrote the NVIDIA hint to "void" and the loopback
+        # rendezvous survived the torchrun spawn. Neither is inferred from the
+        # create-time request.
+        assert row['nvidia_visible'] == 'void'
+        assert (row['master_addr'], row['master_port']) == ('127.0.0.1', '29500')
         assert row['payload_bytes'] == 1048576 and row['dtype'] == 'torch.float32'
         assert row['reduced_value'] == 28 and row['raw_sha256'] == '2e042dc2f9f98002bb4fa72e283fcbfe046c03321dfc68f094834ca03891b814'
         assert row['allocator_peak_bytes'] >= 1048576
@@ -62,7 +69,16 @@ def validate_messages(messages):
         assert row['nccl_init_seconds'] <= row['rank_ready_monotonic']-row['python_entered_monotonic']
     return rows
 
-def validate_configuration(row):
+def validate_create_request(row):
+    """Assert the request stored at CREATE time, before the container ever starts.
+
+    This is not delivery evidence. It runs against `docker inspect` of a created
+    but unstarted container, so it only proves what was asked for. The nvidia
+    runtime rewrites NVIDIA_VISIBLE_DEVICES to "void" in the OCI spec at start, so
+    the equality below holds here and must not be expected to hold in the worker.
+    Delivery is asserted by tp8_environment() in the worker and by
+    validate_messages() on what each rank reported after the collective.
+    """
     host = row['HostConfig']; config = row['Config']
     assert row['Image'] == IMAGE and host['PidsLimit'] == 4096
     assert host['Memory'] == host['MemorySwap'] == 16*(1<<30)
@@ -121,7 +137,7 @@ def controller(expiry, expected_sha):
             assert row['Id'] == cid and row['Image'] == receipt['image']
             assert row['HostConfig']['PidsLimit'] == 4096
             return row
-        initial = inspect(); validate_configuration(initial)
+        initial = inspect(); validate_create_request(initial)
         save('docker-inspect-created.json',initial)
         assert not initial['State']['Running'] and initial['State']['Status'] == 'created'
         assert all(r == {'used_mib': 0, 'processes': []} for r in gpu().values())

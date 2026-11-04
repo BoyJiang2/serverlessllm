@@ -17,9 +17,11 @@ def tp8_environment(env):
         raise ValueError("rank must equal local rank in 0..7")
     if env.get("TORCHELASTIC_MAX_RESTARTS") != "0" or env.get("TORCHELASTIC_RESTART_COUNT") != "0":
         raise ValueError("torchrun restarts must be disabled")
+    if env.get("MASTER_ADDR") != "127.0.0.1" or env.get("MASTER_PORT") != "29500":
+        raise ValueError("static loopback rendezvous required")
     visible = env.get("CUDA_VISIBLE_DEVICES", "").split(",")
-    if visible != env.get("NVIDIA_VISIBLE_DEVICES", "").split(",") or len(visible) != 8:
-        raise ValueError("both visibility variables must bind the same eight UUIDs")
+    if len(visible) != 8:
+        raise ValueError("CUDA visibility must bind eight UUIDs")
     canonical = []
     for value in visible:
         if not value.startswith("GPU-"):
@@ -27,7 +29,20 @@ def tp8_environment(env):
         canonical.append("GPU-" + str(uuid.UUID(value[4:])))
     if len(set(canonical)) != 8:
         raise ValueError("duplicate GPU UUID")
-    return rank, canonical
+    # The NVIDIA variable is a request hint, not a delivery record. Under CDI the
+    # nvidia hook rewrites it to the sentinel "void" ("devices already selected,
+    # skip legacy all/index resolution"), so it can no longer carry device identity
+    # by the time this worker execs; the create-time value is unaffected. Delivery
+    # is therefore asserted from three sources that survive the rewrite:
+    #   1. CUDA_VISIBLE_DEVICES is the delivered set: eight distinct explicit UUIDs.
+    #   2. device_count() must be 8 and the driver-reported physical UUID of this
+    #      rank must equal visible[rank] (runtime, after this function returns).
+    #   3. The host inventory and every rank's reported device_uuid are compared
+    #      against the same UUID list by the root controller.
+    nvidia = env.get("NVIDIA_VISIBLE_DEVICES")
+    if nvidia not in ("void", ",".join(visible)):
+        raise ValueError("NVIDIA visibility must be CDI void or the same UUID list")
+    return rank, canonical, nvidia
 
 
 def main():
@@ -35,7 +50,7 @@ def main():
     parser.add_argument("--tp8", action="store_true")
     args = parser.parse_args()
     python_entered_monotonic = time.monotonic()
-    rank, visible = tp8_environment(os.environ) if args.tp8 else (0, None)
+    rank, visible, nvidia = tp8_environment(os.environ) if args.tp8 else (0, None, None)
     print(json.dumps({"event": "PYTHON_ENTERED"}), flush=True)
     import torch
     torch.set_num_threads(1)
@@ -87,6 +102,8 @@ def main():
           "python_entered_monotonic":python_entered_monotonic, "rank_ready_monotonic":rank_ready_monotonic, "nccl_init_seconds":nccl_init_seconds,
           "local_rank": rank, "world_size": 8, "device_count": 8,
           "device_uuid": physical_uuid, "torch": torch.__version__, "cuda": torch.version.cuda,
+          "nvidia_visible": nvidia, "master_addr": os.environ["MASTER_ADDR"],
+          "master_port": os.environ["MASTER_PORT"], "cuda_visible_count": len(visible),
           "payload_bytes": 1 << 20, "dtype": "torch.float32", "reduced_value": 28,
           "raw_sha256": digest, "allocator_peak_bytes": allocated,
           "allocator_reserved_peak_bytes": reserved,
