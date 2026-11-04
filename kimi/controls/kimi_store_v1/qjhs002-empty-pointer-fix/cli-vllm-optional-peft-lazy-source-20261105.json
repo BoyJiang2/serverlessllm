@@ -1,0 +1,40 @@
+{
+  "status": "FIVE_HOST_MOCK_CLI_TESTS_PASS_NOT_REAL_TORCH_OR_CONVERSION",
+  "recorded_utc": "2026-11-04T21:40:30.184638+00:00",
+  "cli_path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/cli.py",
+  "cli_sha256": "a32d8e5201f7d4d910b97faa138b4cfe19f22c5388b5d78c4eadf2ba3facae8b",
+  "test_path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_cli_vllm_options.py",
+  "test_sha256": "c6fd13c39464430c11bd8440b887ae2d4fa8c3a0fbc8478bcff217b422886943",
+  "baseline_cli_sha256": "b3974c13a64bd80f0253cf1e187e3e81e6a6503f2c8ce4dd0d7c5fbe65ca4d5e",
+  "minimal_diff_reverses_to_baseline_SHA": true,
+  "diff": "--- before/cli.py\n+++ after/cli.py\n@@ -30,14 +30,12 @@\n from sllm_store.server import serve\n from sllm_store.logger import init_logger\n from sllm_store.utils import to_num_bytes\n-from sllm_store.transformers import save_model, save_lora, load_model, load_lora\n from transformers import (\n     AutoModelForCausalLM,\n     AutoConfig,\n     AutoTokenizer,\n     BitsAndBytesConfig,\n )\n-from peft import PeftModel\n \n \n def resolve_storage_path(cli_path: Optional[str]) -> str:\n@@ -310,7 +308,11 @@\n                 mm_encoder_tp_mode=mm_encoder_tp_mode,\n             )\n         elif backend == \"transformers\":\n+            from sllm_store.transformers import save_model, save_lora\n+\n             if adapter_name:\n+                from peft import PeftModel\n+\n                 config = AutoConfig.from_pretrained(\n                     model_name,\n                     trust_remote_code=True,\n@@ -422,6 +424,8 @@\n             example_inferences(\"vllm\", model=llm)\n \n         elif backend == \"transformers\":\n+            from sllm_store.transformers import load_model, load_lora\n+\n             # warm up the GPU\n             num_gpus = torch.cuda.device_count()\n             for i in range(num_gpus):\n",
+  "test_command": [
+    "python3",
+    "-B",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "sllm_store/tests/python",
+    "-p",
+    "test_cli_vllm_options.py",
+    "-v"
+  ],
+  "observed_exit_code": 0,
+  "observed_tests_run": 5,
+  "observed_test_duration_seconds": 0.039,
+  "test_names": [
+    "test_cli_reaches_real_writer_with_bfloat16_trust_and_data_mode",
+    "test_sdk_accepts_explicit_options",
+    "test_legacy_sdk_and_cli_defaults_omit_version_specific_mm_kwarg",
+    "test_invalid_cli_options_do_not_reach_writer",
+    "test_full_main_vllm_entry_does_not_import_optional_peft_backend"
+  ],
+  "new_test_scope": "Compiles and executes entire actual CLI module then calls actual main()/Click save while PEFT and sllm_store.transformers imports forcibly raise; fake unrelated modules and actualFakeLLM; no optionalbackend attempted, BF16/trust/mmdata/TP8 flags plus saveRPC checked.",
+  "limits": [
+    "No real Torch/Transformers/vLLM/PEFT import, install, network, container, GPU or Storeconversion.",
+    "Existing four options/default tests preserved; new fullentry test closes previous AST-isolation blindspot.",
+    "Only lazy import timing changed; Transformer backend implementation and flags/defaults untouched.",
+    "No Git executed; formalGPU start will freeze further changes."
+  ]
+}
