@@ -1,3 +1,11 @@
+## 11/4 CSV GPU 监控补丁已修补、独审及推送；等待新运行批准
+
+源码分支 kimi-qjhs002-aligned-tail 已推送并核验 3d362cdd1dd5d625d11a402e93f43b54129217b1。保留用户的窄 CSV 查询、每查询15秒及短暂缺测容忍；新增已成功显存半样本即时保存与超限检查、返回UUID去重/非负检查、实际外层绝对截止前后准入、末次查询预算余量和查询后截止检查。宿主CPU30通过/1显式跳过；独审另行24通过/1跳过。缺口、最大查询周期耗时及显存采样间隔进入最终回执，所有峰值明确为采样下界；有缺测时使用计算/释放通过但监控有缺口的独立状态，不能称连续完整峰值或据此自动推进模型。证据身份见 qjhs002-csv-monitor-source-reviewed/receipt.json。
+
+此前获准的启动期NVML跟踪命令在内层第7行源码身份校验即退出1：用户监控修改发生于准入检查之后，未创建BASE、容器、GPU计算或启动期trace。原命令及批准历史保持不动，新增 qjhs002-nvml-startup-trace-proposal/admission-refusal.json 单独记录。这次准入拒绝不等于原实际GPU观察器超时失败，也不补成GPU通过。
+
+当前仅SOURCE_REVIEW_PASS_NOT_GPU_VALIDATED。新版CSV一次运行方案1b7b30aa已完成命令CPU检查及独审，见同目录runtime-proposal.json；执行仍需新预约/资源/完整220秒（含至少60秒释放观察）及独立守护核验和新批准；没有自动重试、完整模型、Store转换或TP8参考推理。金标、GLM终态与历史失败均保持，goal继续active。
+
 ## 11/4 启动期 NVML 观察器追踪提案已审阅，尚未执行、需新批准
 
 在原源码4e663及控制器4cae不变的基础上，准备新RUN kimi-tp8-nvml-startup-trace-20261104的一次诊断；仅在内存载入既有控制器并为观察器查询包裹prlimit/strace，保持8GPU1MiB计算、静态rendezvous、shm8GiB、networknone、原3秒查询和守护预算。最终服务器命令d0a73ac6、代理CPU检查及root独立6项AST/预算检查通过，证据身份见qjhs002-nvml-startup-trace-proposal/receipt.json。

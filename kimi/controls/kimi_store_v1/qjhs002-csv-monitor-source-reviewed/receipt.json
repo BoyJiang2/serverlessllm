@@ -1,0 +1,48 @@
+{
+  "status": "SOURCE_REVIEW_PASS_NOT_GPU_VALIDATED",
+  "recorded_at_utc": "2026-11-04T15:02:53.051523+00:00",
+  "source_commit": "3d362cdd1dd5d625d11a402e93f43b54129217b1",
+  "github_branch": "kimi-qjhs002-aligned-tail",
+  "github_verified_sha": "3d362cdd1dd5d625d11a402e93f43b54129217b1",
+  "source_sha256": {
+    "sllm_store/tests/gpu512_once_controller.py": "f293c9b94b45d33c1cbe8a301a203ab03e63817e4f5f012bc17d1a1add2bd8cf",
+    "sllm_store/tests/s4a_root_controller.py": "f5e0d1ef0dde38a5abd4a3c8b48aebd541ff8ac3a89c110709bbd76b2084baca",
+    "sllm_store/tests/python/test_guard_cuda_micro.py": "083341af7fe598fe4d0b24b1f2f667cac934373caf1849283e4478604dc18c32",
+    "sllm_store/tests/python/test_tp8_micro_controller.py": "b7f036354e79d1c274a21ae12f8603a13f13ef2363654ef74f1212779c95c0f4"
+  },
+  "cpu": {
+    "passed": 30,
+    "skipped": 1,
+    "failed": 0,
+    "patterns": [
+      "test_guard_cuda_micro.py",
+      "test_cuda_micro_probe.py",
+      "test_tp8_micro_controller.py"
+    ],
+    "skip": "opt-in real immutable-runtime CPU torchrun; not newly executed"
+  },
+  "independent_cpu": {
+    "passed": 24,
+    "skipped": 1
+  },
+  "independent_review": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/tp8-micro-independent-source-review.md",
+    "sha256": "d94c8cf1adc5964a5c3d0fa705fae89b0c44b4889a1ba483cf2db8eb0c1e1bc7"
+  },
+  "fixes": [
+    "CSV memory checked and persisted before process query",
+    "reject duplicate and negative memory output",
+    "query gaps reset quiet, remain in final receipt and parent status",
+    "all peaks explicitly sampled lower bounds with maximum memory interval and query cycle duration",
+    "independent native services admitted against real outer activation plus218s before and after launch",
+    "final GPU queries require remaining outer budget"
+  ],
+  "runtime_approved": false,
+  "gpu_executed": false,
+  "historical_failures_preserved": true,
+  "run_candidate": "kimi-tp8-cuda-nccl-micro-cdi2-20261104",
+  "server_receipt": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/csv-monitor-source-pass-20261104.json",
+    "sha256": "d94b0f88867fbdee8ac88ad130c2affcb5356145f67a01ee88966dafeecb0351"
+  }
+}
