@@ -1,0 +1,34 @@
+{
+  "status": "ACTUAL_INSTALLED_RAY_HEADONLY_GUARD_OLD_FALSE_REJECT_NEW_ABSENT_NONE_PASS",
+  "spec_sha256": "65f7dd5b42c26a98eeebbe5e38f334e34ab049749e887f3f0a081b9b27fe54c9",
+  "command_sha256": "3ca982c2af7cb8ced66d731661f5790153cd5cc7e927a14111b284438838b91c",
+  "actual_installed_CID": "af00ac742abeb1afa436dc8c094ffcd9882b5f3225a8b051b66610fe3beea06a",
+  "ray_scripts_sha256": "7ca9c10dd653ea681a95b75edb254b436a2097dd6b00399856370989d4b2c663",
+  "wheel_source_equals_actual_installed": true,
+  "guard_lines": [
+    1055,
+    1072
+  ],
+  "actual_AST_guard": "head_only_flags = {'--port': port, '--redis-shard-ports': redis_shard_ports, '--include-dashboard': include_dashboard}\nfor (flag, val) in head_only_flags.items():\n    if val is None:\n        continue\n    cli_logger.abort('`{}` should only be specified when starting head node with `{}`.', cf.bold(flag), cf.bold('--head'))\n    raise ValueError(f'{flag} should only be specified when starting head node with `--head`.')",
+  "old_false_rejected": true,
+  "new_None_passed": true,
+  "head_argv_unchanged": true,
+  "actual_root_rendered_workerargv": [
+    "start",
+    "--address=172.30.0.2:6379",
+    "--node-ip-address=172.30.0.3",
+    "--resources={\"worker_node\":1,\"worker_id_0\":1}",
+    "--num-cpus=32",
+    "--num-gpus=8",
+    "--object-store-memory=134217728",
+    "--node-manager-port=6380",
+    "--object-manager-port=6381",
+    "--min-worker-port=10002",
+    "--max-worker-port=10101",
+    "--dashboard-agent-listen-port=52365",
+    "--runtime-env-agent-port=52366",
+    "--disable-usage-stats"
+  ],
+  "rootcode_exactly_unchanged": true,
+  "no_GPU_or_install_or_source_change": true
+}
