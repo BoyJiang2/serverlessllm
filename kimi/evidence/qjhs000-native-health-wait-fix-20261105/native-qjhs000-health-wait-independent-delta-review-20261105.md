@@ -1,0 +1,9 @@
+# qjhs0 health-wait exception-contract independent review
+
+EXECUTION_SOURCE_REVIEW_PASS for the distinct once-only correctedattempt after fresh existing7200 admission. Spec109693d0975516290211ef27f92561f8f03257ffda20c7a12e9dc760acbfd32d; actualroot411fadcb981f2571d0ad625de7c71738fac435dc8b6c5607f53b3c4208eb03c4; actualfinish/health CPUfixture5c19710e274b716fa8ebc229d418f9d21c1ce27ef9259549f3cdb53649cce960 independentlyread/hashed.
+
+Actualfinish nonzerochildreturn nowraisesCalledProcessError, matching existinghealthcatch; deadlineassert remainsbeforeclassification. Healthcatch additionallyrequires actualAPIclientPopen.pollNone, thenoriginalhealthy/120deadline checks. OnlyhealthreadinessGET ispolled; no registration/inference/delete retry. APIexit0/1, deadline orguardassert isnotaccepted/caughtasstartuptransient. Otherfinish callsites do notcatchCPE andremainfailclosed. RealAST fixture coversfirstnonzeroHTTP then200, APIexit0rejection, deadline andguardrejection. No change toHTTPpayload/timeoutfield orserviceimplementation.
+
+Independentactualrootdiff is limited tothese exception-contract lines; allrolebodies/poolwindow1200/7200nativebounds/guards/observer/resources/gold/source/ELFpinned contracts unchanged, plusdistinctRUN/CIDnames. Actualconsumers are finish andhealthloop inroot, notdescriptor-onlyfields. Finalroot syntaxcompileswithout execution.
+
+Prior790.617s runcompletedactual640GiBpool RPC/config andfreshbaseline60.935/all8GPU1615, thenfailedonfirsthealthconnectionrefusal beforeactualAPIreadinessproof. This isvalidpartialStoreprogress butnotnativeAPIPASS. Originalfailure/ABORT/release andallpreviousfailures remainunchanged; node/rights/ownmemorychecks notbypassed. No additionalprobe/framework/source/envchange needed. ReviewerdidnotexecuteGPU/container/Rayinit/import/install/Git; rootfreshadmission andoneactualrun required.

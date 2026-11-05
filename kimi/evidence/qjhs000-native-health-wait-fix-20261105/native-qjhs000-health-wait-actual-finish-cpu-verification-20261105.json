@@ -1,0 +1,38 @@
+{
+  "status": "ACTUAL_FINISH_HEALTHLOOP_AST_CPU_4_CASES_PASS_NO_NETWORK_OR_GPU",
+  "spec_sha256": "109693d0975516290211ef27f92561f8f03257ffda20c7a12e9dc760acbfd32d",
+  "command_sha256": "411fadcb981f2571d0ad625de7c71738fac435dc8b6c5607f53b3c4208eb03c4",
+  "actual_AST": "def finish(item, deadline, monitor=False):\n    (p, o, e) = item\n    while p.poll() is None:\n        assert time.monotonic() < deadline\n        healthy()\n        if monitor:\n            sample(deadline)\n        time.sleep(0.5)\n    assert time.monotonic() < deadline\n    if p.returncode != 0:\n        raise subprocess.CalledProcessError(p.returncode, p.args)\n    assert o.stat().st_size <= 64 << 20 and e.stat().st_size <= 64 << 20\n    return o.read_text()\n\ndef health_wait():\n    limit = time.monotonic() + 120\n    while True:\n        try:\n            assert HTTP('/health', None, 5)['status'] == 200\n            break\n        except subprocess.CalledProcessError:\n            assert services['api'][0].poll() is None, 'API startup process exited'\n            assert time.monotonic() < limit\n            healthy()\n            time.sleep(0.5)",
+  "ConnectionRefused_exit1_then200": [
+    "PASS",
+    [
+      1,
+      0
+    ],
+    0.5
+  ],
+  "APIexit0_immediately_FAIL": [
+    "ASSERTION:API startup process exited",
+    [
+      1
+    ],
+    0.0
+  ],
+  "deadlineassert_notcaught": [
+    "ASSERTION:",
+    [
+      1
+    ],
+    0.0
+  ],
+  "guardassert_notcaught": [
+    "ASSERTION:guard failed",
+    [
+      1
+    ],
+    0.0
+  ],
+  "otherphases_nonzero_still_uncaught_CalledProcessError": true,
+  "health_timeout120_and_full7200_unchanged": true,
+  "no_actual_API_or_Store_or_Ray_or_sourcechange": true
+}
