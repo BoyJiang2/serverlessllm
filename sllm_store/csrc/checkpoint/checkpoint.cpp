@@ -36,6 +36,7 @@
 #include <future>
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -101,7 +102,9 @@ at::ScalarType stringToScalarType(const std::string& dtype_str) {
       {"torch.float64", torch::kFloat64},  {"torch.int16", torch::kInt16},
       {"torch.int32", torch::kInt32},      {"torch.int64", torch::kInt64},
       {"torch.uint8", torch::kUInt8},      {"torch.int8", torch::kInt8},
-      {"torch.bfloat16", torch::kBFloat16}};
+      {"torch.bfloat16", torch::kBFloat16},
+      {"torch.float8_e4m3fn", at::ScalarType::Float8_e4m3fn},
+      {"torch.float8_e8m0fnu", at::ScalarType::Float8_e8m0fnu}};
 
   auto it = dtype_map.find(dtype_str);
   if (it != dtype_map.end()) {
@@ -190,13 +193,30 @@ std::unordered_map<std::string, int> GetGpuUUID() {
 std::unordered_map<int, void*> AllocateCudaMemory(
     const std::unordered_map<int, size_t>& tensor_sizes) {
   std::unordered_map<int, void*> memory_ptrs;
-  for (const auto& p : tensor_sizes) {
-    int device = p.first;
-    size_t size = p.second;
-    void* ptr = nullptr;
-    cudaSetDevice(device);
-    cudaMalloc(&ptr, size);
-    memory_ptrs[device] = ptr;
+  void* pending = nullptr;
+  int pending_device = -1;
+  try {
+    for (const auto& [device, size] : tensor_sizes) {
+      pending_device = device;
+      auto status = cudaSetDevice(device);
+      if (status == cudaSuccess) status = cudaMalloc(&pending, size);
+      if (status != cudaSuccess) {
+        throw std::runtime_error(std::string("CUDA allocation failed: ") +
+                                 cudaGetErrorString(status));
+      }
+      memory_ptrs.emplace(device, pending);
+      pending = nullptr;
+    }
+  } catch (...) {
+    if (pending != nullptr) {
+      cudaSetDevice(pending_device);
+      cudaFree(pending);
+    }
+    for (const auto& [device, ptr] : memory_ptrs) {
+      cudaSetDevice(device);
+      cudaFree(ptr);
+    }
+    throw;
   }
   return memory_ptrs;
 }

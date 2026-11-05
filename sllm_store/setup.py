@@ -239,9 +239,12 @@ setup(
     extras_require=extras,
     entry_points={
         "console_scripts": ["sllm-store=sllm_store.cli:main"],
+        "vllm.general_plugins": [
+            "sllm_v4_store=sllm_store.vllm_v4_loader:register"
+        ],
     },
     package_data={
-        "sllm_store": ["py.typed", "*.so"],
+        "sllm_store": ["py.typed", "*.so", "v4_source_pins.json"],
     },
     packages=[
         "sllm_store",

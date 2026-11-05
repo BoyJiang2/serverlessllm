@@ -1,0 +1,296 @@
+"""V4 pre-postprocessing Store adapter, derived from the GLM raw loader.
+
+GLM reference SHA256:
+36a40e20f8d2d6b2e7b3346ec5e1c54d5598359b1b1756348ef97723e34fa502.
+Only cold full-model TP8 restore is supported; no in-place reload or MTP.
+"""
+
+import dataclasses
+import gc
+import hashlib
+import importlib.metadata
+import json
+import os
+from pathlib import Path
+
+import torch
+import vllm
+from vllm.distributed import (
+    get_tensor_model_parallel_rank,
+    get_world_group,
+)
+from vllm.model_executor.model_loader import register_model_loader
+from vllm.model_executor.model_loader.base_loader import BaseModelLoader
+from vllm.model_executor.model_loader.default_loader import DefaultModelLoader
+
+from sllm_store.v4_state import (
+    CONFIG_SHA256,
+    KERNEL_PACKAGES,
+    REVISION,
+    check_monolithic_capacity,
+    file_digest,
+    validate_complete,
+    validate_expected,
+    validate_identity,
+    validate_rows,
+    write_once,
+)
+
+
+def named_tensors(model):
+    tensors = dict(model.named_parameters(remove_duplicate=False))
+    tensors.update(model.named_buffers(remove_duplicate=False))
+    return tensors
+
+
+def tensor_metadata(model):
+    parameters = dict(model.named_parameters(remove_duplicate=False))
+    generated = {prefix + "." + name if prefix else name
+                 for prefix, module in model.named_modules()
+                 for name in module._non_persistent_buffers_set}
+    return {
+        name: {
+            "shape": list(tensor.shape), "stride": list(tensor.stride()),
+            "dtype": str(tensor.dtype),
+            "bytes": tensor.numel() * tensor.element_size(),
+            "kind": "parameter" if name in parameters else "buffer",
+            "persistent": None if name in parameters else name not in generated,
+        }
+        for name, tensor in named_tensors(model).items()
+    }
+
+
+def quant_methods(model):
+    return {
+        name: {
+            "class": type(module.quant_method).__module__ + "."
+            + type(module.quant_method).__qualname__,
+            "backends": {
+                field: str(getattr(module.quant_method, field, None))
+                for field in (
+                    "backend", "mxfp4_backend", "fp8_backend",
+                    "marlin_input_dtype",
+                )
+            },
+        }
+        for name, module in model.named_modules()
+        if getattr(module, "quant_method", None) is not None
+    }
+
+
+def tensor_digest(tensor):
+    data = tensor.detach().contiguous().reshape(-1).view(torch.uint8).cpu()
+    return hashlib.sha256(memoryview(data.numpy())).hexdigest()
+
+
+def check_engine_source():
+    # Bind selected API/model/gate sources; this does not check the wheel ABI.
+    path = Path(__file__).with_name("v4_source_pins.json")
+    pins = json.loads(path.read_text())
+    root = Path(vllm.__file__).parent
+    for relative, expected in pins.items():
+        if file_digest(root / relative) != expected:
+            raise ValueError(
+                f"V4 engine source differs from the pinned target: {relative}"
+            )
+
+
+def save_raw_model(model, root, rank, identity):
+    from sllm_store.torch import save_dict
+
+    validate_identity(identity)
+    directory = Path(root) / f"rank_{rank}"
+    directory.mkdir(exist_ok=False)
+    rows, cpu, storages = tensor_metadata(model), {}, {}
+    for name, tensor in named_tensors(model).items():
+        if not tensor.is_contiguous():
+            raise ValueError(f"Unsupported V4 raw tensor stride: {name}")
+        row = rows[name]
+        row["sha256"] = tensor_digest(tensor)
+        if not tensor.numel():
+            row["empty"] = True
+            continue
+        storage = (str(tensor.device), tensor.untyped_storage().data_ptr())
+        view = (
+            tensor.storage_offset(), tuple(tensor.shape),
+            tuple(tensor.stride()), tensor.dtype,
+        )
+        if storage in storages:
+            canonical, prior_view = storages[storage]
+            if prior_view != view:
+                raise ValueError(
+                    f"Unsupported overlapping V4 views: {canonical}, {name}"
+                )
+            row["alias"] = canonical
+        else:
+            copied = tensor.detach().cpu().contiguous()
+            if (copied.storage_offset()
+                    or copied.untyped_storage().nbytes() != row["bytes"]):
+                copied = copied.clone()
+            cpu[name] = copied
+            storages[storage] = (name, view)
+    validate_rows(rows)
+    save_dict(cpu, str(directory))
+    del cpu
+    gc.collect()
+    files = {}
+    for path in directory.iterdir():
+        if path.is_symlink() or not path.is_file():
+            raise ValueError("Unexpected linked/non-file Store payload")
+        with path.open("rb") as file:
+            os.fsync(file.fileno())
+        files[path.name] = {
+            "bytes": path.stat().st_size, "sha256": file_digest(path),
+        }
+    device = torch.cuda.get_device_properties(torch.cuda.current_device())
+    write_once(directory / "raw_state.json", {
+        "identity": identity, "rank": rank, "tensors": rows,
+        "quant_methods": quant_methods(model), "files": files,
+        "coordinates": dict(global_rank=rank, tp=rank, pp=0, dp=0),
+        "device_uuid": str(device.uuid),
+    })
+
+
+class V4RawLoader(BaseModelLoader):
+    def __init__(self, load_config):
+        super().__init__(load_config)
+        extra = load_config.model_loader_extra_config
+        if set(extra) != {"store_path", "identity"}:
+            raise ValueError("V4 loader requires only store_path and identity")
+        self.identity = dict(extra["identity"])
+        validate_identity(self.identity)
+        self.root = Path(extra["store_path"])
+        self.expected = None
+
+    def download_model(self, model_config):
+        if not Path(model_config.model).is_dir():
+            raise ValueError("V4 Store requires local, preverified model assets")
+        config_path = Path(model_config.model) / "config.json"
+        if (file_digest(config_path) != CONFIG_SHA256
+                or getattr(model_config, "hf_overrides", None)
+                not in (None, {})):
+            raise ValueError("V4 config differs from the frozen official input")
+
+    def load_model(self, vllm_config, model_config, prefix=""):
+        self.download_model(model_config)
+        check_engine_source()
+        parallel = vllm_config.parallel_config
+        hf = model_config.hf_config
+        if (model_config.revision != REVISION
+                or hf.model_type != "deepseek_v4" or hf.expert_dtype != "fp4"
+                or hf.n_routed_experts != 384 or hf.hc_mult != 4
+                or hf.quantization_config.get("scale_fmt") != "ue8m0"
+                or model_config.quantization != "fp8"
+                or model_config.dtype != torch.bfloat16
+                or parallel.tensor_parallel_size != 8
+                or parallel.pipeline_parallel_size != 1
+                or parallel.data_parallel_size != 1
+                or parallel.enable_expert_parallel
+                or vllm_config.speculative_config is not None
+                or model_config.max_model_len != 2048
+                or not model_config.enforce_eager
+                or vllm_config.scheduler_config.max_num_seqs != 1
+                or vllm_config.scheduler_config.max_num_batched_tokens != 2048
+                or vllm_config.cache_config.enable_prefix_caching):
+            raise ValueError(
+                "V4 raw loader requires FP4/FP8 TP8, EP/PP/DP/MTP off"
+            )
+        if (self.identity["torch_version"] != torch.__version__
+                or importlib.metadata.version("vllm") != "0.20.1"):
+            raise ValueError("V4 Store package version mismatch")
+        if any(importlib.metadata.version(name) != expected
+               for name, expected in KERNEL_PACKAGES.items()):
+            raise ValueError("V4 kernel package versions differ from the profile")
+        if (torch.cuda.get_device_capability() != (9, 0)
+                or "H20" not in torch.cuda.get_device_name()):
+            raise ValueError("This V4 adapter profile requires H20/SM90")
+        world = get_world_group()
+        self.rank = get_tensor_model_parallel_rank()
+        if world.world_size != 8 or world.rank != self.rank:
+            raise ValueError("V4 Store participants must be the TP8 world")
+        if isinstance(self, V4StoreLoader):
+            storage = Path(os.environ["STORAGE_PATH"]).resolve()
+            self.root.resolve().relative_to(storage)
+            validate_complete(self.root, self.identity)
+            manifest = self.root / f"rank_{self.rank}" / "raw_state.json"
+            metadata = json.loads(manifest.read_text())
+            device = torch.cuda.get_device_properties(torch.cuda.current_device())
+            check_monolithic_capacity(metadata, device.total_memory)
+        else:
+            self.root.mkdir(parents=True, exist_ok=True)
+            if (self.root / "COMPLETE.json").exists():
+                raise ValueError("Cannot overwrite a completed V4 conversion")
+        model = super().load_model(vllm_config, model_config, prefix=prefix)
+        model._sllm_v4_stage = "postprocessed"
+        return model
+
+
+class V4ExportLoader(V4RawLoader):
+    def __init__(self, load_config):
+        super().__init__(load_config)
+        self.native = DefaultModelLoader(dataclasses.replace(
+            load_config, load_format="safetensors", model_loader_extra_config={}
+        ))
+
+    def load_weights(self, model, model_config):
+        self.native.load_weights(model, model_config)
+        if any(
+            getattr(getattr(module, "quant_method", None), "uses_meta_device", False)
+            for module in model.modules()
+        ):
+            raise ValueError("V4 raw export rejects online quantization")
+        save_raw_model(model, self.root, self.rank, self.identity)
+
+
+class V4StoreLoader(V4RawLoader):
+    def load_weights(self, model, model_config):
+        from sllm_store.torch import load_dict_owned
+
+        if getattr(model, "_sllm_v4_stage", None) is not None:
+            raise ValueError("V4 raw restore requires a fresh model")
+        manifest = self.root / f"rank_{self.rank}" / "raw_state.json"
+        metadata = json.loads(manifest.read_text())
+        self.expected = tensor_metadata(model)
+        validate_expected(metadata["tensors"], self.expected)
+        if metadata["quant_methods"] != quant_methods(model):
+            raise ValueError("V4 quantization method/backend mismatch")
+        tensors = named_tensors(model)
+        for tensor in tensors.values():
+            tensor.data = torch.empty(
+                0, device=tensor.device, dtype=tensor.dtype
+            )
+        del tensors
+        gc.collect()
+        torch.cuda.empty_cache()
+        storage = Path(os.environ["STORAGE_PATH"]).resolve()
+        directory = (self.root / f"rank_{self.rank}").resolve()
+        identifier = str(directory.relative_to(storage))
+        loaded = load_dict_owned(
+            identifier, {"": torch.cuda.current_device()},
+            storage_path=str(storage),
+        )
+        rows = metadata["tensors"]
+        canonical = {name for name, row in rows.items()
+                     if not row.get("empty") and "alias" not in row}
+        if set(loaded) != canonical:
+            raise ValueError("Store returned incomplete or extra V4 tensors")
+        # Keep raw storage alive while native postprocessing replaces parameters.
+        model._sllm_storage_owners = tuple(loaded.values())
+        for name, tensor in named_tensors(model).items():
+            row = rows[name]
+            value = (
+                torch.empty(
+                    row["shape"], device=tensor.device, dtype=tensor.dtype
+                ) if row.get("empty") else loaded[row.get("alias", name)]
+            )
+            if (list(value.shape) != row["shape"]
+                    or str(value.dtype) != row["dtype"]
+                    or list(value.stride()) != row["stride"]):
+                raise ValueError(f"Wrong restored V4 tensor layout: {name}")
+            tensor.data = value
+        model._sllm_v4_stage = "restored_raw"
+
+
+def register():
+    register_model_loader("sllm_v4_export")(V4ExportLoader)
+    register_model_loader("sllm_v4_store")(V4StoreLoader)
