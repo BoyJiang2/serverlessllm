@@ -1,0 +1,79 @@
+{
+  "scope": "Metadata-only lower bounds, not capacity admission or measured GPU peaks",
+  "model_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "engine_source": "132765e3560659ff63ebd236203672e991b70e08",
+  "config_sha256": "5fe4568daee51c208cb8a79538eaeda090ae011ade1dee2c386aa95f569c810e",
+  "tp": 8,
+  "ep": false,
+  "moe_layers": 61,
+  "experts_per_rank": 384,
+  "hidden": 7168,
+  "intermediate_per_rank": 384,
+  "raw_shapes": {
+    "w13_weight": [
+      384,
+      768,
+      3584
+    ],
+    "w2_weight": [
+      384,
+      7168,
+      192
+    ],
+    "w13_weight_scale": [
+      384,
+      768,
+      224
+    ],
+    "w2_weight_scale": [
+      384,
+      7168,
+      12
+    ]
+  },
+  "raw_bytes_per_tensor_per_layer": {
+    "w13_weight": 1056964608,
+    "w2_weight": 528482304,
+    "w13_weight_scale": 66060288,
+    "w2_weight_scale": 33030144
+  },
+  "expert_bytes_per_layer": 1684537344,
+  "expert_bytes_per_rank": 102756777984,
+  "monolithic_expert_raw_plus_converted_minimum": 205513555968,
+  "grouped_raw_plus_converted_last_layer_endpoint_minimum": 104441315328,
+  "inventory_capacity_bytes": 150754820096,
+  "potential_remaining_after_grouped_expert_endpoint": 46313504768,
+  "candidate_groups_per_rank": 62,
+  "candidate_group_ids_for_tp8": 496,
+  "unbudgeted": [
+    "nonexpert raw and runtime including replicated tensors",
+    "model construction/scratch/communication allocations",
+    "Marlin per-expert list plus cat and transpose temporaries",
+    "BF16 intermediate scales and workspace",
+    "KV/compression cache, streams and allocator fragmentation",
+    "shared aliases and raw-reference retention"
+  ],
+  "illustrative_pool_rounding_expert_only": [
+    {
+      "chunk_mib": 32,
+      "grouped_expert_pool_bytes": 835102703616,
+      "monolithic_expert_pool_bytes": 822217801728,
+      "increase_bytes": 12884901888,
+      "not_actual_server_configuration": true
+    },
+    {
+      "chunk_mib": 256,
+      "grouped_expert_pool_bytes": 916975517696,
+      "monolithic_expert_pool_bytes": 822486237184,
+      "increase_bytes": 94489280512,
+      "not_actual_server_configuration": true
+    },
+    {
+      "chunk_mib": 1024,
+      "grouped_expert_pool_bytes": 1047972020224,
+      "monolithic_expert_pool_bytes": 824633720832,
+      "increase_bytes": 223338299392,
+      "not_actual_server_configuration": true
+    }
+  ]
+}
