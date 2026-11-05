@@ -1,0 +1,7 @@
+# GPUtil offline wheel independent runtime acceptance
+
+PASS for wheelbuild only. Fresh7435Bwheel SHAae7922871eb1d946410a04e28866d414abdb67469a22d98a9baa2dbc1c48e804 matches actual manifestc2235451d3a9ee95c1500e7e897eb3335d06735fb37d88ed1239fe0f43af445a and frozenprovenance. Allthree package.py files match officialsdist, all7RECORD entries verified. Existingpip26.1.1/setuptools80.10.2/wheel0.47.0 provenance recorded; actualreadonlyprefix wheelbuild took1.177584s, entireguardedrun61.923178s incl60.014601quiet. Freshcontroller/guard actualexit0/MainPID0, exactpinned identitiesgone/CIDscopegone. Containerexit0/noOOM/restart0/runcnetworknone. No runtime repeated byreviewer.
+
+Seven realdistributionmetadata versions are click8.1.7,filelock3.29.0,jsonschema4.26.0,packaging26.2,protobuf6.33.6,PyYAML6.0.1,requests2.34.0. These satisfy Raywheel core Requires-Dist versionconstraints; acquiredmsgpack1.1.2 satisfies>=1,<2. This closes directdeclaredmetadata compatibility only, not targetimports or transitive/runtime closure. NoRaydefault/serve extras implicitly selected. ExistingTorch2.10cu129/vLLM0.19.1/transformers5.5.1/grpcio1.76 metadata before/after hashes unchanged by frozenbody; fullruntime code/ABI identity is not inferred merely from metadata.
+
+Assetsreceipt and earlier acquisitionfailedattempts remain unchanged. No install/GPUtilimport/speedtestbenchmark/nativeRay/model/GPU orGit action. Next existingprefix offlinebootstrap/imports is distinct and must use these pinned artifacts, not a newenvironment/image.

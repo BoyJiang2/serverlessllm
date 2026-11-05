@@ -1,0 +1,114 @@
+{
+  "status": "PREPARED_GPUTIL_WHEEL_CPU420_NOT_EXECUTED_PENDING_REVIEW",
+  "run_id": "kimi-native-gputil-wheel-cpu-20261105-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "entrypoint": "/usr/bin/python3",
+  "cmd": [
+    "-I",
+    "-c",
+    "import base64,csv,hashlib,importlib.metadata as md,io,json,pathlib,subprocess,sys,tarfile,time,zipfile\nstarted=time.monotonic();out=pathlib.Path('/build');sdist=pathlib.Path('/assets/GPUtil-1.4.0.tar.gz');assert out.is_dir() and not list(out.iterdir()) and not list(pathlib.Path('/dev').glob('nvidia*'))\ndef digest(p):return hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()\nassert sdist.stat().st_size==5545 and digest(sdist)=='099e52c65e512cdfa8c8763fca67f5a5c2afb63469602d5dcb4d296b3661efb9'\ntools={n:dict(version=md.version(n),metadata_path=str(md.distribution(n)._path)) for n in ('pip','setuptools','wheel')}\ndef core():return {n:dict(version=md.version(n),metadata_sha256=hashlib.sha256(md.distribution(n).read_text('METADATA').encode()).hexdigest()) for n in ('torch','vllm','transformers','grpcio')}\nclosure_metadata={}\nfor name in ('click','filelock','jsonschema','packaging','protobuf','PyYAML','requests'):\n try:closure_metadata[name]=md.version(name)\n except md.PackageNotFoundError:closure_metadata[name]=None\nbefore=core();argv=['/usr/bin/python3','-I','-m','pip','wheel','--no-cache-dir','--no-index','--no-deps','--no-build-isolation','--wheel-dir','/build','--verbose',str(sdist)]\nwith (out/'wheel-build.stdout').open('x') as stdout,(out/'wheel-build.stderr').open('x') as stderr:subprocess.run(argv,stdout=stdout,stderr=stderr,check=True,timeout=120)\nassert core()==before and digest(sdist)=='099e52c65e512cdfa8c8763fca67f5a5c2afb63469602d5dcb4d296b3661efb9'\nwheels=list(out.glob('*.whl'));assert len(wheels)==1;wheel=wheels[0];assert wheel.stat().st_size<1048576\nwith tarfile.open(sdist) as tar:source={m.name.split('/',1)[1]:hashlib.sha256(tar.extractfile(m).read()).hexdigest() for m in tar if m.isfile() and m.name.split('/',1)[-1].startswith('GPUtil/') and m.name.endswith('.py')}\nwith zipfile.ZipFile(wheel) as z:\n names=z.namelist();assert all(not n.startswith('/') and '..' not in pathlib.PurePosixPath(n).parts for n in names)\n metadata=z.read(next(n for n in names if n.endswith('.dist-info/METADATA'))).decode();assert 'Name: GPUtil' in metadata and 'Version: 1.4.0' in metadata and 'Requires-Dist:' not in metadata\n wheelmeta=z.read(next(n for n in names if n.endswith('.dist-info/WHEEL'))).decode();assert 'Root-Is-Purelib: true' in wheelmeta and 'none-any' in wheelmeta\n for name,expected in source.items():assert hashlib.sha256(z.read(name)).hexdigest()==expected\n records=list(csv.reader(io.StringIO(z.read(next(n for n in names if n.endswith('.dist-info/RECORD'))).decode())))\n for name,value,size in records:\n  if value:\n   kind,expected=value.split('=',1);assert kind=='sha256';data=z.read(name);assert base64.urlsafe_b64encode(hashlib.sha256(data).digest()).decode().rstrip('=')==expected and len(data)==int(size)\nrecord=dict(status='GPUTIL_OFFLINE_WHEEL_CPU_BUILD_PASS',sdist_sha256=digest(sdist),wheel_filename=wheel.name,wheel_bytes=wheel.stat().st_size,wheel_sha256=digest(wheel),build_tools=tools,core_dependency_versions_metadata_only=closure_metadata,core_dependency_scope='Distribution metadata only, missing explicit null; no module import or dependency closure runtime proof',build_argv=argv,core_distributions_before_after=before,package_source_sha256=source,wheel_metadata=wheelmeta,record_entries=len(records),elapsed=time.monotonic()-started,limits=['Wheel build only; no installation/dependencyclosure/nativeimports/Ray/Store/model/GPU proof','Existing image prefix read-only, only /build+/tmp writable; no new env/image/checkouts'])\n(out/'mechanism-manifest.json').write_text(json.dumps(record,indent=2)+'\\n');print(record['status'],flush=True)\n"
+  ],
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "HOME": "/tmp",
+    "USER": "boyjiang",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "HF_HOME": "/tmp/hf",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "PIP_CONFIG_FILE": "/dev/null",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PIP_NO_CACHE_DIR": "1"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store",
+      "Target": "/source/sllm_store",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/GPUtil-1.4.0.tar.gz",
+      "Target": "/assets/GPUtil-1.4.0.tar.gz",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1",
+      "Target": "/build",
+      "ReadOnly": false
+    }
+  ],
+  "host_config": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,exec,nosuid,nodev,size=2g,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "user": "2147:2147",
+  "source_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+  "source_pins": {},
+  "old_artifact_pins": {
+    "sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+    "sllm_store/sllm_store/libglog.so.0.6.0": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6"
+  },
+  "proposal_path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/native-all-four-assets-verified-receipt-20261105.json",
+  "proposal_sha256": "7e9c2889ad627f5fbbcf6b103c56296301bb08e01fe70a0d7f8322138a48b44c",
+  "body_sha256": "8c4e6cf86a19d02e5edd776e4aeb616643fe1895031ec8c9a09e8c72e9097a2f",
+  "output_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1",
+  "output_parent": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build",
+  "budget": {
+    "full_seconds": 420,
+    "outer_runtime_seconds": 417,
+    "outer_stop_seconds": 1,
+    "outer_actual_deadline_seconds": 418,
+    "guard_deadline": 260,
+    "guard_kill_after": 3,
+    "guard_overall": 300,
+    "guard_native_seconds": 380,
+    "guard_stop_seconds": 3,
+    "guard_pre_required_seconds": 386,
+    "guard_post_required_seconds": 383,
+    "release_seconds": 60,
+    "prepare_before_GO_max_seconds": 20
+  },
+  "scope": "GPUtil purePython offline wheel only; no install/nativeprefixmutation/importProbe",
+  "requirements": [
+    "Fresh booking/resources/independent review beforeexactlyoneCPUbuild",
+    "Existing read-onlyprefix no account/rootfs changes",
+    "No automatic dependencies/buildenv/networkfallback"
+  ],
+  "supersedes_unexecuted_v1": {
+    "spec_sha256": "b68efba109fd78cf706cb56b2749443ecc65ad91b771320f362397a87263cc6e",
+    "command_sha256": "263c2c5dfab428d33026d09dfd1ce3642416d094e255a3049fe1e0a81c88dd2c"
+  }
+}

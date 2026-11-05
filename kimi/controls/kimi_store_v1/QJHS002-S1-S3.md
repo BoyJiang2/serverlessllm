@@ -542,3 +542,10 @@ Receipt767bfef06f9f4fdcce1e76374d08e8266f89928d9572f0fd42d54dacd2f90d91 and inde
 ### 2026-11-05 — Native dependency assets acquired; not installed
 
 Four exactofficial assets (Ray2.48 cp312, msgpack1.1.2, GPUtil1.4sdist, speedtest-cli2.1.3) total70581339bytes now exist once on qjhs002, allfullSHA/size independently verified. First300s serverdownload failed after4MiB; failure kept. Firststreamcontrolattempt ended beforeREADY with cause undetermined/no changedpartial; encoded-control RAM-to-SSH resume subsequently verified the entireRayfile in59.86s withoutlocalpayloadfiles. Remaining3smallassets were verified onserver. No model/Store/GPU/newimage/environment/packageinstall occurred. Assetsreceiptfa1fb4db4339052683bd9e6a0020dd9067b0e05bfc00d478d36dcbee3b2b68d9. Actualnative dependency closure/import and GPUtilofflinewheel remain pending; assetidentity does not prove readiness. GPU use will be announced with count/purpose/maxbudget before each future run per latestuser request.
+
+
+### 2026-11-05 — Offline GPUtil wheel built; native imports still pending
+
+Unique runc/noGPU CPU run kimi-native-gputil-wheel-cpu-20261105-once built GPUtil1.4.0 from the pinned5545Bsdist without index/dependencies/buildisolation/install. Output7435B SHAae7922871eb1d946410a04e28866d414abdb67469a22d98a9baa2dbc1c48ee804; all3package Python sourcefiles matchsdist and7RECORD hashes verified. Existingprefix remainedreadonly; Torch/vLLM/TF/grpc metadataunchanged. Whole61.923s including60.0146s release, source/controller/guard actualexit0 independentlyverified.
+
+Actual7existingdistribution versions satisfy Raycore directmetadata constraints (click8.1.7,filelock3.29.0,jsonschema4.26.0,packaging26.2,protobuf6.33.6,PyYAML6.0.1,requests2.34.0); this is not actualmodule-import/transitive/runtime proof. Runtime receiptad6260da0b2b5e719a2f8087e8ca74285fbbae72c4f9539941c5c0af402d0723. Wheel remains only onserver, notGit. Next is existingprefix bootstrap/import/officialnative lifecycle under reviewedresources/guards; noGPUorservice was started in this build.
