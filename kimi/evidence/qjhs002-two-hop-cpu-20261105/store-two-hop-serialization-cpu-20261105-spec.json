@@ -1,0 +1,101 @@
+{
+  "status": "PREPARED_TWO_HOP_CPU420_NOT_EXECUTED_PENDING_REVIEW",
+  "run_id": "kimi-store-two-hop-serialization-cpu-20261105-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "entrypoint": "/usr/bin/python3",
+  "cmd": [
+    "-I",
+    "-c",
+    "import ast,functools,hashlib,json,os,pathlib,pickle,sys,types\nassert not list(pathlib.Path('/dev').glob('nvidia*')) and os.environ['NVIDIA_VISIBLE_DEVICES']=='void'\nbase=pathlib.Path('/usr/local/lib/python3.12/dist-packages/vllm');out=pathlib.Path('/build');assert out.is_dir() and not list(out.iterdir())\npins={'entrypoints/llm.py': '68f573207aeb3f655c20b5e9d2035740cac99f68d3f11bec824e462e177b9eb7', 'v1/engine/core.py': '896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5', 'v1/executor/multiproc_executor.py': '2011e7d3024f1f230db98b88acc63856ca4d1e74b77f676d8a8a66c4e0dc01ad', 'v1/worker/worker_base.py': '589f14f979517a91e64abb9f9568dd4b5f587a58128d3fb744a579b724542c10', 'v1/serial_utils.py': 'a87f4cc50114eef931834270242b94c2ed2fc7fb78e9bdb7636428d0a99bf998', 'distributed/device_communicators/shm_broadcast.py': 'c3dfea3e59e941dccd53eab5d9dedc68c31e8710cb205bb1682dd65a93cb4992'}\nfor rel,value in pins.items():assert hashlib.sha256((base/rel).read_bytes()).hexdigest()==value,rel\nimport torch,cloudpickle,msgspec\nassert not torch.cuda.is_initialized()\nfrom vllm.v1.serial_utils import MsgpackEncoder,MsgpackDecoder,run_method\nencoder=MsgpackEncoder();decoder=MsgpackDecoder()\n# Extract actual executor METHOD branch and enqueue; no model/executor construction.\net=ast.parse((base/'v1/executor/multiproc_executor.py').read_text())\nef=next(n for n in ast.walk(et) if isinstance(n,ast.FunctionDef) and n.name=='collective_rpc' and any(isinstance(x,ast.Name) and x.id=='send_method' for x in ast.walk(n)))\nbranch=next(n for n in ef.body if isinstance(n,ast.If) and ast.unparse(n.test)=='isinstance(method, str)')\nenqueue=next(n for n in ef.body if isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and ast.unparse(n.value.func)=='self.rpc_broadcast_mq.enqueue')\nf=ast.FunctionDef(name='transport',args=ast.arguments(posonlyargs=[],args=[ast.arg(arg=x) for x in ['self','method','args','kwargs','output_rank']],kwonlyargs=[],kw_defaults=[],defaults=[]),body=[branch,enqueue],decorator_list=[])\nworker=ast.parse((base/'v1/worker/worker_base.py').read_text());apply=next(n for n in ast.walk(worker) if isinstance(n,ast.FunctionDef) and n.name=='apply_model');apply.decorator_list=[]\nmodule=ast.fix_missing_locations(ast.Module(body=[ast.ImportFrom(module='__future__',names=[ast.alias(name='annotations')],level=0),f,apply],type_ignores=[]));ns=dict(cloudpickle=cloudpickle,pickle=pickle);exec(compile(module,'actual-source-fragments','exec'),ns)\ncaptured=[];executor=types.SimpleNamespace(rpc_broadcast_mq=types.SimpleNamespace(enqueue=lambda v:captured.append(v)))\ng={'__name__':'__main__'};exec('def inspect_model(model):\\n return {\"sentinel\":model[\"sentinel\"]}\\n',g);fn=g['inspect_model']\n# First real msgspec/customcloudpickle hop reconstructs original modelcallback inside args.\nold=decoder.decode(encoder.encode(('apply_model',(fn,),{})));ns['transport'](executor,old[0],old[1],old[2],None)\ntry:pickle.dumps(captured.pop(),protocol=pickle.HIGHEST_PROTOCOL)\nexcept (pickle.PicklingError,AttributeError) as e:old_error=dict(type=type(e).__name__,message=str(e))\nelse:raise AssertionError('old secondhop must fail for reconstructed __main__callback')\ndef wrap(callback):return lambda worker:worker.apply_model(callback)\nnew=decoder.decode(encoder.encode((wrap(fn),(),{})));ns['transport'](executor,new[0],new[1],new[2],None);assert len(captured)==1\nwire=pickle.dumps(captured.pop(),protocol=pickle.HIGHEST_PROTOCOL);method,args,kwargs,rank=pickle.loads(wire);assert isinstance(method,bytes) and not args\nclass Worker:\n get_model=lambda self:{'sentinel':8675309}\n apply_model=ns['apply_model']\nvalue=run_method(Worker(),method,args,kwargs);assert value=={'sentinel':8675309}\nassert decoder.decode(encoder.encode(value))==value and not torch.cuda.is_initialized()\nfor rel,v in pins.items():assert hashlib.sha256((base/rel).read_bytes()).hexdigest()==v\nrecord=dict(status='ACTUAL_TWO_HOP_CPU_SERIALIZATION_PASS',old_error=old_error,new_result=value,method_type='bytes',args_empty=True,cuda_initialized=False,source_pins=pins,actual_executor_fragment=ast.unparse(f),actual_worker_apply_model=ast.unparse(apply),module_identities={n:dict(path=m.__file__,sha256=hashlib.sha256(pathlib.Path(m.__file__).read_bytes()).hexdigest(),version=getattr(m,'__version__',None)) for n,m in [('cloudpickle',cloudpickle),('msgspec',msgspec)]},scope='CPUserialization mechanism only; no LLM/Store constructor/model/GPU proof')\n(out/'mechanism-manifest.json').write_text(json.dumps(record,indent=2)+'\\n');print(record['status'],flush=True)\n"
+  ],
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "HOME": "/tmp",
+    "USER": "boyjiang",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "HF_HOME": "/tmp/hf",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "VLLM_ALLOW_INSECURE_SERIALIZATION": "1",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store",
+      "Target": "/source/sllm_store",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-two-hop-serialization-cpu-v1",
+      "Target": "/build",
+      "ReadOnly": false
+    }
+  ],
+  "host_config": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": true,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,exec,nosuid,nodev,size=2g,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "user": "2147:2147",
+  "source_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+  "source_pins": {},
+  "old_artifact_pins": {
+    "sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+    "sllm_store/sllm_store/libglog.so.0.6.0": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6"
+  },
+  "proposal_path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-restore-two-hop-official-callable-source-cpu-fixture-v2-20261105.json",
+  "proposal_sha256": "fca8c6a07d484637e7d12c1337e9f8b8f81590d747019b0250a000941ff183fe",
+  "body_sha256": "a3d22e29af174e2b525ccdd5395bfabd523f944b337cd17ac671202fbf1f09d4",
+  "output_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-two-hop-serialization-cpu-v1",
+  "output_parent": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build",
+  "budget": {
+    "full_seconds": 420,
+    "outer_runtime_seconds": 417,
+    "outer_stop_seconds": 1,
+    "outer_actual_deadline_seconds": 418,
+    "guard_deadline": 260,
+    "guard_kill_after": 3,
+    "guard_overall": 300,
+    "guard_native_seconds": 380,
+    "guard_stop_seconds": 3,
+    "guard_pre_required_seconds": 386,
+    "guard_post_required_seconds": 383,
+    "release_seconds": 60,
+    "prepare_before_GO_max_seconds": 20
+  },
+  "scope": "Actual installed serial_utils and executor/worker AST fragments only noLLM/Store/GPU",
+  "requirements": [
+    "Fresh booking/resource/independent review before oneCPUexecution",
+    "CPUserialization only; failedV5 retained; noGPUretry"
+  ]
+}

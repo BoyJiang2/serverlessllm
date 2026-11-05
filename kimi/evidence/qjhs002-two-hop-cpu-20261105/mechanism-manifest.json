@@ -1,0 +1,36 @@
+{
+  "status": "ACTUAL_TWO_HOP_CPU_SERIALIZATION_PASS",
+  "old_error": {
+    "type": "PicklingError",
+    "message": "Can't pickle <function inspect_model at 0x7f45070b7420>: attribute lookup inspect_model on __main__ failed"
+  },
+  "new_result": {
+    "sentinel": 8675309
+  },
+  "method_type": "bytes",
+  "args_empty": true,
+  "cuda_initialized": false,
+  "source_pins": {
+    "entrypoints/llm.py": "68f573207aeb3f655c20b5e9d2035740cac99f68d3f11bec824e462e177b9eb7",
+    "v1/engine/core.py": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+    "v1/executor/multiproc_executor.py": "2011e7d3024f1f230db98b88acc63856ca4d1e74b77f676d8a8a66c4e0dc01ad",
+    "v1/worker/worker_base.py": "589f14f979517a91e64abb9f9568dd4b5f587a58128d3fb744a579b724542c10",
+    "v1/serial_utils.py": "a87f4cc50114eef931834270242b94c2ed2fc7fb78e9bdb7636428d0a99bf998",
+    "distributed/device_communicators/shm_broadcast.py": "c3dfea3e59e941dccd53eab5d9dedc68c31e8710cb205bb1682dd65a93cb4992"
+  },
+  "actual_executor_fragment": "def transport(self, method, args, kwargs, output_rank):\n    if isinstance(method, str):\n        send_method = method\n    else:\n        send_method = cloudpickle.dumps(method, protocol=pickle.HIGHEST_PROTOCOL)\n    self.rpc_broadcast_mq.enqueue((send_method, args, kwargs, output_rank))",
+  "actual_worker_apply_model": "def apply_model(self, fn: Callable[[nn.Module], _R]) -> _R:\n    \"\"\"Apply a function on the model inside this worker.\"\"\"\n    return fn(self.get_model())",
+  "module_identities": {
+    "cloudpickle": {
+      "path": "/usr/local/lib/python3.12/dist-packages/cloudpickle/__init__.py",
+      "sha256": "12b2b2beaa8012b3a46c2a30ae2ce11a937d0cdf93683db642da88f4243db03c",
+      "version": "3.1.2"
+    },
+    "msgspec": {
+      "path": "/usr/local/lib/python3.12/dist-packages/msgspec/__init__.py",
+      "sha256": "d5330f3406745b0ffde3a1ed17bc20dc5ec47bc5362939520138d710d2202f26",
+      "version": "0.21.1"
+    }
+  },
+  "scope": "CPUserialization mechanism only; no LLM/Store constructor/model/GPU proof"
+}
