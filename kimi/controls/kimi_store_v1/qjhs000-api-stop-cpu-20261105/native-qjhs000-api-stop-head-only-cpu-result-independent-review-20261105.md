@@ -1,0 +1,14 @@
+# Head-only CPU API-stop result independent review
+
+Verdict: **REDUCED CASE NOT REPRODUCED; NORMAL EXIT AND RELEASE VERIFIED**. This is not a full native lifecycle fix or retrospective PASS.
+
+- Actual run: `kimi-native-qjhs000-api-stop-cpu-20261105-once`; immutable image and reviewed CPU spec `c90e40f8af3ddcbff73a27cc68cce1a86f60b1ea016c93da290a9c669e5ba958`. Actual runc/none container has no GPU requests or Store/checkpoint mount; source and dependency assets only.
+- Official Ray head and API/controller started without a worker. Actual stdout records `No worker nodes found`, controller startup and health HTTP200. The real API SIGINT returned exit0 in **1.278869683s**, within the unchanged30s criterion. No10s/20s stack capture fired because the process had already exited. Uvicorn logs application shutdown complete and server process finished.
+- Controller elapsed **87.097997s** includes guardian quiet observation **60.001734535s**. Container exit0, PID0, OOMKilled false. Fresh read-only systemd checks independently show controller/guardian MainPID0, result success/exit0, empty ControlGroup and both unit cgroups absent. Docker scope is absent; all three recorded shim/runc PID+startticks identities are independently gone.
+- Existing root-export package `/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-api-stop-cpu-root-export-20261105` is the small evidence package; all **10** exported file SHA256 values match manifest `152440550e4ce5b99c6c9f22c6144d4aea9393cd7dcb13bf2170bd3307d87264`. No second public copy was made. Raw OCI was not opened or copied: only root-exported path/SHA/uid0/mode0600 were compared with guard-final.
+
+Limits: no GPU, Store, registered model, eight-rank actors or model-history-dependent teardown existed in this reduced case. A clean head-only exit does not identify or exclude the prior full-cluster blocking point. The prior final-stop failure stays FAILED_RETAINED despite its earlier two AAB/delete/recreate successes. Nonfatal Ray disk-space warning remains in the exported stderr and is not assigned causality.
+
+Next diagnostic recommendation only: if the genuine full-cluster stop blocks again under separately authorized execution, capture authenticated API PID/startticks/cgroup plus State/PPid/wchan and faulthandler stacks during the original30-second stop window. Do not infer a production fix, increase timeouts or rerun GPU models from this reduced result.
+
+Independent release snapshot: `/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs000-api-stop-head-only-cpu-independent-release-check-20261105.json` SHA256 `74a6de525ceb47fcc614a13b75576ee87b3780eba297e50ff7c28a5e9027829b`. Review performed using exported small evidence plus current read-only systemd/proc/cgroup checks; no new runtime/probe was started.
