@@ -1,0 +1,13 @@
+{
+  "containerd.service": [
+    "Nov 05 19:55:23 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:23.974517809+08:00\" level=info msg=\"connecting to shim 5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488\" address=\"unix:///run/containerd/s/68ffa977985eaef5ff11e7bcc63581fb5e204a9921ae922ed402466df8010e20\" namespace=moby protocol=ttrpc version=3",
+    "Nov 05 19:55:33 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:33.953332327+08:00\" level=info msg=\"shim disconnected\" id=5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488 namespace=moby",
+    "Nov 05 19:55:33 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:33.953381818+08:00\" level=info msg=\"cleaning up after shim disconnected\" id=5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488 namespace=moby",
+    "Nov 05 19:55:33 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:33.953393063+08:00\" level=info msg=\"cleaning up dead shim\" id=5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488 namespace=moby",
+    "Nov 05 19:55:33 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:33.953382922+08:00\" level=error msg=\"failed to delete task\" error=\"ttrpc: closed\" id=5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488",
+    "Nov 05 19:55:33 qjhs0 containerd[5495]: time=\"2026-11-05T19:55:33.966894457+08:00\" level=warning msg=\"warnings while cleaning up dead shim\" id=5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488 namespace=moby warnings=\"time=\\\"2026-11-05T19:55:33+08:00\\\" level=warning msg=\\\"failed to read init pid file\\\" error=\\\"open /run/containerd/io.containerd.runtime.v2.task/moby/5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488/init.pid: no such file or directory\\\" runtime=io.containerd.runc.v2\\n\""
+  ],
+  "docker.service": [
+    "Nov 05 19:55:34 qjhs0 dockerd[6366]: time=\"2026-11-05T19:55:34.090830281+08:00\" level=error msg=\"Handler for POST /v1.46/containers/5ddbd2f1f4ff014cd7a70b255086e2b5d2e33babd1949e00d587e2dbab513488/start returned error: failed to create task for container: failed to create shim task: ttrpc: closed: unknown\""
+  ]
+}
