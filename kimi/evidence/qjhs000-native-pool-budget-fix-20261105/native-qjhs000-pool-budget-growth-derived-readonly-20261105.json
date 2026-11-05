@@ -1,0 +1,154 @@
+{
+  "status": "READONLY_DERIVED_POOL_GROWTH_BUDGET_FAILURE_RETAINED_NOT_POOL_READY",
+  "sources": {
+    "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-entry-pool-budget-physical-samples-export-20261105.jsonl": "30ec0531dc8137a6b659fe13173ffd14c26057d864021d3bc7b085ece700a66c",
+    "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-entry-pool-budget-failure-release-excerpt-20261105.json": "8045e478e822de6f79de1f846bdda2f95b648ffeda16a11da4454339bb64683b"
+  },
+  "samples": 284,
+  "sample_span_seconds": 493.07154410891235,
+  "first": {
+    "mono": 7690761.248922722,
+    "current": 1.0792579650878906,
+    "anon": 0.8018150329589844
+  },
+  "last": {
+    "mono": 7691254.320466831,
+    "current": 499.37112045288086,
+    "anon": 498.1928596496582
+  },
+  "max_current_GiB": 499.37112045288086,
+  "last120_window_seconds": 119.06470131408423,
+  "last120_growth_GiB_per_second": {
+    "current": 0.76353277234821,
+    "anon": 0.7621096382373301
+  },
+  "linear_seconds_to_counter640GiB_if_unchanged": {
+    "current": 184.1818513102214,
+    "anon": 186.07183695816394
+  },
+  "memory_events": {
+    "head": {
+      "max": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      },
+      "oom": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      },
+      "oom_kill": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      }
+    },
+    "worker": {
+      "max": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      },
+      "oom": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      },
+      "oom_kill": {
+        "initial": 0,
+        "maximum": 0,
+        "final": 0,
+        "delta": 0
+      }
+    }
+  },
+  "last_gpu_state": {
+    "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-63a1fe63-1472-9448-9361-a039cf257d14": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    },
+    "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": {
+      "used_mib": 1327,
+      "processes": [
+        "308746"
+      ]
+    }
+  },
+  "actual_failure": {
+    "status": "FAILED_RETAINED_NO_RETRY",
+    "error_type": "AssertionError",
+    "error": "",
+    "cids": {
+      "head": "982ff57daef3b905e3ae019b31900b3a0314d66286ded488b40c532013d9726e",
+      "worker": "0de63eabde617f1e219e41395bb9e5da1b2f1c9679d52bc298f0ca506e75f832"
+    },
+    "elapsed": 542.2287942003459
+  },
+  "store_stdout_tail": "NATIVE_OFFICIAL_ROLE {\"role\": \"store\", \"pid\": 1235, \"module\": \"sllm_store.cli\", \"argv\": [\"start\", \"--host\", \"0.0.0.0\", \"--port\", \"8073\", \"--storage-path\", \"/store\", \"--num-thread\", \"4\", \"--chunk-size\", \"64MB\", \"--mem-pool-size\", \"640GB\", \"--registration-required\", \"true\"]}\nINFO 11-05 09:48:41 cli.py:216] Starting gRPC server\nINFO 11-05 09:48:41 server.py:40] StorageServicer: storage_path=/store, mem_pool_size=687194767360, num_thread=4, chunk_size=67108864, registration_required=True\n",
+  "store_stderr_tail": "WARNING: Logging before InitGoogleLogging() is written to STDERR\nI20261105 09:48:46.984426  1235 checkpoint_store.cpp:41] Number of GPUs: 8\nI20261105 09:48:46.984479  1235 checkpoint_store.cpp:43] I/O threads: 4, chunk size: 64MB\nI20261105 09:48:46.984483  1235 checkpoint_store.cpp:45] Storage path: \"/store\"\nI20261105 09:48:47.375742  1235 checkpoint_store.cpp:71] GPU 0 UUID: ec8259a6-1812-7313-8679-ded3ed2271a0\nI20261105 09:48:48.290670  1235 checkpoint_store.cpp:71] GPU 1 UUID: e1f24dab-25b5-17b8-8b83-6586be0ffa7f\nI20261105 09:48:48.462160  1235 checkpoint_store.cpp:71] GPU 2 UUID: 63a1fe63-1472-9448-9361-a039cf257d14\nI20261105 09:48:48.638228  1235 checkpoint_store.cpp:71] GPU 3 UUID: 393e97f5-a431-1973-5bd9-e2be28ae854a\nI20261105 09:48:49.572657  1235 checkpoint_store.cpp:71] GPU 4 UUID: 3ff749b8-613e-59d2-963e-37f31a97dbaf\nI20261105 09:48:49.808656  1235 checkpoint_store.cpp:71] GPU 5 UUID: af44e1f0-3b92-1018-d09e-e0d86353b42d\nI20261105 09:48:49.958858  1235 checkpoint_store.cpp:71] GPU 6 UUID: c3ba52cb-d775-c5a4-5989-08a6e3cc0590\nI20261105 09:48:50.246974  1235 checkpoint_store.cpp:71] GPU 7 UUID: b1207fd6-ebb7-4cf8-aeb3-7e178be257da\nI20261105 09:48:50.247035  1235 pinned_memory_pool.cpp:29] Creating PinnedMemoryPool with 10240 buffers of 67108864 bytes\ncontext canceled\n",
+  "limits": [
+    "ActualJSONcontainscgroup memory.current/anon, NOT perprocessRSS; includesotherworkerprocessmemory, notexactpinned/registeredbytes",
+    "Linear extrapolation onlytoaccountingcounter640GiB, NOT poolreadytime/remainingregistrationguarantee",
+    "NoOOMevents inobservedwindow; noSDKexception inprovidedtail beforecontrollerABORT; doesnotruleoutunobserved/laterSDKissue",
+    "context canceled tail isshutdown-related observation, notnewautomaticretryauthorization",
+    "Visiblecontrollerassertion waspoolphasequeryreserve budget; originalfailedreceipt remainsfailed"
+  ],
+  "release": {
+    "head_guard": 60.04183382447809,
+    "worker_guard": 60.00586575362831,
+    "observer": 61.076612839475274,
+    "observer_monitor": {
+      "samples": 417,
+      "memory_samples": 417,
+      "gaps": 1,
+      "max_query_seconds": 25.539269162341952,
+      "max_memory_interval_seconds": 26.899408132769167,
+      "peak_kind": "SAMPLED_LOWER_BOUND",
+      "peak_coverage": "SAMPLED_WITH_QUERY_GAPS"
+    }
+  }
+}

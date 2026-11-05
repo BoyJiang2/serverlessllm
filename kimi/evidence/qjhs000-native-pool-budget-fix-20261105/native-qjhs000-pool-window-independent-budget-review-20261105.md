@@ -1,0 +1,11 @@
+# qjhs0 pool-window budget minimal delta independent review
+
+EXECUTION_SOURCE_REVIEW_PASS for one correctedattempt after fresh existing7200 admission. Spec7a8b7125f4a0b8baf01b2387397a1da9bfce77636df3c9f3e546f9e4fa72cf82; actualrootd8f59f7ae2c4ac2c22d1ecee4b3556bca110689a044d037fb41f53e305f03197; actual-timeCPUverification2bcc018aa757061b0c418fd18327e5b9705863952ccb128a22a85ebbac6776ef independentlyread/hashed.
+
+Actualroot consumer pool_end literal600 becomes1200 and matchingphase_max[2]/sum6060 updated; newRUN/CIDnames distinct. Allrolebodies/7200nativeouter/guards/observer/resource1536GiB/pool640GiB/chunk64MiB/thread4/gold/SDK/source/ELFs/strictownership/requiredquiet unchanged. No modelretry orpoolsize/threadchange. ActualAST verifies changed deadlineexpression, not merelyspecmetadata.
+
+Conservativeconstructor allowance955s deductsRayjoin/state150, RPCreserve65 andquery30 from1200. Actualsampledprogress justified morewindow but isnotlinearcompletion guarantee. Reserve65 retained: a nearendRPC mayfail beforebaseline60+query30 fits; this is safeearlyFAIL, notsuccessdeadlineextension. Physicalreadiness/config andfreshstablebaseline remain mandatory. CPUacceptedworstexampleCID6014 thenquiet6074 andevidence6254 fits unchangedworker6300/observer6450/native6480/globalCID6600/guards7020/outer7198 bounds. Actualpre/postnativeunitactivation gates stillenforced, not replacedbyarithmetic.
+
+Prior542.228s failuretriggered phase/queryreserve assertion beforepoolRPCready, notwhole7200exhaustion. Excerpt8045e478e822de6f79de1f846bdda2f95b648ffeda16a11da4454339bb64683b and284physicalrows30ec0531dc8137a6b659fe13173ffd14c26057d864021d3bc7b085ece700a66c reviewedread-only. Cgroupanon/memory.current orRSSprogress isnotexactcudaHostRegister/pinnedbytes/continuouspeak; noSDKerrorseen doesnotexcludeallSDKissues. Bothguards remainFAILEDabort withquiet60.0418/60.0059; observer61.0766/gap1 retained, notpromoted. Newbudgetchangesonlyprovenboundedwindow insufficiency; futurefailurestops, noautomaticfurtherbudgetincrease.
+
+No source/GPU/container/import/Git activity byreviewer. Rootexistingfreshadmission thenoneactualcorrectedrun; noextraGPUprobe/newframework/approvallayer.
