@@ -1,0 +1,71 @@
+{
+  "status": "ACCEPTED_OFFICIAL_FULL_SF_TP8_FIXED32_REFERENCE_NORMAL_EXIT_RELEASE",
+  "run_id": "kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once",
+  "source_sha": "7e7570459dc084ec59328cf50308fb7c387e2741",
+  "delivery_sha256": "8d66d064fdaf6a94254f2c34847a9767d4151fd9329891ee8b5889abbea17e60",
+  "container_id": "4737959ca5487d7c1a18b06d29c538380d326925c0c975a4d2b61fd4ff3bacf1",
+  "elapsed_including_release_seconds": 580.1363630285487,
+  "api_ready_from_go_seconds": 506.5173180056736,
+  "responses": [
+    {
+      "case": "arithmetic",
+      "seconds_nonstream_complete": 1.5200268235057592,
+      "prompt_tokens": 23,
+      "completion_tokens": 2,
+      "finish_reason": "stop"
+    },
+    {
+      "case": "translation",
+      "seconds_nonstream_complete": 0.10626406967639923,
+      "prompt_tokens": 23,
+      "completion_tokens": 2,
+      "finish_reason": "stop"
+    },
+    {
+      "case": "fixed32",
+      "seconds_nonstream_complete": 0.4894659137353301,
+      "prompt_tokens": 26,
+      "completion_tokens": 32,
+      "finish_reason": "length"
+    }
+  ],
+  "rank_file_count": 8,
+  "before_after_rank_manifests_equal": true,
+  "guard_quiet_seconds": 60.04767075367272,
+  "observer_quiet_seconds": 60.4297235282138,
+  "telemetry": {
+    "samples": 490,
+    "memory_samples": 490,
+    "gaps": 0,
+    "max_query_seconds": 2.742814416065812,
+    "max_memory_interval_seconds": 3.243722125887871,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+  },
+  "peak_mib_by_uuid_sampled_lower_bound": {
+    "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": 116595,
+    "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": 116513,
+    "GPU-63a1fe63-1472-9448-9361-a039cf257d14": 116513,
+    "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": 116513,
+    "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": 116513,
+    "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": 116513,
+    "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": 116513,
+    "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": 116513
+  },
+  "limitations": [
+    "TTFT not measured: nonstream complete response duration only",
+    "fixed32 is third after two business requests",
+    "cache state uncontrolled; no cold disk/file-hot/Store pool hit assertion",
+    "different node, quantization, runtime/eager/prefix/engine seed/capacity configurations disclosed separately; not a GLM-comparable benchmark",
+    "Store/native fixed32 and final Store shutdown still unresolved",
+    "old AAB gold and prior failures retained; no Store/native run in this attempt"
+  ],
+  "automation": {
+    "id": "kimi-04-00-sf",
+    "deleted": true
+  },
+  "created_epoch": 1793909841.6329489,
+  "independent_review_sha256": "0457118ad443d6014b8b61a8a4368e42350944e2d6e760068ec7a9b1978dac16",
+  "accepted_reference_path": "/home/boyjiang/kimi-new/evidence/kimi-sf-fixed32-accepted-reference-20261106.json",
+  "accepted_reference_sha256": "cbf8cf72cbca41df7997f6b8581ace9798892415e0088d3467d46217ffb19f98"
+}
