@@ -274,6 +274,21 @@ class RoundRobinRouter(SllmRouter):
     async def shutdown(self):
         async with self.running_lock:
             self.running = False
+        tasks = [task for task in (
+            self.auto_scaler, getattr(self, "load_balancer", None))
+            if task is not None]
+        for task in tasks:
+            task.cancel()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for result in results:
+            if isinstance(result, BaseException) and not isinstance(
+                    result, asyncio.CancelledError):
+                raise result
+        async with self.instance_management_lock:
+            if (self.starting_inference_instances
+                    or self.deleting_inference_instances
+                    or self.request_count or not self.request_queue.empty()):
+                raise RuntimeError("Shutdown requires quiescent ready instances")
         # stop all inference instances
         # return all unfinished requests
         while not self.request_queue.empty():
@@ -572,7 +587,7 @@ class RoundRobinRouter(SllmRouter):
             if instance_id not in pool:
                 logger.error(f"Instance {instance_id} not found")
                 return
-            instance = pool.pop(instance_id)
+            instance = pool[instance_id]
             async with instance.lock:
                 instance.status = False
         await instance.backend_instance.shutdown.remote()
@@ -580,4 +595,6 @@ class RoundRobinRouter(SllmRouter):
         await self.model_loading_scheduler.deallocate_resource.remote(
             self.model_name, instance_id, self.resource_requirements
         )
+        async with self.instance_management_lock:
+            pool.pop(instance_id)
         return

@@ -267,12 +267,13 @@ class SllmController:
                     lora_adapters
                 )
                 return
-            router = self.request_routers.pop(model_name)
-            self.registered_models.pop(model_name)
+            router = self.request_routers[model_name]
 
-        # if router is not None:
-        #     deleted_instance_id = await router.shutdown.remote()
-        del router
+        await router.shutdown.remote()
+        ray.kill(router)
+        async with self.metadata_lock:
+            self.request_routers.pop(model_name)
+            self.registered_models.pop(model_name)
 
     async def get_models(self):
         async with self.metadata_lock:
@@ -379,11 +380,8 @@ class SllmController:
 
         # delete all models
         async with self.metadata_lock:
-            delete_tasks = [
-                self._delete(model_name)
-                for model_name in self.request_routers.keys()
-            ]
-            await asyncio.gather(*delete_tasks)
+            model_names = list(self.request_routers)
+        await asyncio.gather(*(self.delete(model_name) for model_name in model_names))
 
     async def _start_ft_job(self, job_id, job_info):
         await self.ft_job_store.update_status.remote(job_id, "running")

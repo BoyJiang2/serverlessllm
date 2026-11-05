@@ -36,7 +36,7 @@ from vllm import (
     SamplingParams,
 )
 from vllm.inputs import TokensPrompt
-from vllm.utils import Counter
+from vllm.utils.counter import Counter
 
 from sllm.backends.backend_utils import (
     BackendStatus,
@@ -188,7 +188,6 @@ class VllmBackend(SllmBackend):
         filtered_engine_config["enable_prefix_caching"] = (
             self.enable_prefix_caching
         )
-        filtered_engine_config["task"] = self.task
 
         logger.info(
             f"Creating new VLLM engine with config: {filtered_engine_config}"
@@ -266,6 +265,8 @@ class VllmBackend(SllmBackend):
         """Abort all requests and shutdown the backend."""
         async with self.status_lock:
             if self.status == BackendStatus.DELETING:
+                if self.engine is not None:
+                    raise RuntimeError("Backend shutdown has not completed")
                 return
             self.status = BackendStatus.DELETING
 
@@ -273,8 +274,9 @@ class VllmBackend(SllmBackend):
         requests = await self.request_trace.return_all_request_ids()
         tasks = [self.engine.abort(request_id) for request_id in requests]
         await asyncio.gather(*tasks)
-        if hasattr(self, "engine"):
-            del self.engine
+        if self.engine is not None:
+            self.engine.shutdown()
+            self.engine = None
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
