@@ -1,0 +1,151 @@
+test_duplicate_active_request_id_is_rejected (test_v4_backend.V4BackendTests) ... ERROR
+test_legacy_messages_keep_existing_role_prefix_format (test_v4_backend.V4BackendTests) ... ok
+test_shutdown_cancels_pre_first_token_and_waits_for_task_exit (test_v4_backend.V4BackendTests) ... FAIL
+test_stream_failure_cleans_active_trace_and_propagates_error (test_v4_backend.V4BackendTests) ... FAIL
+test_token_ids_and_stop_reason_are_available_for_separate_validation (test_v4_backend.V4BackendTests) ... FAIL
+test_trace_contains_pending_request_before_first_token (test_v4_backend.V4BackendTests) ... FAIL
+test_trace_debug_completed_history_does_not_block_stop (test_v4_backend.V4BackendTests) ... ERROR
+test_v4_uses_pinned_tokenizer_encoding_and_preserves_request (test_v4_backend.V4BackendTests) ... FAIL
+
+======================================================================
+ERROR: test_duplicate_active_request_id_is_rejected (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 456, in wait_for
+    return fut.result()
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 219, in test_duplicate_active_request_id_is_rejected
+    result = await asyncio.wait_for(asyncio.shield(second), 0.2)
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 458, in wait_for
+    raise exceptions.TimeoutError() from exc
+asyncio.exceptions.TimeoutError
+
+======================================================================
+ERROR: test_trace_debug_completed_history_does_not_block_stop (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "<actual-backend>", line 293, in stop
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 605, in sleep
+    return await future
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 456, in wait_for
+    return fut.result()
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 198, in test_trace_debug_completed_history_does_not_block_stop
+    await asyncio.wait_for(self.backend.stop(), 0.2)
+  File "/usr/lib/python3.10/asyncio/tasks.py", line 458, in wait_for
+    raise exceptions.TimeoutError() from exc
+asyncio.exceptions.TimeoutError
+
+======================================================================
+FAIL: test_shutdown_cancels_pre_first_token_and_waits_for_task_exit (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 182, in test_shutdown_cancels_pre_first_token_and_waits_for_task_exit
+    self.assertTrue(task.done())
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_stream_failure_cleans_active_trace_and_propagates_error (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 193, in test_stream_failure_cleans_active_trace_and_propagates_error
+    self.assertEqual(await self.backend.request_trace.request_count(), 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_token_ids_and_stop_reason_are_available_for_separate_validation (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 206, in test_token_ids_and_stop_reason_are_available_for_separate_validation
+    self.assertNotIn("error", result)
+AssertionError: 'error' unexpectedly found in {'error': 'Invalid sampling parameters: unknown sampling argument'}
+
+======================================================================
+FAIL: test_trace_contains_pending_request_before_first_token (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 171, in test_trace_contains_pending_request_before_first_token
+    self.assertEqual(await self.backend.request_trace.request_count(), 1)
+AssertionError: 0 != 1
+
+======================================================================
+FAIL: test_v4_uses_pinned_tokenizer_encoding_and_preserves_request (test_v4_backend.V4BackendTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_backend.py", line 160, in test_v4_uses_pinned_tokenizer_encoding_and_preserves_request
+    self.assertEqual(self.engine.inputs, {"prompt_token_ids": [0, 7, 8]})
+AssertionError: 'system: You are a helpful assistant. Fol[79 chars]git.' != {'prompt_token_ids': [0, 7, 8]}
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.493s
+
+FAILED (failures=5, errors=2)

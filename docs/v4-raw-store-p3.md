@@ -2,6 +2,8 @@
 
 2026-11-06。用户授权独立分支实现与CPU契约验证，不安装推理环境、不运行GPU。基点为Kimi工作树的tracked commit `89ced92416f8342a03c3df83670249cd626ac0d2`；原工作树的未跟踪文件和现存ELF未复制。独立服务器目录为 `qjhs002:/data/brick1/boyjiang/sllm-v4-p3-20261106`，分支 `sllm/v4-raw-store-p3-20261106`。
 
+本文记录首个Store/loader里程碑 `fcb69b31200670a02bf4785bb7a1076b024c6294` 的39项CPU检查。后续独立backend接点和当前41项新增用例合跑结果见 [V4 native backend补充](v4-native-backend-p3.md)；两份报告均不代表GPU或完整服务通过。
+
 **本里程碑不能执行完整V4-Pro的单slab TP8恢复。** 容量复核证明该表示不适配已知H20容量，代码已在模型构造前加入必要下界拒绝。后续表示路线等待用户选择：按专家层分组raw Store、处理后Store，或TP16。没有通过缩小模型、改变精度或删掉专家来绕过目标。
 
 ## 1 已实现的接点

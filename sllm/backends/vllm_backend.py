@@ -46,7 +46,9 @@ from sllm.backends.backend_utils import (
 logger = logging.getLogger("ray")
 
 
-def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
+def process_output(
+    output: RequestOutput, model_name: str, return_token_ids: bool = False
+) -> Dict[str, Any]:
     choices: List[Dict[str, Any]] = [
         {
             "index": idx,
@@ -59,6 +61,10 @@ def process_output(output: RequestOutput, model_name: str) -> Dict[str, Any]:
         }
         for idx, result in enumerate(output.outputs)
     ]
+    if return_token_ids:
+        for choice, result in zip(choices, output.outputs):
+            choice["token_ids"] = list(result.token_ids)
+            choice["stop_reason"] = getattr(result, "stop_reason", None)
 
     api_response = {
         "id": output.request_id,
@@ -119,7 +125,7 @@ class LLMEngineStatusDict:
 
     async def delete_request(self, request_id: str):
         async with self.lock:
-            del self.status_dict[request_id]
+            self.status_dict.pop(request_id, None)
 
     async def return_all_results(self) -> List[Union[RequestOutput, str]]:
         async with self.lock:
@@ -152,6 +158,9 @@ class VllmBackend(SllmBackend):
         self.status_lock = asyncio.Lock()
         self.backend_config = backend_config
         self.request_trace = LLMEngineStatusDict()
+        self._active_requests = {}
+        self._shutdown_task = None
+        self.is_v4 = backend_config.get("tokenizer_mode") == "deepseek_v4"
         # if trace_debug is True, request trace will not be deleted after completion
         self.trace_debug = backend_config.get("trace_debug", False)
         self.enforce_eager = backend_config.get("enforce_eager", False)
@@ -214,23 +223,31 @@ class VllmBackend(SllmBackend):
         if request_data is None:
             return {"error": "Request data is missing"}
 
+        request_data = dict(request_data)
+        return_token_ids = request_data.pop("return_token_ids", False)
+        if not isinstance(return_token_ids, bool):
+            return {"error": "return_token_ids must be a boolean"}
+
         model_name: str = request_data.pop("model", "vllm-model")
         messages: Dict[Dict[str, str], str] = request_data.pop("messages", [])
-        construct_prompt: str = "\n".join(
-            [
-                f"{message['role']}: {message['content']}"
-                for message in messages
-                if "content" in message
-            ]
-        )
-
-        # If prompt is not provided, construct it from messages
-        inputs: Union[str, TokensPrompt] = request_data.pop(
-            "prompt", construct_prompt
-        )
-        if request_data.get("input_tokens") is not None:
+        prompt = request_data.pop("prompt", None)
+        input_tokens = request_data.pop("input_tokens", None)
+        if input_tokens is not None:
             inputs = TokensPrompt(
-                prompt_token_ids=request_data.pop("input_tokens"),
+                prompt_token_ids=input_tokens,
+            )
+        elif prompt is not None:
+            inputs = prompt
+        elif self.is_v4:
+            tokenizer = self.engine.get_tokenizer()
+            inputs = TokensPrompt(prompt_token_ids=tokenizer.apply_chat_template(
+                messages, tokenize=True, enable_thinking=False,
+                drop_thinking=True,
+            ))
+        else:
+            inputs = "\n".join(
+                f"{message['role']}: {message['content']}"
+                for message in messages if "content" in message
             )
 
         request_id: str = request_data.pop(
@@ -242,55 +259,90 @@ class VllmBackend(SllmBackend):
         except Exception as e:
             return {"error": f"Invalid sampling parameters: {e}"}
 
-        results_generator = self.engine.generate(
-            inputs, sampling_params, request_id
-        )
-
-        # TODO stream results
-
-        # Non-stream case
-        final_output = None
-        async for response_output in results_generator:
-            final_output = response_output
-            await self.request_trace.update_status(request_id, response_output)
-
-        assert final_output is not None
-
-        if not self.trace_debug:
-            await self.request_trace.delete_request(request_id)
-
-        return process_output(final_output, model_name)
+        registered = False
+        results_generator = None
+        try:
+            async with self.status_lock:
+                if self.status != BackendStatus.RUNNING:
+                    return {"error": "Engine is not running"}
+                if request_id in self._active_requests:
+                    return {"error": "Request ID is already active"}
+                self._active_requests[request_id] = asyncio.current_task()
+                registered = True
+            await self.request_trace.update_status(request_id, "PENDING")
+            results_generator = self.engine.generate(
+                inputs, sampling_params, request_id
+            )
+            # TODO stream results
+            final_output = None
+            async for response_output in results_generator:
+                final_output = response_output
+                await self.request_trace.update_status(
+                    request_id, response_output
+                )
+            if final_output is None:
+                raise RuntimeError("Engine stream ended without output")
+            return process_output(final_output, model_name, return_token_ids)
+        finally:
+            if registered:
+                try:
+                    try:
+                        if results_generator is not None:
+                            await results_generator.aclose()
+                    finally:
+                        if not self.trace_debug:
+                            await self.request_trace.delete_request(request_id)
+                finally:
+                    self._active_requests.pop(request_id, None)
 
     async def shutdown(self):
         """Abort all requests and shutdown the backend."""
         async with self.status_lock:
-            if self.status == BackendStatus.DELETING:
-                if self.engine is not None:
-                    raise RuntimeError("Backend shutdown has not completed")
-                return
             self.status = BackendStatus.DELETING
+            if self._shutdown_task is None:
+                self._shutdown_task = asyncio.create_task(
+                    self._shutdown_engine()
+                )
+            shutdown_task = self._shutdown_task
+        await asyncio.shield(shutdown_task)
 
-        # Abort all requests
-        requests = await self.request_trace.return_all_request_ids()
-        tasks = [self.engine.abort(request_id) for request_id in requests]
-        await asyncio.gather(*tasks)
+    async def _shutdown_engine(self):
+        requests = tuple(self._active_requests.items())
+        request_ids = [request_id for request_id, _ in requests]
+        if not self.is_v4:
+            request_ids = await self.request_trace.return_all_request_ids()
+        for _, task in requests:
+            task.cancel()
+        abort_errors = []
         if self.engine is not None:
-            self.engine.shutdown()
+            aborts = await asyncio.gather(
+                *(self.engine.abort(request_id) for request_id in request_ids),
+                return_exceptions=True,
+            )
+            abort_errors = [error for error in aborts
+                            if isinstance(error, BaseException)]
+        await asyncio.gather(
+            *(task for _, task in requests), return_exceptions=True
+        )
+        if self.engine is not None:
+            result = self.engine.shutdown()
+            if inspect.isawaitable(result):
+                await result
             self.engine = None
         gc.collect()
-        if torch.cuda.is_available():
+        if not self.is_v4 and torch.cuda.is_available():
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
+        if abort_errors:
+            raise RuntimeError("Request abort failed during shutdown") from abort_errors[0]
 
     async def stop(self) -> None:
         """Wait for all requests to finish and shutdown the backend."""
         async with self.status_lock:
-            if self.status.value >= BackendStatus.STOPPING.value:
-                return
-            self.status = BackendStatus.STOPPING
-        while await self.request_trace.request_count() > 0:
-            logger.info("Waiting for all requests to finish")
-            await asyncio.sleep(1)
+            if self.status.value < BackendStatus.STOPPING.value:
+                self.status = BackendStatus.STOPPING
+            requests = tuple(self._active_requests.values())
+        await asyncio.gather(*requests, return_exceptions=True)
         logger.info("All requests finished. Shutting down the backend.")
         await self.shutdown()
 
@@ -302,6 +354,7 @@ class VllmBackend(SllmBackend):
         results = await self.request_trace.return_all_results()
         ongoing_results: List[RequestOutput] = [
             result for result in results if isinstance(result, RequestOutput)
+            and (not self.is_v4 or result.request_id in self._active_requests)
         ]
         tokens: List[List[int]] = [
             result.prompt_token_ids + result.outputs[0].token_ids

@@ -1,0 +1,87 @@
+{
+  "commit": "132765e3560659ff63ebd236203672e991b70e08",
+  "files": [
+    {
+      "path": "vllm/tokenizers/deepseek_v4.py",
+      "git_blob": "76725dab16a12c82a5f6264713d4b92b41d99e37",
+      "sha256": "95f6f5f73934a70e258768c7c70be06be48876d8cd6951b7f1047caa6293963e",
+      "fixture": "vllm0201_v4_tokenizer.py.txt",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/tokenizers/deepseek_v4.py"
+    },
+    {
+      "path": "vllm/tokenizers/deepseek_v4_encoding.py",
+      "git_blob": "6895771e2f59b4faaa1abd6af800a40867bba4b6",
+      "sha256": "582f735bf75ad5fbe2b4a8801d8280a65ff0e41175874249bd62433e78c487ff",
+      "fixture": "vllm0201_v4_encoding.py.txt",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/tokenizers/deepseek_v4_encoding.py"
+    },
+    {
+      "path": "vllm/v1/engine/async_llm.py",
+      "git_blob": "0e55a685bd94b3e7bf51031f8bd98bc148b3ba31",
+      "sha256": "8d50b66619da8452b48d32bbadb2724c977e8594bc9ccb1485ef36725e4fa7ec",
+      "fixture": null,
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/v1/engine/async_llm.py"
+    },
+    {
+      "path": "vllm/__init__.py",
+      "git_blob": "968d1a143b16f144d6eda57357c1db31758ac4c8",
+      "sha256": "fd3708e5a13abe98c566afd79a6b1987cef70c0548bb19c1218ff6a7f9d43346",
+      "fixture": null,
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/__init__.py"
+    },
+    {
+      "path": "vllm/inputs/__init__.py",
+      "git_blob": "7f89a598b77946e9e44b265472be1aebfc408d1b",
+      "sha256": "18c499230cb8e4153219f792b1ea121ab0625213fe0b43cba91b729f10d77372",
+      "fixture": null,
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/inputs/__init__.py"
+    },
+    {
+      "path": "vllm/utils/counter.py",
+      "git_blob": "c2dce32e97e13d092051da2cfda4013968755fe4",
+      "sha256": "e976b45a31decb62f0c8f26419f61adfb9a03ac41f707245f64472a4871a1c34",
+      "fixture": null,
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/utils/counter.py"
+    },
+    {
+      "path": "vllm/engine/async_llm_engine.py",
+      "git_blob": "fc1cea02343871cf8663d8a4ac41e19526e521e2",
+      "sha256": "3f751c61135ff53e463bb8fe363d342d5b3639829bce5d22bdabc620b412db5b",
+      "fixture": null,
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/132765e3560659ff63ebd236203672e991b70e08/vllm/engine/async_llm_engine.py"
+    }
+  ],
+  "api_contract": {
+    "shutdown": {
+      "async": false,
+      "parameters": [
+        "self",
+        "timeout"
+      ]
+    },
+    "generate": {
+      "async": true,
+      "parameters": [
+        "self",
+        "prompt",
+        "sampling_params",
+        "request_id"
+      ]
+    },
+    "abort": {
+      "async": true,
+      "parameters": [
+        "self",
+        "request_id",
+        "internal"
+      ]
+    },
+    "get_tokenizer": {
+      "async": false,
+      "parameters": [
+        "self"
+      ]
+    }
+  },
+  "scope": "static source identities and signatures; not dynamic import or runtime proof"
+}
