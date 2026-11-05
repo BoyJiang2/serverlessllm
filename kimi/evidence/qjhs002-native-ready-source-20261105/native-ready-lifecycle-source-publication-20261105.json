@@ -1,0 +1,20 @@
+{
+  "status": "SOURCE_CPU_REVIEWED_NOT_NATIVE_RUNTIME_VALIDATED",
+  "source_commit": "1fbd1fb16ce280159ef540e229b9b22d362b2073",
+  "github_branch_sha_verified": "1fbd1fb16ce280159ef540e229b9b22d362b2073",
+  "files": {
+    "sllm/backends/vllm_backend.py": "8e4411465342708ea6c1c6904056f7cb6dbab4d57a74add8149a3abcc345779b",
+    "sllm/backends/__init__.py": "3e77a3549095bb76b7025063d43fb61cd6ca2ce46ff95faa0bded1c4f06c5b6b",
+    "sllm/routers/roundrobin_router.py": "119f73910f3c27e9229bc2e6176f8d702b4ce5a8b99864aa4d39ace25ade1492",
+    "sllm/controller.py": "b950233811bf44e835892e4fa5e7b6d5a2c2b82f4be8de7961c2be65f8d863b8",
+    "tests/backend_test/test_native_ready_lifecycle.py": "2bed4d82f4fe307d61c5e66da22d8efc91bd02895db1e2a5b0008ccc1b76c428"
+  },
+  "tests": "9 PASS; stdlib/FakeRay/FakeEngine/real asyncio; no Torch/Ray/GPU import",
+  "review_sha256": "a354d14dfa640a427a38207c5a3c2d4b393895ba0b726e118ac03a07ccd4b893",
+  "limitations": [
+    "No actual native service creation/inference/deletion/recreation or physical release validated",
+    "Restricted ready/min=max1/quiescent delete; general FT/migration/busy lifecycle unchanged",
+    "Completed trace_debug entries require shutdown, not existing stop request-count loop"
+  ],
+  "synchronization": "Server source committed; GitHub source branch SHA independently ls-remote verified; not deployment approval"
+}
