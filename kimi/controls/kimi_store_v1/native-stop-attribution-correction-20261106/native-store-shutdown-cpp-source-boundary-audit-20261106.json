@@ -1,0 +1,269 @@
+{
+  "status": "SOURCE_ONLY_NOT_RUNTIME_BLOCKED_FRAME_OR_FIX",
+  "files": {
+    "sllm_store/csrc/sllm_store/checkpoint_store.cpp": {
+      "sha256": "4289d49c1999ef1039056d08242c0398fca6c4c72b40c6a3a03cb46c749583d3",
+      "excerpts": [
+        {
+          "line": 86,
+          "text": "CheckpointStore::~CheckpointStore() { ClearMem(); }"
+        },
+        {
+          "line": 276,
+          "text": "int CheckpointStore::ClearMem() {"
+        },
+        {
+          "line": 277,
+          "text": "  std::unique_lock<std::mutex> lock_info(model_info_mutex_);"
+        },
+        {
+          "line": 278,
+          "text": "  for (auto& [model_path, model] : model_map_) {"
+        },
+        {
+          "line": 279,
+          "text": "    LOG(INFO) << \"Unloading model \" << model_path;"
+        },
+        {
+          "line": 280,
+          "text": "    int ret = model->FreeHost();"
+        },
+        {
+          "line": 281,
+          "text": "    if (ret != 0) {"
+        },
+        {
+          "line": 282,
+          "text": "      LOG(ERROR) << \"Failed to free memory for model \" << model_path;"
+        },
+        {
+          "line": 283,
+          "text": "    }"
+        },
+        {
+          "line": 284,
+          "text": "  }"
+        },
+        {
+          "line": 285,
+          "text": "  model_map_.clear();"
+        },
+        {
+          "line": 286,
+          "text": "  LOG(INFO) << \"All models unloaded from memory\\n\";"
+        },
+        {
+          "line": 287,
+          "text": "  return 0;"
+        }
+      ]
+    },
+    "sllm_store/csrc/sllm_store/checkpoint_store.h": {
+      "sha256": "326a92d3fe039b67c79bec174a6a19463d540dbeee471a5b34499985f344ef3f",
+      "excerpts": [
+        {
+          "line": 78,
+          "text": "  const std::filesystem::path storage_path_;"
+        },
+        {
+          "line": 79,
+          "text": "  int num_gpus_;"
+        },
+        {
+          "line": 80,
+          "text": "  std::unordered_map<int, GpuInfo> gpu_info_map_;"
+        },
+        {
+          "line": 81,
+          "text": "  std::unordered_map<std::string, std::shared_ptr<Model>> model_map_;"
+        },
+        {
+          "line": 82,
+          "text": "  std::unordered_map<std::string,"
+        },
+        {
+          "line": 83,
+          "text": "                     std::chrono::time_point<std::chrono::system_clock>>"
+        },
+        {
+          "line": 84,
+          "text": "      model_last_access_time_;"
+        },
+        {
+          "line": 85,
+          "text": "  std::mutex model_info_mutex_;"
+        },
+        {
+          "line": 86,
+          "text": "  const size_t memory_pool_size_;"
+        },
+        {
+          "line": 87,
+          "text": "  std::shared_ptr<PinnedMemoryPool> memory_pool_;"
+        },
+        {
+          "line": 88,
+          "text": "  int num_thread_;"
+        },
+        {
+          "line": 89,
+          "text": "  size_t chunk_size_;"
+        },
+        {
+          "line": 90,
+          "text": ""
+        },
+        {
+          "line": 91,
+          "text": "  std::queue<std::future<int>> async_tasks_;"
+        },
+        {
+          "line": 92,
+          "text": ""
+        },
+        {
+          "line": 93,
+          "text": "  size_t GetNumChunkFromTensorSize(size_t tensor_size);"
+        },
+        {
+          "line": 94,
+          "text": "  ModelPtr GetModelPtr(const std::string& model_path);"
+        }
+      ]
+    },
+    "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp": {
+      "sha256": "76996f5bb90ceaf4bfb7165fd84da171e8b8d8fe2d4153ce416bb8049ffcdafc",
+      "excerpts": [
+        {
+          "line": 24,
+          "text": "    : chunk_size_(chunk_size) {"
+        },
+        {
+          "line": 25,
+          "text": "  size_t num_buffers = (total_size + chunk_size - 1) / chunk_size;"
+        },
+        {
+          "line": 26,
+          "text": "  if (num_buffers * chunk_size != total_size) {"
+        },
+        {
+          "line": 27,
+          "text": "    LOG(ERROR) << \"PinnedMemoryPool size not multiple of chunk_size\";"
+        },
+        {
+          "line": 28,
+          "text": "  }"
+        },
+        {
+          "line": 29,
+          "text": "  LOG(INFO) << \"Creating PinnedMemoryPool with \" << num_buffers"
+        },
+        {
+          "line": 30,
+          "text": "            << \" buffers of \" << chunk_size << \" bytes\";"
+        },
+        {
+          "line": 31,
+          "text": ""
+        },
+        {
+          "line": 32,
+          "text": "  for (size_t i = 0; i < num_buffers; ++i) {"
+        },
+        {
+          "line": 33,
+          "text": "    char* buffer = static_cast<char*>(aligned_alloc(4096, chunk_size_));"
+        },
+        {
+          "line": 34,
+          "text": "    if (buffer == nullptr) {"
+        },
+        {
+          "line": 35,
+          "text": "      LOG(FATAL) << \"Malloc failed\";"
+        },
+        {
+          "line": 36,
+          "text": "    }"
+        },
+        {
+          "line": 37,
+          "text": ""
+        },
+        {
+          "line": 38,
+          "text": "    cudaError_t err ="
+        },
+        {
+          "line": 39,
+          "text": "        cudaHostRegister(buffer, chunk_size_, cudaHostRegisterDefault);"
+        },
+        {
+          "line": 40,
+          "text": "    if (err != cudaSuccess) {"
+        },
+        {
+          "line": 41,
+          "text": "      LOG(FATAL) << \"cudaHostRegister failed: \" << cudaGetErrorString(err);"
+        },
+        {
+          "line": 42,
+          "text": "    }"
+        },
+        {
+          "line": 43,
+          "text": "    pool_.insert(buffer);"
+        },
+        {
+          "line": 44,
+          "text": "    free_list_.insert(buffer);"
+        },
+        {
+          "line": 45,
+          "text": "  }"
+        },
+        {
+          "line": 46,
+          "text": "}"
+        },
+        {
+          "line": 47,
+          "text": ""
+        },
+        {
+          "line": 48,
+          "text": "PinnedMemoryPool::~PinnedMemoryPool() {"
+        },
+        {
+          "line": 49,
+          "text": "  for (char* buffer : pool_) {"
+        },
+        {
+          "line": 50,
+          "text": "    cudaHostUnregister(buffer);"
+        },
+        {
+          "line": 51,
+          "text": "    free(buffer);"
+        },
+        {
+          "line": 52,
+          "text": "  }"
+        }
+      ]
+    }
+  },
+  "verified_source_facts": [
+    "CheckpointStore destructor invokes ClearMem; ClearMem frees model hosts, clears map and logs all models unloaded",
+    "PinnedMemoryPool destructor iterates pool calling cudaHostUnregister thenfree; log of ClearMem completion is not pool/driver/runtime teardown completion",
+    "futures and shared ownership also require teardown; actual blocked frame not captured"
+  ],
+  "original_runtime_evidence": "Store shutdown/ClearMem log before final30sec failure; additive correction review0bd364db",
+  "limits": [
+    "Source candidate stages do not prove which call blocked or CUDA unregister error/latency",
+    "Do not change timeout, pool size or ownership semantics without runtime evidence",
+    "Reduced head-only CPUAPI case had noStore and cannot testStore shutdown"
+  ],
+  "next_action": "After approvedSFreference and separate native admission, capture Store-specific stop boundaries/actual frame within originaldeadline; API-onlydiagnostic delta remains parked, not mainfix",
+  "current_execution": "No container/GPU/model/Store/probe started; scheduled04SF unaffected"
+}
