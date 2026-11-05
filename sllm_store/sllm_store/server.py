@@ -132,7 +132,14 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
             return storage_pb2.ConfirmModelResponse()
 
         for i in range(5):
-            ret = self.storage.wait_model_in_gpu(model_path, replica_uuid)
+            # WaitModelInGpu blocks until this rank's GPU copy completes, which is
+            # minutes for a full model. This handler runs on the gRPC event loop,
+            # so calling it inline froze every other rank's Load/Confirm RPC for
+            # that whole time and their clients cancelled. Hand the wait to a
+            # worker thread; the binding also releases the GIL for the duration.
+            ret = await asyncio.to_thread(
+                self.storage.wait_model_in_gpu, model_path, replica_uuid
+            )
             if ret == 0:
                 logger.info(
                     f"Confirm model {model_path} replica {replica_uuid} success"

@@ -67,9 +67,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
           py::arg("model_path"), py::arg("replica_uuid"),
           py::arg("gpu_memory_handles"), py::arg("mem_copy_chunks"),
           "Load a model from memory asynchronously.")
+      // WaitModelInGpu blocks on a condition variable until the rank's GPU copy
+      // finishes, which is minutes for a full model. Without releasing the GIL
+      // here, even a worker thread that calls it starves the interpreter, so the
+      // paired asyncio.to_thread() in server.py would not actually unblock the
+      // gRPC event loop. Both halves are required.
       .def("wait_model_in_gpu", &CheckpointStore::WaitModelInGpu,
            py::arg("model_path"), py::arg("replica_uuid"),
-           "Wait for a model to be available in GPU memory.")
+           "Wait for a model to be available in GPU memory.",
+           py::call_guard<py::gil_scoped_release>())
       .def("unload_model_from_host", &CheckpointStore::UnloadModelFromHost,
            py::arg("model_path"), "Unload a model from the host memory.")
       .def("clear_mem", &CheckpointStore::ClearMem,
