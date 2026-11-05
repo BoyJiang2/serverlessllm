@@ -1,0 +1,87 @@
+--- sllm_load.patch.before
++++ sllm_load.patch.after
+@@ -303,7 +303,7 @@
+  import threading
+  import time
+  from collections import defaultdict
+-@@ -4744,67 +4745,161 @@
++@@ -4744,67 +4745,210 @@
+  
+          try:
+              with DeviceMemoryProfiler() as m:
+@@ -489,7 +489,7 @@
+ +                                        "storage_id": owner["storage_id"],
+ +                                        "storage_offset": tensor.storage_offset(),
+ +                                    })
+-+                            logger.info("SLLM_LOAD_EVIDENCE %s", json.dumps({
+++                            record = {
+ +                                "event": "SLLM_LOAD_EVIDENCE", "pid": os.getpid(),
+ +                                "tp_rank": get_tp_group().rank_in_group, "device": str(self.device),
+ +                                "device_uuid": device_uuid,
+@@ -507,7 +507,56 @@
+ +                                "capture_seconds": time.perf_counter() - capture_started,
+ +                                "synchronized": True,
+ +                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+-+                            }, sort_keys=True))
+++                            }
+++                            serialized = json.dumps(record, sort_keys=True)
+++                            evidence_dir = os.environ.get("SLLM_LOAD_EVIDENCE_DIR")
+++                            if evidence_dir:
+++                                import stat
+++                                assert os.path.isabs(evidence_dir)
+++                                payload = serialized.encode("utf-8")
+++                                directory = os.open(evidence_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+++                                filename = "rank-%d-pid-%d.json" % (record["tp_rank"], record["pid"])
+++                                temporary = "." + filename + ".partial"
+++                                temporary_created = published = False
+++                                write_error = None
+++                                try:
+++                                    info = os.fstat(directory)
+++                                    assert info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700
+++                                    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory)
+++                                    temporary_created = True
+++                                    with os.fdopen(fd, "wb") as stream:
+++                                        stream.write(payload)
+++                                        stream.flush()
+++                                        os.fsync(stream.fileno())
+++                                    os.link(temporary, filename, src_dir_fd=directory, dst_dir_fd=directory, follow_symlinks=False)
+++                                    published = True
+++                                    os.fsync(directory)
+++                                except BaseException as error:
+++                                    write_error = error
+++                                    if published:
+++                                        try:
+++                                            os.unlink(filename, dir_fd=directory)
+++                                        except OSError:
+++                                            pass
+++                                    raise
+++                                finally:
+++                                    try:
+++                                        try:
+++                                            if temporary_created:
+++                                                os.unlink(temporary, dir_fd=directory)
+++                                        finally:
+++                                            os.close(directory)
+++                                    except OSError:
+++                                        if write_error is None:
+++                                            raise
+++                                logger.info("SLLM_LOAD_EVIDENCE_FILE %s", json.dumps({
+++                                    "event": "SLLM_LOAD_EVIDENCE_FILE", "tp_rank": record["tp_rank"],
+++                                    "pid": record["pid"], "device_uuid": record["device_uuid"],
+++                                    "filename": filename, "bytes": len(payload),
+++                                    "load_completed": record["load_completed"],
+++                                }, sort_keys=True))
+++                            else:
+++                                logger.info("SLLM_LOAD_EVIDENCE %s", serialized)
+ +                    except BaseException as evidence_error:
+ +                        try:
+ +                            logger.warning("SLLM_LOAD_EVIDENCE_MISSING %s", json.dumps({
+@@ -523,7 +572,7 @@
+              self.model_memory_usage = m.consumed_memory
+          except torch.cuda.OutOfMemoryError as e:
+              msg = (
+-@@ -4989,6 +5084,20 @@
++@@ -4989,6 +5133,20 @@
+                      "Following weights were not loaded from checkpoint: %s",
+                      weights_not_loaded,
+                  )

@@ -1,0 +1,114 @@
+--- test_vllm_loader_interface.py.before
++++ test_vllm_loader_interface.py.after
+@@ -157,7 +157,11 @@
+             def __exit__(self, *args):
+                 state["events"].append("profiler_reset")
+                 state.update(peak=64, reserved_peak=128)
+-        namespace = {"os": types.SimpleNamespace(environ={"SLLM_CAPTURE_LOAD_EVIDENCE": "1"}, getpid=lambda: 123),
++        class EvidenceOS(types.SimpleNamespace):
++            def __getattr__(self, name):
++                return getattr(os, name)
++
++        namespace = {"os": EvidenceOS(environ={"SLLM_CAPTURE_LOAD_EVIDENCE": "1"}, getpid=lambda: 123),
+                      "torch": types.SimpleNamespace(cuda=cuda), "self": instance,
+                      "logger": logger, "time": time, "defaultdict": defaultdict,
+                      "get_tp_group": lambda: types.SimpleNamespace(rank_in_group=3),
+@@ -284,5 +288,98 @@
+         self.assertNotIn("hashlib", ast.unparse(diagnostic))
+ 
+ 
++    def test_atomic_file_lossless_payload_and_nonauthoritative_summary(self):
++        import json
++        legacy, _, _ = self.namespace()
++        with mock.patch("time.perf_counter", return_value=100):
++            exec(self.context(), legacy)
++        expected = json.loads(legacy["logger"].info.call_args.args[1])
++        with tempfile.TemporaryDirectory() as folder:
++            namespace, _, _ = self.namespace()
++            namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder
++            with mock.patch("time.perf_counter", return_value=100):
++                exec(self.context(), namespace)
++            final = pathlib.Path(folder) / "rank-3-pid-123.json"
++            self.assertEqual(json.loads(final.read_text()), expected)
++            self.assertEqual(final.stat().st_mode & 0o777, 0o600)
++            summary = json.loads(namespace["logger"].info.call_args.args[1])
++            self.assertEqual(summary["filename"], final.name)
++            self.assertEqual(summary["bytes"], final.stat().st_size)
++            self.assertNotIn("registered_tensors", summary)
++            self.assertLess(len(namespace["logger"].info.call_args.args[1]), 512)
++            self.assertEqual(namespace["logger"].info.call_args.args[0], "SLLM_LOAD_EVIDENCE_FILE %s")
++
++    def test_atomic_publish_no_partial_final_or_overwrite(self):
++        import json
++        real_link = os.link
++        with tempfile.TemporaryDirectory() as folder:
++            namespace, _, _ = self.namespace()
++            namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder
++            def link(source, destination, **kwargs):
++                self.assertFalse((pathlib.Path(folder) / destination).exists())
++                self.assertEqual(json.loads((pathlib.Path(folder) / source).read_text())["event"], "SLLM_LOAD_EVIDENCE")
++                return real_link(source, destination, **kwargs)
++            with mock.patch("os.link", side_effect=link):
++                exec(self.context(), namespace)
++            final = pathlib.Path(folder) / "rank-3-pid-123.json"
++            before = final.read_bytes()
++            again, _, _ = self.namespace()
++            again["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder
++            exec(self.context(), again)
++            again["logger"].info.assert_not_called()
++            self.assertEqual(json.loads(again["logger"].warning.call_args.args[1])["event"], "SLLM_LOAD_EVIDENCE_MISSING")
++            self.assertEqual(final.read_bytes(), before)
++            self.assertEqual(len(list(pathlib.Path(folder).iterdir())), 1)
++
++    def test_file_sink_failures_are_missing_and_preserve_load_exception(self):
++        import json
++        with tempfile.TemporaryDirectory() as folder:
++            for missing in (True, False):
++                namespace, _, _ = self.namespace()
++                namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder + "/missing" if missing else folder
++                with mock.patch("os.fsync", side_effect=OSError("write failed")):
++                    exec(self.context(), namespace)
++                namespace["logger"].info.assert_not_called()
++                self.assertEqual(json.loads(namespace["logger"].warning.call_args.args[1])["event"], "SLLM_LOAD_EVIDENCE_MISSING")
++                self.assertEqual(list(pathlib.Path(folder).iterdir()), [])
++            original = RuntimeError("original load failed")
++            namespace, state, _ = self.namespace(load_error=original)
++            namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder
++            with mock.patch("os.fsync", side_effect=OSError("write failed")):
++                with self.assertRaises(RuntimeError) as raised:
++                    exec(self.context(), namespace)
++            self.assertIs(raised.exception, original)
++            self.assertEqual(state["events"], ["capture_peak", "profiler_reset"])
++            self.assertEqual(list(pathlib.Path(folder).iterdir()), [])
++
++    def test_concurrent_actual_producer_blocks_publish_eight_complete_files(self):
++        import json
++        from concurrent.futures import ThreadPoolExecutor
++        source = self.context()
++        with tempfile.TemporaryDirectory() as folder:
++            def publish(rank):
++                namespace, _, model = self.namespace()
++                namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = folder
++                namespace["os"].getpid = lambda: 1000 + rank
++                namespace["get_tp_group"] = lambda: types.SimpleNamespace(rank_in_group=rank)
++                tensor = model.named_buffers.return_value[0][1]
++                model.named_buffers.return_value = [("buffer_" + str(i), tensor) for i in range(1000)]
++                exec(source, namespace)
++                namespace["logger"].warning.assert_not_called()
++            with ThreadPoolExecutor(max_workers=8) as pool:
++                futures = [pool.submit(publish, rank) for rank in range(8)]
++                while not all(f.done() for f in futures):
++                    for path in pathlib.Path(folder).glob("rank-*.json"):
++                        self.assertEqual(json.loads(path.read_text())["event"], "SLLM_LOAD_EVIDENCE")
++                for future in futures:
++                    future.result()
++            files = list(pathlib.Path(folder).iterdir())
++            self.assertEqual(len(files), 8)
++            rows = [json.loads(p.read_text()) for p in files]
++            self.assertEqual({r["tp_rank"] for r in rows}, set(range(8)))
++            self.assertEqual({r["pid"] for r in rows}, set(range(1000, 1008)))
++            self.assertTrue(all(len(r["registered_tensors"]) == 1003 for r in rows))
++
++
+ if __name__ == "__main__":
+     unittest.main()
