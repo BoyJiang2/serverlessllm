@@ -1,0 +1,11 @@
+# Independent actual CPU checkpoint-store build result review
+
+Verdict: ACTUAL_CPU_BUILD_ABI_NORMAL_EXIT_RELEASE_PASS_NOT_GPU_STORE.
+
+Reviewed result SHA `4035a1af0950262419e84a2961fe5a24e1746f47b7dd4ee0cfbbbf4f66ca8b27` and all six public file hashes. Live rehash of the actual versioned ELF matches `cb885e7ca28fc518c86dfba03a0e665c3abe3cbe2614cda3212676a71fb0d079`; live manifest matches `d96825e5b07565bfc42f47d984849afa2fe621ca265b207bd89c20f6681d153a`. Manifest source/old-anchor dictionaries equal frozen CPU spec; all current source and four old artifacts were independently rehashed unchanged, including the unverified user a203 ELF. Actual official CMake single _checkpoint_store target/parallel1 and recorded compile/link instructions belong to this manifest, not an inferred cache identity.
+
+ABI import records exact /build module path/hash, Torch2.10.0+cu129/CUDA12.9/cxx11 ABItrue/cp312 suffix; CUDA initializedfalse and Store instantiatedfalse. Recorded ldd dependency closure resolves existing glog exact d76; the immutable-base dependency hashes remain recorded, not freshly reread in another container. This is actual binary import/build provenance, not proof of native released-GIL scheduling or repaired eight-rank restore.
+
+Actual container `ff4de38f8b05dae08921f526a3e87254d283a3fb017bd25a18801ea18a3e65ae` freshly inspected: exited0, Pid0, notrunning, noOOM/restart; runtime runc/networknone. Controller andguard freshly read MainPID0/Resultsuccess/ExecMainCode1/ExecMainStatus0. Exact pinned PID/startticks are absent/replaced and owned CID cgroup scope absent. Guard quiet `60.01054084801581` seconds, nofailures, normal cleanup; total controller elapsed `105.86978187499335` seconds, within1260. Kernel receipt returns0 with no entries; that is not a claim of exhaustive absence of allpossible kernel faults. Raw OCI remains private; its hash is cross-bound by controller/guard receipts, not freshly inspected by this nonroot reviewer.
+
+No new build, import, container execution, GPU query/work or Git performed by reviewer. Old failure/gold retained. This milestone may be published as CPU build/ABI/release only; a newly admitted GPU restore is still required for production behavior.

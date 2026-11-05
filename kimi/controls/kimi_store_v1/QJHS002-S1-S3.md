@@ -488,3 +488,12 @@ Logs place the five cancellations before guard ABORT. Synchronous ConfirmModel b
 Validated failure receipt SHA256 `5f7bdeaa67cc9afaee2fbc903fd60760f15642a6b0c453883837b5d7d08c906b`; independent review `0fe70898c255f0479e962294322f3c703d5eaeae3b6f6601601fb3179513dd66`. Small evidence is in `kimi/evidence/qjhs002-store-tp8-restore-failure-20261105`; raw OCI/logs remain root-private on qjhs002 and are referenced by hashes. Historical failed runs, gold, IDs and stop rules remain intact.
 
 The native ready-delete source-only milestone is separately published at source `1fbd1fb16ce280159ef540e229b9b22d362b2073` and evidence `05e405f78378d39091a198b26f207798d7638b80`; nine stdlib/fake-runtime tests and source review passed. No actual native service lifecycle has passed. A 09:00–12:00 booking extension was rejected because the saved token lacks bookings:create:self; the current 09:00 hard boundary remains.
+
+
+### 2026-11-05 — Confirmation offload source and official CPU library rebuild
+
+User repairs were reviewed and published at source `89ced92416f8342a03c3df83670249cd626ac0d2`: ConfirmModel awaits asyncio.to_thread; only WaitModelInGpu binding releases the GIL. Existing retry/error semantics remain; six host CPU regressions passed. These tests use a fake native wait and do not prove real gRPC cancellation or production recovery. Historical failure remains retained.
+
+Unique official CPU build `kimi-confirm-gil-official-build-cpu-20261105-once` completed in 105.869782 seconds including 60.010541 seconds release observation. Current source, offline dependencies, exact CMake target, tool and linked-library hashes and actual new ELF import are recorded. No Store constructor or CUDA initialization occurred. User-provided a203 library and original SDK libraries are unchanged. New ELF cb885e7ca28fc518c86dfba03a0e665c3abe3cbe2614cda32122676a71fb0d079 remains in the existing checkout's versioned build directory, not Git. CPU success does not prove eight-rank restore or inference.
+
+User explicitly confirmed coordination with reservation owner issue for current qjhs002 10:00–24:00 window; booking ownership remains unchanged. A fresh snapshot binds that authorization. Next is independently reviewed V4 eight-rank restore using the same Store output, SF gold, resources, ownership/value checks, cleanup and stop rules, changing only reviewed source/library bindings and a distinct run ID.
