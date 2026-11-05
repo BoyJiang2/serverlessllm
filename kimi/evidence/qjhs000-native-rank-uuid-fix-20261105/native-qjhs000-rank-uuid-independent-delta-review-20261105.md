@@ -1,0 +1,9 @@
+# qjhs0 logical rank/physical UUID independent delta review
+
+EXECUTION_SOURCE_REVIEW_PASS for one correctedattempt after existingfresh7200 admission. Specf80eea772c55dd39087626a60dd7ee34407b444e73e8bd4de4d85aee84477bbf; actualroot2b1261247e665c0f80dd26791ac09521e60090d40c0db2474dd85bacfe2dcddf; CPUfixture59e84e8bee885fffa9d4b95e83415ba74b0992a5e63019a36cf1aca3e8a24d3c independentlyread/hashed.
+
+Actual13,160,181B8recordexportd0b783bda253825a6e926eda638ce9b7bc589f9e724ffdb4bfe1a0d7b1994c8d independentlyreadserver-only: ranks0..7 devicecuda:0..7, distinctPIDs1688..1695, successful/synchronized/registeredloads; actualtorchpropsUUIDs maptoapprovedNVMLorder[6,0,3,4,5,2,1,7], fulluniqueapprovedset. This disproves the additionalorderedNVMLindex assumption, notGPUidentity. NoCVD/PCI_BUS_ORDER/expert/datamapping changesneeded.
+
+Actualroot onlytwoidentitypredicates changed: requirelogicaldevicecuda:tp_rank (strongerthanoldarbitrarycuda0-7regex) plusactualUUIDmembership; final8uniqueapprovedUUIDset/8ranks/8distinctPID remainstrict. Existingowned_host_pid namespaceUID/startticks/CIDcgroup authentication andeachrow.actualUUID->NVMLcomputeprocesslist correlation unchanged. This isnotset-onlyacceptance orphysicalownerwaiver. Fullactual8rows passallvalidatorchecks in13CPUcases; oldorderedvalidatorfails andforeign/duplicate/missingUUID,wronglogicaldevice/rank/PID,NVMLPID andforeignscope negativesreject.
+
+Spec/rootactualdiff read; allrolebodies/resources/7200/pool1200/gold/SDKsource/ELFs/guards/baseline contracts unchanged, plusnewRUN. Rootsyntaxcompiledwithouttargetruntime. OriginalfirstAHTTP200/exacttext' 4'/tokens[19,163586]/usage21,2,23 remainspartialprogress only; originalrunFAILED, AAB/delete/recreate notpromoted. NoextraCPU/GPUprobe/framework/source/envchange requested. ReviewerperformednoGPU/container/Torchimport/Store/Git operation.

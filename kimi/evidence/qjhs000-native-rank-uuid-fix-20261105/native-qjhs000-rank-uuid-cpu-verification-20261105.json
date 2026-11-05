@@ -1,0 +1,82 @@
+{
+  "status": "CPU_ACTUAL_CONSUMER_FIXTURE_PASS_NOT_GPU_RUN",
+  "timestamp_utc": "2026-11-05T11:46:53.823148+00:00",
+  "spec": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs000-rank-uuid-fixed-concrete-spec-v1-20261105.json",
+  "spec_sha256": "f80eea772c55dd39087626a60dd7ee34407b444e73e8bd4de4d85aee84477bbf",
+  "root_command": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs000-rank-uuid-fixed-manual-root-command-v1-20261105.json",
+  "root_command_sha256": "2b1261247e665c0f80dd26791ac09521e60090d40c0db2474dd85bacfe2dcddf",
+  "actual_root_python_sha256": "f5e425b06008299d8a2d8abf632ec9942e3c94f6b068c49b0b06b94ce5379c0f",
+  "input_eight_records": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs000-rank-uuid-actual-eight-records-export-20261105.json",
+    "sha256": "d0b783bda253825a6e926eda638ce9b7bc589f9e724ffdb4bfe1a0d7b1994c8d",
+    "bytes": 13160181,
+    "server_only": true
+  },
+  "actual_rank_physical_uuid_indices": [
+    6,
+    0,
+    3,
+    4,
+    5,
+    2,
+    1,
+    7
+  ],
+  "tests": [
+    {
+      "name": "actual_eight_record_all_assertions_permutation_accepted",
+      "pass": true
+    },
+    {
+      "name": "literal_physical_order_accepted",
+      "pass": true
+    },
+    {
+      "name": "duplicate_uuid_rejected",
+      "pass": true
+    },
+    {
+      "name": "foreign_uuid_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_logical_device_rejected",
+      "pass": true
+    },
+    {
+      "name": "duplicate_pid_rejected",
+      "pass": true
+    },
+    {
+      "name": "wrong_rank_rejected",
+      "pass": true
+    },
+    {
+      "name": "missing_record_uuid_rejected",
+      "pass": true
+    },
+    {
+      "name": "old_ordered_validator_reproduces_failure",
+      "pass": true
+    },
+    {
+      "name": "foreign_namespace_pid_rejected",
+      "pass": true
+    },
+    {
+      "name": "actual_physical_row_uuid_pid_correlation_accepted",
+      "pass": true
+    },
+    {
+      "name": "inconsistent_nvml_pid_rejected",
+      "pass": true
+    },
+    {
+      "name": "foreign_cgroup_identity_rejected",
+      "pass": true
+    }
+  ],
+  "test_count": 13,
+  "unchanged": "Budgets7200/source/ELFs/roles/env/CVD/gold, complete ranks/PIDs/UUIDset, actual owned_host_pid and NVML row.UUID correlation. Root code has exactly the two predicate replacements.",
+  "scope": "Full actual load_records executed on all actual 8 records; real root AST owned_host_pid and physical-correlation statements use in-memory proc/cgroup/NVML fixtures. No driver/runtime proof. Prior run remains FAILED_RETAINED."
+}
