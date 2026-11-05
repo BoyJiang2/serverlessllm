@@ -1,0 +1,44 @@
+{
+  "status": "READONLY_SOURCE_CONTRACT_AUDIT_NOT_ACTUAL_OUTPUT_PROOF",
+  "assets": {
+    "config.json": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "generation_config.json": "5431db52f431099f309ece737670e977de148f8cfd5340e920ff1f44d7cff596",
+    "tokenizer_config.json": "12fcab43d2b6068f46769f5ff373960bf7c17a94d7abbc50e2491306b2f6cf58"
+  },
+  "tokenizer_config": {
+    "eos_token": "[EOS]",
+    "added_tokens_decoder": {
+      "163585": "[EOS]",
+      "163586": "<|im_end|>"
+    }
+  },
+  "model_and_generation_config_eos": 163586,
+  "actual_installed_sources": {
+    "renderers/base.py": {
+      "sha256": "74d716ff06a0e5f480dbab51fd6c36246fc22f51178051810d5d3b0fe54653cb",
+      "lines": "264\u2013271 renderer EOS comes from tokenizer, not generation_config"
+    },
+    "v1/engine/input_processor.py": {
+      "sha256": "6e0db9a48cde52857c257f70c5562fa907828a86ecf9b6c3137093e18f19dfd0",
+      "lines": "274\u2013276 sampling update receives renderer.get_eos_token_id"
+    },
+    "sampling_params.py": {
+      "sha256": "8512e73c45a6d2f8015f2ca8d94c9fc9a05ca390d6206e2b387ad6550e9b014a",
+      "lines": "525\u2013553 primaryEOS from passed renderer value; differing generation_config EOS becomes stop_token_ids"
+    },
+    "v1/core/sched/utils.py": {
+      "sha256": "85e82eae555a03497ad2ac1540ed562a6c36fc26185aa6233725c914816aa1b3",
+      "lines": "103\u2013110 primaryEOS returns without stop_reason, explicit stop_token sets numeric stop_reason"
+    },
+    "v1/engine/output_processor.py": {
+      "sha256": "55c69b4c422d58428eb2e06ab27a83bb330583c54253524fb32ba7ff041192a2",
+      "lines": "615\u2013632 propagates core stop_reason unless matched stop string"
+    }
+  },
+  "conclusion": "Earlier assumption model/generation_config EOS163586 necessarily primary tokenizerEOS was unsupported. Asset/source chain predicts tokenizer163585 primary and163586 additionalstop, so numeric stop_reason163586 is legitimate. Actual failedV7 compoundpredicate cannot be attributed without actual output; do not claim tokens/textwrong or relax frozen gold. First preserve preassert actual output and individual predicate results.",
+  "limitations": [
+    "No tokenizer/Torch/vLLM runtime import; exact tokenizer object value remains runtime evidence to capture.",
+    "No new GPU run, metadata/gold alteration or dependency/source modification.",
+    "Source read from stopped actual V7CID using Dockerarchive, not another environment."
+  ]
+}
