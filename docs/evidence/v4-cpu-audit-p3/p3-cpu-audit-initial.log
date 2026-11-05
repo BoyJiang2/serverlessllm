@@ -1,0 +1,139 @@
+Source HEAD: d592066addc2d97e1d6ead3de2801fd6cfff17c5
+CPU contracts only; passing does not resolve the known failed-confirm defect or Store capacity.
+test_partial_allocation_rolls_back_and_preserves_successful_map (test_v4_allocation_failure.V4AllocationFailureTests) ... ok
+test_abort_error_does_not_skip_engine_shutdown_or_report_success (test_v4_backend.V4BackendTests) ... ok
+test_cancel_during_trace_update_closes_suspended_generator (test_v4_backend.V4BackendTests) ... ok
+test_concurrent_shutdown_waiters_share_completion_even_after_caller_cancel (test_v4_backend.V4BackendTests) ... ok
+test_duplicate_active_request_id_is_rejected (test_v4_backend.V4BackendTests) ... ok
+test_legacy_debug_history_remains_available_and_aborted_on_shutdown (test_v4_backend.V4BackendTests) ... ok
+test_legacy_messages_keep_existing_role_prefix_format (test_v4_backend.V4BackendTests) ... ok
+test_native_shutdown_failure_is_not_silently_treated_as_deleted (test_v4_backend.V4BackendTests) ... ok
+test_shutdown_cancels_pre_first_token_and_waits_for_task_exit (test_v4_backend.V4BackendTests) ... ok
+test_stream_failure_cleans_active_trace_and_propagates_error (test_v4_backend.V4BackendTests) ... ok
+test_token_ids_and_stop_reason_are_available_for_separate_validation (test_v4_backend.V4BackendTests) ... ok
+test_trace_contains_pending_request_before_first_token (test_v4_backend.V4BackendTests) ... ok
+test_trace_debug_completed_history_does_not_block_stop (test_v4_backend.V4BackendTests) ... ok
+test_v4_shutdown_does_not_probe_frontend_cuda (test_v4_backend.V4BackendTests) ... ok
+test_v4_uses_pinned_tokenizer_encoding_and_preserves_request (test_v4_backend.V4BackendTests) ... ok
+test_actual_pinned_detokenizer_retains_eos_id_while_skipping_its_text (test_v4_evidence.EvidenceContracts) ... ok
+test_actual_pinned_upstream_eos_can_have_no_stop_reason (test_v4_evidence.EvidenceContracts) ... ok
+test_business_semantics_eos_and_native_parity_remain_separate (test_v4_evidence.EvidenceContracts) ... ok
+test_duplicate_first_token_or_time_reversal_rejected (test_v4_evidence.EvidenceContracts) ... ok
+test_failed_business_cannot_retain_correct_response_event (test_v4_evidence.EvidenceContracts) ... ok
+test_fixed32_prefix_is_never_complete_business_success (test_v4_evidence.EvidenceContracts) ... ok
+test_fixture_bytes_match_frozen_source_manifest (test_v4_evidence.EvidenceContracts) ... ok
+test_missing_backend_event_does_not_become_http_first_token (test_v4_evidence.EvidenceContracts) ... ok
+test_missing_rank_and_duplicate_phase_rejected (test_v4_evidence.EvidenceContracts) ... ok
+test_phase_envelope_is_not_sum_of_rank_or_nested_durations (test_v4_evidence.EvidenceContracts) ... ok
+test_preparation_and_registration_failures_need_no_fake_response_time (test_v4_evidence.EvidenceContracts) ... ok
+test_real_glm_release_window_replays_without_claiming_physical_release (test_v4_evidence.EvidenceContracts) ... ok
+test_release_gap_and_stale_gpu_snapshot_rejected (test_v4_evidence.EvidenceContracts) ... ok
+test_release_under_60_seconds_and_missing_sample_rejected (test_v4_evidence.EvidenceContracts) ... ok
+test_replay_all_recorded_glm_metrics_from_historical_events (test_v4_evidence.EvidenceContracts) ... ok
+test_stop_reason_alone_and_length_termination_do_not_prove_eos (test_v4_evidence.EvidenceContracts) ... ok
+test_v4_loader (unittest.loader._FailedTest) ... ERROR
+test_adoption_precedes_handles_dispatch_and_confirm_before_return (test_v4_owned_load.V4OwnedLoadTests) ... ok
+test_dispatch_false_raise_or_confirm_error_retains_the_owner (test_v4_owned_load.V4OwnedLoadTests) ... ok
+test_old_native_extension_is_rejected_before_any_allocation (test_v4_owned_load.V4OwnedLoadTests) ... ERROR
+test_predispatch_failure_does_not_quarantine_an_unshared_allocation (test_v4_owned_load.V4OwnedLoadTests) ... ok
+test_public_owned_path_requires_the_blocking_and_adoption_flags (test_v4_owned_load.V4OwnedLoadTests) ... ERROR
+test_backend_failure_releases_slot_and_request_count (test_v4_router.RouterContracts) ... ok
+test_cancel_after_allocation_before_resumption_releases_slot (test_v4_router.RouterContracts) ... ok
+test_cancel_queued_request_releases_router_count (test_v4_router.RouterContracts) ... ok
+test_cancel_running_request_releases_counts (test_v4_router.RouterContracts) ... ok
+test_cancel_while_slot_lock_waits_does_not_kill_balancer (test_v4_router.RouterContracts) ... ok
+test_invalid_lora_releases_reserved_slot (test_v4_router.RouterContracts) ... Lora adapter absent not found
+ok
+test_load_balancer_skips_cancelled_queue_item_and_serves_next (test_v4_router.RouterContracts) ... ok
+test_stopped_router_does_not_enqueue_or_count (test_v4_router.RouterContracts) ... ok
+test_success_preserves_response_and_releases_counts (test_v4_router.RouterContracts) ... ok
+test_actor_rpc_failure_retains_confirmed_node (test_v4_startup.StartupContracts) ... ok
+test_allocation_failure_retains_id_without_creating_actor (test_v4_startup.StartupContracts) ... ok
+test_auto_scaler_does_not_retry_failed_start (test_v4_startup.StartupContracts) ... Instance cold startup failed: native cold failure
+ok
+test_failed_start_cannot_report_successful_shutdown_or_discard_owner (test_v4_startup.StartupContracts) ... Instance cold startup failed: native cold failure
+ok
+test_init_failure_retains_node_actor_and_nonready_owner (test_v4_startup.StartupContracts) ... ok
+test_ready_is_published_only_after_init_completes (test_v4_startup.StartupContracts) ... ok
+test_start_task_cancellation_is_explicit_failure_and_retains_owner (test_v4_startup.StartupContracts) ... Instance cold startup failed: Instance startup cancelled
+ok
+test_start_task_failure_is_observed_and_future_requests_fail (test_v4_startup.StartupContracts) ... Instance cold startup failed: native cold failure
+ok
+test_successful_start_task_is_retired_without_latching_error (test_v4_startup.StartupContracts) ... ok
+test_waiting_request_gets_failure_and_router_count_is_released (test_v4_startup.StartupContracts) ... Instance cold startup failed: native cold failure
+ok
+test_v4_state (unittest.loader._FailedTest) ... ERROR
+test_blocking_confirm_before_restore (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_confirm_failure_never_restore_or_free_raw_context (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_native_restore_exception_free_only_after_closed_ack (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_nonblocking_default_contract_unchanged (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_public_blocking_confirms_once (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_rpc_exception_preserved_without_restore (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_rpc_false_never_restore_or_free_raw_context (test_s4a_blocking_confirm.OrderingTests) ... ok
+test_cancelled_and_internal_preserve_original_error (test_confirm_model_error.ConfirmModelErrorTest) ... ok
+test_public_load_dict_does_not_return_state_after_failed_confirmation (test_confirm_model_error.ConfirmModelErrorTest) ... ok
+test_success_contract_is_unchanged (test_confirm_model_error.ConfirmModelErrorTest) ... ok
+test_event_loop_stays_responsive_during_the_wait (test_confirm_model_event_loop.ConfirmModelEventLoopTest) ... ok
+test_wait_is_offloaded_to_a_thread (test_confirm_model_event_loop.ConfirmModelEventLoopTest) ... ok
+test_close_status_and_notification_order (test_ipc_close_status.IpcCloseStatusTest) ... ok
+test_actual_counter_path_and_legacy_task_negative (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_backend_shutdown_explicit_and_error_keeps_engine (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_controller_awaits_shutdown_before_pop_and_second_register (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_controller_failure_retains_registry_and_shutdown_reuses_delete (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_existing_tokens_trace_no_public_output_change_and_stop_completion (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_nonquiescent_cases_fail_without_discarding_ready_owner (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_optional_peft_export_is_lazy_and_missing_stays_visible (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_ready_delete_cancels_tasks_before_removal_no_recreation (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+test_ready_delete_failure_retains_owner_at_all_three_boundaries (p3_native_ready_cpu_audit.NativeReadyLifecycleTest) ... ok
+
+======================================================================
+ERROR: test_v4_loader (unittest.loader._FailedTest)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_v4_loader
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/loader.py", line 436, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/usr/lib/python3.10/unittest/loader.py", line 377, in _get_module_from_name
+    __import__(name)
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_loader.py", line 22, in <module>
+    from sllm_store import v4_state as state
+ModuleNotFoundError: No module named 'sllm_store'
+
+
+======================================================================
+ERROR: test_old_native_extension_is_rejected_before_any_allocation (test_v4_owned_load.V4OwnedLoadTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_owned_load.py", line 65, in test_old_native_extension_is_rejected_before_any_allocation
+    self.namespace["load_dict_owned"]("model", {"": 0}, "/store")
+  File "<owned-load-functions>", line 98, in load_dict_owned
+ModuleNotFoundError: No module named 'sllm_store'
+
+======================================================================
+ERROR: test_public_owned_path_requires_the_blocking_and_adoption_flags (test_v4_owned_load.V4OwnedLoadTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_owned_load.py", line 56, in test_public_owned_path_requires_the_blocking_and_adoption_flags
+    result = self.namespace["load_dict_owned"]("model", {"": 0}, "/store")
+  File "<owned-load-functions>", line 98, in load_dict_owned
+ModuleNotFoundError: No module named 'sllm_store'
+
+======================================================================
+ERROR: test_v4_state (unittest.loader._FailedTest)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_v4_state
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/loader.py", line 436, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/usr/lib/python3.10/unittest/loader.py", line 377, in _get_module_from_name
+    __import__(name)
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_state.py", line 11, in <module>
+    from sllm_store import v4_state as state
+ModuleNotFoundError: No module named 'sllm_store'
+
+
+----------------------------------------------------------------------
+Ran 79 tests in 2.898s
+
+FAILED (errors=4)
+{"source_head": "d592066addc2d97e1d6ead3de2801fd6cfff17c5", "python": "3.10.12", "selected_tests": 79, "tests_run": 79, "failures": 0, "errors": 4, "skipped": [], "cpu_suite_passed": false, "v4_runtime_qualified": false, "scope": "Actual source AST / stdlib and C++ CUDA-call stubs only; no GPU/Ray/Store runtime or native extension build", "known_gaps": ["monolithic TP8 capacity rejection; representation decision pending", "late failed Confirm may wait after failed replica removal; policy clarification pending", "no full weights, native token gold, ABI, physical release or complete service validation"]}
