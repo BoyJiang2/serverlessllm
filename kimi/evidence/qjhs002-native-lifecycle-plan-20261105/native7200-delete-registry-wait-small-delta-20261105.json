@@ -1,0 +1,8 @@
+{
+  "status": "SMALL_DELETE_WAIT_AST_ONLY_NOT_RUNTIME",
+  "before": ";state=ray_state();assert not any(x['name']==s['config']['model'] or x['name'].startswith(s['config']['model']+'_') for x in state['named_actors'])",
+  "after": "\n  allowed_names={(s['config']['model'],'models'),(tokens['actor']['name'],tokens['actor']['namespace'])}\n  while True:\n   assert time.monotonic()<delete_end;state=ray_state();pending=[x for x in state['named_actors'] if x['name']==s['config']['model'] or x['name'].startswith(s['config']['model']+'_')];assert all((x['name'],x['namespace']) in allowed_names for x in pending),'unexpectednewmodelactor duringdelete'\n   if not pending:break\n   healthy();time.sleep(.2)\n  ",
+  "command_sha256": "19800d89a2c2256f8c8099fc12b10374a0012e08ae455428b1a9de157ba6c02e",
+  "spec_unchanged_sha256": "9db42b4f9580492b05b95facc291153bfb54632a78e3574d577b4da2eb3b5d07",
+  "budget": "same180deletephase includesremainingbaseline60, no delete retry/no extension"
+}

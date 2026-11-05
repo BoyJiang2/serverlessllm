@@ -1,0 +1,18 @@
+{
+  "status": "ACTUAL_LOGGATE_STDLIB_AND_QUERY_BUDGET_CHECKS_7_PASS_NO_RUNTIME",
+  "tests_run": 7,
+  "checks": [
+    "stalepriorlife_marker_rejected",
+    "fresh_samealias_marker_accepted",
+    "wrongalias_prefix_rejected",
+    "actual_router_start_failure_fast_rejected",
+    "helper_query15_not_overridden",
+    "sample_twoquery30_pre_and_post_deadline_gate",
+    "final_twoquery30_plus_tail_reserved60"
+  ],
+  "spec_sha256": "9db42b4f9580492b05b95facc291153bfb54632a78e3574d577b4da2eb3b5d07",
+  "command_sha256": "ace950cedb59e0872abae4521f92f9c928a9dd9f82b48acf2d82d74c273c8bb7",
+  "actual_gate_AST": "def head_log_paths():\n    return sorted({services['api'][1], *[p for p in (base / 'head/ray').rglob('worker-*') if p.is_file() and p.suffix in ('.out', '.err')]}, key=str)\n\ndef head_log_positions():\n    return {str(p): p.stat().st_size for p in head_log_paths()}\n\ndef router_started_since(positions):\n    marker = 'Started handler for model ' + s['config']['model']\n    found = []\n    for p in head_log_paths():\n        assert p.resolve().is_relative_to(base.resolve())\n        with p.open('rb') as stream:\n            stream.seek(positions.get(str(p), 0))\n            raw = stream.read((16 << 20) + 1)\n        assert len(raw) <= 16 << 20\n        text = raw.decode('utf-8', errors='replace')\n        if 'RayTaskError' in text and 'RoundRobinRouter.start' in text:\n            raise RuntimeError('Actual router.start task failed; see ' + str(p))\n        for line in text.splitlines():\n            clean = re.sub('\\\\x1b\\\\[[0-9;]*m', '', line)\n            if re.search(re.escape(marker) + '(?=\\\\s|$)', clean):\n                found.append({'path': str(p), 'after_offset': positions.get(str(p), 0), 'line_sha256': hashlib.sha256(line.encode()).hexdigest()})\n    return found",
+  "prior_16_render_namespace_test_receipt": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/native-two-role-7200-actual-render-cpu-verification-v2-20261105.json",
+  "no_GPU_or_install_or_Ray": true
+}
