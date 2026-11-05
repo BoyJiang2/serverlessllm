@@ -1,0 +1,129 @@
+test_backend_failure_releases_slot_and_request_count (__main__.RouterContracts.test_backend_failure_releases_slot_and_request_count) ... FAIL
+test_cancel_after_allocation_before_resumption_releases_slot (__main__.RouterContracts.test_cancel_after_allocation_before_resumption_releases_slot) ... FAIL
+test_cancel_queued_request_releases_router_count (__main__.RouterContracts.test_cancel_queued_request_releases_router_count) ... FAIL
+test_cancel_while_slot_lock_waits_does_not_kill_balancer (__main__.RouterContracts.test_cancel_while_slot_lock_waits_does_not_kill_balancer) ... ERROR
+test_invalid_lora_releases_reserved_slot (__main__.RouterContracts.test_invalid_lora_releases_reserved_slot) ... Lora adapter absent not found
+FAIL
+test_load_balancer_skips_cancelled_queue_item_and_serves_next (__main__.RouterContracts.test_load_balancer_skips_cancelled_queue_item_and_serves_next) ... ERROR
+test_success_preserves_response_and_releases_counts (__main__.RouterContracts.test_success_preserves_response_and_releases_counts) ... ok
+
+======================================================================
+ERROR: test_cancel_while_slot_lock_waits_does_not_kill_balancer (__main__.RouterContracts.test_cancel_while_slot_lock_waits_does_not_kill_balancer)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 118, in test_cancel_while_slot_lock_waits_does_not_kill_balancer
+    self.assertEqual(await asyncio.wait_for(second, 0.5), "one")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\tasks.py", line 506, in wait_for
+    async with timeouts.timeout(timeout):
+               ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\timeouts.py", line 116, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+======================================================================
+ERROR: test_load_balancer_skips_cancelled_queue_item_and_serves_next (__main__.RouterContracts.test_load_balancer_skips_cancelled_queue_item_and_serves_next)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 91, in test_load_balancer_skips_cancelled_queue_item_and_serves_next
+    result = await asyncio.wait_for(next_request, 0.5)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\tasks.py", line 506, in wait_for
+    async with timeouts.timeout(timeout):
+               ~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\timeouts.py", line 116, in __aexit__
+    raise TimeoutError from exc_val
+TimeoutError
+
+======================================================================
+FAIL: test_backend_failure_releases_slot_and_request_count (__main__.RouterContracts.test_backend_failure_releases_slot_and_request_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 61, in test_backend_failure_releases_slot_and_request_count
+    self.assertEqual(self.instance.concurrency, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_cancel_after_allocation_before_resumption_releases_slot (__main__.RouterContracts.test_cancel_after_allocation_before_resumption_releases_slot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 76, in test_cancel_after_allocation_before_resumption_releases_slot
+    self.assertEqual(self.instance.concurrency, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_cancel_queued_request_releases_router_count (__main__.RouterContracts.test_cancel_queued_request_releases_router_count)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 69, in test_cancel_queued_request_releases_router_count
+    self.assertEqual(self.router.request_count, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_invalid_lora_releases_reserved_slot (__main__.RouterContracts.test_invalid_lora_releases_reserved_slot)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_router.py", line 137, in test_invalid_lora_releases_reserved_slot
+    self.assertEqual(self.instance.concurrency, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.200s
+
+FAILED (failures=4, errors=2)

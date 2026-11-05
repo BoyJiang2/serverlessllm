@@ -5,6 +5,7 @@ import builtins
 from dataclasses import dataclass, fields
 from enum import IntEnum
 import gc
+import inspect
 import logging
 import os
 from pathlib import Path
@@ -52,7 +53,7 @@ class Status(IntEnum):
 
 def backend_class():
     ns = {k: getattr(typing, k) for k in ("Any", "Dict", "List", "Optional", "Union", "Sequence")}
-    ns.update(asyncio=asyncio, gc=gc, os=os, time=time, uuid=uuid, fields=fields,
+    ns.update(asyncio=asyncio, gc=gc, inspect=inspect, os=os, time=time, uuid=uuid, fields=fields,
               logger=logging.getLogger("native-fixture"), AsyncEngineArgs=EngineArgs,
               BackendStatus=Status, SllmBackend=object, RequestOutput=types.SimpleNamespace,
               TokensPrompt=dict, torch=types.SimpleNamespace(
@@ -62,7 +63,7 @@ def backend_class():
     output = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "process_output")
     exec(compile(ast.Module(body=[output], type_ignores=[]), "actual-native-output", "exec"), ns)
     cls = actual_class("sllm/backends/vllm_backend.py", "VllmBackend",
-                       {"__init__", "generate", "shutdown", "get_current_tokens", "stop"}, ns)
+                       {"__init__", "generate", "shutdown", "_shutdown_engine", "get_current_tokens", "stop"}, ns)
     return cls, ns
 
 
@@ -141,8 +142,9 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
                         await instance.shutdown()
                     self.assertIs(raised.exception, error)
                     self.assertIs(instance.engine, engine)
-                    with self.assertRaisesRegex(RuntimeError, "not completed"):
+                    with self.assertRaises(RuntimeError) as repeated:
                         await instance.shutdown()
+                    self.assertIs(repeated.exception, error)
                 else:
                     await instance.shutdown()
                     self.assertIsNone(instance.engine)
@@ -304,7 +306,7 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
         self.assertCountEqual(visited, ["one", "two"])
         self.assertFalse(controller.request_routers)
 
-    async def test_existing_tokens_trace_no_public_output_change_and_stop_limit(self):
+    async def test_existing_tokens_trace_no_public_output_change_and_stop_completion(self):
         cls, ns = backend_class()
         def sampling(**kwargs):
             self.assertTrue(set(kwargs) <= {"temperature", "seed", "top_p", "n", "max_tokens"})
@@ -325,10 +327,10 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result["usage"]["prompt_tokens"], 2)
         self.assertEqual(await instance.get_current_tokens(), [[10, 20, 42], [10, 20, 42], [30, 40, 42]])
         self.assertEqual(await instance.request_trace.request_count(), 3)
-        # Existing trace_debug leaves finished entries; do not claim general stop works.
-        with self.assertRaises(asyncio.TimeoutError):
-            await asyncio.wait_for(instance.stop(), timeout=0.01)
-        await instance.shutdown()
+        # Finished debug history must not keep the backend alive.
+        await asyncio.wait_for(instance.stop(), timeout=0.5)
+        self.assertIsNone(instance.engine)
+        self.assertEqual(await instance.request_trace.request_count(), 3)
 
 
 if __name__ == "__main__":

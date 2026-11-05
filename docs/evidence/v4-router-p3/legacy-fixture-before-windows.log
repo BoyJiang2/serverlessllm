@@ -1,0 +1,60 @@
+test_actual_counter_path_and_legacy_task_negative (__main__.NativeReadyLifecycleTest.test_actual_counter_path_and_legacy_task_negative) ... ok
+test_backend_shutdown_explicit_and_error_keeps_engine (__main__.NativeReadyLifecycleTest.test_backend_shutdown_explicit_and_error_keeps_engine) ... 
+  test_backend_shutdown_explicit_and_error_keeps_engine (__main__.NativeReadyLifecycleTest.test_backend_shutdown_explicit_and_error_keeps_engine) (failing=False) ... ERROR
+  test_backend_shutdown_explicit_and_error_keeps_engine (__main__.NativeReadyLifecycleTest.test_backend_shutdown_explicit_and_error_keeps_engine) (failing=True) ... ERROR
+test_controller_awaits_shutdown_before_pop_and_second_register (__main__.NativeReadyLifecycleTest.test_controller_awaits_shutdown_before_pop_and_second_register) ... ok
+test_controller_failure_retains_registry_and_shutdown_reuses_delete (__main__.NativeReadyLifecycleTest.test_controller_failure_retains_registry_and_shutdown_reuses_delete) ... ok
+test_existing_tokens_trace_no_public_output_change_and_stop_limit (__main__.NativeReadyLifecycleTest.test_existing_tokens_trace_no_public_output_change_and_stop_limit) ... ERROR
+test_nonquiescent_cases_fail_without_discarding_ready_owner (__main__.NativeReadyLifecycleTest.test_nonquiescent_cases_fail_without_discarding_ready_owner) ... ok
+test_optional_peft_export_is_lazy_and_missing_stays_visible (__main__.NativeReadyLifecycleTest.test_optional_peft_export_is_lazy_and_missing_stays_visible) ... ok
+test_ready_delete_cancels_tasks_before_removal_no_recreation (__main__.NativeReadyLifecycleTest.test_ready_delete_cancels_tasks_before_removal_no_recreation) ... ok
+test_ready_delete_failure_retains_owner_at_all_three_boundaries (__main__.NativeReadyLifecycleTest.test_ready_delete_failure_retains_owner_at_all_three_boundaries) ... ok
+
+======================================================================
+ERROR: test_backend_shutdown_explicit_and_error_keeps_engine (__main__.NativeReadyLifecycleTest.test_backend_shutdown_explicit_and_error_keeps_engine) (failing=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\tests\backend_test\test_native_ready_lifecycle.py", line 147, in test_backend_shutdown_explicit_and_error_keeps_engine
+    await instance.shutdown()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm\backends\vllm_backend.py", line 304, in shutdown
+    self._shutdown_engine()
+    ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'VllmBackend' object has no attribute '_shutdown_engine'
+
+======================================================================
+ERROR: test_backend_shutdown_explicit_and_error_keeps_engine (__main__.NativeReadyLifecycleTest.test_backend_shutdown_explicit_and_error_keeps_engine) (failing=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\tests\backend_test\test_native_ready_lifecycle.py", line 141, in test_backend_shutdown_explicit_and_error_keeps_engine
+    await instance.shutdown()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm\backends\vllm_backend.py", line 304, in shutdown
+    self._shutdown_engine()
+    ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'VllmBackend' object has no attribute '_shutdown_engine'
+
+======================================================================
+ERROR: test_existing_tokens_trace_no_public_output_change_and_stop_limit (__main__.NativeReadyLifecycleTest.test_existing_tokens_trace_no_public_output_change_and_stop_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\tests\backend_test\test_native_ready_lifecycle.py", line 330, in test_existing_tokens_trace_no_public_output_change_and_stop_limit
+    await asyncio.wait_for(instance.stop(), timeout=0.01)
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\tasks.py", line 507, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm\backends\vllm_backend.py", line 347, in stop
+    await self.shutdown()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm\backends\vllm_backend.py", line 304, in shutdown
+    self._shutdown_engine()
+    ^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'VllmBackend' object has no attribute '_shutdown_engine'
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.129s
+
+FAILED (errors=3)
