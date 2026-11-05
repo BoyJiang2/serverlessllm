@@ -18,6 +18,7 @@
 import asyncio
 import gc
 import inspect
+import json
 import logging
 import os
 import time
@@ -250,7 +251,22 @@ class VllmBackend(SllmBackend):
 
         # Non-stream case
         final_output = None
+        first_token_seen = False
         async for response_output in results_generator:
+            if self.trace_debug and not first_token_seen and any(
+                output.token_ids for output in response_output.outputs
+            ):
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "backend_first_token_observed",
+                            "request_id": request_id,
+                            "pid": os.getpid(),
+                            "monotonic_ns": time.monotonic_ns(),
+                        }
+                    )
+                )
+                first_token_seen = True
             final_output = response_output
             await self.request_trace.update_status(request_id, response_output)
 

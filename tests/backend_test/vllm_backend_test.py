@@ -16,6 +16,9 @@
 #  limitations under the License.                                              #
 # ---------------------------------------------------------------------------- #
 import asyncio
+import json
+import os
+from types import SimpleNamespace
 from typing import AsyncIterator
 from unittest.mock import AsyncMock, patch
 
@@ -273,3 +276,131 @@ async def test_encode(backend_config, async_llm_engine, model_name):
     assert "error" not in result
     assert "data" in result
     assert len(result["data"]) == 2
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "chunks,trace_debug,event_count",
+    [
+        ([[], [4], [4, 5]], True, 1),
+        ([[], []], True, 0),
+        ([[4], [4, 5]], False, 0),
+    ],
+)
+async def test_first_token_timing(vllm_backend, chunks, trace_debug, event_count):
+    vllm_backend.status = BackendStatus.RUNNING
+    vllm_backend.trace_debug = trace_debug
+    outputs = [
+        SimpleNamespace(
+            request_id="timing-request",
+            prompt_token_ids=[1, 2],
+            metrics=None,
+            outputs=[
+                SimpleNamespace(
+                    text="result",
+                    token_ids=tokens,
+                    logprobs=None,
+                    finish_reason="length",
+                )
+            ],
+        )
+        for tokens in chunks
+    ]
+
+    async def stream(*args):
+        for output in outputs:
+            yield output
+
+    vllm_backend.engine = SimpleNamespace(generate=stream)
+    before_trace = []
+    update = vllm_backend.request_trace.update_status
+
+    async def record_update(request_id, output):
+        before_trace.append(log.call_count)
+        await update(request_id, output)
+
+    with patch("sllm.backends.vllm_backend.logger.info") as log, patch(
+        "sllm.backends.vllm_backend.time.monotonic_ns", return_value=123456
+    ), patch.object(vllm_backend.request_trace, "update_status", record_update):
+        response = await vllm_backend.generate({"request_id": "timing-request"})
+    assert log.call_count == event_count
+    if event_count:
+        assert json.loads(log.call_args.args[0]) == {
+            "event": "backend_first_token_observed",
+            "request_id": "timing-request",
+            "pid": os.getpid(),
+            "monotonic_ns": 123456,
+        }
+        assert before_trace == [0, 1, 1]
+    assert response["id"] == "timing-request"
+    assert response["choices"][0]["message"]["content"] == "result"
+    assert response["choices"][0]["finish_reason"] == "length"
+    assert response["usage"] == {
+        "prompt_tokens": 2,
+        "completion_tokens": len(chunks[-1]),
+        "total_tokens": 2 + len(chunks[-1]),
+    }
+    assert await vllm_backend.request_trace.request_count() == int(trace_debug)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("after_token", [False, True])
+async def test_first_token_timing_engine_error(vllm_backend, after_token):
+    vllm_backend.status = BackendStatus.RUNNING
+    vllm_backend.trace_debug = True
+    error = RuntimeError("engine failed")
+
+    async def stream(*args):
+        if after_token:
+            yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=[4])])
+        raise error
+
+    vllm_backend.engine = SimpleNamespace(generate=stream)
+    with patch("sllm.backends.vllm_backend.logger.info") as log:
+        with pytest.raises(RuntimeError) as caught:
+            await vllm_backend.generate({"request_id": "failed-request"})
+    assert caught.value is error
+    assert log.call_count == int(after_token)
+
+
+@pytest.mark.asyncio
+async def test_first_token_timing_concurrent_requests(vllm_backend):
+    vllm_backend.status = BackendStatus.RUNNING
+    vllm_backend.trace_debug = True
+
+    async def stream(inputs, sampling_params, request_id):
+        for tokens in ([], [4], [4, 5]):
+            await asyncio.sleep(0)
+            yield SimpleNamespace(
+                request_id=request_id,
+                prompt_token_ids=[1],
+                metrics=None,
+                outputs=[
+                    SimpleNamespace(
+                        text="result",
+                        token_ids=tokens,
+                        logprobs=None,
+                        finish_reason="length",
+                    )
+                ],
+            )
+
+    vllm_backend.engine = SimpleNamespace(generate=stream)
+    with patch("sllm.backends.vllm_backend.logger.info") as log:
+        results = await asyncio.gather(
+            *[
+                vllm_backend.generate({"request_id": request_id})
+                for request_id in ("request-a", "request-b")
+            ]
+        )
+    events = [json.loads(call.args[0]) for call in log.call_args_list]
+    assert sorted(event["request_id"] for event in events) == [
+        "request-a",
+        "request-b",
+    ]
+    assert all(
+        event["event"] == "backend_first_token_observed"
+        and isinstance(event["monotonic_ns"], int)
+        for event in events
+    )
+    assert [response["id"] for response in results] == ["request-a", "request-b"]
