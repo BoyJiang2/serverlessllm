@@ -1,0 +1,273 @@
+test_actor_rpc_failure_retains_confirmed_node (__main__.StartupContracts.test_actor_rpc_failure_retains_confirmed_node) ... FAIL
+test_allocation_failure_retains_id_without_creating_actor (__main__.StartupContracts.test_allocation_failure_retains_id_without_creating_actor) ... ok
+test_auto_scaler_does_not_retry_failed_start (__main__.StartupContracts.test_auto_scaler_does_not_retry_failed_start) ... Task exception was never retrieved
+future: <Task finished name='Task-13' coro=<RoundRobinRouter._start_instance() done, defined at actual-roundrobin-router:449> exception=RuntimeError('native cold failure') created at actual-roundrobin-router:428>
+source_traceback: Object created at (most recent call last):
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 163, in <module>
+    unittest.main()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 104, in __init__
+    self.runTests()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 270, in runTests
+    self.result = testRunner.run(self.test)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\runner.py", line 240, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 707, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 135, in run
+    return super().run(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 651, in run
+    self._callTestMethod(testMethod)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 94, in _callTestMethod
+    if self._callMaybeAsync(method) is not None:
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 116, in _callMaybeAsync
+    return self._asyncioRunner.run(
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 707, in run_until_complete
+    self.run_forever()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 678, in run_forever
+    self._run_once()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 2025, in _run_once
+    handle._run()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 151, in test_auto_scaler_does_not_retry_failed_start
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 110, in create_failed
+    self.assertEqual(await self.router._create_instance(), "cold")
+  File "actual-roundrobin-router", line 428, in _create_instance
+Traceback (most recent call last):
+  File "actual-roundrobin-router", line 493, in _start_instance
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 2319, in _execute_mock_call
+    raise effect
+RuntimeError: native cold failure
+FAIL
+test_init_failure_retains_node_actor_and_nonready_owner (__main__.StartupContracts.test_init_failure_retains_node_actor_and_nonready_owner) ... FAIL
+test_ready_is_published_only_after_init_completes (__main__.StartupContracts.test_ready_is_published_only_after_init_completes) ... FAIL
+test_start_task_cancellation_is_explicit_failure_and_retains_owner (__main__.StartupContracts.test_start_task_cancellation_is_explicit_failure_and_retains_owner) ... FAIL
+test_start_task_failure_is_observed_and_future_requests_fail (__main__.StartupContracts.test_start_task_failure_is_observed_and_future_requests_fail) ... Task exception was never retrieved
+future: <Task finished name='Task-36' coro=<RoundRobinRouter._start_instance() done, defined at actual-roundrobin-router:449> exception=RuntimeError('native cold failure') created at actual-roundrobin-router:428>
+source_traceback: Object created at (most recent call last):
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 163, in <module>
+    unittest.main()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 104, in __init__
+    self.runTests()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 270, in runTests
+    self.result = testRunner.run(self.test)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\runner.py", line 240, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 707, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 135, in run
+    return super().run(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 651, in run
+    self._callTestMethod(testMethod)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 94, in _callTestMethod
+    if self._callMaybeAsync(method) is not None:
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 116, in _callMaybeAsync
+    return self._asyncioRunner.run(
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 707, in run_until_complete
+    self.run_forever()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 678, in run_forever
+    self._run_once()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 2025, in _run_once
+    handle._run()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 123, in test_start_task_failure_is_observed_and_future_requests_fail
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 110, in create_failed
+    self.assertEqual(await self.router._create_instance(), "cold")
+  File "actual-roundrobin-router", line 428, in _create_instance
+Traceback (most recent call last):
+  File "actual-roundrobin-router", line 493, in _start_instance
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 2319, in _execute_mock_call
+    raise effect
+RuntimeError: native cold failure
+FAIL
+test_waiting_request_gets_failure_and_router_count_is_released (__main__.StartupContracts.test_waiting_request_gets_failure_and_router_count_is_released) ... Task exception was never retrieved
+future: <Task finished name='Task-44' coro=<RoundRobinRouter._start_instance() done, defined at actual-roundrobin-router:449> exception=RuntimeError('native cold failure') created at actual-roundrobin-router:428>
+source_traceback: Object created at (most recent call last):
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 163, in <module>
+    unittest.main()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 104, in __init__
+    self.runTests()
+  File "C:\Users\23520\Python\Python313\Lib\unittest\main.py", line 270, in runTests
+    self.result = testRunner.run(self.test)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\runner.py", line 240, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 84, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\suite.py", line 122, in run
+    test(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 707, in __call__
+    return self.run(*args, **kwds)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 135, in run
+    return super().run(result)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\case.py", line 651, in run
+    self._callTestMethod(testMethod)
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 94, in _callTestMethod
+    if self._callMaybeAsync(method) is not None:
+  File "C:\Users\23520\Python\Python313\Lib\unittest\async_case.py", line 116, in _callMaybeAsync
+    return self._asyncioRunner.run(
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 707, in run_until_complete
+    self.run_forever()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 678, in run_forever
+    self._run_once()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 2025, in _run_once
+    handle._run()
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 144, in test_waiting_request_gets_failure_and_router_count_is_released
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 110, in create_failed
+    self.assertEqual(await self.router._create_instance(), "cold")
+  File "actual-roundrobin-router", line 428, in _create_instance
+Traceback (most recent call last):
+  File "actual-roundrobin-router", line 493, in _start_instance
+  File "C:\Users\23520\Python\Python313\Lib\unittest\mock.py", line 2319, in _execute_mock_call
+    raise effect
+RuntimeError: native cold failure
+FAIL
+
+======================================================================
+FAIL: test_actor_rpc_failure_retains_confirmed_node (__main__.StartupContracts.test_actor_rpc_failure_retains_confirmed_node)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 88, in test_actor_rpc_failure_retains_confirmed_node
+    self.assertEqual(self.instance.node_id, "h20-node")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'h20-node'
+
+======================================================================
+FAIL: test_auto_scaler_does_not_retry_failed_start (__main__.StartupContracts.test_auto_scaler_does_not_retry_failed_start)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 151, in test_auto_scaler_does_not_retry_failed_start
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 112, in create_failed
+    self.assertIn("cold", tasks)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'cold' not found in {}
+
+======================================================================
+FAIL: test_init_failure_retains_node_actor_and_nonready_owner (__main__.StartupContracts.test_init_failure_retains_node_actor_and_nonready_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 78, in test_init_failure_retains_node_actor_and_nonready_owner
+    self.assertFalse(self.instance.ready)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_ready_is_published_only_after_init_completes (__main__.StartupContracts.test_ready_is_published_only_after_init_completes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 63, in test_ready_is_published_only_after_init_completes
+    self.assertFalse(self.instance.ready)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_start_task_cancellation_is_explicit_failure_and_retains_owner (__main__.StartupContracts.test_start_task_cancellation_is_explicit_failure_and_retains_owner)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 134, in test_start_task_cancellation_is_explicit_failure_and_retains_owner
+    await self.create_failed(cancelled=True)
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 112, in create_failed
+    self.assertIn("cold", tasks)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'cold' not found in {}
+
+======================================================================
+FAIL: test_start_task_failure_is_observed_and_future_requests_fail (__main__.StartupContracts.test_start_task_failure_is_observed_and_future_requests_fail)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 123, in test_start_task_failure_is_observed_and_future_requests_fail
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 112, in create_failed
+    self.assertIn("cold", tasks)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'cold' not found in {}
+
+======================================================================
+FAIL: test_waiting_request_gets_failure_and_router_count_is_released (__main__.StartupContracts.test_waiting_request_gets_failure_and_router_count_is_released)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\23520\Python\Python313\Lib\asyncio\base_events.py", line 720, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 144, in test_waiting_request_gets_failure_and_router_count_is_released
+    await self.create_failed()
+  File "D:\Documents\codex\2026-11-05\new-chat\work\sllm-v4-p3\sllm_store\tests\python\test_v4_startup.py", line 112, in create_failed
+    self.assertIn("cold", tasks)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'cold' not found in {}
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.132s
+
+FAILED (failures=7)

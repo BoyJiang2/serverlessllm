@@ -77,6 +77,8 @@ class RoundRobinRouter(SllmRouter):
         self.request_queue = asyncio.Queue()  # type:ignore
         # Inference instance pools
         self.starting_inference_instances: Dict[str, InstanceHandle] = {}  # type:ignore
+        self._startup_tasks = {}
+        self._startup_error = None
         self.deleting_inference_instances: Dict[str, InstanceHandle] = {}  # type:ignore
         self.ready_inference_instances: Dict[str, InstanceHandle] = {}  # type:ignore
         # Fine-tuning instance pools
@@ -146,6 +148,8 @@ class RoundRobinRouter(SllmRouter):
             if not self.running:
                 return {"error": "Instance stopped"}
 
+            if self._startup_error is not None:
+                raise RuntimeError("Instance startup failed") from self._startup_error
             async with self.request_count_lock:
                 self.request_count += 1
 
@@ -195,7 +199,8 @@ class RoundRobinRouter(SllmRouter):
             if not instance_allocation.done():
                 instance_allocation.cancel()
             try:
-                if instance is None and not instance_allocation.cancelled():
+                if (instance is None and not instance_allocation.cancelled()
+                        and instance_allocation.exception() is None):
                     instance_id = instance_allocation.result()
                     instance = self.ready_inference_instances.get(
                         instance_id
@@ -328,9 +333,15 @@ class RoundRobinRouter(SllmRouter):
             while not allocated:
                 if instance_allocation.done():
                     break
+                if self._startup_error is not None:
+                    instance_allocation.set_exception(
+                        RuntimeError(f"Instance startup failed: {self._startup_error}")
+                    )
+                    break
                 # 1. get ready instances
                 instance_options = None
-                while not instance_options and not instance_allocation.done():
+                while (not instance_options and not instance_allocation.done()
+                       and self._startup_error is None):
                     await asyncio.sleep(1)
                     async with self.instance_management_lock:
                         instance_options = list(
@@ -339,6 +350,8 @@ class RoundRobinRouter(SllmRouter):
                     logger.info(f"{instance_options}")
                 if instance_allocation.done():
                     break
+                if self._startup_error is not None:
+                    continue
                 logger.info(f"Got ready instances {instance_options}")
                 instance_id = instance_options[
                     round_robin_index % len(instance_options)
@@ -365,6 +378,9 @@ class RoundRobinRouter(SllmRouter):
 
     async def _auto_scaler_loop(self):
         while True:
+            if self._startup_error is not None:
+                await asyncio.sleep(self.loop_interval)
+                continue
             # logger.info(f"Auto-scaling for model {self.model_name}")
             async with self.auto_scaling_lock:
                 auto_scaling_config = self.auto_scaling_config.copy()
@@ -383,6 +399,8 @@ class RoundRobinRouter(SllmRouter):
                 f"need {desired_instances} instances",
             )
             if desired_instances > num_running_instances:
+                if self._startup_error is not None:
+                    continue
                 logger.info("Creating new instance")
                 await self._create_instance()
             elif desired_instances < num_running_instances:
@@ -406,6 +424,8 @@ class RoundRobinRouter(SllmRouter):
             await asyncio.sleep(self.loop_interval)
 
     async def _create_instance(self):
+        if self._startup_error is not None:
+            raise RuntimeError("Instance startup failed") from self._startup_error
         instance_id = self._new_instance_id()
         logger.info(
             f"Creating new instance {instance_id} for model {self.model_name}"
@@ -425,9 +445,21 @@ class RoundRobinRouter(SllmRouter):
         )
         async with self.instance_management_lock:
             self.starting_inference_instances[instance_id] = instance
-        self.loop.create_task(self._start_instance(instance_id))
+        task = self.loop.create_task(self._start_instance(instance_id))
+        self._startup_tasks[instance_id] = task
+        task.add_done_callback(
+            lambda task: self._startup_finished(instance_id, task)
+        )
 
         return instance_id
+
+    def _startup_finished(self, instance_id, task):
+        self._startup_tasks.pop(instance_id, None)
+        error = (RuntimeError("Instance startup cancelled") if task.cancelled()
+                 else task.exception())
+        if error is not None:
+            self._startup_error = error
+            logger.error("Instance %s startup failed: %s", instance_id, error)
 
     async def _create_ft_instance(self):
         instance_id = self._new_instance_id()
@@ -461,6 +493,8 @@ class RoundRobinRouter(SllmRouter):
                 self.model_name, instance_id, self.resource_requirements
             )
         )
+        async with instance.lock:
+            instance.node_id = startup_node
         startup_config = {
             "num_cpus": self.resource_requirements["num_cpus"],
             "num_gpus": self.resource_requirements["num_gpus"],
@@ -471,7 +505,7 @@ class RoundRobinRouter(SllmRouter):
         }
         logger.info(f"Startup config: {startup_config}, {self.backend_config}")
 
-        await start_instance.options(
+        instance.backend_instance = await start_instance.options(
             resources={
                 "worker_node": 0.1,
                 f"worker_id_{startup_node}": 0.1,
@@ -486,13 +520,10 @@ class RoundRobinRouter(SllmRouter):
         logger.info(
             f"Started instance {instance_id} for model {self.model_name}"
         )
-        instance.backend_instance = ray.get_actor(instance_id)
-        async with instance.lock:
-            instance.ready = True
-            instance.node_id = startup_node
         await instance.backend_instance.init_backend.remote()
-
         async with self.instance_management_lock:
+            async with instance.lock:
+                instance.ready = True
             self.ready_inference_instances[instance_id] = instance
             self.starting_inference_instances.pop(instance_id)
         return instance_id
