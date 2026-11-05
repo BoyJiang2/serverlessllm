@@ -1,0 +1,285 @@
+{
+  "status": "PREPARED_NATIVE_DEPENDENCY_INSTALL_IMPORT_CPU420_NOT_EXECUTED",
+  "run_id": "kimi-native-dependency-install-import-cpu-20261105-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "entrypoint": "/usr/bin/python3",
+  "cmd": [
+    "-I",
+    "-c",
+    "import signal,sys\nsignal.signal(signal.SIGTERM,lambda *_:sys.exit(0))\nprint('NATIVE_PID1_READY',flush=True)\nwhile True:signal.pause()\n"
+  ],
+  "env": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "NVIDIA_VISIBLE_DEVICES": "void",
+    "HOME": "/tmp",
+    "USER": "boyjiang",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONUNBUFFERED": "1",
+    "HF_HOME": "/tmp/hf",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "PIP_CONFIG_FILE": "/dev/null",
+    "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+    "PIP_NO_CACHE_DIR": "1",
+    "VLLM_HOST_IP": "127.0.0.1",
+    "SLLM_CAPTURE_LOAD_EVIDENCE": "1",
+    "LD_LIBRARY_PATH": "/source/sllm_store/sllm_store:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64",
+    "VLLM_LOGGING_LEVEL": "DEBUG",
+    "STORAGE_PATH": "/store",
+    "PYTHONPATH": "/source:/source/sllm_store",
+    "VLLM_ALLOW_INSECURE_SERIALIZATION": "0",
+    "RAY_USAGE_STATS_ENABLED": "0"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+      "Target": "/source",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+      "Target": "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-confirm-gil-verified-v2/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "Target": "/source/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/v1/worker/gpu_model_runner.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+      "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+      "Target": "/assets/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "Target": "/assets/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+      "Target": "/assets/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+      "Target": "/assets/gputil-1.4.0-py3-none-any.whl",
+      "ReadOnly": true
+    }
+  ],
+  "host_config": {
+    "Runtime": "runc",
+    "NetworkMode": "none",
+    "ReadonlyRootfs": false,
+    "NanoCpus": 4000000000,
+    "Memory": 8589934592,
+    "MemorySwap": 8589934592,
+    "PidsLimit": 512,
+    "ShmSize": 67108864,
+    "Tmpfs": {
+      "/tmp": "rw,exec,nosuid,nodev,size=2g,mode=1777"
+    },
+    "DeviceRequests": [],
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "Ulimits": [
+      {
+        "Name": "core",
+        "Soft": 0,
+        "Hard": 0
+      }
+    ]
+  },
+  "user": "2147:2147",
+  "source_root": "/data/brick1/boyjiang/kimi-new/ServerlessLLM",
+  "source_pins": {
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/cli/_cli_utils.py": "9b82b1bf3c747c136d8f6668f4b3f8fa0277ec6017762f25f1fccfc88326c91b",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/cli/clic.py": "9b309d2025a604d2372be5ecee0ac4778e9dd262e5913573ff907b109e49d3d1",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/controller.py": "b950233811bf44e835892e4fa5e7b6d5a2c2b82f4be8de7961c2be65f8d863b8",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/routers/roundrobin_router.py": "119f73910f3c27e9229bc2e6176f8d702b4ce5a8b99864aa4d39ace25ade1492",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/inference_instance.py": "7a47e0579ded1eec5ad77f9e0cc7164242129739d066c54e5ac722d2f7837e5a",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/backends/vllm_backend.py": "8e4411465342708ea6c1c6904056f7cb6dbab4d57a74add8149a3abcc345779b",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/store_manager.py": "29eac0acabcfcf821e43da0fb226c4451007e34559d8ae9212e2f875d55db2a5",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/model_downloader.py": "353649e8bda84450491ba7724e336c54746cb561ea61f6a1073e5c73bf4701a9",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/utils.py": "e3ebd803ee06f6665aaa51e586911e1049a5f2c118b612d750a25deff7d008fc",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm/app_lib.py": "462476744209740470fc32de10cc0fa825a69d64803045982e7f80ae7234fd9d",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/__init__.py": "6d102dbbf1ce6f0229d51b959cc5cbf86bfedbc689403c52c2af383cafff3bcd",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/cli.py": "a4cc2919322a54a8b1870c37ceb166aeb80ce83349c91988bd6b91021fab6671",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/client.py": "203f22054e1cb2661f3d02d63dcfa7697b8f1d37d7a057ad6a514c43995d205f",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/device_map_utils.py": "d15e8888b8c04230f958d71c2f731acdaed97ea4d78dc1a2c7b0f4ec7238c4de",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/logger.py": "d4b2f8c86f7fb4ff24b6bee7dbdddc34f74e1a4ef05f66cc629e920adedd0cbb",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/proto/__init__.py": "6d102dbbf1ce6f0229d51b959cc5cbf86bfedbc689403c52c2af383cafff3bcd",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2.py": "c88ff337ac8b12ad8360f9e7c1ac02b8585ebd2599f5a609bd03ac0c6ad470e0",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/proto/storage_pb2_grpc.py": "ce9841b2da55bfa10ef68ce7eccaee0b06d546cdbd6a0034e8409c2c869ab4a5",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/server.py": "a0bf00f10089e76ae1b4528d8d9870cda23aa8f1231fdfd3503c98b304196c25",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/torch.py": "1dd5eb72393c67f2d51128c0bf4abb9e8508e5509cc4b42e666ae0b6da2d7adc",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/transformers.py": "18d68da0918db01e5cafe2c2caeaeb7f5da637c9f4bf0f9e27c750bc37b99b36",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/utils.py": "c21d9a8e30121c17ddd96bbcf6a5f6be59f3208a75e86a430194eee611276217",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/libglog.so.0.6.0": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/build-manifest.json": "4d6514e8368b830b8eecd3a6c3e148af04b9cbf18f955ec6b9244be5e934b836",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp": "bbca97170ed449efdb83dc668494fd6a26b45d7e0d8ddf7a6a41e524f63e5774",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-confirm-gil-verified-v2/_checkpoint_store.cpython-312-x86_64-linux-gnu.so": "cb885e7ca28fc518c86dfba03a0e665c3abe3cbe2614cda3212676a71fb0d079",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-confirm-gil-verified-v2/build-manifest.json": "d96825e5b07565bfc42f47d984849afa2fe621ca265b207bd89c20f6681d153a",
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl": "a42ed3b640f4b599a3fc8067c83ee60497c0f03d070d7a7df02a388fa17a546b",
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl": "372839311ccf6bdaf39b00b61288e0557916c3729529b301c52c2d88842add42",
+    "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl": "75ff32c91af9ac1ce2b905476d6e92bd9eb2c0783f9e7d1939d74605c7d0b9ea",
+    "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl": "ae7922871eb1d946410a04e28866d414abdb67469a22d98a9baa2dbc1c48e804"
+  },
+  "old_artifact_pins": {},
+  "proposal_path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/native-all-four-assets-verified-receipt-20261105.json",
+  "proposal_sha256": "7e9c2889ad627f5fbbcf6b103c56296301bb08e01fe70a0d7f8322138a48b44c",
+  "budget": {
+    "full_seconds": 420,
+    "outer_runtime_seconds": 417,
+    "outer_stop_seconds": 1,
+    "outer_actual_deadline_seconds": 418,
+    "guard_deadline": 260,
+    "guard_kill_after": 3,
+    "guard_overall": 300,
+    "guard_native_seconds": 380,
+    "guard_stop_seconds": 3,
+    "guard_pre_required_seconds": 386,
+    "guard_post_required_seconds": 383,
+    "release_seconds": 60,
+    "prepare_before_GO_max_seconds": 20
+  },
+  "scope": "Fourwheel existingprefix installation and realimports/CLIhelp only; noRayinit/Storeconstructor/model/GPU",
+  "requirements": [
+    "CPUonly sameexistingprefix in thisownedCIDlayer; notnewenv/image/notfutureCIDinstallation",
+    "Freshwhole420+independentreview+guard60",
+    "Noautomaticdependencyexpansion/retry"
+  ],
+  "supersedes_unexecuted_v1": {
+    "spec_sha256": "b68efba109fd78cf706cb56b2749443ecc65ad91b771320f362397a87263cc6e",
+    "command_sha256": "263c2c5dfab428d33026d09dfd1ce3642416d094e255a3049fe1e0a81c88dd2c"
+  },
+  "assets": [
+    {
+      "name": "ray",
+      "filename": "ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+      "bytes": 70124265,
+      "sha256": "a42ed3b640f4b599a3fc8067c83ee60497c0f03d070d7a7df02a388fa17a546b",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+      "source_url": "https://files.pythonhosted.org/packages/61/02/1894be2ab930b599de0f1f77f785b86c78bda4873c6c2dd65d1de5b40837/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl"
+    },
+    {
+      "name": "msgpack",
+      "filename": "msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "bytes": 427556,
+      "sha256": "372839311ccf6bdaf39b00b61288e0557916c3729529b301c52c2d88842add42",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+      "source_url": "https://files.pythonhosted.org/packages/65/92/a5100f7185a800a5d29f8d14041f61475b9de465ffcc0f3b9fba606e4505/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl"
+    },
+    {
+      "name": "speedtest-cli",
+      "filename": "speedtest_cli-2.1.3-py2.py3-none-any.whl",
+      "bytes": 23973,
+      "sha256": "75ff32c91af9ac1ce2b905476d6e92bd9eb2c0783f9e7d1939d74605c7d0b9ea",
+      "path": "/data/brick1/boyjiang/kimi-k2.6/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+      "source_url": "https://files.pythonhosted.org/packages/9f/39/65259b7054368b370d3183762484fa2c779ddc41633894d895f9d1720f45/speedtest_cli-2.1.3-py2.py3-none-any.whl"
+    },
+    {
+      "name": "GPUtil",
+      "filename": "gputil-1.4.0-py3-none-any.whl",
+      "path": "/data/brick1/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+      "bytes": 7435,
+      "sha256": "ae7922871eb1d946410a04e28866d414abdb67469a22d98a9baa2dbc1c48e804"
+    }
+  ],
+  "role_bodies": {
+    "bootstrap": "import hashlib,importlib.metadata as md,json,pathlib,subprocess,sys\nspec=json.loads(pathlib.Path('/control/spec.json').read_text());target=pathlib.Path('/usr/local/lib/python3.12/dist-packages');assert target.is_dir() and target.resolve()==target and pathlib.Path(md.distribution('torch').locate_file('')).resolve()==target\nfor name,module in [('ray','ray'),('msgpack','msgpack'),('GPUtil','GPUtil'),('speedtest-cli','speedtest.py')]:\n try:md.distribution(name)\n except md.PackageNotFoundError:pass\n else:raise AssertionError('new package distribution already exists: '+name)\n assert not (target/module).exists(),module\ndef core():\n result={}\n for name,module in [('torch','torch/__init__.py'),('vllm','vllm/__init__.py'),('transformers','transformers/__init__.py'),('grpcio','grpc/__init__.py')]:\n  dist=md.distribution(name);result[name]=dict(version=dist.version,metadata_sha256=hashlib.sha256(dist.read_text('METADATA').encode()).hexdigest(),record_sha256=hashlib.sha256(dist.read_text('RECORD').encode()).hexdigest(),module_sha256=hashlib.sha256(pathlib.Path(dist.locate_file(module)).read_bytes()).hexdigest())\n return result\nbefore=core();paths=[]\nfor a in spec['assets']:\n p=pathlib.Path('/assets')/a['filename'];assert p.stat().st_size==a['bytes'] and hashlib.sha256(p.read_bytes()).hexdigest()==a['sha256'];paths.append(str(p))\nargv=['/usr/bin/python3','-I','-m','pip','install','--no-index','--no-deps','--no-cache-dir','--disable-pip-version-check','--target',str(target),*paths];subprocess.run(argv,check=True,timeout=120);assert core()==before\nrecord={'status':'EXISTING_PREFIX_FOUR_WHEELS_INSTALLED_CORE_UNCHANGED','core_before_after':before,'assets':spec['assets'],'pip_version':md.version('pip'),'installed':{n:md.version(n) for n in ['ray','msgpack','GPUtil','speedtest-cli']},'argv':argv}\nprint('NATIVE_BOOTSTRAP_PASS '+json.dumps(record),flush=True)\n",
+    "imports": "import sys,os,json,importlib,importlib.metadata as md\nsys.path[:0]=['/source','/source/sllm_store'];assert os.environ.get('VLLM_ALLOW_INSECURE_SERIALIZATION','0')=='0'\nmods=[importlib.import_module(n) for n in ['ray','msgpack','GPUtil','speedtest','sllm.cli.clic','sllm.controller','sllm.routers.roundrobin_router','sllm.backends.vllm_backend','sllm_store.client']]\nimport torch;assert not torch.cuda.is_initialized()\nprint('NATIVE_IMPORTS_PASS '+json.dumps({'origins':{m.__name__:m.__file__ for m in mods},'versions':{n:md.version(n) for n in ['torch','vllm','transformers','grpcio','ray','msgpack','GPUtil','speedtest-cli']},'cuda_initialized':torch.cuda.is_initialized()}),flush=True)\n",
+    "help": "import sys,runpy;sys.path[:0]=['/source','/source/sllm_store'];sys.argv=['sllm.cli.clic','--help'];runpy.run_module('sllm.cli.clic',run_name='__main__')\n"
+  },
+  "role_body_sha256": {
+    "bootstrap": "606e225a587bafea0ec8d05aac9d1f038713a1e1f8eb3ee97ad947898c11d18b",
+    "imports": "182087080dc812bef697da4f29f4f7c6f4210afef637a7be4af3ed855d260594",
+    "help": "38e563fe0eb91106148627f6456781aafcae32b7e954ddf3e69ab9af9f11078d"
+  },
+  "body_sha256": "df81f0f09860e1e5fada2134bc4232df90acf4b74f95b224040ed2f91407653c",
+  "installation_boundary": "Readonlysource/archiveABSENT/ELFs/4wheels; writableownCIDrootfs for exact4targetpackages. PID1/services2147; piponlydockerexecuser0. NoCAPadd."
+}
