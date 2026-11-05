@@ -1,0 +1,55 @@
+{
+  "status": "READONLY_STOP_MECHANISM_REVIEW_CALLER_UNKNOWN",
+  "timestamp_utc": "2026-11-05T16:32:14.136781+00:00",
+  "cid": "923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80",
+  "timeline_source": "/home/boyjiang/kimi-new/evidence/runs/kimi-sf-qjhs000-fixed32-file-evidence-20261105-once-public/failure-stop-timeline-and-release-summary.json",
+  "timeline_source_sha256": "41811bc3565e1677c9fa677db8dfce0c4137b2ceae3cf6c632aeffa9332fdd7f",
+  "term_to_kill_seconds": 15.076974043,
+  "term_event_ns": 1793895484910706914,
+  "kill_event_ns": 1793895499987680957,
+  "exec137_event_ns": 1793895500318158312,
+  "root_ABORT_mtime_ns": 1793895500759234156,
+  "source_sha256": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/gpu512_once_controller.py": "f293c9b94b45d33c1cbe8a301a203ab03e63817e4f5f012bc17d1a1add2bd8cf",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py": "cd8ab416f4d34ae1208d734cbddd5f4dead996b13d72d5733c832926eeba9a2e",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/s4a_root_controller.py": "f02ae256d4cfec86608d733476b64291248b1f20901c4bb8ca05d908992dffdb"
+  },
+  "actual_root_command_sha256": "4d8bf4bb1a64602b491b4b03cde0f62a3011006d3455b0d502a8257c31dec69d",
+  "findings": [
+    "Docker TERM then15.076974043sec later KILL and exec137 all preceded root ABORT; original stop caller is not identified by these events.",
+    "SF root normal Docker TERM is gated after successful client, eight-rank evidence and live ownership; its exception branch creates ABORT rather than Dockerstop.",
+    "Guard deadline1800/overall1840 uses cgroup.kill and authenticated runtime pidfdTERM followed3sec later pidfdKILL; it does not call Dockerstop and the configured3sec gap does not match the15sec event gap.",
+    "Observer GPU query timeout15 applies to nvidia-smi queries, not container stop grace. Observer errors create ABORT; observer has no Dockerstop/kill path.",
+    "Helper imported as existing_controller reuses call/healthy/unitprops/gpu/save; its micro main is not run. Native units have TimeoutStopSec3 (controller1), not15.",
+    "Container StopSignal and StopTimeout are absent/null; do not infer a configured default15 or identify the caller from null fields.",
+    "Image and container have equal inherited legacy run_id/purpose/owner/experiment labels; actual create argv has no explicit label override. Labels are facts only and do not prove an automated cleaner or any particular caller."
+  ],
+  "inherited_image_labels": {
+    "run_id": "kimi-runtime-install-b72823d4ecc44803b871dc5ed7dcd566",
+    "purpose": "kimi-cpu-runtime-install",
+    "owner_uid": "2147",
+    "experiment": "kimi-cpu-toolchain"
+  },
+  "inspect_exit": {
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-11-05T16:12:54.287225764Z",
+      "FinishedAt": "2026-11-05T16:18:20.915314132Z"
+    },
+    "StopSignal": null,
+    "StopTimeout": null
+  },
+  "journal_check": {
+    "query": "journalctl _SYSTEMD_UNIT=docker.service --since 2026-11-06T00:17:50 --until 2026-11-06T00:18:30 then exactCID filter",
+    "result": "Unprivileged journal reports restricted system-log visibility; no matching visible lines. This is not evidence that daemon logs are absent. Root export requested."
+  },
+  "limitations": "No Docker API caller/audit process was captured. A15sec grace is compatible with a stop-like action but source comparison/timing alone cannot prove process/person/automation. No source/environment/labels/daemon modifications, shell history/credentials/other task source access, Git, new probe or GPU rerun."
+}

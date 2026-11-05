@@ -1,0 +1,161 @@
+{
+  "status": "PREPARED_FILE_TRANSPORT_CONSUMER_NOT_EXECUTED_REQUIRES_NEW_USER_GPU_APPROVAL",
+  "run_id": "kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once",
+  "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "source_commit": "7e7570459dc084ec59328cf50308fb7c387e2741",
+  "helper_sha256": "f293c9b94b45d33c1cbe8a301a203ab03e63817e4f5f012bc17d1a1add2bd8cf",
+  "guard_sha256": "cd8ab416f4d34ae1208d734cbddd5f4dead996b13d72d5733c832926eeba9a2e",
+  "observer_sha256": "f02ae256d4cfec86608d733476b64291248b1f20901c4bb8ca05d908992dffdb",
+  "checkpoint": "/mnt/raid/models/Kimi-K2.6",
+  "overlays": [
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+      "sha256": "0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480"
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb"
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+      "sha256": "d1e2609c0f43f2de1ad3222205b3ca87dc607774e46d53319a68dcdb8b03d2c0"
+    }
+  ],
+  "entrypoint": "/usr/local/bin/vllm",
+  "cmd": [
+    "serve",
+    "/checkpoint",
+    "-tp",
+    "8",
+    "--mm-encoder-tp-mode",
+    "data",
+    "--trust-remote-code",
+    "--tool-call-parser",
+    "kimi_k2",
+    "--reasoning-parser",
+    "kimi_k2",
+    "--load-format",
+    "safetensors",
+    "--safetensors-load-strategy",
+    "lazy",
+    "--distributed-executor-backend",
+    "mp",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8000",
+    "--served-model-name",
+    "kimi-k2.6-sf-reference",
+    "--max-model-len",
+    "2048",
+    "--max-num-seqs",
+    "1",
+    "--max-num-batched-tokens",
+    "2048",
+    "--gpu-memory-utilization",
+    "0.8"
+  ],
+  "env": {
+    "HOME": "/tmp",
+    "HF_HOME": "/tmp/hf",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/tmp/torchinductor",
+    "VLLM_HOST_IP": "127.0.0.1",
+    "SLLM_CAPTURE_LOAD_EVIDENCE": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "USER": "boyjiang",
+    "SLLM_LOAD_EVIDENCE_DIR": "/load-evidence"
+  },
+  "client_code": "import json,sys,time,urllib.request,math\nurllib.request.install_opener(urllib.request.build_opener(urllib.request.ProxyHandler({})))\nready_deadline=float(sys.argv[1]);request_deadline=float(sys.argv[2]);model='kimi-k2.6-sf-reference'\ncases=[{'name':'arithmetic','prompt':'请计算17加25。只输出整数结果，不要解释。','expected':'42','max_tokens':128,'ignore_eos':False},{'name':'translation','prompt':'请将英文单词cat翻译成中文。只输出译文，不要解释。','expected':'猫','max_tokens':128,'ignore_eos':False},{'name':'fixed32','prompt':'用中文解释为什么天空通常呈蓝色，写一段完整且连贯的说明。','expected':None,'max_tokens':32,'ignore_eos':True}]\ndef make_payload(case):\n return {'model':model,'messages':[{'role':'user','content':case['prompt']}],'temperature':0,'seed':20261024,'n':1,'max_tokens':case['max_tokens'],'ignore_eos':case['ignore_eos'],'stream':False,'logprobs':True,'top_logprobs':1,'return_token_ids':True,'add_generation_prompt':True,'chat_template_kwargs':{'thinking':False,'preserve_thinking':False}}\ndef response_valid(row,case):\n assert isinstance(row,dict) and row.get('model')==model and len(row['choices'])==1\n choice=row['choices'][0];message=choice['message'];ids=choice['token_ids'];prompt=row['prompt_token_ids'];usage=row['usage']\n assert message['role']=='assistant' and isinstance(message['content'],str) and not message.get('tool_calls')\n assert isinstance(ids,list) and 1<=len(ids)<=case['max_tokens'] and isinstance(prompt,list) and len(prompt)>0\n assert all(type(i) is int and 0<=i<163840 for i in ids+prompt)\n assert usage['completion_tokens']==len(ids) and usage['prompt_tokens']==len(prompt) and usage['total_tokens']==len(ids)+len(prompt)\n if case['name']=='fixed32':assert case['ignore_eos'] is True and len(ids)==32 and choice['finish_reason']=='length'\n else:assert case['ignore_eos'] is False and choice['finish_reason']=='stop' and message['content'].strip()==case['expected']\n lp=choice['logprobs'];assert isinstance(lp,dict) and isinstance(lp.get('content'),list) and lp['content']\n for token in lp['content']:\n  assert isinstance(token,dict) and isinstance(token.get('token'),str) and type(token.get('logprob')) in (int,float) and math.isfinite(token['logprob']) and isinstance(token.get('top_logprobs'),list) and token['top_logprobs']\n return {'case':case['name'],'request':make_payload(case),'content':message['content'],'token_ids':ids,'prompt_token_ids':prompt,'usage':usage,'finish_reason':choice['finish_reason'],'stop_reason':choice.get('stop_reason'),'logprobs':lp}\nwhile True:\n assert time.monotonic()<ready_deadline,'API readiness deadline'\n try:\n  with urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=min(5,max(.1,ready_deadline-time.monotonic()))) as r:assert r.status==200\n  break\n except Exception:time.sleep(.5)\nwith urllib.request.urlopen('http://127.0.0.1:8000/v1/models',timeout=5) as r:models=json.load(r)\nassert any(item['id']==model for item in models['data'])\nprint(json.dumps({'event':'SF_API_READY','monotonic':time.monotonic(),'served_model':model}),flush=True)\nvalidated=[]\nfor index,case in enumerate(cases):\n assert time.monotonic()<request_deadline,'API request deadline';payload=make_payload(case);began=time.monotonic();request=urllib.request.Request('http://127.0.0.1:8000/v1/chat/completions',data=json.dumps(payload,ensure_ascii=False).encode(),headers={'Content-Type':'application/json'})\n with urllib.request.urlopen(request,timeout=min(60,max(.1,request_deadline-time.monotonic()))) as r:\n  assert r.status==200;raw=r.read((1<<20)+1);assert len(raw)<=1<<20\n row=json.loads(raw);print(json.dumps({'event':'SF_FIXED32_PROTOCOL_RESPONSE','index':index,'case':case['name'],'request':payload,'response':row,'seconds':time.monotonic()-began,'monotonic':time.monotonic()},ensure_ascii=False),flush=True)\n validated.append(response_valid(row,case))\nprint(json.dumps({'event':'SF_FIXED32_REFERENCE_PASS','protocol_order':[c['name'] for c in cases],'validated':validated,'monotonic':time.monotonic(),'cache_state':'UNCONTROLLED','fixed32_position':'THIRD_AFTER_TWO_BUSINESS_REQUESTS'},ensure_ascii=False),flush=True)\n",
+  "resource": {
+    "cpu": 32,
+    "memory_bytes": 1374389534720,
+    "memory_swap_bytes": 1374389534720,
+    "pids_limit": 4096,
+    "shm_bytes": 8589934592,
+    "tmpfs_bytes": 8589934592,
+    "host_min_available_bytes": 1869169767219,
+    "gpu_sample_cap_mib": 131072
+  },
+  "budget": {
+    "full_seconds": 2100,
+    "outer_runtime": 2097,
+    "outer_stop": 1,
+    "prep_max": 60,
+    "ready_from_GO": 1500,
+    "requests_from_GO": 1680,
+    "normal_exit_from_GO": 1800,
+    "guard_deadline": 1800,
+    "guard_kill_after": 3,
+    "guard_overall": 1840,
+    "guard_native": 1980,
+    "guard_stop": 3,
+    "observer_seconds": 1950,
+    "observer_native": 1980,
+    "observer_stop": 3,
+    "release_seconds": 60
+  },
+  "limitations": [
+    "No model, engine, Dockercreate/start, weightpayloadread orGPUruntime executed in preparation",
+    "Freshwhole-nodebooking/resourceadmission andindependentreview beforeexecution; delegateduserautonomydoesnotremovegates",
+    "ExactlyonefullSF attempt, no automaticretry orStoreconversion",
+    "Onlythree readonlypackageoverlays+completecheckpointRO; nosource/environment/image/frameworkcreation",
+    "Registeredstorageevidence excludesnonregisterednativeworkspace; Torchpeak exactonlyallocator loadboundary, driverobservations sampledlowerbounds withgaps. Noexactdriverpeakclaim.",
+    "Allcache/tmpcombined8GiBtmpfs hardcap; capacitynotproven, failurepreserved noextension",
+    "NoGit/sync duringformalmodelrunand>=60release; rawlogs rootprivate serveronly",
+    "New qjhs000/NFS and 128/128/32 requests remain unmeasured; fixed32 is third/warm, cache uncontrolled, old AAB gold retained. Request180 and full2100 are hard bounds, no automatic retry or extension.",
+    "This distinct run is not approved for GPU execution. Previous fixed32 attempt remains FAILED_RETAINED and its client output provisional. One new private2147/0700 RW metadata directory is added; no Store, tensor payload or other evidence tree exposure."
+  ],
+  "gpu_uuids": [
+    "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+    "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+    "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+    "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+    "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+    "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+    "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+    "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da"
+  ],
+  "client_code_sha256": "3fda4ed47efd2b75306ae9ccf07ca45f835fa61ad0cc7261e2d5639770db2bd9",
+  "checkpoint_meta_pins": {
+    "config.json": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "generation_config.json": "5431db52f431099f309ece737670e977de148f8cfd5340e920ff1f44d7cff596",
+    "tokenizer_config.json": "12fcab43d2b6068f46769f5ff373960bf7c17a94d7abbc50e2491306b2f6cf58",
+    "chat_template.jinja": "8bf859698fd4781c0e1e1c63ce74422aab27e53ccc5f47116317c64cda06132f"
+  },
+  "protocol": {
+    "source_protocol_facts_sha256": "5f379f63",
+    "three_prompt_literals_verified_against_GLM_gold_sha256": "9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0",
+    "order": [
+      "arithmetic",
+      "translation",
+      "fixed32"
+    ],
+    "cache_state": "UNCONTROLLED",
+    "old_AAB_gold": "PRESERVED_NO_OVERWRITE",
+    "OpenAI_logprobs_mapping": "logprobs=true/top_logprobs=1 -> SamplingParams.logprobs1; omit top_p exactly",
+    "runtime_source_commit_publication": "7e7570459dc084ec59328cf50308fb7c387e2741 source frozen; verify publication before future formal execution"
+  },
+  "rank_file_transport": {
+    "container_dir": "/load-evidence",
+    "host_dir_name": "rank-load-evidence",
+    "owner_uid": 2147,
+    "directory_mode": "0700",
+    "file_mode": "0600",
+    "file_limit_bytes": 16777216,
+    "total_limit_bytes": 134217728,
+    "count": 8,
+    "summary_authoritative": false,
+    "missing_marker_fatal": true,
+    "build_manifest": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/build-manifest.json",
+    "build_manifest_sha256": "4707bbb0c3dbf32f633f8740746f38177eb4a51cdc89f908a92d1fa5abd54b7f",
+    "frozen_schema": "unchanged existing load_records validator; exact rank/PID/UUID and physical NVML correlation retained"
+  },
+  "not_before_epoch": 1793908800
+}

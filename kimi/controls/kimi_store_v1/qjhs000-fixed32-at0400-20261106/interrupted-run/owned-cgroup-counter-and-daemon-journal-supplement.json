@@ -1,0 +1,53 @@
+{
+  "epoch": 1793896253.9081228,
+  "cid": "923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80",
+  "samples": 139,
+  "first": {
+    "mono": 7713817.780643306,
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+    "pids.events": "max 0",
+    "pids.current": "6"
+  },
+  "last": {
+    "mono": 7714143.983221241,
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0",
+    "pids.events": "max 0",
+    "pids.current": "3"
+  },
+  "all_owned_memory_event_values": {
+    "max": [
+      0
+    ],
+    "oom": [
+      0
+    ],
+    "oom_kill": [
+      0
+    ]
+  },
+  "all_owned_pids_max_values": [
+    0
+  ],
+  "journal_argv": [
+    "journalctl",
+    "-u",
+    "docker.service",
+    "--since",
+    "2026-11-06 00:17:50",
+    "--until",
+    "2026-11-06 00:18:30",
+    "--no-pager",
+    "-o",
+    "short-iso-precise"
+  ],
+  "journal_returncode": 0,
+  "journal_matching_lines": [
+    "2026-11-06T00:18:19.911923+0800 qjhs0 dockerd[6366]: time=\"2026-11-06T00:18:19.911859436+08:00\" level=info msg=\"Container failed to exit within 15s of signal 15 - using the force\" container=923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80",
+    "2026-11-06T00:18:20.918488+0800 qjhs0 dockerd[6366]: time=\"2026-11-06T00:18:20.918446209+08:00\" level=info msg=\"ignoring event\" container=923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80 module=libcontainerd namespace=moby topic=/tasks/delete type=\"*events.TaskDelete\"",
+    "2026-11-06T00:18:20.919152+0800 qjhs0 dockerd[6366]: time=\"2026-11-06T00:18:20.919119387+08:00\" level=warning msg=\"failed to delete container from containerd\" container=923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80 error=\"NotFound: task 923d01385fd251f0c55305e3e079a79352ce2ceed19b5e983eace90ec81fbc80 not found: not found\""
+  ],
+  "journal_total_line_count": 13,
+  "journal_stderr": "",
+  "docker_service_current": "MainPID=6366\nActiveEnterTimestamp=Sat 2026-08-08 17:31:18 CST\nActiveEnterTimestampMonotonic=120565405\n",
+  "limits": "Docker daemon metadata/labels do not identify API caller; event samples are evidence of observed counters, not universal exclusion of all host failures"
+}
