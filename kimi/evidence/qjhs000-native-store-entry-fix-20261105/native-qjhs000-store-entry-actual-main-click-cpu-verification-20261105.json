@@ -1,0 +1,58 @@
+{
+  "status": "ACTUAL_SDK_MAIN_CLICK_HELP_AND_DISPATCH_CONSUMER_CPU_PASS_NO_STORE",
+  "spec_sha256": "7c05579afd85e6a015899eb16aba2ee1e6ae5d0491e63a5832363e02396d8923",
+  "command_sha256": "994dc41b011234604ee17dbbdaf94981d1ea9bb4a12f5e506ceabf39657f7bcd",
+  "cli_sha256": "a4cc2919322a54a8b1870c37ceb166aeb80ce83349c91988bd6b91021fab6671",
+  "setup_sha256": "c00af68ac0fe962004432834f226207d2ba7ea04b89ef07d0f31fbd0aca3ed8a",
+  "console_entry": "sllm-store=sllm_store.cli:main",
+  "actual_main_Click_help_output": "Usage: sllm-store [OPTIONS] COMMAND [ARGS]...\n\n  sllm-store CLI\n\nOptions:\n  --help  Show this message and exit.\n\nCommands:\n  load   Loads a model from the sllm-store's storage.\n  save   Saves a model to the sllm-store's storage.\n  start  Start the gRPC server.\n",
+  "host_click_version": "8.0.3",
+  "actual_main_group_command_AST": "from __future__ import annotations\n\n@click.group()\ndef cli():\n    \"\"\"sllm-store CLI\"\"\"\n    pass\n\n@cli.command()\n@click.option('--host', default='0.0.0.0', help='Host')\n@click.option('--port', default=8073, help='Port')\n@click.option('--storage-path', default=None, help='Storage path (default: $STORAGE_PATH or ~/models/)')\n@click.option('--num-thread', default=4, help='Number of I/O threads')\n@click.option('--chunk-size', default='32MB', help='Chunk size, e.g., 4KB, 1MB, 1GB')\n@click.option('--mem-pool-size', default='4GB', help='Memory pool size, e.g., 1GB, 4GB, 1TB')\n@click.option('--disk-size', default='128GB', help='Disk size, e.g., 1GB, 4GB, 1TB')\n@click.option('--registration-required', default=False, help='Require registration before loading model')\ndef start(host, port, storage_path, num_thread, chunk_size, mem_pool_size, disk_size, registration_required):\n    \"\"\"Start the gRPC server.\"\"\"\n    storage_path = resolve_storage_path(storage_path)\n    chunk_size = to_num_bytes(chunk_size)\n    mem_pool_size = to_num_bytes(mem_pool_size)\n    try:\n        logger.info('Starting gRPC server')\n        asyncio.run(serve(host=host, port=port, storage_path=storage_path, num_thread=num_thread, chunk_size=chunk_size, mem_pool_size=mem_pool_size, registration_required=registration_required))\n    except KeyboardInterrupt:\n        logging.info('Server stopped by user')\n        sys.exit(0)\n\n@cli.command()\n@click.option('--model', 'model_name', type=str, required=True, help='Model name from HuggingFace model hub')\n@click.option('--backend', type=str, required=True, help='Backend')\n@click.option('--dtype', type=click.Choice(['auto', 'float16', 'bfloat16', 'float32']), default='float16', help='Model dtype for the vLLM backend')\n@click.option('--trust-remote-code', is_flag=True, default=False, help='Trust model code for the vLLM backend')\n@click.option('--mm-encoder-tp-mode', type=click.Choice(['weights', 'data']), default=None, help='Multimodal encoder TP mode for the vLLM backend')\n@click.option('--adapter-name', type=str, help='Name of the LoRA adapter')\n@click.option('--tensor-parallel-size', type=int, default=1, help='Tensor parallel size')\n@click.option('--local-model-path', type=str, help='Local path to the model snapshot')\n@click.option('--storage-path', default=None, help='Local path to save the model (default: $STORAGE_PATH or ~/models/)')\ndef save(model_name, backend, adapter_name, tensor_parallel_size, local_model_path, storage_path, dtype='float16', trust_remote_code=False, mm_encoder_tp_mode=None):\n    \"\"\"\n    Saves a model to the sllm-store's storage.\n\n    This command is for adding new models to the sllm-store's local storage.\n    \"\"\"\n    storage_path = resolve_storage_path(storage_path)\n    logger.info(f'Saving model {(adapter_name if adapter_name else model_name)} to {storage_path}')\n    try:\n        if backend == 'vllm':\n            downloader = VllmModelDownloader()\n            storage_path = os.path.join(storage_path, 'vllm')\n            downloader.download_vllm_model(model_name, dtype, tensor_parallel_size=tensor_parallel_size, storage_path=storage_path, local_model_path=local_model_path, trust_remote_code=trust_remote_code, mm_encoder_tp_mode=mm_encoder_tp_mode)\n        elif backend == 'transformers':\n            from sllm_store.transformers import save_model, save_lora\n            if adapter_name:\n                from peft import PeftModel\n                config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)\n                config.torch_dtype = torch.float16\n                module = importlib.import_module('transformers')\n                hf_model_cls = module.AutoModelForCausalLM\n                base_model = hf_model_cls.from_config(config, trust_remote_code=True).to(config.torch_dtype)\n                model = PeftModel.from_pretrained(base_model, adapter_name)\n                model_path = os.path.join(storage_path, adapter_name)\n                save_lora(model, model_path)\n            else:\n                model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)\n                model_path = os.path.join(storage_path, model_name)\n                save_model(model, model_path)\n        else:\n            logger.error(f\"Unsupported backend '{backend}'\")\n            sys.exit(1)\n    except Exception as e:\n        logger.error(f'Failed to save model {model_name}: {e}', exc_info=True)\n        sys.exit(1)\n    logger.info(f'Model {(adapter_name if adapter_name else model_name)} saved successfully to {storage_path}')\n\n@cli.command()\n@click.option('--model', 'model_name', type=str, required=True, help='Model name from HuggingFace model hub')\n@click.option('--backend', type=str, required=True, help='Backend')\n@click.option('--adapter-name', type=str, help='Name of the LoRA adapter')\n@click.option('--precision', type=click.Choice(['int8', 'fp4', 'nf4']), help='Precision of quantized model.')\n@click.option('--storage-path', type=str, default=None, help='Local path where model is saved (default: $STORAGE_PATH or ~/models/)')\ndef load(model_name, backend, adapter_name, precision, storage_path):\n    \"\"\"\n    Loads a model from the sllm-store's storage.\n\n    This command is for loading new models from the sllm-store's local storage.\n    \"\"\"\n    storage_path = resolve_storage_path(storage_path)\n    logger.info(f'Loading model {(adapter_name if adapter_name else model_name)} from {storage_path}')\n    quantization_config = None\n    if precision:\n        if precision == 'int8':\n            quantization_config = BitsAndBytesConfig(load_in_8bit=True)\n        elif precision == 'fp4':\n            quantization_config = BitsAndBytesConfig(load_in_4bit=True)\n        elif precision == 'nf4':\n            quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type='nf4')\n    try:\n        start_load_time = time.time()\n        if backend == 'vllm':\n            from vllm import LLM\n            model_full_path = os.path.join(storage_path, 'vllm', model_name)\n            llm = LLM(model=model_full_path, load_format='serverless_llm', dtype='float16')\n            logger.info(f'Model loading time: {time.time() - start_load_time:.2f}s')\n            example_inferences('vllm', model=llm)\n        elif backend == 'transformers':\n            from sllm_store.transformers import load_model, load_lora\n            num_gpus = torch.cuda.device_count()\n            for i in range(num_gpus):\n                torch.ones(1).to(f'cuda:{i}')\n                torch.cuda.synchronize()\n            if adapter_name:\n                model = load_model(model_name, device_map='auto', torch_dtype=torch.float16, storage_path=storage_path, fully_parallel=True)\n                model = load_lora(model, adapter_name, adapter_path=adapter_name, device_map='auto', storage_path=storage_path, torch_dtype=torch.float16)\n            else:\n                model = load_model(model_name, device_map='auto', torch_dtype=torch.float16, storage_path=storage_path, fully_parallel=True, quantization_config=quantization_config)\n            logger.info(f'Model loading time: {time.time() - start_load_time:.2f}s')\n            example_inferences('transformers', model=model, model_name=model_name, adapter_name=adapter_name)\n        else:\n            logger.error(f\"Unsupported backend '{backend}'\")\n            sys.exit(1)\n    except Exception as e:\n        logger.error(f'Failed to load model or perform inference: {e}', exc_info=True)\n        sys.exit(1)\n    logger.info(f'Model {(adapter_name if adapter_name else model_name)} loaded successfully from {storage_path}')\n\ndef main():\n    cli()",
+  "actual_dispatch_branch_AST": "if module == 'sllm_store.cli':\n    import importlib\n    importlib.import_module(module).main()\nelse:\n    runpy.run_module(module, run_name='__main__')",
+  "dispatch_calls": [
+    [
+      "import",
+      "sllm_store.cli"
+    ],
+    [
+      "main",
+      "sllm_store.cli"
+    ],
+    [
+      "runpy",
+      "ray.scripts.scripts",
+      {
+        "run_name": "__main__"
+      }
+    ],
+    [
+      "runpy",
+      "sllm.cli.clic",
+      {
+        "run_name": "__main__"
+      }
+    ]
+  ],
+  "actual_root_rendered_worker_exec": [
+    "/usr/bin/docker",
+    "exec",
+    "--user=2147:2147",
+    "--workdir=/source",
+    "--env",
+    "VLLM_HOST_IP=172.30.0.3",
+    "--env",
+    "RAY_ADDRESS=172.30.0.2:6379",
+    "--env",
+    "NATIVE_ROLE=store",
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "/usr/bin/python3",
+    "-I",
+    "-c",
+    "import sys,os,json,pathlib,runpy\nsys.path[:0]=['/source','/source/sllm_store'];module=sys.argv[1];assert module in ['ray.scripts.scripts','sllm.cli.clic','sllm_store.cli'];role=os.environ.get('NATIVE_ROLE','command');pathlib.Path('/evidence/'+role+'.pid').write_text(str(os.getpid()));print('NATIVE_OFFICIAL_ROLE '+json.dumps({'role':role,'pid':os.getpid(),'module':module,'argv':sys.argv[2:]}),flush=True);sys.argv=[module,*sys.argv[2:]];\nif module=='sllm_store.cli':\n import importlib\n importlib.import_module(module).main()\nelse:\n runpy.run_module(module,run_name='__main__')\n",
+    "sllm_store.cli",
+    "start"
+  ],
+  "root_code_unchanged": true,
+  "Store_instantiated": false,
+  "no_GPU_or_install_or_sourcechange": true
+}

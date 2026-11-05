@@ -1,0 +1,14 @@
+{
+  "status": "ACTUAL_STORE_OFFICIAL_MODULE_RETURNED_WITHOUT_INVOKING_MAIN_ABORT_REQUESTED",
+  "store_nspid": 1233,
+  "matching_host_pids": [],
+  "cli_source_sha256": "a4cc2919322a54a8b1870c37ceb166aeb80ce83349c91988bd6b91021fab6671",
+  "source_tail": [
+    "",
+    "# Entry point for the 'sllm-store' CLI",
+    "def main():",
+    "    cli()"
+  ],
+  "root_cause": "Official sllm_store.cli exposes main()->cli() but has no __main__ call; runpy.run_module(run_name=__main__) onlydefinesfunctions and exits, no Store server. This is commandentry invocation bug, not SDK/Ray/GPU failure.",
+  "epoch": 1793871645.1343517
+}

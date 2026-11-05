@@ -580,3 +580,10 @@ Freshqjhs000220budgetprobe actualCID6ad3122054a12339b3a7682ca00382462744c6fdc482
 ### 2026-11-05 — qjhs000 first native failure retained; minimal Ray worker CLI fix
 
 Head/worker installs/imports andheadRaystart passed; workerCLI failed43.045s atRay scripts1055–1072 worker-onlybranch, because explicitinclude_dashboard=False isnotNone andonlyhead acceptsit. NoStore/model started. BothCIDs/scopesgone, allunitsMainPID0, guardabortfailuresretained withquiet60.017/60.045 andobserverquiet60.666/allGPUpeaks0. Priorreview checkedoptionexistence butmissedrole-specificlimit; notruntimePASS. Minimalcommanddata removesonlyworker--include-dashboard=false, headunchanged. ActualinstalledRaySHA7ca9c10d matchesofficialwheel; branchASToldFalsefails/missingNonepasses. Source/roles/gold/7200resources unchanged, newRUNkimi-native-qjhs000-worker-args-fixed-20261105-once. Spec65f7dd5b/root3ca982c2/CPUc85ca086/indepreview25118e24. Onecorrectedattempt afterfreshadmission, nofurthermicro/environment/framework.
+
+
+### 2026-11-05 — Ray2nodes joined; SDK module entry failure retained and corrected
+
+WorkerCLI flagfix passed, actualRayhead+8GPUworker joined. Store role processreturned0 withoutserver: actualpinnedcli.py a4cc2919 endsdefmain():cli() withno__main__call; setup.py officialconsoleentryissllm_store.cli:main. ScopedhostPIDcheck foundstore.nspid1233 gone; noStore/model started. Rootdiagnosis triggerednormalABORT, wrapperfailure225.840934s retained; allunits0/bothCIDscopesgone, guardsabortquiet60.012/60.031 andobserver60.808/allGPUpeaks0. Priorreviewmiss ofmodule-specificentry retained.
+
+Minimalexistingofficial_module dispatcher now callsimportlib.import_module(module).main() onlyforSDKcli; otherRay/nativeCLI runpyunchanged. Actualpinnedmain+Clickgroup --help CPUfixture returns0/startpresent/noserveconstruction; actualconsumerandhashchecked. Spec7c05579a/root994dc41b/CPU001094b3/indepc70a9576. DistinctRUNkimi-native-qjhs000-store-entry-fixed-20261105-once; same7200/resources/gold/source/workerflagfix, no newprobe/environment/sourcepatch. Onecorrectedattempt afterfreshadmission.
