@@ -1,0 +1,23 @@
+{
+  "status": "RSS_ONLY_PURE_STDLIB_6_PASS_V5_INCOMPLETE_NOT_EXECUTABLE_PROPOSAL",
+  "source_v4_sha256": "637ca65a01857a6333ca9da0e5a5465c19c13c6db27693f7134ffc7d5baf4f20",
+  "before": "    assert current==owner\n    rss.append({'rank':w['rank'],'pid':owner['pid'],'state':state,**{k:int(status[k].split()[0])*1024 for k in ('VmRSS','RssAnon','RssFile','RssShmem')}})",
+  "after": "    assert current==owner\n    fields=('VmRSS','RssAnon','RssFile','RssShmem');missing=[k for k in fields if k not in status];rechecks=0\n    if missing:\n     time.sleep(.02);assert identity(owner['pid'])==owner\n     status=dict(l.split(':',1) for l in (pathlib.Path('/proc')/str(owner['pid'])/'status').read_text().splitlines() if ':' in l)\n     assert identity(owner['pid'])==owner;state=status['State'].split()[0];missing=[k for k in fields if k not in status];rechecks=1\n    rss.append({'rank':w['rank'],'pid':owner['pid'],'state':state,'current_cgroup':current['cgroup'],**{k:None if k in missing else int(status[k].split()[0])*1024 for k in fields},'rss_availability':{'available':not missing,'missing_fields':missing,'recheck_count':rechecks,'reason':'fields absent in same authenticated owned process status after bounded recheck' if missing else None}})",
+  "extracted_block_fixture": "def case(status,current,owner,w):\n rss=[];state=status[\"State\"].split()[0]\n assert current==owner\n fields=('VmRSS','RssAnon','RssFile','RssShmem');missing=[k for k in fields if k not in status];rechecks=0\n if missing:\n  time.sleep(.02);assert identity(owner['pid'])==owner\n  status=dict(l.split(':',1) for l in (pathlib.Path('/proc')/str(owner['pid'])/'status').read_text().splitlines() if ':' in l)\n  assert identity(owner['pid'])==owner;state=status['State'].split()[0];missing=[k for k in fields if k not in status];rechecks=1\n rss.append({'rank':w['rank'],'pid':owner['pid'],'state':state,'current_cgroup':current['cgroup'],**{k:None if k in missing else int(status[k].split()[0])*1024 for k in fields},'rss_availability':{'available':not missing,'missing_fields':missing,'recheck_count':rechecks,'reason':'fields absent in same authenticated owned process status after bounded recheck' if missing else None}})\n return rss[0]\n",
+  "tests_run": 6,
+  "errors": 0,
+  "failures": 0,
+  "cases": [
+    "complete",
+    "transient recovery one20ms recheck",
+    "persistent missing explicitnull",
+    "PIDstartticks drift fail",
+    "cgroup drift fail",
+    "invalid numeric fail"
+  ],
+  "limits": [
+    "No real proc/GPU sampling",
+    "Separate serialization failure unresolved; noV5formalproposal/runtime/envchange"
+  ],
+  "no_source_edits": true
+}

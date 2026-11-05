@@ -1,0 +1,2676 @@
+{
+  "container_id": "28518471dd152606d68ab5cf2bfa39694f5ccbe6e440487446b36b758da53277",
+  "scope": "readonly actualstoppedV4 Dockerarchive; noimports/execution; snippetsnotnewRPC",
+  "files": [
+    {
+      "relative_path": "v1/serial_utils.py",
+      "sha256": "a87f4cc50114eef931834270242b94c2ed2fc7fb78e9bdb7636428d0a99bf998",
+      "selected_lines": [
+        {
+          "line": 3,
+          "text": ""
+        },
+        {
+          "line": 4,
+          "text": "import dataclasses"
+        },
+        {
+          "line": 5,
+          "text": "import importlib"
+        },
+        {
+          "line": 6,
+          "text": "import pickle"
+        },
+        {
+          "line": 7,
+          "text": "from abc import ABC, abstractmethod"
+        },
+        {
+          "line": 8,
+          "text": "from collections.abc import Callable, Sequence"
+        },
+        {
+          "line": 9,
+          "text": "from functools import partial"
+        },
+        {
+          "line": 10,
+          "text": "from inspect import isclass"
+        },
+        {
+          "line": 11,
+          "text": "from types import FunctionType"
+        },
+        {
+          "line": 12,
+          "text": "from typing import Any, ClassVar, TypeAlias, cast, get_type_hints"
+        },
+        {
+          "line": 13,
+          "text": ""
+        },
+        {
+          "line": 14,
+          "text": "import cloudpickle"
+        },
+        {
+          "line": 15,
+          "text": "import msgspec"
+        },
+        {
+          "line": 16,
+          "text": "import numpy as np"
+        },
+        {
+          "line": 17,
+          "text": "import torch"
+        },
+        {
+          "line": 18,
+          "text": "import zmq"
+        },
+        {
+          "line": 19,
+          "text": "from msgspec import msgpack"
+        },
+        {
+          "line": 20,
+          "text": "from pydantic import GetCoreSchemaHandler"
+        },
+        {
+          "line": 21,
+          "text": "from pydantic_core import core_schema"
+        },
+        {
+          "line": 22,
+          "text": ""
+        },
+        {
+          "line": 77,
+          "text": ""
+        },
+        {
+          "line": 78,
+          "text": "def _log_insecure_serialization_warning():"
+        },
+        {
+          "line": 79,
+          "text": "    logger.warning_once("
+        },
+        {
+          "line": 80,
+          "text": "        \"Allowing insecure serialization using pickle due to \""
+        },
+        {
+          "line": 81,
+          "text": "        \"VLLM_ALLOW_INSECURE_SERIALIZATION=1\""
+        },
+        {
+          "line": 82,
+          "text": "    )"
+        },
+        {
+          "line": 83,
+          "text": ""
+        },
+        {
+          "line": 84,
+          "text": ""
+        },
+        {
+          "line": 85,
+          "text": "def _typestr(val: Any) -> tuple[str, str] | None:"
+        },
+        {
+          "line": 86,
+          "text": "    if val is None:"
+        },
+        {
+          "line": 87,
+          "text": "        return None"
+        },
+        {
+          "line": 88,
+          "text": "    t = type(val)"
+        },
+        {
+          "line": 89,
+          "text": "    return t.__module__, t.__qualname__"
+        },
+        {
+          "line": 160,
+          "text": "        self.aux_buffers: list[bytestr] | None = None"
+        },
+        {
+          "line": 161,
+          "text": "        self.size_threshold = size_threshold"
+        },
+        {
+          "line": 162,
+          "text": "        self.oob_tensor_consumer = oob_tensor_consumer"
+        },
+        {
+          "line": 163,
+          "text": "        if envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 164,
+          "text": "            _log_insecure_serialization_warning()"
+        },
+        {
+          "line": 165,
+          "text": ""
+        },
+        {
+          "line": 166,
+          "text": "    def encode(self, obj: Any) -> Sequence[bytestr]:"
+        },
+        {
+          "line": 167,
+          "text": "        try:"
+        },
+        {
+          "line": 168,
+          "text": "            if self.oob_tensor_consumer is not None:"
+        },
+        {
+          "line": 169,
+          "text": "                self.oob_tensor_consumer.new_message()"
+        },
+        {
+          "line": 170,
+          "text": "            self.aux_buffers = bufs = [b\"\"]"
+        },
+        {
+          "line": 171,
+          "text": "            bufs[0] = self.encoder.encode(obj)"
+        },
+        {
+          "line": 172,
+          "text": "            # This `bufs` list allows us to collect direct pointers to backing"
+        },
+        {
+          "line": 173,
+          "text": "            # buffers of tensors and np arrays, and return them along with the"
+        },
+        {
+          "line": 174,
+          "text": "            # top-level encoded buffer instead of copying their data into the"
+        },
+        {
+          "line": 177,
+          "text": "        finally:"
+        },
+        {
+          "line": 178,
+          "text": "            self.aux_buffers = None"
+        },
+        {
+          "line": 179,
+          "text": ""
+        },
+        {
+          "line": 180,
+          "text": "    def encode_into(self, obj: Any, buf: bytearray) -> Sequence[bytestr]:"
+        },
+        {
+          "line": 181,
+          "text": "        try:"
+        },
+        {
+          "line": 182,
+          "text": "            if self.oob_tensor_consumer is not None:"
+        },
+        {
+          "line": 183,
+          "text": "                self.oob_tensor_consumer.new_message()"
+        },
+        {
+          "line": 184,
+          "text": "            self.aux_buffers = [buf]"
+        },
+        {
+          "line": 185,
+          "text": "            bufs = self.aux_buffers"
+        },
+        {
+          "line": 186,
+          "text": "            self.encoder.encode_into(obj, buf)"
+        },
+        {
+          "line": 187,
+          "text": "            return bufs"
+        },
+        {
+          "line": 188,
+          "text": "        finally:"
+        },
+        {
+          "line": 192,
+          "text": "        if isinstance(obj, torch.Tensor):"
+        },
+        {
+          "line": 193,
+          "text": "            return self._encode_tensor(obj)"
+        },
+        {
+          "line": 194,
+          "text": ""
+        },
+        {
+          "line": 195,
+          "text": "        # Fall back to pickle for object or void kind ndarrays."
+        },
+        {
+          "line": 196,
+          "text": "        if isinstance(obj, np.ndarray) and obj.dtype.kind not in (\"O\", \"V\"):"
+        },
+        {
+          "line": 197,
+          "text": "            return self._encode_ndarray(obj)"
+        },
+        {
+          "line": 198,
+          "text": ""
+        },
+        {
+          "line": 199,
+          "text": "        if isinstance(obj, slice):"
+        },
+        {
+          "line": 200,
+          "text": "            # We are assuming only int-based values will be used here."
+        },
+        {
+          "line": 201,
+          "text": "            return tuple("
+        },
+        {
+          "line": 202,
+          "text": "                int(v) if v is not None else None"
+        },
+        {
+          "line": 203,
+          "text": "                for v in (obj.start, obj.stop, obj.step)"
+        },
+        {
+          "line": 211,
+          "text": ""
+        },
+        {
+          "line": 212,
+          "text": "        if isinstance(obj, UtilityResult):"
+        },
+        {
+          "line": 213,
+          "text": "            result = obj.result"
+        },
+        {
+          "line": 214,
+          "text": "            if not envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 215,
+          "text": "                return None, result"
+        },
+        {
+          "line": 216,
+          "text": "            # Since utility results are not strongly typed, we recursively"
+        },
+        {
+          "line": 217,
+          "text": "            # encode type information for nested structures of lists/dicts"
+        },
+        {
+          "line": 218,
+          "text": "            # to help with correct msgspec deserialization."
+        },
+        {
+          "line": 219,
+          "text": "            return _encode_type_info_recursive(result), result"
+        },
+        {
+          "line": 220,
+          "text": ""
+        },
+        {
+          "line": 221,
+          "text": "        if not envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 222,
+          "text": "            raise TypeError("
+        },
+        {
+          "line": 223,
+          "text": "                f\"Object of type {type(obj)} is not serializable\""
+        },
+        {
+          "line": 224,
+          "text": "                \"Set VLLM_ALLOW_INSECURE_SERIALIZATION=1 to allow \""
+        },
+        {
+          "line": 225,
+          "text": "                \"fallback to pickle-based serialization.\""
+        },
+        {
+          "line": 226,
+          "text": "            )"
+        },
+        {
+          "line": 227,
+          "text": ""
+        },
+        {
+          "line": 228,
+          "text": "        if isinstance(obj, FunctionType):"
+        },
+        {
+          "line": 229,
+          "text": "            # `pickle` is generally faster than cloudpickle, but can have"
+        },
+        {
+          "line": 230,
+          "text": "            # problems serializing methods."
+        },
+        {
+          "line": 231,
+          "text": "            return msgpack.Ext(CUSTOM_TYPE_CLOUDPICKLE, cloudpickle.dumps(obj))"
+        },
+        {
+          "line": 232,
+          "text": ""
+        },
+        {
+          "line": 233,
+          "text": "        return msgpack.Ext("
+        },
+        {
+          "line": 234,
+          "text": "            CUSTOM_TYPE_PICKLE, pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL)"
+        },
+        {
+          "line": 235,
+          "text": "        )"
+        },
+        {
+          "line": 236,
+          "text": ""
+        },
+        {
+          "line": 237,
+          "text": "    def _encode_ndarray("
+        },
+        {
+          "line": 238,
+          "text": "        self, obj: np.ndarray"
+        },
+        {
+          "line": 239,
+          "text": "    ) -> tuple[str, tuple[int, ...], int | memoryview]:"
+        },
+        {
+          "line": 240,
+          "text": "        assert self.aux_buffers is not None"
+        },
+        {
+          "line": 241,
+          "text": "        # If the array is non-contiguous, we need to copy it first"
+        },
+        {
+          "line": 242,
+          "text": "        arr_data = obj.data if obj.flags.c_contiguous else obj.tobytes()"
+        },
+        {
+          "line": 334,
+          "text": "        )"
+        },
+        {
+          "line": 335,
+          "text": "        self.aux_buffers: Sequence[bytestr] = ()"
+        },
+        {
+          "line": 336,
+          "text": "        self.oob_tensor_provider = oob_tensor_provider"
+        },
+        {
+          "line": 337,
+          "text": "        if envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 338,
+          "text": "            _log_insecure_serialization_warning()"
+        },
+        {
+          "line": 339,
+          "text": ""
+        },
+        {
+          "line": 340,
+          "text": "    def decode(self, bufs: bytestr | Sequence[bytestr]) -> Any:"
+        },
+        {
+          "line": 341,
+          "text": "        if isinstance(bufs, bytestr):  # type: ignore"
+        },
+        {
+          "line": 342,
+          "text": "            return self.decoder.decode(bufs)"
+        },
+        {
+          "line": 343,
+          "text": ""
+        },
+        {
+          "line": 344,
+          "text": "        self.aux_buffers = bufs"
+        },
+        {
+          "line": 345,
+          "text": "        try:"
+        },
+        {
+          "line": 367,
+          "text": "    def _decode_utility_result(self, obj: Any) -> UtilityResult:"
+        },
+        {
+          "line": 368,
+          "text": "        result_type, result = obj"
+        },
+        {
+          "line": 369,
+          "text": "        if result_type is not None:"
+        },
+        {
+          "line": 370,
+          "text": "            if not envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 371,
+          "text": "                raise TypeError("
+        },
+        {
+          "line": 372,
+          "text": "                    \"VLLM_ALLOW_INSECURE_SERIALIZATION must \""
+        },
+        {
+          "line": 373,
+          "text": "                    \"be set to use custom utility result types\""
+        },
+        {
+          "line": 374,
+          "text": "                )"
+        },
+        {
+          "line": 375,
+          "text": "            # Use recursive decoding to handle nested structures"
+        },
+        {
+          "line": 376,
+          "text": "            result = _decode_type_info_recursive("
+        },
+        {
+          "line": 377,
+          "text": "                result_type, result, self._convert_result"
+        },
+        {
+          "line": 378,
+          "text": "            )"
+        },
+        {
+          "line": 379,
+          "text": "        return UtilityResult(result)"
+        },
+        {
+          "line": 380,
+          "text": ""
+        },
+        {
+          "line": 474,
+          "text": "        if code == CUSTOM_TYPE_RAW_VIEW:"
+        },
+        {
+          "line": 475,
+          "text": "            return data"
+        },
+        {
+          "line": 476,
+          "text": ""
+        },
+        {
+          "line": 477,
+          "text": "        if envs.VLLM_ALLOW_INSECURE_SERIALIZATION:"
+        },
+        {
+          "line": 478,
+          "text": "            if code == CUSTOM_TYPE_PICKLE:"
+        },
+        {
+          "line": 479,
+          "text": "                return pickle.loads(data)"
+        },
+        {
+          "line": 480,
+          "text": "            if code == CUSTOM_TYPE_CLOUDPICKLE:"
+        },
+        {
+          "line": 481,
+          "text": "                return cloudpickle.loads(data)"
+        },
+        {
+          "line": 482,
+          "text": ""
+        },
+        {
+          "line": 483,
+          "text": "        raise NotImplementedError(f\"Extension type code {code} is not supported\")"
+        },
+        {
+          "line": 484,
+          "text": ""
+        },
+        {
+          "line": 485,
+          "text": ""
+        },
+        {
+          "line": 486,
+          "text": "def run_method("
+        },
+        {
+          "line": 487,
+          "text": "    obj: Any,"
+        },
+        {
+          "line": 488,
+          "text": "    method: str | bytes | Callable,"
+        },
+        {
+          "line": 489,
+          "text": "    args: tuple[Any, ...],"
+        },
+        {
+          "line": 493,
+          "text": "    Run a method of an object with the given arguments and keyword arguments."
+        },
+        {
+          "line": 494,
+          "text": "    If the method is string, it will be converted to a method using getattr."
+        },
+        {
+          "line": 495,
+          "text": "    If the method is serialized bytes and will be deserialized using"
+        },
+        {
+          "line": 496,
+          "text": "    cloudpickle."
+        },
+        {
+          "line": 497,
+          "text": "    If the method is a callable, it will be called directly."
+        },
+        {
+          "line": 498,
+          "text": "    \"\"\""
+        },
+        {
+          "line": 499,
+          "text": "    if isinstance(method, bytes):"
+        },
+        {
+          "line": 500,
+          "text": "        func = partial(cloudpickle.loads(method), obj)"
+        },
+        {
+          "line": 501,
+          "text": "    elif isinstance(method, str):"
+        },
+        {
+          "line": 502,
+          "text": "        try:"
+        },
+        {
+          "line": 503,
+          "text": "            func = getattr(obj, method)"
+        },
+        {
+          "line": 504,
+          "text": "        except AttributeError:"
+        },
+        {
+          "line": 505,
+          "text": "            raise NotImplementedError("
+        },
+        {
+          "line": 506,
+          "text": "                f\"Method {method!r} is not implemented.\""
+        },
+        {
+          "line": 507,
+          "text": "            ) from None"
+        },
+        {
+          "line": 508,
+          "text": "    else:"
+        }
+      ]
+    },
+    {
+      "relative_path": "envs.py",
+      "sha256": "0878b5ca5379317b3f9f0fe65d9414c62f0a3a3400f79baeb07419507b933e5d",
+      "selected_lines": [
+        {
+          "line": 175,
+          "text": "    VLLM_FLASHINFER_WORKSPACE_BUFFER_SIZE: int = 394 * 1024 * 1024"
+        },
+        {
+          "line": 176,
+          "text": "    VLLM_XGRAMMAR_CACHE_MB: int = 0"
+        },
+        {
+          "line": 177,
+          "text": "    VLLM_MSGPACK_ZERO_COPY_THRESHOLD: int = 256"
+        },
+        {
+          "line": 178,
+          "text": "    VLLM_ALLOW_INSECURE_SERIALIZATION: bool = False"
+        },
+        {
+          "line": 179,
+          "text": "    VLLM_DISABLE_REQUEST_ID_RANDOMIZATION: bool = False"
+        },
+        {
+          "line": 180,
+          "text": "    VLLM_NIXL_SIDE_CHANNEL_HOST: str = \"localhost\""
+        },
+        {
+          "line": 181,
+          "text": "    VLLM_NIXL_SIDE_CHANNEL_PORT: int = 5600"
+        },
+        {
+          "line": 182,
+          "text": "    VLLM_MOONCAKE_BOOTSTRAP_PORT: int = 8998"
+        },
+        {
+          "line": 183,
+          "text": "    VLLM_MAX_TOKENS_PER_EXPERT_FP4_MOE: int = 163840"
+        },
+        {
+          "line": 184,
+          "text": "    VLLM_TOOL_PARSE_REGEX_TIMEOUT_SECONDS: int = 1"
+        },
+        {
+          "line": 185,
+          "text": "    VLLM_MQ_MAX_CHUNK_BYTES_MB: int = 16"
+        },
+        {
+          "line": 186,
+          "text": "    VLLM_EXECUTE_MODEL_TIMEOUT_SECONDS: int = 300"
+        },
+        {
+          "line": 1286,
+          "text": "    # If set, allow insecure serialization using pickle."
+        },
+        {
+          "line": 1287,
+          "text": "    # This is useful for environments where it is deemed safe to use the"
+        },
+        {
+          "line": 1288,
+          "text": "    # insecure method and it is needed for some reason."
+        },
+        {
+          "line": 1289,
+          "text": "    \"VLLM_ALLOW_INSECURE_SERIALIZATION\": lambda: bool("
+        },
+        {
+          "line": 1290,
+          "text": "        int(os.getenv(\"VLLM_ALLOW_INSECURE_SERIALIZATION\", \"0\"))"
+        },
+        {
+          "line": 1291,
+          "text": "    ),"
+        },
+        {
+          "line": 1292,
+          "text": "    # Temporary: skip adding random suffix to internal request IDs. May be"
+        },
+        {
+          "line": 1293,
+          "text": "    # needed for KV connectors that match request IDs across instances."
+        },
+        {
+          "line": 1294,
+          "text": "    \"VLLM_DISABLE_REQUEST_ID_RANDOMIZATION\": lambda: bool("
+        },
+        {
+          "line": 1295,
+          "text": "        int(os.getenv(\"VLLM_DISABLE_REQUEST_ID_RANDOMIZATION\", \"0\"))"
+        },
+        {
+          "line": 1296,
+          "text": "    ),"
+        },
+        {
+          "line": 1297,
+          "text": "    # IP address used for NIXL handshake between remote agents."
+        },
+        {
+          "line": 1298,
+          "text": "    \"VLLM_NIXL_SIDE_CHANNEL_HOST\": lambda: os.getenv("
+        }
+      ]
+    },
+    {
+      "relative_path": "entrypoints/llm.py",
+      "sha256": "68f573207aeb3f655c20b5e9d2035740cac99f68d3f11bec824e462e177b9eb7",
+      "selected_lines": [
+        {
+          "line": 671,
+          "text": ""
+        },
+        {
+          "line": 672,
+          "text": "        return self.llm_engine.collective_rpc(method, timeout, args, kwargs)"
+        },
+        {
+          "line": 673,
+          "text": ""
+        },
+        {
+          "line": 674,
+          "text": "    def apply_model(self, func: Callable[[nn.Module], _R]) -> list[_R]:"
+        },
+        {
+          "line": 675,
+          "text": "        \"\"\""
+        },
+        {
+          "line": 676,
+          "text": "        Run a function directly on the model inside each worker,"
+        },
+        {
+          "line": 677,
+          "text": "        returning the result for each of them."
+        },
+        {
+          "line": 678,
+          "text": ""
+        },
+        {
+          "line": 679,
+          "text": "        !!! warning"
+        },
+        {
+          "line": 680,
+          "text": "            To reduce the overhead of data transfer, avoid returning large"
+        },
+        {
+          "line": 681,
+          "text": "            arrays or tensors from this method. If you must return them,"
+        },
+        {
+          "line": 682,
+          "text": "            make sure you move them to CPU first to avoid taking up additional"
+        }
+      ]
+    },
+    {
+      "relative_path": "v1/engine/llm_engine.py",
+      "sha256": "6a948e25ece97656fe033d658925b0db03b136e4221dc3c00176b293cb667a9e",
+      "selected_lines": [
+        {
+          "line": 421,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 422,
+          "text": "        return self.engine_core.collective_rpc(method, timeout, args, kwargs)"
+        },
+        {
+          "line": 423,
+          "text": ""
+        },
+        {
+          "line": 424,
+          "text": "    def apply_model(self, func: Callable[[nn.Module], _R]) -> list[_R]:"
+        },
+        {
+          "line": 425,
+          "text": "        return self.collective_rpc(\"apply_model\", args=(func,))"
+        },
+        {
+          "line": 426,
+          "text": ""
+        },
+        {
+          "line": 427,
+          "text": "    def __del__(self):"
+        },
+        {
+          "line": 428,
+          "text": "        dp_group = getattr(self, \"dp_group\", None)"
+        },
+        {
+          "line": 429,
+          "text": "        if dp_group is not None and not self.external_launcher_dp:"
+        },
+        {
+          "line": 430,
+          "text": "            stateless_destroy_torch_distributed_process_group(dp_group)"
+        }
+      ]
+    },
+    {
+      "relative_path": "v1/engine/core_client.py",
+      "sha256": "e87517c666d828ac6a896a9ba25f85f3c71f66753f37b89f1fb5e97f74570ab8",
+      "selected_lines": [
+        {
+          "line": 55,
+          "text": ")"
+        },
+        {
+          "line": 56,
+          "text": "from vllm.v1.executor import Executor"
+        },
+        {
+          "line": 57,
+          "text": "from vllm.v1.pool.late_interaction import get_late_interaction_engine_index"
+        },
+        {
+          "line": 58,
+          "text": "from vllm.v1.serial_utils import MsgpackDecoder, MsgpackEncoder, bytestr"
+        },
+        {
+          "line": 59,
+          "text": ""
+        },
+        {
+          "line": 60,
+          "text": "logger = init_logger(__name__)"
+        },
+        {
+          "line": 61,
+          "text": ""
+        },
+        {
+          "line": 62,
+          "text": "AnyFuture: TypeAlias = asyncio.Future[Any] | Future[Any]"
+        },
+        {
+          "line": 63,
+          "text": ""
+        },
+        {
+          "line": 64,
+          "text": "_R = TypeVar(\"_R\")  # Return type for collective_rpc"
+        },
+        {
+          "line": 65,
+          "text": ""
+        },
+        {
+          "line": 66,
+          "text": "EngineIdentity = bytes"
+        },
+        {
+          "line": 198,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 199,
+          "text": "        self.engine_core.save_serverless_llm_state(path, pattern, max_size)"
+        },
+        {
+          "line": 200,
+          "text": ""
+        },
+        {
+          "line": 201,
+          "text": "    def collective_rpc("
+        },
+        {
+          "line": 202,
+          "text": "        self,"
+        },
+        {
+          "line": 203,
+          "text": "        method: str | Callable[..., _R],"
+        },
+        {
+          "line": 204,
+          "text": "        timeout: float | None = None,"
+        },
+        {
+          "line": 205,
+          "text": "        args: tuple = (),"
+        },
+        {
+          "line": 206,
+          "text": "        kwargs: dict[str, Any] | None = None,"
+        },
+        {
+          "line": 207,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 208,
+          "text": "        raise NotImplementedError"
+        },
+        {
+          "line": 209,
+          "text": ""
+        },
+        {
+          "line": 269,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 270,
+          "text": "        raise NotImplementedError"
+        },
+        {
+          "line": 271,
+          "text": ""
+        },
+        {
+          "line": 272,
+          "text": "    async def collective_rpc_async("
+        },
+        {
+          "line": 273,
+          "text": "        self,"
+        },
+        {
+          "line": 274,
+          "text": "        method: str | Callable[..., _R],"
+        },
+        {
+          "line": 275,
+          "text": "        timeout: float | None = None,"
+        },
+        {
+          "line": 276,
+          "text": "        args: tuple = (),"
+        },
+        {
+          "line": 277,
+          "text": "        kwargs: dict[str, Any] | None = None,"
+        },
+        {
+          "line": 278,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 279,
+          "text": "        raise NotImplementedError"
+        },
+        {
+          "line": 280,
+          "text": ""
+        },
+        {
+          "line": 359,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 360,
+          "text": "        self.engine_core.save_sharded_state(path, pattern, max_size)"
+        },
+        {
+          "line": 361,
+          "text": ""
+        },
+        {
+          "line": 362,
+          "text": "    def collective_rpc("
+        },
+        {
+          "line": 363,
+          "text": "        self,"
+        },
+        {
+          "line": 364,
+          "text": "        method: str | Callable[..., _R],"
+        },
+        {
+          "line": 365,
+          "text": "        timeout: float | None = None,"
+        },
+        {
+          "line": 366,
+          "text": "        args: tuple = (),"
+        },
+        {
+          "line": 367,
+          "text": "        kwargs: dict[str, Any] | None = None,"
+        },
+        {
+          "line": 368,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 369,
+          "text": "        return self.engine_core.collective_rpc(method, timeout, args, kwargs)"
+        },
+        {
+          "line": 370,
+          "text": ""
+        },
+        {
+          "line": 560,
+          "text": "                if mm_tensor_ipc == \"torch_shm\" and tensor_queue is not None:"
+        },
+        {
+          "line": 561,
+          "text": "                    tensor_ipc_sender = TensorIpcSender(tensor_queue)"
+        },
+        {
+          "line": 562,
+          "text": ""
+        },
+        {
+          "line": 563,
+          "text": "            self.encoder = MsgpackEncoder(oob_tensor_consumer=tensor_ipc_sender)"
+        },
+        {
+          "line": 564,
+          "text": "            self.decoder = MsgpackDecoder(EngineCoreOutputs)"
+        },
+        {
+          "line": 565,
+          "text": ""
+        },
+        {
+          "line": 566,
+          "text": "            dp_size = parallel_config.data_parallel_size"
+        },
+        {
+          "line": 567,
+          "text": "            dp_rank = parallel_config.data_parallel_index"
+        },
+        {
+          "line": 568,
+          "text": "            dp_local_size = parallel_config.data_parallel_size_local"
+        },
+        {
+          "line": 569,
+          "text": "            offline_mode = parallel_config.data_parallel_rank_local is not None"
+        },
+        {
+          "line": 570,
+          "text": "            # Client manages local+remote EngineCores in pure internal LB case."
+        },
+        {
+          "line": 571,
+          "text": "            # Client manages local EngineCores in hybrid and external LB case."
+        },
+        {
+          "line": 602,
+          "text": "                identities.remove(identity)"
+        },
+        {
+          "line": 603,
+          "text": ""
+        },
+        {
+          "line": 604,
+          "text": "            self.core_engine: EngineIdentity = self.core_engines[0]"
+        },
+        {
+          "line": 605,
+          "text": "            self.utility_results: dict[int, AnyFuture] = {}"
+        },
+        {
+          "line": 606,
+          "text": ""
+        },
+        {
+          "line": 607,
+          "text": "            # Request objects which may contain pytorch-allocated tensors"
+        },
+        {
+          "line": 608,
+          "text": "            # that we need to keep references to until zmq is done with the"
+        },
+        {
+          "line": 609,
+          "text": "            # underlying data."
+        },
+        {
+          "line": 610,
+          "text": "            self.pending_messages = deque[tuple[zmq.MessageTracker, Any]]()"
+        },
+        {
+          "line": 611,
+          "text": ""
+        },
+        {
+          "line": 612,
+          "text": "            # Start monitoring engine core processes for unexpected failures"
+        },
+        {
+          "line": 613,
+          "text": "            self.start_engine_core_monitor()"
+        },
+        {
+          "line": 686,
+          "text": "        ).start()"
+        },
+        {
+          "line": 687,
+          "text": ""
+        },
+        {
+          "line": 688,
+          "text": ""
+        },
+        {
+          "line": 689,
+          "text": "def _process_utility_output("
+        },
+        {
+          "line": 690,
+          "text": "    output: UtilityOutput, utility_results: dict[int, AnyFuture]"
+        },
+        {
+          "line": 691,
+          "text": "):"
+        },
+        {
+          "line": 692,
+          "text": "    \"\"\"Set the result from a utility method in the waiting future.\"\"\""
+        },
+        {
+          "line": 693,
+          "text": "    future = utility_results.pop(output.call_id)"
+        },
+        {
+          "line": 694,
+          "text": "    failure_message = output.failure_message"
+        },
+        {
+          "line": 695,
+          "text": "    try:"
+        },
+        {
+          "line": 696,
+          "text": "        if failure_message is not None:"
+        },
+        {
+          "line": 697,
+          "text": "            future.set_exception(Exception(failure_message))"
+        },
+        {
+          "line": 698,
+          "text": "        else:"
+        },
+        {
+          "line": 699,
+          "text": "            assert output.result is not None"
+        },
+        {
+          "line": 700,
+          "text": "            future.set_result(output.result.result)"
+        },
+        {
+          "line": 701,
+          "text": "    except asyncio.InvalidStateError:"
+        },
+        {
+          "line": 703,
+          "text": "        # original calling task being cancelled."
+        },
+        {
+          "line": 704,
+          "text": "        if failure_message is not None:"
+        },
+        {
+          "line": 705,
+          "text": "            logger.error("
+        },
+        {
+          "line": 706,
+          "text": "                \"Cancelled call to utility method failed with error: %s\","
+        },
+        {
+          "line": 707,
+          "text": "                failure_message,"
+        },
+        {
+          "line": 708,
+          "text": "            )"
+        },
+        {
+          "line": 709,
+          "text": ""
+        },
+        {
+          "line": 710,
+          "text": ""
+        },
+        {
+          "line": 711,
+          "text": "class SyncMPClient(MPClient):"
+        },
+        {
+          "line": 712,
+          "text": "    \"\"\"Synchronous client for multi-proc EngineCore.\"\"\""
+        },
+        {
+          "line": 713,
+          "text": ""
+        },
+        {
+          "line": 714,
+          "text": "    @instrument(span_name=\"SyncMPClient init\")"
+        },
+        {
+          "line": 730,
+          "text": "        ctx = self.ctx"
+        },
+        {
+          "line": 731,
+          "text": "        out_socket = self.resources.output_socket"
+        },
+        {
+          "line": 732,
+          "text": "        decoder = self.decoder"
+        },
+        {
+          "line": 733,
+          "text": "        utility_results = self.utility_results"
+        },
+        {
+          "line": 734,
+          "text": "        outputs_queue = self.outputs_queue"
+        },
+        {
+          "line": 735,
+          "text": ""
+        },
+        {
+          "line": 736,
+          "text": "        shutdown_path = get_open_zmq_inproc_path()"
+        },
+        {
+          "line": 737,
+          "text": "        resources = self.resources"
+        },
+        {
+          "line": 738,
+          "text": "        resources.shutdown_path = shutdown_path"
+        },
+        {
+          "line": 739,
+          "text": ""
+        },
+        {
+          "line": 740,
+          "text": "        def process_outputs_socket():"
+        },
+        {
+          "line": 741,
+          "text": "            assert isinstance(out_socket, zmq.Socket)"
+        },
+        {
+          "line": 756,
+          "text": "                    frames = out_socket.recv_multipart(copy=False)"
+        },
+        {
+          "line": 757,
+          "text": "                    resources.validate_alive(frames)"
+        },
+        {
+          "line": 758,
+          "text": "                    outputs: EngineCoreOutputs = decoder.decode(frames)"
+        },
+        {
+          "line": 759,
+          "text": "                    if outputs.utility_output:"
+        },
+        {
+          "line": 760,
+          "text": "                        _process_utility_output(outputs.utility_output, utility_results)"
+        },
+        {
+          "line": 761,
+          "text": "                    else:"
+        },
+        {
+          "line": 762,
+          "text": "                        outputs_queue.put_nowait(outputs)"
+        },
+        {
+          "line": 763,
+          "text": "            except Exception as e:"
+        },
+        {
+          "line": 764,
+          "text": "                outputs_queue.put_nowait(e)"
+        },
+        {
+          "line": 765,
+          "text": "            finally:"
+        },
+        {
+          "line": 766,
+          "text": "                # Close sockets."
+        },
+        {
+          "line": 767,
+          "text": "                shutdown_socket.close(linger=0)"
+        },
+        {
+          "line": 768,
+          "text": "                out_socket.close(linger=0)"
+        },
+        {
+          "line": 804,
+          "text": "        tracker = self.input_socket.send_multipart(msg, copy=False, track=True)"
+        },
+        {
+          "line": 805,
+          "text": "        self.add_pending_message(tracker, request)"
+        },
+        {
+          "line": 806,
+          "text": ""
+        },
+        {
+          "line": 807,
+          "text": "    def call_utility(self, method: str, *args) -> Any:"
+        },
+        {
+          "line": 808,
+          "text": "        call_id = uuid.uuid1().int >> 64"
+        },
+        {
+          "line": 809,
+          "text": "        future: Future[Any] = Future()"
+        },
+        {
+          "line": 810,
+          "text": "        self.utility_results[call_id] = future"
+        },
+        {
+          "line": 811,
+          "text": "        self._send_input(EngineCoreRequestType.UTILITY, (0, call_id, method, args))"
+        },
+        {
+          "line": 812,
+          "text": ""
+        },
+        {
+          "line": 813,
+          "text": "        return future.result()"
+        },
+        {
+          "line": 814,
+          "text": ""
+        },
+        {
+          "line": 815,
+          "text": "    def get_supported_tasks(self) -> tuple[SupportedTask, ...]:"
+        },
+        {
+          "line": 816,
+          "text": "        return self.call_utility(\"get_supported_tasks\")"
+        },
+        {
+          "line": 817,
+          "text": ""
+        },
+        {
+          "line": 818,
+          "text": "    def add_request(self, request: EngineCoreRequest) -> None:"
+        },
+        {
+          "line": 819,
+          "text": "        if self.is_dp:"
+        },
+        {
+          "line": 820,
+          "text": "            self.engines_running = True"
+        },
+        {
+          "line": 821,
+          "text": "        self._send_input(EngineCoreRequestType.ADD, request)"
+        },
+        {
+          "line": 822,
+          "text": ""
+        },
+        {
+          "line": 823,
+          "text": "    def abort_requests(self, request_ids: list[str]) -> None:"
+        },
+        {
+          "line": 824,
+          "text": "        if request_ids and not self.resources.engine_dead:"
+        },
+        {
+          "line": 825,
+          "text": "            self._send_input(EngineCoreRequestType.ABORT, request_ids)"
+        },
+        {
+          "line": 826,
+          "text": ""
+        },
+        {
+          "line": 827,
+          "text": "    def profile(self, is_start: bool = True, profile_prefix: str | None = None) -> None:"
+        },
+        {
+          "line": 828,
+          "text": "        self.call_utility(\"profile\", is_start, profile_prefix)"
+        },
+        {
+          "line": 829,
+          "text": ""
+        },
+        {
+          "line": 830,
+          "text": "    def reset_mm_cache(self) -> None:"
+        },
+        {
+          "line": 831,
+          "text": "        self.call_utility(\"reset_mm_cache\")"
+        },
+        {
+          "line": 832,
+          "text": ""
+        },
+        {
+          "line": 833,
+          "text": "    def reset_prefix_cache("
+        },
+        {
+          "line": 834,
+          "text": "        self, reset_running_requests: bool = False, reset_connector: bool = False"
+        },
+        {
+          "line": 835,
+          "text": "    ) -> bool:"
+        },
+        {
+          "line": 836,
+          "text": "        return self.call_utility("
+        },
+        {
+          "line": 837,
+          "text": "            \"reset_prefix_cache\", reset_running_requests, reset_connector"
+        },
+        {
+          "line": 838,
+          "text": "        )"
+        },
+        {
+          "line": 839,
+          "text": ""
+        },
+        {
+          "line": 840,
+          "text": "    def reset_encoder_cache(self) -> None:"
+        },
+        {
+          "line": 841,
+          "text": "        self.call_utility(\"reset_encoder_cache\")"
+        },
+        {
+          "line": 842,
+          "text": ""
+        },
+        {
+          "line": 843,
+          "text": "    def add_lora(self, lora_request: LoRARequest) -> bool:"
+        },
+        {
+          "line": 844,
+          "text": "        return self.call_utility(\"add_lora\", lora_request)"
+        },
+        {
+          "line": 845,
+          "text": ""
+        },
+        {
+          "line": 846,
+          "text": "    def remove_lora(self, lora_id: int) -> bool:"
+        },
+        {
+          "line": 847,
+          "text": "        return self.call_utility(\"remove_lora\", lora_id)"
+        },
+        {
+          "line": 848,
+          "text": ""
+        },
+        {
+          "line": 849,
+          "text": "    def list_loras(self) -> set[int]:"
+        },
+        {
+          "line": 850,
+          "text": "        return self.call_utility(\"list_loras\")"
+        },
+        {
+          "line": 851,
+          "text": ""
+        },
+        {
+          "line": 852,
+          "text": "    def pin_lora(self, lora_id: int) -> bool:"
+        },
+        {
+          "line": 853,
+          "text": "        return self.call_utility(\"pin_lora\", lora_id)"
+        },
+        {
+          "line": 854,
+          "text": ""
+        },
+        {
+          "line": 855,
+          "text": "    def sleep(self, level: int = 1, mode: PauseMode = \"abort\") -> None:"
+        },
+        {
+          "line": 856,
+          "text": "        self.call_utility(\"sleep\", level, mode)"
+        },
+        {
+          "line": 857,
+          "text": ""
+        },
+        {
+          "line": 858,
+          "text": "    def wake_up(self, tags: list[str] | None = None) -> None:"
+        },
+        {
+          "line": 859,
+          "text": "        self.call_utility(\"wake_up\", tags)"
+        },
+        {
+          "line": 860,
+          "text": ""
+        },
+        {
+          "line": 861,
+          "text": "    def is_sleeping(self) -> bool:"
+        },
+        {
+          "line": 862,
+          "text": "        return self.call_utility(\"is_sleeping\")"
+        },
+        {
+          "line": 863,
+          "text": ""
+        },
+        {
+          "line": 864,
+          "text": "    def execute_dummy_batch(self) -> None:"
+        },
+        {
+          "line": 865,
+          "text": "        self.call_utility(\"execute_dummy_batch\")"
+        },
+        {
+          "line": 866,
+          "text": ""
+        },
+        {
+          "line": 867,
+          "text": "    def collective_rpc("
+        },
+        {
+          "line": 868,
+          "text": "        self,"
+        },
+        {
+          "line": 869,
+          "text": "        method: str | Callable[..., _R],"
+        },
+        {
+          "line": 870,
+          "text": "        timeout: float | None = None,"
+        },
+        {
+          "line": 871,
+          "text": "        args: tuple = (),"
+        },
+        {
+          "line": 872,
+          "text": "        kwargs: dict[str, Any] | None = None,"
+        },
+        {
+          "line": 873,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 874,
+          "text": "        return self.call_utility(\"collective_rpc\", method, timeout, args, kwargs)"
+        },
+        {
+          "line": 875,
+          "text": ""
+        },
+        {
+          "line": 876,
+          "text": "    def save_sharded_state("
+        },
+        {
+          "line": 877,
+          "text": "        self, path: str, pattern: str | None = None, max_size: int | None = None"
+        },
+        {
+          "line": 878,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 879,
+          "text": "        self.call_utility(\"save_sharded_state\", path, pattern, max_size)"
+        },
+        {
+          "line": 880,
+          "text": ""
+        },
+        {
+          "line": 881,
+          "text": "    def save_serverless_llm_state("
+        },
+        {
+          "line": 882,
+          "text": "        self,"
+        },
+        {
+          "line": 883,
+          "text": "        path: str,"
+        },
+        {
+          "line": 884,
+          "text": "        pattern: str | None = None,"
+        },
+        {
+          "line": 885,
+          "text": "        max_size: int | None = None,"
+        },
+        {
+          "line": 886,
+          "text": "        ) -> None:"
+        },
+        {
+          "line": 887,
+          "text": "        self.call_utility(\"save_serverless_llm_state\", path, pattern, max_size)"
+        },
+        {
+          "line": 888,
+          "text": ""
+        },
+        {
+          "line": 889,
+          "text": ""
+        },
+        {
+          "line": 890,
+          "text": "class AsyncMPClient(MPClient):"
+        },
+        {
+          "line": 891,
+          "text": "    \"\"\"Asyncio-compatible client for multi-proc EngineCore.\"\"\""
+        },
+        {
+          "line": 892,
+          "text": ""
+        },
+        {
+          "line": 893,
+          "text": "    @instrument(span_name=\"AsyncMPClient init\")"
+        },
+        {
+          "line": 894,
+          "text": "    def __init__("
+        },
+        {
+          "line": 895,
+          "text": "        self,"
+        },
+        {
+          "line": 929,
+          "text": "        # Perform IO in separate task to parallelize as much as possible."
+        },
+        {
+          "line": 930,
+          "text": "        # Avoid task having direct reference back to the client."
+        },
+        {
+          "line": 931,
+          "text": "        decoder = self.decoder"
+        },
+        {
+          "line": 932,
+          "text": "        utility_results = self.utility_results"
+        },
+        {
+          "line": 933,
+          "text": "        outputs_queue = self.outputs_queue"
+        },
+        {
+          "line": 934,
+          "text": "        output_handler: ("
+        },
+        {
+          "line": 935,
+          "text": "            Callable[[AsyncMPClient, EngineCoreOutputs], Awaitable[None]] | None"
+        },
+        {
+          "line": 936,
+          "text": "        ) = getattr(self.__class__, \"process_engine_outputs\", None)"
+        },
+        {
+          "line": 937,
+          "text": "        _self_ref = weakref.ref(self) if output_handler else None"
+        },
+        {
+          "line": 938,
+          "text": "        output_socket = resources.output_socket"
+        },
+        {
+          "line": 939,
+          "text": "        assert output_socket is not None"
+        },
+        {
+          "line": 940,
+          "text": ""
+        },
+        {
+          "line": 948,
+          "text": "                    frames = await output_socket.recv_multipart(copy=False)"
+        },
+        {
+          "line": 949,
+          "text": "                    resources.validate_alive(frames)"
+        },
+        {
+          "line": 950,
+          "text": "                    outputs: EngineCoreOutputs = decoder.decode(frames)"
+        },
+        {
+          "line": 951,
+          "text": "                    if outputs.utility_output:"
+        },
+        {
+          "line": 952,
+          "text": "                        if ("
+        },
+        {
+          "line": 953,
+          "text": "                            outputs.utility_output.call_id == EEP_NOTIFICATION_CALL_ID"
+        },
+        {
+          "line": 954,
+          "text": "                            and notification_callback_handler is not None"
+        },
+        {
+          "line": 955,
+          "text": "                        ):"
+        },
+        {
+          "line": 956,
+          "text": "                            assert _self_ref is not None"
+        },
+        {
+          "line": 957,
+          "text": "                            _self = _self_ref()"
+        },
+        {
+          "line": 958,
+          "text": "                            if not _self:"
+        },
+        {
+          "line": 959,
+          "text": "                                return"
+        },
+        {
+          "line": 960,
+          "text": "                            if outputs.utility_output.result is None:"
+        },
+        {
+          "line": 961,
+          "text": "                                continue"
+        },
+        {
+          "line": 962,
+          "text": "                            notification_data = outputs.utility_output.result.result"
+        },
+        {
+          "line": 963,
+          "text": "                            assert isinstance(notification_data, Sequence)"
+        },
+        {
+          "line": 964,
+          "text": "                            assert len(notification_data) == 2"
+        },
+        {
+          "line": 965,
+          "text": "                            asyncio.create_task("
+        },
+        {
+          "line": 966,
+          "text": "                                notification_callback_handler(_self, notification_data)"
+        },
+        {
+          "line": 967,
+          "text": "                            )"
+        },
+        {
+          "line": 968,
+          "text": "                        else:"
+        },
+        {
+          "line": 969,
+          "text": "                            _process_utility_output("
+        },
+        {
+          "line": 970,
+          "text": "                                outputs.utility_output, utility_results"
+        },
+        {
+          "line": 971,
+          "text": "                            )"
+        },
+        {
+          "line": 972,
+          "text": "                        continue"
+        },
+        {
+          "line": 973,
+          "text": ""
+        },
+        {
+          "line": 974,
+          "text": "                    if output_handler is not None:"
+        },
+        {
+          "line": 975,
+          "text": "                        assert _self_ref is not None"
+        },
+        {
+          "line": 976,
+          "text": "                        _self = _self_ref()"
+        },
+        {
+          "line": 977,
+          "text": "                        if not _self:"
+        },
+        {
+          "line": 978,
+          "text": "                            # Client has been garbage collected, abort."
+        },
+        {
+          "line": 1038,
+          "text": "        future.add_done_callback(add_pending)"
+        },
+        {
+          "line": 1039,
+          "text": "        return future"
+        },
+        {
+          "line": 1040,
+          "text": ""
+        },
+        {
+          "line": 1041,
+          "text": "    async def call_utility_async(self, method: str, *args) -> Any:"
+        },
+        {
+          "line": 1042,
+          "text": "        return await self._call_utility_async(method, *args, engine=self.core_engine)"
+        },
+        {
+          "line": 1043,
+          "text": ""
+        },
+        {
+          "line": 1044,
+          "text": "    async def _call_utility_async("
+        },
+        {
+          "line": 1045,
+          "text": "        self, method: str, *args, engine: EngineIdentity"
+        },
+        {
+          "line": 1046,
+          "text": "    ) -> Any:"
+        },
+        {
+          "line": 1047,
+          "text": "        call_id = uuid.uuid1().int >> 64"
+        },
+        {
+          "line": 1048,
+          "text": "        future = asyncio.get_running_loop().create_future()"
+        },
+        {
+          "line": 1049,
+          "text": "        self.utility_results[call_id] = future"
+        },
+        {
+          "line": 1050,
+          "text": "        message = ("
+        },
+        {
+          "line": 1051,
+          "text": "            EngineCoreRequestType.UTILITY.value,"
+        },
+        {
+          "line": 1052,
+          "text": "            *self.encoder.encode((self.client_index, call_id, method, args)),"
+        },
+        {
+          "line": 1053,
+          "text": "        )"
+        },
+        {
+          "line": 1054,
+          "text": "        await self._send_input_message(message, engine, args)"
+        },
+        {
+          "line": 1055,
+          "text": "        self._ensure_output_queue_task()"
+        },
+        {
+          "line": 1056,
+          "text": "        return await future"
+        },
+        {
+          "line": 1057,
+          "text": ""
+        },
+        {
+          "line": 1058,
+          "text": "    async def get_supported_tasks_async(self) -> tuple[SupportedTask, ...]:"
+        },
+        {
+          "line": 1059,
+          "text": "        return await self.call_utility_async(\"get_supported_tasks\")"
+        },
+        {
+          "line": 1060,
+          "text": ""
+        },
+        {
+          "line": 1061,
+          "text": "    async def add_request_async(self, request: EngineCoreRequest) -> None:"
+        },
+        {
+          "line": 1062,
+          "text": "        request.client_index = self.client_index"
+        },
+        {
+          "line": 1063,
+          "text": "        await self._send_input(EngineCoreRequestType.ADD, request)"
+        },
+        {
+          "line": 1064,
+          "text": "        self._ensure_output_queue_task()"
+        },
+        {
+          "line": 1065,
+          "text": ""
+        },
+        {
+          "line": 1066,
+          "text": "    async def abort_requests_async(self, request_ids: list[str]) -> None:"
+        },
+        {
+          "line": 1067,
+          "text": "        if request_ids and not self.resources.engine_dead:"
+        },
+        {
+          "line": 1070,
+          "text": "    async def pause_scheduler_async("
+        },
+        {
+          "line": 1071,
+          "text": "        self, mode: PauseMode = \"abort\", clear_cache: bool = True"
+        },
+        {
+          "line": 1072,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 1073,
+          "text": "        await self.call_utility_async(\"pause_scheduler\", mode, clear_cache)"
+        },
+        {
+          "line": 1074,
+          "text": ""
+        },
+        {
+          "line": 1075,
+          "text": "    async def resume_scheduler_async(self) -> None:"
+        },
+        {
+          "line": 1076,
+          "text": "        await self.call_utility_async(\"resume_scheduler\")"
+        },
+        {
+          "line": 1077,
+          "text": ""
+        },
+        {
+          "line": 1078,
+          "text": "    async def is_scheduler_paused_async(self) -> bool:"
+        },
+        {
+          "line": 1079,
+          "text": "        return await self.call_utility_async(\"is_scheduler_paused\")"
+        },
+        {
+          "line": 1080,
+          "text": ""
+        },
+        {
+          "line": 1081,
+          "text": "    async def profile_async("
+        },
+        {
+          "line": 1082,
+          "text": "        self, is_start: bool = True, profile_prefix: str | None = None"
+        },
+        {
+          "line": 1083,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 1084,
+          "text": "        await self.call_utility_async(\"profile\", is_start, profile_prefix)"
+        },
+        {
+          "line": 1085,
+          "text": ""
+        },
+        {
+          "line": 1086,
+          "text": "    async def reset_mm_cache_async(self) -> None:"
+        },
+        {
+          "line": 1087,
+          "text": "        await self.call_utility_async(\"reset_mm_cache\")"
+        },
+        {
+          "line": 1088,
+          "text": ""
+        },
+        {
+          "line": 1089,
+          "text": "    async def reset_prefix_cache_async("
+        },
+        {
+          "line": 1090,
+          "text": "        self, reset_running_requests: bool = False, reset_connector: bool = False"
+        },
+        {
+          "line": 1091,
+          "text": "    ) -> bool:"
+        },
+        {
+          "line": 1092,
+          "text": "        return await self.call_utility_async("
+        },
+        {
+          "line": 1093,
+          "text": "            \"reset_prefix_cache\", reset_running_requests, reset_connector"
+        },
+        {
+          "line": 1094,
+          "text": "        )"
+        },
+        {
+          "line": 1095,
+          "text": ""
+        },
+        {
+          "line": 1096,
+          "text": "    async def reset_encoder_cache_async(self) -> None:"
+        },
+        {
+          "line": 1097,
+          "text": "        await self.call_utility_async(\"reset_encoder_cache\")"
+        },
+        {
+          "line": 1098,
+          "text": ""
+        },
+        {
+          "line": 1099,
+          "text": "    async def sleep_async(self, level: int = 1, mode: PauseMode = \"abort\") -> None:"
+        },
+        {
+          "line": 1100,
+          "text": "        await self.call_utility_async(\"sleep\", level, mode)"
+        },
+        {
+          "line": 1101,
+          "text": ""
+        },
+        {
+          "line": 1102,
+          "text": "    async def wake_up_async(self, tags: list[str] | None = None) -> None:"
+        },
+        {
+          "line": 1103,
+          "text": "        await self.call_utility_async(\"wake_up\", tags)"
+        },
+        {
+          "line": 1104,
+          "text": ""
+        },
+        {
+          "line": 1105,
+          "text": "    async def is_sleeping_async(self) -> bool:"
+        },
+        {
+          "line": 1106,
+          "text": "        return await self.call_utility_async(\"is_sleeping\")"
+        },
+        {
+          "line": 1107,
+          "text": ""
+        },
+        {
+          "line": 1108,
+          "text": "    async def execute_dummy_batch_async(self) -> None:"
+        },
+        {
+          "line": 1109,
+          "text": "        await self.call_utility_async(\"execute_dummy_batch\")"
+        },
+        {
+          "line": 1110,
+          "text": ""
+        },
+        {
+          "line": 1111,
+          "text": "    async def add_lora_async(self, lora_request: LoRARequest) -> bool:"
+        },
+        {
+          "line": 1112,
+          "text": "        return await self.call_utility_async(\"add_lora\", lora_request)"
+        },
+        {
+          "line": 1113,
+          "text": ""
+        },
+        {
+          "line": 1114,
+          "text": "    async def remove_lora_async(self, lora_id: int) -> bool:"
+        },
+        {
+          "line": 1115,
+          "text": "        return await self.call_utility_async(\"remove_lora\", lora_id)"
+        },
+        {
+          "line": 1116,
+          "text": ""
+        },
+        {
+          "line": 1117,
+          "text": "    async def list_loras_async(self) -> set[int]:"
+        },
+        {
+          "line": 1118,
+          "text": "        return await self.call_utility_async(\"list_loras\")"
+        },
+        {
+          "line": 1119,
+          "text": ""
+        },
+        {
+          "line": 1120,
+          "text": "    async def pin_lora_async(self, lora_id: int) -> bool:"
+        },
+        {
+          "line": 1121,
+          "text": "        return await self.call_utility_async(\"pin_lora\", lora_id)"
+        },
+        {
+          "line": 1122,
+          "text": ""
+        },
+        {
+          "line": 1123,
+          "text": "    async def save_sharded_state_async("
+        },
+        {
+          "line": 1124,
+          "text": "        self, path: str, pattern: str | None = None, max_size: int | None = None"
+        },
+        {
+          "line": 1125,
+          "text": "    ) -> None:"
+        },
+        {
+          "line": 1126,
+          "text": "        await self.call_utility_async(\"save_sharded_state\", path, pattern, max_size)"
+        },
+        {
+          "line": 1127,
+          "text": ""
+        },
+        {
+          "line": 1128,
+          "text": "    async def save_serverless_llm_state_async("
+        },
+        {
+          "line": 1129,
+          "text": "                                        self,"
+        },
+        {
+          "line": 1130,
+          "text": "                                        path: str,"
+        },
+        {
+          "line": 1131,
+          "text": "                                        pattern: str | None = None,"
+        },
+        {
+          "line": 1132,
+          "text": "                                        max_size: int | None = None,"
+        },
+        {
+          "line": 1133,
+          "text": "                                        ) -> None:"
+        },
+        {
+          "line": 1134,
+          "text": "        await self.call_utility_async(\"save_serverless_llm_state\", path, pattern, "
+        },
+        {
+          "line": 1135,
+          "text": "                                      max_size)"
+        },
+        {
+          "line": 1136,
+          "text": ""
+        },
+        {
+          "line": 1137,
+          "text": ""
+        },
+        {
+          "line": 1138,
+          "text": "    async def collective_rpc_async("
+        },
+        {
+          "line": 1139,
+          "text": "        self,"
+        },
+        {
+          "line": 1140,
+          "text": "        method: str | Callable[..., _R],"
+        },
+        {
+          "line": 1141,
+          "text": "        timeout: float | None = None,"
+        },
+        {
+          "line": 1142,
+          "text": "        args: tuple = (),"
+        },
+        {
+          "line": 1143,
+          "text": "        kwargs: dict[str, Any] | None = None,"
+        },
+        {
+          "line": 1144,
+          "text": "    ) -> list[_R]:"
+        },
+        {
+          "line": 1145,
+          "text": "        return await self.call_utility_async("
+        },
+        {
+          "line": 1146,
+          "text": "            \"collective_rpc\", method, timeout, args, kwargs"
+        },
+        {
+          "line": 1147,
+          "text": "        )"
+        },
+        {
+          "line": 1148,
+          "text": ""
+        },
+        {
+          "line": 1149,
+          "text": ""
+        },
+        {
+          "line": 1150,
+          "text": "class DPAsyncMPClient(AsyncMPClient):"
+        },
+        {
+          "line": 1151,
+          "text": "    \"\"\"Asyncio-compatible client for multi-proc, multi-engine (data parallel)"
+        },
+        {
+          "line": 1152,
+          "text": "    EngineCore. Assumes external load-balancing by default.\"\"\""
+        },
+        {
+          "line": 1153,
+          "text": ""
+        },
+        {
+          "line": 1390,
+          "text": "        self.reqs_in_flight[request.request_id] = chosen_engine"
+        },
+        {
+          "line": 1391,
+          "text": "        return chosen_engine"
+        },
+        {
+          "line": 1392,
+          "text": ""
+        },
+        {
+          "line": 1393,
+          "text": "    async def call_utility_async(self, method: str, *args) -> Any:"
+        },
+        {
+          "line": 1394,
+          "text": "        # Only the result from the first engine is returned."
+        },
+        {
+          "line": 1395,
+          "text": "        return ("
+        },
+        {
+          "line": 1396,
+          "text": "            await asyncio.gather("
+        },
+        {
+          "line": 1397,
+          "text": "                *["
+        },
+        {
+          "line": 1398,
+          "text": "                    self._call_utility_async(method, *args, engine=engine)"
+        },
+        {
+          "line": 1399,
+          "text": "                    for engine in self.core_engines"
+        },
+        {
+          "line": 1400,
+          "text": "                ]"
+        },
+        {
+          "line": 1401,
+          "text": "            )"
+        },
+        {
+          "line": 1402,
+          "text": "        )[0]"
+        },
+        {
+          "line": 1403,
+          "text": ""
+        },
+        {
+          "line": 1404,
+          "text": "    @staticmethod"
+        },
+        {
+          "line": 1405,
+          "text": "    async def process_engine_outputs("
+        },
+        {
+          "line": 1406,
+          "text": "        self: \"DPLBAsyncMPClient\", outputs: EngineCoreOutputs"
+        },
+        {
+          "line": 1431,
+          "text": "            dummy_output = UtilityOutput("
+        },
+        {
+          "line": 1432,
+          "text": "                call_id=EEP_NOTIFICATION_CALL_ID, result=UtilityResult(None)"
+        },
+        {
+          "line": 1433,
+          "text": "            )"
+        },
+        {
+          "line": 1434,
+          "text": "            _process_utility_output(dummy_output, self.utility_results)"
+        },
+        {
+          "line": 1435,
+          "text": "            return"
+        },
+        {
+          "line": 1436,
+          "text": "        assert cache is not None"
+        },
+        {
+          "line": 1437,
+          "text": "        if notification_type not in cache.pending_notifications:"
+        },
+        {
+          "line": 1438,
+          "text": "            cache.pending_notifications[notification_type] = set()"
+        },
+        {
+          "line": 1439,
+          "text": "        if dp_rank in cache.pending_notifications[notification_type]:"
+        },
+        {
+          "line": 1440,
+          "text": "            raise ValueError("
+        },
+        {
+          "line": 1441,
+          "text": "                f\"Duplicate notification {notification_type} from dp_rank {dp_rank}\""
+        },
+        {
+          "line": 1442,
+          "text": "            )"
+        },
+        {
+          "line": 1455,
+          "text": "            else:"
+        },
+        {
+          "line": 1456,
+          "text": "                await asyncio.gather("
+        },
+        {
+          "line": 1457,
+          "text": "                    *["
+        },
+        {
+          "line": 1458,
+          "text": "                        self._call_utility_async("
+        },
+        {
+          "line": 1459,
+          "text": "                            \"eep_handle_engine_core_notification\","
+        },
+        {
+          "line": 1460,
+          "text": "                            notification_type,"
+        },
+        {
+          "line": 1461,
+          "text": "                            engine=engine,"
+        },
+        {
+          "line": 1462,
+          "text": "                        )"
+        },
+        {
+          "line": 1463,
+          "text": "                        for engine in cache.existing_core_engines"
+        },
+        {
+          "line": 1464,
+          "text": "                    ]"
+        },
+        {
+          "line": 1465,
+          "text": "                )"
+        },
+        {
+          "line": 1466,
+          "text": "            cache.pending_notifications[notification_type] = set()"
+        },
+        {
+          "line": 1526,
+          "text": "        that call_id and wait for it to be resolved."
+        },
+        {
+          "line": 1527,
+          "text": "        \"\"\""
+        },
+        {
+          "line": 1528,
+          "text": "        future = asyncio.get_running_loop().create_future()"
+        },
+        {
+          "line": 1529,
+          "text": "        self.utility_results[EEP_NOTIFICATION_CALL_ID] = future"
+        },
+        {
+          "line": 1530,
+          "text": "        self._ensure_output_queue_task()"
+        },
+        {
+          "line": 1531,
+          "text": "        await future"
+        },
+        {
+          "line": 1532,
+          "text": ""
+        },
+        {
+          "line": 1533,
+          "text": "    def _setup_elastic_ep_reconfig_bootstrap(self) -> tuple[str, int]:"
+        },
+        {
+          "line": 1534,
+          "text": "        from vllm.distributed.utils import create_tcp_store"
+        },
+        {
+          "line": 1535,
+          "text": "        from vllm.utils.network_utils import get_open_ports_list"
+        },
+        {
+          "line": 1536,
+          "text": ""
+        },
+        {
+          "line": 1537,
+          "text": "        parallel_config = self.vllm_config.parallel_config"
+        },
+        {
+          "line": 1580,
+          "text": "                new_data_parallel_master_port_list=parallel_config._data_parallel_master_port_list,"
+        },
+        {
+          "line": 1581,
+          "text": "                coord_store_port=coord_store_port,"
+        },
+        {
+          "line": 1582,
+          "text": "            )"
+        },
+        {
+          "line": 1583,
+          "text": "            coro = self._call_utility_async("
+        },
+        {
+          "line": 1584,
+          "text": "                \"reinitialize_distributed\", reconfig_request, engine=engine"
+        },
+        {
+          "line": 1585,
+          "text": "            )"
+        },
+        {
+          "line": 1586,
+          "text": "            reconfig_futures.append(asyncio.create_task(coro))"
+        },
+        {
+          "line": 1587,
+          "text": ""
+        },
+        {
+          "line": 1588,
+          "text": "        # Phase 2: Create new engines"
+        },
+        {
+          "line": 1589,
+          "text": "        assert isinstance(self.resources.engine_manager, CoreEngineActorManager)"
+        },
+        {
+          "line": 1590,
+          "text": "        parallel_config.eplb_config.num_redundant_experts = 0"
+        },
+        {
+          "line": 1591,
+          "text": "        start_new_worker_future = asyncio.to_thread("
+        },
+        {
+          "line": 1675,
+          "text": "                reconfig_request.new_data_parallel_rank = ("
+        },
+        {
+          "line": 1676,
+          "text": "                    ReconfigureRankType.SHUTDOWN_CURRENT_RANK"
+        },
+        {
+          "line": 1677,
+          "text": "                )"
+        },
+        {
+          "line": 1678,
+          "text": "            coro = self._call_utility_async("
+        },
+        {
+          "line": 1679,
+          "text": "                \"reinitialize_distributed\", reconfig_request, engine=engine"
+        },
+        {
+          "line": 1680,
+          "text": "            )"
+        },
+        {
+          "line": 1681,
+          "text": "            reconfig_futures.append(asyncio.create_task(coro))"
+        },
+        {
+          "line": 1682,
+          "text": ""
+        },
+        {
+          "line": 1683,
+          "text": "        # NOTE(yongji): Immediately stop sending requests to the removing engines."
+        },
+        {
+          "line": 1684,
+          "text": "        self.core_engines = self.core_engines[:new_data_parallel_size]"
+        },
+        {
+          "line": 1685,
+          "text": "        self.lb_engines = self.lb_engines[:new_data_parallel_size]"
+        },
+        {
+          "line": 1686,
+          "text": "        wait_future = self._eep_wait_for_setup_switch_complete()"
+        }
+      ]
+    }
+  ]
+}

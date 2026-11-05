@@ -1,0 +1,249 @@
+{
+  "raw_log_sha256": "336b3191445fd79d460b4a87fccf7a95cfb6aa627829411aea41b582dc1ec565",
+  "lines": [
+    {
+      "line": 914,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:191] Poller received notify event"
+    },
+    {
+      "line": 915,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/engine/core.py:1169] EngineCore waiting for work."
+    },
+    {
+      "line": 916,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/engine/core.py:1169] EngineCore waiting for work."
+    },
+    {
+      "line": 917,
+      "text": "RESTORE_MODEL_READY {\"monotonic\": 392854.835174277}"
+    },
+    {
+      "line": 918,
+      "text": "Traceback (most recent call last):"
+    },
+    {
+      "line": 919,
+      "text": "  File \"<string>\", line 35, in <module>"
+    },
+    {
+      "line": 920,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/entrypoints/llm.py\", line 685, in apply_model"
+    },
+    {
+      "line": 921,
+      "text": "    return self.llm_engine.apply_model(func)"
+    },
+    {
+      "line": 922,
+      "text": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 923,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 425, in apply_model"
+    },
+    {
+      "line": 924,
+      "text": "    return self.collective_rpc(\"apply_model\", args=(func,))"
+    },
+    {
+      "line": 925,
+      "text": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 926,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/llm_engine.py\", line 422, in collective_rpc"
+    },
+    {
+      "line": 927,
+      "text": "    return self.engine_core.collective_rpc(method, timeout, args, kwargs)"
+    },
+    {
+      "line": 928,
+      "text": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 929,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 874, in collective_rpc"
+    },
+    {
+      "line": 930,
+      "text": "    return self.call_utility(\"collective_rpc\", method, timeout, args, kwargs)"
+    },
+    {
+      "line": 931,
+      "text": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 932,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 811, in call_utility"
+    },
+    {
+      "line": 933,
+      "text": "    self._send_input(EngineCoreRequestType.UTILITY, (0, call_id, method, args))"
+    },
+    {
+      "line": 934,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py\", line 797, in _send_input"
+    },
+    {
+      "line": 935,
+      "text": "    msg = (self.core_engine, request_type.value, *self.encoder.encode(request))"
+    },
+    {
+      "line": 936,
+      "text": "                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 937,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/serial_utils.py\", line 171, in encode"
+    },
+    {
+      "line": 938,
+      "text": "    bufs[0] = self.encoder.encode(obj)"
+    },
+    {
+      "line": 939,
+      "text": "              ^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 940,
+      "text": "  File \"/usr/local/lib/python3.12/dist-packages/vllm/v1/serial_utils.py\", line 222, in enc_hook"
+    },
+    {
+      "line": 941,
+      "text": "    raise TypeError("
+    },
+    {
+      "line": 942,
+      "text": "TypeError: Object of type <class 'function'> is not serializableSet VLLM_ALLOW_INSECURE_SERIALIZATION=1 to allow fallback to pickle-based serialization."
+    },
+    {
+      "line": 943,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/engine/core.py:1181] EngineCore loop active."
+    },
+    {
+      "line": 944,
+      "text": "(EngineCore pid=989) INFO 11-05 03:54:41 [v1/engine/core.py:1221] Shutdown initiated (timeout=0)"
+    },
+    {
+      "line": 945,
+      "text": "(EngineCore pid=989) INFO 11-05 03:54:41 [v1/engine/core.py:1244] Shutdown complete"
+    },
+    {
+      "line": 946,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/engine/core.py:1115] EngineCore exiting."
+    },
+    {
+      "line": 947,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/executor/multiproc_executor.py:438] Triggering shutdown of workers"
+    },
+    {
+      "line": 948,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:41 [v1/executor/multiproc_executor.py:419] Worker Termination: allow workers to gracefully shutdown"
+    },
+    {
+      "line": 949,
+      "text": "(Worker_TP0 pid=998) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:764] Parent process exited, terminating worker queues"
+    },
+    {
+      "line": 950,
+      "text": "(Worker_TP1 pid=999) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 951,
+      "text": "(Worker_TP3 pid=1001) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 952,
+      "text": "(Worker_TP7 pid=1005) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 953,
+      "text": "(Worker_TP2 pid=1000) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 954,
+      "text": "(Worker_TP5 pid=1003) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 955,
+      "text": "(Worker_TP4 pid=1002) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 956,
+      "text": "(Worker_TP0 pid=998) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 957,
+      "text": "(Worker_TP6 pid=1004) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 958,
+      "text": "(Worker_TP1 pid=999) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 959,
+      "text": "(Worker_TP3 pid=1001) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 960,
+      "text": "(Worker_TP2 pid=1000) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 961,
+      "text": "(Worker_TP7 pid=1005) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 962,
+      "text": "(Worker_TP1 pid=999) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 963,
+      "text": "(Worker_TP4 pid=1002) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 964,
+      "text": "(Worker_TP0 pid=998) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 965,
+      "text": "(Worker_TP5 pid=1003) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 966,
+      "text": "(Worker_TP3 pid=1001) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 967,
+      "text": "(Worker_TP6 pid=1004) INFO 11-05 03:54:41 [v1/executor/multiproc_executor.py:859] WorkerProc shutting down."
+    },
+    {
+      "line": 968,
+      "text": "(Worker_TP2 pid=1000) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 969,
+      "text": "(Worker_TP7 pid=1005) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 970,
+      "text": "(Worker_TP4 pid=1002) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 971,
+      "text": "(Worker_TP0 pid=998) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 972,
+      "text": "(Worker_TP5 pid=1003) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 973,
+      "text": "(Worker_TP6 pid=1004) DEBUG 11-05 03:54:41 [distributed/device_communicators/shm_broadcast.py:168] Canceling waiting reads on SHM Buffer"
+    },
+    {
+      "line": 974,
+      "text": "(EngineCore pid=989) DEBUG 11-05 03:54:44 [v1/executor/multiproc_executor.py:269] MultiprocWorkerMonitor: shutdown already initiated"
+    }
+  ]
+}
