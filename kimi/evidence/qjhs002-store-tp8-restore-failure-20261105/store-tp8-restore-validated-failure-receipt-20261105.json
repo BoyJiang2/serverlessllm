@@ -1,0 +1,790 @@
+{
+  "status": "FAILED_RETAINED_NATIVE_TP8_RESTORE_NOT_PASSED_RELEASE_OBSERVED",
+  "run_id": "kimi-store-tp8-restore-20261105-once",
+  "container_id": "ed1c6e50b1018b4dabcff66004f0001a4bbdd6b99ccd4738cbe93a9feeef180f",
+  "source_at_run": "795dbacac757fa83471d39c0d76c8b5f02430e51",
+  "validated_epoch": 1793837345.1777058,
+  "author_scope": "Independent audit of parent executed run; this reviewer creates this sanitized derivative receipt and separate audit, not a second runtime.",
+  "prepared_refs": {
+    "spec": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-tp8-restore-concrete-spec-v3-20261105.json",
+      "sha256": "31cff0b63d46592090d9d938c61e9caf40e3675d71ea760e90ae42a6da92245f"
+    },
+    "command": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/s4b-readonly-20261104/store-tp8-restore-manual-root-command-v3-20261105.json",
+      "sha256": "237b0538ce4b6d6ea07afe3e842860c94fad1368700adfbe88c06521187a061c"
+    }
+  },
+  "failure_detection": {
+    "status": "FAILED_RETAINED",
+    "cid": "ed1c6e50b1018b4dabcff66004f0001a4bbdd6b99ccd4738cbe93a9feeef180f",
+    "go": 376720.484757894,
+    "error_type": "AssertionError",
+    "error": "",
+    "elapsed": 368.1174556229962,
+    "output_root_exists": true,
+    "output_model_dir_exists": true
+  },
+  "actual_controller_unit_elapsed_seconds": 463.681837,
+  "pool": {
+    "ready_seconds_after_GO": 214.368526257982,
+    "config": {
+      "chunk_size": 67108864,
+      "mem_pool_size": 687194767360
+    },
+    "server_container_pid": 931
+  },
+  "load_records": [
+    {
+      "tp_rank": 3,
+      "pid": 1006,
+      "device": "cuda:3",
+      "device_uuid": "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "load_completed": true,
+      "load_error_type": null,
+      "registered_model_available": true,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 239268352,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": 77192184752,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      }
+    },
+    {
+      "tp_rank": 6,
+      "pid": 1009,
+      "device": "cuda:6",
+      "device_uuid": "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "load_completed": false,
+      "load_error_type": "ValueError",
+      "registered_model_available": false,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 172067328,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": null,
+      "quant_method_counts": null,
+      "kernel_backend_counts": null
+    },
+    {
+      "tp_rank": 0,
+      "pid": 1003,
+      "device": "cuda:0",
+      "device_uuid": "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "load_completed": false,
+      "load_error_type": "ValueError",
+      "registered_model_available": false,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 172067328,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": null,
+      "quant_method_counts": null,
+      "kernel_backend_counts": null
+    },
+    {
+      "tp_rank": 5,
+      "pid": 1008,
+      "device": "cuda:5",
+      "device_uuid": "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "load_completed": false,
+      "load_error_type": "ValueError",
+      "registered_model_available": false,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 172067328,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": null,
+      "quant_method_counts": null,
+      "kernel_backend_counts": null
+    },
+    {
+      "tp_rank": 7,
+      "pid": 1010,
+      "device": "cuda:7",
+      "device_uuid": "GPU-21336138-6e64-ec08-305b-26c99d661ab9",
+      "load_completed": false,
+      "load_error_type": "ValueError",
+      "registered_model_available": false,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 172067328,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": null,
+      "quant_method_counts": null,
+      "kernel_backend_counts": null
+    },
+    {
+      "tp_rank": 4,
+      "pid": 1007,
+      "device": "cuda:4",
+      "device_uuid": "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "load_completed": false,
+      "load_error_type": "ValueError",
+      "registered_model_available": false,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 172067328,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": null,
+      "quant_method_counts": null,
+      "kernel_backend_counts": null
+    },
+    {
+      "tp_rank": 1,
+      "pid": 1004,
+      "device": "cuda:1",
+      "device_uuid": "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "load_completed": true,
+      "load_error_type": null,
+      "registered_model_available": true,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 239268352,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": 77192184752,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      }
+    },
+    {
+      "tp_rank": 2,
+      "pid": 1005,
+      "device": "cuda:2",
+      "device_uuid": "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "load_completed": true,
+      "load_error_type": null,
+      "registered_model_available": true,
+      "synchronized": true,
+      "phase": "load_boundary_before_profiler_exit_reset",
+      "memory": {
+        "allocated_bytes": 239268352,
+        "driver_free_bytes": 68242898944,
+        "driver_total_bytes": 150110011392,
+        "peak_allocated_bytes": 1126851072,
+        "peak_reserved_bytes": 1157627904,
+        "reserved_bytes": 1157627904
+      },
+      "unique_registered_storage_bytes": 77192184752,
+      "quant_method_counts": {
+        "vllm.model_executor.layers.linear.UnquantizedLinearMethod": 536,
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod": 60,
+        "vllm.model_executor.layers.vocab_parallel_embedding.UnquantizedEmbeddingMethod": 2
+      },
+      "kernel_backend_counts": {
+        "vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.CompressedTensorsWNA16MarlinMoEMethod:Marlin": 60
+      }
+    }
+  ],
+  "load_completed_true_ranks": [
+    1,
+    2,
+    3
+  ],
+  "load_completed_false_ranks": [
+    0,
+    4,
+    5,
+    6,
+    7
+  ],
+  "model_oracle_markers": {
+    "RESTORE_MODEL_READY": 0,
+    "RESTORE_INSPECTION_PASS": 0,
+    "RESTORE_AAB_RESPONSE": 0,
+    "RESTORE_AAB_PASS": 0,
+    "RESTORE_ORDERED_STOP": 0,
+    "RESTORE_GUARD_REQUIRED": 0
+  },
+  "causality": {
+    "first_client_CANCELLED_log_UTC_second": "2026-11-04 23:31:52",
+    "guard_ABORT_monotonic": 377087.833337678,
+    "guard_ABORT_UTC_approx_epoch": 1793835114.367972,
+    "conclusion": "Five client CANCELLED/ValueError preceded guard ABORT; ABORT is failure containment, not established origin of first cancellation. RPC cancellation mechanism remains unresolved.",
+    "limits": "Wall-log timestamp one-second precision; epoch/monotonic mapping approximate; no internal grpc cause trace captured."
+  },
+  "guard": {
+    "status": "FAILED_RETAINED",
+    "cid": "ed1c6e50b1018b4dabcff66004f0001a4bbdd6b99ccd4738cbe93a9feeef180f",
+    "failures": [
+      "abort_requested"
+    ],
+    "quiet_seconds": 60.00547601497965,
+    "max_cycle_seconds": 0.4249964010086842,
+    "raw_oci_sha256": "2c347243a507e479271a757cc7a35bb448e1f13d2ecc954d0a41cde03595485a",
+    "oci_seen": true,
+    "scope_seen": true,
+    "abort_monotonic": 377087.833337678,
+    "pinned_identities": [
+      {
+        "pid": 685689,
+        "startticks": 37672055,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 685700,
+        "startticks": 37672055,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 743481,
+        "startticks": 37708784,
+        "exe": "/usr/bin/containerd-shim-runc-v2",
+        "cgroup": "0::/system.slice/containerd.service"
+      },
+      {
+        "pid": 743489,
+        "startticks": 37708784,
+        "exe": "/usr/bin/runc",
+        "cgroup": "0::/system.slice/containerd.service"
+      }
+    ],
+    "normal_completion_monotonic": null,
+    "normal_cleanup_monotonic": null
+  },
+  "observer": {
+    "gpu_uuids": [
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822",
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb",
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855",
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f",
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242",
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a",
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b",
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9"
+    ],
+    "quiet_seconds": 60.61674596200464,
+    "peak_mib_by_uuid": {
+      "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 78075,
+      "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 78219,
+      "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 78219,
+      "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 78219,
+      "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 78075,
+      "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 78075,
+      "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 78075,
+      "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 78075
+    },
+    "monitor": {
+      "samples": 593,
+      "memory_samples": 593,
+      "gaps": 1,
+      "max_query_seconds": 15.48636451101629,
+      "max_memory_interval_seconds": 16.85528423800133,
+      "peak_kind": "SAMPLED_LOWER_BOUND",
+      "peak_coverage": "SAMPLED_WITH_QUERY_GAPS"
+    }
+  },
+  "units_fresh": {
+    "controller": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "377183372048",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "376719690211"
+    },
+    "guard": {
+      "MainPID": "0",
+      "Result": "exit-code",
+      "ExecMainExitTimestampMonotonic": "377181550040",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "1",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "376720420926"
+    },
+    "observer": {
+      "MainPID": "0",
+      "Result": "success",
+      "ExecMainExitTimestampMonotonic": "377182911382",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "LoadState": "loaded",
+      "ActiveEnterTimestampMonotonic": "376720109574"
+    }
+  },
+  "container_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 137,
+    "Error": "",
+    "StartedAt": "2026-11-04T23:25:47.06481333Z",
+    "FinishedAt": "2026-11-04T23:31:54.424443105Z"
+  },
+  "restart_count": 0,
+  "direct_io": {
+    "observed_parts": 64,
+    "parts_sha256": "dd26e9e8080ca9109bd16565fe2b224a3539be4570498ddc29995492bf1035f0",
+    "server_identity": {
+      "pid": 686842,
+      "startticks": 37672179,
+      "cgroup": "0::/system.slice/docker-ed1c6e50b1018b4dabcff66004f0001a4bbdd6b99ccd4738cbe93a9feeef180f.scope"
+    },
+    "actual_flags_octal": [
+      "0140000"
+    ],
+    "all64_dev_inode_size_match_fresh_stats": true,
+    "limits": "Positive sampled O_DIRECT/readonly proof for all64 Store-owned descriptors, not proof every transient fallback impossible."
+  },
+  "memory_observation": {
+    "samples": 663,
+    "current_sampled_max": 763411849216,
+    "host_memavailable_sampled_min": 1220108791808,
+    "memory_event_observations": [
+      "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n"
+    ],
+    "pids_event_observations": [
+      "max 0\n"
+    ],
+    "memory_peak_observations": [
+      null
+    ]
+  },
+  "post_release_fresh_state": {
+    "file": "post-release-fresh-state.json",
+    "sha256": "8acb305483e5acb734d83ca9f321067353e5b058847e319c3a5aa88eae67808c",
+    "gpu_all8_zero": true,
+    "compute_apps_empty": true,
+    "scope_absent": true
+  },
+  "runtime_processes": "Fresh read-only /proc identity checks confirm guard pinned runtime and Store plus all16 sampled owned PID/startticks gone/replaced.",
+  "raw_root_only_files": {
+    "reference-provenance.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/reference-provenance.json",
+      "bytes": 17902,
+      "sha256": "f2879c8412938a992270fa270a1414f592f34eff0fd37f67fe18224c53cf886e",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "prepared.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/prepared.json",
+      "bytes": 13199,
+      "sha256": "e5050d73db692a88ba88e19e3a289625438601d732975679f30e8ff851774976",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "inspect-created.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/inspect-created.json",
+      "bytes": 35612,
+      "sha256": "94a3346a64e86f81212f415576752f1325de7151cf96957ac64700fab7e566a7",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "kimi-store-tp8-restore-20261105-once-observer.service.stdout": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/kimi-store-tp8-restore-20261105-once-observer.service.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "kimi-store-tp8-restore-20261105-once-observer.service.stderr": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/kimi-store-tp8-restore-20261105-once-observer.service.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "observer-ready.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/observer-ready.json",
+      "bytes": 382,
+      "sha256": "6bd28c82cfa8996d4fd27fd0b9201ad12b7e84ca634e1513b4e6a79e78fb9cb2",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "gpu-observer.jsonl": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/gpu-observer.jsonl",
+      "bytes": 713190,
+      "sha256": "a145d2c8bedfbd9feec9f5c61421e2cb846f1eb8f77bd2a5fca3f379846a0c71",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "kimi-store-tp8-restore-20261105-once-guard.service.stdout": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/kimi-store-tp8-restore-20261105-once-guard.service.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "kimi-store-tp8-restore-20261105-once-guard.service.stderr": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/kimi-store-tp8-restore-20261105-once-guard.service.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "guard-events.jsonl": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/guard-events.jsonl",
+      "bytes": 355458,
+      "sha256": "a519a9cc95ab91d63c704bb60225fe3aa439be21a78365d8124a7cc5b04fa2b6",
+      "mode": "0o644",
+      "uid": 0
+    },
+    "ARMED.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/ARMED.json",
+      "bytes": 313,
+      "sha256": "d537a146c2e935bc81257d544f7797e8ef36e9e5bbc020d802625bdb0f2a042f",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "GO.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/GO.json",
+      "bytes": 151,
+      "sha256": "648eef259ad2cea7d560dc533d71e87178ee5a81a0115edb4f8897bda0f62172",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "GO-ACK.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/GO-ACK.json",
+      "bytes": 109,
+      "sha256": "a66231a1d8d1e84cc83d12d21cb818b90297d2ffa94c51c92ce678c024a5b994",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "start.stdout": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/start.stdout",
+      "bytes": 65,
+      "sha256": "3baeaf9611ad0bbf2e8732599019aef16e7af67e05e1462e0725de6c8e0ce8a3",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "start.stderr": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/start.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "oci.raw.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/oci.raw.json",
+      "bytes": 27246,
+      "sha256": "2c347243a507e479271a757cc7a35bb448e1f13d2ecc954d0a41cde03595485a",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "model-full.log": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/model-full.log",
+      "bytes": 3150689,
+      "sha256": "122d358aa453536ebae60de8e2c2940e9835bea53bccdc7958ca25187e836215",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "host-memory-samples.jsonl": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/host-memory-samples.jsonl",
+      "bytes": 2614919,
+      "sha256": "d555d37412b4be95d2d3df56f1cda9ae333dda51dd30fd2fd014350ad6fc0a39",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-685821-37672130.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-685821-37672130.json",
+      "bytes": 1515,
+      "sha256": "7f6aaace307b99d8c4600fa0bf26161cb40a16fe69da7493014c1a2fd907a4fa",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-686842-37672179.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-686842-37672179.json",
+      "bytes": 1515,
+      "sha256": "ddbb65be6bdf72eb4c9d57e57d56deca4e4010578b31c744a741e086b6160eb7",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "phase-RESTORE_POOL_READY.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/phase-RESTORE_POOL_READY.json",
+      "bytes": 117,
+      "sha256": "3dfbec0ce972cc13abb34d1f5a33384e51dea33cb2e4c382ecdf940cc9b22738",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-719860-37693485.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-719860-37693485.json",
+      "bytes": 1515,
+      "sha256": "ff8b32bc2a6362e7529f263b030c8ab72efc087186f5f040b5e0944538a6c6a5",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-721038-37694309.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-721038-37694309.json",
+      "bytes": 1515,
+      "sha256": "dd29ed603aa87ce1fa9108a5db0f7733309646d1607644f4033927393a6c4440",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-723018-37695614.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-723018-37695614.json",
+      "bytes": 1515,
+      "sha256": "0b8a612e80c3a47199d6e212bec2aa826f06541a3f4f9f819c291fa5ea978f22",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-723019-37695614.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-723019-37695614.json",
+      "bytes": 1515,
+      "sha256": "e4a3984ada4ccbcbdcc873e71d455f21c8b371904dd05e9e20e80ed645943941",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724184-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724184-37696383.json",
+      "bytes": 1515,
+      "sha256": "8b1839bd18b4b45355e5296c54852b77feec0d2dbed35b98b3f6c95e3f13b342",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724185-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724185-37696383.json",
+      "bytes": 1515,
+      "sha256": "2d3cf67b61fa5704d3585a9b8372644a954eb911cfa2e339040307974363392c",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724186-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724186-37696383.json",
+      "bytes": 1515,
+      "sha256": "3c7e169471e3804b88b680fa0de6768e66dc8f812a6af3051889846889e18326",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724187-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724187-37696383.json",
+      "bytes": 1515,
+      "sha256": "16dfc4fee5959c97065a5deede7e6a07ac3c11972f8899f810a90c836f0297d5",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724188-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724188-37696383.json",
+      "bytes": 1515,
+      "sha256": "6f6604316bad0cfef5205f91589f98703a9d2d07b7ecbee9462d6033c6b7c207",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724189-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724189-37696383.json",
+      "bytes": 1515,
+      "sha256": "3a92df4a0f91d678017df02b603a817fe13033b6efc8c7dace7915377418a8fb",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724190-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724190-37696383.json",
+      "bytes": 1515,
+      "sha256": "e5f22433f7d0e02064000bb9ecc52822274d12a5ac824cb6187c96fda4d2791f",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-724191-37696383.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-724191-37696383.json",
+      "bytes": 1515,
+      "sha256": "9f35bd07ff82be603cd7a38cc757742ee758ce7a90939c3e6e0edf9e8516d149",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-727723-37698549.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-727723-37698549.json",
+      "bytes": 1515,
+      "sha256": "7bca97ea61355fdd4f4dbbc1e5fbd11816fa6c2fac4960436ce8213f290754f5",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "process-limits-727730-37698560.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/process-limits-727730-37698560.json",
+      "bytes": 1515,
+      "sha256": "9ed0ad9139118046adda2c8365c5b16143c73d2696d7194c8e4024eb9871db12",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "store-server-host-identity.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/store-server-host-identity.json",
+      "bytes": 147,
+      "sha256": "9c94b49448d2bb25cef254afcfce12bd5a0bd01469f9d83233c45a2700dbff90",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "ABORT": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/ABORT",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "controller-failed.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/controller-failed.json",
+      "bytes": 264,
+      "sha256": "7b46056230f763343e6ab1f32e4e2a19b89be9e8df2d8b037d9bde7491bb35ba",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "guard-final.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/guard-final.json",
+      "bytes": 963,
+      "sha256": "8ceb27e8ae4c18a9cbaec99a1d1b6c53fe52fea7d120dbea1c689a9f64a8841b",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "observer-final.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/observer-final.json",
+      "bytes": 1066,
+      "sha256": "c94710064d79a1d9aae186b010f3a41941e5739c85e389530b128349a3611526",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "kernel-after.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/kernel-after.json",
+      "bytes": 2142,
+      "sha256": "985404936f52adae786f71670f6eb2867d68d8fbb9d155079d811e5df1a44310",
+      "mode": "0o600",
+      "uid": 0
+    },
+    "post-release-fresh-state.json": {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/p0/kimi-store-tp8-restore-20261105-once/post-release-fresh-state.json",
+      "bytes": 2368,
+      "sha256": "8acb305483e5acb734d83ca9f321067353e5b058847e319c3a5aa88eae67808c",
+      "mode": "0o600",
+      "uid": 0
+    }
+  },
+  "public_files": {
+    "ARMED.json": {
+      "bytes": 313,
+      "sha256": "d537a146c2e935bc81257d544f7797e8ef36e9e5bbc020d802625bdb0f2a042f"
+    },
+    "GO-ACK.json": {
+      "bytes": 109,
+      "sha256": "a66231a1d8d1e84cc83d12d21cb818b90297d2ffa94c51c92ce678c024a5b994"
+    },
+    "GO.json": {
+      "bytes": 151,
+      "sha256": "648eef259ad2cea7d560dc533d71e87178ee5a81a0115edb4f8897bda0f62172"
+    },
+    "controller-failed.json": {
+      "bytes": 264,
+      "sha256": "7b46056230f763343e6ab1f32e4e2a19b89be9e8df2d8b037d9bde7491bb35ba"
+    },
+    "first-failure-window-non-tensor-lines.json": {
+      "bytes": 35815,
+      "sha256": "d951e0919e0868ec488f30894c2566fc99775779527bd65288d0e39e2c226f80"
+    },
+    "guard-abort-timeline.json": {
+      "bytes": 189693,
+      "sha256": "f457710725546cc73e0faf014a18ed5aa97162e4a1b028d19a1983b12756a693"
+    },
+    "guard-final.json": {
+      "bytes": 963,
+      "sha256": "8ceb27e8ae4c18a9cbaec99a1d1b6c53fe52fea7d120dbea1c689a9f64a8841b"
+    },
+    "kernel-after.json": {
+      "bytes": 2142,
+      "sha256": "985404936f52adae786f71670f6eb2867d68d8fbb9d155079d811e5df1a44310"
+    },
+    "load-rpc-context-lines-520-652.json": {
+      "bytes": 23605,
+      "sha256": "099bb0386538af89d6b3389248e4ad3f84f13f89ebac6ffff8a57c8d3915f9ec"
+    },
+    "native-restore-load-failure-sanitized-summary.json": {
+      "bytes": 20222,
+      "sha256": "97eaf2d01bb8f9993ff6e371ac0982076a00a3d1f47b4233176f2b87ff8efcb7"
+    },
+    "observer-final.json": {
+      "bytes": 1066,
+      "sha256": "c94710064d79a1d9aae186b010f3a41941e5739c85e389530b128349a3611526"
+    },
+    "phase-RESTORE_POOL_READY.json": {
+      "bytes": 117,
+      "sha256": "3dfbec0ce972cc13abb34d1f5a33384e51dea33cb2e4c382ecdf940cc9b22738"
+    },
+    "post-release-fresh-state.json": {
+      "bytes": 2368,
+      "sha256": "8acb305483e5acb734d83ca9f321067353e5b058847e319c3a5aa88eae67808c"
+    },
+    "prepared.json": {
+      "bytes": 13199,
+      "sha256": "e5050d73db692a88ba88e19e3a289625438601d732975679f30e8ff851774976"
+    },
+    "reference-provenance.json": {
+      "bytes": 17902,
+      "sha256": "f2879c8412938a992270fa270a1414f592f34eff0fd37f67fe18224c53cf886e"
+    },
+    "restore-failure-raw-provenance-and-counters.json": {
+      "bytes": 78149,
+      "sha256": "2362db8bce2d6b635d7732629efbc18f3cb62ec2dbc384214ce15a7f73ac7a71"
+    },
+    "store-server-host-identity.json": {
+      "bytes": 147,
+      "sha256": "9c94b49448d2bb25cef254afcfce12bd5a0bd01469f9d83233c45a2700dbff90"
+    },
+    "units-after.json": {
+      "bytes": 637,
+      "sha256": "d7822ac8adb57aafccaac7494f05f577a3e20ce4422ab2f457630b491d8709ac"
+    }
+  },
+  "limits": [
+    "3/8 completed load boundary only. No RESTORE_MODEL_READY, apply_model inspection, representativeGPUread, AAB response/pass or ordered normalstop. No8rankrestore or native service PASS.",
+    "GPU and host memory maxima are sampled lower bounds. Observer has1querygap; do not claim an exact instantaneous peak or gap-free release history beyond retained continuous quietwindow.",
+    "Pool ready214s/64directFD proof does not establish all8copy or fullvaluecorrectness. No617GB payload hash/readback in this audit.",
+    "Kernel retained overlayfs warnings and later NVRM4second threadNode timeout lines. They do not establish sole cause of earlierRPC cancellation.",
+    "Exit137 withOOMKilledfalse occurred during failure containment; never reinterpret as normal exit or inferPIDlimit from128/137.",
+    "All original failures, Gold, conversion archive and immutable inputs retained. No automatic GPUretry/parameter ladder. Raw env/args remainprivate; sanitized exports are root-supplied hashes/selected fields, not private raw byte rereads by reviewer."
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "status": "READONLY_LOG_AND_VERSIONED_SOURCE_STRONG_HYPOTHESIS_NOT_ACTUAL_PROTOCOL_REPRO",
+  "actual_grpc_version": "1.76.0",
+  "actual_version_file_sha256": "f20649933f7aaf6a13775355bff7020ef4778abbebcfd7cf93b1343280756204",
+  "actual_cygrpc_elf_sha256": "df68c8100961eb29df4651d7fdcbe12e85f12ff7d4adcbbdff4cc9d4285ee7d6",
+  "actual_key": "grpc.server_max_unrequested_time_in_server",
+  "packet_sha256": {
+    "native-restore-load-failure-sanitized-summary.json": "97eaf2d01bb8f9993ff6e371ac0982076a00a3d1f47b4233176f2b87ff8efcb7",
+    "first-failure-window-non-tensor-lines.json": "d951e0919e0868ec488f30894c2566fc99775779527bd65288d0e39e2c226f80",
+    "load-rpc-context-lines-520-652.json": "099bb0386538af89d6b3389248e4ad3f84f13f89ebac6ffff8a57c8d3915f9ec",
+    "guard-abort-timeline.json": "f457710725546cc73e0faf014a18ed5aa97162e4a1b028d19a1983b12756a693"
+  },
+  "official_primary_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/grpc/grpc/v1.76.0/src/core/server/server.cc",
+      "line_ranges": [
+        [
+          593,
+          599
+        ],
+        [
+          700,
+          704
+        ],
+        [
+          1132,
+          1135
+        ],
+        [
+          1871,
+          1875
+        ]
+      ],
+      "facts": "defaultmaxpendingage30s; pendingcleanup onnewaccept; oldfilterstackcalls KillZombie/unref"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/grpc/grpc/v1.76.0/src/python/grpcio/grpc/_cython/_cygrpc/aio/server.pyx.pxi",
+      "line_ranges": [
+        [
+          882,
+          922
+        ],
+        [
+          693,
+          706
+        ]
+      ],
+      "facts": "aio awaitsnextrequest ononeeventloop; corecancellation cancancelhandler"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/grpc/grpc/v1.76.0/include/grpc/impl/channel_arg_names.h",
+      "line_ranges": [
+        [
+          49,
+          62
+        ]
+      ],
+      "facts": "maxconnectionage/grace defaultsdisabled, clientidle30min; notinvent85secondcalltimeout"
+    }
+  ],
+  "source_access_limit": "Read viawebtool officialtag; attemptedserverurllib sourcehashread timedout beforewriting thisreceipt. No rawsourceSHA invented; existinginstalledbinary/versionhashes separatelyverified.",
+  "observed_sequence": [
+    {
+      "UTC": "23:30:16",
+      "event": "firstobserved rank3GPU+Confirm requests; GPU3success23:30:28.445"
+    },
+    {
+      "UTC": "23:30:28",
+      "event": "other7CPUaccepted; GPU1/2accepted+Confirm; five0/4/5/6/7 clientGPUrequests butnomatchingserverGPUaccept/replica infull520..652 excerpt"
+    },
+    {
+      "UTC": "23:31:52.323907",
+      "event": "GPU1copydone/Confirm1success immediatelybefore5peerCANCELLED after~84s pending"
+    },
+    {
+      "UTC": "23:31:54.003068",
+      "event": "serverstillrunning/GPU2copydone/Confirm2success aftercancellation"
+    },
+    {
+      "monotonic": 377087.83336174,
+      "event": "guardobservedABORT thenscopekill377087.834452005, laterthansourceRPCfailure"
+    }
+  ],
+  "inference": "syncnativeConfirm blocks aioaccept; 30spendingage policy canexpire5unacceptedRPCs during~84swait, andserverresumption cleanthem. Actualsequence stronglymatches this specificmechanism. NotyettracedexactCcorebranch/defaultreadback oractualCPUprotocolrepro.",
+  "not_supported": [
+    "serverdeath before5cancel (laterConfirm2)",
+    "cudaMallocOOM/old77GBTorchcache (nativeallocatedall8/free68GB/Torchreserved~1.16GB)",
+    "poolundersize/VMAoverflow/bufferedfallback (actualpoolready/64DIO/maps<1k/OOM0)",
+    "optionalGPTOSSTritonwarning asMarlinfailure"
+  ],
+  "next": "boundedCPUactualgrpc.aio blockingConfirm/8clients oldfailure thenreviewedoffload+GILrelease fixproof, onlyifrootadmitted; no pool/thread/chunk/timeout changes orGPUretry performed"
+}
