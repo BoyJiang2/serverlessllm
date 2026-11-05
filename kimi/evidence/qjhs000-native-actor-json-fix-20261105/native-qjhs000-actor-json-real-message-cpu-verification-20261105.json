@@ -1,0 +1,58 @@
+{
+  "status": "REAL_INSTALLED_PROTOBUF_SOURCE_MESSAGE_JSON_CPU_PASS_NO_RAY_OR_GPU",
+  "spec_sha256": "6ed2e5ea9e0361805eacaff45d42a85b7af953e613f4703c8a9116a26acc5f82",
+  "command_sha256": "fe84ad080ce728cd5485951401d04379884332e6e000269de63ba6a7ed44ecb0",
+  "installed_protobuf_source_CID": "455dc05e8b69d92f1e4d45ef065c82ede574c4da3a34fa22642dc1dfc08044ce",
+  "protobuf_implementation_for_host_fixture": "python",
+  "actual_installed_source_sha256": {
+    "google.protobuf.message": "21ec9013af2b8ff61c521cb6d174b90ebded536eff25867918b2c79be4db6c3e",
+    "google.protobuf.json_format": "7b386cc56f648154f744b2d1b38f44e94dba27c8c33980002e158c235443c7a7",
+    "google.protobuf.struct_pb2": "bfd01aa03d6dc5ac210cd433996c8da027fb8d6301e655f6d26cfe2519e819e5"
+  },
+  "cases": [
+    {
+      "case": "empty",
+      "parsed": {
+        "Name": "controller",
+        "State": "ALIVE",
+        "Address": {
+          "IPAddress": "172.30.0.2",
+          "NodeID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "Pid": 1235,
+        "DeathCause": {}
+      }
+    },
+    {
+      "case": "nonempty",
+      "parsed": {
+        "Name": "controller",
+        "State": "ALIVE",
+        "Address": {
+          "IPAddress": "172.30.0.2",
+          "NodeID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "Pid": 1235,
+        "DeathCause": {
+          "cause": "CPU fixture",
+          "nested": {
+            "detail": "nonempty"
+          }
+        }
+      }
+    }
+  ],
+  "unexpected_object_rejected": true,
+  "identityfields_types_unchanged": true,
+  "actual_producer_consumer_body_SHA": {
+    "ray_state": "7cf2bf8fc7098cfddbd29ead27c787938671465fc8ea6b6f976b5dba2a5b43ba",
+    "tokens": "1ba9b528a765e633fa4ea207e6c79ab3bf9cdadfd1f61da3e5ed4370de838071"
+  },
+  "shutdown_no_metadata_JSON_unchanged": true,
+  "source_semantic_delta": "Onlyaddjson.dumps(default=strictMessageToDict) toray_state/tokens; ASTunparse format onlyotherwise",
+  "limits": [
+    "Hosthasnogooglepackage; actualinstalledPythonprotobufsourcesloadedRAMonly withpurePythonbackend, StructusedasrealMessage, notfullRayActorDeathCauseimport",
+    "ActualRaystate source/previousTypeError proveDeathCauseisprotobuf; dispatchgenericMessagecontracttested",
+    "No newenv/packageinstall/container/probe/SDKsource/GPU"
+  ]
+}

@@ -1,0 +1,11 @@
+# qjhs0 actor metadata JSON independent delta review
+
+EXECUTION_SOURCE_REVIEW_PASS for one correctedattempt after existingfresh7200 admission. Finalspec6ed2e5ea9e0361805eacaff45d42a85b7af953e613f4703c8a9116a26acc5f82; actualrootfe84ad080ce728cd5485951401d04379884332e6e000269de63ba6a7ed44ecb0; realMessageCPUfixture7af5d1f4a0eb76a2f4180543c0676bad81ecd2c292fe4c1515bc2e205d16dcb0 independentlyread/hashed.
+
+Ray2.48 _gen_actor_info includes rawDeathCause protobuf evenforALIVE actors. Actualray_state andtokens now json.dumps theirentireexistingpayload with default handler restrictedto google.protobuf.message.Message -> officialMessageToDict(preserving_proto_field_name=True). Otherunknownobjects raiseTypeError; no str/reprfallback, no droppedDeathCause orothermetadata. OrdinaryName/State/Address/Pid/ActorID fields retain scalarvalue/types. Currentcontroller_shutdown usesmetadataforstrictidentitychecks andprintsplainmarker, notJSON, soitsbodyunchanged.
+
+Actualrootbyteidentical: exec_argv consumes updatedhashedrole_bodies forbothproducers, rootjson.loads consumers unchanged. Specdifferences are only2producerbodies/hashes, distinctRUN/names andfailure/provenance metadata. Otherroles/SDKsource/resources/pool1200/7200/guards/strictbaseline/gold identical. Syntaxcompiledwithouttargetruntime. ASTunparse formatting isnotsemanticfunctionreplacement beyondimports/default handler andjson.dumps defaultkeyword.
+
+RealCPUfixture usedactualprotobufPython sources fromfailedCID inRAM withoutpackageswritten/installed; empty/structuredStruct conversion, ordinaryidentitytypes, unknownrejection andactualrootbodyconsumerhash passed. Scope ispurePythonprotobufbackend andStruct, notfullActorDeathCause/Cbackend/liveRay execution; actualsourceMessage contract andofficialconverter justifyminimalfixwithoutanotherGPUprobe. Source/nativefiles unchanged. Earlierhealthfixed actualStorepool/baseline/APIhealth200 partialprogress remainsvalid butoverallFAILED beforecontrollerauth/register/model; notretrospectivelyPASS. Failure/cleanup/history preserved.
+
+ReviewerperformednoGPU/container/Rayinit/import/install/Git operation. Existingfreshfulladmission thenoneactualcorrectedrun; no addedframework/probe/approvallayer.
