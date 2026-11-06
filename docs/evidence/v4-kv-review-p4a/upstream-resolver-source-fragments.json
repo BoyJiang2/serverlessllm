@@ -1,0 +1,19 @@
+{
+  "commit": "132765e3560659ff63ebd236203672e991b70e08",
+  "fragments": [
+    {
+      "file": "utils/torch_utils.py",
+      "source_sha256": "ee7512b2537ea6bb0bde774516189dbd7025712d921bbf914685994a0a0d4f8d",
+      "line": 279,
+      "function": "get_kv_cache_quant_algo_string",
+      "source": "def get_kv_cache_quant_algo_string(quant_cfg: dict[str, Any]) -> str | None:\n    \"\"\"Get the KV cache quantization algorithm string from the quantization config.\n\n    Maps various FP8 format names to vLLM's standard cache dtype strings.\n    Returns None if no kv_cache_quant_algo is specified.\n    Returns \"auto\" if the value is not recognized/supported.\n    \"\"\"\n    # Mapping from model config values to vLLM cache_dtype strings\n\n    quant_method = quant_cfg.get(\"quant_method\", \"\")\n    if quant_method.startswith(\"modelopt\"):\n        quantization_inner = quant_cfg.get(\"quantization\", quant_cfg)\n        # Check if quant config is specified and use kv cache quant algo\n        kv_algo = (\n            quantization_inner.get(\"kv_cache_scheme\")\n            or quant_cfg.get(\"kv_cache_scheme\")\n            or quantization_inner.get(\"kv_cache_quant_algo\")\n            or quant_cfg.get(\"kv_cache_quant_algo\")\n        )\n        if isinstance(kv_algo, dict):\n            if (\n                kv_algo.get(\"dynamic\") is False\n                and kv_algo.get(\"num_bits\") == 8\n                and kv_algo.get(\"type\") == \"float\"\n            ):\n                kv_algo = \"fp8\"\n            elif kv_algo.get(\"num_bits\") == 4 and kv_algo.get(\"type\") == \"float\":\n                kv_algo = \"nvfp4\"\n            else:\n                # Unknown/unsupported format - return \"auto\" as safe fallback\n                logger.warning(\n                    \"WARNING: Unknown kv_cache_quant_algo '%s' in model \"\n                    \"config. Supported values: %s. Falling back to 'auto'.\",\n                    f\"{kv_algo}\",\n                    list(MODELOPT_TO_VLLM_KV_CACHE_DTYPE_MAP.keys()),\n                )\n                return \"auto\"\n        if isinstance(kv_algo, str):\n            kv_algo_lower = kv_algo.lower()\n\n            # Try to map to vLLM's standard format\n            if kv_algo_lower in MODELOPT_TO_VLLM_KV_CACHE_DTYPE_MAP:\n                return MODELOPT_TO_VLLM_KV_CACHE_DTYPE_MAP[kv_algo_lower]\n            else:\n                # Unknown/unsupported format - return \"auto\" as safe fallback\n                logger.warning(\n                    \"WARNING: Unknown kv_cache_quant_algo '%s' in model \"\n                    \"config. Supported values: %s. Falling back to 'auto'.\",\n                    kv_algo,\n                    list(MODELOPT_TO_VLLM_KV_CACHE_DTYPE_MAP.keys()),\n                )\n                return \"auto\"\n    return None"
+    },
+    {
+      "file": "utils/torch_utils.py",
+      "source_sha256": "ee7512b2537ea6bb0bde774516189dbd7025712d921bbf914685994a0a0d4f8d",
+      "line": 343,
+      "function": "resolve_kv_cache_dtype_string",
+      "source": "def resolve_kv_cache_dtype_string(\n    kv_cache_dtype: str, model_config: ModelConfig\n) -> str:\n    \"\"\"Resolve 'auto' kv_cache_dtype to the actual string value from model config.\n    Returns the resolved cache_dtype string.\n    \"\"\"\n    if kv_cache_dtype != \"auto\":\n        return kv_cache_dtype\n\n    hf_cfg = getattr(model_config, \"hf_config\", None)\n    if hf_cfg is not None:\n        quant_cfg = getattr(hf_cfg, \"quantization_config\", None)\n        if quant_cfg is not None:\n            kv_algo_str = get_kv_cache_quant_algo_string(quant_cfg)\n            if kv_algo_str is not None:\n                return kv_algo_str\n\n    # Default to auto (will be handled by downstream code)\n    return \"auto\""
+    }
+  ]
+}

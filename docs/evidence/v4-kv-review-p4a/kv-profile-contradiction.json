@@ -1,0 +1,61 @@
+{
+  "utc": "2026-11-06T13:29:59.890573+00:00",
+  "resolved_auto": "auto",
+  "actual_upstream_assertion_cases": [
+    {
+      "cache_dtype": "auto",
+      "assertion_passed": false,
+      "error": "DeepseekV4 only supports fp8 kv-cache format for now, got auto"
+    },
+    {
+      "cache_dtype": "fp8",
+      "assertion_passed": true,
+      "error": null
+    }
+  ],
+  "old_service_profile_accepted": true,
+  "explicit_fp8_rejected_by_current_profile": "Unreviewed V4 service backend fields: ['kv_cache_dtype']",
+  "converter_kwarg_names": [
+    "model",
+    "tokenizer",
+    "revision",
+    "tokenizer_revision",
+    "tokenizer_mode",
+    "dtype",
+    "quantization",
+    "tensor_parallel_size",
+    "pipeline_parallel_size",
+    "data_parallel_size",
+    "enable_expert_parallel",
+    "speculative_config",
+    "enforce_eager",
+    "max_model_len",
+    "max_num_seqs",
+    "max_num_batched_tokens",
+    "enable_prefix_caching",
+    "cpu_offload_gb",
+    "gpu_memory_utilization",
+    "seed",
+    "distributed_executor_backend",
+    "worker_extension_cls",
+    "load_format",
+    "model_loader_extra_config"
+  ],
+  "source_fragments": {
+    "assignment": "kv_cache_dtype = cache_config.cache_dtype if cache_config is not None else \"fp8\"",
+    "assertion": "assert kv_cache_dtype.startswith(\"fp8\"), (\n            f\"DeepseekV4 only supports fp8 kv-cache format for now, \"\n            f\"got {kv_cache_dtype}\"\n        )"
+  },
+  "source_sha256": {
+    "/home/boyjiang/sllm-v4-pro/engine-src/vllm-132765e35606/vllm/utils/torch_utils.py": "ee7512b2537ea6bb0bde774516189dbd7025712d921bbf914685994a0a0d4f8d",
+    "/home/boyjiang/sllm-v4-pro/engine-src/vllm-132765e35606/vllm/model_executor/layers/deepseek_v4_attention.py": "437461d6ab762ee961344738079d43a984aeb2edb9aacfd5ad581265b03d3020",
+    "/home/boyjiang/sllm-v4-pro/code/sllm_store/sllm_store/v4_service.py": "5474c31a58138377f00c8dab8638d5a8ade4f9760c29c035be3a29ab028666be",
+    "/home/boyjiang/sllm-v4-pro/code/sllm_store/sllm_store/v4_convert.py": "23f5420eb9a29b392684e9e5fd7400dc425a734c4d3c6d086685fca35d7c16c9"
+  },
+  "proposed_inputs": {
+    "kv_cache_dtype": "fp8",
+    "attention_config": {
+      "use_fp4_indexer_cache": false
+    }
+  },
+  "scope": "Actual pinned source CPU AST guard and current pure service validator; no vLLM/model construction, GPU, patch, protocol change or runtime proof"
+}
