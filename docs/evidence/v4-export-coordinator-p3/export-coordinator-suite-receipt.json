@@ -1,0 +1,22 @@
+{
+  "source_head": "db1fd953d2ea1e04409cee6f4bc00bd5302c10f8",
+  "working_diff_sha256": "9bd2fd6f9d7933721028519a27e5d768ad50580b38fd6230efc09e4d1eed8f22",
+  "python": "3.10.12",
+  "selected_tests": 177,
+  "tests_run": 177,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "cpu_suite_passed": true,
+  "v4_runtime_qualified": false,
+  "scope": "Actual source AST / stdlib and C++ CUDA-call stubs only; no GPU/Ray/Store runtime or native extension build",
+  "known_gaps": [
+    "monolithic TP8 capacity rejection; grouped loader implemented; hardware capacity qualification pending",
+    "native terminal confirmation patch is CPU-only; no real IPC/copy failure validation",
+    "host terminal confirmation and grouped pool are CPU-only; no real disk/pinned-memory/RPC qualification",
+    "residency observations are not leases; concurrent native/external eviction must be controlled",
+    "grouped registration uses CPU RPC stand-ins; real worker Ray transport not exercised",
+    "conversion RPC/queue and shutdown are CPU substitutes; actual secure transport is unqualified",
+    "no full weights, native token gold, ABI, physical release or complete service validation"
+  ]
+}

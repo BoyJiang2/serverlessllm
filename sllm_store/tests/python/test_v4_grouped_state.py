@@ -81,6 +81,15 @@ class GroupedStateTests(unittest.TestCase):
         with self.assertRaises((ValueError, FileNotFoundError)):
             raw.validate_complete(self.root, identity())
 
+    def test_failed_conversion_cannot_publish_or_restore_even_with_all_receipts(self):
+        self.populate()
+        grouped.publish_grouped_complete(self.root, identity(), self.results)
+        raw.write_once(self.root / "CONVERSION_FAILED.json", dict(error="interrupted"))
+        with self.assertRaisesRegex(ValueError, "failure marker"):
+            grouped.validate_grouped_complete(self.root, identity())
+        with self.assertRaisesRegex(ValueError, "failure marker"):
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
+
     def test_partial_rank_never_publishes_complete(self):
         self.populate(7)
         with self.assertRaises(ValueError):

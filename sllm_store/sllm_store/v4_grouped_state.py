@@ -114,6 +114,9 @@ def worker_receipts(results, identity):
 
 
 def publish_grouped_complete(root, identity, results):
+    failure = Path(root) / "CONVERSION_FAILED.json"
+    if failure.exists() or failure.is_symlink():
+        raise ValueError("Grouped conversion has a failure marker")
     workers = worker_receipts(results, identity)
     ranks, devices = {}, set()
     for rank in range(TP_SIZE):
@@ -132,6 +135,9 @@ def publish_grouped_complete(root, identity, results):
 
 
 def validate_grouped_complete(root, identity, verify_payload=False):
+    failure = Path(root) / "CONVERSION_FAILED.json"
+    if failure.exists() or failure.is_symlink():
+        raise ValueError("Grouped conversion has a failure marker")
     complete = json.loads(checked_file(root, "COMPLETE.json").read_text())
     if (complete.get("format") != FORMAT or complete.get("identity") != identity
             or set(complete.get("ranks", {})) != {str(r) for r in range(TP_SIZE)}):
