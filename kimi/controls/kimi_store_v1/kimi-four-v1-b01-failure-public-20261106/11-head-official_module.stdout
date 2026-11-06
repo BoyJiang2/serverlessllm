@@ -1,0 +1,50 @@
+NATIVE_OFFICIAL_ROLE {"role": "api", "pid": 1182, "module": "sllm.cli.clic", "argv": ["start", "--host", "0.0.0.0", "--port", "8343"]}
+[ℹ] Initializing Ray...
+[ℹ] Creating FastAPI application...
+[ℹ] Starting SLLM controller...
+[36m(SllmController pid=694)[0m INFO 11-06 14:25:48 controller.py:68] Starting store manager
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:52 store_manager.py:226] Initializing store manager
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:52 store_manager.py:237] Initializing cluster and collecting hardware info
+[36m(collect_all_info pid=1301, ip=192.168.80.3)[0m {'pcie_bandwidth': 25000000000, 'disk_size': 3838880616448, 'disk_bandwidth': 2024075512.8246903, 'disk_write_bandwidth': 395308297.3028352, 'disk_read_bandwidth': 3652842728.346545, 'GPUs_info': {1: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 2: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 3: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 4: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 5: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 6: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 7: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}, 8: {'Name': 'NVIDIA H20-3e', 'Load': '0.0%', 'Free_Memory': '141542.0MB', 'Used_Memory': '1615.0MB', 'Total_Memory': '143771.0MB'}}}
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:55 store_manager.py:260] Hardware info collected for node 0
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:55 store_manager.py:65] Initialized local store for node 0 with 10240 chunks (chunk size: 67108864)
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:55 store_manager.py:309] Node 0 initialized, chunk size: 67108864
+[36m(StoreManager pid=690)[0m INFO 11-06 14:25:55 store_manager.py:313] Waiting for nodes [] to be initialized
+[36m(SllmController pid=694)[0m INFO 11-06 14:25:56 controller.py:77] Starting scheduler
+[✅] SLLM controller started successfully
+[🚀] Starting SLLM server on 0.0.0.0:8343...
+INFO:     127.0.0.1:42936 - "GET /health HTTP/1.1" 200 OK
+[36m(FcfsScheduler pid=695)[0m INFO 11-06 14:25:56 fcfs_scheduler.py:54] Starting FCFS scheduler
+[36m(FcfsScheduler pid=695)[0m INFO 11-06 14:25:56 fcfs_scheduler.py:111] Starting control loop
+[36m(SllmController pid=694)[0m INFO 11-06 14:30:26 controller.py:132] Registering new model kimi-k2.6-sf-reference
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:26 store_manager.py:365] Registering new kimi-k2.6-sf-reference
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:26 store_manager.py:422] Downloading model /mnt/raid/models/Kimi-K2.6 to nodes ['0']
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:26 store_manager.py:530] Downloading /mnt/raid/models/Kimi-K2.6 to node 0
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [plugins/__init__.py:36] No plugins for group vllm.platform_plugins found.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:37] Checking if TPU platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:56] TPU platform is not available because: No module named 'libtpu'
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:62] Checking if CUDA platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:85] Confirmed CUDA platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:113] Checking if ROCm platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:127] ROCm platform is not available because: No module named 'amdsmi'
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:134] Checking if XPU platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:165] Checking if CPU platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:62] Checking if CUDA platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:85] Confirmed CUDA platform is available.
+[36m(VllmModelDownloader pid=1302, ip=192.168.80.3)[0m DEBUG 11-06 14:30:29 [platforms/__init__.py:247] Automatically detected platform cuda.
+INFO:     127.0.0.1:39812 - "POST /register HTTP/1.1" 200 OK
+INFO 11-06 14:30:33 app_lib.py:119] Received request for model kimi-k2.6-sf-reference
+INFO 11-06 14:30:33 app_lib.py:126] Got request router for kimi-k2.6-sf-reference
+[36m(SllmController pid=694)[0m INFO 11-06 14:30:33 controller.py:172] Model kimi-k2.6-sf-reference registered
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_0
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_1
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_2
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_3
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_4
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_5
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_6
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 client.py:136] register_model: vllm/kimi-k2.6-sf-reference/rank_7
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 store_manager.py:93] kimi-k2.6-sf-reference registered, {'kimi-k2.6-sf-reference': (['vllm/kimi-k2.6-sf-reference/rank_0', 'vllm/kimi-k2.6-sf-reference/rank_1', 'vllm/kimi-k2.6-sf-reference/rank_2', 'vllm/kimi-k2.6-sf-reference/rank_3', 'vllm/kimi-k2.6-sf-reference/rank_4', 'vllm/kimi-k2.6-sf-reference/rank_5', 'vllm/kimi-k2.6-sf-reference/rank_6', 'vllm/kimi-k2.6-sf-reference/rank_7'], 617000763392)}
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 store_manager.py:459] kimi-k2.6-sf-reference downloaded to node 0
+[36m(StoreManager pid=690)[0m INFO 11-06 14:30:33 store_manager.py:467] kimi-k2.6-sf-reference registered
+INFO:     127.0.0.1:52816 - "POST /v1/chat/completions HTTP/1.1" 200 OK
