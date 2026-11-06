@@ -22,6 +22,8 @@
 import logging
 import os
 import sys
+import time
+from pathlib import Path
 
 _FORMAT = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s"
 _DATE_FORMAT = "%m-%d %H:%M:%S"
@@ -79,3 +81,21 @@ def init_logger(name: str):
     logger.propagate = False
 
     return logger
+
+
+def get_clock_identity():
+    identity = {}
+    readers = {
+        "boot_id": lambda: Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+        "container_hostname": lambda: os.uname().nodename,
+        "process_startticks": lambda: int(Path("/proc/self/stat").read_text().rsplit(")", 1)[1].split()[19]),
+        "time_namespace": lambda: os.readlink("/proc/self/ns/time"),
+        "monotonic_clock_implementation": lambda: time.get_clock_info("monotonic").implementation,
+    }
+    for name, read in readers.items():
+        try:
+            identity[name] = read()
+        except (OSError, ValueError, IndexError) as error:
+            identity[name] = None
+            identity.setdefault("errors", {})[name] = type(error).__name__
+    return identity

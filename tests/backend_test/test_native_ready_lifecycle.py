@@ -5,6 +5,7 @@ import builtins
 from dataclasses import dataclass, fields
 from enum import IntEnum
 import gc
+import json
 import logging
 import os
 from pathlib import Path
@@ -53,7 +54,7 @@ class Status(IntEnum):
 def backend_class():
     ns = {k: getattr(typing, k) for k in ("Any", "Dict", "List", "Optional", "Union", "Sequence")}
     ns.update(asyncio=asyncio, gc=gc, os=os, time=time, uuid=uuid, fields=fields,
-              logger=logging.getLogger("native-fixture"), AsyncEngineArgs=EngineArgs,
+              logger=logging.getLogger("native-fixture"), json=json, get_clock_identity=mock.Mock(return_value={"boot_id":"fixture-boot"}), AsyncEngineArgs=EngineArgs,
               BackendStatus=Status, SllmBackend=object, RequestOutput=types.SimpleNamespace,
               TokensPrompt=dict, torch=types.SimpleNamespace(
                   cuda=types.SimpleNamespace(is_available=lambda: False)))
@@ -62,7 +63,7 @@ def backend_class():
     output = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "process_output")
     exec(compile(ast.Module(body=[output], type_ignores=[]), "actual-native-output", "exec"), ns)
     cls = actual_class("sllm/backends/vllm_backend.py", "VllmBackend",
-                       {"__init__", "generate", "shutdown", "get_current_tokens", "stop"}, ns)
+                       {"__init__", "init_backend", "generate", "shutdown", "get_current_tokens", "stop"}, ns)
     return cls, ns
 
 
@@ -329,6 +330,111 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(asyncio.TimeoutError):
             await asyncio.wait_for(instance.stop(), timeout=0.01)
         await instance.shutdown()
+
+
+class NativeClockEventTest(unittest.IsolatedAsyncioTestCase):
+    async def test_backend_init_boundaries_cache_and_failure_no_ready(self):
+        for trace in (False,True):
+            for fail in (False,True):
+                with self.subTest(trace=trace,fail=fail):
+                    cls,ns=backend_class();logs=[];ns['logger']=types.SimpleNamespace(info=lambda message:logs.append(message) if message.startswith('{') else None)
+                    identity=ns['get_clock_identity'];instance=cls('kimi',{'trace_debug':trace})
+                    error=RuntimeError('create failed')
+                    def create(args):
+                        self.assertEqual([json.loads(s)['event'] for s in logs],['backend_init_begin'] if trace else [])
+                        if fail:raise error
+                        return object()
+                    ns['AsyncLLMEngine']=types.SimpleNamespace(from_engine_args=create)
+                    if fail:
+                        with self.assertRaises(RuntimeError) as raised:await instance.init_backend()
+                        self.assertIs(raised.exception,error)
+                        self.assertEqual(instance.status,Status.UNINITIALIZED)
+                    else:
+                        await instance.init_backend();await instance.init_backend()
+                        self.assertEqual(instance.status,Status.RUNNING)
+                    expected=['backend_init_begin']+([] if fail else ['backend_init_ready']) if trace else []
+                    self.assertEqual([json.loads(s)['event'] for s in logs],expected)
+                    self.assertEqual(identity.call_count,int(trace))
+                    for row in map(json.loads,logs):
+                        self.assertEqual(row['model'],'kimi');self.assertEqual(row['pid'],os.getpid())
+                        self.assertEqual(row['clock_identity'],{'boot_id':'fixture-boot'})
+                        self.assertIsInstance(row['monotonic_ns'],int)
+
+    async def test_first_nonempty_once_identity_and_traceoff_no_new_logs(self):
+        for trace in (False,True):
+            cls,ns=backend_class();logs=[];ns['logger']=types.SimpleNamespace(info=lambda message:logs.append(message) if message.startswith('{') else None)
+            ns['SamplingParams']=lambda **kwargs:kwargs
+            instance=cls('kimi',{'trace_debug':trace});instance.status=Status.RUNNING
+            async def generate(inputs,params,request_id):
+                for tokens in ([],[7],[7,8]):
+                    yield types.SimpleNamespace(request_id=request_id,metrics=None,prompt_token_ids=[1],outputs=[types.SimpleNamespace(text='x',logprobs=None,finish_reason='length',token_ids=tokens)])
+            instance.engine=types.SimpleNamespace(generate=generate)
+            result=await instance.generate({'model':'kimi','request_id':'r1','input_tokens':[1],'max_tokens':2})
+            self.assertEqual(result['usage']['completion_tokens'],2)
+            self.assertEqual(ns['get_clock_identity'].call_count,int(trace))
+            self.assertEqual(len(logs),int(trace))
+            if trace:
+                row=json.loads(logs[0]);self.assertEqual(row['event'],'backend_first_token_observed')
+                self.assertEqual(row['model'],'kimi');self.assertEqual(row['request_id'],'r1')
+                self.assertEqual(row['clock_identity'],instance._trace_clock_identity)
+                self.assertNotIn('prompt',row)
+
+    async def test_router_publication_in_locked_section_after_actual_init(self):
+        for trace in (False,True):
+            for fail in (False,True):
+                with self.subTest(trace=trace,fail=fail):
+                    events=[];identity=mock.Mock(return_value={'boot_id':'router-boot'})
+                    ns=dict(asyncio=asyncio,json=json,os=os,time=time,uuid=uuid,Dict=typing.Dict,List=typing.List,Optional=typing.Optional,SllmRouter=object,InstanceHandle=object,get_clock_identity=identity)
+                    def info(message):
+                        if message.startswith('{'):
+                            self.assertTrue(router.instance_management_lock.locked())
+                            self.assertIn('i1',router.ready_inference_instances)
+                            self.assertNotIn('i1',router.starting_inference_instances)
+                            self.assertTrue(initialized[0]);events.append(json.loads(message))
+                    ns['logger']=types.SimpleNamespace(info=info,error=lambda text:None)
+                    cls=actual_class('sllm/routers/roundrobin_router.py','RoundRobinRouter',{'__init__','_start_instance'},ns)
+                    router=cls('kimi',{'num_cpus':1,'num_gpus':8},'vllm',{'trace_debug':trace},{})
+                    instance=types.SimpleNamespace(lock=asyncio.Lock(),ready=False)
+                    router.starting_inference_instances['i1']=instance
+                    initialized=[False];error=RuntimeError('backend init failed')
+                    async def init():
+                        self.assertNotIn('i1',router.ready_inference_instances)
+                        if fail:raise error
+                        initialized[0]=True
+                    backend=types.SimpleNamespace(init_backend=types.SimpleNamespace(remote=init))
+                    router.model_loading_scheduler=types.SimpleNamespace(allocate_resource=types.SimpleNamespace(remote=mock.AsyncMock(return_value='worker')))
+                    ns['start_instance']=types.SimpleNamespace(options=lambda **kwargs:types.SimpleNamespace(remote=mock.AsyncMock()))
+                    ns['ray']=types.SimpleNamespace(get_actor=lambda name:backend)
+                    if fail:
+                        with self.assertRaises(RuntimeError) as raised:await router._start_instance('i1')
+                        self.assertIs(raised.exception,error);self.assertFalse(router.ready_inference_instances)
+                    else:await router._start_instance('i1')
+                    self.assertEqual(identity.call_count,int(trace))
+                    self.assertEqual(len(events),int(trace and not fail))
+                    if events:
+                        row=events[0];self.assertEqual(row['event'],'router_instance_published')
+                        self.assertEqual(row['model'],'kimi');self.assertEqual(row['instance_id'],'i1')
+                        self.assertEqual(row['clock_identity'],{'boot_id':'router-boot'})
+
+    def test_actual_clock_reader_fields_errors_and_no_prompt(self):
+        tree=ast.parse((ROOT/'sllm/logger.py').read_text())
+        node=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='get_clock_identity')
+        ns={'Path':Path,'os':os,'time':time}
+        exec(compile(ast.Module(body=[node],type_ignores=[]),'actual-clock-identity','exec'),ns)
+        stat='12 (a)b) '+' '.join(['S']+['0']*18+['987'])
+        def read(path):
+            return stat if str(path)=='/proc/self/stat' else 'boot-1\n'
+        with mock.patch.object(Path,'read_text',read),mock.patch.object(os,'readlink',return_value='time:[123]'),mock.patch.object(os,'uname',return_value=types.SimpleNamespace(nodename='container')):
+            row=ns['get_clock_identity']()
+            self.assertEqual(row['process_startticks'],987);self.assertEqual(row['boot_id'],'boot-1')
+            self.assertEqual(row['container_hostname'],'container');self.assertEqual(row['time_namespace'],'time:[123]')
+            self.assertEqual(row['monotonic_clock_implementation'],time.get_clock_info('monotonic').implementation)
+            with mock.patch.object(os,'readlink',side_effect=PermissionError('not allowed')):
+                failed=ns['get_clock_identity']()
+            self.assertIsNone(failed['time_namespace']);self.assertEqual(failed['errors']['time_namespace'],'PermissionError')
+            self.assertEqual(failed['boot_id'],'boot-1')
+        self.assertNotIn('prompt',row)
+
 
 
 if __name__ == "__main__":

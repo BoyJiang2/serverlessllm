@@ -17,6 +17,9 @@
 # ---------------------------------------------------------------------------- #
 import asyncio
 import logging
+import json
+import os
+import time
 import uuid
 from typing import Dict, List, Optional
 
@@ -24,7 +27,7 @@ import ray
 
 from sllm.fine_tuning_instance import start_ft_instance
 from sllm.inference_instance import start_instance
-from sllm.logger import init_logger
+from sllm.logger import get_clock_identity, init_logger
 
 from ..utils import InstanceHandle
 from .router_utils import SllmRouter
@@ -70,6 +73,9 @@ class RoundRobinRouter(SllmRouter):
         self.resource_requirements = resource_requirements
         self.backend = backend
         self.backend_config = backend_config
+        self.trace_debug = backend_config.get("trace_debug", False)
+        if self.trace_debug:
+            self._trace_clock_identity = get_clock_identity()
         self.router_config = router_config
 
         self.loop_interval = 1
@@ -475,6 +481,15 @@ class RoundRobinRouter(SllmRouter):
         async with self.instance_management_lock:
             self.ready_inference_instances[instance_id] = instance
             self.starting_inference_instances.pop(instance_id)
+            if self.trace_debug:
+                logger.info(json.dumps({
+                    "event": "router_instance_published",
+                    "model": self.model_name,
+                    "instance_id": instance_id,
+                    "pid": os.getpid(),
+                    "monotonic_ns": time.monotonic_ns(),
+                    "clock_identity": self._trace_clock_identity,
+                }))
         return instance_id
 
     async def _start_ft_instance(self, instance_id: str):

@@ -44,6 +44,8 @@ from sllm.backends.backend_utils import (
     SllmBackend,
 )
 
+from sllm.logger import get_clock_identity
+
 logger = logging.getLogger("ray")
 
 
@@ -155,6 +157,9 @@ class VllmBackend(SllmBackend):
         self.request_trace = LLMEngineStatusDict()
         # if trace_debug is True, request trace will not be deleted after completion
         self.trace_debug = backend_config.get("trace_debug", False)
+        if self.trace_debug:
+            self._trace_clock_identity = get_clock_identity()
+            self._trace_model_name = model
         self.enforce_eager = backend_config.get("enforce_eager", False)
         self.enable_prefix_caching = backend_config.get(
             "enable_prefix_caching", True
@@ -202,8 +207,24 @@ class VllmBackend(SllmBackend):
         async with self.status_lock:
             if self.status != BackendStatus.UNINITIALIZED:
                 return
+            if self.trace_debug:
+                logger.info(json.dumps({
+                    "event": "backend_init_begin",
+                    "model": self._trace_model_name,
+                    "pid": os.getpid(),
+                    "monotonic_ns": time.monotonic_ns(),
+                    "clock_identity": self._trace_clock_identity,
+                }))
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
             self.status = BackendStatus.RUNNING
+            if self.trace_debug:
+                logger.info(json.dumps({
+                    "event": "backend_init_ready",
+                    "model": self._trace_model_name,
+                    "pid": os.getpid(),
+                    "monotonic_ns": time.monotonic_ns(),
+                    "clock_identity": self._trace_clock_identity,
+                }))
 
     async def generate(self, request_data: Dict[str, Any]):
         async with self.status_lock:
@@ -260,6 +281,8 @@ class VllmBackend(SllmBackend):
                     json.dumps(
                         {
                             "event": "backend_first_token_observed",
+                            "model": model_name,
+                            "clock_identity": self._trace_clock_identity,
                             "request_id": request_id,
                             "pid": os.getpid(),
                             "monotonic_ns": time.monotonic_ns(),
