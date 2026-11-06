@@ -51,3 +51,5 @@ v4_service.py 增加纯 stdlib 配置快照和绑定；StoreManager 在现有 me
 ## 下一项可独立推进的输入工作
 
 核对用户指定权重目录与冻结目标revision的文件级官方manifest，先做只读元数据对照，明确哪些已验证、哪些仍需全payload IO；优先把“目标revision声明”与“本地实际权重内容证明”分开。随后才能安排完整fingerprint、真实目标编码/native gold及环境准入。当前没有用本审计自发启动上述大IO或GPU动作。
+
+后续只读核验已完成：见 [指定权重来源核验](v4-weight-source-p3.md)。64分片尺寸/header/index与16运行输入匹配；27个非权重文件中26个匹配，.gitattributes内容不同。完整64文件SHA仍未执行，不能将metadata匹配升级为完整revision内容证明。
