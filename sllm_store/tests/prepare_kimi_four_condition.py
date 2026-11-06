@@ -27,6 +27,7 @@ DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8c
 DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
 DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
 DIAGNOSTIC_PATCH_SHA = '6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db'
+FORMAL_GUARD_SHA = 'bb3170eded6d84bbf42c5a205410e10ce98783a50cc95f4a59166737eda20645'
 LENGTH_ONLY_TOKEN_VALIDATION = 'Trace verifies actual prompt+sampled IDs for all requests; arithmetic/translation content/token/usage/finish exact SF gold; fixed32_length_only_v1 requires actual32 and length with exact usage, strict reference differences reported separately, not a qualification gate.'
 CONDITIONS = ("safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit")
 
@@ -69,8 +70,8 @@ def execution_mapping(protocol):
     assert revision['user_instruction']=='修复完重新跑b01 然后是2~10'
     assert isinstance(revision['reason'],str) and revision['reason'].strip()
     assert revision['rerun_blocks']==[1,2] and revision['suffix']=='retry02'
-    restart=revision.get('length_only_b01_restart')
-    assert (revision['actual_launch_requests_at_authorization'],revision['target_total_launch_requests_max'])==((4,44) if restart is not None else (2,42))
+    restart=revision.get('length_only_b01_restart');guard_restart=revision.get('normal_guard_b01_restart')
+    assert (revision['actual_launch_requests_at_authorization'],revision['target_total_launch_requests_max'])==((5,45) if guard_restart is not None else (4,44) if restart is not None else (2,42))
     assert revision['stop_on_new_failure'] is True
     assert revision['selection_rule']=='fixed_40_mapped_runs_no_latency_selection'
     expected={row['attempt_id']:row['attempt_id']+('-retry02' if row['block'] in (1,2) else '') for row in attempts}
@@ -88,6 +89,14 @@ def execution_mapping(protocol):
         assert restart['preserved_unstarted2']==[row['attempt_id']+'-retry02' for row in first[2:]]
         expected.update({row['attempt_id']:row['attempt_id']+'-retry03' for row in first})
         expected_blocks['1']='kimi-four-v1-b01-retry03'
+    if guard_restart is not None:
+        assert restart is not None and guard_restart['criterion']=='fixed32_length_only_v1' and guard_restart['suffix']=='retry04'
+        assert guard_restart['prior_formal_launches']==5 and guard_restart['target_total_launch_requests_max']==45
+        first=[row for row in attempts if row['block']==1];retained=guard_restart['retained_retry03_run']
+        assert retained['run_id']==first[0]['attempt_id']+'-retry03' and retained['primary_sample_qualified'] is False
+        assert pathlib.Path(retained['result_path']).is_absolute() and re.fullmatch('[0-9a-f]{64}',retained['result_sha256'])
+        assert guard_restart['preserved_unstarted3']==[row['attempt_id']+'-retry03' for row in first[1:]]
+        expected.update({row['attempt_id']:row['attempt_id']+'-retry04' for row in first});expected_blocks['1']='kimi-four-v1-b01-retry04'
     assert revision['run_id_map']==expected,'only explicitly authorized b01/b02 retry02 runtime IDs permitted'
     assert len(set(expected.values()))==40 and revision['block_run_ids']==expected_blocks
     historical=revision['historical_attempts']
@@ -468,7 +477,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
     if diagnostic_run_id is None:
-        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[23])?", attempt_id)
+        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[234])?", attempt_id)
     else:
         assert diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
         attempt_id=diagnostic_run_id
@@ -489,6 +498,8 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
     patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';assert base.digest(patch)==DIAGNOSTIC_PATCH_SHA
     spec['code_pins'][str(patch)]=DIAGNOSTIC_PATCH_SHA
+    guard=base.ROOT/'sllm_store/tests/guard_cuda_micro.py';assert spec['guard']==str(guard) and base.digest(guard)==FORMAL_GUARD_SHA
+    spec['guard_sha256']=spec['code_pins'][str(guard)]=FORMAL_GUARD_SHA
     spec['canonical_patch_provenance']='Current committed patch source6fc; active oldf7 runtime overlay remains from original9d build; no fingerprint flag or new866 overlay implied.'
     spec["actual_request_parameters"]=[{"case":row["case"],**{key:row[key] for key in ("input_tokens","temperature","top_p","top_k","min_p","seed","n","max_tokens","ignore_eos")},"logprobs":1} for row in protocol["correctness"]["requests"]]
     spec["request_observability"]="Actual HTTP logprobs=1; generated token IDs use existing trace, return_token_ids is not passed to SamplingParams. Explicit top_p=1 remains vs omitted GLM default. Default V1 candidate lacks this explicit logprobs field and is not claimed fully aligned or executable."

@@ -107,7 +107,7 @@ class GuardCudaMicroTest(unittest.TestCase):
         # The first cutoff check must precede the first assignment to quiet.
         body = triggered.body
         execute(body[body.index(cutoff):body.index(quiet)], dict(self.ns, quiet=None, now=66.0, go_at=0.0,
-                a=types.SimpleNamespace(overall=65), cleanup_cutoff=65, normal_trigger=None, failures=(failures := set())))
+                a=types.SimpleNamespace(overall=65,normal_exit_marker=False), cleanup_cutoff=65, normal_trigger=None, failures=(failures := set())))
         self.assertIn("cleanup_exceeded_GO65", failures)
 
 
@@ -350,12 +350,13 @@ class NormalCompletionTest(unittest.TestCase):
             path.unlink();os.mkfifo(path,0o600)
             with patch.object(os,'fstat',side_effect=ownership),self.assertRaises(ValueError):validate(path,'c'*64,'nonce',10,30,100)
 
-    def loop(self, base, enabled=True, invalid=False, live_until=0, empty_after=0, foreign=False, aborted=False, reappear=None):
+    def loop(self, base, enabled=True, invalid=False, live_until=0, empty_after=0, foreign=False, aborted=False, reappear=None, scan_failure=False, abort_publish_failure=False):
         import signal
         clock=types.SimpleNamespace(now=1.0);signals=[];kills=[];events=[]
         (base/'normal-exit.json').touch()
         if aborted:(base/'ABORT').touch()
         def scan():
+            if scan_failure:ns['failures'].add('proc_discovery')
             return [dict(fd=999,row={'pid':999},term=False,kill=False)] if clock.now<live_until else []
         def snapshot():
             if foreign:raise ValueError('foreign scope generation without fresh OCI')
@@ -366,11 +367,14 @@ class NormalCompletionTest(unittest.TestCase):
         def kill():
             kills.append(clock.now)
             if foreign:raise ValueError('scope inode mismatch')
+        def atomic(name,payload):
+            if abort_publish_failure:raise RuntimeError('CPU marker publication failed')
+            (base/name).write_bytes(payload)
         ns=dict(time=types.SimpleNamespace(monotonic=lambda:clock.now,sleep=lambda s:setattr(clock,'now',clock.now+s)),
                 a=types.SimpleNamespace(normal_exit_marker=enabled,deadline=25.0,overall=65.0,kill_after=3,cid='c'*64),
                 base=base,go_at=0.0,normal_at=None,normal_trigger=None,quiet=None,abort_at=None,nonce='nonce',
                 failures=set(),pins={},scan=scan,snapshot=snapshot,normal_completion=validate,kill_scope=kill,
-                signal=signal,os=os,max_cycle=0.0,oci_seen=True,scope_seen=True,raw_sha='hash',
+                signal=signal,os=os,atomic=atomic,max_cycle=0.0,oci_seen=True,scope_seen=True,raw_sha='hash',
                 emit=lambda kind,**data:events.append(kind))
         loop=next(n for n in MAIN.body if isinstance(n,ast.While) and 'a.overall' in ast.unparse(n.test))
         with patch.object(signal,'pidfd_send_signal',side_effect=lambda *args:signals.append(args)):execute([loop],ns)
@@ -409,6 +413,91 @@ class NormalCompletionTest(unittest.TestCase):
                 ns=self.loop(Path(d),**kwargs)
                 self.assertIn(expected,ns['failures']);self.assertIsNone(ns['normal_trigger'])
                 if kwargs.get('foreign'):self.assertIsNone(ns['quiet']);self.assertIn('scope_kill',ns['failures'])
+
+
+class ProcessDiscoveryTest(unittest.TestCase):
+    def namespace(self, normal=True, uid='0', denied=False, exe='/usr/bin/runc'):
+        calls=[];events=[];cid='c'*64
+        def read(path):
+            calls.append(('read',str(path)))
+            if path.name=='status':return ('Uid: '+(' '.join([uid]*4))+'\n').encode()
+            if path.name=='cmdline':
+                if exe=='/usr/bin/containerd-shim-runc-v2':return b'/usr/bin/containerd-shim-runc-v2\0-namespace\0moby\0-id\0'+cid.encode()+b'\0'
+                return b'/usr/bin/runc\0--root\0/run/containerd/runc/moby\0create\0'+cid.encode()+b'\0'
+            if path.name=='cgroup':return b'0::/system.slice/runtime.scope\n'
+            raise AssertionError(path)
+        def readlink(path):
+            calls.append(('readlink',str(path)))
+            if denied:raise PermissionError(13,'CPU fixture denied',str(path))
+            return exe
+        ns=dict(pathlib=__import__('pathlib'),os=types.SimpleNamespace(readlink=readlink,fsdecode=os.fsdecode),
+                a=types.SimpleNamespace(normal_exit_marker=normal,cid=cid),read=read,runc_root=Path('/run/containerd/runc/moby').resolve(),
+                startticks=lambda pid:77,pins={},failures=set(),select=types.SimpleNamespace(select=lambda *args:([],[],[])),
+                emit=lambda kind,**data:events.append((kind,data)))
+        execute([node for node in TREE.body if isinstance(node,ast.FunctionDef) and node.name in ('paired','identity','scan')],ns)
+        return ns,calls,events
+
+    def test_normal_nonroot_is_filtered_before_unreadable_exe(self):
+        ns,calls,_=self.namespace(uid='2147',denied=True)
+        self.assertIsNone(ns['identity'](123));self.assertEqual(calls,[('read','/proc/123/status')])
+        ns,calls,_=self.namespace(normal=False,uid='2147',denied=True)
+        with self.assertRaises(PermissionError):ns['identity'](123)
+        self.assertEqual(calls,[('readlink','/proc/123/exe')])
+
+    def test_root_permission_failure_is_retained_with_process_context(self):
+        ns,_,events=self.namespace(denied=True)
+        with patch.object(Path,'iterdir',return_value=iter([Path('/proc/123')])):self.assertEqual(ns['scan'](),[])
+        self.assertEqual(ns['failures'],{'proc_discovery'})
+        kind,row=events[0];self.assertEqual(kind,'proc_discovery_error')
+        self.assertEqual((row['pid'],row['stage'],row['errno'],row['filename']),(123,'identity',13,'/proc/123/exe'))
+
+    def test_readable_root_identity_is_same_as_legacy_and_foreign_is_rejected(self):
+        for exe in ('/usr/bin/runc','/usr/bin/containerd-shim-runc-v2'):
+            old,_,_=self.namespace(normal=False,exe=exe);new,_,_=self.namespace(exe=exe)
+            self.assertEqual(old['identity'](123),new['identity'](123))
+            self.assertEqual(new['identity'](123),{'pid':123,'startticks':77,'exe':exe,'cgroup':'0::/system.slice/runtime.scope'})
+        foreign,_,_=self.namespace(exe='/usr/bin/python3');self.assertIsNone(foreign['identity'](123))
+
+    def test_owned_runtime_uid_is_rechecked_after_precheck(self):
+        ns,calls,_=self.namespace();original=ns['read'];statuses=[b'Uid: 0 0 0 0\n',b'Uid: 2147 2147 2147 2147\n']
+        def changing(path):return statuses.pop(0) if path.name=='status' else original(path)
+        ns['read']=changing;self.assertIsNone(ns['identity'](123));self.assertEqual(statuses,[])
+        legacy,calls,_=self.namespace(normal=False);self.assertIsNotNone(legacy['identity'](123))
+        self.assertEqual(sum(path.endswith('/status') for kind,path in calls if kind=='read'),1)
+
+    def test_unknown_uid_metadata_is_not_silently_ignored(self):
+        ns,_,events=self.namespace(uid='unknown')
+        with patch.object(Path,'iterdir',return_value=iter([Path('/proc/123')])):ns['scan']()
+        self.assertIn('proc_discovery',ns['failures']);self.assertEqual(events[0][1]['pid'],123)
+
+
+class NormalFailureCleanupTest(unittest.TestCase):
+    def test_existing_failure_enters_abort_cleanup_immediately_only_when_opted_in(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ns=NormalCompletionTest().loop(Path(directory),scan_failure=True)
+            self.assertEqual(ns['abort_at'],1.0);self.assertIsNone(ns['normal_trigger'])
+            self.assertIn('proc_discovery',ns['failures']);self.assertIn('ABORT',ns['events'])
+            self.assertTrue((Path(directory)/'ABORT').exists())
+            self.assertGreaterEqual(ns['clock'].now-ns['quiet'],60);self.assertLess(ns['clock'].now,65)
+        with tempfile.TemporaryDirectory() as directory:
+            ns=NormalCompletionTest().loop(Path(directory),enabled=False,scan_failure=True)
+            self.assertIsNone(ns['abort_at']);self.assertGreaterEqual(ns['quiet'],25)
+            self.assertGreaterEqual(ns['clock'].now,85)
+
+    def test_failed_abort_retains_failure_and_has_relative_cleanup_bound(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ns=NormalCompletionTest().loop(Path(directory),scan_failure=True,empty_after=10000)
+            self.assertIn('abort_cleanup_exceeded',ns['failures']);self.assertIsNone(ns['quiet'])
+            self.assertGreaterEqual(ns['clock'].now,ns['abort_at']+100)
+            self.assertLess(ns['clock'].now,102)
+            self.assertTrue(ns['kills']);self.assertIsNone(ns['normal_trigger'])
+
+    def test_abort_publication_failure_does_not_prevent_scoped_cleanup(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ns=NormalCompletionTest().loop(Path(directory),scan_failure=True,abort_publish_failure=True,empty_after=5)
+            self.assertIn('ABORT_publish',ns['failures']);self.assertEqual(ns['abort_at'],1.0)
+            self.assertTrue(ns['kills']);self.assertIsNone(ns['normal_trigger'])
+            self.assertGreaterEqual(ns['clock'].now-ns['quiet'],60)
 
 
 if __name__ == "__main__":

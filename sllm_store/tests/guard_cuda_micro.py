@@ -114,6 +114,11 @@ def paired(argv, key, value):
 
 def identity(pid):
     root = pathlib.Path('/proc') / str(pid)
+    if a.normal_exit_marker:
+        status = read(root / 'status').decode()
+        uid = next((line.split()[1:] for line in status.splitlines() if line.startswith('Uid:')), None)
+        if uid is None or len(uid) != 4 or not all(value.isdecimal() for value in uid): raise ValueError('invalid process UID identity')
+        if uid != ['0'] * 4: return None
     exe = os.readlink(root / 'exe')
     if exe not in ('/usr/bin/runc', '/usr/bin/containerd-shim-runc-v2'): return None
     argv = read(root / 'cmdline').rstrip(b'\0').split(b'\0')
@@ -133,11 +138,13 @@ def identity(pid):
 def scan():
     for entry in pathlib.Path('/proc').iterdir():
         if not entry.name.isdigit(): continue
+        pid = int(entry.name); stage = 'identity'
         try:
-            row = identity(int(entry.name))
+            row = identity(pid)
             if row is None or (row['pid'], row['startticks']) in pins: continue
-            fd = os.pidfd_open(row['pid'])
+            stage = 'pidfd_open'; fd = os.pidfd_open(row['pid'])
             try:
+                stage = 'identity_recheck'
                 if identity(row['pid']) != row: continue
                 pins[(row['pid'], row['startticks'])] = {'fd': fd, 'row': row, 'term': False, 'kill': False}
                 fd = None; emit('runtime_pinned', identity=row)
@@ -145,7 +152,7 @@ def scan():
                 if fd is not None: os.close(fd)
         except (FileNotFoundError, ProcessLookupError): pass
         except (OSError, ValueError) as error:
-            failures.add('proc_discovery'); emit('proc_discovery_error', error_type=type(error).__name__)
+            failures.add('proc_discovery'); emit('proc_discovery_error', pid=pid, stage=stage, error_type=type(error).__name__, errno=getattr(error, 'errno', None), filename=getattr(error, 'filename', None))
     live = []
     for pin in pins.values():
         if not select.select([pin['fd']], [], [], 0)[0]: live.append(pin); continue
@@ -241,7 +248,7 @@ try:
         failures.add('GO_ACK_publish'); abort_at = time.monotonic()
         emit('GO_ACK_error', error_type=type(error).__name__)
     emit('GO', go_monotonic=go_at)
-    while time.monotonic() < go_at + a.overall + 60 and (normal_trigger is None or time.monotonic() < normal_trigger + a.overall - a.deadline + 60):
+    while time.monotonic() < go_at + a.overall + 60 and (normal_trigger is None or time.monotonic() < normal_trigger + a.overall - a.deadline + 60) and (not a.normal_exit_marker or abort_at is None or time.monotonic() < abort_at + a.overall - a.deadline + 60):
         cycle = time.monotonic()
         try: live = scan()
         except Exception as error:
@@ -260,6 +267,13 @@ try:
                 failures.add('normal_marker_invalid')
                 if abort_at is None: abort_at = now
                 emit('normal_marker_error', error_type=type(error).__name__)
+        if a.normal_exit_marker and failures:
+            if abort_at is None:
+                abort_at = now; emit('ABORT', reason='guard_failure', failures=sorted(failures))
+            if not os.path.lexists(base / 'ABORT'):
+                try: atomic('ABORT', b'')
+                except Exception as error:
+                    failures.add('ABORT_publish'); emit('ABORT_publish_error', error_type=type(error).__name__)
         if a.normal_exit_marker and normal_at is not None and normal_trigger is None and not failures and abort_at is None and now < go_at + a.deadline and not live and empty and oci_seen and scope_seen and raw_sha is not None:
             normal_trigger = now
             emit('normal_cleanup_started', completion_monotonic=normal_at)
@@ -277,8 +291,8 @@ try:
                         except OSError as error:
                             failures.add('pidfd_signal'); emit('pidfd_error', error_type=type(error).__name__); continue
                         pin[flag] = True
-            cleanup_cutoff = min(go_at + a.overall, normal_trigger + a.overall - a.deadline if normal_trigger is not None else float('inf'))
-            if quiet is None and now >= cleanup_cutoff: failures.add('normal_cleanup_exceeded' if normal_trigger is not None else f'cleanup_exceeded_GO{a.overall:g}')
+            cleanup_cutoff = min(go_at + a.overall, normal_trigger + a.overall - a.deadline if normal_trigger is not None else float('inf'), abort_at + a.overall - a.deadline if a.normal_exit_marker and abort_at is not None else float('inf'))
+            if quiet is None and now >= cleanup_cutoff: failures.add('normal_cleanup_exceeded' if normal_trigger is not None else 'abort_cleanup_exceeded' if a.normal_exit_marker and abort_at is not None else f'cleanup_exceeded_GO{a.overall:g}')
             if not live and empty:
                 quiet = quiet or now
                 if now - quiet >= 60: break

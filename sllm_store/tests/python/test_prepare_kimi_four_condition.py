@@ -1153,6 +1153,18 @@ class Fixed32LengthOnlyTest(unittest.TestCase):
         with self.assertRaises(AssertionError):p.execution_mapping(bad)
         bad=copy.deepcopy(protocol);bad['correctness']['token_validation']='all gold must match'
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        revision['normal_guard_b01_restart']={'suffix':'retry04','criterion':'fixed32_length_only_v1','prior_formal_launches':5,'target_total_launch_requests_max':45,'retained_retry03_run':{'run_id':first[0]['attempt_id']+'-retry03','result_path':'/evidence/retained-retry03.json','result_sha256':'b'*64,'primary_sample_qualified':False},'preserved_unstarted3':[row['attempt_id']+'-retry03' for row in first[1:]]}
+        revision['actual_launch_requests_at_authorization']=5;revision['target_total_launch_requests_max']=45
+        for row in first:revision['run_id_map'][row['attempt_id']]=row['attempt_id']+'-retry04'
+        revision['block_run_ids']['1']='kimi-four-v1-b01-retry04'
+        runs,blocks=p.execution_mapping(protocol);self.assertEqual(blocks['1'],'kimi-four-v1-b01-retry04');self.assertEqual(blocks['2'],'kimi-four-v1-b02-retry02')
+        self.assertTrue(all(runs[row['attempt_id']]==row['attempt_id']+('-retry04' if row['block']==1 else '-retry02' if row['block']==2 else '') for row in protocol['attempts']))
+        bad=copy.deepcopy(protocol);bad['execution_revision'].pop('length_only_b01_restart')
+        with self.assertRaises(AssertionError):p.execution_mapping(bad)
+        bad=copy.deepcopy(protocol);bad['execution_revision']['normal_guard_b01_restart']['retained_retry03_run']['primary_sample_qualified']=True
+        with self.assertRaises(AssertionError):p.execution_mapping(bad)
+        bad=copy.deepcopy(protocol);bad['execution_revision']['normal_guard_b01_restart']['suffix']='retry05'
+        with self.assertRaises(AssertionError):p.execution_mapping(bad)
         spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
         with tempfile.TemporaryDirectory() as directory:
             protocol['resource_budget']['runs_root']=directory;(pathlib.Path(directory)/runs[first[0]['attempt_id']]).mkdir()
@@ -1219,6 +1231,25 @@ class CommittedSourceOfficialApiTest(unittest.TestCase):
     def test_actual_gate_api_failures_stop_without_credential_output(self):
         for failure in ('ref','sha','sha_shape','type','timeout','size','status','redirect','origin','credential'):
             with self.subTest(failure=failure):self.gate(failure)
+
+
+class FormalGuardFailureVisibilityTest(unittest.TestCase):
+    def test_actual_healthy_sees_existing_abort_while_guard_unit_is_alive(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        self.assertEqual(spec['guard_sha256'],p.FORMAL_GUARD_SHA)
+        self.assertEqual(spec['code_pins'][spec['guard']],p.FORMAL_GUARD_SHA)
+        self.assertEqual(p.base.digest(pathlib.Path(spec['guard'])),p.FORMAL_GUARD_SHA)
+        body=command['argv'][command['argv'].index('-c')+1];node=next(node for node in ast.parse(body).body if isinstance(node,ast.FunctionDef) and node.name=='healthy')
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);(root/'guard-head').mkdir();(root/'observer').mkdir()
+            namespace={'time':types.SimpleNamespace(monotonic=lambda:1),'end':100,'arms':{'head':{}},'units':{'head':'head.service','observer':'observer.service'},'base':root,'props':lambda unit:{'MainPID':'999'},'cids':{}}
+            exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-formal-healthy>','exec'),namespace)
+            namespace['healthy']()
+            for path in (root/'guard-head/ABORT',root/'observer/ABORT'):
+                path.touch()
+                with self.assertRaises(AssertionError):namespace['healthy']()
+                path.unlink()
 
 
 if __name__=='__main__':
