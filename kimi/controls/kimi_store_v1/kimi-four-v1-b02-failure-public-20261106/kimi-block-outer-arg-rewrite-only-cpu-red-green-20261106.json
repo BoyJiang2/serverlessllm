@@ -1,0 +1,37 @@
+{
+  "status": "CPU_EXACT_OUTER_ARG_REWRITE_RED_GREEN_29_PASS_NOT_GPU_RETRY",
+  "timestamp": "2026-11-06T15:28:12.910475+00:00",
+  "files": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "b85372348774c5b194fe8a3e8e3021fc18802e428e7857ad257a0ce7fdd39c5d",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "54c1828da8e8cc494f42e3f74ec0ddcf8e912643a7f113fa10da3a6b5bb4a277"
+  },
+  "change": "Only BLOCK_BODY argv mutation: replace whole argument when x equals --property=RemainAfterExit=yes; all other arguments, especially inline controller source, preserved byte-for-byte.",
+  "public_actual_execstart": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-failure-public-20261106/actual-child-unit-execstart.txt",
+    "sha256": "fb120ab62813a3bc5307c8b14567be18d0db5acac9331bafc170efcebe70a764",
+    "bytes": 57908,
+    "yes_literal_count": 0,
+    "no_literal_count": 1
+  },
+  "regression": {
+    "consumer": "Actual BLOCK_BODY executes existing tiny temp bundle/command fixtures, subprocess mocked, inline code contains nested systemd RemainAfterExit=yes. All4 launch argv observed; outer property must be no and inline source exactly identical bytes still yes.",
+    "before": {
+      "run": 1,
+      "fail": 1,
+      "elapsed_seconds": 0.011,
+      "reason": "Old string replace mutated inline source yes to no; byte equality assertion failed."
+    },
+    "after": {
+      "run": 29,
+      "pass": 29,
+      "elapsed_seconds": 3.457,
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v"
+    }
+  },
+  "unchanged": [
+    "Old b02 outcome/raw evidence/specs/IDs retained; no reclassification/retry",
+    "All prior failure-stop/no-receipt/NOT_STARTED consumers still pass",
+    "No backend/loader/kernel/extension or timing/qualification/budget changes"
+  ],
+  "scope": "Same2 control/test files dirty only. No Git/commit/publication, new candidate generation, Docker/systemd/GPU/model/Store/cache operation, or old evidence writes."
+}

@@ -1,0 +1,40 @@
+{
+  "decision": "ACCEPT_EXACT_ARG_REPLACEMENT_SOURCE_CPU_FIX_ONLY",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "b85372348774c5b194fe8a3e8e3021fc18802e428e7857ad257a0ce7fdd39c5d",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "54c1828da8e8cc494f42e3f74ec0ddcf8e912643a7f113fa10da3a6b5bb4a277",
+    "sllm/controller.py": "a7dcce53585ed48fc98669580cd70519fbde008b12548df13c387bdc4a7fa905",
+    "sllm_store/tests/python/test_controller_registration_start.py": "824eb1d80e62ca8b602d7ce0df87f258c3f3f08d731256555ba723cbef619eca"
+  },
+  "failure_analysis_sha256": "63c87c7b4065a9252742dc20f0de4778c2ca888c4d06b30513fe1231b5aa87fb",
+  "reviewed_fix": {
+    "actual_expression": "'--property=RemainAfterExit=no' if x=='--property=RemainAfterExit=yes' else x",
+    "effect": "Only standalone exact outer argv property element changes; Python code strings and nested inner guard RetainAfterExit=yes remain byte-identical. No child-code substring replacement.",
+    "actual_consumer_regression": "Execute actual BLOCK_BODY with temporary files/mock subprocess on allfourchildren, including a real multiline inline code argument containing inner RemainAfterExit=yes; captured executed -c bytes equal original exactly while outer standalone property is no.",
+    "unchanged": "No weakening of strict unit exit-status checks, actual guard retention, Store60/release/gold/source/timing/ownership or no-retry ledger. No test or source edits by reviewer."
+  },
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "formal_tests": {
+      "count": 29,
+      "errors": 0,
+      "failures": 0,
+      "exit_code": 0,
+      "unittest_seconds": 3.468,
+      "subprocess_seconds": 3.5500625208951533
+    },
+    "controller_tests": {
+      "count": 2,
+      "errors": 0,
+      "failures": 0,
+      "exit_code": 0,
+      "unittest_seconds": 0.02,
+      "subprocess_seconds": 0.07473182794637978
+    },
+    "source_pins_stable_before_after": true,
+    "scope": "Stdlib actualgenerated consumer/AST/realasyncio/tinytempFS+mockHTTP/Git/process only. No systemd/container/GPU/Store/model/cache execution."
+  },
+  "prior_review_error": "Existing b02 acceptance3365... failed to inspect parent mutation of inline child argument; independent failure receipt63c8... explicitly corrects this. Both historical receipts and failedactualstatus remain unchanged.",
+  "remaining": "Parent commit/publish only after any separately requested retry-ID mapping is implemented and reviewed. This receipt accepts exact-arg fix only, not unwritten retry policy/source, new actual artifacts or new runtime. Original failed IDs/evidence preserved; authorized retries need explicit unique runtime mapping and concrete plan checks.",
+  "operations": "Read-only source plus CPUtests; no Git/source modification/GPU."
+}

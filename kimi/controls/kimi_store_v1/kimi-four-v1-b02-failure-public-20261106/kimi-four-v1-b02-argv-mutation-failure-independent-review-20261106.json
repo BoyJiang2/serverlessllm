@@ -1,0 +1,124 @@
+{
+  "decision": "FAILED_B02_RETAINED_PARENT_ARGV_SUBSTRING_REPLACEMENT_CONFIRMED",
+  "run_id": "kimi-four-v1-b02-store_pool_hit",
+  "raw_source_provenance_sha256": "037c55ec92f2fb43be6ec50b405497c3bead7e9f72e4976214810bd681894781",
+  "verified_raw_copy_count": 11,
+  "direct_execution_chain": {
+    "frozen_child_root_sha256": "2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0",
+    "actual_systemctl_ExecStart_text_sha256": "fb120ab62813a3bc5307c8b14567be18d0db5acac9331bafc170efcebe70a764",
+    "actual_extracted_inline_root_sha256": "108123587d5fc479d0a7e2833ccadba1b5e0afdb930aefcc5a9ac19c80f30a3c",
+    "exact_match": "Extracted actual -c body byte-for-byte equals frozen child root after replacing --property=RemainAfterExit=yes with --property=RemainAfterExit=no. No other actual body delta.",
+    "faulty_parent_expression": "[x.replace('--property=RemainAfterExit=yes','--property=RemainAfterExit=no') for x in argv[1:-1]]",
+    "mechanism": "Substring replacement applies to entire Python code argv element, changing the INNER independently guarded services retention property, not just standalone outer controller property. Completed no-retain units can be garbage-collected; strict source checker Resultsuccess/ExecMainCode1/ExecMainStatus0 at line569 then rejects unavailable exit identity.",
+    "actual_observed_failure": {
+      "type": "AssertionError",
+      "message": "",
+      "controller_elapsed_s": 771.0105761801824,
+      "catchall_status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY"
+    },
+    "fresh_unit_metadata_at_review": {
+      "kimi-four-v1-b02-store_pool_hit-head-guard.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0",
+          "LoadState": "not-found"
+        }
+      },
+      "kimi-four-v1-b02-store_pool_hit-worker-guard.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0",
+          "LoadState": "not-found"
+        }
+      },
+      "kimi-four-v1-b02-store_pool_hit-observer.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0",
+          "LoadState": "not-found"
+        }
+      }
+    }
+  },
+  "completed_facts_not_overall_pass": {
+    "four_gate_statuses": {
+      "cache": "PASS",
+      "gold": "PASS",
+      "clock": "PASS",
+      "ownership": "PASS"
+    },
+    "condition_terminal": "NORMAL",
+    "condition_normal": true,
+    "raw_metrics": [
+      {
+        "case": "arithmetic",
+        "A_ns": 153297765863,
+        "B_ns": 145407056128,
+        "child_gold_pass": true
+      },
+      {
+        "case": "translation",
+        "A_ns": null,
+        "B_ns": 1202456710,
+        "child_gold_pass": true
+      },
+      {
+        "case": "fixed32",
+        "A_ns": null,
+        "B_ns": 3453637674,
+        "child_gold_pass": true
+      }
+    ],
+    "store_elapsed_s": 32.461788170970976,
+    "store_pass": true,
+    "store_criterion_s": 60,
+    "normal_containers_event_sha256": "62aaca89d906421d1a4c56516050220bd6342a4381d2ed08c5d260fdd3053099",
+    "guards": [
+      {
+        "cid": "f31de890becac26a0033db3e7ef84bda4d597e0a9da03385eb738f58deca1e51",
+        "status": "KERNEL_CLEANUP_RELEASE_PASS",
+        "failures": [],
+        "quiet_seconds": 60.01823702710681,
+        "normal_completion_monotonic": 1102759.064879227
+      },
+      {
+        "cid": "2116684557c16b9e0ab3209df1cd1f20cff2518dbe5e2331bafc9ac3f47e3cb0",
+        "status": "KERNEL_CLEANUP_RELEASE_PASS",
+        "failures": [],
+        "quiet_seconds": 60.026441478868946,
+        "normal_completion_monotonic": 1102758.685171427
+      }
+    ],
+    "observer_quiet_s": 60.346667770063505,
+    "observer_gaps": 0,
+    "sample_qualified": false,
+    "cleanup_bookkeeping_status": "FAILED",
+    "limitation": "Functional/correctness/physical normal-release facts remain separate from failed controller unit-exit verification; do not reclassify historical formal sample PASS or attribute to Store60/CUDA failure."
+  },
+  "failure_stop": {
+    "block_status": "FAILED_RETAINED_NO_RETRY",
+    "launch_requested_count": 1,
+    "attempt_statuses": [
+      "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+      "NOT_STARTED",
+      "NOT_STARTED",
+      "NOT_STARTED"
+    ],
+    "no_retry": "Three remaining b02 rows stayed NOT_STARTED."
+  },
+  "review_correction": {
+    "prior_plan_review_sha256": "3365aff79a3716f15e4fd458bcbde78864fd2a281bb16c794380b1551ac58895",
+    "missed_boundary": "Reviewer verified frozen child root against source renderer but missed parent argv consumer rewriting substrings inside inline code. This is a concrete independent-review omission; prior receipt preserved unchanged, not treated as proof actual launched root remained identical.",
+    "needed_minimal_fix": "Replace only standalone exact argv element equality (or leave absent outer property alone), never string replace inside code. Actual BLOCK_BODY fixture must capture launched argv and assert inline -c bytes/hash exactly equal frozen child, preserving inner RemainAfterExit=yes and valid outer no; failure/no-retry ledger unchanged."
+  },
+  "review_scope": "Read actual qjhs3 public original-byte copies, frozen source/argv and exact named unit metadata only. No source edit/Git/GPU/model/Store/cache/Docker/service execution."
+}
