@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "purpose": "warm fixed-length restore token parity and throughput only; never emits correct_business_response_ns",
+  "model_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a helpful assistant. Follow the user instruction directly."
+    },
+    {
+      "role": "user",
+      "content": "List the integers from 1 through 100 in ascending order, separated by a comma and a space. Do not add an introduction."
+    }
+  ],
+  "encoding_options": {
+    "thinking_mode": "chat",
+    "context": null,
+    "drop_thinking": true,
+    "add_default_bos_token": true,
+    "reasoning_effort": null
+  },
+  "encoded_prompt_sha256": "c5203e98df0026a1efc43362719798836b78f5e4f2326284a00f168fea548444",
+  "add_special_tokens": false,
+  "sampling": {
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "top_k": -1,
+    "min_tokens": 32,
+    "max_tokens": 32,
+    "ignore_eos": false,
+    "seed": 20261105,
+    "stop": null,
+    "presence_penalty": 0.0,
+    "frequency_penalty": 0.0,
+    "repetition_penalty": 1.0
+  },
+  "eos_token_id": 1,
+  "generation_config_policy": "explicitly override checkpoint generation_config do_sample=true and temperature=1.0",
+  "token_ids_status": "not generated; exact target tokenizer required before GPU admission",
+  "acceptance": "exactly 32 generated tokens and length finish; token parity reported separately; not complete business success",
+  "prompt_limit": "target tokenizer must report at most 2016 input tokens; otherwise stop and revise preregistration before any formal attempt"
+}

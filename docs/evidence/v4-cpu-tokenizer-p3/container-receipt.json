@@ -1,0 +1,46 @@
+{
+  "image_id": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "container_id": "56eb7f75a74213f787b291baa7e795d02faa83347c765742561abf5166e02b5d",
+  "network": "none",
+  "runtime": "runc",
+  "readonly_root": true,
+  "gpu_device_requests": null,
+  "gpu_devices": [],
+  "memory_bytes": 2147483648,
+  "memory_swap_bytes": 2147483648,
+  "nano_cpus": 1000000000,
+  "pids_limit": 64,
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/home/boyjiang/sllm-v4-pro/evidence/cpu-tokenizer-20261106/inputs",
+      "Target": "/inputs",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/boyjiang/sllm-v4-pro/evidence/cpu-tokenizer-20261106/tokenize_cpu.py",
+      "Target": "/job.py",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/mnt/raid/models/DeepSeek-V4-Pro/tokenizer.json",
+      "Target": "/assets/tokenizer.json",
+      "ReadOnly": true
+    },
+    {
+      "Type": "bind",
+      "Source": "/mnt/raid/models/DeepSeek-V4-Pro/tokenizer_config.json",
+      "Target": "/assets/tokenizer_config.json",
+      "ReadOnly": true
+    }
+  ],
+  "cap_drop": [
+    "ALL"
+  ],
+  "security_opt": [
+    "no-new-privileges"
+  ],
+  "source_script_sha256": "9379caa8feea44a919130a7ed3053f8cc39fbe52ceb6623ca3c762e308d432b4"
+}

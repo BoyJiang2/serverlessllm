@@ -85,6 +85,7 @@ class Engine:
 
     async def generate(self, inputs, sampling, request_id):
         self.inputs = inputs
+        self.sampling_kwargs = sampling.kwargs
         self.started.set()
         try:
             if self.block:
@@ -173,6 +174,29 @@ class V4BackendTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(prompt, (self.fixtures / "v4_business_prompt.txt").read_text())
         self.assertEqual(kwargs, {"add_special_tokens": False})
         self.assertEqual(request, before)
+
+    async def test_real_cpu_bpe_inputs_bypass_message_reencoding(self):
+        fixture = json.loads((self.fixtures / "v4_cpu_bpe_candidates.json").read_text())
+        self.assertFalse(fixture["native_gold_generated"])
+        for candidate in fixture["results"]:
+            with self.subTest(request=candidate["file"]):
+                ids = candidate["input_tokens"]
+                self.assertEqual(len(ids), candidate["token_count"])
+                self.assertLessEqual(len(ids), 2016)
+                self.assertEqual(ids.count(0), 1)
+                self.assertEqual(hashlib.sha256(json.dumps(ids, separators=(",", ":")).encode()).hexdigest(),
+                                 candidate["token_ids_canonical_json_sha256"])
+                request = dict(model="v4-pro", input_tokens=copy.deepcopy(ids),
+                    messages=[{"role": "user", "content": "must not be encoded"}],
+                    request_id="cpu-bpe-" + candidate["file"], **candidate["sampling"])
+                before = copy.deepcopy(request)
+                response = await self.backend.generate(request)
+                self.assertNotIn("error", response)
+                self.assertEqual(self.engine.inputs, {"prompt_token_ids": ids})
+                self.assertEqual(self.engine.sampling_kwargs, candidate["sampling"])
+                self.assertEqual(self.engine.tokenizer.calls, [])
+                self.assertEqual(request, before)
+                # Engine output is a stand-in, never a model gold result.
 
     async def test_trace_contains_pending_request_before_first_token(self):
         self.engine.block = True

@@ -1,0 +1,110 @@
+{
+  "schema": 1,
+  "scope": "P2 frozen protocol, not permission to execute",
+  "engine_source": "132765e3560659ff63ebd236203672e991b70e08",
+  "model_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "tp": 8,
+  "ep": false,
+  "pp": 1,
+  "dp": 1,
+  "max_model_len": 2048,
+  "max_num_seqs": 1,
+  "max_num_batched_tokens": 2048,
+  "mtp": false,
+  "enforce_eager": true,
+  "prefix_cache": false,
+  "activation_dtype": "bfloat16",
+  "expert_precision": "native MXFP4",
+  "nonexpert_precision": "native FP8 and exclusions",
+  "scale_fmt": "UE8M0",
+  "mHC_learned_dtype": "float32",
+  "request_sha256": "707d5d8b6efbfe257ff310466a03d6e19df5dce1b6b205270eb6a3d7e9374876",
+  "workload32_sha256": "75a520893b656a8bc921ed810d910f0b5cf53b5c35f769c9e3c25e085ad88b9d",
+  "request_sequence": [
+    "cold natural-EOS business request: request.json",
+    "warm fixed-length request: workload32.json; only after business request completes, otherwise record skipped_due_to_business_failure"
+  ],
+  "attempt_success": "complete business success, native token parity, fixed32 parity/length, unload/restart/resource checks all pass; retain separate booleans and failures",
+  "business_timing_policy": "command/trigger_to_correct_business_response_s uses natural-EOS business request only; fixed32 parity cannot populate it",
+  "seed": 20261105,
+  "order_generator": "Python3.13.1 random.Random.shuffle on explicitly ordered four conditions",
+  "attempt_timeout_seconds": 1200,
+  "post_delete_observation_seconds": 60,
+  "maximum_monitor_gap_seconds": 5,
+  "denominator_per_condition": 3,
+  "failure_policy": "retain every started/preparation/cache-failed attempt under original ID; do not substitute timeout as observed completion",
+  "attempts": [
+    {
+      "attempt_id": "store_disk_cold_01",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_01",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_01",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_01",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_03",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_03",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_pool_hit_03",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "store_disk_cold_03",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    }
+  ]
+}
