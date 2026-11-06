@@ -1,0 +1,18 @@
+test_explicit_revision_and_native_kv_profile_is_accepted (test_v4_service.AdmissionTests) ... ERROR
+
+======================================================================
+ERROR: test_explicit_revision_and_native_kv_profile_is_accepted (test_v4_service.AdmissionTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 44, in test_explicit_revision_and_native_kv_profile_is_accepted
+    self.assertEqual(service.freeze_registration_config(config), config)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/sllm_store/v4_service.py", line 90, in freeze_registration_config
+    _validate_v4_topology(config)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/sllm_store/v4_service.py", line 70, in _validate_v4_topology
+    raise ValueError(f"Unreviewed V4 service backend fields: {sorted(unknown)}")
+ValueError: Unreviewed V4 service backend fields: ['attention_config', 'kv_cache_dtype', 'revision', 'tokenizer_revision']
+
+----------------------------------------------------------------------
+Ran 1 test in 0.438s
+
+FAILED (errors=1)

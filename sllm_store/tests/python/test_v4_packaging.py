@@ -53,18 +53,18 @@ class V4PackagingContracts(unittest.TestCase):
 
     def test_v4_service_identity_and_dependency_metadata_are_distinct(self):
         result = metadata(ROOT, "v4-pro")
-        self.assertEqual(result["version"], "0.8.0+v4pro.2")
+        self.assertEqual(result["version"], "0.8.0+v4pro.4")
         self.assertIn("openai>=2.0.0", result["install_requires"])
         self.assertIn("fastapi==0.121.3", result["install_requires"])
         self.assertIn("pydantic>=2.12.0", result["install_requires"])
-        self.assertIn("serverless-llm-store==0.8.0+v4pro.2", result["install_requires"])
+        self.assertIn("serverless-llm-store==0.8.0+v4pro.4", result["install_requires"])
         self.assertFalse(any(row.startswith("pydantic_core==") for row in result["install_requires"]))
         self.assertIn("vllm==0.20.1", result["extras_require"]["worker"])
         self.assertIn("torch==2.11.0", result["extras_require"]["worker"])
 
     def test_v4_store_identity_matches_target_runtime(self):
         result = metadata(ROOT / "sllm_store", "v4-pro")
-        self.assertEqual(result["version"], "0.8.0+v4pro.2")
+        self.assertEqual(result["version"], "0.8.0+v4pro.4")
         self.assertIn("torch==2.11.0", result["install_requires"])
         self.assertIn("click>=8.4.2", result["install_requires"])
         self.assertIn("transformers==5.6.0", result["install_requires"])

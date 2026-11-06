@@ -20,7 +20,10 @@ from test_v4_state import identity
 
 def config(root):
     return dict(load_format="sllm_v4_grouped_store", tensor_parallel_size=8, tokenizer_mode="deepseek_v4",
-                torch_dtype="bfloat16", enforce_eager=True, enable_prefix_caching=False,
+                torch_dtype="bfloat16", revision=raw.REVISION, tokenizer_revision=raw.REVISION,
+                kv_cache_dtype="fp8", seed=20261105, distributed_executor_backend="mp",
+                attention_config=dict(use_fp4_indexer_cache=False),
+                enforce_eager=True, enable_prefix_caching=False,
                 max_model_len=2048, max_num_seqs=1, max_num_batched_tokens=2048,
                 pretrained_model_name_or_path="/mnt/raid/models/DeepSeek-V4-Pro",
                 model_loader_extra_config=dict(store_path=str(root), identity=identity()))
@@ -35,6 +38,24 @@ class AdmissionTests(unittest.TestCase):
         self.root = self.fixture.root
         grouped.publish_grouped_complete(self.root, identity(), self.fixture.results)
         self.config = config(self.root)
+
+    def test_explicit_revision_and_native_kv_profile_is_accepted(self):
+        backend = dict(self.config, revision=raw.REVISION, tokenizer_revision=raw.REVISION,
+                       kv_cache_dtype="fp8", attention_config={"use_fp4_indexer_cache": False})
+        config = dict(model="v4", backend="vllm", num_gpus=8,
+                      auto_scaling_config=dict(min_instances=0, max_instances=1), backend_config=backend)
+        self.assertEqual(service.freeze_registration_config(config), config)
+        for key, value in (("revision", None), ("revision", "main"),
+                           ("tokenizer_revision", "main"), ("seed", 0),
+                           ("distributed_executor_backend", None), ("kv_cache_dtype", "auto"),
+                           ("kv_cache_dtype", "bfloat16"),
+                           ("attention_config", {"use_fp4_indexer_cache": True}),
+                           ("attention_config", {"use_fp4_indexer_cache": 0})):
+            with self.subTest(key=key, value=value):
+                changed = copy.deepcopy(config)
+                changed["backend_config"][key] = value
+                with self.assertRaises(ValueError):
+                    service.freeze_registration_config(changed)
 
     def test_all_496_identifiers_and_native_partition_sizes(self):
         plan = service.grouped_registration_plan(self.config, self.root.parent)

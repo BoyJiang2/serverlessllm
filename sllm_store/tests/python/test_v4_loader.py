@@ -206,17 +206,19 @@ class V4LoaderTests(unittest.TestCase):
                        if not row.get("empty") and "alias" not in row}
         self.config = LoadConfig("sllm_v4_store", dict(store_path=str(self.root), identity=identity()))
         self.model_config = types.SimpleNamespace(
-            model=str(self.root), revision=state.REVISION, dtype=torch.bfloat16,
-            quantization="fp8", max_model_len=2048, enforce_eager=True,
+            model=str(self.root), revision=state.REVISION, tokenizer_revision=state.REVISION, dtype=torch.bfloat16,
+            quantization="deepseek_v4_fp8", seed=20261105, max_model_len=2048, enforce_eager=True,
             hf_config=types.SimpleNamespace(model_type="deepseek_v4", expert_dtype="fp4",
                                             quantization_config={"scale_fmt": "ue8m0"},
                                             n_routed_experts=384, hc_mult=4))
         self.vllm_config = types.SimpleNamespace(
             load_config=self.config, device_config=types.SimpleNamespace(device="cpu-standin"),
             parallel_config=types.SimpleNamespace(tensor_parallel_size=8, pipeline_parallel_size=1,
-                                                  data_parallel_size=1, enable_expert_parallel=False),
+                                                  data_parallel_size=1, enable_expert_parallel=False,
+                                                  distributed_executor_backend="mp"),
             scheduler_config=types.SimpleNamespace(max_num_seqs=1, max_num_batched_tokens=2048),
-            cache_config=types.SimpleNamespace(enable_prefix_caching=False), speculative_config=None)
+            cache_config=types.SimpleNamespace(enable_prefix_caching=False, cache_dtype="fp8"),
+            attention_config=types.SimpleNamespace(use_fp4_indexer_cache=False), speculative_config=None)
 
     def load_store(self, *args, **kwargs):
         self.events.append("store_complete")
@@ -246,6 +248,23 @@ class V4LoaderTests(unittest.TestCase):
         self.assertEqual(model._sllm_v4_stage, "postprocessed")
         with self.assertRaisesRegex(ValueError, "fresh model"):
             adapter.load_weights(model, self.model_config)
+
+    def test_effective_runtime_profile_rejected_before_device_or_restore(self):
+        cases = [(self.model_config, "revision", None),
+                 (self.model_config, "tokenizer_revision", "main"),
+                 (self.model_config, "quantization", "fp8"),
+                 (self.model_config, "seed", 0),
+                 (self.vllm_config.parallel_config, "distributed_executor_backend", None),
+                 (self.vllm_config.cache_config, "cache_dtype", "auto"),
+                 (self.vllm_config.cache_config, "cache_dtype", "bfloat16"),
+                 (self.vllm_config.attention_config, "use_fp4_indexer_cache", True)]
+        for target, field, value in cases:
+            with self.subTest(field=field, value=value), mock.patch.object(target, field, value):
+                with mock.patch.object(self.torch.cuda, "get_device_capability",
+                                       side_effect=AssertionError("device touched before contract")):
+                    with self.assertRaisesRegex(ValueError, "requires"):
+                        self.restore()
+                self.assertEqual(self.events, [])
 
     def test_bad_complete_or_topology_fails_before_skeleton_construction(self):
         (self.root / "COMPLETE.json").unlink()

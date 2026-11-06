@@ -113,6 +113,10 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(self.config["distributed_executor_backend"], "mp")
         self.assertEqual(self.config["max_model_len"], 2048)
         self.assertEqual(self.config["tensor_parallel_size"], 8)
+        self.assertEqual(self.config["revision"], convert.REVISION)
+        self.assertEqual(self.config["tokenizer_revision"], convert.REVISION)
+        self.assertEqual(self.config["kv_cache_dtype"], "fp8")
+        self.assertEqual(self.config["attention_config"], {"use_fp4_indexer_cache": False})
         self.assertNotIn("num_gpu_blocks_override", self.config)
         self.assertFalse((self.root / "CONVERSION_FAILED.json").exists())
 

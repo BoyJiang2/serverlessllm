@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from sllm_store.v4_grouped_state import validate_grouped_complete
+from sllm_store.v4_state import REVISION
 
 
 def grouped_registration_plan(backend_config, storage_path):
@@ -54,13 +55,18 @@ def _validate_v4_topology(config):
     if _config_signature(config.get("auto_scaling_config")) != _config_signature(
             {"min_instances": 0, "max_instances": 1}):
         raise ValueError("V4 service requires auto_scaling_config min_instances=0, max_instances=1")
-    profile = {"torch_dtype": "bfloat16", "enforce_eager": True,
+    profile = {"revision": REVISION, "tokenizer_revision": REVISION,
+               "kv_cache_dtype": "fp8", "seed": 20261105,
+               "distributed_executor_backend": "mp",
+               "attention_config": {"use_fp4_indexer_cache": False},
+               "torch_dtype": "bfloat16", "enforce_eager": True,
                "enable_prefix_caching": False, "max_model_len": 2048,
                "max_num_seqs": 1, "max_num_batched_tokens": 2048,
                "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro"}
     for name, expected in profile.items():
         value = backend.get(name)
-        if type(value) is not type(expected) or value != expected:
+        if (type(value) is not type(expected)
+                or _config_signature(value) != _config_signature(expected)):
             raise ValueError(f"V4 service requires explicit {name}={expected!r}")
     allowed = set(profile) | {"load_format", "model_loader_extra_config", "tokenizer_mode",
                               "tensor_parallel_size", "pipeline_parallel_size",

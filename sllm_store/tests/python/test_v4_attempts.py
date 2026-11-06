@@ -69,7 +69,8 @@ class AttemptJournalContracts(unittest.TestCase):
                     rows.append(dict(identity, pid=10000 + rank, rank=rank, name=phase + suffix,
                                      monotonic_ns=when))
         for name, when in (("backend_engine_create_begin", 180), ("backend_engine_ready", 192),
-                           ("router_instance_published", 194), ("backend_first_token_observed", 196)):
+                           ("router_instance_published", 194), ("backend_first_token_observed", 196),
+                           ("backend_generation_complete", 198)):
             rows.append(dict(identity, name=name, monotonic_ns=when, request_id="cpu-business"))
         (directory / "process-cpu-events.jsonl").write_text(''.join(json.dumps(row)+'\n' for row in rows))
         return directory
@@ -82,6 +83,45 @@ class AttemptJournalContracts(unittest.TestCase):
         response = {"choices": [{"token_ids": [1], "message": {"content": "4"},
                                   "finish_reason": "stop", "stop_reason": None}]}
         journal.business(response, response, self.business_events(journal))
+
+    def test_malformed_business_is_durable_before_validation(self):
+        bad = {"error": "invalid output", "choices": []}
+        with self.assertRaises(ValueError):
+            with self.start() as journal:
+                self.startup(journal)
+                self.now = 180
+                journal.trigger(175, "cpu-business")
+                self.now = 200
+                journal.business(bad, bad, self.root / "unused-events")
+        raw = json.loads((journal.path / "business.response").read_bytes())
+        self.assertEqual(raw["observation"]["response"], bad)
+        self.assertEqual(raw["observation"]["received_ns"], 200)
+        self.assertEqual(self.collect()[0]["status"], "failed")
+
+    def test_malformed_fixed32_is_durable_and_retained_on_failure(self):
+        bad = {"error": "invalid fixed output", "choices": []}
+        with self.assertRaises(ValueError):
+            with self.start() as journal:
+                self.through_business(journal)
+                self.now = 210
+                journal.workload32(bad, bad)
+        raw = json.loads((journal.path / "workload32.response").read_bytes())
+        self.assertEqual(raw["observation"]["response"], bad)
+        self.assertEqual(raw["observation"]["received_ns"], 210)
+        final = self.collect()[0]["journal"][-1]["data"]
+        self.assertEqual(final["workload32_observation"]["response"], bad)
+
+    def test_response_sidecar_corruption_blocks_collection(self):
+        with self.assertRaises(ValueError):
+            with self.start() as journal:
+                self.startup(journal)
+                self.now = 180
+                journal.trigger(175, "cpu-business")
+                self.now = 200
+                journal.business({"choices": []}, {"choices": []}, self.root / "unused")
+        (journal.path / "business.response").write_text("{}")
+        with self.assertRaisesRegex(ValueError, "response"):
+            self.collect()
 
     def test_origin_is_durable_before_preparation_and_deadline_includes_it(self):
         journal = self.start()

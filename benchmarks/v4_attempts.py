@@ -9,7 +9,7 @@ from sllm_store.event_trace import process_identity, read_event_window
 from sllm_store.v4_state import checked_file, write_once
 from v4_evidence import (cache_scan_checks, cache_timing_checks, phase_metrics,
                          release_coverage, require, response_checks, timestamp,
-                         timing_metrics)
+                         timing_metrics, validate_business_event_order)
 
 STAGES = ("origin", "startup", "trigger", "business", "workload32", "delete", "release", "result")
 
@@ -66,6 +66,8 @@ class AttemptJournal:
         self.writer_identity = process_identity()
         self.identity = dict(self.writer_identity, run_id=run_id, preregistration_sha256=prereg_sha, **source)
         self.business_observation = None
+        self.workload32_observation = None
+        self.response_sha256 = {}
         self.record = dict(matches[0], preparation_begin_ns=begin,
                            attempt_deadline_ns=min(work_end_ns, begin + 1200_000_000_000))
         self.path = Path(root) / attempt_id
@@ -150,11 +152,23 @@ class AttemptJournal:
         self.record.update(register_complete_ns=register_complete_ns,
                            business_trigger_ns=now, business_request_id=request_id)
 
+    def _save_response(self, purpose, response, native_reference, received_ns):
+        require(process_identity() == self.writer_identity, "attempt writer process changed")
+        require(self.stage != "result", "attempt already terminal")
+        path = self.path / (purpose + ".response")
+        write_once(path, dict(schema=1, identity=self.identity,
+                   observation=dict(response=response, native_reference=native_reference,
+                                    received_ns=received_ns)))
+        raw = path.read_bytes()
+        self.response_sha256[purpose] = digest(raw)
+        return json.loads(raw)["observation"]
+
     def business(self, response, native_reference, event_directory):
         received = time.monotonic_ns()
+        self.business_observation = self._save_response("business", response, native_reference, received)
+        response, native_reference = (self.business_observation["response"],
+                                      self.business_observation["native_reference"])
         checks = response_checks(response, native_reference, "business")
-        self.business_observation = dict(response=response, native_reference=native_reference,
-                                         received_ns=received)
         if checks["complete_business_success"]:
             self.record["correct_business_response_ns"] = received
         require(all(checks.values()), "business/native reference checks failed")
@@ -162,6 +176,9 @@ class AttemptJournal:
             self.record["startup_command_ns"], received, boot_id=self.identity["boot_id"],
             time_namespace=self.identity["time_namespace"])
         self.business_observation["events"] = events
+        validate_business_event_order(events, self.record["business_request_id"],
+                                     self.record["startup_command_ns"],
+                                     self.record["business_trigger_ns"], received)
         first = [e for e in events if e["name"] == "backend_first_token_observed"
                  and e.get("request_id") == self.record["business_request_id"]]
         require(len(first) == 1, "missing/duplicate business first-token event")
@@ -171,13 +188,18 @@ class AttemptJournal:
         metrics.update(phase_metrics(events, record["startup_command_ns"]))
         self.record = record
         self._append("business", dict(response=response, native_reference=native_reference,
-                     checks=checks, metrics=metrics, events=events), received)
+                     checks=checks, metrics=metrics, events=events,
+                     observation_sha256=self.response_sha256["business"]), received)
 
     def workload32(self, response, native_reference):
+        received = time.monotonic_ns()
+        self.workload32_observation = self._save_response("workload32", response, native_reference, received)
+        response, native_reference = (self.workload32_observation["response"],
+                                      self.workload32_observation["native_reference"])
         checks = response_checks(response, native_reference, "workload32")
         require(all(checks.values()), "fixed32/native reference checks failed")
         self._append("workload32", dict(response=response, native_reference=native_reference,
-                                       checks=checks), time.monotonic_ns())
+                                       checks=checks, observation_sha256=self.response_sha256["workload32"]), received)
 
     def delete(self, delete_command_ns):
         now = time.monotonic_ns()
@@ -205,7 +227,9 @@ class AttemptJournal:
             startup_censor_elapsed_seconds=(now - self.record["startup_command_ns"]) / 1e9
                 if "startup_command_ns" in self.record else None,
             cleanup_pending=True, runtime_qualified=False, record=self.record,
-            business_observation=self.business_observation), now)
+            business_observation=self.business_observation,
+            workload32_observation=self.workload32_observation,
+            response_sha256=self.response_sha256), now)
 
 
 def collect_attempts(preregistration, prereg_sha, execution_roots):
@@ -221,7 +245,10 @@ def collect_attempts(preregistration, prereg_sha, execution_roots):
             require(directory.name in expected and directory.is_dir() and not directory.is_symlink(),
                     "unexpected/linked attempt entry")
             require(directory.name not in found, "attempt ID appears in multiple executions")
-            files = sorted(directory.iterdir())
+            entries = list(directory.iterdir())
+            raw_files = {p.name.removesuffix(".response"): p for p in entries
+                         if p.name in ("business.response", "workload32.response")}
+            files = sorted(p for p in entries if p not in raw_files.values())
             previous, identity, last, rows, receipts = None, None, None, [], []
             for sequence, path in enumerate(files):
                 require(not path.is_symlink() and path.is_file(), "linked/non-file journal entry")
@@ -254,8 +281,43 @@ def collect_attempts(preregistration, prereg_sha, execution_roots):
                 require(last["data"]["success"] is False
                         and last["data"]["status"] in ("failed", "timeout", "evidence_complete_unqualified"),
                         "bookkeeping cannot award formal PASS")
+            declared, response_files = {}, []
+            for row in rows:
+                if row["stage"] in ("business", "workload32") and "observation_sha256" in row["data"]:
+                    declared[row["stage"]] = row["data"]["observation_sha256"]
+                if row["stage"] == "result":
+                    for purpose, sha in row["data"].get("response_sha256", {}).items():
+                        require(purpose not in declared or declared[purpose] == sha,
+                                "response digest changed in journal")
+                        declared[purpose] = sha
+            require(set(declared) <= set(raw_files), "missing raw response file")
+            if terminal:
+                require(set(raw_files) == set(declared), "unbound terminal response file")
+            for purpose, path in raw_files.items():
+                raw = checked_file(directory, path.name).read_bytes()
+                document = json.loads(raw)
+                require(document.get("schema") == 1 and document.get("identity") == identity,
+                        "raw response identity differs")
+                received = timestamp(document["observation"]["received_ns"])
+                require(rows[0]["monotonic_ns"] <= received
+                        and (not terminal or received <= last["monotonic_ns"]), "raw response time differs")
+                require(purpose not in declared or digest(raw) == declared[purpose], "raw response digest differs")
+                for row in rows:
+                    if row["stage"] == purpose:
+                        saved = dict(response=row["data"]["response"],
+                                     native_reference=row["data"]["native_reference"],
+                                     received_ns=row["monotonic_ns"])
+                    elif row["stage"] == "result" and row["data"].get(purpose + "_observation") is not None:
+                        saved = {k: row["data"][purpose + "_observation"][k]
+                                 for k in ("response", "native_reference", "received_ns")}
+                    else:
+                        continue
+                    require(json.dumps(saved, sort_keys=True) == json.dumps(document["observation"], sort_keys=True),
+                            "journal response payload differs from preserved raw response")
+                response_files.append(dict(path=path.name, sha256=digest(raw), bytes=len(raw)))
             found[directory.name] = dict(attempt_id=directory.name, consumed=True,
                 status=last["data"]["status"] if terminal else "incomplete",
-                terminal=terminal, directory=str(directory), journal=rows, journal_files=receipts)
+                terminal=terminal, directory=str(directory), journal=rows, journal_files=receipts,
+                response_files=response_files)
     return [found.get(row["attempt_id"], dict(attempt_id=row["attempt_id"],
             consumed=False, status="unstarted", terminal=False)) for row in attempts]

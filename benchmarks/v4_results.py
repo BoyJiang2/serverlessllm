@@ -7,12 +7,18 @@ from sllm_store.event_trace import validate_event_window
 from sllm_store.v4_state import write_once
 from v4_attempts import collect_attempts, digest, frozen_protocol
 from v4_evidence import (phase_metrics, release_coverage, require, response_checks,
-                         timestamp, timing_metrics)
+                         timestamp, timing_metrics, validate_business_event_order)
 
 
 def business_evidence(record, observation, identity, missing, allow_partial=False):
     """Separate business correctness from native parity and trace completeness."""
-    checks = response_checks(observation["response"], observation["native_reference"], "business")
+    try:
+        checks = response_checks(observation["response"], observation["native_reference"], "business")
+    except (KeyError, TypeError, ValueError) as error:
+        if not allow_partial:
+            raise
+        checks = dict(response_valid=False, native_token_parity=False, complete_business_success=False)
+        missing.append("invalid_business_response: " + type(error).__name__)
     received = timestamp(observation["received_ns"])
     require(record["business_trigger_ns"] <= received, "response predates trigger")
     complete = checks["complete_business_success"]
@@ -31,6 +37,13 @@ def business_evidence(record, observation, identity, missing, allow_partial=Fals
         else:
             require(allow_partial, "missing business first-token event")
             missing.append("business_first_token")
+        try:
+            validate_business_event_order(checked, record["business_request_id"],
+                record["startup_command_ns"], record["business_trigger_ns"], received)
+        except ValueError as error:
+            if not allow_partial:
+                raise
+            missing.append("business_event_order: " + str(error))
         events = checked
     else:
         missing.append("business_events")
@@ -84,7 +97,12 @@ def reconstruct(entry, frozen):
         elif stage == "business":
             observation = dict(response=data["response"], native_reference=data["native_reference"],
                                received_ns=now, events=data["events"])
-            checks, calculated = business_evidence(record, observation, identity, missing)
+            # Earlier journals predate raw-response binding and the completion-event gate.
+            checks, calculated = business_evidence(record, observation, identity, missing,
+                                                   allow_partial="observation_sha256" not in data)
+            if "observation_sha256" not in data:
+                missing[:] = ["legacy_" + item if item.startswith("business_event_order: ") else item
+                              for item in missing]
             require(all(checks.values()), "invalid accepted business stage")
             require(data["checks"] == checks and data["metrics"] == calculated,
                     "stored business checks/metrics differ from replay")
@@ -105,7 +123,8 @@ def reconstruct(entry, frozen):
             result["release_coverage"] = coverage
         elif stage == "result":
             if data["status"] == "evidence_complete_unqualified":
-                require(rows[index - 1]["stage"] == "release" and not missing,
+                require(rows[index - 1]["stage"] == "release"
+                        and all(item.startswith("legacy_business_event_order: ") for item in missing),
                         "unqualified completion requires all evidence stages")
                 require(timestamp(data["completed_ns"]) == now and now < origin["attempt_deadline_ns"],
                         "completion boundary differs")
@@ -123,6 +142,15 @@ def reconstruct(entry, frozen):
                     require(observation["received_ns"] <= now, "response follows failure")
                     components["business"] = checks
                     metrics.update(calculated)
+                fixed = data.get("workload32_observation")
+                if fixed is not None and "workload32" not in components:
+                    require(timestamp(fixed["received_ns"]) <= now, "fixed response follows failure")
+                    try:
+                        components["workload32"] = response_checks(
+                            fixed["response"], fixed["native_reference"], "workload32")
+                    except (KeyError, TypeError, ValueError) as error:
+                        components["workload32"] = dict(response_valid=False)
+                        missing.append("invalid_workload32_response: " + type(error).__name__)
                 observed = "correct_business_response_ns" in record
                 reported = data["correct_business_response_observed"]
                 require(type(reported) is bool, "invalid response observation flag")
@@ -184,7 +212,7 @@ def export_results(preregistration, prereg_sha, execution_roots, output):
         require(not output.resolve().is_relative_to(Path(root).resolve()), "export must be outside execution roots")
     # Bind output to the exact bytes collected, and reject a change during replay.
     for entry in entries:
-        for receipt in entry.get("journal_files", []):
+        for receipt in entry.get("journal_files", []) + entry.get("response_files", []):
             path = Path(entry["directory"]) / receipt["path"]
             require(not path.is_symlink() and digest(path.read_bytes()) == receipt["sha256"],
                     "journal changed during replay")
@@ -201,7 +229,7 @@ def export_results(preregistration, prereg_sha, execution_roots, output):
         protocol_document=json.loads(protocol_bytes),
         preregistration_sha256=prereg_sha, execution_roots=[str(Path(p).resolve()) for p in execution_roots],
         journal_inputs=[dict(attempt_id=e["attempt_id"], directory=e.get("directory"),
-                            files=e.get("journal_files", [])) for e in entries],
+                            files=e.get("journal_files", []) + e.get("response_files", [])) for e in entries],
         output_files=[dict(path=str(p.relative_to(output)), sha256=digest(p.read_bytes()))
                       for p in sorted(output.rglob("*.json"))]))
     return summary

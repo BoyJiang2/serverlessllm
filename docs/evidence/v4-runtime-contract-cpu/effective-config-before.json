@@ -1,0 +1,70 @@
+{
+  "utc": "2026-11-06T14:56:57.426110+00:00",
+  "label": "before",
+  "registration_input": {
+    "model": "v4-config-probe",
+    "backend": "vllm",
+    "num_gpus": 8,
+    "auto_scaling_config": {
+      "min_instances": 0,
+      "max_instances": 1
+    },
+    "backend_config": {
+      "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro",
+      "torch_dtype": "bfloat16",
+      "load_format": "safetensors",
+      "tokenizer_mode": "deepseek_v4",
+      "tensor_parallel_size": 8,
+      "enforce_eager": true,
+      "enable_prefix_caching": false,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+      "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+      "kv_cache_dtype": "fp8",
+      "attention_config": {
+        "use_fp4_indexer_cache": false
+      }
+    }
+  },
+  "config_only_files": [
+    "CONFIG_ONLY_NOT_RUNTIME_WEIGHTS",
+    "config.json",
+    "generation_config.json",
+    "tokenizer.json",
+    "tokenizer_config.json"
+  ],
+  "config_sha256": "5fe4568daee51c208cb8a79538eaeda090ae011ade1dee2c386aa95f569c810e",
+  "registration_accepted": false,
+  "registration_error": "Unreviewed V4 service backend fields: ['attention_config', 'kv_cache_dtype', 'revision', 'tokenizer_revision']",
+  "actual_engine_args": {
+    "model": "/mnt/raid/models/DeepSeek-V4-Pro",
+    "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "dtype": "bfloat16",
+    "quantization": null,
+    "kv_cache_dtype": "fp8"
+  },
+  "actual_model_config": {
+    "model": "/mnt/raid/models/DeepSeek-V4-Pro",
+    "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "dtype": "torch.bfloat16",
+    "quantization": "deepseek_v4_fp8",
+    "max_model_len": 2048,
+    "hf_quantization_config": {
+      "activation_scheme": "dynamic",
+      "fmt": "e4m3",
+      "quant_method": "deepseek_v4_fp8",
+      "scale_fmt": "ue8m0",
+      "weight_block_size": [
+        128,
+        128
+      ]
+    }
+  },
+  "cuda_initialized": false,
+  "model_or_engine_constructed": false,
+  "scope": "Actual installed backend/AsyncEngineArgs/ModelConfig with frozen small config files only; no weights, NN model, engine or GPU execution"
+}

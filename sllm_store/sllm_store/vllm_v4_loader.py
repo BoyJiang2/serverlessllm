@@ -190,21 +190,26 @@ class V4RawLoader(BaseModelLoader):
         parallel = vllm_config.parallel_config
         hf = model_config.hf_config
         if (model_config.revision != REVISION
+                or model_config.tokenizer_revision != REVISION
                 or hf.model_type != "deepseek_v4" or hf.expert_dtype != "fp4"
                 or hf.n_routed_experts != 384 or hf.hc_mult != 4
                 or hf.quantization_config.get("scale_fmt") != "ue8m0"
-                or model_config.quantization != "fp8"
+                or model_config.quantization != "deepseek_v4_fp8"
+                or model_config.seed != 20261105
                 or model_config.dtype != torch.bfloat16
                 or parallel.tensor_parallel_size != 8
                 or parallel.pipeline_parallel_size != 1
                 or parallel.data_parallel_size != 1
                 or parallel.enable_expert_parallel
+                or parallel.distributed_executor_backend != "mp"
                 or vllm_config.speculative_config is not None
                 or model_config.max_model_len != 2048
                 or not model_config.enforce_eager
                 or vllm_config.scheduler_config.max_num_seqs != 1
                 or vllm_config.scheduler_config.max_num_batched_tokens != 2048
-                or vllm_config.cache_config.enable_prefix_caching):
+                or vllm_config.cache_config.enable_prefix_caching
+                or vllm_config.cache_config.cache_dtype not in ("fp8", "fp8_ds_mla")
+                or vllm_config.attention_config.use_fp4_indexer_cache is not False):
             raise ValueError(
                 "V4 raw loader requires FP4/FP8 TP8, EP/PP/DP/MTP off"
             )

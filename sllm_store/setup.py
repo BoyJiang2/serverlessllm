@@ -236,7 +236,7 @@ cmdclass = {
 
 setup(
     name="serverless-llm-store",
-    version="0.8.0+v4pro.2" if v4_profile else "0.8.0",
+    version="0.8.0+v4pro.4" if v4_profile else "0.8.0",
     ext_modules=[
         CMakeExtension(name="sllm_store._C"),
         CMakeExtension(name="sllm_store._checkpoint_store"),

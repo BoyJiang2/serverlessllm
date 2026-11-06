@@ -29,7 +29,8 @@ def export_engine_config(model_path, store_path, identity):
     return dict(
         model=str(model), tokenizer=str(model), revision=REVISION,
         tokenizer_revision=REVISION, tokenizer_mode="deepseek_v4",
-        dtype="bfloat16", quantization="fp8", tensor_parallel_size=8,
+        dtype="bfloat16", quantization="fp8", kv_cache_dtype="fp8",
+        attention_config=dict(use_fp4_indexer_cache=False), tensor_parallel_size=8,
         pipeline_parallel_size=1, data_parallel_size=1, enable_expert_parallel=False,
         speculative_config=None, enforce_eager=True, max_model_len=2048,
         max_num_seqs=1, max_num_batched_tokens=2048, enable_prefix_caching=False,

@@ -1,0 +1,71 @@
+{
+  "utc": "2026-11-06T16:09:10.546657+00:00",
+  "parent_commit": "77b2afdc58e40d6d5500465d39df1855ac2cfe14",
+  "production_and_test_sources": {
+    "benchmarks/v4_attempts.py": "1257798072064040eda2daaade91562579a8b61168f2bd9192cfab44abf623eb",
+    "benchmarks/v4_evidence.py": "872a02d1405dabf9c2df6fb7c660d51759de11bfff93ce317d6486038838f8b2",
+    "benchmarks/v4_results.py": "39f47f9baab664d3bc15ac29a3fd8c1df96c0bb4baa017710758d87ea953902c",
+    "setup.py": "feac591a0cca71caabc9eac042a6244f1cb8110f933acfe0c8a30380dbc29b46",
+    "sllm_store/setup.py": "f88f538c42a9ae1e9aebf51e35d3c077b8a1687f5d633f6d7010d1bd69788f7f",
+    "sllm_store/sllm_store/v4_convert.py": "1d3630abcdc28a815f606c88874c3cdbb5ed97eec86c9da5f54a160f4e23dd2c",
+    "sllm_store/sllm_store/v4_service.py": "0619c4f6525b9fb9e688d6ff0cbe7ef365d81758ad806dcfd5571c9ade619a64",
+    "sllm_store/sllm_store/vllm_v4_loader.py": "6b7a2c7929c0462fc9eb4db3d79ff5262b6be0eb9f48e4acb3832884a9c7fbad",
+    "sllm_store/tests/python/test_v4_attempts.py": "87fc1e0df29e31c881db8e084d100859214c522d552c848ff72d0ae0c442b2d4",
+    "sllm_store/tests/python/test_v4_convert.py": "636e5c2784d68e248ad74a5d1b24c4dd1e395bcb6c2dea55298aac38f6570883",
+    "sllm_store/tests/python/test_v4_evidence.py": "12ec9f57189717e9faad761969eec96c6a38ef6281de00cd12af6b7584c60395",
+    "sllm_store/tests/python/test_v4_loader.py": "72f6b986fe344070c6430412a620c23e101488b29ba540a102b26d8981ff571a",
+    "sllm_store/tests/python/test_v4_packaging.py": "34bab9232f71969d248f1a9881d06305b539537018e2497e6ad4a2ae40f0fdb6",
+    "sllm_store/tests/python/test_v4_results.py": "90f7d0b39e6326e650eb837f4ca5a23707c991b70326ade4dff56d7634155b0d",
+    "sllm_store/tests/python/test_v4_service.py": "9bc0548546e8adb2c54f1a00f2ad4ad323eb31297d776e12285429fe13593124"
+  },
+  "source_diff_sha256": "eb6652a2a95c0b971186c1e4599f24ad9efea07202fe254bc9a365ffc8194fbd",
+  "approved_changes": {
+    "seed": 20261105,
+    "distributed_executor_backend": "mp",
+    "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "kv_cache_dtype": "fp8",
+    "use_fp4_indexer_cache": false
+  },
+  "actual_model_config": {
+    "model": "/mnt/raid/models/DeepSeek-V4-Pro",
+    "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+    "dtype": "torch.bfloat16",
+    "quantization": "deepseek_v4_fp8",
+    "max_model_len": 2048,
+    "hf_quantization_config": {
+      "activation_scheme": "dynamic",
+      "fmt": "e4m3",
+      "quant_method": "deepseek_v4_fp8",
+      "scale_fmt": "ue8m0",
+      "weight_block_size": [
+        128,
+        128
+      ]
+    },
+    "seed": 20261105
+  },
+  "actual_parallel_config": {
+    "tensor_parallel_size": 8,
+    "pipeline_parallel_size": 1,
+    "data_parallel_size": 1,
+    "enable_expert_parallel": false,
+    "distributed_executor_backend": "mp"
+  },
+  "actual_cache_config": {
+    "cache_dtype": "fp8",
+    "enable_prefix_caching": false
+  },
+  "target_vllm_wheel_reused": true,
+  "native_store_binaries_reused_byte_identically": true,
+  "final_packages": 205,
+  "exact_install_graph": true,
+  "pip_check_exit_code": 0,
+  "changed_contract_tests": 116,
+  "changed_contract_tests_passed": true,
+  "prior_protocol_and_formal_ids_unchanged": true,
+  "runtime_qualified": false,
+  "gpu_or_model_run": false,
+  "scope": "CPU safe patch batch only: real installed configuration objects plus fixture evidence contracts; not full Store, model output, service lifecycle or physical cleanup proof"
+}

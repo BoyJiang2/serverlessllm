@@ -98,6 +98,22 @@ def timing_metrics(record, events, complete_business_success):
     return metrics
 
 
+def validate_business_event_order(events, request_id, startup_ns, trigger_ns, received_ns):
+    controls = {}
+    for name in ("backend_engine_create_begin", "backend_engine_ready", "router_instance_published",
+                 "backend_first_token_observed", "backend_generation_complete"):
+        rows = [e for e in events if e["name"] == name
+                and (name not in ("backend_first_token_observed", "backend_generation_complete")
+                     or e.get("request_id") == request_id)]
+        require(len(rows) == 1, "missing/duplicate business control event: " + name)
+        controls[name] = timestamp(rows[0]["monotonic_ns"])
+    # Instance publication follows engine readiness; cold controller registration is separate.
+    ordered = [timestamp(startup_ns)] + list(controls.values()) + [timestamp(received_ns)]
+    require(ordered == sorted(ordered), "business engine/publication/token/completion order differs")
+    require(timestamp(trigger_ns) <= controls["backend_first_token_observed"],
+            "first token predates business trigger")
+
+
 def phase_metrics(events, startup_command_ns):
     """GLM all-rank host envelope; nested phases must not be summed."""
     require(not any(e["name"] in {p + "_failed" for p in PHASES} for e in events),
@@ -130,10 +146,10 @@ def phase_metrics(events, startup_command_ns):
         controls[name] = timestamp(rows[0]["monotonic_ns"])
     begin = controls["backend_engine_create_begin"]
     end = controls["backend_engine_ready"]
-    require(begin <= end, "backend construction out of order")
+    require(timestamp(startup_command_ns) <= begin <= end, "backend construction out of order")
     published = controls["router_instance_published"]
     command = timestamp(startup_command_ns)
-    require(command <= published, "instance publication predates startup")
+    require(command <= end <= published, "instance publication precedes engine readiness")
     metrics["backend_construct_s"] = (end - begin) / 1e9
     metrics["command_to_route_publication_s"] = (published - command) / 1e9
     metrics["weight_ingestion_span_s"] = metrics["phase_weight_ingestion_span_s"]

@@ -43,6 +43,20 @@ class EvidenceContracts(unittest.TestCase):
         for name, value in metrics.items():
             self.assertAlmostEqual(value, self.record["metrics"][name], places=9, msg=name)
 
+    def test_complete_business_event_order_and_reversals(self):
+        args = (self.phases["request_id"], self.record["startup_command_ns"],
+                self.record["business_trigger_ns"], self.record["correct_business_response_ns"])
+        evidence.validate_business_event_order(self.events, *args)
+        for later, earlier in (("backend_engine_ready", "router_instance_published"),
+                               ("router_instance_published", "backend_first_token_observed"),
+                               ("backend_first_token_observed", "backend_generation_complete")):
+            changed = copy.deepcopy(self.events)
+            left = next(e for e in changed if e["name"] == later)
+            right = next(e for e in changed if e["name"] == earlier)
+            left["monotonic_ns"] = right["monotonic_ns"] + 1
+            with self.subTest(later=later), self.assertRaises(ValueError):
+                evidence.validate_business_event_order(changed, *args)
+
     def test_missing_backend_event_does_not_become_http_first_token(self):
         rows = [e for e in self.events if e["name"] != "backend_first_token_observed"]
         with self.assertRaisesRegex(ValueError, "without backend"):

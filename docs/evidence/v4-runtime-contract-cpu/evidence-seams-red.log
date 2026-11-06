@@ -1,0 +1,36 @@
+======================================================================
+ERROR: test_malformed_business_is_durable_before_validation (test_v4_attempts.AttemptJournalContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_attempts.py", line 95, in test_malformed_business_is_durable_before_validation
+    raw = json.loads((journal.path / "business.response").read_bytes())
+  File "/usr/lib/python3.10/pathlib.py", line 1126, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp2tma_wdf/cpu_store_disk_cold_01/business.response'
+
+======================================================================
+ERROR: test_malformed_fixed32_is_durable_and_retained_on_failure (test_v4_attempts.AttemptJournalContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_attempts.py", line 107, in test_malformed_fixed32_is_durable_and_retained_on_failure
+    raw = json.loads((journal.path / "workload32.response").read_bytes())
+  File "/usr/lib/python3.10/pathlib.py", line 1126, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp5602324b/cpu_store_disk_cold_01/workload32.response'
+
+======================================================================
+ERROR: test_complete_business_event_order_and_reversals (test_v4_evidence.EvidenceContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_evidence.py", line 49, in test_complete_business_event_order_and_reversals
+    evidence.validate_business_event_order(self.events, *args)
+AttributeError: module 'v4_evidence' has no attribute 'validate_business_event_order'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.029s
+
+FAILED (errors=3)

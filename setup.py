@@ -55,7 +55,7 @@ if build_profile not in ("legacy", "v4-pro"):
 v4_profile = build_profile == "v4-pro"
 install_requires = fetch_requirements("requirements-v4.txt" if v4_profile else "requirements.txt")
 if v4_profile:
-    install_requires.append("serverless-llm-store==0.8.0+v4pro.2")
+    install_requires.append("serverless-llm-store==0.8.0+v4pro.4")
 install_requires_worker = fetch_requirements(
     "requirements-worker-v4.txt" if v4_profile else "requirements-worker.txt")
 
@@ -67,7 +67,7 @@ sys.path.append(Path.cwd().as_posix())
 
 setup(
     name="serverless-llm",
-    version="0.8.0+v4pro.2" if v4_profile else "0.8.0",
+    version="0.8.0+v4pro.4" if v4_profile else "0.8.0",
     install_requires=install_requires,
     long_description=read_readme(),
     long_description_content_type="text/markdown",

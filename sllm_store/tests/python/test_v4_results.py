@@ -35,7 +35,7 @@ class ResultReplayContracts(unittest.TestCase):
 
     def mutate(self, stage, change):
         previous = None
-        for path in sorted((self.root / fixture.ID).iterdir()):
+        for path in sorted((self.root / fixture.ID).glob("[0-9][0-9]-*.json")):
             row = json.loads(path.read_bytes())
             if row["stage"] == stage:
                 change(row)
@@ -43,6 +43,33 @@ class ResultReplayContracts(unittest.TestCase):
             raw = (json.dumps(row, sort_keys=True) + '\n').encode()
             path.write_bytes(raw)
             previous = results.digest(raw)
+
+    def test_malformed_business_and_fixed32_replay_as_failures_with_raw_inputs(self):
+        for purpose in ("business", "workload32"):
+            with self.subTest(purpose=purpose):
+                if purpose == "business":
+                    self.case.test_malformed_business_is_durable_before_validation()
+                else:
+                    self.case.test_malformed_fixed32_is_durable_and_retained_on_failure()
+                records, _, entries = self.replay()
+                self.assertEqual(records[0]["status"], "failed")
+                self.assertFalse(records[0]["success"])
+                self.assertFalse(records[0]["component_checks"][purpose]["response_valid"])
+                self.assertIn(purpose + ".response", [r["path"] for r in entries[0]["response_files"]])
+            if purpose == "business":
+                self.case.doCleanups()
+                self.case.setUp()
+                self.addCleanup(self.case.doCleanups)
+                self.root = self.case.root
+
+    def test_journal_response_must_equal_the_saved_raw_payload(self):
+        self.full()
+        def change(row):
+            for key in ("response", "native_reference"):
+                row["data"][key]["choices"][0]["token_ids"] = [2, 1]
+        self.mutate("business", change)
+        with self.assertRaisesRegex(ValueError, "response payload"):
+            self.replay()
 
     def test_complete_flat_record_recomputes_all_glm_metric_fields(self):
         self.full()
@@ -219,6 +246,12 @@ class ResultReplayContracts(unittest.TestCase):
     def test_fixed32_checks_are_recomputed(self):
         self.full()
         self.mutate("workload32", lambda r: r["data"]["response"]["choices"][0].update(token_ids=[1]))
+        with self.assertRaisesRegex(ValueError, "response payload"):
+            self.replay()
+
+    def test_fixed32_check_fields_are_recomputed(self):
+        self.full()
+        self.mutate("workload32", lambda r: r["data"]["checks"].update(fixed32_length_success=False))
         with self.assertRaisesRegex(ValueError, "fixed32"):
             self.replay()
 
