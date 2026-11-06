@@ -750,9 +750,10 @@ def diagnostic_response(row,want,index,life):
  response=row['response'];assert row['status']==200 and len(response['choices'])==1
  choice=response['choices'][0];assert isinstance(choice['message']['content'],str);entries=choice['logprobs'];ids=[]
  for entry in entries:
-  assert len(entry)==want['logprobs'] and sorted(v['rank'] for v in entry.values())==list(range(1,want['logprobs']+1))
-  assert all(math.isfinite(v['logprob']) for v in entry.values())
-  ids.append(int(next(k for k,v in entry.items() if v['rank']==1)))
+  assert isinstance(entry,dict) and want['logprobs']<=len(entry)<=want['logprobs']+1,'sampled/topK entry count invalid'
+  assert all(isinstance(k,str) and k.isdecimal() and str(int(k))==k and isinstance(v,dict) and type(v.get('rank')) is int and v['rank']>=1 and type(v.get('logprob')) in (int,float) and math.isfinite(v['logprob']) for k,v in entry.items()),'sampled/topK token metadata invalid'
+  # Pinned producer inserts sampled first; independent cumulative trace still authenticates IDs.
+  ids.append(int(next(iter(entry))))
  usage=response['usage'];assert usage=={'prompt_tokens':len(want['input_tokens']),'completion_tokens':len(ids),'total_tokens':len(want['input_tokens'])+len(ids)}
  assert 0<len(ids)<=want['max_tokens']
  if want['case'].startswith('fixed32'):assert len(ids)==32 and choice['finish_reason']=='length'

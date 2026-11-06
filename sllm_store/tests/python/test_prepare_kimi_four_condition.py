@@ -1017,5 +1017,49 @@ class MilestoneAssertionMessagesTest(unittest.TestCase):
             p.milestone_assert_messages('assert True')
 
 
+class SampledLogprobsParserTest(unittest.TestCase):
+    def actual_consumer(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        with tempfile.TemporaryDirectory() as directory:
+            protocol['resource_budget']['runs_root']=directory
+            spec,command=p.render_diagnostic(protocol,spec,command,spec['native_source_pins'],repeatability=True)[0]
+        body=command['argv'][command['argv'].index('-c')+1];tree=ast.parse(body)
+        selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=='diagnostic_response']
+        namespace={'math':__import__('math'),'record_http_sample':lambda *args:None,'validated_http_events':lambda *args:{},'save':lambda *args:None,'diagnostic_observations':{}}
+        exec(compile(ast.Module(body=selected,type_ignores=[]),'<actual-sampled-consumer>','exec'),namespace)
+        return spec,tree,namespace
+
+    def test_actual_four_responses_sampled_ids_match_independent_trace(self):
+        contract=p.base.EVIDENCE/'kimi-sfhot-logprobs-sampled-token-contract-readonly-review-20261107.json'
+        facts=json.loads(contract.read_text());spec,tree,namespace=self.actual_consumer();history=[]
+        for index,(source,want) in enumerate(zip(facts['actual_observations'],spec['correctness']['requests'])):
+            path=pathlib.Path(source['raw_http']);self.assertEqual(p.base.digest(path),source['raw_http_sha256'])
+            row=json.loads(path.read_text());namespace['diagnostic_response'](row,want,index,1)
+            ids=namespace['diagnostic_observations'][want['case']]['actual_ids']
+            self.assertEqual(ids,source['sampled_first_ids']);history.append(want['input_tokens']+ids)
+        final=namespace['diagnostic_observations']['fixed32-repeat1']
+        self.assertEqual(final['actual_ids'][-1],1852);self.assertFalse(final['strict_gold_match'])
+        last=json.loads(pathlib.Path(facts['actual_observations'][-1]['raw_http']).read_text())['response']['choices'][0]['logprobs'][-1]
+        self.assertEqual(last['1852']['rank'],2);self.assertEqual(last['1852']['logprob'],last['119304']['logprob'])
+        trace_path=pathlib.Path(facts['trace']['path']);self.assertEqual(p.base.digest(trace_path),facts['trace']['sha256']);trace=json.loads(trace_path.read_text())
+        node=next(node for node in ast.walk(tree) if isinstance(node,ast.Assert) and 'collections.Counter' in ast.unparse(node.test))
+        check=compile(ast.Module(body=[node],type_ignores=[]),'<actual-cumulative-trace>','exec')
+        context={'collections':__import__('collections'),'json':json,'tokens':trace,'history':history,'life':1,'index':3};exec(check,context)
+        wrong=copy.deepcopy(history);wrong[-1][-1]=119304;context['history']=wrong
+        with self.assertRaisesRegex(AssertionError,'token history'):exec(check,context)
+
+    def test_sampled_outside_topk_and_malformed_metadata(self):
+        _,_,namespace=self.actual_consumer()
+        want={'case':'arithmetic','input_tokens':[9],'logprobs':2,'max_tokens':128,'expected':{'token_ids':[1852],'content':'red','finish_reason':'stop'}}
+        row={'status':200,'request_id':'sampled-outside','response':{'choices':[{'message':{'content':'red'},'finish_reason':'stop','logprobs':[{'1852':{'rank':9,'logprob':-3.},'119304':{'rank':1,'logprob':-.1},'42':{'rank':2,'logprob':-.2}}]}],'usage':{'prompt_tokens':1,'completion_tokens':1,'total_tokens':2}}}
+        namespace['diagnostic_response'](row,want,0,1);self.assertEqual(namespace['diagnostic_observations']['arithmetic']['actual_ids'],[1852])
+        bad_entries=[{}, {'1':{'rank':1,'logprob':-.1}}, {'-1':{'rank':1,'logprob':-.1},'2':{'rank':2,'logprob':-.2}}, {'01':{'rank':1,'logprob':-.1},'2':{'rank':2,'logprob':-.2}}, {'1':{'rank':True,'logprob':-.1},'2':{'rank':2,'logprob':-.2}}, {'1':{'rank':0,'logprob':-.1},'2':{'rank':2,'logprob':-.2}}, {'1':{'rank':1,'logprob':float('nan')},'2':{'rank':2,'logprob':-.2}}, {'1':{'rank':1},'2':{'rank':2,'logprob':-.2}}, {'1':{'rank':1,'logprob':'-.1'},'2':{'rank':2,'logprob':-.2}}]
+        for entry in bad_entries:
+            with self.subTest(entry=entry),self.assertRaises(AssertionError):
+                bad=copy.deepcopy(row);bad['response']['choices'][0]['logprobs']=[entry];namespace['diagnostic_response'](bad,want,0,1)
+
+
 if __name__=='__main__':
     unittest.main()
