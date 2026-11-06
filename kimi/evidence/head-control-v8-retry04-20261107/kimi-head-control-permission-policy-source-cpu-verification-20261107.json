@@ -1,0 +1,99 @@
+{
+  "status": "SOURCE_CPU_PASS_EXPLICIT_HEAD_CONTROL_PERMISSION_POLICY_NOT_RUNTIME",
+  "created_utc": "2026-11-06T21:02:03.997248+00:00",
+  "host": "qjhs3",
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_guard_cuda_micro.py": "f1b76089a419ef7603efa3415af0b0ac9d9c3f6283ea5e2638a9978671fc0c02",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "52da3ca30c3be7e9f84927f4e68c0179a60c89d05741a2e06aaad32017f7a864",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "6fd874b65f12efb1e0bbf2958770bce4e2b3093de88f8aa2888d5eb5a90a23e7"
+  },
+  "tests": {
+    "guard": {
+      "count": 32,
+      "passed": 32,
+      "seconds": 1.46
+    },
+    "formal": {
+      "count": 54,
+      "passed": 54,
+      "seconds": 15.034
+    },
+    "cases": [
+      "unknown head PermissionError is warning deduplicated not proven unrelated",
+      "cmdline exact CID/own scope/known pins/owned postcheck/pidfd/recheck errors remain fatal",
+      "unreadable scope membership and nonPermission OSError remain fatal",
+      "head flag requires normal marker and evidence basename guard-head",
+      "actual rendered argv head flag exactlyonce, worker none",
+      "head GPU environment or DeviceRequests rejects; unknown policy rejects",
+      "no policy old strict root remains532fc; original quiet/normal/ownership tests pass"
+    ]
+  },
+  "policy": {
+    "protocol_mode": "unknown_host_permission_warning_head_only_v1",
+    "guard_flag": "--head-control-only",
+    "default": false,
+    "role_scope": "only explicitly declared head-control mode; NVIDIAvoid/CUDAempty/noDeviceRequests preconditions",
+    "warning": "Only PermissionError during initial host identity read, before own match/pin, with no exact CID cmdline evidence or own scope PID; warning is unknown/incomplete not proven unrelated.",
+    "strict": [
+      "known pin",
+      "exactCID cmdline token",
+      "post-owned status/startticks/cgroup",
+      "own cgroup PID or unreadable membership",
+      "pidfd_open",
+      "identity_recheck",
+      "all OCI/scope/exit/PID/GPUzero/quiet>=60 checks",
+      "all worker discovery"
+    ],
+    "evidence": "deduplicated unknown_host_discovery_incomplete log plus final warnings and explicit coverage limitation; no failure suppression outside this narrow case"
+  },
+  "actual_draft_fixture": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-head-control-v8-source-pending-20261107.json",
+    "sha256": "531cc89956339241f5b4faf8075fd3442d717e87b51f7032f1222e79bc591b1a",
+    "status": "Only in-memory fixture FROZEN/source replacement; actual DRAFT file not changed, no runnable artifacts written",
+    "children": [
+      {
+        "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+        "condition": "safetensors_disk_hot",
+        "root_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727",
+        "guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf"
+      },
+      {
+        "run_id": "kimi-four-v1-b01-store_disk_cold-retry04",
+        "condition": "store_disk_cold",
+        "root_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727",
+        "guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf"
+      },
+      {
+        "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+        "condition": "safetensors_disk_cold",
+        "root_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727",
+        "guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf"
+      },
+      {
+        "run_id": "kimi-four-v1-b01-store_pool_hit-retry04",
+        "condition": "store_pool_hit",
+        "root_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727",
+        "guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf"
+      }
+    ]
+  },
+  "unchanged": [
+    "same retry04 unexecuted identity and5/45 history mapping",
+    "requests/gold/fixed32 policy",
+    "budgets7200/28920/Store60/quiet>=60",
+    "worker strict discovery",
+    "Store/loader/ELF95d/manifest59d/oldf7",
+    "old failure records and prior frozen versions"
+  ],
+  "not_performed": [
+    "Git mutation/sync",
+    "GPU/Store/Docker/model/cache execution",
+    "new runtime claims or prepared artifacts"
+  ],
+  "remaining": [
+    "independent review",
+    "explicit commit/publication",
+    "parent append-only v8 freeze/actual artifact audit and fresh admission under current user authorization"
+  ]
+}
