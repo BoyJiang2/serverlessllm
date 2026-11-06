@@ -14,7 +14,7 @@
 
 | 文件 | 字节 | SHA256 |
 |---|---:|---|
-| HANDOFF.md | 3058 | `24b8f97fd3e2be218b247dac5d7e2f46a2811c8e40235711cedb4d081a506152` |
+| HANDOFF.md | 3279 | `531bfc9848829327d67fbbb1629923c086732f1d1658bb047fb8e254b79ae678` |
 | REPORT.md | 14234 | `bee8ceeb39b21dc8725498e2f09f10a34b163f957f23ca8f0c40311a7603f65f` |
 | all40-matrix.csv | 12020 | `ae80d12f06dc7b813e51a145904ac6210066c00f1bd3b0016ff3b3f22bbac82c` |
 | build-validation.json | 965 | `4c2e7bb8434f1146b90b8bba949dd32bbfd9530b259ba3c97c60e7c0e5eabccf` |
@@ -28,7 +28,7 @@
 | event-intervals.csv | 12987 | `3f11fc8383084adcfa3c37a1022d1b70c65c6e4da2eda8c1f9a5420b14ace158` |
 | event_audit.py | 6595 | `03ad1f172afa048a80c3604511cae422c745f78c0e19cd85b1fef31bea98065f` |
 | executed-source-binding.json | 1021 | `5b752b9b7dcbe65990428776443cee3c5d07e6e7e7fcc5e26a25eff1abfdb963` |
-| git-publication-pending.json | 753 | `fc7ada7921c0dfef53e56f3a9c1870c5c09e2847e539fee99e1449688dcd4678` |
+| git-publication-pending.json | 886 | `6468659dd932e732b4151eae1c42b0838a63b0772b1847e14c33eecbcf591b9a` |
 | home-cleanup-receipt.json | 469 | `e0fc0186f7360cdfa8ec4695e61b2f505b1215a6716c0fa5781f28f1ca208154` |
 | independent-audit.json | 23038 | `a0d3c29481327e1ec0887426b9a4594b956ac673831b02a50ab8f242e34dec86` |
 | independent_audit.py | 6552 | `e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33` |
@@ -94,6 +94,7 @@
 | patch-inventory.json | 16414 | `a5575e174bd6dbe238eec49574a21eabf3325091e312f572445bec5a1a78a0b8` |
 | plot_analysis.py | 18711 | `fb77d42bb98e240bd6f7c75fde35c5a4f767d12ead567de11d952d9ce86f1948` |
 | raw-event-inputs.json | 776417 | `c32f0e8c63fa50e4aa938673ee443c4b60f6feea19af58709b3ef2714b95f02d` |
+| server-sync-receipt.json | 1061 | `1f7243a22b7a95bd4bb70ccce7aa6f60f59a255635366157f35e57b87e814297` |
 | source-clock-evidence.json | 31553 | `068a3428a5695834b6f861e0deea41bcc729409c18cbe9b25614ae1c2e039270` |
 | startup-samples.png | 72976 | `7441dfc1f9a4e7ee1aaf1e73b3f6583a6b49a6daa288b48869597a5072ba21ee` |
 | startup-samples.svg | 20790 | `cdf9a362fd7aff136f9d867668e1b850cbffc6d0f7f773afe3c66292160e6a30` |

@@ -16,7 +16,7 @@
 
 补充核验：所有记录阶段均覆盖八rank且跨度由起止时间独立重算；完整26条均通过。含准备配对统计沿用原preparation+command定义，遗漏的独立间隔在正文明确披露，互斥图已包含。检验的符号对称/独立与bootstrap可交换性假设明确列示，不宣称已由n6验证。
 
-自包含输入：两份冻结补丁与成本汇总已保留精确小副本在inputs，分析脚本不再依赖目录外文件。服务器交付目录为qjhs003:/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2；独立于原产物，原始MANIFEST与recompute不覆盖。
+自包含输入：两份冻结补丁与成本汇总已保留精确小副本在inputs，分析脚本不再依赖目录外文件。服务器交付目录为qjhs003:/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2；独立于原产物，原始MANIFEST与recompute不覆盖。自包含代码提交80df240b2b019cd99450530a4945b2509b57faec已推送并核远端SHA；三个脚本在服务器实际复算exit0，全部数值/事件/部署输出SHA仍相同。同步回执见server-sync-receipt.json。
 
 | 文件 | SHA256 |
 |---|---|
