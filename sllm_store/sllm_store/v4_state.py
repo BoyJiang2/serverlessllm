@@ -228,6 +228,9 @@ def validate_rank(root, rank, identity, verify_payload=False):
                 or entry[1] != row["bytes"] or entry[0] + entry[1] > total_bytes
                 or entry[2:] != [row["shape"], row["stride"], row["dtype"]]):
             raise ValueError(f"Store index layout/extent mismatch: {name}")
+    spans = sorted((entry[0], entry[0] + entry[1]) for entry in index.values())
+    if any(left[1] > right[0] for left, right in zip(spans, spans[1:])):
+        raise ValueError("Canonical Store tensor extents overlap without an alias")
     return document, file_digest(path)
 
 

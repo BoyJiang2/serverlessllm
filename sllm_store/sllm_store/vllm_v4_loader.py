@@ -12,6 +12,7 @@ import importlib.metadata
 import json
 import os
 from pathlib import Path
+import types
 
 import torch
 import vllm
@@ -95,14 +96,21 @@ def check_engine_source():
             )
 
 
-def save_raw_model(model, root, rank, identity):
+def save_raw_model(model, root, rank, identity, names=None):
     from sllm_store.torch import save_dict
 
     validate_identity(identity)
     directory = Path(root) / f"rank_{rank}"
     directory.mkdir(exist_ok=False)
-    rows, cpu, storages = tensor_metadata(model), {}, {}
-    for name, tensor in named_tensors(model).items():
+    tensors = named_tensors(model)
+    if names is not None:
+        selected = set(names)
+        if selected - set(tensors):
+            raise ValueError("Unknown tensor in raw export group")
+        tensors = {name: tensor for name, tensor in tensors.items() if name in selected}
+    rows = {name: row for name, row in tensor_metadata(model).items() if name in tensors}
+    cpu, storages = {}, {}
+    for name, tensor in tensors.items():
         if not tensor.is_contiguous():
             raise ValueError(f"Unsupported V4 raw tensor stride: {name}")
         row = rows[name]
@@ -145,7 +153,10 @@ def save_raw_model(model, root, rank, identity):
     device = torch.cuda.get_device_properties(torch.cuda.current_device())
     write_once(directory / "raw_state.json", {
         "identity": identity, "rank": rank, "tensors": rows,
-        "quant_methods": quant_methods(model), "files": files,
+        "quant_methods": (quant_methods(model) if names is None else {
+            prefix: method for prefix, method in quant_methods(model).items()
+            if any(name.startswith(prefix + ".") for name in tensors)}),
+        "files": files,
         "coordinates": dict(global_rank=rank, tp=rank, pp=0, dp=0),
         "device_uuid": str(device.uuid),
     })
@@ -208,6 +219,16 @@ class V4RawLoader(BaseModelLoader):
         self.rank = get_tensor_model_parallel_rank()
         if world.world_size != 8 or world.rank != self.rank:
             raise ValueError("V4 Store participants must be the TP8 world")
+        self.prepare_store()
+        model = super().load_model(vllm_config, model_config, prefix=prefix)
+        self.finish_model(model)
+        model._sllm_v4_stage = "postprocessed"
+        return model
+
+    def finish_model(self, model):
+        pass
+
+    def prepare_store(self):
         if isinstance(self, V4StoreLoader):
             storage = Path(os.environ["STORAGE_PATH"]).resolve()
             self.root.resolve().relative_to(storage)
@@ -220,9 +241,6 @@ class V4RawLoader(BaseModelLoader):
             self.root.mkdir(parents=True, exist_ok=True)
             if (self.root / "COMPLETE.json").exists():
                 raise ValueError("Cannot overwrite a completed V4 conversion")
-        model = super().load_model(vllm_config, model_config, prefix=prefix)
-        model._sllm_v4_stage = "postprocessed"
-        return model
 
 
 class V4ExportLoader(V4RawLoader):
@@ -239,6 +257,9 @@ class V4ExportLoader(V4RawLoader):
             for module in model.modules()
         ):
             raise ValueError("V4 raw export rejects online quantization")
+        self.export_raw(model)
+
+    def export_raw(self, model):
         save_raw_model(model, self.root, self.rank, self.identity)
 
 
@@ -294,3 +315,258 @@ class V4StoreLoader(V4RawLoader):
 def register():
     register_model_loader("sllm_v4_export")(V4ExportLoader)
     register_model_loader("sllm_v4_store")(V4StoreLoader)
+    register_model_loader("sllm_v4_grouped_export")(V4GroupedExportLoader)
+    register_model_loader("sllm_v4_grouped_store")(V4GroupedStoreLoader)
+
+
+def alias_metadata(model):
+    rows, storages = tensor_metadata(model), {}
+    for name, tensor in named_tensors(model).items():
+        if not tensor.numel():
+            continue
+        key = str(tensor.device), tensor.untyped_storage().data_ptr()
+        view = tensor.storage_offset(), tuple(tensor.shape), tuple(tensor.stride()), tensor.dtype
+        if key in storages:
+            canonical, previous = storages[key]
+            if view != previous:
+                raise ValueError("Grouped Store rejects overlapping distinct views")
+            rows[name]["alias"] = canonical
+        else:
+            storages[key] = name, view
+    return rows
+
+
+class V4GroupedExportLoader(V4ExportLoader):
+    def prepare_store(self):
+        self.root.resolve().relative_to(Path(os.environ["STORAGE_PATH"]).resolve())
+        super().prepare_store()
+
+    def finish_model(self, model):
+        from sllm_store.v4_grouped_state import complete_grouped_export_rank
+        model._sllm_grouped_export_result = complete_grouped_export_rank(
+            self.root, self.rank, self.identity
+        )
+
+    def export_raw(self, model):
+        from sllm_store.v4_grouped_state import FORMAT, partition_groups
+
+        methods = quant_methods(model)
+        groups = partition_groups(alias_metadata(model), methods)
+        entries = []
+        for group in groups:
+            root = self.root / "groups" / group["id"]
+            root.mkdir(parents=True, exist_ok=True)
+            save_raw_model(model, root, self.rank, self.identity, group["tensors"])
+            path = root / f"rank_{self.rank}" / "raw_state.json"
+            entries.append(dict(group, manifest_sha256=file_digest(path)))
+        directory = self.root / f"rank_{self.rank}"
+        directory.mkdir(exist_ok=False)
+        write_once(directory / "grouped_state.json", dict(
+            format=FORMAT, identity=self.identity, rank=self.rank,
+            groups=entries, quant_methods=methods,
+        ))
+
+
+_GROUPED_CONTEXTS = {}
+_NO_METHOD_OVERRIDE = object()
+
+
+def grouped_export_result(model):
+    """Small worker result for the existing engine apply_model/collective path."""
+    if getattr(model, "_sllm_v4_stage", None) != "postprocessed":
+        raise ValueError("Export worker has not completed native postprocessing")
+    return dict(model._sllm_grouped_export_result)
+
+
+def grouped_restore_contexts():
+    return tuple(dict(conversion_id=key[0], rank=key[1],
+                      active_group=value.active_group, failed=value.failed)
+                 for key, value in _GROUPED_CONTEXTS.items())
+
+
+def assert_no_raw_references(model, loaded):
+    ranges = [(t.untyped_storage().data_ptr(), t.untyped_storage().data_ptr()
+               + t.untyped_storage().nbytes()) for t in loaded.values() if t.numel()]
+    pending, seen = [model], set()
+    while pending:
+        value = pending.pop()
+        if id(value) in seen:
+            continue
+        seen.add(id(value))
+        if torch.is_tensor(value):
+            storage = value.untyped_storage()
+            begin, size = storage.data_ptr(), storage.nbytes()
+            if size and any(begin < b and a < begin + size for a, b in ranges):
+                raise ValueError("Postprocessed model still references expert raw storage")
+        elif isinstance(value, dict):
+            pending.extend(value.keys())
+            pending.extend(value.values())
+        elif isinstance(value, (list, tuple, set)):
+            pending.extend(value)
+        elif not isinstance(value, (types.FunctionType, types.MethodType, type)):
+            if hasattr(value, "__dict__"):
+                pending.extend(vars(value).values())
+            for cls in type(value).__mro__:
+                slots = vars(cls).get("__slots__", ())
+                if isinstance(slots, str):
+                    slots = (slots,)
+                for name in slots:
+                    if name not in ("__weakref__", "__dict__") and hasattr(value, name):
+                        pending.append(getattr(value, name))
+
+
+class _GroupedRestoreSession:
+    def __init__(self, loader, model):
+        from sllm_store.v4_grouped_state import partition_groups
+
+        self.loader, self.model = loader, model
+        self.completed, self.hooks, self.owners = [], [], {}
+        self.active_group, self.failed = None, False
+        self.key = loader.identity["conversion_id"], loader.rank
+        if self.key in _GROUPED_CONTEXTS:
+            raise ValueError("Previous grouped restore context has not been retired")
+        expected = alias_metadata(model)
+        methods = quant_methods(model)
+        self.groups = partition_groups(expected, methods)
+        stored = loader.grouped_metadata
+        plan = [{k: g[k] for k in ("id", "module", "tensors")} for g in stored["groups"]]
+        if self.groups != plan or methods != stored["quant_methods"]:
+            raise ValueError("Grouped state differs from fresh native topology/order")
+        self.documents = loader.group_documents
+        for group in self.groups:
+            stored_rows = self.documents[group["id"]]["tensors"]
+            if any(stored_rows[name].get("alias") != expected[name].get("alias")
+                   for name in group["tensors"]):
+                raise ValueError("Grouped aliases differ from the fresh model")
+            validate_expected(self.documents[group["id"]]["tensors"], {
+                name: {k: v for k, v in expected[name].items() if k != "alias"}
+                for name in group["tensors"]
+            })
+        self.modules = dict(model.named_modules())
+        methods = [self.modules[g["module"]].quant_method for g in self.groups[1:]]
+        if len({id(method) for method in methods}) != len(methods):
+            raise ValueError("Expert quantization method objects must not be shared")
+        _GROUPED_CONTEXTS[self.key] = self
+
+    def begin(self):
+        tensors = named_tensors(self.model)
+        if any(t.device.type != "cuda" or t.device.index != torch.cuda.current_device()
+               or getattr(t, "_vllm_is_uva_offloaded", False) for t in tensors.values()):
+            raise ValueError("Grouped restore requires CUDA skeleton without CPU offload")
+        for tensor in tensors.values():
+            tensor.data = torch.empty(0, device=tensor.device, dtype=tensor.dtype)
+        del tensors
+        gc.collect()
+        torch.cuda.empty_cache()
+        self.model._sllm_v4_stage = "restoring_grouped_raw"
+        remainder = self.load_group(self.groups[0])
+        self.model._sllm_storage_owners = tuple(remainder.values())
+        self.owners = {}
+        for group in self.groups[1:]:
+            method = self.modules[group["module"]].quant_method
+            previous = vars(method).get("process_weights_after_loading", _NO_METHOD_OVERRIDE)
+            self.hooks.append((method, previous))
+            method.process_weights_after_loading = self.wrap(group, method.process_weights_after_loading)
+
+    def load_group(self, group):
+        from sllm_store.torch import load_dict_owned
+
+        self.active_group = group["id"]
+        storage = Path(os.environ["STORAGE_PATH"]).resolve()
+        directory = self.loader.root / "groups" / group["id"] / f"rank_{self.loader.rank}"
+        loaded = load_dict_owned(str(directory.resolve().relative_to(storage)),
+                                 {"": torch.cuda.current_device()}, storage_path=str(storage))
+        self.owners = loaded  # Retain even malformed returned state on any exception.
+        rows = self.documents[group["id"]]["tensors"]
+        canonical = {n for n, row in rows.items() if not row.get("empty") and "alias" not in row}
+        if set(loaded) != canonical:
+            raise ValueError("Incomplete or extra grouped Store tensors")
+        targets = named_tensors(self.model)
+        for name, row in rows.items():
+            tensor = targets[name]
+            value = (torch.empty(row["shape"], device=tensor.device, dtype=tensor.dtype)
+                     if row.get("empty") else loaded[row.get("alias", name)])
+            if (list(value.shape) != row["shape"] or str(value.dtype) != row["dtype"]
+                    or list(value.stride()) != row["stride"]):
+                raise ValueError("Grouped tensor dtype/shape/stride mismatch")
+            tensor.data = value
+        return loaded
+
+    def wrap(self, group, original):
+        def process(module):
+            if group["id"] in self.completed or self.groups[len(self.completed) + 1] != group:
+                raise ValueError("Expert postprocessing was repeated or reordered")
+            loaded = self.load_group(group)
+            original(module)
+            tensors = named_tensors(self.model)
+            for name, row in self.documents[group["id"]]["tensors"].items():
+                if "alias" in row:
+                    tensors[name].data = tensors[row["alias"]].data
+            del tensors
+            torch.cuda.synchronize()
+            assert_no_raw_references(self.model, loaded)
+            self.completed.append(group["id"])
+            loaded.clear()
+            self.owners = {}
+            self.active_group = None
+        return process
+
+    def restore_methods(self):
+        for method, previous in self.hooks:
+            if previous is _NO_METHOD_OVERRIDE:
+                vars(method).pop("process_weights_after_loading", None)
+            else:
+                method.process_weights_after_loading = previous
+        self.hooks.clear()
+
+    def finish(self):
+        if len(self.completed) != 61:
+            raise ValueError("Not all expert groups were postprocessed")
+        self.restore_methods()
+        _GROUPED_CONTEXTS.pop(self.key)
+        self.loader.session = None
+
+    def fail(self):
+        self.failed = True
+        self.model._sllm_v4_stage = "failed_grouped_restore"
+        self.restore_methods()
+
+
+class V4GroupedStoreLoader(V4RawLoader):
+    def prepare_store(self):
+        from sllm_store.v4_grouped_state import validate_grouped_complete, validate_grouped_rank
+
+        self.session = None
+        if (self.identity["conversion_id"], self.rank) in _GROUPED_CONTEXTS:
+            raise ValueError("Previous grouped restore context has not been retired")
+        self.root.resolve().relative_to(Path(os.environ["STORAGE_PATH"]).resolve())
+        validate_grouped_complete(self.root, self.identity)
+        self.grouped_metadata, _, _ = validate_grouped_rank(self.root, self.rank, self.identity)
+        self.group_documents, sizes = {}, {}
+        for group in self.grouped_metadata["groups"]:
+            path = self.root / "groups" / group["id"] / f"rank_{self.rank}" / "raw_state.json"
+            document = json.loads(path.read_text())
+            self.group_documents[group["id"]] = document
+            sizes[group["id"]] = sum(row["bytes"] for row in document["tensors"].values()
+                                     if not row.get("empty") and "alias" not in row)
+        # Necessary lower bound only; transient/other runtime allocations still need admission.
+        lower_bound = sum(sizes.values()) + max(v for k, v in sizes.items() if k != "remainder")
+        if lower_bound > torch.cuda.get_device_properties(torch.cuda.current_device()).total_memory:
+            raise ValueError("Grouped raw+Marlin lower bound exceeds device HBM")
+
+    def load_weights(self, model, model_config):
+        if getattr(model, "_sllm_v4_stage", None) is not None:
+            raise ValueError("Grouped restore requires a fresh model")
+        self.session = _GroupedRestoreSession(self, model)
+        self.session.begin()
+
+    def finish_model(self, model):
+        self.session.finish()
+
+    def load_model(self, *args, **kwargs):
+        try:
+            return super().load_model(*args, **kwargs)
+        except BaseException:
+            if getattr(self, "session", None) is not None:
+                self.session.fail()
+            raise

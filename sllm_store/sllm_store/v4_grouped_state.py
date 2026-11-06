@@ -7,7 +7,7 @@ from sllm_store.v4_state import (
     validate_rows, write_once,
 )
 
-FORMAT = "sllm-v4-pro-grouped-raw-v1"
+FORMAT = "sllm-v4-pro-grouped-raw-v2"
 EXPERT_SUFFIXES = ("w13_weight", "w2_weight", "w13_weight_scale", "w2_weight_scale")
 
 
@@ -28,8 +28,10 @@ def partition_groups(rows, methods, expert_order=None):
             "Mxfp4MoeBackend.MARLIN", "Mxfp4MoeBackend.BATCHED_MARLIN"
         ):
             raise ValueError("Grouped V4 requires the Marlin expert backend")
-        names = sorted(name for name in rows if name.startswith(prefix + "."))
-        if any(prefix + "." + suffix not in names for suffix in EXPERT_SUFFIXES):
+        canonical = {prefix + "." + suffix for suffix in EXPERT_SUFFIXES}
+        names = sorted(name for name in rows if name in canonical
+                       or name.startswith(prefix + ".") and rows[name].get("alias") in canonical)
+        if not canonical.issubset(names):
             raise ValueError(f"Incomplete expert weights/scales: {prefix}")
         group = dict(id=f"expert_{index:04d}", module=prefix, tensors=names)
         for name in names:
@@ -98,15 +100,33 @@ def validate_grouped_rank(root, rank, identity, verify_payload=False):
     return document, file_digest(path), device
 
 
-def publish_grouped_complete(root, identity):
+def worker_receipts(results, identity):
+    if not isinstance(results, list) or len(results) != TP_SIZE:
+        raise ValueError("All eight export worker results are required")
+    mapped = {}
+    for result in results:
+        rank = result.get("rank") if isinstance(result, dict) else None
+        if (type(rank) is not int or not 0 <= rank < TP_SIZE or rank in mapped
+                or result.get("identity") != identity or result.get("format") != FORMAT):
+            raise ValueError("Duplicate or incompatible export worker result")
+        mapped[rank] = result
+    return mapped
+
+
+def publish_grouped_complete(root, identity, results):
+    workers = worker_receipts(results, identity)
     ranks, devices = {}, set()
     for rank in range(TP_SIZE):
         _, digest, device = validate_grouped_rank(root, rank, identity, True)
+        receipt = validate_export_done(root, rank, identity, digest)
+        if workers[rank] != receipt:
+            raise ValueError("Worker result differs from the saved export completion")
         if device in devices:
             raise ValueError("Grouped ranks reported duplicate GPU UUIDs")
         devices.add(device)
         ranks[str(rank)] = digest
-    complete = dict(format=FORMAT, identity=identity, ranks=ranks)
+    complete = dict(format=FORMAT, identity=identity, ranks=ranks,
+                    workers=[workers[r] for r in range(TP_SIZE)])
     write_once(Path(root) / "COMPLETE.json", complete)
     return complete
 
@@ -116,10 +136,29 @@ def validate_grouped_complete(root, identity, verify_payload=False):
     if (complete.get("format") != FORMAT or complete.get("identity") != identity
             or set(complete.get("ranks", {})) != {str(r) for r in range(TP_SIZE)}):
         raise ValueError("Incomplete or incompatible grouped Store")
+    workers = worker_receipts(complete.get("workers"), identity)
     devices = set()
     for rank in range(TP_SIZE):
         _, digest, device = validate_grouped_rank(root, rank, identity, verify_payload)
+        if workers[rank] != validate_export_done(root, rank, identity, digest):
+            raise ValueError("Published export worker result changed")
         if digest != complete["ranks"][str(rank)] or device in devices:
             raise ValueError("Grouped rank changed or GPU UUID was repeated")
         devices.add(device)
     return complete
+
+
+def complete_grouped_export_rank(root, rank, identity):
+    """Called after the export loader's native postprocessing returns successfully."""
+    _, digest, _ = validate_grouped_rank(root, rank, identity)
+    receipt = dict(format=FORMAT, identity=identity, rank=rank, grouped_state_sha256=digest)
+    write_once(Path(root) / f"rank_{rank}" / "export_done.json", receipt)
+    return receipt
+
+
+def validate_export_done(root, rank, identity, digest):
+    path = checked_file(Path(root) / f"rank_{rank}", "export_done.json")
+    expected = dict(format=FORMAT, identity=identity, rank=rank, grouped_state_sha256=digest)
+    if json.loads(path.read_text()) != expected:
+        raise ValueError("Export worker completion does not match grouped rank")
+    return expected

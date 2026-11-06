@@ -29,6 +29,7 @@ class GroupedStateTests(unittest.TestCase):
         self.rows, self.methods = state_fixture()
 
     def populate(self, ranks=8):
+        self.results = []
         plan = grouped.partition_groups(self.rows, self.methods)
         for rank in range(ranks):
             entries = []
@@ -43,6 +44,7 @@ class GroupedStateTests(unittest.TestCase):
             directory.mkdir()
             raw.write_once(directory / "grouped_state.json", dict(format=grouped.FORMAT,
                 identity=identity(), rank=rank, groups=entries, quant_methods=self.methods))
+            self.results.append(grouped.complete_grouped_export_rank(self.root, rank, identity()))
 
     def test_partition_preserves_native_module_order_and_complete_coverage(self):
         plan = grouped.partition_groups(self.rows, self.methods)
@@ -71,18 +73,18 @@ class GroupedStateTests(unittest.TestCase):
 
     def test_all_rank_complete_and_no_overwrite(self):
         self.populate()
-        complete = grouped.publish_grouped_complete(self.root, identity())
+        complete = grouped.publish_grouped_complete(self.root, identity(), self.results)
         self.assertEqual(len(complete["ranks"]), 8)
         self.assertEqual(grouped.validate_grouped_complete(self.root, identity(), True), complete)
         with self.assertRaises(FileExistsError):
-            grouped.publish_grouped_complete(self.root, identity())
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
         with self.assertRaises((ValueError, FileNotFoundError)):
             raw.validate_complete(self.root, identity())
 
     def test_partial_rank_never_publishes_complete(self):
         self.populate(7)
         with self.assertRaises(ValueError):
-            grouped.publish_grouped_complete(self.root, identity())
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
         self.assertFalse((self.root / "COMPLETE.json").exists())
 
     def test_payload_corruption_and_missing_group_rejected(self):
@@ -90,7 +92,7 @@ class GroupedStateTests(unittest.TestCase):
         path = self.root / "groups/expert_0002/rank_0/tensor.data_0"
         path.write_bytes(b"x" * path.stat().st_size)
         with self.assertRaisesRegex(ValueError, "checksum"):
-            grouped.publish_grouped_complete(self.root, identity())
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
         self.assertFalse((self.root / "COMPLETE.json").exists())
         path.unlink()
         with self.assertRaises(ValueError):
@@ -104,6 +106,26 @@ class GroupedStateTests(unittest.TestCase):
         path.write_text(json.dumps(document))
         with self.assertRaisesRegex(ValueError, "order"):
             grouped.validate_grouped_rank(self.root, 0, identity())
+
+    def test_expert_buffers_stay_in_remainder_allocation(self):
+        self.rows["model.layers.0.experts.route_buffer"] = tensor_row("torch.int64", [1], "buffer")
+        plan = grouped.partition_groups(self.rows, self.methods)
+        self.assertIn("model.layers.0.experts.route_buffer", plan[0]["tensors"])
+        self.assertNotIn("model.layers.0.experts.route_buffer", plan[1]["tensors"])
+
+    def test_raw_files_without_successful_export_receipt_cannot_publish(self):
+        self.populate()
+        (self.root / "rank_7/export_done.json").unlink()
+        with self.assertRaises(ValueError):
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
+        self.assertFalse((self.root / "COMPLETE.json").exists())
+
+    def test_all_files_are_insufficient_when_worker_results_are_missing_or_duplicate(self):
+        self.populate()
+        for results in (self.results[:-1], self.results[:-1] + [self.results[0]]):
+            with self.assertRaises(ValueError):
+                grouped.publish_grouped_complete(self.root, identity(), results)
+        self.assertFalse((self.root / "COMPLETE.json").exists())
 
     def test_wrong_backend_rejected(self):
         next(iter(self.methods.values()))["backends"]["mxfp4_backend"] = "other"

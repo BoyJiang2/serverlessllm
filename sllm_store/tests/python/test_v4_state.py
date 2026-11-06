@@ -85,6 +85,22 @@ class V4StateTests(unittest.TestCase):
         edit(document)
         path.write_text(json.dumps(document))
 
+    def test_overlapping_canonical_offsets_cannot_publish(self):
+        self.populate()
+        directory = self.root / "rank_0"
+        path = directory / "tensor_index.json"
+        index = json.loads(path.read_text())
+        names = list(index)
+        index[names[1]][0] = index[names[0]][0]
+        path.write_text(json.dumps(index))
+        document_path = directory / "raw_state.json"
+        document = json.loads(document_path.read_text())
+        document["files"]["tensor_index.json"] = dict(bytes=path.stat().st_size, sha256=state.file_digest(path))
+        document_path.write_text(json.dumps(document))
+        with self.assertRaisesRegex(ValueError, "overlap"):
+            state.publish_complete(self.root, identity())
+        self.assertFalse((self.root / "COMPLETE.json").exists())
+
     def test_partial_rank_cannot_publish_and_complete_cannot_be_overwritten(self):
         self.populate(7)
         with self.assertRaises(ValueError):

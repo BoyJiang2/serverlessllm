@@ -311,7 +311,8 @@ class V4LoaderTests(unittest.TestCase):
 
     def test_plugin_registers_two_concrete_loaders_using_pinned_registry(self):
         self.loader.register()
-        self.assertEqual(set(self.registry), {"sllm_v4_export", "sllm_v4_store"})
+        self.assertEqual(set(self.registry), {"sllm_v4_export", "sllm_v4_store",
+                                               "sllm_v4_grouped_export", "sllm_v4_grouped_store"})
         self.assertTrue(issubclass(self.registry["sllm_v4_store"], self.base))
 
 
