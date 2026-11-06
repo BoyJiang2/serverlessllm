@@ -246,6 +246,11 @@ class SllmController:
                     f"Model {model_name} not found, please register first"
                 )
 
+            from sllm_store.v4_service import is_v4_registration
+
+            if is_v4_registration(self.registered_models[model_name]):
+                raise ValueError("V4 configuration is frozen; delete the old route and register again")
+
         # update auto-scaling config
         auto_scaling_config = model_config.get("auto_scaling_config", None)
         logger.info(f"Try to update the model {model_name} config")

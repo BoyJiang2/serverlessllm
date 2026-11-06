@@ -1,0 +1,40 @@
+test_legacy_scaling_update_still_reaches_router (test_v4_update.FrozenUpdateContracts) ... ok
+test_unknown_model_still_requires_registration (test_v4_update.FrozenUpdateContracts) ... ok
+test_v4_empty_or_same_update_does_not_silently_succeed (test_v4_update.FrozenUpdateContracts) ... test_v4_scaling_update_fails_before_metadata_and_router_changes (test_v4_update.FrozenUpdateContracts) ... FAIL
+
+======================================================================
+FAIL: test_v4_empty_or_same_update_does_not_silently_succeed (test_v4_update.FrozenUpdateContracts) (request={})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_update.py", line 25, in test_v4_empty_or_same_update_does_not_silently_succeed
+    with self.assertRaisesRegex(ValueError, "V4"):
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_v4_empty_or_same_update_does_not_silently_succeed (test_v4_update.FrozenUpdateContracts) (request={'auto_scaling_config': {'min_instances': 0, 'max_instances': 1}})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_update.py", line 25, in test_v4_empty_or_same_update_does_not_silently_succeed
+    with self.assertRaisesRegex(ValueError, "V4"):
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_v4_scaling_update_fails_before_metadata_and_router_changes (test_v4_update.FrozenUpdateContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_update.py", line 16, in test_v4_scaling_update_fails_before_metadata_and_router_changes
+    with self.assertRaisesRegex(ValueError, "V4.*delete.*register"):
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.053s
+
+FAILED (failures=3)

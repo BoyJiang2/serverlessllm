@@ -6,7 +6,7 @@ from pathlib import Path
 import types
 import unittest
 from unittest import mock
-from typing import List, Optional
+from typing import List, Mapping, Optional
 
 import test_v4_service as service_fixture
 
@@ -17,8 +17,8 @@ def controller_class():
     source = ROOT / "sllm/controller.py"
     tree = ast.parse(source.read_text())
     cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "SllmController")
-    cls.body = [n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name in ("register", "delete")]
-    names = dict(asyncio=asyncio, logger=mock.Mock(), List=List, Optional=Optional,
+    cls.body = [n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name in ("register", "delete", "update")]
+    names = dict(asyncio=asyncio, logger=mock.Mock(), List=List, Optional=Optional, Mapping=Mapping,
                  ray=types.SimpleNamespace(kill=mock.Mock()))
     exec(compile(ast.Module(body=[cls], type_ignores=[]), str(source), "exec"), names)
     return names["SllmController"]

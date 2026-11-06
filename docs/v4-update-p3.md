@@ -1,0 +1,15 @@
+# V4 frozen route update contract
+
+2026-11-06; parent `315025179a160f32088a2881363a88a4b3f273b4`.
+
+The active V4 route configuration was protected at registration, but Controller.update still overwrote auto_scaling_config and sent router.update without consulting the frozen binding. A request setting min_instances=max_instances=2 could therefore change the live route independently of StoreManager's prepared common configuration and frozen experiment controls.
+
+The existing update method now checks the stored route's V4 identity while holding metadata_lock, before any update to metadata or router RPC. V4 requests raise ValueError and instruct callers to delete the route and register again. Empty and same-config updates also fail explicitly; this API does not claim an unsupported mutation succeeded. Legacy update behavior and missing-model errors remain unchanged. Detection uses stored identity, so request fields cannot disguise a V4 route. The guard uses the existing is_v4_registration helper rather than creating a second classifier.
+
+Delete/register remains subject to the existing StoreManager common-config binding: it permits the two frozen loading modes with the same common configuration, not arbitrary changes to the frozen experiment. A genuinely different profile requires separate reviewed experiment/preparation state. This change does not implement dynamic V4 scaling, LoRA updates, concurrency leases or general initial-profile admission.
+
+Four new CPU tests exercise the actual Controller update source via the existing AST harness (Ray/router transport are substitutes): changed scaling rejection before side effects, empty/same updates, legacy forwarding, and missing route rejection. Before the fix, four tests ran with three assertion failures (two are subcases); the log is preserved. After the five-line source fix, the complete CPU suite passed 286/286 with no skips/errors/failures, including the preceding real-BPE backend companion test. Production source manifest still covers 29 cumulative changed runtime files; current diff SHA is `a45676a936acc9ac3f12a0b53ef6a12343a407d1735a3e50aebe42f300fb6a5b` over the stated parent.
+
+The existing app_lib /update handler awaits controller.update and maps RayTaskError to HTTP 400. That path was inspected, not executed with live HTTP/Ray; no HTTP status runtime claim is made. No environment installation, model payload read, native extension qualification, GPU or formal attempt occurred. Full weights, native model gold, full Store recovery, actual service lifecycle and physical release for at least 60 seconds remain pending. The separate full-weight IO scope question remains unanswered.
+
+Evidence: docs/evidence/v4-update-p3/{update-red.log,update-suite.log,update-suite-receipt.json,update-reviewed-source-manifest.json,artifact-manifest.json}; source scripts archived beside them. Active remote code/evidence remain /home/boyjiang/sllm-v4-pro/{code,evidence}; model remains the user-selected /mnt/raid/models/DeepSeek-V4-Pro, read-only.
