@@ -79,10 +79,15 @@ def convert_grouped_store(model_path, store_path, identity):
         ctx["engine"] = engine
         ctx["stage"] = "collecting"
         results = collect_export_receipts(engine, identity)
+        write_once(root / "EXPORT_RECEIPTS.json", dict(identity=identity,
+            workers=results, collected_unix_ns=time.time_ns()))
         ctx["stage"] = "shutting_down"
         shutdown_attempted = True
         engine.llm_engine.engine_core.shutdown(timeout=SHUTDOWN_TIMEOUT_SECONDS)
         ctx["engine"] = None
+        ctx["stage"] = "recording_shutdown"
+        write_once(root / "ENGINE_SHUTDOWN.json", dict(identity=identity,
+            completed_unix_ns=time.time_ns()))
         ctx["stage"] = "publishing"
         complete = publish_grouped_complete(root, identity, results)
     except BaseException as error:

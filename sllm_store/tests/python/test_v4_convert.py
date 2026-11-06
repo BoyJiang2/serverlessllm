@@ -120,6 +120,52 @@ class ConversionTests(unittest.TestCase):
         self.assertNotIn("num_gpu_blocks_override", self.config)
         self.assertFalse((self.root / "CONVERSION_FAILED.json").exists())
 
+    def test_receipts_are_durable_before_shutdown_and_publication(self):
+        def inspect_receipts():
+            receipt = json.loads((self.root / "EXPORT_RECEIPTS.json").read_text())
+            self.assertEqual(receipt["identity"], identity())
+            self.assertEqual(receipt["workers"], self.fixture.results)
+            self.assertFalse((self.root / "ENGINE_SHUTDOWN.json").exists())
+        self.shutdown_edit = inspect_receipts
+        def stop_before_publication(*args):
+            self.assertTrue((self.root / "ENGINE_SHUTDOWN.json").exists())
+            raise KeyboardInterrupt()
+        with mock.patch.object(convert, "publish_grouped_complete", side_effect=stop_before_publication):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_conversion()
+        self.assertFalse((self.root / "COMPLETE.json").exists())
+        self.assertTrue((self.root / "CONVERSION_FAILED.json").exists())
+
+    def test_receipt_write_failure_still_shuts_down_and_blocks_publication(self):
+        original = convert.write_once
+        def write(path, document):
+            if path.name == "EXPORT_RECEIPTS.json":
+                raise OSError("receipt disk failed")
+            return original(path, document)
+        with mock.patch.object(convert, "write_once", side_effect=write):
+            with self.assertRaisesRegex(OSError, "receipt disk failed"):
+                self.run_conversion()
+        self.assertEqual(self.events, ["construct", "rpc", "shutdown"])
+        self.assertFalse((self.root / "ENGINE_SHUTDOWN.json").exists())
+        self.assertFalse((self.root / "COMPLETE.json").exists())
+        self.assertFalse(convert.export_contexts()[0]["engine_retained"])
+
+    def test_shutdown_record_failure_does_not_claim_shutdown_itself_failed(self):
+        original = convert.write_once
+        def write(path, document):
+            if path.name == "ENGINE_SHUTDOWN.json":
+                raise OSError("shutdown receipt disk failed")
+            return original(path, document)
+        with mock.patch.object(convert, "write_once", side_effect=write):
+            with self.assertRaisesRegex(OSError, "shutdown receipt disk failed"):
+                self.run_conversion()
+        self.assertEqual(self.events.count("shutdown"), 1)
+        failure = json.loads((self.root / "CONVERSION_FAILED.json").read_text())
+        self.assertEqual(failure["stage"], "recording_shutdown")
+        self.assertIsNone(failure["shutdown_error"])
+        self.assertFalse(failure["engine_retained"])
+        self.assertFalse((self.root / "COMPLETE.json").exists())
+
     def test_timeout_retains_failure_and_never_substitutes_saved_rank_files(self):
         self.rpc_error = TimeoutError("rank timed out")
         with self.assertRaises(TimeoutError):
@@ -148,6 +194,8 @@ class ConversionTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "workers still active"):
             self.run_conversion()
         self.assertFalse((self.root / "COMPLETE.json").exists())
+        self.assertTrue((self.root / "EXPORT_RECEIPTS.json").exists())
+        self.assertFalse((self.root / "ENGINE_SHUTDOWN.json").exists())
         context = convert.export_contexts()[0]
         self.assertTrue(context["engine_retained"])
         self.assertEqual(context["shutdown_error"], "RuntimeError")

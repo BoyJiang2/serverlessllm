@@ -1,0 +1,11 @@
+# Store conversion preparation after qualified native reference
+
+The complete native reference and frozen gold remain at commit 1016523. This batch does not run another model or claim Store runtime qualification.
+
+Five production lines persist validated eight-rank RPC results in EXPORT_RECEIPTS.json before shutdown, then ENGINE_SHUTDOWN.json only after shutdown returns. Each uses the existing atomic/fsynced write_once. Neither marker replaces COMPLETE, payload hashing, external release observation or successful terminal receipts. Shutdown receipt I/O failure is classified recording_shutdown, does not falsely report a shutdown failure, and blocks COMPLETE. Actual shutdown failure retains the engine and omits the shutdown marker. No automatic resume or offline publication is added.
+
+The target-host CPU suite passed 32 coordinator/grouped-state cases, including interruption before publication and both receipt-write failures. Raw log, source hashes and a plan generated against the actual model config are retained in evidence/v4-store-next-preparation. The candidate identity uses installed Torch 2.11.0+cu130, not the historical CPU placeholder. No torch/vLLM/Ray/native Store import or target Store directory creation occurred in the plan.
+
+Available local XFS space was 2379955785728 bytes. Expert raw metadata alone requires at least 822054223872 bytes; this excludes the remainder, Store layout and temporary/pool overhead and is not capacity admission. Actual group sizes, pool reservation, eight-rank ownership/failure propagation, output parity and service lifecycle remain unverified. Retain the 174 native JIT binaries for reuse with unchanged software/configuration.
+
+Installed wheels and runtime image remain unchanged; this source change must be supplied explicitly to any future runtime. The last runtime authorization excluded Store conversion, service and formal experiments. Current direct-continuation instruction covers routine work without repeated questions; no conversion or formal trial was launched by this preparation. Before a Store launch, bind the reviewed source, enforce the existing outer guard and independent release observation, and establish the applicable runtime scope and resource admission. Old formal IDs and the native gold are unchanged.
