@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_CPU_PASS_OFFICIAL_API_REF_GATE_NOT_RUNTIME",
+  "created_utc": "2026-11-06T19:38:59.405208+00:00",
+  "host": "qjhs3",
+  "baseline_published_commit_prefix": "f970182",
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "08c369cae30ab95d4c79bc8e24522b697e89c699efaacc5cb444ee0e58bd1595",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "a286385f45682d09d2919aa372cf57cb5390357cb5ff61970e9b0e0258502f1a"
+  },
+  "scope": "Only committed_source remote-ref transport and its CPU tests changed; no renderer/deployment/request/ID/policy/deadline changes.",
+  "remote_ref_gate": {
+    "method": "GET",
+    "endpoint": "https://api.github.com/repos/BoyJiang2/serverlessllm/git/ref/heads/<URL-encoded-branch>",
+    "allowed_origin": "HTTPS github.com/BoyJiang2/serverlessllm with optional.git, no userinfo/port/query/fragment",
+    "authentication": "Effective Git extraheader read in memory, added with Request.add_unredirected_header; redirected standard-library Request lacks Authorization and finalURL still rejected.",
+    "timeout_seconds": 20,
+    "response_max_bytes": 65536,
+    "checks": [
+      "HTTP200 and exact final API URL",
+      "exact refs/heads/<current branch>",
+      "object.type commit",
+      "exact lowercase40hex SHA equal requested/localHEAD"
+    ],
+    "no_git_smart_http_ls_remote": true,
+    "no_fallback_or_bypass": true,
+    "cache_control": "no-cache"
+  },
+  "preserved_checks": [
+    "local HEAD exact expectedcommit",
+    "tracked-clean status",
+    "all declared source bytes equal git-show committed blobs",
+    "all rendering and frozen-source/pin conditions remain unchanged"
+  ],
+  "tests": {
+    "count": 51,
+    "passed": 51,
+    "returncode": 0,
+    "previous48": "All retained with existing mock-Git gate adapted to API transport; strict legacy/new length criterion/actual generation hashes unchanged",
+    "added": [
+      "actual committed_source positive exact official URL encoded branch/header/timeout/read-bound and declared blob execution",
+      "wrong ref/SHA/SHA shape/object type, timeout, oversized reply, HTTP status/final URL, wrong origin/missing credential all fail closed; no print or credential in errors",
+      "Actual HTTPRedirectHandler.redirect_request consumes captured real Request: original has Authorization, redirected Request does not; no network or real credential."
+    ],
+    "network_scope": "API responses mocked in actual function; no network/prepare/GPU execution in regression",
+    "stdout": "",
+    "stderr": "...................................................\n----------------------------------------------------------------------\nRan 51 tests in 14.632s\n\nOK\n"
+  },
+  "remaining": [
+    "independent source review and explicit commit/publish",
+    "actual source gate with existing per-process credentials after commit",
+    "new append-only frozen protocol/actual-artifact audit and fresh runtime admission"
+  ],
+  "not_performed": [
+    "Git mutation or global config change",
+    "credential persistence or output",
+    "actual prepare artifacts",
+    "GPU/Store/container/model/cache execution"
+  ],
+  "supersedes": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-source-github-api-ref-gate-source-cpu-verification-v2-20261107.json",
+    "sha256": "910b49a464aba4143b804f1990f0876ff5137ce8e3ac7dd3688f1d2b21c4d3cd",
+    "reason": "Authorization now unredirected header; actual stdlib redirect_request verifies credential omission."
+  }
+}

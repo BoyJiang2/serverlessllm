@@ -1,0 +1,128 @@
+{
+  "status": "SOURCE_CPU_PASS_NEW_PROSPECTIVE_FIXED32_LENGTH_ONLY_NOT_RUNTIME",
+  "created_utc": "2026-11-06T19:20:58.962733+00:00",
+  "host": "qjhs3",
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "6cca7f0aaf71b920618ce6e1c86a5ab4105fa445a502e0bd6a4ac48aba11b996",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "9df099559ea8644d597df6fde86618259ecdde05847ba495443307648d8fec8e"
+  },
+  "baseline_commit": "4a9982e63495d2de5aa125d2e20db9b490a5b2d2",
+  "tests": {
+    "count": 48,
+    "returncode": 0,
+    "seconds": 14.366,
+    "result": "48/48 PASS",
+    "new_cases": [
+      "actual generated HTTP producer and parent accept32 sampled IDs/length/26,32,58 usage with separately retained strict text/token/finish comparisons",
+      "actual generated history uses sampled-first IDs and actual Counter trace mismatch fails",
+      "31/33/nonlength/wrongusage reject; arithmetic/translation text change and strict legacy fixed32 change still reject",
+      "frozen only third fixed32_length_only_v1 allowed; exact bounded b01 retry03 map and retained historical records; used runtime ID rejects",
+      "New restart rejects old active2/42 accounting and inconsistent all-gold token validation disclosure; old strict revision retains2/42 behavior."
+    ],
+    "old_tests": "All previous45 retained including formal strict rendered SHA532fc and old diagnostic modes."
+  },
+  "criterion": {
+    "mode": "fixed32_length_only_v1",
+    "allowed_only_case": "fixed32",
+    "length": 32,
+    "finish_reason": "length",
+    "usage": {
+      "prompt_tokens": 26,
+      "completion_tokens": 32,
+      "total_tokens": 58
+    },
+    "strict_reference": "Original expected/gold retained; text/token/finish equality reported independently, not performance failure under new third-request criterion",
+    "business": "arithmetic/translation strict unchanged",
+    "independent_actual_tokens": "sampled-first logprobs dictionaries plus original backend cumulative Counter equality; no rank1 assumption"
+  },
+  "runtime_mapping": {
+    "only_b01": "retry03",
+    "b02": "retry02 preserved unused",
+    "b03_to_b10": "original IDs",
+    "prior_formal_launches": 4,
+    "target_total_launch_requests_max": 44,
+    "retained_retry02_primary_qualified": [
+      true,
+      false
+    ],
+    "old40_design_unchanged": true,
+    "preserved_unstarted2": "b01 positions3/4 retry02 retained, not samples",
+    "active_revision_actual_launch_requests_at_authorization": 4,
+    "active_revision_target_total_launch_requests_max": 44,
+    "legacy_revision_accounting": "Without length_only_b01_restart, original2/42 remains required."
+  },
+  "actual_in_memory_v5": {
+    "draft_protocol_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-local-nvme-length-only-v5-source-pending-v2-20261107.json",
+    "draft_protocol_sha256": "576381b3579284cef24b89805fd53cfa529031acc3c31ab4b8e0cf802851a066",
+    "status": "DRAFT source pending, not frozen/executable; no artifacts written",
+    "four_children": [
+      {
+        "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry03",
+        "condition": "safetensors_disk_hot",
+        "root_python_sha256": "18ff84aa3ad58de3bb48a9ae5b9d6fe8f9141c7790b78a6356e490e428c681a4",
+        "http_role_sha256": "fad046ca383f84c185279cc7c34f570620515399bc986d431922f11095dd625e",
+        "pins_match": true,
+        "full_max_seconds": 7200
+      },
+      {
+        "run_id": "kimi-four-v1-b01-store_disk_cold-retry03",
+        "condition": "store_disk_cold",
+        "root_python_sha256": "18ff84aa3ad58de3bb48a9ae5b9d6fe8f9141c7790b78a6356e490e428c681a4",
+        "http_role_sha256": "fad046ca383f84c185279cc7c34f570620515399bc986d431922f11095dd625e",
+        "pins_match": true,
+        "full_max_seconds": 7200
+      },
+      {
+        "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry03",
+        "condition": "safetensors_disk_cold",
+        "root_python_sha256": "18ff84aa3ad58de3bb48a9ae5b9d6fe8f9141c7790b78a6356e490e428c681a4",
+        "http_role_sha256": "fad046ca383f84c185279cc7c34f570620515399bc986d431922f11095dd625e",
+        "pins_match": true,
+        "full_max_seconds": 7200
+      },
+      {
+        "run_id": "kimi-four-v1-b01-store_pool_hit-retry03",
+        "condition": "store_pool_hit",
+        "root_python_sha256": "18ff84aa3ad58de3bb48a9ae5b9d6fe8f9141c7790b78a6356e490e428c681a4",
+        "http_role_sha256": "fad046ca383f84c185279cc7c34f570620515399bc986d431922f11095dd625e",
+        "pins_match": true,
+        "full_max_seconds": 7200
+      }
+    ],
+    "validation": "Real draftv2 shape passes validate_frozen_protocol using fixture-only in-memory FROZEN status/p.SOURCE substitution; all4 actual child bodies+9roles compile and all codepins fresh match. No executable artifacts written."
+  },
+  "canonical_patch_pin": {
+    "stale_inherited": "9d16dba24979862b8470a1859d7b343e6ad3ee430cc2dcac32bc2185777ed3f4",
+    "current_committed_source": "6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db",
+    "only_drift_observed": true,
+    "formal_declared_source_includes_patch": true,
+    "active_runtime_overlay_remains": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+    "note": "Canonical source pin updated; active overlay remains old9d-built f7 and no fingerprint flag. No ELF/manifest/rebuild change."
+  },
+  "unchanged": [
+    "old strict golden files and failures",
+    "original default strict rendered root SHA532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee",
+    "7200/28920 budgets and guards/release60/Store60",
+    "statistical paired design and condition definitions",
+    "ELF95d/manifest59d/oldf7 overlay"
+  ],
+  "not_performed": [
+    "Git",
+    "GPU",
+    "Store",
+    "Docker",
+    "real cache operations",
+    "runtime preparation or launch"
+  ],
+  "remaining": [
+    "independent source review",
+    "explicit commit/published SHA proof",
+    "parent freezes protocol source/hash then final actual artifact review",
+    "fresh full authorized block window/root/resources/claims admission"
+  ],
+  "supersedes": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-fixed32-length-only-and-b01-restart-source-cpu-verification-20261107.json",
+    "sha256": "275f5de53c7b676c4c09789d0629af55a037d385b21550c40f63fcb715d53861",
+    "reason": "Parent actual v5 accounting metadata aligned: active revision4/44; exact new token-validation disclosure; historical v4 accounting preserved."
+  }
+}

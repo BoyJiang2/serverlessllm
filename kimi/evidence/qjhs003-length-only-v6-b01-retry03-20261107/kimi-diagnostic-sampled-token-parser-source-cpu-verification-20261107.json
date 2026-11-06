@@ -1,0 +1,41 @@
+{
+  "status": "PARSER_ONLY_SOURCE_CPU_PASS_NOT_RUNTIME",
+  "created_utc": "2026-11-06T19:10:47.707339+00:00",
+  "host": "qjhs3",
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "e0cf56979fa87d2473bc45c465b9c3f3a9b96d4cac976c78b1dd8dc481a500c2",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "92bd7c82d9aac84ed0aa93ea20d516d7f8ed11537404295441c95ed0d3cf9e87"
+  },
+  "parent_committed_baseline": "c745e6cab2e9774d836cf8990d02effb824b4cd9",
+  "contract": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-logprobs-sampled-token-contract-readonly-review-20261107.json",
+    "sha256": "42b7e1bf6a9a8011136c68a47cc79ad89e30bdb7a24d15da778e157e1ada8d13"
+  },
+  "change": "Diagnostic response parser accepts K..K+1 distinct valid metadata entries and preserves sampled-first dictionary insertion order; does not infer sampled IDs from rank1 or require contiguous ranks. Independent cumulative trace comparison unchanged and mandatory.",
+  "tests": {
+    "count": 45,
+    "returncode": 0,
+    "seconds": 14.356,
+    "scope": [
+      "actual generated diagnostic_response executed against all4 original raw HTTP files with SHA checks",
+      "all4 full prompt+sampled generation histories pass actual generated Counter check against independent35 trace SHA; changing final1852 to rank1 119304 rejects",
+      "real fourth sampledrank2 float32tie retained; strict_gold_match false unchanged",
+      "synthetic outside-topK K+1 entry and noncontinuousrank accepted",
+      "malformed count/key/rank/nonfinite/missing/logprob metadata rejected",
+      "all prior43 CPU tests retained including formal-root identity, deadline/guard/role/IDs/singlecase/fullFP evidence"
+    ]
+  },
+  "unchanged": [
+    "formal acceptance and gold",
+    "formal default rendered root SHA532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee",
+    "LP1/1/1/2 requests",
+    "runtime ID mapping, budgets, release60, role bodies",
+    "original strict failures and old artifacts"
+  ],
+  "limits": [
+    "First-entry sampled identity depends on pinned vLLM producer/native backend and ordered JSON contract; exact independent trace cross-check remains the deployment proof",
+    "No new GPU/Store/container/request/cache operation; no formal sample or historical failure promoted",
+    "Formal acceptance and ID revisions intentionally deferred to parent/user decision"
+  ],
+  "git_or_runtime_executed": false
+}

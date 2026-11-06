@@ -1,0 +1,28 @@
+{
+  "status": "ACCEPT_DIAGNOSTIC_PARSER_ONLY_SOURCE_CPU_NOT_RUNTIME",
+  "timestamp_utc": "2026-11-06T19:12:05.894430+00:00",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "e0cf56979fa87d2473bc45c465b9c3f3a9b96d4cac976c78b1dd8dc481a500c2",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "92bd7c82d9aac84ed0aa93ea20d516d7f8ed11537404295441c95ed0d3cf9e87"
+  },
+  "author_cpu_receipt_sha256": "657af608b654adec23fd368911238397b5e7789e21a7bfe82cca447e64287f1e",
+  "independent_tests": {
+    "count": 2,
+    "pass": 2,
+    "command": "python3 -B -m unittest test_prepare_kimi_four_condition.SampledLogprobsParserTest -v",
+    "stderr": "test_actual_four_responses_sampled_ids_match_independent_trace (test_prepare_kimi_four_condition.SampledLogprobsParserTest) ... ok\ntest_sampled_outside_topk_and_malformed_metadata (test_prepare_kimi_four_condition.SampledLogprobsParserTest) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.388s\n\nOK\n"
+  },
+  "checks": [
+    "Diagnosticparser now selects firstinserted tokenID, not rank1. Pinned vLLMsampler puts sampledtoken first, engineprocessor preservesfirstposition and normaldictconstruction preservesinsertionorder; originalactualbackendtrace independentlyauthenticates eachresult.",
+    "Actualgenerateddiagnostic_response ran against all4rawHTTP byteSHAverifiedfiles; fullprompt+sampledIDhistory Countermatches SHAverified35trace. Fourth actualsample1852 rank2 tie preserved; replacingitwith rank1token119304 fails originalCounter with tokenhistorymessage.",
+    "K..K+1 metadataentries handles sampledoutsidetopK with noncontinuousrank; canonicalnonnegativeIDstrings, nonboolpositiveintranks, finiteint/floatlogprobs required; malformed/missing/nonfinite rows reject.",
+    "FormalactualrootSHA freshlygenerated532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee unchanged. Parserchange confinedDIAGNOSTIC_FUNCTIONS; roles/requestLP1,1,1,2/IDmapping/budgets/guards/release/formalacceptance untouched.",
+    "Fourth strictgoldfalse remains false. This correction doesnotpromote historicalFAIL or prove repeatability/loadercorrectness. OriginalproducerAPI/outputschema unchanged."
+  ],
+  "limits": [
+    "SourceCPUacceptanceonly; no newGPU/Store/container/HTTPrequest/cache operation, no runtimePASS.",
+    "Sampledfirst contract is pinned producer plus orderpreservingnativepath, not arbitraryOpenAIJSONstandard; mustretain independenttraceequality and avoid keysorting beforeparsing.",
+    "Author fullsuite45PASS14.356s receiptread; independentlyreran2newactualconsumer cases and formalrootidentity, notanadditionalfullmatrix.",
+    "No source/Git edits by reviewer; parent tocommit/publish explicitfiles only."
+  ]
+}
