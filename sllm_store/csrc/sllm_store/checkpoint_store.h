@@ -89,6 +89,10 @@ class CheckpointStore {
   size_t chunk_size_;
 
   std::queue<std::future<int>> async_tasks_;
+  // Retain completion, including pre-replica failures, for repeated Confirm RPCs.
+  std::unordered_map<std::string,
+                     std::unordered_map<std::string, std::shared_future<int>>>
+      gpu_load_tasks_;
 
   size_t GetNumChunkFromTensorSize(size_t tensor_size);
   ModelPtr GetModelPtr(const std::string& model_path);

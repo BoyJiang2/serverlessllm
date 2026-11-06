@@ -231,12 +231,9 @@ int CheckpointStore::LoadModelFromMem(
   auto ret = model->ToGpu(replica_uuid, device_ptrs, converted_mem_copy_chunks,
                           converted_mem_copy_handles);
 
-  // TODO: check if the model is loaded successfully
   if (ret != 0) {
+    // Keep failed replica state: a late or repeated Confirm must see failure.
     LOG(ERROR) << "Failed to load model " << model_path << " to GPU";
-    if (model->FreeGpu(replica_uuid) != 0) {
-      LOG(ERROR) << "Failed to free memory for model " << model_path;
-    }
   }
 
   return ret;
@@ -247,34 +244,65 @@ int CheckpointStore::LoadModelFromMemAsync(
     const std::unordered_map<std::string, MemCopyHandleList>&
         gpu_memory_handles,
     const std::unordered_map<std::string, MemCopyChunkList>& mem_copy_chunks) {
+  if (model_path.empty() || replica_uuid.empty()) {
+    return -1;
+  }
   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
-  async_tasks_.emplace(std::async(
+  auto& replicas = gpu_load_tasks_[model_path];
+  if (replicas.find(replica_uuid) != replicas.end()) {
+    return -1;
+  }
+  replicas.emplace(replica_uuid, std::async(
       std::launch::async,
       [this, model_path, replica_uuid, gpu_memory_handles, mem_copy_chunks]() {
         return LoadModelFromMem(model_path, replica_uuid, gpu_memory_handles,
                                 mem_copy_chunks);
-      }));
+      }).share());
 
   return 0;
 }
 
 int CheckpointStore::WaitModelInGpu(const std::string& model_path,
                                     const std::string& replica_uuid) {
-  // check if the model is in memory
-  std::shared_ptr<Model> model;
-  std::unique_lock<std::mutex> lock_info(model_info_mutex_);
-  if (model_map_.find(model_path) == model_map_.end()) {
-    LOG(ERROR) << "Model " << model_path << " is not registered";
+  std::shared_future<int> completion;
+  {
+    std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+    auto requests = gpu_load_tasks_.find(model_path);
+    if (requests == gpu_load_tasks_.end() ||
+        requests->second.find(replica_uuid) == requests->second.end()) {
+      return 1;
+    }
+    completion = requests->second.at(replica_uuid);
+  }
+  // ToGpu returns only after copy and IPC close; keep its result for retries.
+  try {
+    return completion.get() == 0 ? 0 : 1;
+  } catch (const std::exception& error) {
+    LOG(ERROR) << "GPU load failed: " << error.what();
+    return 1;
+  } catch (...) {
+    LOG(ERROR) << "GPU load failed with an unknown exception";
     return 1;
   }
-  model = model_map_[model_path];
-  lock_info.unlock();
-
-  return model->WaitInGpu(replica_uuid);
 }
 
 int CheckpointStore::ClearMem() {
   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+  for (const auto& [path, replicas] : gpu_load_tasks_) {
+    for (const auto& [uuid, completion] : replicas) {
+      if (completion.wait_for(std::chrono::seconds(0)) !=
+          std::future_status::ready) {
+        return -1;
+      }
+      try {
+        if (completion.get() != 0) {
+          return -1;
+        }
+      } catch (...) {
+        return -1;
+      }
+    }
+  }
   for (auto& [model_path, model] : model_map_) {
     LOG(INFO) << "Unloading model " << model_path;
     int ret = model->FreeHost();

@@ -1,0 +1,24 @@
+test_async_failure_exception_duplicate_and_repeated_confirm (test_v4_confirm_terminal.ConfirmTerminalTests) ... FAIL
+test_failed_copy_does_not_erase_replica_before_confirm (test_v4_confirm_terminal.ConfirmTerminalTests) ... FAIL
+
+======================================================================
+FAIL: test_async_failure_exception_duplicate_and_repeated_confirm (test_v4_confirm_terminal.ConfirmTerminalTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_confirm_terminal.py", line 81, in test_async_failure_exception_duplicate_and_repeated_confirm
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: 1 != 0 : terminal contracts failed
+
+
+======================================================================
+FAIL: test_failed_copy_does_not_erase_replica_before_confirm (test_v4_confirm_terminal.ConfirmTerminalTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/data/brick1/boyjiang/sllm-v4-p3-20261106/sllm_store/tests/python/test_v4_confirm_terminal.py", line 88, in test_failed_copy_does_not_erase_replica_before_confirm
+    self.assertNotIn("model->FreeGpu(replica_uuid)", text[a:b])
+AssertionError: 'model->FreeGpu(replica_uuid)' unexpectedly found in 'int CheckpointStore::LoadModelFromMem(\n    const std::string& model_path, const std::string& replica_uuid,\n    const MemCopyHandleListMap& gpu_memory_handles,\n    const MemCopyChunkListMap& mem_copy_chunks) {\n  // Sanity check\n  if (model_path.empty() || replica_uuid.empty()) {\n    LOG(ERROR) << "Model name or replica uuid is empty";\n    return -1;\n  } else if (mem_copy_chunks.empty()) {\n    LOG(ERROR) << "No memory copy chunk provided";\n    return -1;\n  } else if (gpu_memory_handles.size() != mem_copy_chunks.size()) {\n    LOG(ERROR) << "Mismatch between memory handles "\n               << gpu_memory_handles.size() << " and memory copy chunks "\n               << mem_copy_chunks.size();\n    return -1;\n  }\n  std::unique_lock<std::mutex> lock_info(model_info_mutex_);\n  auto model = GetModelPtr(model_path);\n  if (model == nullptr) {\n    LOG(ERROR) << "Model " << model_path << " is not registered";\n    return -1;\n  }\n  model_last_access_time_[model_path] = std::chrono::system_clock::now();\n  lock_info.unlock();\n\n  LOG(INFO) << "Loading model " << model_path;\n\n  // Convert device uuid to device id\n  std::unordered_map<int, MemCopyChunkList> converted_mem_copy_chunks;\n  for (auto& [device_id, gpu_info] : gpu_info_map_) {\n    if (mem_copy_chunks.find(gpu_info.uuid_) == mem_copy_chunks.end()) {\n      continue;\n    }\n    converted_mem_copy_chunks[device_id] = mem_copy_chunks.at(gpu_info.uuid_);\n  }\n\n  std::unordered_map<int, MemCopyHandleList> converted_mem_copy_handles;\n  for (auto& [device_id, gpu_info] : gpu_info_map_) {\n    if (gpu_memory_handles.find(gpu_info.uuid_) == gpu_memory_handles.end()) {\n      continue;\n    }\n    converted_mem_copy_handles[device_id] =\n        gpu_memory_handles.at(gpu_info.uuid_);\n  }\n  // Convert memory handles to device pointers\n  auto device_ptrs = GetDevicePtrsFromMemHandles(gpu_memory_handles);\n\n  auto ret = model->ToGpu(replica_uuid, device_ptrs, converted_mem_copy_chunks,\n                          converted_mem_copy_handles);\n\n  // TODO: check if the model is loaded successfully\n  if (ret != 0) {\n    LOG(ERROR) << "Failed to load model " << model_path << " to GPU";\n    if (model->FreeGpu(replica_uuid) != 0) {\n      LOG(ERROR) << "Failed to free memory for model " << model_path;\n    }\n  }\n\n  return ret;\n}\n\n'
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.093s
+
+FAILED (failures=2)
