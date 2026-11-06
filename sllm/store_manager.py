@@ -403,6 +403,7 @@ class StoreManager:
         self.round_robin_index = 0
         self.local_servers = {}
         self.model_info = {}
+        self.v4_registrations = {}
         self.model_storage_info = {}
 
     async def initialize_cluster(self) -> bool:
@@ -535,6 +536,12 @@ class StoreManager:
         return await local_server.load_to_host(model_name)
 
     async def register(self, model_config):
+        from sllm_store.v4_service import bind_v4_registration
+
+        async with self.metadata_lock:
+            model_config = bind_v4_registration(
+                model_config, self.v4_registrations, self.model_info
+            )
         model_name = model_config.get("model")
         backend = model_config.get("backend", None)
         if backend is None:
@@ -581,6 +588,8 @@ class StoreManager:
                     logger.error(
                         f"Invalid target nodes {local_disk}, worker nodes: {worker_node_info}"  # noqa: E501
                     )
+                    if model_name in self.v4_registrations:
+                        raise ValueError("Invalid V4 local_disk worker placement")
                     return
             else:
                 # round-robin
@@ -599,6 +608,8 @@ class StoreManager:
                     logger.error(
                         f"Invalid target nodes {memory_pool}, worker nodes: {worker_node_info}"  # noqa: E501
                     )
+                    if model_name in self.v4_registrations:
+                        raise ValueError("Invalid V4 memory_pool worker placement")
                     return
 
             logger.info(

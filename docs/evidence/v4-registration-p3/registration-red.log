@@ -1,0 +1,39 @@
+test_controller_changed_active_context_is_rejected_before_return (test_v4_registration.RegistrationBindingContracts) ... FAIL
+test_storemanager_changed_store_identity_is_rejected_before_lower_cache (test_v4_registration.RegistrationBindingContracts) ... FAIL
+
+======================================================================
+FAIL: test_controller_changed_active_context_is_rejected_before_return (test_v4_registration.RegistrationBindingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_registration.py", line 64, in test_controller_changed_active_context_is_rejected_before_return
+    with self.assertRaises(ValueError):
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_storemanager_changed_store_identity_is_rejected_before_lower_cache (test_v4_registration.RegistrationBindingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_registration.py", line 56, in test_storemanager_changed_store_identity_is_rejected_before_lower_cache
+    with self.assertRaises(ValueError):
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.112s
+
+FAILED (failures=2)

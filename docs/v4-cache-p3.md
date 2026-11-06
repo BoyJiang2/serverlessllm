@@ -32,3 +32,5 @@ cache_timing_checks(record, target, other, condition)：仅在两个 scan 都通
 新增 13 项合成异常用例，覆盖全向量、严格阈值、缺失/重复/额外输入、checksum/计数、扫描顺序、四个冻结名称、晚哈希/重新注册、准备超时、pool 确认时间和批次校验复用。首轮 212 项通过后修正条件名并补充两例；最终统一回归结果见同目录 cache-suite-receipt.json。所有时间值和向量均为合成，未使用正式 ID。
 
 下一步在 CPU 契约范围内实现控制器状态机和不可变 attempt 记录，把这两个检查与已验证的身份/事件、准备失败分母连接起来；真实缓存采集/准备、权重全 SHA、容量、模型 gold、服务卸载/再拉起和释放观察仍待后续运行授权与环境验收。
+
+后续接口修复见 [P3 当前审计](v4-p3-readiness-audit.md)：StoreManager 已固定 common 配置及 Store identity/path，活跃 Controller 路由也核对完整配置。四条件允许删除旧路由后在两种既定 loader 间切换；native SLLM 注册需先完成 grouped Store 准备，避免旧 converter。进程/worker epoch与输入内容仍须独立实查，配置绑定不是驻留租约。

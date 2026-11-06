@@ -35,3 +35,55 @@ def grouped_registration_plan(backend_config, storage_path):
                 raise ValueError("Grouped native tensor partitions must be contiguous and nonempty")
             plan.append((str(directory.relative_to(storage)), size))
     return plan
+
+
+def is_v4_registration(config):
+    backend = config.get("backend_config", {})
+    loader = backend.get("load_format")
+    return config.get("backend") == "vllm" and (
+        backend.get("tokenizer_mode") == "deepseek_v4"
+        or isinstance(loader, str) and loader.startswith("sllm_v4_"))
+
+
+def _config_signature(config):
+    return json.dumps(config, sort_keys=True, allow_nan=False)
+
+
+def freeze_registration_config(config):
+    return json.loads(_config_signature(config)) if is_v4_registration(config) else config
+
+
+def validate_active_registration(current, requested):
+    if (is_v4_registration(current) or is_v4_registration(requested)) and (
+            _config_signature(current) != _config_signature(requested)):
+        raise ValueError("Active V4 registration configuration changed; delete the old route first")
+
+
+def bind_v4_registration(config, bindings, registered):
+    """Keep the prepared Store binding across the two frozen loading modes."""
+    name = config.get("model")
+    if not is_v4_registration(config) and name not in bindings:
+        return config
+    if not isinstance(name, str) or not name or config.get("backend") != "vllm":
+        raise ValueError("V4 registration requires a named vLLM model")
+    config = json.loads(_config_signature(config))
+    common = json.loads(_config_signature(config))
+    backend = common["backend_config"]
+    loader = backend.pop("load_format", None)
+    extra = backend.pop("model_loader_extra_config", None)
+    if loader not in ("safetensors", "sllm_v4_grouped_store"):
+        raise ValueError("V4 service requires safetensors or grouped Store loading")
+    if loader == "safetensors" and extra not in (None, {}):
+        raise ValueError("Native V4 registration cannot use grouped loader metadata")
+    signature = _config_signature(common)
+    store = _config_signature(extra)
+    if name not in bindings:
+        if loader != "sllm_v4_grouped_store" or name in registered:
+            raise ValueError("V4 service requires a fresh prepared grouped Store binding first")
+        bindings[name] = dict(common=signature, store=store)
+    elif (bindings[name]["common"] != signature
+          or loader == "sllm_v4_grouped_store" and bindings[name]["store"] != store):
+        raise ValueError("V4 registration configuration or Store identity/path changed")
+    if loader == "safetensors" and name not in registered:
+        raise RuntimeError("V4 grouped Store preparation is incomplete")
+    return config

@@ -96,9 +96,16 @@ class SllmController:
         self.scheduler.start.remote()
 
     async def register(self, model_config):
+        from sllm_store.v4_service import (
+            freeze_registration_config, is_v4_registration, validate_active_registration,
+        )
+
         if not self.running:
             logger.error("Controller not running")
+            if is_v4_registration(model_config):
+                raise RuntimeError("Controller not running")
             return
+        model_config = freeze_registration_config(model_config)
         model_name = model_config.get("model")
         backend = model_config.get("backend", None)
         if backend is None:
@@ -111,6 +118,7 @@ class SllmController:
         lora_adapters = backend_config.get("lora_adapters", {})
         async with self.metadata_lock:
             if model_name in self.registered_models:
+                validate_active_registration(self.registered_models[model_name], model_config)
                 logger.info(f"Model {model_name} already registered")
                 if lora_adapters is not None:
                     for (
