@@ -1,0 +1,7 @@
+{
+  "scope": "Verifier implementation audit; not a hash failure or restart request",
+  "exact_running_script_sha256": "2a6475f3ee11c83dc63cf390f012f9070a3cca910d77a527f95aa8ac037dff7b",
+  "issue": "The outer BaseException handler also catches the final sys.exit. It will preserve a SystemExit:0 failure.json after a successful result.json. Preserve both raw artifacts and independently audit the coreutils exit/result/64 lines/file states. Do not restart or re-read the full model for this bookkeeping issue.",
+  "remedy": "A later audit must distinguish this wrapper exit artifact from checksum failures; future verifier should catch Exception instead of BaseException or place sys.exit outside the try.",
+  "weight_job_restarted": false
+}

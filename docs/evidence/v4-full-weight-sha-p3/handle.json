@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "started_utc": "2026-11-06T08:51:45.676884+00:00",
+  "host": "qjhs2",
+  "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+  "supervisor": {
+    "pid": 2246443,
+    "start_ticks": 49707912
+  },
+  "checksum_process": {
+    "pid": 2246444,
+    "start_ticks": 49707915
+  },
+  "model_path": "/mnt/raid/models/DeepSeek-V4-Pro",
+  "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "command": [
+    "/usr/bin/ionice",
+    "-c",
+    "3",
+    "/usr/bin/nice",
+    "-n",
+    "10",
+    "/usr/bin/stdbuf",
+    "-oL",
+    "/usr/bin/sha256sum",
+    "--check",
+    "/home/boyjiang/sllm-v4-pro/evidence/full-weight-sha-20261106T085145Z/expected-whole-files.sha256"
+  ],
+  "expected_manifest_sha256": "6839fc2194f14edbb562a974a903d5c603597df425bd219f1fc345077417bece",
+  "official_metadata_sha256": "c44f7a4f5e44a9b9ed78f83316bf59b267212e7353d688e97470fa243c4a3b3c",
+  "runner_sha256": "2a6475f3ee11c83dc63cf390f012f9070a3cca910d77a527f95aa8ac037dff7b",
+  "logical_total_file_bytes": 864721029744,
+  "scope": "CPU serial read-only whole-file verification, no installs, model/GPU or Store conversion",
+  "cache_note": "This read changes client/server cache; rchar is logical read traffic, not storage/network bytes"
+}
