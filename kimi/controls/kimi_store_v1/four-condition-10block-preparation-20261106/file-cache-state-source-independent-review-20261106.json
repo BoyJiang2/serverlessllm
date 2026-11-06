@@ -1,0 +1,41 @@
+{
+  "decision": "ACCEPT_SOURCE_AND_TINY_FILE_CPU_ONLY",
+  "hostname": "qjhs3",
+  "source_root": "/home/boyjiang/kimi-new/ServerlessLLM",
+  "pins": {
+    "sllm_store/tests/file_cache_state.py": "8e94dc99fa5441cb6b2856d0d8dc63d59988082aa0890a99d43e83088b6882ba",
+    "sllm_store/tests/python/test_file_cache_state.py": "0f1a009aeb2ff96322d1607c0eb91289f10a95894a1756c9d5b0e83b437410e9"
+  },
+  "independent_cpu_run": {
+    "command": [
+      "python3",
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_file_cache_state.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "tests_run": 11,
+    "failures": 0,
+    "errors": 0,
+    "reported_unittest_elapsed_s": 0.015,
+    "subprocess_wall_s": 0.07584047899581492,
+    "before_after_source_hashes_stable": true,
+    "scope": "Owned temporary tiny files only; actual mmap/mincore/preadv/fadvise plus bounded mocked error/identity/credential/deadline fixtures. No real model, Store or other cache target."
+  },
+  "reviewed": {
+    "finite_manifest": "Nonempty explicit list maximum1024; absolute roots/directories; regular files and unique dev/inode; no recursive discovery. Final symlink/FIFO/outside-root/FD redirection rejected before cache operation.",
+    "trust": "Full identity UID map, euid/fsuid equality, file owner or root with effective CAP_FOWNER; checked around mincore. Root alone is not assumed sufficient. Real permission/call errors propagate.",
+    "query": "Read-only non-populating mmap+mincore, no page dereference/pread warming in query. Empty file never maps and cannot be declared hot.",
+    "eviction": "Per-file O_RDONLY fadvise DONTNEED acknowledgement is not admission; actual subsequent resident count controls admission. No global drop_caches.",
+    "warming": "Bounded8MiB buffer and complete explicit-file preadv; short reads and errors fail. Actual final residency must be full.",
+    "identity_race": "FD/path dev/inode/size/mtime/uid and canonical fd target checked before and after operations, with final all-file identity check; detected mutation rejects.",
+    "deadlines": "Finite monotonic deadline checked around calls and final return. Overrun after read cannot return admission. mincore/munmap error preserves original primary exception.",
+    "unchanged_scope": "No modifications by reviewer; no Git, GPU, container, model or Store operations."
+  },
+  "limitations": [
+    "Cooperative syscall checks are not hard interruption: external independent guardian required for hard runtime bound.",
+    "mincore reports sequential local client-page-cache snapshots, not stable residency for a later request or an atomic simultaneous snapshot of all files.",
+    "NFS server cache and physical disk cache remain uncontrolled. Ownership/map assumptions intentionally fail closed outside full identity UID mapping.",
+    "Allowed roots are a trusted caller-supplied finite boundary, not a standalone authorization system. Formal protocol, exact model input inventory, common phase budget, actor/cache lifetime and actual runner consumption require separate review.",
+    "No formal experiment/admission/model-cache operation or GPU validation performed; these eleven tests do not prove real checkpoint eviction or warming."
+  ]
+}

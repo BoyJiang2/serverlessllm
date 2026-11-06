@@ -1,0 +1,83 @@
+{
+  "status": "CPU_TINY_FILE_CACHE_V2_WHOLE_MANIFEST_FINAL_QUERY_PASS",
+  "timestamp": "2026-11-06T11:43:54.265439+00:00",
+  "files": {
+    "file_cache_state.py": {
+      "sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+      "lines": 185
+    },
+    "python/test_file_cache_state.py": {
+      "sha256": "14010003b4879225f3cbe2e1ebbfee87308283a0ddb8f0f6658c37fbc78aee9c",
+      "lines": 210
+    }
+  },
+  "api": {
+    "query_cache_state": "(paths: nonempty list/tuple<=1024 absolute regular files, allowed_roots: list/tuple absolute directories, deadline: finite absolute time.monotonic)->dict",
+    "evict_file_cache": "(paths: nonempty list/tuple<=1024 absolute regular files, allowed_roots: list/tuple absolute directories, deadline: finite absolute time.monotonic)->dict",
+    "warm_file_cache": "(paths: nonempty list/tuple<=1024 absolute regular files, allowed_roots: list/tuple absolute directories, deadline: finite absolute time.monotonic)->dict"
+  },
+  "result_schema": {
+    "top": [
+      "operation",
+      "files",
+      "pages",
+      "resident_pages",
+      "all_cold",
+      "all_hot",
+      "admitted",
+      "scope",
+      "deadline_semantics"
+    ],
+    "per_file": [
+      "path",
+      "identity{dev,ino,size,mtime_ns,uid}",
+      "pages",
+      "resident_pages",
+      "read_bytes",
+      "mincore_trust{effective_uid,filesystem_uid,file_owner_uid,cap_fowner,full_identity_uid_map}"
+    ],
+    "admission": "query admitted=None; evict admitted=all_cold; warm admitted=all_hot where pages>0. Caller must require actual all0/allpages, not advisory return."
+  },
+  "tests": {
+    "command": "python3 -m unittest discover -s ROOT/sllm_store/tests/python -p test_file_cache_state.py -v",
+    "run": 12,
+    "pass": 12,
+    "skipped": 0,
+    "elapsed_seconds": 0.016,
+    "host": "qjhs3",
+    "python": "3.10.12",
+    "scope": "Real mincore/fadvise/read on tiny temporary owned files only, plus targeted mocked errors/credential branches. No actual privilege changes."
+  },
+  "bounds": {
+    "mapping_and_buffer_bytes": 8388608,
+    "max_files": 1024,
+    "payload_output": false,
+    "automatic_scanning": false,
+    "global_drop_cache": false,
+    "weight_operation": false
+  },
+  "checks": [
+    "readonly and partial-page actual residency",
+    "zero file no map; not fake-hot with zero pages",
+    "finite readonly MAP_SHARED without populate",
+    "fd opened O_RDONLY for exact fadvise targets and page-rounded advisory range",
+    "fadvise success cannot substitute residency gate",
+    "duplicate inode, missing, relative, outside root, symlink, directory, FIFO rejection",
+    "opened-fd redirection rejected before cache advice",
+    "mtime identity race and unreadable errors fail",
+    "mincore trusted owner or real FOWNER proof; conservative fullidentity uidmap/euidfsuid verification",
+    "deadline pre/post syscall fail without admission",
+    "short read and actual error propagation; primary mincore error preserved over secondary cleanup error",
+    "Real tiny-file reads plus mocked kernel mincore state: reading B evicts A; final query detects A0 and denies all_hot. Old interleaved algorithm would query A before the eviction."
+  ],
+  "limits": [
+    "Cooperative syscall deadline checks only; existing independent process guardian required for hard runtime bound",
+    "Residency is a changing local-client snapshot, not pinning or a global atomic all-file state",
+    "No NFS server cache or physical storage cold proof",
+    "No real checkpoint, archive, Store, GPU, large warming, installation or Git operation performed",
+    "Formal sample counts, order and acceptance protocol are owned by parent; this is component evidence only"
+  ],
+  "supersedes_component_receipt_sha256": "8d129e57dc037395b6a9b61d5dbe0d635855379a96be5c46164c5b53a8d03560",
+  "v2_delta": "Complete every finite-manifest warm/evict operation before a separate whole-manifest query-only admission pass. No large reads between admission queries. Per-file read_bytes retained.",
+  "delta_receipt_sha256": "ae9057607635df5f0b8519113dbf43435ef5057a6a0719bee7edd79a240d5020"
+}

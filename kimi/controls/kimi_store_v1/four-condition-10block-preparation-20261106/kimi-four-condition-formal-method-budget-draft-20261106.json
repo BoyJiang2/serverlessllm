@@ -1,0 +1,375 @@
+{
+  "status": "DRAFT_NOT_FROZEN_NOT_ADMITTED_FORMAL_KIMI_N_ZERO",
+  "purpose": "Prospective Kimi four-condition method and complete-budget proposal; supersedes earlier n8 planning only. No experiment executed by this draft.",
+  "latest_user_scope": {
+    "blocks": 10,
+    "conditions_per_block": 4,
+    "planned_attempts": 40,
+    "glm_original_40": "Frozen 35 success / 5 failure; unchanged; no R24"
+  },
+  "conditions": {
+    "A": "safetensors_disk_cold",
+    "B": "safetensors_disk_hot",
+    "C": "store_disk_cold",
+    "D": "store_pool_hit"
+  },
+  "design": {
+    "method": "Williams four rows each repeated twice, then two distinct rows sampled without replacement; shuffle resulting ten rows with same seeded RNG",
+    "python_random_seed": 20261106,
+    "rng_algorithm": "random.Random(seed); sample(range(4),2); construct two copies of each row; append selected rows; shuffle",
+    "base_rows": [
+      [
+        "A",
+        "B",
+        "D",
+        "C"
+      ],
+      [
+        "B",
+        "C",
+        "A",
+        "D"
+      ],
+      [
+        "C",
+        "D",
+        "B",
+        "A"
+      ],
+      [
+        "D",
+        "A",
+        "C",
+        "B"
+      ]
+    ],
+    "extra_row_indices_zero_based": [
+      0,
+      3
+    ],
+    "schedule": [
+      {
+        "block": 1,
+        "order": [
+          "A",
+          "B",
+          "D",
+          "C"
+        ]
+      },
+      {
+        "block": 2,
+        "order": [
+          "D",
+          "A",
+          "C",
+          "B"
+        ]
+      },
+      {
+        "block": 3,
+        "order": [
+          "D",
+          "A",
+          "C",
+          "B"
+        ]
+      },
+      {
+        "block": 4,
+        "order": [
+          "C",
+          "D",
+          "B",
+          "A"
+        ]
+      },
+      {
+        "block": 5,
+        "order": [
+          "A",
+          "B",
+          "D",
+          "C"
+        ]
+      },
+      {
+        "block": 6,
+        "order": [
+          "D",
+          "A",
+          "C",
+          "B"
+        ]
+      },
+      {
+        "block": 7,
+        "order": [
+          "C",
+          "D",
+          "B",
+          "A"
+        ]
+      },
+      {
+        "block": 8,
+        "order": [
+          "A",
+          "B",
+          "D",
+          "C"
+        ]
+      },
+      {
+        "block": 9,
+        "order": [
+          "B",
+          "C",
+          "A",
+          "D"
+        ]
+      },
+      {
+        "block": 10,
+        "order": [
+          "B",
+          "C",
+          "A",
+          "D"
+        ]
+      }
+    ],
+    "position_counts": {
+      "A": [
+        3,
+        3,
+        2,
+        2
+      ],
+      "B": [
+        2,
+        3,
+        2,
+        3
+      ],
+      "C": [
+        2,
+        2,
+        3,
+        3
+      ],
+      "D": [
+        3,
+        2,
+        3,
+        2
+      ]
+    },
+    "within_block_directed_predecessor_counts": {
+      "AB": 3,
+      "AC": 3,
+      "AD": 2,
+      "BA": 2,
+      "BC": 2,
+      "BD": 3,
+      "CA": 2,
+      "CB": 3,
+      "CD": 2,
+      "DA": 3,
+      "DB": 2,
+      "DC": 3
+    },
+    "limits": "Ten blocks cannot be completely position-balanced: each condition-position and directed within-block predecessor count is 2 or 3. No claim about cross-block carryover; services reset between blocks."
+  },
+  "failure_rules": {
+    "replacement": "No failed ID replacement, no outcome-driven additional samples or retries. Same-class failure stop remains binding. Stopping may leave planned IDs unstarted.",
+    "denominators": "Report planned, started, successful, failed and unstarted separately per condition; failures remain in started denominators. If all 40 start, denominator is ten per condition. Unstarted is not timeout.",
+    "complete_block": "Inferential subset requires all four conditions valid and successful under identical frozen protocol/source/cache gates. Eligibility independent of measured latency. Preserve all attempts outside subset; complete-case latency claims are conditional on success and can have survivor bias.",
+    "censoring": "Keep failure times and right-censoring separately; do not substitute timeout limits as observed completion durations."
+  },
+  "primary_metric": {
+    "name": "business_startup_s",
+    "origin": "Immediately before native HTTP /register command",
+    "end": "Receipt of the first correct arithmetic HTTP response",
+    "request_order": [
+      "arithmetic 17+25",
+      "translation cat",
+      "sky fixed32"
+    ],
+    "not": "Not fixed32 startup, not client streaming TTFT, not isolated weight-load time. Backend first nonempty token observation is a separate event."
+  },
+  "comparisons_in_holm_order": [
+    [
+      "store_disk_cold",
+      "safetensors_disk_cold"
+    ],
+    [
+      "store_pool_hit",
+      "safetensors_disk_cold"
+    ],
+    [
+      "store_pool_hit",
+      "store_disk_cold"
+    ],
+    [
+      "store_disk_cold",
+      "safetensors_disk_hot"
+    ]
+  ],
+  "statistics": {
+    "paired_direction": "first minus second condition within complete block",
+    "exact_test": "Enumerate all 2^n paired sign flips, two-sided abs(mean difference), tie tolerance 1e-12; retain n actual complete blocks rather than hardcode ten",
+    "multiple_testing": "Four primary business comparisons Holm step-down alpha .05. Four including-preparation comparisons are a separate secondary family; no joint eight-test FWER claim.",
+    "n10_attainability": {
+      "minimum_two_sided_raw_p": 0.001953125,
+      "minimum_first_Holm_adjusted_p": 0.0078125,
+      "interpretation": "Attainability only, not power or effect-size guarantee. Fewer complete blocks change the attainable grid."
+    },
+    "estimates": [
+      "all raw success/failure statuses",
+      "successful mean, median and nearest-rank P90 with actual n",
+      "paired mean differences and paired mean ratios A/B (not mean of blockwise ratios)",
+      "Cohen dz only when sample SD defined"
+    ],
+    "bootstrap": "Paired block bootstrap B=10000, fixed seed20261106 reset per statistic; percentile floor(p*(B-1)); marginal 95% intervals, not simultaneous. Undefined ratios/SD/intervals explicitly unavailable.",
+    "assumptions": "Serial shared-host pairing and randomization do not prove independent blocks or sign-invariant null errors. Report assumptions and failures."
+  },
+  "power_sensitivity": {
+    "empirical_power": "Unknown: no Kimi four-condition formal observations or credible paired variance estimate. Do not borrow GLM effects/variance.",
+    "model_only_table": [
+      {
+        "assumed_normal_standardized_paired_shift": 0,
+        "probability_all_10_same_sign": 0.001953125
+      },
+      {
+        "assumed_normal_standardized_paired_shift": 0.5,
+        "probability_all_10_same_sign": 0.02499320452318222
+      },
+      {
+        "assumed_normal_standardized_paired_shift": 1,
+        "probability_all_10_same_sign": 0.17772146931322008
+      },
+      {
+        "assumed_normal_standardized_paired_shift": 1.5,
+        "probability_all_10_same_sign": 0.5008570459099747
+      },
+      {
+        "assumed_normal_standardized_paired_shift": 2,
+        "probability_all_10_same_sign": 0.7944310401670586
+      }
+    ],
+    "table_definition": "Independent continuous Normal paired differences with shift d=Delta/sigma: q=Phi(d), probability all ten share sign=q^10+(1-q)^10. All-same-sign yields minimum raw p and can pass first Holm threshold for that comparison. This is a sufficient-event probability, NOT actual exact-test power, NOT joint power, NOT guaranteed detectable effect; rejection can also occur for other patterns."
+  },
+  "cost_windows": {
+    "preparation": "Measure actual condition-specific reset/eviction/hot-read/pool-prefill and verification; pool initialization infrastructure separately identified, not silently hidden.",
+    "secondary_including_preparation": "GLM-compatible P+B = preparation duration plus business duration, excluding preparation-complete to register gap G; report G separately.",
+    "additional_full_wall_view": "Report P+G+B and remaining correctness requests, delete, mandatory release observation separately. Research-required 60-second waits are not production delete latency.",
+    "one_off_costs": "Historical conversion and shared infrastructure costs reported by node/config and not amortized into a claimed break-even without an explicit workload/lifetime policy."
+  },
+  "matched_configuration_proposal": {
+    "stack": "All four conditions native HTTP, same GPUs, scheduler and placement; SF explicit safetensors backend points to raw SF path while registered alias reuses existing converted model identity to avoid download. placement.memory_pool=[] prevents automatic preloading.",
+    "capacity": {
+      "tp": 8,
+      "dtype": "bfloat16",
+      "gpu_memory_utilization": 0.8,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "enforce_eager": true,
+      "enable_prefix_caching": false
+    },
+    "requests": {
+      "temperature": 0,
+      "seed": 20261024,
+      "top_p": "Omitted like actual GLM runner; effective default must be source/runtime-bound before claiming alignment. Do not guess 1.",
+      "max_tokens": [
+        128,
+        128,
+        32
+      ],
+      "ignore_eos": [
+        false,
+        false,
+        true
+      ],
+      "template": "Kimi tokenizer/template and thinking=False,preserve_thinking=False; no GLM token IDs or enable_thinking kwargs copied.",
+      "correctness": "Independent Kimi SF gold required; exact IDs through existing trace_debug/token actor path, not unsupported native SamplingParams return_token_ids argument."
+    },
+    "engine_seed": "Engine seed0 distinct from request seed20261024.",
+    "jit": "Every attempt uses fresh empty unique per-run JIT directory, identical policy across conditions; actual receipts required.",
+    "performance_scope": "q3 /home is NFS; cold/hot mincore gates describe client page-cache residency only, not NFS-server cache or physical disk cold/hot. Never combine q0 local-XFS timings as same storage condition.",
+    "cache_gates": "All timed input files client-residency zero for cold or full for hot; pool-hit all eight actual model replicas completely resident/ready in SDK host pool. Fresh processes/GPU idle/prefix-cache state are not substitutes.",
+    "memory_budget_pending": "Full RAM arithmetic including 640GiB pool, SF/Store CPU construction, input/NFS page cache, tmpfs, pinned mappings and driver margin must close in actual prospective controller; O_DIRECT applies only where actually proven."
+  },
+  "observed_planning_clues_not_formal_samples": {
+    "q3_run": "kimi-native-qjhs003-pool-stop-observe-20261106-once",
+    "whole_two_lifecycle_run_s": 1079.0150487960782,
+    "pool_init_log_interval_s": 223.061945,
+    "first_arithmetic_HTTP_trigger_to_response_s": [
+      361.8995730569586,
+      58.45466150599532
+    ],
+    "already_ready_repeat_arithmetic_HTTP_s": [
+      1.2012592901010066,
+      1.2018646949436516
+    ],
+    "store_normal_stop_strictgone_s": 33.13935262290761,
+    "limitations": "Single cache-uncontrolled old-AAB functional run. First-request figures are not register-origin nor isolated load times; neither cold/hot nor pool-hit formal labels. Different old prompts; cannot estimate formal four-condition effect/variance or expected completion interval. Existing q0 SF weights333.34s/compile118.46s used different eager/cache configuration and local storage, not matched q3 measurements."
+  },
+  "complete_budget_proposal": {
+    "per_condition_max_s": 7200,
+    "per_complete_block_max_s": 28800,
+    "all_ten_blocks_max_s": 288000,
+    "node_hours_upper": 80,
+    "eight_GPU_device_hours_upper": 640,
+    "classification": "Hard resource upper-bound proposal, NOT predicted elapsed time or guaranteed successful completion. Cold/hot/preparation performance remains unmeasured.",
+    "coverage": "Bootstrap/pool initialization and ordered final service shutdown, cleanup, at least60s release observation and evidence must all be allocated within four condition slots; no unbudgeted shared overhead. Actual phase sums and absolute native-unit/guard/observer deadlines must be independently reviewed before freeze.",
+    "existing_controller_limit": "Existing native7200 short guard/model deadlines cannot simply be reused for an eight-hour continuous block. Adapt an existing profile with complete bounds, no new framework, before admission.",
+    "window": "Current q3 reservation ending01:00 does not cover a full28800s block. No partial-block launch. Future full-window/resource/probe/guard/source and user-admission rules remain binding.",
+    "changes": "Any smaller validated cap chosen before protocol freeze only, not after observing results or to fit a short remaining window."
+  },
+  "evidence_refs_current_hash_verified": {
+    "functional_L1": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-functional-L1-evidence-coverage-audit-20261106.json",
+      "sha256": "6472885834cef7393a5fe99a3dd109ab4d648865903f0b96597848e1fa57dd13"
+    },
+    "q3_runtime": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-runtime-independent-review-20261106.json",
+      "sha256": "7230a2f8c3bfdbd94cb964664164c5c7446f4070ee63be58159cefcd76772e20"
+    },
+    "q3_normal_exit": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-normal-exit-evidence-independent-addendum-v2-20261106.json",
+      "sha256": "70ded814d79058eef2be232ee874cb8b45c88d2193be18527999827f5c423556"
+    },
+    "full_conversion": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-full-conversion-validated-pass-receipt-v2-20261105.json",
+      "sha256": "521f7538b9a2474960c4c7e4190ec73acb84c92f10934924abd5eb69dac66d34"
+    }
+  },
+  "glm_method_refs_read_only": {
+    "commit": "a45f85d574c362dab30603e6b8d5f9d2b5b2bc5e",
+    "preregistration": {
+      "path": "glm/protocol/measurement-preregistration.json",
+      "sha256": "90d4c91bf8b0c9495e0cb95376a55f84d17351308541414d58dd650d8e2dd37c"
+    },
+    "audit_script": {
+      "path": "glm/results/reanalysis-20261106/independent_audit.py",
+      "sha256": "e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33",
+      "comparison_order_line": 22
+    },
+    "source_clock_evidence": {
+      "path": "glm/results/reanalysis-20261106/source-clock-evidence.json",
+      "sha256": "068a3428a5695834b6f861e0deea41bcc729409c18cbe9b25614ae1c2e039270",
+      "embedded_formal_runner_sha256": "18cf7d97d9c12f971fcfcdf1ae1c09e483bb76a48fa45314bc1ff9b5417094e4",
+      "lines": "174-219; actual order(1,2,0), temperature0,seed20261024,top_p omitted"
+    }
+  },
+  "not_claimed": [
+    "Frozen preregistration",
+    "Actual controller/render/admission passed",
+    "Any Kimi formal attempt executed",
+    "GLM recomputation or modification",
+    "Pre-registered performance sample from retrospective functional run",
+    "Functional L1 re-run required solely to change old status labels"
+  ]
+}

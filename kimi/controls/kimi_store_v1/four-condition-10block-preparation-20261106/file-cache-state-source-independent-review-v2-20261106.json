@@ -1,0 +1,38 @@
+{
+  "decision": "ACCEPT_V2_SOURCE_AND_TINY_FILE_CPU_ONLY",
+  "pins": {
+    "sllm_store/tests/file_cache_state.py": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+    "sllm_store/tests/python/test_file_cache_state.py": "14010003b4879225f3cbe2e1ebbfee87308283a0ddb8f0f6658c37fbc78aee9c"
+  },
+  "corrects_prior_review": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/file-cache-state-source-independent-review-20261106.json",
+    "sha256": "77d18e7b69595ff3d62cb16b21e0350ce0eabc4952d06dec12e84f92abbf2d11",
+    "finding": "Reviewer missed v1 interleaving: warm A/query A then warm B/query B could evict A while final hot result reused its stale residency. Prior receipt is preserved as history, not sufficient final hot admission proof."
+  },
+  "actual_source_delta_review": "Actual _run now completes all explicit manifest warm/evict operations and post-operation identity/deadline checks before entering a separate all-file residency/trust/identity/deadline query loop. Per-FD read counts retained. No large tool-initiated warm read follows an admission residency query. Existing bounds, permissions, errors, no-touch query and final identity gates retained.",
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "command": [
+      "python3",
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_file_cache_state.py",
+      "-v"
+    ],
+    "tests": 12,
+    "failures": 0,
+    "errors": 0,
+    "exit_code": 0,
+    "unittest_seconds": 0.014,
+    "subprocess_seconds": 0.07564112893305719,
+    "hashes_before_after_stable": true,
+    "new_fixture": "Real tiny-file preadv/mmap; mocked mincore residency makes late B read evict A. Observed read A,read B,query A,query B; A resident0/B resident2; hot admission false. Kernel eviction itself is simulated, not claimed as real memory-pressure experiment."
+  },
+  "evidence": {
+    "author_verification_sha256": "06706406d442e7f4f608749dc5a86f556c3fcf61470f2ab3f059e725551ed1de",
+    "exact_delta_sha256": "ae9057607635df5f0b8519113dbf43435ef5057a6a0719bee7edd79a240d5020"
+  },
+  "limits": [
+    "Residency is still sequential client snapshots; unrelated concurrent activity can change pages and final snapshots are not atomic/stable for later work.",
+    "NFS server/physical disk cache unknown; cooperative deadlines require external hard guard.",
+    "No real model/Store cache operations, GPU/container/Git/source changes or formal experiment. Formal runner and real inventory separately reviewed."
+  ]
+}
