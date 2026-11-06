@@ -1,0 +1,30 @@
+test_default_service_metadata_preserves_legacy_pins (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_default_store_metadata_preserves_legacy_requirements (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_unknown_profile_fails_in_both_packages (test_v4_packaging.V4PackagingContracts) ... ok
+test_v4_service_identity_and_dependency_metadata_are_distinct (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_v4_store_identity_matches_target_runtime (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FAIL
+
+======================================================================
+FAIL: test_v4_store_identity_matches_target_runtime (test_v4_packaging.V4PackagingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_packaging.py", line 66, in test_v4_store_identity_matches_target_runtime
+    self.assertIn("click>=8.4.2", result["install_requires"])
+AssertionError: 'click>=8.4.2' not found in ['accelerate>=1.7.0', 'attrs>=22.2.0', 'bitsandbytes==0.46.0', 'click==8.1.7', 'grpcio==1.76.0', 'grpcio-tools==1.76.0', 'httpx>=0.27.0', 'peft>=0.16.0', 'pillow>=10.3.0', 'pydantic>=2.7.0', 'torch==2.11.0', 'transformers==5.6.0', 'uvicorn[standard]>=0.15.0']
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.013s
+
+FAILED (failures=1)

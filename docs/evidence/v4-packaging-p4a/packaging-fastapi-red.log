@@ -1,0 +1,30 @@
+test_default_service_metadata_preserves_legacy_pins (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_default_store_metadata_preserves_legacy_requirements (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_unknown_profile_fails_in_both_packages (test_v4_packaging.V4PackagingContracts) ... ok
+test_v4_service_identity_and_dependency_metadata_are_distinct (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FAIL
+test_v4_store_identity_matches_target_runtime (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+
+======================================================================
+FAIL: test_v4_service_identity_and_dependency_metadata_are_distinct (test_v4_packaging.V4PackagingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_packaging.py", line 56, in test_v4_service_identity_and_dependency_metadata_are_distinct
+    self.assertIn("fastapi==0.121.3", result["install_requires"])
+AssertionError: 'fastapi==0.121.3' not found in ['fastapi==0.115.12', 'GPUtil==1.4.0', 'openai>=2.0.0', 'pydantic>=2.12.0', 'ray==2.48.0', 'requests==2.32.2', 'speedtest-cli==2.1.3', 'types-requests==2.31.0.20240125', 'uvicorn[standard]==0.23.1', 'serverless-llm-store==0.8.0+v4pro.1']
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.012s
+
+FAILED (failures=1)

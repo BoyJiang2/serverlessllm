@@ -49,8 +49,15 @@ def read_readme() -> str:
         return ""
 
 
-install_requires = fetch_requirements("requirements.txt")
-install_requires_worker = fetch_requirements("requirements-worker.txt")
+build_profile = os.getenv("SLLM_BUILD_PROFILE", "legacy")
+if build_profile not in ("legacy", "v4-pro"):
+    raise ValueError("Unknown SLLM_BUILD_PROFILE")
+v4_profile = build_profile == "v4-pro"
+install_requires = fetch_requirements("requirements-v4.txt" if v4_profile else "requirements.txt")
+if v4_profile:
+    install_requires.append("serverless-llm-store==0.8.0+v4pro.1")
+install_requires_worker = fetch_requirements(
+    "requirements-worker-v4.txt" if v4_profile else "requirements-worker.txt")
 
 extras = {}
 extras["test"] = install_requires_worker + ["pytest", "pytest-asyncio"]
@@ -60,7 +67,7 @@ sys.path.append(Path.cwd().as_posix())
 
 setup(
     name="serverless-llm",
-    version="0.8.0",
+    version="0.8.0+v4pro.1" if v4_profile else "0.8.0",
     install_requires=install_requires,
     long_description=read_readme(),
     long_description_content_type="text/markdown",

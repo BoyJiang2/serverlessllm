@@ -117,12 +117,16 @@ def read_readme() -> str:
         return ""
 
 
-install_requires = fetch_requirements("requirements.txt")
+build_profile = os.getenv("SLLM_BUILD_PROFILE", "legacy")
+if build_profile not in ("legacy", "v4-pro"):
+    raise ValueError("Unknown SLLM_BUILD_PROFILE")
+v4_profile = build_profile == "v4-pro"
+install_requires = fetch_requirements("requirements-v4.txt" if v4_profile else "requirements.txt")
 
 extras = {}
 
 extras["vllm"] = [
-    "vllm",
+    "vllm==0.20.1" if v4_profile else "vllm",
     "pillow>=10.3.0",
 ]
 
@@ -179,7 +183,7 @@ class cmake_build_ext(build_ext):
             build_tool = ["-G", "Ninja"]
             cmake_args += [
                 "-DCMAKE_JOB_POOL_COMPILE:STRING=compile",
-                "-DCMAKE_JOB_POOLS:STRING=compile={}".format(8),
+                "-DCMAKE_JOB_POOLS:STRING=compile={}".format(4 if v4_profile else 8),
             ]
         else:
             # Default build tool to whatever cmake picks.
@@ -228,7 +232,7 @@ cmdclass = {
 
 setup(
     name="serverless-llm-store",
-    version="0.8.0",
+    version="0.8.0+v4pro.1" if v4_profile else "0.8.0",
     ext_modules=[
         CMakeExtension(name="sllm_store._C"),
         CMakeExtension(name="sllm_store._checkpoint_store"),
