@@ -1,0 +1,420 @@
+{
+  "decision": "PARTIAL_BLOCK_STOPPED_FIRST_QUALIFIED_CONDITION_AND_NEW_FIXED32_GOLD_FAILURE_CONFIRMED",
+  "review_host": "qjhs3",
+  "source_commit": "26b79272f4e80a12ed58f552b912d265a748d5d6",
+  "protocol_sha256": "61128b0f30f2670be5e49db917b03e178357a8be435c68be9fcaa0182f4660f3",
+  "public_provenance_sha256": "278563348c1cbfbe00a53928d87cbd3a7c65a25b9731e3bbbcd62b1f2f2c2a46",
+  "verified_original_copy_count": 24,
+  "cases": {
+    "kimi-four-v1-b01-safetensors_disk_hot-retry02": {
+      "responses": [
+        {
+          "case": "arithmetic",
+          "sha256": "1c973e57fe1410cc9adee32e22e035299c6f2860404687909347afe78389dd1a",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 23,
+            "completion_tokens": 2,
+            "total_tokens": 25
+          },
+          "finish_reason": "stop",
+          "child_gold_validation_pass": true,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            5512,
+            163586
+          ],
+          "differences": [],
+          "text_matches": true
+        },
+        {
+          "case": "translation",
+          "sha256": "07bafd96cf385f890661a81084f4db0df68bfad2d69f6bf6498eeb4f73453751",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 23,
+            "completion_tokens": 2,
+            "total_tokens": 25
+          },
+          "finish_reason": "stop",
+          "child_gold_validation_pass": true,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            6927,
+            163586
+          ],
+          "differences": [],
+          "text_matches": true
+        },
+        {
+          "case": "fixed32",
+          "sha256": "2e8d400d610e188e1640d868cae097571e4904db8fe10da2c5d7582e86484536",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 26,
+            "completion_tokens": 32,
+            "total_tokens": 58
+          },
+          "finish_reason": "length",
+          "child_gold_validation_pass": true,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            16814,
+            10201,
+            18564,
+            378,
+            101297,
+            381,
+            7249,
+            1147,
+            133637,
+            381,
+            2837,
+            47516,
+            6246,
+            7087,
+            133282,
+            51633,
+            13464,
+            8661,
+            39708,
+            1482,
+            13935,
+            45530,
+            145344,
+            378,
+            2577,
+            39708,
+            1482,
+            3478,
+            6263,
+            115010,
+            35086,
+            119304
+          ],
+          "differences": [],
+          "text_matches": true
+        }
+      ],
+      "metrics_sha256": "95d1f2ef1cb5aa9790a90441a733e04d2ddb1edb19f98ad833457af113471213",
+      "metrics": [
+        {
+          "case": "arithmetic",
+          "A_ns": 454530991385,
+          "B_ns": 446229720041,
+          "child_gold_pass": true
+        },
+        {
+          "case": "translation",
+          "A_ns": null,
+          "B_ns": 1209290349,
+          "child_gold_pass": true
+        },
+        {
+          "case": "fixed32",
+          "A_ns": null,
+          "B_ns": 3623688189,
+          "child_gold_pass": true
+        }
+      ],
+      "qualified": true,
+      "gates": {
+        "cache": "PASS",
+        "gold": "PASS",
+        "clock": "PASS",
+        "ownership": "PASS"
+      },
+      "controller_status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS",
+      "controller_sha256": "85e7d5e1c16e6be2decc7a425f1c7ac27851b9b18b8e75d135b1f4ac8d055d5a",
+      "guards": [
+        {
+          "status": "KERNEL_CLEANUP_RELEASE_PASS",
+          "quiet_s": 60.008779434952885,
+          "failures": [],
+          "normal_completion": 1105962.820619114
+        },
+        {
+          "status": "KERNEL_CLEANUP_RELEASE_PASS",
+          "quiet_s": 60.00636251200922,
+          "failures": [],
+          "normal_completion": 1105962.442576015
+        }
+      ],
+      "observer": {
+        "quiet_s": 60.31500468007289,
+        "gaps": 0,
+        "sample_count": 1392,
+        "peak_kind": "SAMPLED_LOWER_BOUND"
+      },
+      "store_stop": {
+        "protocol": "NEW_PROTOCOL_EXIT60_L1",
+        "criterion_seconds": 60,
+        "owner": {
+          "pid": 1132299,
+          "startticks": 110492550,
+          "state": "S",
+          "ppid": 1127763,
+          "cgroup": "0::/system.slice/docker-39de80bdc6e640124ba1d558fdd6eb0cefcbab994b2c6995acbec8c9e5e75b0b.scope"
+        },
+        "pass": true,
+        "begin_monotonic": 1105924.124403835,
+        "deadline_monotonic": 1105984.124403835,
+        "measurement": "controller Stop call through original finish and strictgone, including IPC and diagnostic overhead",
+        "elapsed": 32.65485905087553,
+        "completion_monotonic": 1105956.779262886
+      },
+      "native_terminal_metadata": {
+        "head": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0"
+        },
+        "observer": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0"
+        },
+        "worker": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "0"
+        }
+      }
+    },
+    "kimi-four-v1-b01-store_disk_cold-retry02": {
+      "responses": [
+        {
+          "case": "arithmetic",
+          "sha256": "1eafa23b12e85cd26178584a9e288b16c140a3245cb71118f65825057178d7ba",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 23,
+            "completion_tokens": 2,
+            "total_tokens": 25
+          },
+          "finish_reason": "stop",
+          "child_gold_validation_pass": true,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            5512,
+            163586
+          ],
+          "differences": [],
+          "text_matches": true
+        },
+        {
+          "case": "translation",
+          "sha256": "81a073560dc510c72d396ecf16b525363687dbe99814dcfd6cc3266109c92aaf",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 23,
+            "completion_tokens": 2,
+            "total_tokens": 25
+          },
+          "finish_reason": "stop",
+          "child_gold_validation_pass": true,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            6927,
+            163586
+          ],
+          "differences": [],
+          "text_matches": true
+        },
+        {
+          "case": "fixed32",
+          "sha256": "80628a060468c4da0fdf2e81db41fce1f4048989b11a690706218e9753080686",
+          "status": 200,
+          "usage": {
+            "prompt_tokens": 26,
+            "completion_tokens": 32,
+            "total_tokens": 58
+          },
+          "finish_reason": "length",
+          "child_gold_validation_pass": false,
+          "derived_token_ids_from_unique_rank1_logprobs": [
+            16814,
+            10201,
+            18564,
+            378,
+            101297,
+            381,
+            7249,
+            1147,
+            133637,
+            381,
+            2837,
+            12635,
+            6246,
+            7087,
+            133282,
+            51633,
+            13464,
+            8661,
+            39708,
+            1482,
+            13935,
+            45530,
+            145344,
+            378,
+            2577,
+            39708,
+            1482,
+            3478,
+            6263,
+            115010,
+            35086,
+            119304
+          ],
+          "differences": [
+            {
+              "position_1based": 12,
+              "expected_id": 47516,
+              "actual_id": 12635,
+              "actual_decoded": "物理"
+            }
+          ],
+          "text_matches": false
+        }
+      ],
+      "metrics_sha256": "9ccfaa9fa67ad8e349c355c81ec2fbf689acac1538b65a80a2011ab13fb16cfb",
+      "metrics": [
+        {
+          "case": "arithmetic",
+          "A_ns": 238181517834,
+          "B_ns": 230024749737,
+          "child_gold_pass": true
+        },
+        {
+          "case": "translation",
+          "A_ns": null,
+          "B_ns": 1206543167,
+          "child_gold_pass": true
+        },
+        {
+          "case": "fixed32",
+          "A_ns": null,
+          "B_ns": 3497969907,
+          "child_gold_pass": false
+        }
+      ],
+      "qualified": false,
+      "gates": {
+        "cache": "PASS",
+        "gold": "FAIL",
+        "clock": "NOT_OBSERVED",
+        "ownership": "PASS"
+      },
+      "controller_status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+      "controller_sha256": "715f68098f61957fb1fdf2fa25772ec646f4ad89715a7f6981c19db12cafb1cd",
+      "guards": [
+        {
+          "status": "FAILED_RETAINED",
+          "quiet_s": 60.0033833628986,
+          "failures": [
+            "abort_requested"
+          ],
+          "normal_completion": null
+        },
+        {
+          "status": "FAILED_RETAINED",
+          "quiet_s": 60.01258786791004,
+          "failures": [
+            "abort_requested"
+          ],
+          "normal_completion": null
+        }
+      ],
+      "observer": {
+        "quiet_s": 60.310500090010464,
+        "gaps": 0,
+        "sample_count": 869,
+        "peak_kind": "SAMPLED_LOWER_BOUND"
+      },
+      "actual_failed_request_parameters": {
+        "input_tokens": [
+          163587,
+          2482,
+          163601,
+          557,
+          16717,
+          8637,
+          3975,
+          16814,
+          8047,
+          6346,
+          18564,
+          378,
+          2283,
+          13072,
+          11023,
+          1669,
+          77733,
+          269,
+          5787,
+          292,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "temperature": 0,
+        "top_p": 1.0,
+        "top_k": 0,
+        "min_p": 0.0,
+        "seed": 20261024,
+        "n": 1,
+        "max_tokens": 32,
+        "ignore_eos": true,
+        "logprobs": 1
+      },
+      "original_error_type": "CalledProcessError",
+      "normal_cleanup_status_at_failure": "NOT_OBSERVED"
+    }
+  },
+  "fixed32_finding": {
+    "length": 32,
+    "finish": "length",
+    "usage": {
+      "prompt_tokens": 26,
+      "completion_tokens": 32,
+      "total_tokens": 58
+    },
+    "only_difference_position_1based": 12,
+    "gold_id": 47516,
+    "actual_id": 12635,
+    "gold_decoded": "光学",
+    "actual_decoded": "物理",
+    "remaining31_ids_equal": true,
+    "token_evidence_scope": "IDs independently derived from each raw response step containing exactly one logprob entry with rank1, consistent with frozen greedy logprobs1 and content. Failed third request had no subsequent trace actor retrieval; do not label this as a newly captured third trace history.",
+    "cause": "UNDETERMINED. One token difference neither proves damaged weights nor numerical nondeterminism; semantic similarity does not satisfy frozen exact gold. No criterion or gold change approved by this receipt.",
+    "historical_poolhit": "Existing historical raw fixed32 logprobs contain exact32gold IDs; useful prior context, not proof currentcoldrun correct or same-condition reproducibility."
+  },
+  "configuration_and_input_boundary": {
+    "same_actual_input_parameters": "Failed execution error actual argv parsed by ast.literal_eval, payload IDs/seed/temp/top_p/top_k/min_p/n/max_tokens/ignore_eos/logprobs and embedded expected request exactly equal frozen own protocol. No model execution done to check this.",
+    "reference_preserved": "Original ownSFaccepted reference file currentSHA cbf8cf72... matches protocol, no mutation.",
+    "same_plan_configuration": "Earlier actual-artifacts review0b476... pins localNVMe inputs/ELF95d/helperguards/source andSF-vsStore loadformat. Current result metadata binds source26b792/protocol61128; no new environment or parameter change is evidenced by packet.",
+    "not_reverified": "Full current actualOCI, engine-internal resolvedconfig, all8multi-MB rank metadata/tensor values and module maps were not included in24smallcopies and not re-read here; source-bound gatePASS is not full617GB bitwise proof."
+  },
+  "stop_fix_separation": {
+    "hot_actual_normal_exit_proof": "First SFhot controller truly PASS, qualifiedtrue, Storeexit60 resultpass elapsed32.654859s; all3 independent unit actualResultsuccess/ExecMainCode1/Status0 captured in controller-final, guards normal quiet60.0088/60.0064 andobserver60.315. This demonstrates repaired parent retained-unit bookkeeping passed on this actual condition.",
+    "new_failure": "Storecoldcache/firstownership passed, arithmetic/cat correct; fixed32 mismatch caused expected client gold assertion. Abort cleanup follows, not normalStore60timeout or oldGC bookkeeping failure. Guards retain abort_requested only withquiet60.0034/60.0126, observer60.3105 gaps0. cleanup-resultNOT_OBSERVED records no normal ordered cleanup before failure, separate from later successful abort release.",
+    "physical_late_state": "reconciliation reports8GPUzero/noapps andparent reports allunitsMainPID0. Reviewer used existing artifact, did not issuefreshGPUquery or independently re-read privateOCI."
+  },
+  "statistics_boundary": {
+    "qualified_single_conditions": 1,
+    "complete_paired_blocks": 0,
+    "current_revision_launches": 2,
+    "cumulative_unique_launches": 4,
+    "cumulative_qualified": 1,
+    "cumulative_failed": 3,
+    "current_block_remaining_status": [
+      "NOT_STARTED",
+      "NOT_STARTED"
+    ],
+    "interpretation": "Retain hot qualified A454.530991385s as one descriptive condition observation. Storecold A238.181517834s remains raw failed-condition measurement. Incomplete block yields no valid paired comparison/CI/signflip/Holm or SF-vsStore superiority claim. Do not drop oldfailures, extend sample size or automatically retry03.",
+    "new_sequence": "Paused on newfailure; no laterb01conditions or b02retry launched."
+  },
+  "originals_preserved": "All24source-copy hashes matchedprovenance; source, gold, raw failures and priorreview unchanged. Newsmallreview only.",
+  "operations": "Read-only actual qjhs3 public small artifacts and pinned protocol/reference/plan. No GPU/model/Store/cache/Docker/systemd/Git execution, source mutation or GLM contact."
+}
