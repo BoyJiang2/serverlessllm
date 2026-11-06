@@ -1,0 +1,306 @@
+{
+  "status": "FUNCTIONAL_EVIDENCE_COVERAGE_AUDIT_NOT_RETROACTIVE_PROTOCOL_RECLASSIFICATION",
+  "audit_host": "qjhs3",
+  "basis_run": "kimi-native-qjhs003-pool-stop-observe-20261106-once",
+  "coverage": [
+    {
+      "item": "Complete official Store conversion and current archive identity",
+      "coverage": "COVERED_WITH_DECLARED_METADATA_NOT_FULL_PAYLOAD_SCOPE",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-full-conversion-validated-pass-receipt-v2-20261105.json",
+          "sha256": "521f7538b9a2474960c4c7e4190ec73acb84c92f10934924abd5eb69dac66d34"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-full-conversion-runtime-independent-review-20261105.md",
+          "sha256": "3054f79b2652e2af92df597d068d132de860805a5ce0c9fb2e4dfd46f5409c18"
+        }
+      ],
+      "facts": "Official full8rank conversion:1912entries/240empty perrank,logical617000533376B,physical617000763392B; all8 indices and64 partition stats currently match historical accepted output.32 copied metadata files freshly matched during this audit (28833109 metadata bytes read total with indices; no tensor payload opened).",
+      "inference": "q3 runtime consumes the same converted archive identity via /store RO mapping. Equal index hashes prove layout/metadata, not equal rank values.",
+      "missing": "Full617GBbitwise scan intentionally outside accepted conversion scope; metadata candidate not relabeled gold.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Eight-rank restore correctness, representative values and ownership",
+      "coverage": "COVERED_COMPOSITE_HISTORICAL_AND_CURRENT_RUNTIME",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-tp8-restore-v8-independent-validated-pass-receipt-20261105.json",
+          "sha256": "767bfef06f9f4fdcce1e76374d08e8266f89928d9572f0fd42d54dacd2f90d91"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/store-tp8-restore-v8-independent-runtime-pass-review-20261105.md",
+          "sha256": "240cbb32e408250550d8e31c9cf45127975e9171f247e8c4da19b8449b5ea50d"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-eight-rank-load-and-ownership.json",
+          "sha256": "07994605cbb40591b88aee450cae4bd05fe9b9ca5025085edb8d85b019409af9"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-eight-rank-load-and-ownership.json",
+          "sha256": "1fdbfa62eabe7f7416a1c9e4fd891d9ca8b9ab4dacf1e8d6618eb7a5908db026"
+        }
+      ],
+      "facts": "Historical actual SDK/vLLM8rank restore inspected1912metadata/240empty perrank plus208896 representative rawbytes and originalSF AAB. Current q3 native run adds16completed rank loads, two fresh physicalUUID/PID/CID ownership maps and inference matches.",
+      "inference": "Restoration and service functionality are jointly covered; shutdown-specific95d change is not a replacement loader and current live native restoration did execute.",
+      "missing": "No full617GBbitwise claim;208896 representative value comparison belongs to earlier accepted restore stage, not falsely attributed to each q3 lifecycle. No arbitrary mediaforward proof.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Native create/infer/delete/recreate/infer/delete",
+      "coverage": "COVERED_CURRENT_QJHS003_RUNTIME",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-runtime-independent-review-20261106.json",
+          "sha256": "7230a2f8c3bfdbd94cb964664164c5c7446f4070ee63be58159cefcd76772e20"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-response0.json",
+          "sha256": "625ca6d2a58260a56395eeeeb9d5542d74c900bc29172e52722e2ca69f8cca0c"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-response1.json",
+          "sha256": "5b19c2cda4c0178c2ea5ab19568c51118a97d6aa4912d7127eacdec247f3e936"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-response2.json",
+          "sha256": "4aa9334717119569922857b8b25ddc0f2b4cd89c503a3d8354ef8c4fb6382832"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-tokens0.json",
+          "sha256": "859802241bad74608c65aa4c04d68f670eb8a0e59c18c70e137d5b7b398a8fe3"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-tokens1.json",
+          "sha256": "f5faeac2d82706063f6ccc47f581ec043386ab6e1a3c38ed492386a15b07153e"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-tokens2.json",
+          "sha256": "a2fafbe5cf7f2b812481a3c6c7dab5a36ee8a44a03c8fc4cc1aeb9216d16f48e"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-response0.json",
+          "sha256": "ee70fa6186cf99011d6fe0bf1868b6601b7b1f3d5c24f82da48634f616de25b5"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-response1.json",
+          "sha256": "40513a004eaff40f37a21f51a1d4754a7726ed2fa95999c8575b73fe085edef0"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-response2.json",
+          "sha256": "cb60bf985530470721344394db986cb784cdafb2e639907c49ae70c6b6ffeff6"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-tokens0.json",
+          "sha256": "1c2f09945130b089a2ee39753c4384052f94a6ea51196eb997bb8c679d3400f1"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-tokens1.json",
+          "sha256": "18475eb011be643e3e15efcc169b2d0656a39e329ef4c71e859bf45383133f03"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-tokens2.json",
+          "sha256": "e0d58814849de6f165a763f37b95055a7a4a112feb6627b99133b4db8718356c"
+        }
+      ],
+      "facts": "Both native lifecycle passes:6HTTP200 exacttext/finish/usage, cumulative tokenizer prompt+generated token history matches original frozenSF; two distinct backend actors and16distinct rank hostPIDs; recorded live host identity/UUID/NVML correlation checked.",
+      "inference": "These are actual nativeRay service operations, not CPU or offlineLLM substitutes.",
+      "missing": "AAB is bounded correctness, not fixed32 performance or general model quality.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Delete physical release and absence of former model owners",
+      "coverage": "COVERED_CURRENT_QJHS003_RUNTIME",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/initial-fresh-store-baseline.json",
+          "sha256": "1d22107648d6d488d6e2d6d889bfe72163234c9e900fdb3fcb1abfc517dfe894"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life1-deleted-fresh-baseline.json",
+          "sha256": "bd733933a3ba3cb21ca6cf4421b99f54cb069681cb877e126fc0f3a643a129e2"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/life2-deleted-fresh-baseline.json",
+          "sha256": "62c2545a1d492cc1ea63f8bef96be923500ffbc4753a27589aaa04e24b8a69c9"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-runtime-independent-review-20261106.json",
+          "sha256": "7230a2f8c3bfdbd94cb964664164c5c7446f4070ee63be58159cefcd76772e20"
+        }
+      ],
+      "facts": "After each delete, strict ownergone and same fresh Store-only GPU baseline sustained60.6944s/60.3118s. No increased baseline or zombie-as-gone relaxation. Reviewer used qjhs3 /proc/systemctl/cgroups, not sharedhome q0process state.",
+      "inference": "Model ownership was released between actual recreations.",
+      "missing": "Inter-sample transient memory cannot be ruled out; this is the approved sampled baseline contract.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Official API/Store exec0 and normal CIDexit0/strictgone",
+      "coverage": "COVERED_CURRENT_RAW_PROVENANCE_CHAIN",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/official-service-exec-exit-proof.json",
+          "sha256": "8ff94d87f304dbc5823191562950c5215de174cdabaaeff1c526f155762ab6ab"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/container-normal-exit-summary.json",
+          "sha256": "78513f7292acd1ac4bf6c6070a0d31149fedf325a3b07f7ec318a9498a130264"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/normal-shutdown-summary.json",
+          "sha256": "c2866fe23b762cfe8abd3f2bb2678c76f65ada7f70f9eb2af8b446d4b5ab5458"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-normal-exit-evidence-independent-addendum-v2-20261106.json",
+          "sha256": "70ded814d79058eef2be232ee874cb8b45c88d2193be18527999827f5c423556"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-parent-root-evidence-revalidation-20261106.json",
+          "sha256": "0932cb0c281b916756f0ca99ab1d32d037797802dfa01800e0513d77f8b410d9"
+        }
+      ],
+      "facts": "Unique exact official module-command exec_create->sameCID/execID exec_die exitCode0. Head/worker containers exited/Pid0/ExitCode0/OOMfalse/Restart0. Actual Store stop-to-exec0+strictgone33.1393526s; pool10240/10240 unregister failures0,elapsed31318ms.",
+      "inference": "Final services and containers exited normally, rather than being rescued by ABORT guardkill. Parent root read raw0600; this reviewer independently checked receipt/public joins, not personally rawrootbytes.",
+      "missing": "Original30criterion stillFAIL at30.434761; no later relabel. One33.14s observation is not an always-within60 guarantee or pre-registered60protocol pass.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Independent >=60s release and all owned units/processes/scopes/GPU freed",
+      "coverage": "COVERED_CURRENT_QJHS003_RUNTIME",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/guard-head-final.json",
+          "sha256": "bb4ae3067e463eb03c7ab86c8f748dd661fb14bf195e86c58b384ce69e292201"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/guard-worker-final.json",
+          "sha256": "7565dbf20a1585d31263ea96712cdf860c0679b543ab054556611152d3e3f37a"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/observer-final.json",
+          "sha256": "7c1ef3915d732721d8723b02b7852700fd01b6f4fb45eed2d52bed1c5bb692f9"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/post-release-state.json",
+          "sha256": "b53b4532b5a3d58ceed26488d06003e977b5dffe37eaae3aeec544d953a2dfd4"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-runtime-independent-review-20261106.json",
+          "sha256": "7230a2f8c3bfdbd94cb964664164c5c7446f4070ee63be58159cefcd76772e20"
+        }
+      ],
+      "facts": "Normal authenticated markers,abortsNone/failures[],guardquiet60.0042/60.0161,observer60.273;4nativeunits0/success. Exact ownerstartticks and scopes freshly checked onq3. Rootq3 poststate8GPU0/noCompute.1318samples/gap0.",
+      "inference": "Functional resource cleanup closed; diagnostic300 was an observation cap, not a kill needed for this completion.",
+      "missing": "NVML sampled lower bound, not continuous peak. Kernel37capturedlines/selected0 is bounded, not exhaustive absence proof.",
+      "needs_new_GPU_to_complete_item": false
+    },
+    {
+      "item": "Source/image/ELF and actual deployment binding",
+      "coverage": "COVERED_FUNCTIONAL_DEPLOYMENT_WITH_DECLARED_ATTESTATION_LIMITS",
+      "direct": [
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-concrete-spec-20261106.json",
+          "sha256": "c8abf4490500db723678a661e269fee1ffba10f63db311e8dde658bd16cfcf60"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-manual-root-command-20261106.json",
+          "sha256": "ec066b768fac42e8278a5689cbece3d23db0cf05761cdd45de3429b8114c1b0e"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-actual-node-independent-review-20261106.json",
+          "sha256": "44624b424f163a397a0ca1b757e41ad73ba4cf62508764a7e6a68c470a4e6c84"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/pinned-pool-explicit-release-official-build-cpu-runtime-independent-review-20261106.json",
+          "sha256": "0f4136f5b22bf3e1fa8026be9dc838bf4768ddb996ce40cd0d6e23939a3e3cf4"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/controller-final.json",
+          "sha256": "26c8df230ab23fbb9e7e9fb2f31354abe6d1d9214c4000951f9e864506f07106"
+        },
+        {
+          "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/normal-shutdown-summary.json",
+          "sha256": "c2866fe23b762cfe8abd3f2bb2678c76f65ada7f70f9eb2af8b446d4b5ab5458"
+        }
+      ],
+      "facts": "Source876ac9a9; exactec5 image; _checkpoint_store95d14150/buildmanifest59d70f47 and unchanged _C9d629...; actualrequest twoROELF mounts, fullactualrootSHA c074f465 and sourcehash gates bind runtime. Current36codepins and10native sourcepins freshly match. Official CPUbuild/import/ABI symbols/deps27/331 documented.",
+      "inference": "Actual services ran the source/overlay environment admitted by strict Dockerinspect/mount/image checks; new release log and normal behavior corroborate the intended implementation.",
+      "missing": "No direct everyprocess mapped-machinecode attestation; CPUldd is resolvedlibrary proof, not actualimport /proc/maps. Existing immutableprivate deployment evidence can be extracted if further audit detail is desired; no new GPU needed solely for current functional claim.",
+      "needs_new_GPU_to_complete_item": false
+    }
+  ],
+  "current_archive_metadata": {
+    "archive": "/home/boyjiang/kimi-new/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+    "indices": [
+      {
+        "rank": 0,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 1,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 2,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 3,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 4,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 5,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 6,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      },
+      {
+        "rank": 7,
+        "sha256": "859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5",
+        "entries": 1912,
+        "empty": 240
+      }
+    ],
+    "partition_stats": 64,
+    "small_metadata_files": 32,
+    "metadata_read_bytes": 28833109,
+    "tensor_payload_read_bytes": 0
+  },
+  "technical_conclusion": "The already executed run plus earlier accepted completeconversion/8rankrestore evidence covers the original functional reproduction goal: convertedStore->native create/infer/delete/recreate->normal API/Store/CID shutdown and resource release. Under the user latest acceptance of relaxing the shutdown budget, an observed33.139s normal completion is sufficient functional evidence; another18min GPU run solely to change30->60 or controllerSTATUS is not technically necessary.",
+  "protocol_and_authority_boundary": {
+    "original30": "FAIL remains unchanged",
+    "executed_run": "DIAGNOSTIC_NOT_L1 remains unchanged",
+    "new60prospective": "Prepared/source-reviewed only; not claimed executed or PASS",
+    "functional_milestone_decision": "Can be accepted via a new explicit evidence-based milestone decision by parent/user, distinct from changing raw run labels. This child does not unilaterally override prior diagnostic-only admission or markgoalcomplete.",
+    "administrative_gap_needs_GPU": false,
+    "performance": "No posthoc budget/acceptance decision is a pre-registered performance sample. No cold/warm/cache/firsttoken/fixed32 statistical equivalence follows."
+  },
+  "next_minimal_plan": [
+    "Publish this append-only coverage audit and obtain/record the owner functional milestone decision under the user relaxed shutdown budget; leave alloldlabels/failures/gold untouched.",
+    "Stop spending full native model runs solely on label or timeout-number changes when all requested functionality is already evidenced.",
+    "Move to a separately reviewed credible-comparison plan with matched tokenizer/prompt/template/sampling/capacity/eager/cache/node/storage/measurement clocks and statistical scope; identify actual missing performance observations before any new GPU work.",
+    "Only a genuinely required new formalprotocol guarantee/performance condition justifies another independently admitted run. Existing audit/detail gaps can be closed from retained evidence without GPU."
+  ],
+  "scope": "No new computation/model/Store/container/Git/source/history edits. Read small evidence and28.8MBarchive metadata/stat only, no payload; no contact to originalServerlessLLM agent."
+}
