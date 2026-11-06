@@ -1,0 +1,236 @@
+{
+  "decision": "FAILED_FORMAL_SAMPLE_RETAINED_REGISTER_ROUTER_START_RACE_SOURCE_SUPPORTED",
+  "run_id": "kimi-four-v1-b01-safetensors_disk_hot",
+  "public_original_copy_manifest": [
+    {
+      "name": "28-head-http.stdout",
+      "sha256": "5b142c5bba28a386f2b35fedcc1dd66933c81e17fcf26723a560ac6cf6881c6b"
+    },
+    {
+      "name": "28-head-http.stderr",
+      "sha256": "441d32cb414a1dfe5032f8c8cc51a803a9bb08da5ee2f0b6d01625f609b20d17"
+    },
+    {
+      "name": "sample-metrics.json",
+      "sha256": "fadec7e6aeb80bfd2c0908e7dc74b8bc7c5c8aedad9c9179c4c655dbb0c18579"
+    },
+    {
+      "name": "sample-validity.json",
+      "sha256": "1d2ba41d4fea3f6e6776efff053f7b6462999afb5717b36b09164235134292cb"
+    },
+    {
+      "name": "condition-terminal.json",
+      "sha256": "f60991e7b3adf982e2137bdf59bd69e242e64ba0b5c18dac0e6e9f6282219552"
+    },
+    {
+      "name": "cleanup-result.json",
+      "sha256": "3437b93700fa64aedcc1fc0eb417bb2f13bfacc60872fb9acc29cb0de3a316da"
+    },
+    {
+      "name": "controller-failed.json",
+      "sha256": "9bbab56f74254ea78d61572730cd412cfd30aea80513fc02ee072d32ebeee3ea"
+    },
+    {
+      "name": "11-head-official_module.stdout",
+      "sha256": "833af23248e03e7559647cb671d234fb1350cbf4e56bf7e4776208683f7c3069"
+    },
+    {
+      "name": "9-worker-official_module.stderr",
+      "sha256": "2a5fecd49653fdd85f492731282036f1b4fbbee8674f0b452fd18d3a388a0a7f"
+    },
+    {
+      "name": "guard-head/guard-final.json",
+      "sha256": "55e46deb02d0a0a172bdca8319dcdff671e71e01c8af0513e35a029e74b475f3"
+    },
+    {
+      "name": "guard-worker/guard-final.json",
+      "sha256": "038151f72c8b22d865c6b352235479e978b4974fd3e0172fe51625e83e998767"
+    },
+    {
+      "name": "observer/observer-final.json",
+      "sha256": "a1b1864ab18cdfb5b240343f5558b4d5177aa4444f8f16979285580fb5f75647"
+    },
+    {
+      "name": "head/ray/ray/session_2026-11-06_14-20-45_015959_58/logs/worker-893381d2224ff1c794b8a3c1350f44b2e6219fa2217cf0caecae7ccf-ffffffff-692.out",
+      "sha256": "6cc2ad5a47a39b88e2115f55600244eef2b745e458cee1410705b73e58492c52"
+    }
+  ],
+  "provenance_sha256": "6e29ab840e53a9dd161022967116c9f996a2dc6089d6bc37eebe7bfcb810d916",
+  "observed_failure": {
+    "HTTP_status": 200,
+    "response": {
+      "error": "Instance stopped"
+    },
+    "register_status": 200,
+    "child_validation_pass": false,
+    "child_validation_error": {
+      "type": "KeyError",
+      "message": "'choices'"
+    },
+    "arithmetic_raw_A_ns": 7414288770,
+    "arithmetic_raw_B_ns": 245926671,
+    "raw_intervals_scope": "Failed non-inference error response only, not valid latency sample; translation/fixed32 unobserved.",
+    "qualified": false,
+    "gate_status": {
+      "cache": "PASS",
+      "gold": "FAIL",
+      "clock": "NOT_OBSERVED",
+      "ownership": "NOT_OBSERVED"
+    },
+    "controller_elapsed_s": 621.5722496751696,
+    "catchall_status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+    "classification": "Catchall EXIT60_L1 label is not evidence of Store exit timeout. First HTTP returns stopped-router error, then client gold check fails; no successful inference or8rank ownership obtained."
+  },
+  "source_chain": {
+    "controller": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/controller.py",
+      "sha256": "b950233811bf44e835892e4fa5e7b6d5a2c2b82f4be8de7961c2be65f8d863b8",
+      "lines": "170 dispatches start.remote without await;175-177 publishes registration/router map afterward without completion barrier"
+    },
+    "router": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/routers/roundrobin_router.py",
+      "sha256": "0ae9ad2f5dc7423bae7fd319c760b1ed5d0346c4fd40d42a3f01962587ba5e2c",
+      "lines": "103 runningFalse;116-127 start creates background loops then runningTrue;150-153 inference returns exact Instance stopped when false"
+    },
+    "causal_precision": "Observed response uniquely matches false-running inference branch. Unawaited asynchronous start permits published router use before start completion; same-second Created/Started logs do not resolve nanosecond ordering or prove every internal scheduling detail. This is a concrete source synchronization gap consistent with actual failure, not CUDA/weight/OOM evidence."
+  },
+  "minimal_fix_review": {
+    "recommended": "await request_router.start.remote(auto_scaling_config) before publishing registered_models/request_routers and returning register success.",
+    "preserve": [
+      "No HTTP consumer retry or warmup",
+      "min_instances0 and no model preloading",
+      "Same client registration-origin A and trigger-origin B; awaiting required route readiness belongs within real registration duration",
+      "Same IDs/failed record/gold/input/sampling/budget/guard/release rules; no replacement/reclassification"
+    ],
+    "after_fix_checks": [
+      "Actual register async function extracted test blocks completion/metadata publication while router start future pending; delayed start then success publishes exactly once.",
+      "Start exception propagates; no registration success or published router/model metadata on failed start.",
+      "No synchronous Ray get/blocking wait or inference/preload added; start min0 background loop initially desires0 with zero requests.",
+      "Freeze source hashes/commit and explicitly re-pin final protocol/prepared execution artifacts; same-class failure retry only via parent authorized reviewed distinct plan."
+    ]
+  },
+  "release_evidence": {
+    "head_guard_status": "FAILED_RETAINED",
+    "head_failures": [
+      "abort_requested"
+    ],
+    "head_quiet_s": 60.01735628792085,
+    "worker_guard_status": "FAILED_RETAINED",
+    "worker_failures": [
+      "abort_requested"
+    ],
+    "worker_quiet_s": 60.00257392600179,
+    "normal_markers": {
+      "head": null,
+      "worker": null
+    },
+    "observer_quiet_s": 60.352750804042444,
+    "observer_gaps": 0,
+    "sampled_peak_mib": {
+      "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81": 1615,
+      "GPU-a3baf382-35c8-8748-626a-f69745aab5f8": 1615,
+      "GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771": 1615,
+      "GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb": 1615,
+      "GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e": 1615,
+      "GPU-151684e8-c7ba-a20a-6955-e1f765940536": 1615,
+      "GPU-af5f5c7a-0dce-f291-99be-2c844225cec6": 1615,
+      "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700": 1615
+    },
+    "peak_scope": "Sampled lower bound, only1615MiB existing Store context; not continuous allocation peak or model load success.",
+    "fresh_exact_unit_metadata": {
+      "kimi-four-v1-b01-safetensors_disk_hot-controller.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1"
+        }
+      },
+      "kimi-four-v1-b01-safetensors_disk_hot-head-guard.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1"
+        }
+      },
+      "kimi-four-v1-b01-safetensors_disk_hot-worker-guard.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1"
+        }
+      },
+      "kimi-four-v1-b01-safetensors_disk_hot-observer.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainCode": "0",
+          "ExecMainStatus": "0"
+        }
+      },
+      "kimi-four-v1-b01-formal-controller.service": {
+        "query_rc": 0,
+        "values": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1"
+        }
+      }
+    },
+    "fresh_owned_scope_gone": {
+      "0366d457f7cce4c6a8f3c2c26a5bb52881a4d0ab4729e80577707086fd4da820": true,
+      "1131bbf71856e706f825508f9960d4ff60c43dc9e1d5748543d473545f68ee86": true
+    },
+    "fresh_pinned_identity_gone": [
+      {
+        "pid": 983807,
+        "startticks": 109913074,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 983836,
+        "startticks": 109913074,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 1020583,
+        "startticks": 109975165,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 1020591,
+        "startticks": 109975165,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 985149,
+        "startticks": 109914789,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 985179,
+        "startticks": 109914789,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 1020564,
+        "startticks": 109975162,
+        "identity_gone_now": true
+      },
+      {
+        "pid": 1020572,
+        "startticks": 109975162,
+        "identity_gone_now": true
+      }
+    ],
+    "physical_query_limit": "No new nvidia-smi/GPU query by reviewer; observer terminal quiet is source-bound release evidence. Parent freshGPU0 result is separate."
+  },
+  "review_scope": "Only actual qjhs3 source,13published byte-identical small artifacts and exact named unit/pinnedPID/cgroup read-only metadata. No source modification, Git, model/Store/cache/GPU/HTTP service execution or GLM contact."
+}

@@ -1,0 +1,73 @@
+{
+  "status": "CPU_REGISTRATION_ROUTER_START_RACE_RED_GREEN_PASS_NOT_GPU_RETRY",
+  "timestamp": "2026-11-06T14:41:38.421442+00:00",
+  "files": {
+    "sllm/controller.py": "a7dcce53585ed48fc98669580cd70519fbde008b12548df13c387bdc4a7fa905",
+    "sllm_store/tests/python/test_controller_registration_start.py": "824eb1d80e62ca8b602d7ce0df87f258c3f3f08d731256555ba723cbef619eca"
+  },
+  "change": {
+    "path": "sllm/controller.py",
+    "line": 170,
+    "before": "request_router.start.remote(auto_scaling_config)",
+    "after": "await request_router.start.remote(auto_scaling_config)"
+  },
+  "evidence": {
+    "public_copy_root": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-failure-public-20261106",
+    "provenance_sha256": "6e29ab840e53a9dd161022967116c9f996a2dc6089d6bc37eebe7bfcb810d916",
+    "copies_hash_verified": 13,
+    "http_file": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-failure-public-20261106/28-head-http.stdout",
+    "http_response": {
+      "error": "Instance stopped"
+    },
+    "register_seconds": 7.168157982,
+    "arithmetic_failed_interval_seconds": 0.245825987,
+    "scope": "Read public byte-identical small copies only; no root raw evidence modified."
+  },
+  "call_chain": [
+    "app_lib.py44-61 /register awaits controller.register then returnsok",
+    "controller.py170 old start.remote unawaited; 175-177 publishes model/router immediately",
+    "roundrobin_router.py103 initializes runningFalse; start119-127 sets config/tasks then runningTrue",
+    "app_lib.py125-129 obtains named router directly and awaits inference",
+    "roundrobin_router.py150-153 rejects runningFalse as Instance stopped before request_count or request_queue, thus before model scheduling/load"
+  ],
+  "conclusion": "Actual failure is consistent with missing router-start completion barrier. Existing CPU consumers deterministically reproduce early registration and swallowed start failure. memory_pool=[]/min_instances0 are not the direct Instance stopped return path; await preservesmin0/no model-ready wait.",
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s sllm_store/tests/python -p test_controller_registration_start.py -v",
+    "before": {
+      "run": 2,
+      "failed": 2,
+      "elapsed_seconds": 0.021,
+      "failures": [
+        "registration returned before router start completed",
+        "RuntimeError not raised"
+      ]
+    },
+    "after": {
+      "run": 2,
+      "pass": 2,
+      "elapsed_seconds": 0.021
+    },
+    "actual_consumers": "AST-extracted real controller.register and router.start/inference methods; stdlib awaitable Ray standins, explicit delayed-start Event; immediate inference after successful register goes through actual queue/backend route; failed start propagates original exception and leaves both registration maps empty. No Ray/Torch/CUDA imports."
+  },
+  "protocol_handoff": {
+    "current_protocol": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-10block-preregistration-local-nvme-v2-20261106.json",
+    "append_only_new_version_fields": [
+      "final_deploy_commit",
+      "deployment.final_source_commit",
+      "explicit prospective fix/history note"
+    ],
+    "builder_dynamic_pin": "prepare_kimi_four_condition.py625 computes digest(ROOT/relative) for each original native_source_pins key, including sllm/controller.py; committed_source verifies HEAD/clean/declared bytes/remote SHA before prepared frozen output. New spec source_commit and native_source_pins.sllm/controller.py update; protocol SHA/path codepin, spec/command/bundle hashes regenerate.",
+    "unchanged": [
+      "audited_events_source_commit70b23",
+      "image/ec5,Store95d extension,overlays/assets",
+      "conditions/design/IDs/statistics/gold/budgets",
+      "b01 historical failed attempt and raw evidence; no retry/replacement"
+    ],
+    "next": "Parent commit/review/publish only; future existingb02 can be prepared prospectively with new source/protocol after gates, no launch here."
+  },
+  "limitations": [
+    "CPU reproduction proves software completion/exception boundary, not Ray-cluster/GPU/full-model behavior.",
+    "Failed router start may leave an already-created named actor; this patch does not introduce actor cleanup/retry. Existing owned guards remain responsible for run teardown.",
+    "No Git/deploy/restart/GPU/model/Store/cache operation or new formal candidate prepared. Formal failedb01 remains unchanged."
+  ]
+}

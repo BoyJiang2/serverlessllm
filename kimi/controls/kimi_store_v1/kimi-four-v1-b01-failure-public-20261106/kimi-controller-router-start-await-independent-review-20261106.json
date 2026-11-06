@@ -1,0 +1,47 @@
+{
+  "decision": "ACCEPT_ONE_LINE_CONTROLLER_AWAIT_SOURCE_CPU_FIX_ONLY",
+  "pins": {
+    "sllm/controller.py": "a7dcce53585ed48fc98669580cd70519fbde008b12548df13c387bdc4a7fa905",
+    "sllm_store/tests/python/test_controller_registration_start.py": "824eb1d80e62ca8b602d7ce0df87f258c3f3f08d731256555ba723cbef619eca",
+    "sllm_store/tests/prepare_kimi_four_condition.py": "4d873564a75a41b07ee4e410217f821faa23bcad646829da418b706e1ea71ad4",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "f04355a5c2b9649900950df494083776f23615c4e0f4f2256ecc50cc8615e3f7"
+  },
+  "failure_review_sha256": "3b03f297f07d6abd3053d8dcfea868024f6b8ef46f599b9ddaa86c9dab4b1144",
+  "exact_diff_proof": {
+    "change": "sllm/controller.py170 adds await before request_router.start.remote(auto_scaling_config)",
+    "inverse_byte_sha256": "b950233811bf44e835892e4fa5e7b6d5a2c2b82f4be8de7961c2be65f8d863b8",
+    "proof": "Replacing this one exact byte occurrence with old expression reconstructs entire prior controller bytes/hash; no adjacent changes."
+  },
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "controller_consumer_test": {
+      "path": "sllm_store/tests/python/test_controller_registration_start.py",
+      "run": 2,
+      "exit_code": 0,
+      "unittest_seconds": 0.021,
+      "subprocess_seconds": 0.07614984200336039,
+      "actual_methods": "AST-extracted production async controller.register and router.start/inference; real asyncio with controlled delayed start and fake Ray handle/engine."
+    },
+    "formal_preparation_tests": {
+      "path": "sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "run": 28,
+      "exit_code": 0,
+      "unittest_seconds": 3.488,
+      "subprocess_seconds": 3.567055583000183
+    },
+    "all_four_hashes_before_after_stable": true,
+    "scope": "Stdlib realasyncio/AST/mock/temporary tiny JSON only; no real Ray, Torch, LLM, HTTP service, GPU/Store/cache/Docker/systemd operation."
+  },
+  "reviewed_behavior": [
+    "While actual start remote task pending, register remains pending and both published metadata maps remain empty; direct pre-start inference returns original stopped error, showing reproduced transition.",
+    "After delayed start completes and runningTrue is set, register publishes router metadata and immediate inference reaches fake ready backend.",
+    "Start failure propagates exact original RuntimeError object; no registered_models/request_routers publication and running remains false.",
+    "No HTTP retry, warmup/preload, cache action, sampler/gold/ID/HTTP producer timestamp or budget change. Awaited router.start only configures router scheduler/background loops and runningTrue; min_instances0 and zero requests imply desired0 via actual auto_scaler code. No model initialization is awaited before first user request.",
+    "Registration duration A legitimately now includes required router start completion; same registration_command origin and received endpoint retained, B remains business-trigger origin. This fixes premature successful registration rather than moving inference outside timing."
+  ],
+  "limitations": [
+    "CPU uses fake Ray ObjectRef-like awaitable and fake backend, not actual Ray cluster/GPU startup proof. Awaiting failure does not automatically prove full actor cleanup; independent run/CID guards remain necessary.",
+    "Existing failed b01 record/raw metrics/sample qualification stays unchanged; no retrospective PASS, failed-ID replacement or claim reset. Further distinct actual execution requires updated committed/published source and concrete reviewed protocol/artifact pins plus existing authorization/gates.",
+    "No source modification or Git commit/push by reviewer; parent must explicitly publish exact two task files and verify remote SHA."
+  ]
+}
