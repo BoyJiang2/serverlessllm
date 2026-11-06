@@ -1,5 +1,6 @@
 """Guard error paths with Docker stand-ins; real CPU container checks are separate."""
 import copy
+import json
 import tempfile
 import subprocess
 from pathlib import Path
@@ -45,6 +46,26 @@ class ContainerGuardContracts(unittest.TestCase):
             change(bad)
             with self.subTest(bad=bad), self.assertRaises(ValueError):
                 self.run_guard([bad])
+
+    def test_store_conversion_requires_explicit_matching_purpose(self):
+        store = row()
+        store["Config"]["Labels"][guard.LABEL] = "store-conversion"
+        with self.assertRaises(ValueError):
+            self.run_guard([store])
+        with tempfile.TemporaryDirectory() as temp, \
+                mock.patch.object(guard, "inspect", side_effect=[store, row("exited"), row("exited")]), \
+                mock.patch.object(guard.signal, "signal"):
+            directory = Path(temp) / "receipt"
+            result = guard.watch(CID, time.monotonic_ns() + 10_000_000_000,
+                                 directory, "store-conversion")
+            self.assertEqual(json.loads((directory / "armed.json").read_text())["purpose"],
+                             "store-conversion")
+            self.assertEqual(result["purpose"], "store-conversion")
+            self.assertFalse(result["physical_cleanup_verified"])
+        with mock.patch.object(guard, "inspect") as inspect:
+            with self.assertRaisesRegex(ValueError, "purpose"):
+                guard.watch(CID, 0, "unused", "other")
+            inspect.assert_not_called()
 
     def test_normal_exit_is_not_physical_cleanup(self):
         kill = mock.Mock()

@@ -1,4 +1,4 @@
-"""Host-side deadline for one pre-created native-reference container; never starts it."""
+"""Host-side deadline for one pre-created V4 runtime container; never starts it."""
 import argparse
 import json
 from pathlib import Path
@@ -28,14 +28,16 @@ def inspect(container_id, timeout=5):
     return row
 
 
-def watch(container_id, deadline_ns, directory):
+def watch(container_id, deadline_ns, directory, purpose="native-reference"):
+    if purpose not in ("native-reference", "store-conversion"):
+        raise ValueError("unsupported guard purpose")
     if not re.fullmatch(r"[0-9a-f]{64}", container_id):
         raise ValueError("full immutable container ID required")
     now = time.monotonic_ns()
     if type(deadline_ns) is not int or not now < deadline_ns <= now + 1200_000_000_000:
         raise ValueError("future deadline within 1200 seconds required")
     row = inspect(container_id)
-    if (row["Config"].get("Labels", {}).get(LABEL) != "native-reference"
+    if (row["Config"].get("Labels", {}).get(LABEL) != purpose
             or row["State"]["Status"] != "created"
             or row["HostConfig"]["RestartPolicy"]["Name"] not in ("no", "")
             or row["HostConfig"]["AutoRemove"] or row["RestartCount"] != 0):
@@ -50,11 +52,11 @@ def watch(container_id, deadline_ns, directory):
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, interrupt)
     signal.signal(signal.SIGINT, interrupt)
-    result = dict(identity=identity, deadline_ns=deadline_ns, runtime_qualified=False,
+    result = dict(identity=identity, purpose=purpose, deadline_ns=deadline_ns, runtime_qualified=False,
                   physical_cleanup_verified=False, container_stopped=False)
     observation_timeouts = 0
     try:
-        write_once(directory / "armed.json", dict(identity=identity, guard=process_identity(),
+        write_once(directory / "armed.json", dict(identity=identity, purpose=purpose, guard=process_identity(),
                    armed_ns=time.monotonic_ns(), deadline_ns=deadline_ns))
         while True:
             now = time.monotonic_ns()
@@ -108,8 +110,10 @@ if __name__ == "__main__":
     parser.add_argument("container_id")
     parser.add_argument("deadline_ns", type=int)
     parser.add_argument("directory")
+    parser.add_argument("--purpose", choices=("native-reference", "store-conversion"),
+                        default="native-reference")
     args = parser.parse_args()
-    result = watch(args.container_id, args.deadline_ns, args.directory)
+    result = watch(args.container_id, args.deadline_ns, args.directory, args.purpose)
     print(json.dumps(result))
     raise SystemExit(0 if result.get("reason") == "container_exit"
                      and result.get("exit_code") == 0 and result["container_stopped"]
