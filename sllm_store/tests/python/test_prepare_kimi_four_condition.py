@@ -1061,5 +1061,96 @@ class SampledLogprobsParserTest(unittest.TestCase):
                 bad=copy.deepcopy(row);bad['response']['choices'][0]['logprobs']=[entry];namespace['diagnostic_response'](bad,want,0,1)
 
 
+class Fixed32LengthOnlyTest(unittest.TestCase):
+    def consumers(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        for row in protocol['correctness']['requests']:row['logprobs']=1
+        protocol['correctness']['requests'][2]['validation_mode']='fixed32_length_only_v1'
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        value={};clock=[100]
+        def now():clock[0]+=1;return clock[0]
+        class Response:
+            status=200
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def read(self,limit):return json.dumps(value['response']).encode()
+        client={'json':json,'math':__import__('math'),'urllib':types.SimpleNamespace(request=types.SimpleNamespace(Request=urllib.request.Request,urlopen=lambda *args,**kwargs:Response())),'time':types.SimpleNamespace(monotonic_ns=now),'HTTP_CLOCK':{},'HTTP_PID':1}
+        exec(functions_from(spec['role_bodies']['http']),client)
+        body=command['argv'][command['argv'].index('-c')+1];tree=ast.parse(body);saved={}
+        parent={'json':json,'math':__import__('math'),'record_http_sample':lambda *args:None,'validated_http_events':lambda *args:{},'mark_sample_gate':lambda *args:None,'save':lambda name,row:saved.update({name:row})}
+        selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in ('fixed32_observation','check_response')]
+        exec(compile(ast.Module(body=selected,type_ignores=[]),'<actual-length-parent>','exec'),parent)
+        return protocol,spec,tree,value,client,parent,saved
+
+    def response(self,want,ids=None,text=None,finish=None):
+        expected=want['expected'];ids=expected['token_ids'][:] if ids is None else ids
+        return {'choices':[{'message':{'content':expected['content'] if text is None else text},'finish_reason':expected['finish_reason'] if finish is None else finish,'logprobs':[{str(token):{'rank':1,'logprob':-.1}} for token in ids]}],'usage':{'prompt_tokens':expected['prompt_tokens'],'completion_tokens':len(ids),'total_tokens':expected['prompt_tokens']+len(ids)}}
+
+    def test_actual_http_parent_and_history_accept_length_and_report_strict_differences(self):
+        protocol,spec,tree,value,client,parent,saved=self.consumers();history=[];tokens=[]
+        self.assertEqual(spec['code_pins'][str(p.base.ROOT/'sllm_store/vllm_patch/sllm_load.patch')],p.DIAGNOSTIC_PATCH_SHA)
+        self.assertEqual(next(row['sha256'] for row in spec['overlays'] if row['target'].endswith('/v1/worker/gpu_model_runner.py')),p.base.NEW_RUNNER_SHA)
+        self.assertTrue(all('SLLM_DIAGNOSTIC_VALUE_FINGERPRINT' not in request['env'] for request in spec['requests'].values()))
+        history_append=next(node for node in ast.walk(tree) if isinstance(node,ast.Expr) and isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Attribute) and isinstance(node.value.func.value,ast.Name) and node.value.func.value.id=='history' and node.value.func.attr=='append')
+        counter=next(node for node in ast.walk(tree) if isinstance(node,ast.Assert) and 'collections.Counter' in ast.unparse(node.test))
+        context={'history':history,'collections':__import__('collections'),'json':json,'life':1}
+        for index,want in enumerate(spec['correctness']['requests']):
+            ids=want['expected']['token_ids'][:]
+            if index==2:ids[11]=12635;ids[-1]=1852
+            value['response']=self.response(want,ids,'different text' if index==2 else None)
+            row=client['finish_http']('/v1/chat/completions',{'request_id':'length-'+str(index)},30,want)
+            self.assertTrue(row['child_gold_validation_pass']);parent['check_response'](row,want,index,1)
+            context.update(want=want,response=row,index=index);exec(compile(ast.Module(body=[history_append],type_ignores=[]),'<actual-new-history>','exec'),context)
+            tokens.append(want['input_tokens']+ids);context['tokens']={'tokens':tokens};exec(compile(ast.Module(body=[counter],type_ignores=[]),'<actual-new-trace>','exec'),context)
+        observation=saved['life1-response2.json']['acceptance_observation']
+        self.assertTrue(observation['accepted']);self.assertFalse(observation['strict_reference_match']);self.assertFalse(observation['strict_reference_details']['text']);self.assertFalse(observation['strict_reference_details']['token_ids']);self.assertTrue(observation['strict_reference_details']['finish_reason'])
+        self.assertLess(row['received_ns'],row['child_gold_validation_begin_ns'])
+        context['tokens']=copy.deepcopy(context['tokens']);context['tokens']['tokens'][-1][-1]=999
+        with self.assertRaisesRegex(AssertionError,'token history'):exec(compile(ast.Module(body=[counter],type_ignores=[]),'<actual-new-trace>','exec'),context)
+        self.assertIn('fixed32 length-only accepted',ast.unparse(tree))
+
+    def test_actual_http_and_parent_reject_invalid_length_finish_usage_and_business(self):
+        _,spec,_,value,client,parent,_=self.consumers();want=spec['correctness']['requests'][2]
+        for count,finish,bad_usage in ((31,'length',False),(33,'length',False),(32,'stop',False),(32,'length',True)):
+            ids=(want['expected']['token_ids']+[2])[:count];response=self.response(want,ids,finish=finish)
+            if bad_usage:response['usage']['total_tokens']=57
+            value['response']=response;row=client['finish_http']('/v1/chat/completions',{'request_id':'invalid'},30,want)
+            with self.subTest(count=count,finish=finish,bad_usage=bad_usage):
+                self.assertFalse(row['child_gold_validation_pass'])
+                with self.assertRaises(AssertionError):parent['check_response'](row,want,2,1)
+        for index,want in enumerate(spec['correctness']['requests']):
+            strict=copy.deepcopy(want);strict.pop('validation_mode',None);value['response']=self.response(strict,text='wrong')
+            row=client['finish_http']('/v1/chat/completions',{'request_id':'strict'},30,strict)
+            self.assertFalse(row['child_gold_validation_pass'])
+            with self.assertRaises(AssertionError):parent['check_response'](row,strict,index,1)
+
+    def test_frozen_mode_exception_and_only_b01_restart_mapping(self):
+        protocol=json.loads((p.base.EVIDENCE/'kimi-four-condition-10block-preregistration-local-nvme-v4-retry02-20261106.json').read_text());protocol['final_deploy_commit']=p.SOURCE
+        protocol['correctness']['requests'][2]['validation_mode']='fixed32_length_only_v1';protocol['correctness']['token_validation']=p.LENGTH_ONLY_TOKEN_VALIDATION;p.validate_frozen_protocol(protocol,p.SOURCE)
+        bad=copy.deepcopy(protocol);bad['correctness']['requests'][0]['validation_mode']='fixed32_length_only_v1'
+        with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        first=[row for row in protocol['attempts'] if row['block']==1]
+        restart={'criterion':'fixed32_length_only_v1','suffix':'retry03','prior_formal_launches':4,'target_total_launch_requests_max':44,'retained_retry02_runs':[{'run_id':row['attempt_id']+'-retry02','primary_sample_qualified':qualified,'result_path':'/evidence/retained-'+str(index)+'.json','result_sha256':'a'*64} for index,(row,qualified) in enumerate(zip(first[:2],(True,False)))],'preserved_unstarted2':[row['attempt_id']+'-retry02' for row in first[2:]]}
+        revision=protocol['execution_revision'];revision['length_only_b01_restart']=restart;revision['actual_launch_requests_at_authorization']=4;revision['target_total_launch_requests_max']=44
+        for row in first:revision['run_id_map'][row['attempt_id']]=row['attempt_id']+'-retry03'
+        revision['block_run_ids']['1']='kimi-four-v1-b01-retry03';p.validate_frozen_protocol(protocol,p.SOURCE)
+        runs,blocks=p.execution_mapping(protocol);self.assertEqual(blocks['1'],'kimi-four-v1-b01-retry03');self.assertEqual(blocks['2'],'kimi-four-v1-b02-retry02')
+        self.assertTrue(all(runs[row['attempt_id']]==row['attempt_id']+('-retry03' if row['block']==1 else '-retry02' if row['block']==2 else '') for row in protocol['attempts']))
+        bad=copy.deepcopy(protocol);bad['correctness']['requests'][2].pop('validation_mode')
+        with self.assertRaises(AssertionError):p.execution_mapping(bad)
+        for key,wrong in (('suffix','retry04'),('prior_formal_launches',3),('target_total_launch_requests_max',45)):
+            bad=copy.deepcopy(protocol);bad['execution_revision']['length_only_b01_restart'][key]=wrong
+            with self.subTest(key=key),self.assertRaises(AssertionError):p.execution_mapping(bad)
+        bad=copy.deepcopy(protocol);bad['execution_revision']['actual_launch_requests_at_authorization']=2
+        with self.assertRaises(AssertionError):p.execution_mapping(bad)
+        bad=copy.deepcopy(protocol);bad['correctness']['token_validation']='all gold must match'
+        with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        with tempfile.TemporaryDirectory() as directory:
+            protocol['resource_budget']['runs_root']=directory;(pathlib.Path(directory)/runs[first[0]['attempt_id']]).mkdir()
+            with self.assertRaisesRegex(AssertionError,'identity already used'):p.render(protocol,spec,command,first[0]['attempt_id'],spec['native_source_pins'])
+
+
 if __name__=='__main__':
     unittest.main()

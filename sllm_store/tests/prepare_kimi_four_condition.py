@@ -25,6 +25,7 @@ DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8c
 DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
 DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
 DIAGNOSTIC_PATCH_SHA = '6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db'
+LENGTH_ONLY_TOKEN_VALIDATION = 'Trace verifies actual prompt+sampled IDs for all requests; arithmetic/translation content/token/usage/finish exact SF gold; fixed32_length_only_v1 requires actual32 and length with exact usage, strict reference differences reported separately, not a qualification gate.'
 CONDITIONS = ("safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit")
 
 
@@ -46,6 +47,7 @@ def validate_protocol(protocol):
     requests = protocol["correctness"]["requests"]
     assert [r["case"] for r in requests] == ["arithmetic", "translation", "fixed32"]
     for row, maximum, eos in zip(requests, (128, 128, 32), (False, False, True)):
+        assert row.get('validation_mode') is None or (row['case']=='fixed32' and row['validation_mode']=='fixed32_length_only_v1'),'unknown request validation mode'
         assert row["seed"] == 20261024 and row["max_tokens"] == maximum and row["ignore_eos"] is eos
         assert row["n"] == 1 and row["temperature"] == 0 and row["top_p"] == 1
         assert row["top_k"] == 0 and row["min_p"] == 0
@@ -65,11 +67,25 @@ def execution_mapping(protocol):
     assert revision['user_instruction']=='修复完重新跑b01 然后是2~10'
     assert isinstance(revision['reason'],str) and revision['reason'].strip()
     assert revision['rerun_blocks']==[1,2] and revision['suffix']=='retry02'
-    assert revision['actual_launch_requests_at_authorization']==2 and revision['target_total_launch_requests_max']==42
+    restart=revision.get('length_only_b01_restart')
+    assert (revision['actual_launch_requests_at_authorization'],revision['target_total_launch_requests_max'])==((4,44) if restart is not None else (2,42))
     assert revision['stop_on_new_failure'] is True
     assert revision['selection_rule']=='fixed_40_mapped_runs_no_latency_selection'
     expected={row['attempt_id']:row['attempt_id']+('-retry02' if row['block'] in (1,2) else '') for row in attempts}
     expected_blocks={number:name+('-retry02' if number in ('1','2') else '') for number,name in blocks.items()}
+    if restart is not None:
+        assert protocol['correctness']['requests'][2].get('validation_mode')=='fixed32_length_only_v1'
+        assert restart['criterion']=='fixed32_length_only_v1' and restart['suffix']=='retry03'
+        assert restart['prior_formal_launches']==4 and restart['target_total_launch_requests_max']==44
+        first=[row for row in attempts if row['block']==1]
+        retained=restart['retained_retry02_runs'];assert len(retained)==2
+        assert [row['condition'] for row in first[:2]]==['safetensors_disk_hot','store_disk_cold']
+        for row,old,qualified in zip(retained,first[:2],(True,False)):
+            assert row['run_id']==old['attempt_id']+'-retry02' and row['primary_sample_qualified'] is qualified
+            assert pathlib.Path(row['result_path']).is_absolute() and re.fullmatch('[0-9a-f]{64}',row['result_sha256'])
+        assert restart['preserved_unstarted2']==[row['attempt_id']+'-retry02' for row in first[2:]]
+        expected.update({row['attempt_id']:row['attempt_id']+'-retry03' for row in first})
+        expected_blocks['1']='kimi-four-v1-b01-retry03'
     assert revision['run_id_map']==expected,'only explicitly authorized b01/b02 retry02 runtime IDs permitted'
     assert len(set(expected.values()))==40 and revision['block_run_ids']==expected_blocks
     historical=revision['historical_attempts']
@@ -258,6 +274,21 @@ RESPONSE = """def check_response(row,want,index,life):
  return complete
 """
 
+LENGTH_ONLY_OBSERVATION = """def fixed32_observation(row,want):
+ response=row['response'];assert row['status']==200 and len(response['choices'])==1,'fixed32 HTTP/choice criterion failed'
+ choice=response['choices'][0];assert isinstance(choice['message']['content'],str),'fixed32 content must be a string'
+ entries=choice['logprobs'];assert isinstance(entries,list) and len(entries)==32 and choice['finish_reason']=='length','fixed32 requires32 steps and length finish'
+ ids=[]
+ for entry in entries:
+  assert isinstance(entry,dict) and want['logprobs']<=len(entry)<=want['logprobs']+1,'sampled/topK entry count invalid'
+  assert all(isinstance(k,str) and k.isdecimal() and str(int(k))==k and isinstance(v,dict) and type(v.get('rank')) is int and v['rank']>=1 and type(v.get('logprob')) in (int,float) and math.isfinite(v['logprob']) for k,v in entry.items()),'sampled/topK token metadata invalid'
+  ids.append(int(next(iter(entry))))
+ assert response['usage']=={'prompt_tokens':26,'completion_tokens':32,'total_tokens':58},'fixed32 usage criterion failed'
+ expected=want['expected'];strict={'text':choice['message']['content']==expected['content'],'token_ids':ids==expected['token_ids'],'finish_reason':choice['finish_reason']==expected['finish_reason']}
+ return {'accepted':True,'criterion':'fixed32_length_only_v1','sampled_token_ids':ids,'strict_reference_match':all(strict.values()),'strict_reference_details':strict}
+"""
+
+
 LOOP = """ for life in (1,):
   positions=log_positions();router_positions=head_log_positions();create_end=time.monotonic()+1500;history=[];rank_owners=[];aab_end=None
   sample_active_gate='cache';construct_cache();mark_sample_gate('cache',True,'finite cache/pool admission passed');sample_active_gate=None
@@ -435,7 +466,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
     if diagnostic_run_id is None:
-        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry02)?", attempt_id)
+        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[23])?", attempt_id)
     else:
         assert diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
         attempt_id=diagnostic_run_id
@@ -454,6 +485,9 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
                 protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
+    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';assert base.digest(patch)==DIAGNOSTIC_PATCH_SHA
+    spec['code_pins'][str(patch)]=DIAGNOSTIC_PATCH_SHA
+    spec['canonical_patch_provenance']='Current committed patch source6fc; active oldf7 runtime overlay remains from original9d build; no fingerprint flag or new866 overlay implied.'
     spec["actual_request_parameters"]=[{"case":row["case"],**{key:row[key] for key in ("input_tokens","temperature","top_p","top_k","min_p","seed","n","max_tokens","ignore_eos")},"logprobs":1} for row in protocol["correctness"]["requests"]]
     spec["request_observability"]="Actual HTTP logprobs=1; generated token IDs use existing trace, return_token_ids is not passed to SamplingParams. Explicit top_p=1 remains vs omitted GLM default. Default V1 candidate lacks this explicit logprobs field and is not claimed fully aligned or executable."
     spec["planned_attempts"]=copy.deepcopy(protocol["attempts"])
@@ -483,8 +517,15 @@ if sys.argv[1]=='pool':
     # Existing config query retains its numeric timeout; pool action uses a separate branch.
     poolbody=spec["role_bodies"]["store_config"]
     poolbody=poolbody.replace("end=time.monotonic()+float(sys.argv[1])","end=time.monotonic()+(1700 if sys.argv[1]=='pool' else float(sys.argv[1]))")
-    spec["role_bodies"]["http"]=HTTP_BODY
-    spec["role_body_sha256"]["http"]=hashlib.sha256(HTTP_BODY.encode()).hexdigest()
+    length_only=protocol['correctness']['requests'][2].get('validation_mode')=='fixed32_length_only_v1'
+    http_body=HTTP_BODY
+    if length_only:
+        http_body=http_body.replace('def finish_http(', 'import math\n'+LENGTH_ONLY_OBSERVATION+'\ndef finish_http(',1)
+        old="   correct=row['status']==200 and len(choices)==1 and choices[0]['message']['content']==expected['content'] and choices[0]['finish_reason']==expected['finish_reason'] and response['usage']==usage"
+        http_body=http_body.replace(old,old+"\n   if want.get('validation_mode')=='fixed32_length_only_v1':row['fixed32_observation']=fixed32_observation(row,want);row['strict_reference_match']=row['fixed32_observation']['strict_reference_match'];correct=True",1)
+        http_body=http_body.replace('except (KeyError,TypeError,IndexError) as error:', 'except (KeyError,TypeError,IndexError,AssertionError,ValueError) as error:')
+    spec["role_bodies"]["http"]=http_body
+    spec["role_body_sha256"]["http"]=hashlib.sha256(http_body.encode()).hexdigest()
     spec["role_bodies"]["store_config"]=poolbody
     spec["role_body_sha256"]["store_config"]=hashlib.sha256(poolbody.encode()).hexdigest()
     body=body.replace("run=s['run_id'];ROOT=", "run=s['run_id'];assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit'];ROOT=",1)
@@ -499,7 +540,15 @@ if sys.argv[1]=='pool':
     old="golden=[json.loads(l) for l in pathlib.Path(s['gold']['path']).read_text().splitlines()];gold=next(r['validated'] for r in golden if r['event']=='SF_API_AAB_PASS');assert len(gold)==3 and hashlib.sha256(pathlib.Path(s['gold']['path']).read_bytes()).hexdigest()==s['gold']['sha256']"
     assert body.count(old)==1
     body=body.replace(old,"gold=s['correctness']['requests'];assert len(gold)==3;assert (pathlib.Path(s['archive'])/'vllm'/s['config']['model']).is_dir(),'missing converted model directory; download forbidden'")
-    body=replace_function(body,"check_response",RESPONSE)
+    response_body=RESPONSE
+    if length_only:
+        old=" assert row['status']==200 and len(response['choices'])==1 and value['message']['content']==expected['content'] and value['finish_reason']==expected['finish_reason'] and response['usage']==usage"
+        response_body=response_body.replace(old," observation=None\n if want.get('validation_mode')=='fixed32_length_only_v1':\n  observation=fixed32_observation(row,want);assert row['fixed32_observation']==observation,'child/parent fixed32 observations differ'\n else:"+old.lstrip(),1)
+        response_body=response_body.replace("'validated_endpoint':complete}","'validated_endpoint':complete,'acceptance_observation':observation}")
+        response_body=LENGTH_ONLY_OBSERVATION+'\n'+response_body
+        body=body.replace("history.append(want['input_tokens']+want['expected']['token_ids'])","history.append(want['input_tokens']+(response['fixed32_observation']['sampled_token_ids'] if want.get('validation_mode')=='fixed32_length_only_v1' else want['expected']['token_ids']))",1)
+        body=body.replace('all3 child/parent gold and cumulative exact trace IDs passed','arith/translation strict and fixed32 length-only accepted; strict reference differences retained; sampled IDs verified by cumulative trace')
+    body=replace_function(body,"check_response",response_body)
     body=replace_function(body,"HTTP","def HTTP(path,payload,seconds,monitor=False,want=None,register_config=None):\n raw=execute('head','http',[path,json.dumps(payload),str(seconds-3),json.dumps(want),json.dumps(register_config)],seconds=seconds,monitor=monitor);row=json.loads(raw);p=base/(str(seq)+'-head-http.stdout');row['stdout_reference']={'path':str(p),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()};return row")
     insertion="sys.path.insert(0,str(ROOT));from sllm.logger import get_clock_identity;clock_identity=get_clock_identity()\nassert hashlib.sha256((ROOT/'sllm_store/tests/file_cache_state.py').read_bytes()).hexdigest()==s['cache_helper_sha256'];loader=importlib.util.spec_from_file_location('finite_cache',ROOT/'sllm_store/tests/file_cache_state.py');cache=importlib.util.module_from_spec(loader);loader.loader.exec_module(cache)\n"
     body=body.replace("try:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",insertion+CACHE_CODE+JIT_CODE+CACHE_SCHEMA_GATE+HTTP_EVENTS+SAMPLE_EVIDENCE+STRUCTURED_EVENTS+"\ntry:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",1)
@@ -683,10 +732,15 @@ def validate_frozen_protocol(protocol, source_commit):
     correctness=copy.deepcopy(protocol['correctness'])
     observability=correctness['observability']
     assert isinstance(observability,str) and all(term in observability for term in ('logprobs=1','return_token_ids','trace')),'explicit observability delta disclosure required'
-    for request in correctness['requests']:
+    for index,request in enumerate(correctness['requests']):
+        if 'validation_mode' in request:
+            assert index==2 and request.pop('validation_mode')=='fixed32_length_only_v1','only fixed32 length-only criterion permitted'
         assert type(request.get('logprobs')) is int and request.pop('logprobs')==1,'GLM-aligned logprobs=1 required'
+    if protocol['correctness']['requests'][2].get('validation_mode')=='fixed32_length_only_v1':
+        assert correctness['token_validation']==LENGTH_ONLY_TOKEN_VALIDATION,'length-only token validation disclosure must match criterion'
+        correctness['token_validation']=original['correctness']['token_validation']
     correctness['observability']=original['correctness']['observability']
-    assert correctness==original['correctness'],'only logprobs=1 and its observability disclosure may change correctness'
+    assert correctness==original['correctness'],'only logprobs=1, observability disclosure and third fixed32_length_only_v1 may change correctness'
 
 
 
@@ -917,7 +971,7 @@ def main():
         declared=set(pins)
         declared.update(pathlib.Path(original_spec[key]).relative_to(base.ROOT).as_posix() for key in ('guard','observer'))
         declared.add('sllm_store/tests/gpu512_once_controller.py')
-        if args.diagnostic or args.sfhot_repeatability:declared.add('sllm_store/vllm_patch/sllm_load.patch')
+        declared.add('sllm_store/vllm_patch/sllm_load.patch')
         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
         final_commit=committed_source(args.source_commit,declared)
     if args.diagnostic or args.sfhot_repeatability:
