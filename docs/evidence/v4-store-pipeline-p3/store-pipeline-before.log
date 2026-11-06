@@ -1,0 +1,70 @@
+test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) ... test_copy_and_device_failures_cannot_become_successful_confirmations (test_v4_store_pipeline.StorePipelineTests) ... ok
+test_copy_overlaps_the_blocked_final_disk_read (test_v4_store_pipeline.StorePipelineTests) ... ok
+test_gpu_without_a_cpu_read_fails_without_dereferencing_missing_host_state (test_v4_store_pipeline.StorePipelineTests) ... FAIL
+
+======================================================================
+FAIL: test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) (mode='allocation_failure')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 183, in test_allocation_open_short_read_and_exception_failures_unblock_consumers
+    self.run_case(mode)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: -11 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existError allocating CPU memory for model modelFailed to allocate memory for model modelCreating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model modelWaiting for model model num tasks 1 state 3
+
+======================================================================
+FAIL: test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) (mode='pool_exhausted')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 183, in test_allocation_open_short_read_and_exception_failures_unblock_consumers
+    self.run_case(mode)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: -11 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existNot enough memory for model modelFailed to free enough memory for model modelCreating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model model
+
+======================================================================
+FAIL: test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) (mode='open_failure')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 183, in test_allocation_open_short_read_and_exception_failures_unblock_consumers
+    self.run_case(mode)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: -11 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existopen() failed for file: /tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_0, error: Input/output errorFailed to load model model to hostCreating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model modelWaiting for model model num tasks 1 state 3
+
+======================================================================
+FAIL: test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) (mode='short_read')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 183, in test_allocation_open_short_read_and_exception_failures_unblock_consumers
+    self.run_case(mode)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: 13 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existLoading model model size 8192 to hostLoading model model to host with 1 threads, 2 chunks, 4096 chunk size, 2 chunks per threadThread 0 starting from partition 0 offset 0Creating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model modelWaiting for model model num tasks 1 state 3Failed to read file: "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_0" read: 0 expected: 4096Error reading from disk, ret -1pipeline did not terminate
+
+
+======================================================================
+FAIL: test_allocation_open_short_read_and_exception_failures_unblock_consumers (test_v4_store_pipeline.StorePipelineTests) (mode='read_exception')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 183, in test_allocation_open_short_read_and_exception_failures_unblock_consumers
+    self.run_case(mode)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: 13 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existLoading model model size 8192 to hostLoading model model to host with 1 threads, 2 chunks, 4096 chunk size, 2 chunks per threadThread 0 starting from partition 0 offset 0Creating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model modelWaiting for model model num tasks 1 state 3pipeline did not terminate
+
+
+======================================================================
+FAIL: test_gpu_without_a_cpu_read_fails_without_dereferencing_missing_host_state (test_v4_store_pipeline.StorePipelineTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 175, in test_gpu_without_a_cpu_read_fails_without_dereferencing_missing_host_state
+    self.run_case("missing_read")
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_store_pipeline.py", line 172, in run_case
+    self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+AssertionError: -11 != 0 : Tensor file "/tmp/sllm-pipeline-cpu-w5w6j2br/model/tensor.data_1" does not existCreating replica replicaCreating queue for device 0Created replica replicaDispatcher started for model model
+
+----------------------------------------------------------------------
+Ran 4 tests in 5.604s
+
+FAILED (failures=6)

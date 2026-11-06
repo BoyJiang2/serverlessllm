@@ -137,6 +137,7 @@ int Model::ToHost(int num_threads) {
             << " chunks per thread";
 
   state_ = MemoryState::LOADING;
+  cv_.notify_all();
   lock.unlock();
 
   for (int thread_idx = 0; thread_idx < num_threads; ++thread_idx) {
@@ -225,31 +226,40 @@ int Model::ToHost(int num_threads) {
 
   lock.lock();
   if (error) {
-    state_ = MemoryState::INTERRUPTED;
-    // Deal with gpu replicas
-    for (auto& [replica_uuid, gpu_replica] : gpu_replicas_) {
-      if (gpu_replica->state_ == MemoryState::LOADING) {
-        gpu_replica->state_ = MemoryState::CANCELLED;
-        gpu_replica->cv_.notify_all();
-      }
-      // wait for gpu replicas to finish
-      gpu_replica->cv_.wait(lock, [&gpu_replica] {
-        return gpu_replica->state_ == MemoryState::LOADED ||
-               gpu_replica->state_ == MemoryState::INTERRUPTED;
-      });
-      // Note: gpu replicas will be handled by the caller
-    }
-    // release pinned memory
-    pinned_mem_.reset();
-    state_ = MemoryState::UNALLOCATED;
-
+    lock.unlock();
+    FinishHostLoad(-1);
     return -1;
   }
 
   state_ = MemoryState::LOADED;
+  cv_.notify_all();
   LOG(INFO) << "Finished loading model " << model_path_ << " from disk";
 
   return 0;
+}
+
+int Model::BeginHostLoad() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (host_load_pending_ || state_ == MemoryState::UNINITIALIZED ||
+      state_ == MemoryState::LOADING || state_ >= MemoryState::CANCELLED) return -1;
+  host_load_pending_ = true;
+  return 0;
+}
+
+void Model::FinishHostLoad(int result) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  host_load_pending_ = false;
+  if (result != 0) {
+    state_ = MemoryState::INTERRUPTED;
+    if (host_ptr_vector_) host_ptr_vector_->close();
+    for (auto& [uuid, replica] : gpu_replicas_) {
+      if (replica->state_ == MemoryState::LOADING) {
+        replica->state_ = MemoryState::CANCELLED;
+        for (auto& [device, queue] : replica->gpu_loading_queue_) queue->close();
+      }
+    }
+  }
+  cv_.notify_all();
 }
 
 int Model::ToGpu(
@@ -278,82 +288,76 @@ int Model::ToGpu(
   gpu_replica->state_ = MemoryState::LOADING;
   LOG(INFO) << "Created replica " << replica_uuid;
   cv_.notify_all();
+  cv_.wait(lock, [this] {
+    return !host_load_pending_ || state_ >= MemoryState::CANCELLED ||
+        ((state_ == MemoryState::LOADING || state_ == MemoryState::LOADED) &&
+         pinned_mem_ && host_ptr_vector_);
+  });
+  bool error = !((state_ == MemoryState::LOADING || state_ == MemoryState::LOADED) &&
+                 pinned_mem_ && host_ptr_vector_);
+  auto host_memory = pinned_mem_;
+  auto host_chunks = host_ptr_vector_;
   lock.unlock();
 
-  // Start a dispatcher first
-  auto dispatch_future = std::async(
-      std::launch::async,
-      [this, gpu_replica, mem_copy_chunks, mem_copy_handles]() {
-        return DispatchToGpu(gpu_replica, mem_copy_chunks, mem_copy_handles);
-      });
-
-  LOG(INFO) << "Dispatcher started for model " << model_path_;
-
+  std::future<int> dispatch_future;
   std::unordered_map<int, std::future<int>> futures;
-  for (auto& [device_id, device_ptr_list] : device_ptrs) {
-    futures.emplace(
-        device_id, std::async(std::launch::async, [this, gpu_replica, device_id,
-                                                   device_ptr_list]() {
-          auto gpu_loading_queue =
-              gpu_replica->gpu_loading_queue_.at(device_id);
-          if (!pinned_mem_ || pinned_mem_->num_chunks() == 0) {
-            LOG(ERROR) << "CPU memory not allocated";
-            return 1;
-          }
-
-          cudaError_t err = cudaSetDevice(device_id);
-          if (err != cudaSuccess) {
-            LOG(ERROR) << "Error setting device " << cudaGetErrorString(err);
-            return 1;
-          }
-
-          auto& host_buffers = pinned_mem_->get();
-
+  try {
+    if (!error) {
+      dispatch_future = std::async(std::launch::async,
+          [this, gpu_replica, mem_copy_chunks, mem_copy_handles, host_memory, host_chunks]() {
+        int result = -1;
+        try {
+          result = DispatchToGpu(gpu_replica, mem_copy_chunks, mem_copy_handles,
+                                 host_memory, host_chunks);
+        } catch (...) {
+          LOG(ERROR) << "GPU dispatcher failed";
+        }
+        for (auto& [device, queue] : gpu_replica->gpu_loading_queue_) queue->close();
+        return result;
+      });
+      LOG(INFO) << "Dispatcher started for model " << model_path_;
+      for (auto& [device_id, device_ptr_list] : device_ptrs) {
+        futures.emplace(device_id, std::async(std::launch::async,
+            [gpu_replica, device_id, device_ptr_list, host_memory]() {
+          auto gpu_loading_queue = gpu_replica->gpu_loading_queue_.at(device_id);
+          if (cudaSetDevice(device_id) != cudaSuccess) return 1;
+          auto& host_buffers = host_memory->get();
           size_t loaded_size = 0;
           while (true) {
-            auto [chunk_id, chunk_offset, size, gpu_offset, handle_idx] =
-                gpu_loading_queue->dequeue();
-            if (size == 0) {
-              break;
-            }
-            if (gpu_replica->state_ == MemoryState::CANCELLED) {
-              LOG(INFO) << "Loading from mem for model " << model_path_
-                        << " is cancelled,"
-                        << " chunk " << chunk_id << " offset "
-                        << " size " << size;
-              return 0;
-            }
-
-            CUDA_CHECK(
-                cudaMemcpy(
-                    (void*)((char*)device_ptr_list[handle_idx] + gpu_offset),
-                    (void*)(host_buffers[chunk_id] + chunk_offset), size,
-                    cudaMemcpyHostToDevice),
-                "cudaMemcpy Error");
+            auto [chunk_id, chunk_offset, size, gpu_offset, handle_idx] = gpu_loading_queue->dequeue();
+            if (size == 0) break;
+            if (gpu_replica->state_ == MemoryState::CANCELLED) return 1;
+            CUDA_CHECK(cudaMemcpy(
+                static_cast<char*>(device_ptr_list.at(handle_idx)) + gpu_offset,
+                host_buffers.at(chunk_id) + chunk_offset, size,
+                cudaMemcpyHostToDevice), "cudaMemcpy Error");
             loaded_size += size;
           }
-
-          LOG(INFO) << "Finished loading tensor from memory to device "
-                    << device_id;
-
+          LOG(INFO) << "Finished loading tensor from memory to device " << device_id;
           return 0;
         }));
+      }
+    }
+  } catch (...) {
+    error = true;
+    if (host_chunks) host_chunks->close();
+    for (auto& [device, queue] : gpu_replica->gpu_loading_queue_) queue->close();
   }
-
   LOG(INFO) << "Waiting for model " << model_path_ << " num tasks "
             << futures.size() << " state " << gpu_replica->state_;
-  dispatch_future.wait();
-  bool error = false;
-  for (auto& [device_id, future] : futures) {
-    int ret = future.get();
-    if (ret != 0) {
-      LOG(ERROR) << "Error copying to device " << device_id;
-      error = true;
-    }
+  if (dispatch_future.valid()) {
+    try { error = dispatch_future.get() != 0 || error; }
+    catch (...) { error = true; }
+  }
+  for (auto& [device, future] : futures) {
+    try { error = future.get() != 0 || error; }
+    catch (...) { error = true; }
   }
 
   lock.lock();
   futures.clear();
+  error = error || gpu_replica->state_ == MemoryState::CANCELLED ||
+          state_ >= MemoryState::CANCELLED;
 
   if (error) {
     LOG(ERROR) << "Failed to load model " << model_path_;
@@ -407,7 +411,7 @@ int Model::WaitInHost() {
     });
   }
 
-  if (state_ >= MemoryState::INTERRUPTED) {
+  if (state_ >= MemoryState::CANCELLED) {
     LOG(INFO) << "Model " << model_path_ << " is interrupted";
     return 1;
   }
@@ -432,7 +436,7 @@ int Model::WaitInGpu(const std::string& replica_uuid) {
     });
   }
 
-  if (gpu_replica->state_ >= MemoryState::INTERRUPTED) {
+  if (gpu_replica->state_ >= MemoryState::CANCELLED) {
     LOG(INFO) << "Model " << model_path_ << " is interrupted";
     return 1;
   }
@@ -478,7 +482,7 @@ int Model::FreeHost() {
 
   if (state_ == MemoryState::UNALLOCATED) {
     LOG(WARNING) << "Model " << model_path_ << " is not allocated";
-    return 1;
+    return 0;
   }
 
   if (state_ == MemoryState::LOADING) {
@@ -489,6 +493,8 @@ int Model::FreeHost() {
     });
   }
 
+  if (state_ >= MemoryState::CANCELLED) return 1;
+
   // make sure no gpu replicas are loading
   for (auto& [replica_uuid, gpu_replica] : gpu_replicas_) {
     if (gpu_replica->state_ == MemoryState::LOADING) {
@@ -498,6 +504,7 @@ int Model::FreeHost() {
                gpu_replica->state_ == MemoryState::INTERRUPTED;
       });
     }
+    if (gpu_replica->state_ >= MemoryState::CANCELLED) return 1;
   }
 
   // free pinned memory
@@ -524,9 +531,12 @@ int Model::TryFreeHost() {
     return -1;
   }
 
+  if (state_ >= MemoryState::CANCELLED) return -1;
+
   // make sure no gpu replicas are loading
   for (auto& [replica_uuid, gpu_replica] : gpu_replicas_) {
-    if (gpu_replica->state_ == MemoryState::LOADING) {
+    if (gpu_replica->state_ == MemoryState::LOADING ||
+        gpu_replica->state_ >= MemoryState::CANCELLED) {
       return -1;
     }
   }
@@ -542,10 +552,12 @@ int Model::TryFreeHost() {
 int Model::DispatchToGpu(
     const std::shared_ptr<GpuReplica>& gpu_replica,
     const std::unordered_map<int, MemCopyChunkList>& mem_copy_chunks,
-    const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles) {
+    const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles,
+    const std::shared_ptr<PinnedMemory>& host_memory,
+    const std::shared_ptr<BatchVector>& host_chunks) {
   // device_id, chunk_offset, size, gpu_offset
 
-  size_t num_chunks = pinned_mem_->num_chunks();
+  size_t num_chunks = host_memory->num_chunks();
   std::vector<std::vector<GpuChunk>> chunk_id_to_gpu_chunks(num_chunks);
   for (const auto& [device_id, mem_copy_chunk_list] : mem_copy_chunks) {
     const auto& device_handles = mem_copy_handles.at(device_id);
@@ -556,9 +568,9 @@ int Model::DispatchToGpu(
       handle_offsets[handle_idx] = gpu_offset;
 
       std::vector<std::tuple<int, size_t, size_t>> chunks =
-          MapDataToChunks(host_offset, size, pinned_mem_->chunk_size());
+          MapDataToChunks(host_offset, size, host_memory->chunk_size());
       for (const auto& [chunk_id, chunk_offset, size] : chunks) {
-        chunk_id_to_gpu_chunks[chunk_id].push_back(
+        chunk_id_to_gpu_chunks.at(chunk_id).push_back(
             std::make_tuple(device_id, chunk_offset, size,
                             handle_offsets[handle_idx], handle_idx));
         handle_offsets[handle_idx] += size;
@@ -566,10 +578,11 @@ int Model::DispatchToGpu(
     }
   }
 
-  for (int i = 0; i < host_ptr_vector_->capacity(); i++) {
-    auto data_chunk = host_ptr_vector_->dequeue(i);
+  for (int i = 0; i < host_chunks->capacity(); i++) {
+    auto data_chunk = host_chunks->dequeue(i);
+    if (data_chunk.size_ == 0) return -1;
     auto chunk_id = data_chunk.chunk_id_;
-    auto& gpu_chunks = chunk_id_to_gpu_chunks[chunk_id];
+    auto& gpu_chunks = chunk_id_to_gpu_chunks.at(chunk_id);
     for (const auto& [device_id, chunk_offset, size, gpu_offset, handle_idx] :
          gpu_chunks) {
       auto& gpu_loading_queue = gpu_replica->gpu_loading_queue_.at(device_id);

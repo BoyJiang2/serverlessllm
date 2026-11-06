@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <atomic>
 #include <condition_variable>
 #include <filesystem>
 #include <future>
@@ -41,7 +42,7 @@
 
 struct GpuReplica {
   std::condition_variable cv_;
-  MemoryState state_ = MemoryState::UNINITIALIZED;
+  std::atomic<MemoryState> state_{MemoryState::UNINITIALIZED};
 
   std::unordered_map<int, std::shared_ptr<BatchQueue>> gpu_loading_queue_;
   MemPtrListMap device_ptrs_;
@@ -54,6 +55,8 @@ class Model {
   int Initialize(const std::filesystem::path storage_path);
   int AllocatePinnedMemory(std::shared_ptr<PinnedMemoryPool> pool);
   int ToHost(int num_threads);
+  int BeginHostLoad();
+  void FinishHostLoad(int result);
   int ToGpu(const std::string& replica_uuid, const MemPtrListMap& device_ptrs,
             const std::unordered_map<int, MemCopyChunkList>& mem_copy_chunks,
             const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles);
@@ -68,7 +71,9 @@ class Model {
  private:
   std::mutex mutex_;
   std::condition_variable cv_;
-  MemoryState state_ = MemoryState::UNINITIALIZED;
+  std::atomic<MemoryState> state_{MemoryState::UNINITIALIZED};
+
+  bool host_load_pending_ = false;
 
   // Model path
   const std::string model_path_;
@@ -88,6 +93,8 @@ class Model {
   int DispatchToGpu(
       const std::shared_ptr<GpuReplica>& gpu_replica,
       const std::unordered_map<int, MemCopyChunkList>& mem_copy_chunks,
-      const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles);
+      const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles,
+      const std::shared_ptr<PinnedMemory>& host_memory,
+      const std::shared_ptr<BatchVector>& host_chunks);
 };
 using ModelPtr = std::shared_ptr<Model>;

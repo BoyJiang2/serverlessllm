@@ -28,6 +28,8 @@ struct Pinned { int num_chunks() { return 1; } };
 struct Model {
  std::mutex mutex_; MemoryState state_=MemoryState::UNALLOCATED;
  std::shared_ptr<Pinned> pinned_mem_;
+ int BeginHostLoad() {return 0;}
+ void FinishHostLoad(int) {}
  bool IsHostLoaded();
  int FreeHost() { std::lock_guard<std::mutex> guard(mutex_);
    state_=MemoryState::UNALLOCATED;pinned_mem_.reset();return 0; }

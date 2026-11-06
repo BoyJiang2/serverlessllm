@@ -150,7 +150,7 @@ int CheckpointStore::LoadModelFromDisk(const std::string& model_path) {
       return -1;
     }
     ssize_t remaining_size = model->AllocatePinnedMemory(memory_pool_);
-    if (remaining_size < 0) {
+    if (remaining_size != 0) {
       LOG(ERROR) << "Failed to allocate memory for model " << model_path;
       return -1;
     }
@@ -162,9 +162,7 @@ int CheckpointStore::LoadModelFromDisk(const std::string& model_path) {
 
   if (ret != 0) {
     LOG(ERROR) << "Failed to load model " << model_path << " to host";
-    if (model->FreeHost() != 0) {
-      LOG(ERROR) << "Failed to free memory for model " << model_path;
-    }
+    // The failed producer/consumers retain their owners until Store isolation.
     return ret;
   }
 
@@ -191,9 +189,23 @@ int CheckpointStore::LoadModelFromDiskAsync(const std::string& model_path,
   }
   // Join an actual in-flight read: ToHost itself returns 0 while LOADING.
   if (!pending.valid()) {
-    pending = std::async(std::launch::async, [this, model_path]() {
-      return LoadModelFromDisk(model_path);
-    }).share();
+    auto model = model_map_.at(model_path);
+    if (model->BeginHostLoad() != 0) return -1;
+    try {
+      pending = std::async(std::launch::async, [this, model_path, model]() {
+        try {
+          int result = LoadModelFromDisk(model_path);
+          model->FinishHostLoad(result);
+          return result;
+        } catch (...) {
+          model->FinishHostLoad(-1);
+          throw;
+        }
+      }).share();
+    } catch (...) {
+      model->FinishHostLoad(-1);
+      throw;
+    }
   }
   requests[load_uuid] = pending;
   return 0;
@@ -358,6 +370,7 @@ int CheckpointStore::ClearMem() {
     int ret = model->FreeHost();
     if (ret != 0) {
       LOG(ERROR) << "Failed to free memory for model " << model_path;
+      return -1;
     }
   }
   model_map_.clear();

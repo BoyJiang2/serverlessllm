@@ -29,6 +29,7 @@ class ConcurrentVector {
   std::vector<T> data;
   std::mutex mtx_;
   std::condition_variable cond_;
+  bool closed_ = false;
   size_t size_ = 0;
   size_t capacity_ = 0;
   std::string name_;
@@ -42,6 +43,7 @@ class ConcurrentVector {
   size_t capacity();
   bool find(size_t key);
   void enqueue(uint64_t key, T item);
+  void close();
   T dequeue(size_t pivot);
 };
 
@@ -52,6 +54,8 @@ void ConcurrentVector<T>::init(std::string name, size_t capacity) {
   name_ = std::move(name);
   data.resize(capacity_);
   size_ = 0;
+  closed_ = false;
+  keys_.clear();
 }
 
 template <typename T>
@@ -70,7 +74,7 @@ template <typename T>
 void ConcurrentVector<T>::enqueue(uint64_t key, T item) {
   std::lock_guard<std::mutex> lock(mtx_);
 
-  if (keys_.find(key) != keys_.end()) {
+  if (closed_ || keys_.find(key) != keys_.end()) {
     return;
   }
 
@@ -84,6 +88,15 @@ void ConcurrentVector<T>::enqueue(uint64_t key, T item) {
 template <typename T>
 T ConcurrentVector<T>::dequeue(size_t pivot) {
   std::unique_lock<std::mutex> lock(mtx_);
-  cond_.wait(lock, [this, pivot] { return pivot < size_; });
+  cond_.wait(lock, [this, pivot] { return closed_ || pivot < size_; });
+  if (pivot >= size_) return T{};
   return data[pivot];
+}
+
+
+template <typename T>
+void ConcurrentVector<T>::close() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  closed_ = true;
+  cond_.notify_all();
 }

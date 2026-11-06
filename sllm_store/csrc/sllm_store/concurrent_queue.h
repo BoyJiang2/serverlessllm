@@ -29,11 +29,13 @@ class ConcurrentQueue {
   ConcurrentQueue& operator=(const ConcurrentQueue&) = delete;
 
   void enqueue(T item);
+  void close();
   T dequeue();
   bool isEmpty();
 
  private:
   std::queue<T> queue_;
+  bool closed_ = false;
   std::mutex mtx_;
   std::condition_variable cond_;
 };
@@ -41,6 +43,7 @@ class ConcurrentQueue {
 template <typename T>
 void ConcurrentQueue<T>::enqueue(T item) {
   std::unique_lock<std::mutex> lock(mtx_);
+  if (closed_) return;
   queue_.push(std::move(item));
   lock.unlock();  // explicitly unlock before notifying to minimize the waiting
                   // time of the notified thread
@@ -50,9 +53,10 @@ void ConcurrentQueue<T>::enqueue(T item) {
 template <typename T>
 T ConcurrentQueue<T>::dequeue() {
   std::unique_lock<std::mutex> lock(mtx_);
-  while (queue_.empty()) {
+  while (queue_.empty() && !closed_) {
     cond_.wait(lock);  // release lock and wait to be notified
   }
+  if (queue_.empty()) return T{};
   T item = std::move(queue_.front());
   queue_.pop();
   return item;
@@ -62,4 +66,11 @@ template <typename T>
 bool ConcurrentQueue<T>::isEmpty() {
   std::unique_lock<std::mutex> lock(mtx_);
   return queue_.empty();
+}
+
+template <typename T>
+void ConcurrentQueue<T>::close() {
+  std::lock_guard<std::mutex> lock(mtx_);
+  closed_ = true;
+  cond_.notify_all();
 }
