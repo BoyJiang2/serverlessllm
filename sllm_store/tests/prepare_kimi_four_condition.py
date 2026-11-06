@@ -385,6 +385,50 @@ def collect_structured_events(router_positions,worker_positions,tokens,backend_o
  save('structured-lifecycle-events.json',{'run_id':run,'attempt':s['attempt'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'events':groups,'sources':sources,'backend_owner':backend_owner,'router_owner':router_owner,'instance_id':route['instance_id']})
 """
 
+def milestone_assert_messages(body):
+    # This execution body comes from the frozen exit60 command, not s4a probes.
+    messages = {
+        "row['State']['Running']":
+            'f"normal_exit role={role}: container not running; State={row[\'State\']!r}"',
+        "row['State']['ExitCode']==0 and not row['State']['OOMKilled'] and row['State']['Pid']==0 and row['RestartCount']==0":
+            'f"normal_exit role={role}: expected exit0/Pid0/noOOM/restart0; State={row[\'State\']!r}; RestartCount={row[\'RestartCount\']!r}"',
+        "result['status']=='KERNEL_CLEANUP_RELEASE_PASS' and not result['failures'] and result['quiet_seconds']>=60":
+            "f'guard release role={role}: expected PASS/no failures/quiet>=60; actual={result!r}'",
+        "not pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cids[role]+'.scope').exists()":
+            "f'cgroup release role={role}: scope remains for cid={cids[role]}'",
+        "observed['quiet_seconds']>=60":
+            "f'observer release: expected quiet>=60; actual={observed!r}'",
+        "p['Result']=='success' and p['ExecMainCode']=='1' and p['ExecMainStatus']=='0'":
+            "f'unit exit metadata unit={u}: expected success/code1/status0; actual={p!r}'",
+        'time.monotonic()-started<7020':
+            "f'release wait deadline7020 exceeded; units={units!r}'",
+        "int(p['MainPID'])>0":
+            "f'final-stop admission role={role}: unit no longer active; actual={p!r}'",
+        "all(v=={'used_mib':0,'processes':[]} for v in m.gpu().values()) and gone(store_owner) and gone(observer_owner)":
+            "f'final GPUzero/owned-gone failed: expected every GPU used_mib0/no processes and both identities gone; store_owner={store_owner!r}; observer_owner={observer_owner!r}'",
+        "len({tuple(r['input_tokens']) for r in gold})==3":
+            'f"input history life={life} request={index}: expected3 unique prompts; actual={[r[\'input_tokens\'] for r in gold]!r}"',
+        "collections.Counter(json.dumps(x) for x in tokens['tokens'])==collections.Counter(json.dumps(x) for x in history)":
+            'f"token history life={life} request={index}: actual={tokens[\'tokens\']!r}; expected={history!r}"',
+    }
+    expected = {ast.dump(ast.parse(test, mode='eval').body): message for test, message in messages.items()}
+    edits = []; found = set(); lines = body.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines: offsets.append(offsets[-1]+len(line))
+    for node in ast.walk(ast.parse(body)):
+        if not isinstance(node, ast.Assert) or node.msg is not None: continue
+        key = ast.dump(node.test); message = expected.get(key)
+        if ast.unparse(node.test)=='time.monotonic() < limit' and "inspect(role)['State']['Status']" in lines[node.lineno-1]:
+            message = "f'normal_exit role={role}: container exit wait deadline exceeded; cid={cids[role]}'"
+        if ast.unparse(node.test)=='gone(owner)' and "result['pinned_identities']" in lines[node.lineno-1]:
+            message = "f'pinned identity release role={role}: owner remains; actual={owner!r}'"
+        if message is not None:
+            edits.append((offsets[node.end_lineno-1]+node.end_col_offset, ', '+message)); found.add(key)
+    assert set(expected)<=found, ('milestone assertion template drift', set(expected)-found)
+    for position, message in sorted(edits, reverse=True): body=body[:position]+message+body[position:]
+    return body
+
+
 def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_id=None):
     validate_protocol(protocol)
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
@@ -506,6 +550,7 @@ if sys.argv[1]=='pool':
         "release_quiet60_complete":"After both guards, observer and owned unit exits plus final physical GPUzero/gone checks; subsequent source rehash/network evidence work separate.",
         "budget":"Event writes consume existing7200 condition/28920 block slack. No deadline extension or shortened quiet period.",
     }
+    body=milestone_assert_messages(body)
     compile(body,"<formal-candidate>","exec")
     command["argv"][index]=body
     command["argv"][command["argv"].index("--unit="+old_run+"-controller.service")]="--unit="+attempt_id+"-controller.service"

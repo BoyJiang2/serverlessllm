@@ -785,7 +785,7 @@ class DiagnosticValueTest(unittest.TestCase):
                 self.assertTrue(all(v['env']['SLLM_DIAGNOSTIC_VALUE_FINGERPRINT']=='1' for v in spec['requests'].values()))
             original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
             _,normal=p.render(protocol,original,command,protocol['attempts'][0]['attempt_id'],original['native_source_pins'])
-            self.assertEqual(normal['root_python_sha256'],'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
+            self.assertEqual(normal['root_python_sha256'],'532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee')
             used=copy.deepcopy(protocol);used['resource_budget']['runs_root']=str(pathlib.Path(directory)/'runs');(pathlib.Path(directory)/'runs/kimi-diagnostic-value-20261107-sf1').mkdir(parents=True)
             overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
             with self.assertRaises(AssertionError):p.render_diagnostic(used,original,command,original['native_source_pins'],overlay,p.DIAGNOSTIC_OVERLAY_SHA)
@@ -871,6 +871,7 @@ class DiagnosticValueTest(unittest.TestCase):
             check=compile(ast.Module(body=[node],type_ignores=[]),'<actual-diag-trace-check>','exec')
             context={'collections':__import__('collections'),'json':json,'tokens':{'tokens':[[1,2],[1,3]]},'history':[[1,2],[1,3]]};exec(check,context)
             context['tokens']['tokens'][-1]=[1,99]
+            context.update(life=1,index=2)
             with self.assertRaises(AssertionError):exec(check,context)
             namespace={'math':__import__('math'),'json':json};exec(p.DIAGNOSTIC_FUNCTIONS,namespace)
             namespace['diagnostic_observations'].update({str(i):{'gold_match':i!=2} for i in range(5)})
@@ -910,9 +911,9 @@ class SFHotRepeatabilityTest(unittest.TestCase):
     def test_actual_single_case_main_four_producers_and_no_fingerprint(self):
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory);out=root/'out';out.mkdir()
-            protocol=json.loads((p.base.EVIDENCE/'kimi-four-condition-10block-preregistration-local-nvme-v4-retry02-20261106.json').read_text());protocol['final_deploy_commit']=p.SOURCE
+            protocol=json.loads((p.base.EVIDENCE/'kimi-four-condition-10block-preregistration-local-nvme-v4-retry02-20261106.json').read_text());protocol['final_deploy_commit']=p.SOURCE;protocol['resource_budget']['runs_root']=str(root/'runs')
             pp=root/'reference.json';pp.write_text(json.dumps(protocol));sha=p.base.digest(pp)
-            with mock.patch.object(p.base,'EVIDENCE',out),mock.patch.object(p,'validate_inventory'),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--sfhot-repeatability','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
+            with mock.patch.object(p,'RUNS_ROOT',str(root/'runs')),mock.patch.object(p.base,'EVIDENCE',out),mock.patch.object(p,'validate_inventory'),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--sfhot-repeatability','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
                 p.main()
             self.assertEqual(len(list(out.iterdir())),2);self.assertEqual(list(out.glob('*-bundle.json')),[])
             spec=json.loads(next(out.glob('*-spec.json')).read_text());cmd=json.loads(next(out.glob('*-command.json')).read_text());body=cmd['argv'][cmd['argv'].index('-c')+1]
@@ -964,6 +965,57 @@ class SFHotRepeatabilityTest(unittest.TestCase):
         overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
         full=p.render_diagnostic(protocol,spec,cmd,spec['native_source_pins'],overlay,p.DIAGNOSTIC_OVERLAY_SHA)
         self.assertEqual(len(full),4);self.assertTrue(all(s['fingerprint_required'] for s,_ in full));self.assertTrue(all("verify_diagnostic_records(records)" in c['argv'][c['argv'].index('-c')+1] for _,c in full))
+
+class MilestoneAssertionMessagesTest(unittest.TestCase):
+    def rendered(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        args=(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        with mock.patch.object(p,'milestone_assert_messages',side_effect=lambda body:body):
+            old_spec,old=p.render(*args)
+        new_spec,new=p.render(*args)
+        return old_spec,old,new_spec,new
+
+    def test_actual_render_changes_only_assert_messages(self):
+        old_spec,old,new_spec,new=self.rendered()
+        old_body=old['argv'][old['argv'].index('-c')+1];new_body=new['argv'][new['argv'].index('-c')+1]
+        self.assertEqual(p.hashlib.sha256(old_body.encode()).hexdigest(),'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
+        trees=[ast.parse(old_body),ast.parse(new_body)]
+        changes=[]
+        for before,after in zip([n for n in ast.walk(trees[0]) if isinstance(n,ast.Assert)],[n for n in ast.walk(trees[1]) if isinstance(n,ast.Assert)]):
+            if ast.dump(before)!=ast.dump(after):
+                self.assertEqual(ast.dump(before.test),ast.dump(after.test));self.assertIsNone(before.msg);self.assertIsNotNone(after.msg);changes.append(after)
+        self.assertGreaterEqual(len(changes),13)
+        for tree in trees:
+            for node in ast.walk(tree):
+                if isinstance(node,ast.Assert):node.msg=None
+        self.assertEqual(ast.dump(trees[0]),ast.dump(trees[1]))
+        self.assertEqual(old_spec,new_spec);self.assertEqual(old_spec['role_bodies'],new_spec['role_bodies'])
+        old['argv'][old['argv'].index('-c')+1]=new_body;old['root_python_sha256']=new['root_python_sha256']
+        self.assertEqual(old,new)
+
+    def test_actual_generated_failed_assertions_have_labels_and_actual_values(self):
+        _,_,_,command=self.rendered();body=command['argv'][command['argv'].index('-c')+1]
+        examples=[
+            ('guard release',{'role':'worker','result':{'status':'FAILED','failures':['abort_requested'],'quiet_seconds':2}}),
+            ('observer release',{'observed':{'quiet_seconds':2,'gaps':3}}),
+            ('unit exit metadata',{'u':'example.service','p':{'Result':'success','ExecMainCode':'0','ExecMainStatus':'0'}}),
+            ('normal_exit role',{'role':'worker','row':{'State':{'Running':False}}}),
+            ('expected exit0/Pid0/noOOM/restart0',{'role':'worker','row':{'State':{'ExitCode':1,'OOMKilled':False,'Pid':0},'RestartCount':0,'Config':{'Env':['DO_NOT_PRINT']}}}),
+            ('token history',{'life':1,'index':2,'tokens':{'tokens':[[1,2]]},'history':[[1,3]],'collections':__import__('collections'),'json':json}),
+            ('pinned identity release',{'role':'worker','owner':{'pid':123,'startticks':456},'gone':lambda owner:False}),
+        ]
+        assertions=[node for node in ast.walk(ast.parse(body)) if isinstance(node,ast.Assert) and node.msg is not None]
+        for label,context in examples:
+            node=next(node for node in assertions if label in ast.unparse(node.msg))
+            with self.subTest(label=label),self.assertRaises(AssertionError) as raised:
+                exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-generated-assert>','exec'),context)
+            self.assertIn(label,str(raised.exception));self.assertGreater(len(str(raised.exception)),len(label)+5)
+            self.assertNotIn('DO_NOT_PRINT',str(raised.exception))
+        with self.assertRaisesRegex(AssertionError,'template drift'):
+            p.milestone_assert_messages('assert True')
+
 
 if __name__=='__main__':
     unittest.main()
