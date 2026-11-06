@@ -32,7 +32,7 @@ class PreparationTest(unittest.TestCase):
             self.assertFalse(spec['config']['backend_config']['enable_prefix_caching'])
             self.assertEqual(spec['budgets']['sum'],6480)
             self.assertIn("for life in (1,):",body)
-            self.assertLess(body.index("  construct_cache();"),body.index("event('parent_register_arithmetic_dispatch')"))
+            self.assertLess(body.index("construct_cache();"),body.index("event('parent_register_arithmetic_dispatch')"))
             self.assertNotIn("while True:\n   assert time.monotonic()<create_end",body)
             self.assertIn("store_stop_end=time.monotonic()+60;",body)
             self.assertIn("result['quiet_seconds']>=60",body)
@@ -131,7 +131,7 @@ class ActualConsumerTest(unittest.TestCase):
             saved[name]=copy.deepcopy(value)
             counter[0]+=10**10
         namespace.update(save=save,clock_identity=clock,run='run',s={'primary_http_endpoint':'received_ns','attempt':{'attempt_id':'run','block':1},'condition':'safetensors_disk_hot','source_commit':'a'*40,'protocol_sha256':'b'*64},cids={'head':'cid'})
-        exec(p.HTTP_EVENTS+p.RESPONSE,namespace)
+        exec(p.HTTP_EVENTS+p.SAMPLE_EVIDENCE+p.RESPONSE,namespace)
         complete=namespace['check_response'](row,want,0,1)
         self.assertEqual(complete['monotonic_ns'],endpoint)
         self.assertEqual(complete['primary_A_ns'],primary)
@@ -202,8 +202,12 @@ class ActualConsumerTest(unittest.TestCase):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(protocol,p.SOURCE)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        for request in protocol['correctness']['requests']:request['logprobs']=1
+        protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
         protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
+        protocol['assets'].update(route='local_nvme',safetensors=p.SF_HOST,store_archive=p.STORE_ARCHIVE,store=p.STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference',input_inventory_path='/tmp/new-local-manifest.json',input_inventory_sha256='c'*64)
+        protocol['resource_budget']['runs_root']=p.RUNS_ROOT
         p.validate_frozen_protocol(protocol,p.SOURCE)
         protocol['final_deploy_commit']='0'*40
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(protocol,p.SOURCE)
@@ -255,23 +259,270 @@ class ActualConsumerTest(unittest.TestCase):
     def test_main_freezes_all_four_children_and_actual_bundle(self):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        for request in protocol['correctness']['requests']:request['logprobs']=1
+        protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
         protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
         with tempfile.TemporaryDirectory() as directory:
-            root=pathlib.Path(directory);ep=root/'prepared';ep.mkdir();pp=root/'protocol.json';pp.write_text(json.dumps(protocol));sha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
-            with mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--block','1','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
+            root=pathlib.Path(directory);ep=root/'prepared';ep.mkdir()
+            sf=root/'checkpoint';archive=root/'archive';store=archive/'vllm/kimi-k2.6-sf-reference';runs=root/'performance-runs'
+            for path in (sf,store,runs):path.mkdir(parents=True)
+            inventory={'roots':{}}
+            for name,target in (('safetensors',sf),('store',store)):
+                path=target/'tiny-weight';path.write_bytes(b'tiny')
+                st=path.stat();row=dict(path=str(path),resolved=str(path),relative=path.name,dev=st.st_dev,ino=st.st_ino,bytes=st.st_size,mtime_ns=st.st_mtime_ns,uid=st.st_uid,payload=True)
+                inventory['roots'][name]={'root':str(target),'files':[row]}
+            ip=root/'local-manifest.json';ip.write_text(json.dumps(inventory));isha=p.hashlib.sha256(ip.read_bytes()).hexdigest()
+            protocol['assets'].update(route='local_nvme',safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=isha)
+            protocol['resource_budget']['runs_root']=str(runs)
+            pp=root/'protocol.json';pp.write_text(json.dumps(protocol));sha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
+            with mock.patch.object(p,'SF_HOST',str(sf)),mock.patch.object(p,'STORE_ARCHIVE',str(archive)),mock.patch.object(p,'RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--block','1','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
                 p.main()
             files=list(ep.iterdir());self.assertEqual(len(files),10)
             bundle=json.loads(next(ep.glob('*-bundle.json')).read_text())
             self.assertEqual(bundle['status'],'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW')
-            self.assertEqual(len(bundle['attempts']),4)
+            self.assertEqual(bundle['runs_root'],str(runs));self.assertEqual(len(bundle['attempts']),4)
             for row in bundle['attempts']:
                 command=json.loads(pathlib.Path(row['command_path']).read_text());spec=json.loads(pathlib.Path(command['argv'][-3]).read_text())
                 self.assertEqual(spec['protocol_sha256'],sha);self.assertEqual(spec['source_commit'],p.SOURCE)
                 self.assertEqual(spec['primary_http_endpoint'],'received_ns')
                 self.assertEqual(spec['native_source_pins']['sllm_store/tests/file_cache_state.py'],spec['cache_helper_sha256'])
+                self.assertEqual(spec['archive'],str(archive));self.assertEqual(spec['input_inventory'],{'path':str(ip),'sha256':isha})
+                self.assertEqual(spec['runs_root'],str(runs))
+                body=command['argv'][command['argv'].index('-c')+1]
+                self.assertIn("base=pathlib.Path(s['runs_root'])/run",body)
+                self.assertNotIn("/home/boyjiang/kimi-new/evidence/runs",body)
+                # Execute the actual generated mount builder against only local tiny fixture paths.
+                names={'validate_role_contracts','create_argv'}
+                nodes=[node for node in ast.parse(body).body if isinstance(node,ast.FunctionDef) and node.name in names]
+                runbase=runs/spec['run_id']
+                namespace={'ast':ast,'hashlib':p.hashlib,'s':spec,'D':['docker'],'network':'owned','base':runbase,'control':runbase/'control'}
+                exec(compile(ast.Module(body=nodes,type_ignores=[]),'<actual-mount-builder>','exec'),namespace)
+                for role in ('head','worker'):
+                    argv,mounts=namespace['create_argv'](role)
+                    self.assertTrue(any(m['Source']==str(sf) and m['Target']=='/mnt/raid/models/Kimi-K2.6' and m['ReadOnly'] for m in mounts))
+                    self.assertTrue(any(m['Source']==str(archive) and m['Target']=='/store' and m['ReadOnly'] for m in mounts))
+                    self.assertTrue(any(m['Source']==str(runbase/role) and m['Target']=='/evidence' for m in mounts))
+                selected='safetensors' if spec['condition'].startswith('safetensors') else 'store'
+                self.assertTrue(all(pathlib.Path(r['path']).is_relative_to(pathlib.Path(inventory['roots'][selected]['root'])) for r in inventory['roots'][selected]['files']))
+                self.assertIn("gb=base/('guard-'+role)",body);self.assertIn("ob=base/'observer'",body)
             launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
             self.assertIn('--property=RuntimeMaxSec=28917',launch['argv'])
+
+
+class SampleEvidenceTest(unittest.TestCase):
+    def setup_evidence(self,root):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        clock={'boot_id':'boot','time_namespace':'time:[1]','monotonic_clock_implementation':'CLOCK_MONOTONIC','process_startticks':88}
+        def save(name,value):
+            with (root/name).open('x') as stream:json.dump(value,stream)
+        namespace={'json':json,'pathlib':pathlib,'hashlib':p.hashlib,'time':types.SimpleNamespace(monotonic_ns=lambda:1000),'save':save,'base':root,'clock_identity':clock,'run':'run','s':{'primary_http_endpoint':'received_ns','attempt':{'attempt_id':'run','block':1},'condition':'safetensors_disk_hot','source_commit':'a'*40,'protocol_sha256':'b'*64,'correctness':protocol['correctness']},'cids':{'head':'cid'},'children':[]}
+        exec(p.HTTP_EVENTS+p.SAMPLE_EVIDENCE+p.RESPONSE,namespace)
+        rows=[]
+        for index,want in enumerate(protocol['correctness']['requests']):
+            expected=want['expected']
+            row={'status':200,'response':{'choices':[{'message':{'content':expected['content']},'finish_reason':expected['finish_reason']}],'usage':{'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}},'path':'/v1/chat/completions','request_id':'run-'+str(index),'pid':321,'clock_identity':clock,'registration_command_ns':1 if index==0 else None,'register_complete_ns':2 if index==0 else None,'business_trigger_ns':3,'request_begin_ns':4,'response_body_complete_ns':5,'json_parse_complete_ns':6,'received_ns':7,'child_gold_validation_begin_ns':8,'child_gold_validation_complete_ns':9,'child_gold_validation_pass':True}
+            output=root/(str(index)+'-head-http.stdout');raw=json.dumps(row).encode();output.write_bytes(raw)
+            row['stdout_reference']={'path':str(output),'bytes':len(raw),'sha256':p.hashlib.sha256(raw).hexdigest()}
+            rows.append((row,want,index))
+        return namespace,rows
+
+    def test_child_malformed_gold_keeps_received_and_returns_invalid_row(self):
+        clock=[0]
+        def now():
+            clock[0]+=1
+            return clock[0]
+        namespace={'time':types.SimpleNamespace(monotonic_ns=now)}
+        exec(functions_from(p.HTTP_BODY),namespace)
+        namespace['perform_http']=lambda *args:{'status':200,'response':{}}
+        want=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)['correctness']['requests'][0]
+        row=namespace['finish_http']('/v1/chat/completions',{},30,want)
+        self.assertEqual(row['received_ns'],2)
+        self.assertFalse(row['child_gold_validation_pass'])
+        self.assertEqual(row['child_gold_validation_error']['type'],'KeyError')
+        self.assertGreater(row['child_gold_validation_complete_ns'],row['received_ns'])
+
+    def test_cleanup_failure_keeps_metrics_and_normal_condition_separate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);ns,rows=self.setup_evidence(root)
+            for row,want,index in rows:ns['check_response'](row,want,index,1)
+            for gate in ns['sample_gates']:ns['mark_sample_gate'](gate,True,'fixture proof')
+            ns['condition_normal']=True;ns['condition_terminal'](True,'business/deletion normal')
+            before=(root/'sample-metrics.json').read_bytes()
+            result=ns['finalize_sample_evidence']({'normal':False,'status':'FAILED','quiet_seconds':None,'reason':'Store normal exit timeout'},'cleanup failed')
+            self.assertFalse(result['primary_sample_qualified'])
+            self.assertEqual(before,(root/'sample-metrics.json').read_bytes())
+            metrics=json.loads(before)['requests'][0]
+            self.assertEqual((metrics['primary_A_ns'],metrics['business_B_ns']),(6,4))
+            self.assertTrue(json.loads((root/'condition-terminal.json').read_text())['normal'])
+            self.assertFalse(json.loads((root/'cleanup-result.json').read_text())['normal'])
+
+    def test_all_proven_success_qualifies(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);ns,rows=self.setup_evidence(root)
+            for row,want,index in rows:ns['check_response'](row,want,index,1)
+            for gate in ns['sample_gates']:ns['mark_sample_gate'](gate,True,'fixture proof including exact trace IDs')
+            ns['condition_normal']=True
+            result=ns['finalize_sample_evidence']({'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':60},'normal')
+            self.assertTrue(result['primary_sample_qualified']);self.assertEqual(result['invalid_reasons'],[])
+            self.assertEqual(len(json.loads((root/'sample-validity.json').read_text())['evidence']),3)
+
+    def test_gold_failure_preserves_original_interval_and_invalidity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);ns,rows=self.setup_evidence(root)
+            row,want,index=rows[0];row['child_gold_validation_pass']=False;row['response']['choices'][0]['message']['content']='wrong'
+            with self.assertRaises(AssertionError):ns['check_response'](row,want,index,1)
+            ns['mark_sample_gate']('gold',False,'child text/usage/finish mismatch')
+            result=ns['finalize_sample_evidence']({'normal':False,'status':'NOT_OBSERVED','quiet_seconds':None},'gold failed')
+            self.assertFalse(result['primary_sample_qualified'])
+            arithmetic=json.loads((root/'sample-metrics.json').read_text())['requests'][0]
+            self.assertEqual((arithmetic['primary_A_ns'],arithmetic['business_B_ns']),(6,4))
+            self.assertFalse(arithmetic['child_gold_validation_pass'])
+            self.assertTrue(any('gold:FAIL' in reason for reason in result['invalid_reasons']))
+
+    def test_missing_inputs_fail_closed_and_recover_stdout_on_child_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);ns,rows=self.setup_evidence(root)
+            row,want,index=rows[0];output=pathlib.Path(row['stdout_reference']['path'])
+            row['child_gold_validation_pass']=False;output.write_text(json.dumps(row))
+            ns['children']=[(None,types.SimpleNamespace(name=str(output)),None)]
+            # Child finish failed before returning a row to the parent: recover only its existing stdout.
+            result=ns['finalize_sample_evidence']({'normal':False,'status':'NOT_OBSERVED','quiet_seconds':None},'child process failed')
+            self.assertFalse(result['primary_sample_qualified'])
+            metrics=json.loads((root/'sample-metrics.json').read_text())['requests']
+            self.assertEqual(metrics[0]['primary_A_ns'],6)
+            self.assertEqual(metrics[1]['observation_status'],'NOT_OBSERVED')
+            self.assertTrue(any('NOT_OBSERVED' in reason for reason in result['invalid_reasons']))
+            pass_gates={name:{'status':'PASS'} for name in ('cache','gold','clock','ownership')}
+            self.assertFalse(ns['sample_qualification'](pass_gates,{'normal':True},{'normal':True,'quiet_seconds':60},{})['primary_sample_qualified'])
+
+    def test_generated_exception_diagnostic_failure_keeps_abort_and_original_error(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        body=command['argv'][command['argv'].index('-c')+1]
+        handler=next(node.handlers[0] for node in ast.parse(body).body if isinstance(node,ast.Try) and node.handlers and node.handlers[0].name=='error' and "sample-evidence-error.json" in ast.get_source_segment(body,node))
+        actual=ast.Try(body=[ast.Raise(exc=ast.Name(id='original',ctx=ast.Load()),cause=None)],handlers=[copy.deepcopy(handler)],orelse=[],finalbody=[])
+        program=compile(ast.fix_missing_locations(ast.Module(body=[actual],type_ignores=[])),'<actual-generated-error-handler>','exec')
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory)
+            for role in ('guard-head','guard-worker','observer'):(root/role).mkdir()
+            saved={};original=RuntimeError('original business failure')
+            def finalize(*args):raise OSError('evidence disk failure')
+            def save(name,value):
+                if name=='sample-evidence-error.json':raise PermissionError('diagnostic save also fails')
+                saved[name]=value
+            def broken_print(*args,**kwargs):raise OSError('stderr unavailable')
+            namespace={'original':original,'base':root,'sample_active_gate':None,'finalize_sample_evidence':finalize,'cleanup_started':False,'save':save,'print':broken_print,'json':json,'time':types.SimpleNamespace(monotonic=lambda:0),'end':100,'units':{},'props':lambda unit:{'MainPID':'0'},'started':0,'cids':{},'s':spec}
+            with self.assertRaises(RuntimeError) as caught:exec(program,namespace)
+            self.assertIs(caught.exception,original)
+            self.assertTrue(all((root/role/'ABORT').exists() for role in ('guard-head','guard-worker','observer')))
+            self.assertEqual(saved['controller-failed.json']['error'],'original business failure')
+            self.assertEqual(saved['controller-failed.json']['error_type'],'RuntimeError')
+
+class LocalRouteTest(unittest.TestCase):
+    def test_actual_runtime_findmnt_gate_accepts_only_approved_disk(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory)
+            for name in ('sf','store','runs'):(root/name).mkdir()
+            spec={'storage_route':{'route':'local_nvme'},'safetensors_host':str(root/'sf'),'archive':str(root/'store'),'runs_root':str(root/'runs')}
+            result={'filesystems':[{'source':'/dev/nvme1n1','fstype':'xfs','target':str(root)}]}
+            calls=[]
+            def findmnt(argv,**kwargs):
+                calls.append(argv)
+                self.assertEqual(argv[:3],['/usr/bin/findmnt','--json','--target'])
+                return json.dumps(result)
+            namespace={'s':spec,'json':json,'pathlib':pathlib,'subprocess':types.SimpleNamespace(check_output=findmnt)}
+            exec(p.STORAGE_ROUTE_CODE,namespace)
+            self.assertEqual(set(namespace['storage_route_proof']),{'safetensors','store_archive','runs_root'})
+            self.assertEqual(len(calls),3)
+            result['filesystems'][0]['source']='qjhs0:/raid'
+            with self.assertRaises(AssertionError):exec(p.STORAGE_ROUTE_CODE,namespace)
+            result['filesystems'][0].update(source='/dev/nvme1n1',fstype='nfs4')
+            with self.assertRaises(AssertionError):exec(p.STORAGE_ROUTE_CODE,namespace)
+            self.assertEqual(list((root/'runs').iterdir()),[])
+
+    def test_frozen_route_rejects_legacy_manifest_paths_and_wrong_pin(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        for request in protocol['correctness']['requests']:request['logprobs']=1
+        protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
+        protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=p.RUNS_ROOT)
+        protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
+        protocol['assets'].update(route='local_nvme',safetensors=p.SF_HOST,store_archive=p.STORE_ARCHIVE,store=p.STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference',input_inventory_path='/tmp/new-local-manifest.json',input_inventory_sha256='c'*64)
+        p.validate_frozen_protocol(protocol,p.SOURCE)
+        changes=[('assets','route','nfs'),('assets','input_inventory_path',str(p.INVENTORY)),('assets','input_inventory_sha256',p.INVENTORY_SHA),('assets','safetensors','/mnt/raid/models/Kimi-K2.6'),('assets','store_archive','/home/boyjiang/kimi-new/store-conversion-20261105-once'),('resource_budget','runs_root','/home/boyjiang/kimi-new/evidence/runs')]
+        for group,key,value in changes:
+            bad=copy.deepcopy(protocol);bad[group][key]=value
+            with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        with tempfile.TemporaryDirectory() as directory:
+            manifest=pathlib.Path(directory)/'manifest.json';manifest.write_text('{}')
+            with self.assertRaises(AssertionError):p.checked(manifest,'0'*64)
+            with self.assertRaises(AssertionError):p.validate_inventory({'roots':{'safetensors':{'root':'/old/nfs'},'store':{'root':'/old/store'}}},{'safetensors':'/local/sf','store':'/local/store'})
+
+class LogprobsAlignmentTest(unittest.TestCase):
+    def test_actual_loop_payload_and_http_keep_logprobs_one_without_openai_flags(self):
+        import textwrap
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        tree=ast.parse(textwrap.dedent(p.LOOP))
+        loop=next(n for n in ast.walk(tree) if isinstance(n,ast.For) and isinstance(n.target,ast.Tuple))
+        # Execute the actual LOOP payload construction, then the actual HTTP consumer.
+        statements=[n for n in loop.body if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='payload' for t in n.targets)) or (isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='payload')]
+        make_payload=compile(ast.Module(body=statements,type_ignores=[]),'<actual-loop-payload>','exec')
+        tick=[0];seen=[]
+        def now():tick[0]+=1;return tick[0]
+        class Response:
+            status=200
+            def __init__(self,value):self.value=value
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def read(self,limit):return json.dumps(self.value).encode()
+        def urlopen(request,timeout):
+            payload=json.loads(request.data)
+            if request.full_url.endswith('/register'):return Response({})
+            seen.append(payload)
+            want=protocol['correctness']['requests'][len(seen)-1];expected=want['expected']
+            return Response({'choices':[{'message':{'content':expected['content']},'finish_reason':expected['finish_reason'],'logprobs':{'observed':1}}],'usage':{'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}})
+        namespace={'json':json,'urllib':types.SimpleNamespace(request=types.SimpleNamespace(Request=urllib.request.Request,urlopen=urlopen)),'time':types.SimpleNamespace(monotonic_ns=now),'HTTP_CLOCK':{'boot_id':'boot'},'HTTP_PID':123}
+        exec(functions_from(p.HTTP_BODY),namespace)
+        illegal={'return_token_ids':True,'top_logprobs':1,'stream':False,'chat_template_kwargs':{'thinking':False}}
+        for index,want in enumerate(protocol['correctness']['requests']):
+            build={'want':{**want,**illegal},'s':{'config':{'model':'kimi'}},'run':'run','index':index}
+            exec(make_payload,build);payload=build['payload']
+            self.assertEqual(payload['logprobs'],1)
+            self.assertFalse(set(illegal)&set(payload))
+            for key in ('input_tokens','temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos'):
+                self.assertEqual(payload[key],want[key])
+            row=namespace['finish_http']('/v1/chat/completions',payload,30,want,{'model':'kimi'} if index==0 else None)
+            self.assertTrue(row['child_gold_validation_pass'])
+            # These are the only remaining kwargs after the backend's existing model/request/input pops.
+            sampling={key:value for key,value in payload.items() if key not in ('model','request_id','input_tokens')}
+            self.assertEqual(set(sampling),{'temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos','logprobs'})
+        self.assertEqual([payload['logprobs'] for payload in seen],[1,1,1])
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        rendered,_=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        self.assertEqual([row['logprobs'] for row in rendered['actual_request_parameters']],[1,1,1])
+        self.assertEqual(rendered['status'],'CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE')
+
+    def test_frozen_protocol_allows_only_logprobs_and_observability_delta(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=p.RUNS_ROOT)
+        protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
+        protocol['assets'].update(route='local_nvme',safetensors=p.SF_HOST,store_archive=p.STORE_ARCHIVE,store=p.STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference',input_inventory_path='/tmp/new-local-manifest.json',input_inventory_sha256='c'*64)
+        for request in protocol['correctness']['requests']:request['logprobs']=1
+        protocol['correctness']['observability']='logprobs=1 actual compute; return_token_ids not sent, IDs via existing trace. Explicit top_p=1 vs GLM omitted default.'
+        p.validate_frozen_protocol(protocol,p.SOURCE)
+        for key,value in (('logprobs',0),('logprobs',True),('return_token_ids',True),('seed',0)):
+            bad=copy.deepcopy(protocol);bad['correctness']['requests'][0][key]=value
+            with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        bad=copy.deepcopy(protocol);del bad['correctness']['requests'][1]['logprobs']
+        with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        bad=copy.deepcopy(protocol);bad['correctness']['requests'][2]['expected']['token_ids'][0]=0
+        with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+        bad=copy.deepcopy(protocol);bad['correctness']['observability']='all matched'
+        with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
 
 if __name__=='__main__':
     unittest.main()

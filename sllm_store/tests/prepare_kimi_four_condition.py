@@ -15,6 +15,9 @@ PROTOCOL_SHA = "4a1ec5e26789486abcc9cd5d3ef9c79273723f3a320b8796a77fb2b5e0cdd068
 INVENTORY = base.EVIDENCE / "kimi-four-condition-candidate-input-file-inventory-20261106.json"
 INVENTORY_SHA = "3940a24be49a9de6e533a64e46e6cc17bca0609ed18a1f997fbfc51faf662eae"
 SOURCE = "70b23a3af65fae77b4b762942cf4a682a7c474f6"
+SF_HOST = "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb"
+STORE_ARCHIVE = "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once"
+RUNS_ROOT = "/data/brick1/boyjiang/kimi-k2.6/performance-runs"
 CONDITIONS = ("safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit")
 
 
@@ -43,8 +46,10 @@ def validate_protocol(protocol):
         assert len(row["expected"]["token_ids"]) == row["expected"]["completion_tokens"]
 
 
-def validate_inventory(inventory):
+def validate_inventory(inventory, expected_roots=None):
     assert set(inventory['roots']) == {'safetensors','store'}
+    if expected_roots is not None:
+        assert {name:group['root'] for name,group in inventory['roots'].items()}==expected_roots,'cache inventory does not match mounted model assets'
     for group in inventory['roots'].values():
         assert group['files'] and len({r['path'] for r in group['files']}) == len(group['files'])
         root=pathlib.Path(group['root']).resolve()
@@ -58,6 +63,16 @@ def replace_function(body, name, replacement):
     node = next(n for n in ast.parse(body).body if isinstance(n, ast.FunctionDef) and n.name == name)
     return body.replace(ast.get_source_segment(body, node), replacement, 1)
 
+
+STORAGE_ROUTE_CODE = """
+storage_route_proof={}
+if s['storage_route']['route']=='local_nvme':
+ for name,path in {'safetensors':s['safetensors_host'],'store_archive':s['archive'],'runs_root':s['runs_root']}.items():
+  target=pathlib.Path(path);assert str(target.resolve(strict=True))==path and target.is_dir()
+  row=json.loads(subprocess.check_output(['/usr/bin/findmnt','--json','--target',path,'--output','SOURCE,FSTYPE,TARGET'],text=True,timeout=3))['filesystems']
+  assert len(row)==1 and row[0]['source']=='/dev/nvme1n1' and row[0]['fstype']=='xfs','asset/output is not the approved local NVMe XFS'
+  storage_route_proof[name]={'path':path,'dev':target.stat().st_dev,'inode':target.stat().st_ino,'mount':row[0]}
+"""
 
 CACHE_CODE = """
 def frozen_files():
@@ -157,8 +172,11 @@ def finish_http(path,payload,timeout,want,register_config=None):
   row.update(registration_command_ns=registration_command,register_complete_ns=register_complete,registration_response=registration)
  if want is not None:
   row['child_gold_validation_begin_ns']=time.monotonic_ns()
-  expected=want['expected'];response=row['response'];choices=response['choices'];usage={'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}
-  correct=row['status']==200 and len(choices)==1 and choices[0]['message']['content']==expected['content'] and choices[0]['finish_reason']==expected['finish_reason'] and response['usage']==usage
+  try:
+   expected=want['expected'];response=row['response'];choices=response['choices'];usage={'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}
+   correct=row['status']==200 and len(choices)==1 and choices[0]['message']['content']==expected['content'] and choices[0]['finish_reason']==expected['finish_reason'] and response['usage']==usage
+  except (KeyError,TypeError,IndexError) as error:
+   correct=False;row['child_gold_validation_error']={'type':type(error).__name__,'message':str(error)}
   row['child_gold_validation_complete_ns']=time.monotonic_ns();row['child_gold_validation_pass']=correct
  return row
 row=finish_http(sys.argv[1],json.loads(sys.argv[2]),float(sys.argv[3]),json.loads(sys.argv[4]) if len(sys.argv)>4 else None,json.loads(sys.argv[5]) if len(sys.argv)>5 else None)
@@ -191,30 +209,106 @@ def validated_http_events(row,want,index):
 """
 
 RESPONSE = """def check_response(row,want,index,life):
+ record_http_sample(row,want,index)
  response=row['response'];value=response['choices'][0];expected=want['expected'];usage={'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}
  assert row['child_gold_validation_pass'] is True
  assert row['status']==200 and len(response['choices'])==1 and value['message']['content']==expected['content'] and value['finish_reason']==expected['finish_reason'] and response['usage']==usage
- complete=validated_http_events(row,want,index)
+ try:complete=validated_http_events(row,want,index)
+ except BaseException as error:
+  mark_sample_gate('clock',False,type(error).__name__+':'+str(error));raise
  save('life'+str(life)+'-response'+str(index)+'.json',{'actual':row,'expected':want,'expected_usage':usage,'validated_endpoint':complete})
  return complete
 """
 
 LOOP = """ for life in (1,):
   positions=log_positions();router_positions=head_log_positions();create_end=time.monotonic()+1500;history=[];rank_owners=[];aab_end=None
-  construct_cache()
+  sample_active_gate='cache';construct_cache();mark_sample_gate('cache',True,'finite cache/pool admission passed');sample_active_gate=None
   for index,want in enumerate(gold):
-   payload={key:want[key] for key in ('input_tokens','temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos')};payload.update(model=s['config']['model'],request_id=run+'-'+str(index))
+   payload={key:want[key] for key in ('input_tokens','temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos')};payload.update(model=s['config']['model'],request_id=run+'-'+str(index),logprobs=1)
    until=create_end if index==0 else aab_end;remaining=int(until-time.monotonic());assert remaining>5
    if index==0:event('parent_register_arithmetic_dispatch')
+   sample_active_gate='gold'
    response=HTTP('/v1/chat/completions',payload,remaining,monitor=True,want=want,register_config=s['config'] if index==0 else None);check_response(response,want,index,life)
    tokens=json.loads(execute('head','tokens',[ips['worker']],seconds=35));history.append(want['input_tokens']+want['expected']['token_ids'])
    assert len({tuple(r['input_tokens']) for r in gold})==3
    assert collections.Counter(json.dumps(x) for x in tokens['tokens'])==collections.Counter(json.dumps(x) for x in history)
    save('life'+str(life)+'-tokens'+str(index)+'.json',tokens)
    if index==0:
+    sample_active_gate='ownership'
     assert time.monotonic()<create_end;aab_end=time.monotonic()+180;records=records_since(positions);assert len(records)==8;rank_owners=[owned_host_pid(r['pid']) for r in records];backend_owner=owned_host_pid(tokens['metadata']['Pid']);physical=sample()
     for r,o in zip(records,rank_owners):assert str(o['pid']) in [str(x) for x in physical[r['device_uuid']]['processes']]
-    save('life'+str(life)+'-eight-rank-load-and-ownership.json',{'records':records,'owners':rank_owners,'physical':physical})
+    save('life'+str(life)+'-eight-rank-load-and-ownership.json',{'records':records,'owners':rank_owners,'physical':physical});mark_sample_gate('ownership',True,'all8 rank owners physically authenticated');sample_active_gate=None
+"""
+
+SAMPLE_EVIDENCE = """
+sample_metrics={}
+sample_gates={name:{'status':'NOT_OBSERVED','reason':'gate_not_completed'} for name in ('cache','gold','clock','ownership')}
+sample_active_gate=None
+condition_normal=False
+cleanup_started=False
+def mark_sample_gate(name,passed,reason):
+ sample_gates[name]={'status':'PASS' if passed else 'FAIL','reason':reason}
+def record_http_sample(row,want,index):
+ times={key:row.get(key) for key in ('registration_command_ns','register_complete_ns','business_trigger_ns','request_begin_ns','response_body_complete_ns','json_parse_complete_ns','received_ns','child_gold_validation_begin_ns','child_gold_validation_complete_ns')}
+ received=times['received_ns'];trigger=times['business_trigger_ns'];command=times['registration_command_ns']
+ valid_business=type(received) is int and type(trigger) is int and 0<trigger<=received
+ valid_primary=index==0 and type(command) is int and type(received) is int and 0<command<=received
+ value={'case':want['case'],'request_id':row.get('request_id'),'observation_status':'OBSERVED','producer_times':times,'primary_A_ns':received-command if valid_primary else None,'business_B_ns':received-trigger if valid_business else None,'raw_interval_status':'NUMERIC' if valid_business and (index!=0 or valid_primary) else 'INVALID_OR_MISSING_TIMESTAMPS','child_gold_validation_pass':row.get('child_gold_validation_pass'),'stdout_reference':row.get('stdout_reference'),'clock_identity':row.get('clock_identity')}
+ old=sample_metrics.get(want['case'])
+ if old is not None:
+  assert old['producer_times']==times,'conflicting same-request HTTP observations'
+  return
+ sample_metrics[want['case']]=value
+ save('sample-metrics-'+want['case']+'.json',value)
+def recover_http_samples():
+ for _,output,_ in children:
+  path=pathlib.Path(output.name)
+  if not path.name.endswith('-head-http.stdout') or not path.is_file():continue
+  size=path.stat().st_size
+  if not 0<size<=2<<20:continue
+  raw=path.read_bytes()
+  try:row=json.loads(raw)
+  except (ValueError,UnicodeDecodeError):continue
+  if not isinstance(row,dict):continue
+  for index,want in enumerate(s['correctness']['requests']):
+   if row.get('request_id')==run+'-'+str(index):
+    row['stdout_reference']={'path':str(path),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+    record_http_sample(row,want,index)
+def preserve_sample_metrics():
+ path=base/'sample-metrics.json'
+ if path.exists():return
+ values=[]
+ for want in s['correctness']['requests']:
+  values.append(sample_metrics.get(want['case'],{'case':want['case'],'observation_status':'NOT_OBSERVED','primary_A_ns':None,'business_B_ns':None}))
+ save('sample-metrics.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'requests':values,'policy':'Raw observed producer intervals retained regardless of qualification or later cleanup failure; missing observations remain explicit.'})
+def sample_qualification(gates,terminal,cleanup,metrics):
+ reasons=[name+':'+str(gates.get(name,{}).get('status','NOT_OBSERVED'))+':'+str(gates.get(name,{}).get('reason','missing')) for name in ('cache','gold','clock','ownership') if gates.get(name,{}).get('status')!='PASS']
+ for case in ('arithmetic','translation','fixed32'):
+  row=metrics.get(case,{})
+  if row.get('observation_status')!='OBSERVED' or row.get('raw_interval_status')!='NUMERIC' or not isinstance(row.get('stdout_reference'),dict):reasons.append('metrics:'+case+':MISSING_OR_INVALID_EVIDENCE')
+ if terminal.get('normal') is not True:reasons.append('condition_terminal:'+str(terminal.get('status','NOT_OBSERVED'))+':'+str(terminal.get('reason','missing')))
+ if cleanup.get('normal') is not True or type(cleanup.get('quiet_seconds')) not in (int,float) or not 60<=cleanup['quiet_seconds']<float('inf'):reasons.append('cleanup_normal_quiet60:'+str(cleanup.get('status','NOT_OBSERVED'))+':'+str(cleanup.get('reason','missing')))
+ return {'primary_sample_qualified':not reasons,'invalid_reasons':reasons,'rule':'cache+gold(text/usage/finish and exact trace IDs)+clock+ownership PASS AND normal condition terminal AND normal cleanup quiet>=60; NOT_OBSERVED never passes'}
+def condition_terminal(normal,reason):
+ preserve_sample_metrics()
+ path=base/'condition-terminal.json'
+ if not path.exists():save('condition-terminal.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'normal':normal,'status':'NORMAL' if normal else 'FAILED_OR_INCOMPLETE','reason':reason,'monotonic_ns':time.monotonic_ns()})
+def finalize_sample_evidence(cleanup,reason):
+ if (base/'sample-validity.json').exists():return json.loads((base/'sample-validity.json').read_text())
+ recover_http_samples();condition_terminal(condition_normal,reason)
+ if not (base/'cleanup-result.json').exists():
+  refs=[]
+  for name in ('store-stop-exit60.json','head-exited.json','worker-exited.json','guard-head/guard-final.json','guard-worker/guard-final.json','observer/observer-final.json'):
+   path=base/name
+   if path.is_file() and path.stat().st_size<=2<<20:refs.append({'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+  save('cleanup-result.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],**cleanup,'evidence':refs})
+ terminal=json.loads((base/'condition-terminal.json').read_text())
+ verdict=sample_qualification(sample_gates,terminal,cleanup,sample_metrics)
+ references=[]
+ for name in ('sample-metrics.json','condition-terminal.json','cleanup-result.json'):
+  path=base/name;references.append({'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+ save('sample-validity.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'gates':sample_gates,**verdict,'evidence':references})
+ return verdict
 """
 
 STRUCTURED_EVENTS = """
@@ -257,7 +351,7 @@ def render(protocol, spec, command, attempt_id, source_pins):
     validate_protocol(protocol)
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+", attempt_id)
-    assert not (base.EVIDENCE.parent / "runs" / attempt_id).exists(), "identity already used"
+    assert not (pathlib.Path(protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))) / attempt_id).exists(), "identity already used"
     assert spec["image"] == protocol["deployment"]["image"]
     assert spec["store_extension"]["sha256"] == protocol["deployment"]["extension_sha256"]
     assert len(spec["role_bodies"]) == 9
@@ -269,11 +363,17 @@ def render(protocol, spec, command, attempt_id, source_pins):
     body = command["argv"][index]
     old_run = spec["run_id"]
     spec.update(run_id=attempt_id, condition=attempt["condition"], status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",
-                protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":str(INVENTORY),"sha256":INVENTORY_SHA},
+                protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
+    spec["actual_request_parameters"]=[{"case":row["case"],**{key:row[key] for key in ("input_tokens","temperature","top_p","top_k","min_p","seed","n","max_tokens","ignore_eos")},"logprobs":1} for row in protocol["correctness"]["requests"]]
+    spec["request_observability"]="Actual HTTP logprobs=1; generated token IDs use existing trace, return_token_ids is not passed to SamplingParams. Explicit top_p=1 remains vs omitted GLM default. Default V1 candidate lacks this explicit logprobs field and is not claimed fully aligned or executable."
     spec["planned_attempts"]=copy.deepcopy(protocol["attempts"])
     spec["missing_before_freeze"] = ["full block admission/claims", "final source/pin audit", "phase actual-clock review"]
+    spec["runs_root"]=protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))
+    spec["safetensors_host"]=protocol["assets"]["safetensors"]
+    spec["archive"]=protocol["assets"].get("store_archive",spec["archive"])
+    spec["storage_route"]={"route":protocol["assets"].get("route","candidate_legacy_not_executable"),"asset_and_raw_output_filesystem":"xfs on /dev/nvme1n1" if protocol["assets"].get("route")=="local_nvme" else "NOT_ADMITTED","scope":"Weight inputs and raw formal outputs on approved local NVMe; shared /home source, libraries, S0 control specs and claims remain NFS. Not all IO is local."}
     config=spec["config"];config["auto_scaling_config"].update(min_instances=0,max_instances=1,keep_alive=3600)
     config["backend_config"]["enable_prefix_caching"]=False
     config["placement_config"]={"memory_pool":[]}
@@ -281,7 +381,9 @@ def render(protocol, spec, command, attempt_id, source_pins):
         config["backend_config"].update(pretrained_model_name_or_path="/mnt/raid/models/Kimi-K2.6",load_format="safetensors")
     for role, request in spec["requests"].items():
         request["name"]=attempt_id+"-"+role
-        request["mounts"].append({"Type":"bind","Source":"/mnt/raid/models/Kimi-K2.6","Target":"/mnt/raid/models/Kimi-K2.6","ReadOnly":True})
+        for mount in request["mounts"]:
+            if mount["Target"]=="/store":mount["Source"]=spec["archive"]
+        request["mounts"].append({"Type":"bind","Source":spec["safetensors_host"],"Target":"/mnt/raid/models/Kimi-K2.6","ReadOnly":True})
         for key in ("TORCHINDUCTOR_CACHE_DIR","TRITON_CACHE_DIR","CUDA_CACHE_PATH","VLLM_CACHE_ROOT"):
             request["env"][key]="/tmp/formal-jit/"+key.lower()
     spec["role_bodies"]["store_config"] += """
@@ -298,18 +400,23 @@ if sys.argv[1]=='pool':
     spec["role_bodies"]["store_config"]=poolbody
     spec["role_body_sha256"]["store_config"]=hashlib.sha256(poolbody.encode()).hexdigest()
     body=body.replace("run=s['run_id'];ROOT=", "run=s['run_id'];assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit'];ROOT=",1)
+    old_base="base=pathlib.Path('/home/boyjiang/kimi-new/evidence/runs')/run"
+    assert body.count(old_base)==1
+    body=body.replace(old_base,"base=pathlib.Path(s['runs_root'])/run",1)
+    body=body.replace("base.mkdir(mode=0o700);",STORAGE_ROUTE_CODE+"\nbase.mkdir(mode=0o700);",1)
+    body=body.replace("try:\n assert time.monotonic()+30<end","try:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",1)
     body=body.replace("for life in (1,2):", "for life in (1,):",1)
     begin=body.index(" for life in (1,):");end=body.index("  delete_end=",begin)
-    body=body[:begin]+LOOP+"  collect_structured_events(router_positions,positions,tokens,backend_owner)\n"+body[end:]
+    body=body[:begin]+LOOP+"  mark_sample_gate('gold',True,'all3 child/parent gold and cumulative exact trace IDs passed');sample_active_gate='clock'\n  collect_structured_events(router_positions,positions,tokens,backend_owner);mark_sample_gate('clock',True,'all client/backend/route producer domains and lifecycle joins verified');sample_active_gate=None\n"+body[end:]
     old="golden=[json.loads(l) for l in pathlib.Path(s['gold']['path']).read_text().splitlines()];gold=next(r['validated'] for r in golden if r['event']=='SF_API_AAB_PASS');assert len(gold)==3 and hashlib.sha256(pathlib.Path(s['gold']['path']).read_bytes()).hexdigest()==s['gold']['sha256']"
     assert body.count(old)==1
     body=body.replace(old,"gold=s['correctness']['requests'];assert len(gold)==3;assert (pathlib.Path(s['archive'])/'vllm'/s['config']['model']).is_dir(),'missing converted model directory; download forbidden'")
     body=replace_function(body,"check_response",RESPONSE)
-    body=replace_function(body,"HTTP","def HTTP(path,payload,seconds,monitor=False,want=None,register_config=None):return json.loads(execute('head','http',[path,json.dumps(payload),str(seconds-3),json.dumps(want),json.dumps(register_config)],seconds=seconds,monitor=monitor))")
+    body=replace_function(body,"HTTP","def HTTP(path,payload,seconds,monitor=False,want=None,register_config=None):\n raw=execute('head','http',[path,json.dumps(payload),str(seconds-3),json.dumps(want),json.dumps(register_config)],seconds=seconds,monitor=monitor);row=json.loads(raw);p=base/(str(seq)+'-head-http.stdout');row['stdout_reference']={'path':str(p),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()};return row")
     insertion="sys.path.insert(0,str(ROOT));from sllm.logger import get_clock_identity;clock_identity=get_clock_identity()\nassert hashlib.sha256((ROOT/'sllm_store/tests/file_cache_state.py').read_bytes()).hexdigest()==s['cache_helper_sha256'];loader=importlib.util.spec_from_file_location('finite_cache',ROOT/'sllm_store/tests/file_cache_state.py');cache=importlib.util.module_from_spec(loader);loader.loader.exec_module(cache)\n"
-    body=body.replace("try:\n assert time.monotonic()+30<end",insertion+CACHE_CODE+JIT_CODE+CACHE_SCHEMA_GATE+HTTP_EVENTS+STRUCTURED_EVENTS+"\ntry:\n assert time.monotonic()+30<end",1)
+    body=body.replace("try:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",insertion+CACHE_CODE+JIT_CODE+CACHE_SCHEMA_GATE+HTTP_EVENTS+SAMPLE_EVIDENCE+STRUCTURED_EVENTS+"\ntry:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",1)
     body=body.replace("create_end=time.monotonic()+1500;history=[]","create_end=None;history=[]")
-    body=body.replace("  construct_cache()","  construct_cache();create_end=time.monotonic()+1500",1)
+    body=body.replace("construct_cache();mark_sample_gate","construct_cache();create_end=time.monotonic()+1500;mark_sample_gate",1)
     body=body.replace(" for life in (1,):"," jit_snapshot('common_initialized')\n for life in (1,):",1)
     for role in ('head','worker'):
         old="create_arm_start('"+role+"');execute('"+role+"','bootstrap'"
@@ -320,6 +427,10 @@ if sys.argv[1]=='pool':
     body=body.replace("NEW_PROTOCOL_EXIT60_L1_CREATE_AAB_DELETE_RECREATE_ALL_EXIT_GPUZERO60_PASS","FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS")
     body=body.replace("'scope':'Officialnative2lifecycles exactSFgoldtokens/text/usage,8rankload/physicalownership; no modelcallback/nativepickle'","'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'structured_events_path':str(base/'structured-lifecycle-events.json'),'scope':'Prospective singlecondition correct requests, real producer HTTP endpoint, structured init/route/firsttoken join, owned release60'")
     body=body.replace("'cids':cids,'elapsed':time.monotonic()-started","'cids':cids,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'elapsed':time.monotonic()-started")
+    body=body.replace(" jit_snapshot('after')"," condition_normal=True;condition_terminal(True,'all requests and delete/baseline60 normal')\n jit_snapshot('after')",1)
+    body=body.replace(" stop_started=time.monotonic();stop_end=stop_started+600"," cleanup_started=True\n stop_started=time.monotonic();stop_end=stop_started+600",1)
+    body=body.replace(" save('controller-final.json',"," qualification=finalize_sample_evidence({'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':min(observed['quiet_seconds'],*[json.loads((base/('guard-'+role)/'guard-final.json').read_text())['quiet_seconds'] for role in ('head','worker')])},'normal completion');assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'\n save('controller-final.json',",1)
+    body=body.replace("except BaseException as error:\n for name in ('guard-head','guard-worker','observer'):","except BaseException as error:\n if sample_active_gate is not None:mark_sample_gate(sample_active_gate,False,type(error).__name__+':'+str(error))\n try:finalize_sample_evidence({'normal':False,'status':'FAILED' if cleanup_started else 'NOT_OBSERVED','quiet_seconds':None,'reason':type(error).__name__+':'+str(error)},type(error).__name__+':'+str(error))\n except Exception as evidence_error:\n  try:save('sample-evidence-error.json',{'type':type(evidence_error).__name__,'message':str(evidence_error),'primary_error':str(error)})\n  except Exception as diagnostic_error:\n   try:print(json.dumps({'event':'SAMPLE_EVIDENCE_DIAGNOSTIC_SAVE_FAILED','primary_error_type':type(error).__name__,'evidence_error_type':type(evidence_error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)\n   except Exception:pass\n for name in ('guard-head','guard-worker','observer'):",1)
     compile(body,"<formal-candidate>","exec")
     command["argv"][index]=body
     command["argv"][command["argv"].index("--unit="+old_run+"-controller.service")]="--unit="+attempt_id+"-controller.service"
@@ -396,7 +507,7 @@ def render_block(protocol, block_number, entries, source_commit):
     compile(BLOCK_BODY,'<four-condition-block>','exec')
     return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':'kimi-four-v1-b%02d'%block_number,
             'source_commit':source_commit,'attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
-            'protocol_sha256':PROTOCOL_SHA,'runs_root':'/home/boyjiang/kimi-new/evidence/runs',
+            'protocol_sha256':PROTOCOL_SHA,'runs_root':protocol['resource_budget'].get('runs_root','/home/boyjiang/kimi-new/evidence/runs'),
             'condition_max_seconds':7200,'parent_overhead_seconds':120,'full_max_seconds':28920,
             'claims_root':'/home/boyjiang/kimi-new/evidence/formal-claims-root',
             'block_python':BLOCK_BODY,'block_python_sha256':hashlib.sha256(BLOCK_BODY.encode()).hexdigest(),
@@ -424,12 +535,28 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['resource_budget']['per_condition_max_seconds']==7200
     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
     assert protocol['resource_budget']['parent_overhead_seconds']==120
+    assets=protocol['assets']
+    assert assets['route']=='local_nvme'
+    assert assets['safetensors']==SF_HOST and assets['store_archive']==STORE_ARCHIVE
+    assert assets.get('store',STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference')==STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference'
+    assert protocol['resource_budget']['runs_root']==RUNS_ROOT
+    assert pathlib.Path(assets['input_inventory_path']).is_absolute()
+    assert assets['input_inventory_path']!=str(INVENTORY) and assets['input_inventory_sha256']!=INVENTORY_SHA,'old NFS inventory cannot admit local assets'
+    assert re.fullmatch('[0-9a-f]{64}',assets['input_inventory_sha256'])
     assert protocol['events']['primary_http_endpoint']=='received_ns'
     assert protocol['events']['primary_start_event']=='same_http_client_registration_command_ns'
     # Keep the preregistered orders, own gold and statistics intact.
     original=checked(PROTOCOL,PROTOCOL_SHA)
-    for key in ('conditions','design','attempts','correctness','statistics'):
+    for key in ('conditions','design','attempts','statistics'):
         assert protocol[key]==original[key],('preregistered contract changed',key)
+    correctness=copy.deepcopy(protocol['correctness'])
+    observability=correctness['observability']
+    assert isinstance(observability,str) and all(term in observability for term in ('logprobs=1','return_token_ids','trace')),'explicit observability delta disclosure required'
+    for request in correctness['requests']:
+        assert type(request.get('logprobs')) is int and request.pop('logprobs')==1,'GLM-aligned logprobs=1 required'
+    correctness['observability']=original['correctness']['observability']
+    assert correctness==original['correctness'],'only logprobs=1 and its observability disclosure may change correctness'
+
 
 
 def json_bytes(value):
@@ -446,7 +573,12 @@ def main():
     args=parser.parse_args()
     assert re.fullmatch('[0-9a-f]{64}',args.protocol_sha)
     protocol=checked(args.protocol,args.protocol_sha);validate_protocol(protocol)
-    validate_inventory(checked(INVENTORY,INVENTORY_SHA))
+    inventory_path=pathlib.Path(protocol['assets'].get('input_inventory_path',str(INVENTORY)))
+    inventory_sha=protocol['assets'].get('input_inventory_sha256',INVENTORY_SHA)
+    expected_roots=None
+    if protocol['assets'].get('route')=='local_nvme':
+        expected_roots={'safetensors':protocol['assets']['safetensors'],'store':str(pathlib.Path(protocol['assets']['store_archive'])/'vllm/kimi-k2.6-sf-reference')}
+    validate_inventory(checked(inventory_path,inventory_sha),expected_roots)
     original_spec=checked(base.EXIT60_BASE_SPEC,base.EXIT60_BASE_SPEC_SHA)
     original_command=checked(base.EXIT60_BASE_COMMAND,base.EXIT60_BASE_COMMAND_SHA)
     pins={relative:base.digest(base.ROOT/relative) for relative in original_spec['native_source_pins']}
