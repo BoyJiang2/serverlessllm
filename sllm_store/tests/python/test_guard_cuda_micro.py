@@ -371,7 +371,7 @@ class NormalCompletionTest(unittest.TestCase):
             if abort_publish_failure:raise RuntimeError('CPU marker publication failed')
             (base/name).write_bytes(payload)
         ns=dict(time=types.SimpleNamespace(monotonic=lambda:clock.now,sleep=lambda s:setattr(clock,'now',clock.now+s)),
-                a=types.SimpleNamespace(normal_exit_marker=enabled,deadline=25.0,overall=65.0,kill_after=3,cid='c'*64),
+                a=types.SimpleNamespace(normal_exit_marker=enabled,head_control_only=False,deadline=25.0,overall=65.0,kill_after=3,cid='c'*64),
                 base=base,go_at=0.0,normal_at=None,normal_trigger=None,quiet=None,abort_at=None,nonce='nonce',
                 failures=set(),pins={},scan=scan,snapshot=snapshot,normal_completion=validate,kill_scope=kill,
                 signal=signal,os=os,atomic=atomic,max_cycle=0.0,oci_seen=True,scope_seen=True,raw_sha='hash',
@@ -416,23 +416,25 @@ class NormalCompletionTest(unittest.TestCase):
 
 
 class ProcessDiscoveryTest(unittest.TestCase):
-    def namespace(self, normal=True, uid='0', denied=False, exe='/usr/bin/runc'):
+    def namespace(self, normal=True, uid='0', denied=False, exe='/usr/bin/runc', head=False, own_command=True):
         calls=[];events=[];cid='c'*64
         def read(path):
             calls.append(('read',str(path)))
             if path.name=='status':return ('Uid: '+(' '.join([uid]*4))+'\n').encode()
             if path.name=='cmdline':
+                if not own_command:return b'/usr/bin/host-task\0unrelated-argument\0'
                 if exe=='/usr/bin/containerd-shim-runc-v2':return b'/usr/bin/containerd-shim-runc-v2\0-namespace\0moby\0-id\0'+cid.encode()+b'\0'
                 return b'/usr/bin/runc\0--root\0/run/containerd/runc/moby\0create\0'+cid.encode()+b'\0'
             if path.name=='cgroup':return b'0::/system.slice/runtime.scope\n'
+            if path.name=='cgroup.procs':return b''
             raise AssertionError(path)
         def readlink(path):
             calls.append(('readlink',str(path)))
             if denied:raise PermissionError(13,'CPU fixture denied',str(path))
             return exe
         ns=dict(pathlib=__import__('pathlib'),os=types.SimpleNamespace(readlink=readlink,fsdecode=os.fsdecode),
-                a=types.SimpleNamespace(normal_exit_marker=normal,cid=cid),read=read,runc_root=Path('/run/containerd/runc/moby').resolve(),
-                startticks=lambda pid:77,pins={},failures=set(),select=types.SimpleNamespace(select=lambda *args:([],[],[])),
+                a=types.SimpleNamespace(normal_exit_marker=normal,head_control_only=head,cid=cid),read=read,runc_root=Path('/run/containerd/runc/moby').resolve(),
+                startticks=lambda pid:77,pins={},failures=set(),warnings={},scope=Path('/cpu-fixture-scope'),select=types.SimpleNamespace(select=lambda *args:([],[],[])),
                 emit=lambda kind,**data:events.append((kind,data)))
         execute([node for node in TREE.body if isinstance(node,ast.FunctionDef) and node.name in ('paired','identity','scan')],ns)
         return ns,calls,events
@@ -498,6 +500,59 @@ class NormalFailureCleanupTest(unittest.TestCase):
             self.assertIn('ABORT_publish',ns['failures']);self.assertEqual(ns['abort_at'],1.0)
             self.assertTrue(ns['kills']);self.assertIsNone(ns['normal_trigger'])
             self.assertGreaterEqual(ns['clock'].now-ns['quiet'],60)
+
+
+class HeadControlDiscoveryTest(unittest.TestCase):
+    namespace = ProcessDiscoveryTest.namespace
+    def test_unknown_head_permission_is_deduplicated_warning_not_claimed_unrelated(self):
+        ns,_,events=self.namespace(head=True,denied=True,own_command=False)
+        for _ in range(2):
+            with patch.object(Path,'iterdir',return_value=iter([Path('/proc/123')])):ns['scan']()
+        self.assertFalse(ns['failures']);self.assertEqual(len(ns['warnings']),1)
+        self.assertEqual([kind for kind,_ in events],['unknown_host_discovery_incomplete'])
+        self.assertEqual(events[0][1]['pid'],123)
+
+    def test_own_scope_known_pin_and_own_match_permission_remain_fatal(self):
+        for kind in ('cmdline','scope','pin','owned','membership','other_oserror','pidfd','recheck'):
+            with self.subTest(kind=kind):
+                ns,_,events=self.namespace(head=True,denied=kind not in ('owned','pidfd','recheck'),own_command=kind in ('cmdline','owned','pidfd','recheck'));original=ns['read']
+                if kind in ('scope','membership'):
+                    def read(path):
+                        if path.name=='cgroup.procs':
+                            if kind=='membership':raise PermissionError(13,'denied',str(path))
+                            return b'123\n'
+                        return original(path)
+                    ns['read']=read
+                if kind=='pin':ns['pins'][(123,77)]={'fd':9,'row':{'pid':123,'startticks':77}}
+                if kind=='owned':
+                    statuses=[0]
+                    def read(path):
+                        if path.name=='status':
+                            statuses[0]+=1
+                            if statuses[0]==2:raise PermissionError(13,'postowned status denied',str(path))
+                        return original(path)
+                    ns['read']=read
+                if kind=='other_oserror':ns['os'].readlink=lambda path:(_ for _ in ()).throw(OSError(5,'IO error',str(path)))
+                if kind in ('pidfd','recheck'):
+                    ns['os'].pidfd_open=lambda pid:9;ns['os'].close=lambda fd:None
+                    if kind=='pidfd':ns['os'].pidfd_open=lambda pid:(_ for _ in ()).throw(PermissionError(13,'pidfd denied'))
+                    else:
+                        identify=ns['identity'];count=[0]
+                        def identity(pid):
+                            count[0]+=1
+                            if count[0]==2:raise PermissionError(13,'recheck denied')
+                            return identify(pid)
+                        ns['identity']=identity
+                with patch.object(Path,'iterdir',return_value=iter([Path('/proc/123')])):ns['scan']()
+                self.assertIn('proc_discovery',ns['failures']);self.assertFalse(ns['warnings'])
+
+    def test_head_flag_rejects_worker_or_non_normal_marker(self):
+        assertion=next(node for node in TREE.body if isinstance(node,ast.Assert) and 'head_control_only' in ast.unparse(node.test))
+        for enabled,normal,name,valid in ((True,True,'guard-head',True),(True,True,'guard-worker',False),(True,False,'guard-head',False),(False,False,'guard-worker',True)):
+            ns={'a':types.SimpleNamespace(head_control_only=enabled,normal_exit_marker=normal),'base':Path('/evidence')/name}
+            if valid:execute([assertion],ns)
+            else:
+                with self.assertRaises(AssertionError):execute([assertion],ns)
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8c
 DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
 DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
 DIAGNOSTIC_PATCH_SHA = '6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db'
-FORMAL_GUARD_SHA = 'bb3170eded6d84bbf42c5a205410e10ce98783a50cc95f4a59166737eda20645'
+FORMAL_GUARD_SHA = 'b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf'
 LENGTH_ONLY_TOKEN_VALIDATION = 'Trace verifies actual prompt+sampled IDs for all requests; arithmetic/translation content/token/usage/finish exact SF gold; fixed32_length_only_v1 requires actual32 and length with exact usage, strict reference differences reported separately, not a qualification gate.'
 CONDITIONS = ("safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit")
 
@@ -491,6 +491,15 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     spec, command = json.loads(sb), json.loads(cb)
     index = command["argv"].index("-c") + 1
     body = command["argv"][index]
+    head_policy=protocol.get('head_control_guard_policy')
+    if head_policy is not None:
+        assert head_policy['mode']=='unknown_host_permission_warning_head_only_v1','unknown head guard policy'
+        head=spec['requests']['head']
+        assert head['env']['NVIDIA_VISIBLE_DEVICES']=='void' and head['env']['CUDA_VISIBLE_DEVICES']=='' and not head['host_config'].get('DeviceRequests'),'head control guard requires no GPU access'
+        old_guard_argv="'--normal-exit-marker'],b['native'])"
+        assert body.count(old_guard_argv)==1,'guard argv template drift'
+        body=body.replace(old_guard_argv,"'--normal-exit-marker']+(['--head-control-only'] if role=='head' else []),b['native'])",1)
+        spec['head_control_guard_policy']=copy.deepcopy(head_policy)
     old_run = spec["run_id"]
     spec.update(run_id=attempt_id, logical_attempt_id=logical_attempt_id, execution_revision=copy.deepcopy(protocol.get("execution_revision")), condition=attempt["condition"], status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",
                 protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},

@@ -987,7 +987,7 @@ class MilestoneAssertionMessagesTest(unittest.TestCase):
     def test_actual_render_changes_only_assert_messages(self):
         old_spec,old,new_spec,new=self.rendered()
         old_body=old['argv'][old['argv'].index('-c')+1];new_body=new['argv'][new['argv'].index('-c')+1]
-        self.assertEqual(p.hashlib.sha256(old_body.encode()).hexdigest(),'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
+        self.assertEqual(p.hashlib.sha256(old_body.replace("+(['--head-control-only'] if role=='head' else [])",'').encode()).hexdigest(),'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
         trees=[ast.parse(old_body),ast.parse(new_body)]
         changes=[]
         for before,after in zip([n for n in ast.walk(trees[0]) if isinstance(n,ast.Assert)],[n for n in ast.walk(trees[1]) if isinstance(n,ast.Assert)]):
@@ -1169,6 +1169,33 @@ class Fixed32LengthOnlyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             protocol['resource_budget']['runs_root']=directory;(pathlib.Path(directory)/runs[first[0]['attempt_id']]).mkdir()
             with self.assertRaisesRegex(AssertionError,'identity already used'):p.render(protocol,spec,command,first[0]['attempt_id'],spec['native_source_pins'])
+
+
+class HeadGuardActualArgvTest(unittest.TestCase):
+    def test_actual_rendered_guard_start_flag_is_head_only(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        protocol['head_control_guard_policy']={'mode':'unknown_host_permission_warning_head_only_v1'}
+        spec,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        body=command['argv'][command['argv'].index('-c')+1];fn=next(node for node in ast.parse(body).body if isinstance(node,ast.FunctionDef) and node.name=='create_arm_start')
+        call=next(node for node in ast.walk(fn) if isinstance(node,ast.Call) and isinstance(node.func,ast.Name) and node.func.id=='systemd')
+        for role in ('head','worker'):
+            captured=[];ns={'role':role,'cid':'c'*64,'gb':pathlib.Path('/evidence')/('guard-'+role),'guard':pathlib.Path(spec['guard']),'unit':'guard.service','b':spec['budgets'][role+'_guard'],'systemd':lambda unit,argv,native:captured.append(argv)}
+            execute=compile(ast.Expression(body=call),'<actual-guard-systemd>','eval');eval(execute,ns)
+            self.assertEqual(captured[0].count('--head-control-only'),1 if role=='head' else 0)
+            self.assertIn('--normal-exit-marker',captured[0])
+        self.assertEqual(p.base.digest(pathlib.Path(spec['guard'])),spec['guard_sha256'])
+
+
+    def test_policy_optin_requires_cpu_head_and_absent_policy_preserves_strict_body(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        _,strict=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        self.assertNotIn('--head-control-only',strict['argv'][strict['argv'].index('-c')+1])
+        for kind in ('unknown_policy','visible_gpu','device_request'):
+            changed=copy.deepcopy(spec);candidate=copy.deepcopy(protocol);candidate['head_control_guard_policy']={'mode':'unknown_host_permission_warning_head_only_v1'}
+            if kind=='unknown_policy':candidate['head_control_guard_policy']['mode']='anything'
+            elif kind=='visible_gpu':changed['requests']['head']['env']['NVIDIA_VISIBLE_DEVICES']='all'
+            else:changed['requests']['head']['host_config']['DeviceRequests']=[{'Count':8}]
+            with self.subTest(kind=kind),self.assertRaises(AssertionError):p.render(candidate,changed,command,candidate['attempts'][0]['attempt_id'],changed['native_source_pins'])
 
 
 class CommittedSourceOfficialApiTest(unittest.TestCase):

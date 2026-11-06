@@ -20,12 +20,14 @@ p.add_argument('--deadline', type=float, default=25)
 p.add_argument('--kill-after', type=float, default=3)
 p.add_argument('--overall', type=float, default=65, help='cleanup cutoff; release60 is additional')
 p.add_argument('--normal-exit-marker', action='store_true', help='opt in to authenticated normal-exit.json after natural shutdown')
+p.add_argument('--head-control-only', action='store_true', help='head control role only: warn on unclassified host discovery PermissionError')
 a = p.parse_args()
 assert os.geteuid() == 0 and re.fullmatch('[0-9a-f]{64}', a.cid)
 assert all(math.isfinite(v) for v in (a.deadline, a.kill_after, a.overall))
 assert a.kill_after == 3 and 0 < a.deadline and a.deadline + 3 < a.overall <= a.deadline + 40
 base = a.evidence.resolve(strict=True)
 assert a.evidence.is_absolute() and not a.evidence.is_symlink() and base.is_dir()
+assert not a.head_control_only or (a.normal_exit_marker and base.name == 'guard-head'), 'head-control-only requires normal marker and guard-head role'
 runc_root = pathlib.Path(a.runc_root).resolve()
 assert a.runc_root == '/var/run/docker/runtime-runc/moby' or runc_root.is_relative_to(base)
 oci = a.oci or pathlib.Path('/run/containerd/io.containerd.runtime.v2.task/moby') / a.cid / 'config.json'
@@ -37,6 +39,7 @@ log = (base / 'guard-events.jsonl').open('x', encoding='utf-8', buffering=1)
 armed_at = time.monotonic()
 nonce = os.urandom(16).hex()
 pins, last, failures = {}, {}, set()
+warnings = {}
 scopefd = raw_sha = go_at = quiet = abort_at = normal_at = normal_trigger = None
 oci_seen = scope_seen = False
 log_bytes = 0
@@ -129,16 +132,20 @@ def identity(pid):
     else:
         owned = paired(argv, b'-id', a.cid.encode()) and paired(argv, b'-namespace', b'moby')
     if not owned: return None
-    status = read(root / 'status').decode()
-    uid = next(line.split()[1:] for line in status.splitlines() if line.startswith('Uid:'))
-    if uid != ['0'] * 4: return None
-    return {'pid': pid, 'startticks': startticks(pid), 'exe': exe, 'cgroup': read(root / 'cgroup').decode().strip()}
+    try:
+        status = read(root / 'status').decode()
+        uid = next(line.split()[1:] for line in status.splitlines() if line.startswith('Uid:'))
+        if uid != ['0'] * 4: return None
+        return {'pid': pid, 'startticks': startticks(pid), 'exe': exe, 'cgroup': read(root / 'cgroup').decode().strip()}
+    except PermissionError as error:
+        error.owned_runtime = True
+        raise
 
 
 def scan():
     for entry in pathlib.Path('/proc').iterdir():
         if not entry.name.isdigit(): continue
-        pid = int(entry.name); stage = 'identity'
+        pid = int(entry.name); stage = 'identity'; row = None
         try:
             row = identity(pid)
             if row is None or (row['pid'], row['startticks']) in pins: continue
@@ -152,6 +159,25 @@ def scan():
                 if fd is not None: os.close(fd)
         except (FileNotFoundError, ProcessLookupError): pass
         except (OSError, ValueError) as error:
+            if a.head_control_only and isinstance(error, PermissionError) and stage == 'identity' and row is None and not getattr(error, 'owned_runtime', False) and not any(key[0] == pid for key in pins):
+                proof_stage = 'cmdline_ownership'
+                try:
+                    try: candidate_argv = read(pathlib.Path('/proc') / str(pid) / 'cmdline').rstrip(b'\0').split(b'\0')
+                    except (PermissionError, FileNotFoundError, ProcessLookupError): candidate_argv = []
+                    own_command = a.cid.encode() in candidate_argv
+                    proof_stage = 'scope_membership'
+                    try: own_pids = {int(value) for value in read(scope / 'cgroup.procs').split()}
+                    except FileNotFoundError:
+                        if scope.exists(): raise
+                        own_pids = set()
+                    if not own_command and pid not in own_pids:
+                        key = (pid, stage, error.errno, str(error.filename))
+                        if key not in warnings:
+                            warnings[key] = {'pid': pid, 'stage': stage, 'errno': error.errno, 'filename': error.filename, 'error_type': type(error).__name__}
+                            emit('unknown_host_discovery_incomplete', **warnings[key])
+                        continue
+                except (OSError, ValueError) as membership_error:
+                    error = membership_error; stage = proof_stage
             failures.add('proc_discovery'); emit('proc_discovery_error', pid=pid, stage=stage, error_type=type(error).__name__, errno=getattr(error, 'errno', None), filename=getattr(error, 'filename', None))
     live = []
     for pin in pins.values():
@@ -303,6 +329,7 @@ try:
     if quiet is None or time.monotonic()-quiet < 60: failures.add('release60_incomplete')
     result = {'status': 'FAILED_RETAINED' if failures else 'KERNEL_CLEANUP_RELEASE_PASS', 'cid': a.cid, 'failures': sorted(failures), 'quiet_seconds': None if quiet is None else time.monotonic()-quiet, 'max_cycle_seconds': max_cycle, 'raw_oci_sha256': raw_sha, 'oci_seen': oci_seen, 'scope_seen': scope_seen, 'abort_monotonic': abort_at, 'pinned_identities': [pin['row'] for pin in pins.values()]}
     if a.normal_exit_marker: result.update(normal_completion_monotonic=normal_at, normal_cleanup_monotonic=normal_trigger)
+    if a.head_control_only: result.update(warnings=list(warnings.values()), host_discovery_coverage='Unknown host PermissionError may be omitted; not proven unrelated. Known pins/owned runtime/own scope and all cleanup checks remain strict.')
     emit('final', **result)
     atomic('guard-final.json', json.dumps(result).encode())
     if failures: raise SystemExit(1)
