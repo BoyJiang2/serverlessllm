@@ -1,0 +1,29 @@
+{
+  "source_head": "f671432f3f8f296c7b8e806664c4886a0a7fd6ed",
+  "working_diff_sha256": "a7210a0d711696fb264a458f0eaca04fef2bd5b4cfc256fcf2af107498378626",
+  "python": "3.10.12",
+  "selected_tests": 299,
+  "tests_run": 299,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "cpu_suite_passed": true,
+  "v4_runtime_qualified": false,
+  "scope": "Actual source AST and full Model C++ with temporary buffered files and CUDA/pinned-memory substitutes; no GPU/Ray/Store runtime or native extension build",
+  "known_gaps": [
+    "monolithic TP8 capacity rejection; grouped loader implemented; hardware capacity qualification pending",
+    "native pipeline failure propagation is CPU-only; CUDA/IPC and pinned memory remain simulated",
+    "host terminal/pool tests do not qualify production O_DIRECT, pinned memory or RPC",
+    "residency observations are not leases; concurrent native/external eviction must be controlled",
+    "grouped registration uses CPU RPC stand-ins; real worker Ray transport not exercised",
+    "conversion RPC/queue and shutdown are CPU substitutes; actual secure transport is unqualified",
+    "trace hooks and application boundaries are CPU substitutes; actual vLLM/Ray event propagation is unqualified",
+    "event window checks clock/process identity only; no cache/resource/attempt admission",
+    "cache/timing checks are offline consistency only; real mincore provenance and resource admission are unqualified",
+    "attempt journal is bookkeeping only; no external-operation cancellation, complete resource gate or formal PASS",
+    "GLM-field exports are unqualified derived data; missing legacy evidence remains unknown",
+    "registration binding and loader switching use actual Controller/StoreManager source with transport substitutes; no real Ray/HTTP",
+    "first-admission topology checks are static consistency only; no booking, complete B1 profile or runtime validation",
+    "no full weights, native token gold, ABI, physical release or complete service validation"
+  ]
+}

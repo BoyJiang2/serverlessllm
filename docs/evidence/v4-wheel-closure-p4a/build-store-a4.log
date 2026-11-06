@@ -1,0 +1,230 @@
+* Getting build dependencies for wheel...
+W1106 12:42:05.127000 5793 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+running egg_info
+writing serverless_llm_store.egg-info/PKG-INFO
+writing dependency_links to serverless_llm_store.egg-info/dependency_links.txt
+writing entry points to serverless_llm_store.egg-info/entry_points.txt
+writing requirements to serverless_llm_store.egg-info/requires.txt
+writing top-level names to serverless_llm_store.egg-info/top_level.txt
+reading manifest file 'serverless_llm_store.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.cc' under directory 'csrc'
+warning: no files found matching 'python/proto/storage.proto'
+writing manifest file 'serverless_llm_store.egg-info/SOURCES.txt'
+* Building wheel...
+W1106 12:42:07.298000 5858 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+running bdist_wheel
+running build
+running build_py
+running build_ext
+-- Populating glog
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/src/sllm/sllm_store/build/temp.linux-x86_64-cpython-312/_deps/glog-subbuild
+[0/7] Performing update step for 'glog-populate'
+-- Already at requested tag: v0.6.0
+[1/7] No patch step for 'glog-populate'
+[3/7] No configure step for 'glog-populate'
+[4/7] No build step for 'glog-populate'
+[5/7] No install step for 'glog-populate'
+[6/7] No test step for 'glog-populate'
+[7/7] Completed 'glog-populate'
+CMake Deprecation Warning at build/temp.linux-x86_64-cpython-312/_deps/glog-src/cmake/GetCacheVariables.cmake:2 (cmake_policy):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+Call Stack (most recent call first):
+  build/temp.linux-x86_64-cpython-312/_deps/glog-src/CMakeLists.txt:34 (include)
+
+
+-- Could NOT find GTest (missing: GTest_DIR)
+CMake Warning at build/temp.linux-x86_64-cpython-312/_deps/glog-src/CMakeLists.txt:82 (find_package):
+  By not providing "Findgflags.cmake" in CMAKE_MODULE_PATH this project has
+  asked CMake to find a package configuration file provided by "gflags", but
+  CMake did not find one.
+
+  Could not find a package configuration file provided by "gflags" (requested
+  version 2.2.2) with any of the following names:
+
+    gflagsConfig.cmake
+    gflags-config.cmake
+
+  Add the installation prefix of "gflags" to CMAKE_PREFIX_PATH or set
+  "gflags_DIR" to a directory containing one of the above files.  If "gflags"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+
+
+-- Could NOT find Unwind (missing: Unwind_INCLUDE_DIR Unwind_LIBRARY) 
+-- Populating googletest
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/src/sllm/sllm_store/build/temp.linux-x86_64-cpython-312/_deps/googletest-subbuild
+[0/7] Performing update step for 'googletest-populate'
+-- Already at requested tag: v1.13.0
+[1/7] No patch step for 'googletest-populate'
+[3/7] No configure step for 'googletest-populate'
+[4/7] No build step for 'googletest-populate'
+[5/7] No install step for 'googletest-populate'
+[6/7] No test step for 'googletest-populate'
+[7/7] Completed 'googletest-populate'
+CMake Deprecation Warning at build/temp.linux-x86_64-cpython-312/_deps/googletest-src/CMakeLists.txt:4 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at build/temp.linux-x86_64-cpython-312/_deps/googletest-src/googlemock/CMakeLists.txt:39 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+CMake Deprecation Warning at build/temp.linux-x86_64-cpython-312/_deps/googletest-src/googletest/CMakeLists.txt:49 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- CUDA found
+-- Found Python: /opt/sllm-v4/bin/python (found version "3.12.3") found components: Interpreter Development.Module
+-- Found python matching: /opt/sllm-v4/bin/python.
+-- PyTorch: CUDA detected: 13.0
+-- PyTorch: CUDA nvcc is: /usr/local/cuda/bin/nvcc
+-- PyTorch: CUDA toolkit directory: /usr/local/cuda
+-- PyTorch: Header version is: 13.0
+-- Found Python: /opt/sllm-v4/bin/python (found version "3.12.3") found components: Interpreter
+-- /usr/local/cuda-13.0/targets/x86_64-linux/lib/libnvrtc.so shorthash is a49e67e8
+-- USE_CUDNN is set to 0. Compiling without cuDNN support
+-- USE_CUSPARSELT is set to 0. Compiling without cuSPARSELt support
+-- USE_CUDSS is set to 0. Compiling without cuDSS support
+-- USE_CUFILE is set to 0. Compiling without cuFile support
+CMake Warning at /opt/sllm-v4/lib/python3.12/site-packages/torch/share/cmake/Caffe2/public/cuda.cmake:332 (message):
+  pytorch is not compatible with `CMAKE_CUDA_ARCHITECTURES` and will ignore
+  its value.  Please configure `TORCH_CUDA_ARCH_LIST` instead.
+Call Stack (most recent call first):
+  /opt/sllm-v4/lib/python3.12/site-packages/torch/share/cmake/Caffe2/Caffe2Config.cmake:86 (include)
+  /opt/sllm-v4/lib/python3.12/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:62 (find_package)
+  CMakeLists.txt:80 (find_package)
+
+
+-- Added CUDA NVCC flags for: -gencode;arch=compute_90,code=sm_90
+CMake Warning at /opt/sllm-v4/lib/python3.12/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:22 (message):
+  library kineto not found.
+Call Stack (most recent call first):
+  /opt/sllm-v4/lib/python3.12/site-packages/torch/share/cmake/Torch/TorchConfig.cmake:119 (append_torchlib_if_found)
+  CMakeLists.txt:80 (find_package)
+
+
+-- CUDA supported arches: 7.0;7.5;8.0;8.6;8.9;9.0
+-- CUDA target arches: 90-real
+-- Configuring done (5.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /opt/src/sllm/sllm_store/build/temp.linux-x86_64-cpython-312
+Change Dir: '/opt/src/sllm/sllm_store/build/temp.linux-x86_64-cpython-312'
+
+Run Build Command(s): /opt/sllm-v4/bin/ninja -v _C
+[1/1] : && /usr/bin/c++ -fPIC -O3 -DNDEBUG   -shared  -o /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/_C.cpython-312-x86_64-linux-gnu.so CMakeFiles/_C.dir/csrc/checkpoint/aligned_buffer.cpp.o CMakeFiles/_C.dir/csrc/checkpoint/checkpoint.cpp.o CMakeFiles/_C.dir/csrc/checkpoint/checkpoint_py.cpp.o CMakeFiles/_C.dir/csrc/checkpoint/tensor_writer.cpp.o -L/lib/intel64   -L/lib/intel64_win   -L/lib/win-x64 -Wl,-rpath,"\$ORIGIN:/lib/intel64:/lib/intel64_win:/lib/win-x64:/opt/sllm-v4/lib/python3.12/site-packages/torch/lib:/usr/local/cuda/lib64:/usr/local/cuda-13.0/targets/x86_64-linux/lib:"  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch.so  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_python.so  /usr/local/cuda/lib64/libcudart.so  -Wl,--no-as-needed,"/opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_cpu.so" -Wl,--as-needed  -Wl,--no-as-needed,"/opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so" -Wl,--as-needed  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libc10_cuda.so  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libc10.so  /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart.so  -ldl  /usr/lib/x86_64-linux-gnu/librt.a && :
+
+Change Dir: '/opt/src/sllm/sllm_store/build/temp.linux-x86_64-cpython-312'
+
+Run Build Command(s): /opt/sllm-v4/bin/ninja -v _checkpoint_store
+[1/3] : && /usr/bin/c++ -fPIC -O3 -DNDEBUG   -shared -Wl,-soname,libglog.so.1 -o /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.0.6.0 _deps/glog-build/CMakeFiles/glogbase.dir/src/demangle.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/logging.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/raw_logging.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/symbolize.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/utilities.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/vlog_is_on.cc.o _deps/glog-build/CMakeFiles/glogbase.dir/src/signalhandler.cc.o  -Wl,-rpath,"\$ORIGIN:" && :
+[2/3] /opt/sllm-v4/lib/python3.12/site-packages/cmake/data/bin/cmake -E cmake_symlink_library /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.0.6.0  /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.1 /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so && :
+[3/3] : && /usr/bin/c++ -fPIC -O3 -DNDEBUG   -shared  -o /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/binary_utils.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/checkpoint_store.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/checkpoint_store_py.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/cuda_memory.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/cuda_memory_pool.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/gpu_replica.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/memory_state.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/model.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/pinned_memory.cpp.o CMakeFiles/_checkpoint_store.dir/csrc/sllm_store/pinned_memory_pool.cpp.o -L/lib/intel64   -L/lib/intel64_win   -L/lib/win-x64 -Wl,-rpath,"\$ORIGIN:/lib/intel64:/lib/intel64_win:/lib/win-x64:/opt/sllm-v4/lib/python3.12/site-packages/torch/lib:/opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store:/usr/local/cuda/lib64:/usr/local/cuda-13.0/targets/x86_64-linux/lib:"  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch.so  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_python.so  /opt/src/sllm/sllm_store/build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.0.6.0  /usr/local/cuda/lib64/libcudart.so  -Wl,--no-as-needed,"/opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_cpu.so" -Wl,--as-needed  -Wl,--no-as-needed,"/opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libtorch_cuda.so" -Wl,--as-needed  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libc10_cuda.so  /opt/sllm-v4/lib/python3.12/site-packages/torch/lib/libc10.so  /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart.so  -ldl  /usr/lib/x86_64-linux-gnu/librt.a && :
+
+build/temp.linux-x86_64-cpython-312 _C
+build/temp.linux-x86_64-cpython-312 _checkpoint_store
+installing to build/bdist.linux-x86_64/wheel
+running install
+running install_lib
+creating build/bdist.linux-x86_64/wheel
+creating build/bdist.linux-x86_64/wheel/sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/__init__.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/cli.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/client.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/device_map_utils.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/event_trace.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/logger.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/server.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/torch.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/transformers.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/utils.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_convert.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_export_worker.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_grouped_state.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_service.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_state.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_trace.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/vllm_v4_loader.py -> build/bdist.linux-x86_64/wheel/./sllm_store
+creating build/bdist.linux-x86_64/wheel/sllm_store/proto
+copying build/lib.linux-x86_64-cpython-312/sllm_store/proto/__init__.py -> build/bdist.linux-x86_64/wheel/./sllm_store/proto
+copying build/lib.linux-x86_64-cpython-312/sllm_store/proto/storage_pb2.py -> build/bdist.linux-x86_64/wheel/./sllm_store/proto
+copying build/lib.linux-x86_64-cpython-312/sllm_store/proto/storage_pb2_grpc.py -> build/bdist.linux-x86_64/wheel/./sllm_store/proto
+copying build/lib.linux-x86_64-cpython-312/sllm_store/v4_source_pins.json -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/_C.cpython-312-x86_64-linux-gnu.so -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.0.6.0 -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so.1 -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/libglog.so -> build/bdist.linux-x86_64/wheel/./sllm_store
+copying build/lib.linux-x86_64-cpython-312/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so -> build/bdist.linux-x86_64/wheel/./sllm_store
+running install_egg_info
+running egg_info
+writing serverless_llm_store.egg-info/PKG-INFO
+writing dependency_links to serverless_llm_store.egg-info/dependency_links.txt
+writing entry points to serverless_llm_store.egg-info/entry_points.txt
+writing requirements to serverless_llm_store.egg-info/requires.txt
+writing top-level names to serverless_llm_store.egg-info/top_level.txt
+reading manifest file 'serverless_llm_store.egg-info/SOURCES.txt'
+reading manifest template 'MANIFEST.in'
+warning: no files found matching '*.cc' under directory 'csrc'
+warning: no files found matching 'python/proto/storage.proto'
+writing manifest file 'serverless_llm_store.egg-info/SOURCES.txt'
+Copying serverless_llm_store.egg-info to build/bdist.linux-x86_64/wheel/./serverless_llm_store-0.8.0+v4pro.2-py3.12.egg-info
+running install_scripts
+creating build/bdist.linux-x86_64/wheel/serverless_llm_store-0.8.0+v4pro.2.dist-info/WHEEL
+creating '/data/brick1/boyjiang/sllm-v4-pro-build/native-wheels/store-a4/.tmp-nigre4p6/serverless_llm_store-0.8.0+v4pro.2-cp312-cp312-linux_x86_64.whl' and adding 'build/bdist.linux-x86_64/wheel' to it
+adding 'sllm_store/_C.cpython-312-x86_64-linux-gnu.so'
+adding 'sllm_store/__init__.py'
+adding 'sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so'
+adding 'sllm_store/cli.py'
+adding 'sllm_store/client.py'
+adding 'sllm_store/device_map_utils.py'
+adding 'sllm_store/event_trace.py'
+adding 'sllm_store/libglog.so'
+adding 'sllm_store/libglog.so.0.6.0'
+adding 'sllm_store/libglog.so.1'
+adding 'sllm_store/logger.py'
+adding 'sllm_store/server.py'
+adding 'sllm_store/torch.py'
+adding 'sllm_store/transformers.py'
+adding 'sllm_store/utils.py'
+adding 'sllm_store/v4_convert.py'
+adding 'sllm_store/v4_export_worker.py'
+adding 'sllm_store/v4_grouped_state.py'
+adding 'sllm_store/v4_service.py'
+adding 'sllm_store/v4_source_pins.json'
+adding 'sllm_store/v4_state.py'
+adding 'sllm_store/v4_trace.py'
+adding 'sllm_store/vllm_v4_loader.py'
+adding 'sllm_store/proto/__init__.py'
+adding 'sllm_store/proto/storage_pb2.py'
+adding 'sllm_store/proto/storage_pb2_grpc.py'
+adding 'serverless_llm_store-0.8.0+v4pro.2.dist-info/METADATA'
+adding 'serverless_llm_store-0.8.0+v4pro.2.dist-info/WHEEL'
+adding 'serverless_llm_store-0.8.0+v4pro.2.dist-info/entry_points.txt'
+adding 'serverless_llm_store-0.8.0+v4pro.2.dist-info/top_level.txt'
+adding 'serverless_llm_store-0.8.0+v4pro.2.dist-info/RECORD'
+removing build/bdist.linux-x86_64/wheel
+Successfully built serverless_llm_store-0.8.0+v4pro.2-cp312-cp312-linux_x86_64.whl

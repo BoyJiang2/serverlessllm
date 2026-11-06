@@ -170,6 +170,10 @@ class cmake_build_ext(build_ext):
             "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY={}".format(self.build_temp),
         ]
 
+        if v4_profile:
+            cmake_args += ["-DCMAKE_BUILD_RPATH=$ORIGIN",
+                           "-DCMAKE_BUILD_RPATH_USE_ORIGIN=ON"]
+
         # verbose = bool(int(os.getenv('VERBOSE', '1')))
         verbose = True
         if verbose:
@@ -232,7 +236,7 @@ cmdclass = {
 
 setup(
     name="serverless-llm-store",
-    version="0.8.0+v4pro.1" if v4_profile else "0.8.0",
+    version="0.8.0+v4pro.2" if v4_profile else "0.8.0",
     ext_modules=[
         CMakeExtension(name="sllm_store._C"),
         CMakeExtension(name="sllm_store._checkpoint_store"),
@@ -248,7 +252,8 @@ setup(
         ],
     },
     package_data={
-        "sllm_store": ["py.typed", "*.so", "v4_source_pins.json"],
+        "sllm_store": ["py.typed", "*.so", "v4_source_pins.json"]
+        + (["*.so.*"] if v4_profile else []),
     },
     packages=[
         "sllm_store",

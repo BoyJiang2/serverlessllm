@@ -33,3 +33,17 @@ pylock.v4-bootstrap-linux.toml包含两个PyPI vLLM0.20.1 wheel候选，只用�
 新构建容器ac3a81f1426c8697120ddcadca8f3688654d0aa7370acba9f86cee6b924f0d8c：实际HostConfig为runc、无Devices/DeviceRequests、4 CPU/48GiB、cap-drop ALL及no-new-privileges。新Python/venv是3.12.3、glibc2.35，sys.prefix/base_prefix和禁用user-site已核对；容器内/dev/nvidia*为空。容器仅挂载受控软件工作目录和日志，未挂载权重。软件获取阶段使用host网络上的临时回环代理，不修改全局代理或主机推理包。
 
 活动证据/作业根：/home/boyjiang/sllm-v4-pro/evidence/p4a-bootstrap-20261106；大缓存/软件：/data/brick1/boyjiang/sllm-v4-pro-build；目标引擎源码：/home/boyjiang/sllm-v4-pro/engine-src/vllm-132765e35606，实际HEAD及v0.20.1 tag均等于冻结commit。当前还不能证明扩展构建/import、CPU真实codec、目标CPU tokenizer或完整P4A通过。GPU/原生gold/全Store恢复/生命周期仍属于后续独立准入。
+
+## P4A 实际扩展与 wheel 闭合修复（后续状态）
+
+外部202包已按hash安装；实际Torch2.11.0+cu130/CUDA13.0/CXX11 ABI=true。Store v4pro.1虽可导入，隐藏构建lib目录后新进程报缺libglog.so.1；首次成功不能当独立wheel通过。
+
+最小修复仅作用于v4-pro：package_data增加*.so.*，CMake BUILD_RPATH=$ORIGIN及BUILD_RPATH_USE_ORIGIN=ON。服务/Store版本同时提升至0.8.0+v4pro.2，服务精确依赖新版Store；legacy保持原行为。两项新增检查先红后绿，完整CPU契约299/299通过。closure-source-snapshot.json另外冻结包含根setup在内的三个修改文件SHA。
+
+新版Store wheel624429字节，SHA256 1bd312360d236d9e8164e93b93a4d82e5c2d89b21be66da688d17f73f722475b；服务wheel74585字节，SHA256 1093af648de35d946c1b8624ab1e5421db6eab14f3698840c5b6f30e838e4723。隐藏构建lib目录后的新进程导入通过；实际glog来自venv内包目录，hash等于wheel内SONAME，未加载/opt/src库。构建目录已恢复。
+
+真实_C.save_tensors在/data本地XFS以原生O_DIRECT写入tiny CPU张量：MXFP4打包I8、FP8 e4m3fn、UE8M0 e8m0fnu、BF16、mHC FP32及I64覆盖全部256种原始字节，精确别名共享offset，逐段字节及CPU重建一致。单partition4096字节，SHA a5d0f3ecf00a5104be264073b460387ba33acdc13874404e0df4de3aea857936。只证明真实CPU写入器与位保存，未验证GPU恢复、后处理或全Store。
+
+实际目标Transformers5.6.0/tokenizers0.22.2重新执行固定wrapper AST的BPE，两请求仍为30/43输入token，逐ID与早期候选相同；BOS一次、roundtrip一致。首次复制输入目录权限失败，改用所有者UID2147后通过，未增加容器cap。尚需源码vLLM安装后完整tokenizer导入，不把AST替代当引擎导入。
+
+当前uv pip check通过204个已安装包，但尚缺进行中的源码vLLM wheel与最终锁，P4A尚未整体验收。编译固定132765e...、SM90、4CPU/48GiB、MAX_JOBS4/NVCC_THREADS1、8小时上限，无GPU设备或完整模型挂载。上述失败均为构建验证，不占正式12个attempt ID。

@@ -1,0 +1,50 @@
+test_default_service_metadata_preserves_legacy_pins (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_default_store_metadata_preserves_legacy_requirements (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_unknown_profile_fails_in_both_packages (test_v4_packaging.V4PackagingContracts) ... ok
+test_v4_cmake_uses_origin_and_preserves_legacy_job_pool (test_v4_packaging.V4PackagingContracts) ... test_v4_service_identity_and_dependency_metadata_are_distinct (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/setup.py:47: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_v4_store_identity_matches_target_runtime (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_v4_wheel_includes_versioned_shared_libraries (test_v4_packaging.V4PackagingContracts) ... /home/boyjiang/sllm-v4-pro/code/sllm_store/setup.py:115: ResourceWarning: unclosed file <_io.TextIOWrapper name='/home/boyjiang/sllm-v4-pro/code/sllm_store/README.md' mode='r' encoding='utf-8'>
+  return io.open(get_path("README.md"), "r", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FAIL
+
+======================================================================
+ERROR: test_v4_cmake_uses_origin_and_preserves_legacy_job_pool (test_v4_packaging.V4PackagingContracts) (v4=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_packaging.py", line 93, in test_v4_cmake_uses_origin_and_preserves_legacy_job_pool
+    exec(compile(ast.Module(body=[cls], type_ignores=[]), str(source), "exec"), names)
+TypeError: required field "lineno" missing from expr
+
+======================================================================
+ERROR: test_v4_cmake_uses_origin_and_preserves_legacy_job_pool (test_v4_packaging.V4PackagingContracts) (v4=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_packaging.py", line 93, in test_v4_cmake_uses_origin_and_preserves_legacy_job_pool
+    exec(compile(ast.Module(body=[cls], type_ignores=[]), str(source), "exec"), names)
+TypeError: required field "lineno" missing from expr
+
+======================================================================
+FAIL: test_v4_wheel_includes_versioned_shared_libraries (test_v4_packaging.V4PackagingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_packaging.py", line 75, in test_v4_wheel_includes_versioned_shared_libraries
+    self.assertIn("*.so.*", result["package_data"]["sllm_store"])
+AssertionError: '*.so.*' not found in ['py.typed', '*.so', 'v4_source_pins.json']
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.016s
+
+FAILED (failures=1, errors=2)
