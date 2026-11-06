@@ -15,6 +15,7 @@ import types
 import typing
 import unittest
 from unittest import mock
+from sllm_store.event_trace import record_event, record_failure, traced
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -53,7 +54,7 @@ class Status(IntEnum):
 
 def backend_class():
     ns = {k: getattr(typing, k) for k in ("Any", "Dict", "List", "Optional", "Union", "Sequence")}
-    ns.update(asyncio=asyncio, gc=gc, inspect=inspect, os=os, time=time, uuid=uuid, fields=fields,
+    ns.update(record_event=record_event, record_failure=record_failure, traced=traced, asyncio=asyncio, gc=gc, inspect=inspect, os=os, time=time, uuid=uuid, fields=fields,
               logger=logging.getLogger("native-fixture"), AsyncEngineArgs=EngineArgs,
               BackendStatus=Status, SllmBackend=object, RequestOutput=types.SimpleNamespace,
               TokensPrompt=dict, torch=types.SimpleNamespace(
@@ -153,7 +154,7 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
 
     def router(self, failure=None):
         events = []
-        ns = dict(asyncio=asyncio, Dict=typing.Dict, List=typing.List, Optional=typing.Optional,
+        ns = dict(record_event=record_event, record_failure=record_failure, traced=traced, asyncio=asyncio, Dict=typing.Dict, List=typing.List, Optional=typing.Optional,
                   SllmRouter=object, logger=logging.getLogger("router-fixture"))
         def kill(handle):
             self.assertIs(router.ready_inference_instances["ready"], instance)
@@ -238,7 +239,7 @@ class NativeReadyLifecycleTest(unittest.IsolatedAsyncioTestCase):
         def kill(handle):
             events.append("kill")
             names.pop(handle.name, None)
-        ns = dict(asyncio=asyncio, List=typing.List, Optional=typing.Optional,
+        ns = dict(record_event=record_event, record_failure=record_failure, traced=traced, asyncio=asyncio, List=typing.List, Optional=typing.Optional,
                   logger=logging.getLogger("controller-fixture"), ray=types.SimpleNamespace(kill=kill))
         cls = actual_class("sllm/controller.py", "SllmController",
                            {"register", "delete", "shutdown"}, ns)

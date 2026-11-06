@@ -100,6 +100,8 @@ def timing_metrics(record, events, complete_business_success):
 
 def phase_metrics(events, startup_command_ns):
     """GLM all-rank host envelope; nested phases must not be summed."""
+    require(not any(e["name"] in {p + "_failed" for p in PHASES} for e in events),
+            "failed startup phase cannot produce accepted metrics")
     ranks = {}
     for event in events:
         if event.get("rank") is not None:

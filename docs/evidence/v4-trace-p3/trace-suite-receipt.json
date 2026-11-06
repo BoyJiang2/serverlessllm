@@ -1,0 +1,24 @@
+{
+  "source_head": "a1dc8f5eb2335103f15fa941ff4d3cd183fd1d6c",
+  "working_diff_sha256": "978898ea37978366557b45c55fb7142ea11671495f4b03d10f76ce31dcdd6fb8",
+  "python": "3.10.12",
+  "selected_tests": 201,
+  "tests_run": 201,
+  "failures": 0,
+  "errors": 0,
+  "skipped": [],
+  "cpu_suite_passed": true,
+  "v4_runtime_qualified": false,
+  "scope": "Actual source AST and full Model C++ with temporary buffered files and CUDA/pinned-memory substitutes; no GPU/Ray/Store runtime or native extension build",
+  "known_gaps": [
+    "monolithic TP8 capacity rejection; grouped loader implemented; hardware capacity qualification pending",
+    "native pipeline failure propagation is CPU-only; CUDA/IPC and pinned memory remain simulated",
+    "host terminal/pool tests do not qualify production O_DIRECT, pinned memory or RPC",
+    "residency observations are not leases; concurrent native/external eviction must be controlled",
+    "grouped registration uses CPU RPC stand-ins; real worker Ray transport not exercised",
+    "conversion RPC/queue and shutdown are CPU substitutes; actual secure transport is unqualified",
+    "trace hooks and application boundaries are CPU substitutes; actual vLLM/Ray event propagation is unqualified",
+    "event window checks clock/process identity only; no cache/resource/attempt admission",
+    "no full weights, native token gold, ABI, physical release or complete service validation"
+  ]
+}

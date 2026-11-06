@@ -38,6 +38,8 @@ from vllm import (
 from vllm.inputs import TokensPrompt
 from vllm.utils.counter import Counter
 
+from sllm_store.event_trace import record_event, record_failure, traced
+
 from sllm.backends.backend_utils import (
     BackendStatus,
     SllmBackend,
@@ -210,8 +212,14 @@ class VllmBackend(SllmBackend):
         async with self.status_lock:
             if self.status != BackendStatus.UNINITIALIZED:
                 return
-            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
-            self.status = BackendStatus.RUNNING
+            record_event("backend_engine_create_begin")
+            try:
+                self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+                self.status = BackendStatus.RUNNING
+                record_event("backend_engine_ready")
+            except BaseException as error:
+                record_failure("backend_engine_create_failed", error)
+                raise
 
     async def generate(self, request_data: Dict[str, Any]):
         async with self.status_lock:
@@ -275,14 +283,24 @@ class VllmBackend(SllmBackend):
             )
             # TODO stream results
             final_output = None
+            first_token_seen = False
             async for response_output in results_generator:
+                if not first_token_seen and any(output.token_ids for output in response_output.outputs):
+                    record_event("backend_first_token_observed", request_id=request_id)
+                    first_token_seen = True
                 final_output = response_output
                 await self.request_trace.update_status(
                     request_id, response_output
                 )
             if final_output is None:
                 raise RuntimeError("Engine stream ended without output")
-            return process_output(final_output, model_name, return_token_ids)
+            response = process_output(final_output, model_name, return_token_ids)
+            record_event("backend_generation_complete", request_id=request_id)
+            return response
+        except BaseException as error:
+            if registered:
+                record_failure("backend_generation_failed", error, request_id=request_id)
+            raise
         finally:
             if registered:
                 try:
@@ -306,6 +324,7 @@ class VllmBackend(SllmBackend):
             shutdown_task = self._shutdown_task
         await asyncio.shield(shutdown_task)
 
+    @traced("backend_shutdown")
     async def _shutdown_engine(self):
         requests = tuple(self._active_requests.items())
         request_ids = [request_id for request_id, _ in requests]

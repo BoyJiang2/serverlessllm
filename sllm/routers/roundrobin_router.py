@@ -25,6 +25,7 @@ import ray
 from sllm.fine_tuning_instance import start_ft_instance
 from sllm.inference_instance import start_instance
 from sllm.logger import init_logger
+from sllm_store.event_trace import record_event
 
 from ..utils import InstanceHandle
 from .router_utils import SllmRouter
@@ -524,8 +525,16 @@ class RoundRobinRouter(SllmRouter):
         async with self.instance_management_lock:
             async with instance.lock:
                 instance.ready = True
-            self.ready_inference_instances[instance_id] = instance
-            self.starting_inference_instances.pop(instance_id)
+                self.ready_inference_instances[instance_id] = instance
+                self.starting_inference_instances.pop(instance_id)
+                try:
+                    record_event("router_instance_published", model=self.model_name,
+                                 instance_id=instance_id)
+                except BaseException:
+                    instance.ready = False
+                    self.ready_inference_instances.pop(instance_id)
+                    self.starting_inference_instances[instance_id] = instance
+                    raise
         return instance_id
 
     async def _start_ft_instance(self, instance_id: str):

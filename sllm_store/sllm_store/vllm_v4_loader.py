@@ -24,6 +24,8 @@ from vllm.model_executor.model_loader import register_model_loader
 from vllm.model_executor.model_loader.base_loader import BaseModelLoader
 from vllm.model_executor.model_loader.default_loader import DefaultModelLoader
 
+from sllm_store.event_trace import traced
+
 from sllm_store.v4_state import (
     CONFIG_SHA256,
     KERNEL_PACKAGES,
@@ -317,6 +319,8 @@ def register():
     register_model_loader("sllm_v4_store")(V4StoreLoader)
     register_model_loader("sllm_v4_grouped_export")(V4GroupedExportLoader)
     register_model_loader("sllm_v4_grouped_store")(V4GroupedStoreLoader)
+    from sllm_store.v4_trace import install_v4_trace_hooks
+    install_v4_trace_hooks()
 
 
 def alias_metadata(model):
@@ -468,6 +472,8 @@ class _GroupedRestoreSession:
             self.hooks.append((method, previous))
             method.process_weights_after_loading = self.wrap(group, method.process_weights_after_loading)
 
+    @traced("grouped_store_copy", values_from=lambda args, kwargs: dict(
+        rank=args[0].loader.rank, group_id=(args[1] if len(args) > 1 else kwargs["group"])["id"]))
     def load_group(self, group):
         from sllm_store.torch import load_dict_owned
 
@@ -493,6 +499,8 @@ class _GroupedRestoreSession:
         return loaded
 
     def wrap(self, group, original):
+        original = traced("grouped_expert_postprocess_host", values_from=lambda args, kwargs:
+                          dict(rank=self.loader.rank, group_id=group["id"]))(original)
         def process(module):
             if group["id"] in self.completed or self.groups[len(self.completed) + 1] != group:
                 raise ValueError("Expert postprocessing was repeated or reordered")

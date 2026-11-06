@@ -20,6 +20,7 @@ import types
 from typing import Any, Dict, List, Optional, Sequence, Union, cast
 import unittest
 from unittest import mock
+from sllm_store.event_trace import record_event, record_failure, traced
 import uuid
 
 
@@ -131,7 +132,7 @@ class V4BackendTests(unittest.IsolatedAsyncioTestCase):
         nodes = [node for node in ast.parse(source).body
                  if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))]
         factory = types.SimpleNamespace(from_engine_args=lambda _: self.engine)
-        names = dict(asyncio=asyncio, gc=gc, inspect=inspect, os=os, time=time,
+        names = dict(record_event=record_event, record_failure=record_failure, traced=traced, asyncio=asyncio, gc=gc, inspect=inspect, os=os, time=time,
                      uuid=uuid, fields=fields, Any=Any, Dict=Dict, List=List,
                      Optional=Optional, Sequence=Sequence, Union=Union, cast=cast,
                      AsyncEngineArgs=EngineArgs, AsyncLLMEngine=factory,
@@ -142,6 +143,7 @@ class V4BackendTests(unittest.IsolatedAsyncioTestCase):
                          cuda=types.SimpleNamespace(is_available=lambda: False)),
                      BackendStatus=utils["BackendStatus"], SllmBackend=utils["SllmBackend"])
         exec(compile(ast.Module(body=nodes, type_ignores=[]), "<actual-backend>", "exec"), names)
+        self.namespace = names
         self.torch = names["torch"]
         self.cls, self.status = names["VllmBackend"], utils["BackendStatus"]
         self.config = dict(load_format="safetensors", tokenizer_mode="deepseek_v4",

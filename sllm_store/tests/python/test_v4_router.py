@@ -7,6 +7,7 @@ import types
 from typing import Dict, List, Optional
 import unittest
 from unittest import mock
+from sllm_store.event_trace import record_event, record_failure, traced
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -15,7 +16,7 @@ def router_class():
     tree = ast.parse((ROOT / "sllm/routers/roundrobin_router.py").read_text())
     tree.body = [n for n in tree.body if isinstance(n, ast.ClassDef)
                  and n.name == "RoundRobinRouter"]
-    ns = dict(asyncio=asyncio, Dict=Dict, List=List, Optional=Optional,
+    ns = dict(record_event=record_event, asyncio=asyncio, Dict=Dict, List=List, Optional=Optional,
               SllmRouter=object, logger=logging.getLogger("router-cpu"))
     exec(compile(tree, "actual-roundrobin-router", "exec"), ns)
     return ns["RoundRobinRouter"]
