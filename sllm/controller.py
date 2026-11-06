@@ -167,7 +167,7 @@ class SllmController:
                 logger.error(f"Model {model_name} already registered")
                 return
 
-        request_router.start.remote(auto_scaling_config)
+        await request_router.start.remote(auto_scaling_config)
 
         logger.info(f"Model {model_name} registered")
 
