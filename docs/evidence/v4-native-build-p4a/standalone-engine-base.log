@@ -1,0 +1,13 @@
+WARNING 11-06 14:29:07 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+W1106 14:29:08.324000 15034 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+WARNING 11-06 14:29:09 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-06 14:29:09 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+WARNING 11-06 14:29:09 [interface.py:240] Failed to import from vllm._C: ImportError('libcuda.so.1: cannot open shared object file: No such file or directory')
+INFO 11-06 14:29:09 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 11-06 14:29:09 [nixl_utils.py:34] NIXL is not available
+WARNING 11-06 14:29:09 [nixl_utils.py:44] NIXL agent config is not available
+Traceback (most recent call last):
+  File "/logs/check_target_engine_cpu.py", line 15, in <module>
+    assert all(r['passed'] for r in results),report
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'utc': '2026-11-06T14:29:11.234932+00:00', 'imports': [{'module': 'vllm', 'path': '/opt/sllm-v4/lib/python3.12/site-packages/vllm/__init__.py', 'passed': True}, {'module': 'vllm._C', 'passed': False, 'error_type': 'ImportError', 'error': 'libcuda.so.1: cannot open shared object file: No such file or directory'}, {'module': 'vllm._C_stable_libtorch', 'passed': False, 'error_type': 'ImportError', 'error': 'libcuda.so.1: cannot open shared object file: No such file or directory'}, {'module': 'vllm._moe_C', 'path': '/opt/sllm-v4/lib/python3.12/site-packages/vllm/_moe_C.abi3.so', 'passed': True}, {'module': 'vllm.cumem_allocator', 'passed': False, 'error_type': 'ImportError', 'error': 'libcuda.so.1: cannot open shared object file: No such file or directory'}, {'module': 'vllm.model_executor.models.deepseek_v4', 'path': '/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/models/deepseek_v4.py', 'passed': True}, {'module': 'sllm_store.vllm_v4_loader', 'path': '/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py', 'passed': True}, {'module': 'sllm.backends.vllm_backend', 'path': '/opt/sllm-v4/lib/python3.12/site-packages/sllm/backends/vllm_backend.py', 'passed': True}], 'torch': '2.11.0+cu130', 'cxx11_abi': True, 'gpu_nodes': [], 'scope': 'Actual installed source-built component imports; no engine/model construction or CUDA operations'}
