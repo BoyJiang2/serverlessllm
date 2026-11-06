@@ -24,6 +24,7 @@ class CheckpointStore {public:
  std::unordered_map<std::string,std::shared_ptr<Model>> model_map_;
  std::queue<std::future<int>> async_tasks_;
  std::unordered_map<std::string,std::unordered_map<std::string,std::shared_future<int>>> gpu_load_tasks_;
+ std::unordered_map<std::string,std::unordered_map<std::string,std::shared_future<int>>> cpu_load_tasks_;
  int ClearMem();
  int mode=0; std::promise<void>* release=nullptr; std::shared_future<void> gate;
  int LoadModelFromMem(const std::string&,const std::string&,

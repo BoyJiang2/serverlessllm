@@ -111,6 +111,10 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         self.local.client = self.client
         self.local.disk_models = {}
         self.local.grouped_models = {}
+        self.local.grouped_chunks = {}
+        self.local.grouped_host_attempts = {}
+        self.local.grouped_host_waiters = {}
+        self.local.chunk_size = 4
         self.local.failed_grouped_registrations = {}
         self.local.lock = asyncio.Lock()
         self.config = config(Path("/data/complete-v4"))
@@ -123,8 +127,9 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
                          [mock.call(p) for p, _ in self.plan])
         self.assertEqual(self.local.disk_models["v4"], ([p for p, _ in self.plan], size))
         self.assertFalse(self.local.failed_grouped_registrations)
-        with self.assertRaisesRegex(RuntimeError, "terminal CPU"):
-            await self.local.load_to_host("v4")
+        chunks = sum((size + 3) // 4 for _, size in self.plan)
+        self.assertEqual(self.local.grouped_chunks["v4"], chunks)
+        self.assertGreater(chunks, (size + 3) // 4)
 
     async def test_negative_wrong_size_bool_and_rpc_exception_never_publish(self):
         for result in (-1, 999, True, RuntimeError("rpc failed")):
@@ -217,13 +222,14 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("v4", manager.model_info)
         self.assertEqual(manager.model_storage_info["v4"], {})
 
-    async def test_prefetch_placement_rejected_before_any_registration(self):
+    async def test_prefetch_placement_uses_the_registered_model_name(self):
         manager = self.ns["StoreManager"]()
-        with self.assertRaisesRegex(ValueError, "terminal CPU"):
-            await manager.register(dict(model="v4", backend="vllm", backend_config=self.config,
-                                        placement_config=dict(memory_pool=["node-2"])))
-        self.assertFalse(manager.model_storage_info)
-        self.client.register_model.assert_not_called()
+        manager.local_servers = {"node-2": self.local}
+        self.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
+        manager.load_to_host = mock.AsyncMock(return_value=True)
+        await manager.register(dict(model="v4", backend="vllm", backend_config=self.config,
+                                    placement_config=dict(memory_pool=["node-2"])))
+        manager.load_to_host.assert_awaited_once_with("node-2", "v4")
 
 
 if __name__ == "__main__":

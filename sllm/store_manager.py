@@ -59,6 +59,9 @@ class SllmLocalStore:
         self.disk_models = {}
         self.queued_models = {}
         self.grouped_models = {}
+        self.grouped_chunks = {}
+        self.grouped_host_attempts = {}
+        self.grouped_host_waiters = {}
         self.failed_grouped_registrations = {}
 
         self.pinned_memory_pool = {}
@@ -138,6 +141,9 @@ class SllmLocalStore:
                 model_size += size
             self.disk_models[model_name] = (list(attempt["registered"]), model_size)
             self.grouped_models[model_name] = copy.deepcopy(backend_config["model_loader_extra_config"])
+            self.grouped_chunks[model_name] = sum(
+                (size + self.chunk_size - 1) // self.chunk_size for _, size in plan
+            )
             self.failed_grouped_registrations.pop(model_name)
         except BaseException:
             # The native Store has no unregister transaction. Keep partial state,
@@ -156,9 +162,9 @@ class SllmLocalStore:
             return [self.disk_models, self.pinned_memory_pool, delta_time]
 
     async def load_to_host(self, model_name: str) -> bool:
+        if model_name in self.grouped_models:
+            return await self._queue_grouped_host_load(model_name)
         async with self.lock:
-            if model_name in self.grouped_models:
-                raise RuntimeError("Grouped host prefetch requires terminal CPU-copy confirmation")
             if model_name not in self.disk_models:
                 logger.error(f"{model_name} not found on node {self.node_id}")
                 return False
@@ -195,6 +201,93 @@ class SllmLocalStore:
             )
             return True
 
+    async def _queue_grouped_host_load(self, model_name):
+        async with self.lock:
+            attempt = self.grouped_host_attempts.get(model_name)
+            if attempt and attempt["failed"]:
+                raise RuntimeError("Grouped host state failed; isolate the Store before retry")
+            if self.grouped_chunks[model_name] > self.pinned_memory_pool_chunks:
+                raise MemoryError("Complete grouped Store exceeds the pinned pool after per-group rounding")
+            already_loaded = model_name in self.pinned_memory_pool
+            if model_name not in self.grouped_host_waiters:
+                self.grouped_host_waiters[model_name] = asyncio.get_running_loop().create_future()
+                self.queued_models[model_name] = True
+                start = max(time.time(), self.io_queue[-1]["estimated_time"] if self.io_queue else 0)
+                size = self.disk_models[model_name][1]
+                self.io_queue.append(dict(model_name=model_name,
+                    estimated_time=start + size / self.hardware_info.get("disk_bandwidth", 1)))
+            completion = self.grouped_host_waiters[model_name]
+        # Cancelling a caller must not cancel a native disk read or its owner record.
+        await asyncio.shield(completion)
+        if already_loaded:
+            await self.confirm_grouped_host(model_name)
+        return True
+
+    async def confirm_grouped_host(self, model_name):
+        async with self.lock:
+            attempt = self.grouped_host_attempts[model_name]
+            if attempt["failed"] or model_name not in self.pinned_memory_pool:
+                raise RuntimeError("Grouped host state is not available")
+            try:
+                for path, token in attempt["receipts"].items():
+                    await asyncio.to_thread(self.client.confirm_cpu_model_loaded, path, token)
+            except BaseException:
+                attempt["failed"] = True
+                self.pinned_memory_pool.pop(model_name, None)
+                raise
+        return True
+
+    async def _load_grouped_to_host(self, model_name):
+        chunks = self.grouped_chunks[model_name]
+        if not await self._lru_eviction(self.disk_models[model_name][1], chunks):
+            raise MemoryError("Pinned pool cannot admit the complete grouped Store")
+        attempt = dict(receipts={}, inflight=None, failed=False, unloaded=[])
+        self.grouped_host_attempts[model_name] = attempt
+        # Reserve the full rounded cohort, including on partial failure.
+        self.pinned_memory_pool_usage += chunks
+        try:
+            for path in self.disk_models[model_name][0]:
+                attempt["inflight"] = path
+                token = await asyncio.to_thread(self.client.load_cpu_confirmed, path)
+                if not isinstance(token, str) or not token:
+                    raise RuntimeError("CPU copy did not return a submission identity")
+                attempt["receipts"][path] = token
+                attempt["inflight"] = None
+            for path, token in attempt["receipts"].items():
+                await asyncio.to_thread(self.client.confirm_cpu_model_loaded, path, token)
+            self.pinned_memory_pool[model_name] = time.time()
+        except BaseException:
+            attempt["failed"] = True
+            raise
+
+    async def unload_grouped_host(self, model_name):
+        async with self.lock:
+            if model_name in self.queued_models or model_name not in self.pinned_memory_pool:
+                return False
+            return await self._unload_grouped_host(model_name)
+
+    async def _unload_grouped_host(self, model_name):
+        attempt = self.grouped_host_attempts[model_name]
+        if attempt["failed"]:
+            return False
+        try:
+            for path in self.disk_models[model_name][0]:
+                attempt["inflight"] = path
+                response = await asyncio.to_thread(self.client.unload_from_cpu, path)
+                if not response or getattr(response, "model_path", None) != path:
+                    raise RuntimeError("Grouped host unload was not confirmed")
+                attempt["unloaded"].append(path)
+                attempt["inflight"] = None
+        except BaseException:
+            attempt["failed"] = True
+            self.pinned_memory_pool.pop(model_name, None)
+            raise
+        self.pinned_memory_pool.pop(model_name)
+        self.pinned_memory_pool_usage -= self.grouped_chunks[model_name]
+        self.grouped_host_attempts.pop(model_name)
+        self.grouped_host_waiters.pop(model_name)
+        return True
+
     async def loading_loop(self):
         while True:
             async with self.lock:
@@ -207,6 +300,22 @@ class SllmLocalStore:
                 )
 
             model_name = model_info["model_name"]
+            if model_name in self.grouped_models:
+                completion = self.grouped_host_waiters[model_name]
+                try:
+                    await self._load_grouped_to_host(model_name)
+                except BaseException as error:
+                    if not completion.done():
+                        completion.set_exception(error)
+                    if isinstance(error, asyncio.CancelledError):
+                        raise
+                    logger.error(f"Failed grouped host load {model_name}: {error}")
+                else:
+                    completion.set_result(True)
+                finally:
+                    self.io_queue.pop(0)
+                    self.queued_models.pop(model_name)
+                continue
             model_path_list, model_size = self.disk_models[model_name]
             can_load = await self._lru_eviction(model_size)
             if not can_load:
@@ -230,16 +339,17 @@ class SllmLocalStore:
             ) // self.chunk_size
             logger.info(f"{model_name} loaded to host")
 
-    async def _lru_eviction(self, model_size):
+    async def _lru_eviction(self, model_size, required_chunks=None):
         # evict the least recently used models until the model can be loaded
         async with self.lock:
             sorted_models = sorted(
                 self.pinned_memory_pool.items(), key=lambda x: x[1]
             )
             logger.info(f"Sorted models: {sorted_models}")
-            required_chunks = (
-                model_size + self.chunk_size - 1
-            ) // self.chunk_size
+            if required_chunks is None:
+                required_chunks = (
+                    model_size + self.chunk_size - 1
+                ) // self.chunk_size
             logger.info(
                 f"Pinned memory pool usage: {self.pinned_memory_pool_usage} / {self.pinned_memory_pool_chunks}"
                 f" requires {required_chunks} chunks"
@@ -251,6 +361,14 @@ class SllmLocalStore:
             ):
                 model_name, _ = sorted_models.pop(0)
                 if model_name not in self.queued_models:
+                    if model_name in self.grouped_models:
+                        try:
+                            if not await self._unload_grouped_host(model_name):
+                                return False
+                        except Exception as error:
+                            logger.error(f"Failed grouped host eviction {model_name}: {error}")
+                            return False
+                        continue
                     model_path_list, _ = self.disk_models[model_name]
                     for model_path in model_path_list:
                         self.client.unload_from_cpu(model_path)
@@ -397,6 +515,16 @@ class StoreManager:
                     ].get_store_info()
                 return node_info
 
+    async def confirm_grouped_host(self, node_id: str, model_name: str) -> bool:
+        async with self.metadata_lock:
+            local_server = self.local_servers[node_id]
+        return await local_server.confirm_grouped_host(model_name)
+
+    async def unload_grouped_host(self, node_id: str, model_name: str) -> bool:
+        async with self.metadata_lock:
+            local_server = self.local_servers[node_id]
+        return await local_server.unload_grouped_host(model_name)
+
     async def load_to_host(self, node_id: str, model_name: str) -> bool:
         async with self.metadata_lock:
             if node_id not in self.local_servers:
@@ -414,9 +542,6 @@ class StoreManager:
             return
         backend_config = model_config.get("backend_config", {})
         placement_config = model_config.get("placement_config", {})
-        if (backend_config.get("load_format") == "sllm_v4_grouped_store"
-                and placement_config.get("memory_pool")):
-            raise ValueError("Grouped host prefetch requires terminal CPU-copy confirmation")
         if model_name not in self.model_info:
             self.model_storage_info[model_name] = {}
             logger.info(f"Registering new {model_name}")
@@ -522,7 +647,7 @@ class StoreManager:
                 if node_id in memory_pool:
                     # preload to memory pool
                     await self.load_to_host(
-                        node_id, pretrained_model_name_or_path
+                        node_id, model_name
                     )
                     logger.info(f"{model_name} loaded to memory pool")
             self.model_info[model_name] = model_size

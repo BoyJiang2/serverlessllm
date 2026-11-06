@@ -171,13 +171,53 @@ int CheckpointStore::LoadModelFromDisk(const std::string& model_path) {
   return ret;
 }
 
-int CheckpointStore::LoadModelFromDiskAsync(const std::string& model_path) {
+int CheckpointStore::LoadModelFromDiskAsync(const std::string& model_path,
+                                           const std::string& load_uuid) {
   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
-  async_tasks_.emplace(std::async(std::launch::async, [this, model_path]() {
-    return LoadModelFromDisk(model_path);
-  }));
-
+  if (model_map_.find(model_path) == model_map_.end()) return -1;
+  auto& requests = cpu_load_tasks_[model_path];
+  if (!load_uuid.empty() && requests.find(load_uuid) != requests.end()) return -1;
+  std::shared_future<int> pending;
+  for (const auto& [uuid, completion] : requests) {
+    if (completion.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
+      pending = completion;
+    } else {
+      try {
+        if (completion.get() != 0) return -1;
+      } catch (...) {
+        return -1;
+      }
+    }
+  }
+  // Join an actual in-flight read: ToHost itself returns 0 while LOADING.
+  if (!pending.valid()) {
+    pending = std::async(std::launch::async, [this, model_path]() {
+      return LoadModelFromDisk(model_path);
+    }).share();
+  }
+  requests[load_uuid] = pending;
   return 0;
+}
+
+int CheckpointStore::WaitModelInCpu(const std::string& model_path,
+                                   const std::string& load_uuid) {
+  std::shared_future<int> completion;
+  {
+    std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+    auto requests = cpu_load_tasks_.find(model_path);
+    if (load_uuid.empty() || requests == cpu_load_tasks_.end() ||
+        requests->second.find(load_uuid) == requests->second.end()) return 1;
+    completion = requests->second.at(load_uuid);
+  }
+  try {
+    if (completion.get() != 0) return 1;
+  } catch (...) {
+    return 1;
+  }
+  std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+  auto model = model_map_.find(model_path);
+  // A successful historical read is not proof of current pool residency.
+  return model != model_map_.end() && model->second->IsHostLoaded() ? 0 : 1;
 }
 
 int CheckpointStore::LoadModelFromMem(
@@ -303,6 +343,16 @@ int CheckpointStore::ClearMem() {
       }
     }
   }
+  for (const auto& [path, requests] : cpu_load_tasks_) {
+    for (const auto& [uuid, completion] : requests) {
+      if (completion.wait_for(std::chrono::seconds(0)) != std::future_status::ready) return -1;
+      try {
+        if (completion.get() != 0) return -1;
+      } catch (...) {
+        return -1;
+      }
+    }
+  }
   for (auto& [model_path, model] : model_map_) {
     LOG(INFO) << "Unloading model " << model_path;
     int ret = model->FreeHost();
@@ -317,14 +367,21 @@ int CheckpointStore::ClearMem() {
 
 int CheckpointStore::UnloadModelFromHost(const std::string& model_path) {
   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
-  if (model_map_.find(model_path) == model_map_.end()) {
-    LOG(ERROR) << "Model " << model_path << " is not registered";
-    return 1;
+  if (model_map_.find(model_path) == model_map_.end()) return 1;
+  // Do not free host data while a read/copy is pending or has failed.
+  for (const auto* tasks : {&cpu_load_tasks_, &gpu_load_tasks_}) {
+    auto requests = tasks->find(model_path);
+    if (requests == tasks->end()) continue;
+    for (const auto& [uuid, completion] : requests->second) {
+      if (completion.wait_for(std::chrono::seconds(0)) != std::future_status::ready) return 1;
+      try {
+        if (completion.get() != 0) return 1;
+      } catch (...) {
+        return 1;
+      }
+    }
   }
-  auto model = model_map_.at(model_path);
-  lock_info.unlock();
-
-  return model->FreeHost();
+  return model_map_.at(model_path)->FreeHost();
 }
 
 ModelPtr CheckpointStore::GetModelPtr(const std::string& model_path) {

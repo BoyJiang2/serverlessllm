@@ -42,6 +42,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
            "Register the model information and return its size.")
       .def("load_model_from_disk_async",
            &CheckpointStore::LoadModelFromDiskAsync, py::arg("model_path"),
+           py::arg("load_uuid") = "",
            "Load a model from disk asynchronously.")
       .def(
           "load_model_from_mem_async",
@@ -76,8 +77,13 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
            py::arg("model_path"), py::arg("replica_uuid"),
            "Wait for a model to be available in GPU memory.",
            py::call_guard<py::gil_scoped_release>())
+      .def("wait_model_in_cpu", &CheckpointStore::WaitModelInCpu,
+           py::arg("model_path"), py::arg("load_uuid"),
+           "Wait for disk read completion and check current host residency.",
+           py::call_guard<py::gil_scoped_release>())
       .def("unload_model_from_host", &CheckpointStore::UnloadModelFromHost,
-           py::arg("model_path"), "Unload a model from the host memory.")
+           py::arg("model_path"), "Unload a model from the host memory.",
+           py::call_guard<py::gil_scoped_release>())
       .def("clear_mem", &CheckpointStore::ClearMem,
            "Clear all allocated memory.")
       .def("get_mem_pool_size", &CheckpointStore::GetMemPoolSize,

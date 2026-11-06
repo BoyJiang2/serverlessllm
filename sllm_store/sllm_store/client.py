@@ -17,6 +17,7 @@
 # ---------------------------------------------------------------------------- #
 
 import grpc
+import uuid
 import sllm_store.proto.storage_pb2 as storage_pb2
 import sllm_store.proto.storage_pb2_grpc as storage_pb2_grpc
 from sllm_store.logger import init_logger
@@ -52,6 +53,26 @@ class SllmStoreClient:
                 return False
         else:
             return response
+
+    def load_cpu_confirmed(self, model_path):
+        load_uuid = str(uuid.uuid4())
+        request = storage_pb2.LoadModelRequest(
+            model_path=model_path, replica_uuid=load_uuid,
+            target_device_type=storage_pb2.DeviceType.DEVICE_TYPE_CPU,
+        )
+        response = self.stub.LoadModelAsync(request)
+        if response.model_path != model_path:
+            raise RuntimeError("CPU load was not accepted for the requested Store ID")
+        self.confirm_cpu_model_loaded(model_path, load_uuid)
+        return load_uuid
+
+    def confirm_cpu_model_loaded(self, model_path, load_uuid):
+        response = self.stub.ConfirmModel(storage_pb2.ConfirmModelRequest(
+            model_path=model_path, replica_uuid=load_uuid,
+            target_device_type=storage_pb2.DeviceType.DEVICE_TYPE_CPU,
+        ))
+        if response.model_path != model_path:
+            raise RuntimeError("CPU load was not confirmed for the requested Store ID")
 
     def unload_from_cpu(self, model_path):
         request = storage_pb2.UnloadModelRequest(

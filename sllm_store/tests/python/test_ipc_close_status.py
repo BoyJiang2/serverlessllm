@@ -82,7 +82,7 @@ class IpcCloseStatusTest(unittest.TestCase):
         marker = source.index("  lock.lock();\n  futures.clear();",
                               source.index("int Model::ToGpu("))
         start = source.index("  if (error) {", marker)
-        end = source.index("\nint Model::WaitInHost()", start)
+        end = source.index("\nbool Model::IsHostLoaded()", start)
         with tempfile.TemporaryDirectory(prefix="sllm-ipc-close-") as folder:
             root = Path(folder)
             fixture = root / "test.cpp"

@@ -65,7 +65,7 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
 
         device_type = request.target_device_type
         if device_type == storage_pb2.DEVICE_TYPE_CPU:
-            ret = self.storage.load_model_from_disk_async(model_path)
+            ret = self.storage.load_model_from_disk_async(model_path, request.replica_uuid)
         elif device_type == storage_pb2.DEVICE_TYPE_GPU:
             replica_uuid = request.replica_uuid
             if not replica_uuid:
@@ -125,6 +125,18 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
             logger.error("model_path is empty")
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             return storage_pb2.ConfirmModelResponse()
+
+        if device_type == storage_pb2.DEVICE_TYPE_CPU:
+            if not replica_uuid:
+                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+                return storage_pb2.ConfirmModelResponse()
+            ret = await asyncio.to_thread(
+                self.storage.wait_model_in_cpu, model_path, replica_uuid
+            )
+            if ret != 0:
+                context.set_code(grpc.StatusCode.INTERNAL)
+                return storage_pb2.ConfirmModelResponse()
+            return storage_pb2.ConfirmModelResponse(model_path=model_path)
 
         if device_type != storage_pb2.DEVICE_TYPE_GPU:
             logger.error(f"Unsupported device type: {device_type}")

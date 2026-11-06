@@ -393,6 +393,11 @@ int Model::ToGpu(
   return 0;
 }
 
+bool Model::IsHostLoaded() {
+  std::unique_lock<std::mutex> lock(mutex_);
+  return state_ == MemoryState::LOADED && pinned_mem_ && pinned_mem_->num_chunks() > 0;
+}
+
 int Model::WaitInHost() {
   std::unique_lock<std::mutex> lock(mutex_);
   if (state_ < MemoryState::LOADED) {

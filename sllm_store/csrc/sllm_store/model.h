@@ -58,6 +58,7 @@ class Model {
             const std::unordered_map<int, MemCopyChunkList>& mem_copy_chunks,
             const std::unordered_map<int, MemCopyHandleList>& mem_copy_handles);
   int WaitInHost();
+  bool IsHostLoaded();
   int WaitInGpu(const std::string& replica_uuid);
   int FreeGpu(const std::string& replica_uuid);
   int FreeHost();

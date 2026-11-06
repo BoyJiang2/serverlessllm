@@ -19,6 +19,7 @@ WAIT = 'self.storage.wait_model_in_gpu'
 
 class FakeProto:
     DEVICE_TYPE_GPU = 1
+    DEVICE_TYPE_CPU = 0
 
     class ConfirmModelResponse:
         def __init__(self, model_path=''):

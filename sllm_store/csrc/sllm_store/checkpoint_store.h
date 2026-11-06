@@ -45,7 +45,9 @@ class CheckpointStore {
 
   int64_t RegisterModelInfo(const std::string& model_path);
   int LoadModelFromDisk(const std::string& model_path);
-  int LoadModelFromDiskAsync(const std::string& model_path);
+  int LoadModelFromDiskAsync(const std::string& model_path,
+                             const std::string& load_uuid = "");
+  int WaitModelInCpu(const std::string& model_path, const std::string& load_uuid);
   int LoadModelFromMem(const std::string& model_path,
                        const std::string& replica_uuid,
                        const MemCopyHandleListMap& gpu_memory_handles,
@@ -93,6 +95,10 @@ class CheckpointStore {
   std::unordered_map<std::string,
                      std::unordered_map<std::string, std::shared_future<int>>>
       gpu_load_tasks_;
+
+  std::unordered_map<std::string,
+                     std::unordered_map<std::string, std::shared_future<int>>>
+      cpu_load_tasks_;
 
   size_t GetNumChunkFromTensorSize(size_t tensor_size);
   ModelPtr GetModelPtr(const std::string& model_path);
