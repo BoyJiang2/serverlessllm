@@ -1,0 +1,62 @@
+{
+  "utc": "2026-11-06T12:58:29.165303+00:00",
+  "container_id": "ac3a81f1426c8697120ddcadca8f3688654d0aa7370acba9f86cee6b924f0d8c",
+  "image_id": "sha256:ec9a1a479ad110600f15a0959a7b4c5bc9ddaed8b34a2d020abb7aea8b5b1707",
+  "host_config": {
+    "Runtime": "runc",
+    "Devices": [],
+    "DeviceRequests": null,
+    "NanoCpus": 4000000000,
+    "Memory": 51539607552,
+    "MemorySwap": 51539607552,
+    "PidsLimit": 1024,
+    "CapDrop": [
+      "ALL"
+    ],
+    "SecurityOpt": [
+      "no-new-privileges"
+    ],
+    "NetworkMode": "host"
+  },
+  "mounts": [
+    {
+      "Type": "bind",
+      "Source": "/data/brick1/boyjiang/sllm-v4-pro-build",
+      "Destination": "/data/brick1/boyjiang/sllm-v4-pro-build",
+      "Mode": "",
+      "RW": true,
+      "Propagation": "rprivate"
+    },
+    {
+      "Type": "bind",
+      "Source": "/home/boyjiang/sllm-v4-pro/evidence/p4a-bootstrap-20261106",
+      "Destination": "/logs",
+      "Mode": "",
+      "RW": true,
+      "Propagation": "rprivate"
+    }
+  ],
+  "cgroup": {
+    "memory.max": "51539607552\n",
+    "memory.current": "10353168384\n",
+    "memory.events": "low 0\nhigh 0\nmax 87163\noom 0\noom_kill 0\n",
+    "cpu.max": "400000 100000\n",
+    "pids.max": "1024\n",
+    "memory.peak": null
+  },
+  "filesystem_space": {
+    "/data/brick0": {
+      "available_bytes": 285960884224,
+      "total_bytes": 3838880616448
+    },
+    "/data/brick1/boyjiang": {
+      "available_bytes": 2381802463232,
+      "total_bytes": 3838880616448
+    },
+    "/home/boyjiang": {
+      "available_bytes": 461617758208,
+      "total_bytes": 15360340262912
+    }
+  },
+  "scope": "Live no-device resource-bound audit; cumulative cgroup counters since container creation, no GPU/model admission"
+}
