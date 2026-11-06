@@ -51,6 +51,25 @@ def _config_signature(config):
 
 def _validate_v4_topology(config):
     backend = config["backend_config"]
+    if _config_signature(config.get("auto_scaling_config")) != _config_signature(
+            {"min_instances": 0, "max_instances": 1}):
+        raise ValueError("V4 service requires auto_scaling_config min_instances=0, max_instances=1")
+    profile = {"torch_dtype": "bfloat16", "enforce_eager": True,
+               "enable_prefix_caching": False, "max_model_len": 2048,
+               "max_num_seqs": 1, "max_num_batched_tokens": 2048,
+               "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro"}
+    for name, expected in profile.items():
+        value = backend.get(name)
+        if type(value) is not type(expected) or value != expected:
+            raise ValueError(f"V4 service requires explicit {name}={expected!r}")
+    allowed = set(profile) | {"load_format", "model_loader_extra_config", "tokenizer_mode",
+                              "tensor_parallel_size", "pipeline_parallel_size",
+                              "data_parallel_size", "enable_expert_parallel"}
+    unknown = set(backend) - allowed
+    if unknown:
+        raise ValueError(f"Unreviewed V4 service backend fields: {sorted(unknown)}")
+    if backend.get("load_format") not in ("safetensors", "sllm_v4_grouped_store"):
+        raise ValueError("V4 service requires safetensors or grouped Store loading")
     coordinates = (("num_gpus", config.get("num_gpus"), 8),
                    ("tensor_parallel_size", backend.get("tensor_parallel_size"), 8),
                    ("pipeline_parallel_size", backend.get("pipeline_parallel_size", 1), 1),

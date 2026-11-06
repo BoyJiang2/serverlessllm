@@ -1,0 +1,22 @@
+{
+  "scope": "Required common fields, not an executable or admitted registration. Add reviewed loader and prepared grouped identity/path; no runtime proof.",
+  "num_gpus": 8,
+  "auto_scaling_config": {
+    "min_instances": 0,
+    "max_instances": 1
+  },
+  "backend_common": {
+    "torch_dtype": "bfloat16",
+    "enforce_eager": true,
+    "enable_prefix_caching": false,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro",
+    "tokenizer_mode": "deepseek_v4",
+    "tensor_parallel_size": 8,
+    "pipeline_parallel_size": 1,
+    "data_parallel_size": 1,
+    "enable_expert_parallel": false
+  }
+}

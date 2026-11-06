@@ -33,7 +33,7 @@ class RegistrationBindingContracts(unittest.IsolatedAsyncioTestCase):
         self.case.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
         self.config = dict(model="v4", backend="vllm", num_gpus=8,
             backend_config=dict(self.case.config, tokenizer_mode="deepseek_v4", torch_dtype="bfloat16",
-                                pretrained_model_name_or_path="/frozen/DeepSeek-V4-Pro", max_model_len=2048),
+                                pretrained_model_name_or_path="/mnt/raid/models/DeepSeek-V4-Pro", max_model_len=2048),
             placement_config=dict(local_disk=["node-2"], memory_pool=[]),
             auto_scaling_config=dict(min_instances=0, max_instances=1), router_config={})
 
