@@ -52,6 +52,7 @@ def watch(container_id, deadline_ns, directory):
     signal.signal(signal.SIGINT, interrupt)
     result = dict(identity=identity, deadline_ns=deadline_ns, runtime_qualified=False,
                   physical_cleanup_verified=False, container_stopped=False)
+    observation_timeouts = 0
     try:
         write_once(directory / "armed.json", dict(identity=identity, guard=process_identity(),
                    armed_ns=time.monotonic_ns(), deadline_ns=deadline_ns))
@@ -60,7 +61,14 @@ def watch(container_id, deadline_ns, directory):
             if interrupted or now >= deadline_ns:
                 result["reason"] = "signal" if interrupted else "deadline"
                 break
-            row = inspect(container_id, timeout=min(1, max(0.001, (deadline_ns - now) / 1e9)))
+            try:
+                row = inspect(container_id, timeout=min(1, max(0.001, (deadline_ns - now) / 1e9)))
+            except subprocess.TimeoutExpired as error:
+                observation_timeouts += 1
+                write_once(directory / f"inspect-timeout-{observation_timeouts}.json",
+                           dict(observed_ns=time.monotonic_ns(), error=repr(error), deadline_ns=deadline_ns))
+                # A timed-out observation is not a terminal target; keep the original deadline.
+                continue
             if row["Created"] != identity["created"] or row["Image"] != identity["image"]:
                 raise ValueError("container creation identity differs")
             if row["RestartCount"] != 0:

@@ -1,6 +1,7 @@
 """Guard error paths with Docker stand-ins; real CPU container checks are separate."""
 import copy
 import tempfile
+import subprocess
 from pathlib import Path
 import time
 import unittest
@@ -65,6 +66,13 @@ class ContainerGuardContracts(unittest.TestCase):
         self.assertFalse(result["container_stopped"])
         self.assertIn("kill_error", result)
         self.assertIn("final_inspect_error", result)
+
+    def test_observation_timeout_does_not_kill_a_live_target_or_extend_deadline(self):
+        kill = mock.Mock()
+        result = self.run_guard([row(), subprocess.TimeoutExpired(['docker', 'inspect', CID], 1),
+                                 row('exited'), row('exited')], kill)
+        kill.assert_not_called()
+        self.assertEqual(result['reason'], 'container_exit')
 
 
 if __name__ == "__main__":
