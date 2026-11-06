@@ -1,0 +1,38 @@
+{
+  "verdict": "ACCEPT_MINIMAL_SOURCE_INSTRUMENTATION_NOT_RUNTIME_TIMING_PROOF",
+  "files": {
+    "sllm/logger.py": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11",
+    "sllm/backends/vllm_backend.py": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510",
+    "sllm/routers/roundrobin_router.py": "0ae9ad2f5dc7423bae7fd319c760b1ed5d0346c4fd40d42a3f01962587ba5e2c",
+    "tests/backend_test/test_native_ready_lifecycle.py": "2d98eaa8b9128bcdcc8fb15bdd22157827344e964c99ddd10f0a5af0c6a5cc87"
+  },
+  "author_evidence": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-clock-events-source-cpu-verification-20261106.json",
+    "sha256": "303b7d4baca5b9249000fddb3d377b6d59991c43b16d0597ca8c6cf0f8f4b2b8"
+  },
+  "independent_cpu": {
+    "command": "python3 tests/backend_test/test_native_ready_lifecycle.py",
+    "tests": 13,
+    "returncode": 0,
+    "seconds": 0.153,
+    "scope": "Actual selected source AST methods plus realasyncio/fakeRay/vLLM; no real imports/runtime."
+  },
+  "additional_targeted_checks": [
+    "trace_debug=None in actual backend/router constructors produces zero identity reads, preserves false/off behavior.",
+    "All5 actual identity readers raisingOSError return None plus per-field error names without exception; unavailable metadata does not become fabricated clock proof."
+  ],
+  "source_findings": [
+    "Router model_name is assigned by existing constructor before logging. router_instance_published occurs after successful awaited actual backend initialization and after ready-map insertion/starting-map removal within the same management lock. Failure propagates without publication.",
+    "Backend begin precedes from_engine_args; ready follows successful engine construction and RUNNING transition. Creation failure preserves original exception/status and emits no false ready. There is no newly added structuredfailureevent; failure is represented by begin-without-ready plus original error.",
+    "Existing request-local first_seen gate emits once on first nonempty output.token_ids, before traceawait; emptychunks do not trigger it. Model/request/PID/monotonic_ns and cached actor clock identity are attached, no prompt payload.",
+    "trace_debug gates all new identity reads/events;False/None defaults remain off. Optional backend_config=None retains existing backend missing-config ValueError rather than being silently accepted.",
+    "Clock fields bootID/containerhostname/process-startticks/time-namespace/monotonic implementation are process identity metadata; unavailable readers explicitly null/errors. No new config/writer/RPC framework or business-control changes."
+  ],
+  "limits": [
+    "No Ray/container/Store/model/GPU run, not proof of actual future clocks/events or performance. Deployment/sourcepin refresh and actual timing evidence remain separate.",
+    "Backend first-token observed is engine async-output observation, not clientstreaming TTFT or GPU kernel firsttoken; routerpublication timestamp is in-lock map publication, not HTTP response.",
+    "Same-host clock alignment must be checked from actual identity records; missing fields fail future evidence gate, not business. Crosshost monotonic subtraction is not justified by this helper.",
+    "Tracing/logging has observational overhead; no claim zero overhead, and new fields cannot be retroactively applied to old runs."
+  ],
+  "execution": "Read-only frozen fourfile review and authorized hoststdlibCPU checks onqjhs003, plus this small evidence JSON only. No source edit/Git/GPU, no contact to originalServerlessLLM agent."
+}
