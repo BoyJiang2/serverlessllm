@@ -1,0 +1,15 @@
+# Bounded complete Store-stop observation: prepared, not executed
+
+The complete Kimi goal remains lifecycle L1 followed by a preregistered four-condition experiment and independently reproducible two-model comparison. GLM a45f85d is a read-only methodological example, not Kimi runtime evidence. Unified document SHA a31bfbcf is retained in the requirement map. No GLM files or original ServerlessLLM agent tasks are modified.
+
+Source876ac9a was published with exact remote branch SHA verification after25 CPU tests and independent source review. Only the existing diagnostic generator and its test changed. Production release C++/Python and actual ELF95d14150/manifest59d70f47 are unchanged from the last retained failure.
+
+The next proposed once-only run is kimi-native-qjhs003-pool-stop-observe-20261106-once. Its real command/spec and node-specific8GPU UUID mask have independent review. It has not launched. Root authentication, fresh booking/resource/pin/guard checks and new user approval remain execution gates. Current API preparation receipt has contiguous boyjiang15:00-17:00 and17:00-01:00 bookings; these must be refreshed before launch.
+
+The original30-second result is independently recorded against authenticated PID/startticks/cgroup with actual observed monotonic time; a later normal exit never overwrites its FAIL.300seconds is an observation cap, not a new L1 deadline. Right-censored means complete normal exit was not observed by the cap, not that the Store PID necessarily remained alive for300seconds. Every overall status is DIAGNOSTIC_NOT_L1. Actual controller-stop elapsed includes IPC/snapshot/poll overhead and is not pure CUDA time. Nonzero exit, failed strictgone, guard failure or evidence failure is retained; no auto retry.
+
+Full7200 budget,600 ordered-stop slot,120 cleanup/release reserve and180 evidence reserve are checked against actual guard/observer/controller clocks. Nine roles, two AAB lifecycles, historical gold,640GiB pool,64MiB chunks,4IO threads and >=60second release observation remain unchanged. Prior normal-exit failures remain failures. No os._exit, background freeing or guard cleanup as normal success.
+
+qjhs000 reads the assets on local XFS; qjhs003 accesses the same /home through NFS. The node-specific root body adds an early hostname check and otherwise exactly reverses to the q0 prepared body. File visibility and library identity are readiness evidence, not full model or normal-exit proof. No duplicate model, Store, environment or checkout is created; diagnostic timings cannot be called a controlled cross-node performance comparison.
+
+The read-only byte inventory counts64 raw SF files=595177988208B and104 Store files=617029596501B, of which tensor data=617000763392B. This uses stat/index/config, not another payload hash pass. Kimi own accepted SF aligned-request gold remains cbf8cf72, arithmetic first/fixed32 third. Formal four-condition/block/statistical/cost protocol is still pending L1, with no copied GLM samples or invented performance output.
