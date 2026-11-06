@@ -1,5 +1,5 @@
 {
-  "scope": "Independent numerical/input gate only; raw event clocks, routing and preparation-state audit pending",
+  "scope": "Independent numerical/input gate only; event clocks/routing/state have separate event-gate.json receipt",
   "ledger_sha256": "76184b66b4418fc486ec00aa530b705542bff20d6b6950c07b00c4aa8a75a06b",
   "input_sha_verified": [
     {
@@ -551,6 +551,89 @@
   },
   "mismatches": [],
   "numerical_gate": "PASS",
-  "event_gate": "NOT_YET_VERIFIED",
-  "script_sha256": "a5fcc0299ca87ef7b5cabc67f40115e81fd2675fdd340ed688ca29f4693b8781"
+  "event_gate": "SEE_SEPARATE_EVENT_GATE",
+  "published_mean_checks": [
+    {
+      "condition": "safetensors_disk_cold",
+      "metric": "preparation_s",
+      "delta_s": -0.0016139625000022306
+    },
+    {
+      "condition": "safetensors_disk_cold",
+      "metric": "command_to_route_publication_s",
+      "delta_s": 0.0011411780000116778
+    },
+    {
+      "condition": "safetensors_disk_cold",
+      "metric": "command_to_first_token_s",
+      "delta_s": 0.0034943554999813387
+    },
+    {
+      "condition": "safetensors_disk_cold",
+      "metric": "command_to_correct_business_response_s",
+      "delta_s": -0.0036408598332968722
+    },
+    {
+      "condition": "safetensors_disk_hot",
+      "metric": "preparation_s",
+      "delta_s": -0.00042993666664870034
+    },
+    {
+      "condition": "safetensors_disk_hot",
+      "metric": "command_to_route_publication_s",
+      "delta_s": 0.0025278269999944314
+    },
+    {
+      "condition": "safetensors_disk_hot",
+      "metric": "command_to_first_token_s",
+      "delta_s": -0.004755900833316673
+    },
+    {
+      "condition": "safetensors_disk_hot",
+      "metric": "command_to_correct_business_response_s",
+      "delta_s": 0.004312078999987534
+    },
+    {
+      "condition": "store_disk_cold",
+      "metric": "preparation_s",
+      "delta_s": -0.00035378742857261614
+    },
+    {
+      "condition": "store_disk_cold",
+      "metric": "command_to_route_publication_s",
+      "delta_s": 0.0010732554285652895
+    },
+    {
+      "condition": "store_disk_cold",
+      "metric": "command_to_first_token_s",
+      "delta_s": 0.0030274857142842393
+    },
+    {
+      "condition": "store_disk_cold",
+      "metric": "command_to_correct_business_response_s",
+      "delta_s": 0.004626875142861309
+    },
+    {
+      "condition": "store_pool_hit",
+      "metric": "preparation_s",
+      "delta_s": 0.0026034972857473804
+    },
+    {
+      "condition": "store_pool_hit",
+      "metric": "command_to_route_publication_s",
+      "delta_s": -0.0025970064285729677
+    },
+    {
+      "condition": "store_pool_hit",
+      "metric": "command_to_first_token_s",
+      "delta_s": 0.0025632535714308347
+    },
+    {
+      "condition": "store_pool_hit",
+      "metric": "command_to_correct_business_response_s",
+      "delta_s": -0.0037462638571383877
+    }
+  ],
+  "max_mean_deviation_s": 0.004755900833316673,
+  "script_sha256": "b939cfc2e091b5302f7f81d4a43262149b2973cc08561eb7eaa5147e1cf63448"
 }

@@ -15,9 +15,9 @@ for row in rows:
 assert len(c23)==26 and sum(x['status']=='success' for x in rows)==35
 blocks=[b for b in range(1,11) if all((b,c) in idx for c in conditions)];assert blocks==list(range(5,11))
 with (R/'all40-matrix.csv').open('w',newline='') as f:
- names=['order','attempt_id','block','condition','status','protocol_revision','result_path','result_sha256'];w=csv.DictWriter(f,fieldnames=names,extrasaction='ignore');w.writeheader();w.writerows(rows)
+ names=['order','attempt_id','block','condition','status','protocol_revision','result_path','result_sha256','historical_protocol_revision','historical_attribution_scope'];w=csv.DictWriter(f,fieldnames=names,extrasaction='ignore',lineterminator='\n');w.writeheader();w.writerows(dict(x,historical_protocol_revision=(x.get('historical_attribution') or {}).get('protocol_revision'),historical_attribution_scope=(x.get('historical_attribution') or {}).get('scope')) for x in rows)
 with (R/'c23-block-matrix.csv').open('w',newline='') as f:
- w=csv.writer(f);w.writerow(['block']+conditions)
+ w=csv.writer(f,lineterminator='\n');w.writerow(['block']+conditions)
  for b in range(1,11):w.writerow([b]+[idx[b,c]['attempt_id'] if (b,c) in idx else 'NOT_C23' for c in conditions])
 original=json.loads((R/'original/paired-stats.json').read_text());comparisons=[('store_disk_cold','safetensors_disk_cold'),('store_pool_hit','safetensors_disk_cold'),('store_pool_hit','store_disk_cold'),('store_disk_cold','safetensors_disk_hot')]
 def stats(a,b,bs,prep):
@@ -46,5 +46,16 @@ for rule,bs in [('n6_complete_block',blocks),('n7_maximal_pair',blocks+[4])]:
   window='including_preparation' if prep else 'business_only';x=stats('store_pool_hit','store_disk_cold',bs,prep);sensitivity[rule][window]=x;ref=original['contrast3_pairing_sensitivity']['rules'][rule][window]
   for key,refkey in [('mean_diff','mean'),('ci95_low','ci95_low'),('ci95_high','ci95_high')]:
    if not math.isclose(x[key],ref[refkey],abs_tol=1e-9):mismatches.append([rule,window,key,x[key],ref[refkey]])
-receipt=dict(scope='Independent numerical/input gate only; raw event clocks, routing and preparation-state audit pending',ledger_sha256=hashlib.sha256(raw).hexdigest(),input_sha_verified=inputs,counts=dict(success=35,failed=5,c23=26),complete_blocks=blocks,block4_exclusion='SF conditions are C21, Store conditions C23; independent of timings',method=dict(seed=20261024,B=10000,bootstrap='paired-block percentile order statistics floor(p*(B-1)); restart RNG for each statistic',test='two-sided exact |mean paired difference|, all signs, tie tolerance1e-12',family='four contrasts separately per cost window',interval='marginal, not simultaneous'),contrasts=out,sensitivity=sensitivity,mismatches=mismatches,numerical_gate='PASS' if not mismatches else 'FAIL',event_gate='NOT_YET_VERIFIED',script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+import ast
+source_tree=ast.parse((R/'original/recompute.py').read_text())
+expected=next(ast.literal_eval(n.value) for n in source_tree.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='GATES' for t in n.targets))
+mean_errors=[]
+for condition,expected_values in expected.items():
+    population=[x for x in c23 if x['condition']==condition]
+    assert len(population)==expected_values[0]
+    for j,key in enumerate(('preparation_s','command_to_route_publication_s','command_to_first_token_s','command_to_correct_business_response_s'),1):
+        delta=statistics.fmean(x['metrics'][key] for x in population)-expected_values[j]
+        mean_errors.append(dict(condition=condition,metric=key,delta_s=delta))
+        if abs(delta)>.05:mismatches.append(['published_mean_gate',condition,key,delta])
+receipt=dict(scope='Independent numerical/input gate only; event clocks/routing/state have separate event-gate.json receipt',ledger_sha256=hashlib.sha256(raw).hexdigest(),input_sha_verified=inputs,counts=dict(success=35,failed=5,c23=26),complete_blocks=blocks,block4_exclusion='SF conditions are C21, Store conditions C23; independent of timings',method=dict(seed=20261024,B=10000,bootstrap='paired-block percentile order statistics floor(p*(B-1)); restart RNG for each statistic',test='two-sided exact |mean paired difference|, all signs, tie tolerance1e-12',family='four contrasts separately per cost window',interval='marginal, not simultaneous'),contrasts=out,sensitivity=sensitivity,mismatches=mismatches,numerical_gate='PASS' if not mismatches else 'FAIL',event_gate='SEE_SEPARATE_EVENT_GATE',published_mean_checks=mean_errors,max_mean_deviation_s=max(abs(x['delta_s']) for x in mean_errors),script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
 (R/'independent-audit.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps(dict(numerical_gate=receipt['numerical_gate'],mismatches=mismatches,p_values={k:[(x['p_raw'],x['p_holm']) for x in v] for k,v in out.items()})))
