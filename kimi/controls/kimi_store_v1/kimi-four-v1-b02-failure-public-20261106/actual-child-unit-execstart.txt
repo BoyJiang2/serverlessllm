@@ -1,0 +1,600 @@
+{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -I -c import ast,collections,hashlib,importlib.util,json,math,os,pathlib,re,signal,stat,subprocess,sys,time
+assert os.uname().nodename=='qjhs3'
+os.umask(0o077);specpath=pathlib.Path(sys.argv[1]);expected=sys.argv[2];expiry=float(sys.argv[3]);epoch=time.time();assert os.geteuid()==0 and math.isfinite(expiry) and time.time()+7200<expiry
+assert hashlib.sha256(specpath.read_bytes()).hexdigest()==expected;s=json.loads(specpath.read_text());run=s['run_id'];assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit'];ROOT=pathlib.Path(s['source_root']);base=pathlib.Path(s['runs_root'])/run
+D=['/usr/bin/docker','--host','unix:///var/run/docker.sock'];guard=pathlib.Path(s['guard']);observer=pathlib.Path(s['observer']);cids={};arms={};ips={};services={};units={};children=[];network=None;seq=0
+helper=ROOT/'sllm_store/tests/gpu512_once_controller.py';loader=importlib.util.spec_from_file_location('existing_helper',helper);m=importlib.util.module_from_spec(loader);loader.loader.exec_module(m);m.UUIDS=s['gpu_uuids']
+def call(a,t=3):return subprocess.check_output(a,text=True,timeout=t)
+def props(u):return dict(x.split('=',1) for x in call(['/usr/bin/systemctl','show',u,'--property=MainPID,ExecMainCode,ExecMainStatus,Result,ActiveEnterTimestampMonotonic,RuntimeMaxUSec,TimeoutStopUSec,Type,Restart,KillMode,SendSIGKILL,FinalKillSignal']).splitlines())
+outer=props(run+'-controller.service');assert int(outer['MainPID'])==os.getpid() and outer['RuntimeMaxUSec']=='1h 59min 57s' and outer['TimeoutStopUSec']=='1s';started=int(outer['ActiveEnterTimestampMonotonic'])/1e6;end=started+7198
+assert outer['Type']=='exec' and outer['Restart']=='no' and outer['KillMode']=='control-group' and outer['SendSIGKILL']=='yes' and outer['FinalKillSignal']=='9'
+
+storage_route_proof={}
+if s['storage_route']['route']=='local_nvme':
+ for name,path in {'safetensors':s['safetensors_host'],'store_archive':s['archive'],'runs_root':s['runs_root']}.items():
+  target=pathlib.Path(path);assert str(target.resolve(strict=True))==path and target.is_dir()
+  row=json.loads(subprocess.check_output(['/usr/bin/findmnt','--json','--target',path,'--output','SOURCE,FSTYPE,TARGET'],text=True,timeout=3))['filesystems']
+  assert len(row)==1 and row[0]['source']=='/dev/nvme1n1' and row[0]['fstype']=='xfs','asset/output is not the approved local NVMe XFS'
+  storage_route_proof[name]={'path':path,'dev':target.stat().st_dev,'inode':target.stat().st_ino,'mount':row[0]}
+
+base.mkdir(mode=0o700);control=base/'control';control.mkdir(mode=0o755);os.chmod(control,0o755)
+for name in ['guard-head','guard-worker','observer','head','worker']:
+ p=base/name;p.mkdir(mode=0o700)
+ if name in ('head','worker'):os.chown(p,2147,2147)
+ld=base/'worker'/'load-evidence';ld.mkdir(mode=0o700);os.chown(ld,2147,2147)
+def save(name,value):
+ p=base/name;assert not p.exists();tmp=p.with_name(p.name+'.partial');tmp.write_text(json.dumps(value));os.chmod(tmp,0o600);os.replace(tmp,p)
+def publish(name,value):
+ p=control/name;p.write_text(json.dumps(value));os.chmod(p,0o644)
+def identity(pid):
+ p=pathlib.Path('/proc')/str(pid);f=(p/'stat').read_text().rsplit(')',1)[1].split();return {'pid':pid,'startticks':int(f[19]),'state':f[0],'ppid':int(f[1]),'cgroup':(p/'cgroup').read_text().strip()}
+def gone(owner):
+ try:return identity(owner['pid'])['startticks']!=owner['startticks']
+ except FileNotFoundError:return True
+def inspect(role):return json.loads(call(D+['inspect',cids[role]]))[0]
+def checkfiles():
+ assert hashlib.sha256(specpath.read_bytes()).hexdigest()==expected and hashlib.sha256(helper.read_bytes()).hexdigest()==s['helper_sha256']
+ assert hashlib.sha256(guard.read_bytes()).hexdigest()==s['guard_sha256'] and hashlib.sha256(observer.read_bytes()).hexdigest()==s['observer_sha256']
+ for p,v in s['code_pins'].items():assert hashlib.sha256(pathlib.Path(p).read_bytes()).hexdigest()==v,p
+ for p,v in s['native_source_pins'].items():assert hashlib.sha256((ROOT/p).read_bytes()).hexdigest()==v,p
+ for a in s['assets']:assert pathlib.Path(a['path']).stat().st_size==a['bytes'] and hashlib.sha256(pathlib.Path(a['path']).read_bytes()).hexdigest()==a['sha256']
+ for name,b in s['role_bodies'].items():assert hashlib.sha256(b.encode()).hexdigest()==s['role_body_sha256'][name];compile(b,name,'exec')
+def healthy():
+ assert time.monotonic()<end-15
+ for role in arms:assert not (base/('guard-'+role)/'ABORT').exists() and int(props(units[role])['MainPID'])>0
+ if 'observer' in units:assert not (base/'observer/ABORT').exists() and int(props(units['observer'])['MainPID'])>0
+ for role in cids:assert inspect(role)['State']['Running']
+def systemd(unit,argv,native):
+ assert time.monotonic()+native+6<=end;call(['/usr/bin/systemd-run','--unit='+unit,'--property=Type=exec','--property=RuntimeMaxSec='+str(native),'--property=TimeoutStopSec=3','--property=Restart=no','--property=KillMode=control-group','--property=SendSIGKILL=yes','--property=FinalKillSignal=SIGKILL','--property=RemainAfterExit=no','--property=MemoryMax=256M','--property=TasksMax=64',*argv]);p=props(unit);assert int(p['ActiveEnterTimestampMonotonic'])/1e6+native+3<=end;return p
+def validate_role_contracts():
+ for name,body in s['role_bodies'].items():assert hashlib.sha256(body.encode()).hexdigest()==s['role_body_sha256'][name]
+ tree=ast.parse(s['role_bodies']['bootstrap']);target=next(n.value for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='target' for t in n.targets));assert isinstance(target,ast.Call) and ast.literal_eval(target.args[0])=='/usr/local/lib/python3.12/dist-packages'
+ assert '/evidence' not in s['role_bodies']['bootstrap'] and '--target' in s['role_bodies']['bootstrap'] and '--break-system-packages' not in s['role_bodies']['bootstrap'] and '--upgrade' not in s['role_bodies']['bootstrap']
+ assert all(req['env']['VLLM_ALLOW_INSECURE_SERIALIZATION']=='0' for req in s['requests'].values())
+def create_argv(role):
+ validate_role_contracts()
+ req=s['requests'][role];h=req['host_config'];a=D+['create','--name',req['name'],'--network='+network,'--runtime='+h['Runtime'],'--user=2147:2147','--workdir=/source','--cpus='+str(h['NanoCpus']/1e9),'--memory='+str(h['Memory']),'--memory-swap='+str(h['MemorySwap']),'--pids-limit=4096','--shm-size='+str(h['ShmSize']),'--tmpfs=/tmp:rw,exec,nosuid,nodev,size=8g,mode=1777','--cap-drop=ALL','--security-opt=no-new-privileges','--ulimit=core=0','--log-driver=json-file','--log-opt=max-size=64m','--log-opt=max-file=1']
+ for k,v in req['env'].items():a+=['--env',k+'='+v]
+ mounts=req['mounts']+[{'Source':str(control),'Target':'/control','ReadOnly':True},{'Source':str(base/role),'Target':'/evidence','ReadOnly':False}]
+ for q in mounts:a+=['--mount','type=bind,src='+q['Source']+',dst='+q['Target']+(',readonly' if q['ReadOnly'] else '')]
+ assert req['cmd']==['-I','-c',s['role_bodies']['pid1']] and hashlib.sha256(req['cmd'][-1].encode()).hexdigest()==s['role_body_sha256']['pid1']
+ return a+['--entrypoint='+req['entrypoint'],s['image'],*req['cmd']],mounts
+
+def create_arm_start(role):
+ assert time.monotonic()-started<(90 if role=='head' else 600);argv,mounts=create_argv(role);cid=call(argv,10).strip();assert re.fullmatch('[0-9a-f]{64}',cid);cids[role]=cid;row=inspect(role);req=s['requests'][role];h=row['HostConfig']
+ assert row['Image']==s['image'] and row['State']['Status']=='created' and row['Config']['User']=='2147:2147' and row['Config']['Cmd']==req['cmd'] and row['Config']['Entrypoint']==[req['entrypoint']]
+ for k in ['Runtime','ReadonlyRootfs','Memory','MemorySwap','NanoCpus','PidsLimit','ShmSize','Tmpfs','CapDrop','SecurityOpt']:assert h[k]==req['host_config'][k],k
+ assert h['NetworkMode']==network and h['RestartPolicy']['Name']=='no' and {(q['Source'],q['Destination'],q['RW']) for q in row['Mounts']}=={(q['Source'],q['Target'],not q['ReadOnly']) for q in mounts}
+ env=dict(x.split('=',1) for x in row['Config']['Env']);assert all(env[k]==v for k,v in req['env'].items()) and env['VLLM_ALLOW_INSECURE_SERIALIZATION']=='0';save(role+'-prepared.json',{'cid':cid,'actual_create_argv':argv,'role_body_sha256':s['role_body_sha256'],'inspect':row})
+ b=s['budgets']['head_guard' if role=='head' else 'worker_guard'];gb=base/('guard-'+role);unit=run+'-'+role+'-guard.service';systemd(unit,['/usr/bin/python3',str(guard),cid,str(gb),'--deadline',str(b['deadline']),'--kill-after','3','--overall',str(b['overall']),'--normal-exit-marker'],b['native']);units[role]=unit;limit=time.monotonic()+10
+ while not (gb/'ARMED.json').exists():assert time.monotonic()<limit;time.sleep(.02)
+ ar=json.loads((gb/'ARMED.json').read_text());assert ar['cid']==cid and identity(ar['guard_pid'])['startticks']==ar['guard_startticks'] and int(props(unit)['MainPID'])==ar['guard_pid'];assert (ar['deadline_seconds'],ar['cleanup_seconds'],ar['release_seconds'])==(b['deadline'],b['overall'],60);arms[role]=ar;go=time.monotonic();tmp=gb/'GO.json.tmp';tmp.write_text(json.dumps({'cid':cid,'nonce':ar['nonce'],'monotonic':go}));os.replace(tmp,gb/'GO.json');limit=go+2
+ while not (gb/'GO-ACK.json').exists():assert time.monotonic()<limit;time.sleep(.02)
+ assert json.loads((gb/'GO-ACK.json').read_text())=={'cid':cid,'go_monotonic':go};call(D+['start',cid],30);row=inspect(role);assert row['State']['Running'];nets=list(row['NetworkSettings']['Networks'].values());assert len(nets)==1 and nets[0]['NetworkID']==network;ips[role]=nets[0]['IPAddress'];assert ips[role];save(role+'-started.json',{'inspect':row,'go_monotonic':go,'ip':ips[role]})
+
+def exec_argv(role,body,args=(),uid='2147:2147',extra=None):
+ validate_role_contracts()
+ code=s['role_bodies'][body];assert hashlib.sha256(code.encode()).hexdigest()==s['role_body_sha256'][body];a=D+['exec','--user='+uid,'--workdir=/source'];env={'VLLM_HOST_IP':ips[role],'RAY_ADDRESS':ips['head']+':6379','NATIVE_ROLE':body}
+ if extra:env.update(extra)
+ for k,v in env.items():a+=['--env',k+'='+v]
+ assert (uid=='0')==(body=='bootstrap');return a+[cids[role],'/usr/bin/python3','-I','-c',code,*args]
+def launch(role,body,args=(),uid='2147:2147',extra=None):
+ global seq
+ seq+=1;name=str(seq)+'-'+role+'-'+body;a=exec_argv(role,body,args,uid,extra);o=(base/(name+'.stdout')).open('x');e=(base/(name+'.stderr')).open('x');p=subprocess.Popen(a,stdout=o,stderr=e);children.append((p,o,e));save(name+'-exec.json',{'argv':a,'body_sha256':s['role_body_sha256'][body]});return p,base/(name+'.stdout'),base/(name+'.stderr')
+def finish(item,deadline,monitor=False):
+ p,o,e=item
+ while p.poll() is None:
+  assert time.monotonic()<deadline;healthy()
+  if monitor:sample(deadline)
+  time.sleep(.5)
+ assert time.monotonic()<deadline
+ if p.returncode!=0:raise subprocess.CalledProcessError(p.returncode,p.args)
+ assert o.stat().st_size<=64<<20 and e.stat().st_size<=64<<20;return o.read_text()
+def execute(role,body,args=(),seconds=30,uid='2147:2147',extra=None,monitor=False):return finish(launch(role,body,args,uid,extra),min(end-180,time.monotonic()+seconds),monitor)
+def official(role,module,args,seconds=30,long=False,name='command'):
+ item=launch(role,'official_module',[module,*args],extra={'NATIVE_ROLE':name})
+ if long:services[name]=item;return item
+ return finish(item,min(end-180,time.monotonic()+seconds))
+def sample(deadline=None):
+ deadline=end-180 if deadline is None else deadline;assert time.monotonic()+30<deadline;healthy();rows=m.gpu();assert time.monotonic()<deadline
+ for row in rows.values():
+  assert row['used_mib']<=131072
+  for pid in row['processes']:assert identity(int(pid))['cgroup']=='0::/system.slice/docker-'+cids['worker']+'.scope'
+ counters={}
+ for role,cid in cids.items():
+  cg=pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cid+'.scope');values={k:(cg/k).read_text() for k in ['memory.current','memory.max','memory.events','memory.stat','pids.current','pids.events']};events=dict(x.split() for x in values['memory.events'].splitlines());assert int(events['oom'])==int(events['oom_kill'])==0;assert int(values['memory.current'])<=int(values['memory.max']);counters[role]=values
+ with (base/'physical-memory-samples.jsonl').open('a') as f:f.write(json.dumps({'mono':time.monotonic(),'gpus':rows,'cgroups':counters})+'\n');assert f.tell()<=128<<20
+ return rows
+
+def owned_host_pid(nspid,role='worker'):
+ members=(pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cids[role]+'.scope/cgroup.procs')).read_text().split();found=[]
+ for x in members:
+  try:
+   status=dict(l.split(':',1) for l in (pathlib.Path('/proc')/x/'status').read_text().splitlines() if ':' in l)
+   if int(status['NSpid'].split()[-1])==nspid:assert status['Uid'].split()==['2147']*4;found.append(identity(int(x)))
+  except FileNotFoundError:pass
+ assert len(found)==1 and found[0]['cgroup']=='0::/system.slice/docker-'+cids[role]+'.scope';return found[0]
+def baseline_window(initial,deadline,rank_owners=(),label='baseline'):
+ quiet=None;state=None;observations=0
+ while True:
+  if time.monotonic()>=deadline:
+   survivors={}
+   for o in rank_owners:
+    try:ident=identity(o['pid'])
+    except FileNotFoundError:continue
+    if ident['startticks']==o['startticks']:survivors[str(o['pid'])]=ident
+   save(label+'-window-exhausted.json',{'label':label,'observations':observations,'survivor_count':len(survivors),'survivors':survivors})
+   raise AssertionError('baseline window exhausted with '+str(len(survivors))+' tracked identities still present: '+label)
+  try:rows=sample(deadline)
+  except BaseException as original_error:
+   try:
+    survivors={}
+    for o in rank_owners:
+     try:ident=identity(o['pid'])
+     except FileNotFoundError:continue
+     if ident['startticks']==o['startticks']:survivors[str(o['pid'])]=ident
+    save(label+'-sample-failed.json',{'label':label,'observations':observations,'survivor_count':len(survivors),'survivors':survivors,'error_type':type(original_error).__name__,'error':str(original_error)})
+   except BaseException:pass
+   raise
+  assert not gone(store_owner);same=all(gone(x) for x in rank_owners) and all([str(p) for p in row['processes']]==[str(store_owner['pid'])] and row['used_mib']>0 for row in rows.values())
+  if initial:same=same and all(rows[u]['used_mib']<=initial[u]['used_mib'] for u in rows)
+  if not same:quiet=None;state=None;time.sleep(.5);continue
+  if state!=rows:state=rows;quiet=time.monotonic()
+  observations+=1
+  if time.monotonic()-quiet>=60:return {'snapshot':rows,'quiet_seconds':time.monotonic()-quiet,'observations':observations,'store_identity':store_owner}
+  time.sleep(.5)
+def ray_state():return json.loads(execute('head','ray_state',seconds=30))
+def HTTP(path,payload,seconds,monitor=False,want=None,register_config=None):
+ raw=execute('head','http',[path,json.dumps(payload),str(seconds-3),json.dumps(want),json.dumps(register_config)],seconds=seconds,monitor=monitor);row=json.loads(raw);p=base/(str(seq)+'-head-http.stdout');row['stdout_reference']={'path':str(p),'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()};return row
+def check_response(row,want,index,life):
+ record_http_sample(row,want,index)
+ response=row['response'];value=response['choices'][0];expected=want['expected'];usage={'prompt_tokens':expected['prompt_tokens'],'completion_tokens':expected['completion_tokens'],'total_tokens':expected['prompt_tokens']+expected['completion_tokens']}
+ assert row['child_gold_validation_pass'] is True
+ assert row['status']==200 and len(response['choices'])==1 and value['message']['content']==expected['content'] and value['finish_reason']==expected['finish_reason'] and response['usage']==usage
+ try:complete=validated_http_events(row,want,index)
+ except BaseException as error:
+  mark_sample_gate('clock',False,type(error).__name__+':'+str(error));raise
+ save('life'+str(life)+'-response'+str(index)+'.json',{'actual':row,'expected':want,'expected_usage':usage,'validated_endpoint':complete})
+ return complete
+
+
+def head_log_paths():
+ return sorted({services['api'][1],*[p for p in (base/'head/ray').rglob('worker-*') if p.is_file() and p.suffix in ('.out','.err')]},key=str)
+def head_log_positions():return {str(p):p.stat().st_size for p in head_log_paths()}
+def router_started_since(positions):
+ marker='Started handler for model '+s['config']['model'];found=[]
+ for p in head_log_paths():
+  assert p.resolve().is_relative_to(base.resolve())
+  with p.open('rb') as stream:stream.seek(positions.get(str(p),0));raw=stream.read((16<<20)+1)
+  assert len(raw)<=16<<20;text=raw.decode('utf-8',errors='replace')
+  if 'RayTaskError' in text and 'RoundRobinRouter.start' in text:raise RuntimeError('Actual router.start task failed; see '+str(p))
+  for line in text.splitlines():
+   clean=re.sub(r'\x1b\[[0-9;]*m','',line)
+   if re.search(re.escape(marker)+r'(?=\s|$)',clean):found.append({'path':str(p),'after_offset':positions.get(str(p),0),'line_sha256':hashlib.sha256(line.encode()).hexdigest()})
+ return found
+
+def log_positions():return {str(p):p.stat().st_size for p in (base/'worker/ray').rglob('worker-*') if p.is_file() and p.suffix in ['.out','.err']}
+def records_since(positions):
+ edir=base/'worker/load-evidence';info=os.stat(edir)
+ assert info.st_uid==2147 and stat.S_IMODE(info.st_mode)==0o700,'load evidence dir must be uid2147 mode0700'
+ announced={}
+ for p in (base/'worker/ray').rglob('worker-*'):
+  if p.is_file() and p.suffix in ['.out','.err']:
+   assert p.resolve().is_relative_to((base/'worker').resolve())
+   with p.open() as f:f.seek(positions.get(str(p),0));text=f.read((128<<20)+1);assert len(text)<=128<<20
+   for line in text.splitlines():
+    assert 'SLLM_LOAD_EVIDENCE_MISSING ' not in line and 'open() failed for file (no O_DIRECT)' not in line
+    assert 'SLLM_LOAD_EVIDENCE ' not in line,'legacy interleaved evidence line still present'
+    if 'SLLM_LOAD_EVIDENCE_FILE ' in line:
+     payload=line.split('SLLM_LOAD_EVIDENCE_FILE ',1)[1];v,_=json.JSONDecoder().raw_decode(payload);announced[v['filename']]=v
+ assert len(announced)==8,'expected eight atomic evidence announcements, got '+str(len(announced))
+ rows=[]
+ for name,ann in sorted(announced.items()):
+  assert re.fullmatch(r'rank-[0-7]-pid-[0-9]+\.json',name),name
+  raw=(edir/name).read_bytes();assert len(raw)==ann['bytes'],'evidence size differs from announcement'
+  row=json.loads(raw)
+  assert row['event']=='SLLM_LOAD_EVIDENCE' and row['tp_rank']==ann['tp_rank'] and row['pid']==ann['pid'] and row['device_uuid']==ann['device_uuid']
+  rows.append('SLLM_LOAD_EVIDENCE '+json.dumps(row,sort_keys=True))
+ assert not [q.name for q in edir.iterdir() if q.name.startswith('.') and q.name.endswith('.partial')],'leftover partial evidence file'
+ return load_records(rows)
+def stop_service(name,role,deadline):
+ if name=='store':
+  begin=deadline-60;result={'protocol':'NEW_PROTOCOL_EXIT60_L1','criterion_seconds':60,'owner':None,'pass':False,'begin_monotonic':begin,'deadline_monotonic':deadline,'measurement':'controller Stop call through original finish and strictgone, including IPC and diagnostic overhead'}
+  try:
+   item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None
+   result['owner']=owner
+   call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3)
+   stop_started=time.monotonic();captures=set()
+   while item[0].poll() is None:
+    assert time.monotonic()<deadline,'Store exit60 criterion exceeded';healthy();now=time.monotonic()
+    for at in (10,20):
+     if now<deadline and now-stop_started>=at and at not in captures:
+      captures.add(at)
+      try:record=m.process_stop_snapshot(owner,deadline)
+      except Exception as error:record={'status':'DIAGNOSTIC_ERROR','error_type':type(error).__name__,'error':str(error)}
+      record={'elapsed':time.monotonic()-stop_started,'owner':owner,'snapshot':record}
+      try:save('store-stop-diagnostic-'+str(at)+'.json',record)
+      except Exception as error:
+       try:print(json.dumps({'event':'STORE_STOP_DIAGNOSTIC_SAVE_FAILED','at':at,'error_type':type(error).__name__}),flush=True)
+       except Exception:pass
+    time.sleep(.5)
+   assert time.monotonic()<deadline,'Store exit60 finish deadline exceeded'
+   finish(item,deadline)
+   if owner:assert gone(owner),'Store exit60 owned process still present'
+   completed=time.monotonic();assert completed<deadline,'Store exit60 completion verification exceeded criterion'
+   result.update(elapsed=completed-begin,completion_monotonic=completed);result['pass']=True
+   save('store-stop-exit60.json',result)
+  except BaseException as error:
+   result.update(elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error),failure_reason='criterion60_exceeded' if time.monotonic()>=deadline else 'normal_exit_or_strictgone_verification_failed')
+   try:save('store-stop-exit60.json',result)
+   except Exception as diagnostic_error:
+    try:print(json.dumps({'event':'EXIT60_EVIDENCE_SAVE_FAILED','primary_error_type':type(error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)
+    except Exception:pass
+   raise
+  return
+ item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None
+ call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3);finish(item,deadline)
+ if owner:assert gone(owner)
+def normal_exit(role):
+ row=inspect(role);assert row['State']['Running'];call(D+['kill','--signal=TERM',cids[role]],3);limit=time.monotonic()+5
+ while inspect(role)['State']['Status']!='exited':assert time.monotonic()<limit;time.sleep(.05)
+ row=inspect(role);assert row['State']['ExitCode']==0 and not row['State']['OOMKilled'] and row['State']['Pid']==0 and row['RestartCount']==0;gb=base/('guard-'+role);go=json.loads((gb/'GO.json').read_text())['monotonic'];tmp=gb/'normal-exit.json.tmp';tmp.write_text(json.dumps({'cid':cids[role],'nonce':arms[role]['nonce'],'go_monotonic':go,'completion_monotonic':time.monotonic(),'exit_code':0}));os.replace(tmp,gb/'normal-exit.json');save(role+'-exited.json',row)
+
+def load_records(lines):
+    result = []
+    for line in lines:
+        assert len(line) <= 16 << 20, 'model log line cap'
+        if 'SLLM_LOAD_EVIDENCE_MISSING ' in line:
+            raise ValueError('rank load evidence capture missing')
+        if 'SLLM_LOAD_EVIDENCE ' not in line:
+            continue
+        payload = line.split('SLLM_LOAD_EVIDENCE ', 1)[1]
+        (row, end) = json.JSONDecoder().raw_decode(payload)
+        assert re.fullmatch('(?:\\x1b\\[[0-9;]*m)*', payload[end:].strip()) is not None
+        assert row['event'] == 'SLLM_LOAD_EVIDENCE' and type(row['tp_rank']) is int and (0 <= row['tp_rank'] < 8)
+        assert row['load_completed'] is True and row['load_error_type'] is None and (row['registered_model_available'] is True) and (row['synchronized'] is True) and (row['phase'] == 'load_boundary_before_profiler_exit_reset')
+        assert isinstance(row['device'], str) and row['device'] == 'cuda:'+str(row['tp_rank']) and (row['device_uuid'] in s['gpu_uuids']) and (type(row['pid']) is int) and (row['pid'] > 0)
+        assert isinstance(row['quant_method_counts'], dict) and any(('compressed_tensors' in k and 'WNA16' in k and (type(v) is int) and (v > 0) for (k, v) in row['quant_method_counts'].items())) and isinstance(row['kernel_backend_counts'], dict)
+        assert all((isinstance(k, str) and type(v) is int and (v > 0) for group in ('quant_method_counts', 'kernel_backend_counts') for (k, v) in row[group].items()))
+        memory = row['memory']
+        keys = ('allocated_bytes', 'reserved_bytes', 'peak_allocated_bytes', 'peak_reserved_bytes', 'driver_free_bytes', 'driver_total_bytes')
+        assert all((type(memory[k]) is int and memory[k] >= 0 for k in keys))
+        assert 0 <= memory['allocated_bytes'] <= memory['reserved_bytes'] <= memory['peak_reserved_bytes'] and memory['allocated_bytes'] <= memory['peak_allocated_bytes'] <= memory['peak_reserved_bytes'] and (0 < memory['driver_total_bytes']) and (memory['driver_free_bytes'] <= memory['driver_total_bytes'])
+        cap = 131072 * (1 << 20)
+        assert memory['peak_allocated_bytes'] <= cap and memory['peak_reserved_bytes'] <= cap and (memory['driver_total_bytes'] - memory['driver_free_bytes'] <= cap), 'recorded GPU memory exceeds approved cap'
+        storages = row['registered_storages']
+        tensors = row['registered_tensors']
+        assert isinstance(storages, list) and storages and isinstance(tensors, list) and tensors
+        ids = {v['storage_id'] for v in storages}
+        assert len(ids) == len(storages) and ids == set(range(len(storages)))
+        assert all((type(v['bytes']) is int and v['bytes'] >= 0 and isinstance(v['names'], list) and isinstance(v['device'], str) for v in storages))
+        assert row['unique_registered_storage_bytes'] == sum((v['bytes'] for v in storages)) > 0
+        for tensor in tensors:
+            assert tensor['kind'] in ('parameter', 'buffer') and isinstance(tensor['name'], str) and (tensor['storage_id'] in ids) and (type(tensor['bytes']) is int) and (tensor['bytes'] >= 0) and (type(tensor['storage_offset']) is int) and (tensor['storage_offset'] >= 0)
+            assert isinstance(tensor['shape'], list) and all((type(v) is int and v >= 0 for v in tensor['shape'])) and isinstance(tensor['stride'], list) and (len(tensor['stride']) == len(tensor['shape'])) and isinstance(tensor['dtype'], str) and isinstance(tensor['device'], str)
+            assert tensor['bytes'] == 0 or not tensor['device'].startswith('meta')
+            owner = storages[tensor['storage_id']]
+            assert owner['storage_id'] == tensor['storage_id'] and tensor['kind'] + ':' + tensor['name'] in owner['names'] and (owner['device'] == tensor['device'])
+        assert any((v['bytes'] > 0 and v['dtype'] in ('torch.int32', 'torch.uint8') and v['device'].startswith('cuda:') for v in tensors))
+        assert isinstance(row['empty_g_idx_keys'], list) and isinstance(row['coverage'], str) and ('nonregistered' in row['coverage']) and math.isfinite(row['capture_seconds']) and (row['capture_seconds'] >= 0)
+        result.append(row)
+    assert len(result) == 8 and {v['tp_rank'] for v in result} == set(range(8)) and (len({v['pid'] for v in result}) == 8) and ({v['device_uuid'] for v in result} == set(s['gpu_uuids'])), 'complete eight-rank load evidence required'
+    return sorted(result, key=lambda v: v['tp_rank'])
+
+sys.path.insert(0,str(ROOT));from sllm.logger import get_clock_identity;clock_identity=get_clock_identity()
+assert hashlib.sha256((ROOT/'sllm_store/tests/file_cache_state.py').read_bytes()).hexdigest()==s['cache_helper_sha256'];loader=importlib.util.spec_from_file_location('finite_cache',ROOT/'sllm_store/tests/file_cache_state.py');cache=importlib.util.module_from_spec(loader);loader.loader.exec_module(cache)
+
+def frozen_files():
+ manifest=json.loads(pathlib.Path(s['input_inventory']['path']).read_text())
+ assert hashlib.sha256(pathlib.Path(s['input_inventory']['path']).read_bytes()).hexdigest()==s['input_inventory']['sha256']
+ group=manifest['roots']['safetensors' if s['condition'].startswith('safetensors') else 'store']
+ for row in group['files']:
+  p=pathlib.Path(row['path']);v=p.stat()
+  assert str(p.resolve())==row['resolved'] and p.is_file()
+  assert (v.st_dev,v.st_ino,v.st_size,v.st_mtime_ns,v.st_uid)==(row['dev'],row['ino'],row['bytes'],row['mtime_ns'],row['uid']),'asset identity drift'
+ return group
+def event(name):
+ save('event-'+name+'.json',{'event':name,'monotonic':time.monotonic(),'monotonic_ns':time.monotonic_ns(),'wall':time.time(),'pid':os.getpid(),'measurement':'controller_observed_operation_boundary_not_pure_CUDA_or_IO','clock_identity':clock_identity,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'run_id':run,'attempt':s['attempt'],'condition':s['condition']})
+def construct_cache():
+ group=frozen_files();paths=[r['path'] for r in group['files']];roots=[group['root']];deadline=time.monotonic()+1800
+ event('target_condition_construction_begin')
+ if s['condition']=='store_pool_hit':
+  log=services['store'][2];offset=log.stat().st_size
+  execute('worker','store_config',['pool'],seconds=min(1790,int(deadline-time.monotonic())),monitor=True)
+  expected_paths={'vllm/'+s['config']['model']+'/rank_'+str(rank) for rank in range(8)}
+  while True:
+   healthy();assert time.monotonic()<deadline
+   with log.open() as stream:stream.seek(offset);text=stream.read((8<<20)+1);assert len(text)<=8<<20
+   loaded=re.findall(r'Finished loading model (\S+) from disk',text)
+   assert not any(word in text for word in ('Unload','ClearMem','evict')),'pool admission invalidation'
+   assert len(loaded)<=8 and set(loaded)<=expected_paths
+   if len(loaded)==8 and set(loaded)==expected_paths:break
+   time.sleep(.2)
+  save('pool-admission.json',{'paths':sorted(expected_paths),'offset':offset,'store_owner':store_owner,'success_log':text})
+ else:
+  action=cache.warm_file_cache if s['condition']=='safetensors_disk_hot' else cache.evict_file_cache
+  result=action(paths,allowed_roots=roots,deadline=deadline)
+  healthy();assert result['admitted'] is True;frozen_files()
+  state=cache.query_cache_state(paths,allowed_roots=roots,deadline=deadline)
+  save('cache-admission.json',{'construction':result,'state':state})
+  assert_cache_state(state,s['condition']=='safetensors_disk_hot')
+ if s['condition']=='store_disk_cold':
+  assert identity(store_owner['pid'])['startticks']==store_owner['startticks']
+  assert 'Finished loading model ' not in services['store'][2].read_text()
+ frozen_files();event('cache_pool_admission_complete')
+
+def jit_snapshot(label,roles=('head','worker')):
+ code="import json,pathlib,sys;root=pathlib.Path('/tmp/formal-jit');before=sys.argv[1]=='initial';assert not before or not root.exists();root.mkdir(exist_ok=not before);print(json.dumps([{'path':str(p.relative_to(root)),'bytes':p.stat().st_size} for p in sorted(root.rglob('*')) if p.is_file()]))"
+ for role in roles:
+  healthy();value=json.loads(call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c',code,label],5));save('jit-'+role+'-'+label+'.json',value)
+  if label=='initial':assert value==[]
+
+def assert_cache_state(state,hot):
+ assert state['pages']>0 and state['all_hot' if hot else 'all_cold'] is True
+ assert state['resident_pages']==(state['pages'] if hot else 0)
+ group=frozen_files();expected={row['path']:row for row in group['files']}
+ assert len(state['files'])==len(expected)
+ counts={'metadata':{'pages':0,'resident_pages':0},'payload':{'pages':0,'resident_pages':0}}
+ for row in state['files']:
+  want=expected.pop(row['path']);identity=row['identity']
+  assert identity=={'dev':want['dev'],'ino':want['ino'],'size':want['bytes'],'mtime_ns':want['mtime_ns'],'uid':want['uid']}
+  assert row['resident_pages']==(row['pages'] if hot else 0)
+  groupname='payload' if want['payload'] else 'metadata'
+  for key in ('pages','resident_pages'):counts[groupname][key]+=row[key]
+ assert not expected
+ save('cache-admission-page-counts.json',counts)
+
+def same_clock(left,right):
+ for key in ('boot_id','time_namespace','monotonic_clock_implementation'):
+  assert left.get(key) is not None and left.get(key)==right.get(key),'incompatible monotonic clock domains'
+ assert not left.get('errors') and not right.get('errors')
+def validated_http_events(row,want,index):
+ same_clock(row['clock_identity'],clock_identity)
+ assert row['request_id']==run+'-'+str(index) and row['path']=='/v1/chat/completions' and type(row['pid']) is int and row['pid']>0
+ assert 0<row['business_trigger_ns']<=row['request_begin_ns']<=row['response_body_complete_ns']<=row['json_parse_complete_ns']<=row['received_ns']<=row['child_gold_validation_begin_ns']<=row['child_gold_validation_complete_ns']
+ parent_end=time.monotonic_ns()
+ shared={'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'request_id':row['request_id'],'client_pid':row['pid'],'http_producer_times':{key:row[key] for key in ('business_trigger_ns','request_begin_ns','response_body_complete_ns','json_parse_complete_ns','received_ns','child_gold_validation_begin_ns','child_gold_validation_complete_ns')},'client_cid':cids['head'],'clock_identity':row['clock_identity'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256']}
+ begin={**shared,'event':want['case']+'_http_begin','monotonic_ns':row['business_trigger_ns']}
+ complete={**shared,'event':want['case']+'_http_complete_correct','monotonic_ns':row[s['primary_http_endpoint']],'response_body_complete_ns':row['response_body_complete_ns'],'endpoint':s['primary_http_endpoint'],'parent_validation_end_ns':parent_end,'parent_clock_identity':clock_identity}
+ if index==0:
+  assert 0<row['registration_command_ns']<=row['register_complete_ns']<=row['business_trigger_ns']
+  complete.update(primary_A_ns=row['received_ns']-row['registration_command_ns'],business_B_ns=row['received_ns']-row['business_trigger_ns'],registration_command_ns=row['registration_command_ns'],register_complete_ns=row['register_complete_ns'])
+  save('event-command_register_begin.json',{**shared,'event':'command_register_begin','monotonic_ns':row['registration_command_ns'],'producer':'same_http_client_as_arithmetic'})
+  save('event-command_register_complete.json',{**shared,'event':'command_register_complete','monotonic_ns':row['register_complete_ns']})
+ else:complete['business_B_ns']=row['received_ns']-row['business_trigger_ns']
+ save('event-'+begin['event']+'.json',begin);save('event-'+complete['event']+'.json',complete)
+ return complete
+
+sample_metrics={}
+sample_gates={name:{'status':'NOT_OBSERVED','reason':'gate_not_completed'} for name in ('cache','gold','clock','ownership')}
+sample_active_gate=None
+condition_normal=False
+cleanup_started=False
+def mark_sample_gate(name,passed,reason):
+ sample_gates[name]={'status':'PASS' if passed else 'FAIL','reason':reason}
+def record_http_sample(row,want,index):
+ times={key:row.get(key) for key in ('registration_command_ns','register_complete_ns','business_trigger_ns','request_begin_ns','response_body_complete_ns','json_parse_complete_ns','received_ns','child_gold_validation_begin_ns','child_gold_validation_complete_ns')}
+ received=times['received_ns'];trigger=times['business_trigger_ns'];command=times['registration_command_ns']
+ valid_business=type(received) is int and type(trigger) is int and 0<trigger<=received
+ valid_primary=index==0 and type(command) is int and type(received) is int and 0<command<=received
+ value={'case':want['case'],'request_id':row.get('request_id'),'observation_status':'OBSERVED','producer_times':times,'primary_A_ns':received-command if valid_primary else None,'business_B_ns':received-trigger if valid_business else None,'raw_interval_status':'NUMERIC' if valid_business and (index!=0 or valid_primary) else 'INVALID_OR_MISSING_TIMESTAMPS','child_gold_validation_pass':row.get('child_gold_validation_pass'),'stdout_reference':row.get('stdout_reference'),'clock_identity':row.get('clock_identity')}
+ old=sample_metrics.get(want['case'])
+ if old is not None:
+  assert old['producer_times']==times,'conflicting same-request HTTP observations'
+  return
+ sample_metrics[want['case']]=value
+ save('sample-metrics-'+want['case']+'.json',value)
+def recover_http_samples():
+ for _,output,_ in children:
+  path=pathlib.Path(output.name)
+  if not path.name.endswith('-head-http.stdout') or not path.is_file():continue
+  size=path.stat().st_size
+  if not 0<size<=2<<20:continue
+  raw=path.read_bytes()
+  try:row=json.loads(raw)
+  except (ValueError,UnicodeDecodeError):continue
+  if not isinstance(row,dict):continue
+  for index,want in enumerate(s['correctness']['requests']):
+   if row.get('request_id')==run+'-'+str(index):
+    row['stdout_reference']={'path':str(path),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+    record_http_sample(row,want,index)
+def preserve_sample_metrics():
+ path=base/'sample-metrics.json'
+ if path.exists():return
+ values=[]
+ for want in s['correctness']['requests']:
+  values.append(sample_metrics.get(want['case'],{'case':want['case'],'observation_status':'NOT_OBSERVED','primary_A_ns':None,'business_B_ns':None}))
+ save('sample-metrics.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'requests':values,'policy':'Raw observed producer intervals retained regardless of qualification or later cleanup failure; missing observations remain explicit.'})
+def sample_qualification(gates,terminal,cleanup,metrics):
+ reasons=[name+':'+str(gates.get(name,{}).get('status','NOT_OBSERVED'))+':'+str(gates.get(name,{}).get('reason','missing')) for name in ('cache','gold','clock','ownership') if gates.get(name,{}).get('status')!='PASS']
+ for case in ('arithmetic','translation','fixed32'):
+  row=metrics.get(case,{})
+  if row.get('observation_status')!='OBSERVED' or row.get('raw_interval_status')!='NUMERIC' or not isinstance(row.get('stdout_reference'),dict):reasons.append('metrics:'+case+':MISSING_OR_INVALID_EVIDENCE')
+ if terminal.get('normal') is not True:reasons.append('condition_terminal:'+str(terminal.get('status','NOT_OBSERVED'))+':'+str(terminal.get('reason','missing')))
+ if cleanup.get('normal') is not True or type(cleanup.get('quiet_seconds')) not in (int,float) or not 60<=cleanup['quiet_seconds']<float('inf'):reasons.append('cleanup_normal_quiet60:'+str(cleanup.get('status','NOT_OBSERVED'))+':'+str(cleanup.get('reason','missing')))
+ return {'primary_sample_qualified':not reasons,'invalid_reasons':reasons,'rule':'cache+gold(text/usage/finish and exact trace IDs)+clock+ownership PASS AND normal condition terminal AND normal cleanup quiet>=60; NOT_OBSERVED never passes'}
+def condition_terminal(normal,reason):
+ preserve_sample_metrics()
+ path=base/'condition-terminal.json'
+ if not path.exists():save('condition-terminal.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'normal':normal,'status':'NORMAL' if normal else 'FAILED_OR_INCOMPLETE','reason':reason,'monotonic_ns':time.monotonic_ns()})
+def finalize_sample_evidence(cleanup,reason):
+ if (base/'sample-validity.json').exists():return json.loads((base/'sample-validity.json').read_text())
+ recover_http_samples();condition_terminal(condition_normal,reason)
+ if not (base/'cleanup-result.json').exists():
+  refs=[]
+  for name in ('store-stop-exit60.json','head-exited.json','worker-exited.json','guard-head/guard-final.json','guard-worker/guard-final.json','observer/observer-final.json'):
+   path=base/name
+   if path.is_file() and path.stat().st_size<=2<<20:refs.append({'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+  save('cleanup-result.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],**cleanup,'evidence':refs})
+ terminal=json.loads((base/'condition-terminal.json').read_text())
+ verdict=sample_qualification(sample_gates,terminal,cleanup,sample_metrics)
+ references=[]
+ for name in ('sample-metrics.json','condition-terminal.json','cleanup-result.json'):
+  path=base/name;references.append({'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()})
+ save('sample-validity.json',{'run_id':run,'attempt':s['attempt'],'condition':s['condition'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'gates':sample_gates,**verdict,'evidence':references})
+ return verdict
+
+def collect_structured_events(router_positions,worker_positions,tokens,backend_owner):
+ groups={'router_instance_published':[],'backend_init_begin':[],'backend_init_ready':[],'backend_first_token_observed':[]}
+ sources=[];total=0
+ paths=[('head',p,router_positions) for p in head_log_paths() if p.is_relative_to(base/'head/ray')]+[('worker',p,worker_positions) for p in (base/'worker/ray').rglob('worker-*') if p.is_file() and p.suffix in ('.out','.err')]
+ for role,path,offsets in paths:
+  start=offsets.get(str(path),0)
+  with path.open() as stream:stream.seek(start);text=stream.read((16<<20)+1)
+  assert len(text)<=16<<20;total+=len(text);assert total<=128<<20
+  sources.append({'role':role,'path':str(path),'offset':start,'bytes':len(text),'sha256':hashlib.sha256(text.encode()).hexdigest()})
+  for line in text.splitlines():
+   marker=line.find('{"event":')
+   if marker<0:continue
+   try:row,_=json.JSONDecoder().raw_decode(line[marker:])
+   except ValueError:continue
+   name=row.get('event')
+   if name not in groups or row.get('model')!=s['config']['model']:continue
+   assert role==('head' if name=='router_instance_published' else 'worker')
+   same_clock(row['clock_identity'],clock_identity);assert type(row['monotonic_ns']) is int and row['monotonic_ns']>0
+   groups[name].append(row)
+ for name in ('router_instance_published','backend_init_begin','backend_init_ready'):assert len(groups[name])==1,('structured event cardinality',name,len(groups[name]))
+ route=groups['router_instance_published'][0];begin=groups['backend_init_begin'][0];ready=groups['backend_init_ready'][0]
+ assert route['instance_id']==tokens['actor']['name']
+ for row in (begin,ready,*groups['backend_first_token_observed']):
+  assert row['pid']==tokens['metadata']['Pid'] and row['clock_identity']['process_startticks']==backend_owner['startticks']
+ assert begin['monotonic_ns']<=ready['monotonic_ns']<=route['monotonic_ns']
+ first=groups['backend_first_token_observed'];assert len(first)==3 and {r['request_id'] for r in first}=={run+'-'+str(i) for i in range(3)}
+ for row in first:
+  index=int(row['request_id'].rsplit('-',1)[1]);case=s['correctness']['requests'][index]['case']
+  http=json.loads((base/('event-'+case+'_http_complete_correct.json')).read_text())
+  request=json.loads((base/('event-'+case+'_http_begin.json')).read_text())
+  assert request['monotonic_ns']<=row['monotonic_ns']<=http['response_body_complete_ns']
+ router_owner=owned_host_pid(route['pid'],'head');assert router_owner['startticks']==route['clock_identity']['process_startticks']
+ save('structured-lifecycle-events.json',{'run_id':run,'attempt':s['attempt'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'events':groups,'sources':sources,'backend_owner':backend_owner,'router_owner':router_owner,'instance_id':route['instance_id']})
+
+try:
+ save('storage-route-admission.json',storage_route_proof)
+ assert time.monotonic()+30<end-180
+ checkfiles();mem=dict(l.split(':',1) for l in pathlib.Path('/proc/meminfo').read_text().splitlines());assert int(mem['MemAvailable'].split()[0])*1024>1680*(1<<30);assert all(v=={'used_mib':0,'processes':[]} for v in m.gpu().values())
+ publish('spec.json',s);publish('native-config.json',s['config']);gold=s['correctness']['requests'];assert len(gold)==3;assert (pathlib.Path(s['archive'])/'vllm'/s['config']['model']).is_dir(),'missing converted model directory; download forbidden'
+ receipt=json.loads(pathlib.Path(s['conversion_receipt']['path']).read_text());assert hashlib.sha256(pathlib.Path(s['conversion_receipt']['path']).read_bytes()).hexdigest()==s['conversion_receipt']['sha256']
+ for rank in receipt['archive_validation']['ranks']:
+  p=pathlib.Path(s['archive'])/'vllm'/s['config']['model']/('rank_'+str(rank['rank']));assert hashlib.sha256((p/'tensor_index.json').read_bytes()).hexdigest()==rank['index_sha256'];assert [(p/('tensor.data_'+str(i))).stat().st_size for i in range(8)]==rank['partition_bytes']
+ network=call(D+['network','create','--internal','--driver','bridge',run+'-internal'],5).strip();assert re.fullmatch('[0-9a-f]{64}',network);save('network.json',json.loads(call(D+['network','inspect',network]))[0])
+ event('common_environment_begin')
+ create_arm_start('head');jit_snapshot('initial',('head',));execute('head','bootstrap',seconds=210,uid='0');execute('head','imports',seconds=60);official('head','sllm.cli.clic',['--help'],seconds=15);assert time.monotonic()-started<300
+ # Independent observerbase contains no normalmarker during eitherlifecycle.
+ ob=base/'observer';unit=run+'-observer.service';oa=['/usr/bin/python3',str(observer),'--observer','--observer-evidence',str(ob),'--observer-seconds','6450','--observer-limit-mib','131072']
+ for u in s['gpu_uuids']:oa+=['--observer-uuid',u]
+ systemd(unit,oa,6480);units['observer']=unit;limit=time.monotonic()+10
+ while not (ob/'observer-ready.json').exists():assert time.monotonic()<limit;time.sleep(.02)
+ observer_ready=json.loads((ob/'observer-ready.json').read_text());observer_owner=identity(observer_ready['pid']);assert int(props(unit)['MainPID'])==observer_ready['pid'];save('observer-identity.json',observer_owner)
+ create_arm_start('worker');jit_snapshot('initial',('worker',));execute('worker','bootstrap',seconds=210,uid='0');execute('worker','imports',seconds=60);assert time.monotonic()-started<600
+ event('common_environment_complete')
+ pool_end=time.monotonic()+1200;headargs=[x.replace('<actualHeadIP>',ips['head']) for x in s['head_ray_argv']];workerargs=[x.replace('<actualHeadIP>',ips['head']).replace('<actualWorkerIP>',ips['worker']) for x in s['worker_ray_argv']]
+ event('ray_join_begin')
+ official('head','ray.scripts.scripts',headargs,seconds=60,name='ray-head-start');official('worker','ray.scripts.scripts',workerargs,seconds=60,name='ray-worker-start')
+ state=ray_state();nodes=[x for x in state['nodes'] if x['Alive']];assert len(nodes)==2;assert len([n for n in nodes if n['Resources'].get('control_node')==1 and n['Resources'].get('GPU',0)==0])==1;assert len([n for n in nodes if n['Resources'].get('worker_node')==1 and n['Resources'].get('worker_id_0')==1 and n['Resources'].get('GPU')==8])==1;save('ray-two-nodes.json',state);event('ray_join_complete')
+ event('store_pool_initialization_begin')
+ official('worker','sllm_store.cli',['start','--host','0.0.0.0','--port','8073','--storage-path','/store','--num-thread','4','--chunk-size','64MB','--mem-pool-size','640GB','--registration-required','true'],long=True,name='store')
+ while not (base/'worker/store.pid').exists():assert time.monotonic()<pool_end-65;healthy();time.sleep(.2)
+ store_owner=owned_host_pid(int((base/'worker/store.pid').read_text()));remaining=int(pool_end-time.monotonic()-65);assert remaining>1;config=json.loads(execute('worker','store_config',[str(remaining-1)],seconds=remaining,monitor=True));assert config=={'mem_pool_size':687194767360,'chunk_size':67108864}
+ event('store_pool_initialization_complete');event('initial_baseline60_begin')
+ initial=baseline_window(None,pool_end,label='initial');save('initial-fresh-store-baseline.json',initial);event('initial_baseline60_complete')
+ event('api_startup_begin')
+ official('head','sllm.cli.clic',['start','--host','0.0.0.0','--port','8343'],long=True,name='api');limit=time.monotonic()+120
+ while True:
+  try:assert HTTP('/health',None,5)['status']==200;break
+  except subprocess.CalledProcessError:assert services['api'][0].poll() is None,'API startup process exited';assert time.monotonic()<limit;healthy();time.sleep(.5)
+ state=ray_state();controller_initial=state['controller'];assert controller_initial and controller_initial['metadata']['State']=='ALIVE' and controller_initial['metadata']['Address']['IPAddress']==ips['head'];headnode=next(n for n in state['nodes'] if n['Alive'] and n['Resources'].get('control_node')==1);assert controller_initial['metadata']['Address']['NodeID']==headnode['NodeID'];controller_initial['host_identity']=owned_host_pid(controller_initial['metadata']['Pid'],'head');save('controller-initial-authenticated-identity.json',controller_initial);event('api_controller_authentication_complete')
+ jit_snapshot('common_initialized')
+ for life in (1,):
+  positions=log_positions();router_positions=head_log_positions();create_end=None;history=[];rank_owners=[];aab_end=None
+  sample_active_gate='cache';construct_cache();create_end=time.monotonic()+1500;mark_sample_gate('cache',True,'finite cache/pool admission passed');sample_active_gate=None
+  for index,want in enumerate(gold):
+   payload={key:want[key] for key in ('input_tokens','temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos')};payload.update(model=s['config']['model'],request_id=run+'-'+str(index),logprobs=1)
+   until=create_end if index==0 else aab_end;remaining=int(until-time.monotonic());assert remaining>5
+   if index==0:event('parent_register_arithmetic_dispatch')
+   sample_active_gate='gold'
+   response=HTTP('/v1/chat/completions',payload,remaining,monitor=True,want=want,register_config=s['config'] if index==0 else None);check_response(response,want,index,life)
+   tokens=json.loads(execute('head','tokens',[ips['worker']],seconds=35));history.append(want['input_tokens']+want['expected']['token_ids'])
+   assert len({tuple(r['input_tokens']) for r in gold})==3
+   assert collections.Counter(json.dumps(x) for x in tokens['tokens'])==collections.Counter(json.dumps(x) for x in history)
+   save('life'+str(life)+'-tokens'+str(index)+'.json',tokens)
+   if index==0:
+    sample_active_gate='ownership'
+    assert time.monotonic()<create_end;aab_end=time.monotonic()+180;records=records_since(positions);assert len(records)==8;rank_owners=[owned_host_pid(r['pid']) for r in records];backend_owner=owned_host_pid(tokens['metadata']['Pid']);physical=sample()
+    for r,o in zip(records,rank_owners):assert str(o['pid']) in [str(x) for x in physical[r['device_uuid']]['processes']]
+    save('life'+str(life)+'-eight-rank-load-and-ownership.json',{'records':records,'owners':rank_owners,'physical':physical});mark_sample_gate('ownership',True,'all8 rank owners physically authenticated');sample_active_gate=None
+  mark_sample_gate('gold',True,'all3 child/parent gold and cumulative exact trace IDs passed');sample_active_gate='clock'
+  collect_structured_events(router_positions,positions,tokens,backend_owner);mark_sample_gate('clock',True,'all client/backend/route producer domains and lifecycle joins verified');sample_active_gate=None
+  delete_end=time.monotonic()+180;event('delete_begin');HTTP('/delete',{'model':s['config']['model']},min(120,int(delete_end-time.monotonic())));event('delete_acknowledged')
+  allowed_names={(s['config']['model'],'models'),(tokens['actor']['name'],tokens['actor']['namespace'])}
+  while True:
+   assert time.monotonic()<delete_end;state=ray_state();pending=[x for x in state['named_actors'] if x['name']==s['config']['model'] or x['name'].startswith(s['config']['model']+'_')];assert all((x['name'],x['namespace']) in allowed_names for x in pending),'unexpectednewmodelactor duringdelete'
+   if not pending:break
+   healthy();time.sleep(.2)
+  event('delete_baseline60_begin')
+  after=baseline_window(initial['snapshot'],delete_end,rank_owners+[backend_owner],label='life'+str(life)+'-deleted');save('life'+str(life)+'-deleted-fresh-baseline.json',after);event('delete_baseline60_complete')
+ condition_normal=True;condition_terminal(True,'all requests and delete/baseline60 normal')
+ jit_snapshot('after')
+ cleanup_started=True;event('ordered_final_stop_begin')
+ stop_started=time.monotonic();stop_end=stop_started+600
+ assert stop_end<started+6600 and stop_end+120+180<end,'full final-stop slot unavailable'
+ for role in ('head','worker','observer'):
+  p=props(units[role]);assert int(p['MainPID'])>0
+  active=int(p['ActiveEnterTimestampMonotonic'])/1e6
+  b=s['budgets']['observer' if role=='observer' else role+'_guard']
+  parts=re.findall(r'(\d+)(h|min|s)',p['RuntimeMaxUSec'])
+  assert ''.join(n+u for n,u in parts)==p['RuntimeMaxUSec'].replace(' ',''),'unrecognized native runtime'
+  native=sum(int(n)*{'h':3600,'min':60,'s':1}[u] for n,u in parts)
+  assert native==b['native'] and stop_end+120<active+native,'native release slot unavailable'
+  if role=='observer':assert stop_end+120<active+b['duration'],'observer release slot unavailable'
+  else:
+   go=json.loads((base/('guard-'+role)/'GO.json').read_text())
+   assert go['cid']==cids[role] and go['nonce']==arms[role]['nonce']
+   assert stop_end<go['monotonic']+b['deadline'],'normal-exit deadline unavailable'
+   assert stop_end+120<active+b['overall'],'guard cleanup/release slot unavailable'
+ event('controller_shutdown_and_api_stop_begin')
+ execute('head','controller_shutdown',[json.dumps(controller_initial)],seconds=min(125,int(stop_end-time.monotonic())));stop_service('api','head',min(stop_end,time.monotonic()+30));event('controller_shutdown_and_api_stop_complete');store_stop_end=time.monotonic()+60;assert store_stop_end<stop_end,'full Store60 stop slot unavailable';stop_service('store','worker',store_stop_end)
+ official('worker','ray.scripts.scripts',['stop','--grace-period=30'],seconds=min(40,int(stop_end-time.monotonic())),name='ray-worker-stop');official('head','ray.scripts.scripts',['stop','--grace-period=30'],seconds=min(40,int(stop_end-time.monotonic())),name='ray-head-stop');assert time.monotonic()<stop_end
+ normal_exit('worker');normal_exit('head');event('containers_normal_exit_complete');assert time.monotonic()<stop_end;tmp=ob/'normal-exit.json.tmp';tmp.write_text(json.dumps({'all_services_and_CIDs_stopped':True}));os.replace(tmp,ob/'normal-exit.json');assert time.monotonic()-started<6600
+ for role in ('head','worker'):
+  gb=base/('guard-'+role)
+  while not (gb/'guard-final.json').exists():assert time.monotonic()-started<7020;time.sleep(.2)
+  result=json.loads((gb/'guard-final.json').read_text());assert result['status']=='KERNEL_CLEANUP_RELEASE_PASS' and not result['failures'] and result['quiet_seconds']>=60;raw=gb/'oci.raw.json';assert raw.stat().st_uid==0 and raw.stat().st_mode&0o777==0o600 and hashlib.sha256(raw.read_bytes()).hexdigest()==result['raw_oci_sha256'];oci=json.loads(raw.read_text());assert oci['process']['args']==[s['requests'][role]['entrypoint'],*s['requests'][role]['cmd']]
+  if role=='head':assert not any('nvidia' in x.get('path','').lower() for x in oci.get('linux',{}).get('devices',[])) and not any('nvidia' in json.dumps(x).lower() for x in oci.get('hooks',{}).values())
+  assert not pathlib.Path('/sys/fs/cgroup/system.slice/docker-'+cids[role]+'.scope').exists()
+  for owner in result['pinned_identities']:assert gone(owner)
+ while not (ob/'observer-final.json').exists():assert time.monotonic()-started<7020;time.sleep(.2)
+ observed=json.loads((ob/'observer-final.json').read_text());assert observed['quiet_seconds']>=60
+ for u in units.values():
+  while int(props(u)['MainPID']):assert time.monotonic()-started<7020;time.sleep(.1)
+  p=props(u);assert p['Result']=='success' and p['ExecMainCode']=='1' and p['ExecMainStatus']=='0'
+ assert time.monotonic()+60<end;assert all(v=={'used_mib':0,'processes':[]} for v in m.gpu().values()) and gone(store_owner) and gone(observer_owner);event('release_quiet60_complete');checkfiles();call(D+['network','rm',network],5);network=None;assert time.monotonic()+15<end
+ qualification=finalize_sample_evidence({'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':min(observed['quiet_seconds'],*[json.loads((base/('guard-'+role)/'guard-final.json').read_text())['quiet_seconds'] for role in ('head','worker')])},'normal completion');assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'
+ save('controller-final.json',{'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','elapsed':time.monotonic()-started,'cids':cids,'units':{k:props(v) for k,v in units.items()},'observer':observed,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'structured_events_path':str(base/'structured-lifecycle-events.json'),'scope':'Prospective singlecondition correct requests, real producer HTTP endpoint, structured init/route/firsttoken join, owned release60'})
+except BaseException as error:
+ if sample_active_gate is not None:mark_sample_gate(sample_active_gate,False,type(error).__name__+':'+str(error))
+ try:finalize_sample_evidence({'normal':False,'status':'FAILED' if cleanup_started else 'NOT_OBSERVED','quiet_seconds':None,'reason':type(error).__name__+':'+str(error)},type(error).__name__+':'+str(error))
+ except Exception as evidence_error:
+  try:save('sample-evidence-error.json',{'type':type(evidence_error).__name__,'message':str(evidence_error),'primary_error':str(error)})
+  except Exception as diagnostic_error:
+   try:print(json.dumps({'event':'SAMPLE_EVIDENCE_DIAGNOSTIC_SAVE_FAILED','primary_error_type':type(error).__name__,'evidence_error_type':type(evidence_error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)
+   except Exception:pass
+ for name in ('guard-head','guard-worker','observer'):(base/name/'ABORT').touch(exist_ok=True)
+ save('controller-failed.json',{'status':'NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY','error_type':type(error).__name__,'error':str(error),'cids':cids,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'elapsed':time.monotonic()-started})
+ while time.monotonic()<end-20:
+  if all(int(props(u)['MainPID'])==0 for u in units.values()):break
+  time.sleep(.5)
+ raise
+finally:
+ for p,o,e in children:
+  if p.poll() is None:
+   p.terminate()
+   try:p.wait(timeout=2)
+   except subprocess.TimeoutExpired:p.kill();p.wait(timeout=2)
+  o.close();e.close()
+ if network:
+  try:call(D+['network','rm',network],3)
+  except Exception:pass
+ try:
+  k=subprocess.run(['/usr/bin/journalctl','-k','--since=@'+str(epoch-2),'--no-pager','-n','200'],capture_output=True,text=True,timeout=3);save('kernel-after.json',{'returncode':k.returncode,'stdout':k.stdout,'stderr':k.stderr})
+ except Exception:pass
+ /home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_pool_hit-formal-v3-3ecd51f47eea-spec.json d1292207b7d923ea00aaa89816562614ea343e2d405bc11352db9feb97e14bcf 1794013200.0 ; ignore_errors=no ; start_time=[Fri 2026-11-06 23:08:51 CST] ; stop_time=[Fri 2026-11-06 23:21:42 CST] ; pid=1039723 ; code=exited ; status=1 }
