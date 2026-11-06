@@ -116,37 +116,44 @@ def traced(name, values_from=None):
     return decorate
 
 
-def read_event_window(directory, run_id, begin_ns, end_ns, *, boot_id, time_namespace):
+def validate_event_window(events, run_id, begin_ns, end_ns, *, boot_id, time_namespace):
     if (type(begin_ns) is not int or type(end_ns) is not int
             or not 0 <= begin_ns <= end_ns or not all(isinstance(v, str) and v
                                                      for v in (run_id, boot_id, time_namespace))):
         raise ValueError("Invalid event window/clock identity")
     rows, processes = [], {}
-    for path in sorted(Path(directory).glob("process-*.jsonl")):
-        if path.is_symlink() or not path.is_file():
-            raise ValueError("Linked/non-file event input")
-        for line in path.read_text().splitlines():
-            row = json.loads(line)
-            if (type(row.get("trace_schema")) is not int or row["trace_schema"] != 1
-                    or row.get("run_id") != run_id
-                    or row.get("boot_id") != boot_id or row.get("time_namespace") != time_namespace
-                    or row.get("clock_id") != "CLOCK_MONOTONIC"):
-                raise ValueError("Event run/clock domain differs from the control")
-            timestamp, pid, start = row.get("monotonic_ns"), row.get("pid"), row.get("process_start_ticks")
-            if (type(timestamp) is not int or timestamp < 0 or type(pid) is not int or pid <= 0
-                    or type(start) is not int or start <= 0
-                    or not isinstance(row.get("pid_namespace"), str) or not row["pid_namespace"]
-                    or not isinstance(row.get("container_hostname"), str) or not row["container_hostname"]
-                    or not isinstance(row.get("name"), str) or not row["name"]
-                    or type(row.get("clock_ticks_per_second")) is not int or row["clock_ticks_per_second"] <= 0):
-                raise ValueError("Missing process/timestamp identity")
-            if begin_ns <= timestamp <= end_ns:
-                key = row["container_hostname"], pid
-                identity = row["pid_namespace"], start
-                if key in processes and processes[key] != identity:
-                    raise ValueError("Legacy host/pid key is ambiguous in this window")
-                processes[key] = identity
-                rows.append(row)
+    for row in events:
+        if (type(row.get("trace_schema")) is not int or row["trace_schema"] != 1
+                or row.get("run_id") != run_id
+                or row.get("boot_id") != boot_id or row.get("time_namespace") != time_namespace
+                or row.get("clock_id") != "CLOCK_MONOTONIC"):
+            raise ValueError("Event run/clock domain differs from the control")
+        timestamp, pid, start = row.get("monotonic_ns"), row.get("pid"), row.get("process_start_ticks")
+        if (type(timestamp) is not int or timestamp < 0 or type(pid) is not int or pid <= 0
+                or type(start) is not int or start <= 0
+                or not isinstance(row.get("pid_namespace"), str) or not row["pid_namespace"]
+                or not isinstance(row.get("container_hostname"), str) or not row["container_hostname"]
+                or not isinstance(row.get("name"), str) or not row["name"]
+                or type(row.get("clock_ticks_per_second")) is not int or row["clock_ticks_per_second"] <= 0):
+            raise ValueError("Missing process/timestamp identity")
+        if begin_ns <= timestamp <= end_ns:
+            key = row["container_hostname"], pid
+            identity = row["pid_namespace"], start
+            if key in processes and processes[key] != identity:
+                raise ValueError("Legacy host/pid key is ambiguous in this window")
+            processes[key] = identity
+            rows.append(row)
     if not rows:
         raise ValueError("No events in the selected window")
     return sorted(rows, key=lambda row: row["monotonic_ns"])
+
+
+def read_event_window(directory, run_id, begin_ns, end_ns, *, boot_id, time_namespace):
+    def events():
+        for path in sorted(Path(directory).glob("process-*.jsonl")):
+            if path.is_symlink() or not path.is_file():
+                raise ValueError("Linked/non-file event input")
+            for line in path.read_text().splitlines():
+                yield json.loads(line)
+    return validate_event_window(events(), run_id, begin_ns, end_ns,
+                                 boot_id=boot_id, time_namespace=time_namespace)

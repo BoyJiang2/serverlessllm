@@ -65,6 +65,7 @@ class AttemptJournal:
         require(timestamp(work_end_ns) > begin, "resource work window exhausted")
         self.writer_identity = process_identity()
         self.identity = dict(self.writer_identity, run_id=run_id, preregistration_sha256=prereg_sha, **source)
+        self.business_observation = None
         self.record = dict(matches[0], preparation_begin_ns=begin,
                            attempt_deadline_ns=min(work_end_ns, begin + 1200_000_000_000))
         self.path = Path(root) / attempt_id
@@ -152,11 +153,15 @@ class AttemptJournal:
     def business(self, response, native_reference, event_directory):
         received = time.monotonic_ns()
         checks = response_checks(response, native_reference, "business")
+        self.business_observation = dict(response=response, native_reference=native_reference,
+                                         received_ns=received)
+        if checks["complete_business_success"]:
+            self.record["correct_business_response_ns"] = received
         require(all(checks.values()), "business/native reference checks failed")
-        self.record["correct_business_response_ns"] = received
         events = read_event_window(event_directory, self.identity["run_id"],
             self.record["startup_command_ns"], received, boot_id=self.identity["boot_id"],
             time_namespace=self.identity["time_namespace"])
+        self.business_observation["events"] = events
         first = [e for e in events if e["name"] == "backend_first_token_observed"
                  and e.get("request_id") == self.record["business_request_id"]]
         require(len(first) == 1, "missing/duplicate business first-token event")
@@ -199,7 +204,8 @@ class AttemptJournal:
             right_censored=timed_out and "correct_business_response_ns" not in self.record,
             startup_censor_elapsed_seconds=(now - self.record["startup_command_ns"]) / 1e9
                 if "startup_command_ns" in self.record else None,
-            cleanup_pending=True, runtime_qualified=False), now)
+            cleanup_pending=True, runtime_qualified=False, record=self.record,
+            business_observation=self.business_observation), now)
 
 
 def collect_attempts(preregistration, prereg_sha, execution_roots):
@@ -216,10 +222,11 @@ def collect_attempts(preregistration, prereg_sha, execution_roots):
                     "unexpected/linked attempt entry")
             require(directory.name not in found, "attempt ID appears in multiple executions")
             files = sorted(directory.iterdir())
-            previous, identity, last, rows = None, None, None, []
+            previous, identity, last, rows, receipts = None, None, None, [], []
             for sequence, path in enumerate(files):
                 require(not path.is_symlink() and path.is_file(), "linked/non-file journal entry")
-                row = json.loads(path.read_bytes())
+                raw = path.read_bytes()
+                row = json.loads(raw)
                 stage = row["stage"]
                 require(type(row["schema"]) is int and row["schema"] == 1
                         and stage in STAGES and path.name == f"{sequence:02d}-{stage}.json"
@@ -240,7 +247,8 @@ def collect_attempts(preregistration, prereg_sha, execution_roots):
                     require(all(row["data"][k] == expected[directory.name][k]
                                 for k in ("attempt_id", "condition", "block")), "origin differs from frozen attempt")
                 rows.append(row)
-                last, previous = row, digest(path.read_bytes())
+                last, previous = row, digest(raw)
+                receipts.append(dict(path=path.name, sha256=previous, bytes=len(raw)))
             terminal = last is not None and last["stage"] == "result"
             if terminal:
                 require(last["data"]["success"] is False
@@ -248,6 +256,6 @@ def collect_attempts(preregistration, prereg_sha, execution_roots):
                         "bookkeeping cannot award formal PASS")
             found[directory.name] = dict(attempt_id=directory.name, consumed=True,
                 status=last["data"]["status"] if terminal else "incomplete",
-                terminal=terminal, directory=str(directory), journal=rows)
+                terminal=terminal, directory=str(directory), journal=rows, journal_files=receipts)
     return [found.get(row["attempt_id"], dict(attempt_id=row["attempt_id"],
             consumed=False, status="unstarted", terminal=False)) for row in attempts]
