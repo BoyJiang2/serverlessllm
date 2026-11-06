@@ -1,0 +1,63 @@
+boyjiang@qjhs0:~$ sudo python3 - <<'PY'
+import pathlib,json,subprocess
+b=pathlib.Path('/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs000-20261106-store-stop-diagnostic-once')
+print(subprocess.getoutput(
+ 'journalctl -u '+b.name+'-controller.service -n 60 --no-pager'))
+for sec in (10,20):
+ p=b/f'store-stop-diagnostic-{sec}.json'
+ print('\nDIAGNOSTIC',sec)
+ if not p.exists():
+  print('NOT_FOUND');continue
+ d=json.loads(p.read_text());s=d.get('snapshot',{})
+ print('elapsed:',d.get('elapsed'),'status:',s.get('status'),
+       'error:',s.get('error_type'))
+ for t in s.get('threads',[]):
+  syscall=t.get('syscall')
+  print({'tid':t.get('tid'),'comm':t.get('comm'),
+         'wchan':t.get('wchan'),
+         'syscall_number':syscall.split()[0] if isinstance(syscall,str) and syscall.split() else syscall,
+         'capture_status':t.get('capture_status')})
+for role in ('head','worker'):
+ p=b/f'guard-{role}/guard-final.json'
+ if p.exists():print('\nGUARD',role,p.read_text())
+PY
+Nov 06 09:58:23 qjhs0 python3[3757754]: Running as unit: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-head-guard.service
+Nov 06 09:58:42 qjhs0 python3[3760031]: Running as unit: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-observer.service
+Nov 06 09:58:43 qjhs0 python3[3760157]: Running as unit: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-worker-guard.service
+Nov 06 10:22:17 qjhs0 python3[3757575]: Traceback (most recent call last):
+Nov 06 10:22:17 qjhs0 python3[3757575]:   File "<string>", line 299, in <module>
+Nov 06 10:22:17 qjhs0 python3[3757575]:   File "<string>", line 186, in stop_service
+Nov 06 10:22:17 qjhs0 python3[3757575]: AssertionError
+Nov 06 10:22:18 qjhs0 systemd[1]: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-controller.service: Main process exited, code=exited, status=1/FAILURE
+Nov 06 10:22:18 qjhs0 systemd[1]: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-controller.service: Failed with result 'exit-code'.
+Nov 06 10:22:18 qjhs0 systemd[1]: kimi-native-qjhs000-20261106-store-stop-diagnostic-once-controller.service: Consumed 4min 3.804s CPU time.
+
+DIAGNOSTIC 10
+elapsed: 10.439433821476996 status: CAPTURED_PROC_ONLY error: None
+{'tid': 3765980, 'comm': 'python3\n', 'wchan': 'rwsem_down_write_slowpath', 'syscall_number': '16', 'capture_status': None}
+{'tid': 3766373, 'comm': 'cuda0000300000d\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766900, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766980, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766982, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766984, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767037, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767063, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767066, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767068, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+
+DIAGNOSTIC 20
+elapsed: 20.29538221564144 status: CAPTURED_PROC_ONLY error: None
+{'tid': 3765980, 'comm': 'python3\n', 'wchan': '0', 'syscall_number': 'running', 'capture_status': None}
+{'tid': 3766373, 'comm': 'cuda0000300000d\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766900, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766980, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766982, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3766984, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767037, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767063, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767066, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+{'tid': 3767068, 'comm': 'cuda-EvtHandlr\n', 'wchan': 'do_poll.constprop.0', 'syscall_number': '7', 'capture_status': None}
+
+GUARD head {"status": "FAILED_RETAINED", "cid": "a601eec1c63c0164ab56e923febdddadc88ea7729ee8239ae3f2311aeadd0cbb", "failures": ["abort_requested"], "quiet_seconds": 60.0212170034647, "max_cycle_seconds": 0.29581542406231165, "raw_oci_sha256": "a66b9f662d65926987588867c04187c04497e05bde7012414ab2110ef24376bb", "oci_seen": true, "scope_seen": true, "abort_monotonic": 7750268.751494679, "pinned_identities": [{"pid": 3757816, "startticks": 774894583, "exe": "/usr/bin/containerd-shim-runc-v2", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3757832, "startticks": 774894584, "exe": "/usr/bin/runc", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3883875, "startticks": 775026876, "exe": "/usr/bin/containerd-shim-runc-v2", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3883883, "startticks": 775026876, "exe": "/usr/bin/runc", "cgroup": "0::/system.slice/containerd.service"}], "normal_completion_monotonic": null, "normal_cleanup_monotonic": null}
+
+GUARD worker {"status": "FAILED_RETAINED", "cid": "a7a2737a73a6af3924fd73f6ec9c3d447953f6aacdafbe6d2f94e59f48aa8ab1", "failures": ["abort_requested"], "quiet_seconds": 60.003919649869204, "max_cycle_seconds": 0.27838110364973545, "raw_oci_sha256": "9566525bf7fe32564ffb08a7f13d1478c9f7d056280e0015afb6a76efcdbc6d1", "oci_seen": true, "scope_seen": true, "abort_monotonic": 7750268.716934522, "pinned_identities": [{"pid": 3760202, "startticks": 774896540, "exe": "/usr/bin/containerd-shim-runc-v2", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3760220, "startticks": 774896541, "exe": "/usr/bin/runc", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3883855, "startticks": 775026872, "exe": "/usr/bin/containerd-shim-runc-v2", "cgroup": "0::/system.slice/containerd.service"}, {"pid": 3883863, "startticks": 775026873, "exe": "/usr/bin/runc", "cgroup": "0::/system.slice/containerd.service"}], "normal_completion_monotonic": null, "normal_cleanup_monotonic": null}

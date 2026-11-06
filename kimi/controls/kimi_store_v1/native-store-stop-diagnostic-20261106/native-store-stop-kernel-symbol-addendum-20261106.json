@@ -1,0 +1,37 @@
+{
+  "status": "USER_REPORTED_SAVED_KERNEL_SYMBOL_SUMMARY_NOT_USERSPACE_CPP_FRAME",
+  "run_id": "kimi-native-qjhs000-20261106-store-stop-diagnostic-once",
+  "pid": 3765980,
+  "at_10_seconds": {
+    "wchan": "rwsem_down_write_slowpath",
+    "syscall": 16,
+    "ioctl_fd": "0x10",
+    "ioctl_request": "0x42",
+    "named_kernel_functions": [
+      "rwsem_down_write_slowpath",
+      "os_acquire_rwlock_write",
+      "do_syscall_64",
+      "entry_SYSCALL_64_after_hwframe"
+    ],
+    "other_frames": "UNSYMBOLIZED"
+  },
+  "at_20_seconds": {
+    "wchan": "0",
+    "syscall": "running",
+    "kernel_functions": []
+  },
+  "verified_node_driver": "NVIDIA UNIX Open Kernel Module for x86_64 580.95.05",
+  "official_sources": {
+    "driver_write_lock": "https://github.com/NVIDIA/open-gpu-kernel-modules/blob/580.95.05/kernel-open/nvidia/os-interface.c",
+    "uvm_ioctl_table": "https://github.com/NVIDIA/open-gpu-kernel-modules/blob/580.95.05/kernel-open/nvidia-uvm/uvm_ioctl.h",
+    "linux_syscall_table": "https://github.com/torvalds/linux/blob/master/arch/x86/entry/syscalls/syscall_64.tbl",
+    "proc_syscall_semantics": "https://man7.org/linux/man-pages/man5/proc_pid_syscall.5.html"
+  },
+  "limits": [
+    "Known driver function waits via down_write; no lock owner or permanent deadlock proven",
+    "20s running does not prove particular higher-level CUDA call returned or full pool teardown progressed",
+    "ioctl request66 maps to UVM_UNMAP_EXTERNAL only if FD16 is the UVM device; FD target not captured, dispatch NOT CONFIRMED",
+    "No native userspace C++ frame, destructor start/count/end or termination latency after30s captured",
+    "No GPU retry or environment/driver update authorized or performed"
+  ]
+}
