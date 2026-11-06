@@ -29,7 +29,7 @@ diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_execut
 new file mode 100644
 --- /dev/null
 +++ b/vllm/model_executor/model_loader/sllm_loader.py
-@@ -0,0 +1,169 @@
+@@ -0,0 +0,169 @@
 +import torch
 +from torch import nn
 +import collections
@@ -295,15 +295,153 @@ diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
 diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
 --- a/vllm/v1/worker/gpu_model_runner.py
 +++ b/vllm/v1/worker/gpu_model_runner.py
-@@ -4,6 +4,7 @@
+@@ -4,6 +4,145 @@
  import functools
  import gc
  import itertools
 +import os
++
++def _sllm_diagnostic_value_fingerprint(model, registered, rank, device):
++    import hashlib
++    import json
++    import time
++
++    started = time.monotonic()
++    deadline = started + 600
++    chunk_bytes = 64 << 20
++    index_path = "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % rank
++    result = {
++        "schema": "kimi-load-boundary-value-fingerprint-v1",
++        "stage": "before_first_forward", "status": "FAIL",
++        "chunk_bytes": chunk_bytes, "budget_seconds": 600,
++        "index_path": index_path, "index_sha256": None,
++        "persistent": [], "runtime_buffers": [], "aliases": [],
++        "counts": {"index_keys": 0, "registered_names": len(registered),
++                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
++                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
++        "coverage_complete": False, "error_type": None, "error": None,
++        "scope": "Diagnostic coverage only, not cross-run equality; before first forward only. Nonregistered native allocations/workspaces and after-request state are not captured.",
++    }
++    cache = {}
++
++    def check_deadline():
++        if not time.monotonic() < deadline:
++            raise TimeoutError("diagnostic fingerprint 600-second budget exhausted")
++
++    try:
++        check_deadline()
++        assert model is not None, "loaded model unavailable"
++        with open(index_path, "rb") as stream:
++            raw = stream.read((1 << 20) + 1)
++        assert len(raw) <= 1 << 20, "tensor index size cap"
++        result["index_sha256"] = hashlib.sha256(raw).hexdigest()
++        index = json.loads(raw)
++        assert isinstance(index, dict) and index, "missing persistent tensor index"
++        result["counts"]["index_keys"] = len(index)
++        bindings = dict(model.named_parameters(remove_duplicate=False))
++        buffers = dict(model.named_buffers(remove_duplicate=False))
++        assert not (bindings.keys() & buffers.keys()), "duplicate parameter/buffer name"
++        bindings.update(buffers)
++        metadata = {row["name"]: row for row in registered}
++        assert len(metadata) == len(registered) and set(metadata) == set(bindings), "registered coverage mismatch"
++        assert set(index) <= set(bindings), "persistent key missing from model"
++
++        def range_key(name):
++            check_deadline()
++            tensor = bindings[name]
++            row = metadata[name]
++            assert tensor.is_contiguous(), "noncontiguous tensor: " + name
++            assert tensor.device.type == "cuda", "non-CUDA tensor: " + name
++            assert (str(tensor.dtype), list(tensor.shape), list(tensor.stride()),
++                    tensor.numel() * tensor.element_size()) == (
++                        row["dtype"], row["shape"], row["stride"], row["bytes"]), "tensor metadata changed: " + name
++            if row["bytes"] == 0:
++                return ("empty", name)
++            return (str(tensor.device), tensor.untyped_storage().data_ptr(),
++                    tensor.storage_offset() * tensor.element_size(), row["bytes"],
++                    row["dtype"], tuple(row["shape"]), tuple(row["stride"]))
++
++        persistent_ranges = {}
++        for name in sorted(index):
++            check_deadline()
++            entry = index[name]
++            assert len(entry) == 5, "invalid tensor index entry"
++            row = metadata[name]
++            assert (entry[1], entry[2], entry[3], entry[4]) == (
++                row["bytes"], row["shape"], row["stride"], row["dtype"]), "persistent metadata mismatch: " + name
++            key = range_key(name)
++            if row["bytes"]:
++                persistent_ranges.setdefault(key, name)
++
++        def fingerprint(name):
++            check_deadline()
++            row = metadata[name]
++            key = range_key(name)
++            value = {"name": name, "kind": row["kind"], "dtype": row["dtype"],
++                     "shape": row["shape"], "stride": row["stride"],
++                     "numbytes": row["bytes"]}
++            if key in cache:
++                value.update(sha256=cache[key][0], alias_of=cache[key][1])
++                return value
++            digest = hashlib.sha256()
++            if row["bytes"]:
++                # Contiguity was checked: reshape/view do not clone a full tensor.
++                byte_view = bindings[name].detach().reshape(-1).view(torch.uint8)
++                assert byte_view.numel() == row["bytes"], "uint8 view byte count"
++                assert byte_view.untyped_storage().data_ptr() == bindings[name].untyped_storage().data_ptr(), "byte view cloned tensor storage"
++                for offset in range(0, row["bytes"], chunk_bytes):
++                    check_deadline()
++                    cpu = byte_view[offset:offset + chunk_bytes].cpu()
++                    try:
++                        torch.cuda.synchronize(device)
++                        check_deadline()
++                        payload = memoryview(cpu.numpy())
++                        try:
++                            assert payload.nbytes <= chunk_bytes, "CPU chunk cap"
++                            digest.update(payload)
++                            result["counts"]["hashed_bytes"] += payload.nbytes
++                            result["counts"]["chunks"] += 1
++                        finally:
++                            payload.release()
++                            del payload
++                    finally:
++                        del cpu
++                    check_deadline()
++                del byte_view
++            value["sha256"] = digest.hexdigest()
++            cache[key] = (value["sha256"], name)
++            return value
++
++        for name in sorted(index):
++            result["persistent"].append(fingerprint(name))
++        for name in sorted(set(bindings) - set(index)):
++            key = range_key(name)
++            if metadata[name]["bytes"] and key in persistent_ranges:
++                value = fingerprint(name)
++                value["alias_of"] = persistent_ranges[key]
++                result["aliases"].append(value)
++            else:
++                assert metadata[name]["kind"] == "buffer", "uncovered non-index parameter: " + name
++                result["runtime_buffers"].append(fingerprint(name))
++        names = [row["name"] for group in ("persistent", "runtime_buffers", "aliases")
++                 for row in result[group]]
++        assert len(names) == len(set(names)) and set(names) == set(bindings), "incomplete fingerprint coverage"
++        check_deadline()
++        result.update(status="PASS", coverage_complete=True)
++    except Exception as error:
++        result.update(status="TIMEOUT" if isinstance(error, TimeoutError) else "FAIL",
++                      error_type=type(error).__name__, error=str(error))
++    finally:
++        result["elapsed_seconds"] = time.monotonic() - started
++        for group in ("persistent", "runtime_buffers", "aliases"):
++            result["counts"][group] = len(result[group])
++        result["counts"]["unique_hashed_ranges"] = sum(key[0] != "empty" for key in cache)
++    return result
++
  import threading
  import time
  from collections import defaultdict
-@@ -4744,67 +4745,210 @@
+@@ -4744,67 +4883,240 @@
  
          try:
              with DeviceMemoryProfiler() as m:
@@ -433,6 +571,8 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                    raise
 +                finally:
 +                    captured_memory = None
++                    diagnostic_failure = None
++                    diagnostic_capture_complete = False
 +                    try:
 +                        if os.environ.get("SLLM_CAPTURE_LOAD_EVIDENCE") == "1":
 +                            import json
@@ -508,6 +648,27 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                                "synchronized": True,
 +                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
 +                            }
++                            if os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
++                                if load_error is not None:
++                                    record["diagnostic_value_fingerprint"] = {
++                                        "schema": "kimi-load-boundary-value-fingerprint-v1",
++                                        "stage": "before_first_forward", "status": "SKIPPED_LOAD_ERROR",
++                                        "index_path": "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % record["tp_rank"],
++                                        "index_sha256": None, "persistent": [], "runtime_buffers": [], "aliases": [],
++                                        "counts": {"index_keys": 0, "registered_names": len(registered),
++                                                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
++                                                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
++                                        "elapsed_seconds": 0,
++                                        "coverage_complete": False, "error_type": type(load_error).__name__,
++                                        "error": str(load_error), "chunk_bytes": 64 << 20, "budget_seconds": 600,
++                                    }
++                                else:
++                                    fingerprint = _sllm_diagnostic_value_fingerprint(
++                                        model, registered, record["tp_rank"], self.device)
++                                    record["diagnostic_value_fingerprint"] = fingerprint
++                                    if fingerprint["status"] != "PASS":
++                                        error_cls = TimeoutError if fingerprint["status"] == "TIMEOUT" else RuntimeError
++                                        diagnostic_failure = error_cls("Diagnostic value fingerprint failed: " + str(fingerprint["error"]))
 +                            serialized = json.dumps(record, sort_keys=True)
 +                            evidence_dir = os.environ.get("SLLM_LOAD_EVIDENCE_DIR")
 +                            if evidence_dir:
@@ -557,7 +718,9 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                                }, sort_keys=True))
 +                            else:
 +                                logger.info("SLLM_LOAD_EVIDENCE %s", serialized)
++                            diagnostic_capture_complete = True
 +                    except BaseException as evidence_error:
++                        diagnostic_failure = evidence_error
 +                        try:
 +                            logger.warning("SLLM_LOAD_EVIDENCE_MISSING %s", json.dumps({
 +                                "event": "SLLM_LOAD_EVIDENCE_MISSING",
@@ -569,10 +732,15 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                            pass
 +                        if load_error is None and not isinstance(evidence_error, Exception):
 +                            raise
++                    if load_error is None and os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
++                        if diagnostic_failure is not None:
++                            raise diagnostic_failure
++                        if not diagnostic_capture_complete:
++                            raise RuntimeError("Diagnostic fingerprint requires successful load-evidence capture")
              self.model_memory_usage = m.consumed_memory
          except torch.cuda.OutOfMemoryError as e:
              msg = (
-@@ -4989,6 +5133,20 @@
+@@ -4989,6 +5301,20 @@
                      "Following weights were not loaded from checkpoint: %s",
                      weights_not_loaded,
                  )
@@ -596,7 +764,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
 --- a/vllm/v1/worker/gpu_worker.py
 +++ b/vllm/v1/worker/gpu_worker.py
-@@ -827,6 +827,18 @@
+@@ -827,7 +827,19 @@
              all_gather_group=get_tp_group(),
              all_gather_tensors=all_gather_tensors,
          )
@@ -617,7 +785,7 @@ diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
  
 --- a/vllm/tokenizers/hf.py
 +++ b/vllm/tokenizers/hf.py
-@@ -1,125 +1,158 @@
+@@ -1,125 +13,158 @@
  # SPDX-License-Identifier: Apache-2.0
  # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
  import contextlib
