@@ -10,6 +10,8 @@ import json
 import pathlib
 import re
 import subprocess
+import urllib.parse
+import urllib.request
 
 import prepare_native_stop_diagnostic as base
 
@@ -698,7 +700,20 @@ def committed_source(source_commit, declared):
     assert git("rev-parse","HEAD").decode().strip()==source_commit
     assert not git("status","--porcelain=v1","--untracked-files=no").strip(),"tracked source is dirty"
     branch=git("symbolic-ref","--short","HEAD").decode().strip()
-    assert git("ls-remote","--exit-code","origin","refs/heads/"+branch).decode().split()[0]==source_commit,"remote branch is not synchronized"
+    origin=git('remote','get-url','origin').decode().strip();parsed=urllib.parse.urlsplit(origin)
+    assert parsed.scheme=='https' and parsed.hostname=='github.com' and parsed.username is None and parsed.password is None and parsed.port is None and not parsed.query and not parsed.fragment
+    assert parsed.path.lower() in ('/boyjiang2/serverlessllm','/boyjiang2/serverlessllm.git'),'unexpected source repository'
+    headers=git('config','--get-urlmatch','http.extraheader',origin).decode().splitlines()
+    authorization=[line.partition(':')[2].strip() for line in headers if line.lower().startswith('authorization:')]
+    assert len(authorization)==1 and authorization[0] and '\r' not in authorization[0] and '\n' not in authorization[0],'source API authentication unavailable'
+    url='https://api.github.com/repos/BoyJiang2/serverlessllm/git/ref/heads/'+urllib.parse.quote(branch,safe='')
+    request=urllib.request.Request(url,headers={'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Cache-Control':'no-cache'})
+    request.add_unredirected_header('Authorization',authorization[0])
+    with urllib.request.urlopen(request,timeout=20) as response:
+        assert response.status==200 and response.geturl()==url,'unexpected source API response'
+        raw=response.read(65537);assert len(raw)<=65536,'source API response exceeds64KiB'
+    remote=json.loads(raw);obj=remote['object']
+    assert remote['ref']=='refs/heads/'+branch and obj['type']=='commit' and re.fullmatch('[0-9a-f]{40}',obj['sha']) and obj['sha']==source_commit,'remote branch is not synchronized'
     required=set(declared)|{"sllm_store/tests/prepare_kimi_four_condition.py","sllm_store/tests/prepare_native_stop_diagnostic.py","sllm_store/tests/file_cache_state.py","sllm_store/tests/python/test_prepare_kimi_four_condition.py"}
     for relative in required:
         assert git("show",source_commit+":"+relative)==(base.ROOT/relative).read_bytes(),("uncommitted declared source",relative)

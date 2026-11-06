@@ -260,18 +260,25 @@ class ActualConsumerTest(unittest.TestCase):
             if argv[1]=='rev-parse':return (commit+'\n').encode()
             if argv[1]=='status':return b' M dirty.py\n' if mode[0]=='dirty' else b''
             if argv[1]=='symbolic-ref':return b'testbranch\n'
-            if argv[1]=='ls-remote':return ((('b'*40) if mode[0]=='remote' else commit)+'\trefs/heads/testbranch\n').encode()
+            if argv[1]=='remote':return b'https://github.com/BoyJiang2/serverlessllm.git\n'
+            if argv[1]=='config':return b'AUTHORIZATION: basic CPU_TEST_ONLY\n'
             if argv[1]=='show':
                 relative=argv[2].split(':',1)[1]
                 value=(p.base.ROOT/relative).read_bytes()
                 return value+b'drift' if mode[0]=='blob' else value
             raise AssertionError(argv)
-        with mock.patch.object(p.subprocess,'check_output',side_effect=git):
+        class Response:
+            status=200
+            def geturl(self):return 'https://api.github.com/repos/BoyJiang2/serverlessllm/git/ref/heads/testbranch'
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def read(self,limit):return json.dumps({'ref':'refs/heads/testbranch','object':{'type':'commit','sha':'b'*40 if mode[0]=='remote' else commit}}).encode()
+        with mock.patch.object(p.subprocess,'check_output',side_effect=git),mock.patch.object(p.urllib.request,'urlopen',return_value=Response()):
             self.assertEqual(p.committed_source(commit,{'sllm/logger.py'}),commit)
             for failure in ('dirty','remote','blob'):
                 mode[0]=failure
                 with self.assertRaises(AssertionError):p.committed_source(commit,{'sllm/logger.py'})
-        self.assertIn('ls-remote',calls);self.assertIn('show',calls)
+        self.assertNotIn('ls-remote',calls);self.assertIn('config',calls);self.assertIn('show',calls)
 
     def test_main_freezes_all_four_children_and_actual_bundle(self):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
@@ -1150,6 +1157,68 @@ class Fixed32LengthOnlyTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             protocol['resource_budget']['runs_root']=directory;(pathlib.Path(directory)/runs[first[0]['attempt_id']]).mkdir()
             with self.assertRaisesRegex(AssertionError,'identity already used'):p.render(protocol,spec,command,first[0]['attempt_id'],spec['native_source_pins'])
+
+
+class CommittedSourceOfficialApiTest(unittest.TestCase):
+    def gate(self, failure=None):
+        commit='a'*40;branch='feature/test';calls=[];credential='Basic CPU_SECRET_SENTINEL'
+        def git(argv,cwd):
+            calls.append(argv)
+            if argv[1]=='rev-parse':return (commit+'\n').encode()
+            if argv[1]=='status':return b''
+            if argv[1]=='symbolic-ref':return (branch+'\n').encode()
+            if argv[1]=='remote':return ('https://github.com/'+('other/repository.git' if failure=='origin' else 'BoyJiang2/serverlessllm.git')+'\n').encode()
+            if argv[1]=='config':
+                self.assertEqual(argv[2:5],['--get-urlmatch','http.extraheader','https://github.com/BoyJiang2/serverlessllm.git'])
+                return b'' if failure=='credential' else ('Authorization: '+credential+'\n').encode()
+            if argv[1]=='show':return (p.base.ROOT/argv[2].split(':',1)[1]).read_bytes()
+            raise AssertionError('unexpected Git operation')
+        expected_url='https://api.github.com/repos/BoyJiang2/serverlessllm/git/ref/heads/feature%2Ftest'
+        value={'ref':'refs/heads/'+branch,'object':{'type':'commit','sha':commit}}
+        if failure=='ref':value['ref']='refs/heads/other'
+        if failure=='sha':value['object']['sha']='b'*40
+        if failure=='sha_shape':value['object']['sha']='a'*39
+        if failure=='type':value['object']['type']='tag'
+        raw=b'x'*65537 if failure=='size' else json.dumps(value).encode()
+        test=self
+        class Response:
+            status=503 if failure=='status' else 200
+            def geturl(self):return 'https://elsewhere.invalid/' if failure=='redirect' else expected_url
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+            def read(self,limit):test.assertEqual(limit,65537);return raw
+        def get(request,timeout):
+            self.assertEqual(request.full_url,expected_url);self.assertEqual(timeout,20)
+            self.assertEqual(request.get_header('Authorization'),credential)
+            self.assertEqual(request.get_header('X-github-api-version'),'2022-11-28')
+            self.assertEqual(request.get_header('Cache-control'),'no-cache');self.assertEqual(request.get_method(),'GET')
+            if failure=='timeout':raise TimeoutError('CPU forced network timeout')
+            return Response()
+        with mock.patch.object(p.subprocess,'check_output',side_effect=git),mock.patch.object(p.urllib.request,'urlopen',side_effect=get) as api,mock.patch('builtins.print') as output:
+            if failure is None:self.assertEqual(p.committed_source(commit,{'sllm/logger.py'}),commit)
+            else:
+                with self.assertRaises((AssertionError,TimeoutError)) as error:p.committed_source(commit,{'sllm/logger.py'})
+                self.assertNotIn(credential,str(error.exception))
+            output.assert_not_called()
+            self.assertEqual(api.call_count,0 if failure in ('origin','credential') else 1)
+        self.assertFalse(any(argv[1]=='ls-remote' for argv in calls))
+        return calls
+
+    def test_actual_gate_exact_official_api_ref_and_local_declared_bytes(self):
+        calls=self.gate();self.assertTrue(any(argv[1]=='show' for argv in calls))
+
+    def test_actual_stdlib_redirect_does_not_forward_api_authorization(self):
+        captured=[];original=p.urllib.request.Request
+        def capture(*args,**kwargs):
+            request=original(*args,**kwargs);captured.append(request);return request
+        with mock.patch.object(p.urllib.request,'Request',side_effect=capture):self.gate()
+        request=captured[0];self.assertEqual(request.get_header('Authorization'),'Basic CPU_SECRET_SENTINEL')
+        redirected=p.urllib.request.HTTPRedirectHandler().redirect_request(request,None,302,'redirect',{},'https://elsewhere.invalid/destination')
+        self.assertIsNone(redirected.get_header('Authorization'));self.assertEqual(redirected.get_header('Accept'),'application/vnd.github+json')
+
+    def test_actual_gate_api_failures_stop_without_credential_output(self):
+        for failure in ('ref','sha','sha_shape','type','timeout','size','status','redirect','origin','credential'):
+            with self.subTest(failure=failure):self.gate(failure)
 
 
 if __name__=='__main__':
