@@ -49,8 +49,27 @@ def _config_signature(config):
     return json.dumps(config, sort_keys=True, allow_nan=False)
 
 
+def _validate_v4_topology(config):
+    backend = config["backend_config"]
+    coordinates = (("num_gpus", config.get("num_gpus"), 8),
+                   ("tensor_parallel_size", backend.get("tensor_parallel_size"), 8),
+                   ("pipeline_parallel_size", backend.get("pipeline_parallel_size", 1), 1),
+                   ("data_parallel_size", backend.get("data_parallel_size", 1), 1))
+    for name, value, expected in coordinates:
+        if type(value) is not int or value != expected:
+            raise ValueError(f"V4 service requires integer {name}={expected}")
+    if backend.get("enable_expert_parallel", False) is not False:
+        raise ValueError("V4 grouped service requires expert parallel disabled")
+    if backend.get("tokenizer_mode") != "deepseek_v4":
+        raise ValueError("V4 service requires explicit deepseek_v4 tokenizer_mode")
+
+
 def freeze_registration_config(config):
-    return json.loads(_config_signature(config)) if is_v4_registration(config) else config
+    if not is_v4_registration(config):
+        return config
+    config = json.loads(_config_signature(config))
+    _validate_v4_topology(config)
+    return config
 
 
 def validate_active_registration(current, requested):
@@ -67,6 +86,7 @@ def bind_v4_registration(config, bindings, registered):
     if not isinstance(name, str) or not name or config.get("backend") != "vllm":
         raise ValueError("V4 registration requires a named vLLM model")
     config = json.loads(_config_signature(config))
+    _validate_v4_topology(config)
     common = json.loads(_config_signature(config))
     backend = common["backend_config"]
     loader = backend.pop("load_format", None)

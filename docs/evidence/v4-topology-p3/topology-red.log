@@ -1,0 +1,39 @@
+test_controller_rejects_one_gpu_for_tp8_before_store_or_router (test_v4_initial_topology.InitialTopologyContracts) ... FAIL
+test_manager_rejects_implicit_zero_gpu_request_before_worker (test_v4_initial_topology.InitialTopologyContracts) ... FAIL
+
+======================================================================
+FAIL: test_controller_rejects_one_gpu_for_tp8_before_store_or_router (test_v4_initial_topology.InitialTopologyContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_initial_topology.py", line 17, in test_controller_rejects_one_gpu_for_tp8_before_store_or_router
+    with self.assertRaises(ValueError):
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_manager_rejects_implicit_zero_gpu_request_before_worker (test_v4_initial_topology.InitialTopologyContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_initial_topology.py", line 25, in test_manager_rejects_implicit_zero_gpu_request_before_worker
+    with self.assertRaises(ValueError):
+AssertionError: ValueError not raised
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.114s
+
+FAILED (failures=2)

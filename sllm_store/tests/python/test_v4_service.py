@@ -19,7 +19,7 @@ from test_v4_state import identity
 
 
 def config(root):
-    return dict(load_format="sllm_v4_grouped_store", tensor_parallel_size=8,
+    return dict(load_format="sllm_v4_grouped_store", tensor_parallel_size=8, tokenizer_mode="deepseek_v4",
                 model_loader_extra_config=dict(store_path=str(root), identity=identity()))
 
 
@@ -207,7 +207,7 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         manager.local_servers = {"node-2": self.local}
         self.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
         manager.download_vllm_model = mock.AsyncMock(side_effect=AssertionError("legacy converter"))
-        await manager.register(dict(model="v4", backend="vllm", backend_config=self.config))
+        await manager.register(dict(model="v4", backend="vllm", num_gpus=8, backend_config=self.config))
         manager.download_vllm_model.assert_not_called()
         self.assertTrue(manager.model_storage_info["v4"]["node-2"])
         self.assertEqual(manager.model_info["v4"], sum(s for _, s in self.plan))
@@ -218,7 +218,7 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         self.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
         self.client.register_model.side_effect = [-1]
         with self.assertRaises(RuntimeError):
-            await manager.register(dict(model="v4", backend="vllm", backend_config=self.config))
+            await manager.register(dict(model="v4", backend="vllm", num_gpus=8, backend_config=self.config))
         self.assertNotIn("v4", manager.model_info)
         self.assertEqual(manager.model_storage_info["v4"], {})
 
@@ -227,7 +227,7 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         manager.local_servers = {"node-2": self.local}
         self.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
         manager.load_to_host = mock.AsyncMock(return_value=True)
-        await manager.register(dict(model="v4", backend="vllm", backend_config=self.config,
+        await manager.register(dict(model="v4", backend="vllm", num_gpus=8, backend_config=self.config,
                                     placement_config=dict(memory_pool=["node-2"])))
         manager.load_to_host.assert_awaited_once_with("node-2", "v4")
 
