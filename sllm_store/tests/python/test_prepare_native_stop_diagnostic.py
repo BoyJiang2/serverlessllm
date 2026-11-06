@@ -206,7 +206,13 @@ class PoolGraceTest(unittest.TestCase):
         self.assertIn("Store stop deadline exceeded",self.body)
 
     def test_exact_existing_build_provenance_and_pin_drift(self):
-        prep.validate_pool_pins(self.spec)
+        manifest=prep.checked_json(prep.POOL_BUILD/'build-manifest.json',prep.POOL_MANIFEST_SHA)
+        drift=any(prep.digest(prep.ROOT/path)!=expected for path,expected in manifest['source_pins'].items())
+        if drift:
+            with self.assertRaisesRegex(AssertionError,'build provenance drift'):
+                prep.validate_pool_pins(self.spec)
+        else:
+            prep.validate_pool_pins(self.spec)
         bad=copy.deepcopy(self.spec);bad['code_pins'][str(prep.POOL_BUILD/'_checkpoint_store.cpython-312-x86_64-linux-gnu.so')]='0'*64
         with self.assertRaises(AssertionError):prep.validate_pool_pins(bad)
 
@@ -215,6 +221,165 @@ class PoolGraceTest(unittest.TestCase):
         self.assertEqual(self.new_command['root_python_sha256'],hashlib.sha256(self.body.encode()).hexdigest())
         self.assertEqual(self.new_spec['run_id'],prep.GRACE_RUN)
         self.assertEqual(self.new_command['argv'][-1],self.command['argv'][-1])
+
+
+class PoolObservationTest(unittest.TestCase):
+    def setUp(self):
+        import types
+        self.types = types
+        self.spec = prep.checked_json(prep.OBSERVE_BASE_SPEC, prep.OBSERVE_BASE_SPEC_SHA)
+        self.command = prep.checked_json(prep.OBSERVE_BASE_COMMAND, prep.OBSERVE_BASE_COMMAND_SHA)
+        sb, cb = prep.render_pool_observe(self.spec, self.command, '7' * 40, prep.HELPER_SHA)
+        self.new_spec, self.new_command = json.loads(sb), json.loads(cb)
+        self.body = self.new_command['argv'][self.new_command['argv'].index('-c') + 1]
+
+    def run_stop(self, exit_at=5, code=0, gone_delay=0, gone=True, guard_error=None, save_error=False, poll_race=False):
+        import subprocess
+        clock = self.types.SimpleNamespace(now=0.0)
+        clock.monotonic = lambda: clock.now
+        def sleep(seconds):
+            if poll_race and clock.now >= 29.5:clock.now = 29.9 if clock.now < 29.9 else 30.1
+            else:clock.now += seconds
+        clock.sleep = sleep
+        class Process:
+            args = ['actual-docker-exec']
+            returncode = None
+            def poll(self):
+                if clock.now >= exit_at:self.returncode = code
+                return self.returncode
+        records, signals = {}, []
+        attempts=[]
+        primary = guard_error
+        def healthy():
+            if primary is not None and clock.now >= 3:raise primary
+        def save(name, value):
+            attempts.append(name)
+            if save_error is True or (save_error=='legacy' and name=='store-stop-legacy30.json'):raise OSError('injected evidence write error')
+            self.assertNotIn(name, records)
+            records[name] = copy.deepcopy(value)
+        with tempfile.TemporaryDirectory() as folder:
+            base = pathlib.Path(folder);(base/'worker').mkdir();(base/'worker/store.pid').write_text('123')
+            out, err = base/'stdout', base/'stderr';out.write_text('');err.write_text('')
+            def strict_gone(owner):
+                clock.now += gone_delay
+                return gone
+            env = {'time':clock,'services':{'store':(Process(),out,err)},'base':base,
+                   'owned_host_pid':lambda pid:{'pid':pid,'startticks':1,'cgroup':'0::/owned'},'D':['docker'],
+                   'cids':{'worker':'owned'},'call':lambda argv,timeout:signals.append((argv,timeout)),
+                   'm':self.types.SimpleNamespace(process_stop_snapshot=lambda owner,deadline:{'status':'snapshot'}),
+                   'healthy':healthy,'save':save,'gone':strict_gone,'json':json,'subprocess':subprocess}
+            tree = ast.parse(self.body)
+            nodes = [n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ['finish','stop_service']]
+            exec(compile(ast.Module(body=nodes,type_ignores=[]),'<actual-observation-and-original-finish>','exec'),env)
+            error = None
+            try:env['stop_service']('store','worker',300)
+            except BaseException as caught:error = caught
+        self.last_save_attempts=attempts
+        return records, signals, error, clock.now
+
+    def test_original_finish_and_gone_within30_record_component_only_pass(self):
+        records, signals, error, elapsed = self.run_stop()
+        self.assertIsNone(error);row=records['store-stop-observation.json']
+        self.assertEqual(row['legacy_30s_verdict'],'PASS')
+        self.assertEqual(row['status'],'DIAGNOSTIC_NOT_L1')
+        self.assertEqual(row['outcome'],'NORMAL_EXIT0_AND_STRICTGONE')
+        self.assertEqual(row['owner'],{'pid':123,'startticks':1,'cgroup':'0::/owned'})
+        self.assertEqual(row['legacy_observed_monotonic'],elapsed)
+        self.assertEqual(row['legacy_elapsed'],elapsed)
+        self.assertEqual(row['elapsed'],elapsed)
+        self.assertEqual(len(signals),1)
+        self.assertEqual(signals[0][0][-2],'import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)')
+
+    def test_past30_normal_completion_never_overwrites_original_fail(self):
+        records, _, error, _ = self.run_stop(exit_at=35)
+        self.assertIsNone(error)
+        self.assertEqual(records['store-stop-legacy30.json']['legacy_30s_verdict'],'FAIL')
+        row=records['store-stop-observation.json']
+        self.assertEqual(row['legacy_30s_verdict'],'FAIL');self.assertGreaterEqual(row['elapsed'],35)
+        self.assertEqual(row['outcome'],'NORMAL_EXIT0_AND_STRICTGONE')
+
+    def test_exit_between_last_pre30_poll_and_first_post30_poll_persists_failure(self):
+        rows, _, error, _=self.run_stop(exit_at=30.1,poll_race=True)
+        self.assertIsNone(error)
+        self.assertEqual(rows['store-stop-legacy30.json']['legacy_30s_verdict'],'FAIL')
+        self.assertEqual(rows['store-stop-observation.json']['legacy_30s_verdict'],'FAIL')
+
+    def test_cap_incomplete_is_right_censored_and_raises(self):
+        records, _, error, elapsed = self.run_stop(exit_at=301)
+        self.assertIsInstance(error,TimeoutError);self.assertEqual(elapsed,300)
+        self.assertEqual(records['store-stop-observation.json']['outcome'],'RIGHT_CENSORED')
+        self.assertEqual(records['store-stop-observation.json']['legacy_30s_verdict'],'FAIL')
+
+    def test_nonzero_and_gone_failure_preserve_evidence_and_failure(self):
+        import subprocess
+        for options, kind in [({'code':7},subprocess.CalledProcessError),({'gone':False},AssertionError)]:
+            with self.subTest(options=options):
+                rows, _, error, _=self.run_stop(**options)
+                self.assertIsInstance(error,kind)
+                self.assertEqual(rows['store-stop-observation.json']['outcome'],'OBSERVATION_FAILED')
+                self.assertEqual(rows['store-stop-observation.json']['legacy_reason'],'verification_failed')
+                self.assertEqual(rows['store-stop-observation.json']['legacy_30s_verdict'],'FAIL')
+
+    def test_gone_verification_cannot_extend_observation_cap(self):
+        rows, _, error, _=self.run_stop(gone_delay=301)
+        self.assertIsInstance(error,TimeoutError)
+        self.assertEqual(rows['store-stop-observation.json']['outcome'],'RIGHT_CENSORED')
+        self.assertEqual(rows['store-stop-observation.json']['legacy_30s_verdict'],'FAIL')
+        legacy=rows['store-stop-legacy30.json']
+        self.assertEqual(legacy['legacy_reason'],'original30_deadline_exceeded')
+        self.assertEqual(legacy['owner'],{'pid':123,'startticks':1,'cgroup':'0::/owned'})
+        self.assertEqual(legacy['legacy_observed_monotonic'],306)
+        self.assertEqual(legacy['legacy_elapsed'],306)
+        self.assertEqual(self.last_save_attempts.count('store-stop-legacy30.json'),1)
+
+    def test_early_poll_is_not_legacy_pass_when_gone_verification_finishes_late(self):
+        rows, _, error, _=self.run_stop(gone_delay=31)
+        self.assertIsNone(error)
+        self.assertEqual(rows['store-stop-observation.json']['legacy_30s_verdict'],'FAIL')
+
+    def test_guard_error_not_swallowed_and_save_error_does_not_mask_it(self):
+        for broken_save in (False,True):
+            primary=RuntimeError('guard failure')
+            rows, _, error, _=self.run_stop(guard_error=primary,save_error=broken_save)
+            self.assertIs(error,primary)
+            self.assertEqual(self.last_save_attempts.count('store-stop-legacy30.json'),1)
+            if not broken_save:self.assertEqual(rows['store-stop-observation.json']['error'],'guard failure')
+
+    def test_failed_legacy_write_is_explicit_not_repeated_and_keeps_primary(self):
+        primary=RuntimeError('guard failure')
+        rows, _, error, _=self.run_stop(guard_error=primary,save_error='legacy')
+        self.assertIs(error,primary)
+        self.assertEqual(self.last_save_attempts.count('store-stop-legacy30.json'),1)
+        result=rows['store-stop-observation.json']
+        self.assertEqual(result['legacy_evidence_error']['error_type'],'OSError')
+        self.assertEqual(result['owner'],{'pid':123,'startticks':1,'cgroup':'0::/owned'})
+        self.assertEqual(result['legacy_observed_monotonic'],3)
+        self.assertEqual(result['legacy_elapsed'],3)
+
+    def test_explicit_release_pins_current_and_drift_rejected(self):
+        prep.validate_pool_pins(self.spec,explicit=True)
+        bad=copy.deepcopy(self.spec)
+        bad['code_pins'][str(prep.ROOT/'sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so')]='0'*64
+        with self.assertRaises(AssertionError):prep.validate_pool_pins(bad,explicit=True)
+
+    def test_generated_nonstore_roles_gold_resources_and_diagnostic_only_markers(self):
+        for key in ['role_bodies','role_body_sha256','gold','config','code_pins','native_source_pins','overlays']:
+            self.assertEqual(self.new_spec[key],self.spec[key])
+        for role in self.spec['requests']:
+            req=copy.deepcopy(self.new_spec['requests'][role]);req['name']=self.spec['requests'][role]['name']
+            self.assertEqual(req,self.spec['requests'][role])
+        for key in ['head_guard','worker_guard','observer','full']:
+            self.assertEqual(self.new_spec['budgets'][key],self.spec['budgets'][key])
+        original=self.command['argv'][self.command['argv'].index('-c')+1]
+        oldnode=next(n for n in ast.parse(original).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+        newnode=next(n for n in ast.parse(self.body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+        self.assertEqual(ast.get_source_segment(original,oldnode).split('  return\n',1)[1],ast.get_source_segment(self.body,newnode).split('  return\n',1)[1])
+        self.assertNotIn('NATIVE_CREATE_AAB_DELETE_BASELINE60_RECREATE_AAB_ALL_EXIT_GPUZERO60_PASS',self.body)
+        self.assertIn("'status':'DIAGNOSTIC_NOT_L1_FAILED_RETAINED_NO_RETRY'",self.body)
+        self.assertIn("'status':'DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE'",self.body)
+        self.assertIn(prep.GRACE_GATE,self.body)
+        self.assertEqual(self.new_command['spec_sha256'],hashlib.sha256((json.dumps(self.new_spec,ensure_ascii=False,indent=2)+'\n').encode()).hexdigest())
+
 
 
 if __name__ == "__main__":

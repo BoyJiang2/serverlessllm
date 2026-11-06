@@ -222,17 +222,20 @@ GRACE_GATE = """ stop_started=time.monotonic();stop_end=stop_started+600
 """
 
 
-def validate_pool_pins(spec):
-    assert spec['source_commit'] == '794a0f3b08185d0ec7d054480922b2a5c5e24505'
-    manifest = checked_json(POOL_BUILD / 'build-manifest.json', POOL_MANIFEST_SHA)
-    elf = POOL_BUILD / '_checkpoint_store.cpython-312-x86_64-linux-gnu.so'
-    assert digest(elf) == manifest['elf_sha256'] == POOL_ELF_SHA
-    assert spec['code_pins'][str(elf)] == POOL_ELF_SHA
-    assert spec['code_pins'][str(POOL_BUILD / 'build-manifest.json')] == POOL_MANIFEST_SHA
+def validate_pool_pins(spec, explicit=False):
+    build = ROOT / "sllm_store/build/kimi-pool-explicit-release-v1" if explicit else POOL_BUILD
+    elf_sha = "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd" if explicit else POOL_ELF_SHA
+    manifest_sha = "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d" if explicit else POOL_MANIFEST_SHA
+    assert spec['source_commit'] == ('efcb9d4d930254dfd4d048e204d7266ab06a65fd' if explicit else '794a0f3b08185d0ec7d054480922b2a5c5e24505')
+    manifest = checked_json(build / 'build-manifest.json', manifest_sha)
+    elf = build / '_checkpoint_store.cpython-312-x86_64-linux-gnu.so'
+    assert digest(elf) == manifest['elf_sha256'] == elf_sha
+    assert spec['code_pins'][str(elf)] == elf_sha
+    assert spec['code_pins'][str(build / 'build-manifest.json')] == manifest_sha
     abi = manifest['abi']
     assert abi['torch'] == '2.10.0+cu129' and abi['cuda'] == '12.9' and abi['cxx11_abi'] is True
     assert abi['extension_suffix'] == '.cpython-312-x86_64-linux-gnu.so'
-    assert abi['elf_sha256'] == POOL_ELF_SHA and abi['cuda_initialized'] is False and abi['store_instantiated'] is False
+    assert abi['elf_sha256'] == elf_sha and abi['cuda_initialized'] is False and abi['store_instantiated'] is False
     for field in ('source_pins', 'old_artifact_pins'):
         for relative, expected in manifest[field].items():
             assert digest(ROOT / relative) == expected, ('build provenance drift', relative)
@@ -306,11 +309,128 @@ def render_pool_grace(spec, command, source_commit, helper_sha):
     return sb, (json.dumps(command, ensure_ascii=False, indent=2) + '\n').encode()
 
 
+OBSERVE_BASE_SPEC = EVIDENCE / "native-qjhs000-explicit-pool-release-concrete-spec-20261106.json"
+OBSERVE_BASE_COMMAND = EVIDENCE / "native-qjhs000-explicit-pool-release-manual-root-command-20261106.json"
+OBSERVE_BASE_SPEC_SHA = "87a7631e0bacefb8143a29f492cda094569e52e76ff48d2009178a965924c024"
+OBSERVE_BASE_COMMAND_SHA = "66d9a69c513134c1738f81a7a7e0267cafb4da58daa1e27328a38c1076727487"
+OBSERVE_RUN = "kimi-native-qjhs000-pool-stop-observe-20261106-once"
+OBSERVE_SPEC = EVIDENCE / "native-qjhs000-pool-stop-observe-concrete-spec-20261106.json"
+OBSERVE_COMMAND = EVIDENCE / "native-qjhs000-pool-stop-observe-manual-root-command-20261106.json"
+
+
+def observation_stop_source(original):
+    # Preserve the existing authenticated stop, snapshots, finish and gone checks.
+    head, tail = original.split("  return\n", 1)
+    lines = head.splitlines()[2:]
+    old = "   assert time.monotonic()<deadline,'Store stop deadline exceeded';healthy();now=time.monotonic()"
+    assert lines.count(old) == 1
+    index = lines.index(old)
+    lines[index:index + 1] = [
+        "   if time.monotonic()>=legacy_deadline and result['legacy_30s_verdict']=='PENDING':",
+        "    emit_legacy('original30_deadline_exceeded')",
+        "   if time.monotonic()>=deadline:",
+        "    result['outcome']='RIGHT_CENSORED';raise TimeoutError('DIAGNOSTIC_NOT_L1 observation cap exhausted')",
+        "   healthy();now=time.monotonic()",
+    ]
+    owner_index = next(i for i,line in enumerate(lines) if ";owner=" in line)
+    lines.insert(owner_index + 1, "  result['owner']=owner")
+    prefix = """def stop_service(name,role,deadline):
+ if name=='store':
+  begin=deadline-300;legacy_deadline=begin+30
+  result={'status':'DIAGNOSTIC_NOT_L1','legacy_30s_verdict':'PENDING','outcome':'INCOMPLETE','measurement':'controller Stop call through finish and strictgone, including IPC and diagnostics','begin_monotonic':begin,'legacy_deadline':legacy_deadline,'observation_deadline':deadline,'owner':None}
+  legacy_attempted=False
+  def emit_legacy(reason):
+   nonlocal legacy_attempted
+   if result['legacy_30s_verdict']=='PENDING':
+    observed=time.monotonic()
+    result.update(legacy_30s_verdict='FAIL',legacy_reason=reason,legacy_observed_monotonic=observed,legacy_elapsed=observed-begin)
+   if result['legacy_30s_verdict']=='FAIL' and not legacy_attempted:
+    legacy_attempted=True
+    try:save('store-stop-legacy30.json',dict(result))
+    except Exception as diagnostic_error:
+     result['legacy_evidence_error']={'error_type':type(diagnostic_error).__name__,'error':str(diagnostic_error)}
+     raise
+  try:
+"""
+    work = "\n".join(" " + line for line in lines)
+    suffix = """
+   completed=time.monotonic()
+   if completed>=deadline:
+    result['outcome']='RIGHT_CENSORED';raise TimeoutError('DIAGNOSTIC_NOT_L1 verification exceeded observation cap')
+   if result['legacy_30s_verdict']=='PENDING':
+    if completed<legacy_deadline:result.update(legacy_30s_verdict='PASS',legacy_observed_monotonic=completed,legacy_elapsed=completed-begin)
+    else:emit_legacy('original30_deadline_exceeded')
+   result.update(outcome='NORMAL_EXIT0_AND_STRICTGONE',elapsed=completed-begin,legacy_reason='original_finish_and_gone_within30' if result['legacy_30s_verdict']=='PASS' else 'original30_deadline_exceeded')
+   save('store-stop-observation.json',result)
+  except BaseException as error:
+   try:emit_legacy('original30_deadline_exceeded' if time.monotonic()>=legacy_deadline else 'verification_failed')
+   except Exception as diagnostic_error:
+    result['legacy_evidence_error']={'error_type':type(diagnostic_error).__name__,'error':str(diagnostic_error)}
+   if result['outcome']=='INCOMPLETE':result['outcome']='RIGHT_CENSORED' if time.monotonic()>=deadline else 'OBSERVATION_FAILED'
+   result.update(elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error))
+   try:save('store-stop-observation.json',result)
+   except Exception as diagnostic_error:
+    try:print(json.dumps({'status':'DIAGNOSTIC_NOT_L1','primary_error_type':type(error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)
+    except Exception:pass
+   raise
+  return
+"""
+    return prefix + work + suffix + tail
+
+
+def render_pool_observe(spec, command, source_commit, helper_sha):
+    # Reuse the already reviewed complete-slot admission and unchanged defaults.
+    sb, cb = render_pool_grace(spec, command, source_commit, helper_sha)
+    result, prepared = json.loads(sb), json.loads(cb)
+    index = prepared['argv'].index('-c') + 1
+    body = prepared['argv'][index]
+    node = next(n for n in ast.parse(body).body if isinstance(n, ast.FunctionDef) and n.name == 'stop_service')
+    original = ast.get_source_segment(body, node)
+    body = body.replace(original, observation_stop_source(original))
+    old_pass = 'NATIVE_CREATE_AAB_DELETE_BASELINE60_RECREATE_AAB_ALL_EXIT_GPUZERO60_PASS'
+    assert body.count(old_pass) == 1
+    body = body.replace(old_pass, 'DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE')
+    assert body.count("'status':'FAILED_RETAINED_NO_RETRY'") == 1
+    body = body.replace("'status':'FAILED_RETAINED_NO_RETRY'", "'status':'DIAGNOSTIC_NOT_L1_FAILED_RETAINED_NO_RETRY'")
+    compile(body, '<pool-stop-observation>', 'exec')
+    result['run_id'] = OBSERVE_RUN
+    for role, request in result['requests'].items():request['name'] = OBSERVE_RUN + '-' + role
+    result.pop('pool_grace300_scope')
+    scope = {'base_spec_sha256':OBSERVE_BASE_SPEC_SHA,'base_command_sha256':OBSERVE_BASE_COMMAND_SHA,'legacy_seconds':30,'observation_cap_seconds':300,'overall_status':'DIAGNOSTIC_NOT_L1','limit':'Original30 FAIL is retained. Observation cap is not a new acceptance deadline; incomplete observation is right-censored. No pure-CUDA time or completion guarantee.'}
+    result['pool_stop_observation_scope'] = scope
+    result['status'] = prepared['status'] = 'PREPARED_DIAGNOSTIC_NOT_L1_NOT_EXECUTED'
+    prepared['store_stop_diagnostic_scope'] = scope
+    prepared['argv'][index] = body
+    prepared['argv'][prepared['argv'].index('--unit='+GRACE_RUN+'-controller.service')] = '--unit='+OBSERVE_RUN+'-controller.service'
+    prepared['argv'][-3] = str(OBSERVE_SPEC)
+    sb = (json.dumps(result,ensure_ascii=False,indent=2)+'\n').encode()
+    prepared['spec_sha256'] = prepared['argv'][-2] = hashlib.sha256(sb).hexdigest()
+    prepared['root_python_sha256'] = hashlib.sha256(body.encode()).hexdigest()
+    prepared['inline_lines'] = len(body.splitlines())
+    return sb, (json.dumps(prepared,ensure_ascii=False,indent=2)+'\n').encode()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--pool-grace300", action="store_true", help="Prepare only the fixed 300s Store-stop diagnostic variant")
+    parser.add_argument("--pool-stop-observe", action="store_true", help="Diagnostic observation only; never L1 acceptance")
     args = parser.parse_args()
+    assert not (args.pool_grace300 and args.pool_stop_observe), "select only one mode"
+    if args.pool_stop_observe:
+        spec = checked_json(OBSERVE_BASE_SPEC, OBSERVE_BASE_SPEC_SHA)
+        command = checked_json(OBSERVE_BASE_COMMAND, OBSERVE_BASE_COMMAND_SHA)
+        assert command['spec_sha256'] == OBSERVE_BASE_SPEC_SHA
+        assert command['argv'][-3:-1] == [str(OBSERVE_BASE_SPEC), OBSERVE_BASE_SPEC_SHA]
+        validate_pool_pins(spec, explicit=True)
+        helper_sha = committed_helper(args.source_commit)
+        assert not (EVIDENCE.parent / 'runs' / OBSERVE_RUN).exists(), "run identity already used"
+        assert not OBSERVE_SPEC.exists() and not OBSERVE_COMMAND.exists(), "prepared output already exists"
+        sb, cb = render_pool_observe(spec, command, args.source_commit, helper_sha)
+        write_new(OBSERVE_SPEC, sb)
+        write_new(OBSERVE_COMMAND, cb)
+        print(json.dumps({'status':'PREPARED_DIAGNOSTIC_NOT_L1_NO_EXECUTION','spec_sha256':hashlib.sha256(sb).hexdigest(),'command_sha256':hashlib.sha256(cb).hexdigest()}))
+        return
     if args.pool_grace300:
         spec = checked_json(POOL_SPEC, POOL_SPEC_SHA)
         command = checked_json(POOL_COMMAND, POOL_COMMAND_SHA)
