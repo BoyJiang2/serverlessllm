@@ -1,0 +1,44 @@
+{
+  "gate": "PASS_FOR_DECLARED_PATCHSET",
+  "verified_patch_target_files": 17,
+  "overlay_changed_files": 1,
+  "ordered_transforms": [
+    "official selected SLLM/vLLM commits -> hash-checked v5 integration patches",
+    "v5 Store server -> archived C23 shield(wait_for_termination) overlay"
+  ],
+  "source_manifest_sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9",
+  "actual_store_import_modules": {
+    "sllm_store": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/__init__.py",
+      "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59"
+    },
+    "sllm_store.server": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/server.py",
+      "sha256": "b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f",
+      "serve_code_filename": "/experiment/code/Store-source-v7/sllm_store/server.py",
+      "serve_source_code_match": true,
+      "serve_bytecode_sha256": "4b4b6b3ddddd8e83d60d039eea95e43acf6b4b31b1563372532600fec015b102"
+    },
+    "sllm_store._C": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "69d6de4f051eb74d292248c79ff989160bcc3209ac0ae256da1bc7d3e69cf9f4"
+    },
+    "sllm_store._checkpoint_store": {
+      "path": "/experiment/code/Store-source-v7/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096"
+    }
+  },
+  "limits": [
+    "historical external manifest was rehashed at C23 admission; current byte hashes checked again",
+    "head CPU import proof is not per-rank machine-code proof",
+    "vLLM replacement source hashes do not alone prove every worker imported that path",
+    "This checks declared integration patchset, not an exhaustive Git diff of every repository file or every GPU rank mapped instruction"
+  ],
+  "input_sha256": {
+    "deployment-binding.json": "a99e4dd85a58101fda3d2dc906f45321177b9f7d31a3f57910379b18698d313d",
+    "historical-review-manifest-v11.json": "da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4",
+    "C23-run-manifest.json": "bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d",
+    "C23-formal13-cpu-import-preflight.json": "1c2e0a73157bf10c95f6173e7fd2197c78c8c1e67122db4a3aee2c48f4955cfd"
+  },
+  "script_sha256": "800adb19e88c2dca38fabb8882f51fe1196d11e43c81b01afc496e27ced45d7d"
+}

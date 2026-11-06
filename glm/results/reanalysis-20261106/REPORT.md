@@ -35,7 +35,22 @@
 
 后端首token观察不是客户端流式首字节；非流式HTTP完成不是最后token，最后一段不叫纯generation。phase_*是跨rank、可能嵌套的跨度，不相加构造总耗时或固定开销。ingestion跨度不等于纯I/O。此处时钟核验范围是历史同主机monotonic记录，不测网络时钟同步或CUDA内核时间。
 
+### 跨rank阶段跨度（描述均值，秒；不可相加）
+
+| 条件 | n | 业务启动→正确HTTP | 启动→路由 | 权重载入跨度 | 量化后处理跨度 |
+|---|---|---|---|---|---|
+| SF冷读 | 6 | 448.496 | 447.091 | 391.671 | 0.583 |
+| SF热读 | 6 | 185.754 | 184.543 | 129.215 | 0.275 |
+| Store冷读 | 7 | 180.875 | 179.611 | 121.455 | 7.130 |
+| Store池命中 | 7 | 62.936 | 61.737 | 5.819 | 2.057 |
+
+每条阶段均核对八rank覆盖、各rank终点不早于起点，以及max(end)−min(begin)与记录值一致；逐条跨度保存在event-intervals.csv。该表只定位记录中跨度的差异，不能将相互嵌套区间相减后解释为某内核或存储机制的独立因果贡献。
+
 ## 完整block配对推断
+
+配对统计沿用原复算定义：不含准备为command_to_correct_business_response_s；含准备为preparation_s加该command区间，不含准备完成至注册启动的0.186–0.346毫秒间隔。互斥堆叠图包含这个间隔，因而图中整条壁钟与含准备统计有这一明确差别；本轮不悄悄改写原统计口径。
+
+符号翻转的精确性以零假设下各block差值可独立翻转符号为条件；bootstrap把block视为可重采样单元。顺序运行、共享主机状态可能违反独立/可交换假设，n=6不足以验证这些假设。以下为对既定方法的复算，不提升为随机干预的因果结论。各条件中位数区间另按条件内样本重采样，B=10000、seed=20261024、同样使用249/9749排序索引；它不保留跨条件配对，不用于主检验。
 
 两种成本口径分别定义四项检验族；双侧精确符号翻转，以|配对差均值|为统计量，枚举全部2^6=64符号，边界容差1e-12。bootstrap按block有放回抽样，B=10000、seed=20261024，每个估计重新开始随机序列。区间为排序bootstrap均值的floor(p*(B−1))位置，p=0.025/0.975。比值定义为配对集合内均值之比A/B，不是逐block比值的均值。Cohen dz=配对差均值/配对差样本标准差。
 
@@ -120,7 +135,13 @@
 - `vllm/model_executor/model_loader/base_loader.py`
 - `vllm/v1/worker/gpu_worker.py`
 
-上述是历史集成补丁清单，尚未将其每个文件与C23实际映射库/执行源码完整逐字节重对；不能因补丁名或当前工作树认定它就是完整运行差异。C23实验代码与清单绑定f176e056…/3eac8c63…；formal_trials.py和phase_summary.py已与实际执行归档逐字节比对。完整部署相对官方基线的逐文件diff（含后续Store停服修订）仍列交付缺口，不编造行数。
+已按固定历史源码清单逐项核对：上述补丁的17个目标文件，其补丁账本预期SHA、C23外部清单SHA与当前canonical文件字节SHA全部一致。C23控制输入清单引用历史清单，canonical映射由冻结INDEX解析；证据见deployment-binding.json和deployment-gate.json。该gate仅为PASS_FOR_DECLARED_PATCHSET，不等于整个仓库全部文件的穷尽diff。
+
+C23另有一层Store服务覆盖：实际冻结store_server13.py挂载到sllm_store/server.py，相对v5仅将await server.wait_for_termination()改为await asyncio.shield(server.wait_for_termination())。精确差异见c23-store-server-overlay.patch；归档SHA、run-manifest要求与当时head CPU实际导入证据一致。不能把v5补丁单独称为最终部署版本，也不据此认定历史exit137已解决。
+
+官方SDK基线9f50241baa5386e06a9321c51f19a9ef5f964c2b、vLLM基线43a9b1afbb7ed88e63ebeefeb55df8d445aa1992均与C23选定版本一致。冻结镜像为sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f，历史环境为PyTorch 2.10.0+cu130、vLLM 0.19.1.dev1+g43a9b1afb、CUDA 13。
+
+证据边界：head的CPU导入记录覆盖Store Python模块及两个扩展库文件身份，不是每个GPU rank已映射机器码的证明；vLLM替换源码SHA也不能单独证明每个worker导入路径。formal_trials.py和phase_summary.py已与C23实际执行归档逐字节比对，绑定f176e056…/3eac8c63…。
 
 ## Kimi与论文路线
 
@@ -131,10 +152,11 @@ Kimi数值栏留空：本轮未接收可用于统一表的已核验交付，不�
 ```bash
 python3 independent_audit.py
 python3 event_audit.py
+python3 deployment_audit.py
 # 使用既有matplotlib环境；不创建新环境
 python plot_analysis.py
 ```
 
 原始权威路径和SHA见MANIFEST.md、all40-matrix.csv及input-copy-manifest.json；本目录inputs是小型只读结果副本。原始输入不修改。`original/recompute.py`默认会写原目录，因此此处不调用其默认入口。README与CSV/JSON均可编辑，SVG保留文字。home副本已删除，不向home再传输。
 
-剩余缺口：完整部署补丁逐文件对账；转换/纯填池成本分离；N>1实测；完整rank内部opaque内存不在本轮审计范围。当前报告是GLM历史证据复算交付，不证明当前服务可运行，也不将历史exit137判为已解决。
+剩余边界：声明补丁集之外的全仓库差异及逐rank映射机器码；转换/纯填池成本分离；N>1实测；完整rank内部opaque内存不在本轮审计范围。当前报告是GLM历史证据复算交付，不证明当前服务可运行，也不将历史exit137判为已解决。

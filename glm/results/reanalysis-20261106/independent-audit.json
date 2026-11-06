@@ -223,6 +223,8 @@
     "bootstrap": "paired-block percentile order statistics floor(p*(B-1)); restart RNG for each statistic",
     "test": "two-sided exact |mean paired difference|, all signs, tie tolerance1e-12",
     "family": "four contrasts separately per cost window",
+    "cost_windows": "business_only=command_to_correct_business_response_s; including_preparation=preparation_s+command_to_correct_business_response_s, excluding measured preparation-to-command gap",
+    "assumptions": "independent sign invariance under null; block bootstrap exchangeability not demonstrated by n6 observational sequence",
     "interval": "marginal, not simultaneous"
   },
   "contrasts": {
@@ -635,5 +637,5 @@
     }
   ],
   "max_mean_deviation_s": 0.004755900833316673,
-  "script_sha256": "b939cfc2e091b5302f7f81d4a43262149b2973cc08561eb7eaa5147e1cf63448"
+  "script_sha256": "e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33"
 }

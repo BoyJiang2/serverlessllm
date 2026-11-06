@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 R = Path(__file__).resolve().parent
+assert json.loads((R/'deployment-gate.json').read_text(encoding='utf-8'))['gate']=='PASS_FOR_DECLARED_PATCHSET'
 assert json.loads((R/'event-gate.json').read_text(encoding='utf-8'))['event_order_gate']=='PASS'
 assert json.loads((R/'independent-audit.json').read_text(encoding='utf-8'))['numerical_gate']=='PASS'
 plt.rcParams.update({'font.sans-serif':['Microsoft YaHei','SimHei','DejaVu Sans'],'axes.unicode_minus':False,'svg.fonttype':'none','svg.hashsalt':'glm-c23-20261106','font.size':9})
@@ -37,7 +38,7 @@ for i,c in enumerate(conditions):
  ax.scatter(vals,[i+(j-(len(vals)-1)/2)*.035 for j in range(len(vals))],s=32,alpha=.8)
  ax.errorbar(m,i,xerr=[[m-lo],[hi-m]],fmt='ks',capsize=5)
  desc[c]=dict(n=len(vals),mean_s=statistics.fmean(vals),median_s=m,median_marginal_bootstrap95=[lo,hi],raw_values_s=vals)
-ax.set_yticks(range(4),[names[c]+' (n='+str(desc[c]['n'])+')' for c in conditions]);ax.invert_yaxis();ax.set_xlabel('注册启动→第一条算术请求正确HTTP响应完成 / 秒');ax.grid(axis='x',alpha=.25);ax.set_title('所有原始样本＋中位数及边际95% bootstrap区间；SF热读双峰保留')
+ax.set_yticks(range(4),[names[c]+' (n='+str(desc[c]['n'])+')' for c in conditions]);ax.invert_yaxis();ax.set_xlabel('注册启动→第一条算术请求正确HTTP响应完成 / 秒');ax.grid(axis='x',alpha=.25);ax.set_title('所有原始样本＋中位数及边际95% bootstrap区间；SF热读快慢样本均保留')
 fig.text(.15,.02,'各条件独立描述区间，不是配对检验或同时区间；不剔除block 8。',fontsize=8);fig.tight_layout(rect=(0,.05,1,1))
 for ext in ('png','svg'):fig.savefig(R/('startup-samples.'+ext),dpi=170,metadata={'Date':None} if ext=='svg' else {})
 plt.close(fig)
@@ -64,7 +65,12 @@ table(['条件','n','均值/秒','中位数/秒','中位数边际95%区间/秒']
 '每条分解为：条件重置与准备＋准备完成到注册启动间隔＋注册启动到路由发布＋路由到后端首token观察＋后端首token观察到正确HTTP完成。CSV中分别保留command_*与trigger_*。26条时间戳按源记录的同主机monotonic域核对，boot ID、后端/路由容器身份及原始事件集合摘要匹配；不与HTTP created墙钟相减。图右侧放大路由后区间。', '',
 f"准备完成到启动的间隔为{events['preparation_gap_range_s'][0]*1000:.6f}–{events['preparation_gap_range_s'][1]*1000:.6f}毫秒，已逐条计入。按同一fresh worker初始pool_loaded=False、成功执行顺序及源码状态更新，{events['preparation_unload_count']}/26条准备包含旧池卸载；具体ID及状态见event-intervals.csv和event-gate.json。该窗口不能称为纯填池成本，也不估算减去某个平均卸载时间。",'',
 '后端首token观察不是客户端流式首字节；非流式HTTP完成不是最后token，最后一段不叫纯generation。phase_*是跨rank、可能嵌套的跨度，不相加构造总耗时或固定开销。ingestion跨度不等于纯I/O。此处时钟核验范围是历史同主机monotonic记录，不测网络时钟同步或CUDA内核时间。','',
+'### 跨rank阶段跨度（描述均值，秒；不可相加）','',
+table(['条件','n','业务启动→正确HTTP','启动→路由','权重载入跨度','量化后处理跨度'],[[names[c],sum(x['condition']==c for x in rows)]+[f"{statistics.fmean(float(x[k]) for x in rows if x['condition']==c):.3f}" for k in ('command_to_correct_arithmetic_http_s','command_to_route_s','phase_weight_ingestion_span_s','phase_quantization_postprocess_span_s')] for c in conditions]),'',
+'每条阶段均核对八rank覆盖、各rank终点不早于起点，以及max(end)−min(begin)与记录值一致；逐条跨度保存在event-intervals.csv。该表只定位记录中跨度的差异，不能将相互嵌套区间相减后解释为某内核或存储机制的独立因果贡献。','',
 '## 完整block配对推断','',
+'配对统计沿用原复算定义：不含准备为command_to_correct_business_response_s；含准备为preparation_s加该command区间，不含准备完成至注册启动的0.186–0.346毫秒间隔。互斥堆叠图包含这个间隔，因而图中整条壁钟与含准备统计有这一明确差别；本轮不悄悄改写原统计口径。','',
+'符号翻转的精确性以零假设下各block差值可独立翻转符号为条件；bootstrap把block视为可重采样单元。顺序运行、共享主机状态可能违反独立/可交换假设，n=6不足以验证这些假设。以下为对既定方法的复算，不提升为随机干预的因果结论。各条件中位数区间另按条件内样本重采样，B=10000、seed=20261024、同样使用249/9749排序索引；它不保留跨条件配对，不用于主检验。','',
 '两种成本口径分别定义四项检验族；双侧精确符号翻转，以|配对差均值|为统计量，枚举全部2^6=64符号，边界容差1e-12。bootstrap按block有放回抽样，B=10000、seed=20261024，每个估计重新开始随机序列。区间为排序bootstrap均值的floor(p*(B−1))位置，p=0.025/0.975。比值定义为配对集合内均值之比A/B，不是逐block比值的均值。Cohen dz=配对差均值/配对差样本标准差。','']
 for window,title in [('business_only','不含条件准备'),('including_preparation','含条件重置与准备')]:
  lines += ['### '+title,'',table(['A−B','n','配对均值差/秒','边际95%区间','原始p','Holm p','均值之比A/B'],[[a+' − '+b,x['n'],f"{x['mean_diff']:.6f}",f"[{x['ci95_low']:.6f}, {x['ci95_high']:.6f}]",x['p_raw'],x['p_holm'],f"{x['ratio_of_paired_means']:.6f}"] for (a,b),x in zip([('Store冷','SF冷'),('池命中','SF冷'),('池命中','Store冷'),('Store冷','SF热')],audit['contrasts'][window])]),'']
@@ -89,13 +95,16 @@ table(['项目','已有数值/状态','边界'],[
 '## 相对官方基线的补丁证据与缺口','']
 for patch in patches:
  lines += [f"### {patch['repository']}，官方基线 `{patch['official_base_commit']}`",'',f"历史补丁 `{patch['patch_path']}`，SHA `{patch['patch_sha256']}` 已核对。以下文件来自实际patch正文解析，不预填文件/行数：",'']+['- `'+n+'`' for n in patch['paths_from_patch']]+['']
-lines += ['上述是历史集成补丁清单，尚未将其每个文件与C23实际映射库/执行源码完整逐字节重对；不能因补丁名或当前工作树认定它就是完整运行差异。C23实验代码与清单绑定f176e056…/3eac8c63…；formal_trials.py和phase_summary.py已与实际执行归档逐字节比对。完整部署相对官方基线的逐文件diff（含后续Store停服修订）仍列交付缺口，不编造行数。','',
+lines += ['已按固定历史源码清单逐项核对：上述补丁的17个目标文件，其补丁账本预期SHA、C23外部清单SHA与当前canonical文件字节SHA全部一致。C23控制输入清单引用历史清单，canonical映射由冻结INDEX解析；证据见deployment-binding.json和deployment-gate.json。该gate仅为PASS_FOR_DECLARED_PATCHSET，不等于整个仓库全部文件的穷尽diff。','',
+'C23另有一层Store服务覆盖：实际冻结store_server13.py挂载到sllm_store/server.py，相对v5仅将await server.wait_for_termination()改为await asyncio.shield(server.wait_for_termination())。精确差异见c23-store-server-overlay.patch；归档SHA、run-manifest要求与当时head CPU实际导入证据一致。不能把v5补丁单独称为最终部署版本，也不据此认定历史exit137已解决。','',
+'官方SDK基线9f50241baa5386e06a9321c51f19a9ef5f964c2b、vLLM基线43a9b1afbb7ed88e63ebeefeb55df8d445aa1992均与C23选定版本一致。冻结镜像为sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f，历史环境为PyTorch 2.10.0+cu130、vLLM 0.19.1.dev1+g43a9b1afb、CUDA 13。','',
+'证据边界：head的CPU导入记录覆盖Store Python模块及两个扩展库文件身份，不是每个GPU rank已映射机器码的证明；vLLM替换源码SHA也不能单独证明每个worker导入路径。formal_trials.py和phase_summary.py已与C23实际执行归档逐字节比对，绑定f176e056…/3eac8c63…。','',
 '## Kimi与论文路线','',
 'Kimi数值栏留空：本轮未接收可用于统一表的已核验交付，不推定其PASS或停服根因闭环。停止与其他会话通信，由用户统一管理。论文Figure 6单列可选路线：20副本、random访问及原始artifact设置另审，不把本四条件扩展实验称为论文原样复现。','',
 '## 复算与文件','',
-'```bash\npython3 independent_audit.py\npython3 event_audit.py\n# 使用既有matplotlib环境；不创建新环境\npython plot_analysis.py\n```','',
+'```bash\npython3 independent_audit.py\npython3 event_audit.py\npython3 deployment_audit.py\n# 使用既有matplotlib环境；不创建新环境\npython plot_analysis.py\n```','',
 '原始权威路径和SHA见MANIFEST.md、all40-matrix.csv及input-copy-manifest.json；本目录inputs是小型只读结果副本。原始输入不修改。`original/recompute.py`默认会写原目录，因此此处不调用其默认入口。README与CSV/JSON均可编辑，SVG保留文字。home副本已删除，不向home再传输。','',
-'剩余缺口：完整部署补丁逐文件对账；转换/纯填池成本分离；N>1实测；完整rank内部opaque内存不在本轮审计范围。当前报告是GLM历史证据复算交付，不证明当前服务可运行，也不将历史exit137判为已解决。']
+'剩余边界：声明补丁集之外的全仓库差异及逐rank映射机器码；转换/纯填池成本分离；N>1实测；完整rank内部opaque内存不在本轮审计范围。当前报告是GLM历史证据复算交付，不证明当前服务可运行，也不将历史exit137判为已解决。']
 (R/'REPORT.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
 print('Wrote REPORT.md; Kimi and unmeasured amortization left explicitly missing.')
 
@@ -103,6 +112,6 @@ import hashlib
 manifest_header=(R/'MANIFEST.md').read_text(encoding='utf-8').split('| 文件 | 字节 | SHA256 |')[0]
 manifest_lines=[manifest_header.rstrip(),'','| 文件 | 字节 | SHA256 |','|---|---:|---|']
 for artifact in sorted(R.rglob('*')):
- if artifact.is_file() and artifact.name!='MANIFEST.md' and '__pycache__' not in artifact.parts:
+ if artifact.is_file() and artifact!=R/'MANIFEST.md' and '__pycache__' not in artifact.parts:
   data=artifact.read_bytes();manifest_lines.append(f'| {artifact.relative_to(R).as_posix()} | {len(data)} | `{hashlib.sha256(data).hexdigest()}` |')
 (R/'MANIFEST.md').write_text('\n'.join(manifest_lines)+'\n',encoding='utf-8')

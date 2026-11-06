@@ -1,0 +1,11 @@
+--- v5/server.py
++++ C23/store_server13.py
+@@ -245,7 +245,7 @@
+     await server.start()
+ 
+     try:
+-        await server.wait_for_termination()
++        await asyncio.shield(server.wait_for_termination())
+     except (KeyboardInterrupt, asyncio.CancelledError):
+         logger.info("Shutting down gRPC server")
+         await server.stop(5)
