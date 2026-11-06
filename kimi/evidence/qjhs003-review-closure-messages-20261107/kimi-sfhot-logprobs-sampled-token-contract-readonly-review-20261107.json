@@ -1,0 +1,280 @@
+{
+  "status": "READONLY_PINNED_SAMPLED_TOKEN_DICTIONARY_CONTRACT_AND_ACTUAL_TRACE_CONFIRMED_NO_PATCH",
+  "timestamp": "2026-11-06T19:02:01.121051+00:00",
+  "source_provenance": {
+    "files": [
+      {
+        "container_id": "c7c356b6028efd1a50fe97cf377913ea59e457dedf783f92f813ed31ea39dd21",
+        "container_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/sample/sampler.py",
+        "copy": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/v1--sample--sampler.py",
+        "sha256": "b93600890dabde54310a39b34cf2a96173fbb66211b9d4a74386c1ab9ee4ae5e",
+        "bytes": 12583,
+        "method": "docker cp stopped original worker; no container started"
+      },
+      {
+        "container_id": "c7c356b6028efd1a50fe97cf377913ea59e457dedf783f92f813ed31ea39dd21",
+        "container_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/logprobs.py",
+        "copy": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/v1--engine--logprobs.py",
+        "sha256": "dca0df283f672245328f373d25fe5281f067f2d3cdddc9c990ef1587849ab775",
+        "bytes": 8682,
+        "method": "docker cp stopped original worker; no container started"
+      },
+      {
+        "container_id": "c7c356b6028efd1a50fe97cf377913ea59e457dedf783f92f813ed31ea39dd21",
+        "container_path": "/usr/local/lib/python3.12/dist-packages/vllm/logprobs.py",
+        "copy": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/logprobs.py",
+        "sha256": "8aa02890e5f4a5d8b35cff4668bba2993604b206c5e2aae14aedd0f552712bd0",
+        "bytes": 7970,
+        "method": "docker cp stopped original worker; no container started"
+      }
+    ]
+  },
+  "source_provenance_sha256": "6094e463ed781c0a7adfd2c6148cc0091b26da1b6f87f583afddb860dd7a64a4",
+  "contract_sources": [
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/v1--sample--sampler.py",
+      "lines": "210-251",
+      "fact": "gather_logprobs concatenates sampled token/logprob first, then topK; positive K gives K+1 IDs before duplicate keys collapse."
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/v1--engine--logprobs.py",
+      "lines": "83-115",
+      "fact": "Comment sampled first at103, cumulative sampled logprob uses index0, original order passed to append."
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-runtime-logprobs-source-20261107/logprobs.py",
+      "lines": "175-206 and110-120",
+      "fact": "Append preserves sampled-first iteration, dictionary duplicate update overwrites value/rank without moving initial insertion position; FlatLogprobs reconstruction also iterates original order."
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/backends/vllm_backend.py",
+      "lines": "52-64",
+      "sha256": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510",
+      "fact": "process_output directly returns result.logprobs; no sorting, no resampling or token-ID reconstruction."
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/app_lib.py",
+      "lines": "116-129",
+      "fact": "inference_handler returns awaited Ray result directly."
+    }
+  ],
+  "actual_observations": [
+    {
+      "case": "arithmetic",
+      "request_id": "kimi-sfhot-repeatability-20261107-once-0",
+      "raw_http": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-repeatability-failed-public-20261107/28-head-http.stdout",
+      "raw_http_sha256": "9b4ffb268956a72cc4119201dac5dac5012e010fc6d038fab7b184f98c4e4880",
+      "sampled_first_ids": [
+        5512,
+        163586
+      ],
+      "rank1_ids": [
+        5512,
+        163586
+      ],
+      "strict_gold_ids_match": true,
+      "strict_gold_text_match": true
+    },
+    {
+      "case": "translation",
+      "request_id": "kimi-sfhot-repeatability-20261107-once-1",
+      "raw_http": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-repeatability-failed-public-20261107/30-head-http.stdout",
+      "raw_http_sha256": "5a738264c9da2541d4295211bee5eab5dac2e3dbc3310df520469f424ab0c2e1",
+      "sampled_first_ids": [
+        6927,
+        163586
+      ],
+      "rank1_ids": [
+        6927,
+        163586
+      ],
+      "strict_gold_ids_match": true,
+      "strict_gold_text_match": true
+    },
+    {
+      "case": "fixed32",
+      "request_id": "kimi-sfhot-repeatability-20261107-once-2",
+      "raw_http": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-repeatability-failed-public-20261107/32-head-http.stdout",
+      "raw_http_sha256": "72f004eea05b215ced29a57b696ef369a6d5662947ce1cb0b1d566ed05e0fd6a",
+      "sampled_first_ids": [
+        16814,
+        10201,
+        18564,
+        378,
+        101297,
+        381,
+        7249,
+        1147,
+        133637,
+        381,
+        2837,
+        47516,
+        6246,
+        7087,
+        133282,
+        51633,
+        13464,
+        8661,
+        39708,
+        1482,
+        13935,
+        45530,
+        145344,
+        378,
+        2577,
+        39708,
+        1482,
+        3478,
+        6263,
+        115010,
+        35086,
+        119304
+      ],
+      "rank1_ids": [
+        16814,
+        10201,
+        18564,
+        378,
+        101297,
+        381,
+        7249,
+        1147,
+        133637,
+        381,
+        2837,
+        47516,
+        6246,
+        7087,
+        133282,
+        51633,
+        13464,
+        8661,
+        39708,
+        1482,
+        13935,
+        45530,
+        145344,
+        378,
+        2577,
+        39708,
+        1482,
+        3478,
+        6263,
+        115010,
+        35086,
+        119304
+      ],
+      "strict_gold_ids_match": true,
+      "strict_gold_text_match": true
+    },
+    {
+      "case": "fixed32-repeat1",
+      "request_id": "kimi-sfhot-repeatability-20261107-once-3",
+      "raw_http": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-repeatability-failed-public-20261107/34-head-http.stdout",
+      "raw_http_sha256": "374e3343352bf0572d7946e7c17fea907cbc3b2128b91f00ade6bf4120bd34d1",
+      "sampled_first_ids": [
+        16814,
+        10201,
+        18564,
+        378,
+        101297,
+        381,
+        7249,
+        1147,
+        133637,
+        381,
+        2837,
+        47516,
+        6246,
+        7087,
+        133282,
+        51633,
+        13464,
+        8661,
+        39708,
+        1482,
+        13935,
+        45530,
+        145344,
+        378,
+        2577,
+        39708,
+        1482,
+        3478,
+        6263,
+        115010,
+        35086,
+        1852
+      ],
+      "rank1_ids": [
+        16814,
+        10201,
+        18564,
+        378,
+        101297,
+        381,
+        7249,
+        1147,
+        133637,
+        381,
+        2837,
+        47516,
+        6246,
+        7087,
+        133282,
+        51633,
+        13464,
+        8661,
+        39708,
+        1482,
+        13935,
+        45530,
+        145344,
+        378,
+        2577,
+        39708,
+        1482,
+        3478,
+        6263,
+        115010,
+        35086,
+        119304
+      ],
+      "strict_gold_ids_match": false,
+      "strict_gold_text_match": false
+    }
+  ],
+  "trace": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-sfhot-repeatability-failed-public-20261107/35-head-tokens.stdout",
+    "sha256": "9ac5ec86fe680d7f26ff6b32fee8ba7b112bdc59bf90bb4d054bac8729be0220",
+    "sampled_first_candidate_all4_full_prompt_plus_generation_multiset_matches": true,
+    "rank1_candidates_full_multiset_matches": false
+  },
+  "last_position": {
+    "one_based": 32,
+    "sampled_actual_trace_id": 1852,
+    "sampled_decoded": "红",
+    "dict_first_id": 1852,
+    "rank1_id": 119304,
+    "rank1_decoded": "红光",
+    "serialized_logprobs_equal": true,
+    "serialized_logprob": -0.7317720651626587,
+    "sampled_entry_rank": 2,
+    "scope": "Exact equality of recorded returned float32 logprobs, not a claim about unobserved higher-precision raw logits or general model nondeterminism."
+  },
+  "read_only_cpu_replay": {
+    "official_append_function": "AST-extracted pinned append_logprobs_for_next_position with actual Logprob dataclass; [1852,119304,1852], equal returned logprobs, ranks chain(sampledRank1,topK1,topK2) yields insertion keys[1852,119304] with sampled entry rank2 after duplicate overwrite.",
+    "actual_backend_process_output": "AST-executed real process_output preserves the same logprobs object identity.",
+    "json_roundtrip": "Standard ordered JSON roundtrip preserves first1852; actual native HTTP stdout plus independent trace confirms this deployed chain in all4 requests.",
+    "no_runtime_imports": "No Torch/vLLM runtime import, GPU or request executed."
+  },
+  "minimal_future_candidate": {
+    "model_backend_API_change_required": false,
+    "parsing": "For these pinned producer bytes and unsorted native HTTP path, first dictionary entry is sampled candidate; never rank1. Preserve raw order or derive private explicit sampled-ID list inside HTTP role after received_ns, outside the SamplingParams payload. Parent consumer cross-checks against raw entries and exact independent cumulative trace before accepting sampled identity.",
+    "shape_validation": "For positive LP K, allow K or K+1 unique dictionary entries because sampled token is added to topK then deduplicated. Validate candidate/rank/logprob metadata; do not require sorted ranks exactly1..K or assume one rank1 entry identifies sampled token.",
+    "required_regression": "Real pinned append + real process_output + actual HTTP role roundtrip + diagnostic parser, rank2 sampled/tied rank1 alternative, sampled outside topK with K+1 entries, duplicate overwrite/first insertion retention; exact trace mismatch must still fail closed.",
+    "gold_and_old_run": "Fourth actual1852 and text红 remain strict-gold mismatch. Old diagnostic FAIL/artifacts remain unchanged; correcting parser does not retroactively make goldPASS or formal success.",
+    "fallback": "If changing producer/transport invalidates insertion-order proof, expose minimal sampled token_ids metadata directly from CompletionOutput; no need to do so for this verified pinned chain."
+  },
+  "scope": "Only append-only read-only analysis receipt written. No prepare/test/backend/model/source edits, Git, new environment/container/model/Store/GPU/cache operation. Concurrent REVIEW-CLOSURE message edits are owned by another agent and untouched."
+}

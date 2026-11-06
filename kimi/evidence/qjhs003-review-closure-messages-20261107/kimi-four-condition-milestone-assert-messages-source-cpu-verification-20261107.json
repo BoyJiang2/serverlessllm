@@ -1,0 +1,122 @@
+{
+  "status": "SOURCE_CPU_PASS_ASSERT_MESSAGES_ONLY_NOT_RUNTIME",
+  "created_utc": "2026-11-06T19:02:11.797618+00:00",
+  "host": "qjhs3",
+  "input_document": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-review-closure-input-20261107.md",
+    "sha256": "3d6d92575c4c3d01f9c8c606e4815cdf32aecd68fa721be96c9c3e6cc8df6f7e"
+  },
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "159fab0cf471c82c17259c62644c96c633e48a4cafa82362537884f1f46019bf",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "090ee470d06692b810acc92961341965c917b0d4df2d7b321ef84bcdc9c23a1c"
+  },
+  "previous_source_pins": [
+    "9682727a6920190c36eb61533eb7e2cd35ef018df673ca7c2327629c590f57ca",
+    "b436e4f4ad11d4acc616c7009fbd6d723c15b12c0e4443567fea2a4aa7ba51c6"
+  ],
+  "generation_chain": [
+    "prepare_kimi_four_condition.render",
+    "prepare_native_stop_diagnostic.render_pool_exit60",
+    "frozen EXIT60_BASE_COMMAND actual argv -c body ec066b768fac42e8278a5689cbece3d23db0cf05761cdd45de3429b8114c1b0e",
+    "LOOP replaces native lifecycle with four-condition actual request loop",
+    "assert-message insertion at end of four-condition render only"
+  ],
+  "tests": {
+    "returncode": 0,
+    "count": 43,
+    "stdout": "",
+    "stderr": "...........................................\n----------------------------------------------------------------------\nRan 43 tests in 14.028s\n\nOK\n",
+    "scope": "actual render assertions executed; complete old/new AST identical after clearing assert.msg; generated spec and all9 role bodies equal; all existing43 CPU tests"
+  },
+  "rendered_example": {
+    "previous_root_sha256": "2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0",
+    "new_root_sha256": "3361dd1403ff0b1ecc0327a0a85b6cbecf68060b3d09d55591cc9e602a97efbc",
+    "changed_assert_count": 16,
+    "changed_assertions": [
+      {
+        "predicate": "row['State']['Running']",
+        "message": "f\"normal_exit role={role}: container not running; State={row['State']!r}\""
+      },
+      {
+        "predicate": "row['State']['Running']",
+        "message": "f\"normal_exit role={role}: container not running; State={row['State']!r}\""
+      },
+      {
+        "predicate": "row['State']['ExitCode'] == 0 and (not row['State']['OOMKilled']) and (row['State']['Pid'] == 0) and (row['RestartCount'] == 0)",
+        "message": "f'normal_exit role={role}: expected exit0/Pid0/noOOM/restart0; actual={row!r}'"
+      },
+      {
+        "predicate": "observed['quiet_seconds'] >= 60",
+        "message": "f'observer release: expected quiet>=60; actual={observed!r}'"
+      },
+      {
+        "predicate": "all((v == {'used_mib': 0, 'processes': []} for v in m.gpu().values())) and gone(store_owner) and gone(observer_owner)",
+        "message": "f'final GPUzero/owned-gone failed: expected every GPU used_mib0/no processes and both identities gone; store_owner={store_owner!r}; observer_owner={observer_owner!r}'"
+      },
+      {
+        "predicate": "time.monotonic() < limit",
+        "message": "f'normal_exit role={role}: container exit wait deadline exceeded; cid={cids[role]}'"
+      },
+      {
+        "predicate": "int(p['MainPID']) > 0",
+        "message": "f'final-stop admission role={role}: unit no longer active; actual={p!r}'"
+      },
+      {
+        "predicate": "result['status'] == 'KERNEL_CLEANUP_RELEASE_PASS' and (not result['failures']) and (result['quiet_seconds'] >= 60)",
+        "message": "f'guard release role={role}: expected PASS/no failures/quiet>=60; actual={result!r}'"
+      },
+      {
+        "predicate": "not pathlib.Path('/sys/fs/cgroup/system.slice/docker-' + cids[role] + '.scope').exists()",
+        "message": "f'cgroup release role={role}: scope remains for cid={cids[role]}'"
+      },
+      {
+        "predicate": "time.monotonic() - started < 7020",
+        "message": "f'release wait deadline7020 exceeded; units={units!r}'"
+      },
+      {
+        "predicate": "p['Result'] == 'success' and p['ExecMainCode'] == '1' and (p['ExecMainStatus'] == '0')",
+        "message": "f'unit exit metadata unit={u}: expected success/code1/status0; actual={p!r}'"
+      },
+      {
+        "predicate": "len({tuple(r['input_tokens']) for r in gold}) == 3",
+        "message": "f\"input history life={life} request={index}: expected3 unique prompts; actual={[r['input_tokens'] for r in gold]!r}\""
+      },
+      {
+        "predicate": "collections.Counter((json.dumps(x) for x in tokens['tokens'])) == collections.Counter((json.dumps(x) for x in history))",
+        "message": "f\"token history life={life} request={index}: actual={tokens['tokens']!r}; expected={history!r}\""
+      },
+      {
+        "predicate": "time.monotonic() - started < 7020",
+        "message": "f'release wait deadline7020 exceeded; units={units!r}'"
+      },
+      {
+        "predicate": "gone(owner)",
+        "message": "f'pinned identity release role={role}: owner remains; actual={owner!r}'"
+      },
+      {
+        "predicate": "time.monotonic() - started < 7020",
+        "message": "f'release wait deadline7020 exceeded; units={units!r}'"
+      }
+    ]
+  },
+  "constraints": {
+    "all_predicates_deadlines_control_flow_equal": true,
+    "spec_equal_before_source_repin": true,
+    "role_bodies_and_role_sha_unchanged": true,
+    "old_frozen_commands_or_history_modified": false,
+    "sampled_rank1_bug_changed": false,
+    "gpu_or_container_or_cache_or_store": false,
+    "git_or_sync": false
+  },
+  "impact": [
+    "prepare/test source SHA and future committed-source identity change",
+    "newly rendered root body SHA and enclosing command/spec-sourcepin/bundle hashes require regeneration as applicable",
+    "role_body_sha256, overlays, CUDA/Store ELF, original gold and previous artifacts remain unchanged"
+  ],
+  "limits": [
+    "No runtime/model/GPU validation claimed",
+    "Observer existing predicate is quiet>=60; no new coverage/gaps acceptance predicate added. Failure message includes complete existing observer record.",
+    "Final GPU predicate does not retain its query result; message reports expected composite criterion and original owners without issuing an additional GPU query.",
+    "Temporary repeatability test now isolates runs root because its historical run ID actually exists; extracted Counter failure fixture includes actual caller life/index variables."
+  ]
+}

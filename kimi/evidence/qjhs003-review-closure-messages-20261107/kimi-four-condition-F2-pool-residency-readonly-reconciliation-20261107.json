@@ -1,0 +1,158 @@
+{
+  "status": "READONLY_POOL_ADMISSION_EVIDENCE_RECONCILED_NOT_NEW_RUNTIME",
+  "epoch": 1793991504.5981069,
+  "run_id": "kimi-four-v1-b02-store_pool_hit",
+  "original_failure_unchanged": true,
+  "pool_admission": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_pool_hit/pool-admission.json",
+    "sha256": "c7afd3ba15b8e0d62f2f9fcdbea065aaff28a2ec2aa78dedbe3e8d2268333a5d",
+    "offset": 1368,
+    "paths": [
+      "vllm/kimi-k2.6-sf-reference/rank_0",
+      "vllm/kimi-k2.6-sf-reference/rank_1",
+      "vllm/kimi-k2.6-sf-reference/rank_2",
+      "vllm/kimi-k2.6-sf-reference/rank_3",
+      "vllm/kimi-k2.6-sf-reference/rank_4",
+      "vllm/kimi-k2.6-sf-reference/rank_5",
+      "vllm/kimi-k2.6-sf-reference/rank_6",
+      "vllm/kimi-k2.6-sf-reference/rank_7"
+    ],
+    "store_owner": {
+      "pid": 1046038,
+      "startticks": 110208876,
+      "state": "R",
+      "ppid": 1041509,
+      "cgroup": "0::/system.slice/docker-2116684557c16b9e0ab3209df1cd1f20cff2518dbe5e2331bafc9ac3f47e3cb0.scope"
+    }
+  },
+  "root_pool_confirmations_json_present": false,
+  "store_log": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_pool_hit/9-worker-official_module.stderr",
+    "sha256": "8211be554adf6a40fb9f358a10c5cb14572c0fd45b906f9311145fb86f55dcab",
+    "finished_paths_after_offset": [
+      "vllm/kimi-k2.6-sf-reference/rank_2",
+      "vllm/kimi-k2.6-sf-reference/rank_4",
+      "vllm/kimi-k2.6-sf-reference/rank_1",
+      "vllm/kimi-k2.6-sf-reference/rank_5",
+      "vllm/kimi-k2.6-sf-reference/rank_3",
+      "vllm/kimi-k2.6-sf-reference/rank_6",
+      "vllm/kimi-k2.6-sf-reference/rank_7",
+      "vllm/kimi-k2.6-sf-reference/rank_0"
+    ],
+    "allocation_counts": [
+      [
+        "1150",
+        "9090",
+        "10240"
+      ],
+      [
+        "1150",
+        "7940",
+        "10240"
+      ],
+      [
+        "1150",
+        "6790",
+        "10240"
+      ],
+      [
+        "1150",
+        "5640",
+        "10240"
+      ],
+      [
+        "1150",
+        "4490",
+        "10240"
+      ],
+      [
+        "1150",
+        "3340",
+        "10240"
+      ],
+      [
+        "1150",
+        "2190",
+        "10240"
+      ],
+      [
+        "1150",
+        "1040",
+        "10240"
+      ]
+    ],
+    "free_eviction_lines_after_offset": [
+      "I20261106 15:20:03.745404  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_7",
+      "I20261106 15:20:03.745787  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_6",
+      "I20261106 15:20:03.746052  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_5",
+      "I20261106 15:20:03.746137  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_4",
+      "I20261106 15:20:03.746290  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_3",
+      "I20261106 15:20:03.746547  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_2",
+      "I20261106 15:20:03.746791  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_1",
+      "I20261106 15:20:03.746876  1238 checkpoint_store.cpp:319] Unloading model vllm/kimi-k2.6-sf-reference/rank_0",
+      "I20261106 15:20:03.747210  1238 checkpoint_store.cpp:326] All models unloaded from memory",
+      "I20261106 15:20:34.450423  1238 checkpoint_store.cpp:326] All models unloaded from memory"
+    ],
+    "loaded_shortcut_lines": []
+  },
+  "facts": [
+    "load_into_cpu invokes asynchronous LoadModelAsync; successful RPC alone is not completion",
+    "construct_cache separately waits for eight unique Finished loading paths after captured log offset",
+    "Model::ToHost emits completion only after joining all file-reading futures and state=LOADED; not merely asynchronous request acceptance",
+    "observed allocations describe chunk occupancy, not independent external byte-value integrity measurement",
+    "no CPU wait/confirm RPC receipt was found in this run; ConfirmModel supports GPU only",
+    "mincore page-cache evidence is not used to establish pool residency"
+  ],
+  "limits": [
+    "no direct measured pread syscall counter at pool-hit inference, no new interface proposed",
+    "loaded logs plus same authenticated Store owner and no observed eviction support admission; not an independent continuous residency query",
+    "all original failures and incomplete formal block status retained"
+  ],
+  "source_references": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "9682727a6920190c36eb61533eb7e2cd35ef018df673ca7c2327629c590f57ca",
+      "lines": [
+        113,
+        137
+      ],
+      "excerpt": "\"\"\"\n\nCACHE_CODE = \"\"\"\ndef frozen_files():\n manifest=json.loads(pathlib.Path(s['input_inventory']['path']).read_text())\n assert hashlib.sha256(pathlib.Path(s['input_inventory']['path']).read_bytes()).hexdigest()==s['input_inventory']['sha256']\n group=manifest['roots']['safetensors' if s['condition'].startswith('safetensors') else 'store']\n for row in group['files']:\n  p=pathlib.Path(row['path']);v=p.stat()\n  assert str(p.resolve())==row['resolved'] and p.is_file()\n  assert (v.st_dev,v.st_ino,v.st_size,v.st_mtime_ns,v.st_uid)==(row['dev'],row['ino'],row['bytes'],row['mtime_ns'],row['uid']),'asset identity drift'\n return group\ndef event(name):\n save('event-'+name+'.json',{'event':name,'monotonic':time.monotonic(),'monotonic_ns':time.monotonic_ns(),'wall':time.time(),'pid':os.getpid(),'measurement':'controller_observed_operation_boundary_not_pure_CUDA_or_IO','clock_identity':clock_identity,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'run_id':run,'attempt':s['attempt'],'condition':s['condition']})\ndef construct_cache():\n group=frozen_files();paths=[r['path'] for r in group['files']];roots=[group['root']];deadline=time.monotonic()+1800\n event('target_condition_construction_begin')\n if s['condition']=='store_pool_hit':\n  log=services['store'][2];offset=log.stat().st_size\n  execute('worker','store_config',['pool'],seconds=min(1790,int(deadline-time.monotonic())),monitor=True)\n  expected_paths={'vllm/'+s['config']['model']+'/rank_'+str(rank) for rank in range(8)}\n  while True:\n   healthy();assert time.monotonic()<deadline\n   with log.open() as stream:stream.seek(offset);text=stream.read((8<<20)+1);assert len(text)<=8<<20\n   loaded=re.findall(r'Finished loading model (\\\\S+) from disk',text)"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/client.py",
+      "sha256": "203f22054e1cb2661f3d02d63dcfa7697b8f1d37d7a057ad6a514c43995d205f",
+      "lines": [
+        39,
+        54
+      ],
+      "excerpt": "    def load_into_cpu(self, model_path):\n        request = storage_pb2.LoadModelRequest(\n            model_path=model_path,\n            target_device_type=storage_pb2.DeviceType.DEVICE_TYPE_CPU,\n        )\n        try:\n            response = self.stub.LoadModelAsync(request)\n        except grpc.RpcError as e:\n            if e.code() == grpc.StatusCode.CANCELLED:\n                logger.error(f\"Model not loaded {e}\")\n                return False\n            else:\n                logger.error(f\"Error: {e}\")\n                return False\n        else:\n            return response"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/server.py",
+      "sha256": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52",
+      "lines": [
+        53,
+        118
+      ],
+      "excerpt": "    async def LoadModelAsync(self, request, context):\n        model_path = request.model_path\n        if not model_path:\n            logger.error(\"model_path is empty\")\n            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)\n            return storage_pb2.LoadModelResponse()\n\n        if not self.registration_required:\n            model_size = self.storage.register_model_info(model_path)\n            if model_size < 0:\n                logger.error(\"RegisterModel failed\")\n                context.set_code(grpc.StatusCode.INTERNAL)\n                return storage_pb2.LoadModelResponse()\n\n        device_type = request.target_device_type\n        if device_type == storage_pb2.DEVICE_TYPE_CPU:\n            ret = self.storage.load_model_from_disk_async(model_path)\n        elif device_type == storage_pb2.DEVICE_TYPE_GPU:\n            replica_uuid = request.replica_uuid\n            if not replica_uuid:\n                logger.error(\"replica_uuid is empty\")\n                context.set_code(grpc.StatusCode.INVALID_ARGUMENT)\n                return storage_pb2.LoadModelResponse()\n\n            gpu_memory_handles = {\n                device_uuid: [\n                    handle.cuda_ipc_handle for handle in handle_list.handles\n                ]\n                for device_uuid, handle_list in request.handles.items()\n            }\n\n            def create_mem_copy_chunk(chunk):\n                mem_copy_chunk = MemCopyChunk()\n                mem_copy_chunk.src_offset = chunk.src_offset\n                mem_copy_chunk.size = chunk.size\n                mem_copy_chunk.dst_offset = chunk.dst_offset\n                mem_copy_chunk.handle_idx = chunk.handle_idx\n                return mem_copy_chunk\n\n            mem_copy_chunks = {\n                device_uuid: [\n                    create_mem_copy_chunk(chunk) for chunk in chunk_list.chunks\n                ]\n                for device_uuid, chunk_list in request.chunks.items()\n            }\n            # logger.debug(\n            #     f\"LoadModelAsync: {model_path}, {replica_uuid}, \"\n            #     f\"{gpu_memory_handles}, {mem_copy_chunks}\"\n            # )\n            ret = self.storage.load_model_from_mem_async(\n                model_path, replica_uuid, gpu_memory_handles, mem_copy_chunks\n            )\n        else:\n            logger.error(f\"Unsupported device type: {device_type}\")\n            context.set_code(grpc.StatusCode.UNIMPLEMENTED)\n            return storage_pb2.LoadModelResponse()\n\n        if ret != 0:\n            logger.error(\"LoadModel failed\")\n            context.set_code(grpc.StatusCode.INTERNAL)\n            return storage_pb2.LoadModelResponse()\n\n        logger.info(\n            f\"LoadModel: success {model_path} with target {device_type}\"\n        )\n        return storage_pb2.LoadModelResponse(model_path=model_path)"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/checkpoint_store.cpp",
+      "sha256": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3",
+      "lines": [
+        151,
+        220
+      ],
+      "excerpt": "int CheckpointStore::LoadModelFromDisk(const std::string& model_path) {\n  std::unique_lock<std::mutex> lock_info(model_info_mutex_);\n  auto model = GetModelPtr(model_path);\n  if (model == nullptr) {\n    LOG(ERROR) << \"Model \" << model_path << \" is not registered\";\n    return -1;\n  }\n  lock_info.unlock();\n\n  // Allocate memory\n  lock_info.lock();\n  int remaining_size = model->AllocatePinnedMemory(memory_pool_);\n  if (remaining_size < 0) {\n    LOG(ERROR) << \"Failed to allocate memory for model \" << model_path;\n    return -1;\n  } else if (remaining_size > 0) {\n    int mem_chunks_needed = remaining_size;\n    std::vector<std::pair<std::string,\n                          std::chrono::time_point<std::chrono::system_clock>>>\n        model_last_access_time(model_last_access_time_.begin(),\n                               model_last_access_time_.end());\n    std::sort(model_last_access_time.begin(), model_last_access_time.end(),\n              [](const auto& a, const auto& b) { return a.second < b.second; });\n    for (const auto& [model_path, last_access_time] : model_last_access_time) {\n      auto& model = model_map_[model_path];\n      int freed_chunks =\n          model->TryFreeHost();  // try to free memory, non-blocking\n      LOG(INFO) << \"Free \" << freed_chunks << \" chunks, remaining \"\n                << mem_chunks_needed;\n      if (freed_chunks > 0) {\n        LOG(INFO) << \"Model \" << model_path << \" is freed from memory\";\n        mem_chunks_needed -= freed_chunks;\n        if (mem_chunks_needed <= 0) {\n          break;\n        }\n      }\n    }\n    if (mem_chunks_needed > 0) {\n      LOG(ERROR) << \"Failed to free enough memory for model \" << model_path;\n      return -1;\n    }\n    ssize_t remaining_size = model->AllocatePinnedMemory(memory_pool_);\n    if (remaining_size < 0) {\n      LOG(ERROR) << \"Failed to allocate memory for model \" << model_path;\n      return -1;\n    }\n  }\n  model_last_access_time_[model_path] = std::chrono::system_clock::now();\n  lock_info.unlock();\n\n  int ret = model->ToHost(num_thread_);\n\n  if (ret != 0) {\n    LOG(ERROR) << \"Failed to load model \" << model_path << \" to host\";\n    if (model->FreeHost() != 0) {\n      LOG(ERROR) << \"Failed to free memory for model \" << model_path;\n    }\n    return ret;\n  }\n\n  return ret;\n}\n\nint CheckpointStore::LoadModelFromDiskAsync(const std::string& model_path) {\n  std::unique_lock<std::mutex> lock_info(model_info_mutex_);\n  async_tasks_.emplace(std::async(std::launch::async, [this, model_path]() {\n    return LoadModelFromDisk(model_path);\n  }));\n\n  return 0;"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/model.cpp",
+      "sha256": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509",
+      "lines": [
+        212,
+        252
+      ],
+      "excerpt": "  bool error = false;\n  for (auto& future : futures) {\n    int ret = future.get();\n    if (ret != 0) {\n      LOG(ERROR) << \"Error reading from disk, ret \" << ret;\n      error = true;\n    }\n  }\n\n  // close file\n  for (int fd : file_descriptors) {\n    close(fd);\n  }\n\n  lock.lock();\n  if (error) {\n    state_ = MemoryState::INTERRUPTED;\n    // Deal with gpu replicas\n    for (auto& [replica_uuid, gpu_replica] : gpu_replicas_) {\n      if (gpu_replica->state_ == MemoryState::LOADING) {\n        gpu_replica->state_ = MemoryState::CANCELLED;\n        gpu_replica->cv_.notify_all();\n      }\n      // wait for gpu replicas to finish\n      gpu_replica->cv_.wait(lock, [&gpu_replica] {\n        return gpu_replica->state_ == MemoryState::LOADED ||\n               gpu_replica->state_ == MemoryState::INTERRUPTED;\n      });\n      // Note: gpu replicas will be handled by the caller\n    }\n    // release pinned memory\n    pinned_mem_.reset();\n    state_ = MemoryState::UNALLOCATED;\n\n    return -1;\n  }\n\n  state_ = MemoryState::LOADED;\n  LOG(INFO) << \"Finished loading model \" << model_path_ << \" from disk\";\n\n  return 0;"
+    }
+  ]
+}

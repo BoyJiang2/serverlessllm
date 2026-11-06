@@ -1,0 +1,11 @@
+# Review closure: milestone failure messages only
+
+User-provided REVIEW-CLOSURE-20261106.md is copied byte-identical (SHA3d6d92575c4c3d01f9c8c606e4815cdf32aecd68fa721be96c9c3e6cc8df6f7e). Its running-status snapshot is historical; retry02 and later one-time SFhot control have since failed and completed release observation, retained unchanged.
+
+Source c745e6cab2e9774d836cf8990d02effb824b4cd9 changes only prepare_kimi_four_condition.py and its existing test. The direct chain is four-condition render -> base.render_pool_exit60 -> frozen ec066 exit60 actual-c body, not the general s4a_root_controller.py. Sixteen assertions gain messages. Author43/43 CPU tests and independent43 tests plus2 final targeted tests pass. Removing assert.msg yields the identical full generated AST. Complete spec/9role bodies/requests/budgets/criteria are unchanged except root-body SHA; source code pin changes propagate to future spec/command/bundle. Old frozen artifacts are not overwritten. No new GPU command is authorized by this source publication.
+
+Normal-exit message prints only State and RestartCount, not Docker Config/Env. Failure-only messages introduce no extra GPU queries, no new coverage criterion or quiet-period grace. Existing successful predicates and timing are unchanged. Final example root-body SHA532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee is CPU render evidence, not a launched new candidate.
+
+Pool residency reconciliation finds8completed disk-load logs,8allocations of1150chunks and authenticated Store identity in historicalb02; load_into_cpu RPC is asynchronous but admission separately waits for completed paths. No CPU-confirm receipt/API or direct inference-time disk-syscall count is claimed. Mincore is not substituted for pool evidence. Remaining race/contamination hypotheses are not promoted to defects or used to widen timeouts.
+
+Separately, the one-time SFhot control exposed rank1-as-sampled consumer parsing. The pinned-vLLM/real-response/trace proof is retained separately; this messages-only commit does not fix it. A follow-up minimal parser patch is under CPU preparation. Original overall FAIL, fourth text difference and abort exit137 remain. The32-step top2 observation is already available; no extra GPU request is needed to obtain it. Returned score ties do not prove exact raw-logit equality.
