@@ -60,36 +60,35 @@ struct CpuLog {
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <unordered_set>
 #include <vector>
 #include <cuda_runtime.h>
 #include <glog/logging.h>
 #include HEADER
-struct Event { std::string kind; void* pointer; std::string message; };
-std::vector<Event> events;
-std::unordered_set<void*> registered, unregistered, freed;
-bool unregister_error = false;
-void capture_log(const std::string& text) {
-  events.push_back({"log", nullptr, text});
-}
+std::unordered_set<void*> registered, freed;
+std::vector<std::string> logs;
+size_t attempts = 0;
+void* failing = nullptr;
+bool fail_all = false;
+void capture_log(const std::string& text) { logs.push_back(text); }
 cudaError_t cudaHostRegister(void* pointer, size_t bytes, unsigned flags) {
   assert(pointer && bytes == 4096 && flags == cudaHostRegisterDefault);
   assert(registered.insert(pointer).second);
-  events.push_back({"register", pointer, ""});
   return cudaSuccess;
 }
 cudaError_t cudaHostUnregister(void* pointer) {
-  assert(registered.count(pointer) && unregistered.insert(pointer).second);
-  events.push_back({"unregister", pointer, ""});
-  return unregister_error ? 1 : cudaSuccess;
+  assert(registered.count(pointer) && !freed.count(pointer));
+  ++attempts;
+  if (fail_all || pointer == failing) return 1;
+  registered.erase(pointer);
+  return cudaSuccess;
 }
 const char* cudaGetErrorString(cudaError_t) { return "CPU stub error"; }
 void checked_free(void* pointer) {
-  assert(registered.count(pointer) && unregistered.count(pointer));
+  assert(!registered.count(pointer));
   assert(freed.insert(pointer).second);
-  assert(events.back().kind == "unregister" && events.back().pointer == pointer);
-  events.push_back({"free", pointer, ""});
   std::free(pointer);
 }
 #define free checked_free
@@ -98,42 +97,88 @@ void checked_free(void* pointer) {
 int main(int argc, char** argv) {
   assert(argc == 3);
   size_t count = std::stoul(argv[1]);
-  unregister_error = std::string(argv[2]) == "error";
-  { PinnedMemoryPool pool(count * 4096, 4096); }
-  assert(registered.size() == count && unregistered.size() == count);
-  assert(freed.size() == count);
-  size_t position = 0;
-  auto log = [&](const std::string& expected) {
-    assert(position < events.size());
-    const auto& event = events[position++];
-    assert(event.kind == "log" && event.message == expected);
-    std::cout << "LOG\t" << event.message << "\n";
-  };
-  log("Creating PinnedMemoryPool with " + std::to_string(count)
-      + " buffers of 4096 bytes");
-  for (size_t index = 0; index < count; ++index) {
-    assert(events[position++].kind == "register");
+  std::string mode = argv[2];
+  if (mode == "drain") {
+    CheckpointStore store;
+    store.async_tasks_.push(std::async(std::launch::deferred, [] { return 7; }));
+    store.async_tasks_.push(std::async(std::launch::deferred, []() -> int {
+      throw std::runtime_error("injected task error");
+    }));
+    bool last_ran = false;
+    store.async_tasks_.push(std::async(std::launch::deferred, [&] { last_ran = true; return 0; }));
+    store.DrainAsyncTasks();
+    assert(last_ran && store.async_tasks_.empty());
+    bool nonzero = false, exception = false;
+    for (const auto& text : logs) {
+      if (text == "Async load task returned 7") nonzero = true;
+      if (text == "Async load task failed: injected task error") exception = true;
+    }
+    assert(nonzero && exception);
   }
-  log("PinnedMemoryPool shutdown begin buffers=" + std::to_string(count)
-      + " chunk_size=4096");
-  for (size_t index = 0; index < count; ++index) {
-    const auto& unregister = events[position++];
-    const auto& release = events[position++];
-    assert(unregister.kind == "unregister" && release.kind == "free");
-    assert(unregister.pointer == release.pointer);
-    if ((index + 1) % 1024 == 0) {
-      log("PinnedMemoryPool shutdown progress completed="
-          + std::to_string(index + 1) + " total=" + std::to_string(count));
+  {
+    PinnedMemoryPool pool(count * 4096, 4096);
+    if (mode == "borrowed") {
+      std::vector<char*> borrowed;
+      assert(pool.Allocate(4096, borrowed) == 0);
+      bool rejected = false;
+      try { pool.Release(); } catch (const std::runtime_error&) { rejected = true; }
+      assert(rejected && attempts == 0 && freed.empty());
+      assert(pool.Deallocate(borrowed) == 0);
+    }
+    if (mode == "error") {
+      assert(count == 2);
+      failing = *registered.begin();
+      bool rejected = false;
+      try { pool.Release(); } catch (const std::runtime_error&) { rejected = true; }
+      assert(rejected && registered.size() == 1 && registered.count(failing));
+      assert(freed.size() == 1 && !freed.count(failing));
+      // The failed pointer remains owned and available; the successful one does not.
+      std::vector<char*> retained;
+      assert(pool.Allocate(4096, retained) == 0 && retained[0] == failing);
+      assert(pool.Deallocate(retained) == 0);
+      failing = nullptr;
+    }
+    if (mode == "destructor_error") {
+      fail_all = true;
+    } else {
+      pool.Release();
+      size_t previous = attempts;
+      pool.Release();
+      assert(attempts == previous && registered.empty() && freed.size() == count);
     }
   }
-  log("PinnedMemoryPool shutdown complete buffers=" + std::to_string(count));
-  assert(position == events.size());
-  std::cout << "COUNTS\t" << count << "\t" << registered.size() << "\t"
-            << unregistered.size() << "\t" << freed.size() << "\n";
+  if (mode == "destructor_error") {
+    assert(registered.size() == count && freed.empty());
+    bool logged = false;
+    for (const auto& text : logs) if (text.find("destructor release failed") != std::string::npos) logged = true;
+    assert(logged);
+    // Test-only cleanup after proving production destructor retained failed memory.
+    for (void* pointer : registered) std::free(pointer);
+  } else {
+    assert(registered.empty() && freed.size() == count);
+  }
+  if (count == 1025) {
+    bool progress = false;
+    for (const auto& text : logs) if (text.find("attempted=1024 failed=0 total=1025") != std::string::npos) progress = true;
+    assert(progress);
+  }
+  std::cout << "POOL_RELEASE_CONTRACT_PASS " << mode << " " << count << "\n";
 }
 """.replace("#include HEADER", "#include " + header).replace(
             "#include SOURCE", "#include " + source
         )
+        store_source = SOURCE.with_name("checkpoint_store.cpp").read_text()
+        begin = store_source.index("void CheckpointStore::DrainAsyncTasks() {")
+        end = store_source.index("\n}", begin) + 2
+        drain = store_source[begin:end]
+        harness = harness.replace("int main(int argc, char** argv) {", """
+#include <future>
+#include <queue>
+struct CheckpointStore {
+  std::queue<std::future<int>> async_tasks_;
+  void DrainAsyncTasks();
+};
+""" + drain + "\nint main(int argc, char** argv) {")
         cls.source_sha256 = hashlib.sha256(SOURCE.read_bytes()).hexdigest()
         fixture = folder / "pool_shutdown.cpp"
         fixture.write_text(harness)
@@ -146,27 +191,15 @@ int main(int argc, char** argv) {
             check=True, capture_output=True, text=True, timeout=30,
         )
 
-    def run_case(self, count, error=False):
+    def run_case(self, count, mode="ok"):
         result = subprocess.run(
-            [str(self.executable), str(count), "error" if error else "ok"],
+            [str(self.executable), str(count), mode],
             check=True, capture_output=True, text=True, timeout=5,
         )
-        lines = result.stdout.splitlines()
-        logs = [line.removeprefix("LOG\t") for line in lines if line.startswith("LOG\t")]
-        expected = [
-            f"Creating PinnedMemoryPool with {count} buffers of 4096 bytes",
-            f"PinnedMemoryPool shutdown begin buffers={count} chunk_size=4096",
-        ]
-        expected.extend(
-            f"PinnedMemoryPool shutdown progress completed={completed} total={count}"
-            for completed in range(1024, count + 1, 1024)
-        )
-        expected.append(f"PinnedMemoryPool shutdown complete buffers={count}")
-        self.assertEqual(logs, expected)
-        self.assertEqual(lines[-1], "COUNTS\t" + "\t".join([str(count)] * 4))
+        self.assertEqual(result.stdout.strip(), f"POOL_RELEASE_CONTRACT_PASS {mode} {count}")
         self.assertEqual(hashlib.sha256(SOURCE.read_bytes()).hexdigest(), self.source_sha256)
 
-    def test_empty_pool_begin_and_complete(self):
+    def test_empty_pool_release_is_idempotent(self):
         self.run_case(0)
 
     def test_one_buffer_unregister_then_free_exactly_once(self):
@@ -175,8 +208,17 @@ int main(int argc, char** argv) {
     def test_1025_buffers_progress_at_1024(self):
         self.run_case(1025)
 
-    def test_unregister_error_keeps_original_free_behavior(self):
-        self.run_case(1, error=True)
+    def test_unregister_error_retains_failed_owner_and_successes_are_not_repeated(self):
+        self.run_case(2, "error")
+
+    def test_borrowed_buffer_rejects_release_before_any_unregister(self):
+        self.run_case(1, "borrowed")
+
+    def test_destructor_contains_unregister_error_without_freeing_failed_memory(self):
+        self.run_case(1, "destructor_error")
+
+    def test_actual_task_drain_observes_results_and_continues_after_exception(self):
+        self.run_case(0, "drain")
 
 
 if __name__ == "__main__":

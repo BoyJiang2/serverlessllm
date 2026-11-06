@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import grpc
 import sllm_store
 from sllm_store.proto import storage_pb2, storage_pb2_grpc
@@ -223,29 +224,39 @@ async def serve(
     registration_required,
 ):
     server = grpc.aio.server()
-    storage_pb2_grpc.add_StorageServicer_to_server(
-        StorageServicer(
-            storage_path,
-            mem_pool_size,
-            num_thread,
-            chunk_size,
-            registration_required,
-        ),
-        server,
+    servicer = StorageServicer(
+        storage_path,
+        mem_pool_size,
+        num_thread,
+        chunk_size,
+        registration_required,
     )
+    storage_pb2_grpc.add_StorageServicer_to_server(servicer, server)
     listen_addr = f"{host}:{port}"
     server.add_insecure_port(listen_addr)
     logger.info(f"Starting gRPC server on {listen_addr}")
     await server.start()
 
     termination_task = asyncio.create_task(server.wait_for_termination())
+    shutdown_complete = False
     try:
         await asyncio.shield(termination_task)
+        shutdown_complete = True
     except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Shutting down gRPC server")
         await server.stop(5)
         await termination_task
+        shutdown_complete = True
     finally:
         if not termination_task.done():
             termination_task.cancel()
         await asyncio.gather(termination_task, return_exceptions=True)
+        # Native release requires that gRPC has stopped accepting work.
+        if shutdown_complete:
+            shutdown_error = sys.exc_info()[1]
+            try:
+                servicer.storage.release_memory_pool()
+            except Exception as error:
+                logger.error(f"release_memory_pool failed: {error}")
+                if shutdown_error is None:
+                    raise

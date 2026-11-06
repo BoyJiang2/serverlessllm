@@ -58,6 +58,8 @@ class CheckpointStore {
                      const std::string& replica_uuid);
   int UnloadModelFromHost(const std::string& model_path);
   int ClearMem();
+  // Release the pinned pool now. Idempotent; the destructor becomes a no-op.
+  void ReleaseMemoryPool();
 
  public:
   // Get methods
@@ -91,6 +93,8 @@ class CheckpointStore {
   std::queue<std::future<int>> async_tasks_;
 
   size_t GetNumChunkFromTensorSize(size_t tensor_size);
+  // Join every pending std::async loader before buffers are released.
+  void DrainAsyncTasks();
   ModelPtr GetModelPtr(const std::string& model_path);
   GpuReplicaPtr NewGpuReplica(const std::shared_ptr<Model>& model,
                               const std::string& replica_uuid);

@@ -26,6 +26,10 @@ class PinnedMemoryPool {
   PinnedMemoryPool(size_t total_size, size_t chunk_size);
   ~PinnedMemoryPool();
 
+  // Idempotent after success. Requires all borrowed buffers to be returned.
+  // Throws on unregister failure and retains ownership of failed buffers.
+  void Release();
+
   int Allocate(size_t size, std::vector<char*>& buffers);
   int Deallocate(std::vector<char*>& buffers);
   size_t chunk_size() const { return chunk_size_; }
@@ -39,4 +43,5 @@ class PinnedMemoryPool {
   std::unordered_set<char*> free_list_;
   std::unordered_set<char*> pool_;
   size_t chunk_size_;
+  bool released_ = false;
 };

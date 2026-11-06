@@ -17,6 +17,8 @@
 //  ----------------------------------------------------------------------------
 #include "pinned_memory_pool.h"
 
+#include <chrono>
+#include <stdexcept>
 #include <cuda_runtime.h>
 #include <glog/logging.h>
 
@@ -46,19 +48,67 @@ PinnedMemoryPool::PinnedMemoryPool(size_t total_size, size_t chunk_size)
 }
 
 PinnedMemoryPool::~PinnedMemoryPool() {
-  LOG(INFO) << "PinnedMemoryPool shutdown begin buffers=" << pool_.size()
+  try {
+    Release();
+  } catch (const std::exception& error) {
+    LOG(ERROR) << "PinnedMemoryPool destructor release failed: " << error.what();
+  } catch (...) {
+    LOG(ERROR) << "PinnedMemoryPool destructor release failed: unknown error";
+  }
+}
+
+void PinnedMemoryPool::Release() {
+  std::lock_guard<std::mutex> lock(mutex_);
+  if (released_) {
+    return;
+  }
+  if (free_list_.size() != pool_.size()) {
+    throw std::runtime_error("PinnedMemoryPool release has outstanding borrowers");
+  }
+  LOG(INFO) << "PinnedMemoryPool release begin buffers=" << pool_.size()
             << " chunk_size=" << chunk_size_;
-  size_t completed = 0;
-  for (char* buffer : pool_) {
-    cudaHostUnregister(buffer);
-    free(buffer);
-    ++completed;
-    if (completed % 1024 == 0) {
-      LOG(INFO) << "PinnedMemoryPool shutdown progress completed=" << completed
-                << " total=" << pool_.size();
+  const size_t total = pool_.size();
+  size_t attempted = 0;
+  size_t unregister_failed = 0;
+  cudaError_t last_error = cudaSuccess;
+  auto shutdown_started = std::chrono::steady_clock::now();
+  for (auto it = pool_.begin(); it != pool_.end();) {
+    char* buffer = *it;
+    // Keep ownership of a failed registration; it must not be freed as heap memory.
+    cudaError_t err = cudaHostUnregister(buffer);
+    if (err != cudaSuccess) {
+      ++unregister_failed;
+      if (err != last_error) {
+        LOG(ERROR) << "PinnedMemoryPool cudaHostUnregister failed: "
+                   << cudaGetErrorString(err);
+        last_error = err;
+      }
+      ++it;
+    } else {
+      free(buffer);
+      free_list_.erase(buffer);
+      it = pool_.erase(it);
+    }
+    ++attempted;
+    if (attempted % 64 == 0) {
+      auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                            std::chrono::steady_clock::now() - shutdown_started)
+                            .count();
+      LOG(INFO) << "PinnedMemoryPool shutdown progress attempted=" << attempted
+                << " failed=" << unregister_failed << " total=" << total
+                << " elapsed_ms=" << elapsed_ms;
     }
   }
-  LOG(INFO) << "PinnedMemoryPool shutdown complete buffers=" << completed;
+  auto total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                      std::chrono::steady_clock::now() - shutdown_started)
+                      .count();
+  LOG(INFO) << "PinnedMemoryPool release attempts finished attempted=" << attempted
+            << " failed=" << unregister_failed << " elapsed_ms=" << total_ms;
+  if (unregister_failed != 0) {
+    throw std::runtime_error("PinnedMemoryPool cudaHostUnregister failures=" +
+                             std::to_string(unregister_failed));
+  }
+  released_ = true;
 }
 
 int PinnedMemoryPool::Allocate(size_t size, std::vector<char*>& buffers) {

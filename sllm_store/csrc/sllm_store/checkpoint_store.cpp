@@ -83,7 +83,47 @@ CheckpointStore::CheckpointStore(const std::string& storage_path,
   LOG(INFO) << "Memory pool created with " << memory_pool_size_ / GB << "GB";
 }
 
-CheckpointStore::~CheckpointStore() { ClearMem(); }
+// Teardown order matters. Models hand their buffers back to the pool in
+// ClearMem(), and a pending std::async loader may still be reading those very
+// buffers, so both must finish before the pinned pages are unregistered.
+// Releasing the pool first would make every Deallocate() report
+// "Buffer not found in pool" and leave model-held pointers dangling.
+CheckpointStore::~CheckpointStore() {
+  try {
+    ReleaseMemoryPool();
+  } catch (const std::exception& error) {
+    LOG(ERROR) << "CheckpointStore destructor release failed: " << error.what();
+  } catch (...) {
+    LOG(ERROR) << "CheckpointStore destructor release failed: unknown error";
+  }
+}
+
+void CheckpointStore::ReleaseMemoryPool() {
+  DrainAsyncTasks();
+  ClearMem();
+  if (memory_pool_) {
+    memory_pool_->Release();
+  }
+}
+
+void CheckpointStore::DrainAsyncTasks() {
+  // Precondition: the gRPC server has already stopped, so no new task can be
+  // enqueued. Joining first also avoids holding model_info_mutex_ (taken by
+  // ClearMem) while a loader that wants that same mutex is still running.
+  while (!async_tasks_.empty()) {
+    try {
+      int result = async_tasks_.front().get();
+      if (result != 0) {
+        LOG(ERROR) << "Async load task returned " << result;
+      }
+    } catch (const std::exception& error) {
+      LOG(ERROR) << "Async load task failed: " << error.what();
+    } catch (...) {
+      LOG(ERROR) << "Async load task failed: unknown error";
+    }
+    async_tasks_.pop();
+  }
+}
 
 int64_t CheckpointStore::RegisterModelInfo(const std::string& model_path) {
   std::unique_lock<std::mutex> lock_info(model_info_mutex_);

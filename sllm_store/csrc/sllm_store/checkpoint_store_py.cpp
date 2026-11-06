@@ -80,6 +80,9 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
            py::arg("model_path"), "Unload a model from the host memory.")
       .def("clear_mem", &CheckpointStore::ClearMem,
            "Clear all allocated memory.")
+      .def("release_memory_pool", &CheckpointStore::ReleaseMemoryPool,
+           "Release the pinned memory pool now, while CUDA is healthy. "
+           "Idempotent; the destructor then has nothing left to do.")
       .def("get_mem_pool_size", &CheckpointStore::GetMemPoolSize,
            "Get the memory pool size.")
       .def("get_chunk_size", &CheckpointStore::GetChunkSize,
