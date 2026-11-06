@@ -1,6 +1,7 @@
 """One bounded eight-rank CUDA/NCCL micro; no model or Store."""
 import argparse, hashlib, json, os, pathlib, re, subprocess, time
 import math
+import inspect
 
 ROOT = pathlib.Path('/data/brick1/boyjiang/kimi-new/ServerlessLLM')
 RUN = 'kimi-tp8-cuda-nccl-micro-cdi2-20261104'
@@ -29,6 +30,87 @@ def save(name, row):
     fd = os.open(BASE, os.O_DIRECTORY)
     try: os.fsync(fd)
     finally: os.close(fd)
+
+def _read_process_stop_snapshot(owner, deadline):
+    """Read bounded /proc evidence for one pinned process; never signal it."""
+    row = {'expected': owner, 'status': 'UNAVAILABLE', 'threads': []}
+    if owner is None:
+        row['status'] = 'INITIAL_PIN_UNAVAILABLE'
+        return row
+    proc = pathlib.Path('/proc')/str(owner['pid'])
+    def pinned():
+        fields = (proc/'stat').read_text().rsplit(')', 1)[1].split()
+        current = {'startticks': int(fields[19]), 'cgroup': (proc/'cgroup').read_text().strip()}
+        assert current == {key: owner[key] for key in current}, 'process identity changed'
+        status = (proc/'status').read_text()
+        assert next(line.split(':', 1)[1].split() for line in status.splitlines() if line.startswith('Uid:')) == ['2147']*4, 'process UID changed'
+        return status
+    try:
+        if time.monotonic() >= deadline:
+            row['status'] = 'SKIPPED_ORIGINAL_DEADLINE'
+            return row
+        row['process_status'] = pinned()
+        tasks = sorted((proc/'task').iterdir(), key=lambda path: int(path.name))
+        row['thread_count'] = len(tasks)
+        row['truncated'] = len(tasks) > 256
+        for task in tasks[:256]:
+            if time.monotonic() >= deadline:
+                row['deadline_reached'] = True
+                break
+            thread = {'tid': int(task.name)}
+            def task_pin():
+                status = (task/'status').read_text()
+                fields = dict(line.split(':', 1) for line in status.splitlines() if ':' in line)
+                assert fields['Uid'].split() == ['2147']*4 and int(fields['Tgid']) == owner['pid'], 'thread owner changed'
+                assert (task/'cgroup').read_text().strip() == owner['cgroup'], 'thread cgroup changed'
+                return (task/'stat').read_text().rsplit(')', 1)[1].split()[19]
+            try:
+                task_start = task_pin()
+            except (OSError, AssertionError, KeyError, ValueError) as error:
+                row['threads'].append({'tid': int(task.name), 'capture_status': 'THREAD_PIN_UNAVAILABLE', 'error_type': type(error).__name__})
+                continue
+            for name in ('comm', 'stat', 'wchan', 'syscall', 'stack'):
+                if time.monotonic() >= deadline:
+                    row['deadline_reached'] = True
+                    break
+                try:
+                    with (task/name).open() as stream:
+                        thread[name] = stream.read(4096)
+                except OSError as error:
+                    thread[name] = {'error_type': type(error).__name__, 'errno': error.errno}
+            try:
+                assert task_pin() == task_start, 'thread identity changed'
+                thread['startticks'] = int(task_start)
+            except (OSError, AssertionError, KeyError, ValueError) as error:
+                thread = {'tid': int(task.name), 'capture_status': 'THREAD_CHANGED_OR_GONE', 'error_type': type(error).__name__}
+            row['threads'].append(thread)
+        pinned()
+        row['status'] = 'CAPTURED_PROC_ONLY'
+    except (FileNotFoundError, ProcessLookupError):
+        row.update(status='ALREADY_GONE', threads=[])
+        row.pop('process_status', None)
+    except Exception as error:
+        row.update(status='DIAGNOSTIC_ERROR', error_type=type(error).__name__, error=str(error), threads=[])
+        row.pop('process_status', None)
+    return row
+
+def process_stop_snapshot(owner, deadline):
+    """Keep potentially slow procfs reads outside the service-stop controller."""
+    remaining = deadline-time.monotonic()
+    if remaining <= 0:
+        return {'status': 'SKIPPED_ORIGINAL_DEADLINE', 'expected': owner}
+    try:
+        source = ('import pathlib,time,json,sys\n' + inspect.getsource(_read_process_stop_snapshot) +
+                  '\nprint(json.dumps(_read_process_stop_snapshot(json.loads(sys.argv[1]),float(sys.argv[2]))))')
+        remaining = deadline-time.monotonic()
+        if remaining <= 0:
+            return {'status': 'SKIPPED_ORIGINAL_DEADLINE', 'expected': owner}
+        child = subprocess.run(['/usr/bin/python3', '-I', '-c', source, json.dumps(owner), str(deadline)],
+                               stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                               timeout=min(1.0, remaining), check=True, text=True)
+        return json.loads(child.stdout)
+    except Exception as error:
+        return {'status': 'DIAGNOSTIC_UNAVAILABLE', 'expected': owner, 'error_type': type(error).__name__}
 
 def unitprops(unit):
     return dict(line.split('=',1) for line in call(['/usr/bin/systemctl','show',unit,
