@@ -1,0 +1,24 @@
+{
+  "status": "CPU_LAUNCH_WITHOUT_RECEIPT_LEDGER_28_PASS_NOT_LAUNCH_PROOF",
+  "timestamp": "2026-11-06T13:31:36.709587+00:00",
+  "files": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "4d873564a75a41b07ee4e410217f821faa23bcad646829da418b706e1ea71ad4",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "f04355a5c2b9649900950df494083776f23615c4e0f4f2256ecc50cc8615e3f7"
+  },
+  "tests": {
+    "run": 28,
+    "pass": 28,
+    "elapsed_seconds": 3.469,
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v"
+  },
+  "delta": "Existing BLOCK_BODY marks launch_requested immediately before subprocess start call, separately records runtime_evidence_created and legacy attempted=directory-created semantics. No controller receipt produces explicit CONTROLLER_FAILED_WITHOUT_RECEIPT or TIMED_OUT_NO_RECEIPT terminal with returncode/error/evidence_missing and cleanup NOT_OBSERVED. Later conditions remain NOT_STARTED; no retry. Existing success/failed receipt statuses retained.",
+  "denominator": "Final protocol statistics.success_rate_denominator must be launch_requested; only this statistics field addition allowed, other preregistered statistics unchanged. Bundle/final ledger label denominator, launch_requested_count/runtime_evidence_created_count separately; all40 planned records remain.",
+  "actual_consumers": [
+    "Real temporary-file BLOCK_BODY, child1 success then child2 returncode2 without creating R0 or either receipt: second launch_requested true, runtime_evidence_created/legacy attempted false, explicit failed terminal, returncode2, missing receipt list, cleanup NOT_OBSERVED; child3/4 NOT_STARTED and not launched.",
+    "Same actual consumer child2 raises TimeoutExpired with no R0/receipt: explicit TIMED_OUT_NO_RECEIPT and exception type retained, no retry or later launch.",
+    "Previous26 CPU consumers remain PASS, including timing/route/qualifications/diagnostic failure and existing block success/receipt failure paths."
+  ],
+  "scope": "Same2 control/test files dirty only. No Git, COPY/target interaction, Docker/systemd/GPU/model/Store/cache operation. Formal0 and attempts_started empty.",
+  "formal_samples": 0,
+  "attempts_started": []
+}

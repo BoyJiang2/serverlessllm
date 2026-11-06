@@ -1,0 +1,1246 @@
+{
+  "status": "READONLY_ROUTE_AUDIT_LOCALIZATION_REQUIRES_USER_DECISION",
+  "epoch": 1793968411.0630054,
+  "node": "qjhs3",
+  "mounts": {
+    "/data/brick1/boyjiang/glm5.1-fp8": {
+      "filesystems": [
+        {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs",
+          "options": "rw,noatime,attr2,inode64,logbufs=8,logbsize=32k,sunit=8,swidth=8,noquota"
+        }
+      ]
+    },
+    "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb": {
+      "filesystems": [
+        {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs",
+          "options": "rw,noatime,attr2,inode64,logbufs=8,logbsize=32k,sunit=8,swidth=8,noquota"
+        }
+      ]
+    },
+    "/home/boyjiang/kimi-new": {
+      "filesystems": [
+        {
+          "target": "/home",
+          "source": "172.31.0.5:/home",
+          "fstype": "nfs4",
+          "options": "rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=rdma,port=20049,timeo=600,retrans=2,sec=sys,clientaddr=172.31.0.3,local_lock=none,addr=172.31.0.5"
+        }
+      ]
+    },
+    "/mnt/raid/models/Kimi-K2.6": {
+      "filesystems": [
+        {
+          "target": "/mnt/raid",
+          "source": "172.31.0.5:/mnt/raid",
+          "fstype": "nfs4",
+          "options": "rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=rdma,port=20049,timeo=600,retrans=2,sec=sys,clientaddr=172.31.0.3,local_lock=none,addr=172.31.0.5"
+        }
+      ]
+    },
+    "/var/lib/docker": {
+      "filesystems": [
+        {
+          "target": "/",
+          "source": "/dev/vda2",
+          "fstype": "ext4",
+          "options": "rw,relatime,errors=remount-ro"
+        }
+      ]
+    }
+  },
+  "devices": {
+    "blockdevices": [
+      {
+        "name": "vda",
+        "path": "/dev/vda",
+        "type": "disk",
+        "size": 1099511627776,
+        "fstype": null,
+        "mountpoints": [
+          null
+        ],
+        "rota": true,
+        "model": null,
+        "children": [
+          {
+            "name": "vda1",
+            "path": "/dev/vda1",
+            "type": "part",
+            "size": 209715200,
+            "fstype": "vfat",
+            "mountpoints": [
+              "/boot/efi"
+            ],
+            "rota": true,
+            "model": null
+          },
+          {
+            "name": "vda2",
+            "path": "/dev/vda2",
+            "type": "part",
+            "size": 1099300847104,
+            "fstype": "ext4",
+            "mountpoints": [
+              "/"
+            ],
+            "rota": true,
+            "model": null
+          }
+        ]
+      },
+      {
+        "name": "nvme1n1",
+        "path": "/dev/nvme1n1",
+        "type": "disk",
+        "size": 3840755982336,
+        "fstype": "xfs",
+        "mountpoints": [
+          "/data/brick1"
+        ],
+        "rota": false,
+        "model": "INTEL SSDPF2KX038T1"
+      },
+      {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "size": 3840755982336,
+        "fstype": "xfs",
+        "mountpoints": [
+          "/data/brick0"
+        ],
+        "rota": false,
+        "model": "INTEL SSDPF2KX038T1"
+      },
+      {
+        "name": "nvme2n1",
+        "path": "/dev/nvme2n1",
+        "type": "disk",
+        "size": 3840755982336,
+        "fstype": "xfs",
+        "mountpoints": [
+          "/data/brick2"
+        ],
+        "rota": false,
+        "model": "INTEL SSDPF2KX038T1"
+      },
+      {
+        "name": "nvme3n1",
+        "path": "/dev/nvme3n1",
+        "type": "disk",
+        "size": 3840755982336,
+        "fstype": "xfs",
+        "mountpoints": [
+          "/data/brick3"
+        ],
+        "rota": false,
+        "model": "INTEL SSDPF2KX038T1"
+      }
+    ]
+  },
+  "space": {
+    "/": {
+      "total_bytes": 1082045239296,
+      "available_bytes": 821203566592
+    },
+    "/data/brick0": {
+      "total_bytes": 3838880616448,
+      "available_bytes": 1548550524928
+    },
+    "/data/brick1": {
+      "total_bytes": 3838880616448,
+      "available_bytes": 1543712243712
+    },
+    "/data/brick2": {
+      "total_bytes": 3838880616448,
+      "available_bytes": 1103770312704
+    },
+    "/data/brick3": {
+      "total_bytes": 3838880616448,
+      "available_bytes": 3650665345024
+    },
+    "/home/boyjiang/kimi-new": {
+      "total_bytes": 15360340262912,
+      "available_bytes": 461635584000
+    }
+  },
+  "local_checkpoint": {
+    "path": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+    "payload_bytes": 595177988208,
+    "checks": [
+      {
+        "relative": "LICENSE",
+        "payload": false,
+        "expected_bytes": 1465,
+        "exists": true,
+        "bytes": 1465,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955061,
+        "mtime_ns": 1793208198764767283,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "README.md",
+        "payload": false,
+        "expected_bytes": 29325,
+        "exists": true,
+        "bytes": 29325,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955062,
+        "mtime_ns": 1793208199320767802,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "THIRD_PARTY_NOTICES.md",
+        "payload": false,
+        "expected_bytes": 1662,
+        "exists": true,
+        "bytes": 1662,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955063,
+        "mtime_ns": 1793208199728768182,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "chat_template.jinja",
+        "payload": false,
+        "expected_bytes": 4022,
+        "exists": true,
+        "bytes": 4022,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955064,
+        "mtime_ns": 1793208200036768471,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "config.json",
+        "payload": false,
+        "expected_bytes": 5416,
+        "exists": true,
+        "bytes": 5416,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955065,
+        "mtime_ns": 1793208200276768695,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "configuration.json",
+        "payload": false,
+        "expected_bytes": 51,
+        "exists": false
+      },
+      {
+        "relative": "configuration_deepseek.py",
+        "payload": false,
+        "expected_bytes": 10615,
+        "exists": true,
+        "bytes": 10615,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955066,
+        "mtime_ns": 1793208200760769146,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "configuration_kimi_k25.py",
+        "payload": false,
+        "expected_bytes": 5435,
+        "exists": true,
+        "bytes": 5435,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955067,
+        "mtime_ns": 1793208201212769567,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "generation_config.json",
+        "payload": false,
+        "expected_bytes": 52,
+        "exists": true,
+        "bytes": 52,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955068,
+        "mtime_ns": 1793208203576771773,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "kimi_k25_processor.py",
+        "payload": false,
+        "expected_bytes": 6906,
+        "exists": true,
+        "bytes": 6906,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955069,
+        "mtime_ns": 1793208203964772136,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "kimi_k25_vision_processing.py",
+        "payload": false,
+        "expected_bytes": 10019,
+        "exists": true,
+        "bytes": 10019,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955070,
+        "mtime_ns": 1793208204384772527,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "media_utils.py",
+        "payload": false,
+        "expected_bytes": 13179,
+        "exists": true,
+        "bytes": 13179,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8394955071,
+        "mtime_ns": 1793208205104773199,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "model-00001-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 995001888,
+        "exists": true,
+        "bytes": 995001888,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953160,
+        "mtime_ns": 1793208239124804942,
+        "symlink": false
+      },
+      {
+        "relative": "model-00002-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953161,
+        "mtime_ns": 1793208531573077819,
+        "symlink": false
+      },
+      {
+        "relative": "model-00003-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953162,
+        "mtime_ns": 1793208823973350644,
+        "symlink": false
+      },
+      {
+        "relative": "model-00004-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953163,
+        "mtime_ns": 1793209144093648916,
+        "symlink": false
+      },
+      {
+        "relative": "model-00005-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953164,
+        "mtime_ns": 1793209436393921267,
+        "symlink": false
+      },
+      {
+        "relative": "model-00006-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953165,
+        "mtime_ns": 1793209734194198744,
+        "symlink": false
+      },
+      {
+        "relative": "model-00007-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953166,
+        "mtime_ns": 1793210026526471585,
+        "symlink": false
+      },
+      {
+        "relative": "model-00008-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953167,
+        "mtime_ns": 1793210358674781966,
+        "symlink": false
+      },
+      {
+        "relative": "model-00009-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953168,
+        "mtime_ns": 1793210705551106110,
+        "symlink": false
+      },
+      {
+        "relative": "model-00010-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809047464,
+        "exists": true,
+        "bytes": 9809047464,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953169,
+        "mtime_ns": 1793211033787412413,
+        "symlink": false
+      },
+      {
+        "relative": "model-00011-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953170,
+        "mtime_ns": 1793211384375738972,
+        "symlink": false
+      },
+      {
+        "relative": "model-00012-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953171,
+        "mtime_ns": 1793211676716011276,
+        "symlink": false
+      },
+      {
+        "relative": "model-00013-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953172,
+        "mtime_ns": 1793211969076283642,
+        "symlink": false
+      },
+      {
+        "relative": "model-00014-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953173,
+        "mtime_ns": 1793212335584625998,
+        "symlink": false
+      },
+      {
+        "relative": "model-00015-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953174,
+        "mtime_ns": 1793212627884899037,
+        "symlink": false
+      },
+      {
+        "relative": "model-00016-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953175,
+        "mtime_ns": 1793212920289172171,
+        "symlink": false
+      },
+      {
+        "relative": "model-00017-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953176,
+        "mtime_ns": 1793213212689445996,
+        "symlink": false
+      },
+      {
+        "relative": "model-00018-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953177,
+        "mtime_ns": 1793213505073719920,
+        "symlink": false
+      },
+      {
+        "relative": "model-00019-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953178,
+        "mtime_ns": 1793213800541996733,
+        "symlink": false
+      },
+      {
+        "relative": "model-00020-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953179,
+        "mtime_ns": 1793214145118319491,
+        "symlink": false
+      },
+      {
+        "relative": "model-00021-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953180,
+        "mtime_ns": 1793214476338629663,
+        "symlink": false
+      },
+      {
+        "relative": "model-00022-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953181,
+        "mtime_ns": 1793214845426975296,
+        "symlink": false
+      },
+      {
+        "relative": "model-00023-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953182,
+        "mtime_ns": 1793215137727249126,
+        "symlink": false
+      },
+      {
+        "relative": "model-00024-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953183,
+        "mtime_ns": 1793215430119523200,
+        "symlink": false
+      },
+      {
+        "relative": "model-00025-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953184,
+        "mtime_ns": 1793215748251821402,
+        "symlink": false
+      },
+      {
+        "relative": "model-00026-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953185,
+        "mtime_ns": 1793216113992164188,
+        "symlink": false
+      },
+      {
+        "relative": "model-00027-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953186,
+        "mtime_ns": 1793216478912506175,
+        "symlink": false
+      },
+      {
+        "relative": "model-00028-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953187,
+        "mtime_ns": 1793216771352780236,
+        "symlink": false
+      },
+      {
+        "relative": "model-00029-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953188,
+        "mtime_ns": 1793217146609131813,
+        "symlink": false
+      },
+      {
+        "relative": "model-00030-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953189,
+        "mtime_ns": 1793217517321478747,
+        "symlink": false
+      },
+      {
+        "relative": "model-00031-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953190,
+        "mtime_ns": 1793217851473791465,
+        "symlink": false
+      },
+      {
+        "relative": "model-00032-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953191,
+        "mtime_ns": 1793218216086132350,
+        "symlink": false
+      },
+      {
+        "relative": "model-00033-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953192,
+        "mtime_ns": 1793218508418404972,
+        "symlink": false
+      },
+      {
+        "relative": "model-00034-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953193,
+        "mtime_ns": 1793218880374751849,
+        "symlink": false
+      },
+      {
+        "relative": "model-00035-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953194,
+        "mtime_ns": 1793219242383088629,
+        "symlink": false
+      },
+      {
+        "relative": "model-00036-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953195,
+        "mtime_ns": 1793219608943427516,
+        "symlink": false
+      },
+      {
+        "relative": "model-00037-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953196,
+        "mtime_ns": 1793219971247762467,
+        "symlink": false
+      },
+      {
+        "relative": "model-00038-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953197,
+        "mtime_ns": 1793220325796091978,
+        "symlink": false
+      },
+      {
+        "relative": "model-00039-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953198,
+        "mtime_ns": 1793220693372436146,
+        "symlink": false
+      },
+      {
+        "relative": "model-00040-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953199,
+        "mtime_ns": 1793221055036774776,
+        "symlink": false
+      },
+      {
+        "relative": "model-00041-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953200,
+        "mtime_ns": 1793221413109110214,
+        "symlink": false
+      },
+      {
+        "relative": "model-00042-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953201,
+        "mtime_ns": 1793221763169438290,
+        "symlink": false
+      },
+      {
+        "relative": "model-00043-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953202,
+        "mtime_ns": 1793222124621777043,
+        "symlink": false
+      },
+      {
+        "relative": "model-00044-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953203,
+        "mtime_ns": 1793222478078108326,
+        "symlink": false
+      },
+      {
+        "relative": "model-00045-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953204,
+        "mtime_ns": 1793222831874439941,
+        "symlink": false
+      },
+      {
+        "relative": "model-00046-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953205,
+        "mtime_ns": 1793223193146778564,
+        "symlink": false
+      },
+      {
+        "relative": "model-00047-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953206,
+        "mtime_ns": 1793223545987109271,
+        "symlink": false
+      },
+      {
+        "relative": "model-00048-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953207,
+        "mtime_ns": 1793223913527453752,
+        "symlink": false
+      },
+      {
+        "relative": "model-00049-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953208,
+        "mtime_ns": 1793224281931799042,
+        "symlink": false
+      },
+      {
+        "relative": "model-00050-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953209,
+        "mtime_ns": 1793224629428124783,
+        "symlink": false
+      },
+      {
+        "relative": "model-00051-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953210,
+        "mtime_ns": 1793224999472471706,
+        "symlink": false
+      },
+      {
+        "relative": "model-00052-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953211,
+        "mtime_ns": 1793225356436806367,
+        "symlink": false
+      },
+      {
+        "relative": "model-00053-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953212,
+        "mtime_ns": 1793225671745101497,
+        "symlink": false
+      },
+      {
+        "relative": "model-00054-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953213,
+        "mtime_ns": 1793226035041441540,
+        "symlink": false
+      },
+      {
+        "relative": "model-00055-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953214,
+        "mtime_ns": 1793226403253786185,
+        "symlink": false
+      },
+      {
+        "relative": "model-00056-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953215,
+        "mtime_ns": 1793226765910126138,
+        "symlink": false
+      },
+      {
+        "relative": "model-00057-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953600,
+        "mtime_ns": 1793227122802460688,
+        "symlink": false
+      },
+      {
+        "relative": "model-00058-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953601,
+        "mtime_ns": 1793227465202781631,
+        "symlink": false
+      },
+      {
+        "relative": "model-00059-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953602,
+        "mtime_ns": 1793227832139125383,
+        "symlink": false
+      },
+      {
+        "relative": "model-00060-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953603,
+        "mtime_ns": 1793228188499459227,
+        "symlink": false
+      },
+      {
+        "relative": "model-00061-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 9809050936,
+        "exists": true,
+        "bytes": 9809050936,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953604,
+        "mtime_ns": 1793228543107791323,
+        "symlink": false
+      },
+      {
+        "relative": "model-00062-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 4697635160,
+        "exists": true,
+        "bytes": 4697635160,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953605,
+        "mtime_ns": 1793228683163922357,
+        "symlink": false
+      },
+      {
+        "relative": "model-00063-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 108556344,
+        "exists": true,
+        "bytes": 108556344,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953606,
+        "mtime_ns": 1793228687519926433,
+        "symlink": false
+      },
+      {
+        "relative": "model-00064-of-000064.safetensors",
+        "payload": true,
+        "expected_bytes": 833769904,
+        "exists": true,
+        "bytes": 833769904,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953607,
+        "mtime_ns": 1793228712335949650,
+        "symlink": false
+      },
+      {
+        "relative": "model.safetensors.index.json",
+        "payload": false,
+        "expected_bytes": 23597438,
+        "exists": true,
+        "bytes": 23597438,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953152,
+        "mtime_ns": 1793208205916773957,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "modeling_deepseek.py",
+        "payload": false,
+        "expected_bytes": 78528,
+        "exists": true,
+        "bytes": 78528,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953153,
+        "mtime_ns": 1793208206692774680,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "modeling_kimi_k25.py",
+        "payload": false,
+        "expected_bytes": 50961,
+        "exists": true,
+        "bytes": 50961,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953154,
+        "mtime_ns": 1793208207084775046,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "preprocessor_config.json",
+        "payload": false,
+        "expected_bytes": 742,
+        "exists": true,
+        "bytes": 742,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953155,
+        "mtime_ns": 1793208207768775684,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "tiktoken.model",
+        "payload": false,
+        "expected_bytes": 2795286,
+        "exists": true,
+        "bytes": 2795286,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953156,
+        "mtime_ns": 1793208208084775979,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "tokenization_kimi.py",
+        "payload": false,
+        "expected_bytes": 13462,
+        "exists": true,
+        "bytes": 13462,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953157,
+        "mtime_ns": 1793208208568776431,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "tokenizer_config.json",
+        "payload": false,
+        "expected_bytes": 4862,
+        "exists": true,
+        "bytes": 4862,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953158,
+        "mtime_ns": 1793208209148776972,
+        "symlink": false,
+        "metadata_sha256_match": true
+      },
+      {
+        "relative": "tool_declaration_ts.py",
+        "payload": false,
+        "expected_bytes": 16517,
+        "exists": true,
+        "bytes": 16517,
+        "size_match": true,
+        "dev": 66304,
+        "ino": 8456953159,
+        "mtime_ns": 1793208209564777361,
+        "symlink": false,
+        "metadata_sha256_match": true
+      }
+    ],
+    "fresh_payload_hash_verified": false
+  },
+  "local_store_search": {
+    "roots": [
+      "/data/brick1/boyjiang/kimi-k2.6",
+      "/data/brick0/boyjiang",
+      "/data/brick2/boyjiang",
+      "/data/brick3/boyjiang"
+    ],
+    "depth_limit": 6,
+    "directories_limit": 5000,
+    "files_limit": 150000,
+    "excluded_names": [
+      ".git",
+      ".venv",
+      "venv",
+      "env",
+      "downloads",
+      "site-packages",
+      "node_modules",
+      "__pycache__",
+      "code",
+      "ServerlessLLM",
+      "build",
+      "logs"
+    ],
+    "full_store_found": false,
+    "scope": "Previously executed bounded metadata-only search of declared user roots; not exhaustive claim for other users directories"
+  },
+  "proposal": {
+    "reuse_SF_payload_no_copy": true,
+    "copy_only_Store_bytes": 617029596501,
+    "add_only_missing_configuration_json_bytes": 51,
+    "source_Store": "/home/boyjiang/kimi-new/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+    "target_Store": "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+    "raw_output_proposed": "/data/brick1/boyjiang/kimi-k2.6/performance-runs",
+    "available_before": 1543712243712,
+    "after_Store_and_small_metadata": 926682647160,
+    "additional_output_scratch_reserve_bytes": 137438953472,
+    "NVMe_headroom_floor_bytes": 274877906944,
+    "uncommitted_after_all_reserves": 514365786744,
+    "system_Docker_free_bytes": 821203566592,
+    "system_Docker_reserved_bytes": 137438953472,
+    "verification": "Before reuse compare accepted per-file expected hashes if available, otherwise approved full source/destination SHA256 equality; after Store transfer verify all104 files/8rank indices/64 partitions bytes+SHA256 and required metadata. No new Store conversion, no raw checkpoint copy. Missing small metadata only added without overwriting existing files. Validate local mount/inodes and adapt RO binds/finite cache inventory/output before final command review.",
+    "rollback": "Shared originals and old local checkpoint files untouched; failed partial destination retained and excluded, no automated cleanup of other data",
+    "state": "NOT_AUTHORIZED_NOT_COPIED"
+  }
+}

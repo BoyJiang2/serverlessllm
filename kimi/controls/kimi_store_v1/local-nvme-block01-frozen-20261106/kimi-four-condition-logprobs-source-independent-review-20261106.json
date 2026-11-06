@@ -1,0 +1,27 @@
+{
+  "decision": "ACCEPT_EXPLICIT_LOGPROBS_SOURCE_CPU_DELTA_ONLY",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "b9695967ea4e0d5a47e238f96f7104dfb4025d1b6813801a849ab35a4727df35",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "d68018bfd84296f08404d52574fa1c9d47b53288981711c3a392ef5a8e012505"
+  },
+  "previous_local_route_review_sha256": "0b20293b47c355b75cee85f113483aa08a2f5cf2cecbb87cfc7a21fe56caf782",
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "tests_run": 24,
+    "errors": 0,
+    "failures": 0,
+    "exit_code": 0,
+    "unittest_seconds": 3.296,
+    "subprocess_seconds": 3.375949725974351,
+    "before_after_pins_stable": true,
+    "scope": "Existing source/std-library actual LOOP AST payload builder and HTTP functions with mocked urlopen, tiny JSON/FS/clock/Git. No model/Store/GPU/cache/copy/build/Docker/Git execution."
+  },
+  "reviewed_delta": {
+    "actual_payload": "Each of the three native business request payloads explicitly adds logprobs integer1. Actual LOOP payload AST is executed in CPU fixture then passed through actual finish_http; expected sequence retains register before first arithmetic and three business calls. Other sampling/input fields unchanged.",
+    "frozen_protocol": "Requires exact int (bool rejected) logprobs1 on all3 requests. Removes only those added fields for equality against original correctness and restores only observability string for comparison. Gold IDs/content/usage/finish, seed/ignore_eos/max_tokens/order/design/statistics otherwise remain identical. Wrong/missing/logprobs0/True, seed drift, unsupported return_token_ids and changed gold are rejected.",
+    "native_api_boundary": "Does not forward OpenAI return_token_ids/top_logprobs/stream/template flags into SamplingParams. Existing trace actor yields exact IDs; requested logprobs compute is explicit, not a claim native HTTP response now exposes or validates every chosen-token logprob.",
+    "disclosure": "GLM actual frozen runner18cf7d97 lines200-202 supplies logprobs1. Kimi explicit top_p1 versus GLM omitted top_p remains disclosed; claim of effective greedy default alignment depends on separately pinned actual SamplingParams source8512... and must not erase API-literal difference. This narrow review independently validates actual Kimi payload, not new GLM execution."
+  },
+  "author_receipt_sha256": "02f0067724606e19c605fe5d17a794d1216f0a1cee31ac97cbb1ccacb9a892d0",
+  "remaining": "Parent commit/publish exact source and freeze final protocol/deployment/input inventory; inspect actual generated block artifacts and fresh complete resource/window/guard admission before any formal computation. Candidate without source/frozen protocol stays closed. Formal0 at review; no runtime success implied."
+}

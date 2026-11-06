@@ -1,0 +1,59 @@
+{
+  "decision": "ACCEPT_SOURCE_AND_CPU_ONLY_FINAL_RENDER_REQUIRED_AFTER_COMMIT",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "446b85a3259c89fef40a7855c24a3e8d7a0de0d1595efaa322e9ba08030a5998",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "872fdc6d9c3a06bf3296186c7af25e0b4a32558357ca0cd7f0a7dfc84901379a"
+  },
+  "independent_cpu": {
+    "command": [
+      "python3",
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "-v"
+    ],
+    "hostname": "qjhs3",
+    "tests_run": 14,
+    "errors": 0,
+    "failures": 0,
+    "exit_code": 0,
+    "unittest_elapsed_s": 2.948,
+    "subprocess_elapsed_s": 3.0211570269893855,
+    "hashes_before_after_stable": true,
+    "scope": "stdlib AST actual-function execution and mocked HTTP/subprocess/clock/Git, tiny temporary file ledgers and generated JSON. No real HTTP server/Docker/systemd/Ray/Store/cache/model/GPU execution."
+  },
+  "resolved_initial_findings": {
+    "timing": "HTTP role now same process records registration_command, business_trigger and received_ns immediately after perform_http returns (JSON parsed and response context closed), before child gold validation and printing. Actual consumer uses received_ns, records body/parse/validation separately. Parent save/polling delays do not affect A=received-registration_command or B=received-business_trigger. This follows GLM embedded runner18cf7d97 received boundary, not pure-body TTFT.",
+    "block_delivery": "main --block generates four child spec+command pairs, bundle and actual parent systemd-run argv (10 small JSON artifacts). Source-commit and final-protocol gating changes status only after exact checks.",
+    "block_consumer_tests": "Actual BLOCK_BODY executed with tiny temp files/mocks: four sequential successes and result SHA ledger; second child failure keeps last two NOT_STARTED and never launches them; O_EXCL rejects rerun; insufficient complete budget launches zero. Actual main --block mock validates generated children/bundle/parent argv."
+  },
+  "reviewed_contract": {
+    "source_protocol": "Final flag requires HEAD equality, clean tracked files, exact committed blobs for all deployed declared source+generator/cache/helper/guards, and remote current branch SHA. Final protocol must FROZEN non-DRAFT, final_deploy_commit equals requested commit, received_ns/same-client registration origin and block28920+parent120. Original design IDs/requests/own gold/statistics exactly retained. Current uncommitted source test uses mock Git and is not actual publication proof.",
+    "cache_and_min0": "Whole-input cache admission completes before register/arithmetic dispatch; cache3340 two-phase helper independently reviewed. min_instances0 deliberately lazy; no register/health status is promoted to model readiness. First arithmetic success plus8rank evidence required. Pool preload eight exact unique paths/logs from authenticated sole fresh Store owner; finished marker follows native state LOADED, pool ctor not assumed equal resident model state.",
+    "correctness": "Three own Kimi requests arithmetic/translation/fixed32 in frozen order with expected usage/text/finish plus cumulative exact token history via actor query; frozen seed/temp/top-p/top-k/min-p/n/max/ignore_eos. No GLM gold mutation or unsupported native return_token_ids.",
+    "ownership_events": "Original eight-rank schema, distinct TP/PID/UUID bijection and owned PID\u2192actual NVML physical UUID membership retained. Structured consumer requires one init_begin/ready/router published, same model+instance, backend actor PID/startticks, compatible boot/time namespace/monotonic implementation, exactly three first-token request IDs inside client request-to-body interval. Missing event rejected by actual fixture; no inference runtime claimed.",
+    "JIT": "Initial empty root check before either role bootstrap; initialized snapshot before condition; after snapshot before ordered stop; per-role private /tmp cache env identical across conditions. No reuse of prior run JIT evidence.",
+    "normal_release": "Existing Store strict60 finish0 and exact owner gone, both CID normal exits inside aggregate600; before ANYshutdown actual liveGO/unit activation check reserves600+120+180. Guard quiet>=60 and actual successful unit exits, scope/pinned identities gone and final zero GPUs remain required.",
+    "ledger": "All planned40 retained, per-block four permanent claims, started status and actual final/failed SHA, unstarted remain NOT_STARTED, no retry or replacement."
+  },
+  "budget_delta": {
+    "reference_addendum_sha256": "16b64804e8173fa2aef614363eca969599677fd47c7ba650043a566f862040c4",
+    "per_condition_hard_s": 7200,
+    "parent_hard_budget_s": 28920,
+    "actual_parent_RuntimeMaxSec": 28917,
+    "parent_TimeoutStopSec": 1,
+    "actual_child_RuntimeMaxSec": 7197,
+    "actual_child_TimeoutStopSec": 1,
+    "stage_metadata_sum": 6480,
+    "limits": "Six5s JIT calls (two initial, two common-initialized, two after), producer event capture/structured log parsing and ordinary control IO exist beyond phase labels. Guards use actual ActiveEnter/GO; late full final slot fails rather than shrinking waits. Nominal6480 is not a guarantee all OS/phase maxima succeed. Initial full-block expiry and before each child full remaining slots are checked; no partial-block admission."
+  },
+  "in_memory_only_first_attempt_root_sha256": "5f7fb295d15aced9f93a05630baa43d0837f7ee8b98446971dbad4ba340f22cc",
+  "remaining_before_actual_execution": [
+    "Parent explicitly stage/commit/push exact reviewed source and verify remote SHA; no actual committed_source publication test was run here.",
+    "Freeze final protocol with committed deployment SHA and reviewed endpoints/budget without changing original design/gold/statistics.",
+    "Run preparation only with final source/protocol; independently compare actual generated four child specs/commands, bundle, parent argv and all pinned artifacts. This review does not replace actual artifact identity check.",
+    "Fresh full28920-second authorized block booking, complete RAM/cache/GPU budget, actual node/source/artifact/probe/independent units and claims-root0700 admission. No formal attempt ID started by this review."
+  ],
+  "preserved_history": {
+    "initial_review_sha256": "422b50e1dbb15bde53b7a3517b6ab025d8bf7fed2a764a68ad06d38c65efb929",
+    "old_AAB_and_failures": "Unchanged; no post-hoc promotion or failed-ID replacement. GLM original40 untouched."
+  }
+}

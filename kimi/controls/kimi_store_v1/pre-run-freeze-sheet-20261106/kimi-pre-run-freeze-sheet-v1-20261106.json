@@ -1,0 +1,141 @@
+{
+  "status": "FIXED_ITEMS_WITH_UNRESOLVED_GATES_NOT_EXECUTABLE",
+  "formal_samples": 0,
+  "active_run_id": null,
+  "planned_first_block": "kimi-four-v1-b01",
+  "L1": "功能证据已齐备；正式L1验收状态待澄清并单独确认。原诊断回执、旧30秒FAIL、事后接受决定分开保留；不重复加载改标签。",
+  "rows": [
+    [
+      "存储",
+      "GLM为q3本地/dev/nvme1n1 XFS NVMe；Kimi当前/home及/mnt/raid为NFS→qjhs000 RAID，不能称同盘。已找到本地64SF分片595,177,988,208B，19份metadata SHA一致，缺51B配置；全量payload SHA待验。",
+      "路线待用户选择"
+    ],
+    [
+      "本地化",
+      "只复制既有Store 617,029,596,501B；复用SF、不重转/重下载。NVMe可用1,543,712,243,712B，复制后926,682,647,160B。另留128GiB输出/暂存+256GiB余量后尚余514,365,786,744B；系统/Docker盘另有821,203,877,888B。",
+      "未批准、未复制"
+    ],
+    [
+      "计时",
+      "A=同一HTTP进程注册调用前→算术received；B=算术HTTP函数调用前→received。received在JSON解析/响应关闭后、金标/落盘前。读取/解析/校验/父收到与保存分别记。GLM C23冷盘n7业务median179.112278228s，mean180.874626875s；不是天空32题。",
+      "源码及实际消费者14项CPU/独审通过；无正式样本"
+    ],
+    [
+      "版本",
+      "共享唯一源码7c7b1b7f95764a1f047b78d53b1b668e6cb10844已核GitHub，tracked无差异；用户untracked指纹保存不动。唯一ELF95d…完整SHA见下方。",
+      "新路线实际挂载/容器import待核"
+    ],
+    [
+      "关停",
+      "新Store正常窗口严格60秒：官方exec0+原PID/startticks消失，不强杀替代；模型delete后Store基线60与最终八卡归零、独立quiet≥60分别验收。信号/IPC/等待/退出核验全计，不称纯CUDA注销。",
+      "旧30FAIL与诊断分类不改；60不是稳定保证"
+    ],
+    [
+      "预算",
+      "每attempt7200秒；四条件block28920秒=8小时2分；40项+10块监督289200秒=80小时20分。硬运行上限，不是预计耗时。现q3窗口到11/7 09:00，运行前重查。",
+      "最终路线命令需再核"
+    ],
+    [
+      "次数",
+      "每condition全新两CID/Store；每block4池初始化、1次pool-hit预填+1次Store冷按需填。全40计划40初始化、10预填+10按需完整8rank填充，实际逐日志记账。",
+      "不将两次填充误写成全实验次数"
+    ],
+    [
+      "有效性",
+      "原始metrics、cache/correctness/clock/ownership、condition、block、cleanup分开保存。清理失败则主配对样本不合格但原值保留；四项全合格才完整block。任何失败停止，不替换ID、不自动加时。",
+      "最终消费者状态细分须绑定"
+    ],
+    [
+      "L1",
+      "功能证据齐备；正式L1验收待澄清并单独确认。原回执与事后接受决定分开保留。",
+      "不为标签重跑"
+    ]
+  ],
+  "budget": {
+    "attempt_s": 7200,
+    "phases_s": [
+      300,
+      300,
+      1200,
+      120,
+      1800,
+      1500,
+      180,
+      180,
+      720,
+      180
+    ],
+    "phase_names": [
+      "head_bootstrap",
+      "worker_bootstrap",
+      "Ray_pool_init_baseline",
+      "API_controller",
+      "cache_prepare_verify_or_prefill",
+      "register_first_arithmetic",
+      "translation_fixed32",
+      "delete_baseline60",
+      "ordered_stop_cleanup_finalquiet",
+      "evidence"
+    ],
+    "phase_sum": 6480,
+    "slack": 720,
+    "block_s": 28920,
+    "parent_overhead_s": 120,
+    "total40_plus10parents_s": 289200,
+    "ordered_stop_s": 600,
+    "cleanup_quiet_slot_s": 120,
+    "Store_normal_stop_s": 60,
+    "quiet_min_s": 60,
+    "pool_initializations_planned": 40,
+    "prefill_planned": 10,
+    "on_demand_full_fills_planned": 10
+  },
+  "rules": {
+    "primary_qualified": "cache/correctness/clock/ownership全部有效+正常条件终态+最终cleanup/quiet通过；任一失败不进入完整配对主分析，原始指标和失败仍保留",
+    "separate_outputs": [
+      "sample_metrics",
+      "cache_valid",
+      "correctness_valid",
+      "clock_valid",
+      "ownership_valid",
+      "condition_terminal",
+      "block_terminal",
+      "cleanup_result",
+      "primary_sample_qualified"
+    ],
+    "failure": "失败即停止，不补换ID、不自动重试/加时；未执行项NOT_STARTED，全部40计划保留",
+    "storage": "未确定路线前不采样；本地化需用户批准617GB新增Store副本；保留NFS须另明确部署比较，不能称本地NVMe同条件或归因机制"
+  },
+  "source_commit": "7c7b1b7f95764a1f047b78d53b1b668e6cb10844",
+  "elf_sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+  "manifest_sha256": "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d",
+  "missing": [
+    "用户存储路线决定（必要Store副本未授权）",
+    "正式L1定义/权限的单独确认",
+    "所选路线输入/输出/有限清单绑定及最终实际命令",
+    "最终代码/协议与命令独审、remoteSHA、新鲜资源和守护准入"
+  ],
+  "epoch": 1793968596.546849,
+  "evidence_refs": {
+    "storage": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-storage-local-nvme-readonly-localization-plan-20261106.json",
+      "sha256": "7189ef8d60d3f642ce90194e7e7ace5b6a5bda0f363918328bc86c84c26578c0"
+    },
+    "pins": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-current-source-elf-worktree-pins-20261106.json",
+      "sha256": "66bb00fffed171ff2676c0a5238f7ddda055ee1d83ef2742d9e57bbbc7a0f3b0"
+    },
+    "timing": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/glm-kimi-actual-http-timing-boundary-alignment-20261106.json",
+      "sha256": "7abe656bb435989a157ca92c497bf68b80dbe852a0cce303080d33d31c42ff47"
+    },
+    "source_review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-entry-source-independent-review-v3-20261106.json",
+      "sha256": "6b6e676049af45955ecc898dd7fd4c6103d0f33a59f18de464c3216ffa7b434e"
+    },
+    "CPU": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-preparation-actual-consumer-cpu-verification-v3-20261106.json",
+      "sha256": "36ba85c5195c66fde4e3d1c9d6e382f2cb94226a7378bc13473cf9207e404c2b"
+    }
+  }
+}

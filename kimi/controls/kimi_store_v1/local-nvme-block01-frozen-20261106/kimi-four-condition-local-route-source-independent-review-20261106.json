@@ -1,0 +1,37 @@
+{
+  "decision": "ACCEPT_LOCAL_ROUTE_SOURCE_CPU_DELTA_ONLY",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "1ec39217ca0abc7f1086f73d338c0131613b3db4dc8870e63634052541a25730",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "06fc26b49d7a12967cc4595d7426bccb34c40cd3765e69cb5e5d54cfeedc0d5c"
+  },
+  "previous_sample_evidence_review_sha256": "6aecd882b0f8cb8e02c4fede60229e838b3d4df66d9a9088eb61a0dae5317b0c",
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "tests_run": 22,
+    "errors": 0,
+    "failures": 0,
+    "exit_code": 0,
+    "unittest_seconds": 3.248,
+    "subprocess_seconds": 3.3264977280050516,
+    "before_after_pins_stable": true,
+    "scope": "Actual preparation main/render/create_argv and route code with tiny temporary paths and mocked findmnt/HTTP/subprocess/Git; no actual migration-target payload/cache/Store/GPU/Docker execution."
+  },
+  "reviewed": {
+    "host_route": {
+      "safetensors": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+      "store_archive": "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once",
+      "runs_root": "/data/brick1/boyjiang/kimi-k2.6/performance-runs"
+    },
+    "actual_consistency": "SF read-only bind uses host local input but preserves established /mnt/raid/models/Kimi-K2.6 container model path; /store mount source and host archive validation use new local archive. Root base, per-role data/control, both guard/observer evidence and block result lookup derive from new runs_root. Relative SDK model ID and physical ownership logic unchanged.",
+    "final_protocol_gate": "Requires assets.route=local_nvme, exact approved source/archive/run paths, new absolute input inventory path+SHA different from old3940 NFS inventory. main checks supplied manifest SHA and exact expected SF/store roots, then file identity; no old inventory silently reused.",
+    "runtime_gate": "Actual inserted code precedes base.mkdir/create: strict-resolved existing directories for SF/store/runs; each findmnt JSON call<=3s requires exactly one xfs mount sourced /dev/nvme1n1. Records path/dev/inode/mount after base created. Actual CPU fixture rejects NFS and wrong fstype before evidence child directory creation.",
+    "remaining_NFS": "Source, libraries/ELF assets, S0 specs/protocol/inventory and claims remain shared /home NFS; scope explicitly says not all IO local.",
+    "unchanged_contract": "Original ten-block IDs/order/gold/statistics, HTTP received producer endpoint, raw sample/qualification separation, source publication checks, strict Store60/normal exits/release>=60 and complete7200/28920 budget retained. Three bounded findmnt calls add preflight overhead before model work; existing whole runtime caps apply."
+  },
+  "not_verified": [
+    "No claim copy completed, all617GB payloads SHA matched, current local target inode/ownership correct or free-space adequate: copying/provenance audit belongs separate task.",
+    "New final local inventory and actual frozen protocol/source artifacts do not yet exist as runtime proof in this review; parent must generate after verified copy and commit/publish, then check exact prepared files.",
+    "No GPU runtime admission granted by source/CPU acceptance. Complete reservation/resources/probe/independent guard and final deployed source/artifact identity remain necessary."
+  ],
+  "operations": "Read-only source review and tiny CPU tests only; no Git or source edits; real migration target was not scanned or payload-read."
+}

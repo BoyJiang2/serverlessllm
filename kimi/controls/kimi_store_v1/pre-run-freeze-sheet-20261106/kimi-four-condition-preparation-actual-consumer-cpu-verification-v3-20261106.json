@@ -1,0 +1,65 @@
+{
+  "status": "V3_ACTUAL_CONSUMER_CPU_14_PASS_NOT_RUNTIME_FORMAL_SAMPLES_ZERO",
+  "timestamp": "2026-11-06T12:18:26.510244+00:00",
+  "files": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": {
+      "sha256": "446b85a3259c89fef40a7855c24a3e8d7a0de0d1595efaa322e9ba08030a5998",
+      "lines": 494
+    },
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": {
+      "sha256": "872fdc6d9c3a06bf3296186c7af25e0b4a32558357ca0cd7f0a7dfc84901379a",
+      "lines": 277
+    }
+  },
+  "tests": {
+    "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v",
+    "run": 14,
+    "pass": 14,
+    "elapsed_seconds": 2.965
+  },
+  "actual_consumers": [
+    "perform_http + finish_http real function bodies with fake urllib response/context and controlled monotonic clock: register then arithmetic one producer; received_ns after parsed return/context close; gold validation afterwards",
+    "Root check_response + validated_http_events: parent polling/slow save advances clock heavily but A/B endpoint remains original received_ns; invalid time namespace rejected",
+    "Real BLOCK_BODY exec with tiny temp bundle/spec/commands and mocked subprocess: 4 success ordered; child2 fail stops3/4; real O_EXCL duplicate reject; insufficient window launches0; statuses/result path/hash retained",
+    "main --block1 with temporary final protocol and mocked source commit gate: generates4 specs4 commands+bundle+rootcommand with final protocol/source pins",
+    "committed_source mocked Git: HEAD/clean/remote/blob checks actual code path; dirty/remote mismatch/blob drift rejected, no real Git invoked",
+    "Actual collect_structured_events with tiny owned log files: unique model/instance/PID/startticks/request clock joins; missing third first-token rejects"
+  ],
+  "http_contract": {
+    "A": "same HTTP producer received_ns minus registration_command_ns",
+    "B": "same HTTP producer received_ns minus business_trigger_ns",
+    "separate": [
+      "request_begin_ns before urlopen",
+      "response_body_complete_ns",
+      "json_parse_complete_ns",
+      "received_ns after HTTP function return including context close",
+      "child_gold_validation_begin_ns",
+      "child_gold_validation_complete_ns",
+      "parent_validation_end_ns",
+      "parent save and trace validation occur later"
+    ],
+    "tokens": "Child validates text/usage/finish; exact cumulative generated token IDs remain existing parent trace validation, not claimed at client received timestamp"
+  },
+  "final_protocol_required": {
+    "status": "FROZEN_* not DRAFT",
+    "final_deploy_commit": "exact clean committed published source SHA",
+    "events.primary_http_endpoint": "received_ns",
+    "events.primary_start_event": "same_http_client_registration_command_ns",
+    "resource_budget.per_condition_max_seconds": 7200,
+    "resource_budget.per_complete_block_max_seconds": 28920,
+    "resource_budget.parent_overhead_seconds": 120,
+    "immutable": "conditions/design/attempts/correctness/statistics equal original V1"
+  },
+  "prepare_example": "python3 sllm_store/tests/prepare_kimi_four_condition.py --block 1 --source-commit FINAL_PUBLISHED_SHA --protocol FINAL_PROTOCOL_PATH --protocol-sha FINAL_PROTOCOL_SHA",
+  "cache_helper_sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+  "runtime_gate": "Rootbody rejects default DRAFT-derived candidate; only --source-commit + final nonDRAFT bound protocol may produce FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW. Parent independent review and fresh resource/booking/root admission still required. No generator executes launch argv.",
+  "formal_samples": 0,
+  "attempts_started": [],
+  "limits": [
+    "No actual Git/Docker/systemd/GPU/model/Store/cache operations",
+    "All HTTP/network/subprocess in consumer tests fake tiny fixtures only",
+    "Actual command templates and cache residency are not hardware/model execution proof",
+    "Old candidate outputs and historical records remain append-only unchanged",
+    "Rootbudget/GO absolute deadlines covered by separate independent parent addendum, not recalibrated here"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "decision": "ACCEPT_E_COST_EVENTS_AND_LAUNCH_LEDGER_SOURCE_CPU_DELTA_ONLY",
+  "pins": {
+    "sllm_store/tests/prepare_kimi_four_condition.py": "4d873564a75a41b07ee4e410217f821faa23bcad646829da418b706e1ea71ad4",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "f04355a5c2b9649900950df494083776f23615c4e0f4f2256ecc50cc8615e3f7"
+  },
+  "prior_logprobs_review_sha256": "ea5c8a5225efb8209068c708b5fdb47450cfd5da63e69310e8e41c4f3ce9abf3",
+  "independent_cpu": {
+    "hostname": "qjhs3",
+    "tests_run": 28,
+    "errors": 0,
+    "failures": 0,
+    "exit_code": 0,
+    "unittest_seconds": 3.461,
+    "subprocess_seconds": 3.5433504269458354,
+    "before_after_source_pins_stable": true,
+    "scope": "Actual event functions/generated root AST/actual BLOCK_BODY with temporary tiny files and mocked subprocess/clock/Git/HTTP. No actual GPU/model/Store/cache/Docker/build/copy/Git execution."
+  },
+  "cost_event_review": {
+    "boundaries": "ENV encloses actual head create through worker imports; Ray includes two role starts/state validation; Store initialization spans official CLI start through successful GetConfig and excludes initial baseline60; API spans startup through controller authentication; delete acknowledgement and strict delete baseline separately observed; ordered final stop, combined controller_shutdown_and_api_stop, normal container exits and completed release zero/gone explicitly named.",
+    "timestamp_integrity": "Existing event producer adds pid/clock identity and samples timestamps before save. Slow save fixture preserves captured timestamp, while later events can include prior evidence overhead. These are controller-observed boundaries, not pure CUDA, storage IO or exactly source-internal kernel duration.",
+    "unchanged_primary": "Same-client HTTP registration/received A, trigger/received B, source event joins, Store strict60, resources and actual final-slot/guard limits unchanged. Additional event IO can produce timeout failure; metadata6480 is not a guarantee all maxima succeed."
+  },
+  "ledger_review": {
+    "bug_fixed": "Child launch could fail or time out without run directory/receipt and previously remain START_REQUESTED with attemptedfalse. Ledger now records launch_requested independently of runtime_evidence_created and retains returncode or launch_error.",
+    "no_receipt_terminals": [
+      "CONTROLLER_FAILED_WITHOUT_RECEIPT",
+      "TIMED_OUT_NO_RECEIPT"
+    ],
+    "no_receipt_cleanup": "NOT_OBSERVED_NO_CHILD_RECEIPT; never invented normal cleanup. Explicit missing receipt names retained.",
+    "failure_stop": "Actual tiny-file consumer fixtures: second launch returns2 without directory/receipt, or raises TimeoutExpired. Both preserve launched failure and do not start third/fourth rows; those remain NOT_STARTED.",
+    "denominator": "Prospectively declared success-rate denominator launch_requested; legacy attempted explicitly means runtime directory created and is not denominator. Numerator must require successful child returncode0 plus exact normal qualified controller PASS, not only a directory or request dispatch.",
+    "protocol_preservation": "Final validator permits exactly added statistics.success_rate_denominator=launch_requested; remaining original four-comparison/statistics/seed/bootstrap/design/ten-block IDs and gold unchanged."
+  },
+  "author_ledger_receipt_sha256": "16b3110ed49fbc0b33c7cfc195d12a002b22f368c8b67f3cb37bfc89e35bfcfe",
+  "remaining": "Source/CPU acceptance only. Parent must commit/publish exact final source, finish independently verified local asset/inventory provenance, freeze protocol and generate concrete first-block artifacts for identity review before fresh whole-block admission. No migration success or formal sample count claimed from this review; formal attempts not launched by reviewer."
+}
