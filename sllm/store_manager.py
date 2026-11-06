@@ -17,6 +17,7 @@
 # ---------------------------------------------------------------------------- #
 
 import asyncio
+import copy
 import os
 import time
 from typing import List, Mapping, Optional
@@ -36,6 +37,13 @@ from sllm_store.client import SllmStoreClient
 logger = init_logger(__name__)
 
 
+@ray.remote(num_cpus=1)
+def inspect_v4_grouped_store(backend_config):
+    from sllm_store.v4_service import grouped_registration_plan
+
+    return grouped_registration_plan(backend_config, os.environ["STORAGE_PATH"])
+
+
 class SllmLocalStore:
     def __init__(
         self,
@@ -50,6 +58,8 @@ class SllmLocalStore:
         self.hardware_info = hardware_info
         self.disk_models = {}
         self.queued_models = {}
+        self.grouped_models = {}
+        self.failed_grouped_registrations = {}
 
         self.pinned_memory_pool = {}
         self.chunk_size = chunk_size
@@ -72,6 +82,9 @@ class SllmLocalStore:
         self, model_name: str, backend: str, backend_config
     ):
         async with self.lock:
+            if (backend == "vllm"
+                    and backend_config.get("load_format") == "sllm_v4_grouped_store"):
+                return await self._register_grouped_model(model_name, backend_config)
             if model_name in self.disk_models:
                 logger.error(f"{model_name} already registered")
                 return
@@ -94,6 +107,45 @@ class SllmLocalStore:
 
         return model_size
 
+    async def _register_grouped_model(self, model_name, backend_config):
+        if model_name in self.disk_models:
+            if self.grouped_models.get(model_name) != backend_config.get("model_loader_extra_config"):
+                raise ValueError("Registered grouped model identity/path changed")
+            return self.disk_models[model_name][1]
+        if model_name in self.failed_grouped_registrations:
+            raise RuntimeError("Previous grouped registration failed; isolate the Store before retry")
+        plan = await inspect_v4_grouped_store.options(
+            resources={f"worker_id_{self.node_id}": 0.01}
+        ).remote(backend_config)
+        if (len(plan) != 496 or len({path for path, _ in plan}) != 496
+                or any(type(size) is not int or size <= 0 for _, size in plan)):
+            raise ValueError("Worker returned an incomplete grouped registration plan")
+        paths = {path for path, _ in plan}
+        if any(a["inflight"] in paths or paths.intersection(a["registered"])
+               for a in self.failed_grouped_registrations.values()):
+            raise RuntimeError("Previous grouped dataset registration failed; isolate the Store before retry")
+        attempt = {"registered": [], "inflight": None, "failed": False}
+        self.failed_grouped_registrations[model_name] = attempt
+        model_size = 0
+        try:
+            for path, expected_size in plan:
+                attempt["inflight"] = path
+                size = await asyncio.to_thread(self.client.register_model, path)
+                if type(size) is not int or size != expected_size:
+                    raise RuntimeError(f"Grouped Store registration size mismatch: {path}")
+                attempt["registered"].append(path)
+                attempt["inflight"] = None
+                model_size += size
+            self.disk_models[model_name] = (list(attempt["registered"]), model_size)
+            self.grouped_models[model_name] = copy.deepcopy(backend_config["model_loader_extra_config"])
+            self.failed_grouped_registrations.pop(model_name)
+        except BaseException:
+            # The native Store has no unregister transaction. Keep partial state,
+            # including a possibly still-running cancelled RPC, out of admission.
+            attempt["failed"] = True
+            raise
+        return model_size
+
     async def get_store_info(self):
         async with self.lock:
             delta_time = 0
@@ -105,6 +157,8 @@ class SllmLocalStore:
 
     async def load_to_host(self, model_name: str) -> bool:
         async with self.lock:
+            if model_name in self.grouped_models:
+                raise RuntimeError("Grouped host prefetch requires terminal CPU-copy confirmation")
             if model_name not in self.disk_models:
                 logger.error(f"{model_name} not found on node {self.node_id}")
                 return False
@@ -360,6 +414,9 @@ class StoreManager:
             return
         backend_config = model_config.get("backend_config", {})
         placement_config = model_config.get("placement_config", {})
+        if (backend_config.get("load_format") == "sllm_v4_grouped_store"
+                and placement_config.get("memory_pool")):
+            raise ValueError("Grouped host prefetch requires terminal CPU-copy confirmation")
         if model_name not in self.model_info:
             self.model_storage_info[model_name] = {}
             logger.info(f"Registering new {model_name}")
@@ -438,6 +495,11 @@ class StoreManager:
                         hf_model_class,
                         torch_dtype,
                     )
+                elif (backend == "vllm" and backend_config.get("load_format")
+                      == "sllm_v4_grouped_store"):
+                    # Worker-local admission verifies an existing COMPLETE Store;
+                    # never invoke the legacy converter for this load format.
+                    pass
                 elif backend == "vllm":
                     await self.download_vllm_model(
                         model_name,

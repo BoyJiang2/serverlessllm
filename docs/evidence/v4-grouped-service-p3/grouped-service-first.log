@@ -1,0 +1,193 @@
+test_all_496_identifiers_and_native_partition_sizes (test_v4_service.AdmissionTests) ... ok
+test_partition_gap_rejected_even_with_consistent_hashes_and_receipts (test_v4_service.AdmissionTests) ... ok
+test_payload_hashes_are_checked_before_plan_returns (test_v4_service.AdmissionTests) ... ok
+test_wrong_loader_topology_root_or_incomplete_store_is_rejected (test_v4_service.AdmissionTests) ... ok
+test_cancelled_registration_retains_inflight_without_publication (test_v4_service.RegistrationTests) ... ERROR
+test_inspection_failure_or_incomplete_plan_makes_no_store_rpc (test_v4_service.RegistrationTests) ... ERROR
+test_legacy_rank_registration_is_unchanged (test_v4_service.RegistrationTests) ... ERROR
+test_manager_registration_failure_never_publishes_placement (test_v4_service.RegistrationTests) ... ERROR
+test_manager_skips_legacy_converter_and_only_publishes_successful_node (test_v4_service.RegistrationTests) ... ERROR
+test_negative_wrong_size_bool_and_rpc_exception_never_publish (test_v4_service.RegistrationTests) ... ERROR
+test_prefetch_placement_rejected_before_any_registration (test_v4_service.RegistrationTests) ... ERROR
+test_worker_pinned_inspection_and_all_registration_before_publication (test_v4_service.RegistrationTests) ... ERROR
+
+======================================================================
+ERROR: test_cancelled_registration_retains_inflight_without_publication (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_inspection_failure_or_incomplete_plan_makes_no_store_rpc (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_legacy_rank_registration_is_unchanged (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_manager_registration_failure_never_publishes_placement (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_manager_skips_legacy_converter_and_only_publishes_successful_node (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_negative_wrong_size_bool_and_rpc_exception_never_publish (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_prefetch_placement_rejected_before_any_registration (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+======================================================================
+ERROR: test_worker_pinned_inspection_and_all_registration_before_publication (test_v4_service.RegistrationTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 61, in _callSetUp
+    self._callAsync(self.asyncSetUp)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 79, in _callAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 100, in asyncSetUp
+    self.ns = manager_source()
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_service.py", line 94, in manager_source
+    exec(compile(ast.Module(body=selected, type_ignores=[]), str(source), "exec"), namespace)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 46, in <module>
+    class SllmLocalStore:
+  File "/home/boyjiang/sllm-v4-pro/code/sllm/store_manager.py", line 50, in SllmLocalStore
+    client: SllmStoreClient,
+NameError: name 'SllmStoreClient' is not defined
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.317s
+
+FAILED (errors=8)
