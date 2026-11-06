@@ -85,7 +85,7 @@ def frozen_files():
   assert (v.st_dev,v.st_ino,v.st_size,v.st_mtime_ns,v.st_uid)==(row['dev'],row['ino'],row['bytes'],row['mtime_ns'],row['uid']),'asset identity drift'
  return group
 def event(name):
- save('event-'+name+'.json',{'event':name,'monotonic':time.monotonic(),'monotonic_ns':time.monotonic_ns(),'wall':time.time(),'clock_identity':clock_identity,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'run_id':run,'attempt':s['attempt'],'condition':s['condition']})
+ save('event-'+name+'.json',{'event':name,'monotonic':time.monotonic(),'monotonic_ns':time.monotonic_ns(),'wall':time.time(),'pid':os.getpid(),'measurement':'controller_observed_operation_boundary_not_pure_CUDA_or_IO','clock_identity':clock_identity,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'run_id':run,'attempt':s['attempt'],'condition':s['condition']})
 def construct_cache():
  group=frozen_files();paths=[r['path'] for r in group['files']];roots=[group['root']];deadline=time.monotonic()+1800
  event('target_condition_construction_begin')
@@ -431,6 +431,37 @@ if sys.argv[1]=='pool':
     body=body.replace(" stop_started=time.monotonic();stop_end=stop_started+600"," cleanup_started=True\n stop_started=time.monotonic();stop_end=stop_started+600",1)
     body=body.replace(" save('controller-final.json',"," qualification=finalize_sample_evidence({'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':min(observed['quiet_seconds'],*[json.loads((base/('guard-'+role)/'guard-final.json').read_text())['quiet_seconds'] for role in ('head','worker')])},'normal completion');assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'\n save('controller-final.json',",1)
     body=body.replace("except BaseException as error:\n for name in ('guard-head','guard-worker','observer'):","except BaseException as error:\n if sample_active_gate is not None:mark_sample_gate(sample_active_gate,False,type(error).__name__+':'+str(error))\n try:finalize_sample_evidence({'normal':False,'status':'FAILED' if cleanup_started else 'NOT_OBSERVED','quiet_seconds':None,'reason':type(error).__name__+':'+str(error)},type(error).__name__+':'+str(error))\n except Exception as evidence_error:\n  try:save('sample-evidence-error.json',{'type':type(evidence_error).__name__,'message':str(evidence_error),'primary_error':str(error)})\n  except Exception as diagnostic_error:\n   try:print(json.dumps({'event':'SAMPLE_EVIDENCE_DIAGNOSTIC_SAVE_FAILED','primary_error_type':type(error).__name__,'evidence_error_type':type(evidence_error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)\n   except Exception:pass\n for name in ('guard-head','guard-worker','observer'):",1)
+    # Cost endpoints surround existing calls; event IO consumes unchanged phase slack.
+    endpoints=[
+        (" create_arm_start('head');"," event('common_environment_begin')\n create_arm_start('head');"),
+        (" pool_end=time.monotonic()+1200;"," event('common_environment_complete')\n pool_end=time.monotonic()+1200;"),
+        (" official('head','ray.scripts.scripts',headargs,"," event('ray_join_begin')\n official('head','ray.scripts.scripts',headargs,"),
+        ("save('ray-two-nodes.json',state)","save('ray-two-nodes.json',state);event('ray_join_complete')"),
+        (" official('worker','sllm_store.cli',['start',"," event('store_pool_initialization_begin')\n official('worker','sllm_store.cli',['start',"),
+        (" initial=baseline_window(None,pool_end,label='initial');"," event('store_pool_initialization_complete');event('initial_baseline60_begin')\n initial=baseline_window(None,pool_end,label='initial');"),
+        ("save('initial-fresh-store-baseline.json',initial)","save('initial-fresh-store-baseline.json',initial);event('initial_baseline60_complete')"),
+        (" official('head','sllm.cli.clic',['start',"," event('api_startup_begin')\n official('head','sllm.cli.clic',['start',"),
+        ("save('controller-initial-authenticated-identity.json',controller_initial)","save('controller-initial-authenticated-identity.json',controller_initial);event('api_controller_authentication_complete')"),
+        ("  delete_end=time.monotonic()+180;HTTP('/delete',","  delete_end=time.monotonic()+180;event('delete_begin');HTTP('/delete',"),
+        ("min(120,int(delete_end-time.monotonic())))","min(120,int(delete_end-time.monotonic())));event('delete_acknowledged')"),
+        ("  after=baseline_window(initial['snapshot'],delete_end,","  event('delete_baseline60_begin')\n  after=baseline_window(initial['snapshot'],delete_end,"),
+        ("save('life'+str(life)+'-deleted-fresh-baseline.json',after)","save('life'+str(life)+'-deleted-fresh-baseline.json',after);event('delete_baseline60_complete')"),
+        (" cleanup_started=True\n"," cleanup_started=True;event('ordered_final_stop_begin')\n"),
+        (" execute('head','controller_shutdown',"," event('controller_shutdown_and_api_stop_begin')\n execute('head','controller_shutdown',"),
+        ("stop_service('api','head',min(stop_end,time.monotonic()+30));","stop_service('api','head',min(stop_end,time.monotonic()+30));event('controller_shutdown_and_api_stop_complete');"),
+        ("normal_exit('worker');normal_exit('head');","normal_exit('worker');normal_exit('head');event('containers_normal_exit_complete');"),
+        ("gone(store_owner) and gone(observer_owner);checkfiles();","gone(store_owner) and gone(observer_owner);event('release_quiet60_complete');checkfiles();"),
+    ]
+    for old,new in endpoints:
+        assert body.count(old)==1,('cost event insertion target drift',old,body.count(old))
+        body=body.replace(old,new,1)
+    spec["controller_cost_event_semantics"]={
+        "scope":"Actual controller-observed operation boundaries include bounded IPC, polling, evidence IO and scheduling; not pure CUDA/IO or exclusive additive phase spans. Main HTTP producer A/B/D endpoints remain unchanged.",
+        "api_stop":"Original controller_shutdown plus API process stop/finish inclusive; Store normal exit uses the separate unchanged strict60 receipt.",
+        "store_pool_initialization":"Existing Store CLI launch through successful GetServerConfig pool/chunk validation; no added probe.",
+        "release_quiet60_complete":"After both guards, observer and owned unit exits plus final physical GPUzero/gone checks; subsequent source rehash/network evidence work separate.",
+        "budget":"Event writes consume existing7200 condition/28920 block slack. No deadline extension or shortened quiet period.",
+    }
     compile(body,"<formal-candidate>","exec")
     command["argv"][index]=body
     command["argv"][command["argv"].index("--unit="+old_run+"-controller.service")]="--unit="+attempt_id+"-controller.service"
@@ -457,7 +488,7 @@ def claim(name):
  with os.fdopen(fd,'w') as f:
   json.dump({'pid':os.getpid(),'wall':time.time(),'monotonic':time.monotonic(),'expiry':expiry},f);f.flush();os.fsync(f.fileno())
 claim(b['block_id']+'.claim')
-ledger=[{**a,'status':'NOT_STARTED','attempted':False,'result_path':None,'result_sha256':None} for a in b['attempts']]
+ledger=[{**a,'status':'NOT_STARTED','condition_terminal':'NOT_STARTED','launch_requested':False,'attempted':False,'runtime_evidence_created':False,'returncode':None,'launch_error':None,'evidence_missing':None,'result_path':None,'result_sha256':None} for a in b['attempts']]
 status='FAILED_RETAINED_NO_RETRY';error=None
 try:
  for index,a in enumerate(ledger):
@@ -472,15 +503,22 @@ try:
   assert argv[0]=='/usr/bin/systemd-run' and '--wait' not in argv
   claim(a['run_id']+'.claim')
   argv=[argv[0],'--wait',*[x.replace('--property=RemainAfterExit=yes','--property=RemainAfterExit=no') for x in argv[1:-1]],str(expiry)]
-  a['status']='START_REQUESTED'
-  try:result=subprocess.run(argv,timeout=7205)
+  a.update(status='START_REQUESTED',condition_terminal='START_REQUESTED',launch_requested=True)
+  try:
+   result=subprocess.run(argv,timeout=7205);a['returncode']=result.returncode
+  except BaseException as launch_error:
+   a['launch_error']={'type':type(launch_error).__name__,'message':str(launch_error)}
+   raise
   finally:
-   a['attempted']=(runs/a['run_id']).is_dir()
+   a['runtime_evidence_created']=(runs/a['run_id']).is_dir();a['attempted']=a['runtime_evidence_created'];has_receipt=False
    for name in ('controller-final.json','controller-failed.json'):
     final=runs/a['run_id']/name
     if final.exists():
      a.update(result_path=str(final),result_sha256=hashlib.sha256(final.read_bytes()).hexdigest())
-     a['status']=json.loads(final.read_text())['status'];break
+     a['status']=a['condition_terminal']=json.loads(final.read_text())['status'];has_receipt=True;break
+   if not has_receipt:
+    a['status']=a['condition_terminal']='TIMED_OUT_NO_RECEIPT' if a['launch_error'] and a['launch_error']['type']=='TimeoutExpired' else 'CONTROLLER_FAILED_WITHOUT_RECEIPT'
+    a['evidence_missing']=['controller-final.json','controller-failed.json'];a['cleanup_result']='NOT_OBSERVED_NO_CHILD_RECEIPT'
   assert result.returncode==0,'attempt failed; no retry or replacement'
   assert a['status']=='FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'
  assert time.time()<expiry
@@ -489,7 +527,7 @@ except BaseException as failure:
  error={'type':type(failure).__name__,'message':str(failure)}
  raise
 finally:
- final={'status':status,'error':error,'block_id':b['block_id'],'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'attempts':ledger,'planned_attempts':b['planned_attempts']}
+ final={'status':status,'error':error,'block_id':b['block_id'],'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'attempts':ledger,'planned_attempts':b['planned_attempts'],'success_rate_denominator':'launch_requested','launch_requested_count':sum(a['launch_requested'] for a in ledger),'runtime_evidence_created_count':sum(a['runtime_evidence_created'] for a in ledger),'attempted_legacy_semantics':'runtime evidence directory created; not the success-rate denominator'}
  fd=os.open(claims/(b['block_id']+'-final.json'),os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
  with os.fdopen(fd,'w') as f:json.dump(final,f);f.flush();os.fsync(f.fileno())
 """
@@ -506,7 +544,7 @@ def render_block(protocol, block_number, entries, source_commit):
         assert re.fullmatch('[0-9a-f]{64}',entry['command_sha256'])
     compile(BLOCK_BODY,'<four-condition-block>','exec')
     return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':'kimi-four-v1-b%02d'%block_number,
-            'source_commit':source_commit,'attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
+            'source_commit':source_commit,'success_rate_denominator':'launch_requested','attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
             'protocol_sha256':PROTOCOL_SHA,'runs_root':protocol['resource_budget'].get('runs_root','/home/boyjiang/kimi-new/evidence/runs'),
             'condition_max_seconds':7200,'parent_overhead_seconds':120,'full_max_seconds':28920,
             'claims_root':'/home/boyjiang/kimi-new/evidence/formal-claims-root',
@@ -547,8 +585,11 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['events']['primary_start_event']=='same_http_client_registration_command_ns'
     # Keep the preregistered orders, own gold and statistics intact.
     original=checked(PROTOCOL,PROTOCOL_SHA)
-    for key in ('conditions','design','attempts','statistics'):
+    for key in ('conditions','design','attempts'):
         assert protocol[key]==original[key],('preregistered contract changed',key)
+    statistics=copy.deepcopy(protocol['statistics'])
+    assert statistics.pop('success_rate_denominator',None)=='launch_requested','launch-requested success-rate denominator must be preregistered'
+    assert statistics==original['statistics'],'other preregistered statistics changed'
     correctness=copy.deepcopy(protocol['correctness'])
     observability=correctness['observability']
     assert isinstance(observability,str) and all(term in observability for term in ('logprobs=1','return_token_ids','trace')),'explicit observability delta disclosure required'

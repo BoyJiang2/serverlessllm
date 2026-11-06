@@ -141,7 +141,7 @@ class ActualConsumerTest(unittest.TestCase):
         bad=copy.deepcopy(row);bad['clock_identity']['time_namespace']='time:[other]'
         with self.assertRaises(AssertionError):namespace['check_response'](bad,want,0,1)
 
-    def block_fixture(self,root,fail_at=None,expiry=30000):
+    def block_fixture(self,root,fail_at=None,expiry=30000,no_receipt_at=None,timeout_at=None):
         claims=root/'claims';claims.mkdir(mode=0o700);runs=root/'runs';runs.mkdir()
         entries=[];source='a'*40;protocol='b'*64
         for number in range(4):
@@ -163,7 +163,10 @@ class ActualConsumerTest(unittest.TestCase):
         def run(argv,timeout):
             index=len(called);called.append(argv)
             self.assertEqual(argv[1],'--wait');self.assertIn('--property=RemainAfterExit=no',argv)
-            dest=runs/entries[index]['run_id'];dest.mkdir()
+            dest=runs/entries[index]['run_id']
+            if index==timeout_at:raise p.subprocess.TimeoutExpired(argv,timeout)
+            if index==no_receipt_at:return types.SimpleNamespace(returncode=2)
+            dest.mkdir()
             failed=index==fail_at
             (dest/('controller-failed.json' if failed else 'controller-final.json')).write_text(json.dumps({'status':'FAILED_RETAINED_NO_RETRY' if failed else 'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'}))
             return types.SimpleNamespace(returncode=1 if failed else 0)
@@ -202,6 +205,7 @@ class ActualConsumerTest(unittest.TestCase):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(protocol,p.SOURCE)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        protocol['statistics']['success_rate_denominator']='launch_requested'
         for request in protocol['correctness']['requests']:request['logprobs']=1
         protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
@@ -259,6 +263,7 @@ class ActualConsumerTest(unittest.TestCase):
     def test_main_freezes_all_four_children_and_actual_bundle(self):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        protocol['statistics']['success_rate_denominator']='launch_requested'
         for request in protocol['correctness']['requests']:request['logprobs']=1
         protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
@@ -309,6 +314,36 @@ class ActualConsumerTest(unittest.TestCase):
             launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
             self.assertIn('--property=RuntimeMaxSec=28917',launch['argv'])
 
+
+    def test_actual_block_nonzero_without_receipt_has_failed_launch_terminal(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execute,called,claims=self.block_fixture(pathlib.Path(directory),no_receipt_at=1)
+            with self.assertRaises(AssertionError):execute()
+            self.assertEqual(len(called),2)
+            final=json.loads((claims/'tinyblock-final.json').read_text());second=final['attempts'][1]
+            self.assertEqual(second['status'],'CONTROLLER_FAILED_WITHOUT_RECEIPT')
+            self.assertEqual(second['condition_terminal'],'CONTROLLER_FAILED_WITHOUT_RECEIPT')
+            self.assertTrue(second['launch_requested']);self.assertFalse(second['runtime_evidence_created']);self.assertFalse(second['attempted'])
+            self.assertEqual(second['returncode'],2);self.assertIsNone(second['launch_error'])
+            self.assertEqual(second['evidence_missing'],['controller-final.json','controller-failed.json'])
+            self.assertEqual(second['cleanup_result'],'NOT_OBSERVED_NO_CHILD_RECEIPT')
+            self.assertEqual(final['success_rate_denominator'],'launch_requested')
+            self.assertEqual(final['launch_requested_count'],2);self.assertEqual(final['runtime_evidence_created_count'],1)
+            for later in final['attempts'][2:]:
+                self.assertEqual(later['status'],'NOT_STARTED');self.assertEqual(later['condition_terminal'],'NOT_STARTED');self.assertFalse(later['launch_requested'])
+
+    def test_actual_block_timeout_without_receipt_is_terminal_and_no_retry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            execute,called,claims=self.block_fixture(pathlib.Path(directory),timeout_at=1)
+            with self.assertRaises(p.subprocess.TimeoutExpired):execute()
+            self.assertEqual(len(called),2)
+            final=json.loads((claims/'tinyblock-final.json').read_text());second=final['attempts'][1]
+            self.assertEqual(second['status'],'TIMED_OUT_NO_RECEIPT');self.assertEqual(second['condition_terminal'],'TIMED_OUT_NO_RECEIPT')
+            self.assertTrue(second['launch_requested']);self.assertFalse(second['runtime_evidence_created'])
+            self.assertIsNone(second['returncode']);self.assertEqual(second['launch_error']['type'],'TimeoutExpired')
+            self.assertEqual(second['cleanup_result'],'NOT_OBSERVED_NO_CHILD_RECEIPT')
+            self.assertEqual([row['status'] for row in final['attempts'][2:]],['NOT_STARTED','NOT_STARTED'])
+            self.assertFalse(any(row['launch_requested'] for row in final['attempts'][2:]))
 
 class SampleEvidenceTest(unittest.TestCase):
     def setup_evidence(self,root):
@@ -446,6 +481,7 @@ class LocalRouteTest(unittest.TestCase):
     def test_frozen_route_rejects_legacy_manifest_paths_and_wrong_pin(self):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        protocol['statistics']['success_rate_denominator']='launch_requested'
         for request in protocol['correctness']['requests']:request['logprobs']=1
         protocol['correctness']['observability']='logprobs=1 matches GLM observation compute; return_token_ids omitted from SamplingParams, actual token IDs from existing trace; explicit top_p=1 vs GLM omitted default.'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=p.RUNS_ROOT)
@@ -508,6 +544,7 @@ class LogprobsAlignmentTest(unittest.TestCase):
     def test_frozen_protocol_allows_only_logprobs_and_observability_delta(self):
         protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
         protocol.update(status='FROZEN_PREREGISTRATION',final_deploy_commit=p.SOURCE)
+        protocol['statistics']['success_rate_denominator']='launch_requested'
         protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=p.RUNS_ROOT)
         protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
         protocol['assets'].update(route='local_nvme',safetensors=p.SF_HOST,store_archive=p.STORE_ARCHIVE,store=p.STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference',input_inventory_path='/tmp/new-local-manifest.json',input_inventory_sha256='c'*64)
@@ -523,6 +560,82 @@ class LogprobsAlignmentTest(unittest.TestCase):
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
         bad=copy.deepcopy(protocol);bad['correctness']['observability']='all matched'
         with self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
+
+class ControllerCostEventTest(unittest.TestCase):
+    def test_actual_event_samples_clock_and_pid_before_delayed_write(self):
+        node=next(n for n in ast.parse(p.CACHE_CODE).body if isinstance(n,ast.FunctionDef) and n.name=='event')
+        function=compile(ast.Module(body=[node],type_ignores=[]),'<actual-event>','exec')
+        current=[100];saved={}
+        def now():
+            current[0]+=1
+            return current[0]
+        def save(name,value):
+            sampled=copy.deepcopy(value);write_begin=current[0];current[0]+=10**9
+            saved[name]=(sampled,write_begin,current[0])
+        namespace={'time':types.SimpleNamespace(monotonic=now,monotonic_ns=now,time=now),'os':types.SimpleNamespace(getpid=lambda:123),'save':save,'clock_identity':{'boot_id':'boot','process_startticks':17},'run':'run','s':{'source_commit':'a'*40,'protocol_sha256':'b'*64,'attempt':{'block':1,'attempt_id':'run'},'condition':'store_disk_cold'}}
+        exec(function,namespace);namespace['event']('ray_join_begin')
+        record,write_begin,write_end=saved['event-ray_join_begin.json']
+        self.assertEqual(record['pid'],123);self.assertEqual(record['monotonic_ns'],102)
+        self.assertLessEqual(record['monotonic_ns'],write_begin)
+        self.assertLess(record['wall'],write_end)
+        self.assertEqual(record['clock_identity']['process_startticks'],17)
+        self.assertEqual(record['measurement'],'controller_observed_operation_boundary_not_pure_CUDA_or_IO')
+        namespace['event']('ray_join_complete')
+        complete=saved['event-ray_join_complete.json'][0]
+        self.assertGreater(complete['monotonic_ns'],write_end)
+        self.assertEqual(record['monotonic_ns'],102)
+
+    def test_generated_ast_cost_endpoints_surround_actual_operations(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins'])
+        body=command['argv'][command['argv'].index('-c')+1]
+        main=next(n for n in ast.parse(body).body if isinstance(n,ast.Try) and any(isinstance(x,ast.Call) and isinstance(x.func,ast.Name) and x.func.id=='create_arm_start' for x in ast.walk(n)))
+        calls=sorted([n for n in ast.walk(main) if isinstance(n,ast.Call)],key=lambda n:(n.lineno,n.col_offset))
+        def named(call,name):return isinstance(call.func,ast.Name) and call.func.id==name
+        def constant(call,index,value):return len(call.args)>index and isinstance(call.args[index],ast.Constant) and call.args[index].value==value
+        def position(name,predicate=lambda n:True):
+            selected=[i for i,n in enumerate(calls) if named(n,name) and predicate(n)]
+            self.assertEqual(len(selected),1,(name,len(selected)))
+            return selected[0]
+        def event(name):return position('event',lambda n:constant(n,0,name))
+        def bracket(begin,operation,end):self.assertLess(event(begin),operation);self.assertLess(operation,event(end))
+        bracket('common_environment_begin',position('create_arm_start',lambda n:constant(n,0,'head')),'common_environment_complete')
+        bracket('common_environment_begin',position('execute',lambda n:constant(n,0,'worker') and constant(n,1,'imports')),'common_environment_complete')
+        for role in ('head','worker'):
+            bracket('ray_join_begin',position('official',lambda n:constant(n,0,role) and constant(n,1,'ray.scripts.scripts') and len(n.args)>2 and isinstance(n.args[2],ast.Name)),'ray_join_complete')
+        store_start=position('official',lambda n:constant(n,1,'sllm_store.cli'))
+        config=position('execute',lambda n:constant(n,1,'store_config'))
+        bracket('store_pool_initialization_begin',store_start,'store_pool_initialization_complete')
+        bracket('store_pool_initialization_begin',config,'store_pool_initialization_complete')
+        initial=position('baseline_window',lambda n:constant(n,0,None))
+        bracket('initial_baseline60_begin',initial,'initial_baseline60_complete')
+        self.assertLess(event('store_pool_initialization_complete'),event('initial_baseline60_begin'))
+        api=position('official',lambda n:constant(n,0,'head') and constant(n,1,'sllm.cli.clic') and isinstance(n.args[2],ast.List) and isinstance(n.args[2].elts[0],ast.Constant) and n.args[2].elts[0].value=='start')
+        auth=position('save',lambda n:constant(n,0,'controller-initial-authenticated-identity.json'))
+        bracket('api_startup_begin',api,'api_controller_authentication_complete')
+        bracket('api_startup_begin',auth,'api_controller_authentication_complete')
+        bracket('delete_begin',position('HTTP',lambda n:constant(n,0,'/delete')),'delete_acknowledged')
+        deleted=position('baseline_window',lambda n:len(n.args)>0 and isinstance(n.args[0],ast.Subscript))
+        bracket('delete_baseline60_begin',deleted,'delete_baseline60_complete')
+        shutdown=position('execute',lambda n:constant(n,1,'controller_shutdown'))
+        api_stop=position('stop_service',lambda n:constant(n,0,'api'))
+        for operation in (shutdown,api_stop):bracket('controller_shutdown_and_api_stop_begin',operation,'controller_shutdown_and_api_stop_complete')
+        self.assertLess(event('ordered_final_stop_begin'),event('controller_shutdown_and_api_stop_begin'))
+        store_stop=position('stop_service',lambda n:constant(n,0,'store'))
+        self.assertLess(event('controller_shutdown_and_api_stop_complete'),store_stop)
+        for role in ('worker','head'):
+            normal=position('normal_exit',lambda n:constant(n,0,role))
+            self.assertLess(store_stop,normal);self.assertLess(normal,event('containers_normal_exit_complete'))
+        self.assertLess(event('containers_normal_exit_complete'),event('release_quiet60_complete'))
+        # End of release follows actual zero-GPU/gone proof and precedes the final source check.
+        gpu_calls=[i for i,n in enumerate(calls) if isinstance(n.func,ast.Attribute) and isinstance(n.func.value,ast.Name) and n.func.value.id=='m' and n.func.attr=='gpu']
+        self.assertLess(gpu_calls[-1],event('release_quiet60_complete'))
+        source_checks=[i for i,n in enumerate(calls) if named(n,'checkfiles')]
+        self.assertLess(event('release_quiet60_complete'),source_checks[-1])
+        self.assertEqual(spec['budgets']['full'],7200);self.assertEqual(spec['budgets']['sum'],6480)
+        self.assertIn("store_stop_end=time.monotonic()+60",body)
 
 if __name__=='__main__':
     unittest.main()
