@@ -1,0 +1,113 @@
+{
+  "status": "FAILED_RETAINED_NO_RETRY_TWO_AAB_DELETE_CYCLES_PASS_ABORT_RELEASE_COMPLETED",
+  "run_id": "kimi-native-qjhs000-pool-progress-20261106-once",
+  "source_commit": "794a0f3b08185d0ec7d054480922b2a5c5e24505",
+  "spec_sha256": "539f4c68239f73d9cd48cb7cd9c7143acc8b22d0f40f1c7f6b041aba8c12c0b4",
+  "command_sha256": "b72f4d3d29e2e44f796f5ec41c26bb738825f5b206452e9cb193e4d10e8afa5f",
+  "failure": {
+    "status": "FAILED_RETAINED_NO_RETRY",
+    "error_type": "AssertionError",
+    "error": "",
+    "cids": {
+      "head": "40582b272a4f94431a4ac3524850e78336bc3a202fb4ca41e58f0557e3ae6499",
+      "worker": "e167e18c25f6a3ae45f5b4c3f888937977e3a5f531040c3894c31a291ec9d61d"
+    },
+    "elapsed": 1450.8491005618125
+  },
+  "delete_quiet_seconds": [
+    60.89598709624261,
+    61.13018498942256
+  ],
+  "aab_case_count_per_lifecycle": 3,
+  "full_rank_records_and_ownership_count_per_lifecycle": 8,
+  "gold_sha256": "ffbfa50c28e3af345eeddf469c84d1a27a7da8e3ee14f5b8a45bc6a8b4396ba8",
+  "pool_destructor_total_buffers": 10240,
+  "observed_completed_call_pairs": 1024,
+  "begin_to_first_checkpoint_log_wall_seconds": 21.691433,
+  "complete_checkpoint_recorded": false,
+  "counter_limit": "calls returned and free invoked; cudaHostUnregister return ignored by original source, not evidence of successful unpin or allbuffer physical release",
+  "snapshots": {
+    "10": {
+      "elapsed": 10.443137159571052,
+      "expected_owner": {
+        "pid": 171691,
+        "startticks": 775893447,
+        "state": "S",
+        "ppid": 166188,
+        "cgroup": "0::/system.slice/docker-e167e18c25f6a3ae45f5b4c3f888937977e3a5f531040c3894c31a291ec9d61d.scope"
+      },
+      "capture_status": "CAPTURED_PROC_ONLY",
+      "main_wchan": "0",
+      "main_state": "R",
+      "syscall_number": "running",
+      "ioctl_fd_and_request": null,
+      "kernel_functions": [],
+      "raw_snapshot_sha256": "f3caecd0d2c4fb4782cf0ab7cd386c8c0254b3756713d1e730830ffce9041688"
+    },
+    "20": {
+      "elapsed": 20.300779092125595,
+      "expected_owner": {
+        "pid": 171691,
+        "startticks": 775893447,
+        "state": "S",
+        "ppid": 166188,
+        "cgroup": "0::/system.slice/docker-e167e18c25f6a3ae45f5b4c3f888937977e3a5f531040c3894c31a291ec9d61d.scope"
+      },
+      "capture_status": "CAPTURED_PROC_ONLY",
+      "main_wchan": "os_acquire_rwlock_read",
+      "main_state": "D",
+      "syscall_number": "16",
+      "ioctl_fd_and_request": [
+        "0xf",
+        "0xc0104629"
+      ],
+      "kernel_functions": [
+        "os_acquire_rwlock_read",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "[<0>]",
+        "do_syscall_64",
+        "entry_SYSCALL_64_after_hwframe"
+      ],
+      "raw_snapshot_sha256": "ff5b6b002939126a4c8b647edc76f162595f5274f312880f9621f932f3635943"
+    }
+  },
+  "observer_monitor": {
+    "samples": 792,
+    "memory_samples": 792,
+    "gaps": 1,
+    "max_query_seconds": 27.470384704880416,
+    "max_memory_interval_seconds": 28.793349569663405,
+    "peak_kind": "SAMPLED_LOWER_BOUND",
+    "peak_coverage": "SAMPLED_WITH_QUERY_GAPS"
+  },
+  "sampled_peak_mib_by_uuid": {
+    "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": 118051,
+    "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": 118049,
+    "GPU-63a1fe63-1472-9448-9361-a039cf257d14": 118049,
+    "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": 118051,
+    "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": 118135,
+    "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": 118051,
+    "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": 118049,
+    "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": 118137
+  },
+  "independent_failure_review_sha256": "a4817d21cdb86ca762dae577a1cd7d393a44f07984c41b31607424d5bf6137b1",
+  "scope_limits": [
+    "overall normal native exit FAILED, no historical relabel",
+    "No complete shutdown duration or minimum threshold measured; do not linear-extrapolate217 seconds",
+    "Both ABORT guards and observer quiet>=60, all GPUs0 and scopesgone; not normal-exit PASS",
+    "One NVML sampling gap; peaks sampled lower bounds only",
+    "No GPU retry after this failure; newcode/data preparation only",
+    "No fixed32/GLM performance comparison or Store conversion"
+  ],
+  "epoch": 1793943308.8597598
+}
