@@ -725,5 +725,245 @@ class ExecutionRevisionTest(unittest.TestCase):
             self.assertEqual(final['execution_revision']['target_total_launch_requests_max'],42)
             self.assertEqual(final['launch_requested_count'],4)
 
+
+class DiagnosticValueTest(unittest.TestCase):
+    def fingerprint_fixture(self):
+        import hashlib
+        def tensor(name,kind,storage,size,shape):
+            return dict(name=name,kind=kind,device='cuda:0',storage_id=storage,storage_offset=0,bytes=size,dtype='torch.int32',shape=shape,stride=[1])
+        tensors=[tensor('w','parameter',0,4,[1]),tensor('empty','parameter',1,0,[0]),tensor('alias','parameter',0,4,[1]),tensor('runtime','buffer',2,4,[1])]
+        def row(t):return {k:t[k] for k in ('name','kind','dtype','shape','stride')}|{'numbytes':t['bytes'],'sha256':hashlib.sha256(b'' if t['bytes']==0 else b'abcd').hexdigest()}
+        items={t['name']:row(t) for t in tensors};items['alias']['alias_of']='w'
+        index={'w':[0,4,[1],[1],'torch.int32'],'empty':[8,0,[0],[1],'torch.int32']}
+        fp={'schema':'kimi-load-boundary-value-fingerprint-v1','stage':'before_first_forward','status':'PASS','coverage_complete':True,'chunk_bytes':67108864,'budget_seconds':600,'elapsed_seconds':1,'index_path':'/store/vllm/kimi-k2.6-sf-reference/rank_0/tensor_index.json','index_sha256':'a'*64,'persistent':[items['w'],items['empty']],'runtime_buffers':[items['runtime']],'aliases':[items['alias']],'counts':dict(index_keys=2,persistent=2,runtime_buffers=1,aliases=1,registered_names=4,unique_hashed_ranges=2,hashed_bytes=8,chunks=2)}
+        return {'tp_rank':0,'registered_tensors':tensors,'diagnostic_value_fingerprint':fp},index
+
+    def test_actual_fingerprint_validator_complete_and_fail_closed(self):
+        record,index=self.fingerprint_fixture();p.validate_diagnostic_fingerprint(record,index,'a'*64)
+        # A different valid value hash is a diagnostic observation, not a capture failure.
+        changed=copy.deepcopy(record);changed['diagnostic_value_fingerprint']['runtime_buffers'][0]['sha256']='b'*64
+        p.validate_diagnostic_fingerprint(changed,index,'a'*64)
+        for field,value in [('status','TIMEOUT'),('coverage_complete',False),('elapsed_seconds',601),('index_sha256','b'*64)]:
+            bad=copy.deepcopy(record);bad['diagnostic_value_fingerprint'][field]=value
+            with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+        for count in ('unique_hashed_ranges','hashed_bytes','chunks'):
+            bad=copy.deepcopy(record);bad['diagnostic_value_fingerprint']['counts'][count]=0
+            with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+        for group in ('persistent','runtime_buffers','aliases'):
+            bad=copy.deepcopy(record);bad['diagnostic_value_fingerprint'][group].pop()
+            with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+        bad=copy.deepcopy(record);bad['diagnostic_value_fingerprint']['persistent'][1]['sha256']='c'*64
+        with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+        bad=copy.deepcopy(record);bad['diagnostic_value_fingerprint']['aliases'][0]['alias_of']='runtime'
+        with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+        bad=copy.deepcopy(record);bad['registered_tensors'][-1]['kind']='parameter';bad['diagnostic_value_fingerprint']['runtime_buffers'][0]['kind']='parameter'
+        with self.assertRaises(AssertionError):p.validate_diagnostic_fingerprint(bad,index,'a'*64)
+
+    def generated(self,root):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py';before=copy.deepcopy(protocol)
+        generated=p.render_diagnostic(protocol,spec,command,spec['native_source_pins'],overlay,p.base.digest(overlay))
+        self.assertEqual(protocol,before)
+        return protocol,generated
+
+    def test_render_four_cases_formal_unchanged_budget_and_unique_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            protocol,generated=self.generated(pathlib.Path(directory))
+            self.assertEqual([x['condition'] for x,_ in generated],['safetensors_disk_hot','safetensors_disk_hot','store_disk_cold','store_pool_hit'])
+            self.assertEqual(len({x['run_id'] for x,_ in generated}),4)
+            for spec,command in generated:
+                body=command['argv'][command['argv'].index('-c')+1];compile(body,'<diag>','exec')
+                self.assertNotIn('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS',body)
+                self.assertIn('DIAGNOSTIC_OBSERVATION_RELEASE60_COMPLETE_NOT_FORMAL',body)
+                self.assertIn("logprobs=want['logprobs'])",body);self.assertIn('verify_diagnostic_records(records)',body)
+                self.assertEqual(spec['budgets']['full'],7200);self.assertEqual(spec['budgets']['sum'],6480)
+                self.assertEqual(len(spec['correctness']['requests']),5)
+                self.assertEqual(len({x['case'] for x in spec['correctness']['requests']}),5)
+                self.assertEqual([x['input_tokens'] for x in spec['correctness']['requests'][2:]],[protocol['correctness']['requests'][2]['input_tokens']]*3)
+                self.assertNotIn("assert row.get('child_gold_validation_pass',True)",spec['role_bodies']['http'])
+                self.assertIn("find_spec('flashinfer')",spec['role_bodies']['imports']);self.assertNotIn('import flashinfer',spec['role_bodies']['imports'])
+                self.assertTrue(all(v['env']['SLLM_DIAGNOSTIC_VALUE_FINGERPRINT']=='1' for v in spec['requests'].values()))
+            original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            _,normal=p.render(protocol,original,command,protocol['attempts'][0]['attempt_id'],original['native_source_pins'])
+            self.assertEqual(normal['root_python_sha256'],'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
+            used=copy.deepcopy(protocol);used['resource_budget']['runs_root']=str(pathlib.Path(directory)/'runs');(pathlib.Path(directory)/'runs/kimi-diagnostic-value-20261107-sf1').mkdir(parents=True)
+            overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
+            with self.assertRaises(AssertionError):p.render_diagnostic(used,original,command,original['native_source_pins'],overlay,p.DIAGNOSTIC_OVERLAY_SHA)
+
+    def test_observed_gold_mismatch_continues_but_bad_http_or_top2_stops(self):
+        saved={};namespace={'math':__import__('math'),'json':json,'pathlib':pathlib,'hashlib':p.hashlib,'record_http_sample':lambda *a:None,'validated_http_events':lambda *a:{},'save':lambda name,value:saved.update({name:value})}
+        exec(p.DIAGNOSTIC_FUNCTIONS,namespace)
+        want={'case':'fixed32','input_tokens':[9], 'logprobs':2,'max_tokens':32,'expected':{'token_ids':[1]*32,'content':'gold','finish_reason':'length'}}
+        row={'status':200,'request_id':'diag-2','response':{'choices':[{'message':{'content':'changed'},'finish_reason':'length','logprobs':[{'2':{'rank':1,'logprob':-.1},'1':{'rank':2,'logprob':-2.}}]*32}],'usage':{'prompt_tokens':1,'completion_tokens':32,'total_tokens':33}}}
+        namespace['diagnostic_response'](row,want,2,1)
+        self.assertTrue(saved['diagnostic-response-fixed32.json']['gold_false'])
+        self.assertEqual(namespace['diagnostic_observations']['fixed32']['actual_ids'],[2]*32)
+        bad=copy.deepcopy(row);bad['status']=500
+        with self.assertRaises(AssertionError):namespace['diagnostic_response'](bad,want,2,1)
+        bad=copy.deepcopy(row);bad['response']['choices'][0]['logprobs'][0]={'1':{'rank':1,'logprob':-.1}}
+        with self.assertRaises(AssertionError):namespace['diagnostic_response'](bad,want,2,1)
+        complete=namespace['diagnostic_qualification']({}, {'normal':True},{'normal':True,'quiet_seconds':60},{})
+        self.assertFalse(complete['primary_sample_qualified']);self.assertFalse(complete['diagnostic_observation_complete'])
+
+    def test_actual_prepare_diagnostic_ten_json_and_block_inline_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py';out=root/'out';out.mkdir()
+            with mock.patch.object(p.base,'EVIDENCE',out):
+                files=p.prepare_diagnostic(protocol,spec,command,spec['native_source_pins'],p.SOURCE,p.PROTOCOL,p.PROTOCOL_SHA,overlay,p.base.digest(overlay))
+            self.assertEqual(len(files),10)
+            bundle=json.loads(next(out.glob('*-bundle.json')).read_text());self.assertFalse(bundle['primary_sample_qualified']);self.assertEqual(bundle['full_max_seconds'],28920)
+            tree=ast.parse(bundle['block_python']);transform=next(n for n in ast.walk(tree) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='argv' for t in n.targets) and isinstance(n.value,ast.List) and any(isinstance(x,ast.Constant) and x.value=='--wait' for x in n.value.elts))
+            for entry in bundle['attempts']:
+                cmd=json.loads(pathlib.Path(entry['command_path']).read_text());original=cmd['argv'][cmd['argv'].index('-c')+1];namespace={'argv':cmd['argv'],'expiry':999999.}
+                exec(compile(ast.Module(body=[transform],type_ignores=[]),'<actual-diag-argv>','exec'),namespace)
+                self.assertEqual(namespace['argv'][namespace['argv'].index('-c')+1],original)
+                self.assertIn('--property=RemainAfterExit=yes',original)
+            with mock.patch.object(p.base,'EVIDENCE',out):
+                with self.assertRaises(AssertionError):p.prepare_diagnostic(protocol,spec,command,spec['native_source_pins'],p.SOURCE,p.PROTOCOL,p.PROTOCOL_SHA,overlay,p.base.digest(overlay))
+
+
+    def test_diagnostic_actual_main_and_block_failure_stop(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);out=root/'out';out.mkdir();overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
+            protocol=json.loads((p.base.EVIDENCE/'kimi-four-condition-10block-preregistration-local-nvme-v4-retry02-20261106.json').read_text());protocol['final_deploy_commit']=p.SOURCE
+            pp=root/'protocol.json';pp.write_text(json.dumps(protocol));sha=p.base.digest(pp)
+            with mock.patch.object(p.base,'EVIDENCE',out),mock.patch.object(p,'validate_inventory'),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--diagnostic','--diagnostic-overlay',str(overlay),'--diagnostic-overlay-sha',p.base.digest(overlay),'--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
+                p.main()
+            bundle=json.loads(next(out.glob('*-bundle.json')).read_text());body=bundle['block_python']
+            self.assertEqual(len(list(out.iterdir())),10);self.assertNotIn('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS',body)
+            for entry in bundle['attempts']:
+                command=json.loads(pathlib.Path(entry['command_path']).read_text());spec=json.loads(pathlib.Path(command['argv'][-3]).read_text())
+                active=[item for item in spec['overlays'] if item['target'].endswith('/v1/worker/gpu_model_runner.py')];self.assertEqual(len(active),1)
+                self.assertEqual(active[0]['source'],str(overlay));self.assertEqual(active[0]['sha256'],p.DIAGNOSTIC_OVERLAY_SHA)
+                self.assertEqual(spec['code_pins'][str(overlay)],active[0]['sha256'])
+                for request in spec['requests'].values():
+                    mounted=[item for item in request['mounts'] if item['Target']==active[0]['target']];self.assertEqual(len(mounted),1);self.assertEqual(mounted[0]['Source'],active[0]['source'])
+                for expected,actual in zip(spec['correctness']['requests'],spec['actual_request_parameters']):
+                    self.assertEqual(expected['logprobs'],2);self.assertEqual(actual['logprobs'],2)
+                    self.assertTrue(all(expected[key]==actual[key] for key in actual))
+            block=root/'block';block.mkdir();execute,called,claims=ActualConsumerTest().block_fixture(block,fail_at=1,inline_code="x='--property=RemainAfterExit=yes'")
+            bp=block/'bundle.json';b=json.loads(bp.read_text());b['status']='FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL';bp.write_text(json.dumps(b))
+            for entry in b['attempts']:
+                cp=pathlib.Path(entry['command_path']);cmd=json.loads(cp.read_text());sp=pathlib.Path(cmd['argv'][-3]);spec=json.loads(sp.read_text());spec['status']=b['status'];sp.write_text(json.dumps(spec));cmd['argv'][-2]=cmd['spec_sha256']=p.base.digest(sp);cp.write_text(json.dumps(cmd));entry['command_sha256']=p.base.digest(cp)
+            bp.write_text(json.dumps(b));real_write=pathlib.Path.write_text
+            def write(path,value,*args,**kwargs):
+                if path.name=='controller-final.json':value=value.replace('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','DIAGNOSTIC_OBSERVATION_RELEASE60_COMPLETE_NOT_FORMAL')
+                return real_write(path,value,*args,**kwargs)
+            with mock.patch.object(p,'BLOCK_BODY',body),mock.patch.object(pathlib.Path,'write_text',write):
+                with self.assertRaises(AssertionError):execute()
+            self.assertEqual(len(called),2)
+            final=json.loads((claims/'tinyblock-final.json').read_text());self.assertFalse(final['primary_sample_qualified']);self.assertIn('NOT_FORMAL',final['status']);self.assertEqual(final['attempts'][2]['status'],'NOT_STARTED')
+            self.assertEqual(called[0][called[0].index('-c')+1],"x='--property=RemainAfterExit=yes'")
+            with mock.patch.object(p,'BLOCK_BODY',body):
+                with self.assertRaises(FileExistsError):execute()
+            self.assertEqual(len(called),2)
+            low=root/'low';low.mkdir();late,none,late_claims=ActualConsumerTest().block_fixture(low,expiry=28000)
+            path=low/'bundle.json';value=json.loads(path.read_text());value['status']='FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL';path.write_text(json.dumps(value))
+            with mock.patch.object(p,'BLOCK_BODY',body):
+                with self.assertRaises(AssertionError):late()
+            self.assertEqual(none,[]);self.assertEqual(list(late_claims.iterdir()),[])
+
+    def test_actual_trace_counter_and_diagnostic_complete_never_qualifies_formal(self):
+        with tempfile.TemporaryDirectory() as directory:
+            _,generated=self.generated(pathlib.Path(directory));spec,command=generated[0];body=command['argv'][command['argv'].index('-c')+1]
+            node=next(n for n in ast.walk(ast.parse(body)) if isinstance(n,ast.Assert) and isinstance(n.test,ast.Compare) and 'collections.Counter' in ast.unparse(n.test))
+            check=compile(ast.Module(body=[node],type_ignores=[]),'<actual-diag-trace-check>','exec')
+            context={'collections':__import__('collections'),'json':json,'tokens':{'tokens':[[1,2],[1,3]]},'history':[[1,2],[1,3]]};exec(check,context)
+            context['tokens']['tokens'][-1]=[1,99]
+            with self.assertRaises(AssertionError):exec(check,context)
+            namespace={'math':__import__('math'),'json':json};exec(p.DIAGNOSTIC_FUNCTIONS,namespace)
+            namespace['diagnostic_observations'].update({str(i):{'gold_match':i!=2} for i in range(5)})
+            metrics={str(i):{'raw_interval_status':'NUMERIC','stdout_reference':{}} for i in range(5)};gates={k:{'status':'PASS'} for k in ('cache','clock','ownership')};gates['gold']={'status':'FAIL'}
+            result=namespace['diagnostic_qualification'](gates,{'normal':True},{'normal':True,'quiet_seconds':60},metrics)
+            self.assertTrue(result['diagnostic_observation_complete']);self.assertFalse(result['primary_sample_qualified']);self.assertFalse(result['gold_matches']['2'])
+
+
+    def test_simulated_hash_fixture_from_real_registered_metadata_only(self):
+        import inspect
+        reference=p.base.EVIDENCE/'kimi-fingerprint-validator-metadata-only-reference-20261107'
+        if not reference.is_dir():self.skipTest('server-only historical metadata fixture absent')
+        index_path=pathlib.Path(p.STORE_ARCHIVE)/'vllm/kimi-k2.6-sf-reference/rank_0/tensor_index.json'
+        raw=index_path.read_bytes();self.assertLess(len(raw),4<<20);index=json.loads(raw)
+        node=next(n for n in ast.walk(ast.parse(inspect.getsource(p.validate_diagnostic_fingerprint))) if isinstance(n,ast.FunctionDef) and n.name=='signature')
+        namespace={};exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-signature>','exec'),namespace);signature=namespace['signature']
+        for path in reference.glob('*rank0.json'):
+            record=json.loads(path.read_text());metadata={t['name']:t for t in record['registered_tensors']}
+            keys={signature(metadata[name]):name for name in index if metadata[name]['bytes']>0}
+            persistent=[];runtime=[];aliases=[]
+            for name,tensor in metadata.items():
+                row={key:tensor[key] for key in ('name','kind','dtype','shape','stride')};row['numbytes']=tensor['bytes']
+                # SIMULATED nonempty hashes: no tensor value is read or validated by this fixture.
+                row['sha256']='a'*64 if tensor['bytes'] else p.hashlib.sha256(b'').hexdigest()
+                if name in index:persistent.append(row)
+                elif tensor['bytes'] and signature(tensor) in keys:row['alias_of']=keys[signature(tensor)];aliases.append(row)
+                else:runtime.append(row)
+            self.assertEqual((len(persistent),len(runtime),len(aliases)),(1912,123,727))
+            runtime_ranges={signature(metadata[x['name']]) for x in runtime if x['numbytes']}
+            self.assertEqual(len(runtime_ranges),2);self.assertEqual(sum(key[3] for key in runtime_ranges),67118080)
+            ranges={signature(t) for t in metadata.values() if t['bytes']}
+            record['diagnostic_value_fingerprint']={'schema':'kimi-load-boundary-value-fingerprint-v1','stage':'before_first_forward','status':'PASS','coverage_complete':True,'error_type':None,'error':None,'chunk_bytes':67108864,'budget_seconds':600,'elapsed_seconds':0,'index_path':'/store/vllm/kimi-k2.6-sf-reference/rank_0/tensor_index.json','index_sha256':p.hashlib.sha256(raw).hexdigest(),'persistent':persistent,'runtime_buffers':runtime,'aliases':aliases,'counts':{'index_keys':len(index),'registered_names':len(metadata),'persistent':len(persistent),'runtime_buffers':len(runtime),'aliases':len(aliases),'unique_hashed_ranges':len(ranges),'hashed_bytes':sum(key[3] for key in ranges),'chunks':sum((key[3]+67108863)//67108864 for key in ranges)}}
+            p.validate_diagnostic_fingerprint(record,index,p.hashlib.sha256(raw).hexdigest())
+
+
+class SFHotRepeatabilityTest(unittest.TestCase):
+    def test_actual_single_case_main_four_producers_and_no_fingerprint(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);out=root/'out';out.mkdir()
+            protocol=json.loads((p.base.EVIDENCE/'kimi-four-condition-10block-preregistration-local-nvme-v4-retry02-20261106.json').read_text());protocol['final_deploy_commit']=p.SOURCE
+            pp=root/'reference.json';pp.write_text(json.dumps(protocol));sha=p.base.digest(pp)
+            with mock.patch.object(p.base,'EVIDENCE',out),mock.patch.object(p,'validate_inventory'),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--sfhot-repeatability','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
+                p.main()
+            self.assertEqual(len(list(out.iterdir())),2);self.assertEqual(list(out.glob('*-bundle.json')),[])
+            spec=json.loads(next(out.glob('*-spec.json')).read_text());cmd=json.loads(next(out.glob('*-command.json')).read_text());body=cmd['argv'][cmd['argv'].index('-c')+1]
+            self.assertEqual(spec['run_id'],'kimi-sfhot-repeatability-20261107-once');self.assertEqual(spec['condition'],'safetensors_disk_hot');self.assertFalse(spec['fingerprint_required']);self.assertIn('NOT_APPLICABLE',spec['fingerprint_scope']);self.assertFalse(spec['primary_sample_qualified'])
+            self.assertEqual(spec['budgets']['full'],7200);self.assertIn("store_stop_end=time.monotonic()+60",body);self.assertNotIn('verify_diagnostic_records',body);self.assertNotIn('diagnostic_value_fingerprint',body)
+            self.assertEqual([r['logprobs'] for r in spec['correctness']['requests']],[1,1,1,2])
+            original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+            for role,req in spec['requests'].items():
+                self.assertNotIn('SLLM_DIAGNOSTIC_VALUE_FINGERPRINT',req['env']);self.assertEqual(req['env'].get('SLLM_CAPTURE_LOAD_EVIDENCE'),original['requests'][role]['env'].get('SLLM_CAPTURE_LOAD_EVIDENCE'))
+                active=next(m for m in req['mounts'] if m['Target'].endswith('/v1/worker/gpu_model_runner.py'));self.assertEqual(active['Source'],str(p.base.NEW_RUNNER));self.assertEqual(spec['code_pins'][active['Source']],p.base.NEW_RUNNER_SHA)
+            self.assertEqual(next(x for x in spec['overlays'] if x['target'].endswith('/v1/worker/gpu_model_runner.py'))['sha256'],p.base.NEW_RUNNER_SHA)
+            clock=[100];calls=[];seen=[]
+            def now():clock[0]+=1;return clock[0]
+            class Response:
+                status=200
+                def __init__(self,value):self.value=value
+                def __enter__(self):return self
+                def __exit__(self,*args):return False
+                def read(self,limit):return json.dumps(self.value).encode()
+            def request(req,timeout):
+                calls.append(req.full_url)
+                if req.full_url.endswith('/register'):return Response({})
+                payload=json.loads(req.data);index=len(seen);seen.append(payload);want=spec['correctness']['requests'][index];ids=want['expected']['token_ids'][:]
+                text=want['expected']['content']
+                if index==3:ids[11]=12635;text=text.replace('光学','物理').replace('\\u5149\\u5b66','\\u7269\\u7406')
+                entries=[{str(token):{'rank':1,'logprob':-.1},**({str(token+1):{'rank':2,'logprob':-2.}} if payload['logprobs']==2 else {})} for token in ids]
+                return Response({'choices':[{'message':{'content':text},'logprobs':entries,'finish_reason':want['expected']['finish_reason']}],'usage':{'prompt_tokens':len(want['input_tokens']),'completion_tokens':len(ids),'total_tokens':len(want['input_tokens'])+len(ids)}})
+            ns={'json':json,'urllib':types.SimpleNamespace(request=types.SimpleNamespace(Request=urllib.request.Request,urlopen=request)),'time':types.SimpleNamespace(monotonic_ns=now),'HTTP_CLOCK':{},'HTTP_PID':1}
+            exec(functions_from(spec['role_bodies']['http']),ns)
+            nodes=ast.parse(body);saved={};observe={'math':__import__('math'),'json':json,'record_http_sample':lambda *a:None,'validated_http_events':lambda *a:{},'diagnostic_observations':{},'save':lambda name,value:saved.update({name:value}),'s':spec}
+            selected=[n for n in nodes.body if isinstance(n,ast.FunctionDef) and n.name in ('diagnostic_response','diagnostic_qualification')];exec(compile(ast.Module(body=selected,type_ignores=[]),'<actual-repeat-response>','exec'),observe)
+            loop=next(n for n in ast.walk(nodes) if isinstance(n,ast.For) and isinstance(n.target,ast.Tuple) and [getattr(x,'id',None) for x in n.target.elts]==['index','want'] and any(isinstance(x,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='payload' for t in x.targets) for x in n.body))
+            stmts=[n for n in loop.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='payload' for t in n.targets) or isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='payload']
+            builder=compile(ast.Module(body=stmts,type_ignores=[]),'<actual-repeat-payload>','exec')
+            for index,want in enumerate(spec['correctness']['requests']):
+                context={'want':want,'index':index,'run':spec['run_id'],'s':spec};exec(builder,context);payload=context['payload']
+                self.assertEqual(payload['logprobs'],[1,1,1,2][index]);self.assertTrue(all(payload[k]==spec['actual_request_parameters'][index][k] for k in spec['actual_request_parameters'][index] if k!='case'))
+                row=ns['finish_http']('/v1/chat/completions',payload,30,want,spec['config'] if index==0 else None);observe['diagnostic_response'](row,want,index,1)
+            self.assertEqual(len(calls),5);self.assertTrue(calls[0].endswith('/register'));self.assertEqual(len(seen),4)
+            last=observe['diagnostic_observations']['fixed32-repeat1'];self.assertFalse(last['strict_gold_match']);self.assertTrue(last['known_fixed32_variant_match'])
+            metrics={x['case']:{'raw_interval_status':'NUMERIC','stdout_reference':{}} for x in spec['correctness']['requests']};gates={k:{'status':'PASS'} for k in ('cache','clock','ownership')}
+            result=observe['diagnostic_qualification'](gates,{'normal':True},{'normal':True,'quiet_seconds':60},metrics);self.assertTrue(result['diagnostic_observation_complete']);self.assertFalse(result['primary_sample_qualified'])
+
+    def test_repeatability_used_run_rejected_full_mode_still_requires_capture(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);cmd=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        with tempfile.TemporaryDirectory() as directory:
+            protocol['resource_budget']['runs_root']=directory;(pathlib.Path(directory)/'kimi-sfhot-repeatability-20261107-once').mkdir()
+            with self.assertRaises(AssertionError):p.render_diagnostic(protocol,spec,cmd,spec['native_source_pins'],repeatability=True)
+        overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
+        full=p.render_diagnostic(protocol,spec,cmd,spec['native_source_pins'],overlay,p.DIAGNOSTIC_OVERLAY_SHA)
+        self.assertEqual(len(full),4);self.assertTrue(all(s['fingerprint_required'] for s,_ in full));self.assertTrue(all("verify_diagnostic_records(records)" in c['argv'][c['argv'].index('-c')+1] for _,c in full))
+
 if __name__=='__main__':
     unittest.main()

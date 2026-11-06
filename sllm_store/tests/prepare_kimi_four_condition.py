@@ -4,6 +4,8 @@ import ast
 import copy
 import datetime
 import hashlib
+import inspect
+import math
 import json
 import pathlib
 import re
@@ -19,6 +21,10 @@ SOURCE = "70b23a3af65fae77b4b762942cf4a682a7c474f6"
 SF_HOST = "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb"
 STORE_ARCHIVE = "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once"
 RUNS_ROOT = "/data/brick1/boyjiang/kimi-k2.6/performance-runs"
+DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8ca9692b1f25'
+DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
+DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
+DIAGNOSTIC_PATCH_SHA = '6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db'
 CONDITIONS = ("safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit")
 
 
@@ -379,12 +385,16 @@ def collect_structured_events(router_positions,worker_positions,tokens,backend_o
  save('structured-lifecycle-events.json',{'run_id':run,'attempt':s['attempt'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'events':groups,'sources':sources,'backend_owner':backend_owner,'router_owner':router_owner,'instance_id':route['instance_id']})
 """
 
-def render(protocol, spec, command, attempt_id, source_pins):
+def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_id=None):
     validate_protocol(protocol)
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
-    assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry02)?", attempt_id)
+    if diagnostic_run_id is None:
+        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry02)?", attempt_id)
+    else:
+        assert diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
+        attempt_id=diagnostic_run_id
     assert not (pathlib.Path(protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))) / attempt_id).exists(), "identity already used"
     assert spec["image"] == protocol["deployment"]["image"]
     assert spec["store_extension"]["sha256"] == protocol["deployment"]["extension_sha256"]
@@ -635,6 +645,200 @@ def validate_frozen_protocol(protocol, source_commit):
 
 
 
+
+def validate_diagnostic_fingerprint(record, index, index_sha256):
+    fp=record['diagnostic_value_fingerprint']
+    assert fp['schema']=='kimi-load-boundary-value-fingerprint-v1' and fp['stage']=='before_first_forward'
+    assert fp['status']=='PASS' and fp['coverage_complete'] is True
+    assert fp.get('error_type') is None and fp.get('error') is None
+    assert fp['chunk_bytes']==67108864 and fp['budget_seconds']==600
+    assert math.isfinite(fp['elapsed_seconds']) and 0<=fp['elapsed_seconds']<=600
+    assert fp['index_sha256']==index_sha256
+    assert fp['index_path']=='/store/vllm/kimi-k2.6-sf-reference/rank_'+str(record['tp_rank'])+'/tensor_index.json'
+    tensors={row['name']:row for row in record['registered_tensors']}
+    assert len(tensors)==len(record['registered_tensors'])
+    def signature(row):
+        widths={**dict.fromkeys(('torch.bool','torch.uint8','torch.int8','torch.float8_e4m3fn','torch.float8_e5m2','torch.float8_e4m3fnuz','torch.float8_e5m2fnuz'),1),**dict.fromkeys(('torch.int16','torch.uint16','torch.float16','torch.bfloat16'),2),**dict.fromkeys(('torch.int32','torch.uint32','torch.float32'),4),**dict.fromkeys(('torch.int64','torch.uint64','torch.float64','torch.complex64'),8),'torch.complex128':16}
+        assert row['dtype'] in widths,'unsupported fingerprint dtype'
+        # storage_id is already canonicalized by (device, untyped-storage baseptr).
+        return (row['device'],row['storage_id'],row['storage_offset']*widths[row['dtype']],row['bytes'],row['dtype'],tuple(row['shape']),tuple(row['stride']))
+    def metadata(row):
+        return (row['dtype'],row['shape'],row['stride'],row['numbytes'])
+    groups={name:{row['name']:row for row in fp[name]} for name in ('persistent','runtime_buffers','aliases')}
+    assert all(len(groups[name])==len(fp[name]) for name in groups)
+    names=[name for group in groups.values() for name in group]
+    assert len(names)==len(set(names)) and set(names)==set(tensors),'fingerprint registered coverage incomplete'
+    assert set(groups['persistent'])==set(index),'fingerprint index coverage incomplete'
+    index_ranges={signature(tensors[name]) for name in index}
+    expected_aliases={name for name,t in tensors.items() if name not in index and t['bytes']>0 and signature(t) in index_ranges}
+    expected_runtime=set(tensors)-set(index)-expected_aliases
+    assert set(groups['aliases'])==expected_aliases and set(groups['runtime_buffers'])==expected_runtime
+    for group,items in groups.items():
+        for name,row in items.items():
+            t=tensors[name]
+            assert row['kind']==t['kind'] and metadata(row)==(t['dtype'],t['shape'],t['stride'],t['bytes'])
+            assert re.fullmatch('[0-9a-f]{64}',row['sha256'])
+            if row['numbytes']==0:assert row['sha256']==hashlib.sha256(b'').hexdigest() and 'alias_of' not in row
+            if group=='persistent':
+                entry=index[name]
+                assert len(entry)==5 and metadata(row)==(entry[4],entry[2],entry[3],entry[1])
+            elif group=='runtime_buffers':assert row['kind']=='buffer','nonindex unaliased parameter'
+            if group=='aliases' or 'alias_of' in row:
+                target=row['alias_of'];targets=groups['persistent'] if group=='aliases' else items
+                assert target!=name and target in targets and signature(t)==signature(tensors[target])
+                assert row['sha256']==targets[target]['sha256']
+    counts=fp['counts']
+    assert counts['index_keys']==len(index) and counts['registered_names']==len(tensors)
+    assert all(counts[k]==len(groups[k]) for k in groups)
+    ranges={signature(t) for t in tensors.values() if t['bytes']>0}
+    assert counts['unique_hashed_ranges']==len(ranges)
+    assert counts['hashed_bytes']==sum(key[3] for key in ranges)
+    assert counts['chunks']==sum((key[3]+67108863)//67108864 for key in ranges)
+    assert all(type(counts[k]) is int and counts[k]>=0 for k in ('unique_hashed_ranges','hashed_bytes','chunks'))
+    return {'rank':record['tp_rank'],'index_sha256':index_sha256,'counts':counts,'elapsed_seconds':fp['elapsed_seconds']}
+
+
+DIAGNOSTIC_FUNCTIONS = """
+diagnostic_observations={}
+def diagnostic_response(row,want,index,life):
+ record_http_sample(row,want,index)
+ response=row['response'];assert row['status']==200 and len(response['choices'])==1
+ choice=response['choices'][0];assert isinstance(choice['message']['content'],str);entries=choice['logprobs'];ids=[]
+ for entry in entries:
+  assert len(entry)==want['logprobs'] and sorted(v['rank'] for v in entry.values())==list(range(1,want['logprobs']+1))
+  assert all(math.isfinite(v['logprob']) for v in entry.values())
+  ids.append(int(next(k for k,v in entry.items() if v['rank']==1)))
+ usage=response['usage'];assert usage=={'prompt_tokens':len(want['input_tokens']),'completion_tokens':len(ids),'total_tokens':len(want['input_tokens'])+len(ids)}
+ assert 0<len(ids)<=want['max_tokens']
+ if want['case'].startswith('fixed32'):assert len(ids)==32 and choice['finish_reason']=='length'
+ else:assert choice['finish_reason'] in ('stop','length')
+ expected=want['expected'];match=ids==expected['token_ids'] and choice['message']['content']==expected['content'] and choice['finish_reason']==expected['finish_reason']
+ diagnostic_observations[want['case']]={'actual_ids':ids,'gold_match':match,'request_id':row['request_id'],'top2':entries}
+ complete=validated_http_events(row,want,index)
+ save('diagnostic-response-'+want['case']+'.json',{'actual':row,'expected':want,'gold_false':not match,'observation':diagnostic_observations[want['case']],'validated_endpoint':complete})
+ return complete
+def verify_diagnostic_records(records):
+ summaries=[]
+ for record in records:
+  path=pathlib.Path(s['archive'])/'vllm'/s['config']['model']/('rank_'+str(record['tp_rank']))/'tensor_index.json'
+  raw=path.read_bytes();assert len(raw)<=4<<20
+  receipt=pathlib.Path(s['conversion_receipt']['path']);assert hashlib.sha256(receipt.read_bytes()).hexdigest()==s['conversion_receipt']['sha256']
+  expected=next(row['index_sha256'] for row in json.loads(receipt.read_text())['archive_validation']['ranks'] if row['rank']==record['tp_rank'])
+  assert hashlib.sha256(raw).hexdigest()==expected,'diagnostic frozen index drift'
+  summaries.append(validate_diagnostic_fingerprint(record,json.loads(raw),hashlib.sha256(raw).hexdigest()))
+ assert len(summaries)==8 and {v['rank'] for v in summaries}==set(range(8))
+ save('diagnostic-fingerprint-validation.json',{'records':summaries,'coverage':'all registered persistent/index aliases/runtimebuffers only; native nonregistered workspaces excluded; before-first-forward only'})
+def diagnostic_qualification(gates,terminal,cleanup,metrics):
+ complete=all(gates.get(k,{}).get('status')=='PASS' for k in ('cache','clock','ownership')) and terminal.get('normal') is True and cleanup.get('normal') is True and isinstance(cleanup.get('quiet_seconds'),(int,float)) and 60<=cleanup['quiet_seconds']<float('inf')
+ expected=len(s['correctness']['requests']) if 's' in globals() else 5
+ complete=complete and len(diagnostic_observations)==expected and all(row.get('raw_interval_status')=='NUMERIC' and isinstance(row.get('stdout_reference'),dict) for row in metrics.values()) and len(metrics)==expected
+ return {'primary_sample_qualified':False,'diagnostic_observation_complete':bool(complete),'gold_matches':{k:v['gold_match'] for k,v in diagnostic_observations.items()},'invalid_reasons':[] if complete else ['diagnostic technical evidence incomplete'],'rule':'DIAGNOSTIC_OBSERVATION_NOT_FORMAL; strict gold mismatches preserved, no formal qualification'}
+"""
+
+
+def render_diagnostic(protocol, original_spec, original_command, source_pins, overlay_path=None, overlay_sha256=None, *, repeatability=False):
+    if repeatability:
+        overlay_path,overlay_sha256=base.NEW_RUNNER,base.NEW_RUNNER_SHA
+    assert pathlib.Path(overlay_path).is_absolute() and re.fullmatch('[0-9a-f]{64}',overlay_sha256)
+    assert overlay_sha256==(base.NEW_RUNNER_SHA if repeatability else DIAGNOSTIC_OVERLAY_SHA) and base.digest(pathlib.Path(overlay_path))==overlay_sha256
+    if not repeatability:assert base.digest(DIAGNOSTIC_MANIFEST)==DIAGNOSTIC_MANIFEST_SHA
+    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';assert base.digest(patch)==DIAGNOSTIC_PATCH_SHA
+    compile(pathlib.Path(overlay_path).read_text(),'<diagnostic-overlay>','exec')
+    outputs=[]
+    cases=[('sfhot-repeatability','safetensors_disk_hot')] if repeatability else [('sf1','safetensors_disk_hot'),('sf2','safetensors_disk_hot'),('storecold','store_disk_cold'),('poolhit','store_pool_hit')]
+    for label,condition in cases:
+        run='kimi-sfhot-repeatability-20261107-once' if repeatability else 'kimi-diagnostic-value-20261107-'+label
+        logical=next(a['attempt_id'] for a in protocol['attempts'] if a['condition']==condition)
+        spec,command=render(protocol,original_spec,original_command,logical,source_pins,diagnostic_run_id=run)
+        index=command['argv'].index('-c')+1;body=command['argv'][index]
+        spec.update(status='DIAGNOSTIC_CANDIDATE_NOT_EXECUTABLE_NOT_FORMAL',primary_sample_qualified=False,logical_attempt_id=None,execution_revision=None,attempt={'attempt_id':run,'diagnostic_case':label,'condition':condition},planned_attempts=[],diagnostic=True)
+        requests=copy.deepcopy(protocol['correctness']['requests'])
+        for number in ((1,) if repeatability else (1,2)):
+            row=copy.deepcopy(requests[2]);row['case']='fixed32-repeat'+str(number);requests.append(row)
+        for request_index,row in enumerate(requests):row['logprobs']=1 if repeatability and request_index<3 else 2
+        spec['correctness']=copy.deepcopy(spec['correctness']);spec['correctness']['requests']=requests
+        spec['actual_request_parameters']=[{'case':row['case'],**{key:row[key] for key in ('input_tokens','temperature','top_p','top_k','min_p','seed','n','max_tokens','ignore_eos')},'logprobs':row['logprobs']} for row in requests]
+        spec['sfhot_repeatability']=repeatability;spec['fingerprint_required']=not repeatability
+        spec['request_observability']='DIAGNOSTIC_NOT_FORMAL: first three original requests LP1, fourth same-shape fixed32 LP2 independent observation, no retroactive LP2 margin claim' if repeatability else 'DIAGNOSTIC_NOT_FORMAL: all five requests LP2, actual rank1 IDs checked against trace; strict gold differences preserved'
+        spec['correctness']['observability']=spec['request_observability']
+        spec['fingerprint_scope']='NOT_APPLICABLE: same-condition SFhot repeatability, no value fingerprint or D2H' if repeatability else 'before-first-forward,600seconds INCLUDED within firstHTTP1500; no after/nativeworkspace equivalence claim'
+        for role,request in spec['requests'].items():
+            if not repeatability:request['env'].update(SLLM_DIAGNOSTIC_VALUE_FINGERPRINT='1',SLLM_CAPTURE_LOAD_EVIDENCE='1')
+            else:assert not request['env'].get('SLLM_DIAGNOSTIC_VALUE_FINGERPRINT')
+            matches=[mount for mount in request['mounts'] if mount['Target'].endswith('/v1/worker/gpu_model_runner.py')];assert len(matches)==1
+            matches[0]['Source']=str(overlay_path)
+        active=[item for item in spec['overlays'] if item['target'].endswith('/v1/worker/gpu_model_runner.py')]
+        assert len(active)==1 and active[0]['sha256']==base.NEW_RUNNER_SHA
+        active[0].update(source=str(overlay_path),sha256=overlay_sha256)
+        spec['code_pins'][str(overlay_path)]=overlay_sha256
+        if not repeatability:spec['code_pins'][str(DIAGNOSTIC_MANIFEST)]=DIAGNOSTIC_MANIFEST_SHA
+        spec['code_pins'][str(patch)]=DIAGNOSTIC_PATCH_SHA
+        spec['role_bodies']['http']=spec['role_bodies']['http'].replace("assert row.get('child_gold_validation_pass',True)","assert row['status']==200").replace("print(json.dumps(row),flush=True)","row.update(diagnostic=True,experiment_scope='DIAGNOSTIC_OBSERVATION_NOT_FORMAL',primary_sample_qualified=False);print(json.dumps(row),flush=True)")
+        imports=spec['role_bodies']['imports']
+        imports+="\nimport importlib.metadata,importlib.util,hashlib,pathlib\nidentity={}\nfor package in ('flashinfer-python','flashinfer-cubin'):\n try:identity[package]=importlib.metadata.version(package)\n except importlib.metadata.PackageNotFoundError:identity[package]='NOT_INSTALLED'\norigin=importlib.util.find_spec('flashinfer').origin;identity['module_origin']=origin;identity['module_sha256']=hashlib.sha256(pathlib.Path(origin).read_bytes()).hexdigest();print('DIAGNOSTIC_FLASHINFER_IDENTITY '+json.dumps(identity),flush=True)\n"
+        spec['role_bodies']['imports']=imports
+        for name in ('http','imports'):spec['role_body_sha256'][name]=hashlib.sha256(spec['role_bodies'][name].encode()).hexdigest()
+        body=body.replace("s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW'","s['status']=='FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL'")
+        save_node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='save')
+        old_save=ast.get_source_segment(body,save_node)
+        lines=old_save.splitlines();lines.insert(1," value={**value,'experiment_scope':'DIAGNOSTIC_OBSERVATION_NOT_FORMAL','primary_sample_qualified':False} if isinstance(value,dict) else {'experiment_scope':'DIAGNOSTIC_OBSERVATION_NOT_FORMAL','primary_sample_qualified':False,'items':value}")
+        body=body.replace(old_save,'\n'.join(lines),1)
+        body=replace_function(body,'check_response',"def check_response(row,want,index,life):return diagnostic_response(row,want,index,life)")
+        body=replace_function(body,'sample_qualification',"def sample_qualification(gates,terminal,cleanup,metrics):return diagnostic_qualification(gates,terminal,cleanup,metrics)")
+        count=len(requests)
+        body=body.replace("gold=s['correctness']['requests'];assert len(gold)==3","gold=s['correctness']['requests'];assert len(gold)=="+str(count))
+        body=body.replace('logprobs=1)',"logprobs=want['logprobs'])")
+        body=body.replace("tokens=json.loads(execute('head','tokens',[ips['worker']],seconds=35))", "token_deadline=create_end if index==0 else aab_end;token_seconds=min(35,int(token_deadline-time.monotonic()));assert token_seconds>0;tokens=json.loads(execute('head','tokens',[ips['worker']],seconds=token_seconds));assert time.monotonic()<token_deadline,'diagnostic trace exceeded request budget'")
+        body=body.replace("collect_structured_events(router_positions,positions,tokens,backend_owner);mark_sample_gate", "collect_structured_events(router_positions,positions,tokens,backend_owner);assert time.monotonic()<aab_end,'diagnostic ready180 cap exceeded';mark_sample_gate")
+        body=body.replace("history.append(want['input_tokens']+want['expected']['token_ids'])","history.append(want['input_tokens']+diagnostic_observations[want['case']]['actual_ids'])")
+        if not repeatability:body=body.replace('records=records_since(positions);assert len(records)==8;','records=records_since(positions);assert len(records)==8;verify_diagnostic_records(records);')
+        body=body.replace("mark_sample_gate('gold',True,'all3 child/parent gold and cumulative exact trace IDs passed')","mark_sample_gate('gold',all(v['gold_match'] for v in diagnostic_observations.values()),'strict gold differences observed without changing gold; cumulative actual trace IDs verified')")
+        body=body.replace("assert len(first)==3 and {r['request_id'] for r in first}=={run+'-'+str(i) for i in range(3)}","assert len(first)=="+str(count)+" and {r['request_id'] for r in first}=={run+'-'+str(i) for i in range("+str(count)+")}")
+        body=body.replace('_http_complete_correct','_http_complete_observed')
+        body=body.replace("assert qualification['primary_sample_qualified']","assert qualification['diagnostic_observation_complete']")
+        body=body.replace('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','DIAGNOSTIC_OBSERVATION_RELEASE60_COMPLETE_NOT_FORMAL').replace('NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY','DIAGNOSTIC_OBSERVATION_FAILED_RETAINED_NOT_FORMAL')
+        marker="try:\n save('storage-route-admission.json',storage_route_proof)"
+        assert body.count(marker)==1
+        functions=DIAGNOSTIC_FUNCTIONS
+        if repeatability:
+            unused=next(node for node in ast.parse(functions).body if isinstance(node,ast.FunctionDef) and node.name=='verify_diagnostic_records')
+            functions=functions.replace(ast.get_source_segment(functions,unused),'',1)
+            functions=functions.replace("'gold_match':match,","'gold_match':match,'strict_gold_match':match,'known_fixed32_variant_match':want['case'].startswith('fixed32') and len(ids)==32 and len(expected['token_ids'])==32 and all(value==expected['token_ids'][at] if at!=11 else value in (47516,12635) for at,value in enumerate(ids)),")
+        body=body.replace(marker,(inspect.getsource(validate_diagnostic_fingerprint) if not repeatability else '')+functions+'\n'+marker,1)
+        compile(body,'<diagnostic-root>','exec');command['argv'][index]=body;command['root_python_sha256']=hashlib.sha256(body.encode()).hexdigest();command['status']=spec['status'];command.update(diagnostic=True,primary_sample_qualified=False)
+        outputs.append((spec,command))
+    return outputs
+
+
+
+def prepare_diagnostic(protocol, original_spec, original_command, pins, final_commit, protocol_path, protocol_sha, overlay_path=None, overlay_sha=None, *, repeatability=False):
+    generated=render_diagnostic(protocol,original_spec,original_command,pins,overlay_path,overlay_sha,repeatability=repeatability)
+    if repeatability:overlay_sha=base.NEW_RUNNER_SHA
+    outputs=[];entries=[]
+    for spec,command in generated:
+        spec.update(source_commit=final_commit,protocol_path=str(protocol_path),protocol_sha256=protocol_sha)
+        if final_commit:spec['status']=command['status']='FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL'
+        spec['code_pins'][str(protocol_path)]=protocol_sha
+        version='diagnostic-v1-'+protocol_sha[:12]+'-'+overlay_sha[:12]
+        sp=base.EVIDENCE/(spec['run_id']+'-'+version+'-spec.json');cp=sp.with_name(sp.name.replace('-spec.json','-command.json'))
+        command['argv'][-3]=str(sp);sb=json_bytes(spec);command['argv'][-2]=command['spec_sha256']=hashlib.sha256(sb).hexdigest();cb=json_bytes(command)
+        outputs.extend(((sp,sb),(cp,cb)));entries.append({'run_id':spec['run_id'],'condition':spec['condition'],'command_path':str(cp),'command_sha256':hashlib.sha256(cb).hexdigest()})
+    if repeatability:
+        assert len(outputs)==2 and all(not path.exists() for path,_ in outputs),'repeatability identity already prepared'
+        for path,data in outputs:base.write_new(path,data)
+        return outputs
+    body=BLOCK_BODY.replace('FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW','FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL').replace('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','DIAGNOSTIC_OBSERVATION_RELEASE60_COMPLETE_NOT_FORMAL').replace('FOUR_CONDITION_BLOCK_RELEASE60_PASS','DIAGNOSTIC_OBSERVATION_BLOCK_RELEASE60_COMPLETE_NOT_FORMAL').replace('FAILED_RETAINED_NO_RETRY','DIAGNOSTIC_OBSERVATION_FAILED_RETAINED_NOT_FORMAL')
+    body=body.replace("final={'status':status,","final={'diagnostic':True,'primary_sample_qualified':False,'status':status,")
+    compile(body,'<diagnostic-block>','exec')
+    bundle={'status':'FROZEN_DIAGNOSTIC_OBSERVATION_NOT_FORMAL' if final_commit else 'DIAGNOSTIC_CANDIDATE_NOT_EXECUTABLE_NOT_FORMAL','diagnostic':True,'primary_sample_qualified':False,'block_id':'kimi-diagnostic-value-20261107-block','source_commit':final_commit,'protocol_sha256':protocol_sha,'attempts':entries,'planned_attempts':[spec['attempt'] for spec,_ in generated],'full_max_seconds':28920,'condition_max_seconds':7200,'claims_root':'/home/boyjiang/kimi-new/evidence/formal-claims-root','runs_root':generated[0][0]['runs_root'],'block_python':body,'block_python_sha256':hashlib.sha256(body.encode()).hexdigest(),'scope':'DIAGNOSTIC_OBSERVATION_NOT_FORMAL; four fresh conditions; no formal attempt substitution or primary qualification'}
+    bp=base.EVIDENCE/('kimi-diagnostic-value-20261107-'+version+'-bundle.json');bb=json_bytes(bundle)
+    argv=['/usr/bin/systemd-run','--unit='+bundle['block_id']+'-controller.service','--property=Type=exec','--property=RuntimeMaxSec=28917','--property=TimeoutStopSec=1','--property=Restart=no','--property=KillMode=control-group','--property=SendSIGKILL=yes','--property=FinalKillSignal=SIGKILL','/usr/bin/python3','-I','-c',body,str(bp),hashlib.sha256(bb).hexdigest(),'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED']
+    outputs.extend(((bp,bb),(bp.with_name(bp.name.replace('-bundle.json','-root-command.json')),json_bytes({'status':bundle['status'],'diagnostic':True,'primary_sample_qualified':False,'block_max_seconds':28920,'bundle_sha256':hashlib.sha256(bb).hexdigest(),'argv':argv}))))
+    assert all(not path.exists() for path,_ in outputs),'diagnostic output identity already used'
+    for path,data in outputs:base.write_new(path,data)
+    return outputs
+
+
 def json_bytes(value):
     return (json.dumps(value,ensure_ascii=False,indent=2)+chr(10)).encode()
 
@@ -642,7 +846,8 @@ def json_bytes(value):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     selection=parser.add_mutually_exclusive_group(required=True)
-    selection.add_argument('--attempt-id');selection.add_argument('--block',type=int,choices=range(1,11))
+    selection.add_argument('--attempt-id');selection.add_argument('--block',type=int,choices=range(1,11));selection.add_argument('--diagnostic',action='store_true');selection.add_argument('--sfhot-repeatability',action='store_true')
+    parser.add_argument('--diagnostic-overlay',type=pathlib.Path);parser.add_argument('--diagnostic-overlay-sha')
     parser.add_argument('--source-commit')
     parser.add_argument('--protocol',type=pathlib.Path,default=PROTOCOL)
     parser.add_argument('--protocol-sha',default=PROTOCOL_SHA)
@@ -666,8 +871,13 @@ def main():
         declared=set(pins)
         declared.update(pathlib.Path(original_spec[key]).relative_to(base.ROOT).as_posix() for key in ('guard','observer'))
         declared.add('sllm_store/tests/gpu512_once_controller.py')
+        if args.diagnostic or args.sfhot_repeatability:declared.add('sllm_store/vllm_patch/sllm_load.patch')
         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
         final_commit=committed_source(args.source_commit,declared)
+    if args.diagnostic or args.sfhot_repeatability:
+        if not args.sfhot_repeatability:assert args.diagnostic_overlay and args.diagnostic_overlay_sha,'frozen diagnostic overlay path and SHA required'
+        files=prepare_diagnostic(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha,args.diagnostic_overlay,args.diagnostic_overlay_sha,repeatability=args.sfhot_repeatability)
+        print(json.dumps({'status':'DIAGNOSTIC_OBSERVATION_PREPARED_NOT_FORMAL','files':[{'path':str(path),'sha256':hashlib.sha256(data).hexdigest()} for path,data in files]}));return
     attempts=[a for a in protocol['attempts'] if a['block']==args.block] if args.block else [next(a for a in protocol['attempts'] if a['attempt_id']==args.attempt_id)]
     outputs=[];entries=[]
     # Include the protocol hash in new filenames so reviewed versions never overwrite.
