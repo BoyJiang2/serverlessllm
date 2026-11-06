@@ -24,7 +24,7 @@ for patch in patches:
     key='selected_sllm_commit' if patch['repository']=='sllm' else 'selected_vllm_commit'
     assert patch['official_base_commit']==manifest[key]
     # Patch identity is independently frozen in its original ledger, not its name.
-    path=R.parents[1]/'patches'/Path(patch['patch_path']).name
+    path=R/'inputs'/Path(patch['patch_path']).name
     assert sha(path)==patch['patch_sha256']
 archive=read(R/'inputs/C23-executed-source-archive.json')
 proof=read(R/'inputs/C23-formal13-cpu-import-preflight.json')

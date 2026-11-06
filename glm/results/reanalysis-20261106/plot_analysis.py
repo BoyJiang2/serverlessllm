@@ -46,7 +46,7 @@ plt.close(fig)
 print('Rendered two figures, PNG+editable SVG; no amortization curve generated.')
 
 # Editable Chinese report, built only from audited analysis outputs.
-audit=json.loads((R/'independent-audit.json').read_text(encoding='utf-8'));events=json.loads((R/'event-gate.json').read_text(encoding='utf-8'));cost=json.loads((R.parent/'c23-costs.json').read_text(encoding='utf-8'));patches=json.loads((R/'patch-inventory.json').read_text(encoding='utf-8'))
+audit=json.loads((R/'independent-audit.json').read_text(encoding='utf-8'));events=json.loads((R/'event-gate.json').read_text(encoding='utf-8'));cost=json.loads((R/'inputs/c23-costs.json').read_text(encoding='utf-8'));patches=json.loads((R/'patch-inventory.json').read_text(encoding='utf-8'))
 def table(headers,values):
  return '\n'.join(['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']+['| '+' | '.join(map(str,row))+' |' for row in values])
 lines=['# GLM-5.1 FP8：V2纯数据复算报告','',
@@ -89,7 +89,7 @@ table(['项目','已有数值/状态','边界'],[
 ['最终自有slice','anon=0，shmem=0，pids.current=0','可回收文件缓存保留，不要求全机缓存清零'],
 ['源checkpoint与TP8 Store','756177645648 B / 762037043200 B','既有报告中的资产尺寸，各保留一份，不按每ID重复算容量'],
 ['货币、GiB·小时与N>1重复复用','缺少统一可追溯参数/真实重复轨迹','不报告实测回本次数']]),'',
-'成本来源为既有c23-costs.json及其原审阅；本轮未重读GB级监控或重测资源。上述重叠壁钟区间不能相加。RSS/PSS与CUDA锁页、文件缓存、slab分别处理，不把它们合并成匿名内存。公共池配置不因SF路径而撤去。','',
+'成本来源为既有c23-costs.json及其原审阅；精确副本保存在inputs/c23-costs.json，补丁输入亦在inputs，分析目录可独立复算。本轮未重读GB级监控或重测资源。上述重叠壁钟区间不能相加。RSS/PSS与CUDA锁页、文件缓存、slab分别处理，不把它们合并成匿名内存。公共池配置不因SF路径而撤去。','',
 '### 摊销结论','',
 '不生成确定回本曲线：一次转换、纯填池/淘汰以及N>1缓存复位轨迹尚不可分。可采用模型 [转换＋Σ准备＋Σ生命周期]/N，但每个参数须给出处和未知值，任何N>1曲线只能标模型推演。不能把混杂preparation代入后宣称N次回本，也不能永久用强制冷读成本模拟允许缓存保留的重复访问。','',
 '## 相对官方基线的补丁证据与缺口','']

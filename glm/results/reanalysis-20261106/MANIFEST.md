@@ -8,27 +8,27 @@
 
 复算：python3 independent_audit.py；python3 event_audit.py；python3 deployment_audit.py；使用现有matplotlib运行python plot_analysis.py。标准库分析使用WSL Python3.10；图表使用既有Windows Python3.13/matplotlib3.10.8，无新建环境或安装。
 
-成本来源：`../c23-costs.json`，SHA256 `336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce`；该文件是已有成本汇总，本轮不改写，历史采样不提升为连续峰值证明。
+成本来源：`inputs/c23-costs.json`（与原`../c23-costs.json`逐字节一致），SHA256 `336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce`；该文件是已有成本汇总，本轮不改写，历史采样不提升为连续峰值证明。
 
 本清单避免自引用，不计算自身SHA；Git提交及外部交接可计算本文件SHA。下表为本次输入、代码和输出字节身份。
 
 | 文件 | 字节 | SHA256 |
 |---|---:|---|
-| HANDOFF.md | 2686 | `948d3bac238f2084a75d99a536325c2237739b11a2e10a393a6be2336b0a86e8` |
-| REPORT.md | 14132 | `f761a164078e74f20d02ff0f076c41c64892acbbcf0b68ec80a2af107112abf5` |
+| HANDOFF.md | 3058 | `24b8f97fd3e2be218b247dac5d7e2f46a2811c8e40235711cedb4d081a506152` |
+| REPORT.md | 14234 | `bee8ceeb39b21dc8725498e2f09f10a34b163f957f23ca8f0c40311a7603f65f` |
 | all40-matrix.csv | 12020 | `ae80d12f06dc7b813e51a145904ac6210066c00f1bd3b0016ff3b3f22bbac82c` |
-| build-validation.json | 965 | `c7819ff7769e1648945abca12e68615d531d7fecfcd8ce1d4055513cb4b883af` |
+| build-validation.json | 965 | `4c2e7bb8434f1146b90b8bba949dd32bbfd9530b259ba3c97c60e7c0e5eabccf` |
 | c23-block-matrix.csv | 766 | `030d322f01d4588632d2ce71795776d8d471bd323411cfbca1c950c66ba49ed5` |
 | c23-store-server-overlay.patch | 344 | `c719b0c1c2a6d560b58606e6a4ceabb09177e6ce56c0067be910032b22eef3e7` |
 | deployment-binding.json | 13464 | `a99e4dd85a58101fda3d2dc906f45321177b9f7d31a3f57910379b18698d313d` |
-| deployment-gate.json | 2419 | `7b06655df102d2d998149aa3caad2c0dd0bd27cb7dfc9ed242a8c73195f27c71` |
-| deployment_audit.py | 3566 | `800adb19e88c2dca38fabb8882f51fe1196d11e43c81b01afc496e27ced45d7d` |
+| deployment-gate.json | 2419 | `214e0b546d4bcf1947151dc907f90dc6b2c5632557d41c94a436b7071510b0c9` |
+| deployment_audit.py | 3554 | `bc28de89e79dbe47f35b8980fcc44b70df5dc24beb19f7f15e9eb9707e020922` |
 | descriptive26.json | 1763 | `5e068208e71d4f625cb5681e23980cf7574a49812416baa32d0cd0ea7c86d29a` |
 | event-gate.json | 2147 | `01e0bf4b6dcea514cd71c46c0bf78a3114804256bfe182feb2c3961695659f34` |
 | event-intervals.csv | 12987 | `3f11fc8383084adcfa3c37a1022d1b70c65c6e4da2eda8c1f9a5420b14ace158` |
 | event_audit.py | 6595 | `03ad1f172afa048a80c3604511cae422c745f78c0e19cd85b1fef31bea98065f` |
 | executed-source-binding.json | 1021 | `5b752b9b7dcbe65990428776443cee3c5d07e6e7e7fcc5e26a25eff1abfdb963` |
-| git-publication-pending.json | 550 | `998943a195314186f8c651351cafb6ec4d70d39eb213f790c1f75debcb8198b6` |
+| git-publication-pending.json | 753 | `fc7ada7921c0dfef53e56f3a9c1870c5c09e2847e539fee99e1449688dcd4678` |
 | home-cleanup-receipt.json | 469 | `e0fc0186f7360cdfa8ec4695e61b2f505b1215a6716c0fa5781f28f1ca208154` |
 | independent-audit.json | 23038 | `a0d3c29481327e1ec0887426b9a4594b956ac673831b02a50ab8f242e34dec86` |
 | independent_audit.py | 6552 | `e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33` |
@@ -38,6 +38,7 @@
 | inputs/C23-formal13-cpu-import-preflight.json | 3974 | `1c2e0a73157bf10c95f6173e7fd2197c78c8c1e67122db4a3aee2c48f4955cfd` |
 | inputs/C23-run-manifest.json | 52959 | `bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d` |
 | inputs/C23-store-server.py | 8959 | `b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f` |
+| inputs/c23-costs.json | 91200 | `336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce` |
 | inputs/canonical-INDEX.json | 6709 | `037b347e22c589b06883a20ca7ccb8805101324f7bdd7001e28497bf837d9978` |
 | inputs/formal-ledger.json | 71883 | `76184b66b4418fc486ec00aa530b705542bff20d6b6950c07b00c4aa8a75a06b` |
 | inputs/historical-review-manifest-v11.json | 214107 | `da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4` |
@@ -61,6 +62,7 @@
 | inputs/safetensors_disk_hot_08/result.json | 2711 | `149abfe3a6efce7443a41481e8a177349f6dc48a99b615d5f6be6fac077f1c94` |
 | inputs/safetensors_disk_hot_09/result.json | 2714 | `2d6cc242e2502efd701d79bc6d484a09d271f11d90897cecfbe01421ff5ccb72` |
 | inputs/safetensors_disk_hot_10/result.json | 2714 | `945117c43cb380459978880f2c3b955802cf14f2ed867058444675c193cabe7a` |
+| inputs/sllm-integration-candidate-v5.patch | 30419 | `2d508961eda6f6d8ae4b9915d117043b08bc618ce90ffb116f9cee877e30844d` |
 | inputs/store_disk_cold_01/result.json | 2181 | `42c9bba7f3a4eb9bd4ca6ce2de4728c50c8fa67ae6a4df7cc98c727a49b7eaf1` |
 | inputs/store_disk_cold_02/result.json | 2179 | `b9d79fa9e45cd618ff84d486570a10d44b39ab1924363b48eb5391e0fcaa6dd1` |
 | inputs/store_disk_cold_03/result.json | 2693 | `468d88e5553aa04b01a4dcdb93c8b21f361e811d32a531c403a30382408a8f76` |
@@ -82,6 +84,7 @@
 | inputs/store_pool_hit_09/result.json | 2661 | `ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab` |
 | inputs/store_pool_hit_10/result.json | 2662 | `84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501` |
 | inputs/v5-store-server.py | 8943 | `c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c` |
+| inputs/vllm-integration-candidate-v5.patch | 101013 | `60dfa6eb35eb73b0cdff139e16db737277e9e0f343abe4a09f99f3ee22d7bac0` |
 | latency-decomposition.png | 197684 | `ab95536f9d4c33ff783afd62c2ccc62d4e4a64cf28b753de2b2c9b5502d50a49` |
 | latency-decomposition.svg | 68672 | `28e358f91b8c833ecff37f25ec6e0302f440a733c0f454500033cfc4149a543d` |
 | original/MANIFEST.md | 8146 | `9e95d7d67ea7e6ec0bb3a4ac8349e61e6683ba308e6ee05c623e36bdfd8d44b5` |
@@ -89,7 +92,7 @@
 | original/recompute.py | 66739 | `cb35cf40e8433b36404b3aae96dc677020c7a9b071d46f4e0d4f23dd0153bdfc` |
 | original/sanity-gate.json | 3760 | `6b453007ee3b869b9cd9321a5cae94f4d16d1dc37ad61e666c183a34d33d4054` |
 | patch-inventory.json | 16414 | `a5575e174bd6dbe238eec49574a21eabf3325091e312f572445bec5a1a78a0b8` |
-| plot_analysis.py | 18609 | `038706374a76162fca4ca2dfda00cf8aaac8aa6e776c8d595298560c068b12bf` |
+| plot_analysis.py | 18711 | `fb77d42bb98e240bd6f7c75fde35c5a4f767d12ead567de11d952d9ce86f1948` |
 | raw-event-inputs.json | 776417 | `c32f0e8c63fa50e4aa938673ee443c4b60f6feea19af58709b3ef2714b95f02d` |
 | source-clock-evidence.json | 31553 | `068a3428a5695834b6f861e0deea41bcc729409c18cbe9b25614ae1c2e039270` |
 | startup-samples.png | 72976 | `7441dfc1f9a4e7ee1aaf1e73b3f6583a6b49a6daa288b48869597a5072ba21ee` |
