@@ -1,0 +1,43 @@
+{
+  "status": "ACCEPT_SOURCE_CPU_OPTIN_GUARD_FAILFAST_NOT_RUNTIME_APPROVAL",
+  "timestamp_utc": "2026-11-06T20:29:35.587445+00:00",
+  "pins": {
+    "sllm_store/tests/guard_cuda_micro.py": "bb3170eded6d84bbf42c5a205410e10ce98783a50cc95f4a59166737eda20645",
+    "sllm_store/tests/python/test_guard_cuda_micro.py": "8e788639ba94b07994a63fb24b7771cedd0557b7a693f7101c3b3c8c200fbfd3",
+    "sllm_store/tests/prepare_kimi_four_condition.py": "21392b1d6c5d747f0734d7821ac6f9614d14dad3a1c2272880026571c95ceadc",
+    "sllm_store/tests/python/test_prepare_kimi_four_condition.py": "880b19a9f700eba2b4da6f25282c6306eb330f9090bf99da9f6b941246c4917c"
+  },
+  "author_receipt_sha256": "d755205c67323719087715d7a0b644df7f89003ed19ee3cbea95b9dfcbdc0c64",
+  "independent_cpu": {
+    "guard_suite": {
+      "tests": 29,
+      "pass": 29,
+      "seconds": 1.443,
+      "command": "python3 -B -m unittest test_guard_cuda_micro -v"
+    },
+    "formal_targeted": {
+      "tests": 2,
+      "pass": 2,
+      "stderr": "test_actual_healthy_sees_existing_abort_while_guard_unit_is_alive (test_prepare_kimi_four_condition.FormalGuardFailureVisibilityTest) ... ok\ntest_frozen_mode_exception_and_only_b01_restart_mapping (test_prepare_kimi_four_condition.Fixed32LengthOnlyTest) ... ok\n\n----------------------------------------------------------------------\nRan 2 tests in 0.117s\n\nOK\n"
+    },
+    "author_formal_suite": {
+      "tests": 52,
+      "pass": 52
+    }
+  },
+  "review": [
+    "Optinnormalmarker identity reads validatedfourUIDs before exe; knownnonroot skippedwithout exe read. Originalpost-ownedUIDcheck remainsunconditional, preventing precheckroot/postchecknonroot acceptance. Legacyflagoff preserves originalreadorder/postcheck and existingdeadlinebounds.",
+    "Root/unknownUID/accessfailure notsilentlyignored. procdiscovery events nowPID/stage/errno/filename; pidfd-open/recheck/CID/runc-root/exe/cgroup authentication preserved.",
+    "Optinanyfailure enters abort_at immediately and publishes existingABORT; parentactualhealthy observesABORT while guardMainPID remainsactive. PublicationException retained but scopedcleanup continues, no passfallback.",
+    "Optinabortcutoff andwhile cap minoriginalGOoverall, abort_at+(overall-deadline), existingnormalcutoff, plusrequired60quiet. TERM/KILL3 and actualempty/dead checks retained. No shortenedquiet/no normalPASS afterfailure.",
+    "FreshguardSHA inrender spec.guard_sha256+code_pins matches actualguardfile. Actualroothealthy alreadyABORTandMainPID checks; no newcontrollerlogic required.",
+    "Optionalnormal_guard_b01_restart active5/45 withmandatoryretainedlengthrestart4/44; onlyb01retry04, b02retry02/3..10 unchanged, priorretry03failedprimaryfalse andlast3notstarted preserved. Source/mappingpreparation grantsnoGPUretryapproval.",
+    "Store/ELFs/oldf7/loaders/gold/GLM/resources/7200child28920block untouched. HistoricalunscopedPermissionError remainsundetermined, notdeclaredirrelevant; originalattempt remainsFAIL."
+  ],
+  "limits": [
+    "CPUactualsource-extract/mockedproc/loop tests only; no actualGPU/container/cgroupkill/procglobalprobe executed. No Git/sourceediting byreviewer.",
+    "Newguard stilltreatsunknown/rootdiscoveryfailure asfatal; no guarantee sucherrors cannotrecur.",
+    "Blockingproc/kernel/systemcalls remain subjecttoexistingnativeunit hardbound, not claimed eachguardcycleharddeadline.",
+    "Parentmustcommit/publish/regenerateactual10JSON+independentaudit, thenobtainnewuseronceapproval andfreshfullreservation/resources/root/claims beforeexecution."
+  ]
+}

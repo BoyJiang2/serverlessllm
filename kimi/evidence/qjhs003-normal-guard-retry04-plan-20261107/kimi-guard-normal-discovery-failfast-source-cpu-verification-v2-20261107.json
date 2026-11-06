@@ -1,0 +1,97 @@
+{
+  "status": "SOURCE_CPU_PASS_NORMAL_MARKER_DISCOVERY_FAILFAST_NOT_RUNTIME",
+  "created_utc": "2026-11-06T20:27:21.556246+00:00",
+  "host": "qjhs3",
+  "source_pins": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py": "bb3170eded6d84bbf42c5a205410e10ce98783a50cc95f4a59166737eda20645",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_guard_cuda_micro.py": "8e788639ba94b07994a63fb24b7771cedd0557b7a693f7101c3b3c8c200fbfd3",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py": "21392b1d6c5d747f0734d7821ac6f9614d14dad3a1c2272880026571c95ceadc",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py": "880b19a9f700eba2b4da6f25282c6306eb330f9090bf99da9f6b941246c4917c"
+  },
+  "old_guard_sha256": "cd8ab416f4d34ae1208d734cbddd5f4dead996b13d72d5733c832926eeba9a2e",
+  "guard_change": {
+    "scope": "normal_exit_marker opt-in; legacy default identity read order and abort bounds retained",
+    "identity": "Read and validate status four UIDs first only when opt-in; known nonroot returns before exe read. Root status/exe permission errors or unknown UID metadata remain failure. Existing runc/shim cmdline/CID/root/startticks identity criteria preserved. Original status/UID check after an owned runtime match is unconditional; normal mode performs an additional early precheck, legacy still exactly one status read. Precheckroot/postchecknonroot rejects.",
+    "error_context": [
+      "pid",
+      "stage identity/pidfd_open/identity_recheck",
+      "error_type",
+      "errno",
+      "filename"
+    ],
+    "failfast": "Any existing failure in normal-marker mode anchors abort_at immediately and publishes existing ABORT atomically for parent healthy; marker publication error retained and never prevents scoped cleanup. Original cgroup/pidfd authentication retained. Publication catches Exception, not BaseException; real extracted-loop RuntimeError atomic fixture proves cleanup continues and FAIL retained.",
+    "bounds": "Abort relative cleanup_cutoff=min(original GO+overall, abort_at+(overall-deadline), existing normal cutoff); while bound additionally abort_at+(overall-deadline)+60 only in normal-marker mode. Quiet remains>=60. Failure/unfinished quiet never promoted.",
+    "historical_limit": "Old proc_discovery event had no PID; new filter prevents a demonstrated class of irrelevant nonroot reads but does not prove the historical PID was unrelated."
+  },
+  "formal_render_change": "Fixed new guard SHA constant, digest equality and spec guard_sha256/code_pins update only; no ID/budget/Store/ELF/protocol change. Old frozen specs unchanged. Source commit/publication still required before runtime freeze.",
+  "tests": {
+    "guard": {
+      "count": 29,
+      "returncode": 0,
+      "stdout": "",
+      "stderr": "29 tests PASS in1.439s",
+      "cases": [
+        "normal nonroot status prevents exeEACCES; legacy mode still reaches oldexe read",
+        "root exeEACCES retains pid/stage/errno/filename",
+        "readable runc and shim identity rows equal legacy root path",
+        "unknown UID metadata retains discovery failure",
+        "existing failure aborts immediately, publishes existing marker, preserves60quiet and no normaltrigger",
+        "unreleased abort bounded relative to abort_at plus old40+60, still FAILED",
+        "ABORT publication failure still scoped cleanup and retained failure",
+        "Precheck UIDroot then post-owned UIDnonroot rejects; legacy readable root performs one status read"
+      ]
+    },
+    "formal": {
+      "count": 52,
+      "passed": 52,
+      "seconds": 14.638,
+      "cases": [
+        "actual rendered healthy sees head/observer ABORT despite MainPID999 still active",
+        "actual spec guard_sha/codepin/file SHA agree",
+        "all prior51 consumer tests pass; strict default rendered root unchanged",
+        "Exact optional normal_guard_b01_restart: active5/45, requires retained length restart4/44, onlyb01 retry04; oldb02 retry02/others original; badqualification/missing history/retry05 and reused ID reject"
+      ]
+    }
+  },
+  "unchanged": [
+    "GPU/Store resource and duration limits",
+    "quiet>=60 and independent guard scope ownership",
+    "normal-marker authentication/nonce/CID gates",
+    "other CPU/micro default modes",
+    "Store/loader/ELF/GLM/gold/history",
+    "formal logical design40/order/gold/conditions/7200+28920 budgets and all history; only explicitly requested runtime retry04 map added"
+  ],
+  "not_performed": [
+    "Git mutation/sync",
+    "GPU/model/cache/Store/container execution",
+    "new deployment artifacts or actual runtime preparation"
+  ],
+  "remaining": [
+    "independent review",
+    "explicit commit/publication",
+    "parent freezes append-only retry04 protocol/actual artifacts and reviews them",
+    "new user runtime approval plus fresh full resource/window/root/claims admission before any GPU"
+  ],
+  "supersedes": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-normal-discovery-failfast-source-cpu-verification-20261107.json",
+    "sha256": "417b70a012e46af85c7cabde394a212aca6b6dc299cb0cd4ca9c7e6c20409943",
+    "reason": "Preserve original unconditional owned-runtime UID postcheck, catch all Exception from ABORT publication, and add exact b01 retry04 preparation map."
+  },
+  "runtime_mapping_preparation": {
+    "field": "execution_revision.normal_guard_b01_restart",
+    "criterion": "fixed32_length_only_v1",
+    "suffix": "retry04",
+    "active_counts": [
+      5,
+      45
+    ],
+    "required_prior_length_restart_counts": [
+      4,
+      44
+    ],
+    "retained_retry03": "only original b01 SFhot retry03 failed primaryfalse with absolute result path/SHA",
+    "preserved_unstarted3": "b01 positions2/3/4 retry03 not samples",
+    "only_changed_runtime_ids": "all4 b01 retry04, block1 retry04; b02 retry02 and b03..10 original retained",
+    "execution_authorization": "PREPARATION_ONLY_REQUIRES_NEW_USER_APPROVAL_AFTER_FAILURE; not granted by source/tests/mapping"
+  }
+}

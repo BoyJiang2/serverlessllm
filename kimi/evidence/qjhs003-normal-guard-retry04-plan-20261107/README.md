@@ -1,0 +1,13 @@
+# Proposed one retry04 block — GPU approval pending
+
+Source a896cd0f70a2918081f0f1fda4c5ef2527948f0b published/exact remoteSHAverified. Four files only: actual guard, its test, existing four-condition prepare and its test.29guard+52formal CPU tests pass and independent source/actual10 reviews accept. No new runtime/Store/loader/ELF/weights/environment or framework.
+
+Normal-exit-marker mode now reads UID before exe to avoid inspecting executable symlinks of processes already excluded by original root-only ownership. Original post-owned UID check is retained, including pre-root/post-nonroot rejection. Unknown/root unreadable processes remain fatal; PID/stage/errno/filename are now logged. Actual prior failed process is UNKNOWN because old log lacked these fields; no retrospective harmless-error assertion or PASS promotion.
+
+Any real guard failure immediately publishes existing ABORT, already consumed by unchanged actual parent healthy function, and uses existing owned cgroup/pidfd cleanup. Publication Exception cannot stop cleanup. Relative failure cleanup reuses original overall-minus-deadline40 plus mandatoryquiet60, min original absolute budget; no quiet shortening, no maximum extension. Non-normal-marker legacy branch preserves prior semantics. No extra probe.
+
+Protocolfd8705c62cdba35aea0f71231633de8be15f0f28ad5b22a848825dd179f03559. Bundlebeac6d1f1981da699eec657db6c9bfeeee23bde56b687390cd6b1425be286957/rootcmd129fcfdb5fc64db3e35894aee352edfa09dcb2a365e5d94a7fcdc0ef5d8cf6e0. Actual10review5df9f9316f314874356c98eac7ce766eb7dd19d808165e8020a888b062d42e42. Oldf7 runtime overlay,95d ELF/59d manifest, threeLP1 requests, first arithmetic/cat exactgold and fixed32length-only/actualtrace remain unchanged.
+
+Proposed onlyb01retry04, b02unusedretry02 andb03..10original retained.56distinct formalruntimeIDs,5pastlaunches (1oldqualified/4failed), newcriterion0qualified/0completeblocks. Maximum cumulative45launches if proposed40 new mapped cohort completes; not45completed. Old failed/unstarted records and original logical40 remain. No automaticretry05.
+
+Four sequential conditions: SFhot,Storecold,SFcold,poolhit.28920s completeblock budget,7200each including Store normal-exit60 and releasequiet>=60. Frozen command preparation does not authorize GPU: user approval after the new failure is still required, then fresh whole28920 booking/resource/root/pins/unusedclaim/unit/independentguard admission. Source synchronization and idle GPU do not bypass approval. No new claim or GPU/container/model/cache operation was started for retry04 by this delivery. On approval, only fresh booking expiry placeholder may change in actual argv; parent creates exclusive claims itself. No Git/sync during actual execution or release.
