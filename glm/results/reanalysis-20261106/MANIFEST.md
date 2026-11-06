@@ -12,15 +12,17 @@
 
 | 文件 | 字节 | SHA256 |
 |---|---:|---|
-| HANDOFF.md | 1674 | `f41da5ab82b2d5d1f55e09af15010042ebf334af0506d2a542b3b65b815fec70` |
+| HANDOFF.md | 1674 | `5fdf682271177062cba5e62d69697da38cd8c951a4c0c9a3ed0e8d1502b6742a` |
 | REPORT.md | 11489 | `a7a4e15c1f7afeb1ee7fe08d6ea07faa1d7a3a493106d4db318ebd8fd7ea3fab` |
 | all40-matrix.csv | 12020 | `ae80d12f06dc7b813e51a145904ac6210066c00f1bd3b0016ff3b3f22bbac82c` |
+| build-validation.json | 807 | `9cbcc7cb52552d1078bd2cc567612cff5ddd0a24da006ed0f5d6b54d1a451203` |
 | c23-block-matrix.csv | 766 | `030d322f01d4588632d2ce71795776d8d471bd323411cfbca1c950c66ba49ed5` |
 | descriptive26.json | 1763 | `5e068208e71d4f625cb5681e23980cf7574a49812416baa32d0cd0ea7c86d29a` |
 | event-gate.json | 2039 | `71e1c8a3f21173aa3a7f5d52ae936aa2b1ac5d0e830b4f232739f8ac3cd52e03` |
 | event-intervals.csv | 10479 | `d28e5ca6fa6cdd59eb92ad09b8ca222207792808467fd463fbd46840e4dac4f0` |
 | event_audit.py | 5975 | `c3df20e6831c274a6e0227b548fc538755c49ceee4e388f5cf06b9d9bb0fe5e7` |
 | executed-source-binding.json | 1021 | `5b752b9b7dcbe65990428776443cee3c5d07e6e7e7fcc5e26a25eff1abfdb963` |
+| git-publication-pending.json | 415 | `3f4ce40855020b9ce788f174d83772ae4579a00e88b3e1089601707537e2901c` |
 | home-cleanup-receipt.json | 469 | `e0fc0186f7360cdfa8ec4695e61b2f505b1215a6716c0fa5781f28f1ca208154` |
 | independent-audit.json | 22699 | `c7a47982e636f9157b7d307f87f64f6ec21c9e90075696eda294b3a85e7ec451` |
 | independent_audit.py | 6229 | `b939cfc2e091b5302f7f81d4a43262149b2973cc08561eb7eaa5147e1cf63448` |
@@ -72,7 +74,7 @@
 | original/recompute.py | 66739 | `cb35cf40e8433b36404b3aae96dc677020c7a9b071d46f4e0d4f23dd0153bdfc` |
 | original/sanity-gate.json | 3760 | `6b453007ee3b869b9cd9321a5cae94f4d16d1dc37ad61e666c183a34d33d4054` |
 | patch-inventory.json | 4421 | `a16688ee7c0250671f59c1966613c881ff51e4aa59f2217c7fd9466445d6e587` |
-| plot_analysis.py | 15674 | `5ddafe8c8af500ffd3ef54cd977ca777c5494848cc7ae38a12769effbc57d864` |
+| plot_analysis.py | 15786 | `ce80e032902571a29745c1107b7b26b4b96e9acd88cc2681aa55d675c71a7c8c` |
 | raw-event-inputs.json | 776417 | `c32f0e8c63fa50e4aa938673ee443c4b60f6feea19af58709b3ef2714b95f02d` |
 | source-clock-evidence.json | 31553 | `068a3428a5695834b6f861e0deea41bcc729409c18cbe9b25614ae1c2e039270` |
 | startup-samples.png | 71587 | `880c2243aba9d083d2903617ad992d432acc22ac8eab4aaa728a6ea285640ac5` |

@@ -8,8 +8,8 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 R = Path(__file__).resolve().parent
-assert json.loads((R/'event-gate.json').read_text())['event_order_gate']=='PASS'
-assert json.loads((R/'independent-audit.json').read_text())['numerical_gate']=='PASS'
+assert json.loads((R/'event-gate.json').read_text(encoding='utf-8'))['event_order_gate']=='PASS'
+assert json.loads((R/'independent-audit.json').read_text(encoding='utf-8'))['numerical_gate']=='PASS'
 plt.rcParams.update({'font.sans-serif':['Microsoft YaHei','SimHei','DejaVu Sans'],'axes.unicode_minus':False,'svg.fonttype':'none','svg.hashsalt':'glm-c23-20261106','font.size':9})
 rows=list(csv.DictReader((R/'event-intervals.csv').open(encoding='utf-8')))
 conditions=['safetensors_disk_cold','safetensors_disk_hot','store_disk_cold','store_pool_hit']
@@ -45,7 +45,7 @@ plt.close(fig)
 print('Rendered two figures, PNG+editable SVG; no amortization curve generated.')
 
 # Editable Chinese report, built only from audited analysis outputs.
-audit=json.loads((R/'independent-audit.json').read_text());events=json.loads((R/'event-gate.json').read_text());cost=json.loads((R.parent/'c23-costs.json').read_text());patches=json.loads((R/'patch-inventory.json').read_text())
+audit=json.loads((R/'independent-audit.json').read_text(encoding='utf-8'));events=json.loads((R/'event-gate.json').read_text(encoding='utf-8'));cost=json.loads((R.parent/'c23-costs.json').read_text(encoding='utf-8'));patches=json.loads((R/'patch-inventory.json').read_text(encoding='utf-8'))
 def table(headers,values):
  return '\n'.join(['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']+['| '+' | '.join(map(str,row))+' |' for row in values])
 lines=['# GLM-5.1 FP8：V2纯数据复算报告','',
@@ -100,7 +100,7 @@ lines += ['上述是历史集成补丁清单，尚未将其每个文件与C23实
 print('Wrote REPORT.md; Kimi and unmeasured amortization left explicitly missing.')
 
 import hashlib
-manifest_header=(R/'MANIFEST.md').read_text().split('| 文件 | 字节 | SHA256 |')[0]
+manifest_header=(R/'MANIFEST.md').read_text(encoding='utf-8').split('| 文件 | 字节 | SHA256 |')[0]
 manifest_lines=[manifest_header.rstrip(),'','| 文件 | 字节 | SHA256 |','|---|---:|---|']
 for artifact in sorted(R.rglob('*')):
  if artifact.is_file() and artifact.name!='MANIFEST.md' and '__pycache__' not in artifact.parts:
