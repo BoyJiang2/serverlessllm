@@ -1,0 +1,71 @@
+{
+  "run_id": "kimi-native-qjhs000-explicit-pool-release-20261106-once",
+  "main_pid": 710673,
+  "namespace_pid": 1235,
+  "snapshots": [
+    {
+      "source": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs000-explicit-pool-release-20261106-once/store-stop-diagnostic-10.json",
+      "raw_snapshot_sha256": "f3f81ddbbf50cb32217e38b69de50d7fd0ff8a12fa2f4cd05ff217cf5b897a78",
+      "elapsed": 10.40182804968208,
+      "owner": {
+        "pid": 710673,
+        "startticks": 776736143,
+        "state": "S",
+        "ppid": 705054,
+        "cgroup": "0::/system.slice/docker-0dd86fb8b50cfe76e937ae77679c4107379d04cadc21426d276e0bcaeb0dd213.scope"
+      },
+      "sampled_main_state": "D",
+      "startticks": 776736143,
+      "wchan": "os_acquire_rwlock_read",
+      "syscall": "16",
+      "ioctl_fd_and_request": [
+        "0xf",
+        "0xc0104629"
+      ],
+      "RSS_GiB": 608.4425201416016,
+      "NSpid": [
+        "NSpid:\t710673\t1235"
+      ],
+      "kernel_functions": [
+        "os_acquire_rwlock_read+0x35/0x50 [nvidia]",
+        "portSyncRwLockAcquireRead+0x10/0x40 [nvidia]",
+        "rmapiLockAcquire+0x2dc/0x360 [nvidia]",
+        "serverTopLock_Prologue+0x5c/0xe0 [nvidia]",
+        "serverFreeResourceTreeLockAndFindResource+0x30/0x150 [nvidia]",
+        "serverFreeResourceTree+0xed/0x970 [nvidia]",
+        "rmapiFreeWithSecInfo+0x12b/0x2b0 [nvidia]",
+        "rmapiFreeWithSecInfoTls+0x49/0x70 [nvidia]",
+        "Nv01FreeWithSecInfo+0x4e/0x60 [nvidia]",
+        "RmIoctl+0x449/0xda0 [nvidia]",
+        "rm_ioctl+0x66/0x4f0 [nvidia]",
+        "nvidia_unlocked_ioctl+0x83b/0x9b0 [nvidia]",
+        "__x64_sys_ioctl+0x92/0xd0",
+        "do_syscall_64+0x59/0xc0",
+        "entry_SYSCALL_64_after_hwframe+0x62/0xcc"
+      ]
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs000-explicit-pool-release-20261106-once/store-stop-diagnostic-20.json",
+      "raw_snapshot_sha256": "e3b2ca7795521de19d3acafc40380f6e5dce23c16a5bf9d298849f1ea5526499",
+      "elapsed": 20.249195805750787,
+      "owner": {
+        "pid": 710673,
+        "startticks": 776736143,
+        "state": "S",
+        "ppid": 705054,
+        "cgroup": "0::/system.slice/docker-0dd86fb8b50cfe76e937ae77679c4107379d04cadc21426d276e0bcaeb0dd213.scope"
+      },
+      "sampled_main_state": "R",
+      "startticks": 776736143,
+      "wchan": "0",
+      "syscall": "running",
+      "ioctl_fd_and_request": null,
+      "RSS_GiB": 583.0659713745117,
+      "NSpid": [
+        "NSpid:\t710673\t1235"
+      ],
+      "kernel_functions": []
+    }
+  ],
+  "limits": "Samples are separate non-atomic proc reads; owner.state is ownership-capture state, sampled_main_state is snapshot state; no permanent-deadlock or full completion inference"
+}
