@@ -1,0 +1,74 @@
+{
+  "status": "SOURCE_VERIFIED_BOUNDARY_TABLE_KIMI_IMPLEMENTATION_REVISION_PENDING",
+  "glm_source": {
+    "path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/executed-source-f176e05/formal_trials.py",
+    "sha256": "18cf7d97d9c12f971fcfcdf1ae1c09e483bb76a48fa45314bc1ff9b5417094e4",
+    "http_lines": [
+      109,
+      115
+    ],
+    "command_line": 194,
+    "business_trigger_line": 204,
+    "received_line": 206,
+    "persist_line": 207,
+    "gold_validation_lines": [
+      209,
+      213
+    ],
+    "accepted_received_assignment_line": 215
+  },
+  "meaning_179_11": "GLM历史注册命令至第一条算术17+25正确回复；不是纯权重读取，不是第三条fixed32天空题。正确性在后面验证，但通过后采用先前received_ns作为终点。",
+  "rows": [
+    {
+      "metric": "A 注册→算术正确回复",
+      "glm_start": "startup_command_ns：同HTTP进程中调用http('/register',config)前",
+      "glm_end": "received_ns：http(arithmetic)返回后立即取时；含JSON解析及响应上下文退出，不含落盘/金标校验",
+      "kimi_required": "首条HTTP进程连续注册→算术；registration_command_ns→received_ns；父启动/轮询/存盘/校验另记",
+      "current_status": "修订中，最终代码与实际消费者尚待独审，不能宣称已经完全一致"
+    },
+    {
+      "metric": "B 算术触发→完整回复",
+      "glm_start": "business_trigger_ns：调用http('/v1/chat/completions')前，含Request/JSON请求构造",
+      "glm_end": "同received_ns；不等同纯网络读取终点",
+      "kimi_required": "同一HTTP进程business_trigger_ns→received_ns，另列urlopen/read/parse/validation时间",
+      "current_status": "修订中"
+    },
+    {
+      "metric": "响应体读取/解析/校验",
+      "glm_start": "json.load(response)内部读取并解析",
+      "glm_end": "未独立采集body-read及validation终点；received_ns在解析后、验证前",
+      "kimi_required": "分开记录body_complete、json_parse_complete、http_return received_ns、gold_validation_complete及parent验证/落盘",
+      "current_status": "Kimi新增分离字段，不反推GLM缺测细分"
+    },
+    {
+      "metric": "C 权重/摄入阶段",
+      "glm_start": "实际phase事件的跨rank min_begin",
+      "glm_end": "跨rank max_end；span可能重叠，非纯磁盘IO",
+      "kimi_required": "现有Model loading日志覆盖get_model_loader/load_model/aux setup，仅可报该较粗duration，不能改名为相同weight_ingestion span",
+      "current_status": "当前细分口径不一致；缺少的同口径摄入事件明确缺测，不据此修改loader/内核"
+    },
+    {
+      "metric": "D 已就绪fixed32",
+      "glm_start": "算术→翻译之后，第三条天空题调用HTTP",
+      "glm_end": "解析后的received_ns；32 tokens/length",
+      "kimi_required": "同顺序、自己模板IDs；max_tokens32/ignore_eos true；trigger→received_ns与实际32/length分开证明",
+      "current_status": "请求金标已接受；正式消费与计时修订待审，正式样本0"
+    },
+    {
+      "metric": "E 初始化/缓存/删除/释放",
+      "glm_start": "分别使用初始化/准备/delete实际事件",
+      "glm_end": "各自真实完成点；历史准备含旧池卸载影响需保留",
+      "kimi_required": "公共初始化、条件构造、准入、删除、正常退出及>=60秒释放分别记录，不能藏入A或固定32",
+      "current_status": "既有功能证据保留；正式成本不复用L1耗时"
+    }
+  ],
+  "invariants": [
+    "GLM只读；35成功/5失败保持",
+    "Kimi四条件×10完整配对block=40计划，不重置ID",
+    "无TTFT命名：完整HTTP终点不是首token；后端观测只用其实际名称",
+    "不同host/boot/timens或身份未核验不可相减",
+    "正式样本0，当前运行ID无，待运行block1为kimi-four-v1-b01"
+  ],
+  "next": "修订同HTTP进程首注册+算术、真实received_ns和分离校验；执行实际HTTP与block消费者CPU测试并独审；最终命令/源码发布及SHA验证；再fresh admission。",
+  "verified_epoch": 1793967303.831696
+}
