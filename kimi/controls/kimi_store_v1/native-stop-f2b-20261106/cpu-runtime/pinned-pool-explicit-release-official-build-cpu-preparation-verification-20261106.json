@@ -1,0 +1,52 @@
+{
+  "status": "OFFLINE_PREPARATION_PASS_NOT_EXECUTED",
+  "timestamp": "2026-11-06T06:43:45.015757+00:00",
+  "spec_sha256": "96a9f220fb432e12cf86970da6033086bb50fa3f34013a1cd403995c4e03eacf",
+  "command_sha256": "556676118697281963d83e11c2ce3ca4aaa72ec3d570390d6eff045e26581424",
+  "checks": [
+    "spec_actual_argv_body_bindings",
+    "ABI_only_attribute_no_constructor_or_release_call",
+    "all_27_source_pins_fresh",
+    "all_old_ELF_anchors_fresh",
+    "gate_evidence_fresh",
+    "331_dependency_pins_fresh",
+    "budgets_environment_resources_exact",
+    "only_unique_output_mount_changed",
+    "exact_root_inverse_only_output_and_release_ABI_asserts",
+    "new_output_and_run_unused",
+    "ABI_release_symbol_gate_consumed",
+    "negative_body_hash_drift_rejected",
+    "negative_source_pin_drift_rejected"
+  ],
+  "source_delta": {
+    "sllm_store/csrc/sllm_store/checkpoint_store.cpp": [
+      "4289d49c1999ef1039056d08242c0398fca6c4c72b40c6a3a03cb46c749583d3",
+      "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3"
+    ],
+    "sllm_store/csrc/sllm_store/checkpoint_store.h": [
+      "326a92d3fe039b67c79bec174a6a19463d540dbeee471a5b34499985f344ef3f",
+      "01dcbdf5d376224ae3c24ed7bc5652996f3deeef8f9b99171c1e75b70449405a"
+    ],
+    "sllm_store/csrc/sllm_store/checkpoint_store_py.cpp": [
+      "bbca97170ed449efdb83dc668494fd6a26b45d7e0d8ddf7a6a41e524f63e5774",
+      "9947ed2618493e12918a8223230942edfe8ff8689e43719d633cf4f12478230d"
+    ],
+    "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp": [
+      "4883c65efe4caca880a8d848de29fa781e3f8d8e0b22497886b1f5b800052e20",
+      "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d"
+    ],
+    "sllm_store/csrc/sllm_store/pinned_memory_pool.h": [
+      "38c654ce58c48b762eb75ed11e78b9efca02c1da178ab5776e9b55967f0f9247",
+      "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f"
+    ],
+    "sllm_store/sllm_store/server.py": [
+      "a0bf00f10089e76ae1b4528d8d9870cda23aa8f1231fdfd3503c98b304196c25",
+      "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52"
+    ]
+  },
+  "root_diff": "--- old1260\n+++ explicit_release1260\n@@ -31,7 +31,7 @@\n started=int(outer['ActiveEnterTimestampMonotonic'])/1e6; outer_deadline=started+1258\n checkfiles(); base.mkdir(mode=0o700); cid=None; child=None; armed=False; guard_requested=False; gu=run+'-guard.service'\n output=pathlib.Path(s['output_root']);parent=pathlib.Path(s['output_parent']);assert parent.resolve(strict=True)==parent and output.parent==parent and not output.exists() and not output.is_symlink()\n-assert output.name=='kimi-pool-shutdown-progress-v1' and parent==pathlib.Path(s['source_root'])/'sllm_store/build'\n+assert output.name=='kimi-pool-explicit-release-v1' and parent==pathlib.Path(s['source_root'])/'sllm_store/build'\n assert os.statvfs(parent).f_bavail*os.statvfs(parent).f_frsize>=16*(1<<30)\n output.mkdir(mode=0o700);os.chown(output,2147,2147);assert output.resolve(strict=True)==output and output.stat().st_uid==2147\n try:\n@@ -81,6 +81,9 @@\n  artifact=output/'_checkpoint_store.cpython-312-x86_64-linux-gnu.so';assert artifact.is_file() and artifact.stat().st_size<64*(1<<20)\n  new_sha=hashlib.sha256(artifact.read_bytes()).hexdigest();assert manifest['elf_sha256']==new_sha and new_sha!=s['old_artifact_pins']['sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so']\n  assert manifest['abi']['extension_suffix']=='.cpython-312-x86_64-linux-gnu.so' and manifest['abi']['torch']=='2.10.0+cu129' and manifest['actual_ninja_compile_link_instructions'] and manifest['linked_dependency_sha256']\n+ assert manifest['abi']['release_memory_pool_bound'] is True and manifest['release_interfaces']['python_release_memory_pool'] is True\n+ assert manifest['release_interfaces']['defined_cpp_symbols']==['CheckpointStore::ReleaseMemoryPool()', 'PinnedMemoryPool::Release()']\n+ assert hashlib.sha256((output/'elf-symbols.stdout').read_bytes()).hexdigest()==manifest['release_interfaces']['symbols_sha256']\n  assert sum(f.stat().st_size for f in output.rglob('*') if f.is_file())<=8*(1<<30)\n  checkfiles();save('artifact-provenance.json',{'manifest_path':str(manifest_path),'manifest_sha256':hashlib.sha256(manifest_path.read_bytes()).hexdigest(),'elf_path':str(artifact),'elf_sha256':new_sha,'source_pins':s['source_pins'],'old_artifact_pins':s['old_artifact_pins']})\n  save('normal-exit.json',{'cid':cid,'nonce':ar['nonce'],'go_monotonic':go,'completion_monotonic':time.monotonic(),'exit_code':0})\n",
+  "scope": "No build, ELF import, container, CUDA or GPU; nested code compiled only. Original source entry is frozen JSON inline data, no source generator migrated.",
+  "budget_max_subprocess_seconds": 950,
+  "body_cap_seconds": 1080,
+  "requires": "Independent review, fresh complete1260 CPU admission and explicit execution authorization; no GPU approval implied."
+}
