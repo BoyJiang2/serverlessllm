@@ -15,6 +15,16 @@ def call(*args):
     return subprocess.check_output(args, text=True, timeout=2).strip()
 
 
+def cgroup_telemetry(group):
+    """memory.peak is absent on the target 5.15 kernel; missing is never zero."""
+    group = Path(group)
+    values = {name: (group / name).read_text()
+              for name in ("memory.current", "memory.events", "pids.current")}
+    peak = group / "memory.peak"
+    values["memory.peak"] = peak.read_text() if peak.exists() else None
+    return values
+
+
 def snapshot(job):
     begin = time.monotonic_ns()
     identity = job["identity"]

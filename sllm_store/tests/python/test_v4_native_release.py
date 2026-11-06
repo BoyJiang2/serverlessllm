@@ -20,6 +20,18 @@ def snapshot():
 
 
 class NativeReleaseContracts(unittest.TestCase):
+    def test_missing_optional_memory_peak_is_unknown_and_required_metrics_remain_strict(self):
+        with tempfile.TemporaryDirectory() as directory:
+            group = Path(directory)
+            for name, value in [('memory.current', '123'), ('memory.events', 'oom 0'), ('pids.current', '1')]:
+                (group / name).write_text(value)
+            self.assertIsNone(release.cgroup_telemetry(group)['memory.peak'])
+            (group / 'memory.peak').write_text('456')
+            self.assertEqual(release.cgroup_telemetry(group)['memory.peak'], '456')
+            (group / 'memory.current').unlink()
+            with self.assertRaises(FileNotFoundError):
+                release.cgroup_telemetry(group)
+
     def test_empty_selected_gpu_sample_is_not_zero_memory(self):
         with self.assertRaisesRegex(ValueError, 'coverage'):
             release.check_snapshot(dict(snapshot(), gpu_raw=''), BASELINE)
