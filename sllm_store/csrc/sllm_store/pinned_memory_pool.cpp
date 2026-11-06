@@ -46,10 +46,19 @@ PinnedMemoryPool::PinnedMemoryPool(size_t total_size, size_t chunk_size)
 }
 
 PinnedMemoryPool::~PinnedMemoryPool() {
+  LOG(INFO) << "PinnedMemoryPool shutdown begin buffers=" << pool_.size()
+            << " chunk_size=" << chunk_size_;
+  size_t completed = 0;
   for (char* buffer : pool_) {
     cudaHostUnregister(buffer);
     free(buffer);
+    ++completed;
+    if (completed % 1024 == 0) {
+      LOG(INFO) << "PinnedMemoryPool shutdown progress completed=" << completed
+                << " total=" << pool_.size();
+    }
   }
+  LOG(INFO) << "PinnedMemoryPool shutdown complete buffers=" << completed;
 }
 
 int PinnedMemoryPool::Allocate(size_t size, std::vector<char*>& buffers) {
