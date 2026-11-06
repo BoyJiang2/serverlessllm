@@ -1,0 +1,15 @@
+# qjhs003: complete normal shutdown measured, legacy deadline retained
+
+One approved diagnostic, run kimi-native-qjhs003-pool-stop-observe-20261106-once. Source876ac9a, imageec5b4131, actual ELF95d14150/manifest59d70f47; node qjhs3, shared /home via NFS. New fresh booking/resource/root/pins and independent guards were admitted; no duplicate source/environment/model/Store was created.
+
+Both create/infer/delete cycles passed the original Kimi AAB gold, cumulative tokens/usage/finish and all eight-rank metadata/physical GPU UUID+NVML ownership checks. Two groups ofeight rank hostPID identities were distinct. Delete quiet baselines60.6944/60.3118s.
+
+The Store actually completed10240/10240 unregister/free attempts with zero CUDA failures, elapsed31318ms in the pool log. The controller observed official Store exec exit0 plus authenticated original identity gone at33.1393526s from its stop origin. That interval includes IPC, diagnostics and polling; it is not pure CUDA time. Original30s criterion FAIL was separately saved at30.434761s and never overwritten.300s was a diagnostic observation cap only.
+
+Actual Docker create->die identity joins for the official API and Store command each show exit0. Both final CID inspect records show exited/Pid0/ExitCode0/noOOM/noRestart. Guards authenticated normal completion before cleanup, no ABORT/kill and empty failures; quiet60.0042/60.0161s, global observer60.2730s. All four units are success0, eight GPUs0MiB/no compute processes, scopes and recorded identities gone. Controller completed normally in1079.015s. Observer1318samples/gaps0; peak remains sampled lower bound.
+
+Independent audit7230a2f8 and append-only addendum70ded814 support these facts. Raw root0600 Docker/kernel files were reread by the parent and its exact logical/identity joins were checked by the reviewer; the reviewer accurately does not claim direct access to the parent's root session. Root raw proc/OCI/events remain server only. Kernel capture37lines is a bounded journal window, not an exhaustive no-error guarantee.16MB rank files and1.44MB full guard metadata remain server only with hashes in export-manifest; only small evidence is committed here.
+
+Overall result is DIAGNOSTIC_COMPLETE_NOT_L1. The approval explicitly did not grant L1 acceptance, so this measured normal exit does not retrospectively turn the old30s failures into PASS. No automatic rerun or performance trial was performed. The next decision must use this actual qjhs003 completion evidence, not217s extrapolation: propose a prospective budget revision with independent review, or keep30 and investigate optimization. Single-node/single-observation timing is neither a minimum nor a stable bound or qjhs000 guarantee; node/filesystem/NUMA/cache differences prevent code-only causal performance claims.
+
+The complete goal still requires accepted L1 and a separately frozen Kimi four-condition protocol, full-block/sample/statistical/cost/cache/clock/guard budget, own SF aligned-request gold and independently reproducible materials. No GLM records, R24, new40 experiments, gold or historical failures were changed.

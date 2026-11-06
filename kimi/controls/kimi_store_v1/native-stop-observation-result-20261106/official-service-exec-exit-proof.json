@@ -1,0 +1,40 @@
+{
+  "scope": "Actual Docker exec-create to exec-die identity join for two official service start commands; exitcode direct, wall times not subtracted from monotonic",
+  "raw_events_sha256": "08efec84b55a4e088024e0d60ad73abebf7221b2081501b4e4bd5d54c57b69a2",
+  "services": {
+    "worker": {
+      "matches": [
+        {
+          "container_id": "0bc44bda41cac5b4d358856809b23795a0915a2335938417d2f8160b30ce9121",
+          "execID": "ccb2e801ba3316a91ac46de332bababd17bca7122d34af365500fdc1e6987ea8",
+          "matched_module_start": "sllm_store.cli start",
+          "create_timeNano": 1793955719262549253,
+          "dies": [
+            {
+              "timeNano": 1793956662749887870,
+              "exitCode": "0"
+            }
+          ]
+        }
+      ],
+      "count": 1
+    },
+    "head": {
+      "matches": [
+        {
+          "container_id": "fc932c348903427b10799ee08dd4dbd55481e527f5bd31cdcc4b96f0cbde59c1",
+          "execID": "84bad445aaac3fd18df496e6f95127bd0865a3f0e2138d45382154c383a812ae",
+          "matched_module_start": "sllm.cli.clic start",
+          "create_timeNano": 1793956012347034505,
+          "dies": [
+            {
+              "timeNano": 1793956629279493203,
+              "exitCode": "0"
+            }
+          ]
+        }
+      ],
+      "count": 1
+    }
+  }
+}
