@@ -1,0 +1,212 @@
+--- qualified-native-controller
++++ bounded-native-or-store-controller
+@@ -1,4 +1,4 @@
+-"""One authorized native run. No retries, installs, downloads, Store or formal IDs."""
++"""Qualified one-shot controller extended for Store conversion. Default plans only."""
+ from pathlib import Path
+ import datetime
+ import fcntl
+@@ -24,6 +24,26 @@
+ HEAD = sys.argv[2]  # The next caller must explicitly pin the reviewed source commit.
+ base = Path(sys.argv[1]).resolve()
+ assert base.parent == ROOT.parent / 'evidence' and not base.exists()
++MODE = sys.argv[3] if len(sys.argv) > 3 else 'native-reference'
++assert MODE in ('native-reference', 'store-conversion')
++assert len(sys.argv) <= 5 and (len(sys.argv) < 5 or sys.argv[4] == '--execute')
++STORE = MODE == 'store-conversion'
++STORAGE = Path('/data/brick1/boyjiang/sllm-v4-pro-store')
++store = STORAGE / base.name
++if STORE:
++    assert base.name.startswith('store-conversion-') and not store.exists()
++cache = (Path('/data/brick1/boyjiang/sllm-v4-pro-build/cache-native-reference-20261106T205752Z')
++         if STORE else Path('/data/brick1/boyjiang/sllm-v4-pro-build') / ('cache-' + base.name))
++if len(sys.argv) < 5:
++    print(json.dumps(dict(source_head_requested=HEAD, purpose=MODE, image=IMAGE, output=str(base),
++        model=str(MODEL), store=str(store) if STORE else None, cache=str(cache),
++        converter_overlay=str(ROOT/'sllm_store/sllm_store/v4_convert.py') if STORE else None,
++        container_seconds=1080, total_seconds=1200, cpu_limit=8, memory_limit_bytes=1024**4,
++        store_byte_stop_limit=1024**4 if STORE else None,
++        storage_free_floor_bytes=128*1024**3 if STORE else None,
++        gpu_or_model_started=False, store_claimed=False,
++        scope='Plan only; execution requires current stage authorization, fresh admission and GO')))
++    raise SystemExit(0)
+ base.mkdir(mode=0o775)
+ os.umask(0o002)
+ origin = time.monotonic_ns()
+@@ -48,6 +68,22 @@
+     apps = call('nvidia-smi', '--query-compute-apps=pid,gpu_uuid,used_memory', '--format=csv,noheader,nounits')
+     rows = [[v.strip() for v in line.split(',')] for line in raw.splitlines()]
+     return dict(raw=raw, apps=apps, rows=rows, monotonic_ns=time.monotonic_ns())
++
++
++def store_limits(directory, storage):
++    logical = allocated = 0
++    for path in directory.rglob('*'):
++        path.resolve().relative_to(directory.resolve())
++        if path.is_file():
++            stat = path.stat()
++            logical += stat.st_size
++            allocated += stat.st_blocks * 512
++    free = shutil.disk_usage(storage).free
++    memory = dict(line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())
++    available = int(memory['MemAvailable'].split()[0]) * 1024
++    return dict(logical_bytes=logical, allocated_bytes=allocated, storage_free_bytes=free,
++                host_available_bytes=available, within_limits=max(logical, allocated) <= 1024**4
++                and free >= 128*1024**3 and available >= 64*1024**3)
+ 
+ 
+ def capture_group(pid):
+@@ -104,10 +140,27 @@
+     assert image['Id'] == IMAGE
+     output = base / 'output'
+     output.mkdir(mode=0o775)
+-    cache = Path('/data/brick1/boyjiang/sllm-v4-pro-build') / ('cache-' + base.name)
+-    cache.mkdir(mode=0o775)
++    conversion_identity = None
++    if STORE:
++        assert not STORAGE.is_symlink()
++        assert call('findmnt', '--target', str(STORAGE.parent), '--noheadings', '--output', 'FSTYPE') == 'xfs'
++        assert shutil.disk_usage(STORAGE.parent).free >= 1024**4 + 128*1024**3
++        STORAGE.mkdir(mode=0o775, exist_ok=True)
++        assert not store.exists()
++        manifest = json.loads((ROOT/'docs/evidence/v4-native-reference-success/native-jit-artifacts.json').read_bytes())
++        assert manifest['cache_root'] == str(cache)
++        for artifact in manifest['files']:
++            path = cache / artifact['path']
++            path.resolve().relative_to(cache.resolve())
++            assert path.stat().st_size == artifact['bytes']
++            assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact['sha256']
++        conversion_identity = json.loads((ROOT/'docs/evidence/v4-store-next-preparation/identity.json').read_bytes())
++        conversion_identity['conversion_id'] = base.name
++        write_once(base/'conversion-identity.json', conversion_identity)
++    else:
++        cache.mkdir(mode=0o775)
+     for name in ('home', 'hf', 'cuda', 'triton', 'pycache', 'xdg', 'torchinductor', 'torch_extensions'):
+-        (cache / name).mkdir(mode=0o775)
++        (cache / name).mkdir(mode=0o775, exist_ok=STORE)
+     profile = ROOT / 'docs/evidence/v4-runtime-user-failure/cpu-profile'
+     profile_sha = {}
+     for name in ('passwd', 'group'):
+@@ -137,9 +190,18 @@
+ assert installed=={p['name']:p['version'] for p in lock['packages']}
+ write_once('/output/gpu-precheck.json',dict(devices=devices,libcuda_maps=cuda_maps,installed_packages=installed,cuda_initialized=torch.cuda.is_initialized(),cuda_visible_devices=os.environ['CUDA_VISIBLE_DEVICES'],vllm_mapped_gpu_uuids=mapped_uuids))
+ print('GPU_PRECHECK_OK',flush=True)
+-sys.argv=['v4_native_reference.py','--execute','--guard','/control/guard/armed.json','--output','/output/native']
+-runpy.run_path('/workspace/benchmarks/v4_native_reference.py',run_name='__main__')
+ '''
++    if STORE:
++        wrapper += "from sllm_store import v4_convert\nimport hashlib\nexpected=json.loads(Path('/control/preparation.json').read_bytes())['source_overrides']['v4_convert.py']\nassert hashlib.sha256(Path(v4_convert.__file__).read_bytes()).hexdigest()==expected\n"
++        entry = 'v4_store_conversion.py'
++        argv = [entry, '--execute', '--model', str(MODEL), '--store', str(store),
++                '--identity', '/control/conversion-identity.json',
++                '--guard', '/control/guard/armed.json', '--output', '/output/conversion']
++    else:
++        entry = 'v4_native_reference.py'
++        argv = [entry, '--execute', '--guard', '/control/guard/armed.json',
++                '--output', '/output/native']
++    wrapper += 'sys.argv=' + repr(argv) + "\nrunpy.run_path(" + repr('/workspace/benchmarks/' + entry) + ",run_name='__main__')\n"
+     (base / 'gpu_entry.py').write_text(wrapper)
+     command = ['docker', 'create', '--name', base.name, '--runtime', 'nvidia',
+         '--gpus', '"device=' + ','.join(uuids) + '"', '--network', 'none', '--restart', 'no',
+@@ -148,17 +210,21 @@
+         '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges', '--read-only',
+         '--ulimit', 'memlock=-1:-1', '--user', '2147:2147', '--workdir', '/workspace',
+         '--entrypoint', '/opt/sllm-v4/bin/python',
+-        '--label', 'sllm.v4.guard=native-reference', '--label', 'sllm.run_id=' + base.name,
++        '--label', 'sllm.v4.guard=' + MODE, '--label', 'sllm.run_id=' + base.name,
+         '--tmpfs', '/tmp:rw,exec,nosuid,size=16g,mode=1777',
+         '--mount', 'type=bind,src=' + str(ROOT) + ',dst=/workspace,readonly',
+         '--mount', 'type=bind,src=' + str(MODEL) + ',dst=' + str(MODEL) + ',readonly',
+         '--mount', 'type=bind,src=' + str(base) + ',dst=/control,readonly',
+         '--mount', 'type=bind,src=' + str(output) + ',dst=/output',
+         '--mount', 'type=bind,src=' + str(cache) + ',dst=/runtime-cache']
++    if STORE:
++        command += ['--mount', 'type=bind,src=' + str(STORAGE) + ',dst=' + str(STORAGE),
++            '--mount', 'type=bind,src=' + str(ROOT/'sllm_store/sllm_store/v4_convert.py') +
++            ',dst=/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_convert.py,readonly']
+     for name in ('passwd', 'group'):
+         command += ['--mount', 'type=bind,src=' + str(base / ('run-user.' + name)) + ',dst=/etc/' + name + ',readonly']
+     env = dict(CUDA_VISIBLE_DEVICES=','.join(map(str,indices)), NVIDIA_VISIBLE_DEVICES=','.join(uuids),
+-        VLLM_PLUGINS='', HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
++        VLLM_PLUGINS='sllm_v4_store' if STORE else '', HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1',
+         PYTHONPATH='/workspace/benchmarks', HOME='/runtime-cache/home', HF_HOME='/runtime-cache/hf',
+         XDG_CACHE_HOME='/runtime-cache/xdg', TRITON_CACHE_DIR='/runtime-cache/triton',
+         CUDA_CACHE_PATH='/runtime-cache/cuda', PYTHONPYCACHEPREFIX='/runtime-cache/pycache',
+@@ -166,6 +232,8 @@
+         TORCHINDUCTOR_CACHE_DIR='/runtime-cache/torchinductor', TORCH_EXTENSIONS_DIR='/runtime-cache/torch_extensions',
+         LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64',
+         OMP_NUM_THREADS='1', MKL_NUM_THREADS='1', PYTHONUNBUFFERED='1')
++    if STORE:
++        env.update(STORAGE_PATH=str(STORAGE), SLLM_EVENT_DIR='/output/events', SLLM_EVENT_RUN_ID=base.name)
+     for key, value in env.items():
+         command += ['--env', key + '=' + value]
+     command += [IMAGE, '-u', '/control/gpu_entry.py']
+@@ -179,13 +247,15 @@
+         gpu_initial=initial, baseline_gpu_mib=baseline, weight_inventory=initial_inventory,
+         runtime_asset_metadata=asset_states, create_command=command,
+         runtime_user='boyjiang:2147:2147', runtime_user_profile_sha256=profile_sha,
+-        source_head=HEAD, authorizing_instruction='User explicitly: 我说过了 你直接用吧',
++        source_head=HEAD, purpose=MODE, conversion_identity=conversion_identity,
++        source_overrides=({'v4_convert.py': hashlib.sha256((ROOT/'sllm_store/sllm_store/v4_convert.py').read_bytes()).hexdigest()} if STORE else {}),
++        authorizing_instruction='Stage authorization must be recorded in GO; host use: User explicitly 我说过了 你直接用吧',
+         reservation_use_basis='Direct user instruction after disclosed conflict; no existing booking changed',
+         hardware_admission=True, model_run_started=False, writer_scope='Own process read-only mount plus metadata seal; no claim of global NFS writer lease'))
+     host_env = dict(os.environ, PYTHONPATH=str(ROOT/'sllm_store')+':'+str(ROOT/'benchmarks'))
+     with (base / 'guard.log').open('x') as log:
+         guard = subprocess.Popen(['python3', str(ROOT/'benchmarks/v4_container_guard.py'), cid,
+-            str(origin+1080_000_000_000), str(base/'guard')], env=host_env,
++            str(origin+1080_000_000_000), str(base/'guard'), '--purpose', MODE], env=host_env,
+             stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+     for _ in range(100):
+         if (base/'guard/armed.json').exists():
+@@ -200,10 +270,19 @@
+     while not (base/'GO.json').exists():
+         assert guard.poll() is None and time.monotonic_ns() < origin+120_000_000_000
+         time.sleep(.2)
++    go = json.loads((base/'GO.json').read_bytes())
++    assert (go.get('purpose') == MODE and go.get('source_head') == HEAD
++            and isinstance(go.get('authorization'), str) and go['authorization'].strip()
++            and go.get('notified_before_gpu') is True), 'GO must bind current stage/source authorization and notification'
++    memory = dict(line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())
++    assert int(memory['MemAvailable'].split()[0]) * 1024 >= 1024**4 + 64*1024**3
++    if STORE:
++        assert shutil.disk_usage(STORAGE).free >= 1024**4 + 128*1024**3
++        assert not store.exists()
+     recheck = gpu_snapshot()
+     assert not recheck['apps'] and all(int(row[4]) == baseline[row[1]] for row in recheck['rows'])
+     write_once(base/'launch.json', dict(launch_ns=time.monotonic_ns(), gpu_admission=recheck,
+-                                      model_attempt_consumed=True))
++                                      model_attempt_consumed=True, authorization=go))
+     call('docker', 'start', cid, timeout=20)
+     with (base/'telemetry.jsonl').open('x') as stream:
+         while True:
+@@ -215,8 +294,12 @@
+                           gpu=gpu_snapshot())
+             if group and group.exists():
+                 sample['cgroup'] = cgroup_telemetry(group)
++            if STORE:
++                sample['store_limits'] = store_limits(store, STORAGE)
+             stream.write(json.dumps(sample)+'\n')
+             stream.flush()
++            if STORE:
++                assert sample['store_limits']['within_limits'], 'Store storage or host memory stop threshold crossed'
+             if not state['Running']:
+                 break
+             assert guard.poll() is None, 'Guard exited while target still running'
+@@ -236,12 +319,14 @@
+     guard_code = guard.wait(timeout=5)
+     result = dict(container_exit_code=final['State']['ExitCode'], guard_exit_code=guard_code,
+         natural_process_exit=guard_code == 0, weight_metadata_unchanged=unchanged,
+-        native_candidate_exists=(output/'native/candidate.json').exists(),
++        **{('store_conversion_candidate_exists' if STORE else 'native_candidate_exists'):
++               (output/('conversion' if STORE else 'native')/'candidate.json').exists()},
+         release_observation_passed=True, runtime_qualified=False,
+         total_elapsed_seconds=(time.monotonic_ns()-origin)/1e9,
+         no_retry=True, formal_id_consumed=False)
+     result['status'] = ('candidate_pending_review' if final['State']['ExitCode'] == 0
+-        and guard_code == 0 and unchanged and result['native_candidate_exists'] else 'failed_native_process')
++        and guard_code == 0 and unchanged and result['store_conversion_candidate_exists' if STORE else 'native_candidate_exists']
++        else ('failed_store_conversion_process' if STORE else 'failed_native_process'))
+     write_once(base/'result.json', result)
+     print(json.dumps(result), flush=True)
+ except BaseException as error:
