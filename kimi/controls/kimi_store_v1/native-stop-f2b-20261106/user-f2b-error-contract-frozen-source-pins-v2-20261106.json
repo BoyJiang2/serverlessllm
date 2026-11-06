@@ -1,0 +1,55 @@
+{
+  "status": "FROZEN_CPU_STUB_ONLY_AWAITING_INDEPENDENT_REVIEW",
+  "timestamp": "2026-11-06T06:29:07.029563+00:00",
+  "pins": {
+    "csrc/sllm_store/checkpoint_store.cpp": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3",
+    "csrc/sllm_store/checkpoint_store.h": "01dcbdf5d376224ae3c24ed7bc5652996f3deeef8f9b99171c1e75b70449405a",
+    "csrc/sllm_store/checkpoint_store_py.cpp": "9947ed2618493e12918a8223230942edfe8ff8689e43719d633cf4f12478230d",
+    "csrc/sllm_store/pinned_memory_pool.cpp": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d",
+    "csrc/sllm_store/pinned_memory_pool.h": "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f",
+    "sllm_store/server.py": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52",
+    "tests/python/test_pinned_pool_shutdown_logging.py": "331b7c9ededeba42adde1b10407a42c3474db6a71cd35b659eba6fbc154d5ee9",
+    "tests/python/test_server_shutdown.py": "59904ef8317eb1f3349e839bdd73bdd6873021fb48c725e21483884a2ec09aba"
+  },
+  "own_files": [
+    "csrc/sllm_store/checkpoint_store.cpp",
+    "csrc/sllm_store/pinned_memory_pool.cpp",
+    "csrc/sllm_store/pinned_memory_pool.h",
+    "tests/python/test_pinned_pool_shutdown_logging.py"
+  ],
+  "parent_files": [
+    "sllm_store/server.py",
+    "tests/python/test_server_shutdown.py"
+  ],
+  "prior_snapshot": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/user-f2b-six-files-before-error-correction-20261106.json",
+    "sha256": "455262ba7a2caa4f602cf33e63aeaba7f0289e13f430c0dbc76e19ca869c32cf"
+  },
+  "diff_and_cpu_receipt": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/user-f2b-error-contract-cpu-stub-preparation-20261106.json",
+    "sha256": "b3e01db94350978a9d407c7619f4063dbd91ee982d7f877d3d7e57f4ab039ac2"
+  },
+  "independent_agent_actual_tests": {
+    "whole_cpp_cpu_stubs": 7,
+    "passed": 7,
+    "elapsed_seconds": 0.983
+  },
+  "parent_reported_tests": {
+    "server_ast": 8,
+    "passed": 8,
+    "scope": "reported by parent; not independently rerun by this agent"
+  },
+  "limits": [
+    "No real CUDA/ELF build, import, deployment or model execution",
+    "failed unregister pointer retained; destructor may retry retained failures only",
+    "No generalized concurrent shutdown; F2b stopped-admission precondition remains",
+    "No Git action; user changes and backups preserved"
+  ],
+  "supersedes_frozen_receipt": "aa0649dc885221cf84946fc494b32a4d4350285b6e1f4eff28d29cfab0b8e157",
+  "final_delta": "Only release complete log renamed release attempts finished; failed count stays explicit.",
+  "final_diff_from_F2b": {
+    "csrc/sllm_store/checkpoint_store.cpp": "--- csrc/sllm_store/checkpoint_store.cpp@F2b\n+++ csrc/sllm_store/checkpoint_store.cpp@final\n@@ -88,7 +88,15 @@\n // buffers, so both must finish before the pinned pages are unregistered.\n // Releasing the pool first would make every Deallocate() report\n // \"Buffer not found in pool\" and leave model-held pointers dangling.\n-CheckpointStore::~CheckpointStore() { ReleaseMemoryPool(); }\n+CheckpointStore::~CheckpointStore() {\n+  try {\n+    ReleaseMemoryPool();\n+  } catch (const std::exception& error) {\n+    LOG(ERROR) << \"CheckpointStore destructor release failed: \" << error.what();\n+  } catch (...) {\n+    LOG(ERROR) << \"CheckpointStore destructor release failed: unknown error\";\n+  }\n+}\n \n void CheckpointStore::ReleaseMemoryPool() {\n   DrainAsyncTasks();\n@@ -103,7 +111,16 @@\n   // enqueued. Joining first also avoids holding model_info_mutex_ (taken by\n   // ClearMem) while a loader that wants that same mutex is still running.\n   while (!async_tasks_.empty()) {\n-    async_tasks_.front().wait();\n+    try {\n+      int result = async_tasks_.front().get();\n+      if (result != 0) {\n+        LOG(ERROR) << \"Async load task returned \" << result;\n+      }\n+    } catch (const std::exception& error) {\n+      LOG(ERROR) << \"Async load task failed: \" << error.what();\n+    } catch (...) {\n+      LOG(ERROR) << \"Async load task failed: unknown error\";\n+    }\n     async_tasks_.pop();\n   }\n }\n",
+    "csrc/sllm_store/pinned_memory_pool.cpp": "--- csrc/sllm_store/pinned_memory_pool.cpp@F2b\n+++ csrc/sllm_store/pinned_memory_pool.cpp@final\n@@ -18,6 +18,7 @@\n #include \"pinned_memory_pool.h\"\n \n #include <chrono>\n+#include <stdexcept>\n #include <cuda_runtime.h>\n #include <glog/logging.h>\n \n@@ -46,24 +47,34 @@\n   }\n }\n \n-PinnedMemoryPool::~PinnedMemoryPool() { Release(); }\n+PinnedMemoryPool::~PinnedMemoryPool() {\n+  try {\n+    Release();\n+  } catch (const std::exception& error) {\n+    LOG(ERROR) << \"PinnedMemoryPool destructor release failed: \" << error.what();\n+  } catch (...) {\n+    LOG(ERROR) << \"PinnedMemoryPool destructor release failed: unknown error\";\n+  }\n+}\n \n void PinnedMemoryPool::Release() {\n   std::lock_guard<std::mutex> lock(mutex_);\n   if (released_) {\n     return;\n   }\n-  released_ = true;\n+  if (free_list_.size() != pool_.size()) {\n+    throw std::runtime_error(\"PinnedMemoryPool release has outstanding borrowers\");\n+  }\n   LOG(INFO) << \"PinnedMemoryPool release begin buffers=\" << pool_.size()\n             << \" chunk_size=\" << chunk_size_;\n+  const size_t total = pool_.size();\n   size_t attempted = 0;\n   size_t unregister_failed = 0;\n   cudaError_t last_error = cudaSuccess;\n   auto shutdown_started = std::chrono::steady_clock::now();\n-  for (char* buffer : pool_) {\n-    // NOTE: the return value used to be ignored. A failed unregister leaves the\n-    // buffer pinned by the driver while free() still releases the heap block,\n-    // so both the failure count and the error text matter here.\n+  for (auto it = pool_.begin(); it != pool_.end();) {\n+    char* buffer = *it;\n+    // Keep ownership of a failed registration; it must not be freed as heap memory.\n     cudaError_t err = cudaHostUnregister(buffer);\n     if (err != cudaSuccess) {\n       ++unregister_failed;\n@@ -72,25 +83,32 @@\n                    << cudaGetErrorString(err);\n         last_error = err;\n       }\n+      ++it;\n+    } else {\n+      free(buffer);\n+      free_list_.erase(buffer);\n+      it = pool_.erase(it);\n     }\n-    free(buffer);\n     ++attempted;\n     if (attempted % 64 == 0) {\n       auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(\n                             std::chrono::steady_clock::now() - shutdown_started)\n                             .count();\n       LOG(INFO) << \"PinnedMemoryPool shutdown progress attempted=\" << attempted\n-                << \" failed=\" << unregister_failed << \" total=\" << pool_.size()\n+                << \" failed=\" << unregister_failed << \" total=\" << total\n                 << \" elapsed_ms=\" << elapsed_ms;\n     }\n   }\n   auto total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(\n                       std::chrono::steady_clock::now() - shutdown_started)\n                       .count();\n-  LOG(INFO) << \"PinnedMemoryPool release complete attempted=\" << attempted\n+  LOG(INFO) << \"PinnedMemoryPool release attempts finished attempted=\" << attempted\n             << \" failed=\" << unregister_failed << \" elapsed_ms=\" << total_ms;\n-  pool_.clear();\n-  free_list_.clear();\n+  if (unregister_failed != 0) {\n+    throw std::runtime_error(\"PinnedMemoryPool cudaHostUnregister failures=\" +\n+                             std::to_string(unregister_failed));\n+  }\n+  released_ = true;\n }\n \n int PinnedMemoryPool::Allocate(size_t size, std::vector<char*>& buffers) {\n",
+    "csrc/sllm_store/pinned_memory_pool.h": "--- csrc/sllm_store/pinned_memory_pool.h@F2b\n+++ csrc/sllm_store/pinned_memory_pool.h@final\n@@ -26,9 +26,8 @@\n   PinnedMemoryPool(size_t total_size, size_t chunk_size);\n   ~PinnedMemoryPool();\n \n-  // Idempotent explicit release. Call this while the CUDA runtime is still\n-  // healthy: doing the same work from the destructor, i.e. during interpreter\n-  // shutdown, costs about 2.8x more per buffer on the same hardware.\n+  // Idempotent after success. Requires all borrowed buffers to be returned.\n+  // Throws on unregister failure and retains ownership of failed buffers.\n   void Release();\n \n   int Allocate(size_t size, std::vector<char*>& buffers);\n"
+  }
+}

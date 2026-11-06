@@ -1,0 +1,53 @@
+{
+  "status": "L1_NOT_PASSED_NO_NEW_RUNTIME",
+  "node": "qjhs000",
+  "source_root": "/home/boyjiang/kimi-new/ServerlessLLM",
+  "source_HEAD": "fc17151e4d08dfa6fe5ee1309825dd2962524a48",
+  "source_worktree": "user F3+F2b and minimal error-contract corrections under CPU review, not deployed",
+  "raw_reconciliation": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-v2-four-snapshot-raw-reconciliation-20261106.json",
+    "sha256": "268586aa6fc4eb5dea9532a4c22a384fe7156b45a116e65f0eb92864568dd50a2"
+  },
+  "identity_mapping": {
+    "old_run": {
+      "host_pid": 3765980,
+      "startticks": 774899140,
+      "namespace_pid": 1233
+    },
+    "pool_progress_run": {
+      "host_pid": 171691,
+      "startticks": 775893447,
+      "namespace_pid": 1232
+    }
+  },
+  "verified_observations": {
+    "pool_init_log_wall_seconds": 770.043097,
+    "first_1024_log_wall_seconds": 21.691433,
+    "source_counter_semantics": "cudaHostUnregister and free returned; old compiled source ignores CUDA error return; successful unregistration NOT proven",
+    "shutdown_complete_observed": false,
+    "RSS_10_20_GiB": [
+      608.5569343566895,
+      581.5552864074707
+    ]
+  },
+  "document_cautions": [
+    "V2 wording 1024 successful CUDA unregistrations is stronger than compiled source proves",
+    "Serial source loop does not prove constant per-buffer latency or complete 217 second duration",
+    "Two runs with differing sampled states do not establish oscillation within either unsampled interval",
+    "770 seconds is one measured initialization interval, not repeated performance evidence"
+  ],
+  "new_runtime": "NONE; old 30-second failures retained; grace300 candidate parked, not run",
+  "GLM_coordination": {
+    "owner_thread": "01a16c4e-a51f-7e53-8668-b11ffba2fbc4",
+    "received_unverified_statement": "Numerical audit passes; business_only fourth raw/Holm p=0.5625, other three raw0.03125/Holm0.125; event gate pending",
+    "acceptance": "Receive and verify immutable input/script/output hashes; no concurrent GLM edits or reruns"
+  },
+  "next_gates": [
+    "Frozen corrected source + meaningful CPU fault injection",
+    "Independent review + commit/publication and exact remote SHA",
+    "Fresh real ABI/build manifest and actual resolved libraries",
+    "New exact runtime spec and independent review",
+    "Applicable single-run authorization, fresh resource/window covering full budget, independent guard",
+    "Two lifecycle rounds + own gold + 8rank ownership + normal all exits + at least60sec release"
+  ]
+}

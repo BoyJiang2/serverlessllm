@@ -1,0 +1,37 @@
+{
+  "verdict": "ACCEPT_SOURCE_ERROR_CONTRACT_NOT_ELF_OR_GPU_PASS",
+  "source_sha256": {
+    "sllm_store/sllm_store/server.py": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52",
+    "sllm_store/tests/python/test_server_shutdown.py": "59904ef8317eb1f3349e839bdd73bdd6873021fb48c725e21483884a2ec09aba",
+    "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d",
+    "sllm_store/csrc/sllm_store/pinned_memory_pool.h": "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f",
+    "sllm_store/csrc/sllm_store/checkpoint_store.cpp": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3",
+    "sllm_store/tests/python/test_pinned_pool_shutdown_logging.py": "331b7c9ededeba42adde1b10407a42c3474db6a71cd35b659eba6fbc154d5ee9"
+  },
+  "server_independent_cpu": {
+    "command": "python3 sllm_store/tests/python/test_server_shutdown.py",
+    "tests": 8,
+    "returncode": 0,
+    "seconds": 0.066,
+    "scope": "Actual serve AST function with FakeServer/sharedasyncFuture; no real grpc/Store/CUDA"
+  },
+  "cpp_author_cpu_receipt": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/user-f2b-error-contract-frozen-source-pins-v2-20261106.json",
+    "sha256": "8bca1ce3a3618ddafcb052e5542e3f5e8542e934e72ae4925c2183ab0b37af4b",
+    "scope": "Author reports7 actual whole-poolCPP stub cases plus extracted actual DrainAsyncTasks body. Independent source review did not rerun compiler. Final log-only delta reverse hash checked."
+  },
+  "findings": [
+    "server shutdown_complete only after natural wait or both stop(5) and waiter finish. Stop failure/second cancellation/waiter exception do not release prematurely.",
+    "Independent release exception propagates to prevent normal exit. Cleanup does not replace a preexisting exception if reached while one is active.",
+    "Pool Release rejects outstanding borrowers before any unregister. Failed unregister retains ownership and does not free; successes are immediately removed from both sets and cannot be freed again. released_ only after complete success.",
+    "Destructors catch exceptions. Retrying remaining failed registrations during destructor does not retry prior successes; permanently failed memory may remain until process exit.",
+    "ReleaseMemoryPool orders DrainAsyncTasks then ClearMem then pool release. Each future.get observes task completion/result/exception before pop and keeps draining after error. It logs historical task failures rather than rethrowing them; no-new-producers after grpc shutdown is an explicit precondition.",
+    "Final log says release attempts finished with failure count before an exception; it no longer ambiguously claims completed release."
+  ],
+  "limits": [
+    "No new ELF build/import or CUDA/real grpc/Store/GPU execution. Old release-v2e0c8ELF cannot represent these source hashes.",
+    "Driver unregister or async future may still block until independent deadline. Stub/source acceptance is not640GiB shutdown or whole-native pass.",
+    "Stub CPU tests do not prove actual CUDA/GIL/inflight runtime ordering or physical release."
+  ],
+  "execution": "Read-only source review plus authorized8 host AST CPU tests; new audit evidence only, no source edit/Git/container/GPU."
+}
