@@ -2,6 +2,7 @@
 import argparse
 import ast
 import copy
+import datetime
 import hashlib
 import json
 import pathlib
@@ -44,6 +45,37 @@ def validate_protocol(protocol):
         assert row["top_k"] == 0 and row["min_p"] == 0
         assert len(row["input_tokens"]) == row["expected"]["prompt_tokens"]
         assert len(row["expected"]["token_ids"]) == row["expected"]["completion_tokens"]
+    execution_mapping(protocol)
+
+
+def execution_mapping(protocol):
+    attempts=protocol['attempts']
+    runs={row['attempt_id']:row['attempt_id'] for row in attempts}
+    blocks={str(number):'kimi-four-v1-b%02d'%number for number in range(1,11)}
+    revision=protocol.get('execution_revision')
+    if revision is None:
+        return runs,blocks
+    datetime.date.fromisoformat(revision['authorization_date'])
+    assert revision['user_instruction']=='修复完重新跑b01 然后是2~10'
+    assert isinstance(revision['reason'],str) and revision['reason'].strip()
+    assert revision['rerun_blocks']==[1,2] and revision['suffix']=='retry02'
+    assert revision['actual_launch_requests_at_authorization']==2 and revision['target_total_launch_requests_max']==42
+    assert revision['stop_on_new_failure'] is True
+    assert revision['selection_rule']=='fixed_40_mapped_runs_no_latency_selection'
+    expected={row['attempt_id']:row['attempt_id']+('-retry02' if row['block'] in (1,2) else '') for row in attempts}
+    expected_blocks={number:name+('-retry02' if number in ('1','2') else '') for number,name in blocks.items()}
+    assert revision['run_id_map']==expected,'only explicitly authorized b01/b02 retry02 runtime IDs permitted'
+    assert len(set(expected.values()))==40 and revision['block_run_ids']==expected_blocks
+    historical=revision['historical_attempts']
+    old_first=[row for row in attempts if row['block'] in (1,2) and row['position']==1]
+    assert len(historical)==2
+    for row,old in zip(historical,old_first):
+        assert row['run_id']==row['logical_attempt_id']==old['attempt_id'] and row['block']==old['block']
+        assert row['launch_requested'] is True and row['primary_sample_qualified'] is False
+        assert isinstance(row['status'],str) and 'FAIL' in row['status']
+        assert pathlib.Path(row['result_path']).is_absolute() and re.fullmatch('[0-9a-f]{64}',row['result_sha256'])
+    assert revision['historical_unstarted']==[row['attempt_id'] for row in attempts if row['block'] in (1,2) and row['position']>1]
+    return expected,expected_blocks
 
 
 def validate_inventory(inventory, expected_roots=None):
@@ -350,7 +382,9 @@ def collect_structured_events(router_positions,worker_positions,tokens,backend_o
 def render(protocol, spec, command, attempt_id, source_pins):
     validate_protocol(protocol)
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
-    assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+", attempt_id)
+    logical_attempt_id=attempt_id
+    attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
+    assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry02)?", attempt_id)
     assert not (pathlib.Path(protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))) / attempt_id).exists(), "identity already used"
     assert spec["image"] == protocol["deployment"]["image"]
     assert spec["store_extension"]["sha256"] == protocol["deployment"]["extension_sha256"]
@@ -362,7 +396,7 @@ def render(protocol, spec, command, attempt_id, source_pins):
     index = command["argv"].index("-c") + 1
     body = command["argv"][index]
     old_run = spec["run_id"]
-    spec.update(run_id=attempt_id, condition=attempt["condition"], status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",
+    spec.update(run_id=attempt_id, logical_attempt_id=logical_attempt_id, execution_revision=copy.deepcopy(protocol.get("execution_revision")), condition=attempt["condition"], status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",
                 protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
@@ -502,7 +536,7 @@ try:
   assert argv[-1]=='FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED'
   assert argv[0]=='/usr/bin/systemd-run' and '--wait' not in argv
   claim(a['run_id']+'.claim')
-  argv=[argv[0],'--wait',*[x.replace('--property=RemainAfterExit=yes','--property=RemainAfterExit=no') for x in argv[1:-1]],str(expiry)]
+  argv=[argv[0],'--wait',*['--property=RemainAfterExit=no' if x=='--property=RemainAfterExit=yes' else x for x in argv[1:-1]],str(expiry)]
   a.update(status='START_REQUESTED',condition_terminal='START_REQUESTED',launch_requested=True)
   try:
    result=subprocess.run(argv,timeout=7205);a['returncode']=result.returncode
@@ -527,7 +561,7 @@ except BaseException as failure:
  error={'type':type(failure).__name__,'message':str(failure)}
  raise
 finally:
- final={'status':status,'error':error,'block_id':b['block_id'],'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'attempts':ledger,'planned_attempts':b['planned_attempts'],'success_rate_denominator':'launch_requested','launch_requested_count':sum(a['launch_requested'] for a in ledger),'runtime_evidence_created_count':sum(a['runtime_evidence_created'] for a in ledger),'attempted_legacy_semantics':'runtime evidence directory created; not the success-rate denominator'}
+ final={'status':status,'error':error,'block_id':b['block_id'],'logical_block_id':b.get('logical_block_id',b['block_id']),'execution_revision':b.get('execution_revision'),'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'attempts':ledger,'planned_attempts':b['planned_attempts'],'success_rate_denominator':'launch_requested','launch_requested_count':sum(a['launch_requested'] for a in ledger),'runtime_evidence_created_count':sum(a['runtime_evidence_created'] for a in ledger),'attempted_legacy_semantics':'runtime evidence directory created; not the success-rate denominator'}
  fd=os.open(claims/(b['block_id']+'-final.json'),os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
  with os.fdopen(fd,'w') as f:json.dump(final,f);f.flush();os.fsync(f.fileno())
 """
@@ -539,11 +573,12 @@ def render_block(protocol, block_number, entries, source_commit):
     assert len(planned)==len(entries)==4
     assert source_commit is None or re.fullmatch('[0-9a-f]{40}',source_commit)
     for row,entry in zip(planned,entries):
-        assert row['attempt_id']==entry['run_id']
+        assert execution_mapping(protocol)[0][row['attempt_id']]==entry['run_id']
+        assert entry.get('logical_attempt_id',row['attempt_id'])==row['attempt_id']
         assert pathlib.Path(entry['command_path']).is_absolute()
         assert re.fullmatch('[0-9a-f]{64}',entry['command_sha256'])
     compile(BLOCK_BODY,'<four-condition-block>','exec')
-    return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':'kimi-four-v1-b%02d'%block_number,
+    return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':execution_mapping(protocol)[1][str(block_number)],'logical_block_id':'kimi-four-v1-b%02d'%block_number,'execution_revision':copy.deepcopy(protocol.get('execution_revision')),
             'source_commit':source_commit,'success_rate_denominator':'launch_requested','attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
             'protocol_sha256':PROTOCOL_SHA,'runs_root':protocol['resource_budget'].get('runs_root','/home/boyjiang/kimi-new/evidence/runs'),
             'condition_max_seconds':7200,'parent_overhead_seconds':120,'full_max_seconds':28920,
@@ -643,13 +678,13 @@ def main():
         if final_commit:spec['status']=command['status']='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW'
         spec['source_pin_status']='COMMITTED_REMOTE_VERIFIED' if final_commit else 'CANDIDATE_CURRENT_BYTES_NOT_SOURCE_ADMISSION'
         spec['code_pins'][str(args.protocol)]=args.protocol_sha
-        sp=base.EVIDENCE/(attempt['attempt_id']+'-'+version+'-spec.json')
-        cp=base.EVIDENCE/(attempt['attempt_id']+'-'+version+'-command.json')
+        sp=base.EVIDENCE/(spec['run_id']+'-'+version+'-spec.json')
+        cp=base.EVIDENCE/(spec['run_id']+'-'+version+'-command.json')
         command['argv'][-3]=str(sp);sb=json_bytes(spec)
         command['argv'][-2]=command['spec_sha256']=hashlib.sha256(sb).hexdigest()
         cb=json_bytes(command)
         outputs.extend(((sp,sb),(cp,cb)))
-        entries.append({'run_id':attempt['attempt_id'],'condition':attempt['condition'],'command_path':str(cp),'command_sha256':hashlib.sha256(cb).hexdigest()})
+        entries.append({'run_id':spec['run_id'],'logical_attempt_id':attempt['attempt_id'],'condition':attempt['condition'],'command_path':str(cp),'command_sha256':hashlib.sha256(cb).hexdigest()})
     if args.block:
         bundle=render_block(protocol,args.block,entries,final_commit);bundle['protocol_sha256']=args.protocol_sha
         if final_commit:bundle['status']='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW'

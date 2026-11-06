@@ -141,17 +141,17 @@ class ActualConsumerTest(unittest.TestCase):
         bad=copy.deepcopy(row);bad['clock_identity']['time_namespace']='time:[other]'
         with self.assertRaises(AssertionError):namespace['check_response'](bad,want,0,1)
 
-    def block_fixture(self,root,fail_at=None,expiry=30000,no_receipt_at=None,timeout_at=None):
+    def block_fixture(self,root,fail_at=None,expiry=30000,no_receipt_at=None,timeout_at=None,inline_code='pass',run_ids=None,block_id='tinyblock'):
         claims=root/'claims';claims.mkdir(mode=0o700);runs=root/'runs';runs.mkdir()
         entries=[];source='a'*40;protocol='b'*64
         for number in range(4):
-            run='tiny-'+str(number)
+            run=run_ids[number] if run_ids is not None else 'tiny-'+str(number)
             spec={'status':'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW','run_id':run,'source_commit':source,'protocol_sha256':protocol}
             sp=root/(run+'-spec.json');sp.write_text(json.dumps(spec));sha=p.hashlib.sha256(sp.read_bytes()).hexdigest()
-            argv=['/usr/bin/systemd-run','--unit='+run,'--property=RemainAfterExit=yes','/usr/bin/python3','-I','-c','pass',str(sp),sha,'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED']
+            argv=['/usr/bin/systemd-run','--unit='+run,'--property=RemainAfterExit=yes','/usr/bin/python3','-I','-c',inline_code,str(sp),sha,'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED']
             cp=root/(run+'-command.json');cp.write_text(json.dumps({'argv':argv,'spec_sha256':sha}))
             entries.append({'run_id':run,'command_path':str(cp),'command_sha256':p.hashlib.sha256(cp.read_bytes()).hexdigest()})
-        bundle={'status':'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW','full_max_seconds':28920,'claims_root':str(claims),'runs_root':str(runs),'attempts':entries,'block_id':'tinyblock','source_commit':source,'protocol_sha256':protocol,'planned_attempts':entries}
+        bundle={'status':'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW','full_max_seconds':28920,'claims_root':str(claims),'runs_root':str(runs),'attempts':entries,'block_id':block_id,'source_commit':source,'protocol_sha256':protocol,'planned_attempts':entries}
         bp=root/'bundle.json';bp.write_text(json.dumps(bundle));called=[]
         real_stat=pathlib.Path.stat
         def fake_stat(path,*args,**kwargs):
@@ -174,6 +174,19 @@ class ActualConsumerTest(unittest.TestCase):
             with mock.patch('os.geteuid',return_value=0),mock.patch.object(pathlib.Path,'stat',fake_stat),mock.patch('time.time',return_value=100),mock.patch('subprocess.run',side_effect=run),mock.patch.object(sys,'argv',['block',str(bp),p.hashlib.sha256(bp.read_bytes()).hexdigest(),str(expiry)]):
                 exec(compile(p.BLOCK_BODY,'<actual-block-body>','exec'),{})
         return execute,called,claims
+
+    def test_actual_block_only_changes_outer_property_preserving_inline_code(self):
+        inline_code="def systemd():\n return ['--property=RemainAfterExit=yes']\n"
+        with tempfile.TemporaryDirectory() as directory:
+            execute,called,_=self.block_fixture(pathlib.Path(directory),inline_code=inline_code)
+            execute()
+            self.assertEqual(len(called),4)
+            for argv in called:
+                self.assertIn('--property=RemainAfterExit=no',argv)
+                self.assertNotIn('--property=RemainAfterExit=yes',argv)
+                actual_inline=argv[argv.index('-c')+1]
+                self.assertEqual(actual_inline.encode(),inline_code.encode())
+                self.assertIn('--property=RemainAfterExit=yes',actual_inline)
 
     def test_actual_block_success_and_exclusive_claim(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -280,6 +293,8 @@ class ActualConsumerTest(unittest.TestCase):
             ip=root/'local-manifest.json';ip.write_text(json.dumps(inventory));isha=p.hashlib.sha256(ip.read_bytes()).hexdigest()
             protocol['assets'].update(route='local_nvme',safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=isha)
             protocol['resource_budget']['runs_root']=str(runs)
+            revision_root=root/'revision';revision_root.mkdir()
+            protocol['execution_revision']=ExecutionRevisionTest().revision_protocol(revision_root)['execution_revision']
             pp=root/'protocol.json';pp.write_text(json.dumps(protocol));sha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
             with mock.patch.object(p,'SF_HOST',str(sf)),mock.patch.object(p,'STORE_ARCHIVE',str(archive)),mock.patch.object(p,'RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE),mock.patch.object(sys,'argv',['prepare','--block','1','--source-commit',p.SOURCE,'--protocol',str(pp),'--protocol-sha',sha]),mock.patch('builtins.print'):
                 p.main()
@@ -287,6 +302,8 @@ class ActualConsumerTest(unittest.TestCase):
             bundle=json.loads(next(ep.glob('*-bundle.json')).read_text())
             self.assertEqual(bundle['status'],'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW')
             self.assertEqual(bundle['runs_root'],str(runs));self.assertEqual(len(bundle['attempts']),4)
+            self.assertEqual(bundle['block_id'],'kimi-four-v1-b01-retry02')
+            self.assertTrue(all(row['run_id'].endswith('-retry02') for row in bundle['attempts']))
             for row in bundle['attempts']:
                 command=json.loads(pathlib.Path(row['command_path']).read_text());spec=json.loads(pathlib.Path(command['argv'][-3]).read_text())
                 self.assertEqual(spec['protocol_sha256'],sha);self.assertEqual(spec['source_commit'],p.SOURCE)
@@ -313,6 +330,7 @@ class ActualConsumerTest(unittest.TestCase):
                 self.assertIn("gb=base/('guard-'+role)",body);self.assertIn("ob=base/'observer'",body)
             launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
             self.assertIn('--property=RuntimeMaxSec=28917',launch['argv'])
+            self.assertIn('--unit=kimi-four-v1-b01-retry02-formal-controller.service',launch['argv'])
 
 
     def test_actual_block_nonzero_without_receipt_has_failed_launch_terminal(self):
@@ -636,6 +654,76 @@ class ControllerCostEventTest(unittest.TestCase):
         self.assertLess(event('release_quiet60_complete'),source_checks[-1])
         self.assertEqual(spec['budgets']['full'],7200);self.assertEqual(spec['budgets']['sum'],6480)
         self.assertIn("store_stop_end=time.monotonic()+60",body)
+
+class ExecutionRevisionTest(unittest.TestCase):
+    def revision_protocol(self,root):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        protocol['resource_budget']['runs_root']=str(root/'runs');(root/'runs').mkdir()
+        mapping={row['attempt_id']:row['attempt_id']+('-retry02' if row['block'] in (1,2) else '') for row in protocol['attempts']}
+        blocks={str(number):'kimi-four-v1-b%02d'%number+('-retry02' if number in (1,2) else '') for number in range(1,11)}
+        history=[]
+        for number in (1,2):
+            old=next(row for row in protocol['attempts'] if row['block']==number and row['position']==1)
+            receipt=root/('history-b%02d.json'%number);receipt.write_text(json.dumps({'status':'FAILED_RETAINED','run_id':old['attempt_id']}))
+            history.append({'run_id':old['attempt_id'],'logical_attempt_id':old['attempt_id'],'block':number,'launch_requested':True,'primary_sample_qualified':False,'status':'FAILED_RETAINED','result_path':str(receipt),'result_sha256':p.hashlib.sha256(receipt.read_bytes()).hexdigest()})
+        protocol['execution_revision']={'authorization_date':'2026-11-06','user_instruction':'修复完重新跑b01 然后是2~10','reason':'Explicit user-authorized whole-block rerun after two controller faults; historical partials retain failure.','rerun_blocks':[1,2],'suffix':'retry02','run_id_map':mapping,'block_run_ids':blocks,'historical_attempts':history,'historical_unstarted':[row['attempt_id'] for row in protocol['attempts'] if row['block'] in (1,2) and row['position']>1],'actual_launch_requests_at_authorization':2,'target_total_launch_requests_max':42,'stop_on_new_failure':True,'selection_rule':'fixed_40_mapped_runs_no_latency_selection'}
+        return protocol
+
+    def test_retry_revision_maps_all_runtime_names_without_replacing_logical_plan(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);protocol=self.revision_protocol(root)
+            spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            for logical in protocol['attempts']:
+                rendered,prepared=p.render(protocol,spec,command,logical['attempt_id'],spec['native_source_pins'])
+                wanted=protocol['execution_revision']['run_id_map'][logical['attempt_id']]
+                self.assertEqual(rendered['run_id'],wanted)
+                self.assertEqual(rendered['attempt'],logical)
+                self.assertEqual(rendered['logical_attempt_id'],logical['attempt_id'])
+                self.assertEqual(rendered['planned_attempts'],protocol['attempts'])
+                self.assertTrue(all(request['name']==wanted+'-'+role for role,request in rendered['requests'].items()))
+                self.assertIn('--unit='+wanted+'-controller.service',prepared['argv'])
+            self.assertEqual(len(protocol['attempts']),40)
+            self.assertEqual(protocol['execution_revision']['actual_launch_requests_at_authorization'],2)
+
+    def test_revision_rejects_unapproved_or_duplicate_ids_and_selected_used_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);protocol=self.revision_protocol(root)
+            first=protocol['attempts'][0]['attempt_id'];third=protocol['attempts'][8]['attempt_id']
+            for logical,value in ((first,first),(first,first+'-retry03'),(third,third+'-retry02'),(third,protocol['execution_revision']['run_id_map'][first])):
+                bad=copy.deepcopy(protocol);bad['execution_revision']['run_id_map'][logical]=value
+                with self.assertRaises(AssertionError):p.validate_protocol(bad)
+            bad=copy.deepcopy(protocol);bad['execution_revision']['historical_attempts'][0]['primary_sample_qualified']=True
+            with self.assertRaises(AssertionError):p.validate_protocol(bad)
+            bad=copy.deepcopy(protocol);bad['execution_revision']['stop_on_new_failure']=False
+            with self.assertRaises(AssertionError):p.validate_protocol(bad)
+            used=pathlib.Path(protocol['resource_budget']['runs_root'])/protocol['execution_revision']['run_id_map'][first];used.mkdir()
+            spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            with self.assertRaises(AssertionError):p.render(protocol,spec,command,first,spec['native_source_pins'])
+            self.assertEqual(list(used.iterdir()),[])
+
+    def test_actual_block_new_claims_preserve_old_claims_and_failed_history(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);history=root/'history';history.mkdir();protocol=self.revision_protocol(history)
+            block=root/'block';block.mkdir();revision=protocol['execution_revision']
+            originals=[row for row in protocol['attempts'] if row['block']==1]
+            ids=[revision['run_id_map'][row['attempt_id']] for row in originals]
+            block_id=revision['block_run_ids']['1']
+            execute,called,claims=ActualConsumerTest().block_fixture(block,run_ids=ids,block_id=block_id)
+            old_claim=claims/'kimi-four-v1-b01.claim';old_claim.write_bytes(b'historical claim retained')
+            old_run=block/'runs'/originals[0]['attempt_id'];old_run.mkdir();(old_run/'keep').write_bytes(b'failed original')
+            bp=block/'bundle.json';bundle=json.loads(bp.read_text());bundle.update(execution_revision=revision,planned_attempts=protocol['attempts'],logical_block_id='kimi-four-v1-b01');bp.write_text(json.dumps(bundle))
+            execute()
+            self.assertEqual(len(called),4)
+            self.assertEqual(old_claim.read_bytes(),b'historical claim retained')
+            self.assertEqual((old_run/'keep').read_bytes(),b'failed original')
+            self.assertTrue((claims/(block_id+'.claim')).exists())
+            final=json.loads((claims/(block_id+'-final.json')).read_text())
+            self.assertEqual([row['run_id'] for row in final['attempts']],ids)
+            self.assertEqual(final['planned_attempts'],protocol['attempts'])
+            self.assertEqual(final['execution_revision']['historical_attempts'],revision['historical_attempts'])
+            self.assertEqual(final['execution_revision']['actual_launch_requests_at_authorization'],2)
+            self.assertEqual(final['execution_revision']['target_total_launch_requests_max'],42)
+            self.assertEqual(final['launch_requested_count'],4)
 
 if __name__=='__main__':
     unittest.main()
