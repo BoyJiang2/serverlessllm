@@ -222,11 +222,11 @@ GRACE_GATE = """ stop_started=time.monotonic();stop_end=stop_started+600
 """
 
 
-def validate_pool_pins(spec, explicit=False):
+def validate_pool_pins(spec, explicit=False, expected_source=None):
     build = ROOT / "sllm_store/build/kimi-pool-explicit-release-v1" if explicit else POOL_BUILD
     elf_sha = "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd" if explicit else POOL_ELF_SHA
     manifest_sha = "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d" if explicit else POOL_MANIFEST_SHA
-    assert spec['source_commit'] == ('efcb9d4d930254dfd4d048e204d7266ab06a65fd' if explicit else '794a0f3b08185d0ec7d054480922b2a5c5e24505')
+    assert spec['source_commit'] == (expected_source or ('efcb9d4d930254dfd4d048e204d7266ab06a65fd' if explicit else '794a0f3b08185d0ec7d054480922b2a5c5e24505'))
     manifest = checked_json(build / 'build-manifest.json', manifest_sha)
     elf = build / '_checkpoint_store.cpython-312-x86_64-linux-gnu.so'
     assert digest(elf) == manifest['elf_sha256'] == elf_sha
@@ -410,13 +410,86 @@ def render_pool_observe(spec, command, source_commit, helper_sha):
     return sb, (json.dumps(prepared,ensure_ascii=False,indent=2)+'\n').encode()
 
 
+EXIT60_BASE_SPEC = EVIDENCE / "native-qjhs003-pool-stop-observe-concrete-spec-20261106.json"
+EXIT60_BASE_COMMAND = EVIDENCE / "native-qjhs003-pool-stop-observe-manual-root-command-20261106.json"
+EXIT60_BASE_SPEC_SHA = "c8abf4490500db723678a661e269fee1ffba10f63db311e8dde658bd16cfcf60"
+EXIT60_BASE_COMMAND_SHA = "ec066b768fac42e8278a5689cbece3d23db0cf05761cdd45de3429b8114c1b0e"
+EXIT60_RUN = "kimi-native-qjhs003-pool-exit60-l1-20261106-once"
+EXIT60_SPEC = EVIDENCE / "native-qjhs003-pool-exit60-l1-concrete-spec-20261106.json"
+EXIT60_COMMAND = EVIDENCE / "native-qjhs003-pool-exit60-l1-manual-root-command-20261106.json"
+
+
+def render_pool_exit60(spec, command, source_commit, helper_sha):
+    spec, command = copy.deepcopy(spec), copy.deepcopy(command)
+    assert spec['helper_sha256'] == helper_sha == HELPER_SHA
+    index = command['argv'].index('-c') + 1; body = command['argv'][index]
+    assert hashlib.sha256(body.encode()).hexdigest() == command['root_python_sha256']
+    original_command = checked_json(OBSERVE_BASE_COMMAND, OBSERVE_BASE_COMMAND_SHA)
+    original_body = original_command['argv'][original_command['argv'].index('-c') + 1]
+    node = next(n for n in ast.parse(original_body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+    original = ast.get_source_segment(original_body,node)
+    head, tail = original.split('  return\n',1)
+    lines = head.splitlines()[2:]
+    owner_index = next(i for i,line in enumerate(lines) if ';owner=' in line)
+    lines.insert(owner_index+1,"  result['owner']=owner")
+    lines = [line.replace('assert time.monotonic()<deadline;',"assert time.monotonic()<deadline,'Store exit60 criterion exceeded';").replace('if owner:assert gone(owner)',"if owner:assert gone(owner),'Store exit60 owned process still present'") for line in lines]
+    finish_index = lines.index('  finish(item,deadline)')
+    lines.insert(finish_index,"  assert time.monotonic()<deadline,'Store exit60 finish deadline exceeded'")
+    strict = """def stop_service(name,role,deadline):
+ if name=='store':
+  begin=deadline-60;result={'protocol':'NEW_PROTOCOL_EXIT60_L1','criterion_seconds':60,'owner':None,'pass':False,'begin_monotonic':begin,'deadline_monotonic':deadline,'measurement':'controller Stop call through original finish and strictgone, including IPC and diagnostic overhead'}
+  try:
+""" + '\n'.join(' '+line for line in lines) + """
+   completed=time.monotonic();assert completed<deadline,'Store exit60 completion verification exceeded criterion'
+   result.update(elapsed=completed-begin,completion_monotonic=completed);result['pass']=True
+   save('store-stop-exit60.json',result)
+  except BaseException as error:
+   result.update(elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error),failure_reason='criterion60_exceeded' if time.monotonic()>=deadline else 'normal_exit_or_strictgone_verification_failed')
+   try:save('store-stop-exit60.json',result)
+   except Exception as diagnostic_error:
+    try:print(json.dumps({'event':'EXIT60_EVIDENCE_SAVE_FAILED','primary_error_type':type(error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)
+    except Exception:pass
+   raise
+  return
+""" + tail
+    node = next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+    body = body.replace(ast.get_source_segment(body,node),strict)
+    caller="store_stop_end=time.monotonic()+300;assert store_stop_end<stop_end,'full Store stop slot unavailable'"
+    assert body.count(caller)==1
+    body=body.replace(caller,"store_stop_end=time.monotonic()+60;assert store_stop_end<stop_end,'full Store60 stop slot unavailable'")
+    body=body.replace('DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE','NEW_PROTOCOL_EXIT60_L1_CREATE_AAB_DELETE_RECREATE_ALL_EXIT_GPUZERO60_PASS').replace('DIAGNOSTIC_NOT_L1_FAILED_RETAINED_NO_RETRY','NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY')
+    assert 'DIAGNOSTIC_NOT_L1' not in body and 'store-stop-observation.json' not in body
+    compile(body,'<new-exit60-L1>','exec')
+    old_run=spec['run_id'];spec.update(run_id=EXIT60_RUN,source_commit=source_commit,status='PREPARED_NEW_PROTOCOL_EXIT60_L1_NOT_EXECUTED')
+    spec.pop('pool_stop_observation_scope')
+    scope={'base_spec_sha256':EXIT60_BASE_SPEC_SHA,'base_command_sha256':EXIT60_BASE_COMMAND_SHA,'store_exit_seconds':60,'protocol':'NEW_PROTOCOL_EXIT60_L1','limits':'New prospective60-second criterion only; no retrospective promotion of original30 or diagnostic runs. Full7200 and complete600+120+180 admission unchanged.'}
+    spec['pool_exit60_l1_scope']=scope
+    for role,request in spec['requests'].items():request['name']=EXIT60_RUN+'-'+role
+    command['argv'][command['argv'].index('--unit='+old_run+'-controller.service')]='--unit='+EXIT60_RUN+'-controller.service'
+    command['argv'][index]=body;command['argv'][-3]=str(EXIT60_SPEC)
+    sb=(json.dumps(spec,ensure_ascii=False,indent=2)+'\n').encode();command['spec_sha256']=command['argv'][-2]=hashlib.sha256(sb).hexdigest()
+    command.update(root_python_sha256=hashlib.sha256(body.encode()).hexdigest(),inline_lines=len(body.splitlines()),status='PREPARED_NEW_PROTOCOL_EXIT60_L1_NOT_EXECUTED',store_stop_diagnostic_scope=scope)
+    return sb,(json.dumps(command,ensure_ascii=False,indent=2)+'\n').encode()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-commit", required=True)
     parser.add_argument("--pool-grace300", action="store_true", help="Prepare only the fixed 300s Store-stop diagnostic variant")
     parser.add_argument("--pool-stop-observe", action="store_true", help="Diagnostic observation only; never L1 acceptance")
+    parser.add_argument("--pool-exit60-l1", action="store_true", help="Prepare new prospective60-second native L1 protocol only")
     args = parser.parse_args()
-    assert not (args.pool_grace300 and args.pool_stop_observe), "select only one mode"
+    assert sum((args.pool_grace300,args.pool_stop_observe,args.pool_exit60_l1))<=1, "select only one mode"
+    if args.pool_exit60_l1:
+        spec=checked_json(EXIT60_BASE_SPEC,EXIT60_BASE_SPEC_SHA);command=checked_json(EXIT60_BASE_COMMAND,EXIT60_BASE_COMMAND_SHA)
+        assert command['spec_sha256']==EXIT60_BASE_SPEC_SHA and command['argv'][-3:-1]==[str(EXIT60_BASE_SPEC),EXIT60_BASE_SPEC_SHA]
+        validate_pool_pins(spec,explicit=True,expected_source='876ac9a9b9e795546c161f1fc943e6d5dd145b13')
+        helper_sha=committed_helper(args.source_commit)
+        assert not (EVIDENCE.parent/'runs'/EXIT60_RUN).exists() and not EXIT60_SPEC.exists() and not EXIT60_COMMAND.exists(), "identity/output already used"
+        sb,cb=render_pool_exit60(spec,command,args.source_commit,helper_sha)
+        write_new(EXIT60_SPEC,sb);write_new(EXIT60_COMMAND,cb)
+        print(json.dumps({'status':'PREPARED_NEW_PROTOCOL_EXIT60_L1_NO_EXECUTION','spec_sha256':hashlib.sha256(sb).hexdigest(),'command_sha256':hashlib.sha256(cb).hexdigest()}))
+        return
     if args.pool_stop_observe:
         spec = checked_json(OBSERVE_BASE_SPEC, OBSERVE_BASE_SPEC_SHA)
         command = checked_json(OBSERVE_BASE_COMMAND, OBSERVE_BASE_COMMAND_SHA)

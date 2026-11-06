@@ -272,7 +272,7 @@ class PoolObservationTest(unittest.TestCase):
             nodes = [n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ['finish','stop_service']]
             exec(compile(ast.Module(body=nodes,type_ignores=[]),'<actual-observation-and-original-finish>','exec'),env)
             error = None
-            try:env['stop_service']('store','worker',300)
+            try:env['stop_service']('store','worker',getattr(self,'stop_deadline',300))
             except BaseException as caught:error = caught
         self.last_save_attempts=attempts
         return records, signals, error, clock.now
@@ -379,6 +379,81 @@ class PoolObservationTest(unittest.TestCase):
         self.assertIn("'status':'DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE'",self.body)
         self.assertIn(prep.GRACE_GATE,self.body)
         self.assertEqual(self.new_command['spec_sha256'],hashlib.sha256((json.dumps(self.new_spec,ensure_ascii=False,indent=2)+'\n').encode()).hexdigest())
+
+
+
+class PoolExit60Test(unittest.TestCase):
+    run_stop = PoolObservationTest.run_stop
+    final_nodes = PoolGraceTest.final_nodes
+
+    def setUp(self):
+        import types
+        self.types=types;self.stop_deadline=60
+        self.spec=prep.checked_json(prep.EXIT60_BASE_SPEC,prep.EXIT60_BASE_SPEC_SHA)
+        self.command=prep.checked_json(prep.EXIT60_BASE_COMMAND,prep.EXIT60_BASE_COMMAND_SHA)
+        sb,cb=prep.render_pool_exit60(self.spec,self.command,'7'*40,prep.HELPER_SHA)
+        self.new_spec,self.new_command=json.loads(sb),json.loads(cb)
+        self.body=self.new_command['argv'][self.new_command['argv'].index('-c')+1]
+
+    def test_actual33_seconds_normal_finish_and_gone_pass_new_protocol_only(self):
+        rows,signals,error,elapsed=self.run_stop(exit_at=33)
+        self.assertIsNone(error)
+        result=rows['store-stop-exit60.json']
+        self.assertTrue(result['pass']);self.assertEqual(result['criterion_seconds'],60)
+        self.assertEqual(result['protocol'],'NEW_PROTOCOL_EXIT60_L1')
+        self.assertEqual(result['elapsed'],33);self.assertEqual(elapsed,33)
+        self.assertEqual(result['owner'],{'pid':123,'startticks':1,'cgroup':'0::/owned'})
+        self.assertEqual(signals[0][0][-2],'import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)')
+
+    def test_after60_is_failure_not_observation_extension(self):
+        rows,_,error,elapsed=self.run_stop(exit_at=61)
+        self.assertIsInstance(error,AssertionError);self.assertEqual(elapsed,60)
+        row=rows['store-stop-exit60.json'];self.assertFalse(row['pass'])
+        self.assertEqual(row['failure_reason'],'criterion60_exceeded')
+        self.assertIn('exit60',str(error))
+        self.assertNotIn('store-stop-observation.json',rows)
+
+    def test_exact60_exit_rejected_with_named_criterion(self):
+        rows,_,error,_=self.run_stop(exit_at=60)
+        self.assertIsInstance(error,AssertionError)
+        self.assertIn('Store exit60 finish deadline exceeded',str(error))
+        self.assertFalse(rows['store-stop-exit60.json']['pass'])
+
+    def test_nonzero_gone_failure_and_late_gone_fail(self):
+        import subprocess
+        for options,kind in [({'code':7},subprocess.CalledProcessError),({'gone':False},AssertionError),({'exit_at':33,'gone_delay':28},AssertionError)]:
+            with self.subTest(options=options):
+                rows,_,error,_=self.run_stop(**options)
+                self.assertIsInstance(error,kind);self.assertFalse(rows['store-stop-exit60.json']['pass'])
+                self.assertTrue(rows['store-stop-exit60.json']['failure_reason'])
+
+    def test_guard_error_and_evidence_error_preserve_primary(self):
+        primary=RuntimeError('guard failed')
+        rows,_,error,_=self.run_stop(guard_error=primary,save_error=True)
+        self.assertIs(error,primary)
+
+    def test_full_tail_slot_late_rejected_before_shutdown(self):
+        with tempfile.TemporaryDirectory() as folder:
+            e=PoolGraceTest.environment(self,folder);e['time'].now=6001
+            with self.assertRaises(AssertionError):PoolGraceTest.run_final(self,e,True)
+            self.assertEqual(e['calls'],[])
+
+    def test_preserved_roles_resources_pins_nonstore_and_new_status_bindings(self):
+        for key in ['role_bodies','role_body_sha256','gold','config','code_pins','native_source_pins','overlays','store_extension','gpu_uuids','budgets']:
+            self.assertEqual(self.new_spec[key],self.spec[key])
+        for role in self.spec['requests']:
+            req=copy.deepcopy(self.new_spec['requests'][role]);req['name']=self.spec['requests'][role]['name']
+            self.assertEqual(req,self.spec['requests'][role])
+        baseline=self.command['argv'][self.command['argv'].index('-c')+1]
+        oldnode=next(n for n in ast.parse(baseline).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+        newnode=next(n for n in ast.parse(self.body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+        self.assertEqual(ast.get_source_segment(baseline,oldnode).split('  return\n',1)[1],ast.get_source_segment(self.body,newnode).split('  return\n',1)[1])
+        self.assertIn(prep.GRACE_GATE,self.body)
+        self.assertNotIn('DIAGNOSTIC_NOT_L1',self.body)
+        self.assertNotIn('store_stop_end=time.monotonic()+300',self.body)
+        self.assertIn('NEW_PROTOCOL_EXIT60_L1_CREATE_AAB_DELETE_RECREATE_ALL_EXIT_GPUZERO60_PASS',self.body)
+        self.assertIn('NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY',self.body)
+        self.assertEqual(self.new_command['root_python_sha256'],hashlib.sha256(self.body.encode()).hexdigest())
 
 
 
