@@ -21,7 +21,7 @@ EVIDENCE=ROOT.parent/'evidence'
 JOURNALS=EVIDENCE/'v4-4x10-journals-20261107'
 
 
-def next_attempt(history, head, evidence=EVIDENCE):
+def next_attempt(history, head, evidence=EVIDENCE, acknowledged_failures=None):
     pending=None
     for row in history:
         if not row['consumed']:
@@ -29,6 +29,17 @@ def next_attempt(history, head, evidence=EVIDENCE):
             continue
         require(pending is None and row['status']=='evidence_complete_unqualified',
                 'failed/incomplete/out-of-order attempt blocks continuation')
+        if acknowledged_failures and row['attempt_id'] in acknowledged_failures:
+            approved=acknowledged_failures[row['attempt_id']];base=evidence/row['attempt_id']
+            failure=checked_json(base/'failure.json',approved['failure_sha256'])
+            require(failure['artifact_kind']=='independent_runtime_review_failure'
+                    and failure['main_runner_normal_completion'] and failure['formal_id_consumed']
+                    and failure['engine_creations']==2 and approved['counts_as_success'] is False,
+                    'only the sealed warm-engine runtime failure may be acknowledged')
+            require(hashlib.sha256((base/'candidate.json').read_bytes()).hexdigest()==approved['candidate_sha256']
+                    and hashlib.sha256((Path(row['directory'])/row['journal_files'][-1]['path']).read_bytes()).hexdigest()==approved['journal_terminal_sha256'],
+                    'acknowledged original evidence changed')
+            continue
         path=evidence/row['attempt_id']/'runtime-review.json'
         review=json.loads(path.read_bytes())
         require(review['runtime_qualified'] is True and review['success'] is True
@@ -40,7 +51,7 @@ def next_attempt(history, head, evidence=EVIDENCE):
     return pending
 
 
-def launch_one(row, protocol, protocol_sha, head, campaign):
+def launch_one(row, protocol, protocol_sha, head, campaign, amendment=None, amendment_sha=None):
     name=row['attempt_id'];base=EVIDENCE/name
     require(not base.exists(), 'runtime directory already consumed')
     gpu=gpu_snapshot()
@@ -52,6 +63,7 @@ def launch_one(row, protocol, protocol_sha, head, campaign):
     command=['python3','-u',str(ROOT/'benchmarks/v4_service_once.py'),str(base),head,
              '--trial-protocol',str(protocol),'--trial-sha256',protocol_sha,'--condition',row['condition'],
              '--attempt-id',name,'--journal-root',str(JOURNALS),'--execute']
+    if amendment is not None:command+=['--amendment',str(amendment),'--amendment-sha',amendment_sha]
     with (campaign/(name+'.controller.log')).open('x') as log:
         process=subprocess.Popen(command,cwd=ROOT,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,
             start_new_session=True,env=dict(os.environ,PYTHONPATH=str(ROOT/'benchmarks')+':'+str(ROOT/'sllm_store')))
@@ -82,7 +94,7 @@ def launch_one(row, protocol, protocol_sha, head, campaign):
         require(time.monotonic()-begin<3900,'controller overrun; stop campaign without retry or killing foreign work')
         time.sleep(1)
     require(process.returncode==0, 'attempt failed; original ID retained; campaign stopped')
-    result=review_trial(base,protocol,protocol_sha,JOURNALS,head)
+    result=review_trial(base,protocol,protocol_sha,JOURNALS,head,amendment_path=amendment,amendment_sha=amendment_sha)
     print(json.dumps(dict(stage='qualified',attempt_id=name,condition=row['condition'],
         command_to_response_s=result['command_to_correct_response_seconds'],total_s=result['total_elapsed_seconds'])),flush=True)
     return result
@@ -91,12 +103,23 @@ def launch_one(row, protocol, protocol_sha, head, campaign):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('protocol',type=Path);parser.add_argument('protocol_sha');parser.add_argument('source_head')
+    parser.add_argument('--amendment',type=Path);parser.add_argument('--amendment-sha')
     parser.add_argument('--execute',action='store_true');parser.add_argument('--notified-before-gpu',action='store_true')
     args=parser.parse_args();protocol=checked_json(args.protocol,args.protocol_sha)
     require(not sys.flags.optimize and not os.environ.get('PYTHONOPTIMIZE'),'optimized campaign forbidden')
     require(protocol['frozen'] is True,'campaign protocol not frozen')
     rows=frozen_protocol(args.protocol,args.protocol_sha)
-    for name,sha in protocol['execution_source_sha256'].items():
+    policy=protocol;acknowledged={}
+    if args.amendment is not None or args.amendment_sha is not None:
+        require(args.amendment is not None and args.amendment_sha is not None,'amendment path/SHA pair required')
+        policy=checked_json(args.amendment,args.amendment_sha)
+        require(policy['schema']==1 and policy['frozen'] is True and policy['continuation_authorized'] is True
+                and policy['base_preregistration_sha256']==args.protocol_sha and policy['keep_alive_seconds']==3600,
+                'prospective warm-engine continuation not frozen')
+        acknowledged=policy['acknowledged_failures']
+        require(set(acknowledged)=={rows[0]['attempt_id']} and rows[0]['attempt_id']=='v4n40_store_pool_hit_01',
+                'only the first sealed failure can be acknowledged')
+    for name,sha in policy['execution_source_sha256'].items():
         require(hashlib.sha256((ROOT/name).read_bytes()).hexdigest()==sha, 'frozen execution source changed')
     prerequisite=checked_json(ROOT/protocol['sf_hot_prerequisite_path'],protocol['sf_hot_prerequisite_review_sha256'])
     require(prerequisite['runtime_qualified'] and prerequisite['full_model_condition_pilot_qualified']
@@ -107,15 +130,15 @@ def main():
     require(subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()==args.source_head
             and not subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True).strip(),'source changed')
     lease=(ROOT.parent/'campaign.lock').open('a');fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
-    campaign=EVIDENCE/'v4-4x10-campaign-20261107';campaign.mkdir(exist_ok=False);JOURNALS.mkdir(exist_ok=True)
-    write_once(campaign/'origin.json',dict(source_head=args.source_head,protocol_sha256=args.protocol_sha,begin_ns=time.monotonic_ns()))
+    campaign=EVIDENCE/('v4-4x10-campaign-amended-20261107' if args.amendment is not None else 'v4-4x10-campaign-20261107');campaign.mkdir(exist_ok=False);JOURNALS.mkdir(exist_ok=True)
+    write_once(campaign/'origin.json',dict(source_head=args.source_head,protocol_sha256=args.protocol_sha,amendment_sha256=args.amendment_sha,acknowledged_failed_ids=list(acknowledged),begin_ns=time.monotonic_ns()))
     try:
         while True:
-            row=next_attempt(collect_attempts(args.protocol,args.protocol_sha,[JOURNALS]),args.source_head)
+            row=next_attempt(collect_attempts(args.protocol,args.protocol_sha,[JOURNALS]),args.source_head,acknowledged_failures=acknowledged)
             if row is None:break
             frozen=next(item for item in rows if item['attempt_id']==row['attempt_id'])
-            launch_one(frozen,args.protocol,args.protocol_sha,args.source_head,campaign)
-        write_once(campaign/'complete.json',dict(attempts=40,all_runtime_qualified=True,completed_ns=time.monotonic_ns(),source_head=args.source_head,protocol_sha256=args.protocol_sha))
+            launch_one(frozen,args.protocol,args.protocol_sha,args.source_head,campaign,args.amendment,args.amendment_sha)
+        write_once(campaign/'complete.json',dict(attempts=40,fully_qualified_attempts=40-len(acknowledged),acknowledged_runtime_failures=list(acknowledged),all_runtime_qualified=not acknowledged,completed_ns=time.monotonic_ns(),source_head=args.source_head,protocol_sha256=args.protocol_sha))
         print('CAMPAIGN_COMPLETE_40',flush=True)
     except BaseException as error:
         write_once(campaign/'failure.json',dict(error=repr(error),failed_ns=time.monotonic_ns(),automatic_retry=False))

@@ -114,6 +114,28 @@ def validate_business_event_order(events, request_id, startup_ns, trigger_ns, re
             "first token predates business trigger")
 
 
+def validate_single_engine_requests(events, request_ids):
+    """Both requests must use the same engine, with no intervening unload."""
+    creates = [event for event in events if event['name'] == 'backend_engine_create_begin']
+    ready = [event for event in events if event['name'] == 'backend_engine_ready']
+    require(len(creates) == len(ready) == 1, 'paired requests require one fresh engine')
+    identity = lambda event: tuple(event[key] for key in ('container_hostname', 'pid', 'process_start_ticks'))
+    engine = identity(creates[0])
+    require(identity(ready[0]) == engine, 'engine readiness process differs')
+    previous = ready[0]['monotonic_ns']
+    for request_id in request_ids:
+        rows = [[event for event in events if event['name'] == name and event.get('request_id') == request_id]
+                for name in ('backend_first_token_observed', 'backend_generation_complete')]
+        require(all(len(row) == 1 for row in rows), 'paired request token/completion evidence incomplete')
+        first, complete = (row[0] for row in rows)
+        require(identity(first) == identity(complete) == engine, 'fixed32 is not warm on the business engine')
+        require(previous <= first['monotonic_ns'] <= complete['monotonic_ns'], 'paired request order differs')
+        previous = complete['monotonic_ns']
+    require(not any(event['name'] in ('backend_shutdown_begin', 'backend_shutdown_end') for event in events),
+            'engine was unloaded before paired responses completed')
+    return dict(container_hostname=engine[0], pid=engine[1], process_start_ticks=engine[2], single_engine_warm32=True)
+
+
 def phase_metrics(events, startup_command_ns):
     """GLM all-rank host envelope; nested phases must not be summed."""
     require(not any(e["name"] in {p + "_failed" for p in PHASES} for e in events),

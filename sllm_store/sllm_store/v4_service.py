@@ -52,9 +52,10 @@ def _config_signature(config):
 
 def _validate_v4_topology(config):
     backend = config["backend_config"]
-    if _config_signature(config.get("auto_scaling_config")) != _config_signature(
-            {"min_instances": 0, "max_instances": 1}):
-        raise ValueError("V4 service requires auto_scaling_config min_instances=0, max_instances=1")
+    allowed_scaling = [{"min_instances": 0, "max_instances": 1},
+                       {"min_instances": 0, "max_instances": 1, "keep_alive": 3600}]
+    if _config_signature(config.get("auto_scaling_config")) not in map(_config_signature, allowed_scaling):
+        raise ValueError("V4 service requires min_instances=0, max_instances=1 and optional keep_alive=3600")
     profile = {"revision": REVISION, "tokenizer_revision": REVISION,
                "kv_cache_dtype": "fp8", "seed": 20261105,
                "distributed_executor_backend": "mp",

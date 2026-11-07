@@ -16,7 +16,7 @@ import urllib.request
 from sllm_store.event_trace import process_identity, read_event_window
 from sllm_store.v4_state import write_once
 from v4_cache_state import run_cache
-from v4_evidence import cache_scan_checks, cache_timing_checks, require, validate_business_event_order
+from v4_evidence import cache_scan_checks, cache_timing_checks, require, validate_business_event_order, validate_single_engine_requests
 from v4_native_service import validate_response, wait_file
 from v4_native_reference import inputs
 from v4_attempts import frozen_protocol
@@ -44,7 +44,7 @@ def checked_json(path, expected_sha):
     return json.loads(data)
 
 
-def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None):
+def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, amendment_path=None, amendment_sha=None):
     protocol = checked_json(protocol_path, protocol_sha)
     rows = frozen_protocol(protocol_path, protocol_sha)
     require(protocol['schema'] == 2 and condition in CONDITIONS, 'trial requires the new40 protocol')
@@ -70,8 +70,21 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None):
     declared_pools = protocol['store_pool_bytes_by_condition']
     require(set(declared_pools) == set(pools) and all(type(declared_pools[key]) is int
             and declared_pools[key] == value for key, value in pools.items()), 'unreviewed trial pool capacity')
+    keep_alive = 0
+    if amendment_path is not None or amendment_sha is not None:
+        require(amendment_path is not None and amendment_sha is not None, 'amendment path/SHA pair required')
+        amendment = checked_json(amendment_path, amendment_sha)
+        require(amendment['schema'] == 1 and amendment['base_preregistration_sha256'] == protocol_sha
+                and type(amendment['keep_alive_seconds']) is int and amendment['keep_alive_seconds'] == 3600,
+                'unreviewed native keep_alive amendment')
+        keep_alive = 3600
     if attempt_id is not None:
         require(protocol.get('frozen') is True, 'formal protocol is not frozen')
+        require(keep_alive == 3600 and amendment_path is not None and amendment.get('frozen') is True, 'formal continuation requires frozen warm-engine amendment')
+        warm = checked_json(ROOT / amendment['validation_pilot_review_path'], amendment['validation_pilot_review_sha256'])
+        require(warm['runtime_qualified'] and warm['single_engine_warm32_verified']
+                and warm['keep_alive_seconds'] == 3600 and warm['idle_probe_seconds'] >= 5
+                and not warm['formal_id_consumed'], 'warm-engine pilot prerequisite missing')
         require(protocol.get('cache_hot_read_cpus') == [0, 1, 120, 121]
                 and all(type(cpu) is int for cpu in protocol['cache_hot_read_cpus']), 'formal hot reader affinity is not frozen')
         require(run_id == attempt_id, 'formal run and attempt identities differ')
@@ -87,15 +100,19 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None):
     require(checked_json(proof, protocol['native_service_review_sha256'])[
                 'native_service_two_cycle_lifecycle_qualified'] is True, 'native lifecycle prerequisite missing')
     return dict(condition=condition, run_id=run_id, attempt_id=attempt_id,
+                keep_alive_seconds=keep_alive, amendment_sha256=amendment_sha,
                 formal_id_consumed=attempt_id is not None, pool_bytes=pools[condition],
                 attempt_timeout_seconds=protocol['attempt_timeout_seconds'],
                 protocol_sha256=protocol_sha, cache_inventory_sha256=protocol['cache_inventory_sha256'],
                 cache_inventory_path=str(inventory))
 
 
-def target_registration(grouped, condition):
+def target_registration(grouped, condition, keep_alive_seconds=0):
     require(condition in CONDITIONS, 'unknown trial condition')
     config = json.loads(json.dumps(grouped))
+    require(type(keep_alive_seconds) is int and keep_alive_seconds in (0, 3600), 'unreviewed keep_alive')
+    if keep_alive_seconds:
+        config['auto_scaling_config']['keep_alive'] = keep_alive_seconds
     if condition.startswith('safetensors_'):
         config['backend_config']['load_format'] = 'safetensors'
         config['backend_config'].pop('model_loader_extra_config')
@@ -120,6 +137,7 @@ async def prepare_service_trial(controller, grouped, preparation, deadline, addr
     """Prepare the existing binding without ever constructing a GPU model."""
     import ray
     spec = preparation['trial']
+    grouped = target_registration(grouped, 'store_pool_hit', spec.get('keep_alive_seconds', 0))
     await asyncio.wait_for(controller.register.remote(grouped), time_left(deadline))
     validated = time.monotonic_ns()
     await asyncio.wait_for(controller.delete.remote(grouped['model']), time_left(deadline))
@@ -151,7 +169,7 @@ async def prepare_service_trial(controller, grouped, preparation, deadline, addr
             'trial Store pool state differs')
     require(ray.available_resources().get('GPU') == 8, 'unexpected GPU model during trial preparation')
     state.update(ready_ns=time.monotonic_ns(), address=address, model=grouped['model'],
-                 registration=target_registration(grouped, spec['condition']), store_info=info)
+                 registration=target_registration(grouped, spec['condition'], spec.get('keep_alive_seconds', 0)), store_info=info)
     write_once(Path('/output/trial-service-ready.json'), state)
     return state
 
@@ -329,6 +347,14 @@ def _drive_trial(base, preparation, journal=None):
                 require(all(value == {f'expert_{i:04d}' for i in range(61)} for value in groups.values()),
                         'incomplete rank/group restoration')
         responses[purpose] = dict(checks=checks, sent_ns=sent, received_ns=received)
+        if purpose == 'business' and journal is None and spec.get('keep_alive_seconds') == 3600:
+            probe_begin = time.monotonic_ns()
+            time.sleep(5)
+            write_once(output / 'trial-warm-idle-probe.json', dict(begin_ns=probe_begin, complete_ns=time.monotonic_ns()))
+    paired_events = read_event_window(output / 'events', spec['run_id'], record['startup_command_ns'],
+        responses['workload32']['received_ns'], boot_id=clock['boot_id'], time_namespace=clock['time_namespace'])
+    paired = validate_single_engine_requests(paired_events, [spec['run_id'] + '-' + purpose for purpose in ('business', 'workload32')])
+    write_once(output / 'trial-engine-lifetime.json', paired)
     with log_path.open('rb') as stream:
         stream.seek(log_offset)
         native_log = stream.read()

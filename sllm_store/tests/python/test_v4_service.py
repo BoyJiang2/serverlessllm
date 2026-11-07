@@ -45,6 +45,11 @@ class AdmissionTests(unittest.TestCase):
         config = dict(model="v4", backend="vllm", num_gpus=8,
                       auto_scaling_config=dict(min_instances=0, max_instances=1), backend_config=backend)
         self.assertEqual(service.freeze_registration_config(config), config)
+        kept = copy.deepcopy(config); kept['auto_scaling_config']['keep_alive'] = 3600
+        self.assertEqual(service.freeze_registration_config(kept), kept)
+        for value in (1, 3600.0, True, None):
+            invalid = copy.deepcopy(config); invalid['auto_scaling_config']['keep_alive'] = value
+            with self.assertRaises(ValueError):service.freeze_registration_config(invalid)
         for key, value in (("revision", None), ("revision", "main"),
                            ("tokenizer_revision", "main"), ("seed", 0),
                            ("distributed_executor_backend", None), ("kv_cache_dtype", "auto"),
@@ -253,7 +258,9 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         manager.download_vllm_model = mock.AsyncMock(side_effect=AssertionError("legacy converter"))
         registration = dict(model="v4", backend="vllm", num_gpus=8,
                             auto_scaling_config=dict(min_instances=0, max_instances=1), backend_config=self.config)
+        registration['auto_scaling_config']['keep_alive'] = 3600
         await manager.register(registration)
+        # Use the same keeper when preparing the binding and switching loader.
         native = copy.deepcopy(registration)
         native["backend_config"]["load_format"] = "safetensors"
         native["backend_config"].pop("model_loader_extra_config")

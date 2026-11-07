@@ -24,6 +24,25 @@ import v4_trial as trial
 
 
 class TrialContracts(unittest.TestCase):
+    def test_paired_requests_reject_recreated_engine_and_intervening_unload(self):
+        from v4_evidence import validate_single_engine_requests
+        rows=[]
+        identity=dict(container_hostname='cpu',pid=11,process_start_ticks=22)
+        for name,when,request in [('backend_engine_create_begin',1,None),('backend_engine_ready',2,None),
+                ('backend_first_token_observed',3,'business'),('backend_generation_complete',4,'business'),
+                ('backend_first_token_observed',6,'workload32'),('backend_generation_complete',7,'workload32')]:
+            rows.append(dict(identity,name=name,monotonic_ns=when,request_id=request))
+        self.assertTrue(validate_single_engine_requests(rows,['business','workload32'])['single_engine_warm32'])
+        for kind in ['second_engine','different_process','pid_reuse','unload','wrong_order']:
+            changed=copy.deepcopy(rows)
+            if kind=='second_engine':changed.append(dict(changed[0],pid=99,monotonic_ns=5))
+            elif kind=='different_process':changed[-1]['pid']=99
+            elif kind=='pid_reuse':changed[-1]['process_start_ticks']=999
+            elif kind=='unload':changed.append(dict(identity,name='backend_shutdown_begin',monotonic_ns=5))
+            else:changed[-2]['monotonic_ns']=3
+            with self.subTest(kind=kind),self.assertRaises(ValueError):
+                validate_single_engine_requests(changed,['business','workload32'])
+
     def test_candidate_plans_all_conditions_and_cannot_claim_a_formal_id(self):
         path=trial.ROOT/'docs/evidence/v4-trial-entry/protocol-candidate.json'
         sha=hashlib.sha256(path.read_bytes()).hexdigest()
@@ -40,6 +59,24 @@ class TrialContracts(unittest.TestCase):
                 p.write_text(json.dumps(changed))
                 with self.assertRaises(ValueError):
                     trial.trial_spec(p,hashlib.sha256(p.read_bytes()).hexdigest(),row['condition'],'v4n40_pilot_cpu')
+
+    def test_pilot_amendment_changes_only_native_keep_alive_and_formal_requires_validation(self):
+        path=trial.ROOT/'docs/evidence/v4-formal-4x10/protocol.json';sha=hashlib.sha256(path.read_bytes()).hexdigest()
+        draft=dict(schema=1,frozen=False,base_preregistration_sha256=sha,keep_alive_seconds=3600)
+        with tempfile.TemporaryDirectory() as directory:
+            amendment=Path(directory)/'cpu-amendment.json';amendment.write_text(json.dumps(draft))
+            digest=hashlib.sha256(amendment.read_bytes()).hexdigest()
+            spec=trial.trial_spec(path,sha,'store_pool_hit','v4n40_pilot_cpu',amendment_path=amendment,amendment_sha=digest)
+            self.assertEqual(spec['keep_alive_seconds'],3600)
+            config=dict(model='cpu',auto_scaling_config={'min_instances':0,'max_instances':1},backend_config={})
+            kept=trial.target_registration(config,'store_pool_hit',3600)
+            self.assertEqual(kept['auto_scaling_config'],dict(min_instances=0,max_instances=1,keep_alive=3600))
+            self.assertNotIn('keep_alive',config['auto_scaling_config'])
+            with self.assertRaisesRegex(ValueError,'frozen warm-engine'):
+                trial.trial_spec(path,sha,'store_pool_hit','v4n40_store_pool_hit_01','v4n40_store_pool_hit_01',amendment,digest)
+            amendment.write_text(json.dumps(dict(draft,keep_alive_seconds=1)))
+            with self.assertRaises(ValueError):
+                trial.trial_spec(path,sha,'store_pool_hit','v4n40_pilot_cpu',amendment_path=amendment,amendment_sha=hashlib.sha256(amendment.read_bytes()).hexdigest())
 
     def test_http_error_and_invalid_json_keep_original_bytes_before_validation(self):
         class Handler(BaseHTTPRequestHandler):
@@ -153,6 +190,9 @@ class TrialContracts(unittest.TestCase):
                 rows=[json.loads(line) for line in source.read_text().splitlines()]
                 for row in rows:
                     if 'request_id' in row:row['request_id']='cpu-run-business'
+                backend = next(row for row in rows if row['name']=='backend_first_token_observed')
+                for name,when in [('backend_first_token_observed',226),('backend_generation_complete',228)]:
+                    rows.append(dict(backend,name=name,request_id='cpu-run-workload32',monotonic_ns=when))
                 for rank in range(8):
                     for group in range(61):
                         rows.append(dict(rows[0],pid=10000+rank,rank=rank,sequence=group+1,

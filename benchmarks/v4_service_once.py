@@ -123,14 +123,15 @@ def main():
     parser.add_argument('base',type=Path);parser.add_argument('source_head')
     parser.add_argument('--execute',action='store_true')
     parser.add_argument('--trial-protocol',type=Path);parser.add_argument('--trial-sha256')
+    parser.add_argument('--amendment',type=Path);parser.add_argument('--amendment-sha')
     parser.add_argument('--condition');parser.add_argument('--attempt-id');parser.add_argument('--journal-root',type=Path)
     args=parser.parse_args();base=args.base.resolve();head=args.source_head
     trial=None
-    if any(value is not None for value in (args.trial_protocol,args.trial_sha256,args.condition,args.attempt_id,args.journal_root)):
+    if any(value is not None for value in (args.trial_protocol,args.trial_sha256,args.condition,args.attempt_id,args.journal_root,args.amendment,args.amendment_sha)):
         assert args.trial_protocol and args.trial_sha256 and args.condition
         assert bool(args.attempt_id)==bool(args.journal_root)
         from v4_trial import trial_spec
-        trial=trial_spec(args.trial_protocol,args.trial_sha256,args.condition,base.name,args.attempt_id)
+        trial=trial_spec(args.trial_protocol,args.trial_sha256,args.condition,base.name,args.attempt_id,args.amendment,args.amendment_sha)
     total_seconds=trial['attempt_timeout_seconds'] if trial else TOTAL_SECONDS
     container_seconds=total_seconds-120 if trial else CONTAINER_SECONDS
     purpose='formal-trial' if trial else 'native-service'
