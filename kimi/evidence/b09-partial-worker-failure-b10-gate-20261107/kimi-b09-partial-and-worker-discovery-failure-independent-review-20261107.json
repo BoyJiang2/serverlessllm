@@ -1,0 +1,110 @@
+{
+  "status": "INDEPENDENT_B09_THREE_PARTIAL_PASS_ONE_WORKER_GUARD_FAILURE_RETAINED_RELEASE60_ACCEPT",
+  "epoch": 1794046457.3183386,
+  "hostname": "qjhs3",
+  "source_commit": "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+  "protocol_sha256": "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086",
+  "partial_summary_sha256": "aec4b57ba41ade607bf8b1038094d1491a72f4fb28a8074175bf664e9d261ec5",
+  "failure_reconciliation_sha256": "6fcfb2e34d37bc464a4c3339abf9b5a24e083b09f65637500f2ccbdc6993bf6e",
+  "block_final_sha256": "dd4467e71c12fd40f1d16e60099cf1c42b3ab6de716ecb538b942062100bade5",
+  "verified_byte_copies": {
+    "partial": 170,
+    "failure": 27
+  },
+  "three_pass_cases": [
+    {
+      "run_id": "kimi-four-v1-b09-store_pool_hit",
+      "condition": "store_pool_hit",
+      "primary_A_s": 157.953909201,
+      "business_B_s": 149.575130225,
+      "ready_fixed32_s": 3.703370997,
+      "store_stop_s": 32.453034579986706,
+      "total_condition_s": 775.5660684541799,
+      "quiet_s": 60.04942290997133,
+      "status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-safetensors_disk_cold",
+      "condition": "safetensors_disk_cold",
+      "primary_A_s": 1244.255018379,
+      "business_B_s": 1235.863654291,
+      "ready_fixed32_s": 3.713531979,
+      "store_stop_s": 33.08394026197493,
+      "total_condition_s": 1827.1945195780136,
+      "quiet_s": 60.025151144945994,
+      "status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_disk_cold",
+      "condition": "store_disk_cold",
+      "primary_A_s": 241.703882979,
+      "business_B_s": 234.268205222,
+      "ready_fixed32_s": 3.665041033,
+      "store_stop_s": 32.54528178786859,
+      "total_condition_s": 795.4273945740424,
+      "quiet_s": 60.00821746699512,
+      "status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS"
+    }
+  ],
+  "independent_pass_checks": [
+    "9 raw HTTP responses SHA/expected content and IDs for arithmetic/translation; fixed32 actual32/length/usage with sampled-first IDs",
+    "all three cumulative request-token histories exactly match backend trace Counters",
+    "24 distinct authenticated host PID/startticks, eight rank logical devices and physical UUID/PID correlation per case via published ownership derivations",
+    "cold residency0 or eight finished pool paths; normal Store32.453/33.084/32.545seconds; CIDexit0, all units0, normal guards and observer quiet>=60; warnings0/gaps0"
+  ],
+  "first_failure": {
+    "event": "proc_discovery_error",
+    "mono": 1170288.94701418,
+    "cid": "1ee226258886ca1ba449faa3df54421ad54156d9014953efd1ab3db2961ecd68",
+    "pid": 689999,
+    "stage": "identity",
+    "error_type": "PermissionError",
+    "errno": 13,
+    "filename": "/proc/689999/exe"
+  },
+  "first_abort": {
+    "event": "ABORT",
+    "mono": 1170288.956626548,
+    "cid": "1ee226258886ca1ba449faa3df54421ad54156d9014953efd1ab3db2961ecd68",
+    "reason": "guard_failure",
+    "failures": [
+      "proc_discovery"
+    ]
+  },
+  "failure_classification": "Frozen strict worker host-process discovery PermissionError, then ABORT and controller healthy rejection; no completed HTTP response. Not demonstrated model, OOM, PID-limit, or gold mismatch. Generic gold:FAIL and NEW_PROTOCOL_EXIT60 label are catchall bookkeeping, not observed gold or Store60 failure.",
+  "release": {
+    "normal": false,
+    "head_quiet_seconds": 60.01787444809452,
+    "worker_quiet_seconds": 60.001118887914345,
+    "observer_quiet_seconds": 60.36383835691959,
+    "observer_gaps": 0,
+    "root_reconciliation_reports_units0_scopes_empty_pins_gone_gpu0_apps_empty": true,
+    "original_cleanup_NOT_OBSERVED_preserved": true
+  },
+  "accounting": {
+    "original40": {
+      "launched": 36,
+      "qualified": 34,
+      "failed": 2,
+      "not_started": 4,
+      "complete_primary_blocks": 7,
+      "paired_samples": 28,
+      "qualified_partial_original_slots": 6
+    },
+    "extra_sfcold_retry": {
+      "launched": 1,
+      "qualified": 1,
+      "failed": 0
+    },
+    "historical_before_new_cohort": {
+      "launched": 5,
+      "old_qualified": 1,
+      "failed": 4
+    }
+  },
+  "limitations": [
+    "PID689999 historical ownership/startticks/cgroup unproven; its current absence cannot establish historical unrelatedness.",
+    "Original root-private OCI/kernel/observer raw and current root process/scope checks are parent-root reconciliation statements with SHA references; this reviewer verified public copies, events and logic, not private raw/full-weight payload.",
+    "Failed CID137/abort release>=60 is not normal shutdown or sample PASS. B09 excluded from all complete-block paired primary analyses. No retry, replacement or eleventh block authorized by this review."
+  ]
+}
