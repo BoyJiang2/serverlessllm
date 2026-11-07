@@ -112,7 +112,7 @@ def review_trial(base, protocol_path=None, protocol_sha=None, journal_root=None,
     assert complete['formal_id_consumed'] == spec['formal_id_consumed']
     full=(o/'store-daemon.log').read_bytes();native=(o/'trial-native-io.log').read_bytes();boundary=read(o/'trial-native-io-boundary.json')
     assert boundary['startup_command_ns'] == record['startup_command_ns'] and full[boundary['offset']:boundary['offset']+len(native)] == native
-    if spec['condition'].startswith('safetensors_'):
+    if spec['condition'].startswith('safetensors_') and not leased:
      reclaim,_,vectors=cache_observation(o/'cache-reclaim',inv['store_inputs']);del vectors
      assert reclaim['mode']=='cold' and reclaim['cache_condition_passed'] is True
      if spec['condition']=='safetensors_disk_hot':

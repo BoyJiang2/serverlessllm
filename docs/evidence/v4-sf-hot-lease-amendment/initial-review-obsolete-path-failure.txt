@@ -1,0 +1,32 @@
+{"base": "/home/boyjiang/sllm-v4-pro/evidence/v4n40_pilot_sfhot_nfs_temporal_20261107T191203Z", "pid": 573568, "start_ticks": 62069742, "controller_log": "/home/boyjiang/sllm-v4-pro/evidence/v4n40_pilot_sfhot_nfs_temporal_20261107T191203Z.controller.log", "source_head": "9a5b52746d21a4fa879992a9acfb88bff5325fc9", "purpose": "SF-hot lease nonformal pilot", "formal_id_consumed": false, "condition": "safetensors_disk_hot"}
+GPU_GO
+{"markers": ["device-map-precheck.json"]}
+{"markers": ["gpu-precheck.json", "head-ray-ready.json"]}
+{"markers": ["store-daemon-started.json", "worker-ray-ready.json"]}
+{"markers": ["control-plane-resources.json", "controller-ready.json", "store-configuration-checked.json", "store-pre-model-baseline-checked.json"]}
+{"markers": ["trial-cache-request.json"]}
+{"markers": ["trial-cache-lease-locked.json"]}
+{"markers": ["trial-cache-complete.json", "trial-service-ready.json"]}
+{"markers": ["trial-native-io-boundary.json", "trial-startup.json"]}
+{"markers": ["trial-register.raw.json"]}
+{"markers": ["trial-business.raw.json"]}
+{"markers": ["trial-warm-idle-probe.json"]}
+{"markers": ["trial-engine-lifetime.json", "trial-native-io.json", "trial-workload32.raw.json"]}
+{"markers": ["trial-delete.raw.json", "trial-http-complete.json"]}
+{"markers": ["trial-cache-lease-released.json", "trial-host-finished.json"]}
+{"markers": ["daemon-shutdown-started.json", "head-work-finished.json"]}
+{"markers": ["daemon-shutdown-finished.json"]}
+{"markers": ["worker-stopped.json"]}
+{"markers": ["head-candidate.json"]}
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/evidence/launch_v4_nfs_temporal_pilot.py", line 41, in <module>
+    report=review_trial(base,protocol,sha,expected_head=head,amendment_path=amend,amendment_sha=amendsha)
+  File "/home/boyjiang/sllm-v4-pro/code/benchmarks/v4_trial_review.py", line 116, in review_trial
+    reclaim,_,vectors=cache_observation(o/'cache-reclaim',inv['store_inputs']);del vectors
+  File "/home/boyjiang/sllm-v4-pro/code/benchmarks/v4_trial.py", line 234, in cache_observation
+    summary = json.loads((directory / 'summary.json').read_bytes())
+  File "/usr/lib/python3.10/pathlib.py", line 1126, in read_bytes
+    with self.open(mode='rb') as f:
+  File "/usr/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/home/boyjiang/sllm-v4-pro/evidence/v4n40_pilot_sfhot_nfs_temporal_20261107T191203Z/output/cache-reclaim/summary.json'
