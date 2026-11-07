@@ -792,7 +792,7 @@ class DiagnosticValueTest(unittest.TestCase):
                 self.assertTrue(all(v['env']['SLLM_DIAGNOSTIC_VALUE_FINGERPRINT']=='1' for v in spec['requests'].values()))
             original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
             _,normal=p.render(protocol,original,command,protocol['attempts'][0]['attempt_id'],original['native_source_pins'])
-            self.assertEqual(normal['root_python_sha256'],'532fc556705e9917e96467f2c0f7d09b7129c661d9d8d0c38c0019c9209eb3ee')
+            self.assertEqual(normal['root_python_sha256'],'9909a51f90f44a25f7c91c5a30043a68a6530fca0213326be83a3d66407ccad2')
             used=copy.deepcopy(protocol);used['resource_budget']['runs_root']=str(pathlib.Path(directory)/'runs');(pathlib.Path(directory)/'runs/kimi-diagnostic-value-20261107-sf1').mkdir(parents=True)
             overlay=p.base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/v1/worker/gpu_model_runner.py'
             with self.assertRaises(AssertionError):p.render_diagnostic(used,original,command,original['native_source_pins'],overlay,p.DIAGNOSTIC_OVERLAY_SHA)
@@ -987,7 +987,7 @@ class MilestoneAssertionMessagesTest(unittest.TestCase):
     def test_actual_render_changes_only_assert_messages(self):
         old_spec,old,new_spec,new=self.rendered()
         old_body=old['argv'][old['argv'].index('-c')+1];new_body=new['argv'][new['argv'].index('-c')+1]
-        self.assertEqual(p.hashlib.sha256(old_body.replace("+(['--head-control-only'] if role=='head' else [])",'').encode()).hexdigest(),'2f08728a671068fd2b677947e491cac1126fc3dc371f3ed7516e8a51342ffcf0')
+        self.assertEqual(p.hashlib.sha256(old_body.replace("+(['--head-control-only'] if role=='head' else [])",'').encode()).hexdigest(),'6ab0b94e38829447746d43e33cc2bc7f62f7abe47ec1283f0b1e76027905d571')
         trees=[ast.parse(old_body),ast.parse(new_body)]
         changes=[]
         for before,after in zip([n for n in ast.walk(trees[0]) if isinstance(n,ast.Assert)],[n for n in ast.walk(trees[1]) if isinstance(n,ast.Assert)]):
@@ -1277,6 +1277,56 @@ class FormalGuardFailureVisibilityTest(unittest.TestCase):
                 path.touch()
                 with self.assertRaises(AssertionError):namespace['healthy']()
                 path.unlink()
+
+
+class CacheConstructionFailureEvidenceTest(unittest.TestCase):
+    def construct(self, directory, result, fail_health=False):
+        events=[];group={'root':'/tiny-root','files':[{'path':'/tiny-root/file'}]}
+        def action(*args,**kwargs):events.append('action');return result
+        def save(name,value):events.append('save:'+name);(pathlib.Path(directory)/name).write_text(json.dumps(value))
+        def frozen():events.append('frozen_files');return group
+        def healthy():
+            events.append('healthy')
+            if fail_health:raise RuntimeError('guard marker detected')
+        def query(*args,**kwargs):raise AssertionError('query must not run after failed construction/health')
+        namespace={'s':{'condition':'safetensors_disk_cold'},'time':types.SimpleNamespace(monotonic=lambda:100),'cache':types.SimpleNamespace(evict_file_cache=action,warm_file_cache=action,query_cache_state=query),'save':save}
+        exec(p.CACHE_CODE,namespace);namespace.update(frozen_files=frozen,healthy=healthy,event=lambda *args:None)
+        return namespace['construct_cache'],events
+
+    def test_actual_construction_rejection_saves_raw_return_before_assert_and_stops(self):
+        result={'operation':'evict','pages':10,'resident_pages':1,'admitted':False,'files':[{'path':'/tiny-root/file','resident_pages':1}]}
+        with tempfile.TemporaryDirectory() as directory:
+            construct,events=self.construct(directory,result)
+            with self.assertRaisesRegex(AssertionError,'condition=safetensors_disk_cold.*operation=.*evict.*resident_pages=1.*pages=10'):
+                construct()
+            self.assertEqual(json.loads((pathlib.Path(directory)/'cache-construction-result.json').read_text()),result)
+            self.assertEqual(events,['frozen_files','action','save:cache-construction-result.json','healthy'])
+
+    def test_actual_health_failure_still_has_original_construction_return(self):
+        result={'operation':'evict','pages':10,'resident_pages':0,'admitted':True,'files':[]}
+        with tempfile.TemporaryDirectory() as directory:
+            construct,events=self.construct(directory,result,fail_health=True)
+            with self.assertRaisesRegex(RuntimeError,'guard marker detected'):construct()
+            self.assertEqual(json.loads((pathlib.Path(directory)/'cache-construction-result.json').read_text()),result)
+            self.assertEqual(events,['frozen_files','action','save:cache-construction-result.json','healthy'])
+
+    def test_actual_generated_failure_receipt_preserves_traceback_and_line(self):
+        protocol=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        _,command=p.render(protocol,spec,command,protocol['attempts'][0]['attempt_id'],spec['native_source_pins']);body=command['argv'][command['argv'].index('-c')+1]
+        handler=next(node for node in ast.walk(ast.parse(body)) if isinstance(node,ast.ExceptHandler) and node.name=='error' and any(isinstance(n,ast.Constant) and n.value=='controller-failed.json' for n in ast.walk(node)))
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);saved={}
+            for name in ('guard-head','guard-worker','observer'):(root/name).mkdir()
+            ns={'sample_active_gate':None,'cleanup_started':False,'finalize_sample_evidence':lambda *args:None,'save':lambda name,value:saved.update({name:value}),'base':root,'s':{'source_commit':'a'*40,'protocol_sha256':'b'*64,'attempt':{},'condition':'safetensors_disk_cold','planned_attempts':[]},'cids':{},'units':{'head':'head.service'},'props':lambda *args:{'MainPID':'0'},'time':types.SimpleNamespace(monotonic=lambda:1),'end':100,'started':0}
+            failing={};exec(compile("def frozen_files():\n raise RuntimeError('asset identity fixture')\n",'<frozen-files-fixture>','exec'),failing)
+            try:failing['frozen_files']()
+            except RuntimeError as original:
+                ns['error']=original
+                with self.assertRaises(RuntimeError) as raised:exec(compile(ast.Module(body=handler.body,type_ignores=[]),'<actual-controller-except>','exec'),ns)
+                self.assertIs(raised.exception,original)
+            receipt=saved['controller-failed.json'];self.assertIn('asset identity fixture',receipt['traceback']);self.assertIn('<frozen-files-fixture>',receipt['traceback'])
+            self.assertEqual(receipt['traceback_frames'][-1],{'filename':'<frozen-files-fixture>','lineno':2,'name':'frozen_files'})
+            self.assertTrue(all((root/name/'ABORT').exists() for name in ('guard-head','guard-worker','observer')))
 
 
 if __name__=='__main__':

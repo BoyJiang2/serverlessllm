@@ -170,7 +170,8 @@ def construct_cache():
  else:
   action=cache.warm_file_cache if s['condition']=='safetensors_disk_hot' else cache.evict_file_cache
   result=action(paths,allowed_roots=roots,deadline=deadline)
-  healthy();assert result['admitted'] is True;frozen_files()
+  save('cache-construction-result.json',result)
+  healthy();assert result['admitted'] is True,f"cache construction not admitted: condition={s['condition']}; operation={result.get('operation')!r}; resident_pages={result.get('resident_pages')!r}; pages={result.get('pages')!r}; admitted={result.get('admitted')!r}";frozen_files()
   state=cache.query_cache_state(paths,allowed_roots=roots,deadline=deadline)
   save('cache-admission.json',{'construction':result,'state':state})
   assert_cache_state(state,s['condition']=='safetensors_disk_hot')
@@ -590,6 +591,9 @@ if sys.argv[1]=='pool':
     body=body.replace(" stop_started=time.monotonic();stop_end=stop_started+600"," cleanup_started=True\n stop_started=time.monotonic();stop_end=stop_started+600",1)
     body=body.replace(" save('controller-final.json',"," qualification=finalize_sample_evidence({'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':min(observed['quiet_seconds'],*[json.loads((base/('guard-'+role)/'guard-final.json').read_text())['quiet_seconds'] for role in ('head','worker')])},'normal completion');assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'\n save('controller-final.json',",1)
     body=body.replace("except BaseException as error:\n for name in ('guard-head','guard-worker','observer'):","except BaseException as error:\n if sample_active_gate is not None:mark_sample_gate(sample_active_gate,False,type(error).__name__+':'+str(error))\n try:finalize_sample_evidence({'normal':False,'status':'FAILED' if cleanup_started else 'NOT_OBSERVED','quiet_seconds':None,'reason':type(error).__name__+':'+str(error)},type(error).__name__+':'+str(error))\n except Exception as evidence_error:\n  try:save('sample-evidence-error.json',{'type':type(evidence_error).__name__,'message':str(evidence_error),'primary_error':str(error)})\n  except Exception as diagnostic_error:\n   try:print(json.dumps({'event':'SAMPLE_EVIDENCE_DIAGNOSTIC_SAVE_FAILED','primary_error_type':type(error).__name__,'evidence_error_type':type(evidence_error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)\n   except Exception:pass\n for name in ('guard-head','guard-worker','observer'):",1)
+    failed_fields="'error_type':type(error).__name__,'error':str(error),'cids':cids"
+    assert body.count(failed_fields)==1,'controller failure receipt template drift'
+    body=body.replace(failed_fields,"'error_type':type(error).__name__,'error':str(error),'traceback':''.join(__import__('traceback').format_exception(type(error),error,error.__traceback__)),'traceback_frames':[{'filename':frame.filename,'lineno':frame.lineno,'name':frame.name} for frame in __import__('traceback').extract_tb(error.__traceback__)],'cids':cids",1)
     # Cost endpoints surround existing calls; event IO consumes unchanged phase slack.
     endpoints=[
         (" create_arm_start('head');"," event('common_environment_begin')\n create_arm_start('head');"),
