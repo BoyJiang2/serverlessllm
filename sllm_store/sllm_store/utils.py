@@ -69,7 +69,7 @@ def send_module_buffers_to_device(
                     set_module_buffer_to_device(module, buffer_name, device_id)
 
 
-def calculate_device_memory(device_map, tensor_index):
+def calculate_device_memory(device_map, tensor_index, alignment=1):
     device_memory = {}
     tensor_record = {}
     for tensor_name, device in device_map.items():
@@ -80,14 +80,17 @@ def calculate_device_memory(device_map, tensor_index):
             if (offset, size) in tensor_record:
                 continue  # Skip duplicate tensors
             tensor_record[(offset, size)] = True
-            device_memory[device] += tensor_index[tensor_name][1]
+            device_memory[device] = (
+                (device_memory[device] + alignment - 1) // alignment * alignment
+                + size
+            )
         else:
             raise ValueError(f"Tensor {tensor_name} not found in tensor_index.")
 
     return device_memory
 
 
-def calculate_tensor_device_offsets(device_map, tensor_index):
+def calculate_tensor_device_offsets(device_map, tensor_index, alignment=1):
     tensor_device_offsets = {}
     tensor_copy_chunks = {}
     device_offset = {}
@@ -104,6 +107,9 @@ def calculate_tensor_device_offsets(device_map, tensor_index):
                     (offset, size)
                 ]
             else:
+                device_offset[device] = (
+                    (device_offset[device] + alignment - 1) // alignment * alignment
+                )
                 tensor_record[(offset, size)] = device_offset[device]
                 tensor_device_offsets[device][tensor_name] = device_offset[
                     device

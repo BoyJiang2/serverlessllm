@@ -33,7 +33,7 @@ CONVERT = MODE == 'store-conversion'
 RECOVER = MODE == 'store-recovery'
 STORE = CONVERT or RECOVER
 assert not DIAGNOSTIC or RECOVER
-overlays = ('v4_convert.py', 'v4_grouped_state.py', 'vllm_v4_loader.py', 'v4_export_worker.py') if STORE else ()
+overlays = ('v4_convert.py', 'v4_grouped_state.py', 'vllm_v4_loader.py', 'v4_export_worker.py', 'torch.py', 'utils.py') if STORE else ()
 STORAGE = Path('/data/brick1/boyjiang/sllm-v4-pro-store')
 qualified = json.loads((ROOT/'docs/evidence/v4-store-data-integrity/qualified-store.json').read_bytes()) if RECOVER else None
 store = Path(qualified['store_root']) if RECOVER else STORAGE / base.name

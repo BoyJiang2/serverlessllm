@@ -170,14 +170,16 @@ def load_dict_non_blocking(
     expanded_device_map = _expand_tensor_name(
         device_map, list(tensor_index.keys())
     )
+    # Native TMA consumers require aligned tensor starts inside the allocation.
+    alignment = 256 if _own_before_dispatch else 1
     device_memory = calculate_device_memory(
-        expanded_device_map, tensor_data_index
+        expanded_device_map, tensor_data_index, alignment=alignment
     )
     # logger.debug(f"calculate_device_memory {device_memory}")
     if _own_before_dispatch:
         replica_uuid = _get_uuid()
         tensor_device_offsets, tensor_copy_chunks = calculate_tensor_device_offsets(
-            expanded_device_map, tensor_data_index
+            expanded_device_map, tensor_data_index, alignment=alignment
         )
     cuda_memory_ptrs = allocate_cuda_memory(device_memory)
     if _own_before_dispatch:

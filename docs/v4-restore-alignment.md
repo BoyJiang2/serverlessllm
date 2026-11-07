@@ -1,0 +1,13 @@
+# V4 owned restore alignment candidate
+
+The full-pool recovery at `store-recovery-20261107T034637Z`, source `0d2914b485d5809740bc736967a7651d067d0f41`, passed all eight ranks' 61 expert postprocess boundaries and reached the engine profile. It then failed in mHC `tf32_hc_prenorm_gemm`, at CUDA TMA descriptor encoding (`CUDA_ERROR_INVALID_VALUE`). No reference request or formal attempt ran. The failed attempt and its successful 61-sample, 75.888326119-second release observation remain retained.
+
+The original destination packing puts the first FP32 mHC matrix at byte 232128532 (remainder 4 modulo 16); 1,891 remainder tensors have unaligned starts. This is a concrete candidate for the TMA failure, not a demonstrated runtime fix. The candidate aligns owned restore suballocations to 256 bytes, using the same alignment for capacity and copy destinations, preserving aliases and source file ranges. Legacy unowned loading retains its default byte packing. The runtime overlays include both changed Python modules; no native binary, Store payload or quantization conversion changes.
+
+Eighteen Linux CPU contracts pass, including all 496 exported rank/group metadata layouts, alias retention, allocation bounds and legacy behavior. CPU checks do not qualify CUDA descriptor encoding or restored model output.
+
+A one-H20, no-model descriptor probe never produced a result. Its exact container `62ab8498de5a9d6998de5975330c9a216882597a07d066eca26a416167692a34` is stuck in `runc create` (host PID 714013). The 120-second guardian's inspect/kill requests timed out, and a subsequent exact-container stop also timed out. Docker's server version query responds, while this container's inspection does not. No Docker or host restart was attempted. The probe's original script and guard result are retained; its mounted entry now rejects starts after the original monotonic deadline, before importing Torch or initializing CUDA.
+
+Sixty-one subsequent GPU observations span 67.528120459 seconds. Container termination is still unverified, so these are explicitly not accepted release evidence. No new GPU work may start until this container is conclusively stopped and fresh admission passes. Host administrator intervention may be needed for the root-owned runtime process; user `boyjiang` has no noninteractive sudo authorization.
+
+After cleanup: verify the descriptor hypothesis under a fresh bounded guard, then rerun full TP8 recovery with the candidate, compare both frozen responses to native gold, and complete two native service lifecycle rounds. The confirmed campaign remains four conditions times ten, 0/40 formal attempts consumed. Preserve the old 12-ID protocol; freeze the separate 40-ID protocol only after the prerequisites qualify.
