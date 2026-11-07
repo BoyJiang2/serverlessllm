@@ -25,13 +25,20 @@ HEAD = sys.argv[2]  # The next caller must explicitly pin the reviewed source co
 base = Path(sys.argv[1]).resolve()
 assert base.parent == ROOT.parent / 'evidence' and not base.exists()
 MODE = sys.argv[3] if len(sys.argv) > 3 else 'native-reference'
-assert MODE in ('native-reference', 'store-conversion')
+assert MODE in ('native-reference', 'store-conversion', 'store-recovery')
 assert len(sys.argv) <= 5 and (len(sys.argv) < 5 or sys.argv[4] == '--execute')
-STORE = MODE == 'store-conversion'
+CONVERT = MODE == 'store-conversion'
+RECOVER = MODE == 'store-recovery'
+STORE = CONVERT or RECOVER
+overlays = ('v4_convert.py', 'v4_grouped_state.py', 'vllm_v4_loader.py', 'v4_export_worker.py') if STORE else ()
 STORAGE = Path('/data/brick1/boyjiang/sllm-v4-pro-store')
-store = STORAGE / base.name
-if STORE:
+qualified = json.loads((ROOT/'docs/evidence/v4-store-data-integrity/qualified-store.json').read_bytes()) if RECOVER else None
+store = Path(qualified['store_root']) if RECOVER else STORAGE / base.name
+assert store.parent == STORAGE
+if CONVERT:
     assert base.name.startswith('store-conversion-') and not store.exists()
+if RECOVER:
+    assert base.name.startswith('store-recovery-') and store.is_dir()
 cache = (Path('/data/brick1/boyjiang/sllm-v4-pro-build/cache-native-reference-20261106T205752Z')
          if STORE else Path('/data/brick1/boyjiang/sllm-v4-pro-build') / ('cache-' + base.name))
 if len(sys.argv) < 5:
@@ -40,6 +47,7 @@ if len(sys.argv) < 5:
         converter_overlay=str(ROOT/'sllm_store/sllm_store/v4_convert.py') if STORE else None,
         container_seconds=1080, total_seconds=1200, cpu_limit=8, memory_limit_bytes=1024**4,
         store_byte_stop_limit=1024**4 if STORE else None,
+        store_read_only=RECOVER,
         storage_free_floor_bytes=128*1024**3 if STORE else None,
         gpu_or_model_started=False, store_claimed=False,
         scope='Plan only; execution requires current stage authorization, fresh admission and GO')))
@@ -144,9 +152,13 @@ try:
     if STORE:
         assert not STORAGE.is_symlink()
         assert call('findmnt', '--target', str(STORAGE.parent), '--noheadings', '--output', 'FSTYPE') == 'xfs'
-        assert shutil.disk_usage(STORAGE.parent).free >= 1024**4 + 128*1024**3
+        assert shutil.disk_usage(STORAGE.parent).free >= (1024**4 if CONVERT else 0) + 128*1024**3
         STORAGE.mkdir(mode=0o775, exist_ok=True)
-        assert not store.exists()
+        if CONVERT:
+            assert not store.exists()
+        else:
+            assert hashlib.sha256((store/'COMPLETE.json').read_bytes()).hexdigest() == qualified['complete_sha256']
+            assert qualified['store_data_integrity_qualified']
         manifest = json.loads((ROOT/'docs/evidence/v4-native-reference-success/native-jit-artifacts.json').read_bytes())
         assert manifest['cache_root'] == str(cache)
         for artifact in manifest['files']:
@@ -154,8 +166,11 @@ try:
             path.resolve().relative_to(cache.resolve())
             assert path.stat().st_size == artifact['bytes']
             assert hashlib.sha256(path.read_bytes()).hexdigest() == artifact['sha256']
-        conversion_identity = json.loads((ROOT/'docs/evidence/v4-store-next-preparation/identity.json').read_bytes())
-        conversion_identity['conversion_id'] = base.name
+        conversion_identity = qualified['identity'] if RECOVER else json.loads((ROOT/'docs/evidence/v4-store-next-preparation/identity.json').read_bytes())
+        if CONVERT:
+            conversion_identity['conversion_id'] = base.name
+        else:
+            shutil.copyfile(ROOT/'docs/evidence/v4-store-data-integrity/pool-capacity-candidate.json', base/'pool-config.json')
         write_once(base/'conversion-identity.json', conversion_identity)
     else:
         cache.mkdir(mode=0o775)
@@ -192,11 +207,13 @@ write_once('/output/gpu-precheck.json',dict(devices=devices,libcuda_maps=cuda_ma
 print('GPU_PRECHECK_OK',flush=True)
 '''
     if STORE:
-        wrapper += "from sllm_store import v4_convert\nimport hashlib\nexpected=json.loads(Path('/control/preparation.json').read_bytes())['source_overrides']['v4_convert.py']\nassert hashlib.sha256(Path(v4_convert.__file__).read_bytes()).hexdigest()==expected\n"
-        entry = 'v4_store_conversion.py'
+        wrapper += "import hashlib\nexpected=json.loads(Path('/control/preparation.json').read_bytes())['source_overrides']\nfor name,digest in expected.items():\n assert hashlib.sha256((Path('/opt/sllm-v4/lib/python3.12/site-packages/sllm_store')/name).read_bytes()).hexdigest()==digest\n"
+        entry = 'v4_store_recovery.py' if RECOVER else 'v4_store_conversion.py'
         argv = [entry, '--execute', '--model', str(MODEL), '--store', str(store),
                 '--identity', '/control/conversion-identity.json',
-                '--guard', '/control/guard/armed.json', '--output', '/output/conversion']
+                '--guard', '/control/guard/armed.json', '--output', '/output/recovery' if RECOVER else '/output/conversion']
+        if RECOVER:
+            argv += ['--pool-config', '/control/pool-config.json']
     else:
         entry = 'v4_native_reference.py'
         argv = [entry, '--execute', '--guard', '/control/guard/armed.json',
@@ -218,9 +235,10 @@ print('GPU_PRECHECK_OK',flush=True)
         '--mount', 'type=bind,src=' + str(output) + ',dst=/output',
         '--mount', 'type=bind,src=' + str(cache) + ',dst=/runtime-cache']
     if STORE:
-        command += ['--mount', 'type=bind,src=' + str(STORAGE) + ',dst=' + str(STORAGE),
-            '--mount', 'type=bind,src=' + str(ROOT/'sllm_store/sllm_store/v4_convert.py') +
-            ',dst=/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_convert.py,readonly']
+        command += ['--mount', 'type=bind,src=' + str(STORAGE) + ',dst=' + str(STORAGE) + (',readonly' if RECOVER else '')]
+        for name in overlays:
+            command += ['--mount', 'type=bind,src=' + str(ROOT/'sllm_store/sllm_store'/name) +
+                ',dst=/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/' + name + ',readonly']
     for name in ('passwd', 'group'):
         command += ['--mount', 'type=bind,src=' + str(base / ('run-user.' + name)) + ',dst=/etc/' + name + ',readonly']
     env = dict(CUDA_VISIBLE_DEVICES=','.join(map(str,indices)), NVIDIA_VISIBLE_DEVICES=','.join(uuids),
@@ -248,7 +266,7 @@ print('GPU_PRECHECK_OK',flush=True)
         runtime_asset_metadata=asset_states, create_command=command,
         runtime_user='boyjiang:2147:2147', runtime_user_profile_sha256=profile_sha,
         source_head=HEAD, purpose=MODE, conversion_identity=conversion_identity,
-        source_overrides=({'v4_convert.py': hashlib.sha256((ROOT/'sllm_store/sllm_store/v4_convert.py').read_bytes()).hexdigest()} if STORE else {}),
+        source_overrides={name: hashlib.sha256((ROOT/'sllm_store/sllm_store'/name).read_bytes()).hexdigest() for name in overlays},
         authorizing_instruction='Stage authorization must be recorded in GO; host use: User explicitly 我说过了 你直接用吧',
         reservation_use_basis='Direct user instruction after disclosed conflict; no existing booking changed',
         hardware_admission=True, model_run_started=False, writer_scope='Own process read-only mount plus metadata seal; no claim of global NFS writer lease'))
@@ -277,8 +295,11 @@ print('GPU_PRECHECK_OK',flush=True)
     memory = dict(line.split(':', 1) for line in Path('/proc/meminfo').read_text().splitlines())
     assert int(memory['MemAvailable'].split()[0]) * 1024 >= 1024**4 + 64*1024**3
     if STORE:
-        assert shutil.disk_usage(STORAGE).free >= 1024**4 + 128*1024**3
-        assert not store.exists()
+        assert shutil.disk_usage(STORAGE).free >= (1024**4 if CONVERT else 0) + 128*1024**3
+        if CONVERT:
+            assert not store.exists()
+        else:
+            assert hashlib.sha256((store/'COMPLETE.json').read_bytes()).hexdigest() == qualified['complete_sha256']
     recheck = gpu_snapshot()
     assert not recheck['apps'] and all(int(row[4]) == baseline[row[1]] for row in recheck['rows'])
     write_once(base/'launch.json', dict(launch_ns=time.monotonic_ns(), gpu_admission=recheck,
@@ -319,14 +340,14 @@ print('GPU_PRECHECK_OK',flush=True)
     guard_code = guard.wait(timeout=5)
     result = dict(container_exit_code=final['State']['ExitCode'], guard_exit_code=guard_code,
         natural_process_exit=guard_code == 0, weight_metadata_unchanged=unchanged,
-        **{('store_conversion_candidate_exists' if STORE else 'native_candidate_exists'):
-               (output/('conversion' if STORE else 'native')/'candidate.json').exists()},
+        **{('store_recovery_candidate_exists' if RECOVER else 'store_conversion_candidate_exists' if CONVERT else 'native_candidate_exists'):
+               (output/('recovery' if RECOVER else 'conversion' if CONVERT else 'native')/'candidate.json').exists()},
         release_observation_passed=True, runtime_qualified=False,
         total_elapsed_seconds=(time.monotonic_ns()-origin)/1e9,
         no_retry=True, formal_id_consumed=False)
     result['status'] = ('candidate_pending_review' if final['State']['ExitCode'] == 0
-        and guard_code == 0 and unchanged and result['store_conversion_candidate_exists' if STORE else 'native_candidate_exists']
-        else ('failed_store_conversion_process' if STORE else 'failed_native_process'))
+        and guard_code == 0 and unchanged and result['store_recovery_candidate_exists' if RECOVER else 'store_conversion_candidate_exists' if CONVERT else 'native_candidate_exists']
+        else ('failed_store_recovery_process' if RECOVER else 'failed_store_conversion_process' if CONVERT else 'failed_native_process'))
     write_once(base/'result.json', result)
     print(json.dumps(result), flush=True)
 except BaseException as error:

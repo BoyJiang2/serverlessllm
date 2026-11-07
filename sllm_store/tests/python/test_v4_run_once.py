@@ -16,7 +16,8 @@ BODY = next(node for node in TREE.body if isinstance(node, ast.Try)).body
 
 
 def context(store):
-    return dict(Path=Path, STORE=store, MODE="store-conversion" if store else "native-reference",
+    return dict(Path=Path, STORE=store, CONVERT=store, RECOVER=False,
+                overlays=('v4_convert.py','v4_grouped_state.py','vllm_v4_loader.py','v4_export_worker.py') if store else (), MODE="store-conversion" if store else "native-reference",
                 ROOT=Path("/source"), MODEL=Path("/weights"), IMAGE="sha256:fixed",
                 STORAGE=Path("/store"), store=Path("/store/conversion"),
                 base=Path("/job"), cache=Path("/cache"), output=Path("/job/output"),
@@ -62,6 +63,20 @@ class OneShotControllerTests(unittest.TestCase):
             else:
                 self.assertIn("VLLM_PLUGINS=", command)
                 self.assertFalse(any(value.startswith("STORAGE_PATH=") for value in command))
+
+    def test_recovery_uses_read_only_store_and_recovery_entry(self):
+        ns=context(True)
+        ns.update(RECOVER=True,CONVERT=False,MODE="store-recovery")
+        i=assignment("wrapper")
+        exec(compile(ast.Module(body=BODY[i:i+3],type_ignores=[]),str(SOURCE),"exec"),ns)
+        self.assertIn("v4_store_recovery.py",ns["wrapper"])
+        self.assertIn("--pool-config",ns["wrapper"])
+        exec(compile(ast.Module(body=BODY[assignment("command"):assignment("cid")],
+                                type_ignores=[]),str(SOURCE),"exec"),ns)
+        self.assertIn("type=bind,src=/store,dst=/store,readonly",ns["command"])
+        for name in ns["overlays"]:
+            self.assertIn("type=bind,src=/source/sllm_store/sllm_store/"+name+
+                          ",dst=/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/"+name+",readonly",ns["command"])
 
     def test_store_stop_thresholds_include_allocated_logical_disk_and_host_memory(self):
         node = next(node for node in TREE.body if isinstance(node, ast.FunctionDef)

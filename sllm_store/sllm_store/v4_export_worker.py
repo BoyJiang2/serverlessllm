@@ -27,3 +27,27 @@ class V4ExportWorkerExtension:
             raise ValueError("Export receipt exceeds the control-message limit")
         torch.cuda.synchronize(self.device)
         return result
+
+    def sllm_v4_recovery_receipt(self, identity):
+        import torch
+
+        from sllm_store.torch import owned_load_quarantine
+        from sllm_store.vllm_v4_loader import grouped_restore_contexts
+
+        validate_identity(identity)
+        if (self.load_config.load_format != "sllm_v4_grouped_store"
+                or self.load_config.model_loader_extra_config["identity"] != identity):
+            raise ValueError("Worker is not restoring the requested grouped Store")
+        model = self.get_model()
+        groups = getattr(model, "_sllm_grouped_completed", ())
+        owners = getattr(model, "_sllm_storage_owners", ())
+        if (getattr(model, "_sllm_v4_stage", None) != "postprocessed"
+                or groups != tuple(f"expert_{i:04d}" for i in range(61))
+                or not owners or not all(t.is_cuda for t in owners)
+                or grouped_restore_contexts() or owned_load_quarantine()):
+            raise ValueError("Incomplete grouped recovery or retained failure owners")
+        torch.cuda.synchronize(self.device)
+        return dict(format="sllm-v4-grouped-recovery-receipt-v1", identity=identity,
+                    rank=self.rank, stage="postprocessed", completed_expert_groups=len(groups),
+                    retained_remainder_cuda_tensors=len(owners),
+                    grouped_contexts=0, quarantined_loads=0)

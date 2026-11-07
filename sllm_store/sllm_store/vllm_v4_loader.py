@@ -535,6 +535,7 @@ class _GroupedRestoreSession:
     def finish(self):
         if len(self.completed) != 61:
             raise ValueError("Not all expert groups were postprocessed")
+        self.model._sllm_grouped_completed = tuple(self.completed)
         self.restore_methods()
         _GROUPED_CONTEXTS.pop(self.key)
         self.loader.session = None
