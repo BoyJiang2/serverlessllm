@@ -24,6 +24,7 @@ MODEL=Path('/mnt/raid/models/DeepSeek-V4-Pro')
 STORAGE=Path('/data/brick1/boyjiang/sllm-v4-pro-store')
 BUILD=Path('/data/brick1/boyjiang/sllm-v4-pro-build')
 CALL_DEADLINE=None
+MEMORY_BYTES={'head':16*1024**3,'worker':1024**4-16*1024**3}
 
 
 def call(*args,timeout=5):
@@ -113,7 +114,8 @@ def main():
     assert sys.argv[3:] in ([],['--execute'])
     if not execute:
         print(json.dumps(dict(source_head=head,output=str(base),cycles=2,gpu_or_model_started=False,
-             head_cpu=2,worker_cpu=6,memory_limit_total=1024**4,container_seconds=1080,total_seconds=1200)))
+             head_cpu=2,worker_cpu=6,memory_limit_total=sum(MEMORY_BYTES.values()),memory_limits=MEMORY_BYTES,
+             container_seconds=1080,total_seconds=1200)))
         return
     assert base.parent==ROOT.parent/'evidence' and not base.exists()
     origin=time.monotonic_ns();deadline=origin+1200_000_000_000;container_deadline=origin+1080_000_000_000
@@ -145,7 +147,7 @@ def main():
     for artifact in manifest['files']:
         path=cache/artifact['path'];assert path.stat().st_size==artifact['bytes']
         assert hashlib.sha256(path.read_bytes()).hexdigest()==artifact['sha256']
-    preparation=dict(source_head=head,ray_namespace='models',gpu_initial=baseline,initial_limits=limits,model_inventory=initial,
+    preparation=dict(source_head=head,ray_namespace='models',memory_limits=MEMORY_BYTES,gpu_initial=baseline,initial_limits=limits,model_inventory=initial,
         pool_bytes=890937278464,storage_path=str(STORAGE),store_path=str(store),identity=qualified['identity'],
         context_gpu_baseline_mib=context_gpu,context_process_baseline_mib=322,
         context_baseline_scope='Same driver/software/H20 UUIDs; observed daemon322MiB and total345MiB in qualified offline recovery;16MiB tolerance',
@@ -165,7 +167,7 @@ def main():
             role_cache.mkdir(exist_ok=True)
             for directory in ('home','hf','cuda','triton','pycache','xdg','torchinductor','torch_extensions'):
                 (role_cache/directory).mkdir(exist_ok=True)
-            memory=4*1024**3 if role=='head' else 1024**4-4*1024**3
+            memory=MEMORY_BYTES[role]
             command=['docker','create','--name',base.name+'-'+role,'--network',network,
                 '--runtime','runc' if role=='head' else 'nvidia','--cpus','2' if role=='head' else '6',
                 '--memory',str(memory),'--memory-swap',str(memory),'--pids-limit','1024',

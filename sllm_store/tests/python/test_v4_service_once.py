@@ -22,6 +22,8 @@ class ServiceControllerContracts(unittest.TestCase):
         self.assertFalse(plan['gpu_or_model_started'])
         self.assertEqual(plan['head_cpu']+plan['worker_cpu'],8)
         self.assertEqual(plan['memory_limit_total'],1024**4)
+        self.assertEqual(sum(plan['memory_limits'].values()),1024**4)
+        self.assertEqual(plan['memory_limits']['head'],16*1024**3)
 
     def test_gpu_coverage_context_and_foreign_process_remain_strict(self):
         baseline={f'GPU-cpu-{i}':345 for i in range(8)}
