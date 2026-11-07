@@ -1,16 +1,59 @@
 """Tiny real Linux mlock and owned-helper pipe contracts; no model or GPU."""
+import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
+from unittest import mock
 
 import v4_cache_lease as lease
-from v4_cache_state import source_stat, mincore_file
+from v4_cache_state import source_stat, mincore_file, prepare_file, run_cache
+import v4_trial as trial
 
 
 class CacheLeaseContracts(unittest.TestCase):
+    def test_shared_metadata_cannot_be_cold_after_sf_lock_and_counterpart_is_observed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); shared = root / 'shared-config'; shared.write_bytes(b'x' * 4096)
+            payload = root / 'store-payload'; payload.write_bytes(b'y' * 4096)
+            for path in (shared, payload):
+                with path.open('rb') as stream: os.fsync(stream.fileno())
+            sf = {str(shared): source_stat(shared)}
+            store = dict(sf, **{str(payload): source_stat(payload)})
+            inventory = dict(safetensors_inputs=sf, store_inputs=store)
+            deadline = time.monotonic_ns() + 10_000_000_000
+            for name, expected in store.items(): prepare_file(Path(name), expected, 'cold', deadline)
+            with lease.locked_files(sf, deadline):
+                with self.assertRaisesRegex(ValueError, 'declared cache condition failed'):
+                    run_cache(store, 'store_inputs', 'cold', root / 'original-conflict', deadline, 'cpu')
+                failed = json.loads((root / 'original-conflict/summary.json').read_bytes())
+                self.assertEqual([row['source_path'] for row in failed['files'] if row['resident_pages']], [str(shared)])
+                def scan(*args, **kwargs):
+                    kwargs.pop('reader_cpus', None)
+                    return run_cache(*args, **kwargs)
+                output = root / 'fixed'; output.mkdir()
+                spec = dict(condition='safetensors_disk_hot', run_id='cpu',
+                            sf_hot_page_cache_lease=True, cache_inventory_sha256='cpu')
+                with mock.patch.object(trial, 'checked_json', return_value=inventory), mock.patch.object(trial, 'run_cache', side_effect=scan):
+                    trial.cache_on_worker(spec, deadline, output)
+                self.assertFalse((output / 'cache-reclaim').exists())
+                self.assertFalse((output / 'cache-target-reset').exists())
+                self.assertTrue((output / 'cache-target/summary.json').exists())
+                self.assertTrue(json.loads((output / 'cache-target/summary.json').read_bytes())['cache_condition_passed'])
+                self.assertEqual(lease.memory_status()['VmLck'], 4096)
+            self.assertEqual(lease.memory_status()['VmLck'], 0)
+
+    def test_sf_cold_still_reclaims_store_under_the_global_lease_amendment(self):
+        spec = dict(condition='safetensors_disk_cold', run_id='cpu', sf_hot_page_cache_lease=True,
+                    cache_inventory_sha256='cpu')
+        with mock.patch.object(trial, 'checked_json', return_value=dict(store_inputs={}, safetensors_inputs={})), mock.patch.object(trial, 'run_cache') as scan:
+            trial.cache_on_worker(spec, time.monotonic_ns() + 10_000_000_000)
+        self.assertEqual([(call.args[1], call.args[2]) for call in scan.call_args_list],
+                         [('store_inputs', 'cold'), ('store_inputs', 'check'), ('safetensors_inputs', 'cold')])
+
     def test_real_lock_residency_release_and_partial_failure_cleanup(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'a'; path.write_bytes(b'x' * 4096)

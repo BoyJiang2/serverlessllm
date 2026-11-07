@@ -131,9 +131,10 @@ def target_registration(grouped, condition, keep_alive_seconds=0):
 def cache_on_worker(spec, deadline, output=Path('/output')):
     inventory = checked_json('/control/cache-inventory.json', spec['cache_inventory_sha256'])
     target, mode = CONDITIONS[spec['condition']]
-    if target == 'safetensors_inputs':
+    leased = mode == 'hot' and spec.get('sf_hot_page_cache_lease')
+    if target == 'safetensors_inputs' and not leased:
         run_cache(inventory['store_inputs'], 'store_inputs', 'cold', output / 'cache-reclaim', deadline, spec['run_id'])
-    if mode == 'hot' and not spec.get('sf_hot_page_cache_lease'):
+    if mode == 'hot' and not leased:
         run_cache(inventory[target], target, 'cold', output / 'cache-target-reset', deadline, spec['run_id'])
     other = 'store_inputs' if target == 'safetensors_inputs' else 'safetensors_inputs'
     for kind, operation, directory in ((other, 'check', 'cache-other'), (target, mode, 'cache-target')):
