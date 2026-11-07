@@ -1,0 +1,102 @@
+{
+  "schema": "kimi-model-loading-logger-memory-field-scope-v1",
+  "created_at_utc": "2026-11-07T13:23:18.390079+00:00",
+  "status": "SOURCE_SCOPE_ESTABLISHED_WITH_PLATFORM_SOURCE_LIMIT",
+  "active_runner": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+    "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+    "bytes": 319819,
+    "lines": {
+      "import_DeviceMemoryProfiler": 108,
+      "context_enter": 4747,
+      "time_before": 4750,
+      "time_after": 4810,
+      "model_memory_usage_assignment": 4952,
+      "logger": 4965
+    }
+  },
+  "historical_installed_memory_source_evidence": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-vllm-debug-memory-profile-source-audit-20261105.md",
+    "sha256": "986b69b483fe78edcdc37a4c58c075b8eea7d521ace484e2d08567152ebdd73b",
+    "bytes": 3349
+  },
+  "exact_upstream_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/b1388b1fb/vllm/utils/mem_utils.py",
+      "sha256": "080206924a725b06312a975427217c6b6d4d712f302ec22b3de5fa2a98a21159",
+      "bytes": 10332,
+      "line_refs": [
+        {
+          "line": 23,
+          "scope": "def format_gib(b: int) -> str:"
+        },
+        {
+          "line": 44,
+          "scope": "class DeviceMemoryProfiler:"
+        }
+      ],
+      "installed_identity_scope": "Exact SHA matches historical stopped-image installed mem_utils audit"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/b1388b1fb/vllm/platforms/cuda.py",
+      "sha256": "b987bdd4d6156843d5a58e4731dd5496708b76e6dcb009f01abb4047d965e50c",
+      "bytes": 24196,
+      "line_refs": [
+        {
+          "line": 206,
+          "scope": "def get_current_memory_usage("
+        }
+      ],
+      "installed_identity_scope": "Exact upstream commit source; installed cuda.py raw SHA not separately recovered in this audit"
+    }
+  ],
+  "definitions": {
+    "DeviceMemoryProfiler": "__enter__ initial=current_memory_usage; __exit__ final=current_memory_usage; consumed=final-initial; current_memory_usage gc.collect then current_platform.get_current_memory_usage(device).",
+    "CUDA_platform": "Calls torch.cuda.empty_cache then torch.cuda.reset_peak_memory_stats then torch.cuda.max_memory_allocated. Because reset is immediately before query at each endpoint, this is an endpoint Torch allocator allocated-memory delta, not load-interval peak.",
+    "printed_field": "format_gib(consumed_memory): round(bytes / 2**30, 2); per local worker logger, not TP sum.",
+    "timer": "time_after_load-time_before_load; separate from memory delta and excludes later evidence-capture time although memory context includes the evidence finally block."
+  },
+  "external_allocation_source": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/cuda_memory.cpp",
+      "sha256": "cab4902b3547b34abad62a476bfa1c01b2aa4ab1f219f346be307b97f147d7be",
+      "bytes": 2180,
+      "lines": [
+        46
+      ],
+      "fact": "Native CUDA allocation calls cudaMalloc directly."
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/checkpoint/checkpoint.cpp",
+      "sha256": "89c3d9b1d19d01608f791f1ce4479c956243914b01a1bd857057123960dac2e0",
+      "bytes": 9301,
+      "lines": [
+        144,
+        198
+      ],
+      "fact": "Restore wraps existing external pointer with torch::from_blob and shared owner; GPU allocation helper calls cudaMalloc. No allocator charge equal to external buffer is implied by wrapping."
+    }
+  ],
+  "interpretation_of_reported_values": {
+    "input_observation": "Parent reports SF72.05GiB and Store0.19GiB model-loading log fields; raw numeric collector output is a separate evidence chain, not remeasured here.",
+    "valid": "Endpoint change in allocator-tracked allocated memory within a worker model-load scope. SF and native IPC restore take different allocation paths.",
+    "invalid": [
+      "Not Store total GPU usage, NVML device-wide usage or a physical GPU peak.",
+      "Not actual full model/rank weights size, and not evidence weights occupy only0.19GiB or zero memory.",
+      "Not peak allocated/reserved during Marlin repack, model load or sampling.",
+      "Not evidence that external cudaMalloc/IPC mappings were absent or that no workspace/context memory exists."
+    ],
+    "precision": "Two decimal GiB display; approximately +/-0.005GiB rounding per printed value. Do not convert rounded values into exact bytes."
+  },
+  "orthogonal_evidence": "Existing NVML and rank/PID/cgroup ownership evidence demonstrates substantial real GPU weight residency through a separate physical-resource chain; do not replace it with allocator log delta.",
+  "primary_docs": [
+    "https://docs.pytorch.org/docs/2.10/generated/torch.cuda.memory.max_memory_allocated.html",
+    "https://docs.pytorch.org/docs/2.10/generated/torch.cuda.memory.reset_peak_memory_stats.html",
+    "https://docs.pytorch.org/docs/2.10/torch_cuda_memory.html"
+  ],
+  "limits": [
+    "No new imports, container, GPU/Store execution, Git or allocation.",
+    "mem_utils exact upstream SHA matches installed historical SHA; CUDA platform definition read at exact vLLM commit, without newly proving installed platform file SHA. No platform overlay is present in formal active11 list.",
+    "No inference about total memory or exact peaks from this field; PyTorch allocator statistics exclude directly allocated non-PyTorch CUDA memory."
+  ]
+}

@@ -1,0 +1,11 @@
+# 当前完成证据审计（v2）
+
+用户已明确接受既有证据完成L1功能验收并保留原分类。独立所有者决定已记录；旧诊断run的NOT_L1、30秒FAIL以及未执行新formalL1的事实均不变。无须为STATUS标签重跑GPU。
+
+root单次收集公开摘要SHA3b0ab92e…与实际执行回执一致；独核原manifest38个合格原样本集合、38个各一条加载marker、76个head/worker导入marker以及32819174读取字节记账。私有raw由parentroot读取，本审阅不冒称直接读取原日志。
+
+可以新增“模型加载阶段日志跨度”：oldf7实际timer4750至4810行覆盖getloader/loadmodel及可选LoRA/drafter/auxsetup，日志虽在metadatafinally后打印但duration不含capture。不能改叫纯weight-ingestionC、GLM同一阶段、8rank最大值或纯GPU/IO；rank/PID仍null且逐run保留列表。该跨度嵌套于backendinit/A，不能重复相加。
+
+纯ingestion/fill/conversion、GLM完整生命周期、GiB·h/货币成本仍缺；逐历史PID实际SO映射及FlashInfer活跃导入版本没有由本collector证明。缺这些并不自动要求新GPU：新运行也不能补证已退出历史进程。若它们是所有者明确不可缺少的新测量目标，另定协议；否则如实报告缺测，不以广义timer替换。
+
+最小下一步是把所有者决定、实际collection与语义限制并入最终报告并发布校验；不修改原样本/统计/金标/历史，也不因freshmaps或标签启动新实验。本审阅不代替所有者决定原goal范围或直接宣告完成。
