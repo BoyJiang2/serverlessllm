@@ -11,7 +11,7 @@ import time
 
 from sllm_store.event_trace import process_identity
 from sllm_store.v4_state import write_once
-from v4_cache_state import check_fd, mincore_visibility, before_deadline, prepare_file
+from v4_cache_state import check_fd, mincore_visibility, before_deadline, prepare_file, run_cache
 from v4_evidence import require
 
 
@@ -108,9 +108,16 @@ def main():
             'file-page lease is only enabled by the SF-hot amendment')
     inventory = checked_json('/control/cache-inventory.json', spec['cache_inventory_sha256'])
     files = inventory['safetensors_inputs']
-    # Release unused Store pages before acquiring the SF lease; the ordinary helper verifies them again.
-    for name, expected in sorted(inventory['store_inputs'].items()):
-        prepare_file(Path(name), expected, 'cold', preparation['container_deadline_ns'])
+    # Five metadata files belong to both input sets. Once the SF lease locks all 69 SF
+    # inputs those five are pinned, so a simultaneous "Store inputs are cold" claim is
+    # unsatisfiable on any filesystem. Reclaim the Store counterpart first and VERIFY it
+    # here, before any page is locked; the trial then only observes the Store side and
+    # enforces full SF-hot residency. The two states are sequential, never simultaneous.
+    prelease = run_cache(inventory['store_inputs'], 'store_inputs', 'cold',
+                         Path('/output/cache-prelease-store-cold'),
+                         preparation['container_deadline_ns'], spec['run_id'])
+    require(prelease['cache_condition_passed'] is True,
+            'Store counterpart is not cold before the SF lease')
     with locked_files(files, preparation['container_deadline_ns']) as receipt:
         receipt.update(run_id=spec['run_id'], state='locked')
         print(json.dumps(receipt), flush=True)
