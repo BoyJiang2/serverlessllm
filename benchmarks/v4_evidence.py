@@ -224,7 +224,7 @@ def cache_scan_checks(scan, expected_files, vectors):
             "scope": "Linux client page-cache evidence only; provenance and storage-server cache unverified"}
 
 
-def cache_timing_checks(record, target, other, condition):
+def cache_timing_checks(record, target, other, condition, attempt_timeout_seconds=1200):
     """Check timing after BOTH scans have passed cache_scan_checks.
 
     Clock/run identity, frozen inventories, source sealing, native pool confirmation,
@@ -245,7 +245,11 @@ def cache_timing_checks(record, target, other, condition):
     complete = timestamp(record["preparation_complete_ns"])
     command = timestamp(record["startup_command_ns"])
     deadline = timestamp(record["attempt_deadline_ns"])
-    require(begin < deadline <= begin + 1200_000_000_000, "attempt excludes preparation or exceeds 1200s")
+    require(type(attempt_timeout_seconds) is int and (attempt_timeout_seconds == 1200
+            or attempt_timeout_seconds == 3600 and record.get("attempt_id", "").startswith("v4n40_")),
+            "extended timeout requires the new40 campaign")
+    require(begin < deadline <= begin + attempt_timeout_seconds * 1_000_000_000,
+            "attempt excludes preparation or exceeds frozen timeout")
     sequence = [begin, timestamp(other["preparation_begin_ns"]),
                 timestamp(other["total_cache_admission_end_ns"]),
                 timestamp(target["preparation_begin_ns"]),

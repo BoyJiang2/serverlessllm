@@ -8,6 +8,7 @@ from unittest import mock
 
 import v4_attempts as attempts
 import v4_results as results
+from test_v4_cache_evidence import scan
 
 FIXTURE=Path(__file__).resolve().parents[1]/'fixtures/v4-attempts/preregistration-cpu.json'
 
@@ -31,6 +32,30 @@ class FortyScheduleTests(unittest.TestCase):
     def test_exact_40_cohort_and_old12_both_parse(self):
         self.assertEqual(len(self.parse(protocol40())),40)
         self.assertEqual(len(self.parse(json.loads(FIXTURE.read_bytes()))),12)
+
+    def test_longer_frozen_window_applies_only_to_new40_and_replays_the_same_deadline(self):
+        value=protocol40();value['attempt_timeout_seconds']=3600
+        self.assertTrue(all(row['attempt_timeout_seconds']==3600 for row in self.parse(value)))
+        old=json.loads(FIXTURE.read_bytes());old['attempt_timeout_seconds']=3600
+        with self.assertRaises(ValueError):self.parse(old)
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);execution=root/'execution';execution.mkdir()
+            protocol=root/'cpu-protocol.json';protocol.write_text(json.dumps(value))
+            sha=hashlib.sha256(protocol.read_bytes()).hexdigest()
+            source=dict(code_commit='a'*40,source_manifest_sha256='b'*64)
+            now=[100]
+            with mock.patch.object(attempts.time,'monotonic_ns',side_effect=lambda:now[0]):
+                journal=attempts.AttemptJournal(execution,value['attempts'][0]['attempt_id'],
+                    protocol,sha,'cpu-only',10**20,source,[execution])
+                self.assertEqual(journal.record['attempt_deadline_ns'],100+3600_000_000_000)
+                now[0]=1500_000_000_000
+                target,files,vectors=scan('safetensors_inputs','cold',now[0]-20)
+                other,other_files,other_vectors=scan('store_inputs','check',now[0]-40)
+                identity={key:journal.identity[key] for key in ('run_id','boot_id','time_namespace','clock_id')}
+                journal.startup({},target,files,vectors,other,other_files,other_vectors,identity)
+                journal.fail(RuntimeError('CPU fixture'))
+            rows,_,_=results.replay(protocol,sha,[execution])
+            self.assertEqual(rows[0]['status'],'failed')
 
     def test_wrong_count_block_duplicate_or_reused_id_rejected(self):
         for kind in ('count','block','duplicate','oldid','denominator','campaign','fraction','schema','pair'):

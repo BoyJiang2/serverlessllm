@@ -45,9 +45,10 @@ def frozen_protocol(path, expected_sha):
                 for row in rows), "invalid frozen attempt")
     require({(r["block"], r["condition"]) for r in rows}
             == {(b, c) for b in blocks for c in conditions}, "incomplete paired blocks")
-    require(type(protocol["attempt_timeout_seconds"]) is int
-            and protocol["attempt_timeout_seconds"] == 1200, "changed 1200s timeout")
-    return rows
+    timeout = protocol["attempt_timeout_seconds"]
+    require(type(timeout) is int and timeout in ((1200, 3600) if schema == 2 else (1200,)),
+            "unsupported frozen attempt timeout")
+    return [dict(row, attempt_timeout_seconds=timeout) for row in rows] if schema == 2 else rows
 
 
 class AttemptJournal:
@@ -81,7 +82,7 @@ class AttemptJournal:
         self.workload32_observation = None
         self.response_sha256 = {}
         self.record = dict(matches[0], preparation_begin_ns=begin,
-                           attempt_deadline_ns=min(work_end_ns, begin + 1200_000_000_000))
+                           attempt_deadline_ns=min(work_end_ns, begin + matches[0].get("attempt_timeout_seconds", 1200) * 1_000_000_000))
         self.path = Path(root) / attempt_id
         require(self.path.parent.is_dir() and not self.path.parent.is_symlink(), "invalid execution root")
         self.path.mkdir(exist_ok=False)
@@ -148,7 +149,8 @@ class AttemptJournal:
         require(set(preparation) <= allowed, "preparation cannot replace frozen attempt fields")
         now = time.monotonic_ns()
         record = dict(self.record, **preparation, preparation_complete_ns=now, startup_command_ns=now)
-        cache_timing_checks(record, target, other, self.record["condition"])
+        cache_timing_checks(record, target, other, self.record["condition"],
+                            self.record.get("attempt_timeout_seconds", 1200))
         self.record = record
         self._append("startup", dict(record=record, cache_identity=cache_identity,
                      target=target, target_files=target_files, target_check=target_check,

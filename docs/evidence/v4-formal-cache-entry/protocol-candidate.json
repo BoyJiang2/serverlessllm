@@ -1,0 +1,303 @@
+{
+  "schema": 2,
+  "scope": "New40 candidate, not frozen or started; old12 unchanged; native lifecycle prerequisite qualified",
+  "engine_source": "132765e3560659ff63ebd236203672e991b70e08",
+  "model_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "tp": 8,
+  "ep": false,
+  "pp": 1,
+  "dp": 1,
+  "max_model_len": 2048,
+  "max_num_seqs": 1,
+  "max_num_batched_tokens": 2048,
+  "mtp": false,
+  "enforce_eager": true,
+  "prefix_cache": false,
+  "activation_dtype": "bfloat16",
+  "expert_precision": "native MXFP4",
+  "nonexpert_precision": "native FP8 and exclusions",
+  "scale_fmt": "UE8M0",
+  "mHC_learned_dtype": "float32",
+  "request_sha256": "707d5d8b6efbfe257ff310466a03d6e19df5dce1b6b205270eb6a3d7e9374876",
+  "workload32_sha256": "75a520893b656a8bc921ed810d910f0b5cf53b5c35f769c9e3c25e085ad88b9d",
+  "request_sequence": [
+    "cold natural-EOS business request: request.json",
+    "warm fixed-length request: workload32.json; only after business request completes, otherwise record skipped_due_to_business_failure"
+  ],
+  "attempt_success": "Native two-cycle lifecycle is a prerequisite; each formal ID creates one fresh GPU engine, checks business and fixed32 gold, deletes and observes final cohort release; separate cache/pool/response/resource booleans and all failures retained",
+  "business_timing_policy": "command/trigger_to_correct_business_response_s uses natural-EOS business request only; fixed32 parity cannot populate it",
+  "seed": 20261105,
+  "order_generator": "random.Random(20261105).shuffle; explicit persisted order; Python 3.13.1",
+  "attempt_timeout_seconds": 3600,
+  "post_delete_observation_seconds": 60,
+  "maximum_monitor_gap_seconds": 5,
+  "denominator_per_condition": 10,
+  "failure_policy": "retain every started/preparation/cache-failed attempt under original ID; do not substitute timeout as observed completion",
+  "attempts": [
+    {
+      "attempt_id": "v4n40_store_pool_hit_01",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_01",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_01",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_01",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_03",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_03",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_03",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_03",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_04",
+      "block": 4,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_04",
+      "block": 4,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_04",
+      "block": 4,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_04",
+      "block": 4,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_05",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_05",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_05",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_05",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_06",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_06",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_06",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_06",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_07",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_07",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_07",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_07",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_08",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_08",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_08",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_08",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_09",
+      "block": 9,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_09",
+      "block": 9,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_09",
+      "block": 9,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_09",
+      "block": 9,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_10",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_10",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_10",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "status": "candidate_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_10",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "status": "candidate_not_started"
+    }
+  ],
+  "campaign": "v4_4x10_20261107",
+  "predecessor_sha256": "98875c79175f3e5af24cf228ee1e9cd758557744fb2e946692c6ff06cdc005b6",
+  "kv_cache_dtype": "fp8",
+  "use_fp4_indexer_cache": false,
+  "distributed_executor_backend": "mp",
+  "native_gold_sha256": "9c67cea181bdfc22f56a063e5b0ffcb3bba1105d178241e8e62c6bcdd59bb4c1",
+  "prerequisite_status": "Store conversion, eight-rank recovery and service lifecycle pending",
+  "cache_inventory_sha256": "e3cf30105ecbdcd3235e96f617618fb1d489f4c5c7087354740a3e3f2f3eef34",
+  "native_service_review_sha256": "233821ae739a2ad8fbb264195ae0dda1ccd6b2045e1d90ffb2715375e7bb858b",
+  "store_pool_bytes_by_condition": {
+    "safetensors_disk_cold": 33554432,
+    "safetensors_disk_hot": 33554432,
+    "store_disk_cold": 890937278464,
+    "store_pool_hit": 890937278464
+  },
+  "chunk_bytes": 33554432,
+  "head_cpu": 4,
+  "worker_cpu": 4,
+  "head_memory_bytes": 17179869184,
+  "worker_memory_bytes": 1082331758592,
+  "pids_limit_per_role": 4096,
+  "execution_shape": "One fresh head/worker/Store service cohort per ID; common bootstrap, pool init and full Store registration are recorded separately inside preparation, never hidden from total timing",
+  "cold_scope": "Linux client page cache for exact sealed input sets; no storage-server/hardware/CUDA/JIT cache-cold claim",
+  "shared_metadata_policy": "Five model metadata files belong to both cache input sets; counterpart scan precedes target preparation; preserve both full-vector scans",
+  "pool_policy_scope": "SF uses one minimal32MiB Store chunk for metadata/control only; Store conditions require full rounded pool. Fixed memory ceiling is unchanged; capacity and actual preparation costs are disclosed. Full-size runtime cache admission not yet executed."
+}

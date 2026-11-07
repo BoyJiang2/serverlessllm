@@ -246,6 +246,21 @@ class RegistrationTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("v4", manager.model_info)
         self.assertEqual(manager.model_storage_info["v4"], {})
 
+    async def test_prepared_native_sf_switch_reuses_binding_without_legacy_conversion(self):
+        manager = self.ns["StoreManager"]()
+        manager.local_servers = {"node-2": self.local}
+        self.ns["get_worker_nodes"] = lambda: {"node-2": dict(address="unused")}
+        manager.download_vllm_model = mock.AsyncMock(side_effect=AssertionError("legacy converter"))
+        registration = dict(model="v4", backend="vllm", num_gpus=8,
+                            auto_scaling_config=dict(min_instances=0, max_instances=1), backend_config=self.config)
+        await manager.register(registration)
+        native = copy.deepcopy(registration)
+        native["backend_config"]["load_format"] = "safetensors"
+        native["backend_config"].pop("model_loader_extra_config")
+        await manager.register(native)
+        manager.download_vllm_model.assert_not_called()
+        self.assertEqual(self.client.register_model.call_count, 496)
+
     async def test_prefetch_placement_uses_the_registered_model_name(self):
         manager = self.ns["StoreManager"]()
         manager.local_servers = {"node-2": self.local}

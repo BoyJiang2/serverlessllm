@@ -1,0 +1,19 @@
+..................E.
+======================================================================
+ERROR: test_longer_frozen_window_applies_only_to_new40_and_replays_the_same_deadline (test_v4_schedule40.FortyScheduleTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_schedule40.py", line 37, in test_longer_frozen_window_applies_only_to_new40_and_replays_the_same_deadline
+    self.assertTrue(all(row['attempt_timeout_seconds']==3600 for row in self.parse(value)))
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_schedule40.py", line 29, in parse
+    return attempts.frozen_protocol(path,hashlib.sha256(path.read_bytes()).hexdigest())
+  File "/home/boyjiang/sllm-v4-pro/code/benchmarks/v4_attempts.py", line 48, in frozen_protocol
+    require(type(protocol["attempt_timeout_seconds"]) is int
+  File "/home/boyjiang/sllm-v4-pro/code/benchmarks/v4_evidence.py", line 16, in require
+    raise ValueError(message)
+ValueError: changed 1200s timeout
+
+----------------------------------------------------------------------
+Ran 20 tests in 4.399s
+
+FAILED (errors=1)

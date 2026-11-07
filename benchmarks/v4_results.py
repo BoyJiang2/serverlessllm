@@ -72,7 +72,10 @@ def reconstruct(entry, frozen):
     origin, identity = rows[0]["data"], rows[0]["identity"]
     require(timestamp(origin["preparation_begin_ns"]) == rows[0]["monotonic_ns"]
             and origin["preparation_begin_ns"] < timestamp(origin["attempt_deadline_ns"])
-            <= origin["preparation_begin_ns"] + 1200_000_000_000, "origin deadline/clock differs")
+            <= origin["preparation_begin_ns"] + frozen.get("attempt_timeout_seconds", 1200) * 1_000_000_000,
+            "origin deadline/clock differs")
+    require(origin.get("attempt_timeout_seconds", 1200) == frozen.get("attempt_timeout_seconds", 1200),
+            "origin changed frozen attempt timeout")
     record = dict(origin)
     result.update(execution_run_id=identity["run_id"], code_commit=identity["code_commit"],
         source_manifest_sha256=identity["source_manifest_sha256"],
