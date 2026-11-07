@@ -1,0 +1,170 @@
+{
+  "source_head": "69f67ad7e920b0d7057e1e9b352489b77911b4a3",
+  "base": "/home/boyjiang/sllm-v4-pro/evidence/native-service-20261107T093848Z",
+  "native_service_two_cycle_lifecycle_qualified": true,
+  "cycles": [
+    {
+      "cycle": 1,
+      "responses": {
+        "business": {
+          "native_token_parity": true,
+          "semantic_success": true,
+          "natural_eos_observed": true,
+          "complete_business_success": true
+        },
+        "workload32": {
+          "native_token_parity": true,
+          "fixed32_length_success": true
+        }
+      },
+      "event_order_qualified": true,
+      "ranks": 8,
+      "expert_groups_per_rank": 61,
+      "registration_to_business_response_seconds": 584.835444961,
+      "scope": "L1 native service; no assigned cache condition or formal timing sample"
+    },
+    {
+      "cycle": 2,
+      "responses": {
+        "business": {
+          "native_token_parity": true,
+          "semantic_success": true,
+          "natural_eos_observed": true,
+          "complete_business_success": true
+        },
+        "workload32": {
+          "native_token_parity": true,
+          "fixed32_length_success": true
+        }
+      },
+      "event_order_qualified": true,
+      "ranks": 8,
+      "expert_groups_per_rank": 61,
+      "registration_to_business_response_seconds": 125.994817386,
+      "scope": "L1 native service; no assigned cache condition or formal timing sample"
+    }
+  ],
+  "first_model_unload_observation_seconds": 62.028176214,
+  "daemon_shutdown_exit_code": 0,
+  "daemon_shutdown_seconds": 59.750004777,
+  "container_exit_codes": {
+    "head": 0,
+    "worker": 0
+  },
+  "guard_exit_codes": {
+    "head": 0,
+    "worker": 0
+  },
+  "final_release_observation_seconds": {
+    "head": 82.282913485,
+    "worker": 82.258452781
+  },
+  "selected_service_gpu_process_release_qualified": true,
+  "containers_and_private_network_removed": true,
+  "total_elapsed_seconds": 1348.393422113,
+  "sampled_cohort_memory_max_bytes": 1088137474048,
+  "sampled_role_memory_max_bytes": {
+    "head": 5861736448,
+    "worker": 1082331844608
+  },
+  "sampled_pids_max": {
+    "head": 1187,
+    "worker": 1112
+  },
+  "sampled_gpu_memory_max_mib": {
+    "GPU-736d7f37-f647-b82d-ab11-693753ac6822": 137181,
+    "GPU-c5510474-1f6d-03f1-c57f-476db275c5cb": 137181,
+    "GPU-d8081222-9816-41e4-68f8-ecbb13de6855": 137181,
+    "GPU-15b80bc6-fcac-96f8-411d-3fd7ad0ecb8f": 137181,
+    "GPU-1fcf8aaa-8825-c6d3-fb8d-245377038242": 137181,
+    "GPU-0df5ba07-c402-f8fd-562d-7fccb4f15d1a": 137181,
+    "GPU-cca00d09-79a7-49de-2290-9ba1d56f8c6b": 137181,
+    "GPU-21336138-6e64-ec08-305b-26c99d661ab9": 137181
+  },
+  "peak_scope": "Sampled lower bounds; kernel5.15 has no memory.peak; cgroup memory includes file cache; not exact allocation peaks",
+  "scope": "Native SLLM HTTP/Ray/Store two-cycle lifecycle on fixed V4 profile only; no cache condition/performance gain or all-host cleanup claim",
+  "formal_id_consumed": false,
+  "formal_attempts_started": 0,
+  "formal_attempts_planned": 40,
+  "raw_input_sha256": {
+    "preparation.json": "d35116fcdfebea935d402e2dd649022a804b751f5fb650c0b39375a133f9e7ab",
+    "gpu-entry.py": "369ecfbe55d1beb72055b3b05eccd12b7a78575b68e887e21ff781dbab630ee0",
+    "network.json": "7b4a626b458bd462d8d9c0d7f2941db4eb129f42aaa61d111f69c133caafb5da",
+    "head-guard.log": "4bfa63fc33a931aebb2ad2c24b17cf01e24ca9b9f679914aa63044052f6a577b",
+    "worker-guard.log": "579767364f3c93342f28d68e92f8453ae2441cdc236b737882fb61c282e71f7a",
+    "READY.json": "4f470a79ec442f86959bfc79ace3ae4844c5643bde138c862b739993e78c7704",
+    "docker-resource-admission.json": "eaaa12efb30573eaf37429f9e149d6275482b8756d0b4433d0f415882ceca1da",
+    "GO.json": "c298848f4b43bd5a3bed0b54a847b3acc279eb1101fcde274b3eae887de2156a",
+    "launch.json": "a8e0aa2f607ce8426acbef9399e6ccb27c59c4ad25e75fcbaa79d1bc7fc4e121",
+    "telemetry.jsonl": "46a26fc0327f5ff135b1c8406cd2c6a0bfbc7d0622fde4403ef1f9191b2f3478",
+    "head-final.json": "1750c937590e63e6da4fa69b4eb84e048e75c88df206c43fceb65f40d06f17e8",
+    "head-container.log": "f3be80b7a8cfe4f6b19503408d6a740e62bdac78f1aaf829b13ea92f69fac922",
+    "worker-final.json": "92099259c56c67f2fb5c81df53990f3c8711a756ad5699d7f210576c660280d0",
+    "worker-container.log": "679ae6046aa1b06373ebac8684e289775c8f06c0b77799fe2cf9a20d77859577",
+    "candidate.json": "84394c8f41b7e4bdd33c6ab0537fc8a43a0e4a0a42a5ac49bc3807cddcd345e3",
+    "cleanup.json": "938ccc93e4e59c90d37202ff463e6907bd2f5d476c562bf56afff227f48ad67e",
+    "output/head-ray-start.log": "63f8ada33f823d62841310d527a0b6ab737b89fc67fa93a2aba7cc250793aa32",
+    "output/device-map-precheck.json": "bd392a48679248abefc5381914659268389ac91693c1c9c3cd66825700597b1b",
+    "output/gpu-precheck.json": "166a85b3b2a64c46e1eb1d9e3689b0ea529a8f5369e44c704025094461c6e44e",
+    "output/head-ray-ready.json": "764c321bd29e22eb5c43a75363045c99bfeb50d79474ad05cab86d6bc72984be",
+    "output/worker-ray-start.log": "6e9b2d9a7ea2bca3e61cb563bb21107560782fc8cede1edf41e478e4bbc98d91",
+    "output/worker-ray-ready.json": "7f032202abc97e30c1290f104887b8d98bee4a7dde9bb54603d674682136ab9b",
+    "output/store-daemon.log": "e64972acf21bd75d8f79403dae55b61a9ad9178476a2bf42046356dda9bf9ecb",
+    "output/store-daemon-started.json": "09980ecd51bf7c32c52eaf04134bc4a82bcba3048f8696a8489a3dd37ff3bda5",
+    "output/control-plane-resources.json": "a1076620f205a589dc0a891996b26647c8aa80b595a182e0797b2d994c94932e",
+    "output/controller-ready.json": "a5a068f15823042963bb22187d1ffebb656a5477848146793a0d4cf17f8b8dae",
+    "output/store-configuration-checked.json": "c52aa227013c722273f3790f566849f531effdd58053b9d8c6f4a05a091d67e9",
+    "output/store-pre-model-baseline-checked.json": "1079b2c4906cbc2d09de8ba72908b1fbf6360d2a5d8138413c6041776471dd56",
+    "output/cycle1-register.raw.json": "e974a36cc37ccb212997e4854d213276190dc725f0a92aa25217c2436054456f",
+    "output/cycle1-control-plane-ready.json": "aed65996bb07f3441ad73cd84f6342448d6f73fd01c8687c913d8ba9d3ce4c7c",
+    "output/cycle1-business.raw.json": "4c398d21e632871d1a5a22496217012b906d058be3f44234364901e2aa75f021",
+    "output/cycle1-workload32.raw.json": "a2037ea65e50f9deb0b245e1c656036debb75332ca7174246c31b665903092e6",
+    "output/cycle1-delete.raw.json": "847b0526e05ef47681202a47fde5dced57a7e267809964aa8ed5715f7366a8a4",
+    "output/cycle1-delete-ack.json": "403af97d36bf46017b1da7639a4d57acb6d87eb8b79b0e75bfd2ea1b54e6cd26",
+    "output/cycle1-unload-observation.json": "c4e8bd4ff737178cf961cf9bd8e464c792b93d7505e7f5de4bf51fc770dbe1d4",
+    "output/cycle2-register.raw.json": "4f19513a0c0af576e3f5b273c2b028ce36e458e0986bfd96b15cd00483debbfe",
+    "output/cycle2-control-plane-ready.json": "d11397d4d4118fee16b564a00373502b27374e43fe84ff3319e378b633132ef8",
+    "output/cycle2-business.raw.json": "caafd63e36d7843453b23b6e2436667fcc5dbbc380f4e845690f18dc6e70ce87",
+    "output/cycle2-workload32.raw.json": "c6401428dc2136340ae7310d02fcd96b250d72172a3143a0b0bb82063d6ae1b9",
+    "output/cycle2-delete.raw.json": "22a84cb5718c1f9302e8b0a046e408c7226790aa8deeab15c873c2b9437f4206",
+    "output/cycle2-delete-ack.json": "88aba0c6e1d33e99f4c62e12596394501a5ec68d9d6f0ae9da5cb204e84f1d38",
+    "output/head-work-finished.json": "8f221fb7fc63adcdd5bf019266e3ea10172d42884ebe6ac791ed3cc44e780954",
+    "output/daemon-shutdown-started.json": "c6f0a0845c567c67555d36e9767bf3eed4eaf7777b47f09acc6445deeaab95e1",
+    "output/daemon-shutdown-finished.json": "0801f20608872d990093d78713a50572a7f535af8153e32378316cf0c9de2b17",
+    "output/worker-ray-stop.log": "4994df0d8ca0c61fbce7bcb864fba0c0bed8a47655f0566752716fe92fd974b5",
+    "output/worker-stopped.json": "e29aef2d77c10236b6893380a123015faddf91059ea5fa2ec9d6ffab865d1cb6",
+    "output/head-ray-stop.log": "af8751c76b4ad568f2c3deb96edf4cf4554f44f10d573cd8295dafc7898fbe69",
+    "output/head-candidate.json": "b90c126581271b734c9a9e8dfa7306acd10b0d683fc3b3c454b101ed666e9038",
+    "output/events/process-e57a91d32728-1210-58634362.jsonl": "63d82268e0f9f8c21be1f4b9abbe9b2f97d084785d9d85ca8b6dee1967f099f3",
+    "output/events/process-e57a91d32728-1520-58707057.jsonl": "e70f2feaf14dd94187c1a717e9294e490703773963823299d73705e9f3c402ba",
+    "output/events/process-e57a91d32728-1519-58707057.jsonl": "7cfdb1b9b73b114c7c08b6af55139a893111cccfba40b7b864830dd32a2000a4",
+    "output/events/process-e57a91d32728-1515-58707057.jsonl": "1467c950819376072347b584caf13a7bdd75f547ef5ab7fe9d2997f2b7153c60",
+    "output/events/process-e57a91d32728-1514-58707056.jsonl": "5914ef7248de39c8480ba40907525b0785074cdc1ff681e6c08850cc0d63ddfb",
+    "output/events/process-e57a91d32728-1517-58707057.jsonl": "befbbe9ff5bf37e25f97ca1e8644fd34078b58d467325be205dba6aa19540efc",
+    "output/events/process-e57a91d32728-1518-58707057.jsonl": "bcef9f279958c0504b94857ba37bd7a5594738e6f76a745dc4124c7d5e8cf335",
+    "output/events/process-e57a91d32728-1516-58707057.jsonl": "64102775fb740d75b82bf3ae33d77ec8ee19f1b3e39e752ae50b459b11421ecd",
+    "output/events/process-e57a91d32728-1521-58707057.jsonl": "44f981334f1062fbfc14603335333df56164fe12d349931b1240141dcab92b53",
+    "output/events/process-b52f69306eb6-1168-58668780.jsonl": "38b8a23caa426e3f2dfd9dd1c90727a8a4d1f4e56229f5bbd49e4d1eafcd3e35",
+    "output/events/process-e57a91d32728-18005-58735688.jsonl": "a316b6bfe53aa4c7c7818b0c3689194881eb0489afa386fbeda8e3940af8d613",
+    "output/events/process-e57a91d32728-18160-58737472.jsonl": "36b6f243a1904a9c9629c7b4088e7596a21ce91389dd3a3653f62335ac7060d5",
+    "output/events/process-e57a91d32728-18161-58737472.jsonl": "e49de00029849fda8227933e820a361918aa9d65be2ee1dd788251571591902d",
+    "output/events/process-e57a91d32728-18156-58737472.jsonl": "e5b7de767727aace45fe489464af7ba6758d703c7e577674659f688a9936273a",
+    "output/events/process-e57a91d32728-18155-58737472.jsonl": "0f64056c670500b37d6e0b06863e279ac7b1a3e7572578618395003bfba841b7",
+    "output/events/process-e57a91d32728-18154-58737472.jsonl": "20559ec1378a82e73dfc7cfa12f543a26f0bc42f1449a91827f70c112752535b",
+    "output/events/process-e57a91d32728-18159-58737472.jsonl": "9a53d1562aa009f749f306fe3f466e70b7f8baa89f36b24a5ab12d41884417b3",
+    "output/events/process-e57a91d32728-18158-58737472.jsonl": "95b0def7d88c9ae3f8f7fe54b943479da28e3f143f7c00bc46b4b1b0a07b7308",
+    "output/events/process-e57a91d32728-18157-58737472.jsonl": "1e55d77ada81686d87e63ebcbd4c6809f2de7628dda0c2f4a71f71c12bbedc16",
+    "output/events/process-b52f69306eb6-1297-58735475.jsonl": "7d29cb209bd8a459ff590aed2ec7e555ab4718adb13248200c760f4e4a046721",
+    "head-guard/armed.json": "11b1620f8d5073001f262323aa3ee8e52ca96063ffe9b93a7f9d8b217895bbeb",
+    "head-guard/result.json": "cb90b0f8c7a39508c29e955196cfcedd27369b10bc8c0aa5ae704844f8955353",
+    "worker-guard/armed.json": "1583317b9c976e94024a9025415c9c62cc769756ea6313b47dff255c3c98812b",
+    "worker-guard/inspect-timeout-1.json": "5547375555302444ae7b38f17b9661a286a7aa5e9579f010969abc0b059d7a12",
+    "worker-guard/result.json": "02116ec978d6d5231816163b96a9c91dd0a038667b606578ec307c5faf3d3766",
+    "head-release/job.json": "6a93cde35fe547b364c36e9c6f1366f60e267153b761234f7deaf57a9d0f4e88",
+    "head-release/samples.jsonl": "ed8797337f0a11b28dbf512e900af896c692341b56e61f36a2ba0333a42d3bdd",
+    "head-release/result.json": "a5089f2da2d10c77fe670a0196a903dba28bdd8af2b25715ba3c64fbabd77906",
+    "worker-release/job.json": "11ed8297d10cef648e2258cc6c8e07e3adf8c7b12f3f030b51c30d2ca00ed75c",
+    "worker-release/samples.jsonl": "dc33bc19859b7fb767bd88cd606ac86aaa797e99d89275dd841b95c1556422ed",
+    "worker-release/result.json": "d01779d0089925e8230cad9b9be742d05dfaded8e35b9445d8310d98b3e1803a"
+  }
+}
