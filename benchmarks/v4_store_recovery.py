@@ -41,6 +41,21 @@ def validate_receipts(receipts, identity):
         ranks.add(rank)
 
 
+def stop_daemon(daemon, deadline_ns, output):
+    begin = time.monotonic_ns()
+    timeout = min(90, (deadline_ns - begin) / 1e9 - 5)
+    if timeout <= 0:
+        raise TimeoutError('No guarded Store shutdown window remains')
+    write_once(output/'daemon-shutdown-started.json', dict(pid=daemon.pid,
+               begin_ns=begin, timeout_seconds=timeout, deadline_ns=deadline_ns))
+    daemon.send_signal(signal.SIGINT)
+    code = daemon.wait(timeout=timeout)
+    write_once(output/'daemon-shutdown-finished.json', dict(pid=daemon.pid,
+               exit_code=code, completed_ns=time.monotonic_ns()))
+    if code != 0:
+        raise RuntimeError('Store daemon did not exit normally')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--model', required=True)
@@ -129,9 +144,7 @@ def main():
         actual = json.loads((output/'requests/candidate.json').read_bytes())['responses']
         if actual != json.loads(gold.read_bytes())['responses']:
             raise ValueError('Store output differs from frozen native gold')
-        daemon.send_signal(signal.SIGINT)
-        if daemon.wait(timeout=30) != 0:
-            raise RuntimeError('Store daemon did not exit normally')
+        stop_daemon(daemon, armed['deadline_ns'], output)
         write_once(output/'candidate.json', dict(native_gold_parity=True, daemon_exit_code=0, diagnostic_pool=args.diagnostic_pool, pool_bytes=size,
             complete_sha256=file_digest(Path(args.store)/'COMPLETE.json'), completed_ns=time.monotonic_ns(),
             runtime_qualified=False, physical_cleanup_verified=False,

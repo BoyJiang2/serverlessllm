@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import subprocess
 from types import SimpleNamespace as NS
 import unittest
 from unittest import mock
@@ -16,6 +17,31 @@ from test_v4_state import identity
 
 
 class RecoveryContracts(unittest.TestCase):
+    def test_shutdown_wait_is_bounded_and_requires_normal_exit(self):
+        for remaining, expected in ((200, 90), (28, 23)):
+            with self.subTest(remaining=remaining), tempfile.TemporaryDirectory() as directory:
+                daemon=mock.Mock(pid=123)
+                daemon.wait.return_value=0
+                with mock.patch.object(recovery.time,'monotonic_ns',return_value=100_000_000_000):
+                    recovery.stop_daemon(daemon,(100+remaining)*1_000_000_000,Path(directory))
+                daemon.wait.assert_called_once_with(timeout=expected)
+                self.assertEqual(json.loads((Path(directory)/'daemon-shutdown-finished.json').read_bytes())['exit_code'],0)
+
+    def test_shutdown_timeout_nonzero_and_exhausted_budget_stay_failed(self):
+        for kind in ('timeout','nonzero','expired'):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                daemon=mock.Mock(pid=123)
+                if kind=='timeout':daemon.wait.side_effect=subprocess.TimeoutExpired(['cpu-fixture-daemon'],90)
+                else:daemon.wait.return_value=1
+                deadline=104_000_000_000 if kind=='expired' else 300_000_000_000
+                with mock.patch.object(recovery.time,'monotonic_ns',return_value=100_000_000_000):
+                    with self.assertRaises((TimeoutError,subprocess.TimeoutExpired,RuntimeError)):
+                        recovery.stop_daemon(daemon,deadline,Path(directory))
+                if kind=='expired':daemon.send_signal.assert_not_called()
+                elif kind=='timeout':
+                    self.assertTrue((Path(directory)/'daemon-shutdown-started.json').exists())
+                    self.assertFalse((Path(directory)/'daemon-shutdown-finished.json').exists())
+
     def setUp(self):
         self.sync = mock.Mock()
         self.contexts, self.quarantine = [], []
