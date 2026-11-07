@@ -1,0 +1,48 @@
+{
+  "schema": "kimi-four-analysis-source-cpu-verification-v2",
+  "created_at_utc": "2026-11-07T12:02:05.512049+00:00",
+  "status": "SYNTHETIC_13_CPU_PASS_PENDING_INDEPENDENT_REVIEW",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/benchmarks/analyze_kimi_four_condition.py",
+      "sha256": "043aa4c8a7f8db4f1fdc03afd2a874f9cb1cf916315208cbb13aa722a240f7d5",
+      "bytes": 23554,
+      "lines": 352
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_analyze_kimi_four_condition.py",
+      "sha256": "e86d30a9e5c969c0303e97196854a55abb91c9b8eb4f8c656c6c6aeccfef7877",
+      "bytes": 17490,
+      "lines": 249
+    }
+  ],
+  "test": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_analyze_kimi_four_condition.py -v",
+    "working_directory": "/home/boyjiang/kimi-new/ServerlessLLM",
+    "tests_run": 13,
+    "passed": 13,
+    "skipped": 0,
+    "elapsed_s": 0.585,
+    "scope": "Synthetic temporary evidence and actual consumer CLI; no actual experiment statistics."
+  },
+  "delta_from_v1": "Qualified primary A requires SHA-bound independent register/arithmetic events with same run/condition/request/clientPID/clientCID/full HTTP clock; exact endpoints and all seven HTTP producer times plus primary_A/business_B crosschecked. No statistical method changes.",
+  "actual_event_schema_inspected": {
+    "sample": "B01 retry04 SFhot two original-byte copied events",
+    "http_clock_is_producer": true,
+    "parent_validation_end_not_used_for_A": true
+  },
+  "input_v3_integrity_only": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/input-manifest-v3.json",
+    "sha256": "4dd7d68f5409941c362f28e937c2dce21770a5829677dc1dcde78b2f5f70f801",
+    "bytes": 386325,
+    "snapshot_copies_verified": 459,
+    "snapshot_bytes": 1648410,
+    "actual_analysis_not_run": true
+  },
+  "supersedes_source_cpu_receipt_only": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-consumer-source-cpu-verification-v1-20261107.json",
+  "not_performed": [
+    "Actual load_inputs/analyze or formal statistics",
+    "GPU/model/cache/Store operations",
+    "Git"
+  ]
+}
