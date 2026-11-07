@@ -147,8 +147,13 @@ def validate_grouped_complete(root, identity, verify_payload=False):
         raise ValueError("Incomplete or incompatible grouped Store")
     workers = worker_receipts(complete.get("workers"), identity)
     devices = set()
-    for rank in range(TP_SIZE):
-        _, digest, device = validate_grouped_rank(root, rank, identity, verify_payload)
+    if verify_payload:
+        with ThreadPoolExecutor(max_workers=TP_SIZE) as executor:
+            ranks = list(executor.map(
+                lambda rank: validate_grouped_rank(root, rank, identity, True), range(TP_SIZE)))
+    else:
+        ranks = (validate_grouped_rank(root, rank, identity) for rank in range(TP_SIZE))
+    for rank, (_, digest, device) in enumerate(ranks):
         if workers[rank] != validate_export_done(root, rank, identity, digest):
             raise ValueError("Published export worker result changed")
         if digest != complete["ranks"][str(rank)] or device in devices:

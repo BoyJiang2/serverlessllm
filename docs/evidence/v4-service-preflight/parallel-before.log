@@ -1,0 +1,27 @@
+E
+======================================================================
+ERROR: test_admission_verifies_all_payloads_concurrently_and_retains_rank_failures (test_v4_grouped_state.GroupedStateTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_grouped_state.py", line 112, in test_admission_verifies_all_payloads_concurrently_and_retains_rank_failures
+    grouped.validate_grouped_complete(self.root, identity(), True)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/sllm_store/v4_grouped_state.py", line 151, in validate_grouped_complete
+    _, digest, device = validate_grouped_rank(root, rank, identity, verify_payload)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1114, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1118, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/usr/lib/python3.10/unittest/mock.py", line 1179, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_grouped_state.py", line 106, in verify
+    barrier.wait()
+  File "/usr/lib/python3.10/threading.py", line 668, in wait
+    self._wait(timeout)
+  File "/usr/lib/python3.10/threading.py", line 706, in _wait
+    raise BrokenBarrierError
+threading.BrokenBarrierError
+
+----------------------------------------------------------------------
+Ran 1 test in 5.564s
+
+FAILED (errors=1)

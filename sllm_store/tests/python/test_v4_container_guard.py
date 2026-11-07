@@ -67,6 +67,20 @@ class ContainerGuardContracts(unittest.TestCase):
                 guard.watch(CID, 0, "unused", "other")
             inspect.assert_not_called()
 
+    def test_native_service_keeps_the_same_identity_and_deadline_guard(self):
+        service = row()
+        service['Config']['Labels'][guard.LABEL] = 'native-service'
+        with self.assertRaises(ValueError):
+            self.run_guard([service])
+        with tempfile.TemporaryDirectory() as temp, \
+                mock.patch.object(guard, 'inspect', side_effect=[service, row('exited'), row('exited')]), \
+                mock.patch.object(guard.signal, 'signal'):
+            result = guard.watch(CID, time.monotonic_ns() + 10_000_000_000,
+                                 Path(temp)/'receipt', 'native-service')
+            self.assertEqual(result['purpose'], 'native-service')
+            self.assertTrue(result['container_stopped'])
+            self.assertFalse(result['physical_cleanup_verified'])
+
     def test_normal_exit_is_not_physical_cleanup(self):
         kill = mock.Mock()
         result = self.run_guard([row(), row("exited"), row("exited")], kill)

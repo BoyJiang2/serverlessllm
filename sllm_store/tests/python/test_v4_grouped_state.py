@@ -96,6 +96,28 @@ class GroupedStateTests(unittest.TestCase):
         with self.assertRaises((ValueError, FileNotFoundError)):
             raw.validate_complete(self.root, identity())
 
+    def test_admission_verifies_all_payloads_concurrently_and_retains_rank_failures(self):
+        self.populate()
+        grouped.publish_grouped_complete(self.root, identity(), self.results)
+        complete_sha = raw.file_digest(self.root / 'COMPLETE.json')
+        original = grouped.validate_grouped_rank
+        for failed_rank in (None, 3):
+            barrier = threading.Barrier(8, timeout=5)
+            def verify(root, rank, expected_identity, verify_payload=False):
+                self.assertTrue(verify_payload)
+                barrier.wait()
+                if rank == failed_rank:
+                    raise ValueError('rank payload fixture failure')
+                return original(root, rank, expected_identity, verify_payload)
+            with mock.patch.object(grouped, 'validate_grouped_rank', side_effect=verify) as validation:
+                if failed_rank is None:
+                    grouped.validate_grouped_complete(self.root, identity(), True)
+                else:
+                    with self.assertRaisesRegex(ValueError, 'rank payload fixture failure'):
+                        grouped.validate_grouped_complete(self.root, identity(), True)
+            self.assertEqual(validation.call_count, 8)
+            self.assertEqual(raw.file_digest(self.root / 'COMPLETE.json'), complete_sha)
+
     def test_failed_conversion_cannot_publish_or_restore_even_with_all_receipts(self):
         self.populate()
         grouped.publish_grouped_complete(self.root, identity(), self.results)

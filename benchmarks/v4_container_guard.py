@@ -29,7 +29,7 @@ def inspect(container_id, timeout=5):
 
 
 def watch(container_id, deadline_ns, directory, purpose="native-reference"):
-    if purpose not in ("native-reference", "store-conversion", "store-recovery"):
+    if purpose not in ("native-reference", "store-conversion", "store-recovery", "native-service"):
         raise ValueError("unsupported guard purpose")
     if not re.fullmatch(r"[0-9a-f]{64}", container_id):
         raise ValueError("full immutable container ID required")
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     parser.add_argument("container_id")
     parser.add_argument("deadline_ns", type=int)
     parser.add_argument("directory")
-    parser.add_argument("--purpose", choices=("native-reference", "store-conversion", "store-recovery"),
+    parser.add_argument("--purpose", choices=("native-reference", "store-conversion", "store-recovery", "native-service"),
                         default="native-reference")
     args = parser.parse_args()
     result = watch(args.container_id, args.deadline_ns, args.directory, args.purpose)
