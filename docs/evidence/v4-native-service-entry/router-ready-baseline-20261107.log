@@ -1,0 +1,21 @@
+F
+======================================================================
+FAIL: test_v4_registration_waits_for_router_start_before_publication (test_v4_registration.RegistrationBindingContracts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/unittest/async_case.py", line 64, in _callTestMethod
+    self._callMaybeAsync(method)
+  File "/usr/lib/python3.10/unittest/async_case.py", line 87, in _callMaybeAsync
+    return self._asyncioTestLoop.run_until_complete(fut)
+  File "/usr/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/usr/lib/python3.10/unittest/async_case.py", line 101, in _asyncioLoopRunner
+    ret = await awaitable
+  File "/home/boyjiang/sllm-v4-pro/code/sllm_store/tests/python/test_v4_registration.py", line 105, in test_v4_registration_waits_for_router_start_before_publication
+    self.assertFalse(task.done(), 'registration returned before router start')
+AssertionError: True is not false : registration returned before router start
+
+----------------------------------------------------------------------
+Ran 1 test in 0.017s
+
+FAILED (failures=1)

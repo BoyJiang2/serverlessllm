@@ -175,7 +175,9 @@ class SllmController:
                 logger.error(f"Model {model_name} already registered")
                 return
 
-        request_router.start.remote(auto_scaling_config)
+        startup = request_router.start.remote(auto_scaling_config)
+        if is_v4_registration(model_config):
+            await startup
 
         logger.info(f"Model {model_name} registered")
 

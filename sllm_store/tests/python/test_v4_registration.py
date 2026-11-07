@@ -44,7 +44,7 @@ class RegistrationBindingContracts(unittest.IsolatedAsyncioTestCase):
         controller.metadata_lock = asyncio.Lock()
         controller.registered_models = {"v4": copy.deepcopy(self.config)} if registered else {}
         router = types.SimpleNamespace(update=types.SimpleNamespace(remote=mock.AsyncMock()),
-                                       start=types.SimpleNamespace(remote=mock.Mock()),
+                                       start=types.SimpleNamespace(remote=mock.AsyncMock()),
                                        shutdown=types.SimpleNamespace(remote=mock.AsyncMock(return_value=[])))
         controller.request_routers = {"v4": router} if registered else {}
         controller.store_manager = types.SimpleNamespace(register=types.SimpleNamespace(remote=mock.AsyncMock()))
@@ -94,6 +94,38 @@ class RegistrationBindingContracts(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(router.shutdown.remote.await_count, 3)
         self.assertEqual(self.case.client.register_model.call_count, 496)
         self.case.inspect.options.return_value.remote.assert_awaited_once()
+
+    async def test_v4_registration_waits_for_router_start_before_publication(self):
+        controller, router = self.controller(registered=False)
+        startup = asyncio.get_running_loop().create_future()
+        router.start.remote = mock.Mock(return_value=startup)
+        task = asyncio.create_task(controller.register(self.config))
+        try:
+            await asyncio.sleep(0)
+            self.assertFalse(task.done(), 'registration returned before router start')
+            self.assertFalse(controller.registered_models)
+            startup.set_result(None)
+            await task
+            self.assertIn('v4', controller.request_routers)
+        finally:
+            if not startup.done():startup.set_result(None)
+            await asyncio.gather(task, return_exceptions=True)
+
+    async def test_v4_router_start_failure_is_not_published(self):
+        controller, router = self.controller(registered=False)
+        router.start.remote.side_effect = RuntimeError('CPU router start failure')
+        with self.assertRaisesRegex(RuntimeError, 'CPU router start failure'):
+            await controller.register(self.config)
+        self.assertFalse(controller.registered_models)
+        self.assertFalse(controller.request_routers)
+
+    async def test_legacy_router_start_keeps_existing_nonblocking_behavior(self):
+        controller, router = self.controller(registered=False)
+        router.start.remote = mock.Mock(return_value=None)
+        legacy = dict(model='legacy',backend='vllm',num_gpus=1,backend_config={})
+        await controller.register(legacy)
+        self.assertIn('legacy', controller.request_routers)
+        router.start.remote.assert_called_once()
 
     async def test_native_service_requires_prepared_store_and_never_calls_legacy_converter(self):
         self.manager.download_vllm_model = mock.AsyncMock(side_effect=AssertionError("legacy converter"))
