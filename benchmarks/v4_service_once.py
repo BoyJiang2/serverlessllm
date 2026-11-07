@@ -114,7 +114,7 @@ def main():
     assert sys.argv[3:] in ([],['--execute'])
     if not execute:
         print(json.dumps(dict(source_head=head,output=str(base),cycles=2,gpu_or_model_started=False,
-             head_cpu=2,worker_cpu=6,memory_limit_total=sum(MEMORY_BYTES.values()),memory_limits=MEMORY_BYTES,
+             head_cpu=4,worker_cpu=4,memory_limit_total=sum(MEMORY_BYTES.values()),memory_limits=MEMORY_BYTES,
              container_seconds=1080,total_seconds=1200)))
         return
     assert base.parent==ROOT.parent/'evidence' and not base.exists()
@@ -169,8 +169,8 @@ def main():
                 (role_cache/directory).mkdir(exist_ok=True)
             memory=MEMORY_BYTES[role]
             command=['docker','create','--name',base.name+'-'+role,'--network',network,
-                '--runtime','runc' if role=='head' else 'nvidia','--cpus','2' if role=='head' else '6',
-                '--memory',str(memory),'--memory-swap',str(memory),'--pids-limit','1024',
+                '--runtime','runc' if role=='head' else 'nvidia','--cpus','4',
+                '--memory',str(memory),'--memory-swap',str(memory),'--pids-limit','4096' if role=='head' else '1024',
                 '--shm-size','512m' if role=='head' else '16g','--read-only','--restart','no','--init',
                 '--cap-drop','ALL','--security-opt','no-new-privileges','--user','2147:2147',
                 '--workdir','/workspace',

@@ -20,7 +20,7 @@ class ServiceControllerContracts(unittest.TestCase):
         call.assert_not_called()
         plan=json.loads(output.getvalue())
         self.assertFalse(plan['gpu_or_model_started'])
-        self.assertEqual(plan['head_cpu']+plan['worker_cpu'],8)
+        self.assertEqual((plan['head_cpu'],plan['worker_cpu']),(4,4))
         self.assertEqual(plan['memory_limit_total'],1024**4)
         self.assertEqual(sum(plan['memory_limits'].values()),1024**4)
         self.assertEqual(plan['memory_limits']['head'],16*1024**3)

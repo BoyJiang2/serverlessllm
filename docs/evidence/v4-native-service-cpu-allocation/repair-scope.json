@@ -1,0 +1,44 @@
+{
+  "failed_source": "96b893236cb2a1e514d2bd51b3428c7b99caa3a5",
+  "failed_run": "/home/boyjiang/sllm-v4-pro/evidence/native-service-20261107T081358Z",
+  "failure": {
+    "error": "RuntimeError('Native service role failed')",
+    "failed_ns": 581756326059678,
+    "formal_id_consumed": false,
+    "raw_observation_error": "TimeoutExpired(('nvidia-smi', '--query-gpu=index,uuid,name,memory.total,memory.used', '--format=csv,noheader,nounits'), 5)",
+    "release_error": "ValueError('GPU memory above baseline +16 MiB')",
+    "worker-cleanup-error": "TimeoutExpired(('docker', 'kill', '8a299650993f15394e54eb2da947bebcad0d2b201dfb93e3bbc5cad047ff519c'), 5)"
+  },
+  "cleanup": {
+    "completed_ns": 581817430954999,
+    "head": {
+      "removed": true,
+      "stopped": true
+    },
+    "network_removed": true,
+    "worker": {
+      "removed": true,
+      "stopped": true
+    }
+  },
+  "post_cleanup_release": {
+    "release_after_cleanup_observed": true,
+    "samples": 61,
+    "span_seconds": 89.920602279,
+    "scope": "Fresh post-removal GPU/cgroup/original-PID observation only; original failed collectors and failed service attempt remain failed"
+  },
+  "operator_stop": {
+    "reason": "Confirmed head CPU scheduling deadlock: Controller=1 + StoreManager=1 exhaust head2; pending control actor CPU1, no model load",
+    "monotonic_ns": 581753852088059,
+    "container_id": "5b01f147609e2bf294ee1099a201c7d6498deba353fcabc3846c1084a300b7a7",
+    "action": "Kill exact owned head; existing host failure handler stops peer and observes release"
+  },
+  "new_cpu_allocation": {
+    "head": 4,
+    "worker": 4
+  },
+  "new_head_pids_limit": 4096,
+  "worker_pids_limit": 1024,
+  "formal_id_consumed": false,
+  "model_loaded": false
+}

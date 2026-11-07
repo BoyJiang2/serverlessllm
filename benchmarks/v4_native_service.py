@@ -91,7 +91,7 @@ async def ray_command(command, name, deadline):
 async def start_ray(role, deadline):
     address=socket.gethostbyname(socket.gethostname())
     command=['/opt/sllm-v4/bin/ray','start','--node-ip-address='+address,
-             '--num-cpus='+('2' if role=='head' else '6'),
+             '--num-cpus=4',
              '--num-gpus='+('0' if role=='head' else '8'),
              '--object-store-memory=268435456','--disable-usage-stats']
     if role=='head':
