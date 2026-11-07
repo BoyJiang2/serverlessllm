@@ -1,0 +1,92 @@
+{
+  "source_head": "ee307d21342140f39e1e3e8903b4782b2346deea",
+  "failed_run": "/home/boyjiang/sllm-v4-pro/evidence/native-service-20261107T083340Z",
+  "stage1_control_plane_qualified": true,
+  "nodes": {
+    "192.168.16.2": {
+      "CPU": 4.0,
+      "control_node": 1.0,
+      "memory": 14325747712.0,
+      "node:192.168.16.2": 1.0,
+      "node:__internal_head__": 1.0,
+      "object_store_memory": 268435456.0
+    },
+    "192.168.16.3": {
+      "CPU": 4.0,
+      "GPU": 8.0,
+      "accelerator_type:H20": 1.0,
+      "memory": 1081516351488.0,
+      "node:192.168.16.3": 1.0,
+      "object_store_memory": 268435456.0,
+      "worker_id_v4": 1.0,
+      "worker_node": 1.0
+    }
+  },
+  "actors": {
+    "5aafd32b55e55ece64983aef01000000": {
+      "name": "model_loading_scheduler",
+      "state": "ALIVE",
+      "class_name": "FcfsScheduler",
+      "node": "473352a041d875fe168574763de97346d47f124f99c1fe7e4a8ee3c0"
+    },
+    "74b48fe7db8903964b1479e001000000": {
+      "name": "",
+      "state": "ALIVE",
+      "class_name": "FineTuningJobStore",
+      "node": "473352a041d875fe168574763de97346d47f124f99c1fe7e4a8ee3c0"
+    },
+    "8fd1bda6510f4bd47184c33201000000": {
+      "name": "v4-native-service",
+      "state": "ALIVE",
+      "class_name": "RoundRobinRouter",
+      "node": "473352a041d875fe168574763de97346d47f124f99c1fe7e4a8ee3c0"
+    },
+    "b897b488ba44409ce9bd0fee01000000": {
+      "name": "store_manager",
+      "state": "ALIVE",
+      "class_name": "StoreManager",
+      "node": "473352a041d875fe168574763de97346d47f124f99c1fe7e4a8ee3c0"
+    },
+    "f35ec5262c55b4ef54b75d7e01000000": {
+      "name": "controller",
+      "state": "ALIVE",
+      "class_name": "SllmController",
+      "node": "473352a041d875fe168574763de97346d47f124f99c1fe7e4a8ee3c0"
+    }
+  },
+  "placement_groups": {},
+  "sampled_pids_max": {
+    "head": 1187,
+    "worker": 1024
+  },
+  "worker_pids_limit": 1024,
+  "classification": "Observed worker pids.current=1024 at configured limit with grpc pthread_create EAGAIN and Store RPC Resource temporarily unavailable; engine initialization failed",
+  "stage2_full_restore_and_inference_qualified": false,
+  "business_status": 500,
+  "business_raw_body": "Internal Server Error",
+  "register_seconds": 340.031700469,
+  "pool_initialization_seconds": 349.329957,
+  "release_after_cleanup": {
+    "release_after_cleanup_observed": true,
+    "samples": 61,
+    "span_seconds": 90.038446939,
+    "scope": "Fresh post-removal GPU/cgroup/original-PID observation only; original failed collectors and failed service attempt remain failed"
+  },
+  "formal_attempts_started": 0,
+  "formal_attempts_planned": 40,
+  "raw_input_sha256": {
+    "docker-resource-admission.json": "5e662ffad5156b0b5cbadb19acc371c55d828a7ac4d5114bcdabc3543ab1a184",
+    "output/head-ray-ready.json": "7dc2393d9de2f603492556fd342c44e25fa6d84373e9caf23a634c0a9ef046f6",
+    "output/worker-ray-ready.json": "1698b3841f757c67000ceeb84b1aa3b297409cca6ac07bb79648fbdd30fc7aff",
+    "output/control-plane-resources.json": "c7c6cae34ccda9887e3fab891f578205b68a75bf8db022e38fe139c8f711c16e",
+    "output/cycle1-control-plane-ready.json": "8aac19f04d8e174cb9beec57c846b8ebd7f110944075a43cb72c93612af68a57",
+    "output/cycle1-register.raw.json": "9c05398cdaf90b2d588569a66233a86dd7c11f101bf0efc3432423438e56414c",
+    "output/cycle1-business.raw.json": "7d1a76db109cafe751f5f999b176870c7ef8c13490e25dad221a23abbbd7d7b3",
+    "output/head-failure.json": "9c9868669e056de48bd6a2aab395ea22e4a9f287105482c4d6257769278d4031",
+    "failure.json": "5b0af025a92937629108652fa80ea881ceacb4cdae322d194eeeedc3dc3f14ec",
+    "cleanup.json": "b37e615989fcf1dc85b897327ed60acc270b110cbf8cbd5db0617db0d04e6940",
+    "post-cleanup-release/result.json": "afef9b7b52a355142f65bebc8fe17d7cf9aeb56c82bae98b809218e5503d6454"
+  },
+  "new_prepared_worker_pids_limit": 4096,
+  "original_deadlines_unchanged": true
+}

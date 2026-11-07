@@ -170,7 +170,7 @@ def main():
             memory=MEMORY_BYTES[role]
             command=['docker','create','--name',base.name+'-'+role,'--network',network,
                 '--runtime','runc' if role=='head' else 'nvidia','--cpus','4',
-                '--memory',str(memory),'--memory-swap',str(memory),'--pids-limit','4096' if role=='head' else '1024',
+                '--memory',str(memory),'--memory-swap',str(memory),'--pids-limit','4096',
                 '--shm-size','512m' if role=='head' else '16g','--read-only','--restart','no','--init',
                 '--cap-drop','ALL','--security-opt','no-new-privileges','--user','2147:2147',
                 '--workdir','/workspace',
@@ -298,7 +298,7 @@ def main():
                 if row['State']['Pid']:
                     groups[role]=group_for(row['State']['Pid'],value['container_id'])
                     for proc in process_rows(groups[role]):workers[(proc['pid'],proc['start_ticks'])]=proc
-                if row['State']['Running']:call('docker','kill',value['container_id'])
+                if row['State']['Running']:call('docker','kill',value['container_id'],timeout=90)
                 failure[role+'-final']=inspect(value['container_id'])
                 (base/(role+'-failure.log')).write_text(call('docker','logs',value['container_id'],timeout=10))
             except BaseException as cleanup_error:
