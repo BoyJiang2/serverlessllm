@@ -61,6 +61,17 @@ def prepare_file(path, expected, mode, deadline):
                 begin_ns=begin, complete_ns=time.monotonic_ns())
 
 
+def hot_file_on_cpu(path, expected, deadline, cpu):
+    affinity = os.sched_getaffinity(0)
+    require(cpu in affinity, 'hot reader CPU is outside the inherited cpuset')
+    try:
+        os.sched_setaffinity(0, {cpu})
+        result = prepare_file(path, expected, 'hot', deadline)
+        return dict(result, read_cpu=cpu)
+    finally:
+        os.sched_setaffinity(0, affinity)
+
+
 def mincore_identity():
     caps = next(line.split()[1] for line in Path('/proc/self/status').read_text().splitlines()
                 if line.startswith('CapEff:'))
@@ -107,7 +118,7 @@ def mincore_file(path, expected):
         os.close(descriptor)
 
 
-def run_cache(files, kind, mode, output, deadline, run_id):
+def run_cache(files, kind, mode, output, deadline, run_id, reader_cpus=None):
     require(not sys.flags.optimize and not os.environ.get('PYTHONOPTIMIZE'), 'optimized Python forbidden')
     require(kind in ('store_inputs', 'safetensors_inputs') and mode in ('cold', 'hot', 'check'),
             'invalid cache condition')
@@ -123,12 +134,20 @@ def run_cache(files, kind, mode, output, deadline, run_id):
             mincore_visibility(path)
         if mode == 'hot':
             with ThreadPoolExecutor(max_workers=READ_WORKERS) as executor:
-                futures = [executor.submit(prepare_file, path, files[str(path)], mode, deadline) for path in paths]
+                if reader_cpus is not None:
+                    require(len(reader_cpus) == READ_WORKERS and len(set(reader_cpus)) == READ_WORKERS
+                            and all(type(cpu) is int and cpu in os.sched_getaffinity(0) for cpu in reader_cpus),
+                            'hot reader affinity differs from inherited CPUs')
+                    futures = [executor.submit(hot_file_on_cpu, path, files[str(path)], deadline,
+                               reader_cpus[index % READ_WORKERS]) for index, path in enumerate(paths)]
+                else:
+                    futures = [executor.submit(prepare_file, path, files[str(path)], mode, deadline) for path in paths]
                 preparation = [future.result() for future in futures]
         else:
             preparation = [prepare_file(path, files[str(path)], mode, deadline) for path in paths]
         prepared = time.monotonic_ns()
         write_once(output / 'preparation.json', dict(files=preparation, read_workers=READ_WORKERS if mode == 'hot' else 1,
+                   read_cpus=reader_cpus,
                    read_buffer_bytes=READ_BYTES, preparation_begin_ns=begin, preparation_complete_ns=prepared))
         # A separate full-list pass is required: later warming may evict earlier files.
         verification_begin = time.monotonic_ns()

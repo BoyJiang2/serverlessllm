@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/workspace/benchmarks/v4_trial.py", line 371, in <module>
+    complete = cache_on_worker(spec, request['deadline_ns'], output)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/benchmarks/v4_trial.py", line 108, in cache_on_worker
+    run_cache(inventory[kind], kind, operation, output / directory, deadline, spec['run_id'])
+  File "/workspace/benchmarks/v4_cache_state.py", line 157, in run_cache
+    require(passed is not False, 'declared cache condition failed; raw vectors retained')
+  File "/workspace/benchmarks/v4_evidence.py", line 16, in require
+    raise ValueError(message)
+ValueError: declared cache condition failed; raw vectors retained

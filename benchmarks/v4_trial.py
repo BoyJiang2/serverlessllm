@@ -72,6 +72,8 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None):
             and declared_pools[key] == value for key, value in pools.items()), 'unreviewed trial pool capacity')
     if attempt_id is not None:
         require(protocol.get('frozen') is True, 'formal protocol is not frozen')
+        require(protocol.get('cache_hot_read_cpus') == [0, 1, 120, 121]
+                and all(type(cpu) is int for cpu in protocol['cache_hot_read_cpus']), 'formal hot reader affinity is not frozen')
         require(run_id == attempt_id, 'formal run and attempt identities differ')
         require(any(row['attempt_id'] == attempt_id and row['condition'] == condition for row in rows),
                 'unknown formal ID/condition')
@@ -103,9 +105,14 @@ def target_registration(grouped, condition):
 def cache_on_worker(spec, deadline, output=Path('/output')):
     inventory = checked_json('/control/cache-inventory.json', spec['cache_inventory_sha256'])
     target, mode = CONDITIONS[spec['condition']]
+    if target == 'safetensors_inputs':
+        run_cache(inventory['store_inputs'], 'store_inputs', 'cold', output / 'cache-reclaim', deadline, spec['run_id'])
+    if mode == 'hot':
+        run_cache(inventory[target], target, 'cold', output / 'cache-target-reset', deadline, spec['run_id'])
     other = 'store_inputs' if target == 'safetensors_inputs' else 'safetensors_inputs'
     for kind, operation, directory in ((other, 'check', 'cache-other'), (target, mode, 'cache-target')):
-        run_cache(inventory[kind], kind, operation, output / directory, deadline, spec['run_id'])
+        run_cache(inventory[kind], kind, operation, output / directory, deadline, spec['run_id'],
+                  reader_cpus=[0, 1, 120, 121] if operation == 'hot' else None)
     return dict(complete_ns=time.monotonic_ns(), target_kind=target, counterpart_kind=other)
 
 
@@ -207,6 +214,12 @@ def cache_observation(directory, expected):
                 and (visibility['euid'] == visibility['owner_uid']
                      or int(visibility['cap_effective'], 16) & (1 << 3)),
                 'untrusted mincore visibility receipt')
+    if summary['mode'] == 'hot':
+        prepared = json.loads((directory / 'preparation.json').read_bytes())
+        require(prepared['read_cpus'] == [0, 1, 120, 121] and prepared['read_workers'] == 4
+                and all(row['read_cpu'] == prepared['read_cpus'][index % 4]
+                        and row['bytes_read'] == expected[row['source_path']]['bytes']
+                        for index, row in enumerate(prepared['files'])), 'hot read CPU/byte receipts differ')
     return summary, sizes, vectors
 
 
@@ -217,7 +230,7 @@ def unpack_cache_archive(archive, output):
         for member in members:
             path = Path(member.name)
             require(member.isfile() and not path.is_absolute() and '..' not in path.parts
-                    and (path.parts[0] in ('cache-other', 'cache-target') or member.name == 'trial-cache-complete.json'),
+                    and (path.parts[0] in ('cache-other', 'cache-target', 'cache-reclaim', 'cache-target-reset') or member.name == 'trial-cache-complete.json'),
                     'unexpected cache archive entry')
         for member in members:
             if member.name == 'trial-cache-complete.json':

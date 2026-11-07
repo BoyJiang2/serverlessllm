@@ -32,6 +32,17 @@ class CacheStateContracts(unittest.TestCase):
             with mock.patch.object(cache,'mincore_identity',return_value=allowed):
                 self.assertEqual(cache.mincore_visibility(path)['owner_uid'],path.stat().st_uid)
 
+    def test_hot_reader_affinity_is_recorded_and_caller_affinity_restored(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path, files = self.fixture(directory)
+            affinity = os.sched_getaffinity(0)
+            cpu = min(affinity)
+            result = cache.hot_file_on_cpu(path, files[str(path)], time.monotonic_ns()+30_000_000_000, cpu)
+            self.assertEqual(result['read_cpu'],cpu)
+            self.assertEqual(os.sched_getaffinity(0),affinity)
+            with self.assertRaisesRegex(ValueError,'outside the inherited'):
+                cache.hot_file_on_cpu(path, files[str(path)], time.monotonic_ns()+30_000_000_000, max(affinity)+10000)
+
     def test_actual_hot_cold_and_check_vectors_pass_existing_validator(self):
         with tempfile.TemporaryDirectory() as directory:
             path, files = self.fixture(directory)

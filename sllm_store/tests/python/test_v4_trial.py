@@ -64,6 +64,19 @@ class TrialContracts(unittest.TestCase):
         finally:
             server.shutdown();server.server_close();thread.join(timeout=2)
 
+    def test_sf_reclaims_only_frozen_store_inputs_before_counterpart_and_target(self):
+        inventory={'store_inputs':{'/frozen/store':{'bytes':1}},'safetensors_inputs':{'/frozen/sf':{'bytes':1}}}
+        for condition in trial.CONDITIONS:
+            with mock.patch.object(trial,'checked_json',return_value=inventory),mock.patch.object(trial,'run_cache') as run:
+                trial.cache_on_worker({'condition':condition,'run_id':'cpu','cache_inventory_sha256':'cpu'},10**30)
+                operations=[(c.args[1],c.args[2],c.args[3].name) for c in run.call_args_list]
+                expected=[('store_inputs','cold','cache-reclaim')] if condition.startswith('safetensors_') else []
+                kind,mode=trial.CONDITIONS[condition];other='store_inputs' if kind=='safetensors_inputs' else 'safetensors_inputs'
+                if mode=='hot':expected += [(kind,'cold','cache-target-reset')]
+                expected += [(other,'check','cache-other'),(kind,mode,'cache-target')]
+                self.assertEqual(run.call_args.kwargs['reader_cpus'],[0,1,120,121] if mode=='hot' else None)
+                self.assertEqual(operations,expected)
+
     def test_root_sampler_archive_is_bounded_and_never_overwrites_evidence(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);archive=root/'cache.tar';output=root/'output';output.mkdir()
