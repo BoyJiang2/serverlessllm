@@ -1,0 +1,72 @@
+{
+  "schema": "kimi-existing-startup-evidence-collector-source-cpu-verification-v2",
+  "created_at_utc": "2026-11-07T12:51:12.945083+00:00",
+  "status": "SEVEN_SYNTHETIC_CPU_TESTS_PASS_PENDING_INDEPENDENT_REVIEW",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/collect_existing_kimi_startup_evidence.py",
+      "sha256": "91b0656e73cd918795c18cdc563b4320e235e60db04baca70c7719eeb5ce99d3",
+      "bytes": 5899,
+      "lines": 110
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_collect_existing_kimi_startup_evidence.py",
+      "sha256": "c31be5901fc24b524d10b92dd297969adeb66a5137245886528d76e8839641e3",
+      "bytes": 6255,
+      "lines": 104
+    }
+  ],
+  "marker_source": {
+    "runner": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+      "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+      "bytes": 319819,
+      "lines": 7178
+    },
+    "loader": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+      "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c",
+      "bytes": 6814,
+      "lines": 169
+    },
+    "begin_line": 4750,
+    "end_line": 4810,
+    "log_line": 4965,
+    "format": "Model loading took %s GiB memory and %.6f seconds",
+    "semantics": "Before get_model_loader to after model_loader.load_model and optional LoRA/drafter/aux setup; excludes subsequent load-evidence capture and communication-buffer setup. Not an isolated GLM weight-ingestion span."
+  },
+  "test": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_collect_existing_kimi_startup_evidence.py -v",
+    "working_directory": "/home/boyjiang/kimi-new/ServerlessLLM",
+    "tests": 7,
+    "passed": 7,
+    "skipped": 0,
+    "seconds": 0.022,
+    "data_scope": "Tiny temporary synthetic logs/manifest only; euid mocked to exercise consumer; never reads actual private logs."
+  },
+  "contract": [
+    "Root check before manifest or output access",
+    "Finite manifest SHA and per-qualification SHA; exactly38 distinct original-qualified runs; no supplement/history",
+    "Top-level stdout/stderr glob only, no recursion or model files",
+    "O_NOFOLLOW/nonregular rejection; per-file8MiB and cumulative log128MiB; dev/ino/size/mtime stable before/after/path",
+    "O_EXCL0600 output, no overwrite; raw logs and arbitrary environment lines not exported",
+    "Only numeric model-loading markers and source SHA/bytes/mtime; import marker limited known module origins and package versions",
+    "Absent logs/marker null, malformed import marker explicit; any source/hash/identity/bounds error fails instead of pretending collection success"
+  ],
+  "not_performed": [
+    "Actual root collection or historical log read",
+    "GPU/container/model/Store/cache/import environment operations",
+    "Git"
+  ],
+  "limits": [
+    "Read syscall duration cooperative/kernel boundedness not claimed; execute under existing outer scope if desired.",
+    "Numeric logs can repeat or be forwarded; collector does not infer TP-rank reduction or assert GLM-C equivalence.",
+    "Actual historical markers/identity coverage unknown until root executes after review."
+  ],
+  "delta_from_v1": [
+    "Each file includes exact source_path along with SHA/bytes/mtime.",
+    "Each run distinguishes NO_LOG_FILES / NO_MATCH / OBSERVED.",
+    "Each numeric marker rank/pid explicitly null; duration list is observations, never single C or TP reduction.",
+    "O_EXCL output check after manifest reads remains intentional; no pre-read access guarantee claimed."
+  ]
+}
