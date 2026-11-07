@@ -1,0 +1,66 @@
+{
+  "status": "FAILED_CONDITION_RETAINED_ABORT_RELEASE60_COMPLETE_NOT_NORMAL_PASS",
+  "epoch": 1794016868.487601,
+  "failed_run": "kimi-four-v1-b04-safetensors_disk_cold",
+  "failed_raw_sha256": "b49a75681377ea06710933b33a228bc76f817715b337b90386d025522ee528f2",
+  "block_final_sha256": "7b152dcdde497c321e3cf393a88d56b6e26bd706b80d088018a5a832ac61313e",
+  "units": {
+    "kimi-four-v1-b04-formal-controller.service": "MainPID=0\nResult=exit-code\nExecMainStatus=1\nActiveState=failed\nSubState=failed\n",
+    "kimi-four-v1-b04-safetensors_disk_cold-controller.service": "MainPID=0\nResult=exit-code\nExecMainStatus=1\nActiveState=failed\nSubState=failed\n",
+    "kimi-four-v1-b04-safetensors_disk_cold-head-guard.service": "MainPID=0\nResult=exit-code\nExecMainStatus=1\nActiveState=failed\nSubState=failed\n",
+    "kimi-four-v1-b04-safetensors_disk_cold-worker-guard.service": "MainPID=0\nResult=exit-code\nExecMainStatus=1\nActiveState=failed\nSubState=failed\n",
+    "kimi-four-v1-b04-safetensors_disk_cold-observer.service": "MainPID=0\nResult=success\nExecMainStatus=0\nActiveState=active\nSubState=exited\n"
+  },
+  "cids": {
+    "head": {
+      "cid": "88aba99659e0e581320776c01e1190cc93cb0d2fc09dfe1bd304bdf26704db87",
+      "inspect_returncode": 0,
+      "State": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-11-07T01:50:24.818163087Z",
+        "FinishedAt": "2026-11-07T01:56:55.46641523Z"
+      }
+    },
+    "worker": {
+      "cid": "b269b18321839bfe441138f680e4b434a90a8630c9933ec7d72574d6cd563c78",
+      "inspect_returncode": 0,
+      "State": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-11-07T01:50:43.008324874Z",
+        "FinishedAt": "2026-11-07T01:56:55.461746051Z"
+      }
+    }
+  },
+  "gpu_after": "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, 0, 0\nGPU-a3baf382-35c8-8748-626a-f69745aab5f8, 0, 0\nGPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, 0, 0\nGPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, 0, 0\nGPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, 0, 0\nGPU-151684e8-c7ba-a20a-6955-e1f765940536, 0, 0\nGPU-af5f5c7a-0dce-f291-99be-2c844225cec6, 0, 0\nGPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, 0, 0\n",
+  "apps_after": "",
+  "new_cohort": {
+    "launched": 15,
+    "qualified": 14,
+    "failed": 1,
+    "complete_blocks": 3,
+    "last_block_partial_valid_samples": 2,
+    "remaining_not_started": 25
+  },
+  "historical_before_new_cohort": {
+    "launched": 5,
+    "qualified_old": 1,
+    "failed": 4
+  },
+  "limitation": "Original cleanup-result stays NOT_OBSERVED/non-normal. This later reconciliation proves abort cleanup and >=60quiet from raw guard/observer receipts; does not reclassify failure or normal Store exit."
+}

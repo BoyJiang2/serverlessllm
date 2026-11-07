@@ -1,0 +1,40 @@
+{
+  "scope": "CPU-only one exact shard; one existing evict call with built-in mincore; no GPU/model/payload read/retry; not original admission proof",
+  "run_id": "kimi-shard33-cache-evict-diagnostic-20261107-once",
+  "pid": 2841228,
+  "begin_epoch": 1794017466.237046,
+  "result": {
+    "operation": "evict",
+    "files": [
+      {
+        "path": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/model-00033-of-000064.safetensors",
+        "identity": {
+          "dev": 66304,
+          "ino": 8456953192,
+          "size": 9809050936,
+          "mtime_ns": 1793218508418404972,
+          "uid": 2147
+        },
+        "pages": 2394788,
+        "resident_pages": 0,
+        "read_bytes": 0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 2147,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      }
+    ],
+    "pages": 2394788,
+    "resident_pages": 0,
+    "all_cold": true,
+    "all_hot": false,
+    "admitted": true,
+    "scope": "local Linux client page-cache snapshot; NFS server and physical disk uncontrolled",
+    "deadline_semantics": "cooperative checks; external guard required for hard syscall/runtime bound"
+  },
+  "status": "CPU_DIAGNOSTIC_OPERATION_RETURNED_NOT_FORMAL_PASS",
+  "end_epoch": 1794017466.4504244
+}

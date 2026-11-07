@@ -1,0 +1,33 @@
+{
+  "status": "READONLY_TERMINAL_TRACE_LOCKS_CONSTRUCTION_ADMITTED_FALSE_HISTORICAL_FAIL_UNCHANGED",
+  "timestamp_utc": "2026-11-07T02:08:51.155998+00:00",
+  "journal": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-cache-admission-failure-public-20261107/controller-journal-after-terminal.txt",
+    "sha256": "86ad6bf2670d3b80880700d3eb999ced7015e43fa48ded82345db8d9260a821b"
+  },
+  "frozen_actual_command": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_cold-formal-v3-637f9a6c4ab0-command.json",
+    "sha256": "3094f4069355afdf68e9eeb3fcadde863bb9126f263458eb6c2d30346daf2445",
+    "root_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+  },
+  "actual_frame": {
+    "module_line": 525,
+    "construct_cache_line": 333,
+    "source_line": "  healthy();assert result['admitted'] is True;frozen_files()"
+  },
+  "reasoning": [
+    "Terminaljournal originalstack is module525 -> construct_cache333 -> AssertionError, withouthealthy orfrozen_files childframe. Actualline333 evaluateshealthy(), thenassert result[admitted] isTrue, thenfrozen_files().",
+    "Because healthy assertion orpostfrozen assertion wouldaddthatPythonfunction frame, their assertion failures areexcluded by completeprintedstack. Sourcehelper containsnoassert andalreadyreturned forcallerline333; resultconstruction hadcompleted.",
+    "Frozenhelper3340 evict computes admitted from all_cold, itselfresident_pages==0. ActualpurePythonbool outcome mustthereforeFalse withnonzeroresidentpages atthatconstructionquery snapshot. Exactpagecountandaffectedfile werenotsaved beforeoldassert; remainunknown."
+  ],
+  "not_proven": [
+    "Postfailurequery6pages/shard33 islaterstate, notoriginalresult; no attributiontoshard33or6pages atthefailedadmission.",
+    "No causalproofdirtypages/mapping/backgroundreader/kernelbug/cachepolicyinvalidity; existingPIDmaps absence isnotexhaustivecauseproof.",
+    "No admissionthresholdchange, no formalPASS/reclassification/retryauthorization."
+  ],
+  "prior_review_preserved": {
+    "source_diagnostics_review_sha256": "37ceb03ee60c635b79f08e8888f925fd87b1e7cfb25484cfd33ffd869e8b3167",
+    "earlier_statement": "Before terminaljournal export, healthy/postfrozen couldnotbeexcluded. Thisadditivenewtrace narrows thatuncertainty; earlierreceipt/historybytes unchanged."
+  },
+  "scope": "Read smallpublicjournal/frozencommand/helper source only, no cacheoperation/GPU/container/Store/Git/sourcechanges."
+}
