@@ -24,15 +24,27 @@ def frozen_protocol(path, expected_sha):
     protocol = json.loads(data)
     rows = protocol["attempts"]
     ids = [row["attempt_id"] for row in rows]
-    require(len(rows) == 12 and len(set(ids)) == 12, "expected twelve unique frozen IDs")
+    schema = protocol.get("schema", 1)
+    require(type(schema) is int and schema in (1, 2), "unsupported protocol schema")
+    blocks = range(1, 4)
+    if schema == 2:
+        require(protocol.get("campaign") == "v4_4x10_20261107"
+                and type(protocol.get("denominator_per_condition")) is int
+                and protocol.get("denominator_per_condition") == 10,
+                "new campaign requires four conditions times ten")
+        require(all(isinstance(value, str) and value.startswith("v4n40_") for value in ids),
+                "new campaign requires separate IDs")
+        blocks = range(1, 11)
+    count = 4 * len(blocks)
+    require(len(rows) == count and len(set(ids)) == count, "frozen ID count differs")
     conditions = {"safetensors_disk_cold", "safetensors_disk_hot", "store_disk_cold", "store_pool_hit"}
-    require(all(type(row["block"]) is int and row["block"] in (1, 2, 3)
+    require(all(type(row["block"]) is int and row["block"] in blocks
                 and row["condition"] in conditions
                 and isinstance(row["attempt_id"], str)
                 and row["attempt_id"].replace("_", "").isalnum()
                 for row in rows), "invalid frozen attempt")
     require({(r["block"], r["condition"]) for r in rows}
-            == {(b, c) for b in (1, 2, 3) for c in conditions}, "incomplete paired blocks")
+            == {(b, c) for b in blocks for c in conditions}, "incomplete paired blocks")
     require(type(protocol["attempt_timeout_seconds"]) is int
             and protocol["attempt_timeout_seconds"] == 1200, "changed 1200s timeout")
     return rows
