@@ -83,12 +83,12 @@ def store_limits(store):
                 and max(logical,allocated)<=1024**4)
 
 
-def release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose='native-service'):
+def release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose='native-service',delete_ack_ns=None):
     assert set(groups)==set(roles) and workers, 'Missing component cgroup/process binding'
     jobs={role:dict(identity={k:value[k] for k in ('container_id','created','image')},
         baseline_gpu_mib={row[1]:int(row[4]) for row in baseline['rows']},cgroup=str(groups[role]),
         worker_processes=list(workers.values()),boot_id=clock['boot_id'],time_namespace=clock['time_namespace'],
-        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns(),deadline_ns=deadline,purpose=purpose) for role,value in roles.items()}
+        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns() if delete_ack_ns is None else delete_ack_ns,deadline_ns=deadline,purpose=purpose) for role,value in roles.items()}
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures=[executor.submit(collect,jobs[role],base/(role+'-release')) for role in roles]
         errors=[]
@@ -340,7 +340,8 @@ def main():
             assert not row['State']['Running'] and row['State']['Pid']==0
             write_once(base/(role+'-final.json'),row)
             (base/(role+'-container.log')).write_text(call('docker','logs',roles[role]['container_id'],timeout=10))
-        release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose)
+        release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose,
+            delete_ack_ns=ACTIVE_JOURNAL.record.get('delete_complete_ns') if ACTIVE_JOURNAL else None)
         codes={role:guard.wait(timeout=5) for role,guard in guards.items()}
         assert all(row['State']['ExitCode']==0 for row in finals.values()) and all(code==0 for code in codes.values())
         assert model_inventory(MODEL)==initial and (output/'head-candidate.json').exists()
@@ -373,7 +374,8 @@ def main():
                 failure[role+'-cleanup-error']=repr(cleanup_error)
         if roles and set(groups)==set(roles) and workers and not any((base/(role+'-release')).exists() for role in roles):
             try:
-                release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose)
+                release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose,
+            delete_ack_ns=ACTIVE_JOURNAL.record.get('delete_complete_ns') if ACTIVE_JOURNAL else None)
                 failure['release_observation_passed']=True
             except BaseException as release_error:failure['release_error']=repr(release_error)
         if roles and (base/'launch.json').exists() and not failure.get('release_observation_passed'):

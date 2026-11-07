@@ -60,12 +60,13 @@ class ServiceControllerContracts(unittest.TestCase):
                 def collect(job,path):
                     self.assertEqual(job['worker_processes'],list(workers.values()))
                     self.assertEqual(len(job['baseline_gpu_mib']),8)
+                    self.assertEqual(job['delete_ack_ns'],123)
                     if fail and path.name=='head-release':raise ValueError('CPU sibling failure')
                 with mock.patch.object(service,'collect',side_effect=collect) as observe:
                     if fail:
                         with self.assertRaisesRegex(ValueError,'CPU sibling failure'):
-                            service.release_roles(Path(directory),roles,groups,workers,baseline,clock,1,10**30)
-                    else:service.release_roles(Path(directory),roles,groups,workers,baseline,clock,1,10**30)
+                            service.release_roles(Path(directory),roles,groups,workers,baseline,clock,1,10**30,delete_ack_ns=123)
+                    else:service.release_roles(Path(directory),roles,groups,workers,baseline,clock,1,10**30,delete_ack_ns=123)
                     self.assertEqual(observe.call_count,2)
 
     def test_process_reuse_cannot_count_as_the_original_model_process(self):
