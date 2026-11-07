@@ -219,6 +219,7 @@ def main():
                 '--workdir','/workspace',
                 '--ulimit','memlock=-1:-1','--ulimit','core=0:0','--label','sllm.v4.guard='+purpose,
                 '--tmpfs','/tmp:rw,exec,nosuid,size=16g,mode=1777','--entrypoint','/opt/sllm-v4/bin/python']
+            if role=='worker' and trial:command+=['--cap-add','FOWNER','--cap-add','DAC_READ_SEARCH']
             if role=='worker':command+=['--gpus','"device='+','.join(row[1] for row in baseline['rows'])+'"']
             env=['CUDA_VISIBLE_DEVICES=' + ('' if role=='head' else '0,1,2,3,4,5,6,7'),
                  'LD_LIBRARY_PATH='+('/usr/local/cuda/compat:/usr/local/cuda/lib64' if role=='head' else '/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64'),

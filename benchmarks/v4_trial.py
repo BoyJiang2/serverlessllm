@@ -5,6 +5,9 @@ import gzip
 import hashlib
 import json
 import os
+import subprocess
+import shutil
+import tarfile
 from pathlib import Path
 import time
 import urllib.error
@@ -14,7 +17,7 @@ from sllm_store.event_trace import process_identity, read_event_window
 from sllm_store.v4_state import write_once
 from v4_cache_state import run_cache
 from v4_evidence import cache_scan_checks, cache_timing_checks, require, validate_business_event_order
-from v4_native_service import validate_response
+from v4_native_service import validate_response, wait_file
 from v4_native_reference import inputs
 from v4_attempts import frozen_protocol
 
@@ -97,12 +100,12 @@ def target_registration(grouped, condition):
     return config
 
 
-def cache_on_worker(spec, deadline):
+def cache_on_worker(spec, deadline, output=Path('/output')):
     inventory = checked_json('/control/cache-inventory.json', spec['cache_inventory_sha256'])
     target, mode = CONDITIONS[spec['condition']]
     other = 'store_inputs' if target == 'safetensors_inputs' else 'safetensors_inputs'
     for kind, operation, directory in ((other, 'check', 'cache-other'), (target, mode, 'cache-target')):
-        run_cache(inventory[kind], kind, operation, Path('/output') / directory, deadline, spec['run_id'])
+        run_cache(inventory[kind], kind, operation, output / directory, deadline, spec['run_id'])
     return dict(complete_ns=time.monotonic_ns(), target_kind=target, counterpart_kind=other)
 
 
@@ -121,8 +124,9 @@ async def prepare_service_trial(controller, grouped, preparation, deadline, addr
         require(await asyncio.wait_for(manager.load_to_host.remote('v4', grouped['model']), time_left(deadline)),
                 'full Store pool preparation failed')
         state.update(pool_fill_begin_ns=fill_begin, pool_fill_complete_ns=time.monotonic_ns())
-    worker = ray.remote(num_cpus=1, resources={'worker_id_v4': .01})(cache_on_worker)
-    state['cache_worker'] = await asyncio.wait_for(worker.remote(spec, deadline - 180_000_000_000), time_left(deadline))
+    write_once(Path('/output/trial-cache-request.json'), dict(run_id=spec['run_id'],
+        condition=spec['condition'], deadline_ns=deadline - 180_000_000_000))
+    state['cache_worker'] = await wait_file('trial-cache-complete.json', deadline)
     if spec['condition'] == 'store_pool_hit':
         state['pool_confirmation_begin_ns'] = time.monotonic_ns()
         # An already loaded cohort performs fresh native confirmations for all496 IDs.
@@ -153,7 +157,7 @@ def post_raw(url, route, payload, path, deadline):
     sent = time.monotonic_ns()
     try:
         try:
-            response = opener.open(request, timeout=min(900, time_left(deadline)))
+            response = opener.open(request, timeout=time_left(deadline))
         except urllib.error.HTTPError as error:
             response = error
         with response:
@@ -197,7 +201,32 @@ def cache_observation(directory, expected):
                for row in summary['files']}
     sizes = {name: row['bytes'] for name, row in expected.items()}
     cache_scan_checks(summary, sizes, vectors)
+    for row in summary['files']:
+        visibility = row['mincore_visibility']
+        require(visibility['user_namespace'] == os.readlink('/proc/self/ns/user')
+                and (visibility['euid'] == visibility['owner_uid']
+                     or int(visibility['cap_effective'], 16) & (1 << 3)),
+                'untrusted mincore visibility receipt')
     return summary, sizes, vectors
+
+
+def unpack_cache_archive(archive, output):
+    with tarfile.open(archive) as bundle:
+        members = bundle.getmembers()
+        require(members and len({member.name for member in members}) == len(members), 'duplicate cache archive entries')
+        for member in members:
+            path = Path(member.name)
+            require(member.isfile() and not path.is_absolute() and '..' not in path.parts
+                    and (path.parts[0] in ('cache-other', 'cache-target') or member.name == 'trial-cache-complete.json'),
+                    'unexpected cache archive entry')
+        for member in members:
+            if member.name == 'trial-cache-complete.json':
+                continue
+            path = output / member.name
+            path.parent.mkdir(exist_ok=True)
+            with bundle.extractfile(member) as source, path.open('xb') as destination:
+                shutil.copyfileobj(source, destination)
+        write_once(output / 'trial-cache-complete.json', json.load(bundle.extractfile('trial-cache-complete.json')))
 
 
 def _drive_trial(base, preparation, journal=None):
@@ -205,6 +234,17 @@ def _drive_trial(base, preparation, journal=None):
     output = base / 'output'
     spec = preparation['trial']
     deadline = preparation['container_deadline_ns'] - 120_000_000_000
+    cache_request = wait_json(output / 'trial-cache-request.json', deadline)
+    require(cache_request['run_id'] == spec['run_id'] and cache_request['condition'] == spec['condition']
+            and cache_request['deadline_ns'] <= deadline - 60_000_000_000, 'cache helper request differs')
+    worker = json.loads((base / 'READY.json').read_bytes())['roles']['worker']['container_id']
+    archive = output / 'trial-cache-helper.tar'
+    with archive.open('xb') as stream, (output / 'trial-cache-helper.log').open('x') as log:
+        subprocess.run(['docker', 'exec', '--user', '0:0', '--env', 'CUDA_VISIBLE_DEVICES=',
+            '--env', 'PYTHONDONTWRITEBYTECODE=1', worker, '/opt/sllm-v4/bin/python',
+            '/workspace/benchmarks/v4_trial.py', '--cache-only'], stdout=stream, stderr=log,
+            check=True, timeout=time_left(cache_request['deadline_ns']))
+    unpack_cache_archive(archive, output)
     ready = wait_json(output / 'trial-service-ready.json', deadline)
     wait_json(output / 'store-pre-model-baseline-checked.json', deadline)
     inventory = checked_json(base / 'cache-inventory.json', spec['cache_inventory_sha256'])
@@ -311,3 +351,27 @@ def drive_trial(base, preparation, journal=None):
         if journal and journal.stage != 'result':
             journal.fail(error)
         raise error
+
+
+if __name__ == '__main__':
+    import sys
+    require(sys.argv[1:] == ['--cache-only'], 'cache helper only')
+    from v4_cache_state import mincore_identity
+    sampler = mincore_identity()
+    require(sampler['euid'] == 0 and int(sampler['cap_effective'], 16) == ((1 << 3) | (1 << 2)),
+            'cache helper requires root with only CAP_FOWNER and CAP_DAC_READ_SEARCH')
+    preparation = json.loads(Path('/control/preparation.json').read_bytes())
+    request = json.loads(Path('/output/trial-cache-request.json').read_bytes())
+    spec = preparation['trial']
+    require(request['run_id'] == spec['run_id'] and request['condition'] == spec['condition'],
+            'cache helper identity differs')
+    output = Path('/tmp/v4-cache-helper')
+    output.mkdir(exist_ok=False)
+    try:
+        complete = cache_on_worker(spec, request['deadline_ns'], output)
+        write_once(output / 'trial-cache-complete.json', dict(complete, sampler=sampler))
+    finally:
+        with tarfile.open(fileobj=sys.stdout.buffer, mode='w|') as bundle:
+            for path in sorted(output.rglob('*')):
+                if path.is_file():
+                    bundle.add(path, arcname=str(path.relative_to(output)), recursive=False)

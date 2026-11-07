@@ -6,6 +6,9 @@ import gzip
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import io
+import tarfile
+import os
 from pathlib import Path
 import tempfile
 import threading
@@ -61,6 +64,21 @@ class TrialContracts(unittest.TestCase):
         finally:
             server.shutdown();server.server_close();thread.join(timeout=2)
 
+    def test_root_sampler_archive_is_bounded_and_never_overwrites_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);archive=root/'cache.tar';output=root/'output';output.mkdir()
+            def make(entries):
+                with tarfile.open(archive,'w') as bundle:
+                    for name,data in entries:
+                        member=tarfile.TarInfo(name);member.size=len(data);bundle.addfile(member,io.BytesIO(data))
+            make([('cache-target/summary.json',b'{}'),('trial-cache-complete.json',b'{"sampler":{}}')])
+            trial.unpack_cache_archive(archive,output)
+            self.assertEqual(json.loads((output/'trial-cache-complete.json').read_bytes()),{'sampler':{}})
+            with self.assertRaises(FileExistsError):trial.unpack_cache_archive(archive,output)
+            make([('../outside',b'bad')])
+            with self.assertRaisesRegex(ValueError,'unexpected cache archive'):trial.unpack_cache_archive(archive,output)
+            self.assertFalse((root/'outside').exists())
+
     def test_pool_fill_and_fresh_confirmation_surround_cache_scan_in_order(self):
         order=[]
         async def load(*args):order.append('confirm');return True
@@ -76,9 +94,9 @@ class TrialContracts(unittest.TestCase):
                                  available_resources=lambda:{'GPU':8})
         controller=types.SimpleNamespace(register=types.SimpleNamespace(remote=mock.AsyncMock()),
                                          delete=types.SimpleNamespace(remote=mock.AsyncMock()))
-        with mock.patch.dict('sys.modules',ray=ray),mock.patch.object(trial,'write_once') as write:
+        with mock.patch.dict('sys.modules',ray=ray),mock.patch.object(trial,'wait_file',side_effect=cache),mock.patch.object(trial,'write_once') as write:
             asyncio.run(trial.prepare_service_trial(controller,{'model':model},
-                {'trial':{'condition':'store_pool_hit'}},time.monotonic_ns()+600_000_000_000,'192.0.2.1'))
+                {'trial':{'condition':'store_pool_hit','run_id':'cpu-pool'}},time.monotonic_ns()+600_000_000_000,'192.0.2.1'))
             self.assertEqual(order,['confirm','cache','confirm'])
             self.assertTrue(write.call_args.args[1]['pool_confirmed'])
             controller.delete.remote.assert_awaited_once_with(model)
@@ -89,7 +107,8 @@ class TrialContracts(unittest.TestCase):
             opener=types.SimpleNamespace(open=mock.Mock(side_effect=urllib.error.URLError(TimeoutError('CPU timeout'))))
             with mock.patch.object(trial.urllib.request,'build_opener',return_value=opener):
                 with self.assertRaises(TimeoutError):
-                    trial.post_raw('http://192.0.2.1','/fixture',{},root/'raw.json',time.monotonic_ns()+10_000_000_000)
+                    trial.post_raw('http://192.0.2.1','/fixture',{},root/'raw.json',time.monotonic_ns()+1800_000_000_000)
+            self.assertGreater(opener.open.call_args.kwargs['timeout'],1700)
             self.assertIn('CPU timeout',json.loads((root/'raw.json').read_bytes())['transport_error'])
             (root/'trial-abort.json').write_text(json.dumps(dict(error='CPU monitor deadline',is_timeout=True)))
             with self.assertRaises(TimeoutError):trial.wait_json(root/'missing.json',time.monotonic_ns()+10_000_000_000)
@@ -107,11 +126,14 @@ class TrialContracts(unittest.TestCase):
                 for name,kind,mode,begin in [('cache-target','store_inputs','cold',140),
                                               ('cache-other','safetensors_inputs','check',120)]:
                     summary,_,vectors=scan(kind,mode,begin);summary['identity']=identity
+                    for row in summary['files']:row['mincore_visibility']=dict(euid=os.geteuid(),owner_uid=os.geteuid(),cap_effective='0',user_namespace=os.readlink('/proc/self/ns/user'))
                     dest=output/name;dest.mkdir();(dest/'summary.json').write_text(json.dumps(summary))
                     for filename,flags in vectors.items():(dest/filename).write_bytes(gzip.compress(flags))
                 ready=dict(store_validation_complete_ns=110,store_registration_reused=True,
                            address='192.0.2.1',model='cpu-model',registration={'model':'cpu-model'})
                 (output/'store-daemon.log').write_text('CPU fixture prefill precedes startup\n')
+                (base/'READY.json').write_text(json.dumps({'roles':{'worker':{'container_id':'c'*64}}}))
+                (output/'trial-cache-request.json').write_text(json.dumps(dict(run_id='cpu-run',condition='store_disk_cold',deadline_ns=900_000_000_100)))
                 (output/'trial-service-ready.json').write_text(json.dumps(ready))
                 (output/'store-pre-model-baseline-checked.json').write_text('{}')
                 events=case.business_events(journal);source=next(events.glob('*.jsonl'))
@@ -143,8 +165,10 @@ class TrialContracts(unittest.TestCase):
                 preparation=dict(preparation_begin_ns=100,container_deadline_ns=1080_000_000_100,
                     deadline_ns=1200_000_000_100,trial=dict(condition='store_disk_cold',run_id='cpu-run',
                     attempt_timeout_seconds=1200,cache_inventory_sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
-                with mock.patch.object(trial,'post_raw',side_effect=post):
+                with mock.patch.object(trial.subprocess,'run') as helper,mock.patch.object(trial,'unpack_cache_archive'),mock.patch.object(trial,'post_raw',side_effect=post):
                     trial.drive_trial(base,preparation,journal)
+                    self.assertIn('0:0',helper.call_args.args[0])
+                    self.assertIn('CUDA_VISIBLE_DEVICES=',helper.call_args.args[0])
                 self.assertEqual(journal.record['correct_business_response_ns'],200)
                 self.assertEqual(journal.record['delete_complete_ns'],250)
                 self.assertTrue((output/'trial-host-finished.json').exists())

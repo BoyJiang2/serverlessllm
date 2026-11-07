@@ -61,8 +61,24 @@ def prepare_file(path, expected, mode, deadline):
                 begin_ns=begin, complete_ns=time.monotonic_ns())
 
 
+def mincore_identity():
+    caps = next(line.split()[1] for line in Path('/proc/self/status').read_text().splitlines()
+                if line.startswith('CapEff:'))
+    return dict(euid=os.geteuid(), cap_effective=caps,
+                user_namespace=os.readlink('/proc/self/ns/user'))
+
+
+def mincore_visibility(path):
+    identity = mincore_identity()
+    owner = path.stat().st_uid
+    require(identity['euid'] == owner or int(identity['cap_effective'], 16) & (1 << 3),
+            'mincore visibility denied: requires inode owner or effective CAP_FOWNER; all-one vectors are untrusted')
+    return dict(identity, owner_uid=owner)
+
+
 def mincore_file(path, expected):
     """PROT_NONE mapping observes residency without touching the input pages."""
+    mincore_visibility(path)
     libc = ctypes.CDLL(None, use_errno=True)
     libc.mmap.restype = ctypes.c_void_p
     libc.mmap.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int,
@@ -103,6 +119,8 @@ def run_cache(files, kind, mode, output, deadline, run_id):
     try:
         paths = [Path(path) for path in sorted(files)]
         require(all(path.is_absolute() for path in paths), 'absolute input paths required')
+        for path in paths:
+            mincore_visibility(path)
         if mode == 'hot':
             with ThreadPoolExecutor(max_workers=READ_WORKERS) as executor:
                 futures = [executor.submit(prepare_file, path, files[str(path)], mode, deadline) for path in paths]
@@ -122,6 +140,7 @@ def run_cache(files, kind, mode, output, deadline, run_id):
             with (output / name).open('xb') as stream:
                 stream.write(gzip.compress(flags, compresslevel=1, mtime=0))
             rows.append(dict(file=path.name, source_path=str(path), bytes=files[str(path)]['bytes'],
+                mincore_visibility=mincore_visibility(path),
                 page_size=page, pages=len(flags), resident_pages=flags.translate(bytes(x & 1 for x in range(256))).count(b'\x01'),
                 vector=name, vector_sha256=hashlib.sha256(flags).hexdigest()))
         verified = time.monotonic_ns()

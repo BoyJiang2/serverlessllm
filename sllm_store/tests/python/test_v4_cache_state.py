@@ -21,6 +21,17 @@ class CacheStateContracts(unittest.TestCase):
             os.fsync(stream.fileno())
         return path, {str(path): cache.source_stat(path)}
 
+    def test_foreign_inode_without_fowner_rejects_masked_all_one_vectors(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path, files = self.fixture(directory)
+            denied = dict(euid=path.stat().st_uid+1, cap_effective='0000000000000000', user_namespace='cpu')
+            with mock.patch.object(cache,'mincore_identity',return_value=denied):
+                with self.assertRaisesRegex(ValueError,'mincore visibility denied'):
+                    cache.mincore_file(path,files[str(path)])
+            allowed = dict(denied,cap_effective='0000000000000008')
+            with mock.patch.object(cache,'mincore_identity',return_value=allowed):
+                self.assertEqual(cache.mincore_visibility(path)['owner_uid'],path.stat().st_uid)
+
     def test_actual_hot_cold_and_check_vectors_pass_existing_validator(self):
         with tempfile.TemporaryDirectory() as directory:
             path, files = self.fixture(directory)
