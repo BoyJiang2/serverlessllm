@@ -99,6 +99,26 @@ class OneShotControllerTests(unittest.TestCase):
             with mock.patch.object(Path, "read_text", return_value="MemAvailable: " + str(memory//1024) + " kB"):
                 self.assertEqual(ns["store_limits"](directory, "/store")["within_limits"], expected)
 
+    def test_guard_exit_reobserves_stale_running_state_and_rejects_still_running(self):
+        import json
+        index=next(i for i,n in enumerate(BODY) if isinstance(n,ast.With)
+                   and 'telemetry.jsonl' in ast.unparse(n.items[0].context_expr))
+        nodes=BODY[index:index+3]  # Real telemetry loop, fresh inspect and stopped assertion.
+        for running in (False,True):
+            with tempfile.TemporaryDirectory() as directory:
+                states=[dict(State=dict(Pid=123,Running=True)),
+                        dict(State=dict(Pid=123 if running else 0,Running=running))]
+                ns=dict(base=Path(directory),inspected=mock.Mock(side_effect=states),
+                        group=None,capture_group=mock.Mock(),sample_processes=lambda:[],
+                        time=NS(monotonic_ns=lambda:100),gpu_snapshot=lambda:{},STORE=False,
+                        json=json,guard=NS(poll=lambda:0),subprocess=subprocess,origin=0)
+                if running:
+                    with self.assertRaises(AssertionError):
+                        exec(compile(ast.Module(body=nodes,type_ignores=[]),str(SOURCE),'exec'),ns)
+                else:
+                    exec(compile(ast.Module(body=nodes,type_ignores=[]),str(SOURCE),'exec'),ns)
+                self.assertEqual(ns['inspected'].call_count,2)
+
     def test_nvidia_query_timeout_records_unknown_instead_of_aborting_model(self):
         nodes=[n for n in ast.walk(TREE) if isinstance(n,ast.Try)
                and any(isinstance(child,ast.Call) and isinstance(child.func,ast.Name)

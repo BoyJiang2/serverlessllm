@@ -24,6 +24,21 @@ class RawReferenceDiagnostics(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'model.cached'):
             ns['assert_no_raw_references'](value,{'expert':tensor})
 
+    def test_callable_globals_and_modules_are_not_model_state_but_cached_tensors_are(self):
+        tensor=GroupTensor([4],'torch.uint8')
+        loader_module=types.ModuleType('fixture_loader')
+        loader_module._GROUPED_CONTEXTS={'fixture':types.SimpleNamespace(owners={'expert':tensor})}
+        class JITCallable:
+            def __init__(self):
+                self.__globals__={'loader':loader_module,'direct_owner':tensor}
+            def __call__(self):pass
+        kernel=JITCallable()
+        model=types.SimpleNamespace(compressor=types.SimpleNamespace(_fused_kernel=kernel),runtime=loader_module)
+        ns['assert_no_raw_references'](model,{'expert':tensor})
+        kernel.cached_scale=tensor
+        with self.assertRaisesRegex(ValueError,'cached_scale'):
+            ns['assert_no_raw_references'](model,{'expert':tensor})
+
     def test_independent_storage_is_accepted(self):
         ns['assert_no_raw_references'](types.SimpleNamespace(hidden=GroupTensor([4],'torch.uint8')),
                                        {'expert':GroupTensor([4],'torch.uint8')})

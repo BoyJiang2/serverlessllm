@@ -339,13 +339,14 @@ print('GPU_PRECHECK_OK',flush=True)
                 assert sample['store_limits']['within_limits'], 'Store storage or host memory stop threshold crossed'
             if not state['Running']:
                 break
-            assert guard.poll() is None, 'Guard exited while target still running'
+            if guard.poll() is not None:
+                break  # Reinspect below; the sampled running state may already be stale.
             assert time.monotonic_ns() < origin+1100_000_000_000
             time.sleep(2)
     final = inspected()
+    assert final['State']['Pid'] == 0 and not final['State']['Running']
     write_once(base/'container-final.json', final)
     write_once(base/'container-logs.json', dict(text=call('docker','logs',cid,timeout=10)))
-    assert final['State']['Pid'] == 0 and not final['State']['Running']
     assert group and workers, 'Missing pre-exit process/cgroup identity'
     job = dict(identity=identity, baseline_gpu_mib=baseline, cgroup=str(group),
         worker_processes=list(workers.values()), boot_id=clock['boot_id'],time_namespace=clock['time_namespace'],

@@ -418,15 +418,17 @@ def assert_no_raw_references(model, loaded):
                                 (path + "[" + label + "]", item)))
         elif isinstance(value, (list, tuple, set)):
             pending.extend((f"{path}[{index}]", item) for index, item in enumerate(value))
-        elif not isinstance(value, (types.FunctionType, types.MethodType, type)):
+        elif not isinstance(value, (types.FunctionType, types.MethodType, types.ModuleType, type)):
             if hasattr(value, "__dict__"):
-                pending.extend((path + "." + name, item) for name, item in vars(value).items())
+                pending.extend((path + "." + name, item) for name, item in vars(value).items()
+                               if not (callable(value) and name in ("__globals__", "__builtins__")))
             for cls in type(value).__mro__:
                 slots = vars(cls).get("__slots__", ())
                 if isinstance(slots, str):
                     slots = (slots,)
                 for name in slots:
-                    if name not in ("__weakref__", "__dict__") and hasattr(value, name):
+                    if (name not in ("__weakref__", "__dict__") and hasattr(value, name)
+                            and not (callable(value) and name in ("__globals__", "__builtins__"))):
                         pending.append((path + "." + name, getattr(value, name)))
 
 
