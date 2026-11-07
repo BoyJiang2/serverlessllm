@@ -1,0 +1,2346 @@
+diff --git a/sllm/backends/__init__.py b/sllm/backends/__init__.py
+index 91c243c..4f0306b 100644
+--- a/sllm/backends/__init__.py
++++ b/sllm/backends/__init__.py
+@@ -16,7 +16,14 @@
+ #  limitations under the license.                                              #
+ # ---------------------------------------------------------------------------- #
+ from .dummy_backend import DummyBackend
+-from .transformers_backend import TransformersBackend
+ from .vllm_backend import VllmBackend
+ 
+ __all__ = ["DummyBackend", "VllmBackend", "TransformersBackend"]
++
++
++def __getattr__(name):
++    if name == "TransformersBackend":
++        from .transformers_backend import TransformersBackend
++
++        return TransformersBackend
++    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+diff --git a/sllm/backends/vllm_backend.py b/sllm/backends/vllm_backend.py
+index bed58f8..939cce1 100644
+--- a/sllm/backends/vllm_backend.py
++++ b/sllm/backends/vllm_backend.py
+@@ -18,6 +18,7 @@
+ import asyncio
+ import gc
+ import inspect
++import json
+ import logging
+ import os
+ import time
+@@ -36,13 +37,15 @@ from vllm import (
+     SamplingParams,
+ )
+ from vllm.inputs import TokensPrompt
+-from vllm.utils import Counter
++from vllm.utils.counter import Counter
+ 
+ from sllm.backends.backend_utils import (
+     BackendStatus,
+     SllmBackend,
+ )
+ 
++from sllm.logger import get_clock_identity
++
+ logger = logging.getLogger("ray")
+ 
+ 
+@@ -154,6 +157,9 @@ class VllmBackend(SllmBackend):
+         self.request_trace = LLMEngineStatusDict()
+         # if trace_debug is True, request trace will not be deleted after completion
+         self.trace_debug = backend_config.get("trace_debug", False)
++        if self.trace_debug:
++            self._trace_clock_identity = get_clock_identity()
++            self._trace_model_name = model
+         self.enforce_eager = backend_config.get("enforce_eager", False)
+         self.enable_prefix_caching = backend_config.get(
+             "enable_prefix_caching", True
+@@ -188,7 +194,6 @@ class VllmBackend(SllmBackend):
+         filtered_engine_config["enable_prefix_caching"] = (
+             self.enable_prefix_caching
+         )
+-        filtered_engine_config["task"] = self.task
+ 
+         logger.info(
+             f"Creating new VLLM engine with config: {filtered_engine_config}"
+@@ -202,8 +207,24 @@ class VllmBackend(SllmBackend):
+         async with self.status_lock:
+             if self.status != BackendStatus.UNINITIALIZED:
+                 return
++            if self.trace_debug:
++                logger.info(json.dumps({
++                    "event": "backend_init_begin",
++                    "model": self._trace_model_name,
++                    "pid": os.getpid(),
++                    "monotonic_ns": time.monotonic_ns(),
++                    "clock_identity": self._trace_clock_identity,
++                }))
+             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+             self.status = BackendStatus.RUNNING
++            if self.trace_debug:
++                logger.info(json.dumps({
++                    "event": "backend_init_ready",
++                    "model": self._trace_model_name,
++                    "pid": os.getpid(),
++                    "monotonic_ns": time.monotonic_ns(),
++                    "clock_identity": self._trace_clock_identity,
++                }))
+ 
+     async def generate(self, request_data: Dict[str, Any]):
+         async with self.status_lock:
+@@ -251,7 +272,24 @@ class VllmBackend(SllmBackend):
+ 
+         # Non-stream case
+         final_output = None
++        first_token_seen = False
+         async for response_output in results_generator:
++            if self.trace_debug and not first_token_seen and any(
++                output.token_ids for output in response_output.outputs
++            ):
++                logger.info(
++                    json.dumps(
++                        {
++                            "event": "backend_first_token_observed",
++                            "model": model_name,
++                            "clock_identity": self._trace_clock_identity,
++                            "request_id": request_id,
++                            "pid": os.getpid(),
++                            "monotonic_ns": time.monotonic_ns(),
++                        }
++                    )
++                )
++                first_token_seen = True
+             final_output = response_output
+             await self.request_trace.update_status(request_id, response_output)
+ 
+@@ -266,6 +304,8 @@ class VllmBackend(SllmBackend):
+         """Abort all requests and shutdown the backend."""
+         async with self.status_lock:
+             if self.status == BackendStatus.DELETING:
++                if self.engine is not None:
++                    raise RuntimeError("Backend shutdown has not completed")
+                 return
+             self.status = BackendStatus.DELETING
+ 
+@@ -273,8 +313,9 @@ class VllmBackend(SllmBackend):
+         requests = await self.request_trace.return_all_request_ids()
+         tasks = [self.engine.abort(request_id) for request_id in requests]
+         await asyncio.gather(*tasks)
+-        if hasattr(self, "engine"):
+-            del self.engine
++        if self.engine is not None:
++            self.engine.shutdown()
++            self.engine = None
+         gc.collect()
+         if torch.cuda.is_available():
+             torch.cuda.empty_cache()
+diff --git a/sllm/controller.py b/sllm/controller.py
+index 6104456..a09ac2c 100644
+--- a/sllm/controller.py
++++ b/sllm/controller.py
+@@ -167,7 +167,7 @@ class SllmController:
+                 logger.error(f"Model {model_name} already registered")
+                 return
+ 
+-        request_router.start.remote(auto_scaling_config)
++        await request_router.start.remote(auto_scaling_config)
+ 
+         logger.info(f"Model {model_name} registered")
+ 
+@@ -267,12 +267,13 @@ class SllmController:
+                     lora_adapters
+                 )
+                 return
+-            router = self.request_routers.pop(model_name)
+-            self.registered_models.pop(model_name)
++            router = self.request_routers[model_name]
+ 
+-        # if router is not None:
+-        #     deleted_instance_id = await router.shutdown.remote()
+-        del router
++        await router.shutdown.remote()
++        ray.kill(router)
++        async with self.metadata_lock:
++            self.request_routers.pop(model_name)
++            self.registered_models.pop(model_name)
+ 
+     async def get_models(self):
+         async with self.metadata_lock:
+@@ -379,11 +380,8 @@ class SllmController:
+ 
+         # delete all models
+         async with self.metadata_lock:
+-            delete_tasks = [
+-                self._delete(model_name)
+-                for model_name in self.request_routers.keys()
+-            ]
+-            await asyncio.gather(*delete_tasks)
++            model_names = list(self.request_routers)
++        await asyncio.gather(*(self.delete(model_name) for model_name in model_names))
+ 
+     async def _start_ft_job(self, job_id, job_info):
+         await self.ft_job_store.update_status.remote(job_id, "running")
+diff --git a/sllm/logger.py b/sllm/logger.py
+index 61d31aa..fc25ebf 100644
+--- a/sllm/logger.py
++++ b/sllm/logger.py
+@@ -22,6 +22,8 @@
+ import logging
+ import os
+ import sys
++import time
++from pathlib import Path
+ 
+ _FORMAT = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d] %(message)s"
+ _DATE_FORMAT = "%m-%d %H:%M:%S"
+@@ -79,3 +81,21 @@ def init_logger(name: str):
+     logger.propagate = False
+ 
+     return logger
++
++
++def get_clock_identity():
++    identity = {}
++    readers = {
++        "boot_id": lambda: Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
++        "container_hostname": lambda: os.uname().nodename,
++        "process_startticks": lambda: int(Path("/proc/self/stat").read_text().rsplit(")", 1)[1].split()[19]),
++        "time_namespace": lambda: os.readlink("/proc/self/ns/time"),
++        "monotonic_clock_implementation": lambda: time.get_clock_info("monotonic").implementation,
++    }
++    for name, read in readers.items():
++        try:
++            identity[name] = read()
++        except (OSError, ValueError, IndexError) as error:
++            identity[name] = None
++            identity.setdefault("errors", {})[name] = type(error).__name__
++    return identity
+diff --git a/sllm/routers/roundrobin_router.py b/sllm/routers/roundrobin_router.py
+index e32012d..fd223c5 100644
+--- a/sllm/routers/roundrobin_router.py
++++ b/sllm/routers/roundrobin_router.py
+@@ -17,6 +17,9 @@
+ # ---------------------------------------------------------------------------- #
+ import asyncio
+ import logging
++import json
++import os
++import time
+ import uuid
+ from typing import Dict, List, Optional
+ 
+@@ -24,7 +27,7 @@ import ray
+ 
+ from sllm.fine_tuning_instance import start_ft_instance
+ from sllm.inference_instance import start_instance
+-from sllm.logger import init_logger
++from sllm.logger import get_clock_identity, init_logger
+ 
+ from ..utils import InstanceHandle
+ from .router_utils import SllmRouter
+@@ -70,6 +73,9 @@ class RoundRobinRouter(SllmRouter):
+         self.resource_requirements = resource_requirements
+         self.backend = backend
+         self.backend_config = backend_config
++        self.trace_debug = backend_config.get("trace_debug", False)
++        if self.trace_debug:
++            self._trace_clock_identity = get_clock_identity()
+         self.router_config = router_config
+ 
+         self.loop_interval = 1
+@@ -274,6 +280,21 @@ class RoundRobinRouter(SllmRouter):
+     async def shutdown(self):
+         async with self.running_lock:
+             self.running = False
++        tasks = [task for task in (
++            self.auto_scaler, getattr(self, "load_balancer", None))
++            if task is not None]
++        for task in tasks:
++            task.cancel()
++        results = await asyncio.gather(*tasks, return_exceptions=True)
++        for result in results:
++            if isinstance(result, BaseException) and not isinstance(
++                    result, asyncio.CancelledError):
++                raise result
++        async with self.instance_management_lock:
++            if (self.starting_inference_instances
++                    or self.deleting_inference_instances
++                    or self.request_count or not self.request_queue.empty()):
++                raise RuntimeError("Shutdown requires quiescent ready instances")
+         # stop all inference instances
+         # return all unfinished requests
+         while not self.request_queue.empty():
+@@ -460,6 +481,15 @@ class RoundRobinRouter(SllmRouter):
+         async with self.instance_management_lock:
+             self.ready_inference_instances[instance_id] = instance
+             self.starting_inference_instances.pop(instance_id)
++            if self.trace_debug:
++                logger.info(json.dumps({
++                    "event": "router_instance_published",
++                    "model": self.model_name,
++                    "instance_id": instance_id,
++                    "pid": os.getpid(),
++                    "monotonic_ns": time.monotonic_ns(),
++                    "clock_identity": self._trace_clock_identity,
++                }))
+         return instance_id
+ 
+     async def _start_ft_instance(self, instance_id: str):
+@@ -572,7 +602,7 @@ class RoundRobinRouter(SllmRouter):
+             if instance_id not in pool:
+                 logger.error(f"Instance {instance_id} not found")
+                 return
+-            instance = pool.pop(instance_id)
++            instance = pool[instance_id]
+             async with instance.lock:
+                 instance.status = False
+         await instance.backend_instance.shutdown.remote()
+@@ -580,4 +610,6 @@ class RoundRobinRouter(SllmRouter):
+         await self.model_loading_scheduler.deallocate_resource.remote(
+             self.model_name, instance_id, self.resource_requirements
+         )
++        async with self.instance_management_lock:
++            pool.pop(instance_id)
+         return
+diff --git a/sllm_store/csrc/checkpoint/aligned_buffer.cpp b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+index 4b93340..90c9c6e 100644
+--- a/sllm_store/csrc/checkpoint/aligned_buffer.cpp
++++ b/sllm_store/csrc/checkpoint/aligned_buffer.cpp
+@@ -20,12 +20,13 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ 
++#include <cstdlib>
+ #include <cstring>
+ #include <iostream>
+ 
+ AlignedBuffer::AlignedBuffer(const std::string& filename)
+     : fd_(-1), buf_size_(kBufferSize), buf_pos_(0), file_offset_(0) {
+-  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_DIRECT, 0644);
++  fd_ = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_DIRECT, 0644);
+   if (fd_ < 0) {
+     std::cerr << "Failed to open file " << filename << std::endl;
+   }
+@@ -35,7 +36,14 @@ AlignedBuffer::AlignedBuffer(const std::string& filename)
+ AlignedBuffer::~AlignedBuffer() {
+   // if the buffer is not written to file, write it to file
+   if (buffer_ && buf_pos_) {
+-    pwrite(fd_, buffer_, buf_pos_, file_offset_);
++    size_t aligned_size = (buf_pos_ + kAlignment - 1) / kAlignment * kAlignment;
++    memset(static_cast<char*>(buffer_) + buf_pos_, 0, aligned_size - buf_pos_);
++    if (pwrite(fd_, buffer_, aligned_size, file_offset_) != aligned_size ||
++        ftruncate(fd_, file_offset_ + aligned_size) != 0) {
++      std::cerr << "Failed to flush aligned tensor tail, errno: " << errno
++                << std::endl;
++      std::abort();
++    }
+   }
+   if (buffer_) {
+     free(buffer_);
+diff --git a/sllm_store/csrc/checkpoint/checkpoint.cpp b/sllm_store/csrc/checkpoint/checkpoint.cpp
+index 58c3b6b..a8a5dd7 100644
+--- a/sllm_store/csrc/checkpoint/checkpoint.cpp
++++ b/sllm_store/csrc/checkpoint/checkpoint.cpp
+@@ -29,11 +29,13 @@
+ #include <torch/torch.h>
+ #include <unistd.h>
+ 
++#include <algorithm>
+ #include <chrono>
+ #include <filesystem>
+ #include <fstream>
+ #include <future>
+ #include <iostream>
++#include <memory>
+ #include <string>
+ #include <thread>
+ #include <unordered_map>
+@@ -117,7 +119,12 @@ std::unordered_map<std::string, torch::Tensor> RestoreTensors(
+     const std::unordered_map<int, std::unordered_map<std::string, uint64_t>>&
+         tensor_device_offsets) {
+   std::unordered_map<std::string, torch::Tensor> state_dict;
+-  std::unordered_set<void*> handled_memory;
++  // Consume the allocations; every returned storage keeps its base alive.
++  std::unordered_map<void*, std::shared_ptr<void>> memory_owners;
++  for (const auto& [device, base_address] : memory_base_address) {
++    memory_owners.try_emplace(
++        base_address, base_address, [](void* ptr) { cudaFree(ptr); });
++  }
+   for (const auto& [device, tensor_offset] : tensor_device_offsets) {
+     for (const auto& p : tensor_offset) {
+       std::string name = p.first;
+@@ -127,25 +134,18 @@ std::unordered_map<std::string, torch::Tensor> RestoreTensors(
+ 
+         torch::Device tensor_device(torch::kCUDA, device);
+         auto [sizes, strides, type_str] = meta_state_dict.at(name);
++        if (std::find(sizes.begin(), sizes.end(), 0) != sizes.end()) {
++          offset = reinterpret_cast<uint64_t>(base_address);
++        }
+         at::ScalarType dtype = stringToScalarType(type_str);
+         // std::cerr << name << " " << sizes << " " << strides << " " << dtype
+         // << std::endl;
+-        if (p.second == 0 &&
+-            handled_memory.find(base_address) == handled_memory.end()) {
+-          torch::Tensor real_tensor = torch::from_blob(
+-              reinterpret_cast<void*>(offset), c10::makeArrayRef(sizes),
+-              c10::makeArrayRef(strides), [](void* ptr) { cudaFree(ptr); },
+-              torch::TensorOptions().device(tensor_device).dtype(dtype));
+-          state_dict[name] = real_tensor;
+-          handled_memory.insert(base_address);
+-          // std::cerr << "Tensor " << name << " is restored to device " <<
+-          // device << std::endl;
+-        } else {
+-          torch::Tensor real_tensor = torch::from_blob(
+-              reinterpret_cast<void*>(offset), sizes, strides, [](void* ptr) {},
+-              torch::TensorOptions().device(tensor_device).dtype(dtype));
+-          state_dict[name] = real_tensor;
+-        }
++        auto owner = memory_owners.at(base_address);
++        torch::Tensor real_tensor = torch::from_blob(
++            reinterpret_cast<void*>(offset), c10::makeArrayRef(sizes),
++            c10::makeArrayRef(strides), [owner](void* ptr) {},
++            torch::TensorOptions().device(tensor_device).dtype(dtype));
++        state_dict[name] = real_tensor;
+       } else {
+         std::cerr << "Cannot find device " << device << std::endl;
+         exit(1);
+diff --git a/sllm_store/csrc/checkpoint/tensor_writer.cpp b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+index 46eb304..ad84009 100644
+--- a/sllm_store/csrc/checkpoint/tensor_writer.cpp
++++ b/sllm_store/csrc/checkpoint/tensor_writer.cpp
+@@ -26,6 +26,9 @@ TensorWriter::~TensorWriter() {}
+ uint64_t TensorWriter::writeRecord(const char* data, size_t size) {
+   if (partition_idx_ == -1 || partition_size_ + size > kPartitionMaxSize) {
+     // create a new partition
++    if (partition_idx_ != -1) {
++      offset_ += (kAlignment - partition_size_ % kAlignment) % kAlignment;
++    }
+     partition_idx_++;
+     partition_size_ = 0;
+     std::string partition_filename =
+diff --git a/sllm_store/csrc/sllm_store/checkpoint_store.cpp b/sllm_store/csrc/sllm_store/checkpoint_store.cpp
+index a32ae44..2d26492 100644
+--- a/sllm_store/csrc/sllm_store/checkpoint_store.cpp
++++ b/sllm_store/csrc/sllm_store/checkpoint_store.cpp
+@@ -83,7 +83,47 @@ CheckpointStore::CheckpointStore(const std::string& storage_path,
+   LOG(INFO) << "Memory pool created with " << memory_pool_size_ / GB << "GB";
+ }
+ 
+-CheckpointStore::~CheckpointStore() { ClearMem(); }
++// Teardown order matters. Models hand their buffers back to the pool in
++// ClearMem(), and a pending std::async loader may still be reading those very
++// buffers, so both must finish before the pinned pages are unregistered.
++// Releasing the pool first would make every Deallocate() report
++// "Buffer not found in pool" and leave model-held pointers dangling.
++CheckpointStore::~CheckpointStore() {
++  try {
++    ReleaseMemoryPool();
++  } catch (const std::exception& error) {
++    LOG(ERROR) << "CheckpointStore destructor release failed: " << error.what();
++  } catch (...) {
++    LOG(ERROR) << "CheckpointStore destructor release failed: unknown error";
++  }
++}
++
++void CheckpointStore::ReleaseMemoryPool() {
++  DrainAsyncTasks();
++  ClearMem();
++  if (memory_pool_) {
++    memory_pool_->Release();
++  }
++}
++
++void CheckpointStore::DrainAsyncTasks() {
++  // Precondition: the gRPC server has already stopped, so no new task can be
++  // enqueued. Joining first also avoids holding model_info_mutex_ (taken by
++  // ClearMem) while a loader that wants that same mutex is still running.
++  while (!async_tasks_.empty()) {
++    try {
++      int result = async_tasks_.front().get();
++      if (result != 0) {
++        LOG(ERROR) << "Async load task returned " << result;
++      }
++    } catch (const std::exception& error) {
++      LOG(ERROR) << "Async load task failed: " << error.what();
++    } catch (...) {
++      LOG(ERROR) << "Async load task failed: unknown error";
++    }
++    async_tasks_.pop();
++  }
++}
+ 
+ int64_t CheckpointStore::RegisterModelInfo(const std::string& model_path) {
+   std::unique_lock<std::mutex> lock_info(model_info_mutex_);
+diff --git a/sllm_store/csrc/sllm_store/checkpoint_store.h b/sllm_store/csrc/sllm_store/checkpoint_store.h
+index 14a004a..e40ecca 100644
+--- a/sllm_store/csrc/sllm_store/checkpoint_store.h
++++ b/sllm_store/csrc/sllm_store/checkpoint_store.h
+@@ -58,6 +58,8 @@ class CheckpointStore {
+                      const std::string& replica_uuid);
+   int UnloadModelFromHost(const std::string& model_path);
+   int ClearMem();
++  // Release the pinned pool now. Idempotent; the destructor becomes a no-op.
++  void ReleaseMemoryPool();
+ 
+  public:
+   // Get methods
+@@ -91,6 +93,8 @@ class CheckpointStore {
+   std::queue<std::future<int>> async_tasks_;
+ 
+   size_t GetNumChunkFromTensorSize(size_t tensor_size);
++  // Join every pending std::async loader before buffers are released.
++  void DrainAsyncTasks();
+   ModelPtr GetModelPtr(const std::string& model_path);
+   GpuReplicaPtr NewGpuReplica(const std::shared_ptr<Model>& model,
+                               const std::string& replica_uuid);
+diff --git a/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp b/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp
+index 9835e89..d6c1703 100644
+--- a/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp
++++ b/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp
+@@ -67,17 +67,26 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
+           py::arg("model_path"), py::arg("replica_uuid"),
+           py::arg("gpu_memory_handles"), py::arg("mem_copy_chunks"),
+           "Load a model from memory asynchronously.")
++      // WaitModelInGpu blocks on a condition variable until the rank's GPU copy
++      // finishes, which is minutes for a full model. Without releasing the GIL
++      // here, even a worker thread that calls it starves the interpreter, so the
++      // paired asyncio.to_thread() in server.py would not actually unblock the
++      // gRPC event loop. Both halves are required.
+       .def("wait_model_in_gpu", &CheckpointStore::WaitModelInGpu,
+            py::arg("model_path"), py::arg("replica_uuid"),
+-           "Wait for a model to be available in GPU memory.")
++           "Wait for a model to be available in GPU memory.",
++           py::call_guard<py::gil_scoped_release>())
+       .def("unload_model_from_host", &CheckpointStore::UnloadModelFromHost,
+            py::arg("model_path"), "Unload a model from the host memory.")
+       .def("clear_mem", &CheckpointStore::ClearMem,
+            "Clear all allocated memory.")
++      .def("release_memory_pool", &CheckpointStore::ReleaseMemoryPool,
++           "Release the pinned memory pool now, while CUDA is healthy. "
++           "Idempotent; the destructor then has nothing left to do.")
+       .def("get_mem_pool_size", &CheckpointStore::GetMemPoolSize,
+            "Get the memory pool size.")
+       .def("get_chunk_size", &CheckpointStore::GetChunkSize,
+            "Get the chunk size.")
+       .def("__repr__",
+            [](const CheckpointStore& cs) { return "<CheckpointStore>"; });
+-}
+\ No newline at end of file
++}
+diff --git a/sllm_store/csrc/sllm_store/model.cpp b/sllm_store/csrc/sllm_store/model.cpp
+index 2837962..e9e21c6 100644
+--- a/sllm_store/csrc/sllm_store/model.cpp
++++ b/sllm_store/csrc/sllm_store/model.cpp
+@@ -361,19 +361,28 @@ int Model::ToGpu(
+   } else {
+     gpu_replica->state_ = MemoryState::LOADED;
+   }
+-  gpu_replica->cv_.notify_all();
+-
+-  // TODO: move to background thread
++  bool ipc_close_failed = false;
+   for (auto& [device_id, device_ptr_list] : gpu_replica->device_ptrs_) {
+-    cudaSetDevice(device_id);
++    cudaError_t device_err = cudaSetDevice(device_id);
++    if (device_err != cudaSuccess) {
++      LOG(ERROR) << "Failed to select device for IPC close " << device_id
++                 << " error: " << cudaGetErrorString(device_err);
++      ipc_close_failed = true;
++      continue;
++    }
+     for (auto device_ptr : device_ptr_list) {
+       cudaError_t err = cudaIpcCloseMemHandle(device_ptr);
+       if (err != cudaSuccess) {
+         LOG(ERROR) << "Failed to close memory handle for device " << device_id
+                    << " error: " << cudaGetErrorString(err);
++        ipc_close_failed = true;
+       }
+     }
+   }
++  if (ipc_close_failed) {
++    gpu_replica->state_ = MemoryState::INTERRUPTED;
++  }
++  gpu_replica->cv_.notify_all();
+ 
+   if (gpu_replica->state_ == MemoryState::INTERRUPTED) {
+     LOG(ERROR) << "Model " << model_path_ << " replica " << replica_uuid
+diff --git a/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp b/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp
+index 488c7c1..f5d6cde 100644
+--- a/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp
++++ b/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp
+@@ -17,6 +17,8 @@
+ //  ----------------------------------------------------------------------------
+ #include "pinned_memory_pool.h"
+ 
++#include <chrono>
++#include <stdexcept>
+ #include <cuda_runtime.h>
+ #include <glog/logging.h>
+ 
+@@ -46,12 +48,69 @@ PinnedMemoryPool::PinnedMemoryPool(size_t total_size, size_t chunk_size)
+ }
+ 
+ PinnedMemoryPool::~PinnedMemoryPool() {
+-  for (char* buffer : pool_) {
+-    cudaHostUnregister(buffer);
+-    free(buffer);
++  try {
++    Release();
++  } catch (const std::exception& error) {
++    LOG(ERROR) << "PinnedMemoryPool destructor release failed: " << error.what();
++  } catch (...) {
++    LOG(ERROR) << "PinnedMemoryPool destructor release failed: unknown error";
+   }
+ }
+ 
++void PinnedMemoryPool::Release() {
++  std::lock_guard<std::mutex> lock(mutex_);
++  if (released_) {
++    return;
++  }
++  if (free_list_.size() != pool_.size()) {
++    throw std::runtime_error("PinnedMemoryPool release has outstanding borrowers");
++  }
++  LOG(INFO) << "PinnedMemoryPool release begin buffers=" << pool_.size()
++            << " chunk_size=" << chunk_size_;
++  const size_t total = pool_.size();
++  size_t attempted = 0;
++  size_t unregister_failed = 0;
++  cudaError_t last_error = cudaSuccess;
++  auto shutdown_started = std::chrono::steady_clock::now();
++  for (auto it = pool_.begin(); it != pool_.end();) {
++    char* buffer = *it;
++    // Keep ownership of a failed registration; it must not be freed as heap memory.
++    cudaError_t err = cudaHostUnregister(buffer);
++    if (err != cudaSuccess) {
++      ++unregister_failed;
++      if (err != last_error) {
++        LOG(ERROR) << "PinnedMemoryPool cudaHostUnregister failed: "
++                   << cudaGetErrorString(err);
++        last_error = err;
++      }
++      ++it;
++    } else {
++      free(buffer);
++      free_list_.erase(buffer);
++      it = pool_.erase(it);
++    }
++    ++attempted;
++    if (attempted % 64 == 0) {
++      auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
++                            std::chrono::steady_clock::now() - shutdown_started)
++                            .count();
++      LOG(INFO) << "PinnedMemoryPool shutdown progress attempted=" << attempted
++                << " failed=" << unregister_failed << " total=" << total
++                << " elapsed_ms=" << elapsed_ms;
++    }
++  }
++  auto total_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
++                      std::chrono::steady_clock::now() - shutdown_started)
++                      .count();
++  LOG(INFO) << "PinnedMemoryPool release attempts finished attempted=" << attempted
++            << " failed=" << unregister_failed << " elapsed_ms=" << total_ms;
++  if (unregister_failed != 0) {
++    throw std::runtime_error("PinnedMemoryPool cudaHostUnregister failures=" +
++                             std::to_string(unregister_failed));
++  }
++  released_ = true;
++}
++
+ int PinnedMemoryPool::Allocate(size_t size, std::vector<char*>& buffers) {
+   std::lock_guard<std::mutex> lock(mutex_);
+   if (size == 0) {
+diff --git a/sllm_store/csrc/sllm_store/pinned_memory_pool.h b/sllm_store/csrc/sllm_store/pinned_memory_pool.h
+index ea3ce45..ff715cf 100644
+--- a/sllm_store/csrc/sllm_store/pinned_memory_pool.h
++++ b/sllm_store/csrc/sllm_store/pinned_memory_pool.h
+@@ -26,6 +26,10 @@ class PinnedMemoryPool {
+   PinnedMemoryPool(size_t total_size, size_t chunk_size);
+   ~PinnedMemoryPool();
+ 
++  // Idempotent after success. Requires all borrowed buffers to be returned.
++  // Throws on unregister failure and retains ownership of failed buffers.
++  void Release();
++
+   int Allocate(size_t size, std::vector<char*>& buffers);
+   int Deallocate(std::vector<char*>& buffers);
+   size_t chunk_size() const { return chunk_size_; }
+@@ -39,4 +43,5 @@ class PinnedMemoryPool {
+   std::unordered_set<char*> free_list_;
+   std::unordered_set<char*> pool_;
+   size_t chunk_size_;
++  bool released_ = false;
+ };
+\ No newline at end of file
+diff --git a/sllm_store/sllm_store/cli.py b/sllm_store/sllm_store/cli.py
+index 01c4b96..8b9092a 100644
+--- a/sllm_store/sllm_store/cli.py
++++ b/sllm_store/sllm_store/cli.py
+@@ -30,14 +30,12 @@ import click
+ from sllm_store.server import serve
+ from sllm_store.logger import init_logger
+ from sllm_store.utils import to_num_bytes
+-from sllm_store.transformers import save_model, save_lora, load_model, load_lora
+ from transformers import (
+     AutoModelForCausalLM,
+     AutoConfig,
+     AutoTokenizer,
+     BitsAndBytesConfig,
+ )
+-from peft import PeftModel
+ 
+ 
+ def resolve_storage_path(cli_path: Optional[str]) -> str:
+@@ -68,6 +66,8 @@ class VllmModelDownloader:
+         local_model_path: Optional[str] = None,
+         pattern: Optional[str] = None,
+         max_size: Optional[int] = None,
++        trust_remote_code: bool = False,
++        mm_encoder_tp_mode: Optional[str] = None,
+     ):
+         import gc
+         from tempfile import TemporaryDirectory
+@@ -81,6 +81,9 @@ class VllmModelDownloader:
+ 
+         def _run_writer(input_dir, model_name):
+             # load models from the input directory
++            llm_options = {"trust_remote_code": trust_remote_code}
++            if mm_encoder_tp_mode is not None:
++                llm_options["mm_encoder_tp_mode"] = mm_encoder_tp_mode
+             llm_writer = LLM(
+                 model=input_dir,
+                 download_dir=input_dir,
+@@ -89,6 +92,8 @@ class VllmModelDownloader:
+                 num_gpu_blocks_override=1,
+                 enforce_eager=True,
+                 max_model_len=1,
++                max_num_seqs=1,
++                **llm_options,
+             )
+             model_path = os.path.join(storage_path, model_name)
+             model_executer = llm_writer.llm_engine.engine_core  # For engine V1
+@@ -236,6 +241,24 @@ def start(
+     help="Model name from HuggingFace model hub",
+ )
+ @click.option("--backend", type=str, required=True, help="Backend")
++@click.option(
++    "--dtype",
++    type=click.Choice(["auto", "float16", "bfloat16", "float32"]),
++    default="float16",
++    help="Model dtype for the vLLM backend",
++)
++@click.option(
++    "--trust-remote-code",
++    is_flag=True,
++    default=False,
++    help="Trust model code for the vLLM backend",
++)
++@click.option(
++    "--mm-encoder-tp-mode",
++    type=click.Choice(["weights", "data"]),
++    default=None,
++    help="Multimodal encoder TP mode for the vLLM backend",
++)
+ @click.option("--adapter-name", type=str, help="Name of the LoRA adapter")
+ @click.option(
+     "--tensor-parallel-size", type=int, default=1, help="Tensor parallel size"
+@@ -255,6 +278,9 @@ def save(
+     tensor_parallel_size,
+     local_model_path,
+     storage_path,
++    dtype="float16",
++    trust_remote_code=False,
++    mm_encoder_tp_mode=None,
+ ):
+     """
+     Saves a model to the sllm-store's storage.
+@@ -275,13 +301,19 @@ def save(
+             storage_path = os.path.join(storage_path, "vllm")
+             downloader.download_vllm_model(
+                 model_name,
+-                "float16",
++                dtype,
+                 tensor_parallel_size=tensor_parallel_size,
+                 storage_path=storage_path,
+                 local_model_path=local_model_path,
++                trust_remote_code=trust_remote_code,
++                mm_encoder_tp_mode=mm_encoder_tp_mode,
+             )
+         elif backend == "transformers":
++            from sllm_store.transformers import save_model, save_lora
++
+             if adapter_name:
++                from peft import PeftModel
++
+                 config = AutoConfig.from_pretrained(
+                     model_name,
+                     trust_remote_code=True,
+@@ -393,6 +425,8 @@ def load(
+             example_inferences("vllm", model=llm)
+ 
+         elif backend == "transformers":
++            from sllm_store.transformers import load_model, load_lora
++
+             # warm up the GPU
+             num_gpus = torch.cuda.device_count()
+             for i in range(num_gpus):
+diff --git a/sllm_store/sllm_store/client.py b/sllm_store/sllm_store/client.py
+index 8efead6..fb0d3ae 100644
+--- a/sllm_store/sllm_store/client.py
++++ b/sllm_store/sllm_store/client.py
+@@ -126,10 +126,11 @@ class SllmStoreClient:
+         except grpc.RpcError as e:
+             if e.code() == grpc.StatusCode.CANCELLED:
+                 logger.error("Model not loaded")
+-                return False
+             else:
+                 logger.error(f"Error: {e}")
+-                return False
++            raise RuntimeError(
++                f"Model {model_path} replica {replica_uuid} was not confirmed"
++            ) from e
+ 
+     def register_model(self, model_path) -> int:
+         logger.info(f"register_model: {model_path}")
+diff --git a/sllm_store/sllm_store/server.py b/sllm_store/sllm_store/server.py
+index ef80d6b..faa46e0 100644
+--- a/sllm_store/sllm_store/server.py
++++ b/sllm_store/sllm_store/server.py
+@@ -1,4 +1,5 @@
+ import asyncio
++import sys
+ import grpc
+ import sllm_store
+ from sllm_store.proto import storage_pb2, storage_pb2_grpc
+@@ -132,7 +133,14 @@ class StorageServicer(storage_pb2_grpc.StorageServicer):
+             return storage_pb2.ConfirmModelResponse()
+ 
+         for i in range(5):
+-            ret = self.storage.wait_model_in_gpu(model_path, replica_uuid)
++            # WaitModelInGpu blocks until this rank's GPU copy completes, which is
++            # minutes for a full model. This handler runs on the gRPC event loop,
++            # so calling it inline froze every other rank's Load/Confirm RPC for
++            # that whole time and their clients cancelled. Hand the wait to a
++            # worker thread; the binding also releases the GIL for the duration.
++            ret = await asyncio.to_thread(
++                self.storage.wait_model_in_gpu, model_path, replica_uuid
++            )
+             if ret == 0:
+                 logger.info(
+                     f"Confirm model {model_path} replica {replica_uuid} success"
+@@ -216,23 +224,39 @@ async def serve(
+     registration_required,
+ ):
+     server = grpc.aio.server()
+-    storage_pb2_grpc.add_StorageServicer_to_server(
+-        StorageServicer(
+-            storage_path,
+-            mem_pool_size,
+-            num_thread,
+-            chunk_size,
+-            registration_required,
+-        ),
+-        server,
++    servicer = StorageServicer(
++        storage_path,
++        mem_pool_size,
++        num_thread,
++        chunk_size,
++        registration_required,
+     )
++    storage_pb2_grpc.add_StorageServicer_to_server(servicer, server)
+     listen_addr = f"{host}:{port}"
+     server.add_insecure_port(listen_addr)
+     logger.info(f"Starting gRPC server on {listen_addr}")
+     await server.start()
+ 
++    termination_task = asyncio.create_task(server.wait_for_termination())
++    shutdown_complete = False
+     try:
+-        await server.wait_for_termination()
++        await asyncio.shield(termination_task)
++        shutdown_complete = True
+     except (KeyboardInterrupt, asyncio.CancelledError):
+         logger.info("Shutting down gRPC server")
+         await server.stop(5)
++        await termination_task
++        shutdown_complete = True
++    finally:
++        if not termination_task.done():
++            termination_task.cancel()
++        await asyncio.gather(termination_task, return_exceptions=True)
++        # Native release requires that gRPC has stopped accepting work.
++        if shutdown_complete:
++            shutdown_error = sys.exc_info()[1]
++            try:
++                servicer.storage.release_memory_pool()
++            except Exception as error:
++                logger.error(f"release_memory_pool failed: {error}")
++                if shutdown_error is None:
++                    raise
+diff --git a/sllm_store/sllm_store/torch.py b/sllm_store/sllm_store/torch.py
+index 6b1920d..3598047 100644
+--- a/sllm_store/sllm_store/torch.py
++++ b/sllm_store/sllm_store/torch.py
+@@ -1,162 +1,165 @@
+-# ---------------------------------------------------------------------------- #
+-#  ServerlessLLM                                                               #
+-#  Copyright (c) ServerlessLLM Team 2024                                       #
+-#                                                                              #
+-#  Licensed under the Apache License, Version 2.0 (the "License");             #
+-#  you may not use this file except in compliance with the License.            #
+-#                                                                              #
+-#  You may obtain a copy of the License at                                     #
+-#                                                                              #
+-#                  http://www.apache.org/licenses/LICENSE-2.0                  #
+-#                                                                              #
+-#  Unless required by applicable law or agreed to in writing, software         #
+-#  distributed under the License is distributed on an "AS IS" BASIS,           #
+-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    #
+-#  See the License for the specific language governing permissions and         #
+-#  limitations under the License.                                              #
+-# ---------------------------------------------------------------------------- #
+-import json
+-import os
+-import time
+-import uuid
+-from typing import Dict, Optional, Union
+-
+-import torch
+-
+-# from accelerate.hooks import add_hook_to_module
+-from sllm_store._C import (
+-    allocate_cuda_memory,
+-    get_cuda_memory_handles,
+-    get_device_uuid_map,
+-    restore_tensors,
+-    save_tensors,
+-)
+-from sllm_store.client import SllmStoreClient
+-from sllm_store.device_map_utils import _expand_tensor_name
+-from sllm_store.logger import init_logger
+-from sllm_store.utils import (
+-    calculate_device_memory,
+-    calculate_tensor_device_offsets,
+-)
+-
+-logger = init_logger(__name__)
+-
+-
+-def _get_uuid():
+-    return str(uuid.uuid4())
+-
+-
+-def save_dict(
+-    state_dict: Dict[str, torch.Tensor], model_path: Union[str, os.PathLike]
+-):
+-    tensor_names = list(state_dict.keys())
+-    tensor_data_index = {}
+-    for name, param in state_dict.items():
+-        param_storage = param.untyped_storage()
+-        data_ptr = param_storage.data_ptr()
+-        size = param_storage.size()
+-        tensor_data_index[name] = (data_ptr, size)
+-
+-    if not os.path.exists(model_path):
+-        os.makedirs(model_path, exist_ok=True)
+-
+-    # save tensors
+-    tensor_offsets = save_tensors(tensor_names, tensor_data_index, model_path)
+-
+-    # create tensor index
+-    tensor_index = {}
+-    for name, param in state_dict.items():
+-        # name: offset, size
+-        tensor_index[name] = (
+-            tensor_offsets[name],
+-            tensor_data_index[name][1],
+-            tuple(param.shape),
+-            tuple(param.stride()),
+-            str(param.dtype),
+-        )
+-
+-    # save tensor index
+-    with open(os.path.join(model_path, "tensor_index.json"), "w") as f:
+-        json.dump(tensor_index, f)
+-
+-
+-def load_dict(
+-    model_path: Union[str, os.PathLike],
+-    device_map: Dict[str, int],
+-    storage_path: Optional[str] = None,
+-):
+-    replica_uuid, state_dict = load_dict_non_blocking(
+-        model_path, device_map, storage_path
+-    )
+-
+-    client = SllmStoreClient("127.0.0.1:8073")
+-    client.confirm_model_loaded(model_path, replica_uuid)
+-
+-    return state_dict
+-
+-
+-def load_dict_non_blocking(
+-    model_path: Optional[Union[str, os.PathLike]],
+-    device_map: Dict[str, int],
+-    storage_path: Optional[str] = None,
+-):
+-    client = SllmStoreClient("127.0.0.1:8073")
+-    ret = client.load_into_cpu(model_path)
+-    if not ret:
+-        raise ValueError(f"Failed to load model {model_path} into CPU")
+-
+-    if not storage_path:
+-        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
+-    with open(
+-        os.path.join(storage_path, model_path, "tensor_index.json"), "r"
+-    ) as f:
+-        tensor_index = json.load(f)
+-
+-    tensor_meta_index = {}
+-    tensor_data_index = {}
+-    for name, (offset, size, shape, stride, dtype) in tensor_index.items():
+-        tensor_meta_index[name] = (shape, stride, dtype)
+-        tensor_data_index[name] = (offset, size)
+-
+-    start = time.time()
+-    expanded_device_map = _expand_tensor_name(
+-        device_map, list(tensor_index.keys())
+-    )
+-    device_memory = calculate_device_memory(
+-        expanded_device_map, tensor_data_index
+-    )
+-    # logger.debug(f"calculate_device_memory {device_memory}")
+-    cuda_memory_ptrs = allocate_cuda_memory(device_memory)
+-    # cuda_memory_ptrs = { k: [v] for k,v in cuda_memory_ptrs.items()}
+-    cuda_memory_handles = get_cuda_memory_handles(cuda_memory_ptrs)
+-    device_uuid_map = get_device_uuid_map()
+-    # logger.debug(f"determine device_uuid_map {device_uuid_map}")
+-    tensor_device_offsets, tensor_copy_chunks = calculate_tensor_device_offsets(
+-        expanded_device_map, tensor_data_index
+-    )
+-    logger.debug(f"allocate_cuda_memory takes {time.time() - start} seconds")
+-
+-    replica_uuid = _get_uuid()
+-    ret = client.load_into_gpu(
+-        model_path,
+-        replica_uuid,
+-        {
+-            device_uuid_map[device_id]: v
+-            for device_id, v in tensor_copy_chunks.items()
+-        },
+-        {
+-            device_uuid_map[device_id]: [v]
+-            for device_id, v in cuda_memory_handles.items()
+-        },
+-    )
+-    if not ret:
+-        raise ValueError(f"Failed to load model {model_path} into GPU")
+-
+-    # load model state_dict
+-    start = time.time()
+-    state_dict = restore_tensors(
+-        tensor_meta_index, cuda_memory_ptrs, tensor_device_offsets
+-    )
+-    logger.info(f"restore state_dict takes {time.time() - start} seconds")
+-
+-    return replica_uuid, state_dict
++# ---------------------------------------------------------------------------- #
++#  ServerlessLLM                                                               #
++#  Copyright (c) ServerlessLLM Team 2024                                       #
++#                                                                              #
++#  Licensed under the Apache License, Version 2.0 (the "License");             #
++#  you may not use this file except in compliance with the License.            #
++#                                                                              #
++#  You may obtain a copy of the License at                                     #
++#                                                                              #
++#                  http://www.apache.org/licenses/LICENSE-2.0                  #
++#                                                                              #
++#  Unless required by applicable law or agreed to in writing, software         #
++#  distributed under the License is distributed on an "AS IS" BASIS,           #
++#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.    #
++#  See the License for the specific language governing permissions and         #
++#  limitations under the License.                                              #
++# ---------------------------------------------------------------------------- #
++import json
++import os
++import time
++import uuid
++from typing import Dict, Optional, Union
++
++import torch
++
++# from accelerate.hooks import add_hook_to_module
++from sllm_store._C import (
++    allocate_cuda_memory,
++    get_cuda_memory_handles,
++    get_device_uuid_map,
++    restore_tensors,
++    save_tensors,
++)
++from sllm_store.client import SllmStoreClient
++from sllm_store.device_map_utils import _expand_tensor_name
++from sllm_store.logger import init_logger
++from sllm_store.utils import (
++    calculate_device_memory,
++    calculate_tensor_device_offsets,
++)
++
++logger = init_logger(__name__)
++
++
++def _get_uuid():
++    return str(uuid.uuid4())
++
++
++def save_dict(
++    state_dict: Dict[str, torch.Tensor], model_path: Union[str, os.PathLike]
++):
++    tensor_names = list(state_dict.keys())
++    tensor_data_index = {}
++    for name, param in state_dict.items():
++        param_storage = param.untyped_storage()
++        data_ptr = param_storage.data_ptr()
++        size = param_storage.size()
++        tensor_data_index[name] = (data_ptr, size)
++
++    if not os.path.exists(model_path):
++        os.makedirs(model_path, exist_ok=True)
++
++    # save tensors
++    tensor_offsets = save_tensors(tensor_names, tensor_data_index, model_path)
++
++    # create tensor index
++    tensor_index = {}
++    for name, param in state_dict.items():
++        # name: offset, size
++        tensor_index[name] = (
++            tensor_offsets[name],
++            tensor_data_index[name][1],
++            tuple(param.shape),
++            tuple(param.stride()),
++            str(param.dtype),
++        )
++
++    # save tensor index
++    with open(os.path.join(model_path, "tensor_index.json"), "w") as f:
++        json.dump(tensor_index, f)
++
++
++def load_dict(
++    model_path: Union[str, os.PathLike],
++    device_map: Dict[str, int],
++    storage_path: Optional[str] = None,
++):
++    _, state_dict = load_dict_non_blocking(
++        model_path, device_map, storage_path, _confirm_before_restore=True
++    )
++
++    return state_dict
++
++
++def load_dict_non_blocking(
++    model_path: Optional[Union[str, os.PathLike]],
++    device_map: Dict[str, int],
++    storage_path: Optional[str] = None,
++    *,
++    _confirm_before_restore: bool = False,
++):
++    client = SllmStoreClient("127.0.0.1:8073")
++    ret = client.load_into_cpu(model_path)
++    if not ret:
++        raise ValueError(f"Failed to load model {model_path} into CPU")
++
++    if not storage_path:
++        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
++    with open(
++        os.path.join(storage_path, model_path, "tensor_index.json"), "r"
++    ) as f:
++        tensor_index = json.load(f)
++
++    tensor_meta_index = {}
++    tensor_data_index = {}
++    for name, (offset, size, shape, stride, dtype) in tensor_index.items():
++        tensor_meta_index[name] = (shape, stride, dtype)
++        tensor_data_index[name] = (offset, size)
++
++    start = time.time()
++    expanded_device_map = _expand_tensor_name(
++        device_map, list(tensor_index.keys())
++    )
++    device_memory = calculate_device_memory(
++        expanded_device_map, tensor_data_index
++    )
++    # logger.debug(f"calculate_device_memory {device_memory}")
++    cuda_memory_ptrs = allocate_cuda_memory(device_memory)
++    # cuda_memory_ptrs = { k: [v] for k,v in cuda_memory_ptrs.items()}
++    cuda_memory_handles = get_cuda_memory_handles(cuda_memory_ptrs)
++    device_uuid_map = get_device_uuid_map()
++    # logger.debug(f"determine device_uuid_map {device_uuid_map}")
++    tensor_device_offsets, tensor_copy_chunks = calculate_tensor_device_offsets(
++        expanded_device_map, tensor_data_index
++    )
++    logger.debug(f"allocate_cuda_memory takes {time.time() - start} seconds")
++
++    replica_uuid = _get_uuid()
++    ret = client.load_into_gpu(
++        model_path,
++        replica_uuid,
++        {
++            device_uuid_map[device_id]: v
++            for device_id, v in tensor_copy_chunks.items()
++        },
++        {
++            device_uuid_map[device_id]: [v]
++            for device_id, v in cuda_memory_handles.items()
++        },
++    )
++    if not ret:
++        raise ValueError(f"Failed to load model {model_path} into GPU")
++
++    if _confirm_before_restore:
++        # Blocking callers establish copy completion and IPC close before ownership.
++        client.confirm_model_loaded(model_path, replica_uuid)
++
++    # load model state_dict
++    start = time.time()
++    state_dict = restore_tensors(
++        tensor_meta_index, cuda_memory_ptrs, tensor_device_offsets
++    )
++    logger.info(f"restore state_dict takes {time.time() - start} seconds")
++
++    return replica_uuid, state_dict
+diff --git a/sllm_store/vllm_patch/patch.sh b/sllm_store/vllm_patch/patch.sh
+index c3a2166..7f10cc9 100755
+--- a/sllm_store/vllm_patch/patch.sh
++++ b/sllm_store/vllm_patch/patch.sh
+@@ -41,11 +41,14 @@ if [ ! -d "$VLLM_PATH" ]; then
+ fi
+ 
+ # Attempt a dry run of the patch to check if it's already applied
+-if patch -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
++if patch --batch --forward --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch is not applied. Applying the patch now..."
+     # Apply the patch
+-    patch -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
++    patch --batch --forward --fuzz=0 -p2 -d "$VLLM_PATH" < "$PATCH_FILE"
+     echo "Patch applied successfully."
+-else
++elif patch --batch --force -R --fuzz=0 -p2 --dry-run -d "$VLLM_PATH" < "$PATCH_FILE"; then
+     echo "vLLM patch has already been applied. Skipping..."
++else
++    echo "Error: vLLM patch conflicts with this installation; compatibility is unverified." >&2
++    exit 1
+ fi
+\ No newline at end of file
+diff --git a/sllm_store/vllm_patch/sllm_load.patch b/sllm_store/vllm_patch/sllm_load.patch
+index 8bdaef0..d5b6250 100644
+--- a/sllm_store/vllm_patch/sllm_load.patch
++++ b/sllm_store/vllm_patch/sllm_load.patch
+@@ -1,8 +1,7 @@
+ diff --git a/vllm/model_executor/model_loader/__init__.py b/vllm/model_executor/model_loader/__init__.py
+-index 301f2d00b..e3aa40da1 100644
+ --- a/vllm/model_executor/model_loader/__init__.py
+ +++ b/vllm/model_executor/model_loader/__init__.py
+-@@ -18,6 +18,7 @@ from vllm.model_executor.model_loader.runai_streamer_loader import (
++@@ -18,6 +18,7 @@
+  )
+  from vllm.model_executor.model_loader.sharded_state_loader import ShardedStateLoader
+  from vllm.model_executor.model_loader.tensorizer_loader import TensorizerLoader
+@@ -10,7 +9,7 @@ index 301f2d00b..e3aa40da1 100644
+  from vllm.model_executor.model_loader.utils import (
+      get_architecture_class_name,
+      get_model_architecture,
+-@@ -42,6 +43,7 @@ LoadFormats = Literal[
++@@ -44,6 +45,7 @@
+      "safetensors",
+      "sharded_state",
+      "tensorizer",
+@@ -18,7 +17,7 @@ index 301f2d00b..e3aa40da1 100644
+  ]
+  _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
+      "auto": DefaultModelLoader,
+-@@ -57,6 +59,7 @@ _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
++@@ -61,6 +63,7 @@
+      "safetensors": DefaultModelLoader,
+      "sharded_state": ShardedStateLoader,
+      "tensorizer": TensorizerLoader,
+@@ -28,20 +27,20 @@ index 301f2d00b..e3aa40da1 100644
+  
+ diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_executor/model_loader/sllm_loader.py
+ new file mode 100644
+-index 000000000..c65b46989
+ --- /dev/null
+ +++ b/vllm/model_executor/model_loader/sllm_loader.py
+-@@ -0,0 +1,150 @@
++@@ -0,0 +0,169 @@
+ +import torch
+ +from torch import nn
+ +import collections
+ +import os
+ +import gc
+ +from typing import Dict, Optional
+-+from vllm.config import LoadConfig, VllmConfig, ModelConfig
+++from vllm.config import VllmConfig, ModelConfig
+++from vllm.config.load import LoadConfig
+ +from vllm.model_executor.model_loader.base_loader import BaseModelLoader
+ +from vllm.model_executor.model_loader.utils import (
+-+    initialize_model)
+++    initialize_model, process_attention_weights_after_loading)
+ +from vllm.utils.torch_utils import set_default_torch_dtype
+ +
+ +class ServerlessLLMLoader(BaseModelLoader):
+@@ -65,15 +64,17 @@ index 000000000..c65b46989
+ +        memory of another tensor.
+ +        """
+ +        same_storage_groups = collections.defaultdict(list)
+++        result = {}
+ +        for key, tensor in tensors.items():
+-+            if tensor.numel():
+++            if not tensor.numel():
+++                result[key] = tensor
+++            else:
+ +                ptr = tensor.untyped_storage().data_ptr()
+ +                same_storage_groups[tensor.device, ptr].append((key, tensor))
+ +
+ +        def get_end_ptr(tensor: torch.Tensor) -> int:
+ +            return tensor.view(-1)[-1].data_ptr() + tensor.element_size()
+ +
+-+        result = {}
+ +        for group in same_storage_groups.values():
+ +            for k, t in group:
+ +                a, b = t.data_ptr(), get_end_ptr(t)
+@@ -92,15 +93,20 @@ index 000000000..c65b46989
+ +                    result[k] = t
+ +        return result
+ +        
+-+    def load_model(self, *, vllm_config: VllmConfig, **kwargs) -> nn.Module:
+++    def load_model(
+++        self,
+++        vllm_config: VllmConfig,
+++        model_config: ModelConfig,
+++        prefix: str = "",
+++    ) -> nn.Module:
+ +        from sllm_store.torch import load_dict
+ +        from vllm.distributed import get_tensor_model_parallel_rank
+ +        
+-+        assert os.path.isdir(vllm_config.model_config.model)
+++        assert os.path.isdir(model_config.model)
+ +        
+ +        rank = get_tensor_model_parallel_rank()
+ +
+-+        local_model_path = vllm_config.model_config.model
+++        local_model_path = model_config.model
+ +        local_model_path = os.path.join(local_model_path, f"rank_{rank}")
+ +
+ +        def remove_prefix(path, prefix):
+@@ -121,37 +127,48 @@ index 000000000..c65b46989
+ +        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
+ +        model_path = remove_prefix(local_model_path, storage_path)
+ +        
+-+        with set_default_torch_dtype(vllm_config.model_config.dtype):
+++        with set_default_torch_dtype(model_config.dtype):
+ +            # with torch.device(device_config.device):
+ +            with torch.device("cpu"):
+-+                model = initialize_model(vllm_config=vllm_config)
+++                model = initialize_model(
+++                    vllm_config=vllm_config,
+++                    model_config=model_config,
+++                    prefix=prefix,
+++                )
+ +                model = model.eval()
+-+            # set all parameters to meta device
+ +            state_dict = self._filter_subtensors(model.state_dict())
+-+            key_list = list(state_dict.keys())
+-+            
+-+            for key, param in model.named_parameters(recurse=True):
+-+                if key in key_list:
+-+                    param.data = torch.empty(1, device="cuda")
+++            key_list = list(state_dict)
+++            bindings = dict(model.named_parameters(
+++                recurse=True, remove_duplicate=False))
+++            bindings.update(model.named_buffers(
+++                recurse=True, remove_duplicate=False))
+++            del state_dict
+++            # Release constructor storage before allocating the restored rank.
+++            for key in key_list:
+++                tensor = bindings[key]
+++                tensor.data = torch.empty(0, dtype=tensor.dtype, device="cpu")
+ +            gc.collect()
+-+            
+++
+ +            device_id = torch.cuda.current_device()
+ +            device_map = {"": device_id}
+ +            # Note: storage path is already included in the local model path
+ +            sllm_state_dict = load_dict(model_path, device_map)
+-+            
+-+            for key, param in model.named_parameters(recurse=True):
+-+                if key in key_list:
+-+                    tensor = sllm_state_dict[key]
+-+                    param.data = tensor
+-+                    state_dict.pop(key)
+-+            if state_dict:
+-+                raise ValueError(
+-+                    f"Missing keys {tuple(state_dict)} in loaded state!")
+-+            
+++
+++            for key in key_list:
+++                bindings[key].data = sllm_state_dict[key]
+++
+ +            for name, buffer in model.named_buffers(recurse=True):
+ +                if buffer.device.type != 'cuda':
+ +                    buffer.data = buffer.data.to(f'cuda:{device_id}')
+++
+++            for module in model.modules():
+++                quant_method = getattr(module, "quant_method", None)
+++                prepare_runtime = getattr(
+++                    quant_method, "prepare_runtime_for_restored_weights", None)
+++                if prepare_runtime is not None:
+++                    prepare_runtime(module)
+++            process_attention_weights_after_loading(
+++                model, model_config, torch.device(f"cuda:{device_id}"))
+ +            
+ +        return model
+ +    
+@@ -183,10 +200,9 @@ index 000000000..c65b46989
+ +            os.makedirs(save_path)
+ +        save_dict(state_dict, save_path)
+ diff --git a/vllm/v1/engine/core.py b/vllm/v1/engine/core.py
+-index d49eb752d..87bca1fc7 100644
+ --- a/vllm/v1/engine/core.py
+ +++ b/vllm/v1/engine/core.py
+-@@ -516,6 +516,17 @@ class EngineCore:
++@@ -725,6 +725,17 @@
+              path=path, pattern=pattern, max_size=max_size
+          )
+  
+@@ -205,10 +221,9 @@ index d49eb752d..87bca1fc7 100644
+          self,
+          method: str | Callable[..., _R],
+ diff --git a/vllm/v1/engine/core_client.py b/vllm/v1/engine/core_client.py
+-index 9b440505b..2ba5934ef 100644
+ --- a/vllm/v1/engine/core_client.py
+ +++ b/vllm/v1/engine/core_client.py
+-@@ -176,6 +176,14 @@ class EngineCoreClient(ABC):
++@@ -190,6 +190,14 @@
+      ) -> None:
+          raise NotImplementedError
+  
+@@ -223,7 +238,7 @@ index 9b440505b..2ba5934ef 100644
+      def collective_rpc(
+          self,
+          method: str | Callable[..., _R],
+-@@ -792,6 +800,14 @@ class SyncMPClient(MPClient):
++@@ -870,6 +878,14 @@
+      ) -> None:
+          self.call_utility("save_sharded_state", path, pattern, max_size)
+  
+@@ -238,10 +253,11 @@ index 9b440505b..2ba5934ef 100644
+  
+  class AsyncMPClient(MPClient):
+      """Asyncio-compatible client for multi-proc EngineCore."""
+-@@ -987,6 +1003,16 @@ class AsyncMPClient(MPClient):
++@@ -1108,6 +1124,16 @@
++         self, path: str, pattern: str | None = None, max_size: int | None = None
+      ) -> None:
+          await self.call_utility_async("save_sharded_state", path, pattern, max_size)
+- 
+++
+ +    async def save_serverless_llm_state_async(
+ +                                        self,
+ +                                        path: str,
+@@ -251,18 +267,18 @@ index 9b440505b..2ba5934ef 100644
+ +        await self.call_utility_async("save_serverless_llm_state", path, pattern, 
+ +                                      max_size)
+ +
+-+
++ 
+      async def collective_rpc_async(
+          self,
+-         method: str | Callable[..., _R],
+ diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
+-index db8303fce..be0c4e034 100644
+ --- a/vllm/v1/executor/abstract.py
+ +++ b/vllm/v1/executor/abstract.py
+-@@ -250,6 +250,18 @@ class Executor(ABC):
++@@ -258,6 +258,18 @@
++         self.collective_rpc(
++             "save_sharded_state",
+              kwargs=dict(path=path, pattern=pattern, max_size=max_size),
+-         )
+- 
+++        )
+++
+ +    def save_serverless_llm_state(
+ +        self,
+ +        path: str,
+@@ -273,19 +289,462 @@ index db8303fce..be0c4e034 100644
+ +        self.collective_rpc(
+ +            "save_serverless_llm_state",
+ +            kwargs=dict(path=path, pattern=pattern, max_size=max_size)
+-+        )
+-+
++         )
++ 
+      @abstractmethod
+-     def check_health(self) -> None:
+-         """Checks if the executor is healthy. If not, it should raise an
+ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
+-index 156294693..153613c93 100644
+ --- a/vllm/v1/worker/gpu_model_runner.py
+ +++ b/vllm/v1/worker/gpu_model_runner.py
+-@@ -3438,6 +3438,20 @@ class GPUModelRunner(
+-             model_config=self.model_config,
+-         )
++@@ -4,6 +4,145 @@
++ import functools
++ import gc
++ import itertools
+++import os
+++
+++def _sllm_diagnostic_value_fingerprint(model, registered, rank, device):
+++    import hashlib
+++    import json
+++    import time
+++
+++    started = time.monotonic()
+++    deadline = started + 600
+++    chunk_bytes = 64 << 20
+++    index_path = "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % rank
+++    result = {
+++        "schema": "kimi-load-boundary-value-fingerprint-v1",
+++        "stage": "before_first_forward", "status": "FAIL",
+++        "chunk_bytes": chunk_bytes, "budget_seconds": 600,
+++        "index_path": index_path, "index_sha256": None,
+++        "persistent": [], "runtime_buffers": [], "aliases": [],
+++        "counts": {"index_keys": 0, "registered_names": len(registered),
+++                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
+++                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
+++        "coverage_complete": False, "error_type": None, "error": None,
+++        "scope": "Diagnostic coverage only, not cross-run equality; before first forward only. Nonregistered native allocations/workspaces and after-request state are not captured.",
+++    }
+++    cache = {}
+++
+++    def check_deadline():
+++        if not time.monotonic() < deadline:
+++            raise TimeoutError("diagnostic fingerprint 600-second budget exhausted")
+++
+++    try:
+++        check_deadline()
+++        assert model is not None, "loaded model unavailable"
+++        with open(index_path, "rb") as stream:
+++            raw = stream.read((1 << 20) + 1)
+++        assert len(raw) <= 1 << 20, "tensor index size cap"
+++        result["index_sha256"] = hashlib.sha256(raw).hexdigest()
+++        index = json.loads(raw)
+++        assert isinstance(index, dict) and index, "missing persistent tensor index"
+++        result["counts"]["index_keys"] = len(index)
+++        bindings = dict(model.named_parameters(remove_duplicate=False))
+++        buffers = dict(model.named_buffers(remove_duplicate=False))
+++        assert not (bindings.keys() & buffers.keys()), "duplicate parameter/buffer name"
+++        bindings.update(buffers)
+++        metadata = {row["name"]: row for row in registered}
+++        assert len(metadata) == len(registered) and set(metadata) == set(bindings), "registered coverage mismatch"
+++        assert set(index) <= set(bindings), "persistent key missing from model"
+++
+++        def range_key(name):
+++            check_deadline()
+++            tensor = bindings[name]
+++            row = metadata[name]
+++            assert tensor.is_contiguous(), "noncontiguous tensor: " + name
+++            assert tensor.device.type == "cuda", "non-CUDA tensor: " + name
+++            assert (str(tensor.dtype), list(tensor.shape), list(tensor.stride()),
+++                    tensor.numel() * tensor.element_size()) == (
+++                        row["dtype"], row["shape"], row["stride"], row["bytes"]), "tensor metadata changed: " + name
+++            if row["bytes"] == 0:
+++                return ("empty", name)
+++            return (str(tensor.device), tensor.untyped_storage().data_ptr(),
+++                    tensor.storage_offset() * tensor.element_size(), row["bytes"],
+++                    row["dtype"], tuple(row["shape"]), tuple(row["stride"]))
+++
+++        persistent_ranges = {}
+++        for name in sorted(index):
+++            check_deadline()
+++            entry = index[name]
+++            assert len(entry) == 5, "invalid tensor index entry"
+++            row = metadata[name]
+++            assert (entry[1], entry[2], entry[3], entry[4]) == (
+++                row["bytes"], row["shape"], row["stride"], row["dtype"]), "persistent metadata mismatch: " + name
+++            key = range_key(name)
+++            if row["bytes"]:
+++                persistent_ranges.setdefault(key, name)
+++
+++        def fingerprint(name):
+++            check_deadline()
+++            row = metadata[name]
+++            key = range_key(name)
+++            value = {"name": name, "kind": row["kind"], "dtype": row["dtype"],
+++                     "shape": row["shape"], "stride": row["stride"],
+++                     "numbytes": row["bytes"]}
+++            if key in cache:
+++                value.update(sha256=cache[key][0], alias_of=cache[key][1])
+++                return value
+++            digest = hashlib.sha256()
+++            if row["bytes"]:
+++                # Contiguity was checked: reshape/view do not clone a full tensor.
+++                byte_view = bindings[name].detach().reshape(-1).view(torch.uint8)
+++                assert byte_view.numel() == row["bytes"], "uint8 view byte count"
+++                assert byte_view.untyped_storage().data_ptr() == bindings[name].untyped_storage().data_ptr(), "byte view cloned tensor storage"
+++                for offset in range(0, row["bytes"], chunk_bytes):
+++                    check_deadline()
+++                    cpu = byte_view[offset:offset + chunk_bytes].cpu()
+++                    try:
+++                        torch.cuda.synchronize(device)
+++                        check_deadline()
+++                        payload = memoryview(cpu.numpy())
+++                        try:
+++                            assert payload.nbytes <= chunk_bytes, "CPU chunk cap"
+++                            digest.update(payload)
+++                            result["counts"]["hashed_bytes"] += payload.nbytes
+++                            result["counts"]["chunks"] += 1
+++                        finally:
+++                            payload.release()
+++                            del payload
+++                    finally:
+++                        del cpu
+++                    check_deadline()
+++                del byte_view
+++            value["sha256"] = digest.hexdigest()
+++            cache[key] = (value["sha256"], name)
+++            return value
+++
+++        for name in sorted(index):
+++            result["persistent"].append(fingerprint(name))
+++        for name in sorted(set(bindings) - set(index)):
+++            key = range_key(name)
+++            if metadata[name]["bytes"] and key in persistent_ranges:
+++                value = fingerprint(name)
+++                value["alias_of"] = persistent_ranges[key]
+++                result["aliases"].append(value)
+++            else:
+++                assert metadata[name]["kind"] == "buffer", "uncovered non-index parameter: " + name
+++                result["runtime_buffers"].append(fingerprint(name))
+++        names = [row["name"] for group in ("persistent", "runtime_buffers", "aliases")
+++                 for row in result[group]]
+++        assert len(names) == len(set(names)) and set(names) == set(bindings), "incomplete fingerprint coverage"
+++        check_deadline()
+++        result.update(status="PASS", coverage_complete=True)
+++    except Exception as error:
+++        result.update(status="TIMEOUT" if isinstance(error, TimeoutError) else "FAIL",
+++                      error_type=type(error).__name__, error=str(error))
+++    finally:
+++        result["elapsed_seconds"] = time.monotonic() - started
+++        for group in ("persistent", "runtime_buffers", "aliases"):
+++            result["counts"][group] = len(result[group])
+++        result["counts"]["unique_hashed_ranges"] = sum(key[0] != "empty" for key in cache)
+++    return result
+++
++ import threading
++ import time
++ from collections import defaultdict
++@@ -4744,67 +4883,240 @@
+  
++         try:
++             with DeviceMemoryProfiler() as m:
++-                time_before_load = time.perf_counter()
++-                if load_dummy_weights:
++-                    self.load_config.load_format = "dummy"
++-                model_loader = get_model_loader(self.load_config)
++-                self.model = model_loader.load_model(
++-                    vllm_config=self.vllm_config, model_config=self.model_config
++-                )
++-                if self.lora_config:
++-                    self.model = self.load_lora_model(
++-                        self.model, self.vllm_config, self.device
+++                load_error = None
+++                try:
+++                    time_before_load = time.perf_counter()
+++                    if load_dummy_weights:
+++                        self.load_config.load_format = "dummy"
+++                    model_loader = get_model_loader(self.load_config)
+++                    self.model = model_loader.load_model(
+++                        vllm_config=self.vllm_config, model_config=self.model_config
++                     )
++-                if hasattr(self, "drafter"):
++-                    logger.info_once("Loading drafter model...")
++-                    self.drafter.load_model(self.model)
++-                    if (
++-                        hasattr(self.drafter, "model")
++-                        and is_mixture_of_experts(self.drafter.model)
++-                        and self.parallel_config.enable_eplb
++-                    ):
++-                        assert not self.parallel_config.enable_elastic_ep, (
++-                            "Elastic EP is not supported with drafter model."
+++                    if self.lora_config:
+++                        self.model = self.load_lora_model(
+++                            self.model, self.vllm_config, self.device
++                         )
++-                        spec_config = self.vllm_config.speculative_config
++-                        assert spec_config is not None
++-                        assert spec_config.draft_model_config is not None
++-                        logger.info_once(
++-                            "EPLB is enabled for drafter model %s.",
++-                            spec_config.draft_model_config.model,
++-                        )
++-                        if self.eplb_state is None:
++-                            self.eplb_state = EplbState(
++-                                self.parallel_config, self.device
+++                    if hasattr(self, "drafter"):
+++                        logger.info_once("Loading drafter model...")
+++                        self.drafter.load_model(self.model)
+++                        if (
+++                            hasattr(self.drafter, "model")
+++                            and is_mixture_of_experts(self.drafter.model)
+++                            and self.parallel_config.enable_eplb
+++                        ):
+++                            assert not self.parallel_config.enable_elastic_ep, (
+++                                "Elastic EP is not supported with drafter model."
++                             )
++-                        self.eplb_state.add_model(
++-                            self.drafter.model,
++-                            spec_config.draft_model_config,
++-                        )
++-                        eplb_models += 1
++-
++-                if self.use_aux_hidden_state_outputs:
++-                    if not supports_eagle3(self.get_model()):
++-                        raise RuntimeError(
++-                            "Model does not support EAGLE3 interface but "
++-                            "aux_hidden_state_outputs was requested"
++-                        )
++-
++-                    # Try to get auxiliary layers from speculative config,
++-                    # otherwise use model's default layers
++-                    aux_layers = self._get_eagle3_aux_layers_from_config()
++-                    if aux_layers:
++-                        logger.info(
++-                            "Using auxiliary layers from speculative config: %s",
++-                            aux_layers,
++-                        )
++-                    else:
++-                        aux_layers = (
++-                            self.model.get_eagle3_default_aux_hidden_state_layers()
++-                        )
++-
++-                    self.model.set_aux_hidden_state_layers(aux_layers)
++-                time_after_load = time.perf_counter()
+++                            spec_config = self.vllm_config.speculative_config
+++                            assert spec_config is not None
+++                            assert spec_config.draft_model_config is not None
+++                            logger.info_once(
+++                                "EPLB is enabled for drafter model %s.",
+++                                spec_config.draft_model_config.model,
+++                            )
+++                            if self.eplb_state is None:
+++                                self.eplb_state = EplbState(
+++                                    self.parallel_config, self.device
+++                                )
+++                            self.eplb_state.add_model(
+++                                self.drafter.model,
+++                                spec_config.draft_model_config,
+++                            )
+++                            eplb_models += 1
+++
+++                    if self.use_aux_hidden_state_outputs:
+++                        if not supports_eagle3(self.get_model()):
+++                            raise RuntimeError(
+++                                "Model does not support EAGLE3 interface but "
+++                                "aux_hidden_state_outputs was requested"
+++                            )
+++
+++                        # Try to get auxiliary layers from speculative config,
+++                        # otherwise use model's default layers
+++                        aux_layers = self._get_eagle3_aux_layers_from_config()
+++                        if aux_layers:
+++                            logger.info(
+++                                "Using auxiliary layers from speculative config: %s",
+++                                aux_layers,
+++                            )
+++                        else:
+++                            aux_layers = (
+++                                self.model.get_eagle3_default_aux_hidden_state_layers()
+++                            )
+++
+++                        self.model.set_aux_hidden_state_layers(aux_layers)
+++                    time_after_load = time.perf_counter()
+++                except BaseException as error:
+++                    load_error = error
+++                    raise
+++                finally:
+++                    captured_memory = None
+++                    diagnostic_failure = None
+++                    diagnostic_capture_complete = False
+++                    try:
+++                        if os.environ.get("SLLM_CAPTURE_LOAD_EVIDENCE") == "1":
+++                            import json
+++                            import uuid
+++
+++                            capture_started = time.perf_counter()
+++                            torch.cuda.synchronize(self.device)
+++                            memory = {
+++                                "allocated_bytes": torch.cuda.memory_allocated(self.device),
+++                                "reserved_bytes": torch.cuda.memory_reserved(self.device),
+++                                "peak_allocated_bytes": torch.cuda.max_memory_allocated(self.device),
+++                                "peak_reserved_bytes": torch.cuda.max_memory_reserved(self.device),
+++                            }
+++                            free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
+++                            memory.update(driver_free_bytes=free_bytes, driver_total_bytes=total_bytes)
+++                            captured_memory = memory
+++                            device_uuid = "GPU-" + str(uuid.UUID(
+++                                str(torch.cuda.get_device_properties(self.device).uuid).removeprefix("GPU-")
+++                            ))
+++                            model = getattr(self, "model", None)
+++                            registered = []
+++                            storages = {}
+++                            quant_methods = defaultdict(int)
+++                            kernel_backends = defaultdict(int)
+++                            for _, module in (model.named_modules() if model is not None else ()):
+++                                method = getattr(module, "quant_method", None)
+++                                if method is not None:
+++                                    method_name = type(method).__module__ + "." + type(method).__qualname__
+++                                    quant_methods[method_name] += 1
+++                                    backend = getattr(method, "kernel_backend", None)
+++                                    if backend is not None:
+++                                        kernel_backends[method_name + ":" + str(backend)] += 1
+++                            for kind, tensors in (
+++                                ("parameter", model.named_parameters(remove_duplicate=False) if model is not None else ()),
+++                                ("buffer", model.named_buffers(remove_duplicate=False) if model is not None else ()),
+++                            ):
+++                                for name, tensor in tensors:
+++                                    storage = tensor.untyped_storage()
+++                                    storage_key = (str(tensor.device), storage.data_ptr())
+++                                    if tensor.device.type == "meta" or storage.nbytes() == 0:
+++                                        storage_key = (kind, name)
+++                                    if storage_key not in storages:
+++                                        storages[storage_key] = {
+++                                            "storage_id": len(storages), "device": str(tensor.device),
+++                                            "bytes": storage.nbytes(), "names": [],
+++                                        }
+++                                    owner = storages[storage_key]
+++                                    owner["names"].append(kind + ":" + name)
+++                                    registered.append({
+++                                        "kind": kind, "name": name, "device": str(tensor.device),
+++                                        "shape": list(tensor.shape), "stride": list(tensor.stride()),
+++                                        "dtype": str(tensor.dtype),
+++                                        "bytes": tensor.numel() * tensor.element_size(),
+++                                        "storage_id": owner["storage_id"],
+++                                        "storage_offset": tensor.storage_offset(),
+++                                    })
+++                            record = {
+++                                "event": "SLLM_LOAD_EVIDENCE", "pid": os.getpid(),
+++                                "tp_rank": get_tp_group().rank_in_group, "device": str(self.device),
+++                                "device_uuid": device_uuid,
+++                                "phase": "load_boundary_before_profiler_exit_reset",
+++                                "load_completed": load_error is None,
+++                                "load_error_type": None if load_error is None else type(load_error).__name__,
+++                                "registered_model_available": model is not None,
+++                                "memory": memory, "quant_method_counts": dict(quant_methods) if model is not None else None,
+++                                "kernel_backend_counts": dict(kernel_backends) if model is not None else None,
+++                                "registered_tensors": registered if model is not None else None,
+++                                "registered_storages": list(storages.values()) if model is not None else None,
+++                                "unique_registered_storage_bytes": sum(x["bytes"] for x in storages.values()) if model is not None else None,
+++                                "empty_g_idx_keys": [x["name"] for x in registered
+++                                                     if "g_idx" in x["name"] and x["bytes"] == 0] if model is not None else None,
+++                                "capture_seconds": time.perf_counter() - capture_started,
+++                                "synchronized": True,
+++                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
+++                            }
+++                            if os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
+++                                if load_error is not None:
+++                                    record["diagnostic_value_fingerprint"] = {
+++                                        "schema": "kimi-load-boundary-value-fingerprint-v1",
+++                                        "stage": "before_first_forward", "status": "SKIPPED_LOAD_ERROR",
+++                                        "index_path": "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % record["tp_rank"],
+++                                        "index_sha256": None, "persistent": [], "runtime_buffers": [], "aliases": [],
+++                                        "counts": {"index_keys": 0, "registered_names": len(registered),
+++                                                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
+++                                                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
+++                                        "elapsed_seconds": 0,
+++                                        "coverage_complete": False, "error_type": type(load_error).__name__,
+++                                        "error": str(load_error), "chunk_bytes": 64 << 20, "budget_seconds": 600,
+++                                    }
+++                                else:
+++                                    fingerprint = _sllm_diagnostic_value_fingerprint(
+++                                        model, registered, record["tp_rank"], self.device)
+++                                    record["diagnostic_value_fingerprint"] = fingerprint
+++                                    if fingerprint["status"] != "PASS":
+++                                        error_cls = TimeoutError if fingerprint["status"] == "TIMEOUT" else RuntimeError
+++                                        diagnostic_failure = error_cls("Diagnostic value fingerprint failed: " + str(fingerprint["error"]))
+++                            serialized = json.dumps(record, sort_keys=True)
+++                            evidence_dir = os.environ.get("SLLM_LOAD_EVIDENCE_DIR")
+++                            if evidence_dir:
+++                                import stat
+++                                assert os.path.isabs(evidence_dir)
+++                                payload = serialized.encode("utf-8")
+++                                directory = os.open(evidence_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+++                                filename = "rank-%d-pid-%d.json" % (record["tp_rank"], record["pid"])
+++                                temporary = "." + filename + ".partial"
+++                                temporary_created = published = False
+++                                write_error = None
+++                                try:
+++                                    info = os.fstat(directory)
+++                                    assert info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700
+++                                    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory)
+++                                    temporary_created = True
+++                                    with os.fdopen(fd, "wb") as stream:
+++                                        stream.write(payload)
+++                                        stream.flush()
+++                                        os.fsync(stream.fileno())
+++                                    os.link(temporary, filename, src_dir_fd=directory, dst_dir_fd=directory, follow_symlinks=False)
+++                                    published = True
+++                                    os.fsync(directory)
+++                                except BaseException as error:
+++                                    write_error = error
+++                                    if published:
+++                                        try:
+++                                            os.unlink(filename, dir_fd=directory)
+++                                        except OSError:
+++                                            pass
+++                                    raise
+++                                finally:
+++                                    try:
+++                                        try:
+++                                            if temporary_created:
+++                                                os.unlink(temporary, dir_fd=directory)
+++                                        finally:
+++                                            os.close(directory)
+++                                    except OSError:
+++                                        if write_error is None:
+++                                            raise
+++                                logger.info("SLLM_LOAD_EVIDENCE_FILE %s", json.dumps({
+++                                    "event": "SLLM_LOAD_EVIDENCE_FILE", "tp_rank": record["tp_rank"],
+++                                    "pid": record["pid"], "device_uuid": record["device_uuid"],
+++                                    "filename": filename, "bytes": len(payload),
+++                                    "load_completed": record["load_completed"],
+++                                }, sort_keys=True))
+++                            else:
+++                                logger.info("SLLM_LOAD_EVIDENCE %s", serialized)
+++                            diagnostic_capture_complete = True
+++                    except BaseException as evidence_error:
+++                        diagnostic_failure = evidence_error
+++                        try:
+++                            logger.warning("SLLM_LOAD_EVIDENCE_MISSING %s", json.dumps({
+++                                "event": "SLLM_LOAD_EVIDENCE_MISSING",
+++                                "load_completed": load_error is None,
+++                                "capture_error_type": type(evidence_error).__name__,
+++                                "memory": captured_memory,
+++                            }, sort_keys=True))
+++                        except BaseException:
+++                            pass
+++                        if load_error is None and not isinstance(evidence_error, Exception):
+++                            raise
+++                    if load_error is None and os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
+++                        if diagnostic_failure is not None:
+++                            raise diagnostic_failure
+++                        if not diagnostic_capture_complete:
+++                            raise RuntimeError("Diagnostic fingerprint requires successful load-evidence capture")
++             self.model_memory_usage = m.consumed_memory
++         except torch.cuda.OutOfMemoryError as e:
++             msg = (
++@@ -4989,6 +5301,20 @@
++                     "Following weights were not loaded from checkpoint: %s",
++                     weights_not_loaded,
++                 )
+++
+ +    def save_serverless_llm_state(
+ +        self,
+ +        path: str,
+@@ -299,17 +758,15 @@ index 156294693..153613c93 100644
+ +            pattern=pattern,
+ +            max_size=max_size,
+ +        )
+-+
++ 
+      def _get_prompt_logprobs_dict(
+          self,
+-         hidden_states: torch.Tensor,
+ diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+-index 52f84ddbf..0776e3f19 100644
+ --- a/vllm/v1/worker/gpu_worker.py
+ +++ b/vllm/v1/worker/gpu_worker.py
+-@@ -851,6 +851,18 @@ class Worker(WorkerBase):
+-             pattern=pattern,
+-             max_size=max_size,
++@@ -827,7 +827,19 @@
++             all_gather_group=get_tp_group(),
++             all_gather_tensors=all_gather_tensors,
+          )
+ +        
+ +    def save_serverless_llm_state(
+@@ -324,8 +781,370 @@ index 52f84ddbf..0776e3f19 100644
+ +            max_size=max_size,
+ +        )
+  
+-     def save_tensorized_model(
++         return None
++ 
++--- a/vllm/tokenizers/hf.py
+++++ b/vllm/tokenizers/hf.py
++@@ -1,125 +13,158 @@
++ # SPDX-License-Identifier: Apache-2.0
++ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++ import contextlib
++ import copy
+++import json
++ from pathlib import Path
++ from typing import TypeAlias
++ 
++ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
+++from transformers import __version__ as transformers_version
+++from transformers.dynamic_module_utils import get_class_from_dynamic_module
++ 
++ from vllm.transformers_utils.config import get_sentence_transformer_tokenizer_config
++ 
++ from .protocol import TokenizerLike
++ 
++ HfTokenizer: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
++ 
++ 
++ def get_cached_tokenizer(tokenizer: HfTokenizer) -> HfTokenizer:
++     """
++     By default, transformers will recompute multiple tokenizer properties
++     each time they are called, leading to a significant slowdown.
++     This proxy caches these properties for faster access.
++     """
++     cached_tokenizer = copy.copy(tokenizer)
++ 
++     tokenizer_all_special_ids = tokenizer.all_special_ids
++     tokenizer_all_special_tokens = tokenizer.all_special_tokens
++     tokenizer_vocab = tokenizer.get_vocab()
++     tokenizer_len = len(tokenizer)
++ 
++     max_token_id = max(tokenizer_vocab.values())
++     max_chars_per_token = max(len(tok) for tok in tokenizer_vocab)
++ 
++     # Some tokenizers (e.g., QwenTokenizer) have special tokens that
++     # are added and included in the implementation of the vocab_size
++     # property, but not in get_vocab(); if there is an implementation
++     # of vocab size, we should take the greater value.
++     if hasattr(tokenizer, "vocab_size"):
++         with contextlib.suppress(NotImplementedError):
++             max_token_id = max(max_token_id, tokenizer.vocab_size)
++ 
++     class CachedTokenizer(tokenizer.__class__):  # type: ignore
++         @property
++         def all_special_ids(self) -> list[int]:
++             return tokenizer_all_special_ids
++ 
++         @property
++         def all_special_tokens(self) -> list[str]:
++             return tokenizer_all_special_tokens
++ 
++         @property
++         def max_token_id(self) -> int:
++             return max_token_id
++ 
++         @property
++         def max_chars_per_token(self) -> int:
++             return max_chars_per_token
++ 
++         def get_vocab(self) -> dict[str, int]:
++             return tokenizer_vocab
++ 
++         def __len__(self) -> int:
++             return tokenizer_len
++ 
++         def __reduce__(self):
++             return get_cached_tokenizer, (tokenizer,)
++ 
++     CachedTokenizer.__name__ = f"Cached{tokenizer.__class__.__name__}"
++ 
++     cached_tokenizer.__class__ = CachedTokenizer
++     return cached_tokenizer
++ 
++ 
++ class CachedHfTokenizer(TokenizerLike):
++     @classmethod
++     def from_pretrained(
++         cls,
++         path_or_repo_id: str | Path,
++         *args,
++         trust_remote_code: bool = False,
++         revision: str | None = None,
++         download_dir: str | None = None,
++         **kwargs,
++     ) -> HfTokenizer:
++         try:
++-            tokenizer = AutoTokenizer.from_pretrained(
+++            tokenizer_cls = AutoTokenizer
+++            if trust_remote_code is True and transformers_version == "5.5.1":
+++                tokenizer_path = Path(path_or_repo_id) / (kwargs.get("subfolder") or "")
+++                if tokenizer_path.is_dir() and (tokenizer_path / "config.json").is_file():
+++                    with (tokenizer_path / "config.json").open(encoding="utf-8") as config_file:
+++                        model_type = json.load(config_file).get("model_type")
+++                    if model_type == "kimi_k25":
+++                        with (tokenizer_path / "tokenizer_config.json").open(encoding="utf-8") as config_file:
+++                            tokenizer_config = json.load(config_file)
+++                        class_reference = "tokenization_kimi.TikTokenTokenizer"
+++                        if (
+++                            tokenizer_config.get("tokenizer_class") != "TikTokenTokenizer"
+++                            or tokenizer_config.get("auto_map", {}).get("AutoTokenizer")
+++                            != [class_reference, None]
+++                        ):
+++                            raise ValueError("Unexpected local Kimi tokenizer class or auto_map")
+++                        tokenizer_cls = get_class_from_dynamic_module(
+++                            class_reference,
+++                            str(tokenizer_path),
+++                            revision=revision,
+++                            cache_dir=download_dir,
+++                            **{
+++                                key: value
+++                                for key, value in kwargs.items()
+++                                if key in (
+++                                    "code_revision", "local_files_only", "token",
+++                                    "force_download", "proxies",
+++                                )
+++                            },
+++                        )
+++            tokenizer = tokenizer_cls.from_pretrained(
++                 path_or_repo_id,
++                 *args,
++                 trust_remote_code=trust_remote_code,
++                 revision=revision,
++                 cache_dir=download_dir,
++                 **kwargs,
++             )
++         except ValueError as e:
++             # If the error pertains to the tokenizer class not existing or not
++             # currently being imported,
++             # suggest using the --trust-remote-code flag.
++             if not trust_remote_code and (
++                 "does not exist or is not currently imported." in str(e)
++                 or "requires you to execute the tokenizer file" in str(e)
++             ):
++                 err_msg = (
++                     "Failed to load the tokenizer. If the tokenizer "
++                     "is a custom tokenizer not yet available in the "
++                     "HuggingFace transformers library, consider "
++                     "setting `trust_remote_code=True` in LLM or using "
++                     "the `--trust-remote-code` flag in the CLI."
++                 )
++                 raise RuntimeError(err_msg) from e
++             else:
++                 raise e
++ 
++         # The special_tokens in tokenizer should also be
++         # controlled by do_lower_case in encoder_config
++         encoder_config = get_sentence_transformer_tokenizer_config(
++             path_or_repo_id, revision
++         )
++         if isinstance(encoder_config, dict) and encoder_config.get(
++             "do_lower_case", False
++         ):
++             special_tokens_map = {
++                 k: v.lower() for k, v in tokenizer.special_tokens_map.items()
++             }
++             tokenizer.add_special_tokens(special_tokens_map)
++ 
++         return get_cached_tokenizer(tokenizer)
++diff --git a/vllm/model_executor/layers/rotary_embedding/common.py b/vllm/model_executor/layers/rotary_embedding/common.py
++--- a/vllm/model_executor/layers/rotary_embedding/common.py
+++++ b/vllm/model_executor/layers/rotary_embedding/common.py
++@@ -1,25 +1,26 @@
++ # SPDX-License-Identifier: Apache-2.0
++ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
++ 
++ import math
++ from importlib.util import find_spec
++ 
++ import torch
++ 
++ from vllm.logger import init_logger
++ from vllm.model_executor.custom_op import CustomOp
+++from vllm.platforms import current_platform
++ from vllm.utils.torch_utils import direct_register_custom_op
++ 
++ logger = init_logger(__name__)
++ 
++ 
++ # common functions
++ def rotate_neox(x: torch.Tensor) -> torch.Tensor:
++     x1 = x[..., : x.shape[-1] // 2]
++     x2 = x[..., x.shape[-1] // 2 :]
++     return torch.cat((-x2, x1), dim=-1)
++ 
++ 
++ def rotate_gptj(x: torch.Tensor) -> torch.Tensor:
++     x1 = x[..., ::2]
++     x2 = x[..., 1::2]
++@@ -122,31 +123,31 @@
++ @CustomOp.register("apply_rotary_emb")
++ class ApplyRotaryEmb(CustomOp):
++     # --8<-- [end:apply_rotary_emb]
++ 
++     def __init__(
+          self,
+--- 
+-2.43.0
+-
++         enforce_enable: bool = False,
++         is_neox_style: bool = True,
++         enable_fp32_compute: bool = False,
++     ) -> None:
++         super().__init__(enforce_enable=enforce_enable)
++         self.is_neox_style = is_neox_style
++         self.enable_fp32_compute = enable_fp32_compute
++ 
++         self.apply_rotary_emb_flash_attn = None
++-        if find_spec("flash_attn") is not None:
+++        if current_platform.is_rocm() and find_spec("flash_attn") is not None:
++             from flash_attn.ops.triton.rotary import apply_rotary
++ 
++             self.apply_rotary_emb_flash_attn = apply_rotary
++ 
++     @staticmethod
++     def forward_static(
++         x: torch.Tensor,
++         cos: torch.Tensor,
++         sin: torch.Tensor,
++         is_neox_style: bool = True,
++         enable_fp32_compute: bool = False,
++     ) -> torch.Tensor:
++         """
++         Args:
++             x: [batch_size (optional), seq_len, num_heads, head_size]
++diff --git a/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py b/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
++--- a/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
+++++ b/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
++@@ -1549,7 +1549,11 @@
++             )
++         replace_parameter(layer, "w2_weight_scale", marlin_w2_scales)
++ 
++-        layer.workspace = marlin_make_workspace_new(device, 4)
+++        self.prepare_runtime_for_restored_weights(layer)
+++
+++    def prepare_runtime_for_restored_weights(self, layer: torch.nn.Module) -> None:
+++        layer.workspace = marlin_make_workspace_new(
+++            layer.w13_weight_packed.device, 4)
++ 
++     def get_fused_moe_quant_config(
++         self, layer: torch.nn.Module
++diff --git a/vllm/model_executor/model_loader/utils.py b/vllm/model_executor/model_loader/utils.py
++--- a/vllm/model_executor/model_loader/utils.py
+++++ b/vllm/model_executor/model_loader/utils.py
++@@ -55,104 +55,110 @@
++         # new-style model class
++         with set_current_vllm_config(vllm_config, check_compile=True, prefix=prefix):
++             model = model_class(vllm_config=vllm_config, prefix=prefix)
++             record_metadata_for_reloading(model)
++             return model
++ 
++     msg = (
++         "vLLM model class should accept `vllm_config` and `prefix` as "
++         "input arguments. Possibly you have an old-style model class"
++         " registered from out of tree and it is used for new vLLM version. "
++         "Check https://docs.vllm.ai/en/latest/design/arch_overview.html "
++         "for the design and update the model class accordingly."
++     )
++     warnings.warn(msg, DeprecationWarning, stacklevel=2)
++ 
++     logger.warning(
++         "Trying to guess the arguments for old-style model class %s",
++         model_class,
++     )
++     # try to be compatible with old-style model class
++     kwargs: dict[str, Any] = {}
++     if "prefix" in all_params:
++         kwargs["prefix"] = prefix
++     if "config" in all_params:
++         kwargs["config"] = model_config.hf_config
++     if "cache_config" in all_params:
++         kwargs["cache_config"] = vllm_config.cache_config
++     if "quant_config" in all_params:
++         kwargs["quant_config"] = vllm_config.quant_config
++     if "lora_config" in all_params:
++         kwargs["lora_config"] = vllm_config.lora_config
++     if "scheduler_config" in all_params:
++         kwargs["scheduler_config"] = vllm_config.scheduler_config
++     with set_current_vllm_config(vllm_config, check_compile=True, prefix=prefix):
++         model = model_class(**kwargs)
++         record_metadata_for_reloading(model)
++ 
++     return model
++ 
++ 
+++def process_attention_weights_after_loading(
+++    model: nn.Module, model_config: ModelConfig, target_device: torch.device
+++) -> None:
+++    # Initialize post-load attention weights for both Attention and MLA.
+++    # NOTE: Happens after other modules so we can easily decompress weights.
+++    for _, module in model.named_modules():
+++        if isinstance(module, (Attention, MLAAttention)) and hasattr(
+++            module, "process_weights_after_loading"
+++        ):
+++            # TODO(lucas): see if there is a way to unify the signatures
+++            # of process_weights_after_loading
+++            with device_loading_context(module, target_device):
+++                module.process_weights_after_loading(model_config.dtype)
+++
+++
++ def process_weights_after_loading(
++     model: nn.Module, model_config: ModelConfig, target_device: torch.device
++ ) -> None:
++     for _, module in model.named_modules():
++         quant_method = getattr(module, "quant_method", None)
++         if isinstance(quant_method, QuantizeMethodBase):
++             # When quant methods need to process weights after loading
++             # (for repacking, quantizing, etc), they expect parameters
++             # to be on the global target device. This scope is for the
++             # case where cpu offloading is used, where we will move the
++             # parameters onto device for processing and back off after.
++             with device_loading_context(module, target_device):
++                 quant_method.process_weights_after_loading(module)
++ 
++-    # Initialize post-load attention weights for both Attention and MLA.
++-    # NOTE: Happens after other modules so we can easily decompress weights.
++-    for _, module in model.named_modules():
++-        if isinstance(module, (Attention, MLAAttention)) and hasattr(
++-            module, "process_weights_after_loading"
++-        ):
++-            # TODO(lucas): see if there is a way to unify the signatures
++-            # of process_weights_after_loading
++-            with device_loading_context(module, target_device):
++-                module.process_weights_after_loading(model_config.dtype)
+++    process_attention_weights_after_loading(model, model_config, target_device)
++ 
++     # Needed for torchao model reloading via model.reload_weights
++     # @kylesayrs @jerryzh168 this can be removed if callers move to `reload_weights`
++     if model_config.quantization == "torchao":
++         set_torchao_reload_attrs(model, model_config)
++ 
++ 
++ @contextmanager
++ def device_loading_context(module: torch.nn.Module, target_device: torch.device):
++     if target_device.type == "cpu":
++         # If target is CPU, no need to move anything
++         yield module
++         return
++ 
++     original_device_states: dict[str, torch.device] = {}
++     uva_offloaded_parameters: list[str] = []
++ 
++     # Store original device states and move parameters to GPU if they're on CPU
++     for name, p in module.named_parameters():
++         if p.device.type == "cpu":
++             original_device_states[name] = p.device
++             p.data = p.data.to(target_device)
++         if getattr(p, "_vllm_is_uva_offloaded", False):
++             uva_offloaded_parameters.append(name)
++         # Parameters already on target device are not touched
++ 
++     try:
++         yield module
++ 
++     finally:
++         use_pin_memory = (
++             is_pin_memory_available()
++             and not envs.VLLM_WEIGHT_OFFLOADING_DISABLE_PIN_MEMORY
++         )
++         # Restore parameters to their original devices, ignoring new parameters
++         for name, p in module.named_parameters():
++             if name in original_device_states:
++                 original_device: torch.device = original_device_states[name]
++                 p.data = p.data.to(original_device)
++ 

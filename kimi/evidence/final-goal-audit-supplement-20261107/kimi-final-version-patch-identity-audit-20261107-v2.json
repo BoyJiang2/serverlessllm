@@ -1,0 +1,279 @@
+{
+  "schema": "kimi-final-version-patch-identity-audit-v2-addendum",
+  "created_at_utc": "2026-11-07T12:24:00.510004+00:00",
+  "supersedes_no_files": true,
+  "prior_audit": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-final-version-patch-identity-audit-20261107-v1.json",
+    "sha256": "31b48ba12103a656b29d6695b834cfac96b92a0bedefc2f9d0232eb40d2336c3",
+    "bytes": 54889
+  },
+  "clarification": "No fresh live validation is different from no historical actual validation. Historical CPU ELF imports and actual container inspect/post-release pins are affirmative evidence, not merely requested mounts. Formal per-process loaded native shared-library maps/hashes have not been found in the reviewed public evidence.",
+  "historical_actual_container_evidence": [
+    {
+      "kind": "Actual Docker inspect, completed full SF reference; not a requested spec",
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once-public/inspect-exited.json",
+        "sha256": "c34f2949d24297b4df3e833f50c78813ff244ad71ed348290420df0647b9e80f",
+        "bytes": 16119
+      },
+      "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+      "cid": "4737959ca5487d7c1a18b06d29c538380d326925c0c975a4d2b61fd4ff3bacf1",
+      "exit_code": 0,
+      "actual_RO_mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+          "Destination": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+          "Mode": "",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+          "Destination": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+          "Mode": "",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+          "Destination": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+          "Mode": "",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ]
+    },
+    {
+      "kind": "Historical post-release fresh source hashes and eight rank-file rehash",
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once-public/post-release-pins.json",
+        "sha256": "c8466eb302d6dbe0285bf16d8d66e84433c24bcdae7fe9692feae52ca5a56b3b",
+        "bytes": 2013
+      },
+      "status": "POST_RELEASE_PINS_AND_EIGHT_RANK_REHASH_PASS",
+      "runner_sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb"
+    },
+    {
+      "kind": "Eight runtime-generated files emitted by executed capture hook; first/final rankfiles identical",
+      "first": {
+        "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once-public/rank-files-first.json",
+        "sha256": "ca8f78dd7bd0b91b76a84dfcc19b118e9f092f52eb8ea5c552121e0e09166105",
+        "bytes": 2000
+      },
+      "final": {
+        "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-sf-qjhs000-fixed32-file-evidence-20261106-at0400-once-public/rank-files-final.json",
+        "sha256": "ca8f78dd7bd0b91b76a84dfcc19b118e9f092f52eb8ea5c552121e0e09166105",
+        "bytes": 2000
+      },
+      "rank_count": 8,
+      "record_hashes": {
+        "rank-0-pid-961.json": {
+          "sha256": "cf4b89e5c1abc34a037e83684b1885547aca66d31aa54a030d4118c437a37c4b",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876313,
+          "mtime_ns": 1793909237921845342,
+          "ctime_ns": 1793909237921845342,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-1-pid-962.json": {
+          "sha256": "8955955eb6ba5425b9926f013ecd84beeaf5e8e163b0d97445581ec75c2ee255",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876311,
+          "mtime_ns": 1793909237869845225,
+          "ctime_ns": 1793909237873845234,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-2-pid-963.json": {
+          "sha256": "7212869349be4ab9e407a1e58447dff1a78a3b190b6c5187ba37820af78aa1fb",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876312,
+          "mtime_ns": 1793909237889845270,
+          "ctime_ns": 1793909237893845279,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-3-pid-964.json": {
+          "sha256": "5dc8a264e752e59d5a12a0a265024a113da2e38f4dcd977cd45f7609e8dcae2d",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876310,
+          "mtime_ns": 1793909237837845154,
+          "ctime_ns": 1793909237841845163,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-4-pid-965.json": {
+          "sha256": "9b7d6abab758bcc9e941d615bb33d91f6cff90876087bebdbc4f596984cf497a",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876306,
+          "mtime_ns": 1793909237729844913,
+          "ctime_ns": 1793909237733844921,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-5-pid-966.json": {
+          "sha256": "f054b183a6c5fd08ec0f98e98337234c2e3d4d10b832f87c41e3160e5692c56d",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876309,
+          "mtime_ns": 1793909237757844975,
+          "ctime_ns": 1793909237757844975,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-6-pid-967.json": {
+          "sha256": "1139e64edeae5961a2b328b5b48a78e85624b42fa4b9b6e2c4ea3af410d02609",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876308,
+          "mtime_ns": 1793909237749844957,
+          "ctime_ns": 1793909237749844957,
+          "uid": 2147,
+          "mode": 384
+        },
+        "rank-7-pid-968.json": {
+          "sha256": "b150825e3dd44f9baa5bc84cc8c5854fadea938c3d6d33980e159c9f9db1f333",
+          "bytes": 1008872,
+          "device": 2304,
+          "inode": 5627876307,
+          "mtime_ns": 1793909237741844940,
+          "ctime_ns": 1793909237741844940,
+          "uid": 2147,
+          "mode": 384
+        }
+      },
+      "scope": "Establishes that file-evidence producer behavior actually ran and records were stable, alongside actual OCI bind and source hash evidence. Records do not embed source __file__/module SHA; not standalone code-byte attestation."
+    }
+  ],
+  "historical_actual_ELF_import": [
+    {
+      "kind": "Genuine actual CPU build ABI import; no Store constructor or CUDA initialization",
+      "artifact_provenance": {
+        "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-pool-explicit-release-build-cpu-20261106-once-public/artifact-provenance.json",
+        "sha256": "6607f219451c6fb1a3bc44d3303af5cb66116b6d7218dc37a3e5857e51ee38e0",
+        "bytes": 4577
+      },
+      "manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/build-manifest.json",
+        "sha256": "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d",
+        "bytes": 153446
+      },
+      "abi": {
+        "torch": "2.10.0+cu129",
+        "cuda": "12.9",
+        "cxx11_abi": true,
+        "extension_suffix": ".cpython-312-x86_64-linux-gnu.so",
+        "module_path": "/build/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+        "elf_sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+        "cuda_initialized": false,
+        "store_instantiated": false,
+        "release_memory_pool_bound": true
+      },
+      "scope": "Actual imported module_path and computed ELF SHA recorded by executed ABI process; not inferred from file availability. Subsequent GPU-formal PID maps not independently enumerated here."
+    },
+    {
+      "kind": "Genuine actual _C CPU extension and ownership tests",
+      "manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/build-manifest.json",
+        "sha256": "4d6514e8368b830b8eecd3a6c3e148af04b9cbf18f955ec6b9244be5e934b836",
+        "bytes": 26338
+      },
+      "status": "SDK_EMPTY_POINTER_BUILD_AND_CPU_OWNERSHIP_PASS",
+      "abi": {
+        "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+        "extension_suffix": ".cpython-312-x86_64-linux-gnu.so",
+        "torch": "2.10.0+cu129",
+        "torch_git": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+        "torch_cuda": "12.9",
+        "cxx11_abi": true
+      },
+      "elf_sha256": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5",
+      "scope": "Build CPU ownership/import evidence; distinct from mapping identity in each later worker process."
+    }
+  ],
+  "formal_runtime_role_contracts": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "37747c2e3a3670767e3901ac0b26f32532e2bf6d38f3b587b8aee8ec74ecf97d",
+      "bytes": 103721
+    },
+    "imports_body_sha256": "8d7600678524c26907f6087ebde20c1b6b7313de24d012f5c124dcd917ee8c9e",
+    "imports_actual_code": "import sys,os,json,importlib,importlib.metadata as md\nsys.path[:0]=['/source','/source/sllm_store'];assert os.environ.get('VLLM_ALLOW_INSECURE_SERIALIZATION','0')=='0'\nmods=[importlib.import_module(n) for n in ['ray','sllm.cli.clic','sllm.controller','sllm.routers.roundrobin_router','sllm.backends.vllm_backend','sllm_store.client']]\nimport torch;assert not torch.cuda.is_initialized()\nprint('NATIVE_IMPORTS_PASS '+json.dumps({'origins':{m.__name__:m.__file__ for m in mods},'versions':{n:md.version(n) for n in ['torch','vllm','transformers','grpcio','ray','msgpack','GPUtil','speedtest-cli']},'cuda_initialized':torch.cuda.is_initialized()}),flush=True)\n",
+    "bootstrap_body_sha256": "96610bfe2a0b9ee52900ca4bb21b1fb4cbdd59ab9e7ac2b5aec6b8fa09ac17e2",
+    "bootstrap_verifies": [
+      "Four wheel files actual bytes/SHA before pip; core torch/vllm/transformers/grpcio METADATA/RECORD/module hashes before and after offline install",
+      "Executed import role prints __file__ for ray,sllm.cli.clic,sllm.controller,sllm.routers.roundrobin_router,sllm.backends.vllm_backend,sllm_store.client and eight installed versions",
+      "Neither role directly prints native extension __file__/SHA or every overlay module SHA"
+    ],
+    "stdout_audit_status": "Formal raw bootstrap/import stdout not in public case export reviewed; raw originals root-private. This statement is source contract, not substitute for reading those historical stdout."
+  },
+  "immutable_stopped_image_source_metadata": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/runtime-metadata-fresh.json",
+      "sha256": "c106c36208c9a32b957f167f02812407ada85b4093daf909d74afa8dd4270737",
+      "bytes": 19963
+    },
+    "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "stopped_cid": "4001f3d943717ec521afe25cbe127116cacdf10c9d3697eba295e24245bf328a",
+    "vllm_version_source": {
+      "sha256": "b06838233b49c3277baf1250c6480d182fb2604362bc810ad2988d8bdaf06667",
+      "bytes": 530,
+      "metadata": [
+        "# file generated by vcs-versioning",
+        "# don't change, don't track in version control",
+        "from __future__ import annotations",
+        "",
+        "__all__ = [",
+        "    \"__version__\",",
+        "    \"__version_tuple__\",",
+        "    \"version\",",
+        "    \"version_tuple\",",
+        "    \"__commit_id__\",",
+        "    \"commit_id\",",
+        "]",
+        "",
+        "version: str",
+        "__version__: str",
+        "__version_tuple__: tuple[int | str, ...]",
+        "version_tuple: tuple[int | str, ...]",
+        "commit_id: str | None",
+        "__commit_id__: str | None",
+        "",
+        "__version__ = version = '0.19.1'",
+        "__version_tuple__ = version_tuple = (0, 19, 1)",
+        "",
+        "__commit_id__ = commit_id = 'gb1388b1fb'"
+      ]
+    },
+    "scope": "Actual historical stopped-container file read to RAM; proves installed source tree identity, not module import."
+  },
+  "flashinfer_identity": {
+    "actual_import_version": "NOT_FOUND_IN_REVIEWED_RUNTIME_RECEIPTS",
+    "vllm_requirement": "flashinfer-python==0.6.6 and flashinfer-cubin==0.6.6 in installed vLLM METADATA",
+    "metadata_reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/runtime-metadata-fresh.json",
+      "sha256": "c106c36208c9a32b957f167f02812407ada85b4093daf909d74afa8dd4270737",
+      "bytes": 19963
+    },
+    "limits": "Requires-Dist is not FlashInfer installed/import proof. Diagnostic renderer added metadata/find_spec-only receipt capability, but this does not prove that diagnostic execution occurred. No new import or container was used."
+  },
+  "remaining_missing": [
+    "Per-formal-worker loaded native ELF path/SHA or /proc/maps list not located in reviewed public exports; no assertion that it was never collected privately.",
+    "No individual actual import __file__/SHA for all11overlay modules found in reviewed formal public exports. Actual binds, source pin checks, executable behavior and successful model execution are strong but different links.",
+    "No active imported FlashInfer version receipt found; unchanged image/RO overlays do not prove an arbitrary version string."
+  ],
+  "not_performed": [
+    "Runtime/model/container/import/GPU",
+    "Git",
+    "Weights, Store payload or large tensor metadata reads"
+  ]
+}

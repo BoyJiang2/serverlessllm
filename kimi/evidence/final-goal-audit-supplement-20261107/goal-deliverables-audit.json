@@ -1,0 +1,150 @@
+{
+  "schema": "kimi-goal-final-deliverables-audit-v1",
+  "created_epoch": 1794055242.7199228,
+  "goal_recreated": false,
+  "goal_complete": false,
+  "previous_goal_turn_classification": "PROGRESS",
+  "previous_goal_turn_evidence": "真实统计、4图、独审与main816d80fd远端发布，改变权威证据。",
+  "current_turn_classification": "PROGRESS",
+  "current_authorized_node": "qjhs003",
+  "shared_adaptation_directory": "/home/boyjiang/kimi-new/ServerlessLLM",
+  "analysis_source_commit": "a43734f11e84a06577b3de3833d0e9895e8ab323",
+  "historical_GPU_sources": [
+    "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+    "835e2b5e992dd4098f013ddfdf5de4415db373f1"
+  ],
+  "requirements": [
+    {
+      "id": "11.1",
+      "requirement": "无歧义L1状态、覆盖与单独验收决定",
+      "state": "PENDING_OWNER_SEPARATE_CONFIRMATION",
+      "evidence": [
+        {
+          "path": "kimi-final-L1-evidence-and-separate-decision-audit-20261107-v1.json",
+          "sha256": "ba69de85496d32b67d5a5423419ee6d16574121d9f604f460236cfbf92bc1366",
+          "bytes": 6584
+        }
+      ],
+      "finding": "既有功能覆盖已核，原NOT_L1和30秒FAIL不变；所有者尚未单独确认。不为标签启动GPU。"
+    },
+    {
+      "id": "11.2",
+      "requirement": "版本、补丁、实际ELF、构建与运行身份",
+      "state": "VERIFIED_BOUNDED_IDENTITY",
+      "evidence": [
+        {
+          "path": "kimi-final-version-patch-identity-audit-20261107-v1.json",
+          "sha256": "31b48ba12103a656b29d6695b834cfac96b92a0bedefc2f9d0232eb40d2336c3",
+          "bytes": 54889
+        },
+        {
+          "path": "kimi-final-version-patch-identity-audit-20261107-v2.json",
+          "sha256": "e042d4a8b677746fcd339cc633bdf60dc2e678975f40652daf4a074eb228ca91",
+          "bytes": 13949
+        },
+        {
+          "path": "kimi-deployed-production-vs-official-9f502-to-835-20261107.patch",
+          "sha256": "8ff4343cfee461831dd97f3ae429c1c55a574d05a60f17a80af185e26fdd30c4",
+          "bytes": 103414
+        }
+      ],
+      "finding": "实际RO挂载/历史真实CPU导入与模型运行分层。未在已审公开回执找到每正式PID nativeSO maps/hash、FlashInfer active importversion，不把源码意图当stdout。"
+    },
+    {
+      "id": "11.3",
+      "requirement": "存储路线、参数、缓存与计时对齐表",
+      "state": "VERIFIED_WITH_EXPLICIT_DIFFERENCES",
+      "evidence": [
+        {
+          "path": "kimi-glm-final-asset-and-configuration-table-20261107-v1.json",
+          "sha256": "a0534de2d1ca92bbf70d6545c3a4ce0693be3a8fc2cfb1de8bc913e6e7e47851",
+          "bytes": 46572
+        },
+        {
+          "path": "publisher-parameter-counts.json",
+          "sha256": "a10355886776c30b616e07a93ff6fac703684f26af1a191a15a892987b86dad9",
+          "bytes": 1201
+        }
+      ],
+      "finding": "本地NVMe资产stat身份核验，metadata/payload分列；参数取实际config，名义参数另引官方说明。GLM/Kimi Prep、量化与容量差异保留。"
+    },
+    {
+      "id": "11.4",
+      "requirement": "冻结且可执行正式入口",
+      "state": "VERIFIED_CPU_AND_ACTUAL_RUNTIME_SEPARATELY",
+      "evidence": [
+        {
+          "path": "kimi-final-formal-entry-consumer-audit-20261107-v1.json",
+          "sha256": "17243504ab5a5efe45b24942f009faae188d665bd0f3bd1974b53ead2c2f636b",
+          "bytes": 7333
+        }
+      ],
+      "finding": "现有57CPU通过和实际block消费者身份核验，不以CPU替代GPU；原B4/B9FAIL保留。"
+    },
+    {
+      "id": "11.5",
+      "requirement": "所有样本、失败、未执行项与原始台账",
+      "state": "VERIFIED_PUBLISHED_PRIOR_DELIVERY",
+      "evidence": [],
+      "finding": "已发布816d80fd目录all-runs-ledger.csv/actualanalysis/459快照：原40全部启动38合格2FAIL，补跑1合格，历史5次1合格4FAIL；GLM原40为35/5。未复制权重或大日志。"
+    },
+    {
+      "id": "11.6",
+      "requirement": "分条件统计、成功率与不确定性",
+      "state": "VERIFIED_PUBLISHED_PRIOR_DELIVERY",
+      "evidence": [],
+      "finding": "a43734f分析源码、13CPU+实际结果独审，Kimi完整8block、GLM C23完整6block；两独立Holm4族、成对bootstrap和Wilson范围明确。"
+    },
+    {
+      "id": "11.7",
+      "requirement": "初始化、转换/准备、缓存、加载、推理、删除与停服成本",
+      "state": "PARTIALLY_OBSERVED_C_AND_PURE_COMPONENTS_MISSING",
+      "evidence": [
+        {
+          "path": "kimi-final-cost-evidence-audit-20261107-v1.json",
+          "sha256": "07a44e897eec5d8b6aab2c37cfaeaacedd87201939b37d8ebc308a5e2cbaf247",
+          "bytes": 139121
+        },
+        {
+          "path": "kimi-C-existing-worker-log-recovery-readonly-attempt-20261107.json",
+          "sha256": "780f4c2776831488950a3dddb467f0c4c99837c9ff1c0294915db981e36e56eb",
+          "bytes": 21508
+        },
+        {
+          "path": "projection-provenance.json",
+          "sha256": "983142b6a3f6e3088e83b1d24b0367eba3096770d45037e4ce9e3374dffa1f41",
+          "bytes": 1263
+        }
+      ],
+      "finding": "1036既有小文件核验，38合格原样本E成本完整；C ingestion独立起止、纯fill/纯conversion、GiB·h/货币成本缺测。38旧workerCID均已移除，私有hostlog尚可能含加载耗时。N曲线为条件模型，不是N>1测量。"
+    },
+    {
+      "id": "11.8",
+      "requirement": "可比较范围、差异与未支持范围",
+      "state": "VERIFIED_BOUNDED_REPORTING",
+      "evidence": [
+        {
+          "path": "kimi-final-cost-evidence-audit-20261107-v1.json",
+          "sha256": "07a44e897eec5d8b6aab2c37cfaeaacedd87201939b37d8ebc308a5e2cbaf247",
+          "bytes": 139121
+        },
+        {
+          "path": "kimi-glm-final-asset-and-configuration-table-20261107-v1.json",
+          "sha256": "a0534de2d1ca92bbf70d6545c3a4ce0693be3a8fc2cfb1de8bc913e6e7e47851",
+          "bytes": 46572
+        }
+      ],
+      "finding": "不声称全617GB值逐字节相等、纯IO、纯decode、warm service、迁移/调度/吞吐、跨模型因果优劣、实测N回本。"
+    },
+    {
+      "id": "11.9",
+      "requirement": "代码/证据远端SHA与复现说明",
+      "state": "PRIOR_PUBLICATION_VERIFIED_THIS_SUPPLEMENT_PENDING",
+      "evidence": [],
+      "finding": "已有source a43734f和main816d80fd已核远端。本补充将独立显式stage发布，发布后另存SHA回执，不预填成功。"
+    }
+  ],
+  "not_a_completion_proof": "This is a current evidence/gap audit. Pending owner decision and missing observations remain unachieved; no goal complete claim.",
+  "root_access_note": "Old root PTY continuation was rejected by automatic tool approval: approval required but policy never. sudo -n has no authentication. Existing public bytecopies were used instead. No privilege bypass or credential disclosure.",
+  "no_new_GPU_or_Store_or_GLM_execution": true
+}

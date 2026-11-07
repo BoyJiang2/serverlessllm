@@ -1,0 +1,9 @@
+# 正式整块入口及消费者覆盖审计
+
+现有57项安全CPU测试独立运行全部PASS（15.142秒），未启动真实prepare root入口、systemd、Docker、模型、Store或缓存操作。当前prepare/test完整SHA见同名JSON。实际B10冻结bundle的BLOCK_BODY与所审源码字节一致，按冻结4条件列表顺序串行消费。
+
+实际BLOCK_BODY回归覆盖四成功；第二项失败后第三/四项不启动；O_EXCL重复claim拒绝；无receipt与timeout也算launch且不伪造cleanup；完整28920秒窗口不足时在claim/launch前拒绝。command/spec/source/protocol SHA及仅外层RemainAfterExit参数变换保留inline代码的回归均通过。
+
+时钟/证据检查要求同boot/time namespace/monotonic实现、请求ID/PID与事件顺序，以及模型/actor/PID/startticks/三请求首输出和实际token trace关联。测试包含缺失事件/trace错/业务错/不完整gate拒绝；本模块没有逐个same_clock键的专门负例，已按源码条件审阅，不夸称全部分支实测。
+
+原B4/B9失败、用户授权补跑和原配对排除不变。GPU运行源86fd/835与后续分析提交a437明确区分；CPU结果不是GPU通过或新运行授权。详细函数行号与测试名见JSON，不为本审计新增框架或测试矩阵。
