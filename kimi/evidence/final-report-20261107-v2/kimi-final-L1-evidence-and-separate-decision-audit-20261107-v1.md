@@ -1,0 +1,7 @@
+# L1 既有证据与独立验收决定边界
+
+既有证据足以支持**单独记录的回溯功能接受**：两轮原生 create/infer/delete，6次AAB回复及累计token轨迹，16个独立rank主机身份/实际GPU关联，API/Store官方exec各exit0，两CID正常exit0，Store停止到strictgone实测33.139352623秒，独立守护/观察均不少于60秒。完整转换与代表性恢复验证属于另两项既有阶段，不能冒称本次全617GB逐字节相等。
+
+原始controller依然是 `DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE`，原30秒独立记录仍FAIL；没有该原run的正式L1 PASS回执，也不能当事先注册的60秒或性能样本。已有协调者功能接受决定05a4d8c6…明确依用户预算灵活性作独立里程碑决定。本审阅不替用户另作正式L1确认；若目标要求正式L1批准，仍需所有者单独确认，不能改原标签。无需仅为STATUS字符串或超时数字重复GPU。
+
+原私有controller目录普通SSH无权读取；已核公开bytecopy完整SHA26c8df230…，没有修改权限。原始root0600 Docker事件由parent在qjhs3复核；本轮独核公开exec/create→die0链及其SHA/parent复核回执，未冒称直接读取全部私有raw。核验细节、直接引用SHA和局限以同名JSON为准。

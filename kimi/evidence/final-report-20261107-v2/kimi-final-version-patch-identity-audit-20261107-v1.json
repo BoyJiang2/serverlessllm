@@ -1,0 +1,914 @@
+{
+  "schema": "kimi-final-version-patch-identity-audit-v1",
+  "created_at_utc": "2026-11-07T12:19:37.481302+00:00",
+  "status": "AUDITABLE_FROZEN_IDENTITIES_WITH_EXPLICIT_RUNTIME_LIMITS",
+  "analysis_checkout_head": "a43734f11e84a06577b3de3833d0e9895e8ab323",
+  "runtime_source_strata": [
+    {
+      "source_commit": "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+      "protocol_sha256": "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5",
+      "paired_complete_blocks": [
+        1,
+        2,
+        3
+      ],
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_disk_cold-retry04-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "9d8f7fb710c23d78ce8933ef8fae9f0a0330c417024b124129b03d4c3f8d9969",
+        "bytes": 101328
+      }
+    },
+    {
+      "source_commit": "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+      "protocol_sha256": "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086",
+      "paired_complete_blocks": [
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "37747c2e3a3670767e3901ac0b26f32532e2bf6d38f3b587b8aee8ec74ecf97d",
+        "bytes": 103721
+      }
+    }
+  ],
+  "official_baseline": {
+    "commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+    "evidence": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/QJHS002-S1-S3-review-confirm-build-20261105.md",
+      "sha256": "6f663b0efa0d35cf0f9e025cb9d830e2bbcffd915e4745968c82ce6fb0e22e9f",
+      "bytes": 84456
+    },
+    "qualification": "Historical baseline read-only verification, local Git object confirmed; not a fresh official-network ref attestation. Requirements-worker pins vLLM0.11.2; actual runtime0.19.1 is an adaptation."
+  },
+  "runtime_image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+  "runtime_version_evidence": {
+    "vllm": "0.19.1+gb1388b1fb (prior immutable image/wheel source audit)",
+    "torch": "2.10.0+cu129 (actual CPU build ABI records)",
+    "python": "CPython3.12 ABI",
+    "cuda_toolkit": "12.9",
+    "ray": "2.48.0 frozen wheel and actual bootstrap/import contract",
+    "transformers": "5.5.1 from prior image evidence; not freshly imported this audit",
+    "flashinfer": "No fresh active import-version proof; layer metadata not authoritative."
+  },
+  "production_paths_changed_vs_official": [
+    {
+      "path": "sllm/backends/__init__.py",
+      "change": "M",
+      "baseline_blob_sha256": "ea910272e33475c3f3e5cfaaad2b6031e5d504966207ba05f06cf1e834fe095d",
+      "deployed_commit_blob_sha256": "3e77a3549095bb76b7025063d43fb61cd6ca2ce46ff95faa0bded1c4f06c5b6b"
+    },
+    {
+      "path": "sllm/backends/vllm_backend.py",
+      "change": "M",
+      "baseline_blob_sha256": "daedf53b07dc4e20393f53cdc8a35d77941ec0cb238a1a32ceffcf9ca74f9ff6",
+      "deployed_commit_blob_sha256": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510"
+    },
+    {
+      "path": "sllm/controller.py",
+      "change": "M",
+      "baseline_blob_sha256": "8acf9c062daf244be4e58686f1bd69bb04c8d69d9a83eec7bcfd4b7847075e34",
+      "deployed_commit_blob_sha256": "a7dcce53585ed48fc98669580cd70519fbde008b12548df13c387bdc4a7fa905"
+    },
+    {
+      "path": "sllm/logger.py",
+      "change": "M",
+      "baseline_blob_sha256": "40df8ad65d0167de4ad46357ee224acd3b7bddca2d34fee26c63300f12700815",
+      "deployed_commit_blob_sha256": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11"
+    },
+    {
+      "path": "sllm/routers/roundrobin_router.py",
+      "change": "M",
+      "baseline_blob_sha256": "b594f8c288df615f98ba2cb35b151e8ef8c95e25c4e06c953b5d7468e21fe7ca",
+      "deployed_commit_blob_sha256": "0ae9ad2f5dc7423bae7fd319c760b1ed5d0346c4fd40d42a3f01962587ba5e2c"
+    },
+    {
+      "path": "sllm_store/csrc/checkpoint/aligned_buffer.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "6da494f778cf9d0a3e624936fd94348e0e25b8f2ae0597a571bd772f798f516c",
+      "deployed_commit_blob_sha256": "cd633974fc5b2b8f0d3c871000343cf1cef2ca87f1aee1b7036bb9bbcc84c2f4"
+    },
+    {
+      "path": "sllm_store/csrc/checkpoint/checkpoint.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "7ec80ad1d2104e0743874888c3d1f0dde03a95778f576f299e299199af84c2a6",
+      "deployed_commit_blob_sha256": "89c3d9b1d19d01608f791f1ce4479c956243914b01a1bd857057123960dac2e0"
+    },
+    {
+      "path": "sllm_store/csrc/checkpoint/tensor_writer.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "2b36f35527b91483e29e2aed2ce8ff0714ab65c24852183577ed124ecd9625d1",
+      "deployed_commit_blob_sha256": "9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/checkpoint_store.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "4289d49c1999ef1039056d08242c0398fca6c4c72b40c6a3a03cb46c749583d3",
+      "deployed_commit_blob_sha256": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/checkpoint_store.h",
+      "change": "M",
+      "baseline_blob_sha256": "326a92d3fe039b67c79bec174a6a19463d540dbeee471a5b34499985f344ef3f",
+      "deployed_commit_blob_sha256": "01dcbdf5d376224ae3c24ed7bc5652996f3deeef8f9b99171c1e75b70449405a"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/checkpoint_store_py.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "98258ecf5135c3b7ddabd01cc97b58c18d528879779a911dee74757b1898e356",
+      "deployed_commit_blob_sha256": "9947ed2618493e12918a8223230942edfe8ff8689e43719d633cf4f12478230d"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/model.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "0a8321380cc6f514e7704d7cd27890734577ccfc9c584bac08f41ae2725cff18",
+      "deployed_commit_blob_sha256": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp",
+      "change": "M",
+      "baseline_blob_sha256": "76996f5bb90ceaf4bfb7165fd84da171e8b8d8fe2d4153ce416bb8049ffcdafc",
+      "deployed_commit_blob_sha256": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d"
+    },
+    {
+      "path": "sllm_store/csrc/sllm_store/pinned_memory_pool.h",
+      "change": "M",
+      "baseline_blob_sha256": "38c654ce58c48b762eb75ed11e78b9efca02c1da178ab5776e9b55967f0f9247",
+      "deployed_commit_blob_sha256": "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f"
+    },
+    {
+      "path": "sllm_store/sllm_store/cli.py",
+      "change": "M",
+      "baseline_blob_sha256": "f0e1feedb5f9eca1987fe146a1ce58038fd70841e0e5ef5cb8db203f67e67983",
+      "deployed_commit_blob_sha256": "a4cc2919322a54a8b1870c37ceb166aeb80ce83349c91988bd6b91021fab6671"
+    },
+    {
+      "path": "sllm_store/sllm_store/client.py",
+      "change": "M",
+      "baseline_blob_sha256": "e33fb8ca82969dada13ea4e2905530ec6e9741f83dfc6fc33ca067d750ab04c4",
+      "deployed_commit_blob_sha256": "203f22054e1cb2661f3d02d63dcfa7697b8f1d37d7a057ad6a514c43995d205f"
+    },
+    {
+      "path": "sllm_store/sllm_store/server.py",
+      "change": "M",
+      "baseline_blob_sha256": "6f396524fc1f7aa6f998d1030fe0445a8025cd2b7e3cfa6755bf8163ce2c61e6",
+      "deployed_commit_blob_sha256": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52"
+    },
+    {
+      "path": "sllm_store/sllm_store/torch.py",
+      "change": "M",
+      "baseline_blob_sha256": "a4fb54b68a3895bf6015cbefe3bc7a7fd51e0af4f37cda72d1b49c9fabce29e9",
+      "deployed_commit_blob_sha256": "1dd5eb72393c67f2d51128c0bf4abb9e8508e5509cc4b42e666ae0b6da2d7adc"
+    },
+    {
+      "path": "sllm_store/vllm_patch/patch.sh",
+      "change": "M",
+      "baseline_blob_sha256": "2c31f923ac17ba8237388b2409529d8c70235e00d1bdf4131c956fc632baab4c",
+      "deployed_commit_blob_sha256": "214cd01c6cec786fbe5040e4b148ca9bf3e423c48387987106664142792e1e54"
+    },
+    {
+      "path": "sllm_store/vllm_patch/sllm_load.patch",
+      "change": "M",
+      "baseline_blob_sha256": "0d5f9e4e1ea8901538b7a75bf3ac5caa706519bc9e2bbcb91d99aa8ce022f357",
+      "deployed_commit_blob_sha256": "6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db"
+    }
+  ],
+  "runtime_source_delta_86fd_to_835": "sllm_store/tests/prepare_kimi_four_condition.py    |  6 ++-\n .../python/test_prepare_kimi_four_condition.py     | 54 +++++++++++++++++++++-\n 2 files changed, 57 insertions(+), 3 deletions(-)",
+  "four_ELF_roles_and_glog": [
+    {
+      "name": "original_C",
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "41d2409ad03c1587c5fef8312cfd2e6672689f64c1b6c64c38a194755580943e",
+      "bytes": 398168,
+      "scope": "Preserved source-tree anchor; masked by nested replacement bind in both roles."
+    },
+    {
+      "name": "original_checkpoint_store",
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "f757a8eb57d6247b91da1ef3955e996c1c7f2fc998bb6acde15a4e9a69b03ec3",
+      "bytes": 644528,
+      "scope": "Preserved source-tree anchor; masked by nested replacement bind in both roles."
+    },
+    {
+      "name": "active_C",
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5",
+      "bytes": 397464,
+      "scope": "Actual requested RO nested mount both roles; historical CPU build/import and ownership tests.",
+      "build_manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/build-manifest.json",
+        "sha256": "4d6514e8368b830b8eecd3a6c3e148af04b9cbf18f955ec6b9244be5e934b836",
+        "bytes": 26338
+      },
+      "build_abi_record": {
+        "python": "3.12.3 (main, Mar 23 2026, 19:04:32) [GCC 13.3.0]",
+        "extension_suffix": ".cpython-312-x86_64-linux-gnu.so",
+        "torch": "2.10.0+cu129",
+        "torch_git": "449b1768410104d3ed79d3bcfe4ba1d65c7f22c0",
+        "torch_cuda": "12.9",
+        "cxx11_abi": true
+      },
+      "build_source_pins": {
+        "sllm_store/csrc/checkpoint/aligned_buffer.cpp": "cd633974fc5b2b8f0d3c871000343cf1cef2ca87f1aee1b7036bb9bbcc84c2f4",
+        "sllm_store/csrc/checkpoint/checkpoint.cpp": "89c3d9b1d19d01608f791f1ce4479c956243914b01a1bd857057123960dac2e0",
+        "sllm_store/csrc/checkpoint/checkpoint_py.cpp": "0faa0dd95dc2f8026d71bb457dbf2ca545dd3b3698e9b0c24ae041fab7292521",
+        "sllm_store/csrc/checkpoint/tensor_writer.cpp": "9a0696620550a4ffcfb0912b822ca33fda37cf8450219e6f94d0609aa04aa404",
+        "sllm_store/csrc/checkpoint/aligned_buffer.h": "cddf69b9d01e7bcb828f060e3c10f5aae738829412ec651cd054f8386aa3e539",
+        "sllm_store/csrc/checkpoint/checkpoint.h": "7418cc5f92d386974c5a5758e13e79f602f0590320cda91ebff90772768a8c06",
+        "sllm_store/csrc/checkpoint/progress_bar.h": "49897bb3ad9a52bbfebcb098450ed54c71e11bb6424276129af963a60df68155",
+        "sllm_store/csrc/checkpoint/tensor_writer.h": "375567415fffb7f1b7916c528b5b53ac9ca7a22ed17cb5dcfa3b8f3ef4b73363",
+        "sllm_store/tests/python/test_restore_ownership.py": "b764ba4590ff9ae2e13f8a4bfd85248ebfb67b60fe83ab8b62643efcd670375a"
+      },
+      "build_linked_dependency_sha256": {
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libc10.so": "10976d2a98e0f9807e8c1f44d930c5ec4e07af7049cd02cc48d5177f952a7dfb",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_cpu.so": "70d9fd335b04cd4a722a66da89d3ac789611f494e8cf84cd00a3d92ba57014e0",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_python.so": "2ac7d8fc1f79227ff7d68f5247cd301e1763ab1ab5527897d30ff05a69d009f3",
+        "/usr/local/cuda/lib64/libcudart.so.12": "256e6409e4f06f618e1fb53d4844a6b81cdded1013afa8ade40c22f99eb133b7",
+        "/lib/x86_64-linux-gnu/libstdc++.so.6": "a68762c86d371e6041f03f03a33a78fa235809ae7d81c90185940c93c3535aed",
+        "/lib/x86_64-linux-gnu/libgcc_s.so.1": "02f3f192bf5f79b811f1e34a650fea443d407408703448906585232383957f60",
+        "/lib/x86_64-linux-gnu/libc.so.6": "d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75",
+        "/lib/x86_64-linux-gnu/libdl.so.2": "850b46fd4f4478060fc106f4d1dc4aa35c969eb5c9bd98aaf64dc6cb3d6a5e32",
+        "/lib/x86_64-linux-gnu/libm.so.6": "1b87a1a50b496cfead2b0ad134c2ff536705c82608db240c7e8aa48d6c0e4217",
+        "/lib/x86_64-linux-gnu/libpthread.so.0": "92dcea07a5b11d939c22a96131d3fbb995e0a84a4d02db7d799bf357689cd794",
+        "/lib64/ld-linux-x86-64.so.2": "1cd555ac46b7887edeaf3c42aac5408c8135e52f6b37870da2cf82d5fe14e829",
+        "/lib/x86_64-linux-gnu/librt.so.1": "9d1cefae4c0e4995cc35ea3195f805454b2d59a27ad15397a1096e735d341faf",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libgomp.so.1": "59badd7c550c340a23d217c37232a4bac6e66a99f47aa273a0a0393bc7c68ddb",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cuda_cupti/lib/libcupti.so.12": "2fdab19dc3fccdd4b2f5eba137aabefc68e685f6497bb38eea649866c5672a2a",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch.so": "672f6cfa6f5bb39094c52e400f6ca8443bfe294f06ba793def90ddf339529f5f",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libshm.so": "363d1d82e3b12a41ec07a27a226cb8b34a165f80954df0d9c518e4cee3cc818a",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_cuda.so": "52d0069c763989a8c729222164b7f843a0e30abc3af54f2720453e5b539807fa",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libc10_cuda.so": "644ababdead4dd25a1564e360feeb6966ac5629f48b47843484e32f2499efbae",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cudnn/lib/libcudnn.so.9": "3b68ea689be647bce63cb3c2d9edb589add415405a7e9f296d69ca029cae0b8b",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cusparselt/lib/libcusparseLt.so.0": "b3d85a0311eadfd3cec86b0291c9a4b5769cba2f248a9e7e8167fbf3ffa99863",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cufile/lib/libcufile.so.0": "b4915c48bec4625005f363dc60591d0d874cc416601ce4fe4374ce68ef42a179",
+        "/lib/x86_64-linux-gnu/libutil.so.1": "7f2d5e4bc602fc6d0fd16f58c08094ab34c0ad4579095aa5f3663dc6092755e6",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_nvshmem.so": "c8cd9140e9063d6653e111057723b0ad380c0974b51d0db2e1224416aee2d760",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cusparse/lib/libcusparse.so.12": "6d85ab1acdabfe3b5a54aa76bc948c719bcd03e07eede3eb8122b083c1a6ecf7",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cufft/lib/libcufft.so.11": "e1d65ebd08895f9d9883f848f3974f89e0130416252477b18835ba7f15d159bc",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/nccl/lib/libnccl.so.2": "1d9c10322efacde695cf640db1f29fc1586c929f1087f0e1202d2d5e70fb7168",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/curand/lib/libcurand.so.10": "ab8c07338fa663c018b16df5b3f3878c84aaae98bda930e9e8bad340427b0faa",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cublas/lib/libcublas.so.12": "d63456d94f1b8e2408a8a9538c8740eb474c9eba48a84f420b15e2e10fbcd048",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cublas/lib/libcublasLt.so.12": "96ddf4891ca4f4ed1475966783a9185df2abd64a81c3cc713b96d036696fc541",
+        "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/nvshmem/lib/libnvshmem_host.so.3": "bb1c1ad4a03eaf0456a01c671e5df3d27a7ac153e0e7eb5c0eb872df376cdef3",
+        "/usr/local/cuda/lib64/libnvJitLink.so.12": "02d3acb5fe598dd20f0fca3cc03734ad164037a22747a01900561a42d0b8448f"
+      },
+      "build_cuda_initialized": false,
+      "build_status": "SDK_EMPTY_POINTER_BUILD_AND_CPU_OWNERSHIP_PASS",
+      "dynamic_section": "\nDynamic section at offset 0x49c08 contains 31 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libc10.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_cpu.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libtorch_python.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libcudart.so.12]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN:/usr/local/lib/python3.12/dist-packages/torch/lib:/usr/local/cuda/lib64]\n 0x000000000000000c (INIT)               0xe000\n 0x000000000000000d (FINI)               0x3d23c\n 0x0000000000000019 (INIT_ARRAY)         0x4a8f0\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x4a8f8\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x2f0\n 0x0000000000000005 (STRTAB)             0x3258\n 0x0000000000000006 (SYMTAB)             0xa98\n 0x000000000000000a (STRSZ)              31138 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000003 (PLTGOT)             0x4afe8\n 0x0000000000000002 (PLTRELSZ)           5088 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0xc1b8\n 0x0000000000000007 (RELA)               0xb0c0\n 0x0000000000000008 (RELASZ)             4344 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffffe (VERNEED)            0xaf50\n 0x000000006fffffff (VERNEEDNUM)         4\n 0x000000006ffffff0 (VERSYM)             0xabfa\n 0x000000006ffffff9 (RELACOUNT)          71\n 0x0000000000000000 (NULL)               0x0\n"
+    },
+    {
+      "name": "active_checkpoint_store",
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+      "bytes": 654888,
+      "scope": "Actual requested RO nested mount both roles; historical CPU genuine CMake build/import, not constructor.",
+      "build_manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/build-manifest.json",
+        "sha256": "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d",
+        "bytes": 153446
+      },
+      "build_abi_record": {
+        "torch": "2.10.0+cu129",
+        "cuda": "12.9",
+        "cxx11_abi": true,
+        "extension_suffix": ".cpython-312-x86_64-linux-gnu.so",
+        "module_path": "/build/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+        "elf_sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+        "cuda_initialized": false,
+        "store_instantiated": false,
+        "release_memory_pool_bound": true
+      },
+      "build_source_pins": {
+        "sllm_store/csrc/sllm_store/binary_utils.cpp": "766b329ea3b67cb6273774da7a16fcf23b275485df48f07c8b55fef13370b327",
+        "sllm_store/csrc/sllm_store/binary_utils.h": "2b33fc763ab7b043f3d2507fb32f7d84ac65035e2f7d1296458f8c98cb40d82e",
+        "sllm_store/csrc/sllm_store/checkpoint_store.cpp": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3",
+        "sllm_store/csrc/sllm_store/checkpoint_store.h": "01dcbdf5d376224ae3c24ed7bc5652996f3deeef8f9b99171c1e75b70449405a",
+        "sllm_store/csrc/sllm_store/checkpoint_store_py.cpp": "9947ed2618493e12918a8223230942edfe8ff8689e43719d633cf4f12478230d",
+        "sllm_store/csrc/sllm_store/concurrent_queue.h": "7b17afc07d4560f4e63abe0c90a16970d8976834e48befae0b37d0f7fd8534a6",
+        "sllm_store/csrc/sllm_store/concurrent_vector.h": "a4958ae7ba7a1c30da7ce97ebda1aeb28557e1e21409f198ccd98e5a7fd51b91",
+        "sllm_store/csrc/sllm_store/cuda_memory.cpp": "cab4902b3547b34abad62a476bfa1c01b2aa4ab1f219f346be307b97f147d7be",
+        "sllm_store/csrc/sllm_store/cuda_memory.h": "bffd7789f0901a88cda9369f43ea3a6ed56258b3d8305d4e278c49555be6e870",
+        "sllm_store/csrc/sllm_store/cuda_memory_pool.cpp": "aa53a324fb3accba41e9777d87a0d3272f08bba5c5ebf39318c64e189f43357b",
+        "sllm_store/csrc/sllm_store/cuda_memory_pool.h": "0262764ad23b832c0a92ff4e20f1464f2fe3a8f021f1de8e8961d333a5050508",
+        "sllm_store/csrc/sllm_store/error_handling.h": "09231343615ef381ef44e72a114633266a674f4a5686fbaa614761d8c1702199",
+        "sllm_store/csrc/sllm_store/gpu_replica.cpp": "013ff2437f09d055accb15d157c674a4598b6768043b3b0afe1b0cd9cad3f951",
+        "sllm_store/csrc/sllm_store/gpu_replica.h": "bcd331d789629b711b8e8d63a12f5675ed83a0dd8766cd4405acdb0668a7607e",
+        "sllm_store/csrc/sllm_store/memory_state.cpp": "06e08eb90b14bf6c527e6dce4d431ad9eab645e6104e7985620f477e01774933",
+        "sllm_store/csrc/sllm_store/memory_state.h": "3d17b7f55f6833a69bfcb5fa3783f45ab03a034fd70b34e62f0fe21f20b5f066",
+        "sllm_store/csrc/sllm_store/model.h": "8644ef5aaa2c50d2958a9fb0864948bf766dd73bdf85fac4d1de582eee9aae83",
+        "sllm_store/csrc/sllm_store/pinned_memory.cpp": "e821c99d9a8f75c57adfea81f803ef307b8c67794f746274bcc0ecd0403d7a2c",
+        "sllm_store/csrc/sllm_store/pinned_memory.h": "dba2cef34a33e85fab93fcffee881bd6d5505c7485832b7426a63eb18510503f",
+        "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d",
+        "sllm_store/csrc/sllm_store/pinned_memory_pool.h": "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f",
+        "sllm_store/csrc/sllm_store/types_and_defs.h": "294cff8c9bf8a50f22f501c52263f5db2839a4a457b9ac52a4d01c770d0de77f",
+        "sllm_store/csrc/sllm_store/model.cpp": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509",
+        "sllm_store/sllm_store/server.py": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52",
+        "sllm_store/tests/python/test_confirm_model_event_loop.py": "d86731e8880e87c94eddb8d4f8444db6f94fb1380a4e8e64e73b7c875da451ee",
+        "sllm_store/CMakeLists.txt": "d079639463b0d6a3b37562aba941f10791a164ba13585c8cd9068d3bdae6a307",
+        "sllm_store/cmake/utils.cmake": "35d4bcfa32a53dd456c2c99c39d5e4b0c2693e47d15940851475c8dcc1237d80"
+      },
+      "build_linked_dependency_sha256": {
+        "libtorch.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch.so",
+          "sha256": "672f6cfa6f5bb39094c52e400f6ca8443bfe294f06ba793def90ddf339529f5f"
+        },
+        "libglog.so.1": {
+          "path": "/source/sllm_store/sllm_store/libglog.so.1",
+          "sha256": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6"
+        },
+        "libcudart.so.12": {
+          "path": "/usr/local/cuda/lib64/libcudart.so.12",
+          "sha256": "256e6409e4f06f618e1fb53d4844a6b81cdded1013afa8ade40c22f99eb133b7"
+        },
+        "libtorch_cpu.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_cpu.so",
+          "sha256": "70d9fd335b04cd4a722a66da89d3ac789611f494e8cf84cd00a3d92ba57014e0"
+        },
+        "libtorch_cuda.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_cuda.so",
+          "sha256": "52d0069c763989a8c729222164b7f843a0e30abc3af54f2720453e5b539807fa"
+        },
+        "libstdc++.so.6": {
+          "path": "/lib/x86_64-linux-gnu/libstdc++.so.6",
+          "sha256": "a68762c86d371e6041f03f03a33a78fa235809ae7d81c90185940c93c3535aed"
+        },
+        "libgcc_s.so.1": {
+          "path": "/lib/x86_64-linux-gnu/libgcc_s.so.1",
+          "sha256": "02f3f192bf5f79b811f1e34a650fea443d407408703448906585232383957f60"
+        },
+        "libc.so.6": {
+          "path": "/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75"
+        },
+        "libpthread.so.0": {
+          "path": "/lib/x86_64-linux-gnu/libpthread.so.0",
+          "sha256": "92dcea07a5b11d939c22a96131d3fbb995e0a84a4d02db7d799bf357689cd794"
+        },
+        "libdl.so.2": {
+          "path": "/lib/x86_64-linux-gnu/libdl.so.2",
+          "sha256": "850b46fd4f4478060fc106f4d1dc4aa35c969eb5c9bd98aaf64dc6cb3d6a5e32"
+        },
+        "librt.so.1": {
+          "path": "/lib/x86_64-linux-gnu/librt.so.1",
+          "sha256": "9d1cefae4c0e4995cc35ea3195f805454b2d59a27ad15397a1096e735d341faf"
+        },
+        "libc10.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libc10.so",
+          "sha256": "10976d2a98e0f9807e8c1f44d930c5ec4e07af7049cd02cc48d5177f952a7dfb"
+        },
+        "libm.so.6": {
+          "path": "/lib/x86_64-linux-gnu/libm.so.6",
+          "sha256": "1b87a1a50b496cfead2b0ad134c2ff536705c82608db240c7e8aa48d6c0e4217"
+        },
+        "libgomp.so.1": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libgomp.so.1",
+          "sha256": "59badd7c550c340a23d217c37232a4bac6e66a99f47aa273a0a0393bc7c68ddb"
+        },
+        "libcupti.so.12": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cuda_cupti/lib/libcupti.so.12",
+          "sha256": "2fdab19dc3fccdd4b2f5eba137aabefc68e685f6497bb38eea649866c5672a2a"
+        },
+        "libtorch_nvshmem.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libtorch_nvshmem.so",
+          "sha256": "c8cd9140e9063d6653e111057723b0ad380c0974b51d0db2e1224416aee2d760"
+        },
+        "libc10_cuda.so": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/libc10_cuda.so",
+          "sha256": "644ababdead4dd25a1564e360feeb6966ac5629f48b47843484e32f2499efbae"
+        },
+        "libcusparse.so.12": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cusparse/lib/libcusparse.so.12",
+          "sha256": "6d85ab1acdabfe3b5a54aa76bc948c719bcd03e07eede3eb8122b083c1a6ecf7"
+        },
+        "libcufft.so.11": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cufft/lib/libcufft.so.11",
+          "sha256": "e1d65ebd08895f9d9883f848f3974f89e0130416252477b18835ba7f15d159bc"
+        },
+        "libcufile.so.0": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cufile/lib/libcufile.so.0",
+          "sha256": "b4915c48bec4625005f363dc60591d0d874cc416601ce4fe4374ce68ef42a179"
+        },
+        "libcusparseLt.so.0": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cusparselt/lib/libcusparseLt.so.0",
+          "sha256": "b3d85a0311eadfd3cec86b0291c9a4b5769cba2f248a9e7e8167fbf3ffa99863"
+        },
+        "libnccl.so.2": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/nccl/lib/libnccl.so.2",
+          "sha256": "1d9c10322efacde695cf640db1f29fc1586c929f1087f0e1202d2d5e70fb7168"
+        },
+        "libcurand.so.10": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/curand/lib/libcurand.so.10",
+          "sha256": "ab8c07338fa663c018b16df5b3f3878c84aaae98bda930e9e8bad340427b0faa"
+        },
+        "libcublas.so.12": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cublas/lib/libcublas.so.12",
+          "sha256": "d63456d94f1b8e2408a8a9538c8740eb474c9eba48a84f420b15e2e10fbcd048"
+        },
+        "libcublasLt.so.12": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cublas/lib/libcublasLt.so.12",
+          "sha256": "96ddf4891ca4f4ed1475966783a9185df2abd64a81c3cc713b96d036696fc541"
+        },
+        "libcudnn.so.9": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/cudnn/lib/libcudnn.so.9",
+          "sha256": "3b68ea689be647bce63cb3c2d9edb589add415405a7e9f296d69ca029cae0b8b"
+        },
+        "libutil.so.1": {
+          "path": "/lib/x86_64-linux-gnu/libutil.so.1",
+          "sha256": "7f2d5e4bc602fc6d0fd16f58c08094ab34c0ad4579095aa5f3663dc6092755e6"
+        },
+        "libnvshmem_host.so.3": {
+          "path": "/usr/local/lib/python3.12/dist-packages/torch/lib/../../nvidia/nvshmem/lib/libnvshmem_host.so.3",
+          "sha256": "bb1c1ad4a03eaf0456a01c671e5df3d27a7ac153e0e7eb5c0eb872df376cdef3"
+        },
+        "libnvJitLink.so.12": {
+          "path": "/usr/local/cuda/lib64/libnvJitLink.so.12",
+          "sha256": "02d3acb5fe598dd20f0fca3cc03734ad164037a22747a01900561a42d0b8448f"
+        }
+      },
+      "build_cuda_initialized": false,
+      "build_status": "CHECKPOINT_STORE_OFFICIAL_CPU_BUILD_ABI_PASS",
+      "dynamic_section": null
+    },
+    {
+      "name": "glog_dependency",
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/libglog.so.0.6.0",
+      "sha256": "d76e3fafb8b0b0176a1b5a0ccc9d5db11c5118046b8f31d724731640740da9e6",
+      "bytes": 211000,
+      "scope": "Existing dependency; manifest resolves libglog.so.1 to same content."
+    }
+  ],
+  "historical_inactive_store_ELFs": [
+    {
+      "artifact": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-confirm-gil-verified-v2/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "cb885e7ca28fc518c86dfba03a0e665c3abe3cbe2614cda3212676a71fb0d079",
+        "bytes": 644840
+      },
+      "build_manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-confirm-gil-verified-v2/build-manifest.json",
+        "sha256": "d96825e5b07565bfc42f47d984849afa2fe621ca265b207bd89c20f6681d153a",
+        "bytes": 152643
+      },
+      "active_in_formal_spec": false
+    },
+    {
+      "artifact": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-shutdown-progress-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+        "sha256": "9fcb0768be685df4595950cedee3351e2967c91cb6163222e99ca36de003d45c",
+        "bytes": 644840
+      },
+      "build_manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-shutdown-progress-v1/build-manifest.json",
+        "sha256": "042292ff33ff994bf24504c9b5761287a5ab16ecde0d37542df8f93d6d9954ff",
+        "bytes": 152642
+      },
+      "active_in_formal_spec": false
+    }
+  ],
+  "active_overlays": [
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+      "sha256": "87ab7dbfff7989abc3fc374bd37f57a4e8803e0daf9138159e70b712b6dfc129",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+      "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+      "sha256": "d845e79c9df852247af53f4a478d1fd577cf0f637b5d48778c6c5fc6418d87f2",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+      "sha256": "e87517c666d828ac6a896a9ba25f85f3c71f66753f37b89f1fb5e97f74570ab8",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+      "sha256": "a5e4c315afe67125f49023dcd335164af972aff9d9453899bdbe42a01ab0ab8b",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+      "sha256": "6260a6b4cdb03bf059bbab2bb37c9ef19c7742ab7863effe2e9226300a04cf73",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+      "sha256": "0d620af05b7c8b86e5c7d3c34db180ad058c4564694dea35911e476ad31df480",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+      "sha256": "d1e2609c0f43f2de1ad3222205b3ca87dc607774e46d53319a68dcdb8b03d2c0",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+      "sha256": "40a091a561ae5aeee383a08ce79817c0c8dffee97bb7f2daa4178a98517a52b9",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    },
+    {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+      "target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+      "sha256": "5fefdccd597918dc4cefaa169d02464d4e5a5d0dbe568eb64c15a71f842000af",
+      "actual_requested_RO_mounts": {
+        "head": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+          "ReadOnly": true
+        },
+        "worker": {
+          "Type": "bind",
+          "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+          "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+          "ReadOnly": true
+        }
+      },
+      "fresh_file_sha_verified": true
+    }
+  ],
+  "overlay_build_lineage": [
+    {
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/vllm-restore-runtime-build-v6/build-manifest.json",
+        "sha256": "dd0004eaf44169aae319177f6666c02a9c7135701f8851d46722a8e94f1a0f02",
+        "bytes": 16087
+      },
+      "recorded_status": "SOURCE_ONLY_RESTORE_RUNTIME_AUX_NOT_RUNTIME_VALIDATED",
+      "patch_sha256": "2d8f70314c009112a14f137615e5a58325ba1fb938ce9030e2f46d3cd78aa995",
+      "original_input_pins": {
+        "model_executor/model_loader/__init__.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+          "state": "existing",
+          "sha256": "a8b9804eba44d4f20901db9528825aa69095fb159766f76079cf2db82095b3e4",
+          "bytes": 5081
+        },
+        "model_executor/model_loader/sllm_loader.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+          "state": "absent_new_file",
+          "sha256": null,
+          "bytes": 0
+        },
+        "v1/engine/core.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+          "state": "existing",
+          "sha256": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+          "bytes": 82809
+        },
+        "v1/engine/core_client.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+          "state": "existing",
+          "sha256": "ebad9d4c1277269fdbdcebdef98c1e242636b6e65018ed7cb37d86e9563d7e88",
+          "bytes": 67055
+        },
+        "v1/executor/abstract.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+          "state": "existing",
+          "sha256": "81fdcce013b59818401d45ab14e7b16e96ff7c4858af402edbac4455931f865e",
+          "bytes": 14151
+        },
+        "v1/worker/gpu_model_runner.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+          "state": "existing",
+          "sha256": "3afc290d3df1be3df1b89b9b35942695f5896c7729f608d6c44580899212c301",
+          "bytes": 309188
+        },
+        "v1/worker/gpu_worker.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+          "state": "existing",
+          "sha256": "ffbd4567a25e0a82ca5c714b75e86c7353cedb6fc5c2814b22f3c91afb1c88b1",
+          "bytes": 44483
+        },
+        "tokenizers/hf.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+          "state": "existing",
+          "sha256": "f462103da34122052402a996c127512d1e1c5d0aa25fc130cf97d4082a92f6f8",
+          "bytes": 4493
+        },
+        "model_executor/layers/rotary_embedding/common.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+          "state": "existing",
+          "sha256": "edc44caa8f697fdc7cea2195c525cf45d232cff8b488de5c4c41ba4e494ad837",
+          "bytes": 8456
+        },
+        "model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "state": "existing",
+          "sha256": "0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f",
+          "bytes": 96755
+        },
+        "model_executor/model_loader/utils.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+          "state": "existing",
+          "sha256": "66e62df58d8f20e823a16cb042b939183f956df7df23d4b5d8fa6c5ce498ac02",
+          "bytes": 11059
+        }
+      },
+      "checks": {
+        "original_Marlin_repack_AST_unchanged": true,
+        "V5_empty_filter_AST_unchanged": true,
+        "original_quant_loop_AST_unchanged": true,
+        "original_attention_loop_AST_unchanged": true,
+        "original_torchao_tail_AST_unchanged": true,
+        "old_V5_V4_all_outputs_unchanged": true,
+        "eleven_sources_compile_only": true
+      },
+      "states": {
+        "before": "UNAPPLIED_FORWARD0_REVERSE1",
+        "after": "APPLIED_FORWARD1_REVERSE0",
+        "conflict": "NOT_OBSERVED_EXACT_IMAGE_INPUTS",
+        "incompatible": "NOT_OBSERVED_STATIC_ONLY_RUNTIME_UNKNOWN"
+      },
+      "strict_patch_returncodes": {},
+      "scope": null,
+      "published_overlay": null,
+      "published_overlay_sha256": null
+    },
+    {
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/build-manifest.json",
+        "sha256": "4707bbb0c3dbf32f633f8740746f38177eb4a51cdc89f908a92d1fa5abd54b7f",
+        "bytes": 11149
+      },
+      "recorded_status": "SOURCE_ONLY_STRICT_PATCH_AND_COMPILE_PASS_NOT_GPU_RUN",
+      "patch_sha256": "9d16dba24979862b8470a1859d7b343e6ad3ee430cc2dcac32bc2185777ed3f4",
+      "original_input_pins": {
+        "model_executor/model_loader/__init__.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+          "state": "existing",
+          "sha256": "a8b9804eba44d4f20901db9528825aa69095fb159766f76079cf2db82095b3e4",
+          "bytes": 5081
+        },
+        "model_executor/model_loader/sllm_loader.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+          "state": "absent_new_file",
+          "sha256": null,
+          "bytes": 0
+        },
+        "v1/engine/core.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+          "state": "existing",
+          "sha256": "896730e749cbcabb487ce50c703974594d197fc31a1d3b26fe096197d142d2d5",
+          "bytes": 82809
+        },
+        "v1/engine/core_client.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+          "state": "existing",
+          "sha256": "ebad9d4c1277269fdbdcebdef98c1e242636b6e65018ed7cb37d86e9563d7e88",
+          "bytes": 67055
+        },
+        "v1/executor/abstract.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+          "state": "existing",
+          "sha256": "81fdcce013b59818401d45ab14e7b16e96ff7c4858af402edbac4455931f865e",
+          "bytes": 14151
+        },
+        "v1/worker/gpu_model_runner.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+          "state": "existing",
+          "sha256": "3afc290d3df1be3df1b89b9b35942695f5896c7729f608d6c44580899212c301",
+          "bytes": 309188
+        },
+        "v1/worker/gpu_worker.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+          "state": "existing",
+          "sha256": "ffbd4567a25e0a82ca5c714b75e86c7353cedb6fc5c2814b22f3c91afb1c88b1",
+          "bytes": 44483
+        },
+        "tokenizers/hf.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+          "state": "existing",
+          "sha256": "f462103da34122052402a996c127512d1e1c5d0aa25fc130cf97d4082a92f6f8",
+          "bytes": 4493
+        },
+        "model_executor/layers/rotary_embedding/common.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+          "state": "existing",
+          "sha256": "edc44caa8f697fdc7cea2195c525cf45d232cff8b488de5c4c41ba4e494ad837",
+          "bytes": 8456
+        },
+        "model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+          "state": "existing",
+          "sha256": "0d84c593350f59f3ff2d45beb3b3ef99dc1f155e6b5b17ffc806000e5857b70f",
+          "bytes": 96755
+        },
+        "model_executor/model_loader/utils.py": {
+          "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+          "state": "existing",
+          "sha256": "66e62df58d8f20e823a16cb042b939183f956df7df23d4b5d8fa6c5ce498ac02",
+          "bytes": 11059
+        }
+      },
+      "checks": null,
+      "states": null,
+      "strict_patch_returncodes": {
+        "original_forward_dryrun": 0,
+        "original_reverse_dryrun": 1,
+        "apply": 0,
+        "patched_forward_dryrun": 1,
+        "patched_reverse_dryrun": 0
+      },
+      "scope": "Only new single runner+manifest persisted; original input SHA matches immutable image; other10 patched modules unchanged V6; no runtime imports or Dockerstart/GPU/Git. GNU patch --force disallows auto-reversing state tests. Temporary tree removed.",
+      "published_overlay": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+      "published_overlay_sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb"
+    }
+  ],
+  "tracked_patch": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+    "sha256": "6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db",
+    "fresh_sha_match": true,
+    "interpretation": "Current committed patch source6fc; active oldf7 runtime overlay remains from original9d build; no fingerprint flag or new866 overlay implied."
+  },
+  "runtime_native_source_pins": {
+    "sllm/cli/_cli_utils.py": "9b82b1bf3c747c136d8f6668f4b3f8fa0277ec6017762f25f1fccfc88326c91b",
+    "sllm/cli/clic.py": "9b309d2025a604d2372be5ecee0ac4778e9dd262e5913573ff907b109e49d3d1",
+    "sllm/controller.py": "a7dcce53585ed48fc98669580cd70519fbde008b12548df13c387bdc4a7fa905",
+    "sllm/routers/roundrobin_router.py": "0ae9ad2f5dc7423bae7fd319c760b1ed5d0346c4fd40d42a3f01962587ba5e2c",
+    "sllm/inference_instance.py": "7a47e0579ded1eec5ad77f9e0cc7164242129739d066c54e5ac722d2f7837e5a",
+    "sllm/backends/vllm_backend.py": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510",
+    "sllm/store_manager.py": "29eac0acabcfcf821e43da0fb226c4451007e34559d8ae9212e2f875d55db2a5",
+    "sllm/model_downloader.py": "353649e8bda84450491ba7724e336c54746cb561ea61f6a1073e5c73bf4701a9",
+    "sllm/utils.py": "e3ebd803ee06f6665aaa51e586911e1049a5f2c118b612d750a25deff7d008fc",
+    "sllm/app_lib.py": "462476744209740470fc32de10cc0fa825a69d64803045982e7f80ae7234fd9d",
+    "sllm/logger.py": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11",
+    "sllm_store/tests/file_cache_state.py": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8"
+  },
+  "evidence_strength": [
+    "Existing formal specs bind immutable image, source commit, RO nested ELF mounts, 11 active overlays and SHA pins; fresh local small-file hashes confirmed here.",
+    "Historical build manifests independently record compiler/source/ABI/linked-library hashes; activeStore CPU build imported actual ELF with CUDA uninitialized and Store not instantiated.",
+    "Formal successful model/ownership/HTTP and cleanup evidence exists separately; this audit did not rerun it."
+  ],
+  "limits_and_missing": [
+    "No new containers, imports, GPU, model, Store, dependency rehash inside image, or big asset reads.",
+    "Requested binds and historical preflight/hash evidence do not equal a fresh live per-process /proc/maps or loaded-ELF SHA attestation; stopped containers have been cleaned.",
+    "Preserved original ELF anchors and oldcb885/9fcb artifacts are not the active formal native extensions.",
+    "New diagnostic value-fingerprint runner86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8ca9692b1f25 is not active; f7 runner does metadata evidence, not full tensor-value fingerprint.",
+    "Current tracked patch6fc includes new diagnostic code absent from activef7; originalf7 manifest9d16 is its correct source lineage, not currentpatch identity equivalence.",
+    "Official baseline requirements0.11.2 and Kimi0.19.1 differ; no claim unmodified official package/patch compatibility.",
+    "Version strata and failed historical attempts remain separate; current analysis HEAD is not a GPU deployment commit."
+  ]
+}

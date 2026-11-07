@@ -1,0 +1,44 @@
+{
+  "status": "REAL_ROOT_READONLY_EXISTING_STARTUP_COLLECTION_COMPLETE_NO_GPU",
+  "recorded_epoch": 1794057052.1226256,
+  "node": "qjhs3",
+  "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+  "execution_source": "Parent executed reviewed command via nativeSSH qjhs003 freshTTY authenticated with owner-provided credential; credential never written to scripts/files/Git or echoed in output.",
+  "process_handle": 36496,
+  "process_exit_code": 0,
+  "command": "ssh -tt qjhs003 [stty-echo; sudo bash reviewed run-existing-startup-readonly-20261107-once.sh]",
+  "wrapper_sha256": "1890896aa0594300f430750779159177589f187f93ae814b28479b396dcdbd50",
+  "source_commit": "fdc3643c9faed467314beea12d90d1b7b2c11bf1",
+  "collector_source_sha256": "91b0656e73cd918795c18cdc563b4320e235e60db04baca70c7719eeb5ce99d3",
+  "manifest_sha256": "4dd7d68f5409941c362f28e937c2dce21770a5829677dc1dcde78b2f5f70f801",
+  "root_identity_basis": "Reviewed wrapper id-u=0 and collector os.geteuid root guard before private source reads; successful execution passed both.",
+  "actual_tool_stdout": [
+    {
+      "status": "EXISTING_LOG_SUMMARY_WRITTEN",
+      "runs": 38,
+      "bytes_read": 32819174,
+      "output_sha256": "3b0ab92e6306d7b2fe98d3f785af1162f1abf9d485625986192799fd6f53f43a"
+    },
+    {
+      "status": "READONLY_SANITIZED_PUBLIC_SUMMARY_EXPORTED",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-existing-startup-log-readonly-20261107-once-public.json",
+      "sha256": "3b0ab92e6306d7b2fe98d3f785af1162f1abf9d485625986192799fd6f53f43a",
+      "no_GPU_or_containers_started": true
+    }
+  ],
+  "private_public_same_sha_attestation": "Reviewed wrapper compares private bytes with public reread SHA after successful collection/export. Independent ordinarySSH reread public SHA matches; parent did not claim direct private reread in this receipt.",
+  "public_output": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-existing-startup-log-readonly-20261107-once-public.json",
+    "bytes": 1215499,
+    "sha256": "3b0ab92e6306d7b2fe98d3f785af1162f1abf9d485625986192799fd6f53f43a",
+    "mtime_ns": 1794056865994675672
+  },
+  "matching_runs": 38,
+  "observed_loading_markers": 38,
+  "import_markers": 76,
+  "new_GPU_or_containers": 0,
+  "collector_executions": 1,
+  "authentication_transport_incident": "An initial nonTTY SSH had closed stdin before authentication; no collector output/process ran. Its exact local SSH PID56908 was identified and closed, then a freshTTY authentication executed the collector once. Not a diagnostic/model retry.",
+  "no_raw_or_historical_files_modified": true,
+  "previous_root_channel_blocker": "Resolved for this specific once command by fresh interactive SSH authentication after explicit owner credential instruction; prior denial evidence not rewritten."
+}

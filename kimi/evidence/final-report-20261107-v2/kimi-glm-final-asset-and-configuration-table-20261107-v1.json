@@ -1,0 +1,1688 @@
+{
+  "schema": "kimi-glm-final-asset-configuration-table-v1",
+  "created_utc": "2026-11-07T12:34:16Z",
+  "status": "FINITE_CURRENT_STAT_AND_FROZEN_MANIFEST_ASSET_IDENTITIES_NO_PAYLOAD_READ",
+  "Kimi": {
+    "label": "Kimi-K2.6 checkpoint revision7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+    "assets": {
+      "safetensors": {
+        "host_root": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+        "container_path": "/mnt/raid/models/Kimi-K2.6",
+        "counts": {
+          "payload_files": 64,
+          "metadata_files": 20,
+          "all_regular_files": 84
+        },
+        "bytes": {
+          "payload": 595177988208,
+          "metadata": 26645943,
+          "all_regular": 595204634151
+        },
+        "stat_scope": "All frozen inventory files current dev/inode/bytes/mtime_ns/uid/regularity matched; no payload content read.",
+        "mount": {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs"
+        }
+      },
+      "store": {
+        "host_root": "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+        "container_path": "/store/vllm/kimi-k2.6-sf-reference",
+        "counts": {
+          "payload_files": 64,
+          "metadata_files": 40,
+          "all_regular_files": 104
+        },
+        "bytes": {
+          "payload": 617000763392,
+          "metadata": 28833109,
+          "all_regular": 617029596501
+        },
+        "stat_scope": "All frozen inventory files current dev/inode/bytes/mtime_ns/uid/regularity matched; no payload content read.",
+        "mount": {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs"
+        }
+      }
+    },
+    "configuration": {
+      "architectures": [
+        "KimiK25ForConditionalGeneration"
+      ],
+      "model_type": "kimi_k25",
+      "text_model_type": "kimi_k2",
+      "dtype": "bfloat16",
+      "hidden_size": 7168,
+      "num_hidden_layers": 61,
+      "num_attention_heads": 64,
+      "num_key_value_heads": 64,
+      "routed_experts": 384,
+      "shared_experts": 1,
+      "selected_experts_per_token": 8,
+      "first_dense_layers": 1,
+      "MoE_intermediate_size": 2048,
+      "vocab_size": 163840,
+      "num_nextn_predict_layers": 0,
+      "quant_method": "compressed-tensors",
+      "quantization_details": {
+        "format": "pack-quantized",
+        "config_groups": {
+          "group_0": {
+            "input_activations": null,
+            "output_activations": null,
+            "targets": [
+              "Linear"
+            ],
+            "weights": {
+              "actorder": null,
+              "block_structure": null,
+              "dynamic": false,
+              "group_size": 32,
+              "num_bits": 4,
+              "observer": "minmax",
+              "observer_kwargs": {},
+              "strategy": "group",
+              "symmetric": true,
+              "type": "int"
+            }
+          }
+        },
+        "ignore": [
+          "re:.*self_attn.*",
+          "re:.*shared_experts.*",
+          "re:.*mlp\\.(gate|up|gate_up|down)_proj.*",
+          "re:.*lm_head.*",
+          "re:vision_tower.*",
+          "re:mm_projector.*"
+        ]
+      },
+      "total_parameter_count": null,
+      "activated_parameter_count": null,
+      "parameter_count_scope": "Not explicit in these configs; no inferred total/activated count or packed-tensor numel substitution. Routed-expert topK8 is not8 total active parameters or all active architecture components."
+    },
+    "vision_configuration": {
+      "_attn_implementation": "flash_attention_2",
+      "init_pos_emb_height": 64,
+      "init_pos_emb_time": 4,
+      "init_pos_emb_width": 64,
+      "merge_kernel_size": [
+        2,
+        2
+      ],
+      "merge_type": "sd2_tpool",
+      "mm_hidden_size": 1152,
+      "mm_projector_type": "patchmerger",
+      "patch_size": 14,
+      "pos_emb_type": "divided_fixed",
+      "projector_hidden_act": "gelu",
+      "projector_ln_eps": 1e-05,
+      "text_hidden_size": 7168,
+      "video_attn_type": "spatial_temporal",
+      "vt_hidden_size": 1152,
+      "vt_intermediate_size": 4304,
+      "vt_num_attention_heads": 16,
+      "vt_num_hidden_layers": 27
+    },
+    "formal_common_configuration": {
+      "tp": 8,
+      "gpu_memory_utilization": 0.8,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "enforce_eager": true,
+      "enable_prefix_caching": false,
+      "trust_remote_code": true,
+      "mm_encoder_tp_mode": "data",
+      "pool_bytes": 687194767360,
+      "chunk_bytes": 67108864,
+      "io_threads": 4,
+      "shm_bytes": 8589934592,
+      "pids_limit": 4096,
+      "worker_memory_bytes": 1649267441664,
+      "worker_cpus": 32,
+      "trace_debug": true,
+      "min_instances": 0,
+      "max_instances": 1,
+      "placement_memory_pool": [],
+      "load_formats": {
+        "safetensors_disk_cold": "safetensors",
+        "safetensors_disk_hot": "safetensors",
+        "store_disk_cold": "serverless_llm",
+        "store_pool_hit": "serverless_llm"
+      },
+      "fresh_services_every_condition": true,
+      "config_delta_from_L1": "Explicit prefix caching false to align GLM; min_instances0 makes first arithmetic trigger startup. These are new formal protocol configs, not relabeling L1 timings.",
+      "jit": "Fresh per-attempt empty explicitly located JIT/cache directories, same env for all4; record before/after. No hidden warmup request or shared mutable compiled cache."
+    },
+    "storage_scope": "Weight and metadata input files plus raw run outputs use qjhs003 XFS /dev/nvme1n1, same device as GLM assets. Shared checkout/.git, source overlays/ELF, control specs and claims still NFS; not all I/O identical. Device cache uncontrolled; local page-cache condition tested by mincore."
+  },
+  "GLM": {
+    "label": "zai-org/GLM-5.1-FP8",
+    "revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+    "assets": {
+      "safetensors": {
+        "host_root": "/data/brick1/boyjiang/glm5.1-fp8/checkpoint",
+        "container_path": "/experiment/checkpoint",
+        "counts": {
+          "payload_files": 142,
+          "root_metadata_and_provenance_files": 9,
+          "all_regular_files": 151
+        },
+        "bytes": {
+          "payload": 756177645648,
+          "metadata_and_provenance": 31690471,
+          "all_regular": 756209336119
+        },
+        "metadata_file_sizes": {
+          "LICENSE": 1065,
+          "README.md": 10776,
+          "chat_template.jinja": 4672,
+          "config.json": 35871,
+          "generation_config.json": 193,
+          "model.safetensors.index.json": 11396202,
+          "tokenizer.json": 20217442,
+          "tokenizer_config.json": 760,
+          "VERIFIED.json": 23490
+        },
+        "mount": {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs"
+        },
+        "verification": "142 exact manifest/LFS-listed filenames stat sizes match; declared LFS digests are historical identities, no fresh payload hash. Additional root metadata/provenance current stat only."
+      },
+      "store": {
+        "host_root": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8",
+        "container_path": "/experiment/store/vllm/glm51-fp8",
+        "counts": {
+          "payload_files": 80,
+          "active_TP_ranks": 8,
+          "parts_per_rank": 10,
+          "frozen_metadata_files": 22,
+          "all_metadata_and_provenance_files": 26,
+          "all_regular_files": 106
+        },
+        "bytes": {
+          "payload": 762037043200,
+          "frozen_metadata_22": 48659964,
+          "all_metadata_and_provenance": 48703043,
+          "all_regular": 762085746243
+        },
+        "metadata_file_sizes": {
+          "LICENSE": 1065,
+          "README.md": 10776,
+          "chat_template.jinja": 4672,
+          "config.json": 35871,
+          "generation_config.json": 193,
+          "model.safetensors.index.json": 11396202,
+          "tokenizer.json": 20217442,
+          "tokenizer_config.json": 760,
+          "source-preservation.json": 26922,
+          "raw-disk-verification.json": 4316,
+          "rank_0/raw_state.json": 1839182,
+          "rank_0/tensor_index.json": 286421,
+          "rank_1/raw_state.json": 1839182,
+          "rank_1/tensor_index.json": 286421,
+          "rank_2/raw_state.json": 1839182,
+          "rank_2/tensor_index.json": 286421,
+          "rank_3/raw_state.json": 1839182,
+          "rank_3/tensor_index.json": 286421,
+          "rank_4/raw_state.json": 1839182,
+          "rank_4/tensor_index.json": 286421,
+          "rank_5/raw_state.json": 1839182,
+          "rank_5/tensor_index.json": 286421,
+          "rank_6/raw_state.json": 1839182,
+          "rank_6/tensor_index.json": 286421,
+          "rank_7/raw_state.json": 1839182,
+          "rank_7/tensor_index.json": 286421
+        },
+        "mount": {
+          "target": "/data/brick1",
+          "source": "/dev/nvme1n1",
+          "fstype": "xfs"
+        },
+        "verification": "Frozen raw-disk-verification rank0..7 partition bytes match80 current stat sizes; frozen22 metadata sizes match. No payload read/hash. Full current asset root includes README/LICENSE/source-preservation/raw-disk-verification beyond22 metadata.",
+        "inactive_MTP": "Inactive_mtp receipt row and store/inactive-source excluded from deployed TP8 assets; source checkpoint includes its original full checkpoint."
+      }
+    },
+    "configuration": {
+      "architectures": [
+        "GlmMoeDsaForCausalLM"
+      ],
+      "model_type": "glm_moe_dsa",
+      "text_model_type": "glm_moe_dsa",
+      "dtype": "bfloat16",
+      "hidden_size": 6144,
+      "num_hidden_layers": 78,
+      "num_attention_heads": 64,
+      "num_key_value_heads": 64,
+      "routed_experts": 256,
+      "shared_experts": 1,
+      "selected_experts_per_token": 8,
+      "first_dense_layers": 3,
+      "MoE_intermediate_size": 2048,
+      "vocab_size": 154880,
+      "num_nextn_predict_layers": 1,
+      "quant_method": "fp8",
+      "quantization_details": {
+        "activation_scheme": "dynamic",
+        "fmt": "e4m3",
+        "weight_block_size": [
+          128,
+          128
+        ]
+      },
+      "total_parameter_count": null,
+      "activated_parameter_count": null,
+      "parameter_count_scope": "Not explicit in these configs; no inferred total/activated count or packed-tensor numel substitution. Routed-expert topK8 is not8 total active parameters or all active architecture components."
+    },
+    "formal_configuration": {
+      "tp": 8,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "speculative_config": null
+    },
+    "mount_source": "Frozen workspace.py lines54-62 read-only checkpoint/store bindings; actual current host findmnt verifies local XFS/NVMe, not original per-container mountinfo re-read."
+  },
+  "byte_semantics": "All counts use stat st_size apparent regular-file bytes, not allocated disk blocks, RSS or unique model parameter bytes. Safetensors payload means whole shard-file bytes including headers; Store payload means physical tensor.data_* bytes including alignment. Metadata/provenance categories explicitly separated; no ratio alone proves memory or parameter efficiency.",
+  "verified_counts": {
+    "Kimi_inventory_files_current_identity": 188,
+    "GLM_checkpoint_payload_stat_files": 142,
+    "GLM_Store_payload_stat_files": 80,
+    "GLM_frozen_Store_metadata_stat_files": 22
+  },
+  "GLM_payload_stats": {
+    "safetensors": [
+      {
+        "relative": "model-00001-of-00142.safetensors",
+        "bytes": 5363940952,
+        "dev": 66304,
+        "ino": 539891992
+      },
+      {
+        "relative": "model-00002-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539891990
+      },
+      {
+        "relative": "model-00003-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539891991
+      },
+      {
+        "relative": "model-00004-of-00142.safetensors",
+        "bytes": 5361736640,
+        "dev": 66304,
+        "ino": 539891989
+      },
+      {
+        "relative": "model-00005-of-00142.safetensors",
+        "bytes": 5363339176,
+        "dev": 66304,
+        "ino": 539891993
+      },
+      {
+        "relative": "model-00006-of-00142.safetensors",
+        "bytes": 5361736504,
+        "dev": 66304,
+        "ino": 539891994
+      },
+      {
+        "relative": "model-00007-of-00142.safetensors",
+        "bytes": 5363339304,
+        "dev": 66304,
+        "ino": 539891995
+      },
+      {
+        "relative": "model-00008-of-00142.safetensors",
+        "bytes": 5361736368,
+        "dev": 66304,
+        "ino": 539892017
+      },
+      {
+        "relative": "model-00009-of-00142.safetensors",
+        "bytes": 5363339440,
+        "dev": 66304,
+        "ino": 539892021
+      },
+      {
+        "relative": "model-00010-of-00142.safetensors",
+        "bytes": 5361736232,
+        "dev": 66304,
+        "ino": 539892022
+      },
+      {
+        "relative": "model-00011-of-00142.safetensors",
+        "bytes": 5363339592,
+        "dev": 66304,
+        "ino": 539893415
+      },
+      {
+        "relative": "model-00012-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539893416
+      },
+      {
+        "relative": "model-00013-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539893417
+      },
+      {
+        "relative": "model-00014-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539893418
+      },
+      {
+        "relative": "model-00015-of-00142.safetensors",
+        "bytes": 5361736688,
+        "dev": 66304,
+        "ino": 539893419
+      },
+      {
+        "relative": "model-00016-of-00142.safetensors",
+        "bytes": 5363339128,
+        "dev": 66304,
+        "ino": 539893420
+      },
+      {
+        "relative": "model-00017-of-00142.safetensors",
+        "bytes": 5361736552,
+        "dev": 66304,
+        "ino": 539893421
+      },
+      {
+        "relative": "model-00018-of-00142.safetensors",
+        "bytes": 5363339256,
+        "dev": 66304,
+        "ino": 539893422
+      },
+      {
+        "relative": "model-00019-of-00142.safetensors",
+        "bytes": 5361736416,
+        "dev": 66304,
+        "ino": 539893423
+      },
+      {
+        "relative": "model-00020-of-00142.safetensors",
+        "bytes": 5361791448,
+        "dev": 66304,
+        "ino": 539893424
+      },
+      {
+        "relative": "model-00021-of-00142.safetensors",
+        "bytes": 5361736352,
+        "dev": 66304,
+        "ino": 539893425
+      },
+      {
+        "relative": "model-00022-of-00142.safetensors",
+        "bytes": 5363339456,
+        "dev": 66304,
+        "ino": 539893426
+      },
+      {
+        "relative": "model-00023-of-00142.safetensors",
+        "bytes": 5361736224,
+        "dev": 66304,
+        "ino": 539893427
+      },
+      {
+        "relative": "model-00024-of-00142.safetensors",
+        "bytes": 5363339608,
+        "dev": 66304,
+        "ino": 539893428
+      },
+      {
+        "relative": "model-00025-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539893429
+      },
+      {
+        "relative": "model-00026-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539893430
+      },
+      {
+        "relative": "model-00027-of-00142.safetensors",
+        "bytes": 5363339112,
+        "dev": 66304,
+        "ino": 539893431
+      },
+      {
+        "relative": "model-00028-of-00142.safetensors",
+        "bytes": 5361736664,
+        "dev": 66304,
+        "ino": 539893432
+      },
+      {
+        "relative": "model-00029-of-00142.safetensors",
+        "bytes": 5363339152,
+        "dev": 66304,
+        "ino": 539893433
+      },
+      {
+        "relative": "model-00030-of-00142.safetensors",
+        "bytes": 5361736528,
+        "dev": 66304,
+        "ino": 539893434
+      },
+      {
+        "relative": "model-00031-of-00142.safetensors",
+        "bytes": 5363339280,
+        "dev": 66304,
+        "ino": 539893435
+      },
+      {
+        "relative": "model-00032-of-00142.safetensors",
+        "bytes": 5361736392,
+        "dev": 66304,
+        "ino": 539893436
+      },
+      {
+        "relative": "model-00033-of-00142.safetensors",
+        "bytes": 5363339416,
+        "dev": 66304,
+        "ino": 539893437
+      },
+      {
+        "relative": "model-00034-of-00142.safetensors",
+        "bytes": 5361736264,
+        "dev": 66304,
+        "ino": 539893439
+      },
+      {
+        "relative": "model-00035-of-00142.safetensors",
+        "bytes": 5363339544,
+        "dev": 66304,
+        "ino": 539893438
+      },
+      {
+        "relative": "model-00036-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539894912
+      },
+      {
+        "relative": "model-00037-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539894913
+      },
+      {
+        "relative": "model-00038-of-00142.safetensors",
+        "bytes": 5363338920,
+        "dev": 66304,
+        "ino": 539894914
+      },
+      {
+        "relative": "model-00039-of-00142.safetensors",
+        "bytes": 5361735840,
+        "dev": 66304,
+        "ino": 539894915
+      },
+      {
+        "relative": "model-00040-of-00142.safetensors",
+        "bytes": 5363338584,
+        "dev": 66304,
+        "ino": 539894916
+      },
+      {
+        "relative": "model-00041-of-00142.safetensors",
+        "bytes": 5361736576,
+        "dev": 66304,
+        "ino": 539894920
+      },
+      {
+        "relative": "model-00042-of-00142.safetensors",
+        "bytes": 5363339232,
+        "dev": 66304,
+        "ino": 539894921
+      },
+      {
+        "relative": "model-00043-of-00142.safetensors",
+        "bytes": 5361736440,
+        "dev": 66304,
+        "ino": 539894922
+      },
+      {
+        "relative": "model-00044-of-00142.safetensors",
+        "bytes": 5363339368,
+        "dev": 66304,
+        "ino": 539894923
+      },
+      {
+        "relative": "model-00045-of-00142.safetensors",
+        "bytes": 5361736312,
+        "dev": 66304,
+        "ino": 539894924
+      },
+      {
+        "relative": "model-00046-of-00142.safetensors",
+        "bytes": 5363339504,
+        "dev": 66304,
+        "ino": 539894925
+      },
+      {
+        "relative": "model-00047-of-00142.safetensors",
+        "bytes": 5342350104,
+        "dev": 66304,
+        "ino": 539894926
+      },
+      {
+        "relative": "model-00048-of-00142.safetensors",
+        "bytes": 5357553232,
+        "dev": 66304,
+        "ino": 539894927
+      },
+      {
+        "relative": "model-00049-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539894928
+      },
+      {
+        "relative": "model-00050-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539894929
+      },
+      {
+        "relative": "model-00051-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539894930
+      },
+      {
+        "relative": "model-00052-of-00142.safetensors",
+        "bytes": 5361736632,
+        "dev": 66304,
+        "ino": 539894931
+      },
+      {
+        "relative": "model-00053-of-00142.safetensors",
+        "bytes": 5363339176,
+        "dev": 66304,
+        "ino": 539894932
+      },
+      {
+        "relative": "model-00054-of-00142.safetensors",
+        "bytes": 5361736496,
+        "dev": 66304,
+        "ino": 539894934
+      },
+      {
+        "relative": "model-00055-of-00142.safetensors",
+        "bytes": 5363339320,
+        "dev": 66304,
+        "ino": 539894933
+      },
+      {
+        "relative": "model-00056-of-00142.safetensors",
+        "bytes": 5361736360,
+        "dev": 66304,
+        "ino": 539894935
+      },
+      {
+        "relative": "model-00057-of-00142.safetensors",
+        "bytes": 5363339448,
+        "dev": 66304,
+        "ino": 539894936
+      },
+      {
+        "relative": "model-00058-of-00142.safetensors",
+        "bytes": 5361736224,
+        "dev": 66304,
+        "ino": 539894938
+      },
+      {
+        "relative": "model-00059-of-00142.safetensors",
+        "bytes": 5363338800,
+        "dev": 66304,
+        "ino": 539894937
+      },
+      {
+        "relative": "model-00060-of-00142.safetensors",
+        "bytes": 5363338336,
+        "dev": 66304,
+        "ino": 539894939
+      },
+      {
+        "relative": "model-00061-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539894940
+      },
+      {
+        "relative": "model-00062-of-00142.safetensors",
+        "bytes": 5363339112,
+        "dev": 66304,
+        "ino": 539894941
+      },
+      {
+        "relative": "model-00063-of-00142.safetensors",
+        "bytes": 5361736680,
+        "dev": 66304,
+        "ino": 539894942
+      },
+      {
+        "relative": "model-00064-of-00142.safetensors",
+        "bytes": 5363339128,
+        "dev": 66304,
+        "ino": 539894943
+      },
+      {
+        "relative": "model-00065-of-00142.safetensors",
+        "bytes": 5361736552,
+        "dev": 66304,
+        "ino": 539895629
+      },
+      {
+        "relative": "model-00066-of-00142.safetensors",
+        "bytes": 5363339264,
+        "dev": 66304,
+        "ino": 539895630
+      },
+      {
+        "relative": "model-00067-of-00142.safetensors",
+        "bytes": 5361736416,
+        "dev": 66304,
+        "ino": 539895631
+      },
+      {
+        "relative": "model-00068-of-00142.safetensors",
+        "bytes": 5363339400,
+        "dev": 66304,
+        "ino": 539895632
+      },
+      {
+        "relative": "model-00069-of-00142.safetensors",
+        "bytes": 5361736280,
+        "dev": 66304,
+        "ino": 539895633
+      },
+      {
+        "relative": "model-00070-of-00142.safetensors",
+        "bytes": 5363339528,
+        "dev": 66304,
+        "ino": 539895634
+      },
+      {
+        "relative": "model-00071-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895635
+      },
+      {
+        "relative": "model-00072-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895636
+      },
+      {
+        "relative": "model-00073-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895637
+      },
+      {
+        "relative": "model-00074-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895638
+      },
+      {
+        "relative": "model-00075-of-00142.safetensors",
+        "bytes": 5363339112,
+        "dev": 66304,
+        "ino": 539895639
+      },
+      {
+        "relative": "model-00076-of-00142.safetensors",
+        "bytes": 5361736592,
+        "dev": 66304,
+        "ino": 539895640
+      },
+      {
+        "relative": "model-00077-of-00142.safetensors",
+        "bytes": 5363339224,
+        "dev": 66304,
+        "ino": 539895641
+      },
+      {
+        "relative": "model-00078-of-00142.safetensors",
+        "bytes": 5361736456,
+        "dev": 66304,
+        "ino": 539895642
+      },
+      {
+        "relative": "model-00079-of-00142.safetensors",
+        "bytes": 5363338784,
+        "dev": 66304,
+        "ino": 539895643
+      },
+      {
+        "relative": "model-00080-of-00142.safetensors",
+        "bytes": 5361735472,
+        "dev": 66304,
+        "ino": 539895644
+      },
+      {
+        "relative": "model-00081-of-00142.safetensors",
+        "bytes": 5363339344,
+        "dev": 66304,
+        "ino": 539895645
+      },
+      {
+        "relative": "model-00082-of-00142.safetensors",
+        "bytes": 5317175232,
+        "dev": 66304,
+        "ino": 539895646
+      },
+      {
+        "relative": "model-00083-of-00142.safetensors",
+        "bytes": 5357555688,
+        "dev": 66304,
+        "ino": 539895647
+      },
+      {
+        "relative": "model-00084-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895648
+      },
+      {
+        "relative": "model-00085-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895649
+      },
+      {
+        "relative": "model-00086-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539895650
+      },
+      {
+        "relative": "model-00087-of-00142.safetensors",
+        "bytes": 5361736648,
+        "dev": 66304,
+        "ino": 539895651
+      },
+      {
+        "relative": "model-00088-of-00142.safetensors",
+        "bytes": 5363339160,
+        "dev": 66304,
+        "ino": 539895652
+      },
+      {
+        "relative": "model-00089-of-00142.safetensors",
+        "bytes": 5361736512,
+        "dev": 66304,
+        "ino": 539895653
+      },
+      {
+        "relative": "model-00090-of-00142.safetensors",
+        "bytes": 5363339296,
+        "dev": 66304,
+        "ino": 539895654
+      },
+      {
+        "relative": "model-00091-of-00142.safetensors",
+        "bytes": 5361736376,
+        "dev": 66304,
+        "ino": 539895655
+      },
+      {
+        "relative": "model-00092-of-00142.safetensors",
+        "bytes": 5363339432,
+        "dev": 66304,
+        "ino": 539895656
+      },
+      {
+        "relative": "model-00093-of-00142.safetensors",
+        "bytes": 5361736248,
+        "dev": 66304,
+        "ino": 539895657
+      },
+      {
+        "relative": "model-00094-of-00142.safetensors",
+        "bytes": 5363339576,
+        "dev": 66304,
+        "ino": 539895658
+      },
+      {
+        "relative": "model-00095-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895659
+      },
+      {
+        "relative": "model-00096-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895660
+      },
+      {
+        "relative": "model-00097-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539895661
+      },
+      {
+        "relative": "model-00098-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895662
+      },
+      {
+        "relative": "model-00099-of-00142.safetensors",
+        "bytes": 5363338784,
+        "dev": 66304,
+        "ino": 539895663
+      },
+      {
+        "relative": "model-00100-of-00142.safetensors",
+        "bytes": 5361735712,
+        "dev": 66304,
+        "ino": 539895664
+      },
+      {
+        "relative": "model-00101-of-00142.safetensors",
+        "bytes": 5363338872,
+        "dev": 66304,
+        "ino": 539895665
+      },
+      {
+        "relative": "model-00102-of-00142.safetensors",
+        "bytes": 5361736424,
+        "dev": 66304,
+        "ino": 539895666
+      },
+      {
+        "relative": "model-00103-of-00142.safetensors",
+        "bytes": 5363339384,
+        "dev": 66304,
+        "ino": 539895667
+      },
+      {
+        "relative": "model-00104-of-00142.safetensors",
+        "bytes": 5361736296,
+        "dev": 66304,
+        "ino": 539895670
+      },
+      {
+        "relative": "model-00105-of-00142.safetensors",
+        "bytes": 5363339520,
+        "dev": 66304,
+        "ino": 539895671
+      },
+      {
+        "relative": "model-00106-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895672
+      },
+      {
+        "relative": "model-00107-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895673
+      },
+      {
+        "relative": "model-00108-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539895674
+      },
+      {
+        "relative": "model-00109-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539895675
+      },
+      {
+        "relative": "model-00110-of-00142.safetensors",
+        "bytes": 5363339112,
+        "dev": 66304,
+        "ino": 539895676
+      },
+      {
+        "relative": "model-00111-of-00142.safetensors",
+        "bytes": 5361736616,
+        "dev": 66304,
+        "ino": 539895677
+      },
+      {
+        "relative": "model-00112-of-00142.safetensors",
+        "bytes": 5363339200,
+        "dev": 66304,
+        "ino": 539895678
+      },
+      {
+        "relative": "model-00113-of-00142.safetensors",
+        "bytes": 5361736480,
+        "dev": 66304,
+        "ino": 539895679
+      },
+      {
+        "relative": "model-00114-of-00142.safetensors",
+        "bytes": 5363339328,
+        "dev": 66304,
+        "ino": 539929408
+      },
+      {
+        "relative": "model-00115-of-00142.safetensors",
+        "bytes": 5361736344,
+        "dev": 66304,
+        "ino": 539929409
+      },
+      {
+        "relative": "model-00116-of-00142.safetensors",
+        "bytes": 5363339456,
+        "dev": 66304,
+        "ino": 539929410
+      },
+      {
+        "relative": "model-00117-of-00142.safetensors",
+        "bytes": 5364883192,
+        "dev": 66304,
+        "ino": 539929411
+      },
+      {
+        "relative": "model-00118-of-00142.safetensors",
+        "bytes": 5360192648,
+        "dev": 66304,
+        "ino": 539929412
+      },
+      {
+        "relative": "model-00119-of-00142.safetensors",
+        "bytes": 5363339008,
+        "dev": 66304,
+        "ino": 539929413
+      },
+      {
+        "relative": "model-00120-of-00142.safetensors",
+        "bytes": 5361735840,
+        "dev": 66304,
+        "ino": 539929414
+      },
+      {
+        "relative": "model-00121-of-00142.safetensors",
+        "bytes": 5363338504,
+        "dev": 66304,
+        "ino": 539929415
+      },
+      {
+        "relative": "model-00122-of-00142.safetensors",
+        "bytes": 5361736656,
+        "dev": 66304,
+        "ino": 539929416
+      },
+      {
+        "relative": "model-00123-of-00142.safetensors",
+        "bytes": 5363339152,
+        "dev": 66304,
+        "ino": 539929417
+      },
+      {
+        "relative": "model-00124-of-00142.safetensors",
+        "bytes": 5361736520,
+        "dev": 66304,
+        "ino": 539929418
+      },
+      {
+        "relative": "model-00125-of-00142.safetensors",
+        "bytes": 5363339288,
+        "dev": 66304,
+        "ino": 539929428
+      },
+      {
+        "relative": "model-00126-of-00142.safetensors",
+        "bytes": 5361736392,
+        "dev": 66304,
+        "ino": 539929429
+      },
+      {
+        "relative": "model-00127-of-00142.safetensors",
+        "bytes": 5363339416,
+        "dev": 66304,
+        "ino": 539929430
+      },
+      {
+        "relative": "model-00128-of-00142.safetensors",
+        "bytes": 5361736256,
+        "dev": 66304,
+        "ino": 539929431
+      },
+      {
+        "relative": "model-00129-of-00142.safetensors",
+        "bytes": 5363339560,
+        "dev": 66304,
+        "ino": 539929432
+      },
+      {
+        "relative": "model-00130-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539929433
+      },
+      {
+        "relative": "model-00131-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539929434
+      },
+      {
+        "relative": "model-00132-of-00142.safetensors",
+        "bytes": 5363339104,
+        "dev": 66304,
+        "ino": 539929435
+      },
+      {
+        "relative": "model-00133-of-00142.safetensors",
+        "bytes": 5361736696,
+        "dev": 66304,
+        "ino": 539929436
+      },
+      {
+        "relative": "model-00134-of-00142.safetensors",
+        "bytes": 5363339120,
+        "dev": 66304,
+        "ino": 539929437
+      },
+      {
+        "relative": "model-00135-of-00142.safetensors",
+        "bytes": 5361736568,
+        "dev": 66304,
+        "ino": 539929438
+      },
+      {
+        "relative": "model-00136-of-00142.safetensors",
+        "bytes": 5363324248,
+        "dev": 66304,
+        "ino": 539929439
+      },
+      {
+        "relative": "model-00137-of-00142.safetensors",
+        "bytes": 5361736464,
+        "dev": 66304,
+        "ino": 539929440
+      },
+      {
+        "relative": "model-00138-of-00142.safetensors",
+        "bytes": 5363351176,
+        "dev": 66304,
+        "ino": 539929442
+      },
+      {
+        "relative": "model-00139-of-00142.safetensors",
+        "bytes": 5361735472,
+        "dev": 66304,
+        "ino": 539929441
+      },
+      {
+        "relative": "model-00140-of-00142.safetensors",
+        "bytes": 5363338640,
+        "dev": 66304,
+        "ino": 539929443
+      },
+      {
+        "relative": "model-00141-of-00142.safetensors",
+        "bytes": 5342346848,
+        "dev": 66304,
+        "ino": 539929444
+      },
+      {
+        "relative": "model-00142-of-00142.safetensors",
+        "bytes": 146853760,
+        "dev": 66304,
+        "ino": 539929420
+      }
+    ],
+    "store": [
+      {
+        "relative": "rank_0/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 272817436
+      },
+      {
+        "relative": "rank_0/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817437
+      },
+      {
+        "relative": "rank_0/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817438
+      },
+      {
+        "relative": "rank_0/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817439
+      },
+      {
+        "relative": "rank_0/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817440
+      },
+      {
+        "relative": "rank_0/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817441
+      },
+      {
+        "relative": "rank_0/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817442
+      },
+      {
+        "relative": "rank_0/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817443
+      },
+      {
+        "relative": "rank_0/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 272817444
+      },
+      {
+        "relative": "rank_0/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 272817445
+      },
+      {
+        "relative": "rank_1/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 3482353
+      },
+      {
+        "relative": "rank_1/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482354
+      },
+      {
+        "relative": "rank_1/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482355
+      },
+      {
+        "relative": "rank_1/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482356
+      },
+      {
+        "relative": "rank_1/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482358
+      },
+      {
+        "relative": "rank_1/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482359
+      },
+      {
+        "relative": "rank_1/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482360
+      },
+      {
+        "relative": "rank_1/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482361
+      },
+      {
+        "relative": "rank_1/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 3482362
+      },
+      {
+        "relative": "rank_1/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 3482363
+      },
+      {
+        "relative": "rank_2/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 1883590347
+      },
+      {
+        "relative": "rank_2/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590355
+      },
+      {
+        "relative": "rank_2/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590360
+      },
+      {
+        "relative": "rank_2/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590369
+      },
+      {
+        "relative": "rank_2/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590374
+      },
+      {
+        "relative": "rank_2/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590376
+      },
+      {
+        "relative": "rank_2/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590385
+      },
+      {
+        "relative": "rank_2/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590388
+      },
+      {
+        "relative": "rank_2/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590392
+      },
+      {
+        "relative": "rank_2/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 1883590394
+      },
+      {
+        "relative": "rank_3/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 8327849682
+      },
+      {
+        "relative": "rank_3/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849685
+      },
+      {
+        "relative": "rank_3/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849686
+      },
+      {
+        "relative": "rank_3/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849687
+      },
+      {
+        "relative": "rank_3/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849688
+      },
+      {
+        "relative": "rank_3/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849691
+      },
+      {
+        "relative": "rank_3/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849692
+      },
+      {
+        "relative": "rank_3/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849693
+      },
+      {
+        "relative": "rank_3/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8327849694
+      },
+      {
+        "relative": "rank_3/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 8327849695
+      },
+      {
+        "relative": "rank_4/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 8062955983
+      },
+      {
+        "relative": "rank_4/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955986
+      },
+      {
+        "relative": "rank_4/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955987
+      },
+      {
+        "relative": "rank_4/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955989
+      },
+      {
+        "relative": "rank_4/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955991
+      },
+      {
+        "relative": "rank_4/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955992
+      },
+      {
+        "relative": "rank_4/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955993
+      },
+      {
+        "relative": "rank_4/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955994
+      },
+      {
+        "relative": "rank_4/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 8062955995
+      },
+      {
+        "relative": "rank_4/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 8062955996
+      },
+      {
+        "relative": "rank_5/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 1883590346
+      },
+      {
+        "relative": "rank_5/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590348
+      },
+      {
+        "relative": "rank_5/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590357
+      },
+      {
+        "relative": "rank_5/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590361
+      },
+      {
+        "relative": "rank_5/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590364
+      },
+      {
+        "relative": "rank_5/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590372
+      },
+      {
+        "relative": "rank_5/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590375
+      },
+      {
+        "relative": "rank_5/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590378
+      },
+      {
+        "relative": "rank_5/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 1883590386
+      },
+      {
+        "relative": "rank_5/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 1883590387
+      },
+      {
+        "relative": "rank_6/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 539931073
+      },
+      {
+        "relative": "rank_6/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931074
+      },
+      {
+        "relative": "rank_6/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931076
+      },
+      {
+        "relative": "rank_6/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931077
+      },
+      {
+        "relative": "rank_6/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931080
+      },
+      {
+        "relative": "rank_6/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931081
+      },
+      {
+        "relative": "rank_6/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931082
+      },
+      {
+        "relative": "rank_6/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931083
+      },
+      {
+        "relative": "rank_6/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 539931084
+      },
+      {
+        "relative": "rank_6/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 539931085
+      },
+      {
+        "relative": "rank_7/tensor.data_0",
+        "bytes": 10591789056,
+        "dev": 66304,
+        "ino": 7792796775
+      },
+      {
+        "relative": "rank_7/tensor.data_1",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796778
+      },
+      {
+        "relative": "rank_7/tensor.data_2",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796779
+      },
+      {
+        "relative": "rank_7/tensor.data_3",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796780
+      },
+      {
+        "relative": "rank_7/tensor.data_4",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796781
+      },
+      {
+        "relative": "rank_7/tensor.data_5",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796782
+      },
+      {
+        "relative": "rank_7/tensor.data_6",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796783
+      },
+      {
+        "relative": "rank_7/tensor.data_7",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796785
+      },
+      {
+        "relative": "rank_7/tensor.data_8",
+        "bytes": 10083721216,
+        "dev": 66304,
+        "ino": 7792796786
+      },
+      {
+        "relative": "rank_7/tensor.data_9",
+        "bytes": 3993071616,
+        "dev": 66304,
+        "ino": 7792796787
+      }
+    ]
+  },
+  "sources": [
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-local-nvme-verified-input-file-inventory-20261106.json",
+      "sha256": "1b784ebe93a6fdc24481cb3618b43d79c11ad9563f791db4530c71c3ca604323",
+      "bytes": 114986
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-cache-evidence-v9-20261107.json",
+      "sha256": "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086",
+      "bytes": 64355
+    },
+    {
+      "path": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb/config.json",
+      "sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+      "bytes": 5416
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/inputs/C23-run-manifest.json",
+      "sha256": "bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d",
+      "bytes": 52959
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/inputs/C23-control-input-manifest.json",
+      "sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9",
+      "bytes": 15348
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/c23-reference-f176e05/store-metadata-inputs.json",
+      "sha256": "888fd5cf5f277f275de865b2ac0fd269295b8836f5d871e7e3ae0d6ca9e45734",
+      "bytes": 3562
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/code/c23-reference-f176e05/workspace.py",
+      "sha256": "c81081d04de424f532661183bd517765e7210d8a6db2d0fb84d5c3137bdc586f",
+      "bytes": 7484
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/checkpoint/config.json",
+      "sha256": "69b4e81fafca7389fa1e102046ea13aa1c6ec9ed64a9a00f2056fe402034c8ec",
+      "bytes": 35871
+    },
+    {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json",
+      "sha256": "dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb",
+      "bytes": 4316
+    }
+  ],
+  "limits": [
+    "No weight content read/hash or full shared RAID scan/du. Only named checkpoint root plus eight exact Store rank directories stat-listed.",
+    "Current stat checks supplement historical pins, not fresh whole-payload integrity proof.",
+    "No official web parameter-count lookup requested/performed; exact total/activated parameters remain unknown.",
+    "Kimi mixed compressed4-bit targeted weights with ignored BF16 modules differs from GLM FP8 block-quantization; never call both uniformly same precision.",
+    "Both use qjhs003 local /dev/nvme1n1 XFS assets; this does not equate software/model architecture or all IO (Kimi source/control still NFS).",
+    "No GLM files modified/entry executed, no Git/GPU/cache/conversion or environment change."
+  ]
+}

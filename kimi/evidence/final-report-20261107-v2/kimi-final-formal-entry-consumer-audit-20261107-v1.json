@@ -1,0 +1,108 @@
+{
+  "status": "ACCEPT_FORMAL_ENTRY_SOURCE_AND_CPU_CONSUMER_COVERAGE_WITH_DECLARED_TEST_LIMITS",
+  "epoch": 1794054755.7833207,
+  "hostname": "qjhs3",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "407c56f6f26388f3721be4ea4464b98995c2f53be0da5c3a64ea697c86550ffa"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "sha256": "61e58c8afd75a4322e16d85840e61311fada73c4ef4ec5cc847daf5708601cc1"
+    }
+  ],
+  "cpu_execution": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v",
+    "tests": 57,
+    "result": "PASS",
+    "elapsed_seconds": 15.142,
+    "scope": "Existing stdlib temporary fixtures/mock Docker/systemd/subprocess/Git/API and loopback tiny HTTP; no real prepare CLI/root execution, no asset payload/cache/model/GPU operations. Existing metadata-only fixtures read small historical loadrecords, not weights."
+  },
+  "actual_bundle_binding": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-formal-v3-b3ab9dc82aa5-bundle.json",
+    "sha256": "286b38bdf8795d1f550d1cf093e82dcee4f6e7008bc49e33cdd0949b864ad834",
+    "block_python_sha256": "76211133f71d8c7c51bae5b335e7c2a27e014b6686dfdff8b72d0713c712729a",
+    "same_literal_as_audited_source": true,
+    "ordered_run_ids": [
+      "kimi-four-v1-b10-store_disk_cold",
+      "kimi-four-v1-b10-store_pool_hit",
+      "kimi-four-v1-b10-safetensors_disk_hot",
+      "kimi-four-v1-b10-safetensors_disk_cold"
+    ]
+  },
+  "coverage": [
+    {
+      "item": "Four frozen child order and real consumer",
+      "code": "prepare:640-717 BLOCK_BODY and render_block zip(planned,entries), loop enumerate(ledger), synchronous subprocess.run --wait",
+      "tests": [
+        "PreparationTest.test_all_40_candidates_and_sequence",
+        "PreparationTest.test_full_block_claims_and_budget",
+        "ActualConsumerTest.test_main_freezes_all_four_children_and_actual_bundle",
+        "ActualConsumerTest.test_actual_block_success_and_exclusive_claim"
+      ],
+      "verification": "Source binds entries in frozen planned order; actual BLOCK_BODY exercised four calls and stored four result SHA. Real B10 bundle block_python byte-identical to current literal.",
+      "limit": "Success fixture asserts four calls/terminals; exact ordered argv proof additionally rests on direct loop/zip source and frozen bundle identity, not an unclaimed dedicated argv-order assertion."
+    },
+    {
+      "item": "Second child failure stops 3/4; no-receipt/timeout ledger counts launches",
+      "code": "prepare:658-695",
+      "tests": [
+        "ActualConsumerTest.test_actual_block_failure_stops_and_not_started_preserved",
+        "ActualConsumerTest.test_actual_block_nonzero_without_receipt_has_failed_launch_terminal",
+        "ActualConsumerTest.test_actual_block_timeout_without_receipt_is_terminal_and_no_retry"
+      ],
+      "verification": "Actual generated BLOCK_BODY executes temp/mock-subprocess; fail index1 results exactly2calls; later ledger NOT_STARTED. No-receipt return2 or TimeoutExpired retains launch_requested and cleanup NOT_OBSERVED."
+    },
+    {
+      "item": "Repeated IDs/claims/run directory rejected; history protected",
+      "code": "prepare:646,650-654,665,668,695; execution_mapping62-111/render_block700-717",
+      "tests": [
+        "PreparationTest.test_duplicate_and_bad_request_rejected",
+        "ActualConsumerTest.test_actual_block_success_and_exclusive_claim",
+        "ExecutionRevisionTest.test_revision_rejects_unapproved_or_duplicate_ids_and_selected_used_directory",
+        "ExecutionRevisionTest.test_actual_block_new_claims_preserve_old_claims_and_failed_history"
+      ],
+      "verification": "O_EXCL rootclaim paths, duplicate run/set and unauthorized maps fail; fixture second execution no extra launches and historical bytes unchanged."
+    },
+    {
+      "item": "Wrong clock/identity/evidence cannot qualify",
+      "code": "prepare:255-285 same_clock/validated_http_events/check_response;396-428 collect_structured_events; sample gate/qualification",
+      "tests": [
+        "ActualConsumerTest.test_actual_structured_event_consumer_joins_and_rejects_missing",
+        "SampleEvidenceTest.test_missing_inputs_fail_closed_and_recover_stdout_on_child_failure",
+        "SampleEvidenceTest.test_gold_failure_preserves_original_interval_and_invalidity",
+        "SampleEvidenceTest.test_cleanup_failure_keeps_metrics_and_normal_condition_separate",
+        "Fixed32LengthOnlyTest.test_actual_http_and_parent_reject_invalid_length_finish_usage_and_business",
+        "SampledLogprobsParserTest.test_actual_four_responses_sampled_ids_match_independent_trace"
+      ],
+      "verification": "Static actual consumer requires equal boot/time_namespace/CLOCK_MONOTONIC domain, no errors, request path/ID/PID/time order; structured model/instance/PID/startticks/3request joins and exact trace. Missing/changed trace, business/gold/usage and incomplete gates tested reject.",
+      "limit": "This formal test module does not include a dedicated negative for each same_clock key; source failclosed checks reviewed, and separate analysis-consumer tests cover clock contradictions. No extra matrix added."
+    },
+    {
+      "item": "Complete28920 window before any claim/launch, remaining windows per child",
+      "code": "prepare:647 before claims;659 remaining(4-index)*7200+120;672 timeout7205;714 full_max28920",
+      "tests": [
+        "PreparationTest.test_full_block_claims_and_budget",
+        "ActualConsumerTest.test_actual_block_insufficient_window_launches_nothing"
+      ],
+      "verification": "Actual BLOCK_BODY expiry28000 atfakewall100 rejects with no subprocess and no claim. No shrinking waits or starting partial block."
+    },
+    {
+      "item": "Source/protocol actual inlinebody identity and outer property mutation",
+      "code": "prepare:660-669;747-782;985-1047",
+      "tests": [
+        "ActualConsumerTest.test_actual_block_only_changes_outer_property_preserving_inline_code",
+        "ActualConsumerTest.test_final_protocol_binding",
+        "ActualConsumerTest.test_committed_source_gate_uses_real_checks_with_mock_git",
+        "CommittedSourceOfficialApiTest.test_actual_gate_api_failures_stop_without_credential_output"
+      ],
+      "verification": "Command/spec SHA, frozen state, run/source/protocol exact; only full outer RemainAfterExit arg changes, inline -c bytes retain inner yes. Actual source/remote gates mocked in CPU, not a new live Git check."
+    }
+  ],
+  "historical_and_authority_boundary": [
+    "Actual GPU deployments remain source86fd/v8 and835/v9. Analysis HEADa437 is later CPU postprocessing, not claimed redeployed. This audit does not Git-check or modify HEAD.",
+    "Original B4/B9 failed finals and incomplete primary blocks remain; authorized supplementary/resume decisions stay append-only, not automatic retry proof or inferred approval.",
+    "57CPU PASS proves bounded source/consumer regressions only, not GPU execution, fresh root/resource/booking admission, every runtime failure branch or new block authorization. Actual runtime and release facts are separate reviewed per-block evidence."
+  ]
+}
