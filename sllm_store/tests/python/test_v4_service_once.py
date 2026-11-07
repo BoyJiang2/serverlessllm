@@ -39,6 +39,15 @@ class ServiceControllerContracts(unittest.TestCase):
             else:invalid['apps']+='\n123, GPU-cpu-0, 322'
             with self.subTest(kind=kind):self.assertFalse(service.model_unloaded(invalid,123,baseline))
 
+    def test_initialized_store_context_rejects_the_wrong_phase(self):
+        baseline={f'GPU-cpu-{i}':1997 for i in range(8)}
+        gpu=dict(rows=[[str(i),uuid,'H20','143771','1997'] for i,uuid in enumerate(baseline)],
+                 apps='\n'.join('123, '+uuid+', 322' for uuid in baseline))
+        self.assertTrue(service.initialized_store_context(gpu,123,baseline))
+        for memory in ('345','1980','2014'):
+            invalid=copy.deepcopy(gpu);invalid['rows'][0][4]=memory
+            self.assertFalse(service.initialized_store_context(invalid,123,baseline))
+
     def test_both_release_jobs_bind_all_original_processes_and_failure_propagates(self):
         roles={name:dict(container_id=letter*64,created='fixture',image='sha256:fixture')
                for name,letter in (('head','a'),('worker','b'))}

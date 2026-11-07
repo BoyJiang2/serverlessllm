@@ -176,6 +176,7 @@ async def run_head(deadline, preparation):
             startup=time.monotonic_ns()
             prefix='cycle'+str(cycle)+'-'
             _,_,registered=await observed_post(client,'/register',config,OUTPUT/(prefix+'register.raw.json'),deadline)
+            await wait_file('store-pre-model-baseline-checked.json',deadline)
             router=ray.get_actor(config['model'],namespace='models')
             await asyncio.wait_for(router.__ray_ready__.remote(),remaining(deadline,30))
             placement=ray.util.placement_group_table()

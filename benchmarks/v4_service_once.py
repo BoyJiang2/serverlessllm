@@ -109,6 +109,11 @@ def process_alive(proc):
     return int(fields[19])==proc['start_ticks']
 
 
+def initialized_store_context(gpu,daemon_pid,context_gpu):
+    return model_unloaded(gpu,daemon_pid,context_gpu) and all(
+        abs(int(row[4])-context_gpu[row[1]])<=16 for row in gpu['rows'])
+
+
 def main():
     global CALL_DEADLINE
     base=Path(sys.argv[1]).resolve();head=sys.argv[2]
@@ -138,7 +143,11 @@ def main():
     recovery=ROOT/'docs/evidence/v4-store-recovery-success/offline-recovery-review.json'
     proof=json.loads(recovery.read_bytes());assert proof['offline_full_recovery_requests_qualified']
     calibration=json.loads((ROOT/'docs/evidence/v4-native-service-entry/store-context-calibration.json').read_bytes())
-    assert calibration['source_review_sha256']==hashlib.sha256(recovery.read_bytes()).hexdigest()
+    assert calibration['qualified_recovery_review_sha256']==hashlib.sha256(recovery.read_bytes()).hexdigest()
+    calibration_review=ROOT/'docs/evidence/v4-native-service-unload-baseline/pre-model-calibration-review.json'
+    assert calibration['source_review_sha256']==hashlib.sha256(calibration_review.read_bytes()).hexdigest()
+    assert calibration['calibration_phase']=='initialized_store_before_first_model_request'
+    assert calibration['pool_bytes']==890937278464 and calibration['sample_span_seconds']>=60
     assert calibration['image']==IMAGE and calibration['driver']=='580.95.05' and calibration['tolerance_mib']==16
     assert all(value==322 for value in calibration['process_context_mib'].values())
     context_gpu=calibration['gpu_context_mib']
@@ -152,7 +161,7 @@ def main():
     preparation=dict(source_head=head,ray_namespace='models',memory_limits=MEMORY_BYTES,gpu_initial=baseline,initial_limits=limits,model_inventory=initial,
         pool_bytes=890937278464,storage_path=str(STORAGE),store_path=str(store),identity=qualified['identity'],
         context_gpu_baseline_mib=context_gpu,context_process_baseline_mib=322,
-        context_baseline_scope='Same driver/software/H20 UUIDs; observed daemon322MiB and total345MiB in qualified offline recovery;16MiB tolerance',
+        context_baseline_scope='Same initialized Store phase before model; daemon322MiB and total1997MiB from pinned pre-model samples;16MiB tolerance; final release stays zero',
         preparation_begin_ns=origin,deadline_ns=deadline,container_deadline_ns=container_deadline,
         total_seconds=TOTAL_SECONDS,container_seconds=CONTAINER_SECONDS)
     write_once(base/'preparation.json',preparation)
@@ -247,6 +256,10 @@ def main():
                         except FileNotFoundError:continue
                         nspid=next(line for line in status.splitlines() if line.startswith('NSpid:')).split()[-1]
                         if int(nspid)==namespace_pid:daemon_host_pid=proc['pid']
+                if sample['gpu'] and daemon_host_pid and (output/'store-configuration-checked.json').exists() and not (output/'store-pre-model-baseline-checked.json').exists():
+                    assert initialized_store_context(sample['gpu'],daemon_host_pid,context_gpu), 'Initialized Store context differs before model'
+                    write_once(output/'store-pre-model-baseline-checked.json',dict(checked_ns=sample['monotonic_ns'],
+                        daemon_host_pid=daemon_host_pid,gpu=sample['gpu'],scope='Fresh initialized Store before first model request'))
                 if sample['gpu'] and daemon_host_pid and not (output/'cycle1-delete-ack.json').exists():
                     for line in sample['gpu']['apps'].splitlines():
                         if not line.strip():continue
