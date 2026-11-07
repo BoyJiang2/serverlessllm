@@ -1,4 +1,5 @@
 """Grouped raw V4 metadata; payload groups retain the existing raw contract."""
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 
@@ -119,8 +120,10 @@ def publish_grouped_complete(root, identity, results):
         raise ValueError("Grouped conversion has a failure marker")
     workers = worker_receipts(results, identity)
     ranks, devices = {}, set()
-    for rank in range(TP_SIZE):
-        _, digest, device = validate_grouped_rank(root, rank, identity, True)
+    with ThreadPoolExecutor(max_workers=TP_SIZE) as executor:
+        verified = list(executor.map(
+            lambda rank: validate_grouped_rank(root, rank, identity, True), range(TP_SIZE)))
+    for rank, (_, digest, device) in enumerate(verified):
         receipt = validate_export_done(root, rank, identity, digest)
         if workers[rank] != receipt:
             raise ValueError("Worker result differs from the saved export completion")

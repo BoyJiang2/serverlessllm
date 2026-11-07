@@ -2,6 +2,8 @@
 import json
 from pathlib import Path
 import tempfile
+import threading
+from unittest import mock
 import unittest
 from sllm_store import v4_grouped_state as grouped
 from sllm_store import v4_state as raw
@@ -70,6 +72,19 @@ class GroupedStateTests(unittest.TestCase):
         self.rows["outside_alias"] = dict(self.rows[name], alias=name)
         with self.assertRaisesRegex(ValueError, "Cross-group"):
             grouped.partition_groups(self.rows, self.methods)
+
+    def test_publisher_verifies_all_eight_payloads_concurrently(self):
+        self.populate()
+        barrier = threading.Barrier(8, timeout=5)
+        original = grouped.validate_grouped_rank
+        def verify(root, rank, expected_identity, verify_payload=False):
+            self.assertTrue(verify_payload)
+            barrier.wait()
+            return original(root, rank, expected_identity, verify_payload)
+        with mock.patch.object(grouped, "validate_grouped_rank", side_effect=verify) as validation:
+            grouped.publish_grouped_complete(self.root, identity(), self.results)
+        self.assertEqual(validation.call_count, 8)
+        self.assertTrue((self.root / "COMPLETE.json").exists())
 
     def test_all_rank_complete_and_no_overwrite(self):
         self.populate()
