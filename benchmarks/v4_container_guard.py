@@ -34,8 +34,9 @@ def watch(container_id, deadline_ns, directory, purpose="native-reference"):
     if not re.fullmatch(r"[0-9a-f]{64}", container_id):
         raise ValueError("full immutable container ID required")
     now = time.monotonic_ns()
-    if type(deadline_ns) is not int or not now < deadline_ns <= now + 1200_000_000_000:
-        raise ValueError("future deadline within 1200 seconds required")
+    limit_seconds = 1680 if purpose == "native-service" else 1200
+    if type(deadline_ns) is not int or not now < deadline_ns <= now + limit_seconds * 1_000_000_000:
+        raise ValueError(f"future deadline within {limit_seconds} seconds required")
     row = inspect(container_id)
     if (row["Config"].get("Labels", {}).get(LABEL) != purpose
             or row["State"]["Status"] != "created"

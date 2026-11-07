@@ -31,6 +31,9 @@ def snapshot(job):
     container, = json.loads(call("docker", "inspect", identity["container_id"]))
     require(container["Id"] == identity["container_id"] and container["Created"] == identity["created"]
             and container["Image"] == identity["image"], "container identity changed")
+    if job.get("purpose") == "native-service":
+        require(container["Config"].get("Labels", {}).get("sllm.v4.guard") == "native-service",
+                "service container label differs")
     selected = job["baseline_gpu_mib"]
     gpu_raw = call("nvidia-smi", "--id=" + ",".join(sorted(selected)),
                    "--query-gpu=uuid,memory.used", "--format=csv,noheader,nounits")
@@ -92,9 +95,10 @@ def collect(job, output, sample=snapshot):
     clock = process_identity()
     require(job["boot_id"] == clock["boot_id"] and job["time_namespace"] == clock["time_namespace"],
             "release clock identity differs")
+    limit_seconds = 1800 if job.get("purpose") == "native-service" else 1200
     require(timestamp(job["preparation_begin_ns"]) <= timestamp(job["delete_ack_ns"])
             <= time.monotonic_ns() < timestamp(job["deadline_ns"])
-            <= job["preparation_begin_ns"] + 1200_000_000_000, "release outside original deadline")
+            <= job["preparation_begin_ns"] + limit_seconds * 1_000_000_000, "release outside original deadline")
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
     write_once(output / "job.json", job)

@@ -24,6 +24,8 @@ MODEL=Path('/mnt/raid/models/DeepSeek-V4-Pro')
 STORAGE=Path('/data/brick1/boyjiang/sllm-v4-pro-store')
 BUILD=Path('/data/brick1/boyjiang/sllm-v4-pro-build')
 CALL_DEADLINE=None
+TOTAL_SECONDS=1800
+CONTAINER_SECONDS=1680
 MEMORY_BYTES={'head':16*1024**3,'worker':1024**4-16*1024**3}
 
 
@@ -83,7 +85,7 @@ def release_roles(base,roles,groups,workers,baseline,clock,origin,deadline):
     jobs={role:dict(identity={k:value[k] for k in ('container_id','created','image')},
         baseline_gpu_mib={row[1]:int(row[4]) for row in baseline['rows']},cgroup=str(groups[role]),
         worker_processes=list(workers.values()),boot_id=clock['boot_id'],time_namespace=clock['time_namespace'],
-        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns(),deadline_ns=deadline) for role,value in roles.items()}
+        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns(),deadline_ns=deadline,purpose='native-service') for role,value in roles.items()}
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures=[executor.submit(collect,jobs[role],base/(role+'-release')) for role in roles]
         errors=[]
@@ -115,10 +117,10 @@ def main():
     if not execute:
         print(json.dumps(dict(source_head=head,output=str(base),cycles=2,gpu_or_model_started=False,
              head_cpu=4,worker_cpu=4,memory_limit_total=sum(MEMORY_BYTES.values()),memory_limits=MEMORY_BYTES,
-             container_seconds=1080,total_seconds=1200)))
+             container_seconds=CONTAINER_SECONDS,total_seconds=TOTAL_SECONDS)))
         return
     assert base.parent==ROOT.parent/'evidence' and not base.exists()
-    origin=time.monotonic_ns();deadline=origin+1200_000_000_000;container_deadline=origin+1080_000_000_000
+    origin=time.monotonic_ns();deadline=origin+TOTAL_SECONDS*1_000_000_000;container_deadline=origin+CONTAINER_SECONDS*1_000_000_000
     CALL_DEADLINE=deadline
     lease=(ROOT.parent/'native-run.lock').open('a');fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
     assert call('git','-C',str(ROOT),'rev-parse','HEAD')==head
@@ -151,7 +153,8 @@ def main():
         pool_bytes=890937278464,storage_path=str(STORAGE),store_path=str(store),identity=qualified['identity'],
         context_gpu_baseline_mib=context_gpu,context_process_baseline_mib=322,
         context_baseline_scope='Same driver/software/H20 UUIDs; observed daemon322MiB and total345MiB in qualified offline recovery;16MiB tolerance',
-        preparation_begin_ns=origin,deadline_ns=deadline,container_deadline_ns=container_deadline)
+        preparation_begin_ns=origin,deadline_ns=deadline,container_deadline_ns=container_deadline,
+        total_seconds=TOTAL_SECONDS,container_seconds=CONTAINER_SECONDS)
     write_once(base/'preparation.json',preparation)
     wrapper=next(node.value.value for node in ast.walk(ast.parse((ROOT/'benchmarks/v4_run_once.py').read_text()))
         if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='wrapper' for target in node.targets)
@@ -275,7 +278,7 @@ def main():
                     else:
                         unload=[];unload_begin=None
                 if all(not state['Running'] for state in states.values()):break
-                assert time.monotonic_ns()<origin+1100_000_000_000
+                assert time.monotonic_ns()<container_deadline+20_000_000_000
                 time.sleep(2)
         finals={role:inspect(value['container_id']) for role,value in roles.items()}
         for role,row in finals.items():
