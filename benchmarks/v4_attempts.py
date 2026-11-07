@@ -177,8 +177,10 @@ class AttemptJournal:
         self.response_sha256[purpose] = digest(raw)
         return json.loads(raw)["observation"]
 
-    def business(self, response, native_reference, event_directory):
-        received = time.monotonic_ns()
+    def business(self, response, native_reference, event_directory, received_ns=None):
+        observed = time.monotonic_ns()
+        received = observed if received_ns is None else timestamp(received_ns)
+        require(self.last_time <= received <= observed, "business receive clock differs")
         self.business_observation = self._save_response("business", response, native_reference, received)
         response, native_reference = (self.business_observation["response"],
                                       self.business_observation["native_reference"])
@@ -205,8 +207,10 @@ class AttemptJournal:
                      checks=checks, metrics=metrics, events=events,
                      observation_sha256=self.response_sha256["business"]), received)
 
-    def workload32(self, response, native_reference):
-        received = time.monotonic_ns()
+    def workload32(self, response, native_reference, received_ns=None):
+        observed = time.monotonic_ns()
+        received = observed if received_ns is None else timestamp(received_ns)
+        require(self.last_time <= received <= observed, "workload32 receive clock differs")
         self.workload32_observation = self._save_response("workload32", response, native_reference, received)
         response, native_reference = (self.workload32_observation["response"],
                                       self.workload32_observation["native_reference"])
@@ -215,8 +219,10 @@ class AttemptJournal:
         self._append("workload32", dict(response=response, native_reference=native_reference,
                                        checks=checks, observation_sha256=self.response_sha256["workload32"]), received)
 
-    def delete(self, delete_command_ns):
-        now = time.monotonic_ns()
+    def delete(self, delete_command_ns, received_ns=None):
+        observed = time.monotonic_ns()
+        now = observed if received_ns is None else timestamp(received_ns)
+        require(self.last_time <= now <= observed, "delete receive clock differs")
         require(self.last_time <= timestamp(delete_command_ns) <= now,
                 "delete acknowledgement out of order")
         self._append("delete", dict(delete_command_ns=delete_command_ns), now)

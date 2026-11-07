@@ -51,6 +51,14 @@ class CacheScanContracts(unittest.TestCase):
             with self.assertRaises(ValueError):
                 evidence.cache_scan_checks(*args)
 
+    def test_all_mincore_flag_values_use_only_the_residency_bit(self):
+        summary,_,_=scan(mode="check")
+        flags=bytes(range(256));row=summary["files"][0]
+        row.update(bytes=256*4096,pages=256,resident_pages=128,
+                   vector_sha256=hashlib.sha256(flags).hexdigest())
+        checked=evidence.cache_scan_checks(summary,{row["source_path"]:row["bytes"]},{row["vector"]:flags})
+        self.assertEqual(checked["pages"],256)
+
     def test_wrong_size_page_counters_checksum_and_short_vectors(self):
         for field, value in (("bytes", True), ("bytes", 4096), ("page_size", 0),
                              ("page_size", 4095), ("pages", True), ("resident_pages", 2),

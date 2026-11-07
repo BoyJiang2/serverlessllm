@@ -17,25 +17,26 @@ from test_v4_native_release import BASELINE, snapshot
 class ServiceBudgetCandidate(unittest.TestCase):
     def test_guard_keeps_other_purposes_at_1200_and_service_at_1680(self):
         now = 1_000_000_000
-        for purpose in ('native-reference', 'store-conversion', 'store-recovery', 'native-service'):
-            limit = 1680 if purpose == 'native-service' else 1200
+        for purpose in ('native-reference', 'store-conversion', 'store-recovery', 'native-service', 'formal-trial'):
+            limit = 3480 if purpose == 'formal-trial' else 1680 if purpose == 'native-service' else 1200
             with mock.patch.object(guard.time, 'monotonic_ns', return_value=now), \
                     mock.patch.object(guard, 'inspect') as inspect:
                 with self.assertRaises(ValueError):
                     guard.watch(CID, now + limit * 1_000_000_000 + 1, 'unused', purpose)
                 inspect.assert_not_called()
-        initial = row()
-        initial['Config']['Labels'][guard.LABEL] = 'native-service'
-        with tempfile.TemporaryDirectory() as directory, \
-                mock.patch.object(guard.time, 'monotonic_ns', return_value=now), \
-                mock.patch.object(guard, 'inspect', side_effect=[initial, row('exited'), row('exited')]), \
-                mock.patch.object(guard.signal, 'signal'):
-            result = guard.watch(CID, now + 1680_000_000_000, Path(directory) / 'guard', 'native-service')
-            self.assertEqual(result['deadline_ns'], now + 1680_000_000_000)
+        for purpose,limit in (('native-service',1680),('formal-trial',3480)):
+            initial = row()
+            initial['Config']['Labels'][guard.LABEL] = purpose
+            with tempfile.TemporaryDirectory() as directory, \
+                    mock.patch.object(guard.time, 'monotonic_ns', return_value=now), \
+                    mock.patch.object(guard, 'inspect', side_effect=[initial, row('exited'), row('exited')]), \
+                    mock.patch.object(guard.signal, 'signal'):
+                result = guard.watch(CID, now + limit * 1_000_000_000, Path(directory) / 'guard', purpose)
+                self.assertEqual(result['deadline_ns'], now + limit * 1_000_000_000)
 
     def test_release_budget_binds_original_preparation_and_preserves_sixty_seconds(self):
-        for purpose in ('native-reference', 'store-conversion', 'store-recovery', 'native-service'):
-            limit = 1800 if purpose == 'native-service' else 1200
+        for purpose in ('native-reference', 'store-conversion', 'store-recovery', 'native-service', 'formal-trial'):
+            limit = 3600 if purpose == 'formal-trial' else 1800 if purpose == 'native-service' else 1200
             job = dict(identity=dict(container_id=CID), cgroup='/sys/fs/cgroup/docker/' + CID,
                        worker_processes=[dict(pid=123, start_ticks=456)], baseline_gpu_mib=BASELINE,
                        boot_id='fixture', time_namespace='fixture', preparation_begin_ns=1,

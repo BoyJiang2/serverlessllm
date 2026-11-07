@@ -1,5 +1,6 @@
 """Actual grouped service host lifecycle; small cohorts and controlled native RPCs."""
 import asyncio
+import copy
 import types
 import unittest
 from unittest import mock
@@ -54,6 +55,32 @@ class GroupedHostPoolTests(unittest.IsolatedAsyncioTestCase):
             loader.cancel()
             with self.assertRaises(asyncio.CancelledError):
                 await loader
+
+    async def test_complete_native_host_receipts_are_read_only_and_reject_partial_state(self):
+        paths=[f'g/{i}' for i in range(496)]
+        self.local.disk_models['v4']=(paths,496)
+        self.local.grouped_chunks['v4']=496
+        self.local.pinned_memory_pool_chunks=496
+        self.local.pinned_memory_pool_usage=496
+        self.local.pinned_memory_pool['v4']=1
+        original=dict(receipts={path:f'load-{i}' for i,path in enumerate(paths)},inflight=None,failed=False)
+        self.local.grouped_host_attempts['v4']=copy.deepcopy(original)
+        result=await self.local.grouped_host_receipt('v4')
+        self.assertEqual(len(result['receipts']),496)
+        result['receipts'][paths[0]]='changed-copy'
+        self.assertEqual(self.local.grouped_host_attempts['v4']['receipts'][paths[0]],'load-0')
+        for kind in ('failed','inflight','missing','duplicate','queued','accounting'):
+            self.local.grouped_host_attempts['v4']=copy.deepcopy(original)
+            self.local.queued_models.clear();self.local.pinned_memory_pool_usage=496
+            attempt=self.local.grouped_host_attempts['v4']
+            if kind=='failed':attempt['failed']=True
+            elif kind=='inflight':attempt['inflight']=paths[0]
+            elif kind=='missing':attempt['receipts'].pop(paths[0])
+            elif kind=='duplicate':attempt['receipts'][paths[0]]=attempt['receipts'][paths[1]]
+            elif kind=='queued':self.local.queued_models['v4']=True
+            else:self.local.pinned_memory_pool_usage=495
+            with self.subTest(kind=kind),self.assertRaises(RuntimeError):
+                await self.local.grouped_host_receipt('v4')
 
     async def test_cohort_completion_pool_accounting_eviction_and_relaunch(self):
         self.assertTrue(await self.prefetch())

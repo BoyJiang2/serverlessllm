@@ -237,6 +237,23 @@ class SllmLocalStore:
                 raise
         return True
 
+    async def grouped_host_receipt(self, model_name):
+        async with self.lock:
+            attempt = self.grouped_host_attempts.get(model_name)
+            paths = self.disk_models.get(model_name, ([], 0))[0]
+            if (not attempt or attempt["failed"] or attempt["inflight"] is not None
+                    or model_name not in self.pinned_memory_pool or model_name in self.queued_models
+                    or len(paths) != 496 or set(attempt["receipts"]) != set(paths)
+                    or any(not isinstance(token, str) or not token for token in attempt["receipts"].values())
+                    or len(set(attempt["receipts"].values())) != 496
+                    or not self.grouped_chunks[model_name] <= self.pinned_memory_pool_usage <= self.pinned_memory_pool_chunks):
+                raise RuntimeError("Complete grouped host receipts are not available")
+            return dict(model=model_name, captured_ns=time.monotonic_ns(),
+                        receipts=copy.deepcopy(attempt["receipts"]),
+                        required_chunks=self.grouped_chunks[model_name],
+                        pool_usage_chunks=self.pinned_memory_pool_usage,
+                        pool_capacity_chunks=self.pinned_memory_pool_chunks)
+
     async def _load_grouped_to_host(self, model_name):
         chunks = self.grouped_chunks[model_name]
         if not await self._lru_eviction(self.disk_models[model_name][1], chunks):
@@ -492,6 +509,12 @@ class StoreManager:
 
     async def get_hardware_info(self):
         return self.hardware_info
+
+    async def get_grouped_host_receipt(self, node_id: str, model_name: str):
+        async with self.metadata_lock:
+            if node_id not in self.local_servers:
+                raise ValueError("Unknown grouped host node")
+            return await self.local_servers[node_id].grouped_host_receipt(model_name)
 
     async def get_model_info(self, model_name: Optional[str] = None):
         logger.info(f"Getting info for {model_name}")

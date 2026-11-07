@@ -1,5 +1,6 @@
 """One two-container native service acceptance; reuse the existing deadline/release guards."""
 import ast
+import argparse
 from concurrent.futures import ThreadPoolExecutor
 import fcntl
 import hashlib
@@ -27,6 +28,8 @@ CALL_DEADLINE=None
 TOTAL_SECONDS=1800
 CONTAINER_SECONDS=1680
 MEMORY_BYTES={'head':16*1024**3,'worker':1024**4-16*1024**3}
+ACTIVE_JOURNAL=None
+DRIVER_FUTURE=None
 
 
 def call(*args,timeout=5):
@@ -80,12 +83,12 @@ def store_limits(store):
                 and max(logical,allocated)<=1024**4)
 
 
-def release_roles(base,roles,groups,workers,baseline,clock,origin,deadline):
+def release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose='native-service'):
     assert set(groups)==set(roles) and workers, 'Missing component cgroup/process binding'
     jobs={role:dict(identity={k:value[k] for k in ('container_id','created','image')},
         baseline_gpu_mib={row[1]:int(row[4]) for row in baseline['rows']},cgroup=str(groups[role]),
         worker_processes=list(workers.values()),boot_id=clock['boot_id'],time_namespace=clock['time_namespace'],
-        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns(),deadline_ns=deadline,purpose='native-service') for role,value in roles.items()}
+        preparation_begin_ns=origin,delete_ack_ns=time.monotonic_ns(),deadline_ns=deadline,purpose=purpose) for role,value in roles.items()}
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures=[executor.submit(collect,jobs[role],base/(role+'-release')) for role in roles]
         errors=[]
@@ -115,21 +118,43 @@ def initialized_store_context(gpu,daemon_pid,context_gpu):
 
 
 def main():
-    global CALL_DEADLINE
-    base=Path(sys.argv[1]).resolve();head=sys.argv[2]
-    execute=sys.argv[3:]==['--execute']
-    assert sys.argv[3:] in ([],['--execute'])
-    if not execute:
-        print(json.dumps(dict(source_head=head,output=str(base),cycles=2,gpu_or_model_started=False,
+    global CALL_DEADLINE,ACTIVE_JOURNAL,DRIVER_FUTURE
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('base',type=Path);parser.add_argument('source_head')
+    parser.add_argument('--execute',action='store_true')
+    parser.add_argument('--trial-protocol',type=Path);parser.add_argument('--trial-sha256')
+    parser.add_argument('--condition');parser.add_argument('--attempt-id');parser.add_argument('--journal-root',type=Path)
+    args=parser.parse_args();base=args.base.resolve();head=args.source_head
+    trial=None
+    if any(value is not None for value in (args.trial_protocol,args.trial_sha256,args.condition,args.attempt_id,args.journal_root)):
+        assert args.trial_protocol and args.trial_sha256 and args.condition
+        assert bool(args.attempt_id)==bool(args.journal_root)
+        from v4_trial import trial_spec
+        trial=trial_spec(args.trial_protocol,args.trial_sha256,args.condition,base.name,args.attempt_id)
+    total_seconds=trial['attempt_timeout_seconds'] if trial else TOTAL_SECONDS
+    container_seconds=total_seconds-120 if trial else CONTAINER_SECONDS
+    purpose='formal-trial' if trial else 'native-service'
+    if not args.execute:
+        print(json.dumps(dict(source_head=head,output=str(base),cycles=1 if trial else 2,gpu_or_model_started=False,
              head_cpu=4,worker_cpu=4,memory_limit_total=sum(MEMORY_BYTES.values()),memory_limits=MEMORY_BYTES,
-             container_seconds=CONTAINER_SECONDS,total_seconds=TOTAL_SECONDS)))
+             container_seconds=container_seconds,total_seconds=total_seconds,trial=trial)))
         return
     assert base.parent==ROOT.parent/'evidence' and not base.exists()
-    origin=time.monotonic_ns();deadline=origin+TOTAL_SECONDS*1_000_000_000;container_deadline=origin+CONTAINER_SECONDS*1_000_000_000
+    origin=time.monotonic_ns();deadline=origin+total_seconds*1_000_000_000;container_deadline=origin+container_seconds*1_000_000_000
     CALL_DEADLINE=deadline
     lease=(ROOT.parent/'native-run.lock').open('a');fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
     assert call('git','-C',str(ROOT),'rev-parse','HEAD')==head
     assert not call('git','-C',str(ROOT),'status','--porcelain')
+    if trial and trial['formal_id_consumed']:
+        from v4_attempts import AttemptJournal
+        journal_root=args.journal_root.resolve()
+        assert journal_root==ROOT.parent/'evidence/v4-4x10-journals-20261107'
+        source=dict(code_commit=head,source_manifest_sha256=hashlib.sha256(
+            call('git','-C',str(ROOT),'ls-tree','-r','HEAD').encode()).hexdigest())
+        ACTIVE_JOURNAL=AttemptJournal(journal_root,args.attempt_id,args.trial_protocol,args.trial_sha256,
+                                     base.name,deadline,source,[journal_root])
+        origin=ACTIVE_JOURNAL.record['preparation_begin_ns'];deadline=ACTIVE_JOURNAL.record['attempt_deadline_ns']
+        container_deadline=deadline-120_000_000_000;CALL_DEADLINE=deadline
     base.mkdir();output=base/'output';output.mkdir()
     clock=process_identity();roles={};guards={};groups={};workers={};network=base.name
     initial=model_inventory(MODEL);baseline=gpu_snapshot()
@@ -151,6 +176,8 @@ def main():
     assert calibration['image']==IMAGE and calibration['driver']=='580.95.05' and calibration['tolerance_mib']==16
     assert all(value==322 for value in calibration['process_context_mib'].values())
     context_gpu=calibration['gpu_context_mib']
+    if trial and trial['condition'].startswith('safetensors_'):
+        context_gpu={uuid:345 for uuid in context_gpu}
     assert set(context_gpu)=={row[1] for row in baseline['rows']}
     scratch=BUILD/('native-service-'+base.name);scratch.mkdir()
     cache=BUILD/'cache-native-reference-20261106T205752Z'
@@ -159,17 +186,21 @@ def main():
         path=cache/artifact['path'];assert path.stat().st_size==artifact['bytes']
         assert hashlib.sha256(path.read_bytes()).hexdigest()==artifact['sha256']
     preparation=dict(source_head=head,ray_namespace='models',memory_limits=MEMORY_BYTES,gpu_initial=baseline,initial_limits=limits,model_inventory=initial,
-        pool_bytes=890937278464,storage_path=str(STORAGE),store_path=str(store),identity=qualified['identity'],
+        pool_bytes=trial['pool_bytes'] if trial else 890937278464,storage_path=str(STORAGE),store_path=str(store),identity=qualified['identity'],
         context_gpu_baseline_mib=context_gpu,context_process_baseline_mib=322,
-        context_baseline_scope='Same initialized Store phase before model; daemon322MiB and total1997MiB from pinned pre-model samples;16MiB tolerance; final release stays zero',
+        context_baseline_scope='Initialized Store before model; full pool1997MiB or minimal SF pool345MiB requires fresh gate;daemon322MiB;16MiB tolerance; final release stays zero',
         preparation_begin_ns=origin,deadline_ns=deadline,container_deadline_ns=container_deadline,
-        total_seconds=TOTAL_SECONDS,container_seconds=CONTAINER_SECONDS)
+        total_seconds=total_seconds,container_seconds=container_seconds)
+    if trial:
+        preparation['trial']=trial
+        shutil.copyfile(trial['cache_inventory_path'],base/'cache-inventory.json')
     write_once(base/'preparation.json',preparation)
     wrapper=next(node.value.value for node in ast.walk(ast.parse((ROOT/'benchmarks/v4_run_once.py').read_text()))
         if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='wrapper' for target in node.targets)
         and isinstance(node.value,ast.Constant) and isinstance(node.value.value,str))
     wrapper+="\nsys.argv=['v4_native_service','worker','--execute']\nrunpy.run_path('/workspace/benchmarks/v4_native_service.py',run_name='__main__')\n"
     (base/'gpu-entry.py').write_text(wrapper)
+    driver_pool=None
     try:
         network_id=call('docker','network','create','--internal','--label','sllm.v4.service='+base.name,network)
         write_once(base/'network.json',dict(name=network,id=network_id))
@@ -186,7 +217,7 @@ def main():
                 '--shm-size','512m' if role=='head' else '16g','--read-only','--restart','no','--init',
                 '--cap-drop','ALL','--security-opt','no-new-privileges','--user','2147:2147',
                 '--workdir','/workspace',
-                '--ulimit','memlock=-1:-1','--ulimit','core=0:0','--label','sllm.v4.guard=native-service',
+                '--ulimit','memlock=-1:-1','--ulimit','core=0:0','--label','sllm.v4.guard='+purpose,
                 '--tmpfs','/tmp:rw,exec,nosuid,size=16g,mode=1777','--entrypoint','/opt/sllm-v4/bin/python']
             if role=='worker':command+=['--gpus','"device='+','.join(row[1] for row in baseline['rows'])+'"']
             env=['CUDA_VISIBLE_DEVICES=' + ('' if role=='head' else '0,1,2,3,4,5,6,7'),
@@ -213,7 +244,7 @@ def main():
             roles[role]=dict(container_id=cid,created=row['Created'],image=row['Image'],command=command)
             with (base/(role+'-guard.log')).open('x') as log:
                 guards[role]=subprocess.Popen(['python3',str(ROOT/'benchmarks/v4_container_guard.py'),cid,
-                     str(container_deadline),str(base/(role+'-guard')),'--purpose','native-service'],
+                     str(container_deadline),str(base/(role+'-guard')),'--purpose',purpose],
                      stdout=log,stderr=subprocess.STDOUT,start_new_session=True,
                      env=dict(os.environ,PYTHONPATH=str(ROOT/'sllm_store')))
             while not (base/(role+'-guard/armed.json')).exists():
@@ -224,7 +255,7 @@ def main():
             assert time.monotonic_ns()<origin+120_000_000_000
             time.sleep(.2)
         go=json.loads((base/'GO.json').read_bytes())
-        assert go['source_head']==head and go['purpose']=='native-service' and go['notified_before_gpu'] and go['authorization']
+        assert go['source_head']==head and go['purpose']==purpose and go['notified_before_gpu'] and go['authorization']
         current=gpu_snapshot();assert not current['apps'] and all(int(row[4])==0 for row in current['rows'])
         assert store_limits(store)['host_available_bytes']>=1024**4+64*1024**3
         write_once(base/'launch.json',dict(launch_ns=time.monotonic_ns(),authorization=go))
@@ -234,9 +265,14 @@ def main():
             if state['Pid']:
                 groups[role]=group_for(state['Pid'],cid)
                 for proc in process_rows(groups[role]):workers[(proc['pid'],proc['start_ticks'])]=proc
+        if trial:
+            from v4_trial import drive_trial
+            driver_pool=ThreadPoolExecutor(max_workers=1)
+            DRIVER_FUTURE=driver_pool.submit(drive_trial,base,preparation,ACTIVE_JOURNAL)
         unload=[];unload_begin=None;daemon_host_pid=None;first_model_processes={}
         with (base/'telemetry.jsonl').open('x') as stream:
             while True:
+                if DRIVER_FUTURE is not None and DRIVER_FUTURE.done():DRIVER_FUTURE.result()
                 states={role:inspect(value['container_id'])['State'] for role,value in roles.items()}
                 sample=dict(monotonic_ns=time.monotonic_ns(),states=states,workers={},cgroups={})
                 for role,state in states.items():
@@ -272,6 +308,11 @@ def main():
                         if pid!=daemon_host_pid:
                             key=(pid,int(fields[19]));first_model_processes[key]=dict(pid=pid,start_ticks=key[1])
                 if any(state['Status'] in ('exited','dead') and state['ExitCode']!=0 for state in states.values()):
+                    timed_out=time.monotonic_ns()>=container_deadline
+                    for role in roles:
+                        receipt=output/(role+'-failure.json')
+                        if receipt.exists():timed_out=timed_out or json.loads(receipt.read_bytes()).get('is_timeout',False)
+                    if timed_out:raise TimeoutError('Native service work deadline exhausted')
                     raise RuntimeError('Native service role failed')
                 if (output/'cycle1-delete-ack.json').exists() and not (output/'cycle1-unload-observation.json').exists():
                     assert daemon_host_pid is not None and first_model_processes
@@ -298,30 +339,40 @@ def main():
             assert not row['State']['Running'] and row['State']['Pid']==0
             write_once(base/(role+'-final.json'),row)
             (base/(role+'-container.log')).write_text(call('docker','logs',roles[role]['container_id'],timeout=10))
-        release_roles(base,roles,groups,workers,baseline,clock,origin,deadline)
+        release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose)
         codes={role:guard.wait(timeout=5) for role,guard in guards.items()}
         assert all(row['State']['ExitCode']==0 for row in finals.values()) and all(code==0 for code in codes.values())
         assert model_inventory(MODEL)==initial and (output/'head-candidate.json').exists()
         assert call('git','-C',str(ROOT),'rev-parse','HEAD')==head and not call('git','-C',str(ROOT),'status','--porcelain')
+        if DRIVER_FUTURE is not None:DRIVER_FUTURE.result()
+        if ACTIVE_JOURNAL:
+            rows=[json.loads(line) for line in (base/'worker-release/samples.jsonl').open()]
+            ACTIVE_JOURNAL.release(rows)
         write_once(base/'candidate.json',dict(container_exit_codes={role:row['State']['ExitCode'] for role,row in finals.items()},
             guard_exit_codes=codes,total_elapsed_seconds=(time.monotonic_ns()-origin)/1e9,
-            release_observation_passed=True,formal_id_consumed=False,scope='Native two-cycle service candidate; separate review required'))
+            release_observation_passed=True,formal_id_consumed=ACTIVE_JOURNAL is not None,
+            scope='Single-condition trial candidate; independent review required' if trial else 'Native two-cycle service candidate; separate review required'))
     except BaseException as error:
-        failure=dict(error=repr(error),traceback=traceback.format_exc(),failed_ns=time.monotonic_ns(),formal_id_consumed=False)
+        failure=dict(error=repr(error),traceback=traceback.format_exc(),failed_ns=time.monotonic_ns(),formal_id_consumed=ACTIVE_JOURNAL is not None)
+        if trial and not (output/'trial-abort.json').exists():write_once(output/'trial-abort.json',dict(error=repr(error),failed_ns=time.monotonic_ns(),is_timeout=isinstance(error,TimeoutError)))
         for role,value in roles.items():
             try:
                 row=inspect(value['container_id'])
                 if row['State']['Pid']:
                     groups[role]=group_for(row['State']['Pid'],value['container_id'])
                     for proc in process_rows(groups[role]):workers[(proc['pid'],proc['start_ticks'])]=proc
-                if row['State']['Running']:call('docker','kill',value['container_id'],timeout=90)
+                if row['State']['Running']:
+                    try:call('docker','kill',value['container_id'],timeout=90)
+                    except (subprocess.CalledProcessError,subprocess.TimeoutExpired) as kill_error:
+                        failure[role+'-kill-error']=repr(kill_error)
+                    call('docker','wait',value['container_id'],timeout=180)
                 failure[role+'-final']=inspect(value['container_id'])
                 (base/(role+'-failure.log')).write_text(call('docker','logs',value['container_id'],timeout=10))
             except BaseException as cleanup_error:
                 failure[role+'-cleanup-error']=repr(cleanup_error)
         if roles and set(groups)==set(roles) and workers and not any((base/(role+'-release')).exists() for role in roles):
             try:
-                release_roles(base,roles,groups,workers,baseline,clock,origin,deadline)
+                release_roles(base,roles,groups,workers,baseline,clock,origin,deadline,purpose)
                 failure['release_observation_passed']=True
             except BaseException as release_error:failure['release_error']=repr(release_error)
         if roles and (base/'launch.json').exists() and not failure.get('release_observation_passed'):
@@ -340,6 +391,7 @@ def main():
         write_once(base/'failure.json',failure)
         raise
     finally:
+        if driver_pool:driver_pool.shutdown(wait=False,cancel_futures=True)
         cleanup={}
         for role,value in roles.items():
             try:
@@ -362,4 +414,9 @@ def main():
         write_once(base/'cleanup.json',cleanup)
 
 
-if __name__=='__main__':main()
+if __name__=='__main__':
+    try:main()
+    except BaseException as error:
+        if ACTIVE_JOURNAL and ACTIVE_JOURNAL.stage!='result' and (DRIVER_FUTURE is None or DRIVER_FUTURE.done()):
+            ACTIVE_JOURNAL.fail(error)
+        raise

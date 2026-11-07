@@ -26,6 +26,7 @@ class NativeReleaseContracts(unittest.TestCase):
             for name, value in [('memory.current', '123'), ('memory.events', 'oom 0'), ('pids.current', '1')]:
                 (group / name).write_text(value)
             self.assertIsNone(release.cgroup_telemetry(group)['memory.peak'])
+            self.assertIsNone(release.cgroup_telemetry(group)['io.stat'])
             (group / 'memory.peak').write_text('456')
             self.assertEqual(release.cgroup_telemetry(group)['memory.peak'], '456')
             (group / 'memory.current').unlink()

@@ -98,6 +98,27 @@ class AttemptJournalContracts(unittest.TestCase):
         self.assertEqual(raw["observation"]["received_ns"], 200)
         self.assertEqual(self.collect()[0]["status"], "failed")
 
+    def test_http_receive_timestamps_survive_later_parsing_and_journal_work(self):
+        journal = self.start()
+        self.startup(journal)
+        self.now = 180
+        journal.trigger(175, "cpu-business")
+        self.now = 300
+        business = {"choices": [{"token_ids": [1], "message": {"content": "4"},
+                                  "finish_reason": "stop", "stop_reason": None}]}
+        journal.business(business, business, self.business_events(journal), received_ns=200)
+        self.assertEqual(journal.record["correct_business_response_ns"], 200)
+        self.assertEqual(json.loads((journal.path / "business.response").read_bytes())["observation"]["received_ns"], 200)
+        fixed = {"choices": [{"token_ids": [2] * 32, "message": {"content": "fixed"},
+                               "finish_reason": "length", "stop_reason": None}]}
+        self.now = 400
+        journal.workload32(fixed, fixed, received_ns=310)
+        self.now = 500
+        journal.delete(320, received_ns=330)
+        self.assertEqual(journal.record["delete_complete_ns"], 330)
+        journal.fail(RuntimeError("CPU fixture terminal"))
+        self.assertEqual(self.collect()[0]["status"], "failed")
+
     def test_malformed_fixed32_is_durable_and_retained_on_failure(self):
         bad = {"error": "invalid fixed output", "choices": []}
         with self.assertRaises(ValueError):

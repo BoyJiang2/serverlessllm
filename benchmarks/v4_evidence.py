@@ -206,7 +206,7 @@ def cache_scan_checks(scan, expected_files, vectors):
         flags = vectors[name]
         require(type(flags) is bytes and len(flags) == pages, "incomplete mincore vector")
         require(hashlib.sha256(flags).hexdigest() == row["vector_sha256"], "mincore checksum")
-        resident = sum(flag & 1 for flag in flags)
+        resident = flags.translate(bytes(value & 1 for value in range(256))).count(b'\x01')
         require(type(row["pages"]) is int and row["pages"] == pages
                 and type(row["resident_pages"]) is int and row["resident_pages"] == resident,
                 "mincore counters differ from vector")

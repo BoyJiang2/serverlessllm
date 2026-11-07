@@ -172,7 +172,11 @@ async def run_head(deadline, preparation):
     gold=json.loads(gold_path.read_bytes())['responses']
     cycles=[]
     async with httpx.AsyncClient(base_url='http://127.0.0.1:8343') as client:
-        for cycle in (1,2):
+        if preparation.get('trial'):
+            from v4_trial import prepare_service_trial
+            await prepare_service_trial(controller,config,preparation,deadline,address)
+            await wait_file('trial-host-finished.json',deadline)
+        for cycle in (() if preparation.get('trial') else (1,2)):
             startup=time.monotonic_ns()
             prefix='cycle'+str(cycle)+'-'
             _,_,registered=await observed_post(client,'/register',config,OUTPUT/(prefix+'register.raw.json'),deadline)
@@ -221,7 +225,9 @@ async def run_head(deadline, preparation):
     ray.shutdown()
     await ray_command(['/opt/sllm-v4/bin/ray','stop','--grace-period=15'],'head-ray-stop.log',deadline)
     write_once(OUTPUT/'head-candidate.json',dict(cycles=cycles,normal_worker_shutdown=True,
-        native_service_candidate=True,formal_id_consumed=False,physical_cleanup_verified=False))
+        native_service_candidate=not bool(preparation.get('trial')),
+        formal_id_consumed=preparation.get('trial',{}).get('formal_id_consumed',False),
+        physical_cleanup_verified=False))
 
 
 def main():
@@ -234,15 +240,17 @@ def main():
             cpu_limit_total=8,memory_limit_total=1024**4,scope='Plan only')))
         return
     armed=json.loads((CONTROL/(args.role+'-guard/armed.json')).read_bytes())
-    assert armed['purpose']=='native-service' and socket.gethostname()==armed['identity']['container_id'][:12]
-    remaining(armed['deadline_ns'],1)
     preparation=json.loads((CONTROL/'preparation.json').read_bytes())
-    assert preparation['source_head'] and preparation['pool_bytes']==890937278464
+    purpose='formal-trial' if preparation.get('trial') else 'native-service'
+    assert armed['purpose']==purpose and socket.gethostname()==armed['identity']['container_id'][:12]
+    remaining(armed['deadline_ns'],1)
+    assert preparation['source_head']
+    assert preparation['pool_bytes']==(preparation['trial']['pool_bytes'] if preparation.get('trial') else 890937278464)
     try:
         asyncio.run((run_head if args.role=='head' else run_worker)(armed['deadline_ns'],preparation))
     except BaseException as error:
         write_once(OUTPUT/(args.role+'-failure.json'),dict(error=repr(error),traceback=traceback.format_exc(),
-                                                       failed_ns=time.monotonic_ns()))
+                                                       failed_ns=time.monotonic_ns(),is_timeout=isinstance(error,TimeoutError)))
         raise
 
 
