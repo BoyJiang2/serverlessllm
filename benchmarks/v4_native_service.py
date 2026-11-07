@@ -90,6 +90,10 @@ async def ray_command(command, name, deadline):
 
 async def start_ray(role, deadline):
     address=socket.gethostbyname(socket.gethostname())
+    quota=Path('/sys/fs/cgroup/cpu.max').read_text().strip()
+    maximum,period=quota.split()
+    assert maximum!='max' and int(maximum)==4*int(period)
+    affinity=Path('/sys/fs/cgroup/cpuset.cpus.effective').read_text().strip()
     command=['/opt/sllm-v4/bin/ray','start','--node-ip-address='+address,
              '--num-cpus=4',
              '--num-gpus='+('0' if role=='head' else '8'),
@@ -100,7 +104,7 @@ async def start_ray(role, deadline):
         head=await wait_file('head-ray-ready.json',deadline)
         command+=['--address='+head['address']+':6379','--resources={"worker_node":1,"worker_id_v4":1}']
     await ray_command(command,role+'-ray-start.log',deadline)
-    write_once(OUTPUT/(role+'-ray-ready.json'),dict(address=address,hostname=socket.gethostname()))
+    write_once(OUTPUT/(role+'-ray-ready.json'),dict(address=address,hostname=socket.gethostname(),cpu_max=quota,cpuset_cpus_effective=affinity,ray_cpu_requested=4))
     return address
 
 
@@ -146,6 +150,10 @@ async def run_head(deadline, preparation):
     controller=ray.remote(SllmController).options(name='controller',num_cpus=1,
                  resources={'control_node':.1}).remote(dict(enable_storage_aware=False,enable_migration=False))
     await asyncio.wait_for(controller.start.remote(),remaining(deadline,900))
+    await asyncio.wait_for(ray.get_actor('model_loading_scheduler').__ray_ready__.remote(),remaining(deadline,30))
+    nodes=[node for node in ray.nodes() if node['Alive']]
+    assert len(nodes)==2 and all(node['Resources'].get('CPU')==4 for node in nodes)
+    write_once(OUTPUT/'control-plane-resources.json',dict(nodes=nodes,scheduler_constructor_ready=True))
     write_once(OUTPUT/'controller-ready.json',dict(ready_ns=time.monotonic_ns(),
                ray_namespace=ray.get_runtime_context().namespace))
     await wait_file('store-configuration-checked.json',deadline)
@@ -168,6 +176,13 @@ async def run_head(deadline, preparation):
             startup=time.monotonic_ns()
             prefix='cycle'+str(cycle)+'-'
             _,_,registered=await observed_post(client,'/register',config,OUTPUT/(prefix+'register.raw.json'),deadline)
+            router=ray.get_actor(config['model'],namespace='models')
+            await asyncio.wait_for(router.__ray_ready__.remote(),remaining(deadline,30))
+            placement=ray.util.placement_group_table()
+            assert not placement, 'Unexpected Ray placement group with mp executor'
+            state=dict(nodes=ray.nodes(),actors=ray._private.state.actors(),placement_groups=placement,
+                       router_start_acknowledged=True,scheduler_constructor_ready=True)
+            write_once(OUTPUT/(prefix+'control-plane-ready.json'),json.loads(json.dumps(state,default=str)))
             outcomes={}
             for request in requests:
                 purpose=request['purpose'];request_id=prefix+purpose

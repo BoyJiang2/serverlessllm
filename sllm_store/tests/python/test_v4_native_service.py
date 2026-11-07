@@ -32,6 +32,20 @@ class NativeServiceContracts(unittest.TestCase):
         self.assertEqual(config['auto_scaling_config'],dict(min_instances=0,max_instances=1))
         self.assertEqual(backend['model_loader_extra_config']['store_path'],'/cpu/store')
 
+    def test_each_ray_node_requires_actual_four_cpu_quota(self):
+        for role in ('head','worker'):
+            with mock.patch.object(Path,'read_text',side_effect=['400000 100000','0-255']), \
+                    mock.patch.object(service,'ray_command',new_callable=mock.AsyncMock) as launch, \
+                    mock.patch.object(service,'wait_file',new_callable=mock.AsyncMock,return_value={'address':'192.0.2.1'}), \
+                    mock.patch.object(service,'write_once') as receipt:
+                asyncio.run(service.start_ray(role,10**30))
+                self.assertIn('--num-cpus=4',launch.call_args.args[0])
+                self.assertEqual(receipt.call_args.args[1]['cpu_max'],'400000 100000')
+        with mock.patch.object(Path,'read_text',return_value='300000 100000'), \
+                mock.patch.object(service,'ray_command',new_callable=mock.AsyncMock) as launch:
+            with self.assertRaises(AssertionError):asyncio.run(service.start_ray('head',10**30))
+            launch.assert_not_called()
+
     def test_default_plan_does_not_start_service(self):
         output=io.StringIO()
         with mock.patch('sys.argv',['service','head']),mock.patch.object(service,'run_head') as run,contextlib.redirect_stdout(output):
