@@ -394,34 +394,40 @@ def grouped_restore_contexts():
 
 
 def assert_no_raw_references(model, loaded):
-    ranges = [(t.untyped_storage().data_ptr(), t.untyped_storage().data_ptr()
-               + t.untyped_storage().nbytes()) for t in loaded.values() if t.numel()]
-    pending, seen = [model], set()
+    ranges = [(name, t.untyped_storage().data_ptr(), t.untyped_storage().data_ptr()
+               + t.untyped_storage().nbytes()) for name, t in loaded.items() if t.numel()]
+    pending, seen = [("model", model)], set()
     while pending:
-        value = pending.pop()
+        path, value = pending.pop()
         if id(value) in seen:
             continue
         seen.add(id(value))
         if torch.is_tensor(value):
             storage = value.untyped_storage()
             begin, size = storage.data_ptr(), storage.nbytes()
-            if size and any(begin < b and a < begin + size for a, b in ranges):
-                raise ValueError("Postprocessed model still references expert raw storage")
+            for name, a, b in ranges:
+                if size and begin < b and a < begin + size:
+                    raise ValueError("Postprocessed model still references expert raw storage: "
+                                     f"{path}; raw={name}; dtype={value.dtype}; "
+                                     f"shape={tuple(value.shape)}; device={value.device}; "
+                                     f"storage=[{begin:#x},{begin + size:#x}); raw_range=[{a:#x},{b:#x})")
         elif isinstance(value, dict):
-            pending.extend(value.keys())
-            pending.extend(value.values())
+            for key, item in value.items():
+                label = repr(key) if isinstance(key, (str, int)) else type(key).__name__
+                pending.extend(((path + ".key[" + label + "]", key),
+                                (path + "[" + label + "]", item)))
         elif isinstance(value, (list, tuple, set)):
-            pending.extend(value)
+            pending.extend((f"{path}[{index}]", item) for index, item in enumerate(value))
         elif not isinstance(value, (types.FunctionType, types.MethodType, type)):
             if hasattr(value, "__dict__"):
-                pending.extend(vars(value).values())
+                pending.extend((path + "." + name, item) for name, item in vars(value).items())
             for cls in type(value).__mro__:
                 slots = vars(cls).get("__slots__", ())
                 if isinstance(slots, str):
                     slots = (slots,)
                 for name in slots:
                     if name not in ("__weakref__", "__dict__") and hasattr(value, name):
-                        pending.append(getattr(value, name))
+                        pending.append((path + "." + name, getattr(value, name)))
 
 
 class _GroupedRestoreSession:
@@ -517,7 +523,10 @@ class _GroupedRestoreSession:
                     tensors[name].data = tensors[row["alias"]].data
             del tensors
             torch.cuda.synchronize()
-            assert_no_raw_references(self.model, loaded)
+            try:
+                assert_no_raw_references(self.model, loaded)
+            except ValueError as error:
+                raise ValueError(f"{error}; group={group['id']}; rank={self.loader.rank}") from error
             self.completed.append(group["id"])
             loaded.clear()
             self.owners = {}

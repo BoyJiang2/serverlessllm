@@ -51,17 +51,19 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--execute', action='store_true')
     parser.add_argument('--daemon', action='store_true')
+    parser.add_argument('--diagnostic-pool', action='store_true')
     args = parser.parse_args()
     identity = json.loads(args.identity.read_bytes())
     pool = json.loads(args.pool_config.read_bytes())
     config = recovery_config(args.model, args.store, identity)
-    chunk, size = pool['chunk_bytes'], pool['pool_bytes_for_all_groups']
-    if (chunk != 33554432 or type(size) is not int or size % chunk
-            or not 0 < size <= 1024**4 - 64*1024**3):
+    chunk, full_size = pool['chunk_bytes'], pool['pool_bytes_for_all_groups']
+    size = 128*1024**3 if args.diagnostic_pool else full_size
+    if (chunk != 33554432 or any(type(value) is not int or value % chunk
+            or not 0 < value <= 1024**4 - 64*1024**3 for value in (size, full_size))):
         raise ValueError('Invalid full-cohort pool sizing')
     if not args.execute:
         print(json.dumps(dict(engine_config=config, pool_bytes=size, chunk_bytes=chunk,
-                              gpu_or_model_started=False)))
+                              diagnostic_pool=args.diagnostic_pool, full_cohort_pool_bytes=full_size, gpu_or_model_started=False)))
         return
     if args.guard is None or args.output is None:
         parser.error('Execution requires guard and new output path')
@@ -78,7 +80,7 @@ def main():
     output = args.output
     output.mkdir(parents=True, exist_ok=False)
     write_once(output/'started.json', dict(identity=identity, engine_config=config,
-               pool_bytes=size, chunk_bytes=chunk, begin_ns=time.monotonic_ns()))
+               pool_bytes=size, full_cohort_pool_bytes=full_size, diagnostic_pool=args.diagnostic_pool, chunk_bytes=chunk, begin_ns=time.monotonic_ns()))
     daemon = None
     try:
         with (output/'daemon.log').open('x') as log:
@@ -130,7 +132,7 @@ def main():
         daemon.send_signal(signal.SIGINT)
         if daemon.wait(timeout=30) != 0:
             raise RuntimeError('Store daemon did not exit normally')
-        write_once(output/'candidate.json', dict(native_gold_parity=True, daemon_exit_code=0,
+        write_once(output/'candidate.json', dict(native_gold_parity=True, daemon_exit_code=0, diagnostic_pool=args.diagnostic_pool, pool_bytes=size,
             complete_sha256=file_digest(Path(args.store)/'COMPLETE.json'), completed_ns=time.monotonic_ns(),
             runtime_qualified=False, physical_cleanup_verified=False,
             scope='Offline Store recovery candidate; host release and review pending; no SLLM service qualification'))

@@ -1,4 +1,6 @@
 """Recovery receipt and plan contracts; all CUDA/worker objects are CPU fixtures."""
+import contextlib
+import io
 import json
 import os
 from pathlib import Path
@@ -72,6 +74,26 @@ class RecoveryContracts(unittest.TestCase):
         rows=[dict(row,rank=i) for i in range(8)]
         for invalid in (rows[:-1],rows[:-1]+[rows[0]],rows[:-1]+[dict(rows[-1],identity={})]):
             with self.assertRaises(ValueError):recovery.validate_receipts(invalid,identity())
+
+    def test_diagnostic_plan_labels_smaller_pool_without_rewriting_full_cohort_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);model=root/'model';model.mkdir()
+            fixture=Path(__file__).resolve().parents[1]/'fixtures/v4_config.json'
+            (model/'config.json').write_bytes(fixture.read_bytes())
+            (root/'identity.json').write_text(json.dumps(identity()))
+            (root/'pool.json').write_text(json.dumps(dict(chunk_bytes=33554432,
+                                                       pool_bytes_for_all_groups=890937278464)))
+            argv=['recovery','--model',str(model),'--store',str(root/'store'),'--identity',
+                  str(root/'identity.json'),'--pool-config',str(root/'pool.json'),'--diagnostic-pool']
+            output=io.StringIO()
+            with mock.patch('sys.argv',argv),mock.patch.dict(os.environ,STORAGE_PATH=str(root)),contextlib.redirect_stdout(output):
+                recovery.main()
+            plan=json.loads(output.getvalue())
+            self.assertEqual(plan['pool_bytes'],128*1024**3)
+            self.assertEqual(plan['full_cohort_pool_bytes'],890937278464)
+            self.assertTrue(plan['diagnostic_pool'])
+            self.assertFalse(plan['gpu_or_model_started'])
+            self.assertFalse((root/'store').exists())
 
     def test_plan_uses_existing_frozen_config_and_restore_loader(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -1,0 +1,55 @@
+{
+  "execution_head": "ceccf9386eda50034145fa4a650953055831ae44",
+  "primary_failure": "Eight TP ranks rejected first expert postprocessing due to remaining raw references",
+  "raw_reference_errors": [
+    "(Worker_TP6 pid=1021) ERROR 11-07 03:04:00 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP0 pid=1015) ERROR 11-07 03:04:00 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP4 pid=1019) ERROR 11-07 03:04:01 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP1 pid=1016) ERROR 11-07 03:04:01 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP7 pid=1022) ERROR 11-07 03:04:01 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP5 pid=1020) ERROR 11-07 03:04:01 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP3 pid=1018) ERROR 11-07 03:04:02 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage",
+    "(Worker_TP2 pid=1017) ERROR 11-07 03:04:02 [multiproc_executor.py:870] ValueError: Postprocessed model still references expert raw storage"
+  ],
+  "secondary_controller_failure": "TimeoutExpired(('nvidia-smi', '--query-gpu=index,uuid,name,memory.total,memory.used', '--format=csv,noheader,nounits'), 5)",
+  "daemon_ready": {
+    "chunk_size": 33554432,
+    "mem_pool_size": 890937278464,
+    "pid": 932,
+    "ready_ns": 562561118463086
+  },
+  "h2d_confirmed_ranks": {
+    "remainder": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "expert_0000": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "release": {
+    "coverage": {
+      "sample_span_seconds": 75.844767306,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "native_release_observation_passed": true,
+    "physical_cleanup_verified": false,
+    "runtime_qualified": false,
+    "scope": "Selected GPUs and one native container only; no SLLM Store/IPC or service lifetime qualification"
+  },
+  "store_restore_runtime_qualified": false,
+  "formal_attempts_consumed": 0
+}

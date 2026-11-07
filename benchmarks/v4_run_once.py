@@ -26,10 +26,13 @@ base = Path(sys.argv[1]).resolve()
 assert base.parent == ROOT.parent / 'evidence' and not base.exists()
 MODE = sys.argv[3] if len(sys.argv) > 3 else 'native-reference'
 assert MODE in ('native-reference', 'store-conversion', 'store-recovery')
-assert len(sys.argv) <= 5 and (len(sys.argv) < 5 or sys.argv[4] == '--execute')
+flags = sys.argv[4:]
+assert flags in ([], ['--execute'], ['--diagnostic-pool'], ['--execute', '--diagnostic-pool'])
+EXECUTE, DIAGNOSTIC = '--execute' in flags, '--diagnostic-pool' in flags
 CONVERT = MODE == 'store-conversion'
 RECOVER = MODE == 'store-recovery'
 STORE = CONVERT or RECOVER
+assert not DIAGNOSTIC or RECOVER
 overlays = ('v4_convert.py', 'v4_grouped_state.py', 'vllm_v4_loader.py', 'v4_export_worker.py') if STORE else ()
 STORAGE = Path('/data/brick1/boyjiang/sllm-v4-pro-store')
 qualified = json.loads((ROOT/'docs/evidence/v4-store-data-integrity/qualified-store.json').read_bytes()) if RECOVER else None
@@ -41,13 +44,13 @@ if RECOVER:
     assert base.name.startswith('store-recovery-') and store.is_dir()
 cache = (Path('/data/brick1/boyjiang/sllm-v4-pro-build/cache-native-reference-20261106T205752Z')
          if STORE else Path('/data/brick1/boyjiang/sllm-v4-pro-build') / ('cache-' + base.name))
-if len(sys.argv) < 5:
+if not EXECUTE:
     print(json.dumps(dict(source_head_requested=HEAD, purpose=MODE, image=IMAGE, output=str(base),
         model=str(MODEL), store=str(store) if STORE else None, cache=str(cache),
         converter_overlay=str(ROOT/'sllm_store/sllm_store/v4_convert.py') if STORE else None,
         container_seconds=1080, total_seconds=1200, cpu_limit=8, memory_limit_bytes=1024**4,
         store_byte_stop_limit=1024**4 if STORE else None,
-        store_read_only=RECOVER,
+        store_read_only=RECOVER, diagnostic_pool=DIAGNOSTIC,
         storage_free_floor_bytes=128*1024**3 if STORE else None,
         gpu_or_model_started=False, store_claimed=False,
         scope='Plan only; execution requires current stage authorization, fresh admission and GO')))
@@ -214,6 +217,8 @@ print('GPU_PRECHECK_OK',flush=True)
                 '--guard', '/control/guard/armed.json', '--output', '/output/recovery' if RECOVER else '/output/conversion']
         if RECOVER:
             argv += ['--pool-config', '/control/pool-config.json']
+            if DIAGNOSTIC:
+                argv += ['--diagnostic-pool']
     else:
         entry = 'v4_native_reference.py'
         argv = [entry, '--execute', '--guard', '/control/guard/armed.json',
@@ -265,7 +270,7 @@ print('GPU_PRECHECK_OK',flush=True)
         gpu_initial=initial, baseline_gpu_mib=baseline, weight_inventory=initial_inventory,
         runtime_asset_metadata=asset_states, create_command=command,
         runtime_user='boyjiang:2147:2147', runtime_user_profile_sha256=profile_sha,
-        source_head=HEAD, purpose=MODE, conversion_identity=conversion_identity,
+        source_head=HEAD, purpose=MODE, diagnostic_pool=DIAGNOSTIC, conversion_identity=conversion_identity,
         source_overrides={name: hashlib.sha256((ROOT/'sllm_store/sllm_store'/name).read_bytes()).hexdigest() for name in overlays},
         authorizing_instruction='Stage authorization must be recorded in GO; host use: User explicitly 我说过了 你直接用吧',
         reservation_use_basis='Direct user instruction after disclosed conflict; no existing booking changed',
@@ -305,14 +310,25 @@ print('GPU_PRECHECK_OK',flush=True)
     write_once(base/'launch.json', dict(launch_ns=time.monotonic_ns(), gpu_admission=recheck,
                                       model_attempt_consumed=True, authorization=go))
     call('docker', 'start', cid, timeout=20)
+    inspection_timeouts = 0
     with (base/'telemetry.jsonl').open('x') as stream:
         while True:
-            state = inspected()['State']
+            try:
+                state = inspected()['State']
+            except subprocess.TimeoutExpired as observation_error:
+                inspection_timeouts += 1
+                write_once(base/f'inspect-timeout-{inspection_timeouts}.json',
+                           dict(error=repr(observation_error), observed_ns=time.monotonic_ns()))
+                assert time.monotonic_ns() < origin+1100_000_000_000
+                continue
             if state['Pid'] and group is None:
                 capture_group(state['Pid'])
             processes = sample_processes()
-            sample = dict(monotonic_ns=time.monotonic_ns(), state=state, workers=processes,
-                          gpu=gpu_snapshot())
+            sample = dict(monotonic_ns=time.monotonic_ns(), state=state, workers=processes)
+            try:
+                sample['gpu'] = gpu_snapshot()
+            except subprocess.TimeoutExpired as observation_error:
+                sample.update(gpu=None, gpu_observation_error=repr(observation_error))
             if group and group.exists():
                 sample['cgroup'] = cgroup_telemetry(group)
             if STORE:

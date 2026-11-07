@@ -16,7 +16,7 @@ BODY = next(node for node in TREE.body if isinstance(node, ast.Try)).body
 
 
 def context(store):
-    return dict(Path=Path, STORE=store, CONVERT=store, RECOVER=False,
+    return dict(Path=Path, STORE=store, CONVERT=store, RECOVER=False, DIAGNOSTIC=False,
                 overlays=('v4_convert.py','v4_grouped_state.py','vllm_v4_loader.py','v4_export_worker.py') if store else (), MODE="store-conversion" if store else "native-reference",
                 ROOT=Path("/source"), MODEL=Path("/weights"), IMAGE="sha256:fixed",
                 STORAGE=Path("/store"), store=Path("/store/conversion"),
@@ -71,6 +71,9 @@ class OneShotControllerTests(unittest.TestCase):
         exec(compile(ast.Module(body=BODY[i:i+3],type_ignores=[]),str(SOURCE),"exec"),ns)
         self.assertIn("v4_store_recovery.py",ns["wrapper"])
         self.assertIn("--pool-config",ns["wrapper"])
+        ns["DIAGNOSTIC"]=True
+        exec(compile(ast.Module(body=BODY[i:i+3],type_ignores=[]),str(SOURCE),"exec"),ns)
+        self.assertIn("--diagnostic-pool",ns["wrapper"])
         exec(compile(ast.Module(body=BODY[assignment("command"):assignment("cid")],
                                 type_ignores=[]),str(SOURCE),"exec"),ns)
         self.assertIn("type=bind,src=/store,dst=/store,readonly",ns["command"])
@@ -95,6 +98,17 @@ class OneShotControllerTests(unittest.TestCase):
             ns["shutil"].disk_usage = lambda path: NS(free=free)
             with mock.patch.object(Path, "read_text", return_value="MemAvailable: " + str(memory//1024) + " kB"):
                 self.assertEqual(ns["store_limits"](directory, "/store")["within_limits"], expected)
+
+    def test_nvidia_query_timeout_records_unknown_instead_of_aborting_model(self):
+        nodes=[n for n in ast.walk(TREE) if isinstance(n,ast.Try)
+               and any(isinstance(child,ast.Call) and isinstance(child.func,ast.Name)
+                       and child.func.id=='gpu_snapshot' for statement in n.body for child in ast.walk(statement))]
+        node=next(n for n in nodes if len(n.body)==1 and isinstance(n.body[0],ast.Assign))
+        ns=dict(sample={},subprocess=subprocess,
+                gpu_snapshot=mock.Mock(side_effect=subprocess.TimeoutExpired(['nvidia-smi'],5)))
+        exec(compile(ast.Module(body=[node],type_ignores=[]),str(SOURCE),'exec'),ns)
+        self.assertIsNone(ns['sample']['gpu'])
+        self.assertIn('nvidia-smi',ns['sample']['gpu_observation_error'])
 
     def test_go_requires_matching_stage_source_and_recorded_notification(self):
         import json
