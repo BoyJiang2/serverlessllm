@@ -32,6 +32,27 @@ def claim(root, barrier, queue):
 
 
 class AttemptJournalContracts(unittest.TestCase):
+    def test_only_exact_known_failed_terminal_can_be_admitted_without_reusing_its_id(self):
+        protocol=ROOT/'docs/evidence/v4-formal-4x10/protocol.json'
+        sha=hashlib.sha256(protocol.read_bytes()).hexdigest();rows=attempts.frozen_protocol(protocol,sha)
+        failed='v4n40_safetensors_disk_hot_01';pending=rows[4]['attempt_id']
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);old=root/failed;old.mkdir();terminal=old/'01-result.json';terminal.write_text('{"status":"failed"}')
+            history=[dict(attempt_id=row['attempt_id'],consumed=index<4,
+                status=('failed' if row['attempt_id']==failed else 'evidence_complete_unqualified') if index<4 else 'unstarted',
+                terminal=index<4,directory=str(old),journal_files=[dict(path=terminal.name)]) for index,row in enumerate(rows)]
+            admitted={failed:hashlib.sha256(terminal.read_bytes()).hexdigest()}
+            with mock.patch.object(attempts,'collect_attempts',return_value=history):
+                def start(name=pending,approved=None):
+                    return attempts.AttemptJournal(root,name,protocol,sha,'cpu-only',10**30,SOURCE,[root],approved)
+                with self.assertRaisesRegex(ValueError,'blocks continuation'):start()
+                with self.assertRaisesRegex(ValueError,'terminal journal changed'):start(approved={failed:'0'*64})
+                with self.assertRaisesRegex(ValueError,'unknown failed journal'):start(approved={'foreign':'0'*64})
+                with self.assertRaisesRegex(ValueError,'consumed ID'):start(failed,admitted)
+                journal=start(approved=admitted)
+                self.assertEqual(journal.record['attempt_id'],pending)
+                self.assertEqual(history[3]['status'],'failed')
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)

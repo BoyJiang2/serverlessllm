@@ -92,6 +92,7 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, 
         if page_lease:
             lease = checked_json(ROOT / amendment['sf_hot_lease_pilot_review_path'], amendment['sf_hot_lease_pilot_review_sha256'])
             require(lease['runtime_qualified'] and lease['sf_hot_page_cache_lease_verified']
+                    and lease['condition']=='safetensors_disk_hot' and lease['full_model_condition_pilot_qualified']
                     and not lease['formal_id_consumed'], 'SF-hot lease pilot prerequisite missing')
         require(protocol.get('cache_hot_read_cpus') == [0, 1, 120, 121]
                 and all(type(cpu) is int for cpu in protocol['cache_hot_read_cpus']), 'formal hot reader affinity is not frozen')

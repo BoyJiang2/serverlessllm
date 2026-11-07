@@ -57,7 +57,8 @@ class AttemptJournal:
     Publication is atomic/no-replace; directory claims remain consumed after a
     crash. This is evidence bookkeeping, not a resource or runtime admission gate.
     """
-    def __init__(self, root, attempt_id, preregistration, prereg_sha, run_id, work_end_ns, source, execution_roots):
+    def __init__(self, root, attempt_id, preregistration, prereg_sha, run_id, work_end_ns, source, execution_roots,
+                 acknowledged_failed_journals=None):
         rows = frozen_protocol(preregistration, prereg_sha)
         matches = [row for row in rows if row["attempt_id"] == attempt_id]
         require(len(matches) == 1, "unknown frozen attempt ID")
@@ -70,7 +71,16 @@ class AttemptJournal:
         require(Path(root).resolve() in {Path(p).resolve() for p in execution_roots},
                 "current root missing from declared execution history")
         history = collect_attempts(preregistration, prereg_sha, execution_roots)
+        admitted = acknowledged_failed_journals or {}
+        require(set(admitted) <= {"v4n40_safetensors_disk_hot_01"}
+                and set(admitted) <= {row["attempt_id"] for row in rows}, "unknown failed journal acknowledgement")
+        for name, sha in admitted.items():
+            previous = next(row for row in history if row["attempt_id"] == name)
+            require(previous["consumed"] and previous["status"] == "failed" and previous["terminal"]
+                    and digest((Path(previous["directory"]) / previous["journal_files"][-1]["path"]).read_bytes()) == sha,
+                    "acknowledged failed terminal journal changed")
         require(all(not row["consumed"] or row["status"] == "evidence_complete_unqualified"
+                    or row["attempt_id"] in admitted
                     for row in history), "previous failed/incomplete attempt blocks continuation")
         unstarted = [row["attempt_id"] for row in history if not row["consumed"]]
         require(unstarted and attempt_id == unstarted[0], "frozen attempt order or consumed ID")

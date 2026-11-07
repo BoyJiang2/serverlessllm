@@ -147,13 +147,25 @@ def main():
     assert call('git','-C',str(ROOT),'rev-parse','HEAD')==head
     assert not call('git','-C',str(ROOT),'status','--porcelain')
     if trial and trial['formal_id_consumed']:
-        from v4_attempts import AttemptJournal
+        from v4_attempts import AttemptJournal, collect_attempts
         journal_root=args.journal_root.resolve()
         assert journal_root==ROOT.parent/'evidence/v4-4x10-journals-20261107'
         source=dict(code_commit=head,source_manifest_sha256=hashlib.sha256(
             call('git','-C',str(ROOT),'ls-tree','-r','HEAD').encode()).hexdigest())
+        admitted={}
+        if trial.get('sf_hot_page_cache_lease'):
+            from v4_campaign import next_attempt
+            from v4_trial import checked_json
+            policy=checked_json(args.amendment,args.amendment_sha)
+            assert set(policy['acknowledged_failures'])=={'v4n40_store_pool_hit_01','v4n40_safetensors_disk_hot_01'}
+            assert set(policy['prior_qualified_attempts'])=={'v4n40_safetensors_disk_cold_01','v4n40_store_disk_cold_01'}
+            row=next_attempt(collect_attempts(args.trial_protocol,args.trial_sha256,[journal_root]),head,
+                acknowledged_failures=policy['acknowledged_failures'],prior_qualified=policy['prior_qualified_attempts'])
+            assert row is not None and row['attempt_id']==args.attempt_id
+            approved=policy['acknowledged_failures']['v4n40_safetensors_disk_hot_01']
+            admitted={'v4n40_safetensors_disk_hot_01':approved['journal_terminal_sha256']}
         ACTIVE_JOURNAL=AttemptJournal(journal_root,args.attempt_id,args.trial_protocol,args.trial_sha256,
-                                     base.name,deadline,source,[journal_root])
+                                     base.name,deadline,source,[journal_root],acknowledged_failed_journals=admitted)
         origin=ACTIVE_JOURNAL.record['preparation_begin_ns'];deadline=ACTIVE_JOURNAL.record['attempt_deadline_ns']
         container_deadline=deadline-120_000_000_000;CALL_DEADLINE=deadline
     base.mkdir();output=base/'output';output.mkdir()
