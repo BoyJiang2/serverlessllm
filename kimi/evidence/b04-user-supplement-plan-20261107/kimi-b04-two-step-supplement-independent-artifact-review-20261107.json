@@ -1,0 +1,96 @@
+{
+  "status": "INDEPENDENT_DATA_ONLY_B04_TWO_STEP_SUPPLEMENT_ACCEPT_PENDING_FRESH_ADMISSION",
+  "created_utc": "2026-11-07T06:33:10.198964+00:00",
+  "host": "qjhs3",
+  "binding_files": {
+    "plan": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-two-step-user-supplement-plan-20261107.json",
+      "sha256": "0c1b672bc4e857c85eeba45dc00f2349cac4d6f790f5e33f14ec11b47c924a24"
+    },
+    "manifest": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-two-step-supplement-preparation-verification-20261107.json",
+      "sha256": "09a383fccd50da59ddcf15ec54be4e37e4c6ea7fa60504c80f107f0ad1d20a17"
+    },
+    "handoff": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-two-step-supplement-execution-admission-handoff-20261107.json",
+      "sha256": "c6007ae73f62b9c5bffff19618612aa934a8d7cd8bdd2c89b180438bad62a1cf"
+    }
+  },
+  "steps": [
+    {
+      "step": 1,
+      "run_id": "kimi-four-v1-b04-safetensors_disk_cold-retry01",
+      "spec_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_cold-retry01-supplement-v1-20261107-spec.json",
+      "spec_sha256": "d2b6a442e4c265edf19a26b2be964f04126d4edcff8c1d9cbae26f0054fac2a8",
+      "execution_command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_cold-retry01-supplement-v1-20261107-command.json",
+      "execution_command_sha256": "03702e1449091b1f7ebcd49b9f9743bdb64c1912028ed9a6ffc25b5dc57f384c",
+      "actual_root_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2",
+      "actual_argv_sha256": "a5f909adb9f2c1bce5996392f282994cda765479b6e003fe2fc6299940096b3c",
+      "max_seconds": 7200,
+      "analysis_eligibility": {
+        "original_paired_primary": false,
+        "original_b04_complete_block": false,
+        "supplemental_repeat_measurement": true,
+        "original40_slot": false
+      }
+    },
+    {
+      "step": 2,
+      "run_id": "kimi-four-v1-b04-store_pool_hit",
+      "spec_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "spec_sha256": "ce5113c09af8a7a268ce13fb956d68efe425bbb2ee9ff8987d3dfaf1d131c369",
+      "execution_command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_pool_hit-supplement-v1-20261107-execution-command.json",
+      "execution_command_sha256": "dddcc66b7e1aec85c99da6faa3bc79833732faa34fa2ab4e28f2092571e64a7a",
+      "actual_root_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2",
+      "actual_argv_sha256": "d4e8d7f30fe33a998680eee943366ae33977491e74e72f12bf7b8c19c05d6ed1",
+      "max_seconds": 7200,
+      "analysis_eligibility": {
+        "original_paired_primary": false,
+        "original_b04_complete_block": false,
+        "original40_slot": true,
+        "previously_not_started_slot_now_supplementally_observed": true
+      }
+    }
+  ],
+  "source_commit": "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+  "checked_current_code_native_pin_count": 51,
+  "checks": [
+    "Third spec inverse exact whitelist restores whole b06 SFcold spec; original40/planned/map unchanged",
+    "Third command inverse only outeridentity/noRemainAfterExit/specbinding/supplement metadata restores whole frozen base command",
+    "Both actual-c bytes04c717 and all9role bodies/hash/ELF95d-manifest59d/oldf7/guards/capacity/7200 are exactly unchanged",
+    "Fourth official CLI spec/command original SHA preserved; its frozen async derivative changes only outerRemainAfterExit no plus execution metadata",
+    "All spec->actualargv->SHA links, current code/native source pins and supplementplan codepin verified; no runtime output directories present",
+    "Existing runtime checkfiles consumes plan SHA only for third; fourth plan/analysis eligibility is external admission-handoff binding and is not represented as a new runtime validator",
+    "Originalfailedthird and originalb04blockfinal hashes remain unchanged"
+  ],
+  "statistics": {
+    "original_b04_complete_paired": false,
+    "extra_supplement_retry_runtime": 1,
+    "fourth_original40_slot": true,
+    "no_retroactive_failure_or_raw_qualification_rewrite": true,
+    "primary_sample_qualified_raw": "May describe individually valid execution; not sufficient to enter original paired cohort. Frozen external analysis_eligibility remainsfalse for both."
+  },
+  "budgets": {
+    "two_steps_full_max_seconds": 14520,
+    "per_step": 7200,
+    "interstep_supervision_slack": 120,
+    "Store_normal_exit_seconds": 60,
+    "release_quiet_min_seconds": 60,
+    "reservation": "Beforestep1 mustcoverfull14520. Beforeeachstepfresh7200remaining/resources/root/unusedunit+exclusiveclaim. Failedrelease cannotshortenorskipquiet tostartstep2."
+  },
+  "continuation": "Only this two-step supplement permits step2 evenifstep1fails, andonlyafterfailedstep fullownedcleanup/quiet>=60+allunits0+GPU0 andfresh7200admission. Not permission toignoreunreleasedresources. Step2failure ends supplement. b08..10 original firstfailurestop rules unchanged.",
+  "remaining_required_before_execution": [
+    "Fresh parent sourceHEAD/clean/publishedref admission remains required; official fourth CLI source gate completion reported by parent, not independently rerun by reviewer",
+    "Root authenticated fresh full14520reservation beforestep1 and full7200 beforeeachstep, within aggregate plan-start+14520; no wait shortening",
+    "Parent O_EXCL0600 distinctclaim before eachlaunch; originalb04blockclaim/oldfailedclaim/ledger not touched. Childargv itself doesnot createclaim.",
+    "Unused units/dirs/claims and all physical resources/pins fresh, 8GPUzero/noforeignapps, parent saved filledargv SHA",
+    "ThirdFAIL allowed tocontinueonlyafter allcontroller/guard/observerunits0, ownscope/pinsgone, fullquiet>=60/GPUzero andnewfreshadmission; fourthfailure ends supplement",
+    "Both async argv frozen; onlylast expiryplaceholder may be filled, no temporary inline/property transformations"
+  ],
+  "limits": [
+    "No runtime/GPU/Store/cache operation or test suite execution; compile is syntax-only not module import",
+    "No Git operation/source/HEAD changes or original frozen artifact edits",
+    "Supplement preparation is explicit reviewed data derivation, not unsupported originalCLI override or replacement of original40 statistical map",
+    "Raw/rootprivateclaims not read; rootclaim/resource check responsibility remains parent"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "status": "FROZEN_MANUAL_ADMISSION_DATA_NOT_NEW_EXECUTION_FRAMEWORK_NOT_EXECUTED",
+  "created_utc": "2026-11-07T06:30:36.528137+00:00",
+  "preparation_manifest": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-two-step-supplement-preparation-verification-20261107.json",
+    "sha256": "09a383fccd50da59ddcf15ec54be4e37e4c6ea7fa60504c80f107f0ad1d20a17"
+  },
+  "plan": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-two-step-user-supplement-plan-20261107.json",
+    "sha256": "0c1b672bc4e857c85eeba45dc00f2349cac4d6f790f5e33f14ec11b47c924a24"
+  },
+  "immutable_execution_commands": [
+    {
+      "step": 1,
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_cold-retry01-supplement-v1-20261107-command.json",
+      "sha256": "03702e1449091b1f7ebcd49b9f9743bdb64c1912028ed9a6ffc25b5dc57f384c",
+      "run_id": "kimi-four-v1-b04-safetensors_disk_cold-retry01",
+      "argv_canonical_json_sha256": "a5f909adb9f2c1bce5996392f282994cda765479b6e003fe2fc6299940096b3c"
+    },
+    {
+      "step": 2,
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_pool_hit-supplement-v1-20261107-execution-command.json",
+      "sha256": "dddcc66b7e1aec85c99da6faa3bc79833732faa34fa2ab4e28f2092571e64a7a",
+      "run_id": "kimi-four-v1-b04-store_pool_hit",
+      "argv_canonical_json_sha256": "d4e8d7f30fe33a998680eee943366ae33977491e74e72f12bf7b8c19c05d6ed1"
+    }
+  ],
+  "only_permitted_argument_fill": "After freshbookingverification, require argv[-1]==FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED thenreplaceonlythatitemwithfreshverifiedexpirystr. Allotherargs exact, no--wait/RemainAfterExit/body transformation; bothasynccommandsalreadyRemainAfterExit=no. Savefilledargv+itsSHA private0600beforeactualsystemdrun.",
+  "parent_required_claim_gate": {
+    "why": "Directchildrootdoesnotcreateattemptclaim; originalBLOCK_BODY did. Thismanualtwo-step handoffmustexplicitlypreserveO_EXCLclaimbeforeeachlaunch. Do notassumecommandargvcreatesclaim.",
+    "directory": "/home/boyjiang/kimi-new/evidence/formal-claims-root",
+    "validation": "Parentrootverifyabsoluteownedroot0700directory, targetunitnotfound/noactivePID, runoutputdirabsent, command/spec/plan/sourcepins exact. Claimmustnotexist; no deletionorreuse oncollision.",
+    "claims": [
+      {
+        "step": 1,
+        "path": "/home/boyjiang/kimi-new/evidence/formal-claims-root/kimi-four-v1-b04-safetensors_disk_cold-retry01.claim",
+        "create": "O_WRONLY|O_CREAT|O_EXCL mode0600; write/fsync parentpid/wall/monotonic/expiry/run/planSHA/specSHA/executioncommandSHA"
+      },
+      {
+        "step": 2,
+        "path": "/home/boyjiang/kimi-new/evidence/formal-claims-root/kimi-four-v1-b04-store_pool_hit.claim",
+        "create": "O_WRONLY|O_CREAT|O_EXCL mode0600; write/fsync parentpid/wall/monotonic/expiry/run/planSHA/specSHA/executioncommandSHA"
+      }
+    ],
+    "immutable_old": "Neverremoveorupdateoriginalb04blockclaim, oldfailedthirdclaim, oldblockfinal/ledger orfirsttwoPASS evidence."
+  },
+  "time_and_resources": [
+    "Beforestep1freshAPIreservationcoversall14520seconds, actual8GPUszero/noforeignapps, CPU/RAM/disk/root/guardresources/pins valid. Retainparentplan-startmonotonic.",
+    "Beforeeachsteprequirefreshfull7200windowandplan-start+14520 aggregatecapacityremaining; no timeoutshortening orautomaticbudgetextension. Failedclaim/resource/timegate meansdonotstart.",
+    "No secondstep whilefirstcontroller/guards/observer/scopes/CIDs stilllive, evenifreturncodealreadyfailed. Require fullownedcleanup includingquiet>=60/allunitsMainPID0/8GPU0/pinnedgone beforefreshadmittingstep2.",
+    "Userexceptionallowsstep2afterstep1FAILonlyundertheseconditions. Doesnotpermitanyb08..10failureoverride orautomaticfailedretry."
+  ],
+  "analysis_and_counters": {
+    "originalpaired_b04": false,
+    "supplement_retry_extra_count": 1,
+    "original_failed_and_blockfinal_unchanged": true
+  },
+  "no_runtime": "No commandlaunched, GPU/Store/cacheoperation, source/HEAD/Gitmutation bypreparation."
+}
