@@ -1,5 +1,6 @@
 """One V4 condition through the existing native service and evidence journal."""
 import asyncio
+from contextlib import nullcontext
 import base64
 import gzip
 import hashlib
@@ -71,6 +72,7 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, 
     require(set(declared_pools) == set(pools) and all(type(declared_pools[key]) is int
             and declared_pools[key] == value for key, value in pools.items()), 'unreviewed trial pool capacity')
     keep_alive = 0
+    page_lease = False
     if amendment_path is not None or amendment_sha is not None:
         require(amendment_path is not None and amendment_sha is not None, 'amendment path/SHA pair required')
         amendment = checked_json(amendment_path, amendment_sha)
@@ -78,6 +80,8 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, 
                 and type(amendment['keep_alive_seconds']) is int and amendment['keep_alive_seconds'] == 3600,
                 'unreviewed native keep_alive amendment')
         keep_alive = 3600
+        page_lease = amendment.get('sf_hot_page_cache_lease', False)
+        require(type(page_lease) is bool, 'invalid SF-hot page lease amendment')
     if attempt_id is not None:
         require(protocol.get('frozen') is True, 'formal protocol is not frozen')
         require(keep_alive == 3600 and amendment_path is not None and amendment.get('frozen') is True, 'formal continuation requires frozen warm-engine amendment')
@@ -85,6 +89,10 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, 
         require(warm['runtime_qualified'] and warm['single_engine_warm32_verified']
                 and warm['keep_alive_seconds'] == 3600 and warm['idle_probe_seconds'] >= 5
                 and not warm['formal_id_consumed'], 'warm-engine pilot prerequisite missing')
+        if page_lease:
+            lease = checked_json(ROOT / amendment['sf_hot_lease_pilot_review_path'], amendment['sf_hot_lease_pilot_review_sha256'])
+            require(lease['runtime_qualified'] and lease['sf_hot_page_cache_lease_verified']
+                    and not lease['formal_id_consumed'], 'SF-hot lease pilot prerequisite missing')
         require(protocol.get('cache_hot_read_cpus') == [0, 1, 120, 121]
                 and all(type(cpu) is int for cpu in protocol['cache_hot_read_cpus']), 'formal hot reader affinity is not frozen')
         require(run_id == attempt_id, 'formal run and attempt identities differ')
@@ -101,6 +109,7 @@ def trial_spec(protocol_path, protocol_sha, condition, run_id, attempt_id=None, 
                 'native_service_two_cycle_lifecycle_qualified'] is True, 'native lifecycle prerequisite missing')
     return dict(condition=condition, run_id=run_id, attempt_id=attempt_id,
                 keep_alive_seconds=keep_alive, amendment_sha256=amendment_sha,
+                sf_hot_page_cache_lease=page_lease,
                 formal_id_consumed=attempt_id is not None, pool_bytes=pools[condition],
                 attempt_timeout_seconds=protocol['attempt_timeout_seconds'],
                 protocol_sha256=protocol_sha, cache_inventory_sha256=protocol['cache_inventory_sha256'],
@@ -124,7 +133,7 @@ def cache_on_worker(spec, deadline, output=Path('/output')):
     target, mode = CONDITIONS[spec['condition']]
     if target == 'safetensors_inputs':
         run_cache(inventory['store_inputs'], 'store_inputs', 'cold', output / 'cache-reclaim', deadline, spec['run_id'])
-    if mode == 'hot':
+    if mode == 'hot' and not spec.get('sf_hot_page_cache_lease'):
         run_cache(inventory[target], target, 'cold', output / 'cache-target-reset', deadline, spec['run_id'])
     other = 'store_inputs' if target == 'safetensors_inputs' else 'safetensors_inputs'
     for kind, operation, directory in ((other, 'check', 'cache-other'), (target, mode, 'cache-target')):
@@ -375,13 +384,26 @@ def _drive_trial(base, preparation, journal=None):
     result = dict(condition=spec['condition'], formal_id_consumed=journal is not None,
                   responses=responses, delete_ack_ns=deleted, runtime_qualified=False)
     write_once(output / 'trial-http-complete.json', result)
-    write_once(output / 'trial-host-finished.json', dict(finished_ns=time.monotonic_ns()))
     return result
 
 
 def drive_trial(base, preparation, journal=None):
     try:
-        return _drive_trial(base, preparation, journal)
+        spec = preparation['trial']
+        lease = nullcontext()
+        if spec['condition'] == 'safetensors_disk_hot' and spec.get('sf_hot_page_cache_lease'):
+            from v4_cache_lease import worker_lease
+            output = base / 'output'
+            deadline = preparation['container_deadline_ns'] - 120_000_000_000
+            request = wait_json(output / 'trial-cache-request.json', deadline)
+            require(request['run_id'] == spec['run_id'] and request['condition'] == spec['condition'],
+                    'cache lease request differs')
+            worker = json.loads((base / 'READY.json').read_bytes())['roles']['worker']['container_id']
+            lease = worker_lease(worker, output, spec, deadline)
+        with lease:
+            result = _drive_trial(base, preparation, journal)
+        write_once(base / 'output/trial-host-finished.json', dict(finished_ns=time.monotonic_ns()))
+        return result
     except BaseException as error:
         try:
             check_abort(base / 'output')

@@ -68,6 +68,11 @@ class TrialContracts(unittest.TestCase):
             digest=hashlib.sha256(amendment.read_bytes()).hexdigest()
             spec=trial.trial_spec(path,sha,'store_pool_hit','v4n40_pilot_cpu',amendment_path=amendment,amendment_sha=digest)
             self.assertEqual(spec['keep_alive_seconds'],3600)
+            amendment.write_text(json.dumps(dict(draft,sf_hot_page_cache_lease=True)))
+            leased=trial.trial_spec(path,sha,'safetensors_disk_hot','v4n40_pilot_cpu',amendment_path=amendment,
+                amendment_sha=hashlib.sha256(amendment.read_bytes()).hexdigest())
+            self.assertTrue(leased['sf_hot_page_cache_lease'])
+            amendment.write_text(json.dumps(draft))
             config=dict(model='cpu',auto_scaling_config={'min_instances':0,'max_instances':1},backend_config={})
             kept=trial.target_registration(config,'store_pool_hit',3600)
             self.assertEqual(kept['auto_scaling_config'],dict(min_instances=0,max_instances=1,keep_alive=3600))

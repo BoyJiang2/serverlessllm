@@ -71,6 +71,15 @@ def review_trial(base, protocol_path=None, protocol_sha=None, journal_root=None,
         if event['name']=='grouped_expert_postprocess_host_end':groups[event['rank']].add(event['group_id'])
        assert all(x=={f'expert_{i:04d}' for i in range(61)} for x in groups.values())
     paired_end=read(o/'trial-workload32.raw.json')['received_ns']
+    leased=spec['condition']=='safetensors_disk_hot' and spec.get('sf_hot_page_cache_lease',False)
+    if leased:
+     locked=read(o/'trial-cache-lease-locked.json');released=read(o/'trial-cache-lease-released.json')
+     assert locked['state']=='locked' and released['state']=='released'
+     assert locked['run_id']==released['run_id']==spec['run_id'] and locked['identity']==released['identity']
+     assert locked['files']==len(inv[kind]) and locked['bytes']==sum(x['bytes'] for x in inv[kind].values())
+     assert locked['VmLck']==sum(x['pages']*x['page_size'] for x in t['files']) and released['VmLck']==0
+     assert locked['begin_ns']<=locked['locked_ns']<=t['preparation_begin_ns']<=record['startup_command_ns']
+     assert paired_end<=read(o/'trial-delete.raw.json')['received_ns']<=released['released_ns']<=read(o/'trial-host-finished.json')['finished_ns']
     paired_events=read_event_window(o/'events',spec['run_id'],record['startup_command_ns'],paired_end,boot_id=clock['boot_id'],time_namespace=clock['time_namespace'])
     paired=validate_single_engine_requests(paired_events,[spec['run_id']+'-business',spec['run_id']+'-workload32'])
     io=read(o/'trial-native-io.json');assert io['native_log_sha256']==sha(o/'trial-native-io.log')
@@ -78,6 +87,7 @@ def review_trial(base, protocol_path=None, protocol_sha=None, journal_root=None,
     assert n==m==io['native_disk_load_starts']==io['native_disk_load_finishes']==(496 if spec['condition']=='store_disk_cold' else 0)
     report=dict(source_head=read(b/'GO.json')['source_head'],base=str(b),condition=spec['condition'],runtime_qualified=True,formal_id_consumed=spec['formal_id_consumed'],checks=checks,ranks=8 if spec['condition'].startswith('store_') else None,expert_groups_per_rank=61 if spec['condition'].startswith('store_') else None,native_disk_loads=n,release_seconds=release,normal_daemon_exit=True,daemon_shutdown_seconds=shutdown,total_elapsed_seconds=candidate['total_elapsed_seconds'],preparation_seconds=(record['preparation_complete_ns']-record['preparation_begin_ns'])/1e9,command_to_correct_response_seconds=(record['correct_business_response_ns']-record['startup_command_ns'])/1e9,business_trigger_to_correct_response_seconds=(record['correct_business_response_ns']-record['business_trigger_ns'])/1e9,scope='Fixed selected service cohort; exact condition/gold/events/normal exit/release only; no all-host cleanup claim',input_sha256={str(x.relative_to(b)):sha(x) for x in b.rglob('*') if x.is_file() and x.name!='runtime-review.json'})
     report.update(single_engine_warm32_verified=paired['single_engine_warm32'],keep_alive_seconds=spec.get('keep_alive_seconds',0))
+    if leased:report['sf_hot_page_cache_lease_verified']=True
     if (o/'trial-warm-idle-probe.json').exists():
      probe=read(o/'trial-warm-idle-probe.json');report['idle_probe_seconds']=(probe['complete_ns']-probe['begin_ns'])/1e9
     if amendment_path is not None:
