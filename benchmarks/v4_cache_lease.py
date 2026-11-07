@@ -11,7 +11,7 @@ import time
 
 from sllm_store.event_trace import process_identity
 from sllm_store.v4_state import write_once
-from v4_cache_state import check_fd, mincore_visibility, before_deadline, prepare_file, run_cache
+from v4_cache_state import check_fd, mincore_visibility, before_deadline, run_cache
 from v4_evidence import require
 
 
@@ -59,6 +59,25 @@ def locked_files(files, deadline):
         require(not errors, 'cache lease release failed: ' + repr(errors))
 
 
+def split_store_counterpart(inventory):
+    """Split the Store counterpart into exclusives and the files shared with the SF set.
+
+    The five shared metadata files are cold before the lock and hot after it; they can
+    therefore only ever be asserted cold *before* the lease is taken.
+    """
+    shared = sorted(inventory['shared_metadata'])
+    store = inventory['store_inputs']
+    require(set(shared) <= set(store), 'shared metadata missing from the Store input set')
+    shared_set = set(shared)
+    require(len(shared) == len(shared_set) and shared_set == set(store) & set(inventory['safetensors_inputs']),
+            'shared metadata differs from the actual SF/Store intersection')
+    require(all(store[path] == inventory['safetensors_inputs'][path] for path in shared),
+            'shared metadata identity differs between inventories')
+    exclusive = {path: expected for path, expected in store.items() if path not in shared_set}
+    require(len(exclusive) == len(store) - len(shared), 'Store exclusive count differs')
+    return exclusive, shared
+
+
 def wait_line(process, deadline):
     data = bytearray()
     with selectors.DefaultSelector() as selector:
@@ -72,6 +91,16 @@ def wait_line(process, deadline):
                 require(len(data) <= 16384, 'oversized cache lease receipt')
     require(data.endswith(b'\n') and data.count(b'\n') == 1, 'unexpected cache lease output')
     return json.loads(data)
+
+
+def counterpart_scan(files, mode, output, deadline, run_id):
+    try:
+        return run_cache(files, 'store_inputs', mode, output, deadline, run_id)
+    finally:
+        # The root helper's write_once JSON is0600; the host evidence writer is UID2147.
+        for path in output.rglob('*'):
+            if path.is_file() and not path.is_symlink():
+                path.chmod(0o644)
 
 
 @contextmanager
@@ -113,13 +142,27 @@ def main():
     # unsatisfiable on any filesystem. Reclaim the Store counterpart first and VERIFY it
     # here, before any page is locked; the trial then only observes the Store side and
     # enforces full SF-hot residency. The two states are sequential, never simultaneous.
-    prelease = run_cache(inventory['store_inputs'], 'store_inputs', 'cold',
+    prelease = counterpart_scan(inventory['store_inputs'], 'cold',
                          Path('/output/cache-prelease-store-cold'),
                          preparation['container_deadline_ns'], spec['run_id'])
     require(prelease['cache_condition_passed'] is True,
             'Store counterpart is not cold before the SF lease')
+    exclusive, shared = split_store_counterpart(inventory)
     with locked_files(files, preparation['container_deadline_ns']) as receipt:
-        receipt.update(run_id=spec['run_id'], state='locked')
+        # Post-lock the five shared metadata files are pinned by this lease, so only the
+        # Store-exclusive 1508 can still be asserted cold. Both facts are recorded.
+        locked_cold = counterpart_scan(exclusive, 'check',
+                                Path('/output/cache-locked-store-exclusive-cold'),
+                                preparation['container_deadline_ns'], spec['run_id'])
+        require(all(row['resident_pages'] == 0 for row in locked_cold['files']),
+                'Store-exclusive inputs are not cold while the SF lease is held')
+        receipt.update(run_id=spec['run_id'], state='locked',
+                       store_exclusive_files=len(exclusive),
+                       store_exclusive_cold=True,
+                       store_shared_files=len(shared),
+                       store_shared_paths=shared,
+                       store_shared_state='hot_after_lock_by_construction',
+                       prelease_store_files=len(prelease['files']))
         print(json.dumps(receipt), flush=True)
         require(sys.stdin.buffer.read() == b'', 'cache lease release requires stdin EOF')
     print(json.dumps(dict(state='released', run_id=spec['run_id'], identity=receipt['identity'],

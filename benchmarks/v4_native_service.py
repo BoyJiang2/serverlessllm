@@ -32,7 +32,7 @@ def remaining(deadline, maximum):
 def registration(store, identity):
     return freeze_registration_config(dict(model='v4-native-service',backend='vllm',num_gpus=8,
         auto_scaling_config=dict(min_instances=0,max_instances=1),backend_config=dict(
-        pretrained_model_name_or_path='/data/brick3/models/DeepSeek-V4-Pro',
+        pretrained_model_name_or_path='/mnt/raid/models/DeepSeek-V4-Pro',
         revision=REVISION,tokenizer_revision=REVISION,tokenizer_mode='deepseek_v4',
         torch_dtype='bfloat16',kv_cache_dtype='fp8',seed=20261105,
         distributed_executor_backend='mp',attention_config=dict(use_fp4_indexer_cache=False),

@@ -94,5 +94,59 @@ class CacheLeaseContracts(unittest.TestCase):
             process.stdout.close()
 
 
+class StoreExclusiveColdUnderLease(unittest.TestCase):
+    def test_failed_counterpart_scan_leaves_partial_receipt_readable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);receipt=root/'failure.json';receipt.write_text('{}');receipt.chmod(0o600)
+            with mock.patch.object(lease,'run_cache',side_effect=RuntimeError('scan failed')):
+                with self.assertRaisesRegex(RuntimeError,'scan failed'):
+                    lease.counterpart_scan({},'cold',root,time.monotonic_ns()+1_000_000_000,'cpu')
+            self.assertEqual(receipt.stat().st_mode & 0o777,0o644)
+
+    def test_split_excludes_shared_and_exclusive_stays_cold_under_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            shared = root / 'shared-config'; shared.write_bytes(b'x' * 4096)
+            payload = root / 'store-payload'; payload.write_bytes(b'y' * 4096)
+            for path in (shared, payload):
+                with path.open('rb') as stream: os.fsync(stream.fileno())
+            sf = {str(shared): source_stat(shared)}
+            store = dict(sf, **{str(payload): source_stat(payload)})
+            inventory = dict(safetensors_inputs=sf, store_inputs=store,
+                             shared_metadata=[str(shared)])
+            exclusive, shared_paths = lease.split_store_counterpart(inventory)
+            self.assertEqual(shared_paths, [str(shared)])
+            self.assertEqual(list(exclusive), [str(payload)])
+            deadline = time.monotonic_ns() + 10_000_000_000
+            for name, expected in store.items(): prepare_file(Path(name), expected, 'cold', deadline)
+            with lease.locked_files(sf, deadline):
+                passed = run_cache(exclusive, 'store_inputs', 'check', root / 'exclusive', deadline, 'cpu-exclusive')
+                self.assertTrue(all(row['resident_pages'] == 0 for row in passed['files']))
+                with self.assertRaisesRegex(ValueError, 'declared cache condition failed'):
+                    run_cache(store, 'store_inputs', 'cold', root / 'all', deadline, 'cpu-all')
+
+    def test_shared_metadata_must_be_subset_of_store(self):
+        inventory = dict(store_inputs={'/a': {}}, shared_metadata=['/b'])
+        with self.assertRaisesRegex(ValueError, 'shared metadata missing'):
+            lease.split_store_counterpart(inventory)
+
+    def test_locked_receipt_names_shared_state_and_exclusive_count(self):
+        inventory = dict(store_inputs={'/a': {}, '/b': {}, '/c': {}},
+                         safetensors_inputs={'/b': {}}, shared_metadata=['/b'])
+        exclusive, shared = lease.split_store_counterpart(inventory)
+        self.assertEqual(sorted(exclusive), ['/a', '/c'])
+        self.assertEqual(shared, ['/b'])
+        self.assertEqual(len(exclusive), len(inventory['store_inputs']) - len(shared))
+
+    def test_shared_metadata_must_equal_actual_intersection_and_identity(self):
+        for declared in [[], ['/a'], ['/b', '/b']]:
+            inventory = dict(store_inputs={'/a': {}, '/b': {}}, safetensors_inputs={'/b': {}}, shared_metadata=declared)
+            with self.assertRaisesRegex(ValueError, 'actual SF/Store intersection'):
+                lease.split_store_counterpart(inventory)
+        with self.assertRaisesRegex(ValueError, 'identity differs'):
+            lease.split_store_counterpart(dict(store_inputs={'/b': {'bytes': 1}},
+                safetensors_inputs={'/b': {'bytes': 2}}, shared_metadata=['/b']))
+
+
 if __name__ == '__main__':
     unittest.main()

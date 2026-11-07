@@ -63,7 +63,7 @@ def _validate_v4_topology(config):
                "torch_dtype": "bfloat16", "enforce_eager": True,
                "enable_prefix_caching": False, "max_model_len": 2048,
                "max_num_seqs": 1, "max_num_batched_tokens": 2048,
-               "pretrained_model_name_or_path": "/data/brick3/models/DeepSeek-V4-Pro"}
+               "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro"}
     for name, expected in profile.items():
         value = backend.get(name)
         if (type(value) is not type(expected)

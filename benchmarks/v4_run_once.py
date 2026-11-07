@@ -20,7 +20,7 @@ from v4_native_reference import model_inventory
 from v4_native_release import collect, cgroup_telemetry
 
 IMAGE = 'sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d'
-MODEL = Path('/data/brick3/models/DeepSeek-V4-Pro')
+MODEL = Path('/mnt/raid/models/DeepSeek-V4-Pro')
 HEAD = sys.argv[2]  # The next caller must explicitly pin the reviewed source commit.
 base = Path(sys.argv[1]).resolve()
 assert base.parent == ROOT.parent / 'evidence' and not base.exists()

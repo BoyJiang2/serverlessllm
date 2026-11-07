@@ -77,6 +77,18 @@ def review_trial(base, protocol_path=None, protocol_sha=None, journal_root=None,
      assert locked['state']=='locked' and released['state']=='released'
      assert locked['run_id']==released['run_id']==spec['run_id'] and locked['identity']==released['identity']
      assert locked['files']==len(inv[kind]) and locked['bytes']==sum(x['bytes'] for x in inv[kind].values())
+     shared=set(inv['store_inputs']) & set(inv['safetensors_inputs'])
+     exclusive={name:value for name,value in inv['store_inputs'].items() if name not in shared}
+     pre,_,pv=cache_observation(o/'cache-prelease-store-cold',inv['store_inputs'])
+     post,_,qv=cache_observation(o/'cache-locked-store-exclusive-cold',exclusive);del pv,qv
+     assert pre['mode']=='cold' and post['mode']=='check' and all(x['resident_pages']==0 for x in post['files'])
+     assert pre['verification_complete_ns']<=locked['begin_ns']<=locked['locked_ns']<=post['preparation_begin_ns']
+     assert post['verification_complete_ns']<=t['preparation_begin_ns']
+     assert all(scan['identity']['run_id']==spec['run_id'] and all(scan['identity'][key]==value
+                for key,value in locked['identity'].items()) for scan in [pre,post])
+     assert locked['prelease_store_files']==len(inv['store_inputs']) and locked['store_exclusive_files']==len(exclusive)
+     assert locked['store_exclusive_cold'] is True and locked['store_shared_files']==len(shared)
+     assert set(locked['store_shared_paths'])==shared and locked['store_shared_state']=='hot_after_lock_by_construction'
      assert locked['VmLck']==sum(x['pages']*x['page_size'] for x in t['files']) and released['VmLck']==0
      assert locked['begin_ns']<=locked['locked_ns']<=t['preparation_begin_ns']<=record['startup_command_ns']
      assert paired_end<=read(o/'trial-delete.raw.json')['received_ns']<=released['released_ns']<=read(o/'trial-host-finished.json')['finished_ns']

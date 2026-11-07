@@ -12,7 +12,7 @@ from sllm_store.v4_state import CONFIG_SHA256, REVISION, write_once
 from v4_evidence import choice, require
 
 
-MODEL = "/data/brick3/models/DeepSeek-V4-Pro"
+MODEL = "/mnt/raid/models/DeepSeek-V4-Pro"
 REQUESTS = (
     ("business", "request.json", "707d5d8b6efbfe257ff310466a03d6e19df5dce1b6b205270eb6a3d7e9374876",
      "7acd634c883de63235e830f40432454566484c243e2431da81b45d26ea15f354"),

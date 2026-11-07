@@ -25,7 +25,7 @@ def config(root):
                 attention_config=dict(use_fp4_indexer_cache=False),
                 enforce_eager=True, enable_prefix_caching=False,
                 max_model_len=2048, max_num_seqs=1, max_num_batched_tokens=2048,
-                pretrained_model_name_or_path="/data/brick3/models/DeepSeek-V4-Pro",
+                pretrained_model_name_or_path="/mnt/raid/models/DeepSeek-V4-Pro",
                 model_loader_extra_config=dict(store_path=str(root), identity=identity()))
 
 
