@@ -39,14 +39,27 @@ def checked(path, sha):
 def validate_protocol(protocol):
     assert protocol["audited_events_source_commit"] == SOURCE
     assert tuple(protocol["conditions"]) == CONDITIONS
-    assert protocol["design"]["blocks"] == 10
+    unified=protocol.get("schema")=="kimi-unified-loading-remeasurement-v1"
     attempts = protocol["attempts"]
-    assert len(attempts) == 40 and len({a["attempt_id"] for a in attempts}) == 40
+    if unified:
+        loading=protocol["unified_loading"]
+        assert loading["cohort_id"]=="kimi-unified-loading-20261109"
+        assert loading["block_id"]==loading["cohort_id"]+"-b01"
+        assert loading["stop_on_failure"] is True and loading["append_only"] is True
+        assert protocol.get("execution_revision") is None
+        order=["safetensors_disk_hot","store_disk_cold","safetensors_disk_cold","store_pool_hit"]
+        assert protocol["design"]=={"blocks":1,"realized_condition_orders":[order]}
+        assert len(attempts)==4
+        for row,condition in zip(attempts,order):
+            assert row["block"]==1 and row["attempt_id"]==loading["block_id"]+"-"+condition
+    else:
+        assert protocol["design"]["blocks"] == 10
+        assert len(attempts) == 40 and len({a["attempt_id"] for a in attempts}) == 40
     for block, order in enumerate(protocol["design"]["realized_condition_orders"], 1):
         rows = [a for a in attempts if a["block"] == block]
         assert [a["condition"] for a in rows] == order and set(order) == set(CONDITIONS)
         assert [a["position"] for a in rows] == [1, 2, 3, 4]
-    assert [a["order"] for a in attempts] == list(range(1, 41))
+    assert [a["order"] for a in attempts] == list(range(1, 5 if unified else 41))
     requests = protocol["correctness"]["requests"]
     assert [r["case"] for r in requests] == ["arithmetic", "translation", "fixed32"]
     for row, maximum, eos in zip(requests, (128, 128, 32), (False, False, True)):
@@ -61,6 +74,8 @@ def validate_protocol(protocol):
 
 def execution_mapping(protocol):
     attempts=protocol['attempts']
+    if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
+        return {row['attempt_id']:row['attempt_id'] for row in attempts},{'1':protocol['unified_loading']['block_id']}
     runs={row['attempt_id']:row['attempt_id'] for row in attempts}
     blocks={str(number):'kimi-four-v1-b%02d'%number for number in range(1,11)}
     revision=protocol.get('execution_revision')
@@ -123,6 +138,59 @@ def validate_inventory(inventory, expected_roots=None):
             assert path.is_file() and path.resolve().is_relative_to(root)
             assert str(path.resolve()) == row['resolved']
             assert (v.st_dev,v.st_ino,v.st_size,v.st_mtime_ns,v.st_uid) == (row['dev'],row['ino'],row['bytes'],row['mtime_ns'],row['uid'])
+
+UNIFIED_LOADING_CODE = """
+def collect_unified_loading(records,owners,physical):
+ assert len(records)==len(owners)==8 and {r['tp_rank'] for r in records}==set(range(8)),'unified load requires exact8ranks'
+ ranks=[];domains=('boot_id','time_namespace','monotonic_clock_implementation')
+ for record,owner in zip(records,owners):
+  rank=record['tp_rank'];value=record['weight_load_host_span']
+  assert record['load_completed'] is True and record['load_error_type'] is None and record['synchronized'] is True,'rankload not normal'
+  assert value['schema']=='kimi-weight-load-host-endpoints-v1' and value['status']=='COMPLETE','rankload endpoint not COMPLETE'
+  assert value['run_id']==run and value['model_instance_id']==s['unified_loading']['model_instance_id'],'rankload group mismatch'
+  assert value['pid']==record['pid'] and type(value['pid']) is int and value['pid']>0 and type(value['tp_rank']) is int and value['tp_rank']==rank,'rankload producer mismatch'
+  assert value['model']==s['config']['backend_config']['pretrained_model_name_or_path'] and isinstance(value['loader_type'],str) and value['loader_type'],'rankload model mismatch'
+  assert value['begin_boundary']=='before_model_loader_load_model' and value['end_boundary']=='after_model_loader_load_model_return_before_optional_runner_setup','rankload boundary mismatch'
+  assert value['added_cuda_synchronization'] is False,'rankload synchronization policy changed'
+  clock=value['clock_identity']
+  assert not clock.get('errors') and all(isinstance(clock.get(k),str) and clock[k]==clock_identity[k] for k in domains),'rankload clock domain mismatch'
+  assert clock['container_hostname']==cids['worker'][:12] and clock['process_startticks']==owner['startticks'],'rankload owner clock mismatch'
+  assert owner['cgroup']=='0::/system.slice/docker-'+cids['worker']+'.scope','rankload owner cgroup mismatch'
+  assert str(owner['pid']) in [str(pid) for pid in physical[record['device_uuid']]['processes']],'rankload physical owner mismatch'
+  begin=value['begin_ns'];end=value['end_ns']
+  assert type(begin) is int and type(end) is int and 0<begin<=end,'rankload endpoint missing or reversed'
+  ranks.append(dict(value,device_uuid=record['device_uuid'],host_owner=owner,host_duration_ns=end-begin,host_duration_s=(end-begin)/1e9))
+ assert len({v['loader_type'] for v in ranks})==1,'rankload loader mismatch'
+ begin=min(v['begin_ns'] for v in ranks);end=max(v['end_ns'] for v in ranks);maximum=max(v['end_ns']-v['begin_ns'] for v in ranks)
+ save('unified-loading-host-span.json',{'status':'COMPLETE8_RANK_HOST_LOAD_CALL_SPAN','run_id':run,'model_instance_id':s['unified_loading']['model_instance_id'],'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'begin_ns':begin,'end_ns':end,'span_ns':end-begin,'weight_load_host_span_ns':end-begin,'weight_load_host_span_s':(end-begin)/1e9,'max_rank_weight_load_host_duration_ns':maximum,'max_rank_weight_load_host_duration_s':maximum/1e9,'ranks':ranks,'scope':'Host load_model call envelope; no added CUDA synchronization, not CUDA completion, pureIO orsum/max perrank durations.'})
+"""
+
+ENDPOINT_PATCH_SHA = "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f"
+ENDPOINT_OVERLAY_SHA = "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7"
+ENDPOINT_MANIFEST_SHA = "8a433dd748cec135954125569c4a8107ea18d7c175dffc1da9efda664b2b803a"
+UNIFIED_STATISTICS = {"scope":"single_block_descriptive_no_inference","success_rate_denominator":"launch_requested","stopping":"any_failure_stop_no_retry"}
+
+
+def validate_unified_overlay(protocol):
+    loading=protocol["unified_loading"]
+    root=base.ROOT/"sllm_store/build/kimi-vllm0191-load-endpoints-v1"
+    assert loading["canonical_patch_sha256"]==ENDPOINT_PATCH_SHA
+    assert loading["overlay"]=={"path":str(root/"v1/worker/gpu_model_runner.py"),"sha256":ENDPOINT_OVERLAY_SHA}
+    assert loading["overlay_manifest"]=={"path":str(root/"build-manifest.json"),"sha256":ENDPOINT_MANIFEST_SHA}
+    manifest=checked(root/"build-manifest.json",ENDPOINT_MANIFEST_SHA)
+    assert manifest["schema"]=="kimi-load-endpoints-overlay-v1" and manifest["endpoint_schema"]=="kimi-weight-load-host-endpoints-v1"
+    assert manifest["canonical_baseline_sha256"]==DIAGNOSTIC_PATCH_SHA
+    assert manifest["output_overlay"]["path"]==loading["overlay"]["path"] and manifest["output_overlay"]["sha256"]==ENDPOINT_OVERLAY_SHA
+    assert manifest["canonical_patch"]["path"]==str(base.ROOT/"sllm_store/vllm_patch/sllm_load.patch") and manifest["canonical_patch"]["sha256"]==ENDPOINT_PATCH_SHA
+    assert manifest["clock_identity_helper"]["path"]==str(base.ROOT/"sllm/logger.py")
+    assert manifest["old_overlay"]["sha256"]=="f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb"
+    assert all(manifest["checks"][key] is True for key in ("f7_inverse_text_bytes_exact","canonical_inverse_full_patch_sha_exact","canonical_and_overlay_endpoint_AST_equal","new_overlay_has_no_value_fingerprint_helper_or_flag"))
+    for key in ("old_overlay","canonical_patch","clock_identity_helper","output_overlay","endpoint_only_patch","tests"):
+        row=manifest[key];path=pathlib.Path(row["path"])
+        assert path.is_relative_to(base.ROOT) and path.is_file() and not path.is_symlink()
+        assert hashlib.sha256(path.read_bytes()).hexdigest()==row["sha256"],("endpoint pin drift",key)
+    return manifest
+
 
 def replace_function(body, name, replacement):
     node = next(n for n in ast.parse(body).body if isinstance(n, ast.FunctionDef) and n.name == name)
@@ -474,11 +542,13 @@ def milestone_assert_messages(body):
 
 def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_id=None):
     validate_protocol(protocol)
+    unified=protocol.get("schema")=="kimi-unified-loading-remeasurement-v1"
+    endpoint_manifest=validate_unified_overlay(protocol) if unified else None
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
     if diagnostic_run_id is None:
-        assert re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[234])?", attempt_id)
+        assert (attempt_id in execution_mapping(protocol)[0].values()) if unified else re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[234])?", attempt_id)
     else:
         assert diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
         attempt_id=diagnostic_run_id
@@ -506,8 +576,9 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
                 protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
-    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';assert base.digest(patch)==DIAGNOSTIC_PATCH_SHA
-    spec['code_pins'][str(patch)]=DIAGNOSTIC_PATCH_SHA
+    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';patch_sha=ENDPOINT_PATCH_SHA if unified else DIAGNOSTIC_PATCH_SHA
+    assert (hashlib.sha256(patch.read_bytes()).hexdigest() if unified else base.digest(patch))==patch_sha
+    spec['code_pins'][str(patch)]=patch_sha
     guard=base.ROOT/'sllm_store/tests/guard_cuda_micro.py';assert spec['guard']==str(guard) and base.digest(guard)==FORMAL_GUARD_SHA
     spec['guard_sha256']=spec['code_pins'][str(guard)]=FORMAL_GUARD_SHA
     spec['canonical_patch_provenance']='Current committed patch source6fc; active oldf7 runtime overlay remains from original9d build; no fingerprint flag or new866 overlay implied.'
@@ -625,6 +696,30 @@ if sys.argv[1]=='pool':
         "release_quiet60_complete":"After both guards, observer and owned unit exits plus final physical GPUzero/gone checks; subsequent source rehash/network evidence work separate.",
         "budget":"Event writes consume existing7200 condition/28920 block slack. No deadline extension or shortened quiet period.",
     }
+    if unified:
+        loading=copy.deepcopy(protocol["unified_loading"]);loading["model_instance_id"]=attempt_id+"-life1"
+        spec["unified_loading"]=loading
+        old_runner=next(o for o in spec["overlays"] if o["target"].endswith("/v1/worker/gpu_model_runner.py"))
+        old_path=old_runner["source"];new_path=endpoint_manifest["output_overlay"]["path"]
+        old_runner.update(source=new_path,sha256=ENDPOINT_OVERLAY_SHA)
+        spec["code_pins"].pop(old_path,None)
+        for role,request in spec["requests"].items():
+            for mount in request["mounts"]:
+                if mount["Target"]==old_runner["target"]:
+                    assert mount["Source"]==old_path and mount["ReadOnly"] is True
+                    mount["Source"]=new_path
+            request["env"].update(SLLM_CAPTURE_LOAD_ENDPOINTS="1",SLLM_LOAD_SPAN_RUN_ID=attempt_id,SLLM_LOAD_SPAN_INSTANCE_ID=loading["model_instance_id"])
+            assert request["env"].get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") is None
+        for key in ("canonical_patch","clock_identity_helper","output_overlay","endpoint_only_patch"):
+            row=endpoint_manifest[key];spec["code_pins"][row["path"]]=row["sha256"]
+        spec["code_pins"][loading["overlay_manifest"]["path"]]=ENDPOINT_MANIFEST_SHA
+        spec["canonical_patch_provenance"]="New supplemental endpoint-only overlay from frozen f7; historical6fc/866 lineage unchanged and not admitted by this branch."
+        anchor="mark_sample_gate('ownership',True,'all8 rank owners physically authenticated')"
+        assert body.count(anchor)==1
+        body=body.replace(anchor,"collect_unified_loading(records,rank_owners,physical);"+anchor,1)
+        anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
+        assert body.count(anchor)==1
+        body=body.replace(anchor,UNIFIED_LOADING_CODE+anchor,1)
     body=milestone_assert_messages(body)
     compile(body,"<formal-candidate>","exec")
     command["argv"][index]=body
@@ -708,7 +803,7 @@ def render_block(protocol, block_number, entries, source_commit):
         assert pathlib.Path(entry['command_path']).is_absolute()
         assert re.fullmatch('[0-9a-f]{64}',entry['command_sha256'])
     compile(BLOCK_BODY,'<four-condition-block>','exec')
-    return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':execution_mapping(protocol)[1][str(block_number)],'logical_block_id':'kimi-four-v1-b%02d'%block_number,'execution_revision':copy.deepcopy(protocol.get('execution_revision')),
+    return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':execution_mapping(protocol)[1][str(block_number)],'logical_block_id':execution_mapping(protocol)[1][str(block_number)] if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1' else 'kimi-four-v1-b%02d'%block_number,'execution_revision':copy.deepcopy(protocol.get('execution_revision')),
             'source_commit':source_commit,'success_rate_denominator':'launch_requested','attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
             'protocol_sha256':PROTOCOL_SHA,'runs_root':protocol['resource_budget'].get('runs_root','/home/boyjiang/kimi-new/evidence/runs'),
             'condition_max_seconds':7200,'parent_overhead_seconds':120,'full_max_seconds':28920,
@@ -763,11 +858,15 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['events']['primary_start_event']=='same_http_client_registration_command_ns'
     # Keep the preregistered orders, own gold and statistics intact.
     original=checked(PROTOCOL,PROTOCOL_SHA)
-    for key in ('conditions','design','attempts'):
+    unified=protocol.get('schema')=='kimi-unified-loading-remeasurement-v1'
+    for key in (('conditions',) if unified else ('conditions','design','attempts')):
         assert protocol[key]==original[key],('preregistered contract changed',key)
+    if unified:
+        assert protocol['statistics']==UNIFIED_STATISTICS
+        validate_unified_overlay(protocol)
     statistics=copy.deepcopy(protocol['statistics'])
     assert statistics.pop('success_rate_denominator',None)=='launch_requested','launch-requested success-rate denominator must be preregistered'
-    assert statistics==original['statistics'],'other preregistered statistics changed'
+    if not unified:assert statistics==original['statistics'],'other preregistered statistics changed'
     correctness=copy.deepcopy(protocol['correctness'])
     observability=correctness['observability']
     assert isinstance(observability,str) and all(term in observability for term in ('logprobs=1','return_token_ids','trace')),'explicit observability delta disclosure required'
@@ -1012,7 +1111,11 @@ def main():
         declared.add('sllm_store/tests/gpu512_once_controller.py')
         declared.add('sllm_store/vllm_patch/sllm_load.patch')
         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
+        if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
+            declared.add('sllm_store/tests/python/test_vllm_loader_interface.py')
         final_commit=committed_source(args.source_commit,declared)
+    if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
+        assert not args.diagnostic and not args.sfhot_repeatability,'new cohort is separate from historical diagnostics'
     if args.diagnostic or args.sfhot_repeatability:
         if not args.sfhot_repeatability:assert args.diagnostic_overlay and args.diagnostic_overlay_sha,'frozen diagnostic overlay path and SHA required'
         files=prepare_diagnostic(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha,args.diagnostic_overlay,args.diagnostic_overlay_sha,repeatability=args.sfhot_repeatability)

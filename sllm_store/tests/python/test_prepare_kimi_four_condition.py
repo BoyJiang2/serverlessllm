@@ -12,6 +12,25 @@ sys.path.insert(0, str(TESTS))
 import prepare_kimi_four_condition as p
 
 
+# Historical generator tests use the frozen6fc digest fixture because the canonical
+# file now has an authorized endpoint delta. This is NOT actual old-deployment
+# admission. New unified-loading validation hashes actual bytes without base.digest.
+_HISTORICAL_DIGEST=p.base.digest
+_HISTORICAL_PATCH=p.base.ROOT/'sllm_store/vllm_patch/sllm_load.patch'
+_HISTORICAL_PATCH_MOCK=None
+
+def setUpModule():
+    global _HISTORICAL_PATCH_MOCK
+    from unittest import mock
+    def digest(path):
+        return p.DIAGNOSTIC_PATCH_SHA if pathlib.Path(path)==_HISTORICAL_PATCH else _HISTORICAL_DIGEST(path)
+    _HISTORICAL_PATCH_MOCK=mock.patch.object(p.base,'digest',side_effect=digest)
+    _HISTORICAL_PATCH_MOCK.start()
+
+def tearDownModule():
+    _HISTORICAL_PATCH_MOCK.stop()
+
+
 class PreparationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -1328,6 +1347,183 @@ class CacheConstructionFailureEvidenceTest(unittest.TestCase):
             self.assertEqual(receipt['traceback_frames'][-1],{'filename':'<frozen-files-fixture>','lineno':2,'name':'frozen_files'})
             self.assertTrue(all((root/name/'ABORT').exists() for name in ('guard-head','guard-worker','observer')))
 
+
+
+class UnifiedLoadingSupplementTest(unittest.TestCase):
+    def protocol(self):
+        protocol=copy.deepcopy(p.checked(p.PROTOCOL,p.PROTOCOL_SHA))
+        order=['safetensors_disk_hot','store_disk_cold','safetensors_disk_cold','store_pool_hit']
+        protocol.update(schema='kimi-unified-loading-remeasurement-v1',execution_revision=None)
+        protocol['design']={'blocks':1,'realized_condition_orders':[order]}
+        protocol['attempts']=[dict(order=i,block=1,position=i,condition=c,attempt_id='kimi-unified-loading-20261109-b01-'+c) for i,c in enumerate(order,1)]
+        protocol['unified_loading']={'cohort_id':'kimi-unified-loading-20261109','block_id':'kimi-unified-loading-20261109-b01','stop_on_failure':True,'append_only':True}
+        root=p.base.ROOT/'sllm_store/build/kimi-vllm0191-load-endpoints-v1'
+        protocol['unified_loading'].update(canonical_patch_sha256=p.ENDPOINT_PATCH_SHA,
+            overlay={'path':str(root/'v1/worker/gpu_model_runner.py'),'sha256':p.ENDPOINT_OVERLAY_SHA},
+            overlay_manifest={'path':str(root/'build-manifest.json'),'sha256':p.ENDPOINT_MANIFEST_SHA})
+        protocol['statistics']=copy.deepcopy(p.UNIFIED_STATISTICS)
+        return protocol
+
+    def test_actual_render_keeps_four_new_ids_and_active_endpoint_pins(self):
+        protocol=self.protocol();spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        entries=[]
+        for attempt in protocol['attempts']:
+            out,cmd=p.render(protocol,spec,command,attempt['attempt_id'],spec['native_source_pins'])
+            self.assertEqual(out['run_id'],attempt['attempt_id'])
+            self.assertEqual(out['budgets']['sum'],6480);self.assertEqual(out['budgets']['full'],7200)
+            group=out['run_id']+'-life1'
+            for request in out['requests'].values():
+                self.assertEqual(request['env']['SLLM_LOAD_SPAN_RUN_ID'],out['run_id'])
+                self.assertEqual(request['env']['SLLM_LOAD_SPAN_INSTANCE_ID'],group)
+                active=[r for r in request['mounts'] if r['Target'].endswith('/v1/worker/gpu_model_runner.py')]
+                self.assertEqual(len(active),1);self.assertEqual(active[0]['Source'],protocol['unified_loading']['overlay']['path'])
+            self.assertEqual(out['code_pins'][str(p.base.ROOT/'sllm_store/vllm_patch/sllm_load.patch')],p.ENDPOINT_PATCH_SHA)
+            body=cmd['argv'][cmd['argv'].index('-c')+1];compile(body,'<unified-actual-root>','exec')
+            self.assertEqual(body.count('collect_unified_loading(records,rank_owners,physical);'),1)
+            self.assertLess(body.index('collect_unified_loading(records,rank_owners,physical);'),body.index("mark_sample_gate('ownership',True"))
+            self.assertIn("store_stop_end=time.monotonic()+60",body)
+            entries.append(dict(run_id=out['run_id'],logical_attempt_id=attempt['attempt_id'],command_path='/tmp/'+out['run_id']+'.json',command_sha256='a'*64))
+        bundle=p.render_block(protocol,1,entries,p.SOURCE)
+        self.assertEqual(bundle['block_id'],protocol['unified_loading']['block_id'])
+        self.assertEqual(bundle['logical_block_id'],bundle['block_id'])
+        self.assertEqual(bundle['full_max_seconds'],28920)
+        self.assertEqual(len(bundle['planned_attempts']),4)
+
+    def test_new_pins_are_actual_bytes_and_legacy_admission_remains_closed(self):
+        protocol=self.protocol()
+        self.assertEqual(p.validate_unified_overlay(protocol)['output_overlay']['sha256'],p.ENDPOINT_OVERLAY_SHA)
+        for key in ('canonical_patch_sha256','overlay','overlay_manifest'):
+            bad=copy.deepcopy(protocol)
+            if key=='canonical_patch_sha256':bad['unified_loading'][key]='0'*64
+            else:bad['unified_loading'][key]['sha256']='0'*64
+            with self.subTest(key=key),self.assertRaises(AssertionError):p.validate_unified_overlay(bad)
+        # Remove the historical digest fixture: real current canonical bytes cannot
+        # be blessed as an executable old6fc deployment by the old render path.
+        with mock.patch.object(p.base,'digest',side_effect=_HISTORICAL_DIGEST):
+            old=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);cmd=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            with self.assertRaises(AssertionError):p.render(old,spec,cmd,old['attempts'][0]['attempt_id'],spec['native_source_pins'])
+
+    def test_actual_main_new_four_child_bundle_and_candidate_closed(self):
+        for frozen in (False,True):
+            with self.subTest(frozen=frozen),tempfile.TemporaryDirectory() as directory:
+                root=pathlib.Path(directory);ep=root/'prepared';ep.mkdir()
+                sf=root/'checkpoint';archive=root/'archive';store=archive/'vllm/kimi-k2.6-sf-reference';runs=root/'runs'
+                for target in (sf,store,runs):target.mkdir(parents=True)
+                protocol=self.protocol()
+                protocol.update(status='FROZEN_UNIFIED_LOADING_SUPPLEMENT',final_deploy_commit=p.SOURCE)
+                protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
+                protocol['resource_budget'].update(per_condition_max_seconds=7200,per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=str(runs))
+                protocol['correctness']['observability']='logprobs=1; return_token_ids omitted; trace supplies own actualIDs'
+                for request in protocol['correctness']['requests']:request['logprobs']=1
+                inventory={'roots':{}}
+                for name,target in (('safetensors',sf),('store',store)):
+                    path=target/'tiny-weight';path.write_bytes(b'tiny');st=path.stat()
+                    inventory['roots'][name]={'root':str(target),'files':[dict(path=str(path),resolved=str(path),relative=path.name,dev=st.st_dev,ino=st.st_ino,bytes=st.st_size,mtime_ns=st.st_mtime_ns,uid=st.st_uid,payload=True)]}
+                ip=root/'inventory.json';ip.write_text(json.dumps(inventory))
+                protocol['assets'].update(route='local_nvme',safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=p.hashlib.sha256(ip.read_bytes()).hexdigest())
+                pp=root/'protocol.json';pp.write_text(json.dumps(protocol));psha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
+                argv=['prepare','--protocol',str(pp),'--protocol-sha',psha,'--block','1']
+                if frozen:argv+=['--source-commit',p.SOURCE]
+                with mock.patch.object(p,'SF_HOST',str(sf)),mock.patch.object(p,'STORE_ARCHIVE',str(archive)),mock.patch.object(p,'RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE) as gate,mock.patch.object(sys,'argv',argv),mock.patch('builtins.print'):
+                    p.main()
+                self.assertEqual(gate.call_count,int(frozen));self.assertEqual(len(list(ep.iterdir())),10)
+                bundle=json.loads(next(ep.glob('*-bundle.json')).read_text())
+                self.assertEqual(bundle['block_id'],'kimi-unified-loading-20261109-b01')
+                self.assertEqual(len(bundle['planned_attempts']),4);self.assertEqual(bundle['full_max_seconds'],28920)
+                self.assertEqual(bundle['status'],'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' if frozen else 'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE')
+                for entry in bundle['attempts']:
+                    command=json.loads(pathlib.Path(entry['command_path']).read_text())
+                    spec=json.loads(pathlib.Path(command['argv'][-3]).read_text())
+                    self.assertEqual(spec['protocol_sha256'],psha);self.assertEqual(spec['source_commit'],p.SOURCE if frozen else None)
+                    self.assertTrue(spec['run_id'].startswith('kimi-unified-loading-20261109-b01-'))
+                    self.assertEqual(spec['unified_loading']['model_instance_id'],spec['run_id']+'-life1')
+                    self.assertIn(p.ENDPOINT_MANIFEST_SHA,spec['code_pins'].values())
+                launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
+                self.assertIn('--property=RuntimeMaxSec=28917',launch['argv'])
+                self.assertEqual(launch['argv'][-1],'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED')
+                self.assertEqual(list(runs.iterdir()),[])
+
+    def test_actual_new_block_failure_retains_new_later_ids_not_started(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ids=[r['attempt_id'] for r in self.protocol()['attempts']]
+            harness=ActualConsumerTest()
+            execute,called,claims=harness.block_fixture(pathlib.Path(directory),fail_at=1,run_ids=ids,block_id='kimi-unified-loading-20261109-b01')
+            with self.assertRaises(AssertionError):execute()
+            final=json.loads((claims/'kimi-unified-loading-20261109-b01-final.json').read_text())
+            self.assertEqual([r['run_id'] for r in final['attempts']],ids)
+            self.assertEqual([r['launch_requested'] for r in final['attempts']],[True,True,False,False])
+            self.assertEqual([r['condition_terminal'] for r in final['attempts'][2:]],['NOT_STARTED','NOT_STARTED'])
+
+    def fixture(self):
+        run='kimi-unified-loading-20261109-b01-store_disk_cold'
+        records=[];owners=[];physical={}
+        domain={'boot_id':'boot','time_namespace':'time:[1]','monotonic_clock_implementation':'clock_gettime(CLOCK_MONOTONIC)'}
+        for rank in range(8):
+            pid=100+rank;uuid='GPU-'+str(rank);owner={'pid':1000+rank,'startticks':500+rank,'cgroup':'0::/system.slice/docker-worker-cid.scope'}
+            clock={**domain,'container_hostname':'worker-cid','process_startticks':owner['startticks']}
+            span={'schema':'kimi-weight-load-host-endpoints-v1','status':'COMPLETE','begin_ns':1000+rank*10,'end_ns':1200+rank*10,'run_id':run,'model_instance_id':run+'-life1','clock_identity':clock,'pid':pid,'tp_rank':rank,'model':'/store/model','loader_type':'SllmModelLoader','begin_boundary':'before_model_loader_load_model','end_boundary':'after_model_loader_load_model_return_before_optional_runner_setup','added_cuda_synchronization':False}
+            records.append({'tp_rank':rank,'pid':pid,'device_uuid':uuid,'load_completed':True,'load_error_type':None,'synchronized':True,'weight_load_host_span':span})
+            owners.append(owner);physical[uuid]={'processes':[str(owner['pid'])]}
+        saved={}
+        namespace={'run':run,'s':{'config':{'backend_config':{'pretrained_model_name_or_path':'/store/model'}},'unified_loading':{'model_instance_id':run+'-life1'},'source_commit':'a'*40,'protocol_sha256':'b'*64},'clock_identity':domain,'cids':{'worker':'worker-cid'},'save':lambda name,value:saved.update({name:value})}
+        protocol=self.protocol();spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        _,command=p.render(protocol,spec,command,protocol['attempts'][1]['attempt_id'],spec['native_source_pins'])
+        body=command['argv'][command['argv'].index('-c')+1]
+        node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='collect_unified_loading')
+        exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-generated-rank-endpoint-consumer>','exec'),namespace)
+        return namespace['collect_unified_loading'],records,owners,physical,saved
+
+    def test_single_block_new_ids_preserve_old_contract(self):
+        protocol=self.protocol()
+        p.validate_protocol(protocol)
+        runs,blocks=p.execution_mapping(protocol)
+        self.assertEqual(len(runs),4);self.assertEqual(blocks,{'1':'kimi-unified-loading-20261109-b01'})
+        self.assertTrue(all(run.startswith('kimi-unified-loading-20261109-') for run in runs.values()))
+        old=p.checked(p.PROTOCOL,p.PROTOCOL_SHA);old['design']['blocks']=1
+        with self.assertRaises(AssertionError):p.validate_protocol(old)
+        for mutate in ('old_id','two_blocks','duplicate','no_stop'):
+            bad=copy.deepcopy(protocol)
+            if mutate=='old_id':bad['attempts'][0]['attempt_id']='kimi-four-v1-b01-safetensors_disk_hot'
+            elif mutate=='two_blocks':bad['design']['blocks']=2
+            elif mutate=='duplicate':bad['attempts'][1]['attempt_id']=bad['attempts'][0]['attempt_id']
+            else:bad['unified_loading']['stop_on_failure']=False
+            with self.subTest(mutate=mutate),self.assertRaises(AssertionError):p.validate_protocol(bad)
+
+    def test_actual_endpoint_consumer_span_is_cross_rank_envelope(self):
+        consume,records,owners,physical,saved=self.fixture()
+        consume(records,owners,physical)
+        row=saved['unified-loading-host-span.json']
+        self.assertEqual(row['begin_ns'],1000);self.assertEqual(row['end_ns'],1270)
+        self.assertEqual(row['span_ns'],270)
+        self.assertEqual(row['weight_load_host_span_s'],270/1e9)
+        self.assertEqual(row['max_rank_weight_load_host_duration_ns'],200)
+        self.assertEqual(row['max_rank_weight_load_host_duration_s'],200/1e9)
+        self.assertNotEqual(row['span_ns'],max(r['weight_load_host_span']['end_ns']-r['weight_load_host_span']['begin_ns'] for r in records))
+        self.assertEqual(len(row['ranks']),8)
+
+    def test_actual_endpoint_consumer_rejects_missing_identity_and_abnormal_return(self):
+        for failure in ('missingrank','duplicate','missingfield','clock','instance','run','pid','rank','startticks','hostname','model','failed','endnull','reversed','syncadded','owner','physical'):
+            consume,records,owners,physical,saved=self.fixture()
+            span=records[0]['weight_load_host_span']
+            if failure=='missingrank':records.pop()
+            elif failure=='duplicate':records[0]['tp_rank']=1
+            elif failure=='missingfield':records[0].pop('weight_load_host_span')
+            elif failure=='clock':span['clock_identity']['boot_id']='different'
+            elif failure=='instance':span['model_instance_id']='other'
+            elif failure=='run':span['run_id']='other'
+            elif failure=='pid':span['pid']=999
+            elif failure=='rank':span['tp_rank']=7
+            elif failure=='startticks':span['clock_identity']['process_startticks']=999
+            elif failure=='hostname':span['clock_identity']['container_hostname']='other'
+            elif failure=='model':span['model']='other'
+            elif failure=='failed':records[0]['load_completed']=False;span['status']='FAILED'
+            elif failure=='endnull':span['end_ns']=None
+            elif failure=='reversed':span['end_ns']=span['begin_ns']-1
+            elif failure=='syncadded':span['added_cuda_synchronization']=True
+            elif failure=='owner':owners[0]['cgroup']='other.scope'
+            elif failure=='physical':physical[records[0]['device_uuid']]['processes']=[]
+            with self.subTest(failure=failure),self.assertRaises((AssertionError,KeyError)):consume(records,owners,physical)
+            self.assertNotIn('unified-loading-host-span.json',saved)
 
 if __name__=='__main__':
     unittest.main()
