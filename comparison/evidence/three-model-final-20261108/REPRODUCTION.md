@@ -77,3 +77,7 @@ for condition in sorted({r["condition"] for r in rows}):
     assert len(selected)==6
     print(condition, [statistics.fmean(float(r[k]) for r in selected) for k in ("phase_weight_ingestion_span_s","phase_quantization_postprocess_span_s","phase_weights_pipeline_including_allocation_span_s")])
 ```
+
+## 图4与图5补图
+
+reproduce.py已直接更新：图4的GLM按原主集精确6个ID读取historical-supplement.json中的helper生命周期均值；图5从event-intervals.csv按同一ID集合计算八rank跨度。不改称同口径controller或f7。其余模型数据和五组图未改，PNG/SVG/PDF同步更新。中文标签优先使用现有Microsoft YaHei/Noto Sans CJK SC/SimHei字体，无新环境。图值、精确ID、源码SHA及仅执行绘图段的范围见derived/glm-fig4-fig5-values.json；没有声称重跑完整原统计CLI。

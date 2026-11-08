@@ -81,13 +81,13 @@ Kimi 38、GLM C23 26、V4 38 个合格观测进入各自 ECDF；原失败仍留�
 
 SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 文件页；9 次 acquisition 为 215.01–784.34 秒，中位数 444.53 秒，已包含在 Prep。这是实验驻留控制，不是 Store 的 CUDA pinned pool。锁前已证 Store 1513 输入全冷，不代表 SF 的 64 权重在锁前也从统一全冷起点开始；初始 SF 驻留及前序影响未记录，不推断其准备时间变化的原因。
 
-## 图 4：完整控制器观测范围
+## 图 4：生命周期观测范围（端点不同）
 
 ![控制器全程](derived/fig4_controller.png)
 
-Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐。GLM原选定小文件没有同定义完整controller数值；本次补回的是不同边界的helper区间，图4保留原缺测，新增下表而不强行回填。原报告 Kimi 转换 controller 678.128942504 秒包含退出和释放；V4 原转换尝试因 1080 秒上限失败，后续独立 CPU 完整校验 197.160720331 秒通过。两者都不是统一定义的纯转换 I/O，V4 原失败没有被追认为成功。GLM本次补回历史rawexport容器启动至退出505.467441929秒，派发至八rank最后预热结束403.180093388秒。两者重叠，包含加载、导出、后处理、预热和退出；不是纯save或统一转换I/O，不能相加。容器身份及八rank事件SHA均经核验；纯保存分量仍缺测，不设为0。环境构建、历史失败、迁移人工时间不混成在线延迟。
+Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐。GLM原选定小文件没有同定义完整controller数值；本次补回的是不同边界的helper区间，图4现以独立标签绘制该helper区间，不能改称同定义controller；对应数值见下表。原报告 Kimi 转换 controller 678.128942504 秒包含退出和释放；V4 原转换尝试因 1080 秒上限失败，后续独立 CPU 完整校验 197.160720331 秒通过。两者都不是统一定义的纯转换 I/O，V4 原失败没有被追认为成功。GLM本次补回历史rawexport容器启动至退出505.467441929秒，派发至八rank最后预热结束403.180093388秒。两者重叠，包含加载、导出、后处理、预热和退出；不是纯save或统一转换I/O，不能相加。容器身份及八rank事件SHA均经核验；纯保存分量仍缺测，不设为0。环境构建、历史失败、迁移人工时间不混成在线延迟。
 
-### GLM：已恢复的helper生命周期区间（非图4同定义controller）
+### GLM：已恢复的helper生命周期区间（不是controller总时长）
 
 | 条件 | C23描述n | 准备开始→记录完成均值/秒 | 完整B5–B10 n=6同区间/秒 |
 |---|---:|---:|---:|
@@ -103,13 +103,13 @@ Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐�
 
 ![加载观测](derived/fig5_loading.png)
 
-Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM 在本图不具备同定义 f7 包络，留缺测，不代表其无 phase 数据。
+Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM没有同定义f7包络；图5现单列已核验的八rank阶段跨度，明确标注n=6，不与Kimi f7视为同一指标。
 
 V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
 
 ### GLM既有八rank phase补充（不是f7包络）
 
-下表使用C23完整B5–B10，各条件n=6；均为八rank最早begin至最晚end跨度的算术均值，单位秒。不相加，不作为纯I/O或独立因果贡献；原图5缺的是同定义f7，仍保留。
+下表使用C23完整B5–B10，各条件n=6；均为八rank最早begin至最晚end跨度的算术均值，单位秒。不相加，不作为纯I/O或独立因果贡献；图5使用明确标注的八rank阶段跨度，不补造同定义f7。
 
 | 条件 | ingestion跨度 | quantization跨度 | 含分配weights pipeline跨度 |
 |---|---:|---:|---:|

@@ -121,7 +121,7 @@ def export(output):
 
     def save(fig, name, note):
         fig.text(.5, .012, note, ha='center', fontsize=9)
-        fig.tight_layout(rect=(0, .045, 1, 1))
+        fig.tight_layout(rect=(0, .08 if name in ('fig4_controller', 'fig5_loading') else .045, 1, 1))
         for extension in ['png', 'svg', 'pdf']:
             fig.savefig(output / (name + '.' + extension), bbox_inches='tight')
         plt.close(fig)
@@ -153,25 +153,40 @@ def export(output):
         ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=8)
     save(fig, 'fig3_preparation', 'Prep+A excludes gap. Legacy Prep is target-state construction; V4 Prep includes environment/pool/admission. Not equivalent cost windows.')
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.1), sharey=True)
+    original_font = plt.rcParams['font.sans-serif'][:]
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK SC', 'SimHei', 'DejaVu Sans']
+    labels45 = ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']
+    glm_trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.5), sharey=True)
     for ax, model in zip(axes, MODELS):
-        values = [summary[model][c]['controller_mean_s'] for c in CONDITIONS]
-        if all(v is None for v in values): ax.text(.5, .5, 'Not available in the verified input\nNo imputation', ha='center', transform=ax.transAxes)
-        else: ax.bar(range(4), values, color=COLORS)
-        ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean controller elapsed seconds'); ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig4_controller', 'Kimi and V4 controller endpoints differ; observed envelopes, not nested-stage sums or total study cost. GLM remains missing.')
+        if model == 'GLM-5.1-FP8':
+            assert all(len(primary[model][c]['ids']) == 6 for c in CONDITIONS)
+            values = [mean(glm_trials[i]['recorded_attempt_s'] for i in primary[model][c]['ids']) for c in CONDITIONS]
+            title, ylabel = 'GLM-5.1-FP8（helper，n=6）', '准备开始→记录完成 / 秒'
+        else:
+            values = [summary[model][c]['controller_mean_s'] for c in CONDITIONS]
+            title, ylabel = model + '（controller）', '各自controller区间均值 / 秒'
+        ax.bar(range(4), values, color=COLORS)
+        ax.set(title=title, xticks=range(4), xticklabels=labels45, ylabel=ylabel)
+        ax.tick_params(axis='x', labelrotation=25)
+    save(fig, 'fig4_controller', 'GLM包含准备、三道请求、删除和至少60秒观察；Kimi/V4为各自controller区间。\n各栏端点不同，不能视为同一总成本指标；原40项未重跑。')
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
     load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
     axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
-    axes[0].set_title('Kimi f7 log loading envelope (n=8)')
-    axes[1].text(.5, .5, 'Same loading-envelope field absent\nNo zero or inferred duration', ha='center', transform=axes[1].transAxes); axes[1].set_title('GLM comparable field missing')
+    axes[0].set_title('Kimi f7日志加载包络（n=8）')
+    with (BASE / 'inputs/glm-cpu/event-intervals.csv').open(encoding='utf-8') as stream:
+        glm_phases = {r['attempt_id']: r for r in csv.DictReader(stream)}
     rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
-    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', 'Ingestion'), ('phase_quantization_postprocess_span_s', 'Postprocess'), ('phase_weights_pipeline_including_allocation_span_s', 'Pipeline')]):
+    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', '摄入跨度'), ('phase_quantization_postprocess_span_s', '后处理跨度'), ('phase_weights_pipeline_including_allocation_span_s', '流水线跨度')]):
+        axes[1].bar(np.arange(4) + (j - 1) * .25, [mean(float(glm_phases[i][field]) for i in primary['GLM-5.1-FP8'][c]['ids']) for c in CONDITIONS], .24, label=label)
         axes[2].bar(np.arange(4) + (j - 1) * .25, [mean(r['metrics'][field] for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c) for c in CONDITIONS], .24, label=label)
-    axes[2].set_title('V4 all-rank phase envelopes (n=9)'); axes[2].legend(fontsize=7)
-    for ax in axes: ax.set(xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig5_loading', 'Different observation definitions. V4 group H2D/postprocess interleave; phase envelopes overlap and must not be added.')
+    axes[1].set_title('GLM八rank阶段跨度（n=6）'); axes[1].legend(fontsize=7)
+    axes[2].set_title('V4八rank阶段跨度（n=9）'); axes[2].legend(fontsize=7)
+    for ax in axes:
+        ax.set(xticks=range(4), xticklabels=labels45, ylabel='均值 / 秒'); ax.tick_params(axis='x', labelrotation=25)
+    save(fig, 'fig5_loading', '各栏观测定义不同：Kimi为f7日志，GLM/V4为八rank阶段包络。\n阶段区间可能重叠，摄入、后处理与流水线不能相加，也不是纯磁盘I/O。')
+    plt.rcParams['font.sans-serif'] = original_font
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
     for ax, model in zip(axes, MODELS):
