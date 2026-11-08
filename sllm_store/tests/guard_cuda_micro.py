@@ -115,39 +115,114 @@ def paired(argv, key, value):
     return any(argv[i:i+2] == [key, value] for i in range(len(argv)-1))
 
 
-def identity(pid):
+def identity(pid, detail=None):
+    requested_detail = detail is not None
+    if detail is None: detail = {}
+    detail.update(pid=pid, startticks=None, uid=None, cgroup=None,
+                  read_stage='status' if a.normal_exit_marker else 'exe')
     root = pathlib.Path('/proc') / str(pid)
-    if a.normal_exit_marker:
-        status = read(root / 'status').decode()
-        uid = next((line.split()[1:] for line in status.splitlines() if line.startswith('Uid:')), None)
-        if uid is None or len(uid) != 4 or not all(value.isdecimal() for value in uid): raise ValueError('invalid process UID identity')
-        if uid != ['0'] * 4: return None
-    exe = os.readlink(root / 'exe')
-    if exe not in ('/usr/bin/runc', '/usr/bin/containerd-shim-runc-v2'): return None
-    argv = read(root / 'cmdline').rstrip(b'\0').split(b'\0')
-    if exe == '/usr/bin/runc':
-        owned = argv[-1:] == [a.cid.encode()] and any(x in argv for x in (b'create', b'run', b'start', b'delete'))
-        roots = [argv[i+1] for i in range(len(argv)-1) if argv[i] == b'--root']
-        owned = owned and len(roots) == 1 and pathlib.Path(os.fsdecode(roots[0])).resolve() == runc_root
-    else:
-        owned = paired(argv, b'-id', a.cid.encode()) and paired(argv, b'-namespace', b'moby')
-    if not owned: return None
     try:
+        if a.normal_exit_marker:
+            status = read(root / 'status').decode()
+            uid = next((line.split()[1:] for line in status.splitlines() if line.startswith('Uid:')), None)
+            if uid is None or len(uid) != 4 or not all(value.isdecimal() for value in uid): raise ValueError('invalid process UID identity')
+            detail['uid'] = uid
+            for field, key in (('State:', 'state'), ('PPid:', 'ppid')):
+                value = next((line.split()[1:] for line in status.splitlines() if line.startswith(field)), [])
+                detail[key] = value[0] if value else None
+            if uid != ['0'] * 4:
+                if requested_detail:
+                    detail['read_stage'] = 'stat'; detail['startticks'] = startticks(pid)
+                    detail['read_stage'] = 'cgroup'; detail['cgroup'] = read(root / 'cgroup').decode().strip()
+                return None
+            detail['read_stage'] = 'stat'; detail['startticks'] = startticks(pid)
+            detail['read_stage'] = 'cgroup'; detail['cgroup'] = read(root / 'cgroup').decode().strip()
+        detail['read_stage'] = 'exe'
+        exe = os.readlink(root / 'exe')
+        if exe not in ('/usr/bin/runc', '/usr/bin/containerd-shim-runc-v2'): return None
+        detail['read_stage'] = 'cmdline'
+        argv = read(root / 'cmdline').rstrip(b'\0').split(b'\0')
+        if exe == '/usr/bin/runc':
+            owned = argv[-1:] == [a.cid.encode()] and any(x in argv for x in (b'create', b'run', b'start', b'delete'))
+            roots = [argv[i+1] for i in range(len(argv)-1) if argv[i] == b'--root']
+            owned = owned and len(roots) == 1 and pathlib.Path(os.fsdecode(roots[0])).resolve() == runc_root
+        else:
+            owned = paired(argv, b'-id', a.cid.encode()) and paired(argv, b'-namespace', b'moby')
+        if not owned: return None
+        detail['owned_runtime'] = True
+        detail['read_stage'] = 'postowned_status'
         status = read(root / 'status').decode()
         uid = next(line.split()[1:] for line in status.splitlines() if line.startswith('Uid:'))
         if uid != ['0'] * 4: return None
-        return {'pid': pid, 'startticks': startticks(pid), 'exe': exe, 'cgroup': read(root / 'cgroup').decode().strip()}
-    except PermissionError as error:
-        error.owned_runtime = True
+        detail['read_stage'] = 'postowned_stat'; ticks = startticks(pid)
+        detail['read_stage'] = 'postowned_cgroup'; cgroup = read(root / 'cgroup').decode().strip()
+        return {'pid': pid, 'startticks': ticks, 'exe': exe, 'cgroup': cgroup}
+    except (OSError, ValueError) as error:
+        error.partial_identity = dict(detail)
+        if detail.get('owned_runtime'): error.owned_runtime = True
         raise
 
 
 def scan():
+    retry_used = False
     for entry in pathlib.Path('/proc').iterdir():
         if not entry.name.isdigit(): continue
         pid = int(entry.name); stage = 'identity'; row = None
         try:
-            row = identity(pid)
+            try:
+                row = identity(pid)
+            except PermissionError as first_error:
+                partial = getattr(first_error, 'partial_identity', {})
+                if (not a.normal_exit_marker or a.head_control_only or
+                    partial.get('read_stage') != 'exe' or getattr(first_error, 'owned_runtime', False) or
+                    any(key[0] == pid for key in pins)):
+                    raise
+                emit('proc_discovery_permission_first', pid=pid, stage=stage,
+                     errno=first_error.errno, filename=first_error.filename, error_type=type(first_error).__name__,
+                     partial_identity=partial)
+                try:
+                    stage = 'permission_ownership_proof'
+                    argv = read(pathlib.Path('/proc') / str(pid) / 'cmdline').rstrip(b'\0').split(b'\0')
+                    argv_sha = hashlib.sha256(b'\0'.join(argv)).hexdigest()
+                    try: own_pids = {int(value) for value in read(scope / 'cgroup.procs').split()}
+                    except FileNotFoundError:
+                        if scope.exists(): raise
+                        own_pids = set()
+                    first_error.confirmation_ownership_proof = {
+                        'exact_cid_token': a.cid.encode() in argv, 'own_scope_member': pid in own_pids,
+                        'own_cgroup_component': 'docker-' + a.cid + '.scope' in partial.get('cgroup', '').split('/'),
+                        'cmdline_sha256': argv_sha}
+                    if any(first_error.confirmation_ownership_proof[key] for key in ('exact_cid_token', 'own_scope_member', 'own_cgroup_component')):
+                        stage = 'identity'
+                        raise first_error
+                    if (type(partial.get('startticks')) is not int or partial['startticks'] <= 0 or
+                        partial.get('uid') != ['0'] * 4 or not partial.get('cgroup')):
+                        raise ValueError('permission recheck lacks initial identity')
+                    stage = 'permission_recheck_budget'
+                    if go_at is None or retry_used or time.monotonic() + .02 >= go_at + a.deadline:
+                        raise first_error
+                    retry_used = True
+                    time.sleep(.02)
+                    if time.monotonic() >= go_at + a.deadline: raise TimeoutError('permission recheck budget expired')
+                    stage = 'permission_identity_recheck'; fresh = {}
+                    row = identity(pid, fresh)
+                    if (row is not None or fresh.get('owned_runtime') or
+                        fresh.get('startticks') != partial['startticks'] or fresh.get('cgroup') != partial['cgroup']):
+                        raise ValueError('permission recheck identity changed or became owned')
+                    fresh_argv = read(pathlib.Path('/proc') / str(pid) / 'cmdline').rstrip(b'\0').split(b'\0')
+                    final_status = read(pathlib.Path('/proc') / str(pid) / 'status').decode()
+                    final_uid = next((line.split()[1:] for line in final_status.splitlines() if line.startswith('Uid:')), None)
+                    final_cgroup = read(pathlib.Path('/proc') / str(pid) / 'cgroup').decode().strip()
+                    if (hashlib.sha256(b'\0'.join(fresh_argv)).hexdigest() != argv_sha or
+                        final_uid != fresh.get('uid') or final_cgroup != partial['cgroup'] or
+                        startticks(pid) != partial['startticks']):
+                        raise ValueError('permission recheck command or process identity changed')
+                    if time.monotonic() >= go_at + a.deadline: raise TimeoutError('permission recheck budget expired')
+                    emit('proc_discovery_permission_rechecked', pid=pid, first_errno=first_error.errno,
+                         partial_identity=partial, fresh_identity=fresh, cmdline_sha256=argv_sha,
+                         resolution='existing_nonroot_exclusion' if fresh['uid'] != ['0'] * 4 else 'existing_identity_filter_completed')
+                except (FileNotFoundError, ProcessLookupError) as error:
+                    raise ValueError('permission recheck lost process identity') from error
             if row is None or (row['pid'], row['startticks']) in pins: continue
             stage = 'pidfd_open'; fd = os.pidfd_open(row['pid'])
             try:
@@ -178,7 +253,7 @@ def scan():
                         continue
                 except (OSError, ValueError) as membership_error:
                     error = membership_error; stage = proof_stage
-            failures.add('proc_discovery'); emit('proc_discovery_error', pid=pid, stage=stage, error_type=type(error).__name__, errno=getattr(error, 'errno', None), filename=getattr(error, 'filename', None))
+            failures.add('proc_discovery'); emit('proc_discovery_error', pid=pid, stage=stage, error_type=type(error).__name__, errno=getattr(error, 'errno', None), filename=getattr(error, 'filename', None), partial_identity=getattr(error, 'partial_identity', None), ownership_proof=getattr(error, 'confirmation_ownership_proof', None))
     live = []
     for pin in pins.values():
         if not select.select([pin['fd']], [], [], 0)[0]: live.append(pin); continue

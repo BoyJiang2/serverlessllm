@@ -432,7 +432,7 @@ class ProcessDiscoveryTest(unittest.TestCase):
             calls.append(('readlink',str(path)))
             if denied:raise PermissionError(13,'CPU fixture denied',str(path))
             return exe
-        ns=dict(pathlib=__import__('pathlib'),os=types.SimpleNamespace(readlink=readlink,fsdecode=os.fsdecode),
+        ns=dict(pathlib=__import__('pathlib'),hashlib=__import__('hashlib'),os=types.SimpleNamespace(readlink=readlink,fsdecode=os.fsdecode),
                 a=types.SimpleNamespace(normal_exit_marker=normal,head_control_only=head,cid=cid),read=read,runc_root=Path('/run/containerd/runc/moby').resolve(),
                 startticks=lambda pid:77,pins={},failures=set(),warnings={},scope=Path('/cpu-fixture-scope'),select=types.SimpleNamespace(select=lambda *args:([],[],[])),
                 emit=lambda kind,**data:events.append((kind,data)))
@@ -450,7 +450,7 @@ class ProcessDiscoveryTest(unittest.TestCase):
         ns,_,events=self.namespace(denied=True)
         with patch.object(Path,'iterdir',return_value=iter([Path('/proc/123')])):self.assertEqual(ns['scan'](),[])
         self.assertEqual(ns['failures'],{'proc_discovery'})
-        kind,row=events[0];self.assertEqual(kind,'proc_discovery_error')
+        kind,row=next(item for item in events if item[0]=='proc_discovery_error');self.assertEqual(kind,'proc_discovery_error')
         self.assertEqual((row['pid'],row['stage'],row['errno'],row['filename']),(123,'identity',13,'/proc/123/exe'))
 
     def test_readable_root_identity_is_same_as_legacy_and_foreign_is_rejected(self):
@@ -557,3 +557,119 @@ class HeadControlDiscoveryTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BoundedProcessRecheckTest(unittest.TestCase):
+    def fixture(self, transition=False, persistent=False, protected=None, remaining=10):
+        ns,calls,events=ProcessDiscoveryTest().namespace(own_command=protected=="command")
+        original_read=ns["read"];counts={"status":0,"exe":{}};waits=[]
+        ns["go_at"]=0;ns["a"].deadline=100+remaining
+        ns["time"]=types.SimpleNamespace(monotonic=lambda:100.,sleep=lambda seconds:waits.append(seconds))
+        ns["hashlib"]=__import__("hashlib")
+        def read(path):
+            if path.name=="status":
+                counts["status"]+=1
+                uid="2147" if transition and counts["status"]>1 else "0"
+                return ("State: R\nPPid: 1\nUid: "+" ".join([uid]*4)+"\n").encode()
+            if path.name=="cgroup.procs" and protected=="scope":return b"123\n"
+            return original_read(path)
+        def link(path):
+            pid=int(path.parent.name);counts["exe"][pid]=counts["exe"].get(pid,0)+1
+            if persistent or counts["exe"][pid]==1:raise PermissionError(13,"fixture first error",str(path))
+            return "/usr/bin/python3"
+        ns["read"]=read;ns["os"].readlink=link
+        if protected=="pin":ns["pins"][(123,77)]={"fd":9,"row":{"pid":123,"startticks":77}}
+        return ns,events,waits,counts
+
+    def scan(self,ns,pids=(123,)):
+        with patch.object(Path,"iterdir",return_value=iter([Path('/proc')/str(pid) for pid in pids])):return ns["scan"]()
+
+    def test_same_startticks_uid_transition_uses_existing_nonroot_exclusion(self):
+        ns,events,waits,counts=self.fixture(transition=True)
+        self.scan(ns)
+        self.assertFalse(ns["failures"]);self.assertEqual(waits,[.02]);self.assertEqual(counts["exe"][123],1)
+        first=next(row for kind,row in events if kind=="proc_discovery_permission_first")
+        self.assertEqual(first["partial_identity"]["uid"],["0"]*4)
+        self.assertEqual(first["partial_identity"]["startticks"],77)
+        self.assertEqual(first["partial_identity"]["cgroup"],"0::/system.slice/runtime.scope")
+        self.assertEqual(first["partial_identity"]["read_stage"],"exe")
+        resolved=next(row for kind,row in events if kind=="proc_discovery_permission_rechecked")
+        self.assertEqual(resolved["fresh_identity"]["uid"],["2147"]*4)
+        self.assertEqual(resolved["resolution"],"existing_nonroot_exclusion")
+
+    def test_same_identity_root_reread_completes_original_filter(self):
+        ns,events,waits,_=self.fixture();self.scan(ns)
+        self.assertFalse(ns["failures"]);self.assertEqual(waits,[.02])
+        self.assertEqual(events[-1][0],"proc_discovery_permission_rechecked")
+
+    def test_persistent_unknown_permission_and_reused_pid_are_fatal(self):
+        ns,events,waits,_=self.fixture(persistent=True);self.scan(ns)
+        self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[.02])
+        self.assertEqual(events[0][0],"proc_discovery_permission_first")
+        self.assertEqual(events[-1][0],"proc_discovery_error")
+        ns,events,waits,_=self.fixture();ticks=iter([77,78]);ns["startticks"]=lambda pid:next(ticks)
+        self.scan(ns);self.assertIn("proc_discovery",ns["failures"])
+        ns,_,_,_=self.fixture();ticks=iter([77,77,78]);ns["startticks"]=lambda pid:next(ticks)
+        self.scan(ns);self.assertIn("proc_discovery",ns["failures"])
+
+    def test_positive_ownership_or_pin_never_enters_retry(self):
+        for protected in ("command","scope","pin"):
+            ns,_,waits,_=self.fixture(protected=protected);self.scan(ns)
+            self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[])
+
+    def test_budget_and_one_candidate_per_scan_prevent_extra_delay(self):
+        ns,_,waits,_=self.fixture(remaining=0);self.scan(ns)
+        self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[])
+        ns,events,waits,_=self.fixture();self.scan(ns,(123,124))
+        self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[.02])
+        self.assertEqual(sum(kind=="proc_discovery_permission_rechecked" for kind,_ in events),1)
+
+    def test_scope_uncertainty_and_fresh_cgroup_change_remain_fatal(self):
+        ns,_,waits,_=self.fixture();original=ns["read"]
+        def denied(path):
+            if path.name=="cgroup.procs":raise PermissionError(13,"scope unknown",str(path))
+            return original(path)
+        ns["read"]=denied;self.scan(ns);self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[])
+        ns,_,_,_=self.fixture();original=ns["read"];count=[0]
+        def changed(path):
+            if path.name=="cgroup":
+                count[0]+=1
+                if count[0]>1:return b"0::/changed\n"
+            return original(path)
+        ns["read"]=changed;self.scan(ns);self.assertIn("proc_discovery",ns["failures"])
+
+
+    def test_worker_postowned_pidfd_revalidation_and_legacy_errors_do_not_retry(self):
+        for stage in ("postowned", "pidfd", "revalidation", "legacy"):
+            ns,_,events=ProcessDiscoveryTest().namespace(normal=stage!="legacy",denied=stage=="legacy")
+            waits=[];ns["time"]=types.SimpleNamespace(monotonic=lambda:100.,sleep=lambda x:waits.append(x))
+            if stage=="postowned":
+                original=ns["read"];count=[0]
+                def read(path):
+                    if path.name=="status":
+                        count[0]+=1
+                        if count[0]==2:raise PermissionError(13,"postowned",str(path))
+                    return original(path)
+                ns["read"]=read
+            if stage in ("pidfd","revalidation"):
+                ns["os"].pidfd_open=lambda pid:9;ns["os"].close=lambda fd:None
+                if stage=="pidfd":ns["os"].pidfd_open=lambda pid:(_ for _ in ()).throw(PermissionError(13,"pidfd"))
+                else:
+                    identify=ns["identity"];count=[0]
+                    def identity(pid):
+                        count[0]+=1
+                        if count[0]==2:raise PermissionError(13,"revalidation")
+                        return identify(pid)
+                    ns["identity"]=identity
+            self.scan(ns);self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[])
+            self.assertFalse(any(kind=="proc_discovery_permission_rechecked" for kind,_ in events))
+
+
+    def test_pre_go_permission_error_keeps_original_failure_without_confirmation(self):
+        ns,events,waits,_=self.fixture();ns["go_at"]=None
+        self.scan(ns)
+        self.assertIn("proc_discovery",ns["failures"]);self.assertEqual(waits,[])
+        error=next(row for kind,row in events if kind=="proc_discovery_error")
+        self.assertEqual((error["error_type"],error["errno"],error["filename"]),("PermissionError",13,"/proc/123/exe"))
+        self.assertEqual(error["partial_identity"]["startticks"],77)
+        self.assertFalse(any(kind=="proc_discovery_permission_rechecked" for kind,_ in events))

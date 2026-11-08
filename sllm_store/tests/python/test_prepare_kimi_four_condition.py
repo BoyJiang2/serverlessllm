@@ -13,7 +13,7 @@ import prepare_kimi_four_condition as p
 
 
 # Historical generator tests use the frozen6fc digest fixture because the canonical
-# file now has an authorized endpoint delta. This is NOT actual old-deployment
+# patch/guard files now have authorized deltas. This is NOT actual old-deployment
 # admission. New unified-loading validation hashes actual bytes without base.digest.
 _HISTORICAL_DIGEST=p.base.digest
 _HISTORICAL_PATCH=p.base.ROOT/'sllm_store/vllm_patch/sllm_load.patch'
@@ -23,7 +23,9 @@ def setUpModule():
     global _HISTORICAL_PATCH_MOCK
     from unittest import mock
     def digest(path):
-        return p.DIAGNOSTIC_PATCH_SHA if pathlib.Path(path)==_HISTORICAL_PATCH else _HISTORICAL_DIGEST(path)
+        if pathlib.Path(path)==_HISTORICAL_PATCH:return p.DIAGNOSTIC_PATCH_SHA
+        if pathlib.Path(path)==p.base.ROOT/'sllm_store/tests/guard_cuda_micro.py':return p.FORMAL_GUARD_SHA
+        return _HISTORICAL_DIGEST(path)
     _HISTORICAL_PATCH_MOCK=mock.patch.object(p.base,'digest',side_effect=digest)
     _HISTORICAL_PATCH_MOCK.start()
 
@@ -1428,14 +1430,14 @@ class UnifiedLoadingSupplementTest(unittest.TestCase):
                     p.main()
                 self.assertEqual(gate.call_count,int(frozen));self.assertEqual(len(list(ep.iterdir())),10)
                 bundle=json.loads(next(ep.glob('*-bundle.json')).read_text())
-                self.assertEqual(bundle['block_id'],'kimi-unified-loading-20261109-b01')
+                self.assertEqual(bundle['block_id'],protocol['unified_loading']['block_id'])
                 self.assertEqual(len(bundle['planned_attempts']),4);self.assertEqual(bundle['full_max_seconds'],28920)
                 self.assertEqual(bundle['status'],'FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' if frozen else 'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE')
                 for entry in bundle['attempts']:
                     command=json.loads(pathlib.Path(entry['command_path']).read_text())
                     spec=json.loads(pathlib.Path(command['argv'][-3]).read_text())
                     self.assertEqual(spec['protocol_sha256'],psha);self.assertEqual(spec['source_commit'],p.SOURCE if frozen else None)
-                    self.assertTrue(spec['run_id'].startswith('kimi-unified-loading-20261109-b01-'))
+                    self.assertTrue(spec['run_id'].startswith(protocol['unified_loading']['block_id']+'-'))
                     self.assertEqual(spec['unified_loading']['model_instance_id'],spec['run_id']+'-life1')
                     self.assertIn(p.ENDPOINT_MANIFEST_SHA,spec['code_pins'].values())
                 launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
@@ -1524,6 +1526,65 @@ class UnifiedLoadingSupplementTest(unittest.TestCase):
             elif failure=='physical':physical[records[0]['device_uuid']]['processes']=[]
             with self.subTest(failure=failure),self.assertRaises((AssertionError,KeyError)):consume(records,owners,physical)
             self.assertNotIn('unified-loading-host-span.json',saved)
+
+
+class ProcConfirmCohortTest(unittest.TestCase):
+    def protocol(self):
+        protocol=UnifiedLoadingSupplementTest().protocol()
+        cohort='kimi-unified-loading-20261109-proc-confirm-v2'
+        protocol['unified_loading'].update(cohort_id=cohort,block_id=cohort+'-b01')
+        for row in protocol['attempts']:row['attempt_id']=cohort+'-b01-'+row['condition']
+        protocol['proc_identity_confirmation_guard']={'path':str(p.base.ROOT/'sllm_store/tests/guard_cuda_micro.py'),'sha256':p.hashlib.sha256((p.base.ROOT/'sllm_store/tests/guard_cuda_micro.py').read_bytes()).hexdigest(),'baseline_sha256':p.FORMAL_GUARD_SHA,'revision':'normal-worker-exe-permission-same-pid-bounded-confirmation-v1'}
+        return protocol
+
+    def test_v2_exact_ids_and_real_guard_pin_with_wrong_pin_rejection(self):
+        protocol=self.protocol();p.validate_protocol(protocol)
+        self.assertEqual(p.protocol_guard_pin(protocol),protocol['proc_identity_confirmation_guard']['sha256'])
+        for field,value in [('path','/tmp/guard.py'),('sha256','0'*64),('baseline_sha256','0'*64),('revision','warning_only')]:
+            bad=copy.deepcopy(protocol);bad['proc_identity_confirmation_guard'][field]=value
+            with self.subTest(field=field),self.assertRaises(AssertionError):p.protocol_guard_pin(bad)
+        bad=copy.deepcopy(protocol);bad['unified_loading']['cohort_id']='kimi-unified-loading-any-retry'
+        with self.assertRaises(AssertionError):p.validate_protocol(bad)
+
+    def test_real_v2_main_candidate_and_frozen_review_outputs(self):
+        harness=UnifiedLoadingSupplementTest()
+        harness.protocol=self.protocol
+        harness.test_actual_main_new_four_child_bundle_and_candidate_closed()
+
+    def test_v1_guard_still_fail_closed_with_actual_new_guard_bytes(self):
+        old=UnifiedLoadingSupplementTest().protocol()
+        with mock.patch.object(p.base,'digest',side_effect=_HISTORICAL_DIGEST):
+            base=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+            with self.assertRaises(AssertionError):p.render(old,base,command,old['attempts'][0]['attempt_id'],base['native_source_pins'])
+        old['proc_identity_confirmation_guard']=self.protocol()['proc_identity_confirmation_guard']
+        with self.assertRaises(AssertionError):p.protocol_guard_pin(old)
+        historical=p.checked(p.PROTOCOL,p.PROTOCOL_SHA)
+        historical['unified_loading']=self.protocol()['unified_loading']
+        historical['proc_identity_confirmation_guard']=self.protocol()['proc_identity_confirmation_guard']
+        with self.assertRaises(AssertionError):p.protocol_guard_pin(historical)
+
+    def test_v2_actual_block_child_failure_stops_new_ids(self):
+        with tempfile.TemporaryDirectory() as directory:
+            ids=[r['attempt_id'] for r in self.protocol()['attempts']]
+            execute,called,claims=ActualConsumerTest().block_fixture(pathlib.Path(directory),fail_at=1,run_ids=ids,block_id='kimi-unified-loading-20261109-proc-confirm-v2-b01')
+            with self.assertRaises(AssertionError):execute()
+            final=json.loads((claims/'kimi-unified-loading-20261109-proc-confirm-v2-b01-final.json').read_text())
+            self.assertEqual([r['run_id'] for r in final['attempts']],ids)
+            self.assertEqual([r['launch_requested'] for r in final['attempts']],[True,True,False,False])
+            self.assertEqual([r['condition_terminal'] for r in final['attempts'][2:]],['NOT_STARTED','NOT_STARTED'])
+
+    def test_actual_v2_render_new_guard_preserves_endpoint_and_budget(self):
+        protocol=self.protocol();base=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        for attempt in protocol['attempts']:
+            spec,cmd=p.render(protocol,base,command,attempt['attempt_id'],base['native_source_pins'])
+            self.assertEqual(spec['run_id'],attempt['attempt_id'])
+            self.assertEqual(spec['guard_sha256'],protocol['proc_identity_confirmation_guard']['sha256'])
+            self.assertEqual(spec['code_pins'][spec['guard']],spec['guard_sha256'])
+            self.assertEqual(spec['unified_loading']['overlay']['sha256'],p.ENDPOINT_OVERLAY_SHA)
+            self.assertEqual(spec['budgets']['full'],7200);self.assertEqual(spec['budgets']['sum'],6480)
+            for request in spec['requests'].values():
+                self.assertEqual(request['env']['SLLM_LOAD_SPAN_RUN_ID'],spec['run_id'])
+            compile(cmd['argv'][cmd['argv'].index('-c')+1],'<proc-confirm-actual-root>','exec')
 
 if __name__=='__main__':
     unittest.main()

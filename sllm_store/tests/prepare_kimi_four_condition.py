@@ -43,7 +43,7 @@ def validate_protocol(protocol):
     attempts = protocol["attempts"]
     if unified:
         loading=protocol["unified_loading"]
-        assert loading["cohort_id"]=="kimi-unified-loading-20261109"
+        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2")
         assert loading["block_id"]==loading["cohort_id"]+"-b01"
         assert loading["stop_on_failure"] is True and loading["append_only"] is True
         assert protocol.get("execution_revision") is None
@@ -169,6 +169,22 @@ ENDPOINT_PATCH_SHA = "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c
 ENDPOINT_OVERLAY_SHA = "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7"
 ENDPOINT_MANIFEST_SHA = "8a433dd748cec135954125569c4a8107ea18d7c175dffc1da9efda664b2b803a"
 UNIFIED_STATISTICS = {"scope":"single_block_descriptive_no_inference","success_rate_denominator":"launch_requested","stopping":"any_failure_stop_no_retry"}
+
+
+def protocol_guard_pin(protocol):
+    cohort=protocol.get("unified_loading",{}).get("cohort_id")
+    if cohort!="kimi-unified-loading-20261109-proc-confirm-v2":
+        assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
+        return FORMAL_GUARD_SHA
+    assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
+    guard=protocol["proc_identity_confirmation_guard"]
+    path=base.ROOT/"sllm_store/tests/guard_cuda_micro.py"
+    assert guard["path"]==str(path) and path.is_file() and not path.is_symlink()
+    assert guard["baseline_sha256"]==FORMAL_GUARD_SHA
+    assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
+    assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
+    assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
+    return guard["sha256"]
 
 
 def validate_unified_overlay(protocol):
@@ -544,6 +560,8 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     validate_protocol(protocol)
     unified=protocol.get("schema")=="kimi-unified-loading-remeasurement-v1"
     endpoint_manifest=validate_unified_overlay(protocol) if unified else None
+    guard_sha=protocol_guard_pin(protocol)
+    proc_confirm=protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
@@ -579,8 +597,9 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';patch_sha=ENDPOINT_PATCH_SHA if unified else DIAGNOSTIC_PATCH_SHA
     assert (hashlib.sha256(patch.read_bytes()).hexdigest() if unified else base.digest(patch))==patch_sha
     spec['code_pins'][str(patch)]=patch_sha
-    guard=base.ROOT/'sllm_store/tests/guard_cuda_micro.py';assert spec['guard']==str(guard) and base.digest(guard)==FORMAL_GUARD_SHA
-    spec['guard_sha256']=spec['code_pins'][str(guard)]=FORMAL_GUARD_SHA
+    guard=base.ROOT/'sllm_store/tests/guard_cuda_micro.py';assert spec['guard']==str(guard) and (hashlib.sha256(guard.read_bytes()).hexdigest() if proc_confirm else base.digest(guard))==guard_sha
+    spec['guard_sha256']=spec['code_pins'][str(guard)]=guard_sha
+    if proc_confirm:spec['proc_identity_confirmation_guard']=copy.deepcopy(protocol['proc_identity_confirmation_guard'])
     spec['canonical_patch_provenance']='Current committed patch source6fc; active oldf7 runtime overlay remains from original9d build; no fingerprint flag or new866 overlay implied.'
     spec["actual_request_parameters"]=[{"case":row["case"],**{key:row[key] for key in ("input_tokens","temperature","top_p","top_k","min_p","seed","n","max_tokens","ignore_eos")},"logprobs":1} for row in protocol["correctness"]["requests"]]
     spec["request_observability"]="Actual HTTP logprobs=1; generated token IDs use existing trace, return_token_ids is not passed to SamplingParams. Explicit top_p=1 remains vs omitted GLM default. Default V1 candidate lacks this explicit logprobs field and is not claimed fully aligned or executable."
@@ -843,6 +862,7 @@ def validate_frozen_protocol(protocol, source_commit):
     validate_protocol(protocol)
     assert protocol['status'].startswith('FROZEN_') and 'DRAFT' not in protocol['status']
     assert protocol['final_deploy_commit']==source_commit
+    protocol_guard_pin(protocol)
     assert protocol['resource_budget']['per_condition_max_seconds']==7200
     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
     assert protocol['resource_budget']['parent_overhead_seconds']==120
