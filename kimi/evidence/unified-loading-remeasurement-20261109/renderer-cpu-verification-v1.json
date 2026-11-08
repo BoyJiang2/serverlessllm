@@ -1,0 +1,218 @@
+{
+  "schema": "kimi-unified-loading-renderer-cpu-verification-v1",
+  "status": "CPU_PASS_PENDING_INDEPENDENT_REVIEW_COMMIT_AND_FRESH_RUNTIME_ADMISSION",
+  "created_utc": "2026-11-08T18:33:28Z",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "229e3c039d68dde2e0e7f97875243f95d8c36279ef5231e5d4eadae438b75d4a",
+      "bytes": 104623
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "sha256": "79512be9067e581d2d8c0da61372f4ae4c7e39b53fa187a0ea47f8d38279acc4",
+      "bytes": 135800
+    }
+  ],
+  "baseline": {
+    "renderer_sha256": "407c56f6f26388f3721be4ea4464b98995c2f53be0da5c3a64ea697c86550ffa",
+    "test_sha256": "61e58c8afd75a4322e16d85840e61311fada73c4ef4ec5cc847daf5708601cc1"
+  },
+  "red": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -k UnifiedLoadingSupplementTest -v",
+    "tests": 3,
+    "failures": 1,
+    "errors": 2,
+    "observed": "Original hard10/40 validator rejectednew4; generatedendpointconsumer missing, beforeimplementation."
+  },
+  "green": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v",
+    "working_directory": "/home/boyjiang/kimi-new/ServerlessLLM",
+    "tests": 64,
+    "passed": 64,
+    "failed": 0,
+    "skipped": 0,
+    "elapsed_s": 18.962
+  },
+  "new_tests": 7,
+  "source_function_pins": {
+    "validate_protocol": {
+      "lines": [
+        39,
+        72
+      ],
+      "sha256": "75ad9e56ba8012c27dddfbe9703046a8d1bf882986483005562b43b50f59fd44"
+    },
+    "execution_mapping": {
+      "lines": [
+        75,
+        126
+      ],
+      "sha256": "684762b10fe0e015c4643048bcaec0f1dcf7601f3119aa9380630a3878e38c58"
+    },
+    "validate_unified_overlay": {
+      "lines": [
+        174,
+        192
+      ],
+      "sha256": "94e7d6e73e1c199c5a7fe28ff552153676aed812b9ea5118798b786a1b6eeaba"
+    },
+    "render": {
+      "lines": [
+        543,
+        732
+      ],
+      "sha256": "e98aedb60fd4f2b058475f4a73be1223ad51a8bf1349dc92de8bfced718a5b66"
+    },
+    "render_block": {
+      "lines": [
+        795,
+        812
+      ],
+      "sha256": "2b6ae85e64f8e3b5aaf1e194b0ddd28d15b440f6029eac7db9dc5ab0ead70fc4"
+    },
+    "validate_frozen_protocol": {
+      "lines": [
+        842,
+        881
+      ],
+      "sha256": "ad500cd35e7088b64220fdac6bf4a1caf32ca1dfd63c653db549ee47fbc38781"
+    },
+    "main": {
+      "lines": [
+        1084,
+        1150
+      ],
+      "sha256": "ec258b48783bf9e1ac68446e7e0b5b5dd5635319016fdd0b95f3e6e61f73a953"
+    }
+  },
+  "protocol_contract": {
+    "schema": "kimi-unified-loading-remeasurement-v1",
+    "design": {
+      "blocks": 1,
+      "realized_condition_orders": [
+        [
+          "safetensors_disk_hot",
+          "store_disk_cold",
+          "safetensors_disk_cold",
+          "store_pool_hit"
+        ]
+      ]
+    },
+    "attempts": [
+      {
+        "order": 1,
+        "block": 1,
+        "position": 1,
+        "condition": "safetensors_disk_hot",
+        "attempt_id": "kimi-unified-loading-20261109-b01-safetensors_disk_hot"
+      },
+      {
+        "order": 2,
+        "block": 1,
+        "position": 2,
+        "condition": "store_disk_cold",
+        "attempt_id": "kimi-unified-loading-20261109-b01-store_disk_cold"
+      },
+      {
+        "order": 3,
+        "block": 1,
+        "position": 3,
+        "condition": "safetensors_disk_cold",
+        "attempt_id": "kimi-unified-loading-20261109-b01-safetensors_disk_cold"
+      },
+      {
+        "order": 4,
+        "block": 1,
+        "position": 4,
+        "condition": "store_pool_hit",
+        "attempt_id": "kimi-unified-loading-20261109-b01-store_pool_hit"
+      }
+    ],
+    "execution_revision": null,
+    "statistics": {
+      "scope": "single_block_descriptive_no_inference",
+      "success_rate_denominator": "launch_requested",
+      "stopping": "any_failure_stop_no_retry"
+    },
+    "unified_loading": {
+      "cohort_id": "kimi-unified-loading-20261109",
+      "block_id": "kimi-unified-loading-20261109-b01",
+      "stop_on_failure": true,
+      "append_only": true,
+      "canonical_patch_sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+      "overlay": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+        "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7"
+      },
+      "overlay_manifest": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/build-manifest.json",
+        "sha256": "8a433dd748cec135954125569c4a8107ea18d7c175dffc1da9efda664b2b803a"
+      }
+    },
+    "other_fields": "Reuse accepted V9 assets/config/correctness and7200/28920 budgets, freeze finalpublishedsource_commit andnewprotocolSHA. Oldcorrectness exception onlyLP1/lengthonly retainsacceptedrules; noold40designmutation.",
+    "output_names": "Existingmain --protocol PATH --protocol-sha SHA --source-commit PUBLISHED_COMMIT --block1 emits10 JSON preparedfiles undernewrunIDs; withoutsourcecommit remainscandidateclosed.",
+    "group": "Per-case spec.unified_loading.model_instance_id=run_id-life1; optinenvironments bothrole containers exactrun/group."
+  },
+  "observed_consumer": {
+    "source": "Actualgeneratedroot collect_unified_loading AST executed with synthetic8records/owner/NVML/clock namespace; noML imports.",
+    "shifted_rank_fixture": {
+      "envelope_ns": 270,
+      "max_rank_duration_ns": 200,
+      "assert_different": true
+    },
+    "outputs": [
+      "weight_load_host_span_ns",
+      "weight_load_host_span_s",
+      "max_rank_weight_load_host_duration_ns",
+      "max_rank_weight_load_host_duration_s"
+    ],
+    "invalid_cases": [
+      "missingrank",
+      "duplicaterank",
+      "missinginner",
+      "differentclockdomain",
+      "differentinstance",
+      "differentrun",
+      "PIDmismatch",
+      "rankmismatch",
+      "startticksmismatch",
+      "hostname",
+      "model",
+      "abnormalload",
+      "endnull",
+      "reversed",
+      "addedCUDA_sync",
+      "ownercgroup",
+      "physicalowner"
+    ],
+    "lifecycle": "Existingowned8rankpipeline remains; endpointvalidation occurs beforemarkownershipPASS/normalcondition. Failure propagates tooriginalABORT/failurepath andrestblockNOT_STARTED.",
+    "no_new_clock_synchronization": "Host endpoints before/after load_model only; noaddedCUDA sync, not asynchronous device completion."
+  },
+  "pin_scope": {
+    "new_cohort": "Actualnewcanonical/overlay/manifest/helper/source/test bytes verified from exact pinnedmanifest; runtimebefore/aftercodepins containnewpatch/newrunner/manifest/delta/clockhelper.",
+    "historical": "Old6fc constantand866diagnosticlineage unchanged. LegacyCPUbehaviorfixtures explicitly simulate6fc digest afternewcanonicaldelta; this never establishes actualolddeploymentadmission. Separatetest removesfixture andproves realcurrent source cannotrenderold6fc deployment.",
+    "main_scope": "Actualmain generatedbothcandidateclosed andfrozen-review-required bundles only withinTempDirectory tinyassets andmock committed_source; noactualnew protocolfreeze/claims/systemd/GPU."
+  },
+  "budget": {
+    "condition": 7200,
+    "block": 28920,
+    "parent": 120,
+    "phase_sum": 6480,
+    "release_minimum": 60,
+    "Store_normal_exit_criterion": 60
+  },
+  "pending": [
+    "Independentreview ofrenderer/test andgeneratedreal4child/bundle",
+    "Ownercommit/push exactsourcebranchSHA andcleanblob gate",
+    "Newfrozenprotocol/runIDs metadata",
+    "Freshbookingfullwindow/rootresources/claims/imports/ELF/mounts/guards before anyGPU",
+    "Actualnewcohort remains0samples and0launches here"
+  ],
+  "not_performed": [
+    "NoGPU/container/Store/model/cache/weightsoperation",
+    "NoGit/commit/push/sync",
+    "NooldIDexecution/historyrewrite",
+    "Nopreparemain againstactualassets withpublishedsource orruntime launch"
+  ]
+}

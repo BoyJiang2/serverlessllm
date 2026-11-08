@@ -1,0 +1,85 @@
+{
+  "schema": "kimi-load-endpoints-overlay-v1",
+  "created_at_utc": "2026-11-08T18:26:28.828477+00:00",
+  "status": "CPU_SOURCE_ONLY_NO_RUNTIME",
+  "old_overlay": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+    "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+    "bytes": 319819
+  },
+  "canonical_patch": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+    "sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+    "bytes": 57874
+  },
+  "canonical_baseline_sha256": "6fc825b0f3069a73d6ea7094ed134c56f020f501b2acd2fcd4bea2f5271051db",
+  "clock_identity_helper": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/logger.py",
+    "sha256": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11",
+    "bytes": 3969
+  },
+  "output_overlay": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+    "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7",
+    "bytes": 323133
+  },
+  "endpoint_only_patch": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/endpoint-only.patch",
+    "sha256": "d6315fa9d38f7b8151bbd12b0bbdadcd4893d29d4856ef36f833dcd111608e5c",
+    "bytes": 4634
+  },
+  "endpoint_schema": "kimi-weight-load-host-endpoints-v1",
+  "endpoint_ast_sha256": "c9e2d31c4dc22455bce04ef3f5f369e6df4bfa16be097190555c4e3084a11782",
+  "tests": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py",
+    "sha256": "169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4",
+    "bytes": 46695
+  },
+  "checks": {
+    "f7_inverse_text_bytes_exact": true,
+    "canonical_inverse_full_patch_sha_exact": true,
+    "canonical_and_overlay_endpoint_AST_equal": true,
+    "new_overlay_has_no_value_fingerprint_helper_or_flag": true,
+    "compile_without_import": true,
+    "default_off_no_clock_reads_tested": true,
+    "no_added_CUDA_sync_endpoint_before_existing_capture_sync_tested": true,
+    "identity_failure_original_model_exception_preserved_tested": true,
+    "eight_concurrent_actual_producer_files_tested": true
+  },
+  "strict_patch_results": {
+    "before_forward": {
+      "returncode": 0,
+      "stdout": "checking file v1/worker/gpu_model_runner.py\n",
+      "stderr": ""
+    },
+    "apply": {
+      "returncode": 0,
+      "stdout": "patching file v1/worker/gpu_model_runner.py\n",
+      "stderr": ""
+    },
+    "after_reverse": {
+      "returncode": 0,
+      "stdout": "checking file v1/worker/gpu_model_runner.py\n",
+      "stderr": ""
+    },
+    "after_forward": {
+      "returncode": 1,
+      "stdout": "checking file v1/worker/gpu_model_runner.py\nReversed (or previously applied) patch detected!  Skipping patch.\n2 out of 2 hunks ignored\n",
+      "stderr": ""
+    }
+  },
+  "environment_contract": {
+    "SLLM_CAPTURE_LOAD_ENDPOINTS": "1",
+    "SLLM_LOAD_SPAN_RUN_ID": "exact new per-condition run_id",
+    "SLLM_LOAD_SPAN_INSTANCE_ID": "same exact model-instance group for all8ranks, run_id-life1",
+    "SLLM_CAPTURE_LOAD_EVIDENCE": "1",
+    "SLLM_LOAD_EVIDENCE_DIR": "existing private atomic per-rank file sink"
+  },
+  "limits": [
+    "Canonical patch retains its already-existing diagnostic fingerprint feature unchanged; this endpoint overlay intentionally starts from f7 and contains no fingerprint code or D2H.",
+    "Endpoint AST matches actual canonical block, not whole canonical-generated runner; pre-existing fingerprint differences are not deployed here.",
+    "Host return timestamps before optional runner setup and before existing synchronization; not asynchronous device completion timestamps.",
+    "Clock helper import/read failure and missing run/instance IDs yield MISSING; model exception wins.",
+    "No imports of Torch/vLLM, GPU/model/Store/container/Git execution."
+  ]
+}

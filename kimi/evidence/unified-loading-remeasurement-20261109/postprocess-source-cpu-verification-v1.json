@@ -1,0 +1,59 @@
+{
+  "schema": "kimi-unified-loading-postprocess-source-cpu-verification-v1",
+  "created_at_utc": "2026-11-08T18:44:32.231928+00:00",
+  "status": "CPU_SELFTEST_PASS_NO_REAL_DATA_READ",
+  "script": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/summarize_unified_loading.py",
+    "sha256": "717e81ab4b97c20bcd644a08c2a1965228ab85047f4575ccd9e70b475b4c1135",
+    "bytes": 18420,
+    "lines": 201
+  },
+  "test": {
+    "argv": [
+      "python3",
+      "-B",
+      "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/summarize_unified_loading.py",
+      "--self-test"
+    ],
+    "checks": 12,
+    "status": "PASS",
+    "actual_observations_read": 0,
+    "scope": "Temporary synthetic endpoint records and real build/export functions, no actual runs."
+  },
+  "input_interface": {
+    "protocol": "frozen supplemental protocol path plus exact SHA",
+    "runs_root": "actual private raw root or exact copied public root containing the four new run_id subdirs",
+    "block_final": "actual terminal parent block-final JSON, required; checks exact source/protocol/block identity",
+    "per_attempt": [
+      "unified-loading-host-span.json",
+      "sample-validity.json",
+      "condition-terminal.json",
+      "cleanup-result.json",
+      "controller-final.json or controller-failed.json"
+    ]
+  },
+  "output_interface": {
+    "json": "--output-prefix.json O_EXCL",
+    "csv": "--output-prefix.csv O_EXCL; exactly4x8=32 expected_rank slots, missing observations explicit null/reason",
+    "complete_block_primary": "parent four-condition PASS + all4 endpoint8/qualified/normalcleanup/controllerPASS, otherwise complete_block_n0 and primary means null",
+    "descriptive_observed": "Raw endpoint observations retained even when whole block ineligible; never fill from original40 or old8blocks",
+    "estimands": [
+      "max8(end)-min8(begin)",
+      "max8(end-begin)"
+    ],
+    "n1": "Each condition complete-block eligible n0/1; rawarray/mean/median only, no inference"
+  },
+  "selftest_coverage": [
+    "Span97 vs maxrank27 different estimands",
+    "Duplicate rank, clock-domain drift, stored-span conflict and owner-startticks mismatch rejected",
+    "Real small JSON reader+SHA and8rank CSV output+exclusive output refusal",
+    "Actual four-case build complete block primary n1",
+    "ParentFAILED suppresses all primary means but preserves observed rows",
+    "Missing fourth emits8null expected_rank slots,32rows total",
+    "Qualification/cleanup contradiction rejected"
+  ],
+  "not_performed": [
+    "Real observations or actual postprocessing",
+    "Runtime source edits/Git/GPU/container/Store/cache/weight reads"
+  ]
+}

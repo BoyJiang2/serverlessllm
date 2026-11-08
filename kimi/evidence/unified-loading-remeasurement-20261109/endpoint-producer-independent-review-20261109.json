@@ -1,0 +1,32 @@
+{
+  "schema": "independent-source-review-v1",
+  "status": "ACCEPT_PRODUCER_SOURCE_CPU_ONLY",
+  "reviewed_at_utc": "2026-11-08T18:29:54.690255+00:00",
+  "pins": {
+    "old_overlay": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+    "canonical_patch": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+    "clock_identity_helper": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11",
+    "output_overlay": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7",
+    "endpoint_only_patch": "d6315fa9d38f7b8151bbd12b0bbdadcd4893d29d4856ef36f833dcd111608e5c",
+    "tests": "169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4"
+  },
+  "manifest_sha256": "8a433dd748cec135954125569c4a8107ea18d7c175dffc1da9efda664b2b803a",
+  "independent_checks": [
+    "Six manifest-referenced files freshly hash/size matched",
+    "Actual endpoint overlay stripped endpoint-only AST equals immutable old f7 AST",
+    "Read canonical before/after load_model call positions; normal-return end precedes optional LoRA/drafter/aux and existing capture synchronization",
+    "No fingerprint helper or opt-in flag exists in active endpoint overlay",
+    "Independently reran full existing loader-interface unittest suite:32 PASS,0.809s"
+  ],
+  "boundaries": {
+    "begin": "immediately before model_loader.load_model",
+    "end": "immediately after successful return, before optional runner setup",
+    "semantics": "host-call envelope including construction/load/necessary loader postprocessing; not device completion or pureIO",
+    "errors": "Endpoint identity/timer failures MISSING; loader original exception preserved; publication failures MISSING"
+  },
+  "limits": [
+    "CPU tests use actual extracted canonical/overlay blocks and mocked Torch/loader; not GPU runtime proof",
+    "Does not approve new rendered commands, booking, resource admission or execution",
+    "Consumer max per-rank duration output requested separately and remains under review"
+  ]
+}

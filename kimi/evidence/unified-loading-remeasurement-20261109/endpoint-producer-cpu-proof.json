@@ -1,0 +1,47 @@
+{
+  "schema": "kimi-load-host-endpoints-source-cpu-verification-v1",
+  "created_at_utc": "2026-11-08T18:26:28.830528+00:00",
+  "status": "32_CPU_PASS_PENDING_INDEPENDENT_REVIEW",
+  "tracked_files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+      "sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+      "bytes": 57874
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py",
+      "sha256": "169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4",
+      "bytes": 46695
+    }
+  ],
+  "overlay_manifest": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/build-manifest.json",
+    "sha256": "8a433dd748cec135954125569c4a8107ea18d7c175dffc1da9efda664b2b803a",
+    "bytes": 4035
+  },
+  "output_overlay": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+    "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7",
+    "bytes": 323133
+  },
+  "tests": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_vllm_loader_interface.py -v",
+    "tests": 32,
+    "passed": 32,
+    "skipped": 0,
+    "elapsed_s": 0.814
+  },
+  "checks": {
+    "f7_inverse_text_bytes_exact": true,
+    "canonical_inverse_full_patch_sha_exact": true,
+    "canonical_and_overlay_endpoint_AST_equal": true,
+    "new_overlay_has_no_value_fingerprint_helper_or_flag": true,
+    "compile_without_import": true,
+    "default_off_no_clock_reads_tested": true,
+    "no_added_CUDA_sync_endpoint_before_existing_capture_sync_tested": true,
+    "identity_failure_original_model_exception_preserved_tested": true,
+    "eight_concurrent_actual_producer_files_tested": true
+  },
+  "diff": "--- before/sllm_load.patch\n+++ after/sllm_load.patch\n@@ -441,7 +441,7 @@\n  import threading\n  import time\n  from collections import defaultdict\n-@@ -4744,67 +4883,240 @@\n+@@ -4744,67 +4883,283 @@\n  \n          try:\n              with DeviceMemoryProfiler() as m:\n@@ -456,14 +456,49 @@\n -                    self.model = self.load_lora_model(\n -                        self.model, self.vllm_config, self.device\n +                load_error = None\n++                load_span = None\n +                try:\n +                    time_before_load = time.perf_counter()\n +                    if load_dummy_weights:\n +                        self.load_config.load_format = \"dummy\"\n +                    model_loader = get_model_loader(self.load_config)\n++                    if os.environ.get(\"SLLM_CAPTURE_LOAD_ENDPOINTS\") == \"1\":\n++                        load_span = {\"status\": \"MISSING\", \"begin_ns\": None, \"end_ns\": None}\n++                        try:\n++                            from sllm.logger import get_clock_identity\n++                            run_id = os.environ[\"SLLM_LOAD_SPAN_RUN_ID\"]\n++                            instance_id = os.environ[\"SLLM_LOAD_SPAN_INSTANCE_ID\"]\n++                            if not run_id or not instance_id:\n++                                raise ValueError(\"Load endpoint run/instance identity missing\")\n++                            clock_identity = get_clock_identity()\n++                            if (clock_identity.get(\"errors\") or\n++                                type(clock_identity.get(\"process_startticks\")) is not int or\n++                                clock_identity[\"process_startticks\"] <= 0 or\n++                                any(not isinstance(clock_identity.get(k), str) or not clock_identity[k]\n++                                    for k in (\"boot_id\", \"container_hostname\", \"time_namespace\", \"monotonic_clock_implementation\"))):\n++                                raise ValueError(\"Load endpoint clock identity unavailable\")\n++                            load_span.update(run_id=run_id, model_instance_id=instance_id,\n++                                             clock_identity=clock_identity, pid=os.getpid(),\n++                                             tp_rank=get_tp_group().rank_in_group,\n++                                             model=str(self.model_config.model),\n++                                             loader_type=type(model_loader).__module__ + \".\" + type(model_loader).__qualname__,\n++                                             status=\"STARTED\")\n++                        except Exception as endpoint_error:\n++                            load_span[\"error_type\"] = type(endpoint_error).__name__\n++                    if load_span is not None and load_span[\"status\"] == \"STARTED\":\n++                        try:\n++                            load_span[\"begin_ns\"] = time.monotonic_ns()\n++                        except Exception as endpoint_error:\n++                            load_span.update(status=\"MISSING\", error_type=type(endpoint_error).__name__)\n +                    self.model = model_loader.load_model(\n +                        vllm_config=self.vllm_config, model_config=self.model_config\n                      )\n++                    if load_span is not None and load_span[\"status\"] == \"STARTED\":\n++                        try:\n++                            load_span[\"end_ns\"] = time.monotonic_ns()\n++                            load_span[\"status\"] = \"COMPLETE\"\n++                        except Exception as endpoint_error:\n++                            load_span.update(status=\"MISSING\", error_type=type(endpoint_error).__name__)\n -                if hasattr(self, \"drafter\"):\n -                    logger.info_once(\"Loading drafter model...\")\n -                    self.drafter.load_model(self.model)\n@@ -648,6 +683,14 @@\n +                                \"synchronized\": True,\n +                                \"coverage\": \"registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered\",\n +                            }\n++                            if load_span is not None:\n++                                if load_span[\"status\"] == \"STARTED\":\n++                                    load_span[\"status\"] = \"FAILED\"\n++                                record[\"weight_load_host_span\"] = dict(\n++                                    load_span, schema=\"kimi-weight-load-host-endpoints-v1\",\n++                                    begin_boundary=\"before_model_loader_load_model\",\n++                                    end_boundary=\"after_model_loader_load_model_return_before_optional_runner_setup\",\n++                                    added_cuda_synchronization=False)\n +                            if os.environ.get(\"SLLM_DIAGNOSTIC_VALUE_FINGERPRINT\") == \"1\":\n +                                if load_error is not None:\n +                                    record[\"diagnostic_value_fingerprint\"] = {\n@@ -740,7 +783,7 @@\n              self.model_memory_usage = m.consumed_memory\n          except torch.cuda.OutOfMemoryError as e:\n              msg = (\n-@@ -4989,6 +5301,20 @@\n+@@ -4989,6 +5344,20 @@\n                      \"Following weights were not loaded from checkpoint: %s\",\n                      weights_not_loaded,\n                  )\n",
+  "scope": "Only canonical patch and existing test changed; new small ignored overlay/manifest/delta. No runtime or old artifacts changed."
+}
