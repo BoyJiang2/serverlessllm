@@ -56,3 +56,24 @@ for row in json.loads((base/'MANIFEST.json').read_bytes())['files']:
     assert len(data) == row['bytes']
     assert hashlib.sha256(data).hexdigest() == row['sha256']
 ```
+
+## GLM历史CPU补充
+
+新增四份inputs/glm-cpu证据已加入INPUTS及MANIFEST。reproduce.py继续核验这些输入SHA，但原七图/冻结比较数组不变；新附表单独读取historical-supplement.json，不能把helper区间改名controller。完整CPU采集与复算源码固定在GLM提交447765a，现有仓库根运行：
+
+```bash
+python -m unittest discover -s glm/tools -p test_final_costs.py
+python glm/tools/historical_costs.py --c23-supplement
+```
+
+该命令使用GLM归档，不能在本三模型子目录直接运行。无需再次扫描1.07 GB监控；historical-monitor.json已记录路径、整文件SHA、执行函数SHA、52个端点窗口及缺口。原大监控没有复制入报告。新增phase附表可在本目录用标准库复算：
+
+```python
+import csv, statistics
+from pathlib import Path
+rows=list(csv.DictReader(Path("inputs/glm-cpu/event-intervals.csv").open()))
+for condition in sorted({r["condition"] for r in rows}):
+    selected=[r for r in rows if r["condition"]==condition and 5<=int(r["block"])<=10]
+    assert len(selected)==6
+    print(condition, [statistics.fmean(float(r[k]) for r in selected) for k in ("phase_weight_ingestion_span_s","phase_quantization_postprocess_span_s","phase_weights_pipeline_including_allocation_span_s")])
+```

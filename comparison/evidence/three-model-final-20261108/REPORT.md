@@ -2,6 +2,8 @@
 
 2026-11-08。参照[指定的 Kimi/GLM 整合版 V2](https://github.com/BoyJiang2/serverlessllm/blob/1213421633a6e63fa6afdfc960207560c7d3acf1/kimi/evidence/final-report-20261107-v2/REPORT.md)的组织方式，补入已完成 B10 的 V4 正式结果。本次整理仅做 CPU 复核、统计与绘图，没有新启动模型、转换 Store 或重跑 Kimi/GLM。
 
+**GLM历史CPU补充**：新增读取既有监控与日志，补回资源采样、26条helper记录区间和一次历史转换容器成本；没有新增GPU运行，原40项35成功/5失败不变。数据来自已核验GLM提交[447765a](https://github.com/BoyJiang2/serverlessllm/commit/447765a98d1ed7edcd4075243c1b70e5ffd70032)及[服务器同步核验](https://github.com/BoyJiang2/serverlessllm/blob/5c9a7dba18a9d6da70a6dc61065f30b3fd418acc/glm/evidence/cost-sources/historical-supplement-sync.json)，副本与边界见[GLM历史CPU补充](inputs/glm-cpu/historical-supplement.md)。
+
 **三个模型在各自配置下都观察到 Store 启动等待减少；计入准备、复位及释放后，收益明显收窄。不同模型、量化、引擎、CPU、JIT、介质和计时边界，不能用绝对秒数给模型或实现排名。**
 
 ## 交付与样本导航
@@ -83,7 +85,19 @@ SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 
 
 ![控制器全程](derived/fig4_controller.png)
 
-Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐。GLM 选定可信小文件没有该完整数值，留空。原报告 Kimi 转换 controller 678.128942504 秒包含退出和释放；V4 原转换尝试因 1080 秒上限失败，后续独立 CPU 完整校验 197.160720331 秒通过。两者都不是统一定义的纯转换 I/O，V4 原失败没有被追认为成功。GLM 转换成本未知，不设为 0。环境构建、历史失败、迁移人工时间不混成在线延迟。
+Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐。GLM原选定小文件没有同定义完整controller数值；本次补回的是不同边界的helper区间，图4保留原缺测，新增下表而不强行回填。原报告 Kimi 转换 controller 678.128942504 秒包含退出和释放；V4 原转换尝试因 1080 秒上限失败，后续独立 CPU 完整校验 197.160720331 秒通过。两者都不是统一定义的纯转换 I/O，V4 原失败没有被追认为成功。GLM本次补回历史rawexport容器启动至退出505.467441929秒，派发至八rank最后预热结束403.180093388秒。两者重叠，包含加载、导出、后处理、预热和退出；不是纯save或统一转换I/O，不能相加。容器身份及八rank事件SHA均经核验；纯保存分量仍缺测，不设为0。环境构建、历史失败、迁移人工时间不混成在线延迟。
+
+### GLM：已恢复的helper生命周期区间（非图4同定义controller）
+
+| 条件 | C23描述n | 准备开始→记录完成均值/秒 | 完整B5–B10 n=6同区间/秒 |
+|---|---:|---:|---:|
+| SF冷读 | 6 | 575.095693 | 575.095693 |
+| SF热读 | 6 | 594.722176 | 594.722176 |
+| Store冷读 | 7 | 279.157305 | 276.402988 |
+| Store池命中 | 7 | 281.920955 | 281.715133 |
+
+每条严格计算 `(complete_ns-preparation_begin_ns)/1e9`，包括条件准备、三道请求、删除与至少60秒观察；不包含此前公共环境/池初始化，不保证包含记录完成后的落盘、进程退出及父控制器清理。描述26项与主配对24项分列；不混用7次与6次均值。逐项端点与SHA见[补充JSON](inputs/glm-cpu/historical-supplement.json)和[窗口摘要](inputs/glm-cpu/historical-monitor.json)。
+共享worker/head supervisor各覆盖整批26项，实测区间分别为11204.882661/11217.540113秒；两者重叠，不相加或按ID均摊。
 
 ## 图 5：权重加载与后处理的可观测边界
 
@@ -92,6 +106,19 @@ Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐�
 Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM 在本图不具备同定义 f7 包络，留缺测，不代表其无 phase 数据。
 
 V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
+
+### GLM既有八rank phase补充（不是f7包络）
+
+下表使用C23完整B5–B10，各条件n=6；均为八rank最早begin至最晚end跨度的算术均值，单位秒。不相加，不作为纯I/O或独立因果贡献；原图5缺的是同定义f7，仍保留。
+
+| 条件 | ingestion跨度 | quantization跨度 | 含分配weights pipeline跨度 |
+|---|---:|---:|---:|
+| SF冷读 | 391.670848 | 0.582500 | 393.624687 |
+| SF热读 | 129.215433 | 0.275165 | 131.216366 |
+| Store冷读 | 121.473016 | 6.475432 | 123.572061 |
+| Store池命中 | 5.825793 | 2.055968 | 7.889165 |
+
+26条原始阶段跨度及起止窗口保存在[event-intervals.csv](inputs/glm-cpu/event-intervals.csv)，主表选B5–B10；旧复算已核对每条八rank覆盖与起止时间，此处只做CPU求均值。
 
 ## 图 6：可相加的启动事件分解
 
@@ -160,13 +187,28 @@ Kimi/GLM 参数来自指定提交的逐来源 SHA 表；不从 cu129 字符串�
 
 ## 物理资源、释放和缺测
 
-Kimi 已选导出逐卡 NVML 采样高水位范围约 118045–118171 MiB，host/cgroup 数值峰在选定输入中缺测。V4 正式合格样本逐卡采样高水位：SF 135623–135627 MiB，Store 冷 137181–137183 MiB，Store 池 137181 MiB；这些是**非同时的采样下界**，不将八张卡各自峰值相加为实测整机峰。GLM 未重新读取大监控，选定输入没有可比逐卡峰，留缺测。
+Kimi 已选导出逐卡 NVML 采样高水位范围约 118045–118171 MiB，host/cgroup 数值峰在选定输入中缺测。V4 正式合格样本逐卡采样高水位：SF 135623–135627 MiB，Store 冷 137181–137183 MiB，Store 池 137181 MiB；这些是**非同时的采样下界**，不将八张卡各自峰值相加为实测整机峰。GLM本次已低优先级单遍流式重读服务器上1070633372字节原监控；9647条均有八卡值，GPU查询缺失0、外来GPU进程标记0，最大相邻采样间隔3.689146886秒，与当时独立审计一致。整个受监控run（含公共准备/准入及正式尝试）逐卡高水位均99293 MiB；各正式尝试窗口摘要另见下表。它们是设备级采样下界，不能当连续精确峰或相加为整机同时峰。
+
+### GLM逐尝试资源窗口（C23全部26项）
+
+| 条件 | n | 每卡采样高水位范围/MiB | 自有slice memory.current采样峰/GiB |
+|---|---:|---:|---:|
+| SF冷读 | 6 | 99291–99293 | 1437.952 |
+| SF热读 | 6 | 99291–99293 | 1447.134 |
+| Store冷读 | 7 | 99223–99225 | 1447.013 |
+| Store池命中 | 7 | 99225–99225 | 1447.049 |
+
+窗口为每次preparation_begin_ns→complete_ns，不是仅A。memory.current包含文件缓存，不是RSS/锁页总量；整段监控的自有slice采样峰为1553848774656字节（1447.134 GiB）。内核精确峰及全资源时间积分仍未知。原1.07 GB监控留服务器，报告只附约百KB摘要；同一大文件没有下载或模型payload读取。
 
 V4 cgroup memory.current 包括文件缓存，不是完整进程 RSS/全物理占用；worker 高水位随条件约 222.93–1008 GiB。共享/NFS 锁页的计费不必全部落在当前 cgroup，因此 SF-hot helper 的约 805.35 GiB VmLck 单列，不能据较小 cgroup 值宣称省内存。内核 5.15 无 memory.peak，不冒称精确峰值；pids.current 是线程加进程任务数，不是 CPU 预留。
 
 40 次主运行监控共有 **5 个 GPU 查询 timeout 缺口**：Pool01、Storecold01、Pool02、Pool03、Storecold05 各 1 点；最长相邻有效 GPU 起点间隔约 12.12 秒。缺失点、错误原文、起止时间和每角色有效采样数在 [sampled-resources.json](inputs/v4/results/sampled-resources.json)明确保留，不补零。这些是主运行资源监控，不是最终释放 collector；38 次合格最终 head/worker 均各有 61 个有效释放样本、跨度 81.67–84.38 秒，满足冻结的释放最大间隔 5 秒规则。
 
 38 次合格均以正常 Store/Ray/容器退出、原 PID 身份消失、无 compute apps 和 GPU 回原零基线独立验收。结束后现场八卡均 0 MiB、无计算进程。独立 native 两轮生命周期 run `native-service-20261107T093848Z` 的源为 69f67ad，轮间 62.028 秒只余已校准 Store daemon，第二轮重新注册/恢复/请求成功；不能将它写成 88cc71e 新重跑的两轮证明。
+
+## GLM仍需新测量的缺项
+
+CPU已补回历史容器成本、采样峰及helper区间；以下不从旧总历时倒推：fixed32独立客户端begin/end；如必须统一的f7边界；纯save/纯填池分量；N>1持续保留池的摊销；与其他模型同端点的完整逐次controller。新增运行需独立预算、守护及审阅，不重跑或替换原40项、不为显著性增加旧样本。
 
 ## 复核、来源与复现
 
