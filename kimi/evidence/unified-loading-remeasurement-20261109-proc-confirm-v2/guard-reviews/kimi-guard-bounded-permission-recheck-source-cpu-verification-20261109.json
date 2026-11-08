@@ -1,0 +1,52 @@
+{
+  "schema": "kimi-guard-bounded-permission-recheck-source-cpu-v1",
+  "created_at_utc": "2026-11-08T19:46:22.838786+00:00",
+  "status": "39_CPU_PASS_PENDING_INDEPENDENT_REVIEW",
+  "revision": "normal-worker-exe-permission-same-pid-bounded-confirmation-v1",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py",
+      "sha256": "12fe0afcad18114cd8f84a0b99a2e13d82ea29b2cce3c58611b19532def6731c",
+      "bytes": 24936,
+      "lines": 414
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_guard_cuda_micro.py",
+      "sha256": "c2c03369ee58897f6733be6d77a98b4672af171f19e63134e6a15815e5b00aac",
+      "bytes": 39951,
+      "lines": 665
+    }
+  ],
+  "baseline_guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf",
+  "baseline_test_sha256": "f1b76089a419ef7603efa3415af0b0ac9d9c3f6283ea5e2638a9978671fc0c02",
+  "red_stage": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-bounded-permission-recheck-red-stage-20261109.json",
+    "sha256": "5db3bd671305c5bfc59c3ca23fea9fc51ccb0d3d3a7b310f0084a6f9e600dd8b",
+    "bytes": 9491,
+    "lines": 15
+  },
+  "green_stage": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_guard_cuda_micro.py -v",
+    "tests": 39,
+    "passed": 39,
+    "skipped": 0,
+    "elapsed_s": 1.53,
+    "scope": "Actual guard function AST with synthetic proc/status, exceptions and fake clock; no container/GPU/Store/weights/real prctl/setuid subprocess."
+  },
+  "mechanism": [
+    "UID-first nonroot exclusion preserved. For root, record startticks/UID/state/PPid/cgroup/readstage before exe; exceptions carry partial metadata.",
+    "Only normal worker initial-exe PermissionError may receive confirmation; head-only warning policy remains separate, legacy-off has no retry.",
+    "First error event always retained before candidate confirmation. Known pin/ownedruntime/CID argv token/owned scope membership/own cgroup remain fatal without retry. Scope unreadable remains fatal.",
+    "At most one candidate per scan and one20ms sleep, only before existing GO+deadline; checks remaining time again after wait and final metadata. No deadline or quiet60 change.",
+    "Fresh same PID/startticks, cgroup and normalized cmdline SHA required, plus final UID/cgroup/startticks revalidation. Same-PID UID0-to-fresh-nonroot may use the original UID exclusion after verified not-positive-owned classification; UID transition is recorded, not blanket fatal.",
+    "Persistent PermissionError, loss/reuse/drift, fresh owned runtime, postowned/pidfd/revalidation errors all retain original proc_discovery failure and failfast ABORT.",
+    "No plaintext cmdline emitted; normalized cmdline SHA only."
+  ],
+  "limits": [
+    "Does not classify the originalPID1988981 or prove it was transient/unrelated, nor retroactively accept original failed run.",
+    "Real prctl/dumpable/setuid mechanism was not executed; CPU source fixture proves handling of that TOCTOU sequence only.",
+    "Current root-shell CAP_SYS_PTRACE does not establish historical exited guard capabilities; no missing-ptrace root-cause claim.",
+    "The20ms delay/count/deadline checks are bounded policy, not a hard wall-time guarantee for individual /proc syscalls.",
+    "No new GPU/container/Store/model/weights/Git operation; renderer/source publication and fresh runtime admission remain pending."
+  ]
+}

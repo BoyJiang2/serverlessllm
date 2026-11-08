@@ -1,0 +1,53 @@
+{
+  "status": "CPU_PASS_V2_CANDIDATE_ONLY_GPU_REAPPROVAL_AND_SOURCE_PUBLICATION_REQUIRED",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "a8d18c3ddbc7530ac163acfe66ccad7c8044b946b0f1c22e1304a70b334be243",
+      "bytes": 106053
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "sha256": "025bd284104d5a7d67f9aa6bc15d38bd238c9cfcc71d6347cb7be58af693bcce",
+      "bytes": 140587
+    }
+  ],
+  "red": {
+    "tests": 2,
+    "failures": 2,
+    "reason": "old exactcohort rejected newv2 beforeimplementation"
+  },
+  "green": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_prepare_kimi_four_condition.py -v",
+    "tests": 69,
+    "passed": 69,
+    "failed": 0,
+    "skipped": 0,
+    "elapsed_s": 20.365
+  },
+  "v2_guard": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py",
+    "sha256": "12fe0afcad18114cd8f84a0b99a2e13d82ea29b2cce3c58611b19532def6731c",
+    "baseline_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf",
+    "revision": "normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
+  },
+  "canonical_verification_ref": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-bounded-permission-recheck-source-cpu-verification-20261109.json",
+    "sha256": "2155a4b964271bfa8d5f81d087b7f13e01debabda93819ea19d556d744c91039"
+  },
+  "coverage": [
+    "uniqueexplicitv2cohort and4newlogical/runtimeIDs",
+    "actualnewguardbytes vsdeclaredpin; wrongpath/SHA/baseline/revision rejected",
+    "historical40cannotoverrideguard usinginjectednewcohortfield; oldv1actualrender stilloldguardpinclosed",
+    "actualmain10tempJSON candidateclosed andfrozen-review-required withmocksourcegate",
+    "actualBLOCK_BODY child2failure leaves3/4NOT_STARTED andnoretry",
+    "legacyCPUhistoricalpatch+guarddigestfixtureexplicit; neveractualoldsourceadmission"
+  ],
+  "unchanged": [
+    "endpoint overlayf919/manifest8a433/canonical048e",
+    "normalStoreexit60/quiet60/phase6480/condition7200/block28920",
+    "original40andoldunifiedv1evidence/FAIL/IDs"
+  ],
+  "new_GPU_launches": 0,
+  "Git_or_runtime_operations": false
+}

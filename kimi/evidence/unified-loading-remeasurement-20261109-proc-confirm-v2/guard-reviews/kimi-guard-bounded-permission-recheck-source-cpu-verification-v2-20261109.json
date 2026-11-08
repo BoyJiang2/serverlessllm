@@ -1,0 +1,49 @@
+{
+  "schema": "kimi-guard-bounded-permission-recheck-source-cpu-v2",
+  "created_at_utc": "2026-11-08T19:51:11.653757+00:00",
+  "status": "40_CPU_PASS_PENDING_INDEPENDENT_REVIEW",
+  "revision": "normal-worker-exe-permission-same-pid-bounded-confirmation-v1",
+  "previous_cpu_receipt_preserved": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-bounded-permission-recheck-source-cpu-verification-20261109.json",
+    "sha256": "2155a4b964271bfa8d5f81d087b7f13e01debabda93819ea19d556d744c91039",
+    "bytes": 3477,
+    "lines": 52
+  },
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py",
+      "sha256": "e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e",
+      "bytes": 24953,
+      "lines": 414
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_guard_cuda_micro.py",
+      "sha256": "6c0f3bb2a57278184f2211be1e43959fa450b45b86c9bf93373d2766f7806e49",
+      "bytes": 40567,
+      "lines": 675
+    }
+  ],
+  "delta": "Only guard budget condition adds go_at is None; preGO rejects confirmation and raises retained first PermissionError instead of TypeError. One actual-scan AST regression added.",
+  "inverse_guard_single_line_sha256": "12fe0afcad18114cd8f84a0b99a2e13d82ea29b2cce3c58611b19532def6731c",
+  "red_stage": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_guard_cuda_micro.py -k test_pre_go_permission_error -v",
+    "tests": 1,
+    "errors": 1,
+    "failures": 0,
+    "exception": "TypeError NoneType+int at scan budget before fix",
+    "elapsed_s": 0.004
+  },
+  "green_stage": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_guard_cuda_micro.py -v",
+    "tests": 40,
+    "passed": 40,
+    "skipped": 0,
+    "elapsed_s": 1.524
+  },
+  "limits": [
+    "Synthetic actual-source AST fixtures only; no real proc capability/UID transition test or historicalPID attribution.",
+    "No GPU/container/Store/model/weights/Git.",
+    "Original source12fe39test receipt retained; cannot claim preGO validation had passed in that version.",
+    "20ms delay/count boundedness not a hard syscall wall-time guarantee; other existing budgets/quiet60 unchanged."
+  ]
+}

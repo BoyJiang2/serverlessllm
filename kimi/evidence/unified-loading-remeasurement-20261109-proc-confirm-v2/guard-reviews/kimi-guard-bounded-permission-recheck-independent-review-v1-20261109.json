@@ -1,0 +1,35 @@
+{
+  "status": "CHANGES_REQUIRED_PRE_GO_PERMISSION_CLASSIFICATION",
+  "reviewed_at_utc": "2026-11-08T19:51:15.195577+00:00",
+  "pins": {
+    "sllm_store/tests/guard_cuda_micro.py": "e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e",
+    "sllm_store/tests/python/test_guard_cuda_micro.py": "6c0f3bb2a57278184f2211be1e43959fa450b45b86c9bf93373d2766f7806e49"
+  },
+  "independent_cpu": {
+    "existing_tests": 39,
+    "passed": 39,
+    "elapsed_seconds": 1.526,
+    "additional_actual_AST_fixture": "Existing BoundedProcessRecheckTest.fixture actual scan AST with namespace go_at=None reproduced TypeError; failures remained empty."
+  },
+  "blocker": {
+    "source": "sllm_store/tests/guard_cuda_micro.py",
+    "first_scan_line": 332,
+    "budget_line": 202,
+    "facts": "Initial scan executes before GO while go_at=None. Unknown initial exe PermissionError can reach go_at+a.deadline and raise TypeError before preserving original proc_discovery failure.",
+    "minimal_fix": "Before attempting budget arithmetic, when go_at is None raise original first_error into existing fatal proc_discovery handling; add one actual preGO scan regression requiring no sleep and retained PID/stage/errno."
+  },
+  "otherwise_reviewed": [
+    "Only normal worker initial exe PermissionError eligible; head-only, legacy, knownpins/ownedruntime/postowned/pidfd/recheck excluded",
+    "First partial UID/startticks/cgroup preserved; ownCID command/ownscope member/owncgroup excludes confirmation; persistent error/lostPID/reuse/drift remains fatal",
+    "At most one20ms delay per scan; before/after existing GOdeadline checks; samePID/startticks/cgroup/cmdhash/finalUID closure",
+    "Original failfast ABORT/relative cleanup and>=60quiet unchanged; no blanket warning downgrade"
+  ],
+  "limits": [
+    "Actual original PID1988981 identity unknown; this does not prove transient/unrelated or retroactively pass failed attempt",
+    "CPU actual function AST with fakeproc/time only, no rootUID/ptrace/container/GPU execution",
+    "Renderer guard pin must follow corrected finalSHA, not old12fe"
+  ],
+  "not_performed": [
+    "No Git/source edits/GPU/Store/model/weights/cache operations"
+  ]
+}
