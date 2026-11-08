@@ -1,0 +1,376 @@
+{
+  "schema": 2,
+  "scope": "New40 frozen; ten complete paired blocks; all candidate/pilot/failure records and old12 retained; no formal ID started at freeze",
+  "engine_source": "132765e3560659ff63ebd236203672e991b70e08",
+  "model_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+  "tp": 8,
+  "ep": false,
+  "pp": 1,
+  "dp": 1,
+  "max_model_len": 2048,
+  "max_num_seqs": 1,
+  "max_num_batched_tokens": 2048,
+  "mtp": false,
+  "enforce_eager": true,
+  "prefix_cache": false,
+  "activation_dtype": "bfloat16",
+  "expert_precision": "native MXFP4",
+  "nonexpert_precision": "native FP8 and exclusions",
+  "scale_fmt": "UE8M0",
+  "mHC_learned_dtype": "float32",
+  "request_sha256": "707d5d8b6efbfe257ff310466a03d6e19df5dce1b6b205270eb6a3d7e9374876",
+  "workload32_sha256": "75a520893b656a8bc921ed810d910f0b5cf53b5c35f769c9e3c25e085ad88b9d",
+  "request_sequence": [
+    "cold natural-EOS business request: request.json",
+    "warm fixed-length request: workload32.json; only after business request completes, otherwise record skipped_due_to_business_failure"
+  ],
+  "attempt_success": "Native two-cycle lifecycle is a prerequisite; each formal ID creates one fresh GPU engine, checks business and fixed32 gold, deletes and observes final cohort release; separate cache/pool/response/resource booleans and all failures retained",
+  "business_timing_policy": "command/trigger_to_correct_business_response_s uses natural-EOS business request only; fixed32 parity cannot populate it",
+  "seed": 20261105,
+  "order_generator": "random.Random(20261105).shuffle; explicit persisted order; Python 3.13.1",
+  "attempt_timeout_seconds": 3600,
+  "post_delete_observation_seconds": 60,
+  "maximum_monitor_gap_seconds": 5,
+  "denominator_per_condition": 10,
+  "failure_policy": "retain every started/preparation/cache-failed attempt under original ID; do not substitute timeout as observed completion",
+  "attempts": [
+    {
+      "attempt_id": "v4n40_store_pool_hit_01",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_01",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_01",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_01",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_03",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_03",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_03",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_03",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_04",
+      "block": 4,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_04",
+      "block": 4,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_04",
+      "block": 4,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_04",
+      "block": 4,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_05",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_05",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_05",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_05",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_06",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_06",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_06",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_06",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_07",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_07",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_07",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_07",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_08",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_08",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_08",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_08",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_09",
+      "block": 9,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_09",
+      "block": 9,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_09",
+      "block": 9,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_09",
+      "block": 9,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_pool_hit_10",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_store_disk_cold_10",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_hot_10",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "status": "preregistered_not_started"
+    },
+    {
+      "attempt_id": "v4n40_safetensors_disk_cold_10",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "status": "preregistered_not_started"
+    }
+  ],
+  "campaign": "v4_4x10_20261107",
+  "predecessor_sha256": "98875c79175f3e5af24cf228ee1e9cd758557744fb2e946692c6ff06cdc005b6",
+  "kv_cache_dtype": "fp8",
+  "use_fp4_indexer_cache": false,
+  "distributed_executor_backend": "mp",
+  "native_gold_sha256": "9c67cea181bdfc22f56a063e5b0ffcb3bba1105d178241e8e62c6bcdd59bb4c1",
+  "prerequisite_status": "Native reference, full Store integrity/recovery, native two-cycle lifecycle qualified; restricted root full cold admission and genuine NUMA-balanced SF-hot full-model pilot qualified; native full-pool496 receipts/8rank gold/normal exit previously demonstrated independently of revoked pagecache claims; each formal ID must establish fresh condition proof",
+  "cache_inventory_sha256": "e3cf30105ecbdcd3235e96f617618fb1d489f4c5c7087354740a3e3f2f3eef34",
+  "native_service_review_sha256": "233821ae739a2ad8fbb264195ae0dda1ccd6b2045e1d90ffb2715375e7bb858b",
+  "store_pool_bytes_by_condition": {
+    "safetensors_disk_cold": 33554432,
+    "safetensors_disk_hot": 33554432,
+    "store_disk_cold": 890937278464,
+    "store_pool_hit": 890937278464
+  },
+  "chunk_bytes": 33554432,
+  "head_cpu": 4,
+  "worker_cpu": 4,
+  "head_memory_bytes": 17179869184,
+  "worker_memory_bytes": 1082331758592,
+  "pids_limit_per_role": 4096,
+  "execution_shape": "One fresh head/worker/Store service cohort per ID; common bootstrap, pool init and full Store registration are recorded separately inside preparation, never hidden from total timing",
+  "cold_scope": "Linux client page cache for exact sealed input sets; no storage-server/hardware/CUDA/JIT cache-cold claim",
+  "shared_metadata_policy": "Five model metadata files belong to both cache input sets; counterpart scan precedes target preparation; preserve both full-vector scans",
+  "pool_policy_scope": "SF uses one minimal32MiB Store chunk for metadata/control only; Store conditions require full rounded pool. Fixed memory ceiling is unchanged; capacity and actual preparation costs are disclosed. Full-size runtime cache admission not yet executed.",
+  "frozen": true,
+  "http_client": "Host stdlib urllib; no proxy; raw bytes and receive timestamp saved before validation; each HTTP operation uses original remaining work deadline (container deadline minus120s)",
+  "runtime_guard_purpose": "formal-trial",
+  "container_timeout_seconds": 3480,
+  "cache_sampler": "CPU-only root docker exec in worker cgroup with only CAP_FOWNER and CAP_DAC_READ_SEARCH; inference remains UID2147 with zero effective capabilities; read-only inputs; archive streamed to host UID2147; per-file owner/euid/cap/user-namespace receipts; no GPU imports",
+  "supersedes_candidate_sha256": "ea41a137f997c907235375b187480cd4e2c115b205e750d8afeb0d3aefb9bea4",
+  "cache_hot_read_cpus": [
+    0,
+    1,
+    120,
+    121
+  ],
+  "sf_preparation_policy": "After Store binding, DONTNEED only all frozen Store inputs and verify cold; SF-hot additionally resets its own frozen inputs to cold before four readers pinned0/1(node0)/120/121(node1); then counterpart check before target preparation; all costs remain in preparation; no model thread affinity changes",
+  "frozen_at_utc": "2026-11-07T13:31:46.113134+00:00",
+  "sf_hot_prerequisite_review_sha256": "86757cf739257d6cd2854b2e2eea06aee52b196a4bfba2039213d051a951b2d1",
+  "sf_hot_prerequisite_path": "docs/evidence/v4-formal-4x10/prerequisite-sf-hot-runtime-review.json",
+  "statistics": {
+    "primary_metric": "command_to_correct_business_response_s",
+    "summary_by_condition": [
+      "started/10 and all failure/preparation/cache/transport/timeout causes",
+      "fully qualified success/10 with Wilson95percent",
+      "qualified-latency n/mean/median/nearest-rank P90",
+      "preparation/whole-attempt latency and sampled memory/PID/GPU lower bounds"
+    ],
+    "contrasts": [
+      [
+        "safetensors_disk_cold",
+        "store_disk_cold"
+      ],
+      [
+        "safetensors_disk_hot",
+        "store_pool_hit"
+      ],
+      [
+        "safetensors_disk_cold",
+        "safetensors_disk_hot"
+      ],
+      [
+        "store_disk_cold",
+        "store_pool_hit"
+      ]
+    ],
+    "paired_effect": "geometric mean of baseline/target latency ratios, paired by block; only pairs with both fully runtime-qualified, report matched n",
+    "bootstrap": {
+      "unit": "paired block",
+      "resamples": 10000,
+      "seed": 20261105,
+      "interval": "95percent percentile of exp(mean(log ratio)); descriptive unadjusted CI; n<2 no CI"
+    },
+    "tests": {
+      "method": "two-sided exact sign-flip permutation of mean paired log ratio",
+      "family": "the four declared contrasts on the one primary metric",
+      "correction": "Holm",
+      "alpha": 0.05,
+      "n_less_than_2": "no test"
+    },
+    "failure_policy": "all started and cache/preparation failures remain in denominator10 and original ID; no replacement/retry; timeout is right-censored and never an observed completion; missing metrics remain null",
+    "scope": "One fixed host/model/profile, ten blocks; exploratory latency/P90, no production-tail or cross-model causal claim"
+  },
+  "comparison_scope": "Native target vLLM SafeTensors loader within the same SLLM HTTP/Ray control plane versus grouped Store loader. SF uses32MiB control pool; Store uses890937278464bytes full pool; disclose initialized context/KV-capacity/pool-preparation differences. Native offline8CPU reference supplies gold only; formal head4/worker4. GLM historical comparisons descriptive with identical field/time/cache/failure/release definitions, different model/quantization/media/parallel/cache preparation fully disclosed.",
+  "execution_source_sha256": {
+    "benchmarks/v4_service_once.py": "49cbcf82b60f1a9a7a22731065a63d3bba025ed778ffbee5e3d281dd38ea5374",
+    "benchmarks/v4_native_service.py": "f64b9d4cdd1dbd61a756d0b5efb2949a5c741f0c21faddebe17c95ebd0ec1fef",
+    "benchmarks/v4_trial.py": "30a85841e2b8b766eb39b724f95d9bd9c5c76e35d4f6d865834d350ddca7e116",
+    "benchmarks/v4_cache_state.py": "c66be2eae80e71a10189570e64da269e87426be9057e1d4b4320812525710d83",
+    "benchmarks/v4_trial_review.py": "1e75926f0603bc65266385ac76e3bff2fd5e6194522096979df8c08b07502b93",
+    "benchmarks/v4_campaign.py": "2114f8f982d89177d69d767bf12918cb18f2a06c12150436d5282c4572a1bd01",
+    "benchmarks/v4_attempts.py": "0dec74a0a701969600c41e0de848f5678f11bb9fee388ba44710017a3b886ae9",
+    "benchmarks/v4_results.py": "54d2b62780688802c6aeb14a90f36e83dcc903d90368b98da4f48ebd740acadd",
+    "benchmarks/v4_evidence.py": "c8b15116e1fac1d7972f1cbd8d87115f6568cea4853ab95501c6761352f682b2",
+    "sllm/store_manager.py": "da99c059ab8349627fa09c6f1721f70db27dddf7caa43aba2003ec6a73431807"
+  },
+  "runtime_image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d"
+}

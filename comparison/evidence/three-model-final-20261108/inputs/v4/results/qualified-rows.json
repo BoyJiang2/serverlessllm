@@ -1,0 +1,3029 @@
+[
+  {
+    "attempt_id": "v4n40_store_pool_hit_01",
+    "block": 1,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": false,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": false,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 965.146870101,
+      "command_to_first_token_s": 139.702013623,
+      "trigger_to_first_token_s": 139.219803155,
+      "command_to_correct_business_response_s": 140.168784586,
+      "trigger_to_correct_business_response_s": 139.686574118,
+      "phase_device_setup_including_communication_span_s": 22.712846772,
+      "phase_communication_groups_span_s": 17.606609432,
+      "phase_weights_pipeline_including_allocation_span_s": 57.139814512,
+      "phase_weight_ingestion_span_s": 2.791418157,
+      "phase_quantization_postprocess_span_s": 46.210310388,
+      "phase_kv_cache_allocation_span_s": 0.14075562,
+      "phase_compile_graph_and_warmup_span_s": 1.732056358,
+      "backend_construct_s": 120.584977768,
+      "command_to_route_publication_s": 137.331327187,
+      "weight_ingestion_span_s": 2.791418157,
+      "weights_pipeline_span_s": 57.139814512
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_01",
+    "code_commit": "65fb53b6a777315b8928eb26f6eb8599b835ffc4",
+    "source_manifest_sha256": "fbbc2da2d45d4d7e314c12d0945a7044f953e5ac3c06ba72bb085209506c0774",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.211452486,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 601995042479903,
+    "preparation_begin_ns": 600577199353624,
+    "attempt_deadline_ns": 604177121959291,
+    "preparation_complete_ns": 601542346223725,
+    "startup_command_ns": 601542346223725,
+    "register_complete_ns": 601542825920313,
+    "business_trigger_ns": 601542828434193,
+    "business_request_id": "v4n40_store_pool_hit_01-business",
+    "correct_business_response_ns": 601682515008311,
+    "first_token_observed_ns": 601682048237348,
+    "delete_command_ns": 601824539892768,
+    "delete_complete_ns": 601829934607626,
+    "protocol_binding_verified": true,
+    "full_run_status": "failed",
+    "runtime_failure_class": "runtime_warm_fixed32_single_engine_failed"
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_01",
+    "block": 1,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 403.323147208,
+      "command_to_first_token_s": 546.055512961,
+      "trigger_to_first_token_s": 545.560614544,
+      "command_to_correct_business_response_s": 546.467885494,
+      "trigger_to_correct_business_response_s": 545.972987077,
+      "phase_device_setup_including_communication_span_s": 10.182903729,
+      "phase_communication_groups_span_s": 8.548619142,
+      "phase_weights_pipeline_including_allocation_span_s": 486.68566233,
+      "phase_weight_ingestion_span_s": 470.926077905,
+      "phase_quantization_postprocess_span_s": 12.002490827,
+      "phase_kv_cache_allocation_span_s": 0.145815628,
+      "phase_compile_graph_and_warmup_span_s": 1.662635401,
+      "backend_construct_s": 531.473082589,
+      "command_to_route_publication_s": 544.366720739,
+      "weight_ingestion_span_s": 470.926077905,
+      "weights_pipeline_span_s": 486.68566233
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_01",
+    "code_commit": "df6059627a737d71a00e4a31c267f1e2721e438c",
+    "source_manifest_sha256": "b820e4cb81bb0d90e9c3c053da9d46541048451ff8a2ba2977b2a429a0b42607",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.178230877,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 606810616394967,
+    "preparation_begin_ns": 605751336203675,
+    "attempt_deadline_ns": 609351240768718,
+    "preparation_complete_ns": 606154659350883,
+    "startup_command_ns": 606154659350883,
+    "register_complete_ns": 606155151901350,
+    "business_trigger_ns": 606155154249300,
+    "business_request_id": "v4n40_safetensors_disk_cold_01-business",
+    "correct_business_response_ns": 606701127236377,
+    "first_token_observed_ns": 606700714863844,
+    "delete_command_ns": 606714545981296,
+    "delete_complete_ns": 606719930608217,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "118a08499e48ad3ab77bf5b0521908cc25c9ce88ec65bdbe2af5ab80b0c24e3f",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1059.284656931,
+      "preparation_seconds": 403.323147208,
+      "daemon_shutdown_seconds": 1.166254935,
+      "release_seconds": {
+        "head": 82.168932268,
+        "worker": 82.178230877
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_01",
+    "block": 1,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 800.36288804,
+      "command_to_first_token_s": 231.749749391,
+      "trigger_to_first_token_s": 231.194559396,
+      "command_to_correct_business_response_s": 232.166875454,
+      "trigger_to_correct_business_response_s": 231.611685459,
+      "phase_device_setup_including_communication_span_s": 20.377799927,
+      "phase_communication_groups_span_s": 16.959065606,
+      "phase_weights_pipeline_including_allocation_span_s": 156.466985391,
+      "phase_weight_ingestion_span_s": 11.699135831,
+      "phase_quantization_postprocess_span_s": 137.486640791,
+      "phase_kv_cache_allocation_span_s": 0.147457277,
+      "phase_compile_graph_and_warmup_span_s": 1.819744396,
+      "backend_construct_s": 213.779138546,
+      "command_to_route_publication_s": 229.737770776,
+      "weight_ingestion_span_s": 11.699135831,
+      "weights_pipeline_span_s": 156.466985391
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_01",
+    "code_commit": "df6059627a737d71a00e4a31c267f1e2721e438c",
+    "source_manifest_sha256": "b820e4cb81bb0d90e9c3c053da9d46541048451ff8a2ba2977b2a429a0b42607",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.293694366,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 608033101448372,
+    "preparation_begin_ns": 606815394439804,
+    "attempt_deadline_ns": 610415304568091,
+    "preparation_complete_ns": 607615757327844,
+    "startup_command_ns": 607615757327844,
+    "register_complete_ns": 607616309698208,
+    "business_trigger_ns": 607616312517839,
+    "business_request_id": "v4n40_store_disk_cold_01-business",
+    "correct_business_response_ns": 607847924203298,
+    "first_token_observed_ns": 607847507077235,
+    "delete_command_ns": 607860843047293,
+    "delete_complete_ns": 607866295714576,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "118a08499e48ad3ab77bf5b0521908cc25c9ce88ec65bdbe2af5ab80b0c24e3f",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1217.710450641,
+      "preparation_seconds": 800.36288804,
+      "daemon_shutdown_seconds": 75.575988452,
+      "release_seconds": {
+        "head": 82.281458036,
+        "worker": 82.293694366
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_01",
+    "block": 1,
+    "condition": "safetensors_disk_hot",
+    "status": "failed",
+    "success": false,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": false,
+    "physical_cleanup_verified": false,
+    "metrics": {},
+    "component_checks": {},
+    "missing_evidence": [],
+    "correct_business_response_observed": false,
+    "execution_run_id": "v4n40_safetensors_disk_hot_01",
+    "code_commit": "df6059627a737d71a00e4a31c267f1e2721e438c",
+    "source_manifest_sha256": "b820e4cb81bb0d90e9c3c053da9d46541048451ff8a2ba2977b2a429a0b42607",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "failure_ns": 608674640055506,
+    "failed_stage": "origin",
+    "error_type": "CalledProcessError",
+    "error": "Command '['docker', 'exec', '--user', '0:0', '--env', 'CUDA_VISIBLE_DEVICES=', '--env', 'PYTHONDONTWRITEBYTECODE=1', '389e5ee9132ac5fb903c07c6d58eee80f0651bb56366ad290b46ffaf02c7350d', '/opt/sllm-v4/bin/python', '/workspace/benchmarks/v4_trial.py', '--cache-only']' returned non-zero exit status 1.",
+    "right_censored": false,
+    "startup_censor_elapsed_seconds": null,
+    "cleanup_pending": true,
+    "preparation_begin_ns": 608037073956543,
+    "attempt_deadline_ns": 611636940736230,
+    "protocol_binding_verified": true,
+    "full_run_status": "failed",
+    "runtime_failure_class": "prestartup_cache_admission_failed"
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_02",
+    "block": 2,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 804.438899763,
+      "command_to_first_token_s": 227.608989346,
+      "trigger_to_first_token_s": 227.132365155,
+      "command_to_correct_business_response_s": 228.025637385,
+      "trigger_to_correct_business_response_s": 227.549013194,
+      "phase_device_setup_including_communication_span_s": 18.494627033,
+      "phase_communication_groups_span_s": 15.660227868,
+      "phase_weights_pipeline_including_allocation_span_s": 151.99607451,
+      "phase_weight_ingestion_span_s": 12.717531387,
+      "phase_quantization_postprocess_span_s": 133.202469438,
+      "phase_kv_cache_allocation_span_s": 0.136095949,
+      "phase_compile_graph_and_warmup_span_s": 1.773298977,
+      "backend_construct_s": 209.802656615,
+      "command_to_route_publication_s": 225.722072249,
+      "weight_ingestion_span_s": 12.717531387,
+      "weights_pipeline_span_s": 151.99607451
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_02",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.423931201,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 624669463224808,
+    "preparation_begin_ns": 623451467653641,
+    "attempt_deadline_ns": 627050363094626,
+    "preparation_complete_ns": 624255906553404,
+    "startup_command_ns": 624255906553404,
+    "register_complete_ns": 624256380618070,
+    "business_trigger_ns": 624256383177595,
+    "business_request_id": "v4n40_store_disk_cold_02-business",
+    "correct_business_response_ns": 624483932190789,
+    "first_token_observed_ns": 624483515542750,
+    "delete_command_ns": 624497438507514,
+    "delete_complete_ns": 624503019986708,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1217.999307178,
+      "preparation_seconds": 804.438899763,
+      "daemon_shutdown_seconds": 75.021658302,
+      "release_seconds": {
+        "head": 82.443126702,
+        "worker": 82.423931201
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_02",
+    "block": 2,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 912.503017422,
+      "command_to_first_token_s": 131.82917862,
+      "trigger_to_first_token_s": 131.354627731,
+      "command_to_correct_business_response_s": 132.247448508,
+      "trigger_to_correct_business_response_s": 131.772897619,
+      "phase_device_setup_including_communication_span_s": 18.505357268,
+      "phase_communication_groups_span_s": 15.930722403,
+      "phase_weights_pipeline_including_allocation_span_s": 56.419146039,
+      "phase_weight_ingestion_span_s": 2.907830145,
+      "phase_quantization_postprocess_span_s": 46.555713651,
+      "phase_kv_cache_allocation_span_s": 0.189608195,
+      "phase_compile_graph_and_warmup_span_s": 2.90895856,
+      "backend_construct_s": 114.643779649,
+      "command_to_route_publication_s": 130.028423855,
+      "weight_ingestion_span_s": 2.907830145,
+      "weights_pipeline_span_s": 56.419146039
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_02",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.038114925,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 625890255970160,
+    "preparation_begin_ns": 624674278451798,
+    "attempt_deadline_ns": 628273540028555,
+    "preparation_complete_ns": 625586781469220,
+    "startup_command_ns": 625586781469220,
+    "register_complete_ns": 625587254037286,
+    "business_trigger_ns": 625587256020109,
+    "business_request_id": "v4n40_store_pool_hit_02-business",
+    "correct_business_response_ns": 625719028917728,
+    "first_token_observed_ns": 625718610647840,
+    "delete_command_ns": 625732236100391,
+    "delete_complete_ns": 625737733648554,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1215.981076501,
+      "preparation_seconds": 912.503017422,
+      "daemon_shutdown_seconds": 61.452275795,
+      "release_seconds": {
+        "head": 82.05369971,
+        "worker": 82.038114925
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_02",
+    "block": 2,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1271.669376393,
+      "command_to_first_token_s": 218.657188751,
+      "trigger_to_first_token_s": 218.076648008,
+      "command_to_correct_business_response_s": 219.068410565,
+      "trigger_to_correct_business_response_s": 218.487869822,
+      "phase_device_setup_including_communication_span_s": 10.610850257,
+      "phase_communication_groups_span_s": 8.168265918,
+      "phase_weights_pipeline_including_allocation_span_s": 157.320524094,
+      "phase_weight_ingestion_span_s": 145.00360741,
+      "phase_quantization_postprocess_span_s": 18.187899956,
+      "phase_kv_cache_allocation_span_s": 0.147620696,
+      "phase_compile_graph_and_warmup_span_s": 1.718253426,
+      "backend_construct_s": 203.443451746,
+      "command_to_route_publication_s": 217.036969377,
+      "weight_ingestion_span_s": 145.00360741,
+      "weights_pipeline_span_s": 157.320524094
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_02",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.449308194,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 627560975374296,
+    "preparation_begin_ns": 625895405361730,
+    "attempt_deadline_ns": 629494473817369,
+    "preparation_complete_ns": 627167074738123,
+    "startup_command_ns": 627167074738123,
+    "register_complete_ns": 627167651335591,
+    "business_trigger_ns": 627167655278866,
+    "business_request_id": "v4n40_safetensors_disk_hot_02-business",
+    "correct_business_response_ns": 627386143148688,
+    "first_token_observed_ns": 627385731926874,
+    "delete_command_ns": 627399128999106,
+    "delete_complete_ns": 627404423791705,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1665.57344412,
+      "preparation_seconds": 1271.669376393,
+      "daemon_shutdown_seconds": 1.76721293,
+      "release_seconds": {
+        "head": 82.475626786,
+        "worker": 82.449308194
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_02",
+    "block": 2,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 453.99882287,
+      "command_to_first_token_s": 534.134212668,
+      "trigger_to_first_token_s": 533.646580501,
+      "command_to_correct_business_response_s": 534.542437255,
+      "trigger_to_correct_business_response_s": 534.054805088,
+      "phase_device_setup_including_communication_span_s": 10.585314484,
+      "phase_communication_groups_span_s": 8.810100646,
+      "phase_weights_pipeline_including_allocation_span_s": 471.575969548,
+      "phase_weight_ingestion_span_s": 455.501178571,
+      "phase_quantization_postprocess_span_s": 11.936866778,
+      "phase_kv_cache_allocation_span_s": 0.185864346,
+      "phase_compile_graph_and_warmup_span_s": 1.516764084,
+      "backend_construct_s": 518.741458296,
+      "command_to_route_publication_s": 532.535731404,
+      "weight_ingestion_span_s": 455.501178571,
+      "weights_pipeline_span_s": 471.575969548
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_02",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.472376768,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 628667936149156,
+    "preparation_begin_ns": 627569568848723,
+    "attempt_deadline_ns": 631167721914829,
+    "preparation_complete_ns": 628023567671593,
+    "startup_command_ns": 628023567671593,
+    "register_complete_ns": 628024052973059,
+    "business_trigger_ns": 628024055303760,
+    "business_request_id": "v4n40_safetensors_disk_cold_02-business",
+    "correct_business_response_ns": 628558110108848,
+    "first_token_observed_ns": 628557701884261,
+    "delete_command_ns": 628571526750750,
+    "delete_complete_ns": 628576989716936,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1098.371078935,
+      "preparation_seconds": 453.99882287,
+      "daemon_shutdown_seconds": 1.166651295,
+      "release_seconds": {
+        "head": 82.473130417,
+        "worker": 82.472376768
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_03",
+    "block": 3,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 803.620378826,
+      "command_to_first_token_s": 221.5942051,
+      "trigger_to_first_token_s": 221.117642329,
+      "command_to_correct_business_response_s": 222.066196511,
+      "trigger_to_correct_business_response_s": 221.58963374,
+      "phase_device_setup_including_communication_span_s": 18.393593707,
+      "phase_communication_groups_span_s": 14.00581198,
+      "phase_weights_pipeline_including_allocation_span_s": 150.959100938,
+      "phase_weight_ingestion_span_s": 12.922168766,
+      "phase_quantization_postprocess_span_s": 130.933878406,
+      "phase_kv_cache_allocation_span_s": 0.139849965,
+      "phase_compile_graph_and_warmup_span_s": 1.753156988,
+      "backend_construct_s": 205.070605406,
+      "command_to_route_publication_s": 219.744864041,
+      "weight_ingestion_span_s": 12.922168766,
+      "weights_pipeline_span_s": 150.959100938
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_03",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.285873544,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 629886997404434,
+    "preparation_begin_ns": 628677818426209,
+    "attempt_deadline_ns": 632275217417342,
+    "preparation_complete_ns": 629481438805035,
+    "startup_command_ns": 629481438805035,
+    "register_complete_ns": 629481912737501,
+    "business_trigger_ns": 629481915367806,
+    "business_request_id": "v4n40_store_disk_cold_03-business",
+    "correct_business_response_ns": 629703505001546,
+    "first_token_observed_ns": 629703033010135,
+    "delete_command_ns": 629716758563483,
+    "delete_complete_ns": 629722225601772,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1209.182502245,
+      "preparation_seconds": 803.620378826,
+      "daemon_shutdown_seconds": 73.318381655,
+      "release_seconds": {
+        "head": 82.300455218,
+        "worker": 82.285873544
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_03",
+    "block": 3,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 430.035881805,
+      "command_to_first_token_s": 580.464290711,
+      "trigger_to_first_token_s": 579.9884401,
+      "command_to_correct_business_response_s": 580.928377803,
+      "trigger_to_correct_business_response_s": 580.452527192,
+      "phase_device_setup_including_communication_span_s": 10.482782879,
+      "phase_communication_groups_span_s": 8.335413103,
+      "phase_weights_pipeline_including_allocation_span_s": 521.124406815,
+      "phase_weight_ingestion_span_s": 505.286397674,
+      "phase_quantization_postprocess_span_s": 11.785415309,
+      "phase_kv_cache_allocation_span_s": 0.14046948,
+      "phase_compile_graph_and_warmup_span_s": 1.697684458,
+      "backend_construct_s": 566.370435218,
+      "command_to_route_publication_s": 578.886394889,
+      "weight_ingestion_span_s": 505.286397674,
+      "weights_pipeline_span_s": 521.124406815
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_03",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.199702481,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 631017403903183,
+    "preparation_begin_ns": 629896840776292,
+    "attempt_deadline_ns": 633493903828585,
+    "preparation_complete_ns": 630326876658097,
+    "startup_command_ns": 630326876658097,
+    "register_complete_ns": 630327349919223,
+    "business_trigger_ns": 630327352508708,
+    "business_request_id": "v4n40_safetensors_disk_cold_03-business",
+    "correct_business_response_ns": 630907805035900,
+    "first_token_observed_ns": 630907340948808,
+    "delete_command_ns": 630920916902496,
+    "delete_complete_ns": 630926262597662,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1120.566567086,
+      "preparation_seconds": 430.035881805,
+      "daemon_shutdown_seconds": 1.266288888,
+      "release_seconds": {
+        "head": 82.190296344,
+        "worker": 82.199702481
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_03",
+    "block": 3,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 913.019832616,
+      "command_to_first_token_s": 220.103813708,
+      "trigger_to_first_token_s": 219.624400965,
+      "command_to_correct_business_response_s": 220.517844502,
+      "trigger_to_correct_business_response_s": 220.038431759,
+      "phase_device_setup_including_communication_span_s": 11.475610678,
+      "phase_communication_groups_span_s": 9.902543387,
+      "phase_weights_pipeline_including_allocation_span_s": 160.098603775,
+      "phase_weight_ingestion_span_s": 146.896322881,
+      "phase_quantization_postprocess_span_s": 16.731076178,
+      "phase_kv_cache_allocation_span_s": 0.139852605,
+      "phase_compile_graph_and_warmup_span_s": 1.60960845,
+      "backend_construct_s": 205.744219758,
+      "command_to_route_publication_s": 218.41600762,
+      "weight_ingestion_span_s": 146.896322881,
+      "weights_pipeline_span_s": 160.098603775
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_03",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.200293609,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 632345647134529,
+    "preparation_begin_ns": 631027882127858,
+    "attempt_deadline_ns": 634624788373387,
+    "preparation_complete_ns": 631940901960474,
+    "startup_command_ns": 631940901960474,
+    "register_complete_ns": 631941378221017,
+    "business_trigger_ns": 631941381373217,
+    "business_request_id": "v4n40_safetensors_disk_hot_03-business",
+    "correct_business_response_ns": 632161419804976,
+    "first_token_observed_ns": 632161005774182,
+    "delete_command_ns": 632175029006012,
+    "delete_complete_ns": 632180327817319,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1317.76849807,
+      "preparation_seconds": 913.019832616,
+      "daemon_shutdown_seconds": 1.16638484,
+      "release_seconds": {
+        "head": 82.178103854,
+        "worker": 82.200293609
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_03",
+    "block": 3,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 919.429759749,
+      "command_to_first_token_s": 140.328953805,
+      "trigger_to_first_token_s": 139.794406916,
+      "command_to_correct_business_response_s": 140.737423564,
+      "trigger_to_correct_business_response_s": 140.202876675,
+      "phase_device_setup_including_communication_span_s": 21.295329162,
+      "phase_communication_groups_span_s": 16.975755918,
+      "phase_weights_pipeline_including_allocation_span_s": 56.274929208,
+      "phase_weight_ingestion_span_s": 2.682803291,
+      "phase_quantization_postprocess_span_s": 45.530482365,
+      "phase_kv_cache_allocation_span_s": 0.135914723,
+      "phase_compile_graph_and_warmup_span_s": 1.862605471,
+      "backend_construct_s": 119.27651309,
+      "command_to_route_publication_s": 138.638290732,
+      "weight_ingestion_span_s": 2.682803291,
+      "weights_pipeline_span_s": 56.274929208
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_03",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.980228614,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 633605843061717,
+    "preparation_begin_ns": 632359568358199,
+    "attempt_deadline_ns": 635955625408269,
+    "preparation_complete_ns": 633278998117948,
+    "startup_command_ns": 633278998117948,
+    "register_complete_ns": 633279530386323,
+    "business_trigger_ns": 633279532664837,
+    "business_request_id": "v4n40_store_pool_hit_03-business",
+    "correct_business_response_ns": 633419735541512,
+    "first_token_observed_ns": 633419327071753,
+    "delete_command_ns": 633433037930942,
+    "delete_complete_ns": 633438378802170,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1246.278153731,
+      "preparation_seconds": 919.429759749,
+      "daemon_shutdown_seconds": 76.028345973,
+      "release_seconds": {
+        "head": 81.949869036,
+        "worker": 81.980228614
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_04",
+    "block": 4,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 413.914493766,
+      "command_to_first_token_s": 589.443016374,
+      "trigger_to_first_token_s": 588.967990237,
+      "command_to_correct_business_response_s": 589.856118042,
+      "trigger_to_correct_business_response_s": 589.381091905,
+      "phase_device_setup_including_communication_span_s": 10.416312613,
+      "phase_communication_groups_span_s": 9.008272748,
+      "phase_weights_pipeline_including_allocation_span_s": 529.377150604,
+      "phase_weight_ingestion_span_s": 513.595320028,
+      "phase_quantization_postprocess_span_s": 11.721740011,
+      "phase_kv_cache_allocation_span_s": 0.141802937,
+      "phase_compile_graph_and_warmup_span_s": 1.653905577,
+      "backend_construct_s": 574.71216876,
+      "command_to_route_publication_s": 587.834107587,
+      "weight_ingestion_span_s": 513.595320028,
+      "weights_pipeline_span_s": 529.377150604
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_04",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.957797275,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 634732737569877,
+    "preparation_begin_ns": 633619374695907,
+    "attempt_deadline_ns": 637214817356387,
+    "preparation_complete_ns": 634033289189673,
+    "startup_command_ns": 634033289189673,
+    "register_complete_ns": 634033758820803,
+    "business_trigger_ns": 634033764215810,
+    "business_request_id": "v4n40_safetensors_disk_cold_04-business",
+    "correct_business_response_ns": 634623145307715,
+    "first_token_observed_ns": 634622732206047,
+    "delete_command_ns": 634636615841009,
+    "delete_complete_ns": 634641955738028,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1113.366361323,
+      "preparation_seconds": 413.914493766,
+      "daemon_shutdown_seconds": 1.26659545,
+      "release_seconds": {
+        "head": 81.973416662,
+        "worker": 81.957797275
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_04",
+    "block": 4,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1021.809189338,
+      "command_to_first_token_s": 227.184935233,
+      "trigger_to_first_token_s": 226.604005566,
+      "command_to_correct_business_response_s": 227.605508315,
+      "trigger_to_correct_business_response_s": 227.024578648,
+      "phase_device_setup_including_communication_span_s": 11.417984415,
+      "phase_communication_groups_span_s": 8.56693288,
+      "phase_weights_pipeline_including_allocation_span_s": 163.931790587,
+      "phase_weight_ingestion_span_s": 153.682254265,
+      "phase_quantization_postprocess_span_s": 18.120813844,
+      "phase_kv_cache_allocation_span_s": 0.144976244,
+      "phase_compile_graph_and_warmup_span_s": 1.614908247,
+      "backend_construct_s": 211.495747179,
+      "command_to_route_publication_s": 225.497759687,
+      "weight_ingestion_span_s": 153.682254265,
+      "weights_pipeline_span_s": 163.931790587
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_04",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.203783485,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 636180935417785,
+    "preparation_begin_ns": 634746128510802,
+    "attempt_deadline_ns": 638341430865846,
+    "preparation_complete_ns": 635767937700140,
+    "startup_command_ns": 635767937700140,
+    "register_complete_ns": 635768513564191,
+    "business_trigger_ns": 635768518629807,
+    "business_request_id": "v4n40_safetensors_disk_hot_04-business",
+    "correct_business_response_ns": 635995543208455,
+    "first_token_observed_ns": 635995122635373,
+    "delete_command_ns": 636008516341941,
+    "delete_complete_ns": 636013842501991,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1434.810742902,
+      "preparation_seconds": 1021.809189338,
+      "daemon_shutdown_seconds": 1.867382695,
+      "release_seconds": {
+        "head": 82.203379675,
+        "worker": 82.203783485
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_04",
+    "block": 4,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 800.150375311,
+      "command_to_first_token_s": 225.165332297,
+      "trigger_to_first_token_s": 224.596116839,
+      "command_to_correct_business_response_s": 225.582259557,
+      "trigger_to_correct_business_response_s": 225.013044099,
+      "phase_device_setup_including_communication_span_s": 19.381973922,
+      "phase_communication_groups_span_s": 14.992111313,
+      "phase_weights_pipeline_including_allocation_span_s": 149.97589587,
+      "phase_weight_ingestion_span_s": 11.974121525,
+      "phase_quantization_postprocess_span_s": 132.499800845,
+      "phase_kv_cache_allocation_span_s": 0.177562914,
+      "phase_compile_graph_and_warmup_span_s": 1.759085178,
+      "backend_construct_s": 207.314375735,
+      "command_to_route_publication_s": 223.255108784,
+      "weight_ingestion_span_s": 11.974121525,
+      "weights_pipeline_span_s": 149.97589587
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_04",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.371311528,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 637409027457256,
+    "preparation_begin_ns": 636196699322136,
+    "attempt_deadline_ns": 639791214321645,
+    "preparation_complete_ns": 636996849697447,
+    "startup_command_ns": 636996849697447,
+    "register_complete_ns": 636997409654073,
+    "business_trigger_ns": 636997418912905,
+    "business_request_id": "v4n40_store_disk_cold_04-business",
+    "correct_business_response_ns": 637222431957004,
+    "first_token_observed_ns": 637222015029744,
+    "delete_command_ns": 637236037238414,
+    "delete_complete_ns": 637241529648787,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1212.331686189,
+      "preparation_seconds": 800.150375311,
+      "daemon_shutdown_seconds": 76.374227596,
+      "release_seconds": {
+        "head": 82.38255278,
+        "worker": 82.371311528
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_04",
+    "block": 4,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 902.363555528,
+      "command_to_first_token_s": 132.099835183,
+      "trigger_to_first_token_s": 131.619611108,
+      "command_to_correct_business_response_s": 132.50988575,
+      "trigger_to_correct_business_response_s": 132.029661675,
+      "phase_device_setup_including_communication_span_s": 19.025159164,
+      "phase_communication_groups_span_s": 16.177579988,
+      "phase_weights_pipeline_including_allocation_span_s": 57.009499452,
+      "phase_weight_ingestion_span_s": 2.929191427,
+      "phase_quantization_postprocess_span_s": 45.818247176,
+      "phase_kv_cache_allocation_span_s": 0.136909836,
+      "phase_compile_graph_and_warmup_span_s": 1.723596428,
+      "backend_construct_s": 116.211174885,
+      "command_to_route_publication_s": 129.949485684,
+      "weight_ingestion_span_s": 2.929191427,
+      "weights_pipeline_span_s": 57.009499452
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_04",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.708202781,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 638634197853608,
+    "preparation_begin_ns": 637426764293123,
+    "attempt_deadline_ns": 641020629724621,
+    "preparation_complete_ns": 638329127848651,
+    "startup_command_ns": 638329127848651,
+    "register_complete_ns": 638329605217825,
+    "business_trigger_ns": 638329608072726,
+    "business_request_id": "v4n40_store_pool_hit_04-business",
+    "correct_business_response_ns": 638461637734401,
+    "first_token_observed_ns": 638461227683834,
+    "delete_command_ns": 638475139181760,
+    "delete_complete_ns": 638480767739032,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1207.437472227,
+      "preparation_seconds": 902.363555528,
+      "daemon_shutdown_seconds": 62.351673869,
+      "release_seconds": {
+        "head": 82.685320819,
+        "worker": 82.708202781
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_05",
+    "block": 5,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 850.601000483,
+      "command_to_first_token_s": 127.008349603,
+      "trigger_to_first_token_s": 126.511821797,
+      "command_to_correct_business_response_s": 127.476011082,
+      "trigger_to_correct_business_response_s": 126.979483276,
+      "phase_device_setup_including_communication_span_s": 15.487022273,
+      "phase_communication_groups_span_s": 12.30158548,
+      "phase_weights_pipeline_including_allocation_span_s": 57.956551934,
+      "phase_weight_ingestion_span_s": 3.212294718,
+      "phase_quantization_postprocess_span_s": 47.003452033,
+      "phase_kv_cache_allocation_span_s": 0.175949184,
+      "phase_compile_graph_and_warmup_span_s": 1.868262691,
+      "backend_construct_s": 110.75894182,
+      "command_to_route_publication_s": 125.043138136,
+      "weight_ingestion_span_s": 3.212294718,
+      "weights_pipeline_span_s": 57.956551934
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_05",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.195504598,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 639800148958372,
+    "preparation_begin_ns": 638652136471165,
+    "attempt_deadline_ns": 642244839299225,
+    "preparation_complete_ns": 639502737471648,
+    "startup_command_ns": 639502737471648,
+    "register_complete_ns": 639503230987794,
+    "business_trigger_ns": 639503233999454,
+    "business_request_id": "v4n40_store_pool_hit_05-business",
+    "correct_business_response_ns": 639630213482730,
+    "first_token_observed_ns": 639629745821251,
+    "delete_command_ns": 639643162877250,
+    "delete_complete_ns": 639648630849877,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1148.015984061,
+      "preparation_seconds": 850.601000483,
+      "daemon_shutdown_seconds": 60.649963153,
+      "release_seconds": {
+        "head": 82.19663781,
+        "worker": 82.195504598
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_05",
+    "block": 5,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 763.017676402,
+      "command_to_first_token_s": 225.765992472,
+      "trigger_to_first_token_s": 225.183624546,
+      "command_to_correct_business_response_s": 226.190615685,
+      "trigger_to_correct_business_response_s": 225.608247759,
+      "phase_device_setup_including_communication_span_s": 19.898530642,
+      "phase_communication_groups_span_s": 15.972147101,
+      "phase_weights_pipeline_including_allocation_span_s": 151.731848235,
+      "phase_weight_ingestion_span_s": 12.327430788,
+      "phase_quantization_postprocess_span_s": 135.428678731,
+      "phase_kv_cache_allocation_span_s": 0.135474605,
+      "phase_compile_graph_and_warmup_span_s": 2.254720608,
+      "backend_construct_s": 208.942850192,
+      "command_to_route_publication_s": 223.930441601,
+      "weight_ingestion_span_s": 12.327430788,
+      "weights_pipeline_span_s": 151.731848235
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_05",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.287801281,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 640979120037201,
+    "preparation_begin_ns": 639817522318821,
+    "attempt_deadline_ns": 643410552144580,
+    "preparation_complete_ns": 640580539995223,
+    "startup_command_ns": 640580539995223,
+    "register_complete_ns": 640581119521546,
+    "business_trigger_ns": 640581122363149,
+    "business_request_id": "v4n40_store_disk_cold_05-business",
+    "correct_business_response_ns": 640806730610908,
+    "first_token_observed_ns": 640806305987695,
+    "delete_command_ns": 640820157385335,
+    "delete_complete_ns": 640825550032693,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1161.601298919,
+      "preparation_seconds": 763.017676402,
+      "daemon_shutdown_seconds": 62.603429097,
+      "release_seconds": {
+        "head": 82.292288741,
+        "worker": 82.287801281
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_05",
+    "block": 5,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 437.067717698,
+      "command_to_first_token_s": 587.30435414,
+      "trigger_to_first_token_s": 586.838812352,
+      "command_to_correct_business_response_s": 587.714669648,
+      "trigger_to_correct_business_response_s": 587.24912786,
+      "phase_device_setup_including_communication_span_s": 11.841900659,
+      "phase_communication_groups_span_s": 9.59537045,
+      "phase_weights_pipeline_including_allocation_span_s": 524.898049807,
+      "phase_weight_ingestion_span_s": 509.129777048,
+      "phase_quantization_postprocess_span_s": 11.861146885,
+      "phase_kv_cache_allocation_span_s": 0.141773372,
+      "phase_compile_graph_and_warmup_span_s": 1.677204569,
+      "backend_construct_s": 573.158643732,
+      "command_to_route_publication_s": 585.565471038,
+      "weight_ingestion_span_s": 509.129777048,
+      "weights_pipeline_span_s": 524.898049807
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_05",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.150415967,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 642132767137990,
+    "preparation_begin_ns": 640998647008234,
+    "attempt_deadline_ns": 644591393160060,
+    "preparation_complete_ns": 641435714725932,
+    "startup_command_ns": 641435714725932,
+    "register_complete_ns": 641436178025260,
+    "business_trigger_ns": 641436180267720,
+    "business_request_id": "v4n40_safetensors_disk_cold_05-business",
+    "correct_business_response_ns": 642023429395580,
+    "first_token_observed_ns": 642023019080072,
+    "delete_command_ns": 642036430478415,
+    "delete_complete_ns": 642041810077079,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1134.123676117,
+      "preparation_seconds": 437.067717698,
+      "daemon_shutdown_seconds": 1.516916561,
+      "release_seconds": {
+        "head": 82.132428956,
+        "worker": 82.150415967
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_05",
+    "block": 5,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 936.528247417,
+      "command_to_first_token_s": 227.586697508,
+      "trigger_to_first_token_s": 226.959617219,
+      "command_to_correct_business_response_s": 228.007643528,
+      "trigger_to_correct_business_response_s": 227.380563239,
+      "phase_device_setup_including_communication_span_s": 11.222491755,
+      "phase_communication_groups_span_s": 8.505617848,
+      "phase_weights_pipeline_including_allocation_span_s": 160.694450128,
+      "phase_weight_ingestion_span_s": 150.182924602,
+      "phase_quantization_postprocess_span_s": 17.555719474,
+      "phase_kv_cache_allocation_span_s": 0.140942915,
+      "phase_compile_graph_and_warmup_span_s": 1.621880252,
+      "backend_construct_s": 210.472343556,
+      "command_to_route_publication_s": 225.551235626,
+      "weight_ingestion_span_s": 150.182924602,
+      "weights_pipeline_span_s": 160.694450128
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_05",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.353529896,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 643496035031888,
+    "preparation_begin_ns": 642151989450051,
+    "attempt_deadline_ns": 645745047674941,
+    "preparation_complete_ns": 643088517697468,
+    "startup_command_ns": 643088517697468,
+    "register_complete_ns": 643089141560584,
+    "business_trigger_ns": 643089144777757,
+    "business_request_id": "v4n40_safetensors_disk_hot_05-business",
+    "correct_business_response_ns": 643316525340996,
+    "first_token_observed_ns": 643316104394976,
+    "delete_command_ns": 643329533001248,
+    "delete_complete_ns": 643334810198338,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1344.049352372,
+      "preparation_seconds": 936.528247417,
+      "daemon_shutdown_seconds": 1.416809037,
+      "release_seconds": {
+        "head": 82.36144139,
+        "worker": 82.353529896
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_06",
+    "block": 6,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 460.95824693,
+      "command_to_first_token_s": 555.182534824,
+      "trigger_to_first_token_s": 554.696484654,
+      "command_to_correct_business_response_s": 555.653672205,
+      "trigger_to_correct_business_response_s": 555.167622035,
+      "phase_device_setup_including_communication_span_s": 9.995982466,
+      "phase_communication_groups_span_s": 7.969930486,
+      "phase_weights_pipeline_including_allocation_span_s": 492.944263978,
+      "phase_weight_ingestion_span_s": 476.81150662,
+      "phase_quantization_postprocess_span_s": 11.635110298,
+      "phase_kv_cache_allocation_span_s": 0.152296237,
+      "phase_compile_graph_and_warmup_span_s": 1.817894854,
+      "backend_construct_s": 539.359402857,
+      "command_to_route_publication_s": 553.452045626,
+      "weight_ingestion_span_s": 476.81150662,
+      "weights_pipeline_span_s": 492.944263978
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_06",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.212657193,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 644648656122668,
+    "preparation_begin_ns": 643520503658623,
+    "attempt_deadline_ns": 647112130804050,
+    "preparation_complete_ns": 643981461905553,
+    "startup_command_ns": 643981461905553,
+    "register_complete_ns": 643981945433043,
+    "business_trigger_ns": 643981947955723,
+    "business_request_id": "v4n40_safetensors_disk_cold_06-business",
+    "correct_business_response_ns": 644537115577758,
+    "first_token_observed_ns": 644536644440377,
+    "delete_command_ns": 644550340686430,
+    "delete_complete_ns": 644556051936536,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1128.155882825,
+      "preparation_seconds": 460.95824693,
+      "daemon_shutdown_seconds": 1.61792503,
+      "release_seconds": {
+        "head": 82.202853687,
+        "worker": 82.212657193
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_06",
+    "block": 6,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 930.539909189,
+      "command_to_first_token_s": 134.884876443,
+      "trigger_to_first_token_s": 134.423467229,
+      "command_to_correct_business_response_s": 135.296106597,
+      "trigger_to_correct_business_response_s": 134.834697383,
+      "phase_device_setup_including_communication_span_s": 20.402426833,
+      "phase_communication_groups_span_s": 16.398542409,
+      "phase_weights_pipeline_including_allocation_span_s": 56.819589491,
+      "phase_weight_ingestion_span_s": 3.261749627,
+      "phase_quantization_postprocess_span_s": 45.613381015,
+      "phase_kv_cache_allocation_span_s": 0.198366216,
+      "phase_compile_graph_and_warmup_span_s": 1.802014031,
+      "backend_construct_s": 115.077224302,
+      "command_to_route_publication_s": 132.104482229,
+      "weight_ingestion_span_s": 3.261749627,
+      "weights_pipeline_span_s": 56.819589491
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_06",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.372764649,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 645921404269566,
+    "preparation_begin_ns": 644671582672355,
+    "attempt_deadline_ns": 648262450429599,
+    "preparation_complete_ns": 645602122581544,
+    "startup_command_ns": 645602122581544,
+    "register_complete_ns": 645602581421377,
+    "business_trigger_ns": 645602583990758,
+    "business_request_id": "v4n40_store_pool_hit_06-business",
+    "correct_business_response_ns": 645737418688141,
+    "first_token_observed_ns": 645737007457987,
+    "delete_command_ns": 645750426959646,
+    "delete_complete_ns": 645755897696923,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1249.825291901,
+      "preparation_seconds": 930.539909189,
+      "daemon_shutdown_seconds": 76.023259535,
+      "release_seconds": {
+        "head": 82.396655658,
+        "worker": 82.372764649
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_06",
+    "block": 6,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1052.854428992,
+      "command_to_first_token_s": 220.944369057,
+      "trigger_to_first_token_s": 220.286047979,
+      "command_to_correct_business_response_s": 221.640266236,
+      "trigger_to_correct_business_response_s": 220.981945158,
+      "phase_device_setup_including_communication_span_s": 10.278629183,
+      "phase_communication_groups_span_s": 7.964664987,
+      "phase_weights_pipeline_including_allocation_span_s": 157.647709052,
+      "phase_weight_ingestion_span_s": 146.274536212,
+      "phase_quantization_postprocess_span_s": 20.191425671,
+      "phase_kv_cache_allocation_span_s": 0.159703107,
+      "phase_compile_graph_and_warmup_span_s": 1.764797412,
+      "backend_construct_s": 203.674389746,
+      "command_to_route_publication_s": 219.101491477,
+      "weight_ingestion_span_s": 146.274536212,
+      "weights_pipeline_span_s": 157.647709052
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_06",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.288511873,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 647403405593269,
+    "preparation_begin_ns": 645947114696340,
+    "attempt_deadline_ns": 649537583210138,
+    "preparation_complete_ns": 646999969125332,
+    "startup_command_ns": 646999969125332,
+    "register_complete_ns": 647000623841824,
+    "business_trigger_ns": 647000627446410,
+    "business_request_id": "v4n40_safetensors_disk_hot_06-business",
+    "correct_business_response_ns": 647221609391568,
+    "first_token_observed_ns": 647220913494389,
+    "delete_command_ns": 647234743196641,
+    "delete_complete_ns": 647240009347733,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1456.294451107,
+      "preparation_seconds": 1052.854428992,
+      "daemon_shutdown_seconds": 1.216440986,
+      "release_seconds": {
+        "head": 82.337829614,
+        "worker": 82.288511873
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_06",
+    "block": 6,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 770.198952366,
+      "command_to_first_token_s": 227.748861066,
+      "trigger_to_first_token_s": 227.194130438,
+      "command_to_correct_business_response_s": 228.172854674,
+      "trigger_to_correct_business_response_s": 227.618124046,
+      "phase_device_setup_including_communication_span_s": 21.673550498,
+      "phase_communication_groups_span_s": 17.942824658,
+      "phase_weights_pipeline_including_allocation_span_s": 149.186253166,
+      "phase_weight_ingestion_span_s": 11.450416938,
+      "phase_quantization_postprocess_span_s": 131.693973442,
+      "phase_kv_cache_allocation_span_s": 0.135847316,
+      "phase_compile_graph_and_warmup_span_s": 1.997141746,
+      "backend_construct_s": 208.672056109,
+      "command_to_route_publication_s": 226.0120709,
+      "weight_ingestion_span_s": 11.450416938,
+      "weights_pipeline_span_s": 149.186253166
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_06",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.11832708,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 648604417645989,
+    "preparation_begin_ns": 647431959162756,
+    "attempt_deadline_ns": 651022364319297,
+    "preparation_complete_ns": 648202158115122,
+    "startup_command_ns": 648202158115122,
+    "register_complete_ns": 648202709891111,
+    "business_trigger_ns": 648202712845750,
+    "business_request_id": "v4n40_store_disk_cold_06-business",
+    "correct_business_response_ns": 648430330969796,
+    "first_token_observed_ns": 648429906976188,
+    "delete_command_ns": 648444063543569,
+    "delete_complete_ns": 648449643395147,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1172.462080652,
+      "preparation_seconds": 770.198952366,
+      "daemon_shutdown_seconds": 66.005394697,
+      "release_seconds": {
+        "head": 82.132076112,
+        "worker": 82.11832708
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_07",
+    "block": 7,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 771.739578957,
+      "command_to_first_token_s": 223.852933843,
+      "trigger_to_first_token_s": 223.300882751,
+      "command_to_correct_business_response_s": 224.31764317,
+      "trigger_to_correct_business_response_s": 223.765592078,
+      "phase_device_setup_including_communication_span_s": 20.088960875,
+      "phase_communication_groups_span_s": 16.867507201,
+      "phase_weights_pipeline_including_allocation_span_s": 149.940800665,
+      "phase_weight_ingestion_span_s": 12.185806166,
+      "phase_quantization_postprocess_span_s": 131.568603495,
+      "phase_kv_cache_allocation_span_s": 0.140216855,
+      "phase_compile_graph_and_warmup_span_s": 2.127357294,
+      "backend_construct_s": 207.109052708,
+      "command_to_route_publication_s": 221.949299487,
+      "weight_ingestion_span_s": 12.185806166,
+      "weights_pipeline_span_s": 149.940800665
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_07",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.059314067,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 649799566194189,
+    "preparation_begin_ns": 648631648611838,
+    "attempt_deadline_ns": 652221404678671,
+    "preparation_complete_ns": 649403388190795,
+    "startup_command_ns": 649403388190795,
+    "register_complete_ns": 649403937696513,
+    "business_trigger_ns": 649403940241887,
+    "business_request_id": "v4n40_store_disk_cold_07-business",
+    "correct_business_response_ns": 649627705833965,
+    "first_token_observed_ns": 649627241124638,
+    "delete_command_ns": 649640736261807,
+    "delete_complete_ns": 649646242645988,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1167.921154201,
+      "preparation_seconds": 771.739578957,
+      "daemon_shutdown_seconds": 62.550750066,
+      "release_seconds": {
+        "head": 82.102956879,
+        "worker": 82.059314067
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_07",
+    "block": 7,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 897.596189872,
+      "command_to_first_token_s": 126.60714436,
+      "trigger_to_first_token_s": 126.036943733,
+      "command_to_correct_business_response_s": 127.028203465,
+      "trigger_to_correct_business_response_s": 126.458002838,
+      "phase_device_setup_including_communication_span_s": 18.835311618,
+      "phase_communication_groups_span_s": 15.76886418,
+      "phase_weights_pipeline_including_allocation_span_s": 55.535163772,
+      "phase_weight_ingestion_span_s": 2.87874965,
+      "phase_quantization_postprocess_span_s": 45.481327594,
+      "phase_kv_cache_allocation_span_s": 0.152787527,
+      "phase_compile_graph_and_warmup_span_s": 1.726565729,
+      "backend_construct_s": 112.230705579,
+      "command_to_route_publication_s": 124.850222238,
+      "weight_ingestion_span_s": 2.87874965,
+      "weights_pipeline_span_s": 55.535163772
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_07",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.377172322,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 651019326097086,
+    "preparation_begin_ns": 649824109906448,
+    "attempt_deadline_ns": 653413694571878,
+    "preparation_complete_ns": 650721706096320,
+    "startup_command_ns": 650721706096320,
+    "register_complete_ns": 650722274154238,
+    "business_trigger_ns": 650722276296947,
+    "business_request_id": "v4n40_store_pool_hit_07-business",
+    "correct_business_response_ns": 650848734299785,
+    "first_token_observed_ns": 650848313240680,
+    "delete_command_ns": 650861933482356,
+    "delete_complete_ns": 650867329980306,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1195.222371062,
+      "preparation_seconds": 897.596189872,
+      "daemon_shutdown_seconds": 62.256870404,
+      "release_seconds": {
+        "head": 82.379111307,
+        "worker": 82.377172322
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_07",
+    "block": 7,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1062.770189996,
+      "command_to_first_token_s": 216.05130579,
+      "trigger_to_first_token_s": 215.448082541,
+      "command_to_correct_business_response_s": 216.458295973,
+      "trigger_to_correct_business_response_s": 215.855072724,
+      "phase_device_setup_including_communication_span_s": 10.135535895,
+      "phase_communication_groups_span_s": 8.231373515,
+      "phase_weights_pipeline_including_allocation_span_s": 156.149068683,
+      "phase_weight_ingestion_span_s": 144.93023665,
+      "phase_quantization_postprocess_span_s": 18.614052376,
+      "phase_kv_cache_allocation_span_s": 0.160101084,
+      "phase_compile_graph_and_warmup_span_s": 1.698344749,
+      "backend_construct_s": 201.35839898,
+      "command_to_route_publication_s": 214.317625477,
+      "weight_ingestion_span_s": 144.93023665,
+      "weights_pipeline_span_s": 156.149068683
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_07",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.727807862,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 652498817085909,
+    "preparation_begin_ns": 651044088034567,
+    "attempt_deadline_ns": 654633796446549,
+    "preparation_complete_ns": 652106858224563,
+    "startup_command_ns": 652106858224563,
+    "register_complete_ns": 652107459000539,
+    "business_trigger_ns": 652107461447812,
+    "business_request_id": "v4n40_safetensors_disk_hot_07-business",
+    "correct_business_response_ns": 652323316520536,
+    "first_token_observed_ns": 652322909530353,
+    "delete_command_ns": 652336340876992,
+    "delete_complete_ns": 652341691274755,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1454.732870247,
+      "preparation_seconds": 1062.770189996,
+      "daemon_shutdown_seconds": 1.667213413,
+      "release_seconds": {
+        "head": 82.742180845,
+        "worker": 82.727807862
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_07",
+    "block": 7,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 457.858413558,
+      "command_to_first_token_s": 534.588907212,
+      "trigger_to_first_token_s": 534.114544531,
+      "command_to_correct_business_response_s": 535.005158833,
+      "trigger_to_correct_business_response_s": 534.530796152,
+      "phase_device_setup_including_communication_span_s": 10.673877031,
+      "phase_communication_groups_span_s": 7.235413868,
+      "phase_weights_pipeline_including_allocation_span_s": 473.793586793,
+      "phase_weight_ingestion_span_s": 458.193543298,
+      "phase_quantization_postprocess_span_s": 11.875098821,
+      "phase_kv_cache_allocation_span_s": 0.141189282,
+      "phase_compile_graph_and_warmup_span_s": 1.687151222,
+      "backend_construct_s": 520.330711613,
+      "command_to_route_publication_s": 532.994144828,
+      "weight_ingestion_span_s": 458.193543298,
+      "weights_pipeline_span_s": 473.793586793
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_07",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.733375443,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 653632899033926,
+    "preparation_begin_ns": 652531557521634,
+    "attempt_deadline_ns": 656118418213424,
+    "preparation_complete_ns": 652989415935192,
+    "startup_command_ns": 652989415935192,
+    "register_complete_ns": 652989887777276,
+    "business_trigger_ns": 652989890297873,
+    "business_request_id": "v4n40_safetensors_disk_cold_07-business",
+    "correct_business_response_ns": 653524421094025,
+    "first_token_observed_ns": 653524004842404,
+    "delete_command_ns": 653537316820281,
+    "delete_complete_ns": 653542754081919,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1101.344951476,
+      "preparation_seconds": 457.858413558,
+      "daemon_shutdown_seconds": 1.116229208,
+      "release_seconds": {
+        "head": 81.712088642,
+        "worker": 81.733375443
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_08",
+    "block": 8,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 740.487488466,
+      "command_to_first_token_s": 213.878595137,
+      "trigger_to_first_token_s": 213.394165298,
+      "command_to_correct_business_response_s": 214.377167785,
+      "trigger_to_correct_business_response_s": 213.892737946,
+      "phase_device_setup_including_communication_span_s": 9.995813886,
+      "phase_communication_groups_span_s": 7.394117378,
+      "phase_weights_pipeline_including_allocation_span_s": 154.050229999,
+      "phase_weight_ingestion_span_s": 141.494915175,
+      "phase_quantization_postprocess_span_s": 17.016450066,
+      "phase_kv_cache_allocation_span_s": 0.15322066,
+      "phase_compile_graph_and_warmup_span_s": 1.593185284,
+      "backend_construct_s": 199.142272992,
+      "command_to_route_publication_s": 212.260026281,
+      "weight_ingestion_span_s": 141.494915175,
+      "weights_pipeline_span_s": 154.050229999
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_08",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.820554274,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 654794401059726,
+    "preparation_begin_ns": 653662667954287,
+    "attempt_deadline_ns": 657249827679782,
+    "preparation_complete_ns": 654403155442753,
+    "startup_command_ns": 654403155442753,
+    "register_complete_ns": 654403637354218,
+    "business_trigger_ns": 654403639872592,
+    "business_request_id": "v4n40_safetensors_disk_hot_08-business",
+    "correct_business_response_ns": 654617532610538,
+    "first_token_observed_ns": 654617034037890,
+    "delete_command_ns": 654630816872244,
+    "delete_complete_ns": 654636086462879,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1131.736582195,
+      "preparation_seconds": 740.487488466,
+      "daemon_shutdown_seconds": 1.16634411,
+      "release_seconds": {
+        "head": 81.834827485,
+        "worker": 81.820554274
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_08",
+    "block": 8,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 457.620658492,
+      "command_to_first_token_s": 547.024157091,
+      "trigger_to_first_token_s": 546.487436142,
+      "command_to_correct_business_response_s": 547.436107412,
+      "trigger_to_correct_business_response_s": 546.899386463,
+      "phase_device_setup_including_communication_span_s": 10.90673944,
+      "phase_communication_groups_span_s": 8.375445211,
+      "phase_weights_pipeline_including_allocation_span_s": 485.867710895,
+      "phase_weight_ingestion_span_s": 469.964364627,
+      "phase_quantization_postprocess_span_s": 11.885977549,
+      "phase_kv_cache_allocation_span_s": 0.138933195,
+      "phase_compile_graph_and_warmup_span_s": 1.612266893,
+      "backend_construct_s": 532.099414098,
+      "command_to_route_publication_s": 545.358860961,
+      "weight_ingestion_span_s": 469.964364627,
+      "weights_pipeline_span_s": 485.867710895
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_08",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.105050146,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 655941110849936,
+    "preparation_begin_ns": 654826588241998,
+    "attempt_deadline_ns": 658413632309423,
+    "preparation_complete_ns": 655284208900490,
+    "startup_command_ns": 655284208900490,
+    "register_complete_ns": 655284743517246,
+    "business_trigger_ns": 655284745621439,
+    "business_request_id": "v4n40_safetensors_disk_cold_08-business",
+    "correct_business_response_ns": 655831645007902,
+    "first_token_observed_ns": 655831233057581,
+    "delete_command_ns": 655844951467537,
+    "delete_complete_ns": 655850495529047,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1114.526019361,
+      "preparation_seconds": 457.620658492,
+      "daemon_shutdown_seconds": 1.316436362,
+      "release_seconds": {
+        "head": 82.104298131,
+        "worker": 82.105050146
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_08",
+    "block": 8,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 810.510307412,
+      "command_to_first_token_s": 222.731597514,
+      "trigger_to_first_token_s": 222.245634289,
+      "command_to_correct_business_response_s": 223.141530874,
+      "trigger_to_correct_business_response_s": 222.655567649,
+      "phase_device_setup_including_communication_span_s": 19.041241066,
+      "phase_communication_groups_span_s": 15.660522826,
+      "phase_weights_pipeline_including_allocation_span_s": 148.689351234,
+      "phase_weight_ingestion_span_s": 12.855062633,
+      "phase_quantization_postprocess_span_s": 131.69223137,
+      "phase_kv_cache_allocation_span_s": 0.137713497,
+      "phase_compile_graph_and_warmup_span_s": 1.730358731,
+      "backend_construct_s": 204.609823835,
+      "command_to_route_publication_s": 220.77028747,
+      "weight_ingestion_span_s": 12.855062633,
+      "weights_pipeline_span_s": 148.689351234
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_08",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.875983272,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 657185227158755,
+    "preparation_begin_ns": 655971991145458,
+    "attempt_deadline_ns": 659558862009344,
+    "preparation_complete_ns": 656782501452870,
+    "startup_command_ns": 656782501452870,
+    "register_complete_ns": 656782984710914,
+    "business_trigger_ns": 656782987416095,
+    "business_request_id": "v4n40_store_disk_cold_08-business",
+    "correct_business_response_ns": 657005642983744,
+    "first_token_observed_ns": 657005233050384,
+    "delete_command_ns": 657019132631867,
+    "delete_complete_ns": 657024772822782,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1213.239617255,
+      "preparation_seconds": 810.510307412,
+      "daemon_shutdown_seconds": 69.513248019,
+      "release_seconds": {
+        "head": 81.841622554,
+        "worker": 81.875983272
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_08",
+    "block": 8,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 885.801357298,
+      "command_to_first_token_s": 126.935055016,
+      "trigger_to_first_token_s": 126.462629938,
+      "command_to_correct_business_response_s": 127.348966671,
+      "trigger_to_correct_business_response_s": 126.876541593,
+      "phase_device_setup_including_communication_span_s": 17.807613591,
+      "phase_communication_groups_span_s": 14.79035853,
+      "phase_weights_pipeline_including_allocation_span_s": 53.609810885,
+      "phase_weight_ingestion_span_s": 2.801898693,
+      "phase_quantization_postprocess_span_s": 42.913956743,
+      "phase_kv_cache_allocation_span_s": 0.140866164,
+      "phase_compile_graph_and_warmup_span_s": 1.977930396,
+      "backend_construct_s": 109.516248499,
+      "command_to_route_publication_s": 125.044246831,
+      "weight_ingestion_span_s": 2.801898693,
+      "weights_pipeline_span_s": 53.609810885
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_08",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.104634511,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 658401736372549,
+    "preparation_begin_ns": 657220891007623,
+    "attempt_deadline_ns": 660807169369300,
+    "preparation_complete_ns": 658106692364921,
+    "startup_command_ns": 658106692364921,
+    "register_complete_ns": 658107161819266,
+    "business_trigger_ns": 658107164789999,
+    "business_request_id": "v4n40_store_pool_hit_08-business",
+    "correct_business_response_ns": 658234041331592,
+    "first_token_observed_ns": 658233627419937,
+    "delete_command_ns": 658247041429576,
+    "delete_complete_ns": 658252442303569,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1180.84880923,
+      "preparation_seconds": 885.801357298,
+      "daemon_shutdown_seconds": 59.246903083,
+      "release_seconds": {
+        "head": 82.120489967,
+        "worker": 82.104634511
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_09",
+    "block": 9,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 738.355248238,
+      "command_to_first_token_s": 218.934636303,
+      "trigger_to_first_token_s": 218.388050116,
+      "command_to_correct_business_response_s": 219.348416162,
+      "trigger_to_correct_business_response_s": 218.801829975,
+      "phase_device_setup_including_communication_span_s": 19.095764235,
+      "phase_communication_groups_span_s": 15.908371718,
+      "phase_weights_pipeline_including_allocation_span_s": 148.892943341,
+      "phase_weight_ingestion_span_s": 12.195330086,
+      "phase_quantization_postprocess_span_s": 130.748446862,
+      "phase_kv_cache_allocation_span_s": 0.13696342,
+      "phase_compile_graph_and_warmup_span_s": 1.942937624,
+      "backend_construct_s": 203.60523085,
+      "command_to_route_publication_s": 217.025395133,
+      "weight_ingestion_span_s": 12.195330086,
+      "weights_pipeline_span_s": 148.892943341
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_09",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.056735953,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 659563926027098,
+    "preparation_begin_ns": 658438029538152,
+    "attempt_deadline_ns": 662023852727325,
+    "preparation_complete_ns": 659176384786390,
+    "startup_command_ns": 659176384786390,
+    "register_complete_ns": 659176928820873,
+    "business_trigger_ns": 659176931372577,
+    "business_request_id": "v4n40_store_disk_cold_09-business",
+    "correct_business_response_ns": 659395733202552,
+    "first_token_observed_ns": 659395319422693,
+    "delete_command_ns": 659409057625505,
+    "delete_complete_ns": 659414694142757,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1125.900019762,
+      "preparation_seconds": 738.355248238,
+      "daemon_shutdown_seconds": 58.546979457,
+      "release_seconds": {
+        "head": 82.05900519,
+        "worker": 82.056735953
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_09",
+    "block": 9,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1363.94503567,
+      "command_to_first_token_s": 218.925615799,
+      "trigger_to_first_token_s": 218.378825084,
+      "command_to_correct_business_response_s": 219.334474724,
+      "trigger_to_correct_business_response_s": 218.787684009,
+      "phase_device_setup_including_communication_span_s": 10.104412057,
+      "phase_communication_groups_span_s": 8.208988385,
+      "phase_weights_pipeline_including_allocation_span_s": 157.962419061,
+      "phase_weight_ingestion_span_s": 147.469057576,
+      "phase_quantization_postprocess_span_s": 20.391902725,
+      "phase_kv_cache_allocation_span_s": 0.15558217,
+      "phase_compile_graph_and_warmup_span_s": 1.681884567,
+      "backend_construct_s": 203.575942054,
+      "command_to_route_publication_s": 217.213478077,
+      "weight_ingestion_span_s": 147.469057576,
+      "weights_pipeline_span_s": 157.962419061
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_09",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.088450889,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 661357505855144,
+    "preparation_begin_ns": 659599934918543,
+    "attempt_deadline_ns": 663185326755871,
+    "preparation_complete_ns": 660963879954213,
+    "startup_command_ns": 660963879954213,
+    "register_complete_ns": 660964420338848,
+    "business_trigger_ns": 660964426744928,
+    "business_request_id": "v4n40_safetensors_disk_hot_09-business",
+    "correct_business_response_ns": 661183214428937,
+    "first_token_observed_ns": 661182805570012,
+    "delete_command_ns": 661195949531317,
+    "delete_complete_ns": 661201389097444,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1757.574474846,
+      "preparation_seconds": 1363.94503567,
+      "daemon_shutdown_seconds": 1.717108776,
+      "release_seconds": {
+        "head": 82.096732164,
+        "worker": 82.088450889
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_09",
+    "block": 9,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 456.489875523,
+      "command_to_first_token_s": 537.146535127,
+      "trigger_to_first_token_s": 536.664967695,
+      "command_to_correct_business_response_s": 537.565781778,
+      "trigger_to_correct_business_response_s": 537.084214346,
+      "phase_device_setup_including_communication_span_s": 9.58196639,
+      "phase_communication_groups_span_s": 6.956263233,
+      "phase_weights_pipeline_including_allocation_span_s": 477.691448137,
+      "phase_weight_ingestion_span_s": 461.926274466,
+      "phase_quantization_postprocess_span_s": 11.588074154,
+      "phase_kv_cache_allocation_span_s": 0.141984556,
+      "phase_compile_graph_and_warmup_span_s": 1.715182725,
+      "backend_construct_s": 522.901601396,
+      "command_to_route_publication_s": 535.612487392,
+      "weight_ingestion_span_s": 461.926274466,
+      "weights_pipeline_span_s": 477.691448137
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_09",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 84.381132865,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 662500202695053,
+    "preparation_begin_ns": 661394481207191,
+    "attempt_deadline_ns": 664979310415589,
+    "preparation_complete_ns": 661850971082714,
+    "startup_command_ns": 661850971082714,
+    "register_complete_ns": 661851450266569,
+    "business_trigger_ns": 661851452650146,
+    "business_request_id": "v4n40_safetensors_disk_cold_09-business",
+    "correct_business_response_ns": 662388536864492,
+    "first_token_observed_ns": 662388117617841,
+    "delete_command_ns": 662402111976224,
+    "delete_complete_ns": 662407472157614,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1105.725180621,
+      "preparation_seconds": 456.489875523,
+      "daemon_shutdown_seconds": 1.166485778,
+      "release_seconds": {
+        "head": 84.342554304,
+        "worker": 84.381132865
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_09",
+    "block": 9,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 917.605179965,
+      "command_to_first_token_s": 125.739243872,
+      "trigger_to_first_token_s": 125.249979669,
+      "command_to_correct_business_response_s": 126.156765709,
+      "trigger_to_correct_business_response_s": 125.667501506,
+      "phase_device_setup_including_communication_span_s": 16.105337427,
+      "phase_communication_groups_span_s": 14.043041718,
+      "phase_weights_pipeline_including_allocation_span_s": 53.020389664,
+      "phase_weight_ingestion_span_s": 2.685168243,
+      "phase_quantization_postprocess_span_s": 42.813938025,
+      "phase_kv_cache_allocation_span_s": 0.138372096,
+      "phase_compile_graph_and_warmup_span_s": 1.700407394,
+      "backend_construct_s": 107.607027948,
+      "command_to_route_publication_s": 123.948862001,
+      "weight_ingestion_span_s": 2.685168243,
+      "weights_pipeline_span_s": 53.020389664
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_09",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 81.729925821,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 663759176637767,
+    "preparation_begin_ns": 662536869259360,
+    "attempt_deadline_ns": 666121282617771,
+    "preparation_complete_ns": 663454474439325,
+    "startup_command_ns": 663454474439325,
+    "register_complete_ns": 663454960954581,
+    "business_trigger_ns": 663454963703528,
+    "business_request_id": "v4n40_store_pool_hit_09-business",
+    "correct_business_response_ns": 663580631205034,
+    "first_token_observed_ns": 663580213683197,
+    "delete_command_ns": 663593729461303,
+    "delete_complete_ns": 663599078917507,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1222.311602032,
+      "preparation_seconds": 917.605179965,
+      "daemon_shutdown_seconds": 70.715997199,
+      "release_seconds": {
+        "head": 81.673230529,
+        "worker": 81.729925821
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_pool_hit_10",
+    "block": 10,
+    "condition": "store_pool_hit",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 867.511447195,
+      "command_to_first_token_s": 126.305067741,
+      "trigger_to_first_token_s": 125.836044037,
+      "command_to_correct_business_response_s": 126.723585438,
+      "trigger_to_correct_business_response_s": 126.254561734,
+      "phase_device_setup_including_communication_span_s": 19.30215699,
+      "phase_communication_groups_span_s": 16.071039622,
+      "phase_weights_pipeline_including_allocation_span_s": 54.3902372,
+      "phase_weight_ingestion_span_s": 3.346887102,
+      "phase_quantization_postprocess_span_s": 43.200129895,
+      "phase_kv_cache_allocation_span_s": 0.141118817,
+      "phase_compile_graph_and_warmup_span_s": 1.878222434,
+      "backend_construct_s": 110.357104121,
+      "command_to_route_publication_s": 124.425800581,
+      "weight_ingestion_span_s": 3.346887102,
+      "weights_pipeline_span_s": 54.3902372
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_pool_hit_10",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.066672482,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 664966879183046,
+    "preparation_begin_ns": 663803390343248,
+    "attempt_deadline_ns": 667387064158352,
+    "preparation_complete_ns": 664670901790443,
+    "startup_command_ns": 664670901790443,
+    "register_complete_ns": 664671368395062,
+    "business_trigger_ns": 664671370814147,
+    "business_request_id": "v4n40_store_pool_hit_10-business",
+    "correct_business_response_ns": 664797625375881,
+    "first_token_observed_ns": 664797206858184,
+    "delete_command_ns": 664810965472007,
+    "delete_complete_ns": 664816290907836,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1163.492313357,
+      "preparation_seconds": 867.511447195,
+      "daemon_shutdown_seconds": 59.848663255,
+      "release_seconds": {
+        "head": 82.062624576,
+        "worker": 82.066672482
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_store_disk_cold_10",
+    "block": 10,
+    "condition": "store_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 726.629131967,
+      "command_to_first_token_s": 216.439062774,
+      "trigger_to_first_token_s": 215.872119399,
+      "command_to_correct_business_response_s": 216.921040897,
+      "trigger_to_correct_business_response_s": 216.354097522,
+      "phase_device_setup_including_communication_span_s": 14.507216669,
+      "phase_communication_groups_span_s": 11.759435238,
+      "phase_weights_pipeline_including_allocation_span_s": 150.93180449,
+      "phase_weight_ingestion_span_s": 11.576314742,
+      "phase_quantization_postprocess_span_s": 134.799716705,
+      "phase_kv_cache_allocation_span_s": 0.139590386,
+      "phase_compile_graph_and_warmup_span_s": 1.813296737,
+      "backend_construct_s": 201.9861075,
+      "command_to_route_publication_s": 214.74648873,
+      "weight_ingestion_span_s": 11.576314742,
+      "weights_pipeline_span_s": 150.93180449
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_store_disk_cold_10",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.330221917,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 666117565063902,
+    "preparation_begin_ns": 665002855454593,
+    "attempt_deadline_ns": 668586474740203,
+    "preparation_complete_ns": 665729484586560,
+    "startup_command_ns": 665729484586560,
+    "register_complete_ns": 665730049449506,
+    "business_trigger_ns": 665730051529935,
+    "business_request_id": "v4n40_store_disk_cold_10-business",
+    "correct_business_response_ns": 665946405627457,
+    "first_token_observed_ns": 665945923649334,
+    "delete_command_ns": 665960462389050,
+    "delete_complete_ns": 665966013434135,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1114.713315825,
+      "preparation_seconds": 726.629131967,
+      "daemon_shutdown_seconds": 60.299332209,
+      "release_seconds": {
+        "head": 82.329088638,
+        "worker": 82.330221917
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_hot_10",
+    "block": 10,
+    "condition": "safetensors_disk_hot",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 1396.084681599,
+      "command_to_first_token_s": 216.477633694,
+      "trigger_to_first_token_s": 215.950627888,
+      "command_to_correct_business_response_s": 217.051950993,
+      "trigger_to_correct_business_response_s": 216.524945187,
+      "phase_device_setup_including_communication_span_s": 10.989385574,
+      "phase_communication_groups_span_s": 9.67710305,
+      "phase_weights_pipeline_including_allocation_span_s": 155.917581504,
+      "phase_weight_ingestion_span_s": 143.100373208,
+      "phase_quantization_postprocess_span_s": 17.089544902,
+      "phase_kv_cache_allocation_span_s": 0.139078166,
+      "phase_compile_graph_and_warmup_span_s": 1.703240906,
+      "backend_construct_s": 201.413733482,
+      "command_to_route_publication_s": 214.640457526,
+      "weight_ingestion_span_s": 143.100373208,
+      "weights_pipeline_span_s": 155.917581504
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_hot_10",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.060393844,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 667943747717529,
+    "preparation_begin_ns": 666154268059977,
+    "attempt_deadline_ns": 669737233718469,
+    "preparation_complete_ns": 667550352741576,
+    "startup_command_ns": 667550352741576,
+    "register_complete_ns": 667550877083417,
+    "business_trigger_ns": 667550879747382,
+    "business_request_id": "v4n40_safetensors_disk_hot_10-business",
+    "correct_business_response_ns": 667767404692569,
+    "first_token_observed_ns": 667766830375270,
+    "delete_command_ns": 667780114787506,
+    "delete_complete_ns": 667785463777701,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1789.483330354,
+      "preparation_seconds": 1396.084681599,
+      "daemon_shutdown_seconds": 1.717244923,
+      "release_seconds": {
+        "head": 82.020266348,
+        "worker": 82.060393844
+      }
+    }
+  },
+  {
+    "attempt_id": "v4n40_safetensors_disk_cold_10",
+    "block": 10,
+    "condition": "safetensors_disk_cold",
+    "status": "evidence_complete_unqualified",
+    "success": true,
+    "consumed": true,
+    "terminal": true,
+    "runtime_qualified": true,
+    "physical_cleanup_verified": false,
+    "metrics": {
+      "preparation_s": 450.04492659,
+      "command_to_first_token_s": 536.833552085,
+      "trigger_to_first_token_s": 536.357113509,
+      "command_to_correct_business_response_s": 537.300080568,
+      "trigger_to_correct_business_response_s": 536.823641992,
+      "phase_device_setup_including_communication_span_s": 10.327739399,
+      "phase_communication_groups_span_s": 7.44156825,
+      "phase_weights_pipeline_including_allocation_span_s": 475.321709681,
+      "phase_weight_ingestion_span_s": 459.056490092,
+      "phase_quantization_postprocess_span_s": 12.207767647,
+      "phase_kv_cache_allocation_span_s": 0.185360636,
+      "phase_compile_graph_and_warmup_span_s": 1.685415951,
+      "backend_construct_s": 520.835242734,
+      "command_to_route_publication_s": 534.924927673,
+      "weight_ingestion_span_s": 459.056490092,
+      "weights_pipeline_span_s": 475.321709681
+    },
+    "component_checks": {
+      "business": {
+        "native_token_parity": true,
+        "semantic_success": true,
+        "natural_eos_observed": true,
+        "complete_business_success": true
+      },
+      "workload32": {
+        "native_token_parity": true,
+        "fixed32_length_success": true
+      }
+    },
+    "missing_evidence": [],
+    "correct_business_response_observed": true,
+    "execution_run_id": "v4n40_safetensors_disk_cold_10",
+    "code_commit": "88cc71ec50c8668c26f26636d7d432c3351356fe",
+    "source_manifest_sha256": "d109321d600969dc0d51ed883914bd929c8e855a561d4cfd454b4d2e777acb42",
+    "preregistration_sha256": "bffa18dfe81a2c18ab31b8df51246c587c2e7abe58aea214057775a46e7a24be",
+    "boot_id": "24dbe463-88f2-47c9-b483-6ae220e34807",
+    "time_namespace": "time:[4026531834]",
+    "release_coverage": {
+      "sample_span_seconds": 82.235418102,
+      "scope": "temporal coverage only; GPU/process/IPC cleanup not validated"
+    },
+    "evidence_complete_ns": 669084491713554,
+    "preparation_begin_ns": 667985962351005,
+    "attempt_deadline_ns": 671568289928695,
+    "preparation_complete_ns": 668436007277595,
+    "startup_command_ns": 668436007277595,
+    "register_complete_ns": 668436475925697,
+    "business_trigger_ns": 668436483716171,
+    "business_request_id": "v4n40_safetensors_disk_cold_10-business",
+    "correct_business_response_ns": 668973307358163,
+    "first_token_observed_ns": 668972840829680,
+    "delete_command_ns": 668986533005684,
+    "delete_complete_ns": 668991879174998,
+    "protocol_binding_verified": true,
+    "full_run_status": "qualified",
+    "control_amendment_sha256": "65ee00eb18f632bd993b7e24dc27d9925ec4bcad2ac953fa0c0ca89ad0839bef",
+    "runtime_observations": {
+      "total_elapsed_seconds": 1098.532850069,
+      "preparation_seconds": 450.04492659,
+      "daemon_shutdown_seconds": 1.11685212,
+      "release_seconds": {
+        "head": 82.243379892,
+        "worker": 82.235418102
+      }
+    }
+  }
+]

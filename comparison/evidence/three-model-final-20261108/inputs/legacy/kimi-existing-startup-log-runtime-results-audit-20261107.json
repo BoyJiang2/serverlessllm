@@ -1,0 +1,1664 @@
+{
+  "schema": "kimi-existing-startup-runtime-results-audit-v1",
+  "status": "VERIFIED_FIXED_PUBLIC38_MODEL_LOADING_LOG_MARKERS_AND76_IMPORTS",
+  "created_utc": "2026-11-07T13:12:37Z",
+  "input": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-existing-startup-log-readonly-20261107-once-public.json",
+    "sha256": "3b0ab92e6306d7b2fe98d3f785af1162f1abf9d485625986192799fd6f53f43a",
+    "bytes": 1215499,
+    "producer_read_bytes": 32819174
+  },
+  "manifest": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/input-manifest-v3.json",
+    "sha256": "4dd7d68f5409941c362f28e937c2dce21770a5829677dc1dcde78b2f5f70f801"
+  },
+  "actual_analysis": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-actual-analysis-v1-20261107.json",
+    "sha256": "0959cf17761ec076a07711bd010e8ab4e0f061bb3707b9cd252963fe29758df1"
+  },
+  "mapping": {
+    "exact38_original_qualified": true,
+    "per_condition": {
+      "safetensors_disk_hot": 9,
+      "store_disk_cold": 10,
+      "safetensors_disk_cold": 9,
+      "store_pool_hit": 10
+    },
+    "primary_blocks": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "primary_sample_count": 32,
+    "supplemental_historical_and_failed_not_mixed": true
+  },
+  "definition": {
+    "name": "C_MODEL_LOADING_LOG_SPAN",
+    "unit": "seconds",
+    "start": "time.perf_counter before get_model_loader",
+    "end": "time.perf_counter after model_loader.load_model and optional LoRA/drafter/auxiliary setup",
+    "source": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+      "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+      "start_line": 4750,
+      "end_line": 4810,
+      "print_lines": [
+        4965,
+        4967
+      ]
+    },
+    "excludes": "Load-evidence capture/synchronization hook begins after time_after_load; logging and DeviceMemoryProfiler exit overhead outside numeric span.",
+    "limits": [
+      "Not GLM cross-rank weight-ingestion span",
+      "Not8rank maximum: marker rank/PID are null, one logger message perrun does not identify slowest rank",
+      "Not backendinit, pureIO, pureCUDA, HTTP startup, TTFT or decode. Perf-counter duration is internal same-process; no logged absolute start/end or cross-process clock join fabricated."
+    ]
+  },
+  "all38_qualified_description": {
+    "safetensors_disk_cold": {
+      "n": 9,
+      "mean_s": 1118.3572806666666,
+      "min_s": 1094.280666,
+      "max_s": 1143.679235,
+      "blocks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+        "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+        "kimi-four-v1-b03-safetensors_disk_cold",
+        "kimi-four-v1-b05-safetensors_disk_cold",
+        "kimi-four-v1-b06-safetensors_disk_cold",
+        "kimi-four-v1-b07-safetensors_disk_cold",
+        "kimi-four-v1-b08-safetensors_disk_cold",
+        "kimi-four-v1-b09-safetensors_disk_cold",
+        "kimi-four-v1-b10-safetensors_disk_cold"
+      ],
+      "raw_values_s": [
+        1131.161304,
+        1102.565233,
+        1138.312109,
+        1124.460584,
+        1129.030991,
+        1102.73607,
+        1098.989334,
+        1094.280666,
+        1143.679235
+      ]
+    },
+    "safetensors_disk_hot": {
+      "n": 9,
+      "mean_s": 283.88778977777775,
+      "min_s": 274.176027,
+      "max_s": 297.856367,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+        "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+        "kimi-four-v1-b03-safetensors_disk_hot",
+        "kimi-four-v1-b04-safetensors_disk_hot",
+        "kimi-four-v1-b05-safetensors_disk_hot",
+        "kimi-four-v1-b06-safetensors_disk_hot",
+        "kimi-four-v1-b07-safetensors_disk_hot",
+        "kimi-four-v1-b08-safetensors_disk_hot",
+        "kimi-four-v1-b10-safetensors_disk_hot"
+      ],
+      "raw_values_s": [
+        287.590599,
+        297.856367,
+        296.073594,
+        278.90517,
+        290.251608,
+        280.331613,
+        274.176027,
+        275.402041,
+        274.403089
+      ]
+    },
+    "store_disk_cold": {
+      "n": 10,
+      "mean_s": 89.1649362,
+      "min_s": 70.699197,
+      "max_s": 95.486601,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-store_disk_cold-retry04",
+        "kimi-four-v1-b02-store_disk_cold-retry02",
+        "kimi-four-v1-b03-store_disk_cold",
+        "kimi-four-v1-b04-store_disk_cold",
+        "kimi-four-v1-b05-store_disk_cold",
+        "kimi-four-v1-b06-store_disk_cold",
+        "kimi-four-v1-b07-store_disk_cold",
+        "kimi-four-v1-b08-store_disk_cold",
+        "kimi-four-v1-b09-store_disk_cold",
+        "kimi-four-v1-b10-store_disk_cold"
+      ],
+      "raw_values_s": [
+        93.536825,
+        90.589227,
+        89.544684,
+        95.486601,
+        93.718491,
+        89.693664,
+        92.865875,
+        82.224762,
+        93.290036,
+        70.699197
+      ]
+    },
+    "store_pool_hit": {
+      "n": 10,
+      "mean_s": 9.9428147,
+      "min_s": 8.816642,
+      "max_s": 11.189701,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-store_pool_hit-retry04",
+        "kimi-four-v1-b02-store_pool_hit-retry02",
+        "kimi-four-v1-b03-store_pool_hit",
+        "kimi-four-v1-b04-store_pool_hit",
+        "kimi-four-v1-b05-store_pool_hit",
+        "kimi-four-v1-b06-store_pool_hit",
+        "kimi-four-v1-b07-store_pool_hit",
+        "kimi-four-v1-b08-store_pool_hit",
+        "kimi-four-v1-b09-store_pool_hit",
+        "kimi-four-v1-b10-store_pool_hit"
+      ],
+      "raw_values_s": [
+        9.391648,
+        8.816642,
+        10.301241,
+        9.325817,
+        10.833526,
+        8.972943,
+        9.933526,
+        11.189701,
+        10.11515,
+        10.547953
+      ]
+    }
+  },
+  "primary8_complete_blocks_description": {
+    "safetensors_disk_cold": {
+      "n": 8,
+      "mean_s": 1121.3668575,
+      "min_s": 1098.989334,
+      "max_s": 1143.679235,
+      "blocks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+        "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+        "kimi-four-v1-b03-safetensors_disk_cold",
+        "kimi-four-v1-b05-safetensors_disk_cold",
+        "kimi-four-v1-b06-safetensors_disk_cold",
+        "kimi-four-v1-b07-safetensors_disk_cold",
+        "kimi-four-v1-b08-safetensors_disk_cold",
+        "kimi-four-v1-b10-safetensors_disk_cold"
+      ],
+      "raw_values_s": [
+        1131.161304,
+        1102.565233,
+        1138.312109,
+        1124.460584,
+        1129.030991,
+        1102.73607,
+        1098.989334,
+        1143.679235
+      ]
+    },
+    "safetensors_disk_hot": {
+      "n": 8,
+      "mean_s": 284.51061725,
+      "min_s": 274.176027,
+      "max_s": 297.856367,
+      "blocks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+        "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+        "kimi-four-v1-b03-safetensors_disk_hot",
+        "kimi-four-v1-b05-safetensors_disk_hot",
+        "kimi-four-v1-b06-safetensors_disk_hot",
+        "kimi-four-v1-b07-safetensors_disk_hot",
+        "kimi-four-v1-b08-safetensors_disk_hot",
+        "kimi-four-v1-b10-safetensors_disk_hot"
+      ],
+      "raw_values_s": [
+        287.590599,
+        297.856367,
+        296.073594,
+        290.251608,
+        280.331613,
+        274.176027,
+        275.402041,
+        274.403089
+      ]
+    },
+    "store_disk_cold": {
+      "n": 8,
+      "mean_s": 87.859090625,
+      "min_s": 70.699197,
+      "max_s": 93.718491,
+      "blocks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-store_disk_cold-retry04",
+        "kimi-four-v1-b02-store_disk_cold-retry02",
+        "kimi-four-v1-b03-store_disk_cold",
+        "kimi-four-v1-b05-store_disk_cold",
+        "kimi-four-v1-b06-store_disk_cold",
+        "kimi-four-v1-b07-store_disk_cold",
+        "kimi-four-v1-b08-store_disk_cold",
+        "kimi-four-v1-b10-store_disk_cold"
+      ],
+      "raw_values_s": [
+        93.536825,
+        90.589227,
+        89.544684,
+        93.718491,
+        89.693664,
+        92.865875,
+        82.224762,
+        70.699197
+      ]
+    },
+    "store_pool_hit": {
+      "n": 8,
+      "mean_s": 9.9983975,
+      "min_s": 8.816642,
+      "max_s": 11.189701,
+      "blocks": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "run_ids": [
+        "kimi-four-v1-b01-store_pool_hit-retry04",
+        "kimi-four-v1-b02-store_pool_hit-retry02",
+        "kimi-four-v1-b03-store_pool_hit",
+        "kimi-four-v1-b05-store_pool_hit",
+        "kimi-four-v1-b06-store_pool_hit",
+        "kimi-four-v1-b07-store_pool_hit",
+        "kimi-four-v1-b08-store_pool_hit",
+        "kimi-four-v1-b10-store_pool_hit"
+      ],
+      "raw_values_s": [
+        9.391648,
+        8.816642,
+        10.301241,
+        10.833526,
+        8.972943,
+        9.933526,
+        11.189701,
+        10.547953
+      ]
+    }
+  },
+  "imports": {
+    "markers": 76,
+    "head": 38,
+    "worker": 38,
+    "unique_version_sets": 1,
+    "observed_versions": {
+      "GPUtil": "1.4.0",
+      "grpcio": "1.76.0",
+      "msgpack": "1.1.2",
+      "ray": "2.48.0",
+      "speedtest-cli": "2.1.3",
+      "torch": "2.10.0+cu129",
+      "transformers": "5.5.1",
+      "vllm": "0.19.1"
+    },
+    "observed_module_origins": {
+      "ray": "/usr/local/lib/python3.12/dist-packages/ray/__init__.py",
+      "sllm.backends.vllm_backend": "/source/sllm/backends/vllm_backend.py",
+      "sllm.cli.clic": "/source/sllm/cli/clic.py",
+      "sllm.controller": "/source/sllm/controller.py",
+      "sllm.routers.roundrobin_router": "/source/sllm/routers/roundrobin_router.py",
+      "sllm_store.client": "/source/sllm_store/sllm_store/client.py"
+    },
+    "original_spec_wheel4_versions_match_all76": true,
+    "module6_origins_match_source_and_prefix_contract_all76": true,
+    "original_spec_import_role_sha256": "8d7600678524c26907f6087ebde20c1b6b7313de24d012f5c124dcd917ee8c9e",
+    "scope": "Each original matching-source/protocol spec imports these6 modules with /source and /source/sllm_store first, existing torch prefix;4 newly installed wheel versions match exact asset filenames. Core4 versions torch/vllm/transformers/grpcio are observed identical in76 actual logs and bound to same image, but spec import role reports rather than literal-asserts their version strings. Bootstrap contract checks core distribution identities unchanged; collector summary does not contain those full core-before/after hashes, so this receipt does not independently replay that check.",
+    "not_proven": "Module path/version strings do not prove8GPU rank ELF identity or every imported source byte. NATIVE_IMPORTS_PASS is the host-selected head/worker prelaunch import check, not new CPU/GPU execution."
+  },
+  "matching_spec_pins": [
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_hot-retry04-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "5da626d6f2c381c0ac10201c548572c867327e67e8c1e37dd438036a66ea3663"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_disk_cold-retry04",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_disk_cold-retry04-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "9d8f7fb710c23d78ce8933ef8fae9f0a0330c417024b124129b03d4c3f8d9969"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_cold-retry04-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "4edfcaec728ca1dda6d06cfbebb5c65fdfa52eca6fe97552fc103fcaadf2332c"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_pool_hit-retry04",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_pool_hit-retry04-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "2c9410179c5e7c958948c7ee9f6d83ac2d9d61bc5de83a62e46a421a27abcf7f"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_pool_hit-retry02",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_pool_hit-retry02-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "25b6f2765d7324cf0e11242afe10a9283155dbf7ffe6d634505b4178ff533768"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_cold-retry02-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "fbfc7a23b22bad024956f85daad5606472b823e09b3a51503aebfa40702b26c4"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_disk_cold-retry02",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_disk_cold-retry02-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "5fde2693dc334fab4ea58ed9ecfe74306a652bc9bcbc4991563b78f7cd0f73a1"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_hot-retry02-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "a7802f9f174b7753faa5953ae544a6727801e4c66b5e1d937f76610da42cda4a"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "e00e09c6a6b6eac770c5bf458ca91b03c276626497438cf5ab0bbfb3ae54b90d"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_pool_hit-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "30c329c2988736aeac46a20cb061dcd66acd95637a11bf7c001a2c3410d971c7"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_hot-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "7a2d1c5f4ed4aa30faa3c21c474741bb8adb53821502611311510de1d19cd878"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "cd367a2a072911ffff4834af66af74113c7f84351bd3414c53a2611c6567a8a7"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_hot-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "90a7b61ee50a324097e712658fb31c9de7c4f6fbaecb63dae5b5e98cbb14b678"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+      "sha256": "1affa9827545a6e9c00d4942ade62a3260d10fb2108d7b2db2298f41340a516c"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "ce5113c09af8a7a268ce13fb956d68efe425bbb2ee9ff8987d3dfaf1d131c369"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "0b4db299d1447aed51bf1d04d01e8d83cdd94705b55ff840535bcdbebe163a93"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "9c7530a10b6cf5db2e2289e7c2fedf64a2b26382079137e1a15aab11ffd9c2ec"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "cf05a9317b0596104cda7a0ab2ac8a7882fc08b8a1b88fc131fe8844db4c2a09"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "37747c2e3a3670767e3901ac0b26f32532e2bf6d38f3b587b8aee8ec74ecf97d"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "ab2874699f00d54399b96e03f6c8072e0aa8e3c9f70a477ae63eef346e93064e"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "53fef51a79233321bca09789d6d1eff7d788cd493e161cad804f87cfda00ddc4"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "446103bc921c8160bec480d4bf0ba99735d8b5acef7679e926cf23404fdb9186"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "1f4450612754e959e1a031cf236948a18fc93ac34ccb52ab7b0679d73e3ee533"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "1aec4debfd9d9ec72850edb81493a6e9d91ed15d7e07c74e846f13f11ab01236"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "cf3eb4db5bf331cf326a3beacb4cfe29cccf7342bfa54c3558dd85a06eb1305d"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "044e8d8f14bb28e03c45f5e80dc3cf3dd50167fc0c8aa639019fb633eabe59aa"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "2549d184d0fa17c3a8c85d342631c7e9bab02d614dac901b953691fbec0e9521"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "9edddb417c8190f707d23a2425fe49c61558e0b051427d224bc807f80fd0b2d6"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "5c0f1da25f125dc6f1292f6e8b3ebfe8d018ded011d704d30f3c440f3c526119"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "b8056056a2c96747177618a3aa8cf662d868db90a981b45f004b8bc7fe4c6797"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "1e354e3fecdf81069f83cdaf0d9dd677c345ff706afb325d28145fbb764bc182"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "dfe308a452f81d331c1f01b3961103bc2cca39bdd83233a176e3aa214fd885cd"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "4c7a766bd8413b640c980eb7bff07c02fa2b05d1655f100e7b11d57408b74465"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "f6db2248af5abb05ff68b37608bb9e7a7cde716af6c65131f7be9e72e217c393"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "d94ea3c3300f7adbf937f833772cdfbed20695b92f3658bc7c95bd72cbf1e17d"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_pool_hit",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "dcd04f5ab06af90e30aa90aa3a1e05325d71ea05ef0548db2aacaff39615dcd2"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_hot",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "24ef2370ea367a24cfb4a433d303eaab9b1942e538a7c8864e52619768773135"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_cold",
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+      "sha256": "aa69081cd246e014b71dc1c54daeb1fc77cb49538b8622b185e355bffde93efb"
+    }
+  ],
+  "rows": [
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 287.590599,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_hot-retry04/11-head-official_module.stdout",
+      "source_sha256": "b9fe0d08bc39a66a3ef20c476936c82a43551d995e1737281f3d720764203614",
+      "source_bytes": 1009859,
+      "line": 3651,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_hot-retry04/2-head-imports.stdout",
+          "sha256": "3740cce51a37ebb8800869cdeb67581042d6ae73c029404e278eafa1b7f8837d",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_hot-retry04/5-worker-imports.stdout",
+          "sha256": "34760f44bb5abc37fdf2896a7ea4ebf2c25b5328e74c72b6519ec7f0991897a3",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_disk_cold-retry04",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 93.536825,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_disk_cold-retry04/11-head-official_module.stdout",
+      "source_sha256": "d664492a7d5cd1fe37cf4f7a140b2280cf3e31c4bddc8f868c784aa1e150bd6b",
+      "source_bytes": 385338,
+      "line": 936,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_disk_cold-retry04/2-head-imports.stdout",
+          "sha256": "41d6a1cf62ddc6b0251567b03b8539829c69e01302e721961380af99dd2f6878",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_disk_cold-retry04/5-worker-imports.stdout",
+          "sha256": "e5794092df12f830b948dedcac77dbd1d0edb3d09782d1f154d23f504a334da8",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1131.161304,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_cold-retry04/11-head-official_module.stdout",
+      "source_sha256": "fae8ff8100e173783df381d2ebb2d11cb372198ef773c5eaf3b6e31c5cf778d1",
+      "source_bytes": 1205489,
+      "line": 5737,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_cold-retry04/2-head-imports.stdout",
+          "sha256": "b6217cfd1d00ab12af931d0f28a26c6b0d196afce20c40bbb5792c588c3d3806",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-safetensors_disk_cold-retry04/5-worker-imports.stdout",
+          "sha256": "5f7ec27a62bacbc20e886b3cefa958bf09eff2658ab89c7c28acab3c160c7081",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_pool_hit-retry04",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 9.391648,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_pool_hit-retry04/11-head-official_module.stdout",
+      "source_sha256": "f8c80538ddc9f7614594dd9e0a9b5b2caa01b300a7918f4e48fa76bd60f83334",
+      "source_bytes": 365422,
+      "line": 755,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_pool_hit-retry04/2-head-imports.stdout",
+          "sha256": "e10bcd3087467e9cb1ad0244c89bd484cd382465f11180b8b86a19ed33c11cd8",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b01-store_pool_hit-retry04/5-worker-imports.stdout",
+          "sha256": "d94c02d7ffef84469404bb206f6bc6b157e509aa52c434cd444ad6c462a0b589",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_pool_hit-retry02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 8.816642,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_pool_hit-retry02/11-head-official_module.stdout",
+      "source_sha256": "3b57541b38ee7e9d236f2d74f03f00e91a27573303ab61b1934a1ce7e92998ef",
+      "source_bytes": 365670,
+      "line": 743,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_pool_hit-retry02/2-head-imports.stdout",
+          "sha256": "91446ed9e60197337288d0500d47741b27714084102958d9999c8188d888d228",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_pool_hit-retry02/5-worker-imports.stdout",
+          "sha256": "721cb72f62cab6a0f59d89fcf3ea4b9b0e9a1c36682b4af36912698a7fdabaff",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1102.565233,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_cold-retry02/11-head-official_module.stdout",
+      "source_sha256": "e63e7e29dace9be4b2322acfe93b9d92ee0a37d4a9c63bcb39ca683a0dcae709",
+      "source_bytes": 1197489,
+      "line": 5662,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_cold-retry02/2-head-imports.stdout",
+          "sha256": "789212705cfe60454045f4dc827e0097a09660a8e246eaa46dc1f0747d3869e5",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_cold-retry02/5-worker-imports.stdout",
+          "sha256": "836fdfdf2bfebb319948c7408c27ee1a8c8fde86dfbac71b4cb0e2acededc230",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_disk_cold-retry02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 90.589227,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_disk_cold-retry02/11-head-official_module.stdout",
+      "source_sha256": "1a5dd773195937b45823a1552e5a2ffa5f9afbf10ba9e68e55fb9ad8cd3ba03c",
+      "source_bytes": 385215,
+      "line": 902,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_disk_cold-retry02/2-head-imports.stdout",
+          "sha256": "6f992eaa6f94f8be839ac46fcce992d69efaf3ee6e3561f81c1c59d1af7822ea",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-store_disk_cold-retry02/5-worker-imports.stdout",
+          "sha256": "93c9c1810ba8012fd0dd6f2c2c1555d08557c1d55adc5163d4e5e9baef962686",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 297.856367,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_hot-retry02/11-head-official_module.stdout",
+      "source_sha256": "f070961807742240ed2220643973e055225b6e3efa33623bdf920b4f8ac22476",
+      "source_bytes": 1008974,
+      "line": 4014,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_hot-retry02/2-head-imports.stdout",
+          "sha256": "c0c2e1520d97050b81eae82bf2befe47cdd618123cf0db470870350616ad90b2",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b02-safetensors_disk_hot-retry02/5-worker-imports.stdout",
+          "sha256": "2c0dea28c72cbc236fe4907f92614c10fb7d8c972c9f4549e0fb1454fb10aabb",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_disk_cold",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 89.544684,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "ca958d32fef898c676f90a0bca96061ef4e611822986b1f584a2fb2216af35a8",
+      "source_bytes": 386187,
+      "line": 905,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_disk_cold/2-head-imports.stdout",
+          "sha256": "1af93364c7ffc5c8b0937441785d6b301838b9efd35aa611f94d8129311bf332",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "64e3cad9d45ac14b8761e7859a69ecb2155f21c6235bc002e4509431dc850bc3",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_pool_hit",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 10.301241,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "5d1460a8c5638fcee09b1d96d05e79b2f67a5061cb9a3da091c74000a25867fe",
+      "source_bytes": 367349,
+      "line": 739,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_pool_hit/2-head-imports.stdout",
+          "sha256": "e3a97db0e734d1ee619b0e0a8c8ca14b0a6f046aa68e574110bcd73a22444791",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "932098e8ef7bc77ff50297a22f787087bfa171fcdcd54deb9accdc1651bb7746",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_hot",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 296.073594,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "17f7516ac49760a6acebf5c189092d7ff6f544a00b7dd2e3ab6a9177c4c52376",
+      "source_bytes": 1012784,
+      "line": 3324,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "512dd6fed08454addad6b245c4a4b4b7a66c24045ed8fd8c1a09da5bf5263614",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "a9eefeb21e19fdb7da4377f05c27aa009ad765ec9d329c2e06dab4bd67aaefe2",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_cold",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1138.312109,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "54570cbb4b309ea5f36706bc911ccb4865f75890dfa0c34e93f8860241bc94c1",
+      "source_bytes": 1206372,
+      "line": 5746,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "66a978c6c140f5abd37e77c4421e07d1bc8c6e513b327e6f0bda3b19aff60fc7",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b03-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "93675cd50a3d9d5ffd5455c4a0a4880d2cbab60537ee82673cab9c98557ca263",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b04-safetensors_disk_hot",
+      "block": 4,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 278.90517,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "68d75fcd945ad2a9f25fe1c30b5b253de27bfb1779fda77cf8840cb540eb5df9",
+      "source_bytes": 1011976,
+      "line": 2939,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "3c08b8f0587c6c77da7312654685c25fd53ac4e57f5c2bfebcbda618885fa72d",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "0ed13f176f0321f2902e08a815744a52b435d81af121f174bfdbf05a19a30748",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_disk_cold",
+      "block": 4,
+      "condition": "store_disk_cold",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 95.486601,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "d714f88702ce5d3b7cda27b618f98ca0b5a7d07aa58d0276f43b9bfe13d71a97",
+      "source_bytes": 386862,
+      "line": 938,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_disk_cold/2-head-imports.stdout",
+          "sha256": "b43c56de9c731cb9f23b576892c2082445ae0fcd4a0e74ac4d08ab9e6793265b",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "1e43b381282fcb1084c64499dce6c7203af41fb6f40d540645e0491f738fe51a",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_pool_hit",
+      "block": 4,
+      "condition": "store_pool_hit",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 9.325817,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "6a9ab60e716423f3fe1022b414e0bbaac629831e4eed1615caf38e76b756aa68",
+      "source_bytes": 366946,
+      "line": 742,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_pool_hit/2-head-imports.stdout",
+          "sha256": "1e307c5c96aea5a7529931bccc419702d7c9c081d4d6b0983d90190107ff6a73",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b04-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "00c5c2386267fcaddb6c823131e1674c49eaf754dad5ec2344431d08a44c598f",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_cold",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1124.460584,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "314575317e6223cda8bb2bb52aa2e5c1763c6b60f9f80fa4165580c1fcd7b57d",
+      "source_bytes": 1202999,
+      "line": 5725,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "3313afc40a1a8903424e1ec77849bcbe005bc53a334dbd25a9e58acf51f0cb1b",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "a88fb7e4d21a994134cb993d4fa210cb2fb8b0fb90ecf0a3825dc37a4d32abe0",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_hot",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 290.251608,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "bebc517ce9935da9078fa2a688339e8af093f896e7e8589734c08ea92a6d388b",
+      "source_bytes": 1012541,
+      "line": 3312,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "e1dea552dd99d0d9632afc62a77dd0752c08b7cf8898e940c43bbe1ff90904b6",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "f13cd08e1ff9c2335ef57cd05c891c30342cef39b52c7855568010dacb4c9589",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_pool_hit",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 10.833526,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "8c2522ac905c7f6d08e0caf59adb135dd90637559bc650c51ebe7e3205d1206c",
+      "source_bytes": 366343,
+      "line": 759,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_pool_hit/2-head-imports.stdout",
+          "sha256": "9eb13e024099fba2906f65983650e1b4be6495d0cbbdbc48555c03c9f11d3acf",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "cb040aea03bbc74f7b287ee46fb17f9fde15005b0d50c5e0545082fddb2f0e2a",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_disk_cold",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 93.718491,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "1fd369a6507dae06d68510902e90fd31eb9a2cc635ce8f0402f6e1adc2844488",
+      "source_bytes": 386146,
+      "line": 946,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_disk_cold/2-head-imports.stdout",
+          "sha256": "2b95f5f82001153a7f805daabad14e232be41e2affa98467869be766feeb6086",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b05-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "862fe58710916a3d46a5f3a2527f52ed0f10520be0b303438870da52b7370747",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_pool_hit",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 8.972943,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "2cbe7975f4cf98b88c7320df7862bbc5de2ac109b7e3aaf3ef3273118e90cf37",
+      "source_bytes": 366165,
+      "line": 737,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_pool_hit/2-head-imports.stdout",
+          "sha256": "68b223b2400a00f1b7926d1b2797cf143f3fd2c113a6042791f87ac8ef830b47",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "5aad857b0d99eeb9952f6df055fa391795861c42cdd3731e6e01fc861df95202",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_cold",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1129.030991,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "d127f3aff6efa9eba4e40a395daff42723adad7773b21adbfd03fc760e10a08e",
+      "source_bytes": 1203861,
+      "line": 5728,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "a069ce14c269652a817105a85ac80dc95b880ae41d185fff451b90b24d326db4",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "6a7db0b41ace6c5d82922b27df7b92f8a3616368c7576ff9032fff744e38ca98",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_disk_cold",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 89.693664,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "697fba2a1da50c6eeeb0f6fe8e59692d077a68b33a38dc348700decae1c43172",
+      "source_bytes": 385826,
+      "line": 896,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_disk_cold/2-head-imports.stdout",
+          "sha256": "7a799915ae87121da2ea8240e4bee4a2a0270a5fc6b46f8375a41a3b3a0bc699",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "73c21798d8a59a7318b8c0d654ec78c16649d57485c650bfbf5ca0bc3d40f13d",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_hot",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 280.331613,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "a94a69425410a7fe1a02e65a2e657d30e09c656d5e7face6d9b9e8d56749c6d0",
+      "source_bytes": 1008887,
+      "line": 3288,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "682764e849fad6ca7203d46234752caab875bc3a09f0adb081802fdecc618b7f",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b06-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "162baf74b2cbea60ae931e2e572edb9183a69af88edfd302d93bfd9afc385d20",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_cold",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1102.73607,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "c71143a1c142c33b1651a308979695e19c8eec921f76a739d1c30551c17c8469",
+      "source_bytes": 1198245,
+      "line": 5691,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "0919013de29156eb207ee8b329a6177e36c089d33a0eaf255e4380c0d6eb71e7",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "aa993a6d6db7dace9bba2937e18ab80db8af136edbb2f8dc6c2607ac636d48f8",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_hot",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 274.176027,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "929c9128c45bf6f05053e2f0f5080d3b8cb0aa612137f6096f78c4edf222da0a",
+      "source_bytes": 1008083,
+      "line": 3272,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "fea9776cec6731903286e09125eba1ad00d018e1b43c0063039aa8bce36fa072",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "6c46170b7a00090bd2e534d3fe28e865490ca98f1e9b812c358903a7251a5f89",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_pool_hit",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 9.933526,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "5d466cab762ac84fe625f78ba937f3703eaa3e37796e1ca9f12e7d939ee57068",
+      "source_bytes": 366358,
+      "line": 757,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_pool_hit/2-head-imports.stdout",
+          "sha256": "b43596c0afcd3f6ffe43be4383e31deb992ed733bb5ebcdf3bd004ee7a7cba11",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "1dc03151c2de2971dc9283ae7a313fb48f235f8f845b4903a635e2827e98dcc7",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_disk_cold",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 92.865875,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "780efa682483d78739d53ef1a3d70faeef90f1d20285ccf10f3ce38c40048790",
+      "source_bytes": 386583,
+      "line": 924,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_disk_cold/2-head-imports.stdout",
+          "sha256": "20d6edc5272df856c0ed550f78f22bf8b34d5a8a4ce6aceef2aa32795e2d82ec",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b07-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "da3ef70ba8876fb2fc7f6d549cb29426584144763d5af822702111350cf11c93",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_cold",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1098.989334,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "27b4778c1d695bd3803d214c8a8b6a06c5ef376d8c5c4f693e3ace401dedb587",
+      "source_bytes": 1197268,
+      "line": 5666,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "963f0b0f9fdc0a75c8eeb635e1bd15b4fc3003cfd93a0d89fa68c8bbdc67fd33",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "e0a38d2822cc27ad690610d078b7c6a18f78855cdc50ba17c9322c055d3f55e2",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_hot",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 275.402041,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "d2b1ccbe31de3e050d87627ef9459d0ccc659db4d196e526234a6e300c46c183",
+      "source_bytes": 1005471,
+      "line": 3939,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "be17abb2da69e22c63790d8beae5c4501c3206e8f8aa3194170480bb65a3ddd3",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "7e56c9ca35a3d8b0e9a42261960f14a1537040c86e4264f5a8fb6f188e80043e",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_pool_hit",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 11.189701,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "78504ee354d1cad2e1df871d27ace7acc605f06d3a19ed33f9cfb39da5e39edf",
+      "source_bytes": 366682,
+      "line": 768,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_pool_hit/2-head-imports.stdout",
+          "sha256": "3afb3ce46ef8e3aa4b75aad8aca367b4cb2dbe811aac0091ddbbc4c4c07177a1",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "cbe7b4e0fc9d076ae8e2ad70559c837a250090396d118a3f09528b763f75c4be",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_disk_cold",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 82.224762,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "5a2b1bdd96445ca106f0096fd4c3a177f27406a5275ce5c492f7315b761bea75",
+      "source_bytes": 386621,
+      "line": 874,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_disk_cold/2-head-imports.stdout",
+          "sha256": "f704931aec08ca21b29e69961a1190543529946b0a38ceebfe967cb19ecc7d56",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b08-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "b8a9c68429b5ef22611fe5cb6ce7b86608860f47f2ed329fd5829d357396d139",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_pool_hit",
+      "block": 9,
+      "condition": "store_pool_hit",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 10.11515,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "091a8d4c348adb207e392e9db0e1f251272809f0caf85f755504c90b2701d5cc",
+      "source_bytes": 366403,
+      "line": 732,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_pool_hit/2-head-imports.stdout",
+          "sha256": "1593c89cdf86818366d8d8ef5a03c9df32479990536c7dc84e41a6145d685a29",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "280845b03bd3269367336ff5dc6ea45f381254c78d297c0b0310cd193759b90c",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b09-safetensors_disk_cold",
+      "block": 9,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1094.280666,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "9a10baaf642cbeb9374e1dcae9804cb25a7f1c3ee0ed19208c3490f9c4ae0dd9",
+      "source_bytes": 1196032,
+      "line": 5659,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "e5f01d44f7e857644917afecc7d37f35ecd9447c5e31acaf32dff2ba7aae9704",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "b54e52b8d44fd316e00f1140db6afa38f33a731a9901d72406ea0f378363d6d4",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_disk_cold",
+      "block": 9,
+      "condition": "store_disk_cold",
+      "primary_complete_block": false,
+      "C_MODEL_LOADING_LOG_SPAN_s": 93.290036,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "35fcb7077a8af7a04d9f4272d7fa55d44c9f67452876c7d8cf10c5f09c198436",
+      "source_bytes": 385797,
+      "line": 940,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_disk_cold/2-head-imports.stdout",
+          "sha256": "b0da9e47d8071566d75f5a4e2e97c39bd06dc95226be6951d83ac2106c526075",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b09-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "5c35007377a9ba9c4f41881ac6c55115ae11f71178fe8b4076b9c33eaf15dc0c",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_disk_cold",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 70.699197,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "5fafaee39b63b0ba5439011ceb705720720831d1a489e64dd3f5c41a7b90243d",
+      "source_bytes": 385842,
+      "line": 849,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_disk_cold/2-head-imports.stdout",
+          "sha256": "a8472b371d16ee641b45dfab71440a6a43591c9d3a3e62eaf44a137aa1c89d93",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_disk_cold/5-worker-imports.stdout",
+          "sha256": "61d5c2daf8925c3046c4e2b83fecb15ccffa2bfac2d73021cfde1041112e46cd",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_pool_hit",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 10.547953,
+      "model_memory_GiB": 0.19,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_pool_hit/11-head-official_module.stdout",
+      "source_sha256": "4d58b85bffb159b62a57b7656f3ce7e39514f497dae1ff2a5168dd7ff85a10bb",
+      "source_bytes": 366265,
+      "line": 752,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_pool_hit/2-head-imports.stdout",
+          "sha256": "434fa75da4e3732af67729da79b0fa569cfb1de5d3aabe412fc6953de9872054",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-store_pool_hit/5-worker-imports.stdout",
+          "sha256": "e398adfc7c26d693fdd955db937eecb1d1cf29cb0aea9d4a53cffe6c19a439b8",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_hot",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 274.403089,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_hot/11-head-official_module.stdout",
+      "source_sha256": "19afe6e3ae4bae92246ac9d985197262c642fabadfa0ffeb96d7390136aebff3",
+      "source_bytes": 1006860,
+      "line": 3606,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_hot/2-head-imports.stdout",
+          "sha256": "c0e393de19b4df1c63063bb239518d3e132d666be42c354e3a37a27a73d240d5",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_hot/5-worker-imports.stdout",
+          "sha256": "fa29956e874545bb90f813ffa8361e30d407e462b442ff5f9da0dad49453278e",
+          "line": 13
+        }
+      ]
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_cold",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "primary_complete_block": true,
+      "C_MODEL_LOADING_LOG_SPAN_s": 1143.679235,
+      "model_memory_GiB": 72.05,
+      "rank": null,
+      "pid": null,
+      "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_cold/11-head-official_module.stdout",
+      "source_sha256": "cdc37170fec4976bc768e0975db96fc36483bdcf95b40244a98936f9f26b882b",
+      "source_bytes": 1206790,
+      "line": 5761,
+      "imports": [
+        {
+          "role": "head",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_cold/2-head-imports.stdout",
+          "sha256": "b8119cd9c1cfab875e28840021a4050bcf6d85fb9d91a235aa43b4f54499e601",
+          "line": 12
+        },
+        {
+          "role": "worker",
+          "source_path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-four-v1-b10-safetensors_disk_cold/5-worker-imports.stdout",
+          "sha256": "3e89ec03ab934cf93d8076fa856d23e47b8f9a1d1c82a094acc853afe105a3a0",
+          "line": 13
+        }
+      ]
+    }
+  ],
+  "provenance_limits": [
+    "Private raw logs were read/hashed by the root collector, not re-read here. This independent receipt verifies its fixed public bytes, paths/lines/metadata, exact manifest/analysis mapping and source semantic boundary.",
+    "Producer reported32,819,174 log bytes read; summary file byte sum matches. No root recollection, container access, full payload read, GPU, Git or source modification.",
+    "Costv1 C_weight_ingestion remainsnull: this separate broader logger-defined C_model_loading is added without rewriting frozen costv1 or GLM data."
+  ]
+}
