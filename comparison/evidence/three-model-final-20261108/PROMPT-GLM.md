@@ -21,3 +21,5 @@ weight_ingestion、quantization_postprocess等分项先审实际函数和工作�
 交付独立目录：metric-definitions.md（生产源码SHA/行号与等价结论）、per-attempt.json/CSV（原ID/协议/资格/八rank原端点/统一值/缺失原因）、summary.json（C23主24条与描述26条分开、数组/n/均值/中位数）、evidence-manifest.json（原路径/SHA/事件选择器）。保留已有字段和原失败，不新增统计检验、不重新定义主集。
 
 最终说明：统一图5可用哪些数据；图4是确实未记录还是现有汇总未提取；哪些只能留缺测。历史数据能补则补，无证据不得填柱。
+
+补充上下文：三模型分支已出现新的GLM CPU补充提交d002325及97f0359，包含inputs/glm-cpu/event-intervals.csv、historical-supplement.json/md和historical-monitor.json。先复用这些新产物及其原来源SHA，重点核查完整加载函数边界与TP8事件，不重复扫描已读的约1GB监控，也不再把“没有f7同名日志”当作没有可用阶段数据。新补的helper全程仍不能改称完整controller。
