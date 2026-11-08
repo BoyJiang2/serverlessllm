@@ -441,7 +441,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
  import threading
  import time
  from collections import defaultdict
-@@ -4744,67 +4883,240 @@
+@@ -4744,67 +4883,283 @@
  
          try:
              with DeviceMemoryProfiler() as m:
@@ -456,14 +456,49 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 -                    self.model = self.load_lora_model(
 -                        self.model, self.vllm_config, self.device
 +                load_error = None
++                load_span = None
 +                try:
 +                    time_before_load = time.perf_counter()
 +                    if load_dummy_weights:
 +                        self.load_config.load_format = "dummy"
 +                    model_loader = get_model_loader(self.load_config)
++                    if os.environ.get("SLLM_CAPTURE_LOAD_ENDPOINTS") == "1":
++                        load_span = {"status": "MISSING", "begin_ns": None, "end_ns": None}
++                        try:
++                            from sllm.logger import get_clock_identity
++                            run_id = os.environ["SLLM_LOAD_SPAN_RUN_ID"]
++                            instance_id = os.environ["SLLM_LOAD_SPAN_INSTANCE_ID"]
++                            if not run_id or not instance_id:
++                                raise ValueError("Load endpoint run/instance identity missing")
++                            clock_identity = get_clock_identity()
++                            if (clock_identity.get("errors") or
++                                type(clock_identity.get("process_startticks")) is not int or
++                                clock_identity["process_startticks"] <= 0 or
++                                any(not isinstance(clock_identity.get(k), str) or not clock_identity[k]
++                                    for k in ("boot_id", "container_hostname", "time_namespace", "monotonic_clock_implementation"))):
++                                raise ValueError("Load endpoint clock identity unavailable")
++                            load_span.update(run_id=run_id, model_instance_id=instance_id,
++                                             clock_identity=clock_identity, pid=os.getpid(),
++                                             tp_rank=get_tp_group().rank_in_group,
++                                             model=str(self.model_config.model),
++                                             loader_type=type(model_loader).__module__ + "." + type(model_loader).__qualname__,
++                                             status="STARTED")
++                        except Exception as endpoint_error:
++                            load_span["error_type"] = type(endpoint_error).__name__
++                    if load_span is not None and load_span["status"] == "STARTED":
++                        try:
++                            load_span["begin_ns"] = time.monotonic_ns()
++                        except Exception as endpoint_error:
++                            load_span.update(status="MISSING", error_type=type(endpoint_error).__name__)
 +                    self.model = model_loader.load_model(
 +                        vllm_config=self.vllm_config, model_config=self.model_config
                      )
++                    if load_span is not None and load_span["status"] == "STARTED":
++                        try:
++                            load_span["end_ns"] = time.monotonic_ns()
++                            load_span["status"] = "COMPLETE"
++                        except Exception as endpoint_error:
++                            load_span.update(status="MISSING", error_type=type(endpoint_error).__name__)
 -                if hasattr(self, "drafter"):
 -                    logger.info_once("Loading drafter model...")
 -                    self.drafter.load_model(self.model)
@@ -648,6 +683,14 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
 +                                "synchronized": True,
 +                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
 +                            }
++                            if load_span is not None:
++                                if load_span["status"] == "STARTED":
++                                    load_span["status"] = "FAILED"
++                                record["weight_load_host_span"] = dict(
++                                    load_span, schema="kimi-weight-load-host-endpoints-v1",
++                                    begin_boundary="before_model_loader_load_model",
++                                    end_boundary="after_model_loader_load_model_return_before_optional_runner_setup",
++                                    added_cuda_synchronization=False)
 +                            if os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
 +                                if load_error is not None:
 +                                    record["diagnostic_value_fingerprint"] = {
@@ -740,7 +783,7 @@ diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runne
              self.model_memory_usage = m.consumed_memory
          except torch.cuda.OutOfMemoryError as e:
              msg = (
-@@ -4989,6 +5301,20 @@
+@@ -4989,6 +5344,20 @@
                      "Following weights were not loaded from checkpoint: %s",
                      weights_not_loaded,
                  )

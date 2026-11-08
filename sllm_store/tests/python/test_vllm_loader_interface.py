@@ -1,3 +1,4 @@
+import sys
 """Check loader argument forwarding without importing Torch or vLLM."""
 import ast
 import contextlib
@@ -626,3 +627,164 @@ class DiagnosticFingerprintTest(unittest.TestCase):
         self.assertEqual(value["counts"]["unique_hashed_ranges"],4)
         self.assertEqual(value["counts"]["hashed_bytes"],36)
         self.assertEqual(fixture[2]["live_bytes"],0)
+
+
+class LoadHostEndpointsTest(unittest.TestCase):
+    def sources(self):
+        consumer = LoadEvidenceTest()
+        root = pathlib.Path(__file__).resolve().parents[2]
+        tree = ast.parse((root / "build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py").read_text())
+        runner = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == "GPUModelRunner")
+        method = next(n for n in runner.body if isinstance(n, ast.FunctionDef) and n.name == "load_model")
+        context = next(n for n in ast.walk(method) if isinstance(n, ast.With) and any(isinstance(q.context_expr, ast.Call) and isinstance(q.context_expr.func, ast.Name) and q.context_expr.func.id == "DeviceMemoryProfiler" for q in n.items))
+        return [consumer.context(), compile(ast.Module(body=[context], type_ignores=[]), "<actual-endpoint-overlay>", "exec")]
+
+    def fixture(self, load_error=None):
+        namespace, state, model = LoadEvidenceTest().namespace(load_error=load_error)
+        namespace["self"].model_config = types.SimpleNamespace(model="/model")
+        namespace["os"].environ.update(SLLM_CAPTURE_LOAD_ENDPOINTS="1", SLLM_LOAD_SPAN_RUN_ID="test-run", SLLM_LOAD_SPAN_INSTANCE_ID="test-run-life1")
+        clock = dict(boot_id="boot", container_hostname="container", process_startticks=1234,
+                     time_namespace="time:[1]", monotonic_clock_implementation="CLOCK_MONOTONIC")
+        helper = types.ModuleType("sllm.logger")
+        helper.get_clock_identity = mock.Mock(return_value=clock)
+        parent = types.ModuleType("sllm"); parent.__path__ = []; parent.logger = helper
+        return namespace, state, model, clock, {"sllm": parent, "sllm.logger": helper}
+
+    def test_exact_call_boundary_before_all_optional_setup_and_existing_sync(self):
+        import json
+        for source in self.sources():
+            namespace, _, model, clock, modules = self.fixture()
+            order = []
+            namespace["get_model_loader"] = lambda _: order.append("factory") or types.SimpleNamespace(load_model=lambda **k: order.extend(("fresh_construct", "restore_assign", "required_postprocess")) or model)
+            instance = namespace["self"]; instance.lora_config = True
+            instance.load_lora_model = lambda *args: order.append("LoRA") or model
+            instance.drafter = types.SimpleNamespace(load_model=lambda _: order.append("drafter"))
+            instance.use_aux_hidden_state_outputs = True; instance.get_model = lambda: model
+            instance._get_eagle3_aux_layers_from_config = lambda: [1]
+            namespace["supports_eagle3"] = lambda _: True
+            model.set_aux_hidden_state_layers = lambda _: order.append("aux")
+            namespace["torch"].cuda.synchronize.side_effect = lambda _: order.append("sync")
+            times = iter((100, 200))
+            def timestamp():
+                value = next(times); order.append("begin" if value == 100 else "end"); return value
+            with mock.patch.dict(sys.modules, modules), mock.patch("time.monotonic_ns", side_effect=timestamp):
+                exec(source, namespace)
+            self.assertEqual(order, ["factory", "begin", "fresh_construct", "restore_assign", "required_postprocess", "end", "LoRA", "drafter", "aux", "sync"])
+            row = json.loads(namespace["logger"].info.call_args.args[1]); span = row["weight_load_host_span"]
+            self.assertEqual((span["begin_ns"], span["end_ns"], span["status"]), (100, 200, "COMPLETE"))
+            self.assertEqual((span["pid"], span["tp_rank"], span["run_id"], span["model_instance_id"]), (123, 3, "test-run", "test-run-life1"))
+            self.assertEqual(span["clock_identity"], clock)
+            self.assertFalse(span["added_cuda_synchronization"])
+            namespace["torch"].cuda.synchronize.assert_called_once()
+
+    def test_default_off_never_reads_clock_identity_or_monotonic_endpoints(self):
+        import json
+        for source in self.sources():
+            namespace, _, _, _, modules = self.fixture()
+            namespace["os"].environ.pop("SLLM_CAPTURE_LOAD_ENDPOINTS")
+            with mock.patch.dict(sys.modules, modules), mock.patch("time.monotonic_ns", side_effect=AssertionError("disabled")) as timer:
+                exec(source, namespace)
+            modules["sllm.logger"].get_clock_identity.assert_not_called(); timer.assert_not_called()
+            self.assertNotIn("weight_load_host_span", json.loads(namespace["logger"].info.call_args.args[1]))
+
+    def test_missing_run_instance_or_clock_is_explicit_missing(self):
+        import json
+        for source in self.sources():
+            for fault in ("run", "instance", "clock"):
+                namespace, _, _, _, modules = self.fixture()
+                if fault == "run": namespace["os"].environ.pop("SLLM_LOAD_SPAN_RUN_ID")
+                if fault == "instance": namespace["os"].environ["SLLM_LOAD_SPAN_INSTANCE_ID"] = ""
+                if fault == "clock": modules["sllm.logger"].get_clock_identity.return_value = {"errors": {"boot_id": "OSError"}}
+                with mock.patch.dict(sys.modules, modules), mock.patch("time.monotonic_ns") as timer:
+                    exec(source, namespace)
+                span = json.loads(namespace["logger"].info.call_args.args[1])["weight_load_host_span"]
+                self.assertEqual(span["status"], "MISSING"); self.assertIsNone(span["begin_ns"]); self.assertIsNone(span["end_ns"]); timer.assert_not_called()
+
+    def test_model_exception_identity_preserved_and_no_success_endpoint(self):
+        import json
+        for source in self.sources():
+            original = RuntimeError("original loader failure")
+            namespace, _, _, _, modules = self.fixture(original)
+            with mock.patch.dict(sys.modules, modules), mock.patch("time.monotonic_ns", return_value=100):
+                with self.assertRaises(RuntimeError) as caught: exec(source, namespace)
+            self.assertIs(caught.exception, original)
+            row = json.loads(namespace["logger"].info.call_args.args[1]); span = row["weight_load_host_span"]
+            self.assertFalse(row["load_completed"]); self.assertEqual(span["status"], "FAILED"); self.assertEqual(span["begin_ns"], 100); self.assertIsNone(span["end_ns"])
+
+    def test_identity_and_timestamp_errors_cannot_mask_model_error(self):
+        import json
+        for source in self.sources():
+            for fault in ("identity", "begin", "end"):
+                original = RuntimeError("original loader failure") if fault != "end" else None
+                namespace, _, _, _, modules = self.fixture(original)
+                if fault == "identity": modules["sllm.logger"].get_clock_identity.side_effect = OSError("clock unavailable")
+                stamps = [100, OSError("end clock")] if fault == "end" else [OSError("begin clock")]
+                with mock.patch.dict(sys.modules, modules), mock.patch("time.monotonic_ns", side_effect=stamps):
+                    if original:
+                        with self.assertRaises(RuntimeError) as caught: exec(source, namespace)
+                        self.assertIs(caught.exception, original)
+                    else: exec(source, namespace)
+                span = json.loads(namespace["logger"].info.call_args.args[1])["weight_load_host_span"]
+                self.assertEqual(span["status"], "MISSING"); self.assertIn("error_type", span)
+
+    def test_atomic_file_contains_endpoints_and_sink_failure_is_missing(self):
+        import json
+        for source in self.sources():
+            with tempfile.TemporaryDirectory() as directory:
+                namespace, _, _, _, modules = self.fixture(); namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = directory
+                with mock.patch.dict(sys.modules, modules): exec(source, namespace)
+                p = pathlib.Path(directory) / "rank-3-pid-123.json"
+                self.assertEqual(json.loads(p.read_text())["weight_load_host_span"]["status"], "COMPLETE")
+                self.assertEqual(p.stat().st_mode & 0o777, 0o600)
+            original = RuntimeError("original")
+            namespace, _, _, _, modules = self.fixture(original)
+            with tempfile.TemporaryDirectory() as directory:
+                namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = directory
+                with mock.patch.dict(sys.modules, modules), mock.patch("os.fsync", side_effect=OSError("sink failure")):
+                    with self.assertRaises(RuntimeError) as caught: exec(source, namespace)
+                self.assertIs(caught.exception, original); namespace["logger"].info.assert_not_called()
+                self.assertEqual(json.loads(namespace["logger"].warning.call_args.args[1])["event"], "SLLM_LOAD_EVIDENCE_MISSING")
+
+    def test_new_overlay_delta_is_only_endpoint_code_no_fingerprint(self):
+        root = pathlib.Path(__file__).resolve().parents[2] / "build"
+        old = (root / "kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py").read_text()
+        new = (root / "kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py").read_text()
+        class StripEndpoints(ast.NodeTransformer):
+            def visit_Assign(self, node):
+                return None if any(isinstance(x, ast.Name) and x.id == "load_span" for x in node.targets) else self.generic_visit(node)
+            def visit_If(self, node):
+                return None if "SLLM_CAPTURE_LOAD_ENDPOINTS" in ast.unparse(node.test) or "load_span" in ast.unparse(node.test) else self.generic_visit(node)
+        self.assertEqual(ast.dump(StripEndpoints().visit(ast.parse(new)), include_attributes=False), ast.dump(ast.parse(old), include_attributes=False))
+        self.assertNotIn("_sllm_diagnostic_value_fingerprint", new)
+        self.assertNotIn("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT", new)
+
+
+    def test_concurrent_eight_endpoint_records_have_complete_distinct_identities(self):
+        import json
+        import threading
+        from concurrent.futures import ThreadPoolExecutor
+        for source in self.sources():
+            local = threading.local()
+            _, _, _, clock, modules = self.fixture()
+            modules["sllm.logger"].get_clock_identity.side_effect = lambda: dict(clock, process_startticks=2000 + local.rank)
+            with tempfile.TemporaryDirectory() as directory, mock.patch.dict(sys.modules, modules):
+                def publish(rank):
+                    local.rank = rank
+                    namespace, _, _, _, _ = self.fixture()
+                    namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"] = directory
+                    namespace["os"].getpid = lambda: 1000 + rank
+                    namespace["get_tp_group"] = lambda: types.SimpleNamespace(rank_in_group=rank)
+                    exec(source, namespace)
+                    namespace["logger"].warning.assert_not_called()
+                with ThreadPoolExecutor(max_workers=8) as pool:
+                    list(pool.map(publish, range(8)))
+                rows = [json.loads(p.read_text()) for p in pathlib.Path(directory).iterdir()]
+                self.assertEqual(len(rows), 8)
+                self.assertEqual({r["weight_load_host_span"]["tp_rank"] for r in rows}, set(range(8)))
+                for row in rows:
+                    span = row["weight_load_host_span"]
+                    self.assertEqual(span["status"], "COMPLETE")
+                    self.assertEqual(span["pid"], row["pid"])
+                    self.assertEqual(span["clock_identity"]["process_startticks"], 2000 + row["tp_rank"])
+                    self.assertEqual(span["model_instance_id"], "test-run-life1")
+                    self.assertLessEqual(span["begin_ns"], span["end_ns"])
