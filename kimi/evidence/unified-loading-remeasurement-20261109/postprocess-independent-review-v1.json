@@ -1,0 +1,38 @@
+{
+  "status": "ACCEPT_POSTPROCESS_SOURCE_CPU_ONLY",
+  "reviewed_at_utc": "2026-11-08T18:48:29.663539+00:00",
+  "source_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/summarize_unified_loading.py",
+  "source_sha256": "717e81ab4b97c20bcd644a08c2a1965228ab85047f4575ccd9e70b475b4c1135",
+  "author_receipt_sha256": "66b81f4ea1fc8f92264c67f420dca1a46aa89acd54b7af70c084fe3db22c7854",
+  "independent_selftest": {
+    "command": "python3 -B /home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/summarize_unified_loading.py --self-test",
+    "exit_code": 0,
+    "result": "CPU_SYNTHETIC_SELFTEST_PASS",
+    "checks": 12,
+    "actual_observations_read": 0
+  },
+  "checks": [
+    "Recomputes min8begin/max8end separately from max8(end-begin), checks every stored aggregate/perrank duration and rejects contradictions",
+    "Requires eight distinct ranks0..7 plus distinct producer PID/hostPID/UUID, common clock domains, matching run/instance/source/protocol, owner startticks, COMPLETE endpoints and exact host boundary/no-added-sync label",
+    "Reads only named small JSON receipts <=2MiB each with input path/SHA/size/stable stat; no model/Store/weights/cache/GPU operations",
+    "Only parent full PASS plus allfour qualified/normal cleanup quiet>=60/controller PASS and available complete measurements produce complete_block_n1 and percondition qualified_n1",
+    "Failed/partial parent yields primary_n0/null means; available endpoints retained separately as descriptive raw observations",
+    "CSV emits exactly4x8 expected slots; absent endpoint case retains expected_rank but actual tp_rank/PID/timestamps blank with explicit reason",
+    "Outputs exclusive .json/.csv; existing output rejected, no overwrite or original40/old8 merge"
+  ],
+  "scope_limits": [
+    "Postprocess trusts authenticated generated endpoint receipt and original validity/cleanup/controller receipts; it does not rerun live NVML/proc ownership checks or independently recreate original runtime validation",
+    "No actual observations/statistics read or computed in this review; source accepted for after-release execution only",
+    "Source/API publication, admission and runtime success remain separate; n1 carries no inferential statistics or CI",
+    "Two output files are exclusive independently; if second creation fails, first remains an identifiable partial output and must not be overwritten or called complete"
+  ],
+  "pending": [
+    "After full terminal release, owner runs exact script against frozen protocol and original supplement terminal receipts",
+    "Independent actual-result/figure review must verify generated SHA references and final cohort qualification"
+  ],
+  "not_performed": [
+    "No runtime source edits/Git",
+    "No GPU/Store/container/model/cache or weight reads",
+    "No actual data analysis or plot generation"
+  ]
+}
