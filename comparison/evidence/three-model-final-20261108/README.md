@@ -9,3 +9,5 @@ Kimi原40：38合格/2失败；GLM原40：35成功/5失败；DeepSeek-V4-Pro原4
 ![四条件启动均值](derived/fig1_startup.png)
 
 图用Kimi原8完整块、GLM C23原6完整块、V4同源B2–B10的9完整块。V4冻结正式分析仍另保留pair-specific n10/n9，不以本图重定义。配置不同，不作跨模型因果优劣结论。
+
+图5已按[v2统一口径](FIG5-CONTRACT.md)修订；Kimi/GLM待历史八rank边界核验，V4采用完整加载host跨度。分别使用[发给Kimi的提示词](PROMPT-KIMI.md)和[发给GLM的提示词](PROMPT-GLM.md)。

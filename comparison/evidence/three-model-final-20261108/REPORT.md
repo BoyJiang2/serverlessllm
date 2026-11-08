@@ -85,13 +85,19 @@ SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 
 
 Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐。GLM 选定可信小文件没有该完整数值，留空。原报告 Kimi 转换 controller 678.128942504 秒包含退出和释放；V4 原转换尝试因 1080 秒上限失败，后续独立 CPU 完整校验 197.160720331 秒通过。两者都不是统一定义的纯转换 I/O，V4 原失败没有被追认为成功。GLM 转换成本未知，不设为 0。环境构建、历史失败、迁移人工时间不混成在线延迟。
 
-## 图 5：权重加载与后处理的可观测边界
+## 图 5：统一的完整权重加载流程跨度（v2）
 
-![加载观测](derived/fig5_loading.png)
+![统一加载口径](derived/fig5_loading.png)
 
-Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM 在本图不具备同定义 f7 包络，留缺测，不代表其无 phase 数据。
+本图已修订：主图只采用 `weight_load_host_all_rank_span_s = (max(rank_end_ns)-min(rank_begin_ns))/1e9`。共同功能边界为每rank进入完整权重加载调用、fresh模型构造/权重storage分配前，至全部权重恢复/赋值及必要原生后处理执行并返回。V4实际接点为 `gpu_worker.Worker.load_model`，原字段 `phase_weights_pipeline_including_allocation_span_s`；它是主机函数包络，不是纯磁盘/H2D时间，也不新增CUDA同步来伪造历史设备完成边界。
 
-V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
+图中四条件统一使用同一总指标、相同纵轴。V4仍取展示集B2–B10共9块；Kimi和GLM已有f7/phase观测，当前需要验证其共同功能边界及八rank完整性，标为“待对齐”，不再笼统称“没有加载数据”。旧f7单日志值不得直接填入八rank主图。原版本混合口径图不再作为主比较，Git历史及原始输入仍保留。
+
+还纠正一项解释：V4旧 `weight_ingestion` 接在 `V4GroupedStoreLoader.load_weights`，实际主要恢复remainder并安装hook；61个专家层的copy在后处理遍历时逐组发生。所以正式全集约12.19秒/2.97秒是这个load_weights调用跨度，**不是完整权重摄入**。旧 `quantization_postprocess` 约133.01秒/44.99秒的外层函数也包含专家组恢复、等待及同步等，**不是纯量化成本**。旧JSON字段及原事件不改，只更正标签和解释。这两项不再进入统一主图。
+
+每次先计算完整TP8跨度，再对固定样本集取条件均值；不把rank当独立样本。`max(end-begin)`可另列但不能替代本图。设备/通信初始化、KV分配、profile/warmup/graph、路由与请求不混入共同窗口；实际函数夹带其他工作时须披露，不能凭相减估值修成等价。所有跨度仍非精确CUDA设备时间。
+
+统一规则见 [FIG5-CONTRACT.md](FIG5-CONTRACT.md)，V4逐样本图输入见 [fig5-input.json](derived/fig5-input.json)。独立补数提示词：[Kimi](PROMPT-KIMI.md)、[GLM](PROMPT-GLM.md)。两者只读历史证据，未启动新模型；数据到齐并通过边界核验后再补三模型柱，不补零、不改变原主集/正式资格。
 
 ## 图 6：可相加的启动事件分解
 

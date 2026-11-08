@@ -161,17 +161,25 @@ def export(output):
         ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean controller elapsed seconds'); ax.tick_params(axis='x', labelrotation=25)
     save(fig, 'fig4_controller', 'Kimi and V4 controller endpoints differ; observed envelopes, not nested-stage sums or total study cost. GLM remains missing.')
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
-    load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
-    axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
-    axes[0].set_title('Kimi f7 log loading envelope (n=8)')
-    axes[1].text(.5, .5, 'Same loading-envelope field absent\nNo zero or inferred duration', ha='center', transform=axes[1].transAxes); axes[1].set_title('GLM comparable field missing')
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3), sharey=True)
+    for ax, model in zip(axes[:2], MODELS[:2]):
+        ax.text(.5, .5, 'Existing observations available\nCommon boundary / rank coverage\nnot yet validated', ha='center', transform=ax.transAxes)
+        ax.set_title(model + ' (alignment pending)')
     rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
-    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', 'Ingestion'), ('phase_quantization_postprocess_span_s', 'Postprocess'), ('phase_weights_pipeline_including_allocation_span_s', 'Pipeline')]):
-        axes[2].bar(np.arange(4) + (j - 1) * .25, [mean(r['metrics'][field] for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c) for c in CONDITIONS], .24, label=label)
-    axes[2].set_title('V4 all-rank phase envelopes (n=9)'); axes[2].legend(fontsize=7)
+    aligned = {}
+    for c in CONDITIONS:
+        group = [r for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c]
+        assert len(group) == 9
+        aligned[c] = dict(n=9, ids=[r['attempt_id'] for r in group], values_s=[r['metrics']['phase_weights_pipeline_including_allocation_span_s'] for r in group])
+    (output / 'fig5-input.json').write_text(json.dumps(dict(
+        metric='weight_load_host_all_rank_span_s', formula='(max_rank_end_ns-min_rank_begin_ns)/1e9',
+        scope='Complete worker load_model host call, including construction/allocation and native weight processing; not pure IO or a new CUDA completion measurement',
+        legacy_status='Existing Kimi f7 and GLM phase records require common-boundary and rank validation; not missing experimental runs',
+        v4_source_field='phase_weights_pipeline_including_allocation_span_s', v4=aligned), indent=2) + '\n')
+    axes[2].bar(range(4), [mean(aligned[c]['values_s']) for c in CONDITIONS], color=COLORS)
+    axes[2].set_title('V4 complete load host span (n=9)')
     for ax in axes: ax.set(xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig5_loading', 'Different observation definitions. V4 group H2D/postprocess interleave; phase envelopes overlap and must not be added.')
+    save(fig, 'fig5_loading', 'One common total-load boundary; legacy alignment pending. Loader-call and postprocess-call spans are not pure ingestion / quantization.')
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
     for ax, model in zip(axes, MODELS):

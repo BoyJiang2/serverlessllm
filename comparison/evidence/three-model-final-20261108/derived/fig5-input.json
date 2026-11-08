@@ -1,0 +1,109 @@
+{
+  "metric": "weight_load_host_all_rank_span_s",
+  "formula": "(max_rank_end_ns-min_rank_begin_ns)/1e9",
+  "scope": "Complete worker load_model host call, including construction/allocation and native weight processing; not pure IO or a new CUDA completion measurement",
+  "legacy_status": "Existing Kimi f7 and GLM phase records require common-boundary and rank validation; not missing experimental runs",
+  "v4_source_field": "phase_weights_pipeline_including_allocation_span_s",
+  "v4": {
+    "safetensors_disk_cold": {
+      "n": 9,
+      "ids": [
+        "v4n40_safetensors_disk_cold_02",
+        "v4n40_safetensors_disk_cold_03",
+        "v4n40_safetensors_disk_cold_04",
+        "v4n40_safetensors_disk_cold_05",
+        "v4n40_safetensors_disk_cold_06",
+        "v4n40_safetensors_disk_cold_07",
+        "v4n40_safetensors_disk_cold_08",
+        "v4n40_safetensors_disk_cold_09",
+        "v4n40_safetensors_disk_cold_10"
+      ],
+      "values_s": [
+        471.575969548,
+        521.124406815,
+        529.377150604,
+        524.898049807,
+        492.944263978,
+        473.793586793,
+        485.867710895,
+        477.691448137,
+        475.321709681
+      ]
+    },
+    "safetensors_disk_hot": {
+      "n": 9,
+      "ids": [
+        "v4n40_safetensors_disk_hot_02",
+        "v4n40_safetensors_disk_hot_03",
+        "v4n40_safetensors_disk_hot_04",
+        "v4n40_safetensors_disk_hot_05",
+        "v4n40_safetensors_disk_hot_06",
+        "v4n40_safetensors_disk_hot_07",
+        "v4n40_safetensors_disk_hot_08",
+        "v4n40_safetensors_disk_hot_09",
+        "v4n40_safetensors_disk_hot_10"
+      ],
+      "values_s": [
+        157.320524094,
+        160.098603775,
+        163.931790587,
+        160.694450128,
+        157.647709052,
+        156.149068683,
+        154.050229999,
+        157.962419061,
+        155.917581504
+      ]
+    },
+    "store_disk_cold": {
+      "n": 9,
+      "ids": [
+        "v4n40_store_disk_cold_02",
+        "v4n40_store_disk_cold_03",
+        "v4n40_store_disk_cold_04",
+        "v4n40_store_disk_cold_05",
+        "v4n40_store_disk_cold_06",
+        "v4n40_store_disk_cold_07",
+        "v4n40_store_disk_cold_08",
+        "v4n40_store_disk_cold_09",
+        "v4n40_store_disk_cold_10"
+      ],
+      "values_s": [
+        151.99607451,
+        150.959100938,
+        149.97589587,
+        151.731848235,
+        149.186253166,
+        149.940800665,
+        148.689351234,
+        148.892943341,
+        150.93180449
+      ]
+    },
+    "store_pool_hit": {
+      "n": 9,
+      "ids": [
+        "v4n40_store_pool_hit_02",
+        "v4n40_store_pool_hit_03",
+        "v4n40_store_pool_hit_04",
+        "v4n40_store_pool_hit_05",
+        "v4n40_store_pool_hit_06",
+        "v4n40_store_pool_hit_07",
+        "v4n40_store_pool_hit_08",
+        "v4n40_store_pool_hit_09",
+        "v4n40_store_pool_hit_10"
+      ],
+      "values_s": [
+        56.419146039,
+        56.274929208,
+        57.009499452,
+        57.956551934,
+        56.819589491,
+        55.535163772,
+        53.609810885,
+        53.020389664,
+        54.3902372
+      ]
+    }
+  }
+}
