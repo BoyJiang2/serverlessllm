@@ -211,9 +211,18 @@ def export(output):
     plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK SC', 'SimHei', 'DejaVu Sans']
     labels45 = ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
-    load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
-    axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
-    axes[0].set_title('Kimi f7日志加载包络（n=8）')
+    unified = read(BASE / 'inputs/kimi-unified/condition-summaries.json')
+    assert unified['primary_complete_blocks'] == [1, 2, 3, 5, 6, 7, 8, 10]
+    for condition in CONDITIONS:
+        metric = unified['conditions'][condition]['weight_load_host_all_rank_span_s']
+        assert metric == dict(raw=[None] * 8, n=0, mean=None, median=None)
+    axes[0].set_title('Kimi 八rank统一加载指标（有效n=0）')
+    axes[0].set_ylim(0, 1)
+    axes[0].set_yticks([])
+    axes[0].text(.5, .58, '历史证据缺少完整加载起止端点',
+                 transform=axes[0].transAxes, ha='center', fontsize=12)
+    axes[0].text(.5, .39, '四条件均缺测：均值/中位数=null\n不画零值柱，不以f7值替代\n原主集仍为8个完整块',
+                 transform=axes[0].transAxes, ha='center', fontsize=10, linespacing=1.7)
     with (BASE / 'inputs/glm-cpu/event-intervals.csv').open(encoding='utf-8') as stream:
         glm_phases = {r['attempt_id']: r for r in csv.DictReader(stream)}
     rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
@@ -224,7 +233,8 @@ def export(output):
     axes[2].set_title('V4八rank阶段跨度（n=9）'); axes[2].legend(fontsize=7)
     for ax in axes:
         ax.set(xticks=range(4), xticklabels=labels45, ylabel='均值 / 秒'); ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig5_loading', '各栏观测定义不同：Kimi为f7日志，GLM/V4为八rank阶段包络。\n阶段区间可能重叠，摄入、后处理与流水线不能相加，也不是纯磁盘I/O。')
+    axes[0].set_ylabel('')
+    save(fig, 'fig5_loading', 'Kimi eight-rank host span is missing (n=0), not zero; f7 observations are reported separately.\nGLM/V4 retain their original stage spans; overlapping envelopes must not be summed or called pure I/O.')
     plt.rcParams['font.sans-serif'] = original_font
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 5.4))

@@ -81,3 +81,7 @@ for condition in sorted({r["condition"] for r in rows}):
 ## 图4与图5补图
 
 reproduce.py已直接更新：图4的GLM按原主集精确6个ID读取historical-supplement.json中的helper生命周期均值；图5从event-intervals.csv按同一ID集合计算八rank跨度。不改称同口径controller或f7。其余模型数据和五组图未改，PNG/SVG/PDF同步更新。中文标签优先使用现有Microsoft YaHei/Noto Sans CJK SC/SimHei字体，无新环境。图值、精确ID、源码SHA及仅执行绘图段的范围见derived/glm-fig4-fig5-values.json；没有声称重跑完整原统计CLI。
+
+## Kimi figure5 correction (2026-11-09)
+
+The actual Figure5 consumer now reads the SHA-bound Kimi unified-metric audit, asserts four null arrays and valid n=0, and renders a missing-evidence notice without zero bars or f7 substitution. `figure5-render-check.py` executes the actual Figure5 block and save function with existing historical arrays; only matplotlib/CPU is used. The saved consumer result is `figure5-render-check.json`. No model, GPU, Store, weight read or rerun.

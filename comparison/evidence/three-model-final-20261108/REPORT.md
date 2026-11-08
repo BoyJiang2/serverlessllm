@@ -135,7 +135,18 @@ Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐�
 
 ![加载观测](derived/fig5_loading.png)
 
-Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM没有同定义f7包络；图5现单列已核验的八rank阶段跨度，明确标注n=6，不与Kimi f7视为同一指标。
+Kimi 栏已按[统一指标审计](https://github.com/BoyJiang2/serverlessllm/blob/eeba65ab426e83e1057d09bd13cb16d376bf81e0/kimi/evidence/unified-loading-audit-20261108/README.md)改为缺测标注，不再用 f7 柱替代八rank统一加载跨度。共同指标为 `weight_load_host_all_rank_span_s = (max(rank_end_ns)-min(rank_begin_ns))/1e9`；边界为每rank进入完整权重加载、fresh模型构造/storage分配前，到全部权重赋值/恢复及必要原生量化/布局处理返回。它是host包络，不是纯I/O，不新增CUDA同步。
+
+Kimi原主集仍为B1/2/3/5/6/7/8/10共8完整块，原40项38合格/2失败不变。已核证据没有可用的完整八rank加载端点；四条件统一跨度与单rank最大时长均为8个null、有效n=0，均值/中位数null。不补0、不从宽日志减估值、不替换ID。原始槽位、缺口、身份映射和来源SHA见[逐attempt审计](https://github.com/BoyJiang2/serverlessllm/blob/eeba65ab426e83e1057d09bd13cb16d376bf81e0/kimi/evidence/unified-loading-audit-20261108/attempts.json)。私有完整rank文件不可读的限制也保留，未断言穷尽所有历史证据。
+
+| Kimi条件 | 统一八rank跨度有效n | 统一均值/中位数 | 单条f7专项观测n | f7专项均值（秒） |
+|---|---:|---|---:|---:|
+| SF冷读 | 0 | null / null | 8 | 1121.366858 |
+| SF热读 | 0 | null / null | 8 | 284.510617 |
+| Store冷读 | 0 | null / null | 8 | 87.859091 |
+| Store池命中 | 0 | null / null | 8 | 9.998398 |
+
+f7仅为专项观测：范围为getloader前至loadmodel及可选LoRA/drafter/aux后，实际日志缺rank/PID和绝对加载端点，不能称八rank跨度或纯ingestion。它的数组和统计单独保留在[冻结审计输入](inputs/kimi-unified/condition-summaries.json)，不参与统一指标作图。GLM/V4原阶段数组及样本集不变；这些阶段包络可能重叠，不求和或相减伪造纯固定开销。补齐Kimi统一数值需要另行批准采集，本次只做CPU改图。
 
 V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
 
