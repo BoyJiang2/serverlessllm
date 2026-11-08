@@ -1,0 +1,163 @@
+{
+  "status": "POST_TERMINAL_AND_RELEASE_VERIFIED_NO_RETRY",
+  "epoch": 1794167094.6865993,
+  "cases": [
+    {
+      "condition": "safetensors_disk_hot",
+      "controller_status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS",
+      "guards": {
+        "guard-head": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-safetensors_disk_hot/guard-head/guard-final.json",
+          "sha256": "189d04df3f2d5b126e4d484e03c9db733314eeca5b4dfaf4718024ae2384109b",
+          "quiet_seconds": 60.04302713298239,
+          "status": "KERNEL_CLEANUP_RELEASE_PASS"
+        },
+        "guard-worker": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-safetensors_disk_hot/guard-worker/guard-final.json",
+          "sha256": "f36917ecc953354174f3a0c55fcbfbae88c6a4e881937ed76dca7d8a42deb314",
+          "quiet_seconds": 60.01111219008453,
+          "status": "KERNEL_CLEANUP_RELEASE_PASS"
+        },
+        "observer": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-safetensors_disk_hot/observer/observer-final.json",
+          "sha256": "c2db405ed43d4a3f53fb23f4f70c91fef9739daea16f316c3a39b54958baba6f",
+          "quiet_seconds": 60.36816181894392,
+          "status": null
+        }
+      },
+      "containers": {
+        "head": {
+          "cid": "55ff07089a9d2a4410902c5be6067e82de6ecd414ab38ba33faee1a41cfcc09a",
+          "removed": true
+        },
+        "worker": {
+          "cid": "7b31c88137724a8ed81e927a2c1babc75f59b6d7388f9a57e0fa0bc4c5010094",
+          "removed": true
+        }
+      },
+      "units": {
+        "kimi-unified-loading-20261109-b01-safetensors_disk_hot-head-guard.service": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainStatus": "0",
+          "ActiveState": "active",
+          "SubState": "exited"
+        },
+        "kimi-unified-loading-20261109-b01-safetensors_disk_hot-worker-guard.service": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainStatus": "0",
+          "ActiveState": "active",
+          "SubState": "exited"
+        },
+        "kimi-unified-loading-20261109-b01-safetensors_disk_hot-observer.service": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainStatus": "0",
+          "ActiveState": "active",
+          "SubState": "exited"
+        },
+        "kimi-unified-loading-20261109-b01-safetensors_disk_hot-controller.service": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainStatus": "0",
+          "ActiveState": "inactive",
+          "SubState": "dead"
+        }
+      }
+    },
+    {
+      "condition": "store_disk_cold",
+      "controller_status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+      "guards": {
+        "guard-head": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-store_disk_cold/guard-head/guard-final.json",
+          "sha256": "0a3fcd50c5fe17ff58ddf46b2e1143febb8e781d76d21e9931d334e0eb824360",
+          "quiet_seconds": 60.04471220704727,
+          "status": "FAILED_RETAINED"
+        },
+        "guard-worker": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-store_disk_cold/guard-worker/guard-final.json",
+          "sha256": "be40dc4676ee7fcf18cb194aaa380d26aec9e2c41c6afaf93d3b20f004628b5a",
+          "quiet_seconds": 60.00066341483034,
+          "status": "FAILED_RETAINED"
+        },
+        "observer": {
+          "path": "/data/brick1/boyjiang/kimi-k2.6/performance-runs/kimi-unified-loading-20261109-b01-store_disk_cold/observer/observer-final.json",
+          "sha256": "e3fb0d1ee7af0031d00739f1854aa82cf673ad98dbc364d264c43730f92e441f",
+          "quiet_seconds": 60.36923081590794,
+          "status": null
+        }
+      },
+      "containers": {
+        "head": {
+          "cid": "a6b3642adeb71787347d0707a585037e715f3ab42b791eb8e319613908545e70",
+          "state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 137,
+            "Error": "",
+            "StartedAt": "2026-11-08T19:12:36.258933428Z",
+            "FinishedAt": "2026-11-08T19:24:14.905463284Z"
+          }
+        },
+        "worker": {
+          "cid": "462ab82df1bb65c04d9946b10b0786615636fff61a24f41cece0e2828f790506",
+          "state": {
+            "Status": "exited",
+            "Running": false,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 0,
+            "ExitCode": 137,
+            "Error": "",
+            "StartedAt": "2026-11-08T19:12:56.180448481Z",
+            "FinishedAt": "2026-11-08T19:24:14.353375365Z"
+          }
+        }
+      },
+      "units": {
+        "kimi-unified-loading-20261109-b01-store_disk_cold-head-guard.service": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStatus": "1",
+          "ActiveState": "failed",
+          "SubState": "failed"
+        },
+        "kimi-unified-loading-20261109-b01-store_disk_cold-worker-guard.service": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStatus": "1",
+          "ActiveState": "failed",
+          "SubState": "failed"
+        },
+        "kimi-unified-loading-20261109-b01-store_disk_cold-observer.service": {
+          "MainPID": "0",
+          "Result": "success",
+          "ExecMainStatus": "0",
+          "ActiveState": "active",
+          "SubState": "exited"
+        },
+        "kimi-unified-loading-20261109-b01-store_disk_cold-controller.service": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStatus": "1",
+          "ActiveState": "failed",
+          "SubState": "failed"
+        }
+      }
+    }
+  ],
+  "gpu_csv": "0, 0\n1, 0\n2, 0\n3, 0\n4, 0\n5, 0\n6, 0\n7, 0\n",
+  "root_has_CAP_SYS_PTRACE": true,
+  "ptrace_scope": "1",
+  "historical_guard_capability_limit": "Current root capability does not prove departed guard capability",
+  "Git_sync_ban_lifted_after_this_verification": true
+}

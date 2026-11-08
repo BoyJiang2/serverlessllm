@@ -1,0 +1,99 @@
+{
+  "status": "ACCEPT_ACTUAL_PARTIAL_FAILURE_EVIDENCE_NOT_COMPLETE_BLOCK",
+  "reviewed_at_utc": "2026-11-08T19:42:02.554624+00:00",
+  "export_manifest_sha256": "c420492bdfd97cea11c95ed7a77dce1d528e72efe0d8adfa4f04485a81617dc7",
+  "fresh_export_hashes_verified": 84,
+  "verified_export_bytes": 183173,
+  "measurements_independently_recomputed_from16rank_integer_endpoints": [
+    {
+      "condition": "safetensors_disk_hot",
+      "ranks": 8,
+      "all_rank_span_ns": 285231648676,
+      "all_rank_span_s": 285.231648676,
+      "max_rank_duration_ns": 285202741492,
+      "max_rank_duration_s": 285.202741492,
+      "condition_qualified": true,
+      "eligible_complete_block": false,
+      "endpoint_sha256": "d9b4a953f31670805c034e1c494dbf43d306147a3abbf594ddef6f475786221f"
+    },
+    {
+      "condition": "store_disk_cold",
+      "ranks": 8,
+      "all_rank_span_ns": 95465140200,
+      "all_rank_span_s": 95.4651402,
+      "max_rank_duration_ns": 95342349852,
+      "max_rank_duration_s": 95.342349852,
+      "condition_qualified": false,
+      "eligible_complete_block": false,
+      "endpoint_sha256": "72fd0c91e006b026a14db68eccc842b92fce9ddc7df8c840276a949145c6dd63"
+    }
+  ],
+  "new_supplement_counts": {
+    "planned": 4,
+    "launch_requested": 2,
+    "condition_qualified": 1,
+    "condition_failed": 1,
+    "not_started": 2,
+    "complete_blocks": 0,
+    "all_complete_block_primary_condition_n": 0
+  },
+  "results": {
+    "json_sha256": "93982203916200fd350c1fb7119e76e9f173f938095b570e1308525e63274cdf",
+    "csv_sha256": "6540aaa27dd28581559693a2002467a8c22d3c051c2e98ec4ff61a257925313a",
+    "csv_expected_slots": 32,
+    "observed_rank_slots": 16,
+    "missing_rank_slots": 16,
+    "checks": "Raw endpoint span and separate maxduration independently match storedJSON/CSV. Failed parent keeps all primary means null; SFhot qualified and Storecold unqualified raw observations remain separate."
+  },
+  "failure": {
+    "first_observed_error": {
+      "event": "proc_discovery_error",
+      "mono": 1290172.048064297,
+      "cid": "462ab82df1bb65c04d9946b10b0786615636fff61a24f41cece0e2828f790506",
+      "pid": 1988981,
+      "stage": "identity",
+      "error_type": "PermissionError",
+      "errno": 13,
+      "filename": "/proc/1988981/exe"
+    },
+    "first_abort": {
+      "event": "ABORT",
+      "mono": 1290172.051174345,
+      "cid": "462ab82df1bb65c04d9946b10b0786615636fff61a24f41cece0e2828f790506",
+      "reason": "guard_failure",
+      "failures": [
+        "proc_discovery"
+      ]
+    },
+    "classification": "worker proc_discovery identity PermissionError triggers guard failure ABORT; controller traceback healthy assertion interrupts controller shutdown/API sequence. No evidence this is Store60 timeout, model failure or OOM.",
+    "preserved": "Storecold remains FAILED/unqualified and cleanup.normalFalse; SFcold/poolhit NOT_STARTED.",
+    "causal_limits": "PID1988981 UID/startticks/cgroup not retained; ownership, unrelatedness or transient nature unknown. Own snapshot memory oom/oom_kill and pids.max rejection counters0; ancestor system.slice cumulative oom3 does not establish this attempt OOM. No relabeling failure or automatic retry."
+  },
+  "release_evidence": {
+    "safetensors_disk_hot": {
+      "quiet_seconds": {
+        "guard-head": 60.04302713298239,
+        "guard-worker": 60.01111219008453,
+        "observer": 60.36816181894392
+      },
+      "normal_cleanup": true,
+      "normal_status_preserved": "NORMAL_QUIET60"
+    },
+    "store_disk_cold": {
+      "quiet_seconds": {
+        "guard-head": 60.04471220704727,
+        "guard-worker": 60.00066341483034,
+        "observer": 60.36923081590794
+      },
+      "normal_cleanup": false,
+      "normal_status_preserved": "FAILED"
+    }
+  },
+  "evidence_boundaries": [
+    "Fresh verified public exported bytes and sixteen endpoint/owner records, not direct private8MB rank/NVML raw logs. Large original rank-evidence SHA retained in export manifest and not copied/read by this reviewer.",
+    "Guard quiet>=60 and observer gap0 independently read; current GPUzero/unitsMainPID0/scope release confirmation is parent root declaration, not a separate reviewer live query.",
+    "Three business correctness/clock/ownership gate receipts and perrequest validation flags checked; rawHTTP/cumulative token dumps not part of this bounded export, so no claim independently replaying full business validation.",
+    "Original40/main8 cohorts and oldfailure labels remain unchanged; n1 incomplete supplement cannot replace four-condition Figure5 with complete-block qualified means.",
+    "No source edits/Git/real execution; independent arithmetic used stored integer endpoints only."
+  ]
+}
