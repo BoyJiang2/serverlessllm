@@ -124,10 +124,39 @@ def write_startup_table(output, primary):
     (output / 'table6_exclusive.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
+def write_lifecycle_observations(output, primary, summary):
+    trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
+    labels = dict(zip(CONDITIONS, ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']))
+    scopes = {
+        'Kimi-K2.6': '原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。',
+        'GLM-5.1-FP8': 'preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。',
+        'DeepSeek-V4-Pro': '准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。',
+    }
+    rows = []
+    lines = ['**尚未形成统一边界的三模型生命周期总成本数据。以下仅分模型记录既有观测，不作横向总成本排名或比值。**', '']
+    for model in MODELS:
+        lines.extend([f'**{model}**：{scopes[model]}', '', '| 条件 | n | 该模型原区间均值/秒 |', '|---|---:|---:|'])
+        for condition in CONDITIONS:
+            group = primary[model][condition]
+            value = (mean(trials[i]['recorded_attempt_s'] for i in group['ids'])
+                     if model == 'GLM-5.1-FP8' else summary[model][condition]['controller_mean_s'])
+            assert value is not None and value > 0
+            rows.append(dict(model=model, condition=condition, n=len(group['ids']),
+                             observation_scope=scopes[model], mean_seconds=value))
+            lines.append(f"| {labels[condition]} | {len(group['ids'])} | {value:.6f} |")
+        lines.append('')
+    with (output / 'table4_lifecycle_observations.csv').open('w', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fieldnames=['model', 'condition', 'n', 'observation_scope', 'mean_seconds'])
+        writer.writeheader()
+        writer.writerows(rows)
+    (output / 'table4_lifecycle_observations.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
 def export(output):
     primary, descriptive, summary, formal, kimi, glm_ledger = build()
     output.mkdir(exist_ok=False)
     write_startup_table(output, primary)
+    write_lifecycle_observations(output, primary, summary)
     (output / 'comparison.json').write_text(json.dumps(dict(summary=summary, arrays=primary,
         descriptive_arrays=descriptive, v4_frozen_formal_statistics=formal,
         cohort_note='Legacy primary Kimi8/GLM6 unchanged; V4 blocks2..10 uniform-source9 is comparison-only descriptive sensitivity, not a replacement for frozen formal pair-specific n10/n9.'), indent=2) + '\n')
@@ -181,21 +210,6 @@ def export(output):
     original_font = plt.rcParams['font.sans-serif'][:]
     plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK SC', 'SimHei', 'DejaVu Sans']
     labels45 = ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']
-    glm_trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.5), sharey=True)
-    for ax, model in zip(axes, MODELS):
-        if model == 'GLM-5.1-FP8':
-            assert all(len(primary[model][c]['ids']) == 6 for c in CONDITIONS)
-            values = [mean(glm_trials[i]['recorded_attempt_s'] for i in primary[model][c]['ids']) for c in CONDITIONS]
-            title, ylabel = 'GLM-5.1-FP8（helper，n=6）', '准备开始→记录完成 / 秒'
-        else:
-            values = [summary[model][c]['controller_mean_s'] for c in CONDITIONS]
-            title, ylabel = model + '（controller）', '各自controller区间均值 / 秒'
-        ax.bar(range(4), values, color=COLORS)
-        ax.set(title=title, xticks=range(4), xticklabels=labels45, ylabel=ylabel)
-        ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig4_controller', 'GLM包含准备、三道请求、删除和至少60秒观察；Kimi/V4为各自controller区间。\n各栏端点不同，不能视为同一总成本指标；原40项未重跑。')
-
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
     load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
     axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
@@ -226,7 +240,7 @@ def export(output):
             for j in range(10): ax.text(j, i, 'OK' if grid[i][j] else 'FAIL', ha='center', va='center', fontsize=7, color='white')
         ax.set(yticks=range(4), yticklabels=LABELS, xticks=range(10), xticklabels=range(1, 11), title=model, xlabel='Original block (within model; not cross-model pairing)')
     save(fig, 'fig7_original40', 'All original 120 IDs retained: Kimi38/40, GLM35/40 mixed revisions, V4 38/40. No supplemental or pilot replacement.')
-    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, six figure families and startup table')
+    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, five figure families and two tables')
 
 
 if __name__ == '__main__':

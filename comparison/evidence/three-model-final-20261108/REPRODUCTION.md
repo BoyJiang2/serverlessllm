@@ -12,7 +12,7 @@ python reproduce.py /absolute/NEW_DIR
 
 脚本先校验 INPUTS.json 中全部字节 SHA，按原40 ID从 raw-replay 读取，不直接相信已派生 success 字段；与38份原 runtime-review 及65ee修订中的两个失败声明进行身份/版本/指标 join，重算冻结 V4 正式统计并要求与原输出相等。它不在本机重新证明 GPU/释放真实性；该证明来自原始报告和服务器完整只读 reviewer 重放。
 
-随后检查 Kimi/GLM 既有数组、完整块、每行互斥阶段和、V4同源B2–B10，导出 comparison.json/csv 和6组PNG/SVG/PDF及启动时间分解表。Kimi/GLM 的科学结果沿用原报告及其已保存独立复算回执，本脚本不声称再次执行它们的原统计CLI或重审大监控。原统计CLI复现方法在 inputs/legacy/REPORT.md 的链接中。
+随后检查 Kimi/GLM 既有数组、完整块、每行互斥阶段和、V4同源B2–B10，导出 comparison.json/csv 和5组PNG/SVG/PDF及生命周期观测、启动时间分解两组表。Kimi/GLM 的科学结果沿用原报告及其已保存独立复算回执，本脚本不声称再次执行它们的原统计CLI或重审大监控。原统计CLI复现方法在 inputs/legacy/REPORT.md 的链接中。
 
 本次在Windows现有Python3.13.1运行成功，reproduction.log保存原输出。跨Python版本的极末位浮点/PDF元数据/字体渲染可能不同，不要求不同平台整文件SHA相同。输入SHA必须完全相同。
 
