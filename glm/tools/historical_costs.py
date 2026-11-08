@@ -218,9 +218,201 @@ def c23_supplement():
     print(json.dumps(dict(trials=26, monitor_samples=monitor['whole']['samples'], conversion=conversion)))
 
 
+def loading_rank_pair(events, rank, begin_ns, end_ns):
+    """Keep missing/ambiguous endpoints null; never borrow the actor's identity."""
+    names = ['weights_pipeline_including_allocation_begin',
+             'weights_pipeline_including_allocation_end']
+    selected = [[e for e in events if e.get('rank') == rank and e['name'] == name
+                 and begin_ns <= e['monotonic_ns'] <= end_ns] for name in names]
+    if [len(x) for x in selected] != [1, 1]:
+        return None, 'missing_or_duplicate_endpoint'
+    first, last = [x[0] for x in selected]
+    if (first['pid'], first['container_hostname']) != (last['pid'], last['container_hostname']):
+        return None, 'process_identity_differs'
+    if last['monotonic_ns'] < first['monotonic_ns']:
+        return None, 'endpoint_order_invalid'
+    return (first, last), None
+
+
+def c23_loading_boundary():
+    import base64
+    import csv
+    import statistics
+    from final_statistics import PACKET, LEDGER_SHA
+
+    r = ROOT/'results/reanalysis-20261106'
+    used = {}
+
+    def read(path, expected=None):
+        b = path.read_bytes()
+        h = hashlib.sha256(b).hexdigest()
+        assert expected is None or h == expected, str(path)
+        used[path.relative_to(ROOT).as_posix()] = dict(bytes=len(b), sha256=h)
+        return b
+
+    read(Path(__file__))
+    ledger = json.loads(read(r/'inputs/formal-ledger.json', LEDGER_SHA))['rows']
+    index = json.loads(read(PACKET/'formal-exact-index.json', 'd73b0cd9a01fc320d05054417b5c553553981cd18fe4a768565a03b5db0bf3b0'))
+    files = {f['path']: f for f in index['files']}
+    absolute_root = '/data/brick1/boyjiang/glm5.1-fp8/'
+    prefix = 'validation/controls/'+PACKET.name+'/'
+
+    def exact(path):
+        f = files[path]
+        return read(PACKET/f['local_path'], f['sha256']), f
+
+    identity_bytes, _ = exact(prefix+'formal13-identity.json')
+    identity = json.loads(identity_bytes)
+    manifest = json.loads(read(r/'inputs/C23-run-manifest.json'))
+    sources = json.loads(read(r/'loading-boundary-sources.json'))
+    control_bytes, _ = exact('code/experiment/control-input-manifest.json')
+    control = json.loads(control_bytes)
+    history_bytes = read(r/'inputs/historical-review-manifest-v11.json', control['external_source_reference']['sha256'])
+    historical_sources = {x['path']: x for x in json.loads(history_bytes)['files']}
+    assert sources['history_manifest_sha256'] == hashlib.sha256(history_bytes).hexdigest()
+    for f in sources['files']:
+        assert hashlib.sha256(base64.b64decode(f['base64'])).hexdigest() == f['sha256'] == historical_sources[f['historical_path']]['sha256']
+    archive = json.loads(read(r/'inputs/C23-executed-source-archive.json'))
+    archived_sources = {x['path']: x for x in archive['files_checked_before_and_after']}
+    for f in sources['executed_mount_sources']:
+        assert hashlib.sha256(base64.b64decode(f['base64'])).hexdigest() == f['sha256'] == archived_sources[f['path']]['sha256']
+    endpoints, attempts = [], []
+    for state in ledger:
+        if state.get('protocol_revision') != 'v13-canonical23-qualified-disk-jit-seed' or not 5 <= state['block'] <= 10:
+            continue
+        result = json.loads(read(r/'inputs'/state['attempt_id']/'result.json', state['result_sha256']))
+        assert result['execution_run_id'] == PACKET.name
+        assert result['code_commit'] == state['code_commit'] == 'f176e05607d04999ab28e8ea8cd49b41270cb528'
+        assert result['source_manifest_sha256'] == state['source_manifest_sha256'] == '3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9'
+        phase_path = prefix+'formal-trials/'+state['attempt_id']+'/phases.json'
+        phase_bytes, phase_source = exact(phase_path)
+        phases = json.loads(phase_bytes)
+        events = phases['raw_events']
+        assert hashlib.sha256(json.dumps(events, sort_keys=True, separators=(',', ':')).encode()).hexdigest() == phases['raw_event_sha256']
+        actor = phases['control_events']['backend_engine_create_begin']
+        ready = phases['control_events']['backend_engine_ready']['monotonic_ns']
+        assert actor['boot_id'] == state['boot_id'] == manifest['runtime_identity']['boot_id']
+        observed = []
+        for rank in range(8):
+            pair, error = loading_rank_pair(events, rank, result['startup_command_ns'], result['correct_business_response_ns'])
+            row = dict(attempt_id=state['attempt_id'], block=state['block'], condition=state['condition'], rank=rank,
+                       pid=None, process_start_ticks=None, rank_boot_id=None, rank_clock_offset_ns=None,
+                       container_id=identity['container_id'], actor_pid=actor['pid'], actor_start_ticks=actor['process_start_ticks'],
+                       backend_engine_create_begin_ns=actor['monotonic_ns'], backend_engine_ready_ns=ready,
+                       contextual_boot_id=actor['boot_id'], clock='time.monotonic_ns; fixed emitter; boot binding is actor/container context, not a per-rank stamp',
+                       clock_source_sha256='e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c',
+                       begin_ns=None, end_ns=None, source_path=None, source_sha256=None, begin_line=None, end_line=None,
+                       device_setup_end_ns=None, quant_postprocess_begin_ns=None, quant_postprocess_end_ns=None,
+                       kv_begin_ns=None, recorded_warmup_begin_ns=None,
+                       phases_path=absolute_root+phase_path, phases_sha256=phase_source['sha256'], endpoint_error=error,
+                       rank_identity_verified=False, source_pipeline_begin_count=None, source_pipeline_end_count=None)
+            if pair is not None:
+                first, last = pair
+                event_path = prefix+f"events-formal13/process-{first['container_hostname']}-{first['pid']}.jsonl"
+                data, f = exact(event_path)
+                raw = [json.loads(line) for line in data.splitlines()]
+                assert raw.count(first) == raw.count(last) == 1
+                assert first['container_hostname'] == identity['container_id'][:12]
+                assert actor['monotonic_ns'] <= first['monotonic_ns'] <= last['monotonic_ns'] <= ready
+                pid_events = [e for e in events if e['pid'] == first['pid'] and e['container_hostname'] == first['container_hostname']]
+                before = [e for e in pid_events if e['name'] == 'device_setup_including_communication_end']
+                after = [e for e in pid_events if e['name'] == 'kv_cache_allocation_begin']
+                qbegin = [e for e in pid_events if e['name'] == 'quantization_postprocess_begin']
+                qend = [e for e in pid_events if e['name'] == 'quantization_postprocess_end']
+                warmup = [e for e in pid_events if e['name'] == 'compile_graph_and_warmup_begin']
+                assert [len(x) for x in (before, after, qbegin, qend, warmup)] == [1]*5
+                assert before[0]['monotonic_ns'] <= first['monotonic_ns'] <= qbegin[0]['monotonic_ns'] <= qend[0]['monotonic_ns'] <= last['monotonic_ns'] <= after[0]['monotonic_ns']
+                assert last['monotonic_ns'] <= warmup[0]['monotonic_ns']
+                stamps = {e['process_start_ticks'] for e in raw if e.get('pid') == first['pid'] and 'process_start_ticks' in e}
+                boots = {e['boot_id'] for e in raw if e.get('pid') == first['pid'] and 'boot_id' in e}
+                assert len(stamps) <= 1 and len(boots) <= 1
+                row.update(pid=first['pid'], process_start_ticks=next(iter(stamps), None), rank_boot_id=next(iter(boots), None),
+                           begin_ns=first['monotonic_ns'], end_ns=last['monotonic_ns'],
+                           source_path=absolute_root+event_path, source_sha256=f['sha256'],
+                           begin_line=raw.index(first)+1, end_line=raw.index(last)+1,
+                           device_setup_end_ns=before[0]['monotonic_ns'], quant_postprocess_begin_ns=qbegin[0]['monotonic_ns'],
+                           quant_postprocess_end_ns=qend[0]['monotonic_ns'], kv_begin_ns=after[0]['monotonic_ns'],
+                           recorded_warmup_begin_ns=warmup[0]['monotonic_ns'],
+                           rank_identity_verified=bool(stamps and boots),
+                           source_pipeline_begin_count=sum(e['name'] == 'weights_pipeline_including_allocation_begin' for e in raw),
+                           source_pipeline_end_count=sum(e['name'] == 'weights_pipeline_including_allocation_end' for e in raw))
+                observed.append(row)
+            endpoints.append(row)
+        distinct_pids = len({x['pid'] for x in observed})
+        span_value = span(min(x['begin_ns'] for x in observed), max(x['end_ns'] for x in observed)) if len(observed) == distinct_pids == 8 else None
+        if span_value is not None:
+            assert abs(span_value-result['metrics']['phase_weights_pipeline_including_allocation_span_s']) < 1e-9
+        attempts.append(dict(attempt_id=state['attempt_id'], block=state['block'], condition=state['condition'],
+                             valid_endpoint_ranks=len(observed), verified_rank_identities=sum(x['rank_identity_verified'] for x in observed),
+                             distinct_rank_pids=distinct_pids, contextual_single_backend_window=True,
+                             weight_load_host_all_rank_span_s=span_value,
+                             max_rank_host_duration_s=max(span(x['begin_ns'], x['end_ns']) for x in observed) if len(observed) == 8 else None,
+                             strict_unified_eligible=False, strict_unified_value_s=None,
+                             reason='C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.',
+                             result_sha256=state['result_sha256'], phases_path=absolute_root+phase_path, phases_sha256=phase_source['sha256']))
+    assert len(attempts) == 24 and len(endpoints) == 192
+    expected = dict(zip(('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'),
+                        (393.624687, 131.216366, 123.572061, 7.889165)))
+    summary = {}
+    for c, target in expected.items():
+        values = [x['weight_load_host_all_rank_span_s'] for x in attempts if x['condition'] == c and x['weight_load_host_all_rank_span_s'] is not None]
+        mean = statistics.mean(values) if values else None
+        if len(values) == 6:
+            assert abs(mean-target) < 0.0000005
+        summary[c] = dict(requested_n=6, endpoint_valid_n=len(values), observed_mean_s=mean,
+                          strict_unified_valid_n=0, strict_unified_mean_s=None)
+    for name, rows in [('loading-boundary-endpoints.csv', endpoints), ('loading-boundary-attempts.csv', attempts)]:
+        with (r/name).open('w', newline='', encoding='utf-8') as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator='\n')
+            writer.writeheader()
+            writer.writerows({k: 'null' if v is None else v for k, v in row.items()} for row in rows)
+    result = dict(verdict='C', scope='Strict common-boundary admission not proven; observed timestamp envelopes remain valid historical arithmetic, not zero or replacement trials.',
+                  runtime=dict(code_commit='f176e05607d04999ab28e8ea8cd49b41270cb528',
+                               vllm_base=manifest['selected_vllm_commit'], sllm_base=manifest['selected_sllm_commit'], image_id=manifest['image_id']),
+                  source_code_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(), summary=summary,
+                  missing_rank_startticks=sum(x['process_start_ticks'] is None for x in endpoints),
+                  missing_direct_rank_boot_ids=sum(x['rank_boot_id'] is None for x in endpoints),
+                  model_binding='One backend create/ready window, exact private container, one PID-pair per rank. No actor startticks substitution or invented rank model UUID.',
+                  sources_snapshot_sha256=hashlib.sha256((r/'loading-boundary-sources.json').read_bytes()).hexdigest(),
+                  input_files=used, attempts=attempts)
+    (r/'loading-boundary-summary.json').write_text(json.dumps(result, indent=2)+'\n', encoding='utf-8')
+    note = ['# 图5完整加载总跨度：历史边界核验', '',
+            '**结论C：严格共同边界与逐rank进程身份链尚未闭合，不能判A进入统一主图。** 24项的TP8时间端点可重算，不等于24项已通过统一功能边界。', '',
+            '## 实际源码与范围', '',
+            '运行代码f176e05607d04999ab28e8ea8cd49b41270cb528；vLLM基线43a9b1afbb7ed88e63ebeefeb55df8d445aa1992。worker替换文件由C23冻结launch挂载到镜像vLLM路径；本次取executed-source-f176e05，不用已不同的当前launch文件。来源字节、挂载源码及SHA见loading-boundary-sources.json。', '',
+            '| 源码 | 位置（1起） | SHA256 |', '|---|---|---|',
+            '| gpu_worker.py | 320 decorator；321–326 load_model | 86f5606fa76ab71b78699e22b70319cc9c85ead31761dba2e0c1187e984c8182 |',
+            '| event_trace.py | 55发begin；57调用函数；63发end；11–43写时间/进程 | e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c |',
+            '| base_loader.py | 44–94 load_model，57构造、91后处理 | d26f6561e4a3480591f63d1b653b0efd170ae09c03ee18397996289e35285ab7 |',
+            '| Store vllm_loader.py | 127–168 load_model，144构造、166后处理 | 36a40e20f8d2d6b2e7b3346ec5e1c54d5598359b1b1756348ef97723e34fa502 |', '',
+            'begin由traced包装器在调用GPUWorker.load_model前发出；end在该函数成功返回后发出，异常路径发_failed而非_end。范围包含weights内存池/config上下文及model_runner.load_model，begin记录写文件本身也处于该包络内；它不是只围住load_weights。end证明host调用返回，不等于独立记录了所有异步CUDA工作完成。',
+            'SF的Base loader与Store loader源码均在其内部创建模型并执行加载及必要后处理；Store还有骨架storage释放/恢复工作。192个实际rank区间均验证device_setup end≤pipeline begin≤quantization begin≤quantization end≤pipeline end≤KV begin，因此这些已记录的设备/NCCL初始化与KV阶段在外，后处理在内。不能把通信buffer等所有通信相关工作也据此称为在外。',
+            'runner对象本身在gpu_worker.py 297–312的init_device内先行构造，pipeline从其后才开始。Store的fresh骨架分配在本段内有直接事件；SF有Base loader构造源码。要严格排除实际runner构造时更早的权重storage分配，还缺实际runner构造函数版本/映射证明，不能仅凭pipeline字段名宣告fresh边界已闭合。',
+            'GPUModelRunner实际worker映射文件SHA及V1/V2实际分支缺少历史证明。固定43a的V1官方源码只作参考：4730–4887含内存记账、可选LoRA/drafter/aux、4826–4831模型专属通信buffer、4856–4885可选compile/graph包装、4887 offloader收尾。MTP配置null不能代替所有这些条件分支的逐worker证据。192个已记录compile/warmup begin均在pipeline end后；Worker的内存profile是另一入口，不能据此把runner内所有条件编译/初始化也说成完全没有额外工作。', '',
+            '## 192行逐rank证据与缺口', '',
+            'loading-boundary-endpoints.csv逐行列attempt/rank/PID、startticks、begin/end、时钟上下文、原始进程文件路径与SHA、端点行号及phases来源。每个非空配对均在同一PID/容器、唯一源文件记录及同一个backend create→ready窗口内；每项8个不同PID、rank0–7。逐rank声明与上下文证明分开。',
+            f"在本轮读取的事件与小型身份归档中：rank startticks缺失{result['missing_rank_startticks']}/192，rank直接boot标记缺失{result['missing_direct_rank_boot_ids']}/192。actor的PID/startticks/boot另列，绝不填给GPU worker。没有重新扫描大监控来补这些值，也不以请求时间窗推造startticks；不声称未读取的大监控中同样不存在身份信息。CLOCK_MONOTONIC来源由固定event_trace.py确定，boot绑定来自actor/容器，不声称每rank独立时钟身份已取证。", '',
+            '## 逐attempt公式与原6项均值', '',
+            '`weight_load_host_all_rank_span_s = (max(rank_end_ns)-min(rank_begin_ns))/1e9`；另列max_rank_host_duration_s，不替代此值。缺失端点返回null。下面是完整端点包络的复算，不是严格共同边界已验收的均值。', '',
+            '| 条件 | 端点有效n/原n | 包络均值/s | 严格统一有效n | 严格统一均值 |', '|---|---:|---:|---:|---|']
+    for c, x in summary.items():
+        mean_text = f"{x['observed_mean_s']:.9f}" if x['observed_mean_s'] is not None else 'null'
+        note.append(f"| {c} | {x['endpoint_valid_n']}/6 | {mean_text} | 0 | null |")
+    note += ['', '24行逐attempt数值在loading-boundary-attempts.csv。四个均值复核匹配393.624687 / 131.216366 / 123.572061 / 7.889165秒；原ID、B5–B10与四条件未变。', '',
+             '本轮不重画图5：当前证据只能保留观测包络，不能将其升级成统一主比较。ingestion/postprocess只作专项说明，不与V4同名阶段直接横比；其专家copy所在遍历与GLM工作范围未证相同。图4/helper及资源补充不修改。', '',
+             '复算：`python glm/tools/historical_costs.py --c23-loading-boundary`。来源SHA清单为loading-boundary-inputs.json；无监控重扫、无模型/容器/Store运行。官方参考：[固定43a GPUModelRunner](https://raw.githubusercontent.com/vllm-project/vllm/43a9b1afbb7ed88e63ebeefeb55df8d445aa1992/vllm/v1/worker/gpu_model_runner.py)，不是实际映射文件证明。']
+    (r/'loading-boundary-note.md').write_text('\n'.join(note)+'\n', encoding='utf-8')
+    outputs = {name:dict(bytes=(r/name).stat().st_size, sha256=hashlib.sha256((r/name).read_bytes()).hexdigest())
+               for name in ['loading-boundary-endpoints.csv', 'loading-boundary-attempts.csv', 'loading-boundary-summary.json', 'loading-boundary-sources.json', 'loading-boundary-note.md']}
+    (r/'loading-boundary-inputs.json').write_text(json.dumps(dict(inputs=used, outputs=outputs), indent=2)+'\n', encoding='utf-8')
+    print(json.dumps(dict(verdict='C', ranks=len(endpoints), attempts=len(attempts), summary=summary)))
+
+
 if __name__ == '__main__':
     import sys
     if sys.argv[1:] == ['--c23-supplement']:
         c23_supplement()
+    elif sys.argv[1:] == ['--c23-loading-boundary']:
+        c23_loading_boundary()
     else:
         main()

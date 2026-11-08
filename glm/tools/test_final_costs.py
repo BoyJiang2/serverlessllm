@@ -2,9 +2,23 @@ import unittest
 import json
 
 from final_costs import counters, pss_summary, span, historical_monitor
+from historical_costs import loading_rank_pair
 
 
 class CostsTests(unittest.TestCase):
+    def test_loading_pair_missing_duplicate_or_wrong_process(self):
+        first = dict(name='weights_pipeline_including_allocation_begin', rank=0,
+                     pid=12, container_hostname='owned', monotonic_ns=10)
+        last = dict(first, name='weights_pipeline_including_allocation_end', monotonic_ns=20)
+        pair, error = loading_rank_pair([first, last], 0, 1, 30)
+        self.assertEqual(pair, (first, last))
+        self.assertIsNone(error)
+        self.assertNotIn('process_start_ticks', pair[0])
+        self.assertIsNone(loading_rank_pair([first], 0, 1, 30)[0])
+        self.assertIsNone(loading_rank_pair([first, first, last], 0, 1, 30)[0])
+        self.assertIsNone(loading_rank_pair([first, dict(last, pid=13)], 0, 1, 30)[0])
+        self.assertIsNone(loading_rank_pair([first, dict(last, monotonic_ns=9)], 0, 1, 30)[0])
+
     def test_historical_windows_and_missing_gpu(self):
         def row(t, value):
             gpu = None if value is None else '\n'.join(
