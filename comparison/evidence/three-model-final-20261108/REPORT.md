@@ -120,9 +120,26 @@ V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133
 
 26条原始阶段跨度及起止窗口保存在[event-intervals.csv](inputs/glm-cpu/event-intervals.csv)，主表选B5–B10；旧复算已核对每条八rank覆盖与起止时间，此处只做CPU求均值。
 
-## 图 6：可相加的启动事件分解
+## 表 6：启动时间的互斥分解（替代原图6）
 
-![互斥事件分解](derived/fig6_exclusive.png)
+后两段约0.2–2秒，相比几十至上千秒的命令至路由阶段，在原堆叠图中难以辨认，改用数值表。单位为秒，均为固定完整块的算术均值，保留六位小数；显示舍入可能使合计末位略有差异，校验使用未舍入值。
+
+| 模型 | 条件 | n | 命令→路由发布 | 路由→后端首输出 | 首输出→正确HTTP响应 | 合计 A |
+|---|---|---:|---:|---:|---:|---:|
+| Kimi-K2.6 | SF冷读 | 8 | 1268.995380 | 1.878032 | 0.592470 | 1271.465883 |
+| Kimi-K2.6 | SF热读 | 8 | 439.222533 | 1.794220 | 0.590645 | 441.607398 |
+| Kimi-K2.6 | Store冷读 | 8 | 238.835447 | 1.849554 | 0.581399 | 241.266401 |
+| Kimi-K2.6 | Store池命中 | 8 | 156.197765 | 1.836714 | 0.576331 | 158.610811 |
+| GLM-5.1-FP8 | SF冷读 | 6 | 447.091141 | 1.182353 | 0.222865 | 448.496359 |
+| GLM-5.1-FP8 | SF热读 | 6 | 184.542528 | 0.982716 | 0.229068 | 185.754312 |
+| GLM-5.1-FP8 | Store冷读 | 6 | 177.169690 | 0.990030 | 0.239581 | 178.399301 |
+| GLM-5.1-FP8 | Store池命中 | 6 | 61.868151 | 0.919945 | 0.224150 | 63.012245 |
+| DeepSeek-V4-Pro | SF冷读 | 9 | 554.129352 | 1.661932 | 0.431205 | 556.222489 |
+| DeepSeek-V4-Pro | SF热读 | 9 | 218.226117 | 1.752789 | 0.472379 | 220.451285 |
+| DeepSeek-V4-Pro | Store冷读 | 9 | 221.461781 | 1.853954 | 0.436065 | 223.751799 |
+| DeepSeek-V4-Pro | Store池命中 | 9 | 128.225884 | 1.967195 | 0.420744 | 130.613822 |
+
+[下载完整精度CSV](derived/table6_exclusive.csv)；Kimi n=8、GLM C23 n=6、V4同源B2–B10 n=9，原样本集及正式统计不变。原图文件仅保留历史归档，不再用于主文展示。
 
 命令至 route、route 至 backend 首输出、首输出至正确 HTTP 三段逐条非负、相加严格等于 A。大段不包含嵌套 phase 的重复累计。最后一段不是纯 decode，首输出事件不是 GPU 第一次 sampling。所有小段原数组保存在 [comparison.json](derived/comparison.json)，无需靠图估读。
 
@@ -218,6 +235,6 @@ V4 完成后只读 replay 全 40 journal，使用冻结 reviewer 对 38 成功�
 
 原 40 全部目录、原 journal、campaign complete 和 handles 已另打包于服务器：`/home/boyjiang/sllm-v4-pro/results/nfs40-raw-evidence-20261108.tar.gz`，56908305 字节，SHA `76ef89cb2b4de1d21605b4d65f90c33bc5057a3bfe637ff058b7a368573ef99b`；108086 个成员、44 个顶层根，gzip/tar 全读检查通过。包不含权重或 Store payload。本交付附 [receipt](inputs/v4/raw-archive-receipt.json)，完整原件仍保留服务器。
 
-本目录提供 7 组 PNG/SVG/PDF、逐行 CSV、原输入副本与 SHA、复算脚本。[V4-MIGRATION.md](V4-MIGRATION.md)单列机制映射、上游能力、最小补丁与 Store 状态/失败契约；[REPRODUCTION.md](REPRODUCTION.md)给出 CPU 复算和服务器完整重审命令。图已视检。既有 Kimi/GLM 不重新审计大监控或重读权重，既有 V4 Store 数据不重复转换/哈希。
+本目录提供 6 组 PNG/SVG/PDF及1组启动时间分解表、逐行 CSV、原输入副本与 SHA、复算脚本。[V4-MIGRATION.md](V4-MIGRATION.md)单列机制映射、上游能力、最小补丁与 Store 状态/失败契约；[REPRODUCTION.md](REPRODUCTION.md)给出 CPU 复算和服务器完整重审命令。图已视检。既有 Kimi/GLM 不重新审计大监控或重读权重，既有 V4 Store 数据不重复转换/哈希。
 
 未验证图像/视频、长上下文覆盖、并发吞吐、在线 KV 迁移、EP-on/TP16/PP、MTP/graph、在途取消或 N>1 持续驻留收益。本报告只覆盖冻结的文本、TP8、2048/seq1/eager 和两类 V4 请求。缺测与原失败保留，不用额外运行填出理想图。

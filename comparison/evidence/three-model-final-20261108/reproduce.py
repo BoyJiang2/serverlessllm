@@ -100,9 +100,34 @@ def build():
     return primary, descriptive, summary, formal, kimi, read(legacy / 'comparison-all40-glm-ledger.json')
 
 
+def write_startup_table(output, primary):
+    columns = ['model', 'condition', 'n', 'command_to_route_s',
+               'route_to_backend_first_token_s', 'backend_first_token_to_correct_http_s', 'A_s']
+    rows = []
+    for model in MODELS:
+        for condition in CONDITIONS:
+            group = primary[model][condition]
+            row = dict(model=model, condition=condition, n=len(group['A_s']), A_s=mean(group['A_s']))
+            row.update({key: mean(values) for key, values in group['startup_segments_s'].items()})
+            assert math.isclose(sum(row[key] for key in columns[3:6]), row['A_s'], abs_tol=1e-8)
+            rows.append(row)
+    with (output / 'table6_exclusive.csv').open('w', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fieldnames=columns)
+        writer.writeheader()
+        writer.writerows(rows)
+    labels = dict(zip(CONDITIONS, ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']))
+    lines = ['| 模型 | 条件 | n | 命令→路由发布 | 路由→后端首输出 | 首输出→正确HTTP响应 | 合计 A |',
+             '|---|---|---:|---:|---:|---:|---:|']
+    for row in rows:
+        values = ' | '.join(f'{row[key]:.6f}' for key in columns[3:])
+        lines.append(f"| {row['model']} | {labels[row['condition']]} | {row['n']} | {values} |")
+    (output / 'table6_exclusive.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+
+
 def export(output):
     primary, descriptive, summary, formal, kimi, glm_ledger = build()
     output.mkdir(exist_ok=False)
+    write_startup_table(output, primary)
     (output / 'comparison.json').write_text(json.dumps(dict(summary=summary, arrays=primary,
         descriptive_arrays=descriptive, v4_frozen_formal_statistics=formal,
         cohort_note='Legacy primary Kimi8/GLM6 unchanged; V4 blocks2..10 uniform-source9 is comparison-only descriptive sensitivity, not a replacement for frozen formal pair-specific n10/n9.'), indent=2) + '\n')
@@ -188,14 +213,6 @@ def export(output):
     save(fig, 'fig5_loading', '各栏观测定义不同：Kimi为f7日志，GLM/V4为八rank阶段包络。\n阶段区间可能重叠，摄入、后处理与流水线不能相加，也不是纯磁盘I/O。')
     plt.rcParams['font.sans-serif'] = original_font
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
-    for ax, model in zip(axes, MODELS):
-        bottom = np.zeros(4)
-        for key, label, color in [('command_to_route_s', 'Command -> route', '#3267A5'), ('route_to_backend_first_token_s', 'Route -> backend first output', '#C57935'), ('backend_first_token_to_correct_http_s', 'First output -> correct HTTP', '#4D9568')]:
-            values = np.array([mean(primary[model][c]['startup_segments_s'][key]) for c in CONDITIONS]); ax.bar(range(4), values, bottom=bottom, color=color, label=label); bottom += values
-        ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=7)
-    save(fig, 'fig6_exclusive', 'The three non-overlapping host-event intervals sum to A. Backend first output is not client streaming TTFT or GPU token time.')
-
     fig, axes = plt.subplots(3, 1, figsize=(13, 5.4))
     originals = [r for r in kimi['runs'] if r['cohort'] == 'original']
     groups = [originals, glm_ledger['rows'], rows]
@@ -209,7 +226,7 @@ def export(output):
             for j in range(10): ax.text(j, i, 'OK' if grid[i][j] else 'FAIL', ha='center', va='center', fontsize=7, color='white')
         ax.set(yticks=range(4), yticklabels=LABELS, xticks=range(10), xticklabels=range(1, 11), title=model, xlabel='Original block (within model; not cross-model pairing)')
     save(fig, 'fig7_original40', 'All original 120 IDs retained: Kimi38/40, GLM35/40 mixed revisions, V4 38/40. No supplemental or pilot replacement.')
-    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums and seven figure families')
+    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, six figure families and startup table')
 
 
 if __name__ == '__main__':
