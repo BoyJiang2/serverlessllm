@@ -14,10 +14,8 @@
 
 | 文件 | 字节 | SHA256 |
 |---|---:|---|
-| HANDOFF.md | 3279 | `531bfc9848829327d67fbbb1629923c086732f1d1658bb047fb8e254b79ae678` |
-| REPORT.md | 14234 | `bee8ceeb39b21dc8725498e2f09f10a34b163f957f23ca8f0c40311a7603f65f` |
 | all40-matrix.csv | 12020 | `ae80d12f06dc7b813e51a145904ac6210066c00f1bd3b0016ff3b3f22bbac82c` |
-| build-validation.json | 965 | `4c2e7bb8434f1146b90b8bba949dd32bbfd9530b259ba3c97c60e7c0e5eabccf` |
+| build-validation.json | 1104 | `f4a1fbc3905d7339103d23eced8b7445f1f7acef6be408d983f7746f8aa54459` |
 | c23-block-matrix.csv | 766 | `030d322f01d4588632d2ce71795776d8d471bd323411cfbca1c950c66ba49ed5` |
 | c23-store-server-overlay.patch | 344 | `c719b0c1c2a6d560b58606e6a4ceabb09177e6ce56c0067be910032b22eef3e7` |
 | deployment-binding.json | 13464 | `a99e4dd85a58101fda3d2dc906f45321177b9f7d31a3f57910379b18698d313d` |
@@ -29,19 +27,25 @@
 | event_audit.py | 6595 | `03ad1f172afa048a80c3604511cae422c745f78c0e19cd85b1fef31bea98065f` |
 | executed-source-binding.json | 1021 | `5b752b9b7dcbe65990428776443cee3c5d07e6e7e7fcc5e26a25eff1abfdb963` |
 | git-publication-pending.json | 886 | `6468659dd932e732b4151eae1c42b0838a63b0772b1847e14c33eecbcf591b9a` |
+| HANDOFF.md | 3910 | `c15158242126be4e714d48213eb3e06e8f8de057271117d9190229c8ac57fdc0` |
+| historical-monitor.json | 38743 | `f94b826af1dc11af5ce8aa0f66e6a614694da4d0fdb2d700fffc36a4f8129e07` |
+| historical-supplement.json | 43032 | `84722feeb691781b05d2ce91f2a68d6ce6bf11b4f0201ce2098668974d271c3a` |
+| historical-supplement.md | 3971 | `ed7fdce14a571f06504329527861ea8e05ab845d7b277f4651f548c33e22fc2a` |
 | home-cleanup-receipt.json | 469 | `e0fc0186f7360cdfa8ec4695e61b2f505b1215a6716c0fa5781f28f1ca208154` |
 | independent-audit.json | 23038 | `a0d3c29481327e1ec0887426b9a4594b956ac673831b02a50ab8f242e34dec86` |
 | independent_audit.py | 6552 | `e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33` |
 | input-copy-manifest.json | 17059 | `5734a61e4455af2f419dfc6216e296549b1ed76243270708e41e251f9cbd5dc2` |
 | inputs/C23-control-input-manifest.json | 15348 | `3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9` |
+| inputs/c23-costs.json | 91200 | `336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce` |
 | inputs/C23-executed-source-archive.json | 13713 | `62e283a0fb893ac030b2b0d8f97fff921ad086c032fe2c34223cf8e904375e5f` |
 | inputs/C23-formal13-cpu-import-preflight.json | 3974 | `1c2e0a73157bf10c95f6173e7fd2197c78c8c1e67122db4a3aee2c48f4955cfd` |
 | inputs/C23-run-manifest.json | 52959 | `bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d` |
 | inputs/C23-store-server.py | 8959 | `b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f` |
-| inputs/c23-costs.json | 91200 | `336d3d51a9991fbd8f906dec8fd0f407cf9ce585f29efc1cfea739c521976fce` |
 | inputs/canonical-INDEX.json | 6709 | `037b347e22c589b06883a20ca7ccb8805101324f7bdd7001e28497bf837d9978` |
+| inputs/final_costs.py | 10918 | `a9ad8c9ceb3e7c12cae223c1ed98169dce100f9a82836d94d884ef1442d562c3` |
 | inputs/formal-ledger.json | 71883 | `76184b66b4418fc486ec00aa530b705542bff20d6b6950c07b00c4aa8a75a06b` |
 | inputs/historical-review-manifest-v11.json | 214107 | `da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4` |
+| inputs/historical_costs.py | 19081 | `6fbcc91511c2a2427b2befdbb70a755b34858f083e5dc5e68643029a22759fd6` |
 | inputs/safetensors_disk_cold_01/result.json | 2214 | `444ccca4086c6d7438914794e4fbe2d39944b40764b4c9fda03601af82be050c` |
 | inputs/safetensors_disk_cold_02/result.json | 2221 | `559d9e05e4028a074a0686e83faa3370e585d36b52cdcca282f17ee844ea316c` |
 | inputs/safetensors_disk_cold_03/result.json | 2729 | `bc11e8931072e556958ee55a94a76776e2bd687d4caa891e693d198b0fc01cf2` |
@@ -83,6 +87,7 @@
 | inputs/store_pool_hit_08/result.json | 2664 | `9371a1cbc165a390e9e64ce41dae91b0d5eb383e9e1563eb140063f8f6a6d24a` |
 | inputs/store_pool_hit_09/result.json | 2661 | `ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab` |
 | inputs/store_pool_hit_10/result.json | 2662 | `84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501` |
+| inputs/test_final_costs.py | 2117 | `83765b1123492facd735bddcf77d92acfa82963fc7cc4a2140fd2d0e789fc521` |
 | inputs/v5-store-server.py | 8943 | `c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c` |
 | inputs/vllm-integration-candidate-v5.patch | 101013 | `60dfa6eb35eb73b0cdff139e16db737277e9e0f343abe4a09f99f3ee22d7bac0` |
 | latency-decomposition.png | 197684 | `ab95536f9d4c33ff783afd62c2ccc62d4e4a64cf28b753de2b2c9b5502d50a49` |
@@ -92,8 +97,9 @@
 | original/recompute.py | 66739 | `cb35cf40e8433b36404b3aae96dc677020c7a9b071d46f4e0d4f23dd0153bdfc` |
 | original/sanity-gate.json | 3760 | `6b453007ee3b869b9cd9321a5cae94f4d16d1dc37ad61e666c183a34d33d4054` |
 | patch-inventory.json | 16414 | `a5575e174bd6dbe238eec49574a21eabf3325091e312f572445bec5a1a78a0b8` |
-| plot_analysis.py | 18711 | `fb77d42bb98e240bd6f7c75fde35c5a4f767d12ead567de11d952d9ce86f1948` |
+| plot_analysis.py | 19191 | `fd40504fc33a9026fc81f7dd60c8225d3e74c92197c6550eb10471de16221712` |
 | raw-event-inputs.json | 776417 | `c32f0e8c63fa50e4aa938673ee443c4b60f6feea19af58709b3ef2714b95f02d` |
+| REPORT.md | 18240 | `c4d45ff6325aee73cc888d2435fb21a367b0a0dbc988eabc9ee2895e1d8b1ddc` |
 | server-sync-receipt.json | 1061 | `1f7243a22b7a95bd4bb70ccce7aa6f60f59a255635366157f35e57b87e814297` |
 | source-clock-evidence.json | 31553 | `068a3428a5695834b6f861e0deea41bcc729409c18cbe9b25614ae1c2e039270` |
 | startup-samples.png | 72976 | `7441dfc1f9a4e7ee1aaf1e73b3f6583a6b49a6daa288b48869597a5072ba21ee` |

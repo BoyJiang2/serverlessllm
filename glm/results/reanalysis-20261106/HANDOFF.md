@@ -23,10 +23,14 @@
 | independent_audit.py | `e1e186398d54642d301209b85007fb835f8a89d9ba533c9856687b25e82d9c33` |
 | event_audit.py | `03ad1f172afa048a80c3604511cae422c745f78c0e19cd85b1fef31bea98065f` |
 | deployment_audit.py | `bc28de89e79dbe47f35b8980fcc44b70df5dc24beb19f7f15e9eb9707e020922` |
-| plot_analysis.py | `fb77d42bb98e240bd6f7c75fde35c5a4f767d12ead567de11d952d9ce86f1948` |
+| plot_analysis.py | `fd40504fc33a9026fc81f7dd60c8225d3e74c92197c6550eb10471de16221712` |
 | independent-audit.json | `a0d3c29481327e1ec0887426b9a4594b956ac673831b02a50ab8f242e34dec86` |
 | event-gate.json | `01e0bf4b6dcea514cd71c46c0bf78a3114804256bfe182feb2c3961695659f34` |
 | deployment-gate.json | `214e0b546d4bcf1947151dc907f90dc6b2c5632557d41c94a436b7071510b0c9` |
-| REPORT.md | `bee8ceeb39b21dc8725498e2f09f10a34b163f957f23ca8f0c40311a7603f65f` |
+| REPORT.md | `c4d45ff6325aee73cc888d2435fb21a367b0a0dbc988eabc9ee2895e1d8b1ddc` |
 | raw-event-inputs.json | `c32f0e8c63fa50e4aa938673ee443c4b60f6feea19af58709b3ef2714b95f02d` |
 | inputs/formal-ledger.json | `76184b66b4418fc486ec00aa530b705542bff20d6b6950c07b00c4aa8a75a06b` |
+
+## 历史日志CPU补充（2026-11-08）
+
+先看historical-supplement.md及JSON：重新流式读取1070633372字节历史监控，原文件留服务器；9647条有效采样与原审计一致。新增52个按原始端点定义的资源窗口、26条helper记录区间、批共享supervisor区间、505.467441929秒转换容器观测；不冒充完整逐次controller或纯save。缺客户端fixed32计时、同定义f7、纯保存/填池、N>1，另列待GPU方案，不启动补跑。inputs中三份tools源码为字节留档，不是独立部署入口；复算命令在Git仓库根执行。

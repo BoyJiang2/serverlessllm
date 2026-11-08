@@ -79,7 +79,7 @@ lines += ['第四项为完整策略比较，不能单独归因于格式或缓存
 '含准备的n=6与n=7区间不同，均保留；不得据显著性切换规则。block 8与store_disk_cold_04均保留。SF热读快样本不是机制因果证明；本报告不据异常点单独解释零结果，不发布未经核验的MAD异常倍数。四项族、双侧全符号枚举这个特定设计下，n=6/7/8理论最小首步调整p为0.125/0.0625/0.03125；它是可达性下限，不是功效保证或追加样本授权。','',
 '## 准备、初始化、驻留与释放成本','',
 table(['项目','已有数值/状态','边界'],[
-['一次完整Store转换成本','尚缺可独立计费的单一完整数值','历史控制/失败另列，不能当0'],
+['历史转换运行/纯保存','整容器范围见CPU补充；纯保存仍未知' if (R/'historical-supplement.md').exists() else '尚缺可独立计费的单一完整数值','历史控制/失败另列，不能当0；容器耗时不当纯I/O'],
 ['公共初始化',f"{cost['intervals_nonadditive']['formal_common_initialization_s']:.6f}秒",'C23单次已有成本记录，包含共享Ray/Store/池等；不是纯建池'],
 ['公共Store池',f"{cost['common_pool']['configured_bytes']/1024**3:.0f} GiB",'配置量，四条件均保留；不同于实际时刻锁页测量'],
 ['每条准备','逐条见event-intervals.csv','包括状态依赖卸载、构造条件、缓存检查；不当纯填池'],
@@ -105,6 +105,8 @@ lines += ['已按固定历史源码清单逐项核对：上述补丁的17个目�
 '```bash\npython3 independent_audit.py\npython3 event_audit.py\npython3 deployment_audit.py\n# 使用既有matplotlib环境；不创建新环境\npython plot_analysis.py\n```','',
 '原始权威路径和SHA见MANIFEST.md、all40-matrix.csv及input-copy-manifest.json；本目录inputs是小型只读结果副本。原始输入不修改。`original/recompute.py`默认会写原目录，因此此处不调用其默认入口。README与CSV/JSON均可编辑，SVG保留文字。home副本已删除，不向home再传输。','',
 '剩余边界：声明补丁集之外的全仓库差异及逐rank映射机器码；转换/纯填池成本分离；N>1实测；完整rank内部opaque内存不在本轮审计范围。当前报告是GLM历史证据复算交付，不证明当前服务可运行，也不将历史exit137判为已解决。']
+if (R/'historical-supplement.md').exists():
+ lines += ['', (R/'historical-supplement.md').read_text(encoding='utf-8').replace('# GLM历史监控与日志：CPU补充复算', '## GLM历史监控与日志：CPU补充复算', 1).rstrip()]
 (R/'REPORT.md').write_text('\n'.join(lines)+'\n',encoding='utf-8')
 print('Wrote REPORT.md; Kimi and unmeasured amortization left explicitly missing.')
 

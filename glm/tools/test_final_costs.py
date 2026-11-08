@@ -1,9 +1,28 @@
 import unittest
+import json
 
-from final_costs import counters, pss_summary, span
+from final_costs import counters, pss_summary, span, historical_monitor
 
 
 class CostsTests(unittest.TestCase):
+    def test_historical_windows_and_missing_gpu(self):
+        def row(t, value):
+            gpu = None if value is None else '\n'.join(
+                f'{i}, GPU-{i}, 100 MiB, {value+i} MiB, 0 %' for i in range(8))
+            return json.dumps(dict(monotonic_ns=t, gpu=gpu,
+                                   cgroup_memory_current=t, foreign_gpu_pids=[])).encode()+b'\n'
+        out = historical_monitor([row(1, 0), row(2, None), row(3, 20), b'bad'],
+                                 [dict(begin_ns=1, end_ns=2), dict(begin_ns=2, end_ns=3)])
+        self.assertEqual(out['whole']['samples'], 3)
+        self.assertEqual(out['whole']['missing_gpu'], 1)
+        self.assertEqual(out['windows'][0]['summary']['gpu_peak_MiB'], list(range(8)))
+        self.assertEqual(out['windows'][1]['summary']['gpu_peak_MiB'], list(range(20, 28)))
+        self.assertEqual(out['malformed_line_numbers'], [4])
+        missing = historical_monitor([row(2, None)], [])
+        self.assertEqual(missing['whole']['gpu_peak_MiB'], [None]*8)
+        with self.assertRaises(AssertionError):
+            historical_monitor([row(3, 0), row(1, 0)], [])
+
     def test_counter_units_and_span(self):
         self.assertEqual(counters('Pss: 7 kB\nLocked: 0 kB\n'), dict(Pss=7, Locked=0))
         self.assertEqual(span(100, 1000000100), 1)

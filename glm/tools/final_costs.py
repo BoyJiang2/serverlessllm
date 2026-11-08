@@ -16,6 +16,69 @@ def span(begin, end):
     return (end-begin)/1e9
 
 
+def historical_monitor(stream, windows):
+    """Stream archived telemetry only; peaks are sampled lower bounds, never GPU work."""
+    import hashlib
+    import json
+
+    def bucket():
+        return dict(samples=0, gpu_samples=0, missing_gpu=0, gpu_peak_MiB=[None]*8,
+                    memory_current_peak_bytes=None, first_ns=None, last_ns=None,
+                    max_gap_s=0, foreign_gpu_samples=0)
+
+    targets = [dict(window, summary=bucket()) for window in windows]
+    for w in targets:
+        assert type(w['begin_ns']) is int and w['end_ns'] >= w['begin_ns']
+    whole = bucket()
+    digest = hashlib.sha256()
+    size = 0
+    identity = None
+    malformed = []
+    for number, raw in enumerate(stream, 1):
+        digest.update(raw)
+        size += len(raw)
+        try:
+            row = json.loads(raw)
+        except ValueError:
+            malformed.append(number)
+            continue
+        t = row['monotonic_ns']
+        assert type(t) is int
+        values = None
+        if row.get('gpu'):
+            parts = [line.split(',') for line in row['gpu'].splitlines()]
+            assert len(parts) == 8 and [int(p[0]) for p in parts] == list(range(8))
+            ids = [p[1].strip() for p in parts]
+            if identity is None:
+                identity = ids
+            assert identity == ids
+            values = [int(p[3].strip().split()[0]) for p in parts]
+            assert all(v >= 0 for v in values)
+        memory = row.get('cgroup_memory_current')
+        assert memory is None or type(memory) is int and memory >= 0
+        for b in [whole]+[w['summary'] for w in targets if w['begin_ns'] <= t <= w['end_ns']]:
+            if b['last_ns'] is not None:
+                assert t >= b['last_ns']
+                b['max_gap_s'] = max(b['max_gap_s'], (t-b['last_ns'])/1e9)
+            b['first_ns'] = t if b['first_ns'] is None else b['first_ns']
+            b['last_ns'] = t
+            b['samples'] += 1
+            b['foreign_gpu_samples'] += bool(row.get('foreign_gpu_pids'))
+            if memory is not None:
+                b['memory_current_peak_bytes'] = max(b['memory_current_peak_bytes'] or 0, memory)
+            if values is None:
+                b['missing_gpu'] += 1
+            else:
+                b['gpu_samples'] += 1
+                b['gpu_peak_MiB'] = [max(a if a is not None else 0, v)
+                                     for a, v in zip(b['gpu_peak_MiB'], values)]
+    return dict(bytes=size, sha256=digest.hexdigest(), gpu_uuids=identity,
+                malformed_line_numbers=malformed, whole=whole, windows=targets,
+                scope='Archived device-wide NVML observations and owned-slice memory.current; '
+                      'non-simultaneous per-device peaks, no GPU query or model execution; '
+                      'missing observations are not zero; memory.current includes file cache.')
+
+
 def pss_summary(snapshot):
     fields = ('Rss', 'Pss', 'Locked', 'Pss_Shmem')
     available = [r for r in snapshot['processes'] if r.get('smaps_rollup') is not None]
