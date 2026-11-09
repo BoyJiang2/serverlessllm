@@ -139,6 +139,34 @@ class Source(unittest.TestCase):
 
 
 class Ownership(unittest.TestCase):
+    def test_actual_monitor_retains_rejected_sample_without_ready(self):
+        tree = ast.parse((HERE/'debug_stack.py').read_text())
+        measure = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'measure')
+        monitor = next(node for node in measure.body if isinstance(node, ast.FunctionDef) and node.name == 'monitor')
+        rules = {}
+        source = ast.parse((d.TREE/'runtime/active/gpu_identity13.py').read_text())
+        rule = next(node for node in source.body if isinstance(node, ast.FunctionDef) and node.name == 'require_monitor_sample')
+        exec(compile(ast.Module(body=[rule], type_ignores=[]), '<actual monitor rule>', 'exec'), rules)
+        snapshot = dict(sample_begin_ns=1, last_sample_ns=6_000_000_002, sample_end_ns=6_000_000_003,
+                        stage_timings_ns=[['GPU devices', 1, 6_000_000_002]])
+        for failure in (None, OSError(5, 'injected GPU query failure')):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                errors = []
+                sampler = Mock(return_value=snapshot, side_effect=failure)
+                namespace = dict(vars(d), root=root, state={}, stopped=Mock(is_set=Mock(return_value=False)),
+                                 monitor_errors=errors, supplement_sample=sampler,
+                                 require_monitor_sample=rules['require_monitor_sample'])
+                exec(compile(ast.Module(body=[monitor], type_ignores=[]), '<actual monitor>', 'exec'), namespace)
+                namespace['monitor']()
+                receipt = json.loads((root/'controller-monitor-rejected.json').read_text())
+                self.assertFalse(receipt['healthy'])
+                self.assertEqual(receipt['snapshot'], snapshot if failure is None else None)
+                self.assertEqual(receipt['stage'], 'validate' if failure is None else 'collect')
+                self.assertTrue(errors)
+                self.assertFalse((root/'supplement-monitor-ready.json').exists())
+                self.assertEqual((root/'controller-monitor.jsonl').read_bytes(), b'')
+
     def test_up_head_call_propagates_supplement_inputs(self):
         tree = ast.parse((HERE/'debug_stack.py').read_text())
         up = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'up')

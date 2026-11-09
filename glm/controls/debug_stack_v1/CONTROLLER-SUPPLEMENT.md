@@ -103,3 +103,12 @@ CPU故障回归在785a冻结源码上重现失败、在修订上通过；仅证�
 
 
 第二批首条39ef784c在worker/Store/模型启动前被实际Docker Env检查拒绝。784195源码及R1漏查up的head_plan调用未传condition/start_sha；plan函数自身正确不代表实际调用接齐。原批终态0/1/3不变，原失败不重试。已有up调用片段CPU回归修复前四条件均失败、修复后通过，默认debug事件目录原值保持。仅在原调用补传与worker相同的格式/query/condition/start_sha，不改生产代码或新增包装层。独立事后观察49样本60.467971145秒、八卡0/无GPU进程/无本run容器，临时timer/slice已核停止；仍非成功Controller。完整独立R1须重新绑定当前commit。Ray无外层force证据不代表其内部所有子进程信号已逐个审计。
+
+
+## 第三批停止与最小取证修订
+
+fb854930完整R1通过并实际新guard/probe/资源准入后，第三批首条0270da51因监控slow or inconsistent sample停止；0成功/1失败/3未开始，停止后续。四个保留样本分别0.2583/0.3614/0.2825/0.2840秒；异常样本在校验后写盘的旧顺序下丢失，原始三时刻不足，具体耗时操作未知。worker仅开始Ray CLI（空日志，后受控TERM），Store和模型未启动。主unit失败81.618091秒，原释放观察60.140834848秒；两容器移除、八卡0/无GPU进程、exact timers/slices均停止。Controller成功值继续null，不能填写报告缺测格。
+
+独立CPU-only head启动采样25秒得到20样本约0.26–0.28秒，无异常并已删除容器；它不覆盖GPU worker/NVIDIA初始化，不能认定NVML是根因，也不证明原故障已修复。取证修订仅在现有supplement_sample记录Docker inspect、init/cgroup、成员/proc、smaps_rollup、两次GPU查询及剩余读取的分段monotonic时间；monitor在失败时保留原snapshot、上一时刻、错误和collect/validate阶段，失败不发布健康ready。原5秒判据不改。注入6秒样本和采集异常的实际monitor函数CPU回归通过，当前92项相关检查；该修订是可定位下一控制的取证准备，不是慢采样修复或运行批准。
+
+下一现场控制只允许一次有界GPU容器启动取证（不是模型重试）：复用既有head及worker派生/挂载，worker轻量sleep入口，不启动Ray worker/Store/模型；将涉及NVIDIA运行时，须先冻结完整实际命令/身份/最长预算及独立守护、完整只读R1和现场准入，取得分段/失败证据后再判断下一步，未复现不能无限重复。当前不启动第四补测cohort或再占大池。

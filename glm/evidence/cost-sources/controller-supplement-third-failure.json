@@ -1,0 +1,2286 @@
+{
+  "run_id": "sllm-debug-20261109T131627Z-0270da51",
+  "scope": "monitor admission failure before Store/model; originals unchanged",
+  "files": {
+    "stack.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/stack.json",
+      "sha256": "d8bdfdc1bf71396073fd2dbd52f8e86b0de6381daa243aa929859dc08eef3a31",
+      "bytes": 6964,
+      "data": {
+        "run_id": "sllm-debug-20261109T131627Z-0270da51",
+        "holder": "32c6124005403517836fcb218aaef941",
+        "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice",
+        "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+        "purpose": "DEBUG-UNREVIEWED",
+        "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+        "mode": "gpu",
+        "controller_begin_ns": 1354601603442395,
+        "controller_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "controller_clock": "time.monotonic_ns on qjhs003 host",
+        "lifetime_seconds": 1800,
+        "deadline_unix": 1794232681,
+        "weight_format": "safetensors",
+        "query": true,
+        "booking": {
+          "mode": "borrowed without booking",
+          "authorized_by": "owner instruction in this chat; latest short-borrow confirmation 2026-11-09",
+          "checked_utc": "2026-11-09T13:18:03.897445+00:00",
+          "max_lifetime_seconds": 2400,
+          "scope": "GPUs idle and no formal or debug containers when up ran; not a reservation"
+        },
+        "guard": {
+          "timer": "sllm-debug-guard.timer",
+          "script": "/usr/local/lib/sllm-debug-guard/debug_guard.py",
+          "active": true,
+          "problems": [],
+          "heartbeat_age_seconds": 5.4,
+          "checked_utc": "2026-11-09T13:18:03.904154+00:00"
+        },
+        "configuration": {
+          "weight_format": "safetensors",
+          "pool_bytes": 768799145984,
+          "chunk_bytes": 33554432,
+          "c23_pool_bytes": 768799145984,
+          "differs_from_formal": [
+            "fresh public stack for each condition instead of C23 shared stack",
+            "independently reviewed supplementary entry, not the original formal gate",
+            "fresh native-home compilation cache; compilation costs remain charged",
+            "DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs"
+          ],
+          "comparable_to_formal_measurements": false,
+          "measurement_class": "independent supplement candidate",
+          "request_order": [
+            "arithmetic",
+            "translation",
+            "fixed32"
+          ],
+          "condition": "safetensors_disk_cold"
+        },
+        "tool_sha256": {
+          "controls/debug_stack_v1/debug_plan.py": "840511d40691d41b292adcc2bfa39e141c2537d12ba51abc55338924e245f8fd",
+          "controls/debug_stack_v1/debug_stack.py": "2479eeee928b4986a04aaa8e4e1c3f255f7d23a764d86fbea1930ff7039c6be4",
+          "controls/debug_stack_v1/debug_service.py": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+          "controls/debug_stack_v1/debug_guard.py": "3d70fc4ad03f54ff474aa3a492b664c9bddae341b780b78f9e561a263141f342",
+          "controls/debug_stack_v1/install_debug_guard.sh": "e9a16319fb34f2b1cccd84dd4de459bd80be0dfaa1a2227d6e145c8785df4a1e",
+          "controls/service_smoke_v1/docker_args.py": "6d20317cb8c653ed521734bf93bd95b4e360a17bb2fcf54f2816088fad96e2af",
+          "tools/restore_original_image.py": "8ae69f46144cc8ce8ed20e9b6f15d05e347a39a327f3b80ddf045cee88e85f32",
+          "tools/docker_plan.py": "759685a9f5266d1a87a26207d4f3520aab2bfaece1cebaf1ed69e49e7f2b6fbd"
+        },
+        "status": "released",
+        "condition": "safetensors_disk_cold",
+        "source": {
+          "tree": "/data/brick1/boyjiang/glm5.1-fp8/code/source-debug-fb854930c194-0201b7b26c11",
+          "code_commit": "fb854930c1947aacea28702d1abd798ed7b65baa",
+          "tree_sha256": "0201b7b26c1149cb81b753e44050d70e47af8e521999ba3f3cf3d21a06148930",
+          "files": 83
+        },
+        "image": {
+          "head": {
+            "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+            "restored": false
+          },
+          "worker": {
+            "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+            "restored": false
+          }
+        },
+        "head_container_id": "c94f83384a9d964f606a49208b1f465de90152dc3630ac992ab13a3cee164ed1",
+        "bound_cgroups": {
+          "head": {
+            "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice/docker-c94f83384a9d964f606a49208b1f465de90152dc3630ac992ab13a3cee164ed1.scope",
+            "inode": 3142473,
+            "container_id": "c94f83384a9d964f606a49208b1f465de90152dc3630ac992ab13a3cee164ed1"
+          },
+          "worker": {
+            "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice/docker-d766098a3029cdd03c9294e39479f4d95033b102e79b79258ac68480a0ff19b9.scope",
+            "inode": 3142538,
+            "container_id": "d766098a3029cdd03c9294e39479f4d95033b102e79b79258ac68480a0ff19b9"
+          }
+        },
+        "head_ip": "172.17.0.2",
+        "head_ready_seconds": 4.2,
+        "worker_container_id": "d766098a3029cdd03c9294e39479f4d95033b102e79b79258ac68480a0ff19b9",
+        "up_utc": "2026-11-09T13:18:17.109178+00:00",
+        "down": {
+          "worker": "removed",
+          "head": "removed"
+        },
+        "exit_evidence": {
+          "worker": {
+            "container_id": "d766098a3029cdd03c9294e39479f4d95033b102e79b79258ac68480a0ff19b9",
+            "before": {
+              "Status": "running",
+              "Running": true,
+              "Paused": false,
+              "Restarting": false,
+              "OOMKilled": false,
+              "Dead": false,
+              "Pid": 798488,
+              "ExitCode": 0,
+              "Error": "",
+              "StartedAt": "2026-11-09T13:18:08.564432151Z",
+              "FinishedAt": "0001-01-01T00:00:00Z"
+            },
+            "stop_returncode": 0,
+            "normal_exit_verified": false,
+            "stop_stderr": "",
+            "final": {
+              "Status": "exited",
+              "Running": false,
+              "Paused": false,
+              "Restarting": false,
+              "OOMKilled": false,
+              "Dead": false,
+              "Pid": 0,
+              "ExitCode": 1,
+              "Error": "",
+              "StartedAt": "2026-11-09T13:18:08.564432151Z",
+              "FinishedAt": "2026-11-09T13:18:19.693775545Z"
+            }
+          },
+          "head": {
+            "container_id": "c94f83384a9d964f606a49208b1f465de90152dc3630ac992ab13a3cee164ed1",
+            "before": {
+              "Status": "running",
+              "Running": true,
+              "Paused": false,
+              "Restarting": false,
+              "OOMKilled": false,
+              "Dead": false,
+              "Pid": 797072,
+              "ExitCode": 0,
+              "Error": "",
+              "StartedAt": "2026-11-09T13:18:04.094183062Z",
+              "FinishedAt": "0001-01-01T00:00:00Z"
+            },
+            "stop_returncode": 0,
+            "normal_exit_verified": true,
+            "stop_stderr": "",
+            "final": {
+              "Status": "exited",
+              "Running": false,
+              "Paused": false,
+              "Restarting": false,
+              "OOMKilled": false,
+              "Dead": false,
+              "Pid": 0,
+              "ExitCode": 1,
+              "Error": "",
+              "StartedAt": "2026-11-09T13:18:04.094183062Z",
+              "FinishedAt": "2026-11-09T13:18:22.308767832Z"
+            }
+          }
+        },
+        "cleanup_errors": {},
+        "controller_end_ns": 1354620705853403,
+        "controller_end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "controller_elapsed_s": 19.102411008,
+        "controller_timing_valid": true,
+        "controller_scope": "up entry through owned container removal and GPU-process check; excludes any later resource observation; debug evidence, not C23",
+        "released_utc": "2026-11-09T13:18:22.857973+00:00"
+      }
+    },
+    "controller-result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/controller-result.json",
+      "sha256": "d02816d1cda10502386f4715e5acdabc300013b9d3172ba9e1a989a35400a9ad",
+      "bytes": 45009,
+      "data": {
+        "run_id": "sllm-debug-20261109T131627Z-0270da51",
+        "holder": "32c6124005403517836fcb218aaef941",
+        "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice",
+        "controller_begin_ns": 1354599542360000,
+        "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "pid": 796531,
+        "startticks": 135459954,
+        "condition": "safetensors_disk_cold",
+        "work_seconds": 1800,
+        "total_seconds": 3600,
+        "r1_sha256": "eaa87de87027eaac12946f5e50b5165c114f22410cb79bbea072970c1c75c93c",
+        "guard_probe_sha256": "dcd28216eafee0890a4d396bbcd1f037591d897b8d9d62ad00fec29191ddcc68",
+        "independent_controller_unit": {
+          "Restart": "no",
+          "TimeoutStopUSec": "30s",
+          "RuntimeMaxUSec": "59min 30s",
+          "RemainAfterExit": "yes",
+          "MainPID": "796531",
+          "NRestarts": "0",
+          "ExecMainStartTimestampMonotonic": "1354599542360",
+          "ExecStart": "{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -I -B /data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-79be51a5da9a/controls/debug_stack_v1/debug_stack.py measure --source-tree /data/brick1/boyjiang/glm5.1-fp8/code/source-debug-fb854930c194-0201b7b26c11 --condition safetensors_disk_cold --review /data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-fb854930-r1-approved.json --guard-probe /run/sllm-debug-20261109T131627Z-0270da51/guard-verification.json --controller-unit sllm-debug-20261109T131627Z-0270da51-controller.service ; ignore_errors=no ; start_time=[Mon 2026-11-09 21:18:01 CST] ; stop_time=[n/a] ; pid=796531 ; code=(null) ; status=0/0 }",
+          "Slice": "sllm-debug-20261109T131627Z-0270da51.slice",
+          "ControlGroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice/sllm-debug-20261109T131627Z-0270da51-controller.service",
+          "User": "2147",
+          "KillMode": "control-group",
+          "SendSIGKILL": "yes",
+          "Id": "sllm-debug-20261109T131627Z-0270da51-controller.service",
+          "ActiveState": "active",
+          "SubState": "running",
+          "Transient": "yes",
+          "InvocationID": "c0f733541a6d49a4b9b7a6b07ebaafa3",
+          "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T131627Z.slice/sllm-debug-20261109T131627Z-0270da51.slice"
+        },
+        "resource_admission": {
+          "begin_ns": 1354599778324624,
+          "hostname": "qjhs3",
+          "uid": 2147,
+          "loadavg1": 1.12060546875,
+          "filesystems": [
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/checkpoint",
+              "source": "/dev/nvme1n1",
+              "fstype": "xfs"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8",
+              "source": "/dev/nvme1n1",
+              "fstype": "xfs"
+            }
+          ],
+          "numa_reclaimable_bytes": {
+            "node0": 1011315220480,
+            "node1": 1013296115712
+          },
+          "cgroup_filesystem": {
+            "fstype": "cgroup2",
+            "options": "rw,nosuid,nodev,noexec,relatime"
+          },
+          "host_memory_bytes": {
+            "MemTotal": 2065109635072,
+            "MemFree": 1425640886272,
+            "MemAvailable": 2017803751424,
+            "Buffers": 45674496,
+            "Cached": 598925033472,
+            "SwapCached": 0,
+            "Active": 211503759360,
+            "Inactive": 390552227840,
+            "Active(anon)": 13348864,
+            "Inactive(anon)": 3127013376,
+            "Active(file)": 211490410496,
+            "Inactive(file)": 387425214464,
+            "Unevictable": 237035520,
+            "Mlocked": 235462656,
+            "SwapTotal": 0,
+            "SwapFree": 0,
+            "Dirty": 1118208,
+            "Writeback": 0,
+            "AnonPages": 3306049536,
+            "Mapped": 233709568,
+            "Shmem": 20008960,
+            "KReclaimable": 3536363520,
+            "Slab": 8452730880,
+            "SReclaimable": 3536363520,
+            "SUnreclaim": 4916367360,
+            "KernelStack": 80986112,
+            "PageTables": 43327488,
+            "NFS_Unstable": 0,
+            "Bounce": 0,
+            "WritebackTmp": 0,
+            "CommitLimit": 1032554815488,
+            "Committed_AS": 21412225024,
+            "VmallocTotal": 14073748835531776,
+            "VmallocUsed": 695214080,
+            "VmallocChunk": 0,
+            "Percpu": 849346560,
+            "HardwareCorrupted": 0,
+            "AnonHugePages": 1950351360,
+            "ShmemHugePages": 0,
+            "ShmemPmdMapped": 0,
+            "FileHugePages": 0,
+            "FilePmdMapped": 0,
+            "HugePages_Total": 0,
+            "HugePages_Free": 0,
+            "HugePages_Rsvd": 0,
+            "HugePages_Surp": 0,
+            "Hugepagesize": 2097152,
+            "Hugetlb": 0,
+            "DirectMap4k": 579334787072,
+            "DirectMap2M": 1486541029376,
+            "DirectMap1G": 34359738368
+          },
+          "gpu_devices": [
+            {
+              "index": 0,
+              "uuid": "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 1,
+              "uuid": "GPU-a3baf382-35c8-8748-626a-f69745aab5f8",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 2,
+              "uuid": "GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 3,
+              "uuid": "GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 4,
+              "uuid": "GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 5,
+              "uuid": "GPU-151684e8-c7ba-a20a-6955-e1f765940536",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 6,
+              "uuid": "GPU-af5f5c7a-0dce-f291-99be-2c844225cec6",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            },
+            {
+              "index": 7,
+              "uuid": "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700",
+              "name": "NVIDIA H20-3e",
+              "total_MiB": 143771,
+              "used_MiB": 0
+            }
+          ],
+          "gpu_processes": "",
+          "read_sectors": [
+            139634991577,
+            139634991577
+          ],
+          "read_inflight": [
+            0,
+            0
+          ],
+          "end_ns": 1354601027562409
+        },
+        "runtime_reference": {
+          "historical_inputs_sha256": {
+            "inputs/C23-run-manifest.json": "bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d",
+            "inputs/historical-review-manifest-v11.json": "da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4",
+            "inputs/canonical-INDEX.json": "037b347e22c589b06883a20ca7ccb8805101324f7bdd7001e28497bf837d9978",
+            "deployment-binding.json": "a99e4dd85a58101fda3d2dc906f45321177b9f7d31a3f57910379b18698d313d"
+          },
+          "asset_files": [
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+              "bytes": 365936,
+              "sha256": "69d6de4f051eb74d292248c79ff989160bcc3209ac0ae256da1bc7d3e69cf9f4"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/__init__.py",
+              "bytes": 1394,
+              "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+              "bytes": 620120,
+              "sha256": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/cli.py",
+              "bytes": 17045,
+              "sha256": "66c431375aac3b0aebe0b682aa881882958985931841b3d6cc9979c4d5c2d2e5"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/client.py",
+              "bytes": 6799,
+              "sha256": "8e2cbfe3f58c467a322e5cd4ef058ccaed5099966c3ba916a7597fef11a6bffe"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/device_map_utils.py",
+              "bytes": 12242,
+              "sha256": "d2ddf48d03f4d768b0306c44936d697cad8ad3d85dc10ad647a6cbe2dda481ac"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/event_trace.py",
+              "bytes": 2119,
+              "sha256": "e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/libglog.so",
+              "bytes": 198944,
+              "sha256": "cc1002a0f2f989177d494b6e42056bc2549f5aa71e1e43d57c671f8d6fda18bb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/libglog.so.0.6.0",
+              "bytes": 198944,
+              "sha256": "cc1002a0f2f989177d494b6e42056bc2549f5aa71e1e43d57c671f8d6fda18bb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/libglog.so.1",
+              "bytes": 198944,
+              "sha256": "cc1002a0f2f989177d494b6e42056bc2549f5aa71e1e43d57c671f8d6fda18bb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/logger.py",
+              "bytes": 3256,
+              "sha256": "bf368e2bb2b5aa3eaef723609a077a10283f9b8fa87c87bcb09d2c09373e9c44"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/proto/__init__.py",
+              "bytes": 1394,
+              "sha256": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/proto/storage.proto",
+              "bytes": 25,
+              "sha256": "c49d2814b8128cf51bb2b5373f59349cbd6e79fc46b897b81c9f6920d2aa4cb4"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/proto/storage_pb2.py",
+              "bytes": 5903,
+              "sha256": "f4eb37ba2fdbdf877db67f8659bcd2295e32066146b589283b253d5498757522"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/proto/storage_pb2_grpc.py",
+              "bytes": 11689,
+              "sha256": "eb4fc40c1bd6adf9970a75fff0296515bda5d99998b972e14a1997098f03da87"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/server.py",
+              "bytes": 8943,
+              "sha256": "c0de1b5843767c8399a016a21a2b536259bcf13056a2f8b36255a811009f303c"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/torch.py",
+              "bytes": 5837,
+              "sha256": "5dc2b43d1a640d9f4cf8f7a9a0a7e5e909b474869c665c17963a14fa82d035f6"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/transformers.py",
+              "bytes": 17909,
+              "sha256": "136a99dfeb4302c6417b91d85cd943ddb1a089d8cc34f7eef21753fe3d629172"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/utils.py",
+              "bytes": 12480,
+              "sha256": "3fd324e1bb2505624e44a9a7d70eeaa002e081363551fbe267675e6255ead216"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store/vllm_loader.py",
+              "bytes": 9564,
+              "sha256": "36a40e20f8d2d6b2e7b3346ec5e1c54d5598359b1b1756348ef97723e34fa502"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/backends/vllm_backend.py",
+              "bytes": 15661,
+              "sha256": "ac77b058a198ecc045a2a87be61c83fda16ae81495e5a7f8f3231258c477c3a0"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/controller.py",
+              "bytes": 21142,
+              "sha256": "2ccb0471943f0db3db892ee258d73d2d025b6009def3808dfc88920c1e8e39fb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/routers/roundrobin_router.py",
+              "bytes": 24396,
+              "sha256": "6ea707d5ead80d0886eacf7299296837bebbf910d74db6aeb12b4a4854cf15cb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/patches/base_loader.py",
+              "sha256": "d26f6561e4a3480591f63d1b653b0efd170ae09c03ee18397996289e35285ab7",
+              "bytes": 4266
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/patches/gpu_worker.py",
+              "sha256": "86f5606fa76ab71b78699e22b70319cc9c85ead31761dba2e0c1187e984c8182",
+              "bytes": 45795
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json",
+              "sha256": "9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0",
+              "bytes": 7168
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/validation/store-restore-validation.json",
+              "sha256": "e400fb42c4c15aa1c6103b289aba8f42203c8a91ef6f3ee6f6e58c978ce99f56",
+              "bytes": 252
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/validation/native-weight-contract.json",
+              "sha256": "1c8470397ef7752a8bda15ad714b5e042fe2cea36d79df64e8e952cccdd16cdf",
+              "bytes": 3633
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json",
+              "sha256": "dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb",
+              "bytes": 4316
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/__init__.py",
+              "bytes": 1394,
+              "sha256": "5e518136d6a5c8e883ab0b3232e2f6e60c1cf9e30beb4c210bb7ec7747a7f627"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/app_lib.py",
+              "bytes": 8189,
+              "sha256": "f6057e021b3b83e841e599520276acf05765f7fff4569d64b70336bf2f4c8b4b"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/backends/__init__.py",
+              "bytes": 1597,
+              "sha256": "d899e4e9c3b8de02171162429976021fa1b58b1da98cfad6811b4721f0404ef5"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/backends/backend_utils.py",
+              "bytes": 2431,
+              "sha256": "0692b42c54113dc300bf3aedf9b6a53ecbad743870c9ffd458532095f2be3278"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/backends/dummy_backend.py",
+              "bytes": 4397,
+              "sha256": "81ea0b88c6adab113c0133b01cd2126b9f56dbb2b715910fb0f2f89ad527e0aa"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/backends/transformers_backend.py",
+              "bytes": 19807,
+              "sha256": "977280c365acd3bc7e9d4421d482f70e4841aa429c4f684957e941c0fc2d0fcf"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/cli/__init__.py",
+              "bytes": 1429,
+              "sha256": "1255d7da73687ad59e390a4244a4eb561ea74f0271c67914e5f0a577aecddfd7"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/cli/_cli_utils.py",
+              "bytes": 14146,
+              "sha256": "eb61f018a5286aa49ee670671bee31cd07e8bde1af9e4a2bae285d41e703d4bb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/cli/clic.py",
+              "bytes": 5497,
+              "sha256": "b038f0b5ebacd7587ce870c55c225bdce0aa0136a9d1e731d63a231854fa686b"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/cli/default_config.json",
+              "bytes": 438,
+              "sha256": "54bf920d05e2173770fa3fd5ea24749c7d9cc93705fc71e083b1b1e191659111"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/fine_tuning_instance.py",
+              "bytes": 2138,
+              "sha256": "1bfcb7bbc1c9fb2e8412f046fa8b926fb8410f3ea5b52a9286d731874e90cf62"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/fine_tuning_job_store.py",
+              "bytes": 2921,
+              "sha256": "c57792e544bc7d73dc48782ecdae144abc1cf4fc5f535e62ccd9e94467bea25b"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/ft_backends/__init__.py",
+              "bytes": 1475,
+              "sha256": "9255950f6d351ad609bec484f31602e1e99fb79e2d07c84e970575bc7892ff11"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/ft_backends/backend_utils.py",
+              "bytes": 2254,
+              "sha256": "4a0b81b0a25ade406b20616450fd0a9f62532480c4e49da6013ed48184d94ebc"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/ft_backends/peft_lora_backend.py",
+              "bytes": 14706,
+              "sha256": "b0c892a296e3ecf37debd0e72f545133630b5b10e3d05a0ea4dfb98b4318fd4c"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/hardware_info_collector.py",
+              "bytes": 5746,
+              "sha256": "a216b16000f693c5f0594481b8ff1171f3a26c93b0b64728e4e862677852277e"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/inference_instance.py",
+              "bytes": 2421,
+              "sha256": "8f1e75b3b4009389192492fd896f6eb142626184b98e6fe085ee346950a33a86"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/logger.py",
+              "bytes": 3244,
+              "sha256": "0ca7eacbf069a6e237bfcff0babe83792fbd972c434da1cd60db8561aa234112"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/model_downloader.py",
+              "bytes": 9062,
+              "sha256": "999866ba568c1ad6d7cf45b56cf2ea602eaa63224bf4ad9b0d16863085d8d113"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/routers/__init__.py",
+              "bytes": 1595,
+              "sha256": "13b21da595f16b38088a6240ede64f3901005a7440551ab47cc98680ef49e235"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/routers/migration_router.py",
+              "bytes": 11485,
+              "sha256": "13d3008361479957a7a97e261d4230aedfc22125a9b5ff8543f6d612aacd3cdb"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/routers/router_utils.py",
+              "bytes": 2328,
+              "sha256": "ac7e51974bd6332cab8953c27c62825614813e1173a58675b32ddff206daa1ec"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/schedulers/__init__.py",
+              "bytes": 1614,
+              "sha256": "17f6581dd9230ae4bc5173e1afd682774a3987fac0e354a939dfaf53cb2aaad9"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/schedulers/fcfs_scheduler.py",
+              "bytes": 9247,
+              "sha256": "ca60ac27602183c80046d9ea6905a2ff926b3d408e6370f57274f4ec02154d14"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/schedulers/scheduler_utils.py",
+              "bytes": 2138,
+              "sha256": "c19859f9a403853b9c420a02d6aa7eaabf6859dd82c3f440b1363ab102afd249"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/schedulers/storage_aware_scheduler.py",
+              "bytes": 22874,
+              "sha256": "84b3df8f1a380570ccbccde737062fa75fae9efcb0e2e8b7ee889b807c0fd547"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/store_manager.py",
+              "bytes": 22733,
+              "sha256": "351b18fb80dacefe299d4304aefce9f1fed25bc086287d8b22138820b017bd9d"
+            },
+            {
+              "path": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm/utils.py",
+              "bytes": 3903,
+              "sha256": "1a024fa18a0199007a554b2ca01b050da98c88c8941558ee9ca5ef626717909d"
+            }
+          ],
+          "reference_sha256": {
+            "store-restore-validation.json": "e400fb42c4c15aa1c6103b289aba8f42203c8a91ef6f3ee6f6e58c978ce99f56",
+            "native-weight-contract.json": "1c8470397ef7752a8bda15ad714b5e042fe2cea36d79df64e8e952cccdd16cdf",
+            "raw-disk-verification.json": "dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb",
+            "native-gold.json": "9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0",
+            "weight_contract.py": "ed03317a0c8647069041df7c5b9a12910985a12cf9f4d871cd52ec78da7f6a95"
+          },
+          "store_import_sha256": {
+            "sllm_store": "43f41bcafc05f432bacc4e1cfe531473d7b2c1da32f21e08f638f35b616e4d59",
+            "sllm_store.server": "b22a5b3c907accfea0747da3463939d755ccbecb0e5994467cfb6cd5b7f36d1f",
+            "sllm_store._C": "69d6de4f051eb74d292248c79ff989160bcc3209ac0ae256da1bc7d3e69cf9f4",
+            "sllm_store._checkpoint_store": "259ca21a1b34f5a50667f70d2df4571d0f51572affbc982fec9267f2dfe7b096"
+          },
+          "event_trace_sha256": "e1ab869bc51cbc42f46430f2296d1a9e4a48fc45aec57cf7908d88ae565c6c6c",
+          "runtime_versions": {
+            "torch": "2.10.0+cu130",
+            "vllm": "0.19.1.dev1+g43a9b1afb",
+            "cuda": "13.0"
+          },
+          "selected_sllm_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+          "immutable_image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+          "backend_reference": {
+            "torch": {
+              "path": "/usr/local/lib/python3.12/dist-packages/torch/__init__.py",
+              "version": "2.10.0+cu130",
+              "sha256": "51c90fe34a7cf869517d1bab4cd114498790e169ec668f1a154c35ec64117a5e"
+            },
+            "vllm": {
+              "path": "/usr/local/lib/python3.12/dist-packages/vllm/__init__.py",
+              "version": "0.19.1.dev1+g43a9b1afb",
+              "sha256": "fd3708e5a13abe98c566afd79a6b1987cef70c0548bb19c1218ff6a7f9d43346"
+            }
+          },
+          "backend_reference_source_sha256": "215311152be60ce334526bdfb13db46c9343f7b39f1f652cb3899c4a840ed455",
+          "official_sllm_tree": {
+            "commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+            "tree": "7d52f3d68a4ed9e3a40776fd2fa9c57b8495054e",
+            "sources": [
+              {
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/commits/9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+                "sha256": "e6294083158c15dde651f4e0e27f64065b9c0ee1b211739e179661d8703e0c49"
+              },
+              {
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/trees/7d52f3d68a4ed9e3a40776fd2fa9c57b8495054e?recursive=1",
+                "sha256": "1d46e1992506230fc7c5951317a096211ab5119e8710ec17f36036bd5ef22640"
+              }
+            ],
+            "files": [
+              {
+                "path": "sllm/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "d925a19cc6bd35016233aea91f47abba5de2844a",
+                "size": 1377,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/d925a19cc6bd35016233aea91f47abba5de2844a"
+              },
+              {
+                "path": "sllm/app_lib.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "c7dbe796572dd882b0397f2b1b46e55ae99a31f1",
+                "size": 7981,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/c7dbe796572dd882b0397f2b1b46e55ae99a31f1"
+              },
+              {
+                "path": "sllm/backends/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "91c243c5713bc968bf4919bf1ddd829eacec8b87",
+                "size": 1575,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/91c243c5713bc968bf4919bf1ddd829eacec8b87"
+              },
+              {
+                "path": "sllm/backends/backend_utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "a5bb824e338ebe7681e189b027716aaa1682c237",
+                "size": 2368,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/a5bb824e338ebe7681e189b027716aaa1682c237"
+              },
+              {
+                "path": "sllm/backends/dummy_backend.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "733b73c567fa7c79192692f3c745207cd98d1ffa",
+                "size": 4285,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/733b73c567fa7c79192692f3c745207cd98d1ffa"
+              },
+              {
+                "path": "sllm/backends/transformers_backend.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "52de3e6617d33caddce22d51eec2cb47570f0ed8",
+                "size": 19297,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/52de3e6617d33caddce22d51eec2cb47570f0ed8"
+              },
+              {
+                "path": "sllm/backends/vllm_backend.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "bed58f8761d498dc422e40fec3950b736d3768a9",
+                "size": 13423,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/bed58f8761d498dc422e40fec3950b736d3768a9"
+              },
+              {
+                "path": "sllm/cli/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "9d8b2835ad9ba793140755564dcbad6a12036f6a",
+                "size": 1410,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/9d8b2835ad9ba793140755564dcbad6a12036f6a"
+              },
+              {
+                "path": "sllm/cli/_cli_utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "a51be9b46071a5d38209798705bbcee065bfc431",
+                "size": 13790,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/a51be9b46071a5d38209798705bbcee065bfc431"
+              },
+              {
+                "path": "sllm/cli/clic.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "c684fe8ee065aec0272fa437c75ab5959be5f108",
+                "size": 5331,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/c684fe8ee065aec0272fa437c75ab5959be5f108"
+              },
+              {
+                "path": "sllm/cli/default_config.json",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "b2895aadc6207c4550628aa16dfd0df3e8ff3ec2",
+                "size": 421,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/b2895aadc6207c4550628aa16dfd0df3e8ff3ec2"
+              },
+              {
+                "path": "sllm/controller.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "610445666f95209db7ba70c10e809397d357d2fc",
+                "size": 21152,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/610445666f95209db7ba70c10e809397d357d2fc"
+              },
+              {
+                "path": "sllm/fine_tuning_instance.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "a27595b2514df0c6566cedfff0f5ae902f12afc4",
+                "size": 2094,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/a27595b2514df0c6566cedfff0f5ae902f12afc4"
+              },
+              {
+                "path": "sllm/fine_tuning_job_store.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "b9f4214076274aebed0cfb1be063513b0203d0db",
+                "size": 2856,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/b9f4214076274aebed0cfb1be063513b0203d0db"
+              },
+              {
+                "path": "sllm/ft_backends/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "2587426f26d9a659b5b0d3369ef97a50b9438ad9",
+                "size": 1455,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/2587426f26d9a659b5b0d3369ef97a50b9438ad9"
+              },
+              {
+                "path": "sllm/ft_backends/backend_utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "afd1cf0d011369431a3b333920ccad3bca2a1097",
+                "size": 2199,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/afd1cf0d011369431a3b333920ccad3bca2a1097"
+              },
+              {
+                "path": "sllm/ft_backends/peft_lora_backend.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "17a2d5ba1fc07f298ca00bf2a9a7438fc9fea095",
+                "size": 14343,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/17a2d5ba1fc07f298ca00bf2a9a7438fc9fea095"
+              },
+              {
+                "path": "sllm/hardware_info_collector.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "a41c0866b2ee012206c1ce1a70f4aa4849285bf4",
+                "size": 5577,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/a41c0866b2ee012206c1ce1a70f4aa4849285bf4"
+              },
+              {
+                "path": "sllm/inference_instance.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "4c5e9ca0bd7c6852677ad98ebc2cbe899bfe2ce8",
+                "size": 2367,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/4c5e9ca0bd7c6852677ad98ebc2cbe899bfe2ce8"
+              },
+              {
+                "path": "sllm/logger.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "61d31aae543efddcc7e6b7e94904654d11da866b",
+                "size": 3163,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/61d31aae543efddcc7e6b7e94904654d11da866b"
+              },
+              {
+                "path": "sllm/model_downloader.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "23ccabb8b906386d59ff5d024dd183ba287339dc",
+                "size": 8816,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/23ccabb8b906386d59ff5d024dd183ba287339dc"
+              },
+              {
+                "path": "sllm/routers/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "88cff918f9dde6080b2e03f79f6df6a339df5b0f",
+                "size": 1573,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/88cff918f9dde6080b2e03f79f6df6a339df5b0f"
+              },
+              {
+                "path": "sllm/routers/migration_router.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "4e2b4802e57dd9fa652df7d803a56f910e9471dc",
+                "size": 11233,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/4e2b4802e57dd9fa652df7d803a56f910e9471dc"
+              },
+              {
+                "path": "sllm/routers/roundrobin_router.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "e32012d78d8efe23f329d7c7072ef8e210569569",
+                "size": 24203,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/e32012d78d8efe23f329d7c7072ef8e210569569"
+              },
+              {
+                "path": "sllm/routers/router_utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "1dff3009be1e15de00ad68186beed44dc5e83576",
+                "size": 2268,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/1dff3009be1e15de00ad68186beed44dc5e83576"
+              },
+              {
+                "path": "sllm/schedulers/__init__.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "d573c102b80d2d33c23e8b6f31a06ff1dec720d7",
+                "size": 1592,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/d573c102b80d2d33c23e8b6f31a06ff1dec720d7"
+              },
+              {
+                "path": "sllm/schedulers/fcfs_scheduler.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "bcb7c1e76553af9abe001efc13d6349e38ad2f8c",
+                "size": 9044,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/bcb7c1e76553af9abe001efc13d6349e38ad2f8c"
+              },
+              {
+                "path": "sllm/schedulers/scheduler_utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "03df91466d46ce5d95e4bbb2d697fb55d1b6d564",
+                "size": 2089,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/03df91466d46ce5d95e4bbb2d697fb55d1b6d564"
+              },
+              {
+                "path": "sllm/schedulers/storage_aware_scheduler.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "af69e4437a28ba2a1b3643a858cc66620127d828",
+                "size": 22370,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/af69e4437a28ba2a1b3643a858cc66620127d828"
+              },
+              {
+                "path": "sllm/store_manager.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "089082b92b1b82ae4678ccb4c5b89237e4ed42aa",
+                "size": 22187,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/089082b92b1b82ae4678ccb4c5b89237e4ed42aa"
+              },
+              {
+                "path": "sllm/utils.py",
+                "mode": "100644",
+                "type": "blob",
+                "sha": "6d5e48d4a8ffa580c3fd8871ff0248b44d24e828",
+                "size": 3802,
+                "url": "https://api.github.com/repos/ServerlessLLM/ServerlessLLM/git/blobs/6d5e48d4a8ffa580c3fd8871ff0248b44d24e828"
+              }
+            ]
+          },
+          "sllm_official_blob_proof": {
+            "base_commit": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+            "changed_paths": [
+              "sllm/backends/vllm_backend.py",
+              "sllm/controller.py",
+              "sllm/routers/roundrobin_router.py"
+            ],
+            "unexpected_code_files": [],
+            "verified_official_files": 31,
+            "newline_only_deployment_variants": [
+              {
+                "path": "sllm/__init__.py",
+                "raw_bytes": 1394,
+                "comparison_bytes": 1377,
+                "crlf_count": 17,
+                "raw_sha256": "5e518136d6a5c8e883ab0b3232e2f6e60c1cf9e30beb4c210bb7ec7747a7f627",
+                "official_git_blob": "d925a19cc6bd35016233aea91f47abba5de2844a"
+              },
+              {
+                "path": "sllm/app_lib.py",
+                "raw_bytes": 8189,
+                "comparison_bytes": 7981,
+                "crlf_count": 208,
+                "raw_sha256": "f6057e021b3b83e841e599520276acf05765f7fff4569d64b70336bf2f4c8b4b",
+                "official_git_blob": "c7dbe796572dd882b0397f2b1b46e55ae99a31f1"
+              },
+              {
+                "path": "sllm/backends/__init__.py",
+                "raw_bytes": 1597,
+                "comparison_bytes": 1575,
+                "crlf_count": 22,
+                "raw_sha256": "d899e4e9c3b8de02171162429976021fa1b58b1da98cfad6811b4721f0404ef5",
+                "official_git_blob": "91c243c5713bc968bf4919bf1ddd829eacec8b87"
+              },
+              {
+                "path": "sllm/backends/backend_utils.py",
+                "raw_bytes": 2431,
+                "comparison_bytes": 2368,
+                "crlf_count": 63,
+                "raw_sha256": "0692b42c54113dc300bf3aedf9b6a53ecbad743870c9ffd458532095f2be3278",
+                "official_git_blob": "a5bb824e338ebe7681e189b027716aaa1682c237"
+              },
+              {
+                "path": "sllm/backends/dummy_backend.py",
+                "raw_bytes": 4397,
+                "comparison_bytes": 4285,
+                "crlf_count": 112,
+                "raw_sha256": "81ea0b88c6adab113c0133b01cd2126b9f56dbb2b715910fb0f2f89ad527e0aa",
+                "official_git_blob": "733b73c567fa7c79192692f3c745207cd98d1ffa"
+              },
+              {
+                "path": "sllm/backends/transformers_backend.py",
+                "raw_bytes": 19807,
+                "comparison_bytes": 19297,
+                "crlf_count": 510,
+                "raw_sha256": "977280c365acd3bc7e9d4421d482f70e4841aa429c4f684957e941c0fc2d0fcf",
+                "official_git_blob": "52de3e6617d33caddce22d51eec2cb47570f0ed8"
+              },
+              {
+                "path": "sllm/cli/__init__.py",
+                "raw_bytes": 1429,
+                "comparison_bytes": 1410,
+                "crlf_count": 19,
+                "raw_sha256": "1255d7da73687ad59e390a4244a4eb561ea74f0271c67914e5f0a577aecddfd7",
+                "official_git_blob": "9d8b2835ad9ba793140755564dcbad6a12036f6a"
+              },
+              {
+                "path": "sllm/cli/_cli_utils.py",
+                "raw_bytes": 14146,
+                "comparison_bytes": 13790,
+                "crlf_count": 356,
+                "raw_sha256": "eb61f018a5286aa49ee670671bee31cd07e8bde1af9e4a2bae285d41e703d4bb",
+                "official_git_blob": "a51be9b46071a5d38209798705bbcee065bfc431"
+              },
+              {
+                "path": "sllm/cli/clic.py",
+                "raw_bytes": 5497,
+                "comparison_bytes": 5331,
+                "crlf_count": 166,
+                "raw_sha256": "b038f0b5ebacd7587ce870c55c225bdce0aa0136a9d1e731d63a231854fa686b",
+                "official_git_blob": "c684fe8ee065aec0272fa437c75ab5959be5f108"
+              },
+              {
+                "path": "sllm/cli/default_config.json",
+                "raw_bytes": 438,
+                "comparison_bytes": 421,
+                "crlf_count": 17,
+                "raw_sha256": "54bf920d05e2173770fa3fd5ea24749c7d9cc93705fc71e083b1b1e191659111",
+                "official_git_blob": "b2895aadc6207c4550628aa16dfd0df3e8ff3ec2"
+              },
+              {
+                "path": "sllm/fine_tuning_instance.py",
+                "raw_bytes": 2138,
+                "comparison_bytes": 2094,
+                "crlf_count": 44,
+                "raw_sha256": "1bfcb7bbc1c9fb2e8412f046fa8b926fb8410f3ea5b52a9286d731874e90cf62",
+                "official_git_blob": "a27595b2514df0c6566cedfff0f5ae902f12afc4"
+              },
+              {
+                "path": "sllm/fine_tuning_job_store.py",
+                "raw_bytes": 2921,
+                "comparison_bytes": 2856,
+                "crlf_count": 65,
+                "raw_sha256": "c57792e544bc7d73dc48782ecdae144abc1cf4fc5f535e62ccd9e94467bea25b",
+                "official_git_blob": "b9f4214076274aebed0cfb1be063513b0203d0db"
+              },
+              {
+                "path": "sllm/ft_backends/__init__.py",
+                "raw_bytes": 1475,
+                "comparison_bytes": 1455,
+                "crlf_count": 20,
+                "raw_sha256": "9255950f6d351ad609bec484f31602e1e99fb79e2d07c84e970575bc7892ff11",
+                "official_git_blob": "2587426f26d9a659b5b0d3369ef97a50b9438ad9"
+              },
+              {
+                "path": "sllm/ft_backends/backend_utils.py",
+                "raw_bytes": 2254,
+                "comparison_bytes": 2199,
+                "crlf_count": 55,
+                "raw_sha256": "4a0b81b0a25ade406b20616450fd0a9f62532480c4e49da6013ed48184d94ebc",
+                "official_git_blob": "afd1cf0d011369431a3b333920ccad3bca2a1097"
+              },
+              {
+                "path": "sllm/ft_backends/peft_lora_backend.py",
+                "raw_bytes": 14706,
+                "comparison_bytes": 14343,
+                "crlf_count": 363,
+                "raw_sha256": "b0c892a296e3ecf37debd0e72f545133630b5b10e3d05a0ea4dfb98b4318fd4c",
+                "official_git_blob": "17a2d5ba1fc07f298ca00bf2a9a7438fc9fea095"
+              },
+              {
+                "path": "sllm/hardware_info_collector.py",
+                "raw_bytes": 5746,
+                "comparison_bytes": 5577,
+                "crlf_count": 169,
+                "raw_sha256": "a216b16000f693c5f0594481b8ff1171f3a26c93b0b64728e4e862677852277e",
+                "official_git_blob": "a41c0866b2ee012206c1ce1a70f4aa4849285bf4"
+              },
+              {
+                "path": "sllm/inference_instance.py",
+                "raw_bytes": 2421,
+                "comparison_bytes": 2367,
+                "crlf_count": 54,
+                "raw_sha256": "8f1e75b3b4009389192492fd896f6eb142626184b98e6fe085ee346950a33a86",
+                "official_git_blob": "4c5e9ca0bd7c6852677ad98ebc2cbe899bfe2ce8"
+              },
+              {
+                "path": "sllm/logger.py",
+                "raw_bytes": 3244,
+                "comparison_bytes": 3163,
+                "crlf_count": 81,
+                "raw_sha256": "0ca7eacbf069a6e237bfcff0babe83792fbd972c434da1cd60db8561aa234112",
+                "official_git_blob": "61d31aae543efddcc7e6b7e94904654d11da866b"
+              },
+              {
+                "path": "sllm/model_downloader.py",
+                "raw_bytes": 9062,
+                "comparison_bytes": 8816,
+                "crlf_count": 246,
+                "raw_sha256": "999866ba568c1ad6d7cf45b56cf2ea602eaa63224bf4ad9b0d16863085d8d113",
+                "official_git_blob": "23ccabb8b906386d59ff5d024dd183ba287339dc"
+              },
+              {
+                "path": "sllm/routers/__init__.py",
+                "raw_bytes": 1595,
+                "comparison_bytes": 1573,
+                "crlf_count": 22,
+                "raw_sha256": "13b21da595f16b38088a6240ede64f3901005a7440551ab47cc98680ef49e235",
+                "official_git_blob": "88cff918f9dde6080b2e03f79f6df6a339df5b0f"
+              },
+              {
+                "path": "sllm/routers/migration_router.py",
+                "raw_bytes": 11485,
+                "comparison_bytes": 11233,
+                "crlf_count": 252,
+                "raw_sha256": "13d3008361479957a7a97e261d4230aedfc22125a9b5ff8543f6d612aacd3cdb",
+                "official_git_blob": "4e2b4802e57dd9fa652df7d803a56f910e9471dc"
+              },
+              {
+                "path": "sllm/routers/router_utils.py",
+                "raw_bytes": 2328,
+                "comparison_bytes": 2268,
+                "crlf_count": 60,
+                "raw_sha256": "ac7e51974bd6332cab8953c27c62825614813e1173a58675b32ddff206daa1ec",
+                "official_git_blob": "1dff3009be1e15de00ad68186beed44dc5e83576"
+              },
+              {
+                "path": "sllm/schedulers/__init__.py",
+                "raw_bytes": 1614,
+                "comparison_bytes": 1592,
+                "crlf_count": 22,
+                "raw_sha256": "17f6581dd9230ae4bc5173e1afd682774a3987fac0e354a939dfaf53cb2aaad9",
+                "official_git_blob": "d573c102b80d2d33c23e8b6f31a06ff1dec720d7"
+              },
+              {
+                "path": "sllm/schedulers/fcfs_scheduler.py",
+                "raw_bytes": 9247,
+                "comparison_bytes": 9044,
+                "crlf_count": 203,
+                "raw_sha256": "ca60ac27602183c80046d9ea6905a2ff926b3d408e6370f57274f4ec02154d14",
+                "official_git_blob": "bcb7c1e76553af9abe001efc13d6349e38ad2f8c"
+              },
+              {
+                "path": "sllm/schedulers/scheduler_utils.py",
+                "raw_bytes": 2138,
+                "comparison_bytes": 2089,
+                "crlf_count": 49,
+                "raw_sha256": "c19859f9a403853b9c420a02d6aa7eaabf6859dd82c3f440b1363ab102afd249",
+                "official_git_blob": "03df91466d46ce5d95e4bbb2d697fb55d1b6d564"
+              },
+              {
+                "path": "sllm/schedulers/storage_aware_scheduler.py",
+                "raw_bytes": 22874,
+                "comparison_bytes": 22370,
+                "crlf_count": 504,
+                "raw_sha256": "84b3df8f1a380570ccbccde737062fa75fae9efcb0e2e8b7ee889b807c0fd547",
+                "official_git_blob": "af69e4437a28ba2a1b3643a858cc66620127d828"
+              },
+              {
+                "path": "sllm/store_manager.py",
+                "raw_bytes": 22733,
+                "comparison_bytes": 22187,
+                "crlf_count": 546,
+                "raw_sha256": "351b18fb80dacefe299d4304aefce9f1fed25bc086287d8b22138820b017bd9d",
+                "official_git_blob": "089082b92b1b82ae4678ccb4c5b89237e4ed42aa"
+              },
+              {
+                "path": "sllm/utils.py",
+                "raw_bytes": 3903,
+                "comparison_bytes": 3802,
+                "crlf_count": 101,
+                "raw_sha256": "1a024fa18a0199007a554b2ca01b050da98c88c8941558ee9ca5ef626717909d",
+                "official_git_blob": "6d5e48d4a8ffa580c3fd8871ff0248b44d24e828"
+              }
+            ],
+            "newline_policy": "read-only comparison only; server bytes not rewritten; actual raw SHA256 remains pinned"
+          },
+          "code_closure": [
+            {
+              "root": "/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM/sllm",
+              "paths": [
+                "__init__.py",
+                "app_lib.py",
+                "backends/__init__.py",
+                "backends/backend_utils.py",
+                "backends/dummy_backend.py",
+                "backends/transformers_backend.py",
+                "backends/vllm_backend.py",
+                "cli/__init__.py",
+                "cli/_cli_utils.py",
+                "cli/clic.py",
+                "cli/default_config.json",
+                "controller.py",
+                "fine_tuning_instance.py",
+                "fine_tuning_job_store.py",
+                "ft_backends/__init__.py",
+                "ft_backends/backend_utils.py",
+                "ft_backends/peft_lora_backend.py",
+                "hardware_info_collector.py",
+                "inference_instance.py",
+                "logger.py",
+                "model_downloader.py",
+                "routers/__init__.py",
+                "routers/migration_router.py",
+                "routers/roundrobin_router.py",
+                "routers/router_utils.py",
+                "schedulers/__init__.py",
+                "schedulers/fcfs_scheduler.py",
+                "schedulers/scheduler_utils.py",
+                "schedulers/storage_aware_scheduler.py",
+                "store_manager.py",
+                "utils.py"
+              ]
+            },
+            {
+              "root": "/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store",
+              "paths": [
+                "_C.cpython-312-x86_64-linux-gnu.so",
+                "__init__.py",
+                "_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+                "cli.py",
+                "client.py",
+                "device_map_utils.py",
+                "event_trace.py",
+                "libglog.so",
+                "logger.py",
+                "proto/__init__.py",
+                "proto/storage_pb2.py",
+                "proto/storage_pb2_grpc.py",
+                "server.py",
+                "torch.py",
+                "transformers.py",
+                "utils.py",
+                "vllm_loader.py"
+              ]
+            }
+          ],
+          "scope": "small actual code/native/reference assets; no weight payload, no model or GPU launch; not mapped-library proof for every rank"
+        },
+        "status": "failed independent supplement",
+        "success": false,
+        "error": "RuntimeError('continuous monitor failed: [\"RuntimeError(\\'slow or inconsistent monitor sample\\')\"]')",
+        "cleanup_error": "RuntimeError('supplement normal container exit not verified; resources cleaned, failure retained')",
+        "release_observation_s": 60.140834848,
+        "monitor_errors": [
+          "RuntimeError('slow or inconsistent monitor sample')"
+        ],
+        "monitor_alive": false,
+        "controller_end_ns": 1354681148640366,
+        "end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "controller_elapsed_s": 81.606280366,
+        "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+        "controller_metric_provisional": true,
+        "controller_finalizer": "historical_costs.py --finalize-controller sllm-debug-20261109T131627Z-0270da51"
+      }
+    },
+    "controller-final.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/controller-final.json",
+      "sha256": "9cb7287b955955d95d9ac2264e4e80f66e45d5abdaa81016c27fea2908aa40f2",
+      "bytes": 1571,
+      "data": {
+        "schema": "glm-independent-controller-supplement-v1",
+        "attempt_id": "sllm-debug-20261109T131627Z-0270da51",
+        "condition": "safetensors_disk_cold",
+        "unit": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStartTimestampMonotonic": "1354599542360",
+          "ExecMainExitTimestampMonotonic": "1354681160451",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "Id": "sllm-debug-20261109T131627Z-0270da51-controller.service",
+          "InvocationID": "c0f733541a6d49a4b9b7a6b07ebaafa3"
+        },
+        "success": false,
+        "metrics": null,
+        "inputs": {
+          "controller-start.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/controller-start.json",
+            "bytes": 44182,
+            "sha256": "792e5e50852ba6f4fb95cb6889a7f1a4e07b29de0c11968491b0e367915078f5"
+          },
+          "controller-result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/controller-result.json",
+            "bytes": 45009,
+            "sha256": "d02816d1cda10502386f4715e5acdabc300013b9d3172ba9e1a989a35400a9ad"
+          },
+          "stack.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/stack.json",
+            "bytes": 6964,
+            "sha256": "d8bdfdc1bf71396073fd2dbd52f8e86b0de6381daa243aa929859dc08eef3a31"
+          }
+        },
+        "original40_modified": false,
+        "failure": "AssertionError()",
+        "unit_snapshot_sha256": "69f10acb6b7f044baa74f476a9caaa2325e943a26a45f9fd6236851fa699aab1",
+        "finalizer_source_sha256": "3f4045983b4a9065417f8573bdbac614eb6c694b693994fce3a82a3e201b14a3"
+      }
+    },
+    "controller-monitor.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/controller-monitor.jsonl",
+      "sha256": "c654e35f39123598e9b6fd3bdeca39d960ba3f7c8eca146c3697f4b2d69f4ec0",
+      "bytes": 81570,
+      "samples": 4,
+      "first_ns": 1354601561286185,
+      "last_ns": 1354605490940897
+    },
+    "release60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/release60.jsonl",
+      "sha256": "f6f475d6842e64e16917d04f924755d09e5cdf81eab9adfd002e69972f093e5e",
+      "bytes": 335674,
+      "samples": 47,
+      "first_ns": 1354621007567177,
+      "last_ns": 1354681148402025
+    },
+    "debug-service/result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/debug-service/result.json",
+      "sha256": "a4af12cd88dbe2727af1e8e7086d9c136a0f1737b08ac9567dfc972a7481c916",
+      "bytes": 1965,
+      "data": {
+        "status": "failed",
+        "purpose": "DEBUG-UNREVIEWED",
+        "weight_format": "safetensors",
+        "query": true,
+        "pool_bytes": 768799145984,
+        "chunk_bytes": 536870912,
+        "worker_ip": "172.17.0.3",
+        "head_address": "172.17.0.2:26532",
+        "begin_ns": 1354614975261160,
+        "condition": "safetensors_disk_cold",
+        "measurement_class": "independent supplement candidate, not C23",
+        "run_id": "sllm-debug-20261109T131627Z-0270da51",
+        "holder": "32c6124005403517836fcb218aaef941",
+        "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "pid": 7,
+        "startticks": 135461492,
+        "child_births": {
+          "ray-worker": {
+            "pid": 8,
+            "startticks": 135461497
+          }
+        },
+        "stop_reason": "SystemExit('stopped by signal 15')",
+        "shutdown_begin_ns": 1354616014791206,
+        "signal_requests": {
+          "ray-worker": {
+            "pid": 8,
+            "startticks": 135461497,
+            "signal": 15,
+            "requested_ns": 1354616015127220,
+            "alive_before": true,
+            "delivery_returned_ns": 1354616015141336,
+            "exit_observed_ns": 1354616022358925
+          }
+        },
+        "shutdown_work_deadline_monotonic_s": 1354906.015058241,
+        "ray_stop_returncode": 0,
+        "ray_stop_stdout": "2026-11-09 13:18:19,519\tINFO scripts.py:1334 -- Did not find any active Ray processes.\n",
+        "ray_stop_stderr": "",
+        "end_ns": 1354617528808053,
+        "forced_kill": [],
+        "shutdown_errors": [
+          {
+            "stage": "shutdown log evidence",
+            "error": "FileNotFoundError(2, 'No such file or directory')"
+          }
+        ],
+        "unexpected_pre_cleanup_exits": {},
+        "returncodes": {
+          "ray-worker": -15
+        },
+        "shutdown_log_sha256": {
+          "ray-worker": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "controlled_exit_rules": {
+          "store": [
+            0
+          ],
+          "sllm": [
+            0
+          ],
+          "ray-worker": [
+            0,
+            -15
+          ]
+        },
+        "ray_cli_controlled_hook_evidence": false,
+        "http_graceful_shutdown_evidence": false,
+        "controller_shutdown_method_called": "not asserted",
+        "success": false
+      }
+    },
+    "monitor-cpu-control.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T131627Z-0270da51/monitor-cpu-control.json",
+      "sha256": "a519f6660726aae7241901e018ba3905b37ae7a014528cfcdfbe2aa0fdf443c7",
+      "bytes": 38279,
+      "data": {
+        "scope": "actual CPU-only head startup monitor diagnosis; no worker/Store/model/GPU",
+        "run_id": "sllm-debug-20261109T132137Z-23e5417a",
+        "samples": [
+          {
+            "sample_begin_ns": 1354814855519530,
+            "sample_end_ns": 1354815119274046,
+            "duration_s": 0.263754516,
+            "roles": [],
+            "pids": 0,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135309997
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.127327444
+              },
+              {
+                "operation": "/proc/sys/kernel/random/boot_id",
+                "seconds": 0.000436909
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000258984
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000191058
+              },
+              {
+                "operation": "/proc/meminfo",
+                "seconds": 0.0001549
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354816120032242,
+            "sample_end_ns": 1354816395575812,
+            "duration_s": 0.27554357,
+            "roles": [
+              "head"
+            ],
+            "pids": 2,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.133674523
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124951638
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000410463
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000309015
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000305669
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000160614
+              },
+              {
+                "operation": "/proc/meminfo",
+                "seconds": 9.1264e-05
+              },
+              {
+                "operation": "/proc/804451/smaps_rollup",
+                "seconds": 4.5586e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354817396050677,
+            "sample_end_ns": 1354817679324866,
+            "duration_s": 0.283274189,
+            "roles": [
+              "head"
+            ],
+            "pids": 6,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135265718
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125169155
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000847405
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000500568
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000296698
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000223451
+              },
+              {
+                "operation": "/proc/meminfo",
+                "seconds": 0.000143964
+              },
+              {
+                "operation": "/proc/804901/stat",
+                "seconds": 6.3693e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354818680430728,
+            "sample_end_ns": 1354818961680001,
+            "duration_s": 0.281249273,
+            "roles": [
+              "head"
+            ],
+            "pids": 8,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.134619683
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.127297363
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.001540484
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000423965
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000396028
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000191576
+              },
+              {
+                "operation": "/proc/meminfo",
+                "seconds": 0.000114991
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.1194e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354819962755809,
+            "sample_end_ns": 1354820240358345,
+            "duration_s": 0.277602536,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.13602808
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.123544986
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000410915
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000407478
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000378175
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000172154
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000127701
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000107985
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354821241424129,
+            "sample_end_ns": 1354821517730742,
+            "duration_s": 0.276306613,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.133167013
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124981671
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000358641
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000272605
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000261319
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000124401
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000103621
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.4584e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354822518803102,
+            "sample_end_ns": 1354822796397105,
+            "duration_s": 0.277594003,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135187391
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.123815475
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000506298
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000333726
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000296182
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000135511
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000105508
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.9678e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354823797467487,
+            "sample_end_ns": 1354824077689076,
+            "duration_s": 0.280221589,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135471571
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.126066787
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000485953
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000335213
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.00032511
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000131749
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.1338e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.5057e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354825078755263,
+            "sample_end_ns": 1354825359995405,
+            "duration_s": 0.281240142,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.136959953
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125835671
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000655229
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000304888
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000201255
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000135242
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.0503e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.2747e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354826361077015,
+            "sample_end_ns": 1354826637843753,
+            "duration_s": 0.276766738,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.13375127
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125057052
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000385927
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000285193
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000241747
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000121875
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.3112e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.1967e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354827638903852,
+            "sample_end_ns": 1354827916478947,
+            "duration_s": 0.277575095,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.133235187
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.126104126
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000812196
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000286234
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000141459
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000116422
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.3416e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.1723e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354828917556205,
+            "sample_end_ns": 1354829198884600,
+            "duration_s": 0.281328395,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135673932
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.12629149
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000459046
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000385975
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000265701
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000130578
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000109176
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.7018e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354830199952475,
+            "sample_end_ns": 1354830479245084,
+            "duration_s": 0.279292609,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.134891753
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125120647
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000639938
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000381638
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000328376
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000145203
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 0.000102194
+              },
+              {
+                "operation": "/proc/meminfo",
+                "seconds": 9.7061e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354831480320945,
+            "sample_end_ns": 1354831757485866,
+            "duration_s": 0.277164921,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.133777149
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.12436739
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000563525
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000332758
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000203301
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000133873
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.0843e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.0195e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354832758550317,
+            "sample_end_ns": 1354833035857702,
+            "duration_s": 0.277307385,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.133962738
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125698021
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000243685
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000223079
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000193798
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000126684
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.1792e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.1275e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354834036921562,
+            "sample_end_ns": 1354834314055941,
+            "duration_s": 0.277134379,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.134833299
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124134474
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000391501
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000265686
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000234431
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000134069
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.243e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.1375e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354835315117891,
+            "sample_end_ns": 1354835591363464,
+            "duration_s": 0.276245573,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.134222524
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124748089
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000402093
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000246621
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000230928
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.00010027
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 7.9473e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 7.7061e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354836592440500,
+            "sample_end_ns": 1354836868274987,
+            "duration_s": 0.275834487,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.132734684
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124242201
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000368388
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000307921
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000278358
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000128154
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.3803e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.7537e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354837869351900,
+            "sample_end_ns": 1354838148626403,
+            "duration_s": 0.279274503,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.135888072
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.124669615
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.001127355
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000176295
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000166114
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000117267
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.3898e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 8.532e-05
+              }
+            ]
+          },
+          {
+            "sample_begin_ns": 1354839149697888,
+            "sample_end_ns": 1354839426927035,
+            "duration_s": 0.277229147,
+            "roles": [
+              "head"
+            ],
+            "pids": 10,
+            "slow_operations": [
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader']",
+                "seconds": 0.132903037
+              },
+              {
+                "operation": "['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader']",
+                "seconds": 0.125403552
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000408431
+              },
+              {
+                "operation": "/proc/net/dev",
+                "seconds": 0.000278036
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/memory.stat",
+                "seconds": 0.000188697
+              },
+              {
+                "operation": "/sys/block/nvme1n1/stat",
+                "seconds": 0.000130797
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 9.6739e-05
+              },
+              {
+                "operation": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T132137Z.slice/sllm-debug-20261109T132137Z-23e5417a.slice/docker-346634f4b495da04157ba707a3544ea490e211757d7877ba618d929d9d1bb9ea.scope/cgroup.procs",
+                "seconds": 7.9032e-05
+              }
+            ]
+          }
+        ],
+        "errors": [],
+        "cleanup": {
+          "worker": "never created",
+          "head": "removed"
+        },
+        "model_started": false,
+        "store_pool_started": false
+      }
+    }
+  },
+  "-deadline.timer": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n",
+  "-slice-probe-deadline.timer": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n",
+  ".slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
+  "-host-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
+  "-slice-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n"
+}

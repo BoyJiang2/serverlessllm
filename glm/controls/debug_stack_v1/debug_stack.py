@@ -451,18 +451,21 @@ def down(args):
 def supplement_sample(state):
     """Host sampling, attributed by exact container ID and its host cgroup."""
     row = dict(sample_begin_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(),
-               containers={}, processes=[], run_id=state.get('run_id'),
+               containers={}, processes=[], stage_timings_ns=[], run_id=state.get('run_id'),
                boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip())
     for role in ('head', 'worker'):
         cid = state.get(role+'_container_id')
         if not cid:
             continue
+        stage_begin = time.monotonic_ns()
         info = inspect(cid)
+        row['stage_timings_ns'].append((role+' inspect', stage_begin, time.monotonic_ns()))
         if info is None:
             row['containers'][role] = dict(container_id=cid, absent=True)
             continue
         if not owned(info, state, role):
             raise RuntimeError('monitor container ownership differs')
+        stage_begin = time.monotonic_ns()
         try:
             pid = info['State']['Pid']
             item = dict(container_id=cid, docker_state=info['State'], pid=pid)
@@ -484,6 +487,8 @@ def supplement_sample(state):
                 item['cgroup'] = {name:(base/name).read_text() for name in
                                   ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
                 item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
+                row['stage_timings_ns'].append((role+' init and cgroup', stage_begin, time.monotonic_ns()))
+                stage_begin = time.monotonic_ns()
                 for member in item['cgroup']['cgroup.procs'].split():
                     member_proc = pathlib.Path('/proc')/member
                     try:
@@ -496,7 +501,10 @@ def supplement_sample(state):
                         # Birth/disappearance is explicit; it is never a zero-memory sample.
                         row.setdefault('processes_disappeared_during_sample', []).append(
                             dict(pid=int(member), container_id=cid, errno=error.errno, filename=error.filename))
+                row['stage_timings_ns'].append((role+' members', stage_begin, time.monotonic_ns()))
+                stage_begin = time.monotonic_ns()
                 item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
+                row['stage_timings_ns'].append((role+' smaps_rollup', stage_begin, time.monotonic_ns()))
                 if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
                     raise RuntimeError('monitor PID reused')
         except OSError as error:
@@ -534,10 +542,15 @@ def supplement_sample(state):
                         errno=error.errno, filename=error.filename, rechecks=rechecks)
             row['processes'] = [p for p in row['processes'] if p.get('container_id') != cid]
         row['containers'][role] = item
+    stage_begin = time.monotonic_ns()
     row['gpu'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
                                         '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader'], text=True, timeout=15)
+    row['stage_timings_ns'].append(('GPU devices', stage_begin, time.monotonic_ns()))
+    stage_begin = time.monotonic_ns()
     row['gpu_processes'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
                                                   '--query-compute-apps=pid,used_memory', '--format=csv,noheader'], text=True, timeout=15)
+    row['stage_timings_ns'].append(('GPU processes', stage_begin, time.monotonic_ns()))
+    stage_begin = time.monotonic_ns()
     row['disk_stat'] = pathlib.Path('/sys/block/nvme1n1/stat').read_text()
     row['network'] = pathlib.Path('/proc/net/dev').read_text()
     row['gpu_pids'] = sorted({int(line.split(',', 1)[0]) for line in row['gpu_processes'].splitlines()})
@@ -574,6 +587,7 @@ def supplement_sample(state):
         parent = pathlib.Path('/sys/fs/cgroup')/state['verified_slice_cgroup'].lstrip('/')
         row['private_slice_memory_events'] = (parent/'memory.events').read_text()
         state['last_private_slice_memory_events'] = row['private_slice_memory_events']
+    row['stage_timings_ns'].append(('remaining resources', stage_begin, time.monotonic_ns()))
     row['last_sample_ns'] = row['monotonic_ns'] = time.monotonic_ns()
     row['sample_end_ns'] = time.monotonic_ns()
     return row
@@ -847,11 +861,14 @@ def measure(args):
     monitor_errors = []
 
     def monitor():
+        snapshot, stage = None, 'not started'
+        previous_begin = previous_mid = None
         try:
-            previous_begin = previous_mid = None
             with (root/'controller-monitor.jsonl').open('x') as stream:
                 while not stopped.is_set():
+                    snapshot, stage = None, 'collect'
                     snapshot = supplement_sample(state)
+                    stage = 'validate'
                     require_monitor_sample(snapshot['sample_begin_ns'], snapshot['last_sample_ns'], snapshot['sample_end_ns'],
                                            previous_begin, previous_mid)
                     if list(gpu_memory_by_uuid(snapshot['gpu'])) != list(baseline):
@@ -873,6 +890,11 @@ def measure(args):
                     stopped.wait(1)
         except BaseException as error:
             monitor_errors.append(repr(error))
+            try:
+                write(root/'controller-monitor-rejected.json', dict(snapshot=snapshot, error=repr(error), stage=stage,
+                      previous_begin_ns=previous_begin, previous_mid_ns=previous_mid, healthy=False))
+            except BaseException as evidence_error:
+                monitor_errors.append('monitor failure evidence write: '+repr(evidence_error))
 
     baseline = gpu_memory_by_uuid(supplement_sample({})['gpu'])
     if any(baseline.values()):

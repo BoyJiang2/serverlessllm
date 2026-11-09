@@ -22,32 +22,40 @@
       "condition": "safetensors_disk_cold",
       "run_id": "sllm-debug-20261109T131627Z-0270da51",
       "holder": "32c6124005403517836fcb218aaef941",
-      "status": "not_started"
+      "status": "failed",
+      "primary_failure": "slow or inconsistent monitor sample; rejected snapshot not persisted; exact operation unknown",
+      "controller_success_metric": null,
+      "store_pool_started": false,
+      "model_started": false,
+      "release_observation_s": 60.140834848
     },
     {
       "condition": "safetensors_disk_hot",
       "run_id": "sllm-debug-20261109T131627Z-77540feb",
       "holder": "4ca7e4b49759c617eb44a713f67d1ff4",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "monitor admission failed; no further starts"
     },
     {
       "condition": "store_disk_cold",
       "run_id": "sllm-debug-20261109T131627Z-a0228f9f",
       "holder": "c2a4d06c4fed364991b870d8e4bec69b",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "monitor admission failed; no further starts"
     },
     {
       "condition": "store_pool_hit",
       "run_id": "sllm-debug-20261109T131627Z-499419b1",
       "holder": "95fec3fad86050ed15c4810dc9645f8a",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "monitor admission failed; no further starts"
     }
   ],
-  "batch_state": "source_R1_pass_field_gates_pending",
+  "batch_state": "stopped_after_monitor_admission_failure",
   "counts": {
     "success": 0,
-    "failed": 0,
-    "not_started": 4
+    "failed": 1,
+    "not_started": 3
   },
   "prior_cohorts": [
     {
