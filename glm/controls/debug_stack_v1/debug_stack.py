@@ -768,7 +768,7 @@ def verify_root_probe(path, run, boot, origin_ns, slice_cgroup, startup_only=Fal
     data = json.loads(subprocess.check_output(['busctl','--system','--json=short','get-property',
         'org.freedesktop.systemd1',timer_path,'org.freedesktop.systemd1.Timer','NextElapseUSecMonotonic'],text=True,timeout=15))
     deadline_ns = int(data['data'])*1000
-    lower, upper = (660, 905) if startup_only else (3000, 3245)
+    lower, upper = (660, 900) if startup_only else (3000, 3245)
     if (int(data['data']) != proof['deadline_next_monotonic_usec']
             or (startup_only and proof.get('deadline_delay_seconds') != 900)
             or not origin_ns+lower*10**9 <= deadline_ns <= origin_ns+upper*10**9):

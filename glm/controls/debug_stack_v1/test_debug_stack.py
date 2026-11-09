@@ -559,6 +559,11 @@ class SupplementAdmission(unittest.TestCase):
                                'active', json.dumps(dict(data=900000000))]
             with patch.object(d.subprocess, 'check_output', side_effect=startup_outputs):
                 d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice', startup_only=True)
+            proof['deadline_next_monotonic_usec'] = 901000000
+            with patch.object(d.subprocess, 'check_output', side_effect=startup_outputs[:2]+[json.dumps(dict(data=901000000))]), \
+                    self.assertRaisesRegex(RuntimeError, 'total budget'):
+                d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice', startup_only=True)
+            proof['deadline_next_monotonic_usec'] = 900000000
             proof['deadline_delay_seconds'] = 3240
             with patch.object(d.subprocess, 'check_output', side_effect=startup_outputs), self.assertRaisesRegex(RuntimeError, 'total budget'):
                 d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice', startup_only=True)

@@ -124,8 +124,11 @@ head仍是既有CPU Ray head；worker沿用原GPU/NVIDIA容器配置、挂载、
 
 预算：工作原点仍由root unit内核ExecMainStartTimestampMonotonic冻结；绝对工作180秒，容器300秒timeout；清理沿用worker320秒+head70秒等待与现有Docker命令期限，释放观察原始首末至少60秒。总硬截止900秒由私有slice外独立root timer绑定精确run执行SIGKILL，覆盖controller和Docker兄弟cgroup；超时一律控制失败，不能保证超时后仍留有完整观察。原3570+30秒unit只作额外兜底，不能代替900秒slice timer。180+320+70+60=630秒，其余270秒为Docker/取证预算；若串行命令未在该硬上限内完成则失败，不续期。
 
-守护先执行现有--supplement-probe-start，新SSH核验执行新增显式--startup-probe-verify；模式仅将新run独立timer改为900秒，旧默认3240秒不变，不触碰全局guard安装。现场校验root只读proof的delay=900、run/holder/boot/代码SHA、真实timer下一monotonic时刻落在Main原点+660..905秒、exact slice/出生身份及实际CPU故障probe，不能复用旧probe或旧R1。660下界与proof最多120秒旧化及安装/启动余量配合，上界确保不超过总预算；不能据此将正常模型补测改用900秒。
+守护先执行现有--supplement-probe-start，新SSH核验执行新增显式--startup-probe-verify；模式仅将新run独立timer改为900秒，旧默认3240秒不变，不触碰全局guard安装。现场校验root只读proof的delay=900、run/holder/boot/代码SHA、真实timer下一monotonic时刻落在Main原点+660..900秒、exact slice/出生身份及实际CPU故障probe，不能复用旧probe或旧R1。660下界与proof最多120秒旧化及安装/启动余量配合，上界确保不超过总预算；不能据此将正常模型补测改用900秒。
 
 控制前必须完整源码/manifest独立只读R1，且新鲜8卡/NUMA/匿名/锁页/共享内存/本地I/O与授权准入通过。运行中原5秒门不变，异常原snapshot及分段时刻保留，立即失败并进入清理；仅一次，不因为未复现重复分配。完成或失败均保存unit退出、容器State、OOM/cgroup及至少60秒释放证据，硬截止/失败观察不足明确保留。执行与观察期间不Git/同步。
 
 CPU验证：73调试测试+6成本+6C23参数+10导入=95。新增实际head/worker调用传播、仅sleep argv与默认路径对照、scope/180/900审阅隔离及root900拒绝旧3240校验；最初测试fixture漏state导致5个NameError已保留为整改过程，补fixture后通过，不改实际up逻辑以迎合fixture。此处不是GPU运行批准。
+
+
+完整startup R1对cfdf0650及清单e36063d2给出BLOCKED，仅STARTUP-R1-01：905秒准入上界不能证明900秒预算。新修订只收紧startup上界900并补901秒拒绝，旧3245不改。systemd AccuracySec=1及调度延迟不是物理无延迟保证，现场需记录实际NextElapse、arm→Main余量及最终触发/退出；不能将容差作为额外授权时间。旧候选与BLOCKED结论保留。
