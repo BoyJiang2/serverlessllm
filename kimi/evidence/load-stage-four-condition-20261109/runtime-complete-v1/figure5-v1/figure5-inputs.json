@@ -1,0 +1,2307 @@
+{
+  "schema": "three-model-figure5-kimi-supplement-v1",
+  "conditions": [
+    "safetensors_disk_cold",
+    "safetensors_disk_hot",
+    "store_disk_cold",
+    "store_pool_hit"
+  ],
+  "kimi": {
+    "safetensors_disk_cold": {
+      "status": "COMPLETE8_RANK_HOST_LOAD_CALL_SPAN",
+      "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+      "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+      "source_commit": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+      "protocol_sha256": "78beeac12a703ad7c26c7e42475a5e0918cf6741d08fbba1ec24ed933dd3bdde",
+      "begin_ns": 8048778442781302,
+      "end_ns": 8049116154780327,
+      "span_ns": 337711999025,
+      "weight_load_host_span_ns": 337711999025,
+      "weight_load_host_span_s": 337.711999025,
+      "max_rank_weight_load_host_duration_ns": 337630975796,
+      "max_rank_weight_load_host_duration_s": 337.630975796,
+      "ranks": [
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778446404834,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049116038672747,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1708,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780291629153,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113090493521,
+              "status": "COMPLETE",
+              "host_duration_ns": 332798864368,
+              "host_duration_s": 332.798864368
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113090975342,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049116032883130,
+              "status": "COMPLETE",
+              "host_duration_ns": 2941907788,
+              "host_duration_s": 2.941907788
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 0,
+          "device_uuid": "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+          "host_owner": {
+            "pid": 3112525,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337592267913,
+          "host_duration_s": 337.592267913
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778450777303,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049114177779058,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1709,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780283168871,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049111194546588,
+              "status": "COMPLETE",
+              "host_duration_ns": 330911377717,
+              "host_duration_s": 330.911377717
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049111194887441,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049114172077051,
+              "status": "COMPLETE",
+              "host_duration_ns": 2977189610,
+              "host_duration_s": 2.97718961
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 1,
+          "device_uuid": "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+          "host_owner": {
+            "pid": 3112526,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 335727001755,
+          "host_duration_s": 335.727001755
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778522156275,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049115890026477,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1710,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780411326737,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113088324926,
+              "status": "COMPLETE",
+              "host_duration_ns": 332676998189,
+              "host_duration_s": 332.676998189
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113088649551,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049115884541736,
+              "status": "COMPLETE",
+              "host_duration_ns": 2795892185,
+              "host_duration_s": 2.795892185
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 2,
+          "device_uuid": "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+          "host_owner": {
+            "pid": 3112527,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337367870202,
+          "host_duration_s": 337.367870202
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778451525656,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049115983678364,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1711,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780267423309,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113089234609,
+              "status": "COMPLETE",
+              "host_duration_ns": 332821811300,
+              "host_duration_s": 332.8218113
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113089582558,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049115978304388,
+              "status": "COMPLETE",
+              "host_duration_ns": 2888721830,
+              "host_duration_s": 2.88872183
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 3,
+          "device_uuid": "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+          "host_owner": {
+            "pid": 3112528,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337532152708,
+          "host_duration_s": 337.532152708
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778523804531,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049116154780327,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1712,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780407806971,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113084980734,
+              "status": "COMPLETE",
+              "host_duration_ns": 332677173763,
+              "host_duration_s": 332.677173763
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113085766814,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049116148983376,
+              "status": "COMPLETE",
+              "host_duration_ns": 3063216562,
+              "host_duration_s": 3.063216562
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 4,
+          "device_uuid": "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+          "host_owner": {
+            "pid": 3112529,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337630975796,
+          "host_duration_s": 337.630975796
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778442781302,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875404,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049115909976091,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1713,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780358400732,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113088236330,
+              "status": "COMPLETE",
+              "host_duration_ns": 332729835598,
+              "host_duration_s": 332.729835598
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113088573830,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049115904396927,
+              "status": "COMPLETE",
+              "host_duration_ns": 2815823097,
+              "host_duration_s": 2.815823097
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 5,
+          "device_uuid": "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da",
+          "host_owner": {
+            "pid": 3112530,
+            "startticks": 804875404,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337467194789,
+          "host_duration_s": 337.467194789
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778452311970,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875405,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049115979636320,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1714,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780415486695,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113089355339,
+              "status": "COMPLETE",
+              "host_duration_ns": 332673868644,
+              "host_duration_s": 332.673868644
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113089774231,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049115973749458,
+              "status": "COMPLETE",
+              "host_duration_ns": 2883975227,
+              "host_duration_s": 2.883975227
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 6,
+          "device_uuid": "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+          "host_owner": {
+            "pid": 3112531,
+            "startticks": 804875405,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337527324350,
+          "host_duration_s": 337.52732435
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048778448255726,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "9e6085337f61",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804875405,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8049116001336794,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-life1",
+          "pid": 1715,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8048780284995108,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8049113089490164,
+              "status": "COMPLETE",
+              "host_duration_ns": 332804495056,
+              "host_duration_s": 332.804495056
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8049113089808543,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8049115995616229,
+              "status": "COMPLETE",
+              "host_duration_ns": 2905807686,
+              "host_duration_s": 2.905807686
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 7,
+          "device_uuid": "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+          "host_owner": {
+            "pid": 3112532,
+            "startticks": 804875405,
+            "state": "S",
+            "ppid": 3111677,
+            "cgroup": "0::/system.slice/docker-9e6085337f61869f148c957654a77596a523d22ccdc494c707222c4c383bec26.scope"
+          },
+          "host_duration_ns": 337553081068,
+          "host_duration_s": 337.553081068
+        }
+      ],
+      "weight_load_host_all_rank_span_s": 337.711999025,
+      "full_span_alias_policy": "weight_load_host_span_s retains the same max(full.end)-min(full.begin) value; stage envelopes not additive",
+      "stage_schema": "kimi-weight-load-host-stages-v1",
+      "stage_spans": {
+        "weight_ingestion": {
+          "begin_ns": 8048780267423309,
+          "end_ns": 8049113090493521,
+          "span_ns": 332823070212,
+          "span_s": 332.823070212,
+          "max_rank_duration_ns": 332821811300,
+          "max_rank_duration_s": 332.8218113
+        },
+        "postprocessing": {
+          "begin_ns": 8049111194887441,
+          "end_ns": 8049116148983376,
+          "span_ns": 4954095935,
+          "span_s": 4.954095935,
+          "max_rank_duration_ns": 3063216562,
+          "max_rank_duration_s": 3.063216562
+        }
+      },
+      "scope": "Host load_model call envelope; no added CUDA synchronization, not CUDA completion, pureIO orsum/max perrank durations."
+    },
+    "safetensors_disk_hot": {
+      "status": "COMPLETE8_RANK_HOST_LOAD_CALL_SPAN",
+      "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+      "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+      "source_commit": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+      "protocol_sha256": "78beeac12a703ad7c26c7e42475a5e0918cf6741d08fbba1ec24ed933dd3bdde",
+      "begin_ns": 8046659063671173,
+      "end_ns": 8046965717895761,
+      "span_ns": 306654224588,
+      "weight_load_host_span_ns": 306654224588,
+      "weight_load_host_span_s": 306.654224588,
+      "max_rank_weight_load_host_duration_ns": 306463373885,
+      "max_rank_weight_load_host_duration_s": 306.463373885,
+      "ranks": [
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659097142083,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964425894298,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1701,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046660959882482,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961512786802,
+              "status": "COMPLETE",
+              "host_duration_ns": 300552904320,
+              "host_duration_s": 300.55290432
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961513232787,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964420366674,
+              "status": "COMPLETE",
+              "host_duration_ns": 2907133887,
+              "host_duration_s": 2.907133887
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 0,
+          "device_uuid": "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+          "host_owner": {
+            "pid": 2892855,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305328752215,
+          "host_duration_s": 305.328752215
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659073462262,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964569988326,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1702,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046660971438644,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961511882637,
+              "status": "COMPLETE",
+              "host_duration_ns": 300540443993,
+              "host_duration_s": 300.540443993
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961512239856,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964564319597,
+              "status": "COMPLETE",
+              "host_duration_ns": 3052079741,
+              "host_duration_s": 3.052079741
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 1,
+          "device_uuid": "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+          "host_owner": {
+            "pid": 2892856,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305496526064,
+          "host_duration_s": 305.496526064
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659063671173,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964515330708,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1703,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046660946009792,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961512066640,
+              "status": "COMPLETE",
+              "host_duration_ns": 300566056848,
+              "host_duration_s": 300.566056848
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961512390054,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964509787269,
+              "status": "COMPLETE",
+              "host_duration_ns": 2997397215,
+              "host_duration_s": 2.997397215
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 2,
+          "device_uuid": "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+          "host_owner": {
+            "pid": 2892857,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305451659535,
+          "host_duration_s": 305.451659535
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659085715941,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964376331100,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1704,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046661313298045,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961511662038,
+              "status": "COMPLETE",
+              "host_duration_ns": 300198363993,
+              "host_duration_s": 300.198363993
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961511993224,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964370379440,
+              "status": "COMPLETE",
+              "host_duration_ns": 2858386216,
+              "host_duration_s": 2.858386216
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 3,
+          "device_uuid": "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+          "host_owner": {
+            "pid": 2892859,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305290615159,
+          "host_duration_s": 305.290615159
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659254521876,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046965717895761,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1705,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046661815401110,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046962540735814,
+              "status": "COMPLETE",
+              "host_duration_ns": 300725334704,
+              "host_duration_s": 300.725334704
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046962541118952,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046965712197337,
+              "status": "COMPLETE",
+              "host_duration_ns": 3171078385,
+              "host_duration_s": 3.171078385
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 4,
+          "device_uuid": "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+          "host_owner": {
+            "pid": 2892860,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 306463373885,
+          "host_duration_s": 306.463373885
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659066571699,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964495135277,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1706,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046660945552896,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961511723746,
+              "status": "COMPLETE",
+              "host_duration_ns": 300566170850,
+              "host_duration_s": 300.56617085
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961512092401,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964489667402,
+              "status": "COMPLETE",
+              "host_duration_ns": 2977575001,
+              "host_duration_s": 2.977575001
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 5,
+          "device_uuid": "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da",
+          "host_owner": {
+            "pid": 2892861,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305428563578,
+          "host_duration_s": 305.428563578
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659071880744,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046964278786851,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1707,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046660963408759,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046961390231316,
+              "status": "COMPLETE",
+              "host_duration_ns": 300426822557,
+              "host_duration_s": 300.426822557
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046961390566322,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046964273346680,
+              "status": "COMPLETE",
+              "host_duration_ns": 2882780358,
+              "host_duration_s": 2.882780358
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 6,
+          "device_uuid": "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+          "host_owner": {
+            "pid": 2892862,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 305206906107,
+          "host_duration_s": 305.206906107
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8046659067635316,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "07b64c6d3b20",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804663372,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8046965476384717,
+          "loader_type": "vllm.model_executor.model_loader.default_loader.DefaultModelLoader",
+          "model": "/mnt/raid/models/Kimi-K2.6",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-life1",
+          "pid": 1708,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_base_load_weights",
+              "begin_ns": 8046661686870638,
+              "end_boundary": "after_base_load_weights_return",
+              "end_ns": 8046962539805867,
+              "status": "COMPLETE",
+              "host_duration_ns": 300852935229,
+              "host_duration_s": 300.852935229
+            },
+            "postprocessing": {
+              "begin_boundary": "before_online_quant_condition",
+              "begin_ns": 8046962540166189,
+              "end_boundary": "after_process_weights_after_loading_return",
+              "end_ns": 8046965470734124,
+              "status": "COMPLETE",
+              "host_duration_ns": 2930567935,
+              "host_duration_s": 2.930567935
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 7,
+          "device_uuid": "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+          "host_owner": {
+            "pid": 2892863,
+            "startticks": 804663372,
+            "state": "S",
+            "ppid": 2891817,
+            "cgroup": "0::/system.slice/docker-07b64c6d3b204995feb1abf53f60d59aa8e82effeaf92357a0943607d2140fae.scope"
+          },
+          "host_duration_ns": 306408749401,
+          "host_duration_s": 306.408749401
+        }
+      ],
+      "weight_load_host_all_rank_span_s": 306.654224588,
+      "full_span_alias_policy": "weight_load_host_span_s retains the same max(full.end)-min(full.begin) value; stage envelopes not additive",
+      "stage_schema": "kimi-weight-load-host-stages-v1",
+      "stage_spans": {
+        "weight_ingestion": {
+          "begin_ns": 8046660945552896,
+          "end_ns": 8046962540735814,
+          "span_ns": 301595182918,
+          "span_s": 301.595182918,
+          "max_rank_duration_ns": 300852935229,
+          "max_rank_duration_s": 300.852935229
+        },
+        "postprocessing": {
+          "begin_ns": 8046961390566322,
+          "end_ns": 8046965712197337,
+          "span_ns": 4321631015,
+          "span_s": 4.321631015,
+          "max_rank_duration_ns": 3171078385,
+          "max_rank_duration_s": 3.171078385
+        }
+      },
+      "scope": "Host load_model call envelope; no added CUDA synchronization, not CUDA completion, pureIO orsum/max perrank durations."
+    },
+    "store_disk_cold": {
+      "status": "COMPLETE8_RANK_HOST_LOAD_CALL_SPAN",
+      "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+      "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+      "source_commit": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+      "protocol_sha256": "78beeac12a703ad7c26c7e42475a5e0918cf6741d08fbba1ec24ed933dd3bdde",
+      "begin_ns": 8048098142186000,
+      "end_ns": 8048129190707166,
+      "span_ns": 31048521166,
+      "weight_load_host_span_ns": 31048521166,
+      "weight_load_host_span_s": 31.048521166,
+      "max_rank_weight_load_host_duration_ns": 30945390612,
+      "max_rank_weight_load_host_duration_s": 30.945390612,
+      "ranks": [
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098228785768,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805743,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048128395308204,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1701,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104354386478,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048128383664813,
+              "status": "COMPLETE",
+              "host_duration_ns": 24029278335,
+              "host_duration_s": 24.029278335
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048128383670368,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048128394893096,
+              "status": "COMPLETE",
+              "host_duration_ns": 11222728,
+              "host_duration_s": 0.011222728
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 0,
+          "device_uuid": "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+          "host_owner": {
+            "pid": 3039534,
+            "startticks": 804805743,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 30166522436,
+          "host_duration_s": 30.166522436
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098959532342,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805743,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048128063617154,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1702,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048103901795447,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048128052101506,
+              "status": "COMPLETE",
+              "host_duration_ns": 24150306059,
+              "host_duration_s": 24.150306059
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048128052105848,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048128063215727,
+              "status": "COMPLETE",
+              "host_duration_ns": 11109879,
+              "host_duration_s": 0.011109879
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 1,
+          "device_uuid": "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+          "host_owner": {
+            "pid": 3039535,
+            "startticks": 804805743,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 29104084812,
+          "host_duration_s": 29.104084812
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098206860385,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805743,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048127717405686,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1703,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104308234946,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048127694526532,
+              "status": "COMPLETE",
+              "host_duration_ns": 23386291586,
+              "host_duration_s": 23.386291586
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048127694537497,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048127716435202,
+              "status": "COMPLETE",
+              "host_duration_ns": 21897705,
+              "host_duration_s": 0.021897705
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 2,
+          "device_uuid": "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+          "host_owner": {
+            "pid": 3039536,
+            "startticks": 804805743,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 29510545301,
+          "host_duration_s": 29.510545301
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098896896681,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805743,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048128510125008,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1704,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048103912469897,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048128497611521,
+              "status": "COMPLETE",
+              "host_duration_ns": 24585141624,
+              "host_duration_s": 24.585141624
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048128497616005,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048128509345365,
+              "status": "COMPLETE",
+              "host_duration_ns": 11729360,
+              "host_duration_s": 0.01172936
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 3,
+          "device_uuid": "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+          "host_owner": {
+            "pid": 3039538,
+            "startticks": 804805743,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 29613228327,
+          "host_duration_s": 29.613228327
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098142186000,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805743,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048127872888443,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1705,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104269281380,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048127861028705,
+              "status": "COMPLETE",
+              "host_duration_ns": 23591747325,
+              "host_duration_s": 23.591747325
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048127861033416,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048127872504704,
+              "status": "COMPLETE",
+              "host_duration_ns": 11471288,
+              "host_duration_s": 0.011471288
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 4,
+          "device_uuid": "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da",
+          "host_owner": {
+            "pid": 3039539,
+            "startticks": 804805743,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 29730702443,
+          "host_duration_s": 29.730702443
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098314388058,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805744,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048128185327505,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1706,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104315570515,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048128173505146,
+              "status": "COMPLETE",
+              "host_duration_ns": 23857934631,
+              "host_duration_s": 23.857934631
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048128173508951,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048128184875608,
+              "status": "COMPLETE",
+              "host_duration_ns": 11366657,
+              "host_duration_s": 0.011366657
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 5,
+          "device_uuid": "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+          "host_owner": {
+            "pid": 3039540,
+            "startticks": 804805744,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 29870939447,
+          "host_duration_s": 29.870939447
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098279689741,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805744,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048128712063176,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1707,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104252694273,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048128698388288,
+              "status": "COMPLETE",
+              "host_duration_ns": 24445694015,
+              "host_duration_s": 24.445694015
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048128698392959,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048128711510086,
+              "status": "COMPLETE",
+              "host_duration_ns": 13117127,
+              "host_duration_s": 0.013117127
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 6,
+          "device_uuid": "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+          "host_owner": {
+            "pid": 3039541,
+            "startticks": 804805744,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 30432373435,
+          "host_duration_s": 30.432373435
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8048098245316554,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "7d4872282444",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 804805744,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8048129190707166,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-life1",
+          "pid": 1708,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8048104446687308,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8048129178251384,
+              "status": "COMPLETE",
+              "host_duration_ns": 24731564076,
+              "host_duration_s": 24.731564076
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8048129178260017,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8048129190241496,
+              "status": "COMPLETE",
+              "host_duration_ns": 11981479,
+              "host_duration_s": 0.011981479
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 7,
+          "device_uuid": "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+          "host_owner": {
+            "pid": 3039542,
+            "startticks": 804805744,
+            "state": "S",
+            "ppid": 3038651,
+            "cgroup": "0::/system.slice/docker-7d4872282444dcc5fbf5ca33e66e2fb03f0c3695bdfcb73754e88391db3be6c7.scope"
+          },
+          "host_duration_ns": 30945390612,
+          "host_duration_s": 30.945390612
+        }
+      ],
+      "weight_load_host_all_rank_span_s": 31.048521166,
+      "full_span_alias_policy": "weight_load_host_span_s retains the same max(full.end)-min(full.begin) value; stage envelopes not additive",
+      "stage_schema": "kimi-weight-load-host-stages-v1",
+      "stage_spans": {
+        "weight_ingestion": {
+          "begin_ns": 8048103901795447,
+          "end_ns": 8048129178251384,
+          "span_ns": 25276455937,
+          "span_s": 25.276455937,
+          "max_rank_duration_ns": 24731564076,
+          "max_rank_duration_s": 24.731564076
+        },
+        "postprocessing": {
+          "begin_ns": 8048127694537497,
+          "end_ns": 8048129190241496,
+          "span_ns": 1495703999,
+          "span_s": 1.495703999,
+          "max_rank_duration_ns": 21897705,
+          "max_rank_duration_s": 0.021897705
+        }
+      },
+      "scope": "Host load_model call envelope; no added CUDA synchronization, not CUDA completion, pureIO orsum/max perrank durations."
+    },
+    "store_pool_hit": {
+      "status": "COMPLETE8_RANK_HOST_LOAD_CALL_SPAN",
+      "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+      "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+      "source_commit": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+      "protocol_sha256": "78beeac12a703ad7c26c7e42475a5e0918cf6741d08fbba1ec24ed933dd3bdde",
+      "begin_ns": 8050250683222420,
+      "end_ns": 8050275992684676,
+      "span_ns": 25309462256,
+      "weight_load_host_span_ns": 25309462256,
+      "weight_load_host_span_s": 25.309462256,
+      "max_rank_weight_load_host_duration_ns": 25246641716,
+      "max_rank_weight_load_host_duration_s": 25.246641716,
+      "ranks": [
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250683222420,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050274723475921,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1768,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255924753817,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050274711706986,
+              "status": "COMPLETE",
+              "host_duration_ns": 18786953169,
+              "host_duration_s": 18.786953169
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050274711712237,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050274723026987,
+              "status": "COMPLETE",
+              "host_duration_ns": 11314750,
+              "host_duration_s": 0.01131475
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 0,
+          "device_uuid": "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+          "host_owner": {
+            "pid": 3266265,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 24040253501,
+          "host_duration_s": 24.040253501
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250728737838,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050275089033690,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1769,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050256041524285,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050275077684768,
+              "status": "COMPLETE",
+              "host_duration_ns": 19036160483,
+              "host_duration_s": 19.036160483
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050275077688298,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050275088618465,
+              "status": "COMPLETE",
+              "host_duration_ns": 10930167,
+              "host_duration_s": 0.010930167
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 1,
+          "device_uuid": "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+          "host_owner": {
+            "pid": 3266266,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 24360295852,
+          "host_duration_s": 24.360295852
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250692271896,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050275264453893,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1770,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255971327000,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050275251996385,
+              "status": "COMPLETE",
+              "host_duration_ns": 19280669385,
+              "host_duration_s": 19.280669385
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050275252028094,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050275263870423,
+              "status": "COMPLETE",
+              "host_duration_ns": 11842329,
+              "host_duration_s": 0.011842329
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 2,
+          "device_uuid": "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+          "host_owner": {
+            "pid": 3266267,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 24572181997,
+          "host_duration_s": 24.572181997
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250720972564,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050274888589299,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1771,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255969758597,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050274876766448,
+              "status": "COMPLETE",
+              "host_duration_ns": 18907007851,
+              "host_duration_s": 18.907007851
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050274876770330,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050274888160665,
+              "status": "COMPLETE",
+              "host_duration_ns": 11390335,
+              "host_duration_s": 0.011390335
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 3,
+          "device_uuid": "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+          "host_owner": {
+            "pid": 3266268,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 24167616735,
+          "host_duration_s": 24.167616735
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250732183508,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050256640596602,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1772,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050254205538126,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050256629360603,
+              "status": "COMPLETE",
+              "host_duration_ns": 2423822477,
+              "host_duration_s": 2.423822477
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050256629364505,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050256640209312,
+              "status": "COMPLETE",
+              "host_duration_ns": 10844807,
+              "host_duration_s": 0.010844807
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 4,
+          "device_uuid": "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+          "host_owner": {
+            "pid": 3266269,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 5908413094,
+          "host_duration_s": 5.908413094
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250746042960,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050275992684676,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1773,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255996813268,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050275980799806,
+              "status": "COMPLETE",
+              "host_duration_ns": 19983986538,
+              "host_duration_s": 19.983986538
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050275980803893,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050275992287525,
+              "status": "COMPLETE",
+              "host_duration_ns": 11483632,
+              "host_duration_s": 0.011483632
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 5,
+          "device_uuid": "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+          "host_owner": {
+            "pid": 3266270,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 25246641716,
+          "host_duration_s": 25.246641716
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250688732587,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050274425999940,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1774,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255841685472,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050274414041452,
+              "status": "COMPLETE",
+              "host_duration_ns": 18572355980,
+              "host_duration_s": 18.57235598
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050274414046468,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050274425553578,
+              "status": "COMPLETE",
+              "host_duration_ns": 11507110,
+              "host_duration_s": 0.01150711
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 6,
+          "device_uuid": "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+          "host_owner": {
+            "pid": 3266271,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 23737267353,
+          "host_duration_s": 23.737267353
+        },
+        {
+          "added_cuda_synchronization": false,
+          "begin_boundary": "before_model_loader_load_model",
+          "begin_ns": 8050250684134084,
+          "clock_identity": {
+            "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+            "container_hostname": "a66d0586047a",
+            "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+            "process_startticks": 805021241,
+            "time_namespace": "time:[4026531834]"
+          },
+          "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+          "end_ns": 8050274563160015,
+          "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+          "model": "/store/vllm/kimi-k2.6-sf-reference",
+          "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+          "pid": 1775,
+          "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+          "schema": "kimi-weight-load-host-endpoints-v1",
+          "stage_schema": "kimi-weight-load-host-stages-v1",
+          "stages": {
+            "weight_ingestion": {
+              "begin_boundary": "before_store_load_dict",
+              "begin_ns": 8050255804868641,
+              "end_boundary": "after_store_data_bindings_and_buffer_moves",
+              "end_ns": 8050274551491774,
+              "status": "COMPLETE",
+              "host_duration_ns": 18746623133,
+              "host_duration_s": 18.746623133
+            },
+            "postprocessing": {
+              "begin_boundary": "before_store_runtime_hook_traversal",
+              "begin_ns": 8050274551495645,
+              "end_boundary": "after_store_attention_postprocessing_return",
+              "end_ns": 8050274562722875,
+              "status": "COMPLETE",
+              "host_duration_ns": 11227230,
+              "host_duration_s": 0.01122723
+            }
+          },
+          "status": "COMPLETE",
+          "tp_rank": 7,
+          "device_uuid": "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da",
+          "host_owner": {
+            "pid": 3266272,
+            "startticks": 805021241,
+            "state": "S",
+            "ppid": 3265412,
+            "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+          },
+          "host_duration_ns": 23879025931,
+          "host_duration_s": 23.879025931
+        }
+      ],
+      "weight_load_host_all_rank_span_s": 25.309462256,
+      "full_span_alias_policy": "weight_load_host_span_s retains the same max(full.end)-min(full.begin) value; stage envelopes not additive",
+      "stage_schema": "kimi-weight-load-host-stages-v1",
+      "stage_spans": {
+        "weight_ingestion": {
+          "begin_ns": 8050254205538126,
+          "end_ns": 8050275980799806,
+          "span_ns": 21775261680,
+          "span_s": 21.77526168,
+          "max_rank_duration_ns": 19983986538,
+          "max_rank_duration_s": 19.983986538
+        },
+        "postprocessing": {
+          "begin_ns": 8050256629364505,
+          "end_ns": 8050275992287525,
+          "span_ns": 19362923020,
+          "span_s": 19.36292302,
+          "max_rank_duration_ns": 11842329,
+          "max_rank_duration_s": 0.011842329
+        }
+      },
+      "scope": "Host load_model call envelope; no added CUDA synchronization, not CUDA completion, pureIO orsum/max perrank durations."
+    }
+  },
+  "historical": {
+    "GLM-5.1-FP8": {
+      "safetensors_disk_cold": {
+        "ids": [
+          "safetensors_disk_cold_05",
+          "safetensors_disk_cold_06",
+          "safetensors_disk_cold_07",
+          "safetensors_disk_cold_08",
+          "safetensors_disk_cold_09",
+          "safetensors_disk_cold_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            386.924334256,
+            394.052966931,
+            400.015942723,
+            402.4205589,
+            392.259173902,
+            386.075143547
+          ],
+          "phase_weight_ingestion_span_s": [
+            385.069210825,
+            392.1329232,
+            398.006393047,
+            400.428842981,
+            390.283225723,
+            384.104494248
+          ],
+          "phase_quantization_postprocess_span_s": [
+            0.587256389,
+            0.589290478,
+            0.553164445,
+            0.668281674,
+            0.584821178,
+            0.512186618
+          ]
+        }
+      },
+      "safetensors_disk_hot": {
+        "ids": [
+          "safetensors_disk_hot_05",
+          "safetensors_disk_hot_06",
+          "safetensors_disk_hot_07",
+          "safetensors_disk_hot_08",
+          "safetensors_disk_hot_09",
+          "safetensors_disk_hot_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            146.896355329,
+            141.128799125,
+            142.458753261,
+            67.592260274,
+            142.500670705,
+            146.721356629
+          ],
+          "phase_weight_ingestion_span_s": [
+            145.085265729,
+            138.94227628,
+            140.453533543,
+            65.660524814,
+            140.494202622,
+            144.656793147
+          ],
+          "phase_quantization_postprocess_span_s": [
+            0.12418124,
+            0.117765219,
+            0.12088074,
+            1.006541448,
+            0.15405448,
+            0.12756842
+          ]
+        }
+      },
+      "store_disk_cold": {
+        "ids": [
+          "store_disk_cold_05",
+          "store_disk_cold_06",
+          "store_disk_cold_07",
+          "store_disk_cold_08",
+          "store_disk_cold_09",
+          "store_disk_cold_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            123.392155445,
+            123.294726635,
+            123.198630666,
+            124.064145679,
+            123.883385753,
+            123.599320854
+          ],
+          "phase_weight_ingestion_span_s": [
+            121.367565357,
+            121.507045048,
+            121.285226682,
+            121.783049759,
+            121.365226312,
+            121.529980605
+          ],
+          "phase_quantization_postprocess_span_s": [
+            3.184187222,
+            12.244043456,
+            7.422492808,
+            7.31370687,
+            3.924060162,
+            4.764098541
+          ]
+        }
+      },
+      "store_pool_hit": {
+        "ids": [
+          "store_pool_hit_05",
+          "store_pool_hit_06",
+          "store_pool_hit_07",
+          "store_pool_hit_08",
+          "store_pool_hit_09",
+          "store_pool_hit_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            7.766270969,
+            7.947273915,
+            7.88822724,
+            7.824381558,
+            7.79472435,
+            8.114110679
+          ],
+          "phase_weight_ingestion_span_s": [
+            5.76785962,
+            6.102825644,
+            5.938346062,
+            5.753956619,
+            5.791413572,
+            5.60035509
+          ],
+          "phase_quantization_postprocess_span_s": [
+            2.007352848,
+            2.083477754,
+            2.108442234,
+            2.108553846,
+            1.978209641,
+            2.049773739
+          ]
+        }
+      }
+    },
+    "DeepSeek-V4-Pro": {
+      "safetensors_disk_cold": {
+        "ids": [
+          "v4n40_safetensors_disk_cold_02",
+          "v4n40_safetensors_disk_cold_03",
+          "v4n40_safetensors_disk_cold_04",
+          "v4n40_safetensors_disk_cold_05",
+          "v4n40_safetensors_disk_cold_06",
+          "v4n40_safetensors_disk_cold_07",
+          "v4n40_safetensors_disk_cold_08",
+          "v4n40_safetensors_disk_cold_09",
+          "v4n40_safetensors_disk_cold_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            471.575969548,
+            521.124406815,
+            529.377150604,
+            524.898049807,
+            492.944263978,
+            473.793586793,
+            485.867710895,
+            477.691448137,
+            475.321709681
+          ],
+          "phase_weight_ingestion_span_s": [
+            455.501178571,
+            505.286397674,
+            513.595320028,
+            509.129777048,
+            476.81150662,
+            458.193543298,
+            469.964364627,
+            461.926274466,
+            459.056490092
+          ],
+          "phase_quantization_postprocess_span_s": [
+            11.936866778,
+            11.785415309,
+            11.721740011,
+            11.861146885,
+            11.635110298,
+            11.875098821,
+            11.885977549,
+            11.588074154,
+            12.207767647
+          ]
+        }
+      },
+      "safetensors_disk_hot": {
+        "ids": [
+          "v4n40_safetensors_disk_hot_02",
+          "v4n40_safetensors_disk_hot_03",
+          "v4n40_safetensors_disk_hot_04",
+          "v4n40_safetensors_disk_hot_05",
+          "v4n40_safetensors_disk_hot_06",
+          "v4n40_safetensors_disk_hot_07",
+          "v4n40_safetensors_disk_hot_08",
+          "v4n40_safetensors_disk_hot_09",
+          "v4n40_safetensors_disk_hot_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            157.320524094,
+            160.098603775,
+            163.931790587,
+            160.694450128,
+            157.647709052,
+            156.149068683,
+            154.050229999,
+            157.962419061,
+            155.917581504
+          ],
+          "phase_weight_ingestion_span_s": [
+            145.00360741,
+            146.896322881,
+            153.682254265,
+            150.182924602,
+            146.274536212,
+            144.93023665,
+            141.494915175,
+            147.469057576,
+            143.100373208
+          ],
+          "phase_quantization_postprocess_span_s": [
+            18.187899956,
+            16.731076178,
+            18.120813844,
+            17.555719474,
+            20.191425671,
+            18.614052376,
+            17.016450066,
+            20.391902725,
+            17.089544902
+          ]
+        }
+      },
+      "store_disk_cold": {
+        "ids": [
+          "v4n40_store_disk_cold_02",
+          "v4n40_store_disk_cold_03",
+          "v4n40_store_disk_cold_04",
+          "v4n40_store_disk_cold_05",
+          "v4n40_store_disk_cold_06",
+          "v4n40_store_disk_cold_07",
+          "v4n40_store_disk_cold_08",
+          "v4n40_store_disk_cold_09",
+          "v4n40_store_disk_cold_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            151.99607451,
+            150.959100938,
+            149.97589587,
+            151.731848235,
+            149.186253166,
+            149.940800665,
+            148.689351234,
+            148.892943341,
+            150.93180449
+          ],
+          "phase_weight_ingestion_span_s": [
+            12.717531387,
+            12.922168766,
+            11.974121525,
+            12.327430788,
+            11.450416938,
+            12.185806166,
+            12.855062633,
+            12.195330086,
+            11.576314742
+          ],
+          "phase_quantization_postprocess_span_s": [
+            133.202469438,
+            130.933878406,
+            132.499800845,
+            135.428678731,
+            131.693973442,
+            131.568603495,
+            131.69223137,
+            130.748446862,
+            134.799716705
+          ]
+        }
+      },
+      "store_pool_hit": {
+        "ids": [
+          "v4n40_store_pool_hit_02",
+          "v4n40_store_pool_hit_03",
+          "v4n40_store_pool_hit_04",
+          "v4n40_store_pool_hit_05",
+          "v4n40_store_pool_hit_06",
+          "v4n40_store_pool_hit_07",
+          "v4n40_store_pool_hit_08",
+          "v4n40_store_pool_hit_09",
+          "v4n40_store_pool_hit_10"
+        ],
+        "arrays": {
+          "phase_weights_pipeline_including_allocation_span_s": [
+            56.419146039,
+            56.274929208,
+            57.009499452,
+            57.956551934,
+            56.819589491,
+            55.535163772,
+            53.609810885,
+            53.020389664,
+            54.3902372
+          ],
+          "phase_weight_ingestion_span_s": [
+            2.907830145,
+            2.682803291,
+            2.929191427,
+            3.212294718,
+            3.261749627,
+            2.87874965,
+            2.801898693,
+            2.685168243,
+            3.346887102
+          ],
+          "phase_quantization_postprocess_span_s": [
+            46.555713651,
+            45.530482365,
+            45.818247176,
+            47.003452033,
+            45.613381015,
+            45.481327594,
+            42.913956743,
+            42.813938025,
+            43.200129895
+          ]
+        }
+      }
+    }
+  },
+  "block_terminal": "THREE_STAGE_EXIT300_BLOCK_RELEASE60_PASS",
+  "release": {
+    "epoch": 1794232230.8465238,
+    "status": "ALL_FOUR_NORMAL_EXIT_RELEASE60_AND_GPU_FREE_VERIFIED",
+    "conditions": [
+      {
+        "condition": "safetensors_disk_hot",
+        "sample_qualified": true,
+        "normal_exit": true,
+        "quiet_seconds_min": 60.21432534605265,
+        "8_rank_full_files_sha_unchanged": true,
+        "native_controller_span_s": 1050.478528
+      },
+      {
+        "condition": "store_disk_cold",
+        "sample_qualified": true,
+        "normal_exit": true,
+        "quiet_seconds_min": 60.11756814643741,
+        "8_rank_full_files_sha_unchanged": true,
+        "native_controller_span_s": 1301.303054
+      },
+      {
+        "condition": "safetensors_disk_cold",
+        "sample_qualified": true,
+        "normal_exit": true,
+        "quiet_seconds_min": 60.09743547998369,
+        "8_rank_full_files_sha_unchanged": true,
+        "native_controller_span_s": 848.733441
+      },
+      {
+        "condition": "store_pool_hit",
+        "sample_qualified": true,
+        "normal_exit": true,
+        "quiet_seconds_min": 60.10683245025575,
+        "8_rank_full_files_sha_unchanged": true,
+        "native_controller_span_s": 1296.598739
+      }
+    ],
+    "gpu_query": "0, GPU-ec8259a6-1812-7313-8679-ded3ed2271a0, 0\n1, GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f, 0\n2, GPU-63a1fe63-1472-9448-9361-a039cf257d14, 0\n3, GPU-393e97f5-a431-1973-5bd9-e2be28ae854a, 0\n4, GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf, 0\n5, GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d, 0\n6, GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590, 0\n7, GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da, 0\n",
+    "compute_apps": "",
+    "parent_unit": "inactive/dead MainPID0; transient unit properties reclaimed, no fabricated native parent timestamps",
+    "note": "Child exact native process spans retained separately; raw endpoints and full original rank metadata remain unchanged on server."
+  },
+  "source_refs": [
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/block-final.json",
+      "sha256": "cd39e33094adc0f3dc0505b4bcdb040062c8820ca4fbfbe0254ad5be4318ba3b",
+      "bytes": 16890
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/post-release-verification.json",
+      "sha256": "96b60ec0a21f6272597302f9f7b49ce7317631be0f61916b372c89d61f936cce",
+      "bytes": 1815
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/safetensors_disk_cold/unified-loading-host-span.json",
+      "sha256": "6d8b189bc5abb87ae61c2352dfe8f67adcd0de2bce65e3accde98c08c8814671",
+      "bytes": 15850
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/safetensors_disk_hot/unified-loading-host-span.json",
+      "sha256": "0c2f8dd28eb769d4d88c84f4e8de25a45febb900fb504b4db3e84190614f4023",
+      "bytes": 15837
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/store_disk_cold/unified-loading-host-span.json",
+      "sha256": "9742297f98fa117f92575bcad302f94ab067e84c785830d795f40c755b871cd7",
+      "bytes": 15872
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/runtime-complete-v1/store_pool_hit/unified-loading-host-span.json",
+      "sha256": "4cb50b565c1962b48d7ea72f1725a6974b4e9c8ce734bc8dc709ace85fda4408",
+      "bytes": 15847
+    },
+    {
+      "path": "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/derived/comparison.json",
+      "sha256": "8659d4c73304b40cdd2e30d2f199d1c653c518a09457258b11f1046727e8be28",
+      "bytes": 52189
+    },
+    {
+      "path": "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/inputs/glm-cpu/event-intervals.csv",
+      "sha256": "3f11fc8383084adcfa3c37a1022d1b70c65c6e4da2eda8c1f9a5420b14ace158",
+      "bytes": 12987
+    },
+    {
+      "path": "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/inputs/v4/results/qualified-rows.json",
+      "sha256": "cc796781c2a5e5fccab50abc7fccacf16293e011349201f635d45b3a351f8e6e",
+      "bytes": 125213
+    }
+  ],
+  "old_artifact_hashes": {
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/reproduce.py": "092565eb20dc97425cd47b8061242f900d5171cde8e5feb35b9e3038dc13e02f",
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/INPUTS.json": "f4d32a0e7ff0e8b86aa83c268809f0a8003b13a1862e6725caa50fb31b45cd23",
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/inputs/kimi-unified/condition-summaries.json": "c684a34fda5b6c37a6324ecb3508dadedecdfaa84d54f645b868794b3bf9e330",
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/derived/fig5_loading.png": "6a64a96f32bba7efa792e361ba51997ead0c45f5472d3fa138076492e901e7e5",
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/derived/fig5_loading.svg": "dde8cb9ac1bd3fc3e37e16350f6384a36ae1f655ae0fbd083c848930150b6476",
+    "/home/boyjiang/sllm-v4-pro/code/comparison/evidence/three-model-final-20261108/derived/fig5_loading.pdf": "b50d2f2450b68daca3c46b67ad53c02eada6966a8f196bb589d7180383f9a351"
+  },
+  "disclosures": [
+    "Kimi: new 2026-11-09 qjhs000 RAID/XFS supplemental cohort, one complete block, n=1 per condition; old eight-block primary set unchanged.",
+    "GLM n=6 and V4 n=9 preserve exactly the existing Figure5 selected IDs and raw arrays.",
+    "Kimi full: before selected loader.load_model to immediate return before optional runner setup. GLM/V4 historical full: Worker.load_model outer flow; no claim of identical atomic endpoints.",
+    "Host spans: max(rank end)-min(rank begin); no added CUDA synchronization, not GPU-completion or pure disk-I/O time.",
+    "Ingestion and postprocessing envelopes can overlap across ranks; bars are non-stacked and must not be summed. V4 grouped Store copies also occur inside its postprocessing phase.",
+    "Different models, quantization, hardware/storage profiles and sample counts; descriptive comparison, no cross-model causal speedup inference."
+  ]
+}

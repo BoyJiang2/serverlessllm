@@ -1,0 +1,56 @@
+{
+  "original_path": "/home/boyjiang/kimi-new/evidence/runs/kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit/worker/load-evidence/rank-3-pid-1771.json",
+  "original_sha256": "f703271aec327d008c91a71e316adc3f5a70204987fafb71dcaa8a5bacc3e2e3",
+  "original_bytes": 1010128,
+  "whole_file_sha_matches_before_after": true,
+  "tp_rank": 3,
+  "pid": 1771,
+  "device_uuid": "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+  "load_completed": true,
+  "weight_load_host_span": {
+    "added_cuda_synchronization": false,
+    "begin_boundary": "before_model_loader_load_model",
+    "begin_ns": 8050250720972564,
+    "clock_identity": {
+      "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+      "container_hostname": "a66d0586047a",
+      "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+      "process_startticks": 805021241,
+      "time_namespace": "time:[4026531834]"
+    },
+    "end_boundary": "after_model_loader_load_model_return_before_optional_runner_setup",
+    "end_ns": 8050274888589299,
+    "loader_type": "vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader",
+    "model": "/store/vllm/kimi-k2.6-sf-reference",
+    "model_instance_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-life1",
+    "pid": 1771,
+    "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit",
+    "schema": "kimi-weight-load-host-endpoints-v1",
+    "stage_schema": "kimi-weight-load-host-stages-v1",
+    "stages": {
+      "postprocessing": {
+        "begin_boundary": "before_store_runtime_hook_traversal",
+        "begin_ns": 8050274876770330,
+        "end_boundary": "after_store_attention_postprocessing_return",
+        "end_ns": 8050274888160665,
+        "status": "COMPLETE"
+      },
+      "weight_ingestion": {
+        "begin_boundary": "before_store_load_dict",
+        "begin_ns": 8050255969758597,
+        "end_boundary": "after_store_data_bindings_and_buffer_moves",
+        "end_ns": 8050274876766448,
+        "status": "COMPLETE"
+      }
+    },
+    "status": "COMPLETE",
+    "tp_rank": 3
+  },
+  "host_owner": {
+    "pid": 3266268,
+    "startticks": 805021241,
+    "state": "S",
+    "ppid": 3265412,
+    "cgroup": "0::/system.slice/docker-a66d0586047a86ba80383285c5ef1f9ae2465b9efaa9557803ed34a3abcf093b.scope"
+  }
+}
