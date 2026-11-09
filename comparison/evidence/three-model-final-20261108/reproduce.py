@@ -224,21 +224,16 @@ def export(output):
         ax.tick_params(axis='x', labelrotation=25)
     save(fig, 'fig4_controller', 'GLM包含准备、三道请求、删除和至少60秒观察；Kimi/V4为各自controller区间。\n各栏端点不同，不能视为同一总成本指标；原40项未重跑。')
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
-    load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
-    axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
-    axes[0].set_title('Kimi f7日志加载包络（n=8）')
-    with (BASE / 'inputs/glm-cpu/event-intervals.csv').open(encoding='utf-8') as stream:
-        glm_phases = {r['attempt_id']: r for r in csv.DictReader(stream)}
+    # Figure5 alone consumes the separate, SHA-bound Kimi n=1 supplement.
+    import subprocess
+    import tempfile
+    import shutil
+    with tempfile.TemporaryDirectory() as temporary:
+        rendered = Path(temporary) / 'figure5'
+        subprocess.run([sys.executable, str(BASE / 'inputs/kimi-load-stage-supplement-20261109/render_figure5.py'), '--out', str(rendered)], check=True)
+        for extension in ('png', 'svg', 'pdf'):
+            shutil.copyfile(rendered / ('figure5-loading-supplement-v1.' + extension), BASE / 'derived' / ('fig5_loading.' + extension))
     rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
-    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', '摄入跨度'), ('phase_quantization_postprocess_span_s', '后处理跨度'), ('phase_weights_pipeline_including_allocation_span_s', '流水线跨度')]):
-        axes[1].bar(np.arange(4) + (j - 1) * .25, [mean(float(glm_phases[i][field]) for i in primary['GLM-5.1-FP8'][c]['ids']) for c in CONDITIONS], .24, label=label)
-        axes[2].bar(np.arange(4) + (j - 1) * .25, [mean(r['metrics'][field] for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c) for c in CONDITIONS], .24, label=label)
-    axes[1].set_title('GLM八rank阶段跨度（n=6）'); axes[1].legend(fontsize=7)
-    axes[2].set_title('V4八rank阶段跨度（n=9）'); axes[2].legend(fontsize=7)
-    for ax in axes:
-        ax.set(xticks=range(4), xticklabels=labels45, ylabel='均值 / 秒'); ax.tick_params(axis='x', labelrotation=25)
-    save(fig, 'fig5_loading', '各栏观测定义不同：Kimi为f7日志，GLM/V4为八rank阶段包络。\n阶段区间可能重叠，摄入、后处理与流水线不能相加，也不是纯磁盘I/O。')
     plt.rcParams['font.sans-serif'] = original_font
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))

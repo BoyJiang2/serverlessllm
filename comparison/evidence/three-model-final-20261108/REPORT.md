@@ -105,7 +105,24 @@ Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐�
 
 ![加载观测](derived/fig5_loading.png)
 
-Kimi f7 日志范围为 getloader 之前至 loadmodel / 可选 LoRA、drafter、aux 之后，缺 rank/PID，不能称 TP8 最大跨度或纯 ingestion。V4 的阶段 span 为八 rank 最早 begin 至最晚 end；分组恢复中 H2D 与逐专家层后处理交错，因此 ingestion、quantization 和 pipeline 的包络可能相互重叠，**不得求和或相减伪造纯固定开销**。GLM没有同定义f7包络；图5现单列已核验的八rank阶段跨度，明确标注n=6，不与Kimi f7视为同一指标。
+**2026-11-10 图5补充：Kimi使用独立新补采完整块，每条件n=1；原主集8块、原40项38合格/2失败、旧失败及L1结论均不变。图1–4、图6–7和原统计不消费这组补采。**
+
+Kimi主指标为 `weight_load_host_all_rank_span_s=(max(rank_end_ns)-min(rank_begin_ns))/1e9`，先逐attempt核验完整8rank身份、端点及共同单调时钟，再计算跨度。起点为每rank进入完整loader流程、fresh模型构造/权重storage分配之前；终点为权重赋值/恢复及必要原生量化、布局后处理返回。未新增CUDA同步；这是host包络，不是纯I/O或精确设备完成时间。
+
+| Kimi独立补采条件 | 完整加载跨度/秒 | 权重摄入跨度/秒 | 后处理跨度/秒 | 最大单rank完整时长/秒 |
+|---|---:|---:|---:|---:|
+| SF冷读 | 337.711999025 | 332.823070212 | 4.954095935 | 337.630975796 |
+| SF热读 | 306.654224588 | 301.595182918 | 4.321631015 | 306.463373885 |
+| Store冷读 | 31.048521166 | 25.276455937 | 1.495703999 | 30.945390612 |
+| Store池命中 | 25.309462256 | 21.775261680 | 19.362923020 | 25.246641716 |
+
+每条件原数组只有表中一个实测值，n=1，均值=中位数；不进行显著性推断。池命中后处理跨rank包络19.362923020秒，但最大单rank后处理仅0.011842329秒，体现rank间错峰，不能解释为每rank后处理耗时19秒。摄入、后处理与完整加载包络可能重叠，**不得求和或相减伪造固定开销**。
+
+四项均通过缓存/池准入、严格算术与翻译、fixed32实际32tokens/length、正常退出及至少60秒释放观察。Store冷fixed32文本与严格SF金标不同，按预先批准的length-only协议合格，差异保留；不声称逐token一致。本补采qjhs000的SF和Store均为/dev/md0上的XFS RAID；SF控制池64MiB，Store池640GiB，采用该新profile事先批准的300秒正常关停窗口。与历史qjhs003 NVMe/640GiB配置不同，不合并原主集，不回改旧30/60秒失败。
+
+GLM n=6与V4 n=9保留原选定数组。Kimi是selected loader调用边界，GLM/V4是Worker外层加载流程；后者可含额外模型通信buffer/offloader设置，**并非严格相同原子边界**，不得据此跨模型排名或估算相减。旧Kimi f7缺完整rank/PID端点，仍仅为专项观测，保留[旧图](derived/history-f7-before-kimi-supplement/fig5_loading.png)及原始输入，不再充作新图中的八rank加载指标。
+
+[本地化绘图输入与32rank端点](inputs/kimi-load-stage-supplement-20261109/figure5-inputs.json)、[绘图数值CSV](inputs/kimi-load-stage-supplement-20261109/plot-values.csv)及[已发布完整证据、逐rank CSV、Prep/A/真实Controller和SHA清单](https://github.com/BoyJiang2/serverlessllm/blob/3c0c417dc96a5c01bf18037437d91d33a3d1e2dd/kimi/evidence/load-stage-four-condition-20261109/runtime-complete-v1/RUNTIME-RESULTS-v1.md)。运行编号为 `kimi-load-stages-20261109-qjhs000-v1-b01`，运行源码 `87bc7ab2`；图4历史controller不被本次补采替换。这里只整理既有完成证据，没有新启动GPU、模型或Store。
 
 V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
 

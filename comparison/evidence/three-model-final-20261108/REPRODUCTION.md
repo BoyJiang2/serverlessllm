@@ -92,3 +92,14 @@ python -m unittest discover -s . -p test_v4_prep_adjustment.py -v
 ```
 
 新增输入inputs/v4-prep/target-cache-timestamps.json绑定36个attempt的小型原始收据投影、原件路径/SHA、时钟与冻结88cc71e生产源码。不是均值相减；每次先算(end-begin)/1e9，再按原条件n9求均值。缓存helper启动/清单解析在首记录之前且缺独立起止，未估算补入；不以注册完成或文件mtime代替缓存begin。缓存预处理、SF热mlock和池命中权重填池/确认在区间内保留，空池初始化在区间外。
+
+
+## 2026-11-10：图5独立补采入口
+
+仅图5改用 `inputs/kimi-load-stage-supplement-20261109/render_figure5.py` 和绑定的输入；全图入口 `reproduce.py` 的图5段也调用该消费者，避免复现时恢复为旧f7柱。其余图与历史统计不变。仅检查输入可运行：
+
+```bash
+python inputs/kimi-load-stage-supplement-20261109/render_figure5.py --check
+```
+
+新图中的Kimi每条件n=1，GLM/V4历史n=6/9；端点与存储差异见REPORT图5。旧图保留于derived/history-f7-before-kimi-supplement。
