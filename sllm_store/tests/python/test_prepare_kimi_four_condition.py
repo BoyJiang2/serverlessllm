@@ -913,8 +913,9 @@ class DiagnosticValueTest(unittest.TestCase):
         import inspect
         reference=p.base.EVIDENCE/'kimi-fingerprint-validator-metadata-only-reference-20261107'
         if not reference.is_dir():self.skipTest('server-only historical metadata fixture absent')
-        index_path=pathlib.Path(p.STORE_ARCHIVE)/'vllm/kimi-k2.6-sf-reference/rank_0/tensor_index.json'
+        index_path=pathlib.Path(p.Q0_STORE_ARCHIVE)/'vllm/kimi-k2.6-sf-reference/rank_0/tensor_index.json'
         raw=index_path.read_bytes();self.assertLess(len(raw),4<<20);index=json.loads(raw)
+        self.assertEqual(p.hashlib.sha256(raw).hexdigest(),'859fcbe7d013c533213a59737b9e837d59dc9980ce406f305ec89615b2bd88a5') # Same frozen rank0 metadata as q3; no payload read.
         node=next(n for n in ast.walk(ast.parse(inspect.getsource(p.validate_diagnostic_fingerprint))) if isinstance(n,ast.FunctionDef) and n.name=='signature')
         namespace={};exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-signature>','exec'),namespace);signature=namespace['signature']
         for path in reference.glob('*rank0.json'):
@@ -2012,6 +2013,150 @@ class Formal64SupplementTest(unittest.TestCase):
             for selection in (['--attempt-id',protocol['attempts'][0]['attempt_id']],['--block','2'],['--matched-cache-only']):
                 with self.subTest(selection=selection),mock.patch.object(p,'validate_inventory'),mock.patch.object(sys,'argv',args+selection),self.assertRaisesRegex(AssertionError,'formal64 accepts only|matched cache requires'):
                     p.main()
+
+
+class StoreStopObservationTest(unittest.TestCase):
+    def protocol(self):
+        protocol=Formal64SupplementTest().protocol()
+        cohort=p.STOP_OBSERVE_COHORT
+        protocol['unified_loading'].update(cohort_id=cohort,block_id=cohort+'-b01')
+        for row in protocol['attempts']:row['attempt_id']=cohort+'-b01-'+row['condition']
+        protocol.update(execution_scope=p.STOP_OBSERVE_SCOPE,statistics=copy.deepcopy(p.STOP_OBSERVE_STATISTICS),store_stop_observation={"criterion_seconds":60,"observation_seconds":300,"condition":"store_disk_cold","templates_inactive_except_storecold":True,"primary_sample_qualified":False})
+        return protocol
+
+    def test_actual_render_budget_identity_gates_and_diagnostic_status(self):
+        protocol=self.protocol()
+        original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,cmd=p.render_store_stop_observation(protocol,original,command,original['native_source_pins'])
+        body=cmd['argv'][cmd['argv'].index('-c')+1]
+        self.assertEqual(spec['run_id'],p.STOP_OBSERVE_COHORT+'-b01-store_disk_cold')
+        self.assertEqual(spec['store_pool_bytes'],687194767360)
+        self.assertEqual(spec['budgets']['full'],7200);self.assertEqual(spec['budgets']['sum'],6480)
+        for text in ("store_stop_end=time.monotonic()+300","store_stop_end+120+180<end","stop_end=stop_started+600","collect_unified_loading(records,rank_owners,physical)","HTTP('/delete'","diagnostic_prerequisites_valid","DIAGNOSTIC_STORE_STOP_OBSERVATION_NORMAL_RELEASE60_NOT_PERFORMANCE"):
+            self.assertIn(text,body)
+        self.assertNotIn("'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'",body)
+        self.assertNotIn("assert qualification['primary_sample_qualified']",body)
+        self.assertFalse(spec['primary_sample_qualified'])
+        self.assertEqual(len(spec['planned_attempts']),1)
+        tree=ast.parse(body)
+        maintry=next(n for n in tree.body if isinstance(n,ast.Try) and any(isinstance(x,ast.Assign) and any(isinstance(y,ast.Name) and y.id=='store_stop_end' for y in x.targets) for x in n.body))
+        index=next(i for i,n in enumerate(maintry.body) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='store_stop_end' for x in n.targets))
+        actual=compile(ast.Module(body=maintry.body[index:index+3],type_ignores=[]),'<actual300caller>','exec')
+        for stop_end,end,expected in ((349,1000,False),(351,649,False),(351,651,True)):
+            calls=[];env=dict(time=type('Clock',(),{'monotonic':lambda:50}),stop_end=stop_end,end=end,stop_service=lambda *args:calls.append(args))
+            if expected:exec(actual,env);self.assertEqual(calls,[('store','worker',350)])
+            else:
+                with self.assertRaises(AssertionError):exec(actual,env)
+                self.assertEqual(calls,[])
+        for key,value in [('criterion_seconds',30),('observation_seconds',301),('condition','safetensors_disk_hot')]:
+            bad=copy.deepcopy(protocol);bad['store_stop_observation'][key]=value
+            with self.subTest(key=key),self.assertRaises(AssertionError):p.validate_protocol(bad)
+
+    def test_actual_main_two_closed_files_and_mode_rejections(self):
+        protocol=self.protocol()
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);output=root/'out';output.mkdir()
+            pp=root/'protocol.json';pp.write_text(json.dumps(protocol))
+            argv=['prepare','--protocol',str(pp),'--protocol-sha',p.hashlib.sha256(pp.read_bytes()).hexdigest()]
+            with mock.patch.object(p,'validate_inventory'),mock.patch.object(p.base,'EVIDENCE',output),mock.patch.object(sys,'argv',argv+['--store-stop-observe']),mock.patch('builtins.print'):
+                p.main()
+            files=list(output.iterdir());self.assertEqual(len(files),2)
+            spec=json.loads(next(output.glob('*-spec.json')).read_text())
+            self.assertIsNone(spec['source_commit']);self.assertEqual(spec['status'],'STORE_STOP_OBSERVATION_CANDIDATE_NOT_EXECUTABLE')
+            self.assertFalse(spec['primary_sample_qualified'])
+            for selection in (['--block','1'],['--attempt-id',protocol['attempts'][1]['attempt_id']],['--matched-cache-only']):
+                with self.subTest(selection=selection),mock.patch.object(p,'validate_inventory'),mock.patch.object(sys,'argv',argv+selection),self.assertRaisesRegex(AssertionError,'stop observation protocol'):
+                    p.main()
+
+    def test_actual_stop_errors_and_finish_time_are_in_original_interval(self):
+        import types
+        source=p.observation_stop_source("def stop_service(name,role,deadline):\n if name=='store':\n  pass\n  return\n item=services[name]\n")
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);(root/'worker').mkdir();(root/'worker/store.pid').write_text('123')
+            for kind in ('finish_late','signal_error','finish_error','diagnostic_save_error'):
+                with self.subTest(kind=kind):
+                    now=[0.0];saved={};original=RuntimeError('original-'+kind)
+                    def save(name,row):
+                        if kind=='diagnostic_save_error':raise OSError('evidence disk failed')
+                        self.assertNotIn(name,saved);saved[name]=copy.deepcopy(row)
+                    def call(*args):
+                        now[0]=5
+                        if kind in ('signal_error','diagnostic_save_error'):raise original
+                    def finish(*args):
+                        if kind=='finish_error':raise original
+                        now[0]=65
+                    env=dict(time=types.SimpleNamespace(monotonic=lambda:now[0]),base=root,services={'store':(types.SimpleNamespace(poll=lambda:0),)},owned_host_pid=lambda pid:{'pid':123},D=[],cids={'worker':'own'},call=call,healthy=lambda:None,finish=finish,gone=lambda owner:True,save=save,json=json)
+                    exec(source,env)
+                    if kind=='finish_late':
+                        env['stop_service']('store','worker',300)
+                        self.assertFalse(saved['store-stop-exit60.json']['pass'])
+                        self.assertEqual(saved['store-stop-observation.json']['begin_monotonic'],0)
+                    else:
+                        with self.assertRaises(RuntimeError) as raised:env['stop_service']('store','worker',300)
+                        self.assertIs(raised.exception,original)
+                        if kind!='diagnostic_save_error':self.assertFalse(saved['store-stop-exit60.json']['pass'])
+
+    def test_actual_generated_normal_tail_is_diagnostic_and_does_not_abort60fail(self):
+        protocol=self.protocol();original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        spec,command=p.render_store_stop_observation(protocol,original,p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA),original['native_source_pins'])
+        body=command['argv'][command['argv'].index('-c')+1]
+        tree=ast.parse(body)
+        fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='finalize_sample_evidence')
+        self.assertIn("verdict['primary_sample_qualified']=False",ast.get_source_segment(body,fn))
+        # Execute the actual normal-tail statements, not a mirrored lifecycle.
+        roottry=next(n for n in tree.body if isinstance(n,ast.Try) and any(isinstance(x,ast.Assign) and any(isinstance(y,ast.Name) and y.id=='qualification' for y in x.targets) for x in n.body))
+        start=next(i for i,n in enumerate(roottry.body) if isinstance(n,ast.Assign) and any(isinstance(x,ast.Name) and x.id=='qualification' for x in n.targets))
+        nodes=roottry.body[start:]
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);(root/'store-stop-exit60.json').write_text('{"pass":false}')
+            for role in ('head','worker'):
+                (root/('guard-'+role)).mkdir();(root/('guard-'+role)/'guard-final.json').write_text('{"quiet_seconds":61}')
+            cleanup={'normal':True,'status':'NORMAL_QUIET60','quiet_seconds':61}
+            for name,row in (('sample-metrics.json',{}),('condition-terminal.json',{'normal':True}),('cleanup-result.json',cleanup)):
+                (root/name).write_text(json.dumps(row))
+            finalenv=dict(condition_normal=True,base=root,run=spec['run_id'],s=dict(spec,source_commit=None,protocol_sha256='fixture'),recover_http_samples=lambda:None,condition_terminal=lambda *a:None,sample_gates={key:{'status':'PASS'} for key in ('cache','gold','clock','ownership')},sample_metrics={key:{'observation_status':'OBSERVED','raw_interval_status':'NUMERIC','stdout_reference':{}} for key in ('arithmetic','translation','fixed32')},hashlib=p.hashlib,json=json,save=lambda name,row:(root/name).write_text(json.dumps(row)))
+            selectedfn=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name in ('sample_qualification','finalize_sample_evidence')]
+            exec(compile(ast.Module(body=selectedfn,type_ignores=[]),'<actual-diagnostic-finalize>','exec'),finalenv)
+            actualverdict=finalenv['finalize_sample_evidence'](cleanup,'normal completion')
+            self.assertTrue(actualverdict['diagnostic_prerequisites_valid']);self.assertFalse(actualverdict['primary_sample_qualified'])
+            saved={}
+            env=dict(base=root,qualification=None,finalize_sample_evidence=lambda *a:actualverdict,observed={'quiet_seconds':61},json=json,save=lambda name,row:saved.update({name:row}),time=type('Clock',(),{'monotonic':lambda:100}),started=0,cids={},units={},props=lambda u:{},s=spec)
+            # Preserve only assignment/assert/final save; any other final-tail operation is checked by the existing lifecycle fixtures.
+            selected=[n for n in nodes if isinstance(n,(ast.Assign,ast.Assert)) or (isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Name) and n.value.func.id=='save')]
+            exec(compile(ast.Module(body=selected,type_ignores=[]),'<actual-diagnostic-tail>','exec'),env)
+            final=saved['controller-final.json']
+            self.assertFalse(final['primary_sample_qualified']);self.assertFalse(final['criterion60_pass'])
+            self.assertIn('NOT_PERFORMANCE',final['status'])
+
+    def test_actual_stop_consumer_latches60_and_preserves_late_exit(self):
+        source=p.observation_stop_source("def stop_service(name,role,deadline):\n if name=='store':\n  pass\n  return\n item=services[name]\n")
+        import types
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);(root/'worker').mkdir();(root/'worker/store.pid').write_text('123')
+            for exit_at,expected in ((30,True),(60,False),(75,False),(300,False),(301,False)):
+                with self.subTest(exit_at=exit_at):
+                    now=[0.0];saved={};finishes=[]
+                    clock=types.SimpleNamespace(monotonic=lambda:now[0],sleep=lambda seconds:now.__setitem__(0,now[0]+seconds))
+                    process=types.SimpleNamespace(poll=lambda:0 if now[0]>=exit_at else None)
+                    def save(name,value):
+                        self.assertNotIn(name,saved);saved[name]=copy.deepcopy(value)
+                    env=dict(time=clock,base=root,services={'store':(process,)},owned_host_pid=lambda pid:{'pid':123},D=[],cids={'worker':'own'},call=lambda *a:None,healthy=lambda:None,finish=lambda *a:finishes.append(True),gone=lambda owner:True,save=save,json=json,m=types.SimpleNamespace(process_stop_snapshot=lambda *a:{}))
+                    exec(source,env)
+                    if exit_at>=300:
+                        with self.assertRaisesRegex(TimeoutError,'300'):env['stop_service']('store','worker',300)
+                    else:env['stop_service']('store','worker',300)
+                    self.assertEqual(saved['store-stop-exit60.json']['pass'],expected)
+                    self.assertEqual(saved['store-stop-observation.json']['criterion60_pass'],expected)
+                    if not expected:self.assertLessEqual(saved['store-stop-exit60.json']['elapsed'],60.5)
+                    self.assertEqual(bool(finishes),exit_at<300)
+
+        nested=next(n for n in ast.walk(ast.parse(source)) if isinstance(n,ast.FunctionDef) and n.name=='latch')
+        result={'criterion60_pass':None};rows=[]
+        latchenv=dict(time=type('Clock',(),{'monotonic':lambda:60.0}),result=result,criterion_end=60,begin=0,save=lambda name,row:rows.append(row))
+        exec(compile(ast.Module(body=[nested],type_ignores=[]),'<actual60latch-boundary>','exec'),latchenv)
+        latchenv['latch'](True,'candidate_normal');latchenv['latch'](True,'must_not_upgrade')
+        self.assertFalse(result['criterion60_pass']);self.assertEqual(len(rows),1)
 
 if __name__=='__main__':
     unittest.main()

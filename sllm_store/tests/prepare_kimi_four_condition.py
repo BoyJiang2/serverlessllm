@@ -29,6 +29,9 @@ Q0_STORE_ARCHIVE = "/home/boyjiang/kimi-new/store-conversion-20261105-once"
 Q0_RUNS_ROOT = "/home/boyjiang/kimi-new/evidence/runs"
 Q0_NODE_PROFILE = {'hostname': 'qjhs0', 'ssh_alias': 'qjhs000', 'gpu_uuids': ['GPU-ec8259a6-1812-7313-8679-ded3ed2271a0', 'GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f', 'GPU-63a1fe63-1472-9448-9361-a039cf257d14', 'GPU-393e97f5-a431-1973-5bd9-e2be28ae854a', 'GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf', 'GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d', 'GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590', 'GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da'], 'filesystem_source': '/dev/md0', 'filesystem_type': 'xfs'}
 SMALL_POOL_COHORT = "kimi-unified-loading-20261109-qjhs000-small-pool-v1"
+STOP_OBSERVE_COHORT = "kimi-store-stop-observe-20261109-qjhs000-v1"
+STOP_OBSERVE_SCOPE = "STORE_STOP_OBSERVATION_ONLY_NOT_PERFORMANCE"
+STOP_OBSERVE_STATISTICS = {"scope":"single_storecold_stop_observation_not_performance","success_rate_denominator":"launch_requested","stopping":"criterion60_latched_observation300_technical_failure_abort_no_retry"}
 FORMAL64_COHORT = "kimi-unified-loading-20261109-qjhs000-formal64-v1"
 FORMAL64_REVIEW_PATH = base.EVIDENCE/"kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/actual-matched-cache-results-independent-review-v1.json"
 FORMAL64_REVIEW_SHA = "7f9fb98630805c2ccbef481d743708eb4c49e6663cbddee323e25d516b421bf6"
@@ -57,17 +60,22 @@ def validate_protocol(protocol):
     attempts = protocol["attempts"]
     if unified:
         loading=protocol["unified_loading"]
-        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT)
-        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):
+        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
+        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
             assert protocol["node_profile"]==Q0_NODE_PROFILE
             assert protocol["node"]==Q0_NODE_PROFILE["ssh_alias"]
             assert protocol["assets"]["route"]=="local_raid_md0"
-        if loading["cohort_id"] in (SMALL_POOL_COHORT,FORMAL64_COHORT):
+        if loading["cohort_id"] in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
             assert protocol["store_pool_bytes_by_condition"]=={c:(67108864 if c.startswith("safetensors") else 687194767360) for c in CONDITIONS}
             protocol_cache_pin(protocol)
         if loading["cohort_id"]==FORMAL64_COHORT:
             assert protocol["execution_scope"]=="formal_four_only"
             assert protocol.get("cache_diagnostic") is None and protocol["statistics"]==UNIFIED_STATISTICS
+            formal64_dependency(protocol)
+        if loading["cohort_id"]==STOP_OBSERVE_COHORT:
+            assert protocol["execution_scope"]==STOP_OBSERVE_SCOPE
+            assert protocol["statistics"]==STOP_OBSERVE_STATISTICS and protocol.get("cache_diagnostic") is None
+            assert protocol["store_stop_observation"]=={"criterion_seconds":60,"observation_seconds":300,"condition":"store_disk_cold","templates_inactive_except_storecold":True,"primary_sample_qualified":False}
             formal64_dependency(protocol)
         if loading["cohort_id"]==SMALL_POOL_COHORT:
             assert protocol["execution_scope"]=="MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION"
@@ -202,7 +210,7 @@ UNIFIED_STATISTICS = {"scope":"single_block_descriptive_no_inference","success_r
 
 def protocol_guard_pin(protocol):
     cohort=protocol.get("unified_loading",{}).get("cohort_id")
-    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):
+    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
         assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
         return FORMAL_GUARD_SHA
     assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
@@ -213,13 +221,13 @@ def protocol_guard_pin(protocol):
     assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
     assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
     assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
-    if cohort in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
+    if cohort in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
     return guard["sha256"]
 
 
 def protocol_cache_pin(protocol):
     path=base.ROOT/"sllm_store/tests/file_cache_state.py"
-    small=protocol.get("unified_loading",{}).get("cohort_id") in (SMALL_POOL_COHORT,FORMAL64_COHORT)
+    small=protocol.get("unified_loading",{}).get("cohort_id") in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
     if not small:
         assert protocol.get("cache_observation_helper") is None,"new helper requires explicit small-pool cohort"
         assert base.digest(path)==LEGACY_CACHE_SHA,"historical3340 helper bytes unavailable; old frozen deployment remains closed"
@@ -810,7 +818,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     guard_sha=protocol_guard_pin(protocol)
     small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
     formal64=protocol.get("unified_loading",{}).get("cohort_id")==FORMAL64_COHORT
-    q0=small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
+    q0=small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==STOP_OBSERVE_COHORT or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
     proc_confirm=q0 or protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
@@ -995,7 +1003,7 @@ if sys.argv[1]=='pool':
         anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
         assert body.count(anchor)==1
         body=body.replace(anchor,UNIFIED_LOADING_CODE+anchor,1)
-    if small or formal64:
+    if small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==STOP_OBSERVE_COHORT:
         amount=protocol["store_pool_bytes_by_condition"][attempt["condition"]]
         spec["store_pool_bytes"]=amount
         old="'--mem-pool-size','640GB'"
@@ -1142,7 +1150,7 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
     assert protocol['resource_budget']['parent_overhead_seconds']==120
     assets=protocol['assets']
-    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT)
+    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
     sf,archive,runs=(Q0_SF_HOST,Q0_STORE_ARCHIVE,Q0_RUNS_ROOT) if q0 else (SF_HOST,STORE_ARCHIVE,RUNS_ROOT)
     assert assets['route']==('local_raid_md0' if q0 else 'local_nvme')
     assert assets['safetensors']==sf and assets['store_archive']==archive
@@ -1461,6 +1469,101 @@ def prepare_matched_cache(protocol, spec, command, pins, source_commit, protocol
     return files
 
 
+
+def observation_stop_source(original):
+    """Independent fixed60 verdict; fixed300 observation never upgrades it."""
+    tail=original[original.index("\n item=services[name]"):]
+    return """def stop_service(name,role,deadline):
+ if name=='store':
+  begin=deadline-300;criterion_end=begin+60
+  result={'protocol':'DIAGNOSTIC_STORE_STOP_FIXED60_OBSERVE300','criterion_seconds':60,'observation_seconds':300,'begin_monotonic':begin,'criterion_deadline_monotonic':criterion_end,'observation_deadline_monotonic':deadline,'owner':None,'criterion60_pass':None,'primary_sample_qualified':False,'measurement':'controller Stop call through finish and strictgone including IPC and diagnostics'}
+  def latch(passed,reason):
+   if result['criterion60_pass'] is not None:return
+   now=time.monotonic()
+   if passed and now>=criterion_end:passed=False;reason='criterion60_exceeded'
+   result['criterion60_pass']=passed
+   save('store-stop-exit60.json',dict(result,pass_marker='PASS' if passed else 'FAIL',**{'pass':passed},elapsed=now-begin,recorded_monotonic=now,reason=reason,immutable_verdict=True))
+  def check_time():
+   now=time.monotonic()
+   if now>=criterion_end:latch(False,'criterion60_exceeded')
+   if now>=deadline:raise TimeoutError('Store fixed300 observation exceeded')
+  try:
+   check_time()
+   item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None
+   result['owner']=owner;check_time()
+   call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3)
+   check_time();captures=set()
+   while item[0].poll() is None:
+    check_time();healthy();check_time();now=time.monotonic()
+    for at in (10,20):
+     if now-begin>=at and at not in captures:
+      captures.add(at)
+      try:record=m.process_stop_snapshot(owner,min(deadline,criterion_end))
+      except Exception as error:record={'status':'DIAGNOSTIC_ERROR','error_type':type(error).__name__,'error':str(error)}
+      check_time()
+      try:save('store-stop-diagnostic-'+str(at)+'.json',{'elapsed':time.monotonic()-begin,'owner':owner,'snapshot':record})
+      except Exception as error:
+       try:print(json.dumps({'event':'STORE_STOP_DIAGNOSTIC_SAVE_FAILED','error_type':type(error).__name__}),flush=True)
+       except Exception:pass
+      check_time()
+    time.sleep(min(.5,max(0,deadline-time.monotonic())))
+   check_time();finish(item,deadline);check_time()
+   if owner:assert gone(owner),'Store observed exit owned process still present'
+   check_time();latch(True,'normal_exit_finish_and_strictgone_before60')
+   result.update(outcome='NORMAL_EXIT_AND_STRICTGONE',elapsed=time.monotonic()-begin,completion_monotonic=time.monotonic())
+   save('store-stop-observation.json',result)
+  except BaseException as error:
+   try:latch(False,'normal_exit_or_strictgone_verification_failed')
+   except Exception:pass
+   result.update(outcome='RIGHT_CENSORED_AT_300' if time.monotonic()>=deadline else 'TECHNICAL_FAILURE',elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error))
+   try:save('store-stop-observation.json',result)
+   except Exception:pass
+   raise
+  return
+"""+tail
+
+
+def render_store_stop_observation(protocol, original_spec, original_command, pins):
+    assert protocol['unified_loading']['cohort_id']==STOP_OBSERVE_COHORT
+    assert protocol['execution_scope']==STOP_OBSERVE_SCOPE
+    attempt=next(a for a in protocol['attempts'] if a['condition']=='store_disk_cold')
+    spec,command=render(protocol,original_spec,original_command,attempt['attempt_id'],pins)
+    index=command['argv'].index('-c')+1;body=command['argv'][index]
+    node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
+    body=replace_function(body,'stop_service',observation_stop_source(ast.get_source_segment(body,node)))
+    old="store_stop_end=time.monotonic()+60;assert store_stop_end<stop_end,'full Store60 stop slot unavailable'"
+    new="store_stop_end=time.monotonic()+300;assert store_stop_end<stop_end and store_stop_end+120+180<end,'full fixed300 Store observation plus release/evidence unavailable'"
+    assert body.count(old)==1;body=body.replace(old,new,1)
+    old="assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit']"
+    assert body.count(old)==1;body=body.replace(old,"assert s['status']=='FROZEN_STORE_STOP_OBSERVATION_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION' and s['source_commit'] and s['diagnostic_only'] is True",1)
+    old=" verdict=sample_qualification(sample_gates,terminal,cleanup,sample_metrics)"
+    assert body.count(old)==1;body=body.replace(old,old+"\n verdict['diagnostic_prerequisites_valid']=verdict['primary_sample_qualified'];verdict['primary_sample_qualified']=False;verdict['invalid_reasons'].append('DIAGNOSTIC_ONLY_NOT_PERFORMANCE')",1)
+    old=";assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'"
+    assert body.count(old)==1;body=body.replace(old,";assert qualification['diagnostic_prerequisites_valid'],'missing or invalid diagnostic model evidence'",1)
+    body=body.replace("'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'","'status':'DIAGNOSTIC_STORE_STOP_OBSERVATION_NORMAL_RELEASE60_NOT_PERFORMANCE','primary_sample_qualified':False,'criterion60_pass':json.loads((base/'store-stop-exit60.json').read_text())['pass']",1)
+    body=body.replace("'status':'NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY'","'status':'DIAGNOSTIC_STORE_STOP_OBSERVATION_TECHNICAL_FAILED'",1)
+    compile(body,'<store-stop-observation>','exec')
+    command['argv'][index]=body;command['root_python_sha256']=hashlib.sha256(body.encode()).hexdigest()
+    spec.update(diagnostic_only=True,diagnostic_mode='store_stop_fixed60_observe300_v1',execution_scope=STOP_OBSERVE_SCOPE,primary_sample_qualified=False,store_stop_observation=copy.deepcopy(protocol['store_stop_observation']))
+    spec['planned_attempts']=[{'attempt_id':attempt['attempt_id'],'condition':'store_disk_cold','status':'NOT_STARTED'}]
+    spec['code_pins'].update(formal64_dependency(protocol))
+    return spec,command
+
+
+def prepare_store_stop_observation(protocol,spec,command,pins,source_commit,protocol_path,protocol_sha):
+    spec,command=render_store_stop_observation(protocol,spec,command,pins)
+    spec.update(source_commit=source_commit,protocol_path=str(protocol_path),protocol_sha256=protocol_sha,source_pin_status='COMMITTED_REMOTE_VERIFIED' if source_commit else 'CANDIDATE_CURRENT_BYTES_NOT_SOURCE_ADMISSION')
+    spec['status']=command['status']='FROZEN_STORE_STOP_OBSERVATION_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION' if source_commit else 'STORE_STOP_OBSERVATION_CANDIDATE_NOT_EXECUTABLE'
+    spec['code_pins'][str(protocol_path)]=protocol_sha
+    sp=base.EVIDENCE/(spec['run_id']+'-stop-observe-v1-'+protocol_sha[:12]+'-spec.json')
+    cp=sp.with_name(sp.name.replace('-spec.json','-command.json'))
+    command['argv'][-3]=str(sp);sb=json_bytes(spec);command['argv'][-2]=command['spec_sha256']=hashlib.sha256(sb).hexdigest()
+    files=[(sp,sb),(cp,json_bytes(command))]
+    assert all(not path.exists() for path,_ in files),'diagnostic output identity already prepared'
+    for path,data in files:base.write_new(path,data)
+    return files
+
+
 def json_bytes(value):
     return (json.dumps(value,ensure_ascii=False,indent=2)+chr(10)).encode()
 
@@ -1468,6 +1571,7 @@ def json_bytes(value):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     selection=parser.add_mutually_exclusive_group(required=True)
+    selection.add_argument('--store-stop-observe',action='store_true')
     selection.add_argument('--matched-cache-only',action='store_true');selection.add_argument('--attempt-id');selection.add_argument('--block',type=int,choices=range(1,11));selection.add_argument('--diagnostic',action='store_true');selection.add_argument('--sfhot-repeatability',action='store_true')
     parser.add_argument('--diagnostic-overlay',type=pathlib.Path);parser.add_argument('--diagnostic-overlay-sha')
     parser.add_argument('--source-commit')
@@ -1487,6 +1591,9 @@ def main():
     pins={relative:base.digest(base.ROOT/relative) for relative in original_spec['native_source_pins']}
     pins['sllm/logger.py']=base.digest(base.ROOT/'sllm/logger.py')
     pins['sllm_store/tests/file_cache_state.py']=protocol_cache_pin(protocol)
+    if protocol.get('unified_loading',{}).get('cohort_id')==STOP_OBSERVE_COHORT:
+        assert args.store_stop_observe and protocol['execution_scope']==STOP_OBSERVE_SCOPE,'stop observation protocol cannot activate formal or other diagnostics'
+    else:assert not args.store_stop_observe,'stop observation requires explicit new cohort'
     if protocol.get('unified_loading',{}).get('cohort_id')==SMALL_POOL_COHORT:
         assert args.matched_cache_only and protocol['execution_scope']=='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION','diagnostic protocol cannot activate formal attempts or blocks'
     else:assert not args.matched_cache_only,'matched cache requires new explicit profile'
@@ -1502,8 +1609,11 @@ def main():
         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
         if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
             declared.add('sllm_store/tests/python/test_vllm_loader_interface.py')
-        if args.matched_cache_only or protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:declared.add('sllm_store/tests/python/test_file_cache_state.py')
+        if args.matched_cache_only or args.store_stop_observe or protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:declared.add('sllm_store/tests/python/test_file_cache_state.py')
         final_commit=committed_source(args.source_commit,declared)
+    if args.store_stop_observe:
+        files=prepare_store_stop_observation(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha)
+        print(json.dumps({'status':'STORE_STOP_OBSERVATION_PREPARED_NOT_EXECUTED','diagnostic_only':True,'primary_sample_qualified':False,'files':[{'path':str(path),'sha256':hashlib.sha256(data).hexdigest()} for path,data in files]}));return
     if args.matched_cache_only:
         files=prepare_matched_cache(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha)
         print(json.dumps({'status':'MATCHED_CACHE_DIAGNOSTIC_PREPARED_NOT_EXECUTED','diagnostic_only':True,'primary_sample_qualified':False,'files':[{'path':str(path),'sha256':hashlib.sha256(data).hexdigest()} for path,data in files]}));return
