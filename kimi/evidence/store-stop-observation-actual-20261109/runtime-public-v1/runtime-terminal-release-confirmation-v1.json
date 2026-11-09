@@ -1,0 +1,629 @@
+{
+  "status": "NORMAL_DIAGNOSTIC_EXIT_AND_RELEASE_VERIFIED_NOT_PERFORMANCE",
+  "epoch": 1794215421.8229425,
+  "run_id": "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold",
+  "controller": {
+    "MainPID": "0",
+    "Result": "success",
+    "NRestarts": "0",
+    "ExecMainStartTimestampMonotonic": "8032620487000",
+    "ExecMainExitTimestampMonotonic": "8033948791410",
+    "ExecMainPID": "2060726",
+    "ExecMainCode": "1",
+    "ExecMainStatus": "0",
+    "ControlGroup": "",
+    "InvocationID": "215a5415a83c447588d2d130a5029778"
+  },
+  "controller_host_span_s": 1328.30441,
+  "native_timestamp_unit": "microseconds CLOCK_MONOTONIC on same host",
+  "containers": {
+    "head": {
+      "id": "b35210d971eb92b3e52c2800d9cd5c7914b7c0282a58b19d8f501353ac521632",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-09T08:46:20.19756238Z",
+        "FinishedAt": "2026-11-09T09:07:23.010064577Z"
+      },
+      "host_config": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "1",
+            "max-size": "64m"
+          }
+        },
+        "NetworkMode": "34dcf64c618404955377c12a55c012fc250a33ffbd128537fa924c5783c0afd0",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": false,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,exec,nosuid,nodev,size=8g,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 1073741824,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 17179869184,
+        "NanoCpus": 8000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 17179869184,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": 4096,
+        "Ulimits": [
+          {
+            "Name": "core",
+            "Hard": 0,
+            "Soft": 0
+          }
+        ],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM",
+            "Target": "/source",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/store-conversion-20261105-once",
+            "Target": "/store",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+            "Target": "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+            "Target": "/source/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+            "Target": "/assets/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+            "Target": "/assets/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+            "Target": "/assets/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+            "Target": "/assets/gputil-1.4.0-py3-none-any.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/mnt/raid/models/Kimi-K2.6",
+            "Target": "/mnt/raid/models/Kimi-K2.6",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/control",
+            "Target": "/control",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/head",
+            "Target": "/evidence"
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      }
+    },
+    "worker": {
+      "id": "8621d417c0cac60fb5ed6edc492b4504caaacdd8b81cf95427c6b4eb9083f3cd",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-09T08:46:40.03504189Z",
+        "FinishedAt": "2026-11-09T09:07:21.997227723Z"
+      },
+      "host_config": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {
+            "max-file": "1",
+            "max-size": "64m"
+          }
+        },
+        "NetworkMode": "34dcf64c618404955377c12a55c012fc250a33ffbd128537fa924c5783c0afd0",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": false,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,exec,nosuid,nodev,size=8g,mode=1777"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 8589934592,
+        "Runtime": "nvidia",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 1649267441664,
+        "NanoCpus": 32000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 1649267441664,
+        "MemorySwappiness": null,
+        "OomKillDisable": null,
+        "PidsLimit": 4096,
+        "Ulimits": [
+          {
+            "Name": "core",
+            "Hard": 0,
+            "Soft": 0
+          }
+        ],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM",
+            "Target": "/source",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/store-conversion-20261105-once",
+            "Target": "/store",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+            "Target": "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+            "Target": "/source/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+            "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+            "Target": "/assets/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+            "Target": "/assets/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+            "Target": "/assets/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+            "Target": "/assets/gputil-1.4.0-py3-none-any.whl",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/mnt/raid/models/Kimi-K2.6",
+            "Target": "/mnt/raid/models/Kimi-K2.6",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/control",
+            "Target": "/control",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/worker",
+            "Target": "/evidence"
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      }
+    }
+  },
+  "guards_quiet_seconds": {
+    "head": 60.202276040799916,
+    "worker": 60.179878012277186
+  },
+  "observer_quiet_seconds": 60.99205565545708,
+  "captured_identities_gone": 12,
+  "gpu": {
+    "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-63a1fe63-1472-9448-9361-a039cf257d14": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": {
+      "used_mib": 0,
+      "processes": []
+    },
+    "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": {
+      "used_mib": 0,
+      "processes": []
+    }
+  },
+  "units": {
+    "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold-controller.service": {
+      "MainPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "8032620487000",
+      "ExecMainExitTimestampMonotonic": "8033948791410",
+      "ExecMainPID": "2060726",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "",
+      "InvocationID": "215a5415a83c447588d2d130a5029778"
+    },
+    "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold-head-guard.service": {
+      "MainPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "8032621597531",
+      "ExecMainExitTimestampMonotonic": "8033945616318",
+      "ExecMainPID": "2060858",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "",
+      "InvocationID": "272abc2b7d8e407c875b1f98f15b26e7"
+    },
+    "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold-worker-guard.service": {
+      "MainPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "8032641522788",
+      "ExecMainExitTimestampMonotonic": "8033945329691",
+      "ExecMainPID": "2063572",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "",
+      "InvocationID": "8659752393bb4b04912423cc6dccc547"
+    },
+    "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold-observer.service": {
+      "MainPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "8032640552087",
+      "ExecMainExitTimestampMonotonic": "8033947234873",
+      "ExecMainPID": "2063502",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "",
+      "InvocationID": "e1ae9df83ed54b44a0c6f149cb3abc1d"
+    }
+  },
+  "criterion60_pass": false,
+  "primary_sample_qualified": false,
+  "source_commit": "15b9e5c2c73c05ec93f3f4101e1868773b5bbe50",
+  "collector_note": "First readback list-units text included multiline Python description; explicit known unit names used; no runtime change or cleanup action."
+}

@@ -1,0 +1,709 @@
+{
+  "status": "COMPLETED_ONCE_DIAGNOSTIC_NORMAL_EXIT_RELEASE60_NOT_PERFORMANCE",
+  "run_id": "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold",
+  "source_commit": "15b9e5c2c73c05ec93f3f4101e1868773b5bbe50",
+  "protocol_sha256": "1180e000ccc1a44fade637e5286d65c9f564933828c801812e2709269a8522bf",
+  "criterion60": {
+    "protocol": "DIAGNOSTIC_STORE_STOP_FIXED60_OBSERVE300",
+    "criterion_seconds": 60,
+    "observation_seconds": 300,
+    "begin_monotonic": 8033742.753075763,
+    "criterion_deadline_monotonic": 8033802.753075763,
+    "observation_deadline_monotonic": 8034042.753075763,
+    "owner": {
+      "pid": 2069228,
+      "startticks": 803266615,
+      "state": "S",
+      "ppid": 2063618,
+      "cgroup": "0::/system.slice/docker-8621d417c0cac60fb5ed6edc492b4504caaacdd8b81cf95427c6b4eb9083f3cd.scope"
+    },
+    "criterion60_pass": false,
+    "primary_sample_qualified": false,
+    "measurement": "controller Stop call through finish and strictgone including IPC and diagnostics",
+    "pass_marker": "FAIL",
+    "pass": false,
+    "elapsed": 60.49390429165214,
+    "recorded_monotonic": 8033803.246980054,
+    "reason": "criterion60_exceeded",
+    "immutable_verdict": true
+  },
+  "observation300": {
+    "protocol": "DIAGNOSTIC_STORE_STOP_FIXED60_OBSERVE300",
+    "criterion_seconds": 60,
+    "observation_seconds": 300,
+    "begin_monotonic": 8033742.753075763,
+    "criterion_deadline_monotonic": 8033802.753075763,
+    "observation_deadline_monotonic": 8034042.753075763,
+    "owner": {
+      "pid": 2069228,
+      "startticks": 803266615,
+      "state": "S",
+      "ppid": 2063618,
+      "cgroup": "0::/system.slice/docker-8621d417c0cac60fb5ed6edc492b4504caaacdd8b81cf95427c6b4eb9083f3cd.scope"
+    },
+    "criterion60_pass": false,
+    "primary_sample_qualified": false,
+    "measurement": "controller Stop call through finish and strictgone including IPC and diagnostics",
+    "outcome": "NORMAL_EXIT_AND_STRICTGONE",
+    "elapsed": 136.1730894194916,
+    "completion_monotonic": 8033878.926165551
+  },
+  "pool_release": {
+    "progress_rows": 160,
+    "attempted": 10240,
+    "failed": 0,
+    "elapsed_s": 133.484,
+    "counter_semantics": "Each buffer unregister attempt; failed buffers retained. Here all attempts succeeded; wholeprocess normalexit independently proven. Not a CUDA-only breakdown."
+  },
+  "proc_snapshots": [
+    {
+      "second_label": 10,
+      "actual_elapsed": 10.030298678204417,
+      "pid": 2069228,
+      "startticks": 803266615,
+      "state": "D",
+      "wchan": "rwsem_down_write_slowpath",
+      "syscall": "16 0x10 0x42 0x7ffe2f6a05d0 0x1 0x0 0x7ffe2f6a0690 0x7ffe2f6a0560 0x7f36423cee1d\n",
+      "kernel_stack": "[<0>] rwsem_down_write_slowpath+0x230/0x3e0\n[<0>] os_acquire_rwlock_write+0x35/0x50 [nvidia]\n[<0>] portSyncRwLockAcquireWrite+0x10/0x40 [nvidia]\n[<0>] rmapiLockAcquire+0x294/0x360 [nvidia]\n[<0>] _nvGpuOpsLocksAcquireWithClientLockFlags+0x8a/0x1e0 [nvidia]\n[<0>] nvGpuOpsFreeDupedHandle+0x7e/0x310 [nvidia]\n[<0>] nvUvmInterfaceFreeDupedHandle+0x2b/0x90 [nvidia]\n[<0>] uvm_release_rm_handle+0x60/0x70 [nvidia_uvm]\n[<0>] uvm_ext_gpu_map_free+0x51/0x60 [nvidia_uvm]\n[<0>] uvm_deferred_free_object_list+0xee/0x160 [nvidia_uvm]\n[<0>] uvm_api_unmap_external+0x1eb/0x240 [nvidia_uvm]\n[<0>] uvm_ioctl+0xe51/0x1840 [nvidia_uvm]\n[<0>] uvm_unlocked_ioctl_entry.part.0+0xb5/0x120 [nvidia_uvm]\n[<0>] uvm_unlocked_ioctl_entry+0x67/0x90 [nvidia_uvm]\n[<0>] __x64_sys_ioctl+0x92/0xd0\n[<0>] do_syscall_64+0x59/0xc0\n[<0>] entry_SYSCALL_64_after_hwframe+0x62/0xcc\n"
+    },
+    {
+      "second_label": 20,
+      "actual_elapsed": 20.49638004321605,
+      "pid": 2069228,
+      "startticks": 803266615,
+      "state": "D",
+      "wchan": "rwsem_down_write_slowpath",
+      "syscall": "16 0x10 0x42 0x7ffe2f6a05d0 0x1 0x0 0x7ffe2f6a0690 0x7ffe2f6a0560 0x7f36423cee1d\n",
+      "kernel_stack": "[<0>] rwsem_down_write_slowpath+0x230/0x3e0\n[<0>] os_acquire_rwlock_write+0x35/0x50 [nvidia]\n[<0>] portSyncRwLockAcquireWrite+0x10/0x40 [nvidia]\n[<0>] rmapiLockAcquire+0x294/0x360 [nvidia]\n[<0>] _nvGpuOpsLocksAcquireWithClientLockFlags+0x8a/0x1e0 [nvidia]\n[<0>] nvGpuOpsFreeDupedHandle+0x7e/0x310 [nvidia]\n[<0>] nvUvmInterfaceFreeDupedHandle+0x2b/0x90 [nvidia]\n[<0>] uvm_release_rm_handle+0x60/0x70 [nvidia_uvm]\n[<0>] uvm_ext_gpu_map_free+0x51/0x60 [nvidia_uvm]\n[<0>] uvm_deferred_free_object_list+0xee/0x160 [nvidia_uvm]\n[<0>] uvm_api_unmap_external+0x1eb/0x240 [nvidia_uvm]\n[<0>] uvm_ioctl+0xe51/0x1840 [nvidia_uvm]\n[<0>] uvm_unlocked_ioctl_entry.part.0+0xb5/0x120 [nvidia_uvm]\n[<0>] uvm_unlocked_ioctl_entry+0x67/0x90 [nvidia_uvm]\n[<0>] __x64_sys_ioctl+0x92/0xd0\n[<0>] do_syscall_64+0x59/0xc0\n[<0>] entry_SYSCALL_64_after_hwframe+0x62/0xcc\n"
+    }
+  ],
+  "correctness": {
+    "cache": {
+      "status": "PASS",
+      "reason": "finite cache/pool admission passed"
+    },
+    "gold": {
+      "status": "PASS",
+      "reason": "arith/translation strict and fixed32 length-only accepted; strict reference differences retained; sampled IDs verified by cumulative trace"
+    },
+    "clock": {
+      "status": "PASS",
+      "reason": "all client/backend/route producer domains and lifecycle joins verified"
+    },
+    "ownership": {
+      "status": "PASS",
+      "reason": "all8 rank owners physically authenticated"
+    }
+  },
+  "primary_sample_qualified": false,
+  "diagnostic_prerequisites_valid": true,
+  "weight_load_host_all_rank_span_s": 31.501797433,
+  "max_rank_full_load_s": 30.941608998,
+  "inner_phase_endpoints": null,
+  "inner_phase_missing_reason": "Not instrumented in frozen stop diagnostic; no subtraction/estimation",
+  "timing": {
+    "Prep_observed_common_environment_begin_to_register_producer_begin_s": 819.732905712,
+    "Prep_begin_ns": 8032621484618703,
+    "Prep_end_ns": 8033441217524415,
+    "Prep_limit": "Controller event starts after native process entry; interval includes environment, pool, baseline, API, cache preparation and IPC. Not pure IO, not substitute for full controller.",
+    "A_register_before_to_arithmetic_json_parsed_before_assert_s": 214.183276139,
+    "A_begin_ns": 8033441217524415,
+    "A_end_ns": 8033655400782788,
+    "pool_initialization_cli_to_config_s": 666.600970275,
+    "controller_host_span_s": 1328.30441,
+    "controller_raw": {
+      "MainPID": "0",
+      "Result": "success",
+      "NRestarts": "0",
+      "ExecMainStartTimestampMonotonic": "8032620487000",
+      "ExecMainExitTimestampMonotonic": "8033948791410",
+      "ExecMainPID": "2060726",
+      "ExecMainCode": "1",
+      "ExecMainStatus": "0",
+      "ControlGroup": "",
+      "InvocationID": "215a5415a83c447588d2d130a5029778"
+    },
+    "controller_scope": "Actual systemd ExecMainStart to ExecMainExit, includes initialization/cache/model/three requests/delete/normal service and container exits/quiet60/evidence and final return. Same boot MONOTONIC us; no forcedcleanup."
+  },
+  "release": {
+    "containers": {
+      "head": {
+        "id": "b35210d971eb92b3e52c2800d9cd5c7914b7c0282a58b19d8f501353ac521632",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T08:46:20.19756238Z",
+          "FinishedAt": "2026-11-09T09:07:23.010064577Z"
+        },
+        "host_config": {
+          "Binds": null,
+          "ContainerIDFile": "",
+          "LogConfig": {
+            "Type": "json-file",
+            "Config": {
+              "max-file": "1",
+              "max-size": "64m"
+            }
+          },
+          "NetworkMode": "34dcf64c618404955377c12a55c012fc250a33ffbd128537fa924c5783c0afd0",
+          "PortBindings": {},
+          "RestartPolicy": {
+            "Name": "no",
+            "MaximumRetryCount": 0
+          },
+          "AutoRemove": false,
+          "VolumeDriver": "",
+          "VolumesFrom": null,
+          "ConsoleSize": [
+            0,
+            0
+          ],
+          "CapAdd": null,
+          "CapDrop": [
+            "ALL"
+          ],
+          "CgroupnsMode": "private",
+          "Dns": [],
+          "DnsOptions": [],
+          "DnsSearch": [],
+          "ExtraHosts": null,
+          "GroupAdd": null,
+          "IpcMode": "private",
+          "Cgroup": "",
+          "Links": null,
+          "OomScoreAdj": 0,
+          "PidMode": "",
+          "Privileged": false,
+          "PublishAllPorts": false,
+          "ReadonlyRootfs": false,
+          "SecurityOpt": [
+            "no-new-privileges"
+          ],
+          "Tmpfs": {
+            "/tmp": "rw,exec,nosuid,nodev,size=8g,mode=1777"
+          },
+          "UTSMode": "",
+          "UsernsMode": "",
+          "ShmSize": 1073741824,
+          "Runtime": "runc",
+          "Isolation": "",
+          "CpuShares": 0,
+          "Memory": 17179869184,
+          "NanoCpus": 8000000000,
+          "CgroupParent": "",
+          "BlkioWeight": 0,
+          "BlkioWeightDevice": [],
+          "BlkioDeviceReadBps": [],
+          "BlkioDeviceWriteBps": [],
+          "BlkioDeviceReadIOps": [],
+          "BlkioDeviceWriteIOps": [],
+          "CpuPeriod": 0,
+          "CpuQuota": 0,
+          "CpuRealtimePeriod": 0,
+          "CpuRealtimeRuntime": 0,
+          "CpusetCpus": "",
+          "CpusetMems": "",
+          "Devices": [],
+          "DeviceCgroupRules": null,
+          "DeviceRequests": null,
+          "MemoryReservation": 0,
+          "MemorySwap": 17179869184,
+          "MemorySwappiness": null,
+          "OomKillDisable": null,
+          "PidsLimit": 4096,
+          "Ulimits": [
+            {
+              "Name": "core",
+              "Hard": 0,
+              "Soft": 0
+            }
+          ],
+          "CpuCount": 0,
+          "CpuPercent": 0,
+          "IOMaximumIOps": 0,
+          "IOMaximumBandwidth": 0,
+          "Mounts": [
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM",
+              "Target": "/source",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/store-conversion-20261105-once",
+              "Target": "/store",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+              "Target": "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+              "Target": "/source/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+              "Target": "/assets/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+              "Target": "/assets/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+              "Target": "/assets/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+              "Target": "/assets/gputil-1.4.0-py3-none-any.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/mnt/raid/models/Kimi-K2.6",
+              "Target": "/mnt/raid/models/Kimi-K2.6",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/control",
+              "Target": "/control",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/head",
+              "Target": "/evidence"
+            }
+          ],
+          "MaskedPaths": [
+            "/proc/asound",
+            "/proc/acpi",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/sys/firmware",
+            "/sys/devices/virtual/powercap"
+          ],
+          "ReadonlyPaths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+          ]
+        }
+      },
+      "worker": {
+        "id": "8621d417c0cac60fb5ed6edc492b4504caaacdd8b81cf95427c6b4eb9083f3cd",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T08:46:40.03504189Z",
+          "FinishedAt": "2026-11-09T09:07:21.997227723Z"
+        },
+        "host_config": {
+          "Binds": null,
+          "ContainerIDFile": "",
+          "LogConfig": {
+            "Type": "json-file",
+            "Config": {
+              "max-file": "1",
+              "max-size": "64m"
+            }
+          },
+          "NetworkMode": "34dcf64c618404955377c12a55c012fc250a33ffbd128537fa924c5783c0afd0",
+          "PortBindings": {},
+          "RestartPolicy": {
+            "Name": "no",
+            "MaximumRetryCount": 0
+          },
+          "AutoRemove": false,
+          "VolumeDriver": "",
+          "VolumesFrom": null,
+          "ConsoleSize": [
+            0,
+            0
+          ],
+          "CapAdd": null,
+          "CapDrop": [
+            "ALL"
+          ],
+          "CgroupnsMode": "private",
+          "Dns": [],
+          "DnsOptions": [],
+          "DnsSearch": [],
+          "ExtraHosts": null,
+          "GroupAdd": null,
+          "IpcMode": "private",
+          "Cgroup": "",
+          "Links": null,
+          "OomScoreAdj": 0,
+          "PidMode": "",
+          "Privileged": false,
+          "PublishAllPorts": false,
+          "ReadonlyRootfs": false,
+          "SecurityOpt": [
+            "no-new-privileges"
+          ],
+          "Tmpfs": {
+            "/tmp": "rw,exec,nosuid,nodev,size=8g,mode=1777"
+          },
+          "UTSMode": "",
+          "UsernsMode": "",
+          "ShmSize": 8589934592,
+          "Runtime": "nvidia",
+          "Isolation": "",
+          "CpuShares": 0,
+          "Memory": 1649267441664,
+          "NanoCpus": 32000000000,
+          "CgroupParent": "",
+          "BlkioWeight": 0,
+          "BlkioWeightDevice": [],
+          "BlkioDeviceReadBps": [],
+          "BlkioDeviceWriteBps": [],
+          "BlkioDeviceReadIOps": [],
+          "BlkioDeviceWriteIOps": [],
+          "CpuPeriod": 0,
+          "CpuQuota": 0,
+          "CpuRealtimePeriod": 0,
+          "CpuRealtimeRuntime": 0,
+          "CpusetCpus": "",
+          "CpusetMems": "",
+          "Devices": [],
+          "DeviceCgroupRules": null,
+          "DeviceRequests": null,
+          "MemoryReservation": 0,
+          "MemorySwap": 1649267441664,
+          "MemorySwappiness": null,
+          "OomKillDisable": null,
+          "PidsLimit": 4096,
+          "Ulimits": [
+            {
+              "Name": "core",
+              "Hard": 0,
+              "Soft": 0
+            }
+          ],
+          "CpuCount": 0,
+          "CpuPercent": 0,
+          "IOMaximumIOps": 0,
+          "IOMaximumBandwidth": 0,
+          "Mounts": [
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM",
+              "Target": "/source",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/store-conversion-20261105-once",
+              "Target": "/store",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-empty-pointer-v1/_C.cpython-312-x86_64-linux-gnu.so",
+              "Target": "/source/sllm_store/sllm_store/_C.cpython-312-x86_64-linux-gnu.so",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+              "Target": "/source/sllm_store/sllm_store/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/__init__.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/sllm_loader.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/engine/core_client.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/engine/core_client.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/executor/abstract.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/executor/abstract.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_model_runner.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/v1/worker/gpu_worker.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/v1/worker/gpu_worker.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v3/tokenizers/hf.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/tokenizers/hf.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-v4/model_executor/layers/rotary_embedding/common.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/rotary_embedding/common.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/utils.py",
+              "Target": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/utils.py",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+              "Target": "/assets/ray-2.48.0-cp312-cp312-manylinux2014_x86_64.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+              "Target": "/assets/msgpack-1.1.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/downloads/native-ray248-cp312-20261105/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+              "Target": "/assets/speedtest_cli-2.1.3-py2.py3-none-any.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-native-gputil-wheel-v1/gputil-1.4.0-py3-none-any.whl",
+              "Target": "/assets/gputil-1.4.0-py3-none-any.whl",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/mnt/raid/models/Kimi-K2.6",
+              "Target": "/mnt/raid/models/Kimi-K2.6",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/control",
+              "Target": "/control",
+              "ReadOnly": true
+            },
+            {
+              "Type": "bind",
+              "Source": "/home/boyjiang/kimi-new/evidence/runs/kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold/worker",
+              "Target": "/evidence"
+            }
+          ],
+          "MaskedPaths": [
+            "/proc/asound",
+            "/proc/acpi",
+            "/proc/kcore",
+            "/proc/keys",
+            "/proc/latency_stats",
+            "/proc/timer_list",
+            "/proc/timer_stats",
+            "/proc/sched_debug",
+            "/proc/scsi",
+            "/sys/firmware",
+            "/sys/devices/virtual/powercap"
+          ],
+          "ReadonlyPaths": [
+            "/proc/bus",
+            "/proc/fs",
+            "/proc/irq",
+            "/proc/sys",
+            "/proc/sysrq-trigger"
+          ]
+        }
+      }
+    },
+    "guards_quiet_seconds": {
+      "head": 60.202276040799916,
+      "worker": 60.179878012277186
+    },
+    "observer_quiet_seconds": 60.99205565545708,
+    "captured_identities_gone": 12,
+    "gpu": {
+      "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-63a1fe63-1472-9448-9361-a039cf257d14": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": {
+        "used_mib": 0,
+        "processes": []
+      },
+      "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": {
+        "used_mib": 0,
+        "processes": []
+      }
+    }
+  },
+  "history_unchanged": {
+    "original40": "38 qualified/2 failed",
+    "primary_original_complete_blocks": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "new_complete_formal_blocks": 0,
+    "accepted_L1": "unchanged",
+    "old_f7": "separate observations; no replacement"
+  },
+  "limits": [
+    "Single new diagnostic, not a formal measurement or repeatability demonstration.",
+    "qjhs000 local RAID differs from historical qjhs003 NVMe; 640GiB pool unchanged.",
+    "10/20proc reads sequential non-atomic, both captured D NVIDIA UVM write lock path; not evidence whole136s is one continuous wait or causal attribution of all time.",
+    "Historical interrupted60s attempt remains failed; natural136s here does not prove it would also finish by300.",
+    "No three-phase supplement or four-condition complete sample produced."
+  ]
+}
