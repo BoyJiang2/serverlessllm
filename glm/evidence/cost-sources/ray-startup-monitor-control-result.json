@@ -1,0 +1,518 @@
+{
+  "scope": "independent startup-control verification only; not GLM model service or controller supplement",
+  "run_id": "sllm-debug-20261109T170530Z-0cd21c3d",
+  "code_commit": "04fbc526546bb6776951019a24abc0405a3fd72a",
+  "unit": {
+    "MainPID": "0",
+    "Result": "success",
+    "ExecMainStartTimestampMonotonic": "1373309698881",
+    "ExecMainExitTimestampMonotonic": "1373419851127",
+    "ExecMainCode": "1",
+    "ExecMainStatus": "0",
+    "ExecStart": "{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -I -B /data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-51b31dd49b06/controls/debug_stack_v1/debug_stack.py measure --startup-only --startup-stage ray --source-tree /data/brick1/boyjiang/glm5.1-fp8/code/source-debug-04fbc526546b-70a71e5dca77 --condition safetensors_disk_cold --review /data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/ray-stage-04fbc526-approved.json --guard-probe /run/sllm-debug-20261109T170530Z-0cd21c3d/guard-verification.json --controller-unit sllm-debug-20261109T170530Z-0cd21c3d-controller.service ; ignore_errors=no ; start_time=[Tue 2026-11-10 02:29:51 CST] ; stop_time=[Tue 2026-11-10 02:31:42 CST] ; pid=954313 ; code=exited ; status=0 }",
+    "ActiveState": "active",
+    "SubState": "exited",
+    "InvocationID": "3cf639bc58fe4528a36f4af603c677f9"
+  },
+  "unit_elapsed_s": 110.152246,
+  "monitor": {
+    "samples": 82,
+    "span_s": 107.969729172,
+    "maximum_sample_s": 0.491384466,
+    "maximum_gap_s": 1.491998856,
+    "stage_maximum_s": {
+      "GPU devices": 0.175104495,
+      "GPU processes": 0.302275047,
+      "remaining resources": 0.004027672,
+      "head inspect": 0.026080356,
+      "head init and cgroup": 0.001633617,
+      "head members": 0.000845672,
+      "head smaps_rollup": 7.8738e-05,
+      "worker inspect": 0.103330542,
+      "worker init and cgroup": 0.00195388,
+      "worker members": 0.001826512,
+      "worker smaps_rollup": 7.1345e-05
+    }
+  },
+  "release": {
+    "samples": 46,
+    "span_s": 60.915058211,
+    "maximum_sample_s": 0.518749956,
+    "maximum_gap_s": 1.362775108,
+    "stage_maximum_s": {
+      "head inspect": 0.210704989,
+      "worker inspect": 0.021689818,
+      "GPU devices": 0.19635074,
+      "GPU processes": 0.126994546,
+      "remaining resources": 0.000588206
+    }
+  },
+  "guard": {
+    "root_proof_path": "/run/sllm-debug-20261109T170530Z-0cd21c3d/guard-verification.json",
+    "sha256": "8981c2b157de4593f508e721ec1b66b7b6ab2f17811a08d649f5672c2c488867",
+    "deadline_delay_s": 900,
+    "deadline_after_main_s": 859.332922,
+    "accuracy": "NextElapseUSecMonotonic=2w 1d 21h 42min 49.031803s\nAccuracyUSec=1s\n",
+    "arm_to_main_s": 40.670163092
+  },
+  "ray_worker": {
+    "status": "Ray startup control completed",
+    "purpose": "DEBUG-UNREVIEWED",
+    "weight_format": "safetensors",
+    "query": true,
+    "pool_bytes": 0,
+    "chunk_bytes": 0,
+    "worker_ip": "172.17.0.3",
+    "head_address": "172.17.0.2:26532",
+    "begin_ns": 1373317687528176,
+    "ray_only": true,
+    "measurement_class": "independent supplement candidate, not C23",
+    "model_service_pass": false,
+    "publish_controller": false,
+    "condition": "safetensors_disk_cold",
+    "run_id": "sllm-debug-20261109T170530Z-0cd21c3d",
+    "holder": "4fbba8890e8254a539402d4a85154568",
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "pid": 7,
+    "startticks": 137331763,
+    "child_births": {
+      "ray-worker": {
+        "pid": 8,
+        "startticks": 137331768
+      }
+    },
+    "ray_ready_ns": 1373322325680326,
+    "shutdown_begin_ns": 1373352325788506,
+    "signal_requests": {
+      "ray-worker": {
+        "pid": 8,
+        "startticks": 137331768,
+        "signal": 15,
+        "requested_ns": 1373352325987195,
+        "alive_before": true,
+        "delivery_returned_ns": 1373352325998529,
+        "exit_observed_ns": 1373352841269458
+      }
+    },
+    "shutdown_work_deadline_monotonic_s": 1373642.325822289,
+    "ray_stop_returncode": 0,
+    "ray_stop_stdout": "2026-11-09 18:30:36,364\tINFO scripts.py:1334 -- Did not find any active Ray processes.\n",
+    "ray_stop_stderr": "",
+    "end_ns": 1373354381549969,
+    "forced_kill": [],
+    "shutdown_errors": [],
+    "unexpected_pre_cleanup_exits": {},
+    "returncodes": {
+      "ray-worker": 1
+    },
+    "shutdown_log_sha256": {
+      "ray-worker": "6a04cd7dba12b40353a06f9c6d774ed723baea551dd49664e8e4dfbdc8528191"
+    },
+    "controlled_exit_rules": {
+      "store": [
+        0
+      ],
+      "sllm": [
+        0
+      ],
+      "ray-worker": [
+        0,
+        -15,
+        1
+      ]
+    },
+    "ray_cli_controlled_hook_evidence": true,
+    "http_graceful_shutdown_evidence": false,
+    "controller_shutdown_method_called": "not asserted",
+    "success": false,
+    "ray_control_pass": true
+  },
+  "ray_nodes": [
+    {
+      "NodeID": "9dad3ce6b10958168bf890649638fd9edf4456891b2b20cfe57034d6",
+      "Alive": true,
+      "NodeManagerAddress": "172.17.0.3",
+      "NodeManagerHostname": "aa3432dcf613",
+      "NodeManagerPort": 41461,
+      "ObjectManagerPort": 45175,
+      "ObjectStoreSocketName": "/r/ray-head-service13a/session_2026-11-09_18-29-55_850339_7/sockets/plasma_store.1",
+      "RayletSocketName": "/r/ray-head-service13a/session_2026-11-09_18-29-55_850339_7/sockets/raylet.1",
+      "MetricsExportPort": 38824,
+      "NodeName": "172.17.0.3",
+      "RuntimeEnvAgentPort": 56349,
+      "DeathReason": 0,
+      "DeathReasonMessage": "",
+      "alive": true,
+      "Resources": {
+        "worker_id_0": 1.0,
+        "node:172.17.0.3": 1.0,
+        "GPU": 8.0,
+        "worker_node": 1.0,
+        "CPU": 16.0,
+        "memory": 1824924889088.0,
+        "accelerator_type:H20": 1.0,
+        "object_store_memory": 268435456.0
+      },
+      "Labels": {
+        "ray.io/node_id": "9dad3ce6b10958168bf890649638fd9edf4456891b2b20cfe57034d6"
+      }
+    },
+    {
+      "NodeID": "d2b85b3b3a8ab6c77ad79ca7ba5959609f38861b1cb01941c432c302",
+      "Alive": true,
+      "NodeManagerAddress": "172.17.0.2",
+      "NodeManagerHostname": "b227aec19249",
+      "NodeManagerPort": 34369,
+      "ObjectManagerPort": 35875,
+      "ObjectStoreSocketName": "/r/ray-head-service13a/session_2026-11-09_18-29-55_850339_7/sockets/plasma_store",
+      "RayletSocketName": "/r/ray-head-service13a/session_2026-11-09_18-29-55_850339_7/sockets/raylet",
+      "MetricsExportPort": 63479,
+      "NodeName": "172.17.0.2",
+      "RuntimeEnvAgentPort": 45958,
+      "DeathReason": 0,
+      "DeathReasonMessage": "",
+      "alive": true,
+      "Resources": {
+        "control_node": 1.0,
+        "node:__internal_head__": 1.0,
+        "CPU": 4.0,
+        "node:172.17.0.2": 1.0,
+        "memory": 5756866560.0,
+        "object_store_memory": 268435456.0
+      },
+      "Labels": {
+        "ray.io/node_id": "d2b85b3b3a8ab6c77ad79ca7ba5959609f38861b1cb01941c432c302"
+      }
+    }
+  ],
+  "result": {
+    "run_id": "sllm-debug-20261109T170530Z-0cd21c3d",
+    "holder": "4fbba8890e8254a539402d4a85154568",
+    "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T170530Z.slice/sllm-debug-20261109T170530Z-0cd21c3d.slice",
+    "startup_only": true,
+    "startup_stage": "ray",
+    "controller_begin_ns": 1373309698881000,
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "pid": 954313,
+    "startticks": 137330969,
+    "condition": "safetensors_disk_cold",
+    "work_seconds": 180,
+    "total_seconds": 900,
+    "r1_sha256": "35ed241f8226ba26bb5397ce4771beedf2053facdeeb7517a7d576e5e5db4e87",
+    "guard_probe_sha256": "8981c2b157de4593f508e721ec1b66b7b6ab2f17811a08d649f5672c2c488867",
+    "status": "startup control passed",
+    "success": true,
+    "exit_evidence": {
+      "worker": {
+        "container_id": "aa3432dcf613ad566dad9f8466ea03f284f01b280ae8d1e391049fca9cd79267",
+        "before": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:58.789852018Z",
+          "FinishedAt": "2026-11-09T18:30:36.597261493Z"
+        },
+        "stop_returncode": null,
+        "normal_exit_verified": true,
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:58.789852018Z",
+          "FinishedAt": "2026-11-09T18:30:36.597261493Z"
+        }
+      },
+      "head": {
+        "container_id": "b227aec19249c230fd1ef9e0a4ec3ee3f5c25728f733c9c7a5c1cdd9f75d6d1f",
+        "before": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 954640,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:54.18783956Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "stop_returncode": 0,
+        "normal_exit_verified": true,
+        "stop_stderr": "",
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:54.18783956Z",
+          "FinishedAt": "2026-11-09T18:30:39.976092205Z"
+        }
+      }
+    },
+    "all_owned_containers_removed_ns": 1373358402425236,
+    "release_observation_s": 60.915058211,
+    "controller_end_ns": 1373419836561700,
+    "end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "controller_elapsed_s": 110.1376807,
+    "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+    "controller_metric_provisional": true,
+    "controller_finalizer": null,
+    "measurement_class": "ray startup monitor control only",
+    "model_service_pass": false,
+    "publish_controller": false
+  },
+  "stack": {
+    "run_id": "sllm-debug-20261109T170530Z-0cd21c3d",
+    "holder": "4fbba8890e8254a539402d4a85154568",
+    "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T170530Z.slice/sllm-debug-20261109T170530Z-0cd21c3d.slice",
+    "startup_only": true,
+    "startup_stage": "ray",
+    "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+    "purpose": "DEBUG-UNREVIEWED",
+    "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+    "mode": "gpu",
+    "controller_begin_ns": 1373311765516665,
+    "controller_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "controller_clock": "time.monotonic_ns on qjhs003 host",
+    "lifetime_seconds": 300,
+    "deadline_unix": 1794249771,
+    "weight_format": "safetensors",
+    "query": true,
+    "booking": {
+      "mode": "borrowed without booking",
+      "authorized_by": "owner instruction in this chat; latest short-borrow confirmation 2026-11-09",
+      "checked_utc": "2026-11-09T18:29:54.056121+00:00",
+      "max_lifetime_seconds": 2400,
+      "scope": "GPUs idle and no formal or debug containers when up ran; not a reservation"
+    },
+    "guard": {
+      "timer": "sllm-debug-guard.timer",
+      "script": "/usr/local/lib/sllm-debug-guard/debug_guard.py",
+      "active": true,
+      "problems": [],
+      "heartbeat_age_seconds": 41.0,
+      "checked_utc": "2026-11-09T18:29:54.062577+00:00"
+    },
+    "configuration": {
+      "weight_format": "safetensors",
+      "pool_bytes": 0,
+      "chunk_bytes": null,
+      "c23_pool_bytes": 768799145984,
+      "differs_from_formal": [
+        "fresh public stack for each condition instead of C23 shared stack",
+        "independently reviewed supplementary entry, not the original formal gate",
+        "fresh native-home compilation cache; compilation costs remain charged",
+        "DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs"
+      ],
+      "comparable_to_formal_measurements": false,
+      "measurement_class": "startup monitor control; no worker application",
+      "request_order": [
+        "arithmetic",
+        "translation",
+        "fixed32"
+      ],
+      "condition": "safetensors_disk_cold"
+    },
+    "tool_sha256": {
+      "controls/debug_stack_v1/debug_plan.py": "cc4435b2db9c829626f35182ab913376ac5adcad0313d43f8338defe40886598",
+      "controls/debug_stack_v1/debug_stack.py": "c06c856535f404b1698439ca18981840f63f373505325bebfff03723db20a8c4",
+      "controls/debug_stack_v1/debug_service.py": "790781ac22a57315476d0328038506eaba6972e887aae6967a1772a3f194f77d",
+      "controls/debug_stack_v1/debug_guard.py": "3d70fc4ad03f54ff474aa3a492b664c9bddae341b780b78f9e561a263141f342",
+      "controls/debug_stack_v1/install_debug_guard.sh": "782e995d6bd1669c2d0aeb83a3fffe8ad9a2f8b42a5cf43e9468702341e7b2f4",
+      "controls/service_smoke_v1/docker_args.py": "6d20317cb8c653ed521734bf93bd95b4e360a17bb2fcf54f2816088fad96e2af",
+      "tools/restore_original_image.py": "8ae69f46144cc8ce8ed20e9b6f15d05e347a39a327f3b80ddf045cee88e85f32",
+      "tools/docker_plan.py": "759685a9f5266d1a87a26207d4f3520aab2bfaece1cebaf1ed69e49e7f2b6fbd"
+    },
+    "status": "released",
+    "condition": "safetensors_disk_cold",
+    "source": {
+      "tree": "/data/brick1/boyjiang/glm5.1-fp8/code/source-debug-04fbc526546b-70a71e5dca77",
+      "code_commit": "04fbc526546bb6776951019a24abc0405a3fd72a",
+      "tree_sha256": "70a71e5dca77d2e62047c83e15457746c65243eb2d16b683be63ad87c2a35baa",
+      "files": 83
+    },
+    "image": {
+      "head": {
+        "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+        "restored": false
+      },
+      "worker": {
+        "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+        "restored": false
+      }
+    },
+    "head_container_id": "b227aec19249c230fd1ef9e0a4ec3ee3f5c25728f733c9c7a5c1cdd9f75d6d1f",
+    "bound_cgroups": {
+      "head": {
+        "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T170530Z.slice/sllm-debug-20261109T170530Z-0cd21c3d.slice/docker-b227aec19249c230fd1ef9e0a4ec3ee3f5c25728f733c9c7a5c1cdd9f75d6d1f.scope",
+        "inode": 3187111,
+        "container_id": "b227aec19249c230fd1ef9e0a4ec3ee3f5c25728f733c9c7a5c1cdd9f75d6d1f"
+      }
+    },
+    "head_ip": "172.17.0.2",
+    "head_ready_seconds": 4.2,
+    "worker_container_id": "aa3432dcf613ad566dad9f8466ea03f284f01b280ae8d1e391049fca9cd79267",
+    "up_utc": "2026-11-09T18:29:59.810281+00:00",
+    "down": {
+      "worker": "removed",
+      "head": "removed"
+    },
+    "exit_evidence": {
+      "worker": {
+        "container_id": "aa3432dcf613ad566dad9f8466ea03f284f01b280ae8d1e391049fca9cd79267",
+        "before": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:58.789852018Z",
+          "FinishedAt": "2026-11-09T18:30:36.597261493Z"
+        },
+        "stop_returncode": null,
+        "normal_exit_verified": true,
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:58.789852018Z",
+          "FinishedAt": "2026-11-09T18:30:36.597261493Z"
+        }
+      },
+      "head": {
+        "container_id": "b227aec19249c230fd1ef9e0a4ec3ee3f5c25728f733c9c7a5c1cdd9f75d6d1f",
+        "before": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 954640,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:54.18783956Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "stop_returncode": 0,
+        "normal_exit_verified": true,
+        "stop_stderr": "",
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-11-09T18:29:54.18783956Z",
+          "FinishedAt": "2026-11-09T18:30:39.976092205Z"
+        }
+      }
+    },
+    "cleanup_errors": {},
+    "controller_end_ns": 1373358402004789,
+    "controller_end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "controller_elapsed_s": 46.636488124,
+    "controller_timing_valid": true,
+    "controller_scope": "up entry through owned container removal and GPU-process check; excludes any later resource observation; debug evidence, not C23",
+    "released_utc": "2026-11-09T18:30:40.554106+00:00"
+  },
+  "files": {
+    "controller-result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/controller-result.json",
+      "bytes": 48761,
+      "sha256": "5a090cb3243cbd3b94f078844bbea0344a10c4893ba6b30f79c193f1b5194483"
+    },
+    "controller-start.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/controller-start.json",
+      "bytes": 44260,
+      "sha256": "d3dbffea7c9428b3964c125d8ca3006db7c9711ab5b2b51bb03f37e99624f033"
+    },
+    "stack.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/stack.json",
+      "bytes": 6642,
+      "sha256": "8445d8788dcd2bd6770f67a0ae5b8c215da5abc59298309d0e3172c186ac3d77"
+    },
+    "controller-monitor.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/controller-monitor.jsonl",
+      "bytes": 3050360,
+      "sha256": "c971fcfacc58976d613b59559b97e391b68c116dfaeebc91097e23381480623d"
+    },
+    "release60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/release60.jsonl",
+      "bytes": 342378,
+      "sha256": "6fc6a6e413d8bf0a0548031b585a1c5c4f8556d687ba4dd02d53c664b6339070"
+    },
+    "guard-verification-preserved.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/guard-verification-preserved.json",
+      "bytes": 44350,
+      "sha256": "8981c2b157de4593f508e721ec1b66b7b6ab2f17811a08d649f5672c2c488867"
+    },
+    "debug-service/result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/debug-service/result.json",
+      "bytes": 1944,
+      "sha256": "dc67e8ea1a34d79f4dbb7e2c1686fc4e9b5fed2dd41925ac555bc20f5567b89a"
+    },
+    "debug-service/ray-nodes.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/debug-service/ray-nodes.json",
+      "bytes": 1937,
+      "sha256": "b92ae2cae15fd484de4d4113dc753c65f234022d0095133fe44c4b8ea6efc7d2"
+    },
+    "debug-service/ray-worker.log": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/debug-service/ray-worker.log",
+      "bytes": 1236,
+      "sha256": "6a04cd7dba12b40353a06f9c6d774ed723baea551dd49664e8e4dfbdc8528191"
+    }
+  },
+  "success": true,
+  "model_service_pass": false,
+  "historical_slow_sample_root_cause": "unresolved; no reproduction in this one Ray startup control",
+  "verification_receipt": {
+    "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d/ray-independent-verification.json",
+    "sha256": "799502d7ddc69b3466395a33686bafa1255cdc2823c1c5c5c44e8104384fcd26"
+  },
+  "guard_cleanup": {
+    "sllm-debug-20261109T170530Z-0cd21c3d-deadline.timer": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n",
+    "sllm-debug-20261109T170530Z-0cd21c3d-slice-probe-deadline.timer": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n",
+    "sllm-debug-20261109T170530Z-0cd21c3d.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
+    "sllm-debug-20261109T170530Z-0cd21c3d-host-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
+    "sllm-debug-20261109T170530Z-0cd21c3d-slice-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n"
+  },
+  "post_cleanup_gpu": "0, 0\n1, 0\n2, 0\n3, 0\n4, 0\n5, 0\n6, 0\n7, 0\n",
+  "post_cleanup_gpu_processes": "",
+  "executed_independent_verifier": {
+    "source": "import pathlib,json,hashlib,subprocess,time\nrun='sllm-debug-20261109T170530Z-0cd21c3d';root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run\nfiles={}\ndef read(name):\n p=root/name;b=p.read_bytes();files[name]={'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()};return json.loads(b)\nresult=read('controller-result.json');start=read('controller-start.json');stack=read('stack.json')\nunit=dict(x.split('=',1) for x in subprocess.check_output(['systemctl','show',run+'-controller.service','-p','MainPID,Result,ExecMainCode,ExecMainStatus,ExecMainStartTimestampMonotonic,ExecMainExitTimestampMonotonic,InvocationID,ExecStart,ActiveState,SubState'],text=True).splitlines())\nassert unit['MainPID']=='0' and unit['Result']=='success' and unit['ExecMainStatus']=='0'\nbegin=int(unit['ExecMainStartTimestampMonotonic'])*1000;end=int(unit['ExecMainExitTimestampMonotonic'])*1000\nassert 0<end-begin<=900*10**9 and result['success'] is True and result['publish_controller'] is False and result['model_service_pass'] is False\nfor role in ('worker','head'):\n e=result['exit_evidence'][role];assert e['normal_exit_verified'] and not e['final']['OOMKilled']\n assert not subprocess.check_output(['docker','ps','-aq','--no-trunc','--filter','id='+e['container_id']],text=True).strip()\nassert result['exit_evidence']['worker']['final']['ExitCode']==0 and not result.get('monitor_errors')\nout={'scope':'independent startup-control verification only; not GLM model service or controller supplement','run_id':run,'code_commit':'04fbc526546bb6776951019a24abc0405a3fd72a','unit':unit,'unit_elapsed_s':(end-begin)/1e9,'monitor':{},'release':{}}\nfor name,dest in [('controller-monitor.jsonl','monitor'),('release60.jsonl','release')]:\n p=root/name;b=p.read_bytes();a=[json.loads(x) for x in b.splitlines()];files[name]={'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}\n points=[x['monotonic_ns'] for x in a];spans=[(x['sample_end_ns']-x['sample_begin_ns'])/1e9 for x in a]\n assert len(a)>1 and all(begin<=x<=end for x in points) and max(spans)<=5 and all(0<y-x<=5*10**9 for x,y in zip(points,points[1:]))\n assert all(not x['gpu_processes'].strip() and all(int(line.split(',')[3].strip().split()[0])==0 for line in x['gpu'].splitlines()) for x in a)\n assert all(all(not int(line.split()[1]) for line in x['private_slice_memory_events'].splitlines() if line.split()[0].startswith('oom')) for x in a)\n if dest=='release':\n  assert (points[-1]-points[0])/1e9>=60 and abs((points[-1]-points[0])/1e9-result['release_observation_s'])<1e-6\n  assert all(all(y.get('absent') for y in x['containers'].values()) for x in a)\n stages={}\n for row in a:\n  for label,t0,t1 in row['stage_timings_ns']:stages[label]=max(stages.get(label,0),(t1-t0)/1e9)\n out[dest]={'samples':len(a),'span_s':(points[-1]-points[0])/1e9,'maximum_sample_s':max(spans),'maximum_gap_s':max(y-x for x,y in zip(points,points[1:]))/1e9,'stage_maximum_s':stages}\nproof_path=pathlib.Path('/run')/run/'guard-verification.json';raw=proof_path.read_bytes();proof=json.loads(raw)\nassert proof_path.stat().st_uid==0 and proof_path.stat().st_mode&0o222==0 and proof['holder']==start['holder'] and proof['deadline_delay_seconds']==900\nassert start['independent_controller_unit']['InvocationID']==unit['InvocationID']\nout['guard']={'root_proof_path':str(proof_path),'sha256':hashlib.sha256(raw).hexdigest(),'deadline_delay_s':proof['deadline_delay_seconds'],'deadline_after_main_s':(int(proof['deadline_next_monotonic_usec'])*1000-begin)/1e9,'accuracy':subprocess.check_output(['systemctl','show',run+'-deadline.timer','-p','AccuracyUSec,NextElapseUSecMonotonic'],text=True),'arm_to_main_s':(begin-proof['armed_ns'])/1e9}\nassert 0<out['guard']['deadline_after_main_s']<=900\n(root/'guard-verification-preserved.json').write_bytes(raw);files['guard-verification-preserved.json']={'path':str(root/'guard-verification-preserved.json'),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}\nworker=read('debug-service/result.json');nodes=read('debug-service/ray-nodes.json')\nassert result['startup_stage']=='ray' and start['r1_sha256']=='35ed241f8226ba26bb5397ce4771beedf2053facdeeb7517a7d576e5e5db4e87'\nassert result['worker_control']==worker and worker['ray_control_pass'] is True and worker['success'] is False and worker['pool_bytes']==0\nassert sorted(x['Resources'].get('GPU',0) for x in nodes)==[0,8] and len({x['NodeID'] for x in nodes})==2\nassert not worker['shutdown_errors'] and not worker['forced_kill'] and worker['ray_cli_controlled_hook_evidence']\nlog=root/'debug-service/ray-worker.log';data=log.read_bytes();digest=hashlib.sha256(data).hexdigest()\nassert digest==worker['shutdown_log_sha256']['ray-worker']\nfiles['debug-service/ray-worker.log']={'path':str(log),'bytes':len(data),'sha256':digest}\nassert not (root/'controller-monitor-rejected.json').exists()\nout['ray_worker']=worker;out['ray_nodes']=nodes;out['result']=result;out['stack']=stack;out['files']=files;out['success']=True;out['model_service_pass']=False;out['historical_slow_sample_root_cause']='unresolved; no reproduction in this one Ray startup control'\np=root/'ray-independent-verification.json';b=(json.dumps(out,indent=2)+'\\n').encode();p.write_bytes(b);print(json.dumps({'path':str(p),'sha256':hashlib.sha256(b).hexdigest(),'unit_elapsed_s':out['unit_elapsed_s'],'monitor':out['monitor'],'release':out['release'],'guard':out['guard']}))\n",
+    "sha256": "76c640242e65b4d4816fbb48bb347e084fbdef4e39bfe89db8634c65cdd5d2c8"
+  }
+}

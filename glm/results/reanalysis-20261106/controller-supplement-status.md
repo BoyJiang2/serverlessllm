@@ -64,3 +64,12 @@ source revision04fbc526（实现4904638c）复用原debug_service的Ray CLI、dr
 提案新run sllm-debug-20261109T170530Z-0cd21c3d尚未开始。已向用户提出具体的一次最多15分钟Ray阶段授权请求，当前至10:00的Azure窗口此前明确授权只覆盖sleep一次；本次未得到确认前不安装新运行守护或启动GPU控制。确认后仍须新root CPU故障probe、真实timer/Main/private slice及新鲜8卡/内存/共享I/O准入，失败保留且不自动重试。该控制仍不建Store池、不读权重或启动模型。
 
 原40及三个失败cohort不改；未发布新的完整GLM Controller值，四条件补测和最终报告仍未完成。下一实际步骤是取得Ray阶段资源授权并执行受审有界控制，或在资源不允许时保留可接续证据，不能将CPU/R1通过改写为运行成功。
+
+
+## 2026-11-10 Ray 启动控制通过
+
+按用户单次授权，run sllm-debug-20261109T170530Z-0cd21c3d 在 qjhs003 完成双 Ray 节点启动、worker 8 个逻辑 GPU 注册及 30 秒观察。执行源码 04fbc526，R1 gate SHA 35ed241f8226ba26bb5397ce4771beedf2053facdeeb7517a7d576e5e5db4e87。实际独立 timer 目标为 Main 启动后 859.332922 秒。两容器退出符合受审判据，Ray CLI 主动终止后返回 1，宿主进程正常返回 0。宿主区间为 110.152246 秒。
+
+82 个监控样本最长 0.491384466 秒，最大间隔 1.491998856 秒。46 个释放样本首末相距 60.915058211 秒。核验时八卡显存均为 0，无 GPU 计算进程，本 run 容器均已删除，临时 timer 和 slice 均已停止。原始日志和 JSONL 保留于服务器 /data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T170530Z-0cd21c3d，摘要、复核源码和 SHA 见 glm/evidence/cost-sources/ray-startup-monitor-control-result.json。
+
+历史慢采样在本次控制中未复现，原因仍未知。此控制的范围止于 Ray，四条件模型补测仍需完整模型 scope 的当前提交审阅及覆盖完整最大预算的有效窗口。本次控制的 110.15 秒只计入诊断成本。
