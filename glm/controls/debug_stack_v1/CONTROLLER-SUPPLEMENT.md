@@ -143,3 +143,6 @@ CPU验证：73调试测试+6成本+6C23参数+10导入=95。新增实际head/wor
 Ray模式复用实际stop_processes的出生/主动SIGTERM/完整日志及非force ray stop无活跃进程检查；只在ray_only模式跳过不存在的HTTP日志，单独输出ray_control_pass，完整服务success仍false。主程序仅Ray控制通过才exit0；外层需worker正常exit0、ray_only与ray_control_pass都为true以及原监控/释放门。不能将组件通过冒充HTTP/Store/GLM Controller或四条件数据。Ray内部升级信号未逐个审计的限制保留。
 
 当前100项CPU检查（78调试+6C23参数+6成本+10导入）通过。实际完整main的CPU夹具确认只启动Ray、不进入Store/业务；默认Store分支AST与冻结版本一致；Ray日志unexpected-deceased、scope混用及环境/注册失配被拒绝。最初夹具Linux signal常量缺失/缺Alive字段等失败已定位为CPU夹具问题并修正，不更改生产逻辑迎合夹具。尚须匹配既有环境的真实CPU Ray退出组件验证、完整新commit/manifest审阅。即使CPU或Ray控制通过，也不证明原慢采样根因修复。
+
+
+匹配原镜像/原只读三挂载的真实CPU Ray退出组件已验证（4904638c函数AST完全一致）：4CPU/8GiB/8192任务、runc、无GPU Devices/DeviceRequests、CUDA_VISIBLE_DEVICES为空，entry timeout130+kill5秒。原生Ray head仅广告0GPU，约10.896936009秒，CLI受控exit1、容器exit0，无OOM/外层force/退出错误，已删除容器。记录ray_control_pass=true但完整服务success=false；只证明新Ray-only退出分支，不能当原worker/8GPU启动、监控或Store验证。一次性源码拼接预检曾因AST行位移SyntaxError在本地失败，未访问远端；修正原片段提取后仅执行一次真实CPU控制。来源及原生日志见ray-startup-cpu-control.json，未新增环境或模型副本。

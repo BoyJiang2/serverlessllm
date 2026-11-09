@@ -1,0 +1,584 @@
+{
+  "name": "sllm-glm-ray-cpu-20d6290ebcc0",
+  "container_id": "e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987",
+  "source_text": "import pathlib,subprocess,sys,signal,time,json,hashlib,urllib.request,os,socket\nOUT=pathlib.Path('/tmp/control');OUT.mkdir();PYTHON=sys.executable;STORE_GRACE_SECONDS=240\ndef stop_processes(processes, env, logs, record, strict=False):\n    \"\"\"Preserve shutdown evidence; keep Ray available while the HTTP server exits.\"\"\"\n    errors, forced, waited = [], [], set()\n    unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}\n    signals = record.setdefault('signal_requests', {})\n    store_deadline = None\n    shutdown_begin = time.monotonic()\n    shutdown_deadline = shutdown_begin+290  # reserve10s for evidence before the300s hard worker alarm\n    if strict:\n        record['shutdown_work_deadline_monotonic_s'] = shutdown_deadline\n\n    def request_stop(name, signum):\n        process = processes.get(name)\n        if process is None or process.poll() is not None:\n            return\n        try:\n            if strict:\n                expected = record['child_births'][name]\n                raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                if expected != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                    raise RuntimeError('child birth differs before shutdown signal')\n                signals[name] = dict(expected, signal=signum, requested_ns=time.monotonic_ns(), alive_before=True)\n            process.send_signal(signum)\n            if strict:\n                signals[name]['delivery_returned_ns'] = time.monotonic_ns()\n        except BaseException as error:\n            errors.append(dict(stage='signal', process=name, error=repr(error)))\n\n    def wait(name, seconds):\n        process = processes.get(name)\n        if process is None or name in waited:\n            return\n        waited.add(name)\n        try:\n            remaining = min(seconds, shutdown_deadline-time.monotonic()) if strict else seconds\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired(name, 0)\n            process.wait(timeout=max(.001, remaining))\n            if strict and name in signals:\n                signals[name]['exit_observed_ns'] = time.monotonic_ns()\n        except subprocess.TimeoutExpired:\n            forced.append(name)\n            try:\n                if strict:\n                    raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                    if record['child_births'].get(name) != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                        raise RuntimeError('child birth unknown before forced failure cleanup')\n                process.kill()\n                process.wait(timeout=5)\n            except BaseException as error:\n                errors.append(dict(stage='forced wait', process=name, error=repr(error)))\n        except BaseException as error:\n            errors.append(dict(stage='wait', process=name, error=repr(error)))\n\n    try:\n        request_stop('sllm', signal.SIGINT if strict else signal.SIGTERM)\n        if strict:\n            wait('sllm', 10)\n        request_stop('store', signal.SIGINT)\n        if strict:\n            store_deadline = signals.get('store', {}).get('requested_ns', time.monotonic_ns())/1e9+STORE_GRACE_SECONDS\n        request_stop('ray-worker', signal.SIGTERM)\n        if strict:\n            wait('ray-worker', 10)\n        try:\n            options = [] if strict else ['--force']\n            remaining = min(30, shutdown_deadline-time.monotonic()) if strict else 30\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired('ray stop', 0)\n            stopped = subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', *options],\n                                     env=env, timeout=remaining, capture_output=bool(strict), text=bool(strict))\n            record['ray_stop_returncode'] = stopped.returncode\n            if strict:\n                record.update(ray_stop_stdout=stopped.stdout, ray_stop_stderr=stopped.stderr)\n                if 'Did not find any active Ray processes.' not in stopped.stdout:\n                    errors.append(dict(stage='Ray residuals after CLI shutdown', stdout=stopped.stdout, stderr=stopped.stderr))\n            if stopped.returncode != 0:\n                errors.append(dict(stage='ray stop', returncode=stopped.returncode))\n        except BaseException as error:\n            errors.append(dict(stage='ray stop', error=repr(error)))\n        for name in processes:\n            seconds = max(.001, store_deadline-time.monotonic()) if strict and name == 'store' else STORE_GRACE_SECONDS if name == 'store' else 10\n            wait(name, seconds)\n    finally:\n        for log in logs:\n            try:\n                log.close()\n            except BaseException as error:\n                errors.append(dict(stage='log close', error=repr(error)))\n        record.update(end_ns=time.monotonic_ns(), forced_kill=forced, shutdown_errors=errors,\n                      unexpected_pre_cleanup_exits=unexpected,\n                      returncodes={name:p.returncode for name, p in processes.items()})\n        if strict:\n            def tail(name):\n                path = OUT/(name+'.log')\n                if path.stat().st_size > 256*1024 and name == 'ray-worker':\n                    raise RuntimeError('Ray CLI log too large for complete unexpected-exit check')\n                with path.open('rb') as stream:\n                    stream.seek(max(0, path.stat().st_size-256*1024))\n                    raw = stream.read()\n                record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()\n                return raw.decode(errors='replace')\n            try:\n                ray_log = tail('ray-worker')\n                sllm_log = '' if record.get('ray_only') else tail('sllm')\n                ray_signal = signals.get('ray-worker', {})\n                ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True\n                    and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)\n                    and 'Some Ray subprocesses exited unexpectedly:' not in ray_log\n                    and 'Remaining processes will be killed.' not in ray_log)\n                sllm_signal = signals.get('sllm', {})\n                http_shutdown = (sllm_signal.get('signal') == signal.SIGINT and sllm_signal.get('alive_before') is True\n                    and sllm_signal.get('requested_ns', 0) < sllm_signal.get('delivery_returned_ns', 0) <= sllm_signal.get('exit_observed_ns', 0)\n                    and 'Application shutdown complete.' in sllm_log\n                    and 'Finished server process [%s]' % sllm_signal.get('pid') in sllm_log)\n            except BaseException as error:\n                ray_hook = http_shutdown = False\n                errors.append(dict(stage='shutdown log evidence', error=repr(error)))\n            allowed = {'store':(0,), 'sllm':(0,), 'ray-worker':(0, -signal.SIGTERM, 1) if ray_hook else (0, -signal.SIGTERM)}\n            record.update(controlled_exit_rules=allowed, ray_cli_controlled_hook_evidence=ray_hook,\n                          http_graceful_shutdown_evidence=http_shutdown, controller_shutdown_method_called='not asserted')\n            record['success'] = (record['status'] == 'supplement business and instance deletion completed'\n                and not forced and not errors and not unexpected and http_shutdown\n                and time.monotonic() <= shutdown_deadline\n                and set(record['returncodes']) == set(allowed)\n                and all(code in allowed[name] for name, code in record['returncodes'].items()))\n            if record.get('ray_only'):\n                record['ray_control_pass'] = (record['status'] == 'Ray startup control completed'\n                    and not forced and not errors and not unexpected and ray_hook\n                    and time.monotonic() <= shutdown_deadline\n                    and set(record['returncodes']) == {'ray-worker'}\n                    and record['returncodes']['ray-worker'] in allowed['ray-worker'])\n        write(OUT/'result.json', record)\n    return forced\n\ndef write(path, record):\n    temporary = path.with_suffix('.tmp')\n    temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))\n    temporary.replace(path)\nprocesses={};logs=[];record={'status':'Ray startup control completed','ray_only':True,'child_births':{}};component_error=None\ntry:\n env=dict(os.environ)\n ip=socket.gethostbyname(socket.gethostname())\n def launch(name,args):\n  log=(OUT/(name+'.log')).open('x');logs.append(log);p=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,env=env);processes[name]=p\n  stat=(pathlib.Path('/proc')/str(p.pid)/'stat').read_text();record['child_births'][name]={'pid':p.pid,'startticks':int(stat.rsplit(')',1)[1].split()[19])}\n launch('ray-worker',[PYTHON,'-m','ray.scripts.scripts','start','--head','--node-ip-address='+ip,'--port=26532','--num-cpus=1','--num-gpus=0','--object-store-memory=268435456','--include-dashboard=false','--disable-usage-stats','--block'])\n limit=time.monotonic()+30\n while 'Ray runtime started.' not in (OUT/'ray-worker.log').read_text():\n  if processes['ray-worker'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU Ray readiness failed')\n  time.sleep(.1)\n time.sleep(2)\nexcept BaseException as error:component_error=repr(error)\nfinally:\n record['pre_shutdown_cgroup']={n:(pathlib.Path('/sys/fs/cgroup')/n).read_text() for n in ('pids.current','pids.events','memory.current','memory.events')}\n stop_processes(processes,os.environ,logs,record,strict=True)\n record['ray_internal_logs']={p.name:p.read_text(errors='replace')[-6000:] for p in pathlib.Path('/tmp/ray/session_latest/logs').glob('*') if p.name in ('raylet.err','raylet.out','gcs_server.err')}\nrecord.update(scope='actual CPU Ray-only shutdown control; no GPU/worker TP8/Store/model proof',component_error=component_error,model_started=False,store_pool_started=False)\nrecord['component_pass']=(component_error is None and record.get('ray_control_pass') is True and record.get('success') is False)\nrecord['log_text']={name:(OUT/(name+'.log')).read_text()[-10000:] for name in processes}\nprint(json.dumps(record))\nsys.exit(0 if record['component_pass'] else 1)\n",
+  "source_sha256": "2fa75de3afeb10065f0c7ebdd8c9a5bf2f6bbda997d5c29bb102eed4d51d3b1b",
+  "code_commit": "4904638c0c5655e30e0f084f1d70d346a1348625",
+  "controller_module_sha256": "790781ac22a57315476d0328038506eaba6972e887aae6967a1772a3f194f77d",
+  "before": {
+    "Id": "e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987",
+    "Created": "2026-11-09T17:03:35.445170553Z",
+    "Path": "/usr/bin/timeout",
+    "Args": [
+      "-k",
+      "5s",
+      "130s",
+      "/experiment/.venv/bin/python",
+      "-B",
+      "-u",
+      "-"
+    ],
+    "State": {
+      "Status": "created",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "0001-01-01T00:00:00Z",
+      "FinishedAt": "0001-01-01T00:00:00Z"
+    },
+    "Image": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+    "ResolvConfPath": "",
+    "HostnamePath": "",
+    "HostsPath": "",
+    "LogPath": "",
+    "Name": "/sllm-glm-ray-cpu-20d6290ebcc0",
+    "RestartCount": 0,
+    "Driver": "overlay2",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "bridge",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": [],
+      "DnsOptions": [],
+      "DnsSearch": [],
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 536870912,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 8589934592,
+      "NanoCpus": 4000000000,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": [],
+      "BlkioDeviceReadBps": [],
+      "BlkioDeviceWriteBps": [],
+      "BlkioDeviceReadIOps": [],
+      "BlkioDeviceWriteIOps": [],
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": [],
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 8589934592,
+      "MemorySwappiness": null,
+      "OomKillDisable": false,
+      "PidsLimit": 8192,
+      "Ulimits": [],
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "Mounts": [
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+          "Target": "/experiment/.venv",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+          "Target": "/experiment/serving-deps",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+          "Target": "/experiment/runtime-metadata",
+          "ReadOnly": true
+        }
+      ],
+      "MaskedPaths": [
+        "/proc/asound",
+        "/proc/acpi",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/sys/firmware",
+        "/sys/devices/virtual/powercap"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "GraphDriver": {
+      "Data": {
+        "LowerDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f-init/diff:/var/lib/docker/overlay2/8a4f7ff48fbfb842cb11b65fff35dc642d9d49b3e4af04006ce1a4e878926262/diff:/var/lib/docker/overlay2/840d1532e26fce8a7e0912478c935d08a4c99248287bf332778c871bde725cb1/diff:/var/lib/docker/overlay2/91e2a4a396246a7f747c2d44b60b00173f33c419d09a4406e5a710d6e396e7a2/diff:/var/lib/docker/overlay2/12a98b4ebf327eee94870f93ffc3dc8bde6f8a5885172e7e40ed7389fa6f1012/diff:/var/lib/docker/overlay2/38b64bc1d8d970afc548f5501f2ece0471904d11eaf69421eb6ba4c66586a0d6/diff:/var/lib/docker/overlay2/7f178e4a775c7dd292cade2dac48ef690c3727beadc7487b7c524b761ba27283/diff:/var/lib/docker/overlay2/04d13b13b86f54dacc9401cd1140fa6b50040edb0b510a6e4c80dd35b4eee709/diff:/var/lib/docker/overlay2/985033caa7d5b6ff28031629aa390dd07384dd7a043b0a16e6be7e6c3787f58e/diff:/var/lib/docker/overlay2/65cce6678808042a585364822570f1ccff8707e98d88d257ab290de1c9d129c7/diff:/var/lib/docker/overlay2/aa4239fcc968a4738a3214ec3975bb9abd02f2d73ae9dc7f8fee5822ef37415a/diff:/var/lib/docker/overlay2/442a1cda2daa17954d1c7fdf768f7a6e909317d382e40e11d3d6a01f8f6633a6/diff:/var/lib/docker/overlay2/db3dca8e771e728556769f044178f601757283b8909d1e4e442beb721d0c3ad0/diff:/var/lib/docker/overlay2/8e2c301c1b15c7ae5f16dd42e4549e95adb26d997751762654189bb43e23c750/diff:/var/lib/docker/overlay2/05ad1e41114e39f21a4f2a67974562b40b4334a78f2c550abb899158a432898e/diff:/var/lib/docker/overlay2/bf0ff3a1ad59d7b7f53f6d411487ae7b7097b996656c91273354a6806e056612/diff:/var/lib/docker/overlay2/e945dd39d3415af0dc1144f7ea1ed5866ae223f2eec9f727c77aaa5e0c1aefc8/diff:/var/lib/docker/overlay2/7ba31f999a301a838ac31fb7ef6ee8de7d3aba70c72bcf48f447c995a18bd269/diff:/var/lib/docker/overlay2/f1118162bc6c78b7b430c0773a8e33ea151bc5b6b785640fc29faa1a79ae1877/diff:/var/lib/docker/overlay2/60a90fcaca61d7662de838f79506be63d641ca019b7efb1ed7adefcbd2b324f6/diff:/var/lib/docker/overlay2/8f4d4835f1687ade93acb900507bf4f3686982689fdedbdebe32bcb9dcbb270d/diff:/var/lib/docker/overlay2/4393992d528f204914e7bc90df3c0a248d53a9bd7c35935a9c3265294f0fc42d/diff:/var/lib/docker/overlay2/96c60aaf18dab6f1e624fc844629fe18e022d11e11bf21577655cbb24b3ab854/diff:/var/lib/docker/overlay2/e3c3cee5c2ae4d306d5fae415c3c7e704dd806f470cb384fe0c3dbc328d6d5c7/diff:/var/lib/docker/overlay2/ebc1cb1466cb410debdea0da0e68139374dd6a917b0e627e4ef07c393c346491/diff:/var/lib/docker/overlay2/7190b5611dc8981af7cd5ab91c32624fecf62bac9aa689fb4d4ab9e2a5837482/diff:/var/lib/docker/overlay2/6a7c892df2be360230abfdd6a2354a37e2ffae6489e973ede391ab5492bfe78d/diff:/var/lib/docker/overlay2/ef5e16b05deb2a2859f30775eee4a28ae60ee3de9ce1224260fa088c83e00786/diff:/var/lib/docker/overlay2/e9cc48f328a32b8e21278e54a9d7dfef11cb77f6808164b5e02e5588109b1d18/diff",
+        "MergedDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/merged",
+        "UpperDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/diff",
+        "WorkDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/work"
+      },
+      "Name": "overlay2"
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+        "Destination": "/experiment/.venv",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+        "Destination": "/experiment/serving-deps",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+        "Destination": "/experiment/runtime-metadata",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ],
+    "Config": {
+      "Hostname": "e2a4344daefb",
+      "Domainname": "",
+      "User": "2147:2147",
+      "AttachStdin": true,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "Tty": false,
+      "OpenStdin": true,
+      "StdinOnce": true,
+      "Env": [
+        "PYTHONPATH=/experiment/serving-deps:/experiment/runtime-metadata",
+        "CUDA_VISIBLE_DEVICES=",
+        "NVIDIA_VISIBLE_DEVICES=void",
+        "PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NVARCH=x86_64",
+        "NVIDIA_REQUIRE_CUDA=cuda>=13.0 brand=unknown,driver>=535,driver<536 brand=grid,driver>=535,driver<536 brand=tesla,driver>=535,driver<536 brand=nvidia,driver>=535,driver<536 brand=quadro,driver>=535,driver<536 brand=quadrortx,driver>=535,driver<536 brand=nvidiartx,driver>=535,driver<536 brand=vapps,driver>=535,driver<536 brand=vpc,driver>=535,driver<536 brand=vcs,driver>=535,driver<536 brand=vws,driver>=535,driver<536 brand=cloudgaming,driver>=535,driver<536 brand=unknown,driver>=550,driver<551 brand=grid,driver>=550,driver<551 brand=tesla,driver>=550,driver<551 brand=nvidia,driver>=550,driver<551 brand=quadro,driver>=550,driver<551 brand=quadrortx,driver>=550,driver<551 brand=nvidiartx,driver>=550,driver<551 brand=vapps,driver>=550,driver<551 brand=vpc,driver>=550,driver<551 brand=vcs,driver>=550,driver<551 brand=vws,driver>=550,driver<551 brand=cloudgaming,driver>=550,driver<551 brand=unknown,driver>=565,driver<566 brand=grid,driver>=565,driver<566 brand=tesla,driver>=565,driver<566 brand=nvidia,driver>=565,driver<566 brand=quadro,driver>=565,driver<566 brand=quadrortx,driver>=565,driver<566 brand=nvidiartx,driver>=565,driver<566 brand=vapps,driver>=565,driver<566 brand=vpc,driver>=565,driver<566 brand=vcs,driver>=565,driver<566 brand=vws,driver>=565,driver<566 brand=cloudgaming,driver>=565,driver<566 brand=unknown,driver>=570,driver<571 brand=grid,driver>=570,driver<571 brand=tesla,driver>=570,driver<571 brand=nvidia,driver>=570,driver<571 brand=quadro,driver>=570,driver<571 brand=quadrortx,driver>=570,driver<571 brand=nvidiartx,driver>=570,driver<571 brand=vapps,driver>=570,driver<571 brand=vpc,driver>=570,driver<571 brand=vcs,driver>=570,driver<571 brand=vws,driver>=570,driver<571 brand=cloudgaming,driver>=570,driver<571 brand=unknown,driver>=575,driver<576 brand=grid,driver>=575,driver<576 brand=tesla,driver>=575,driver<576 brand=nvidia,driver>=575,driver<576 brand=quadro,driver>=575,driver<576 brand=quadrortx,driver>=575,driver<576 brand=nvidiartx,driver>=575,driver<576 brand=vapps,driver>=575,driver<576 brand=vpc,driver>=575,driver<576 brand=vcs,driver>=575,driver<576 brand=vws,driver>=575,driver<576 brand=cloudgaming,driver>=575,driver<576",
+        "NV_CUDA_CUDART_VERSION=13.0.88-1",
+        "CUDA_VERSION=13.0.1",
+        "LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64",
+        "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+        "DEBIAN_FRONTEND=noninteractive",
+        "UV_HTTP_TIMEOUT=500",
+        "UV_INDEX_STRATEGY=unsafe-best-match",
+        "UV_LINK_MODE=copy",
+        "VLLM_ENABLE_CUDA_COMPATIBILITY=0",
+        "TORCH_CUDA_ARCH_LIST=7.0 7.5 8.0 8.9 9.0 10.0 12.0",
+        "VLLM_USAGE_SOURCE=production-docker-image"
+      ],
+      "Cmd": [
+        "-k",
+        "5s",
+        "130s",
+        "/experiment/.venv/bin/python",
+        "-B",
+        "-u",
+        "-"
+      ],
+      "Image": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "Volumes": null,
+      "WorkingDir": "/vllm-workspace",
+      "Entrypoint": [
+        "/usr/bin/timeout"
+      ],
+      "OnBuild": null,
+      "Labels": {
+        "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+        "org.opencontainers.image.ref.name": "ubuntu",
+        "org.opencontainers.image.version": "22.04",
+        "sllm.cpu_control": "sllm-glm-ray-cpu-20d6290ebcc0",
+        "sllm.owner": "boyjiang"
+      }
+    },
+    "NetworkSettings": {
+      "Bridge": "",
+      "SandboxID": "",
+      "SandboxKey": "",
+      "Ports": {},
+      "HairpinMode": false,
+      "LinkLocalIPv6Address": "",
+      "LinkLocalIPv6PrefixLen": 0,
+      "SecondaryIPAddresses": null,
+      "SecondaryIPv6Addresses": null,
+      "EndpointID": "",
+      "Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "IPAddress": "",
+      "IPPrefixLen": 0,
+      "IPv6Gateway": "",
+      "MacAddress": "",
+      "Networks": {
+        "bridge": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "MacAddress": "",
+          "DriverOpts": null,
+          "NetworkID": "",
+          "EndpointID": "",
+          "Gateway": "",
+          "IPAddress": "",
+          "IPPrefixLen": 0,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    }
+  },
+  "start_ns": 1368133337429291,
+  "returncode": 0,
+  "stdout": "{\"status\": \"Ray startup control completed\", \"ray_only\": true, \"child_births\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 136813365}}, \"pre_shutdown_cgroup\": {\"pids.current\": \"553\\n\", \"pids.events\": \"max 0\\n\", \"memory.current\": \"3304902656\\n\", \"memory.events\": \"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\n\"}, \"signal_requests\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 136813365, \"signal\": 15, \"requested_ns\": 1368139755874287, \"alive_before\": true, \"delivery_returned_ns\": 1368139755896312, \"exit_observed_ns\": 1368142151910169}}, \"shutdown_work_deadline_monotonic_s\": 1368429.755805463, \"ray_stop_returncode\": 0, \"ray_stop_stdout\": \"2026-11-09 17:03:45,894\\tINFO scripts.py:1334 -- Did not find any active Ray processes.\\n\", \"ray_stop_stderr\": \"\", \"end_ns\": 1368143922767878, \"forced_kill\": [], \"shutdown_errors\": [], \"unexpected_pre_cleanup_exits\": {}, \"returncodes\": {\"ray-worker\": 1}, \"shutdown_log_sha256\": {\"ray-worker\": \"d4269390f947d7b317a9d304b5c42351a31cfdab6aafcc2ad09c4b24bbdd292c\"}, \"controlled_exit_rules\": {\"store\": [0], \"sllm\": [0], \"ray-worker\": [0, -15, 1]}, \"ray_cli_controlled_hook_evidence\": true, \"http_graceful_shutdown_evidence\": false, \"controller_shutdown_method_called\": \"not asserted\", \"success\": false, \"ray_control_pass\": true, \"ray_internal_logs\": {\"gcs_server.err\": \"\", \"raylet.err\": \"\", \"raylet.out\": \"022 s\\n[state-dump] Event stats:\\n[state-dump] \\tPeriodicalRunner.RunFnPeriodically - 12 total (2 active, 1 running), Execution time: mean = 174.996 us, total = 2.100 ms, Queueing time: mean = 2.986 ms, max = 7.654 ms, min = 20.346 us, total = 35.833 ms\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberPoll - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tClusterResourceManager.ResetRemoteNodeView - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalKVGcsService.grpc_client.GetInternalConfig.OnReplyReceived - 1 total (0 active), Execution time: mean = 1.015 s, total = 1.015 s, Queueing time: mean = 6.696 us, max = 6.696 us, min = 6.696 us, total = 6.696 us\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch.OnReplyReceived - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tMemoryMonitor.CheckIsMemoryUsageAboveThreshold - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.deadline_timer.debug_state_dump - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.GCTaskFailureReason - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::NodeInfoGcsService.grpc_client.RegisterNode - 1 total (0 active), Execution time: mean = 1.578 ms, total = 1.578 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.CheckForUnexpectedWorkerDisconnects - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tObjectManager.UpdateAvailableMemory - 1 total (0 active), Execution time: mean = 3.973 us, total = 3.973 us, Queueing time: mean = 8.644 us, max = 8.644 us, min = 8.644 us, total = 8.644 us\\n[state-dump] \\tray::rpc::NodeInfoGcsService.grpc_client.RegisterNode.OnReplyReceived - 1 total (0 active), Execution time: mean = 208.794 us, total = 208.794 us, Queueing time: mean = 8.215 us, max = 8.215 us, min = 8.215 us, total = 8.215 us\\n[state-dump] \\tNodeManager.deadline_timer.spill_objects_when_over_threshold - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.deadline_timer.flush_free_objects - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalKVGcsService.grpc_client.GetInternalConfig - 1 total (0 active), Execution time: mean = 1.731 ms, total = 1.731 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tRayletWorkerPool.deadline_timer.kill_idle_workers - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch - 1 total (0 active), Execution time: mean = 1.145 ms, total = 1.145 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.ScheduleAndDispatchTasks - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.deadline_timer.record_metrics - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] DebugString() time ms: 0\\n[state-dump] \\n[state-dump] \\n[2026-11-09 17:03:39,787 I 436 436] (raylet) accessor.cc:784: Received notification for node, IsAlive = 1 node_id=8353b1a4a3f1cd47ce48b9bf0c0cc60851a445d1d4cdfe40a9990685\\n[2026-11-09 17:03:41,908 I 436 436] (raylet) main.cc:847: received SIGTERM. Existing local drain request = None\\n[2026-11-09 17:03:41,908 I 436 436] (raylet) main.cc:338: Raylet graceful shutdown triggered, reason = EXPECTED_TERMINATION, reason message = received SIGTERM\\n[2026-11-09 17:03:41,908 I 436 436] (raylet) main.cc:341: Shutting down...\\n[2026-11-09 17:03:41,908 I 436 436] (raylet) accessor.cc:534: Unregistering node node_id=8353b1a4a3f1cd47ce48b9bf0c0cc60851a445d1d4cdfe40a9990685\\n[2026-11-09 17:03:41,909 I 436 436] (raylet) accessor.cc:547: Finished unregistering node info, status = OK node_id=8353b1a4a3f1cd47ce48b9bf0c0cc60851a445d1d4cdfe40a9990685\\n[2026-11-09 17:03:41,909 W 436 467] (raylet) store.cc:368: Disconnecting client due to connection error with code 2: End of file\\n[2026-11-09 17:03:41,910 I 436 436] (raylet) agent_manager.cc:115: Killing agent dashboard_agent, pid 523.\\n[2026-11-09 17:03:41,915 I 436 524] (raylet) agent_manager.cc:82: Agent process with name dashboard_agent exited, exit code 0.\\n[2026-11-09 17:03:41,915 I 436 436] (raylet) agent_manager.cc:115: Killing agent runtime_env_agent, pid 525.\\n[2026-11-09 17:03:41,919 I 436 526] (raylet) agent_manager.cc:82: Agent process with name runtime_env_agent exited, exit code 0.\\n[2026-11-09 17:03:41,919 I 436 436] (raylet) io_service_pool.cc:49: IOServicePool is stopped.\\n[2026-11-09 17:03:41,970 I 436 436] (raylet) stats.h:136: Stats module has shutdown.\\n\"}, \"scope\": \"actual CPU Ray-only shutdown control; no GPU/worker TP8/Store/model proof\", \"component_error\": null, \"model_started\": false, \"store_pool_started\": false, \"component_pass\": true, \"log_text\": {\"ray-worker\": \"2026-11-09 17:03:37,380\\tINFO usage_lib.py:441 -- Usage stats collection is disabled.\\n2026-11-09 17:03:37,380\\tINFO scripts.py:913 -- Local node IP: 172.17.0.2\\n2026-11-09 17:03:39,876\\tSUCC scripts.py:949 -- --------------------\\n2026-11-09 17:03:39,876\\tSUCC scripts.py:950 -- Ray runtime started.\\n2026-11-09 17:03:39,876\\tSUCC scripts.py:951 -- --------------------\\n2026-11-09 17:03:39,876\\tINFO scripts.py:953 -- Next steps\\n2026-11-09 17:03:39,876\\tINFO scripts.py:956 -- To add another node to this Ray cluster, run\\n2026-11-09 17:03:39,876\\tINFO scripts.py:959 --   ray start --address='172.17.0.2:26532'\\n2026-11-09 17:03:39,876\\tINFO scripts.py:968 -- To connect to this Ray cluster:\\n2026-11-09 17:03:39,876\\tINFO scripts.py:970 -- import ray\\n2026-11-09 17:03:39,876\\tINFO scripts.py:971 -- ray.init(_node_ip_address='172.17.0.2')\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1002 -- To terminate the Ray runtime, run\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1003 --   ray stop\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1006 -- To view the status of the cluster, use\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1007 --   ray status\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1123 -- --block\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1124 -- This command will now block forever until terminated by a signal.\\n2026-11-09 17:03:39,876\\tINFO scripts.py:1127 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.\\n\"}}\n",
+  "stderr": "",
+  "after": {
+    "Id": "e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987",
+    "Created": "2026-11-09T17:03:35.445170553Z",
+    "Path": "/usr/bin/timeout",
+    "Args": [
+      "-k",
+      "5s",
+      "130s",
+      "/experiment/.venv/bin/python",
+      "-B",
+      "-u",
+      "-"
+    ],
+    "State": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 0,
+      "Error": "",
+      "StartedAt": "2026-11-09T17:03:35.532988851Z",
+      "FinishedAt": "2026-11-09T17:03:46.087588028Z"
+    },
+    "Image": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+    "ResolvConfPath": "/var/lib/docker/containers/e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987/resolv.conf",
+    "HostnamePath": "/var/lib/docker/containers/e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987/hostname",
+    "HostsPath": "/var/lib/docker/containers/e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987/hosts",
+    "LogPath": "/var/lib/docker/containers/e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987/e2a4344daefbe04f7bcbe32fa21e064b596460bedfba984cc36c35e510c56987-json.log",
+    "Name": "/sllm-glm-ray-cpu-20d6290ebcc0",
+    "RestartCount": 0,
+    "Driver": "overlay2",
+    "Platform": "linux",
+    "MountLabel": "",
+    "ProcessLabel": "",
+    "AppArmorProfile": "docker-default",
+    "ExecIDs": null,
+    "HostConfig": {
+      "Binds": null,
+      "ContainerIDFile": "",
+      "LogConfig": {
+        "Type": "json-file",
+        "Config": {}
+      },
+      "NetworkMode": "bridge",
+      "PortBindings": {},
+      "RestartPolicy": {
+        "Name": "no",
+        "MaximumRetryCount": 0
+      },
+      "AutoRemove": false,
+      "VolumeDriver": "",
+      "VolumesFrom": null,
+      "ConsoleSize": [
+        0,
+        0
+      ],
+      "CapAdd": null,
+      "CapDrop": null,
+      "CgroupnsMode": "private",
+      "Dns": [],
+      "DnsOptions": [],
+      "DnsSearch": [],
+      "ExtraHosts": null,
+      "GroupAdd": null,
+      "IpcMode": "private",
+      "Cgroup": "",
+      "Links": null,
+      "OomScoreAdj": 0,
+      "PidMode": "",
+      "Privileged": false,
+      "PublishAllPorts": false,
+      "ReadonlyRootfs": false,
+      "SecurityOpt": null,
+      "UTSMode": "",
+      "UsernsMode": "",
+      "ShmSize": 536870912,
+      "Runtime": "runc",
+      "Isolation": "",
+      "CpuShares": 0,
+      "Memory": 8589934592,
+      "NanoCpus": 4000000000,
+      "CgroupParent": "",
+      "BlkioWeight": 0,
+      "BlkioWeightDevice": [],
+      "BlkioDeviceReadBps": [],
+      "BlkioDeviceWriteBps": [],
+      "BlkioDeviceReadIOps": [],
+      "BlkioDeviceWriteIOps": [],
+      "CpuPeriod": 0,
+      "CpuQuota": 0,
+      "CpuRealtimePeriod": 0,
+      "CpuRealtimeRuntime": 0,
+      "CpusetCpus": "",
+      "CpusetMems": "",
+      "Devices": [],
+      "DeviceCgroupRules": null,
+      "DeviceRequests": null,
+      "MemoryReservation": 0,
+      "MemorySwap": 8589934592,
+      "MemorySwappiness": null,
+      "OomKillDisable": null,
+      "PidsLimit": 8192,
+      "Ulimits": [],
+      "CpuCount": 0,
+      "CpuPercent": 0,
+      "IOMaximumIOps": 0,
+      "IOMaximumBandwidth": 0,
+      "Mounts": [
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+          "Target": "/experiment/.venv",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+          "Target": "/experiment/serving-deps",
+          "ReadOnly": true
+        },
+        {
+          "Type": "bind",
+          "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+          "Target": "/experiment/runtime-metadata",
+          "ReadOnly": true
+        }
+      ],
+      "MaskedPaths": [
+        "/proc/asound",
+        "/proc/acpi",
+        "/proc/kcore",
+        "/proc/keys",
+        "/proc/latency_stats",
+        "/proc/timer_list",
+        "/proc/timer_stats",
+        "/proc/sched_debug",
+        "/proc/scsi",
+        "/sys/firmware",
+        "/sys/devices/virtual/powercap"
+      ],
+      "ReadonlyPaths": [
+        "/proc/bus",
+        "/proc/fs",
+        "/proc/irq",
+        "/proc/sys",
+        "/proc/sysrq-trigger"
+      ]
+    },
+    "GraphDriver": {
+      "Data": {
+        "LowerDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f-init/diff:/var/lib/docker/overlay2/8a4f7ff48fbfb842cb11b65fff35dc642d9d49b3e4af04006ce1a4e878926262/diff:/var/lib/docker/overlay2/840d1532e26fce8a7e0912478c935d08a4c99248287bf332778c871bde725cb1/diff:/var/lib/docker/overlay2/91e2a4a396246a7f747c2d44b60b00173f33c419d09a4406e5a710d6e396e7a2/diff:/var/lib/docker/overlay2/12a98b4ebf327eee94870f93ffc3dc8bde6f8a5885172e7e40ed7389fa6f1012/diff:/var/lib/docker/overlay2/38b64bc1d8d970afc548f5501f2ece0471904d11eaf69421eb6ba4c66586a0d6/diff:/var/lib/docker/overlay2/7f178e4a775c7dd292cade2dac48ef690c3727beadc7487b7c524b761ba27283/diff:/var/lib/docker/overlay2/04d13b13b86f54dacc9401cd1140fa6b50040edb0b510a6e4c80dd35b4eee709/diff:/var/lib/docker/overlay2/985033caa7d5b6ff28031629aa390dd07384dd7a043b0a16e6be7e6c3787f58e/diff:/var/lib/docker/overlay2/65cce6678808042a585364822570f1ccff8707e98d88d257ab290de1c9d129c7/diff:/var/lib/docker/overlay2/aa4239fcc968a4738a3214ec3975bb9abd02f2d73ae9dc7f8fee5822ef37415a/diff:/var/lib/docker/overlay2/442a1cda2daa17954d1c7fdf768f7a6e909317d382e40e11d3d6a01f8f6633a6/diff:/var/lib/docker/overlay2/db3dca8e771e728556769f044178f601757283b8909d1e4e442beb721d0c3ad0/diff:/var/lib/docker/overlay2/8e2c301c1b15c7ae5f16dd42e4549e95adb26d997751762654189bb43e23c750/diff:/var/lib/docker/overlay2/05ad1e41114e39f21a4f2a67974562b40b4334a78f2c550abb899158a432898e/diff:/var/lib/docker/overlay2/bf0ff3a1ad59d7b7f53f6d411487ae7b7097b996656c91273354a6806e056612/diff:/var/lib/docker/overlay2/e945dd39d3415af0dc1144f7ea1ed5866ae223f2eec9f727c77aaa5e0c1aefc8/diff:/var/lib/docker/overlay2/7ba31f999a301a838ac31fb7ef6ee8de7d3aba70c72bcf48f447c995a18bd269/diff:/var/lib/docker/overlay2/f1118162bc6c78b7b430c0773a8e33ea151bc5b6b785640fc29faa1a79ae1877/diff:/var/lib/docker/overlay2/60a90fcaca61d7662de838f79506be63d641ca019b7efb1ed7adefcbd2b324f6/diff:/var/lib/docker/overlay2/8f4d4835f1687ade93acb900507bf4f3686982689fdedbdebe32bcb9dcbb270d/diff:/var/lib/docker/overlay2/4393992d528f204914e7bc90df3c0a248d53a9bd7c35935a9c3265294f0fc42d/diff:/var/lib/docker/overlay2/96c60aaf18dab6f1e624fc844629fe18e022d11e11bf21577655cbb24b3ab854/diff:/var/lib/docker/overlay2/e3c3cee5c2ae4d306d5fae415c3c7e704dd806f470cb384fe0c3dbc328d6d5c7/diff:/var/lib/docker/overlay2/ebc1cb1466cb410debdea0da0e68139374dd6a917b0e627e4ef07c393c346491/diff:/var/lib/docker/overlay2/7190b5611dc8981af7cd5ab91c32624fecf62bac9aa689fb4d4ab9e2a5837482/diff:/var/lib/docker/overlay2/6a7c892df2be360230abfdd6a2354a37e2ffae6489e973ede391ab5492bfe78d/diff:/var/lib/docker/overlay2/ef5e16b05deb2a2859f30775eee4a28ae60ee3de9ce1224260fa088c83e00786/diff:/var/lib/docker/overlay2/e9cc48f328a32b8e21278e54a9d7dfef11cb77f6808164b5e02e5588109b1d18/diff",
+        "MergedDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/merged",
+        "UpperDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/diff",
+        "WorkDir": "/var/lib/docker/overlay2/dab279560134e17dd65f1d24d1c4959c4a797b0811b19b763b9d3609a9b0c03f/work"
+      },
+      "Name": "overlay2"
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+        "Destination": "/experiment/.venv",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+        "Destination": "/experiment/serving-deps",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      },
+      {
+        "Type": "bind",
+        "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+        "Destination": "/experiment/runtime-metadata",
+        "Mode": "",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ],
+    "Config": {
+      "Hostname": "e2a4344daefb",
+      "Domainname": "",
+      "User": "2147:2147",
+      "AttachStdin": true,
+      "AttachStdout": true,
+      "AttachStderr": true,
+      "Tty": false,
+      "OpenStdin": true,
+      "StdinOnce": true,
+      "Env": [
+        "PYTHONPATH=/experiment/serving-deps:/experiment/runtime-metadata",
+        "CUDA_VISIBLE_DEVICES=",
+        "NVIDIA_VISIBLE_DEVICES=void",
+        "PATH=/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NVARCH=x86_64",
+        "NVIDIA_REQUIRE_CUDA=cuda>=13.0 brand=unknown,driver>=535,driver<536 brand=grid,driver>=535,driver<536 brand=tesla,driver>=535,driver<536 brand=nvidia,driver>=535,driver<536 brand=quadro,driver>=535,driver<536 brand=quadrortx,driver>=535,driver<536 brand=nvidiartx,driver>=535,driver<536 brand=vapps,driver>=535,driver<536 brand=vpc,driver>=535,driver<536 brand=vcs,driver>=535,driver<536 brand=vws,driver>=535,driver<536 brand=cloudgaming,driver>=535,driver<536 brand=unknown,driver>=550,driver<551 brand=grid,driver>=550,driver<551 brand=tesla,driver>=550,driver<551 brand=nvidia,driver>=550,driver<551 brand=quadro,driver>=550,driver<551 brand=quadrortx,driver>=550,driver<551 brand=nvidiartx,driver>=550,driver<551 brand=vapps,driver>=550,driver<551 brand=vpc,driver>=550,driver<551 brand=vcs,driver>=550,driver<551 brand=vws,driver>=550,driver<551 brand=cloudgaming,driver>=550,driver<551 brand=unknown,driver>=565,driver<566 brand=grid,driver>=565,driver<566 brand=tesla,driver>=565,driver<566 brand=nvidia,driver>=565,driver<566 brand=quadro,driver>=565,driver<566 brand=quadrortx,driver>=565,driver<566 brand=nvidiartx,driver>=565,driver<566 brand=vapps,driver>=565,driver<566 brand=vpc,driver>=565,driver<566 brand=vcs,driver>=565,driver<566 brand=vws,driver>=565,driver<566 brand=cloudgaming,driver>=565,driver<566 brand=unknown,driver>=570,driver<571 brand=grid,driver>=570,driver<571 brand=tesla,driver>=570,driver<571 brand=nvidia,driver>=570,driver<571 brand=quadro,driver>=570,driver<571 brand=quadrortx,driver>=570,driver<571 brand=nvidiartx,driver>=570,driver<571 brand=vapps,driver>=570,driver<571 brand=vpc,driver>=570,driver<571 brand=vcs,driver>=570,driver<571 brand=vws,driver>=570,driver<571 brand=cloudgaming,driver>=570,driver<571 brand=unknown,driver>=575,driver<576 brand=grid,driver>=575,driver<576 brand=tesla,driver>=575,driver<576 brand=nvidia,driver>=575,driver<576 brand=quadro,driver>=575,driver<576 brand=quadrortx,driver>=575,driver<576 brand=nvidiartx,driver>=575,driver<576 brand=vapps,driver>=575,driver<576 brand=vpc,driver>=575,driver<576 brand=vcs,driver>=575,driver<576 brand=vws,driver>=575,driver<576 brand=cloudgaming,driver>=575,driver<576",
+        "NV_CUDA_CUDART_VERSION=13.0.88-1",
+        "CUDA_VERSION=13.0.1",
+        "LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64",
+        "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+        "DEBIAN_FRONTEND=noninteractive",
+        "UV_HTTP_TIMEOUT=500",
+        "UV_INDEX_STRATEGY=unsafe-best-match",
+        "UV_LINK_MODE=copy",
+        "VLLM_ENABLE_CUDA_COMPATIBILITY=0",
+        "TORCH_CUDA_ARCH_LIST=7.0 7.5 8.0 8.9 9.0 10.0 12.0",
+        "VLLM_USAGE_SOURCE=production-docker-image"
+      ],
+      "Cmd": [
+        "-k",
+        "5s",
+        "130s",
+        "/experiment/.venv/bin/python",
+        "-B",
+        "-u",
+        "-"
+      ],
+      "Image": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "Volumes": null,
+      "WorkingDir": "/vllm-workspace",
+      "Entrypoint": [
+        "/usr/bin/timeout"
+      ],
+      "OnBuild": null,
+      "Labels": {
+        "maintainer": "NVIDIA CORPORATION <cudatools@nvidia.com>",
+        "org.opencontainers.image.ref.name": "ubuntu",
+        "org.opencontainers.image.version": "22.04",
+        "sllm.cpu_control": "sllm-glm-ray-cpu-20d6290ebcc0",
+        "sllm.owner": "boyjiang"
+      }
+    },
+    "NetworkSettings": {
+      "Bridge": "",
+      "SandboxID": "",
+      "SandboxKey": "",
+      "Ports": {},
+      "HairpinMode": false,
+      "LinkLocalIPv6Address": "",
+      "LinkLocalIPv6PrefixLen": 0,
+      "SecondaryIPAddresses": null,
+      "SecondaryIPv6Addresses": null,
+      "EndpointID": "",
+      "Gateway": "",
+      "GlobalIPv6Address": "",
+      "GlobalIPv6PrefixLen": 0,
+      "IPAddress": "",
+      "IPPrefixLen": 0,
+      "IPv6Gateway": "",
+      "MacAddress": "",
+      "Networks": {
+        "bridge": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "MacAddress": "",
+          "DriverOpts": null,
+          "NetworkID": "9ca208de8a4667a0848d4c52bf1578762a1bd2d605c43dadc3e05a495cdf2b0f",
+          "EndpointID": "",
+          "Gateway": "",
+          "IPAddress": "",
+          "IPPrefixLen": 0,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    }
+  },
+  "container_removed": true,
+  "end_ns": 1368144234365300,
+  "cpu_tests": {
+    "tests_passed": 100,
+    "suites": {
+      "debug_stack_v1": 78,
+      "c23_regression": 6,
+      "final_costs": 6,
+      "runtime_imports": 10
+    },
+    "payload_AST_matches_actual_functions": true,
+    "pre_execution_failure": "first template composition used stale AST offsets and failed SyntaxError before any remote access; corrected extraction uses original segments",
+    "fixture_failures_retained": [
+      "pre-pool AST fixture needed new explicit normal branch",
+      "Windows signal constants missing; added CPU-only stubs",
+      "Ray mock nodes lacked Alive; fixture corrected, no production bypass"
+    ]
+  }
+}
