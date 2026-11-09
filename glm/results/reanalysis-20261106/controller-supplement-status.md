@@ -51,3 +51,16 @@
 结论：此一次GPU容器创建/sleep控制未复现原慢采样，不证明根因已解决，也不能排除间歇性Docker/NVML或调度问题。原失败发生的worker应用/Python/Ray启动不在本次覆盖内，是下一待定位边界；任何更深入的现场控制须先有具体有界方案、独立审阅、资源授权与新守护，不能直接启第四模型cohort。当前没有持续占用GPU或大池。
 
 原40仍35成功/5失败；三个补充cohort各0成功/1失败/3未开始，全部保留，不重试、不补入C23。下一阶段仍是证据驱动定位和必要修复，最终再进行受审四条件同次补测，goal未完成。
+
+
+## 2026-11-10 Ray边界CPU准备与完整源码R1完成，现场未开始
+
+source revision04fbc526（实现4904638c）复用原debug_service的Ray CLI、driver和双节点/8逻辑GPU核验，只在显式--startup-only --startup-stage ray后于Store前分支结束；普通Store/服务分支AST与a9e17edb一致。新scope glm-ray-startup-monitor-control-v1、预算180秒工作/900秒独立slice截止、原5秒监控及至少60秒释放不变。100项CPU检查通过（78+6+6+10），完整只读R1 PASS，manifest1cb69554…、source tree70a71e5d…、source-only approved gate35ed241f…；未获本次Ray阶段运行批准，不复用已完成sleep控制的资源授权。
+
+真实CPU原生Ray退出组件（runc/UID2147/4CPU/8GiB/8192任务，0GPU、仅原三只读环境挂载，timeout130+kill5）约10.896936009秒通过，容器exit0、原生Ray受控exit1，无OOM/外层force/退出错误，已移除。执行函数AST与冻结源码相同；ray_control_pass=true而完整success=false，不是双节点GPU Ray阶段验证。证据ray-startup-cpu-control.json同时保留原始源码、日志及此前本地预检/夹具失败。另只读核当前Ray Node/Worker磁盘SHA仍与原信号来源一致，version源码为2.48.0/03491225d59a1ffde99c3628969ccf456be13efd；这是磁盘身份补证，不冒称本次活进程模块映射证明。
+
+工具90文件已上传并SHA核验：code/debug-stack-51b31dd49b06；同commit源码83文件：code/source-debug-04fbc526546b-70a71e5dca77。无新环境、权重或GB级副本；当前本任务无GPU、模型、Store池或辅助CPU容器占用。
+
+提案新run sllm-debug-20261109T170530Z-0cd21c3d尚未开始。已向用户提出具体的一次最多15分钟Ray阶段授权请求，当前至10:00的Azure窗口此前明确授权只覆盖sleep一次；本次未得到确认前不安装新运行守护或启动GPU控制。确认后仍须新root CPU故障probe、真实timer/Main/private slice及新鲜8卡/内存/共享I/O准入，失败保留且不自动重试。该控制仍不建Store池、不读权重或启动模型。
+
+原40及三个失败cohort不改；未发布新的完整GLM Controller值，四条件补测和最终报告仍未完成。下一实际步骤是取得Ray阶段资源授权并执行受审有界控制，或在资源不允许时保留可接续证据，不能将CPU/R1通过改写为运行成功。
