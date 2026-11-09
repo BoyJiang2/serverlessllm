@@ -1,0 +1,506 @@
+{
+  "status": "PARTIAL_GOAL_AUDIT_NOT_COMPLETE_AWAITING_APPROVED_FUTURE_WINDOW",
+  "created_epoch": 1794221787.9572465,
+  "previous_goal_turn": "PROGRESS: implementation+actualAPI/frozen10+review/publication+approved booking and one-time schedule",
+  "scope": "Only existing small evidence/code/metadata reads; no payload file opens, cache preparation, GPU queries, container/Store/model operations, code changes or test reruns.",
+  "source_commit": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+  "matched_cache_original_copy_manifest_files_rehashed": 41,
+  "requirements": [
+    {
+      "requirement": "Original dependency plans and historical boundaries",
+      "status": "PREVIOUSLY_REVIEWED_REUSED_NOT_REINVESTIGATED",
+      "evidence": "Existing five named design/dependency artifacts retained; actual source is newer87bc, never reset to old objective91fb."
+    },
+    {
+      "requirement": "SF64MiB and Store640GiB profiles; real CLI/config alignment",
+      "status": "PROVEN_DIAGNOSTIC64_AND_FROZEN_FOUR_PROFILE_CONFIGURATION",
+      "evidence": {
+        "actual_diagnostic_GetConfig": {
+          "chunk_size": 67108864,
+          "mem_pool_size": 67108864
+        },
+        "new_four_pools": {
+          "safetensors_disk_cold": 67108864,
+          "safetensors_disk_hot": 67108864,
+          "store_disk_cold": 687194767360,
+          "store_pool_hit": 687194767360
+        }
+      },
+      "limit": "Future formal execution still requires fresh real GetConfig and all gates;64MiB not proved minimum."
+    },
+    {
+      "requirement": "Actual producer full read once and bounded fixed five sweeps",
+      "status": "PROVEN_FOR_COMPLETED_MATCHED_CACHE_DIAGNOSTIC",
+      "evidence": {
+        "run_id": "kimi-matched-cache-only-20261109-qjhs000-v1",
+        "files": 84,
+        "bytes": 595204634151,
+        "producer_read_seconds": 163.125950763,
+        "sweeps": [
+          {
+            "offset_s": 0,
+            "files": 84,
+            "resident_pages": 145313657,
+            "pages": 145313657,
+            "query_seconds": 18.60439591
+          },
+          {
+            "offset_s": 30,
+            "files": 84,
+            "resident_pages": 145313657,
+            "pages": 145313657,
+            "query_seconds": 18.730127401
+          },
+          {
+            "offset_s": 60,
+            "files": 84,
+            "resident_pages": 145313657,
+            "pages": 145313657,
+            "query_seconds": 18.908000021
+          },
+          {
+            "offset_s": 90,
+            "files": 84,
+            "resident_pages": 145313657,
+            "pages": 145313657,
+            "query_seconds": 18.93766892
+          },
+          {
+            "offset_s": 120,
+            "files": 84,
+            "resident_pages": 145313657,
+            "pages": 145313657,
+            "query_seconds": 19.012638803
+          }
+        ]
+      },
+      "limit": "Sequential samples, not atomic or continuous residency; no causal claim for former640GiB failure."
+    },
+    {
+      "requirement": "NUMA/cgroup/pressure counters and source identities",
+      "status": "MATCHED_DIAGNOSTIC_SOURCE_VIEW_HASH_RECHECKED",
+      "evidence": {
+        "sha256": "7ba7b3398e8e4fb0f10e112f515a66f0b030e14d47340f8e69cc6a6075196a68",
+        "frames": 12,
+        "source_references_match_private_manifest": true,
+        "stable_reader_store_identity": true,
+        "mountroot_and_namespace_match": true,
+        "numa_nodes": [
+          0,
+          1
+        ],
+        "finite_nonroot_ancestor_headroom_verified": true,
+        "root_missing_memory_fields_remain_null": true,
+        "MemAvailable_min_bytes": 1919666110464,
+        "MemAvailable_max_bytes": 1919839457280,
+        "max_collection_seconds": 0.040549326
+      },
+      "limit": "No current pressure measurement or root-cause attribution; root missing counters remain null."
+    },
+    {
+      "requirement": "Stop before register/model/inference; truthful diagnostic status",
+      "status": "DIAGNOSTIC_ONLY_AND_NONPERFORMANCE_VERIFIED",
+      "evidence": {
+        "diagnostic_only": true,
+        "primary_sample_qualified": false,
+        "model_registration": "NOT_PERFORMED",
+        "model_load_endpoints": null,
+        "gold": null,
+        "model_rank_ownership": null
+      }
+    },
+    {
+      "requirement": "Normal close and actual quiet>=60",
+      "status": "PROVEN_FOR_MATCHED_DIAGNOSTIC",
+      "evidence": {
+        "quiet_seconds": {
+          "head": 60.16924455203116,
+          "worker": 60.23491539247334,
+          "observer": 60.479751477018
+        },
+        "containers_exit0": true,
+        "store_stop_s": 2.248460895381868
+      }
+    },
+    {
+      "requirement": "CPU negative cases, implementation/source and reviewed actual commands",
+      "status": "IMPLEMENTED_REVIEWED_AND_PUBLISHED",
+      "evidence": {
+        "helper_tests": 28,
+        "producer_tests": 39,
+        "consumer_tests": 114,
+        "source": "87bc7ab2a3106eaea50ace11e2a000e228a0c9c5",
+        "code_evidence": "a7c03c27a84b11f9e3f4c360fb8e8cbdb669dadc",
+        "source_and_CPU_proofs": "Existing receipts; no redundant test rerun this audit."
+      }
+    },
+    {
+      "requirement": "Later new fourcondition version and authorization",
+      "status": "FROZEN_AND_EXPLICITLY_APPROVED_NOT_EXECUTED",
+      "evidence": {
+        "new_approval": "user-new300-block-and-booking-approval-v1.json",
+        "normal_stop_s": 300,
+        "booking": "bk-20261109T1037-625c4483",
+        "window_s": 32400,
+        "budget_s": 28920
+      }
+    },
+    {
+      "requirement": "Complete fourcondition runtime,8rank full/ingest/post,Controller/Prep/A and Figure5",
+      "status": "NOT_ACHIEVED_FUTURE_TIME_GATED",
+      "evidence": {
+        "all_four": "NOT_STARTED",
+        "new_formal_n": 0,
+        "run_id": "kimi-load-stages-20261109-qjhs000-v1-b01",
+        "start_not_before": 1794265200,
+        "unloaded_units": [
+          {
+            "unit": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-controller.service",
+            "properties": "MainPID=0\nLoadState=not-found"
+          },
+          {
+            "unit": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-controller.service",
+            "properties": "MainPID=0\nLoadState=not-found"
+          },
+          {
+            "unit": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-controller.service",
+            "properties": "MainPID=0\nLoadState=not-found"
+          },
+          {
+            "unit": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-controller.service",
+            "properties": "MainPID=0\nLoadState=not-found"
+          },
+          {
+            "unit": "kimi-load-stages-20261109-qjhs000-v1-b01-formal-controller.service",
+            "properties": "MainPID=0\nLoadState=not-found"
+          }
+        ]
+      },
+      "limit": "Source/CPU/approval not runtime proof; no f7 replacement, no fill0 or backfilling old8blocks."
+    }
+  ],
+  "references": [
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/EXPORT-MANIFEST.json",
+      "bytes": 14480,
+      "sha256": "00dc51b1b8d5623d3aaf44fe9bfd374a03274fdace8c7067c0209d75386025ae"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/controller-final.json",
+      "bytes": 2617,
+      "sha256": "575631cecfd606f99cee04fd9c9d816f25df4ecaa9103a837d68da65d867d5a1"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/diagnostic-cache-validity.json",
+      "bytes": 690,
+      "sha256": "f015b9e3c950140e16ad722775fd77d3b3ac3c8b07768f99b3d9fe091530420f"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/condition-terminal.json",
+      "bytes": 164,
+      "sha256": "d5dd1675afd2a5fa6ca66561db1157ce32fb7a363dceee71b54e9a4e96c2083a"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/cleanup-result.json",
+      "bytes": 80,
+      "sha256": "9932aa30412df42bfd9c0329a3eb90dd6a10a9675a8e30b8bbed7a35f5be34cd"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/cache-observation-result.json",
+      "bytes": 244422,
+      "sha256": "55fe9c7708f8d0d80dcefbeca431f44a4819c7f8c5bfe2ae83f6fca1e1558794"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/cache-observation-callback-markers.json",
+      "bytes": 2433,
+      "sha256": "27a9ee79f11d2839895f4294e072dbcd52fe06e9bb08a9781dbd431183c45517"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/storage-route-admission.json",
+      "bytes": 540,
+      "sha256": "3c9c0158400282a69a080ec134bfe2132db58f8cd4520ca3a4c187178663d41b"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/store-stop-exit60.json",
+      "bytes": 536,
+      "sha256": "92664921006fb3edaa89e12dac1c653ed49ccdab3813c5129b6ca59fd99fa47f"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/guard-head/guard-final.json",
+      "bytes": 915,
+      "sha256": "6d6fd891e8101e6ba84d37546e7691f4c40a4354cd37614df98930f453950966"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/guard-worker/guard-final.json",
+      "bytes": 729,
+      "sha256": "1b219423d8af38e6294253f772c2f230e16da077a672bc817995b18be8023050"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/observer/observer-final.json",
+      "bytes": 1049,
+      "sha256": "b5f0612fb679c7da0603e74e68698e7dc5c52d057722185cea7d60a14668eacf"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/9-worker-official_module.stdout",
+      "bytes": 617,
+      "sha256": "b6c812145fed7a2120a572658fa1735bd9d13bd9f4ab96ff57e5df0e793becfb"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/9-worker-official_module.stderr",
+      "bytes": 1799,
+      "sha256": "4157d924dbff93fee2601fb6caf9cfeae966a77c382f2e728c77e5ff75cdbaf9"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/10-worker-store_config.stdout",
+      "bytes": 52,
+      "sha256": "4b89cfe35150c342f3a5673ed85aa02c5d682b09fe7203116123b5d93aa9799a"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/10-worker-store_config-exec.json",
+      "bytes": 906,
+      "sha256": "05bbfb5cbdb8f5a4283edd1771115ac344bb82feb2797f4f489e70e487047f1b"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/28-head-controller_shutdown.stdout",
+      "bytes": 32,
+      "sha256": "1b81d919ab067a001522db3c164b6251eab0d4f60bcdfb6d95564add7a6783b4"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/28-head-controller_shutdown.stderr",
+      "bytes": 186,
+      "sha256": "94e79d200dc77440b1f660a152a99267313172493841182d9454c4bca35078d3"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/28-head-controller_shutdown-exec.json",
+      "bytes": 2685,
+      "sha256": "5b05bacd72b29a91ee1950d1a92ccd475370f48ab616e7c54b3f81c83cc25dae"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-api_controller_authentication_complete.json",
+      "bytes": 955,
+      "sha256": "ce4f521acf9571aee0ca0cfa4b24c97c4cdfd97323b4d37bc127f235978da661"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-api_startup_begin.json",
+      "bytes": 934,
+      "sha256": "cc26a138afac06652d8d414c8227f1b095ea04134598b034859a44e2abec2d9c"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-cache_diagnostic_observations_complete.json",
+      "bytes": 955,
+      "sha256": "e5fb9e58da1af440aace96812371f35bb53f326db02498eff19f209b77f46ee0"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-common_environment_begin.json",
+      "bytes": 941,
+      "sha256": "d3aa6e1f1ed287d5348037cdf1424eb28242934d23958520127c155a24ccaeb8"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-common_environment_complete.json",
+      "bytes": 943,
+      "sha256": "4c9d81a24cff0264212bbab6b360ed6ac3a70983c7a7e3758ff2faaeb7085338"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-containers_normal_exit_complete.json",
+      "bytes": 948,
+      "sha256": "a8e921588191695e01ea13d37fc7d4293388327e6e688bec9794fab6eac8731f"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-controller_shutdown_and_api_stop_begin.json",
+      "bytes": 955,
+      "sha256": "62656f34908aee901a8db8e4e3250199154a868eff08d3167b6027f993a205cf"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-controller_shutdown_and_api_stop_complete.json",
+      "bytes": 958,
+      "sha256": "f5e21f952f656fb8ccb6482180d381dfa5076fe63e9844858307a3c8669f4bb7"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-initial_baseline60_begin.json",
+      "bytes": 941,
+      "sha256": "49ea99bf660aa01798ffda67dbb71cababe4d694368c3bc24447dd6736a3ee3e"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-initial_baseline60_complete.json",
+      "bytes": 944,
+      "sha256": "1e78aa60c640e834531c445e4bdf8fd8d4d7bf16b38257a6a2f3d7754d8454dd"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-ordered_final_stop_begin.json",
+      "bytes": 941,
+      "sha256": "7b399a513bb5a6e201676dc98b7a62b80233976c84e520ae752fabc91896e9ec"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-ray_join_begin.json",
+      "bytes": 931,
+      "sha256": "8ab7fd0877982e992deaf287074b98346ea38a53441bb9c6d32ebf5ea723beec"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-ray_join_complete.json",
+      "bytes": 934,
+      "sha256": "33a421cd9ada6001e46fec96a571e488a83065931ba5dc0cacc6b3a2494290ee"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-release_quiet60_complete.json",
+      "bytes": 941,
+      "sha256": "00e02cfc4b09eea504ed2f520e724c25e9d6ddfb127de8d2aadf498748ed63e9"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-store_pool_initialization_begin.json",
+      "bytes": 946,
+      "sha256": "2920d4825cb31243bb45018c1a587c9bf9b34ab414a1d65f018755f700969594"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-store_pool_initialization_complete.json",
+      "bytes": 951,
+      "sha256": "f7dec703b4831fbdfda51a425c3ee665b1171bd637b35c046133e999ee5177e3"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/event-target_condition_construction_begin.json",
+      "bytes": 951,
+      "sha256": "0342081928c11f04fbcb441988cf4df18d0bd45d42f754f26197d25df1239f21"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/runtime-user-authorization-v1.json",
+      "bytes": 886,
+      "sha256": "35cbe70ed038ccf6f729b2a4248e0e68541e3509b985e4aec528502f14d8fdff"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/runtime-fresh-booking-v1.json",
+      "bytes": 484,
+      "sha256": "6af425893ad76c35ebeff54108eda9c8ea5043072cae8b18295606e6e149267f"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/runtime-root-admission-v1.json",
+      "bytes": 1098,
+      "sha256": "6c255ee0979f15e6c3311876ac64253c9e42f21ee753fa6e079d24e435e9120f"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/runtime-activation-receipt-v1.json",
+      "bytes": 482,
+      "sha256": "c700cc412c2d35b27569ad82f6fac363a7267b01c4005c2ee1f1ce6c56b868ac"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/runtime-terminal-release-confirmation-v1.json",
+      "bytes": 1649,
+      "sha256": "2e57e6a229090af67d4df0be302a83dfa76e1bdd7f1beed76ff8ffcf9ea3255d"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/one-shot-start.claim.json",
+      "bytes": 337,
+      "sha256": "9e25ded005eda9b75863bc696c396a91876a7bb3be48f39bece4004145d91092"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/actual-matched-cache-results-independent-review-v1.json",
+      "bytes": 9375,
+      "sha256": "7f9fb98630805c2ccbef481d743708eb4c49e6663cbddee323e25d516b421bf6"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/cpu-verification-v3.json",
+      "bytes": 2787,
+      "sha256": "a2e7f5aa4107a34c931baad0ce41299143995bac29ae34a650d633f5c8ccdacf"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-terminal-release-confirmation-v1.json",
+      "bytes": 1649,
+      "sha256": "2e57e6a229090af67d4df0be302a83dfa76e1bdd7f1beed76ff8ffcf9ea3255d"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/runtime-public-v1/resource-metrics-view-v1.json",
+      "bytes": 3492101,
+      "sha256": "7ba7b3398e8e4fb0f10e112f515a66f0b030e14d47340f8e69cc6a6075196a68"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/protocol-stage-exit300-frozen-v1.json",
+      "bytes": 48160,
+      "sha256": "78beeac12a703ad7c26c7e42475a5e0918cf6741d08fbba1ec24ed933dd3bdde"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/actual-frozen-render-v1.json",
+      "bytes": 3974,
+      "sha256": "219311d890673e0ba5687ca24d5c31fe61780d7503f3c97462643893bac3e2d6"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-formal-v3-78beeac12a70-spec.json",
+      "bytes": 95430,
+      "sha256": "720ad365666e7ccb630cd0eca76a0fe589481910d1014505536e38c78fc82c3c"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot-formal-v3-78beeac12a70-command.json",
+      "bytes": 81654,
+      "sha256": "ec762a8706b896061b1cc30e485ca32446300665ebf3959f21df5934f2096f64"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-formal-v3-78beeac12a70-spec.json",
+      "bytes": 95369,
+      "sha256": "95bfcde39f627d1c983f48e0818fd1987cf0bdf8298c98831c7df7ae8e2ee826"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold-formal-v3-78beeac12a70-command.json",
+      "bytes": 81649,
+      "sha256": "5eb86b0b02314079728b817e7c934d3311f84d62ce68fb82732d2eb3cb2993f0"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-formal-v3-78beeac12a70-spec.json",
+      "bytes": 95446,
+      "sha256": "28555375b4319ad182c4a950115025adc1bc65f7fb6703b6405b6948bb57fbd9"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold-formal-v3-78beeac12a70-command.json",
+      "bytes": 81656,
+      "sha256": "d9a3389b6ef6ddf31164c8cf8361c76c48a08a6a8db16203ea6c35d5121892a7"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-formal-v3-78beeac12a70-spec.json",
+      "bytes": 95353,
+      "sha256": "aa5c76fb2f6315ee0f433ba8d4063e405ba4de41352cb53eed772c1bf8b65fc4"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit-formal-v3-78beeac12a70-command.json",
+      "bytes": 81647,
+      "sha256": "5b44aa5a1cbb63883548d92ff667e14051d8bd9bef88e50835eb11c0210578db"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-formal-v3-78beeac12a70-bundle.json",
+      "bytes": 21281,
+      "sha256": "a57a54a61bed964fe9a1b7b6fd6716fe9cacdc453ee82d658eacda511a4e0374"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-load-stages-20261109-qjhs000-v1-b01-formal-v3-78beeac12a70-root-command.json",
+      "bytes": 18279,
+      "sha256": "65eb72256626c5a2c41319d513e0f546091714f82450fd1addd71c0b13d50b70"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/user-new300-block-and-booking-approval-v1.json",
+      "bytes": 707,
+      "sha256": "ad94066b2686b6b72ec62734607874eea0ba1334bd6f6e0c403c827763d851c4"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/approved-future-booking-readback-v1.json",
+      "bytes": 604,
+      "sha256": "b88f4d0df0bfa939394b85a14912098605ca4ffdd59899b9391c75f7e0cab511"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/approved-window-one-time-schedule-v1.json",
+      "bytes": 1091,
+      "sha256": "970e63db45f437400a795df4952bab1679071983aec5023dcc31ae11f267b7f6"
+    }
+  ],
+  "history_unchanged": {
+    "original_Kimi40": "38qualified/2failed",
+    "original_main_blocks": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      10
+    ],
+    "L1": "owner acceptance retained",
+    "GLM40": "35success/5failure; no rerun/recount/modification"
+  },
+  "current_external_gate": "Time before2026-11-10 07:00 Asia/Taipei. Startup must independently recheck fresh booking/resources/root/pins/claims/guards. No repeated approval requested.",
+  "do_not_mark_goal_complete": true
+}
