@@ -1,0 +1,98 @@
+--- source986/sllm_store/tests/python/test_prepare_kimi_four_condition.py
++++ current/sllm_store/tests/python/test_prepare_kimi_four_condition.py
+@@ -1422,11 +1422,11 @@
+                     path=target/'tiny-weight';path.write_bytes(b'tiny');st=path.stat()
+                     inventory['roots'][name]={'root':str(target),'files':[dict(path=str(path),resolved=str(path),relative=path.name,dev=st.st_dev,ino=st.st_ino,bytes=st.st_size,mtime_ns=st.st_mtime_ns,uid=st.st_uid,payload=True)]}
+                 ip=root/'inventory.json';ip.write_text(json.dumps(inventory))
+-                protocol['assets'].update(route='local_nvme',safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=p.hashlib.sha256(ip.read_bytes()).hexdigest())
++                protocol['assets'].update(route=protocol['assets'].get('route','local_nvme'),safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=p.hashlib.sha256(ip.read_bytes()).hexdigest())
+                 pp=root/'protocol.json';pp.write_text(json.dumps(protocol));psha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
+                 argv=['prepare','--protocol',str(pp),'--protocol-sha',psha,'--block','1']
+                 if frozen:argv+=['--source-commit',p.SOURCE]
+-                with mock.patch.object(p,'SF_HOST',str(sf)),mock.patch.object(p,'STORE_ARCHIVE',str(archive)),mock.patch.object(p,'RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE) as gate,mock.patch.object(sys,'argv',argv),mock.patch('builtins.print'):
++                with mock.patch.object(p,'SF_HOST',str(sf)),mock.patch.object(p,'STORE_ARCHIVE',str(archive)),mock.patch.object(p,'RUNS_ROOT',str(runs)),mock.patch.object(p,'Q0_SF_HOST',str(sf)),mock.patch.object(p,'Q0_STORE_ARCHIVE',str(archive)),mock.patch.object(p,'Q0_RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(p,'committed_source',return_value=p.SOURCE) as gate,mock.patch.object(sys,'argv',argv),mock.patch('builtins.print'):
+                     p.main()
+                 self.assertEqual(gate.call_count,int(frozen));self.assertEqual(len(list(ep.iterdir())),10)
+                 bundle=json.loads(next(ep.glob('*-bundle.json')).read_text())
+@@ -1586,5 +1586,81 @@
+                 self.assertEqual(request['env']['SLLM_LOAD_SPAN_RUN_ID'],spec['run_id'])
+             compile(cmd['argv'][cmd['argv'].index('-c')+1],'<proc-confirm-actual-root>','exec')
+ 
++
++class Q0RaidProfileTest(unittest.TestCase):
++    def protocol(self):
++        protocol=ProcConfirmCohortTest().protocol()
++        protocol['node']='qjhs000'
++        protocol['unified_loading'].update(cohort_id=p.Q0_COHORT,block_id=p.Q0_COHORT+'-b01')
++        for row in protocol['attempts']:row['attempt_id']=p.Q0_COHORT+'-b01-'+row['condition']
++        protocol['node_profile']=copy.deepcopy(p.Q0_NODE_PROFILE)
++        protocol['assets'].update(route='local_raid_md0',safetensors=p.Q0_SF_HOST,store_archive=p.Q0_STORE_ARCHIVE,store=p.Q0_STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference')
++        protocol['resource_budget']['runs_root']=p.Q0_RUNS_ROOT
++        return protocol
++
++    def test_actual_q0_render_pins_ids_and_negative_profile(self):
++        protocol=self.protocol();p.validate_protocol(protocol)
++        original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
++        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        for attempt in protocol['attempts']:
++            spec,cmd=p.render(protocol,original,command,attempt['attempt_id'],original['native_source_pins'])
++            body=cmd['argv'][cmd['argv'].index('-c')+1]
++            self.assertIn("assert os.uname().nodename=='qjhs0'",body);self.assertNotIn("assert os.uname().nodename=='qjhs3'",body)
++            self.assertEqual(spec['gpu_uuids'],p.Q0_NODE_PROFILE['gpu_uuids'])
++            self.assertEqual(spec['requests']['worker']['env']['NVIDIA_VISIBLE_DEVICES'],','.join(p.Q0_NODE_PROFILE['gpu_uuids']))
++            self.assertEqual(spec['storage_route']['asset_and_raw_output_filesystem'],'xfs on /dev/md0')
++            self.assertEqual(spec['runs_root'],p.Q0_RUNS_ROOT);self.assertEqual(spec['archive'],p.Q0_STORE_ARCHIVE)
++            self.assertEqual(spec['guard_sha256'],protocol['proc_identity_confirmation_guard']['sha256'])
++            self.assertEqual(spec['unified_loading']['overlay']['sha256'],p.ENDPOINT_OVERLAY_SHA)
++            self.assertEqual(spec['budgets']['full'],7200)
++            for role in spec['requests'].values():
++                self.assertEqual(role['env']['SLLM_LOAD_SPAN_RUN_ID'],attempt['attempt_id'])
++                self.assertEqual(next(m['Source'] for m in role['mounts'] if m['Target']=='/store'),p.Q0_STORE_ARCHIVE)
++                self.assertEqual(next(m['Source'] for m in role['mounts'] if m['Target']=='/mnt/raid/models/Kimi-K2.6'),p.Q0_SF_HOST)
++            compile(body,'<q0-actual-root>','exec')
++        for field,value in [('hostname','qjhs3'),('gpu_uuids',list(reversed(p.Q0_NODE_PROFILE['gpu_uuids']))),('filesystem_source','/dev/nvme1n1')]:
++            bad=copy.deepcopy(protocol);bad['node_profile'][field]=value
++            with self.subTest(field=field),self.assertRaises(AssertionError):p.validate_protocol(bad)
++        bad=copy.deepcopy(protocol);bad['node']='qjhs003'
++        with self.assertRaises(AssertionError):p.validate_protocol(bad)
++        bad=copy.deepcopy(protocol);bad['proc_identity_confirmation_guard']['sha256']='0'*64
++        with self.assertRaises(AssertionError):p.protocol_guard_pin(bad)
++
++    def test_q0_frozen_paths_and_old_route_stay_closed(self):
++        protocol=self.protocol()
++        protocol.update(status='FROZEN_Q0_RAID_SUPPLEMENT',final_deploy_commit=p.SOURCE)
++        protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
++        protocol['resource_budget'].update(per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
++        protocol['assets'].update(input_inventory_path='/tmp/q0-new-inventory.json',input_inventory_sha256='c'*64)
++        protocol['correctness']['observability']='logprobs=1; return_token_ids omitted; trace supplies own actualIDs'
++        for row in protocol['correctness']['requests']:row['logprobs']=1
++        p.validate_frozen_protocol(protocol,p.SOURCE)
++        for group,key,value in [('assets','route','local_nvme'),('assets','safetensors',p.SF_HOST),('assets','store_archive',p.STORE_ARCHIVE),('resource_budget','runs_root',p.RUNS_ROOT),('assets','input_inventory_sha256',p.INVENTORY_SHA)]:
++            bad=copy.deepcopy(protocol);bad[group][key]=value
++            with self.subTest(key=key),self.assertRaises(AssertionError):p.validate_frozen_protocol(bad,p.SOURCE)
++        old=ProcConfirmCohortTest().protocol();old['assets']['route']='local_raid_md0'
++        old.update(status='FROZEN_OLD_V2',final_deploy_commit=p.SOURCE)
++        with self.assertRaises(AssertionError):p.validate_frozen_protocol(old,p.SOURCE)
++
++    def test_actual_q0_main_ten_outputs(self):
++        harness=UnifiedLoadingSupplementTest();harness.protocol=self.protocol
++        harness.test_actual_main_new_four_child_bundle_and_candidate_closed()
++
++    def test_actual_q0_mount_gate(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory)
++            for name in ('sf','store','runs'):(root/name).mkdir()
++            spec={'storage_route':{'route':'local_raid_md0'},'safetensors_host':str(root/'sf'),'archive':str(root/'store'),'runs_root':str(root/'runs')}
++            result={'filesystems':[{'source':'/dev/md0','fstype':'xfs','target':str(root)}]};calls=[]
++            def findmnt(argv,**kwargs):calls.append(argv);return json.dumps(result)
++            namespace={'s':spec,'json':json,'pathlib':pathlib,'subprocess':types.SimpleNamespace(check_output=findmnt)}
++            exec(p.Q0_STORAGE_ROUTE_CODE,namespace);self.assertEqual(len(calls),3)
++            for source in ('/dev/md0[/data]','/dev/md0[/home]'):
++                result['filesystems'][0]['source']=source
++                exec(p.Q0_STORAGE_ROUTE_CODE,namespace)
++            for source,fstype in [('/dev/md0evil','xfs'),('/dev/md0[/unknown]','xfs'),('/dev/nvme1n1','xfs'),('qjhs0:/home','nfs4'),('/dev/md0','ext4')]:
++                result['filesystems'][0].update(source=source,fstype=fstype)
++                with self.subTest(source=source),self.assertRaises(AssertionError):exec(p.Q0_STORAGE_ROUTE_CODE,namespace)
++
+ if __name__=='__main__':
+     unittest.main()

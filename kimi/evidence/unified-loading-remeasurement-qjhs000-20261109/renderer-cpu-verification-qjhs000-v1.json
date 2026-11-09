@@ -1,0 +1,141 @@
+{
+  "schema": "kimi-qjhs000-raid-renderer-cpu-verification-v1",
+  "status": "CPU_PASS_NOT_GPU_OR_FINAL_SOURCE_ADMISSION",
+  "epoch": 1794190167.622231,
+  "source_baseline_commit": "98696ed4334fdb47d76ccf2127d481db59cbe5be",
+  "source_files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "5b0da67edfd6783bb6d27e12de509001ac9b41ac22479ccde2d128dd3353926d",
+      "bytes": 108507
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "sha256": "d80ca2997b349278cacd9ae6e0c72f89af6e1128dc73ffb1cca094de48486a74",
+      "bytes": 146770
+    }
+  ],
+  "changes": "Only one explicit qjhs000 RAID supplemental profile in existing renderer/test; historical q3/40 admissibility and emitted root bytes preserved. Worker NVIDIA_VISIBLE_DEVICES and spec UUIDs are bound together; exact hostname and finite md0 source forms checked.",
+  "red": {
+    "status": "EXPECTED_FAILURE",
+    "tests": 3,
+    "failures": 1,
+    "errors": 2,
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/q0-profile-red.txt",
+      "sha256": "0fe42af353c0f9bd1184ad2dc3da109e675ec03d027033708245a07b79239224",
+      "bytes": 2400
+    },
+    "cause": "Missing explicit q0 profile and RAID route skipped by old NVMe-only cache filesystem admission."
+  },
+  "green": {
+    "status": "PASS",
+    "tests": 73,
+    "runner_host": "qjhs003",
+    "test_runner_seconds": 21.928,
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/q0-profile-green-final-v2.txt",
+      "sha256": "64c167412fa02c810cf56c6b71e386d665f02d27cc165b0bd0e5a5490e37cbe0",
+      "bytes": 173
+    },
+    "scope": "Actual HTTP/block/endpoint consumers and actual main with tiny fixtures; no ML imports/model execution/cache operations."
+  },
+  "q0_first_full_suite_limit": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/q0-profile-green-all.txt",
+      "sha256": "75b4fcf3ae4fa395e6bff42f81c178e6edfd3cabec5d33c5bd140d927e317da6",
+      "bytes": 2966
+    },
+    "note": "Initial q0 execution lacked q3-only tiny tensor_index fixture and exposed two legacy byte-hash differences. Legacy emitted bytes restored; complete final matrix ran on q3 with its existing small index metadata. No q3 payload read."
+  },
+  "actual_candidate_main": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/actual-main-candidate-preparation-v4.json",
+      "sha256": "a22034ad9934bdd24d794fb27fa3e6c02638f4d5fe7435f1795eb9d29bc87cce",
+      "bytes": 2757
+    },
+    "status": "10_FILES_CANDIDATE_NOT_EXECUTABLE",
+    "checks": [
+      "4unique new run IDs",
+      "qjhs0 hostname assertions",
+      "q0 spec+worker environment UUID map",
+      "SF/Store mount paths",
+      "root R0 from spec runs_root",
+      "observer from spec gpu_uuids",
+      "block runs_root and28920budget",
+      "all10 exact file SHA",
+      "source_commit=None, candidate states"
+    ]
+  },
+  "protocol": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/protocol-candidate-qjhs000-v4.json",
+    "sha256": "5cb358009902e74d32bbfc2943c0936c41de3fb1a29be1143923769651e7979e",
+    "bytes": 42906
+  },
+  "inventory": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2.json",
+    "sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+    "bytes": 99021
+  },
+  "inventory_independent_review": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2-independent-review-20261109.json",
+    "sha256": "a3d0ae2f2ca0aed40b5c8d960d092020963a7379af108dce2917bd2edd1c2a59",
+    "bytes": 2581
+  },
+  "concurrent_qjhs003_dependency_readonly_review": {
+    "scope": "Existing running controller/script/guard/observer bodies and exact docker inspect metadata only; no container start/exec/stop and no communication with other task agents.",
+    "controls": [
+      {
+        "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full_controller_v3.py",
+        "sha256": "cdb895e905b17d222614d4b1b01a4ad29907e5bdcc85a8c0c98011dffe42b8f3",
+        "bytes": 10132
+      },
+      {
+        "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full_backend_v3.py",
+        "sha256": "2bdbcac6f2d5b5b8cbec52ce05cfbc469cc8f771b971618c64bf8644b1dce5a1",
+        "bytes": 4191
+      },
+      {
+        "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/shared_guard.py",
+        "sha256": "aba721a9e982d137ccb83481274e8387635334f1bbecfb4e54d1bbf34107c6c3",
+        "bytes": 6172
+      },
+      {
+        "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/observe_full_v3.py",
+        "sha256": "7015d8b73b89d58d74f1afaab65caa6f7aee0fbffd0b21943b1061cbed72a69b",
+        "bytes": 2625
+      }
+    ],
+    "container_ids": [
+      "400b04748941b532d8c83afee1c35ba5e347bc52e93f71a7108820425d962d50",
+      "632305f630541f7893db0d430e3b9cd3c406e6bb549f77a0e3c0a786f7ed7d44",
+      "3669b7f108906cbc0e952d5bd14d2704e1a623f2aacad2e70476e568b81ab95a",
+      "048e64a2c2fd328550cced2d19601085dde5b519576ca4d01f126b544150a68a"
+    ],
+    "correction": "Initial check covered3containers; parent identified4th Kimi CID. Final review includes all4.",
+    "kimi_mount": {
+      "source": "/home/boyjiang/kimi-new/ServerlessLLM",
+      "destination": "/source",
+      "read_only": true
+    },
+    "findings": "Kimi executes independent full_backend_v3.py bind at/control/script.py and imports runtime sllm_store plus frozen build overlays/ELFs. Neither modified test/generator is imported/executed or hashed by inspected active controls. Inspected controls contain no git HEAD/source checksum revalidation in runtime/cleanup loops. Other3containers mount independent GLM/V4 source paths.",
+    "limit": "This checks the actual controller/command/script/guard dependencies, not every possible internal library file access. Other runtime source/ELF/overlay files and all old artifacts were left untouched; no Git performed."
+  },
+  "unchanged_pins": {
+    "guard": "e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e",
+    "endpoint_overlay": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7",
+    "per_condition_max_seconds": 7200,
+    "block_max_seconds": 28920,
+    "normal_store_exit_max_seconds": 60,
+    "independent_quiet_min_seconds": 60
+  },
+  "not_done": [
+    "No Git/commit/push",
+    "No final-source remote admission",
+    "No root claims consumed",
+    "No GPU/container start/Store/cache operation",
+    "No payload read or asset copy",
+    "No original or q3v2 IDs changed"
+  ],
+  "next": "Independent source/artifact review, parent explicit commit/publish, append frozen protocol with actual new commit, actual main --source-commit strict blob/remote gate, final generated artifacts review and fresh root/window/resource admission."
+}

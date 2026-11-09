@@ -1,0 +1,53 @@
+{
+  "schema": "kimi-qjhs000-inventory-independent-schema-stat-SHA-review-v1",
+  "created_at_utc": "2026-11-09T02:06:22.550111+00:00",
+  "verdict": "ACCEPT_FINITE_INVENTORY_METADATA_STAT_SCOPE_ONLY",
+  "inventory": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2.json",
+    "sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+    "bytes": 99021
+  },
+  "actual_validator": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+    "sha256": "0a3dc854f6a2959a7c3a590f1ece017fd5ae7b5e9e514e1d96758e44ca4ef308",
+    "function": "validate_inventory",
+    "line": 137,
+    "execution": "Extracted exact actual function AST, expected_roots exact; real188stat/resolve/UID checks PASS, no whole-module import."
+  },
+  "expected_roots": {
+    "safetensors": "/mnt/raid/models/Kimi-K2.6",
+    "store": "/home/boyjiang/kimi-new/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference"
+  },
+  "counts": {
+    "safetensors": {
+      "files": 84,
+      "payload_stat_only": 64,
+      "payload_bytes": 595177988208,
+      "metadata_SHA_verified": 20,
+      "all_file_bytes": 595204634151
+    },
+    "store": {
+      "files": 104,
+      "payload_stat_only": 64,
+      "payload_bytes": 617000763392,
+      "metadata_SHA_verified": 40,
+      "all_file_bytes": 617029596501
+    }
+  },
+  "unique_dev_inode_count": 188,
+  "metadata_bytes_read": 55479052,
+  "schema_checks": [
+    "188finite paths/relative names match canonical inventory, no duplicate inodes or leaf symlinks",
+    "dev/ino/size/mtime_ns/UID and resolved path match actual q0 state",
+    "All60metadataSHA match canonical expected SHA;64SF+64Storepayload stat only",
+    "New epoch receipt finalization; inherited old epoch separate, not per-file observation timestamps",
+    "Payload rows do not claim metadataSHA or freshly verified copySHA"
+  ],
+  "timing_scope": "Stat and metadata SHA collection immediately before candidate preparation on20261109; epoch is receipt finalization, not per-file read timestamp.",
+  "limits": [
+    "Not full weight/Store payload content verification; no payload reads.",
+    "No mincore/fadvise/warm, GPU/container/Store/Git/source edits or real model admission.",
+    "Inventory dev2304 is q0 md0 RAID XFS, not q3NVMe. Shared NFS-client interference and per-file cache authorization limits remain.",
+    "Source validator hash is current observed CPU prep source, not a replacement for final committed source/blob gate."
+  ]
+}
