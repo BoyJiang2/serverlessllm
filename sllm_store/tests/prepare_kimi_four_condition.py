@@ -23,6 +23,11 @@ SOURCE = "70b23a3af65fae77b4b762942cf4a682a7c474f6"
 SF_HOST = "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb"
 STORE_ARCHIVE = "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once"
 RUNS_ROOT = "/data/brick1/boyjiang/kimi-k2.6/performance-runs"
+Q0_COHORT = "kimi-unified-loading-20261109-qjhs000-raid-v1"
+Q0_SF_HOST = "/mnt/raid/models/Kimi-K2.6"
+Q0_STORE_ARCHIVE = "/home/boyjiang/kimi-new/store-conversion-20261105-once"
+Q0_RUNS_ROOT = "/home/boyjiang/kimi-new/evidence/runs"
+Q0_NODE_PROFILE = {'hostname': 'qjhs0', 'ssh_alias': 'qjhs000', 'gpu_uuids': ['GPU-ec8259a6-1812-7313-8679-ded3ed2271a0', 'GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f', 'GPU-63a1fe63-1472-9448-9361-a039cf257d14', 'GPU-393e97f5-a431-1973-5bd9-e2be28ae854a', 'GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf', 'GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d', 'GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590', 'GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da'], 'filesystem_source': '/dev/md0', 'filesystem_type': 'xfs'}
 DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8ca9692b1f25'
 DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
 DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
@@ -43,7 +48,11 @@ def validate_protocol(protocol):
     attempts = protocol["attempts"]
     if unified:
         loading=protocol["unified_loading"]
-        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2")
+        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT)
+        if loading["cohort_id"]==Q0_COHORT:
+            assert protocol["node_profile"]==Q0_NODE_PROFILE
+            assert protocol["node"]==Q0_NODE_PROFILE["ssh_alias"]
+            assert protocol["assets"]["route"]=="local_raid_md0"
         assert loading["block_id"]==loading["cohort_id"]+"-b01"
         assert loading["stop_on_failure"] is True and loading["append_only"] is True
         assert protocol.get("execution_revision") is None
@@ -173,7 +182,7 @@ UNIFIED_STATISTICS = {"scope":"single_block_descriptive_no_inference","success_r
 
 def protocol_guard_pin(protocol):
     cohort=protocol.get("unified_loading",{}).get("cohort_id")
-    if cohort!="kimi-unified-loading-20261109-proc-confirm-v2":
+    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT):
         assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
         return FORMAL_GUARD_SHA
     assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
@@ -184,6 +193,7 @@ def protocol_guard_pin(protocol):
     assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
     assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
     assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
+    if cohort==Q0_COHORT:assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
     return guard["sha256"]
 
 
@@ -222,6 +232,13 @@ if s['storage_route']['route']=='local_nvme':
   assert len(row)==1 and row[0]['source']=='/dev/nvme1n1' and row[0]['fstype']=='xfs','asset/output is not the approved local NVMe XFS'
   storage_route_proof[name]={'path':path,'dev':target.stat().st_dev,'inode':target.stat().st_ino,'mount':row[0]}
 """
+Q0_STORAGE_ROUTE_CODE = STORAGE_ROUTE_CODE.replace(
+    "if s['storage_route']['route']=='local_nvme':",
+    "assert s['storage_route']['route']=='local_raid_md0'\nif True:",1).replace(
+    "row[0]['source']=='/dev/nvme1n1'",
+    "row[0]['source'] in ('/dev/md0','/dev/md0[/data]','/dev/md0[/home]')",1).replace(
+    'approved local NVMe XFS','approved local RAID XFS',1)
+
 
 CACHE_CODE = """
 def frozen_files():
@@ -561,7 +578,8 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     unified=protocol.get("schema")=="kimi-unified-loading-remeasurement-v1"
     endpoint_manifest=validate_unified_overlay(protocol) if unified else None
     guard_sha=protocol_guard_pin(protocol)
-    proc_confirm=protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
+    q0=protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
+    proc_confirm=q0 or protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
     attempt_id=execution_mapping(protocol)[0][logical_attempt_id]
@@ -580,6 +598,12 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     spec, command = json.loads(sb), json.loads(cb)
     index = command["argv"].index("-c") + 1
     body = command["argv"][index]
+    if q0:
+        assert body.count("assert os.uname().nodename=='qjhs3'")==1
+        body=body.replace("assert os.uname().nodename=='qjhs3'","assert os.uname().nodename=='qjhs0'",1)
+        spec["gpu_uuids"]=copy.deepcopy(Q0_NODE_PROFILE["gpu_uuids"])
+        spec["node_profile"]=copy.deepcopy(Q0_NODE_PROFILE)
+        spec["requests"]["worker"]["env"]["NVIDIA_VISIBLE_DEVICES"]=",".join(spec["gpu_uuids"])
     head_policy=protocol.get('head_control_guard_policy')
     if head_policy is not None:
         assert head_policy['mode']=='unknown_host_permission_warning_head_only_v1','unknown head guard policy'
@@ -608,7 +632,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     spec["runs_root"]=protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))
     spec["safetensors_host"]=protocol["assets"]["safetensors"]
     spec["archive"]=protocol["assets"].get("store_archive",spec["archive"])
-    spec["storage_route"]={"route":protocol["assets"].get("route","candidate_legacy_not_executable"),"asset_and_raw_output_filesystem":"xfs on /dev/nvme1n1" if protocol["assets"].get("route")=="local_nvme" else "NOT_ADMITTED","scope":"Weight inputs and raw formal outputs on approved local NVMe; shared /home source, libraries, S0 control specs and claims remain NFS. Not all IO is local."}
+    spec["storage_route"]={"route":protocol["assets"].get("route","candidate_legacy_not_executable"),"asset_and_raw_output_filesystem":"xfs on /dev/md0" if q0 else ("xfs on /dev/nvme1n1" if protocol["assets"].get("route")=="local_nvme" else "NOT_ADMITTED"),"scope":("Weight inputs, raw outputs and shared /home controls on qjhs0 local /dev/md0 XFS RAID via /mnt/raid and /home bind mounts. Same /home is exported over NFS to qjhs3; this is not the historical qjhs3 NVMe route." if q0 else "Weight inputs and raw formal outputs on approved local NVMe; shared /home source, libraries, S0 control specs and claims remain NFS. Not all IO is local.")}
     config=spec["config"];config["auto_scaling_config"].update(min_instances=0,max_instances=1,keep_alive=3600)
     config["backend_config"]["enable_prefix_caching"]=False
     config["placement_config"]={"memory_pool":[]}
@@ -645,7 +669,7 @@ if sys.argv[1]=='pool':
     old_base="base=pathlib.Path('/home/boyjiang/kimi-new/evidence/runs')/run"
     assert body.count(old_base)==1
     body=body.replace(old_base,"base=pathlib.Path(s['runs_root'])/run",1)
-    body=body.replace("base.mkdir(mode=0o700);",STORAGE_ROUTE_CODE+"\nbase.mkdir(mode=0o700);",1)
+    body=body.replace("base.mkdir(mode=0o700);",(Q0_STORAGE_ROUTE_CODE if q0 else STORAGE_ROUTE_CODE)+"\nbase.mkdir(mode=0o700);",1)
     body=body.replace("try:\n assert time.monotonic()+30<end","try:\n save('storage-route-admission.json',storage_route_proof)\n assert time.monotonic()+30<end",1)
     body=body.replace("for life in (1,2):", "for life in (1,):",1)
     begin=body.index(" for life in (1,):");end=body.index("  delete_end=",begin)
@@ -867,10 +891,12 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
     assert protocol['resource_budget']['parent_overhead_seconds']==120
     assets=protocol['assets']
-    assert assets['route']=='local_nvme'
-    assert assets['safetensors']==SF_HOST and assets['store_archive']==STORE_ARCHIVE
-    assert assets.get('store',STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference')==STORE_ARCHIVE+'/vllm/kimi-k2.6-sf-reference'
-    assert protocol['resource_budget']['runs_root']==RUNS_ROOT
+    q0=protocol.get('unified_loading',{}).get('cohort_id')==Q0_COHORT
+    sf,archive,runs=(Q0_SF_HOST,Q0_STORE_ARCHIVE,Q0_RUNS_ROOT) if q0 else (SF_HOST,STORE_ARCHIVE,RUNS_ROOT)
+    assert assets['route']==('local_raid_md0' if q0 else 'local_nvme')
+    assert assets['safetensors']==sf and assets['store_archive']==archive
+    assert assets.get('store',archive+'/vllm/kimi-k2.6-sf-reference')==archive+'/vllm/kimi-k2.6-sf-reference'
+    assert protocol['resource_budget']['runs_root']==runs
     assert pathlib.Path(assets['input_inventory_path']).is_absolute()
     assert assets['input_inventory_path']!=str(INVENTORY) and assets['input_inventory_sha256']!=INVENTORY_SHA,'old NFS inventory cannot admit local assets'
     assert re.fullmatch('[0-9a-f]{64}',assets['input_inventory_sha256'])
@@ -1115,7 +1141,7 @@ def main():
     inventory_path=pathlib.Path(protocol['assets'].get('input_inventory_path',str(INVENTORY)))
     inventory_sha=protocol['assets'].get('input_inventory_sha256',INVENTORY_SHA)
     expected_roots=None
-    if protocol['assets'].get('route')=='local_nvme':
+    if protocol['assets'].get('route') in ('local_nvme','local_raid_md0'):
         expected_roots={'safetensors':protocol['assets']['safetensors'],'store':str(pathlib.Path(protocol['assets']['store_archive'])/'vllm/kimi-k2.6-sf-reference')}
     validate_inventory(checked(inventory_path,inventory_sha),expected_roots)
     original_spec=checked(base.EXIT60_BASE_SPEC,base.EXIT60_BASE_SPEC_SHA)
