@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 import signal
+import socket
 import threading
 import time
 import uuid
@@ -294,7 +295,7 @@ def up(args, state=None):
                                         'independently reviewed supplementary entry, not the original formal gate',
                                         'fresh native-home compilation cache; compilation costs remain charged',
                                         'DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs']
-    deadline = int(time.time())+args.seconds+(0 if condition else plan.DEADLINE_GRACE)
+    deadline = (args.guard_deadline_unix if condition else int(time.time())+args.seconds+plan.DEADLINE_GRACE)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     run_id = state['run_id'] if state else 'sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8]
     holder = state['holder'] if state else uuid.uuid4().hex
@@ -349,7 +350,8 @@ def up(args, state=None):
             else:
                 state['image']['worker'] = restore_with_receipt(run_root/'image-init-worker.json')
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
-                               active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None))['worker']
+                               active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
+                               supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['worker']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -432,7 +434,9 @@ def down(args):
 
 def supplement_sample(state):
     """Host sampling, attributed by exact container ID and its host cgroup."""
-    row = dict(monotonic_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(), containers={})
+    row = dict(sample_begin_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(),
+               containers={}, processes=[], run_id=state.get('run_id'),
+               boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip())
     for role in ('head', 'worker'):
         cid = state.get(role+'_container_id')
         if not cid:
@@ -454,19 +458,93 @@ def supplement_sample(state):
             if not base.resolve().is_relative_to(pathlib.Path('/sys/fs/cgroup')):
                 raise RuntimeError('cgroup escaped host mount')
             item['cgroup_path'] = str(base)
+            if cid not in base.name:
+                raise RuntimeError('container cgroup path does not bind exact Docker ID')
+            birth = dict(path=str(base), inode=base.stat().st_ino, container_id=cid)
+            registered = state.setdefault('bound_cgroups', {}).setdefault(role, birth)
+            if registered != birth:
+                raise RuntimeError('container cgroup birth identity changed')
             item['cgroup'] = {name:(base/name).read_text() for name in
                               ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+            item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
+            for member in item['cgroup']['cgroup.procs'].split():
+                member_proc = pathlib.Path('/proc')/member
+                try:
+                    row['processes'].append(dict(pid=int(member), stat=(member_proc/'stat').read_text(),
+                        status=(member_proc/'status').read_text(), cgroup=(member_proc/'cgroup').read_text(),
+                        pid_namespace=(member_proc/'ns/pid').readlink().as_posix()))
+                except FileNotFoundError:
+                    # Birth/disappearance is explicit; it is never a zero-memory sample.
+                    row.setdefault('processes_disappeared_during_sample', []).append(int(member))
             item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
             if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
                 raise RuntimeError('monitor PID reused')
         row['containers'][role] = item
     row['gpu'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
-                                        '--query-gpu=index,uuid,memory.used', '--format=csv,noheader'], text=True, timeout=15)
+                                        '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader'], text=True, timeout=15)
     row['gpu_processes'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
                                                   '--query-compute-apps=pid,used_memory', '--format=csv,noheader'], text=True, timeout=15)
     row['disk_stat'] = pathlib.Path('/sys/block/nvme1n1/stat').read_text()
     row['network'] = pathlib.Path('/proc/net/dev').read_text()
+    row['gpu_pids'] = sorted({int(line.split(',', 1)[0]) for line in row['gpu_processes'].splitlines()})
+    owned_pids = {p['pid'] for p in row['processes']}
+    row['foreign_gpu_pids'] = [p for p in row['gpu_pids'] if p not in owned_pids]
+    row['registered_store_helper'] = None
+    worker = row['containers'].get('worker', {})
+    if worker.get('pid'):
+        row['worker_identity'] = dict(container_id=worker['container_id'], cgroup=worker['raw_cgroup'])
+        launch = HOST/'debug'/state['run_id']/'debug-service/store-numa-launch.json'
+        if launch.exists():
+            from gpu_identity13 import store_identity
+            row['registered_store_helper'] = store_identity(json.loads(launch.read_text()), row['worker_identity'],
+                                                           row['processes'], row['boot_id'])
+    row['retained_cgroups'] = {}
+    for role, registered in list(state.get('bound_cgroups', {}).items()):
+        base = pathlib.Path(registered['path'])
+        if not base.exists():
+            row['retained_cgroups'][role] = dict(registered, absent=True)
+        else:
+            if base.stat().st_ino != registered['inode']:
+                raise RuntimeError('registered cgroup inode reused')
+            row['retained_cgroups'][role] = dict(registered, absent=False,
+                values={name:(base/name).read_text() for name in
+                        ('cgroup.events', 'cgroup.procs', 'memory.stat', 'memory.current', 'io.stat')})
+    row['last_sample_ns'] = row['monotonic_ns'] = time.monotonic_ns()
+    row['sample_end_ns'] = time.monotonic_ns()
     return row
+
+
+def gpu_memory_by_uuid(raw):
+    rows = [[v.strip() for v in line.split(',')] for line in raw.splitlines()]
+    if (len(rows) != 8 or any(len(r) not in (3, 5) for r in rows) or [r[0] for r in rows] != [str(i) for i in range(8)]
+            or len({r[1] for r in rows}) != 8):
+        raise RuntimeError('complete eight-rank NVML device identity required')
+    result = {}
+    for row in rows:
+        uuid, value = row[1], row[3] if len(row) == 5 else row[2]
+        fields = value.split()
+        if len(fields) != 2 or fields[1] != 'MiB' or not fields[0].isdigit():
+            raise RuntimeError('NVML memory value invalid')
+        result[uuid] = int(fields[0])
+    return result
+
+
+def require_supplement_release(row, baseline):
+    if row['gpu_processes'].strip() or gpu_memory_by_uuid(row['gpu']) != baseline:
+        raise RuntimeError('GPU process/memory baseline not released')
+    if any(not r.get('absent') for r in row['containers'].values()):
+        raise RuntimeError('owned containers remain')
+    if set(row['retained_cgroups']) != {'head', 'worker'}:
+        raise RuntimeError('owned cgroup release identity incomplete')
+    for entry in row['retained_cgroups'].values():
+        if entry['absent']:
+            continue
+        values = entry['values']
+        events = dict(line.split() for line in values['cgroup.events'].splitlines())
+        memory = {k:int(v) for k, v in (line.split() for line in values['memory.stat'].splitlines())}
+        if events.get('populated') != '0' or values['cgroup.procs'].strip() or any(
+                memory.get(k) != 0 for k in ('anon', 'shmem', 'unevictable')):
+            raise RuntimeError('owned cgroup active or anonymous/locked/shared memory retained')
 
 
 def verify_supplement_review(review, source):
@@ -479,13 +557,132 @@ def verify_supplement_review(review, source):
         raise RuntimeError('current full supplement R1 not approved')
 
 
+def verify_controller_unit(properties, unit, pid, cgroup, invocation, slice_cgroup):
+    run = unit.removesuffix('-controller.service')
+    if (not re.fullmatch(plan.RUN_PATTERN+r'-controller\.service', unit)
+            or properties.get('Id') != unit or properties.get('User') != '2147'
+            or properties.get('MainPID') != str(pid) or properties.get('KillMode') != 'control-group'
+            or properties.get('Transient') != 'yes' or properties.get('Restart') != 'no'
+            or properties.get('ActiveState') != 'active' or properties.get('SubState') != 'running'
+            or properties.get('SendSIGKILL') != 'yes' or properties.get('RuntimeMaxUSec') != '59min 30s'
+            or properties.get('TimeoutStopUSec') != '30s' or properties.get('NRestarts') != '0'
+            or not re.fullmatch('[0-9a-f]{32}', invocation or '') or properties.get('InvocationID') != invocation
+            or properties.get('ControlGroup') != cgroup or properties.get('Slice') != run+'.slice'
+            or not slice_cgroup.endswith('/'+run+'.slice') or cgroup != slice_cgroup+'/'+unit
+            or str(HERE/'debug_stack.py') not in properties.get('ExecStart', '')):
+        raise RuntimeError('independent root-managed controller deadline/identity differs')
+    origin = int(properties['ExecMainStartTimestampMonotonic'])*1000
+    if origin <= 0 or origin > time.monotonic_ns():
+        raise RuntimeError('controller unit origin invalid')
+    return origin
+
+
+def controller_unit(unit):
+    if not unit:
+        raise RuntimeError('supplement requires its independent root-managed transient service')
+    names = ('Id', 'User', 'MainPID', 'KillMode', 'SendSIGKILL', 'RuntimeMaxUSec', 'TimeoutStopUSec',
+             'NRestarts', 'InvocationID', 'ControlGroup', 'Slice', 'ExecStart', 'ExecMainStartTimestampMonotonic',
+             'Transient', 'Restart', 'ActiveState', 'SubState')
+    raw = subprocess.check_output(['systemctl', '--system', 'show', unit, '--property='+','.join(names)],
+                                  text=True, timeout=15, env=dict(os.environ, LC_ALL='C'))
+    properties = dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
+    slice_cgroup = subprocess.check_output(['systemctl', '--system', 'show', properties['Slice'],
+                                           '--property=ControlGroup', '--value'], text=True, timeout=15).strip()
+    cg, = [line[3:] for line in pathlib.Path('/proc/self/cgroup').read_text().splitlines() if line.startswith('0::')]
+    begin_ns = verify_controller_unit(properties, unit, os.getpid(), cg, os.environ.get('INVOCATION_ID'), slice_cgroup)
+    properties['verified_slice_cgroup'] = slice_cgroup
+    return begin_ns, properties
+
+
+def check_supplement_resources(sample):
+    gib = 1024**3
+    memory = sample['host_memory_bytes']
+    if sample['hostname'] != 'qjhs3' or sample['uid'] != UID:
+        raise RuntimeError('supplement node/user identity differs')
+    if (memory['MemTotal'] < 1900*gib or memory['MemAvailable'] < 1700*gib or memory['SwapTotal'] != 0
+            or memory['AnonPages'] > 8*gib or any(memory[k] > gib for k in ('Mlocked', 'Unevictable', 'Shmem'))):
+        raise RuntimeError('host available/anonymous/locked/shared memory admission failed')
+    if (sample['numa_reclaimable_bytes'].get('node0', 0) < 768799145984+64*gib
+            or sample['numa_reclaimable_bytes'].get('node1', 0) < 756177645648+64*gib):
+        raise RuntimeError('NUMA capacity for pool/hot input plus64GiB margin insufficient')
+    gpu = sample['gpu_devices']
+    if (len(gpu) != 8 or [r['index'] for r in gpu] != list(range(8)) or len({r['uuid'] for r in gpu}) != 8
+            or any(r['name'] not in ('H20-3e', 'NVIDIA H20-3e') or r['total_MiB'] != 143771 or r['used_MiB'] != 0 for r in gpu)
+            or sample['gpu_processes'].strip()):
+        raise RuntimeError('eight exclusive H20-3e devices unavailable')
+    if sample['loadavg1'] >= 8 or sample['read_sectors'][0] != sample['read_sectors'][1] or any(sample['read_inflight']):
+        raise RuntimeError('CPU/shared local read IO not quiescent')
+    if len(sample['filesystems']) != 2 or any(row['fstype'] != 'xfs' or row['source'] != '/dev/nvme1n1' for row in sample['filesystems']):
+        raise RuntimeError('checkpoint and Store must remain on local XFS')
+
+
+def supplement_resources():
+    sample = dict(begin_ns=time.monotonic_ns(), hostname=socket.gethostname(), uid=os.getuid(),
+                  loadavg1=os.getloadavg()[0], filesystems=[], numa_reclaimable_bytes={})
+    text = pathlib.Path('/proc/meminfo').read_text()
+    sample['host_memory_bytes'] = {line.split(':', 1)[0]:int(line.split()[1])*1024 for line in text.splitlines()}
+    for path in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo'):
+        values = {line.split()[2].rstrip(':'):int(line.split()[3])*1024 for line in path.read_text().splitlines()}
+        sample['numa_reclaimable_bytes'][path.parent.name] = values['MemFree']+values['FilePages']
+    raw = subprocess.check_output(['nvidia-smi', '--query-gpu=index,uuid,name,memory.total,memory.used',
+                                   '--format=csv,noheader,nounits'], text=True, timeout=15)
+    sample['gpu_devices'] = []
+    for line in raw.splitlines():
+        index, uuid, name, total, used = [v.strip() for v in line.split(',')]
+        sample['gpu_devices'].append(dict(index=int(index), uuid=uuid, name=name, total_MiB=int(total), used_MiB=int(used)))
+    sample['gpu_processes'] = subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True, timeout=15)
+    for name in ('checkpoint', 'store/tp8'):
+        source, fstype = subprocess.check_output(['findmnt', '-n', '-T', str(HOST/name), '-o', 'SOURCE,FSTYPE'],
+                                                 text=True, timeout=15).split()
+        sample['filesystems'].append(dict(path=str(HOST/name), source=source, fstype=fstype))
+    sample['read_sectors'], sample['read_inflight'] = [], []
+    for number in range(2):
+        sample['read_sectors'].append(int(pathlib.Path('/sys/block/nvme1n1/stat').read_text().split()[2]))
+        sample['read_inflight'].append(int(pathlib.Path('/sys/block/nvme1n1/inflight').read_text().split()[0]))
+        if number == 0:
+            time.sleep(1)
+    sample['end_ns'] = time.monotonic_ns()
+    check_supplement_resources(sample)
+    return sample
+
+
+def verify_runtime_assets(reference):
+    if reference['immutable_image_id'] != plan.IMAGE:
+        raise RuntimeError('original GLM image identity changed')
+    if (reference['reference_sha256']['native-gold.json'] != '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
+            or reference['reference_sha256']['store-restore-validation.json'] != 'e400fb42c4c15aa1c6103b289aba8f42203c8a91ef6f3ee6f6e58c978ce99f56'):
+        raise RuntimeError('original GLM gold/restore identity changed')
+    files = reference['asset_files']
+    if not files or sum(row['bytes'] for row in files) > 16*1024**2:
+        raise RuntimeError('bounded historical code/reference asset list missing or oversized')
+    for row in files:
+        path = pathlib.Path(row['path'])
+        if not path.resolve().is_relative_to(HOST) or path.stat().st_size != row['bytes'] or sha256(path) != row['sha256']:
+            raise RuntimeError('frozen runtime asset changed: '+str(path))
+    suffixes = {'.py', '.so', '.json', '.yaml', '.yml', '.toml', '.jinja', '.jinja2'}
+    for closure in reference['code_closure']:
+        root = pathlib.Path(closure['root'])
+        if not root.resolve().is_relative_to(HOST):
+            raise RuntimeError('runtime code closure escaped workspace')
+        actual = sorted(p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file() and p.suffix in suffixes)
+        if actual != closure['paths']:
+            raise RuntimeError('unexpected runtime code/config files appeared')
+
+
 def measure(args):
     """One independent supplementary condition; never changes a historical ID."""
-    begin_ns = time.monotonic_ns()
+    begin_ns, unit = controller_unit(args.controller_unit)
     boot = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     source = verified_source(args.source_tree)
     review = json.loads(pathlib.Path(args.review).read_text())
     verify_supplement_review(review, source)
+    verify_runtime_assets(review['runtime_reference'])
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, str(args.source_tree))
+    import gpu_identity13
+    if pathlib.Path(gpu_identity13.__file__).resolve() != pathlib.Path(args.source_tree).resolve()/'gpu_identity13.py':
+        raise RuntimeError('monitor helper imported outside reviewed source')
+    require_monitor_sample = gpu_identity13.require_monitor_sample
     refuse_shared_state(True)
     guard = guard_state()
     if not guard['active']:
@@ -495,14 +692,10 @@ def measure(args):
     if (probe.get('boot_id') != boot or probe.get('guard_sha256') != sha256(HERE/'debug_guard.py')
             or probe.get('removed_by_guard') is not True or not 0 <= time.time()-probe['completed_unix'] <= 900):
         raise RuntimeError('fresh actual supplement guard probe missing')
-    available = next(int(line.split()[1])*1024 for line in pathlib.Path('/proc/meminfo').read_text().splitlines()
-                     if line.startswith('MemAvailable:'))
-    if available < 1700*1024**3:
-        raise RuntimeError('supplement host-memory admission below1700GiB')
+    admission = supplement_resources()
     if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
         raise RuntimeError('restore original image before the supplement, outside timing')
-    stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    state = dict(run_id='sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8], holder=uuid.uuid4().hex)
+    state = dict(run_id=args.controller_unit.removesuffix('-controller.service'), holder=uuid.uuid4().hex)
     debug_root = HOST/'debug'
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
@@ -512,20 +705,38 @@ def measure(args):
                    startticks=int(pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
                    condition=args.condition, work_seconds=SUPPLEMENT_WORK_SECONDS, total_seconds=SUPPLEMENT_TOTAL_SECONDS,
                    r1_sha256=sha256(args.review), guard_probe_sha256=sha256(args.guard_probe))
+    initial['independent_controller_unit'] = unit
+    initial['resource_admission'] = admission
+    initial['runtime_reference'] = review['runtime_reference']
     write(root/'controller-start.json', initial)
     stopped = threading.Event()
     monitor_errors = []
 
     def monitor():
         try:
+            previous_begin = previous_mid = None
             with (root/'controller-monitor.jsonl').open('x') as stream:
                 while not stopped.is_set():
-                    stream.write(json.dumps(supplement_sample(state))+'\n')
+                    snapshot = supplement_sample(state)
+                    require_monitor_sample(snapshot['sample_begin_ns'], snapshot['last_sample_ns'], snapshot['sample_end_ns'],
+                                           previous_begin, previous_mid)
+                    if list(gpu_memory_by_uuid(snapshot['gpu'])) != list(baseline):
+                        raise RuntimeError('GPU UUID identity changed during supplement')
+                    previous_begin, previous_mid = snapshot['sample_begin_ns'], snapshot['last_sample_ns']
+                    snapshot.update(observers_ok=True, history_ok=True, first_monitor_error=None)
+                    payload = json.dumps(snapshot)+'\n'
+                    if stream.tell()+len(payload.encode()) > 256*1024**2:
+                        raise RuntimeError('bounded supplementary monitor exceeded256MiB')
+                    stream.write(payload)
                     stream.flush()
+                    write(root/'supplement-monitor-ready.json', snapshot)
                     stopped.wait(1)
         except BaseException as error:
             monitor_errors.append(repr(error))
 
+    baseline = gpu_memory_by_uuid(supplement_sample({})['gpu'])
+    if any(baseline.values()):
+        raise RuntimeError('GPU memory already occupied before supplement')
     thread = threading.Thread(target=monitor, daemon=True)
     thread.start()
     result = dict(initial, status='failed', success=False)
@@ -534,6 +745,10 @@ def measure(args):
     try:
         args.head_only, args.no_query, args.borrow = False, False, True
         args.seconds, args.booking_id, args.booking_end = SUPPLEMENT_WORK_SECONDS, None, None
+        remaining = SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9
+        if remaining <= 0:
+            raise TimeoutError('absolute supplement work budget exhausted before startup')
+        args.guard_deadline_unix = int(time.time()+remaining+600)
         args.weight_format = 'safetensors' if args.condition.startswith('safetensors_') else 'serverless_llm'
         up(args, state)
         while True:
@@ -556,15 +771,24 @@ def measure(args):
         signal.setitimer(signal.ITIMER_REAL, 0)
         signal.signal(signal.SIGALRM, previous)
         try:
-            down(args=argparse.Namespace(run_id=state['run_id']))
+            released = down(args=argparse.Namespace(run_id=state['run_id']))
+            result['exit_evidence'] = released.get('exit_evidence')
             result['all_owned_containers_removed_ns'] = time.monotonic_ns()
+        except BaseException as error:
+            result.update(success=False, cleanup_error=repr(error))
+        try:
             release_begin = time.monotonic_ns()
+            previous_io = None
             with (root/'release60.jsonl').open('x') as stream:
                 while True:
                     row = supplement_sample(state)
                     stream.write(json.dumps(row)+'\n'); stream.flush()
-                    if row['gpu_processes'].strip() or any(not r.get('absent') for r in row['containers'].values()):
-                        raise RuntimeError('supplement final release evidence not clean')
+                    require_supplement_release(row, baseline)
+                    current_io = {role:entry['values']['io.stat'] for role, entry in row['retained_cgroups'].items()
+                                  if not entry['absent']}
+                    if previous_io is not None and any(previous_io.get(role) != value for role, value in current_io.items()):
+                        raise RuntimeError('owned cgroup IO still changing after exit')
+                    previous_io = current_io
                     if (row['monotonic_ns']-release_begin)/1e9 >= 60:
                         break
                     time.sleep(1)
@@ -601,6 +825,7 @@ if __name__ == '__main__':
     measurement.add_argument('--condition', required=True, choices=('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'))
     measurement.add_argument('--review', required=True)
     measurement.add_argument('--guard-probe', required=True)
+    measurement.add_argument('--controller-unit', required=True)
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()

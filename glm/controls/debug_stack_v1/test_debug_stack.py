@@ -1,4 +1,5 @@
 import datetime
+import copy
 import json
 from pathlib import Path
 import subprocess
@@ -230,6 +231,25 @@ class ControllerClock(unittest.TestCase):
 
 
 class SupplementAdmission(unittest.TestCase):
+    def test_idle_gpu_does_not_bypass_host_numa_or_io_admission(self):
+        gib = 1024**3
+        sample = dict(hostname='qjhs3', uid=2147, host_memory_bytes=dict(MemTotal=1923*gib, MemAvailable=1850*gib,
+                      SwapTotal=0, AnonPages=3*gib, Mlocked=0, Unevictable=0, Shmem=0),
+                      numa_reclaimable_bytes={'node0':950*gib, 'node1':950*gib},
+                      gpu_devices=[dict(index=i, uuid='GPU-'+str(i), name='H20-3e', total_MiB=143771, used_MiB=0) for i in range(8)],
+                      gpu_processes='', loadavg1=.2, read_sectors=[100, 100], read_inflight=[0, 0],
+                      filesystems=[dict(fstype='xfs', source='/dev/nvme1n1')]*2)
+        d.check_supplement_resources(sample)
+        for kind in ('locked', 'numa', 'memory', 'gpu', 'io'):
+            bad = copy.deepcopy(sample)
+            if kind == 'locked': bad['host_memory_bytes']['Mlocked'] = 2*gib
+            if kind == 'numa': bad['numa_reclaimable_bytes']['node1'] = 700*gib
+            if kind == 'memory': bad['host_memory_bytes']['MemAvailable'] = 1600*gib
+            if kind == 'gpu': bad['gpu_devices'][7]['used_MiB'] = 1
+            if kind == 'io': bad['read_sectors'][1] += 1
+            with self.subTest(kind=kind), self.assertRaises(RuntimeError):
+                d.check_supplement_resources(bad)
+
     def receipt(self):
         source = dict(code_commit='a'*40, tree_sha256='b'*64)
         review = dict(scope='glm-controller-supplement-v1', verdict='PASS', code_commit=source['code_commit'],
@@ -252,12 +272,43 @@ class SupplementAdmission(unittest.TestCase):
 
     def test_no_r1_rejected_before_resource_or_docker_calls(self):
         with patch.object(d, 'verified_source', return_value=dict(tree_sha256='b'*64)), \
+             patch.object(d, 'controller_unit', return_value=(1, {})), \
              patch.object(d.pathlib.Path, 'read_text', side_effect=['boot', '{"verdict":"FAIL"}']), \
              patch.object(d, 'refuse_shared_state') as resource, patch.object(d, 'docker') as docker:
             with self.assertRaisesRegex(RuntimeError, 'R1 not approved'):
-                d.measure(type('Args', (), dict(source_tree='unused', review='unused'))())
+                d.measure(type('Args', (), dict(source_tree='unused', review='unused', controller_unit='unused'))())
         resource.assert_not_called()
         docker.assert_not_called()
+
+    def test_independent_unit_requires_exact_deadline_pid_and_private_cgroup(self):
+        unit = STATE['run_id']+'-controller.service'
+        slice_cgroup = '/'+STATE['run_id']+'.slice'
+        cgroup = slice_cgroup+'/'+unit
+        properties = dict(Id=unit, User='2147', MainPID='123', KillMode='control-group', SendSIGKILL='yes',
+                          RuntimeMaxUSec='59min 30s', TimeoutStopUSec='30s', NRestarts='0', InvocationID='a'*32,
+                          Transient='yes', Restart='no', ActiveState='active', SubState='running',
+                          Slice=STATE['run_id']+'.slice', ControlGroup=cgroup,
+                          ExecStart=str(d.HERE/'debug_stack.py')+' measure', ExecMainStartTimestampMonotonic='1')
+        self.assertEqual(d.verify_controller_unit(properties, unit, 123, cgroup, 'a'*32, slice_cgroup), 1000)
+        for key, value in [('MainPID','124'), ('RuntimeMaxUSec','infinity'), ('KillMode','process'),
+                           ('Slice','system.slice'), ('ControlGroup','/other')]:
+            with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'deadline/identity differs'):
+                d.verify_controller_unit(dict(properties, **{key:value}), unit, 123, cgroup, 'a'*32, slice_cgroup)
+
+    def test_release_requires_eight_devices_memory_and_owned_cgroups(self):
+        raw = '\n'.join(f'{i}, GPU-{i}, 0 MiB' for i in range(8))
+        baseline = d.gpu_memory_by_uuid(raw)
+        row = dict(gpu=raw, gpu_processes='', containers={'head':dict(absent=True), 'worker':dict(absent=True)},
+                   retained_cgroups={role:dict(absent=True) for role in ('head', 'worker')})
+        d.require_supplement_release(row, baseline)
+        with self.assertRaisesRegex(RuntimeError, 'eight-rank'):
+            d.gpu_memory_by_uuid('\n'.join(raw.splitlines()[:-1]))
+        with self.assertRaisesRegex(RuntimeError, 'baseline not released'):
+            d.require_supplement_release(dict(row, gpu=raw.replace('GPU-7, 0', 'GPU-7, 20')), baseline)
+        retained = dict(absent=False, values={'cgroup.events':'populated 0\n', 'cgroup.procs':'',
+                       'memory.stat':'anon 4096\nshmem 0\nunevictable 0\n'})
+        with self.assertRaisesRegex(RuntimeError, 'memory retained'):
+            d.require_supplement_release(dict(row, retained_cgroups={'head':dict(absent=True), 'worker':retained}), baseline)
 
 
 if __name__ == '__main__':

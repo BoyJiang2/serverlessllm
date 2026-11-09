@@ -4,6 +4,7 @@ from pathlib import Path
 import sys
 import types
 import unittest
+import subprocess
 from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent
@@ -74,6 +75,25 @@ class Helpers(unittest.TestCase):
 
 
 class SupplementRequests(unittest.TestCase):
+    def test_auxiliary_baseline_is_same_run_identity_not_empty_gpu(self):
+        launch = dict(pid=12, pid_namespace='pid:[123]', start_ticks='9', boot_id='boot', monotonic_ns=10)
+        helper = dict(host_pid=101, namespace_pid=12, pid_namespace='pid:[123]', start_ticks='9', boot_id='boot',
+                      container_id='c'*64, cgroup='0::/own\n', uid=2147)
+        snapshot = dict(sample_begin_ns=100, last_sample_ns=150, sample_end_ns=160, run_id='run', boot_id='boot',
+                        observers_ok=True, history_ok=True, first_monitor_error=None, foreign_gpu_pids=[],
+                        registered_store_helper=helper, gpu_pids=[101],
+                        worker_identity=dict(container_id='c'*64, cgroup='0::/own\n'),
+                        gpu='\n'.join(f'{i}, GPU-{i}, 143771 MiB, {100+i} MiB, 0 %' for i in range(8)))
+        record = dict(run_id='run', boot_id='boot', resident_pool_identity=launch)
+        with patch.object(sys, 'path', [str(ACTIVE), *sys.path]), \
+             patch.object(s, 'fresh_host_snapshot', return_value=snapshot), patch.object(s, 'write'), \
+             patch.object(s.time, 'monotonic_ns', return_value=200):
+            s.auxiliary_baseline(record)
+            self.assertEqual(record['auxiliary_gpu_baseline_MiB'], list(range(100, 108)))
+            snapshot['gpu_pids'] = [101, 999]
+            with self.assertRaisesRegex(RuntimeError, 'unknown process retained'):
+                s.auxiliary_baseline(record)
+
     def setUp(self):
         self.gold = copy.deepcopy(GOLD)
         self.gold['requests'].append(dict(name='translation', input_tokens=[8], max_tokens=64, ignore_eos=False))
@@ -123,6 +143,43 @@ class SupplementRequests(unittest.TestCase):
                         store_numa_exec_v13=types.SimpleNamespace(audit_store_threads=None)):
             with self.assertRaisesRegex(RuntimeError, 'configuration differs'):
                 s.require_resident_pool(client, types.SimpleNamespace(pid=1), 768799145984, 536870912, {0})
+
+
+class ShutdownEvidence(unittest.TestCase):
+    class Process:
+        def __init__(self, code):
+            self.code, self.returncode, self.waited = code, None, 0
+        def poll(self):
+            return self.returncode
+        def terminate(self):
+            pass
+        def send_signal(self, signum):
+            pass
+        def wait(self, timeout):
+            self.waited += 1
+            self.returncode = self.code
+            return self.code
+
+    def test_auxiliary_abnormal_exit_is_not_hidden_by_store_zero(self):
+        for code, expected in [(0, True), (-15, True), (17, False), (-9, False)]:
+            processes = {n:self.Process(code if n == 'sllm' else 0) for n in ('sllm', 'store', 'ray-worker')}
+            record = dict(status='supplement business and instance deletion completed')
+            with self.subTest(code=code), patch.object(s.subprocess, 'run', return_value=types.SimpleNamespace(returncode=0)), \
+                 patch.object(s, 'write') as saved:
+                s.stop_processes(processes, {}, [], record, strict=True)
+            self.assertEqual(record['success'], expected)
+            saved.assert_called_once()
+
+    def test_ray_stop_timeout_still_waits_all_children_and_saves_failure(self):
+        processes = {n:self.Process(0) for n in ('sllm', 'store', 'ray-worker')}
+        record = dict(status='supplement business and instance deletion completed')
+        with patch.object(s.subprocess, 'run', side_effect=subprocess.TimeoutExpired('ray stop', 30)), \
+             patch.object(s, 'write') as saved:
+            s.stop_processes(processes, {}, [], record, strict=True)
+        self.assertFalse(record['success'])
+        self.assertEqual(record['shutdown_errors'][0]['stage'], 'ray stop')
+        self.assertTrue(all(p.waited == 1 for p in processes.values()))
+        saved.assert_called_once()
 
     def test_matching_config_with_insufficient_rss_is_rejected(self):
         client = types.SimpleNamespace(get_server_config=lambda:dict(mem_pool_size=768799145984, chunk_size=536870912))

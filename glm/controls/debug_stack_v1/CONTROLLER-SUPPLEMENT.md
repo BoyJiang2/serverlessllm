@@ -46,3 +46,9 @@
 后续修订已修正B1的跨平台路径键并补回归；针对B4复用listener、audit_store_threads及实际RPC/RSS/日志检查，拒绝TCP已通但配置或驻留不足，输出Store出生身份；B6已开始保存rm前最终容器State并识别exit137等非正常退出，首个角色清理异常不再跳过第二个角色。51项调试CPU测试及5项历史成本测试通过，仅证明这些CPU检查；B4真实池正向和完整R1复审尚未进行。B2宿主总硬截止、B3辅助GPU基线身份、B5实际probe来源、B6剩余子进程/嵌套finally、B7完整释放归属、B8实际运行依赖/资产绑定、B9完整资源与IO准入仍须闭合。不得部署或补测当前修订。
 
 已额外按ledger逐条远端核验其余14项result SHA；与C23的26项合计覆盖原40项结果，来源和范围见../../results/reanalysis-20261106/controller-history-audit.md。不把历史记录不充分改写成零，也不宣称所有探索日志均已穷尽。
+
+第二次CPU整改断点（仍非运行批准）：B3已直接接回gpu_identity13的实际Store namespace/PID/startticks/cgroup绑定及accept_control13.validate_native_idle；辅助基线来自本次真实池就绪、模型尚未注册的快照，不抄1769MiB。B6记录所有子进程退出与清理异常，Ray stop超时不跳过后续清理/失败回执。B7保留实际cgroup路径/inode，检查完整8卡显存及进程、cgroup消失或空且匿名/共享/unevictable归零、退出后归属IO不再增长。B9补八卡型号/容量/显存、CPU/NUMA/锁页/共享内存、双次本地IO静默和XFS准入。以上均是候选代码和CPU故障回归，不是现场验证。
+
+B8已通过SSH只读复核57个小型运行源码/native/配置资产，共2007325字节。服务器源码副本没有.git，因此没有clone或补复制；改用冻结官方提交9f50241baa5386e06a9321c51f19a9ef5f964c2b的31个Git blob核对：3处已知补丁按原历史SHA匹配，其余28处仅CRLF部署差异。只做只读换行比较，服务器原字节不改，运行准入仍钉住实际raw SHA；gold/restore不做换行归一化。源依据、文件清单和旧native副本/overlay区别保留在../../evidence/cost-sources/controller-runtime-reference-verification.json；首次预检失败单列保留。真正Store进程在创建大池前复用原verify_store_imports/verify_event_trace并核实际Python/Torch/vLLM/CUDA及导入路径，不能称所有rank机器码证明。
+
+78项相关CPU检查通过（57调试候选+5历史成本+6C23参数回归+10旧native导入校验），不代表完整measure链或GPU通过。**当前仍缺B2独立exact-slice总截止与实际CPU故障probe、B5可信root probe来源及对应完整复审；宿主独立unit身份检查只是部分接线，不能当守护已部署。** Controller最终端点还需绑定实际正常退出证据，不能将自身写result前的内层时间冒称完整进程退出时刻。原四条件补测全部未开始，GPU/Store池占用为零（本任务未启动，不代表最新全机快照）。

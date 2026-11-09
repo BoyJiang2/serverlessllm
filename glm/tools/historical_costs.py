@@ -408,6 +408,114 @@ def c23_loading_boundary():
     print(json.dumps(dict(verdict='C', ranks=len(endpoints), attempts=len(attempts), summary=summary)))
 
 
+def controller_runtime_reference():
+    """Recheck small frozen source assets on qjhs003, never weights or an environment copy."""
+    import subprocess
+    import urllib.request
+    base = ROOT/'results/reanalysis-20261106'
+    pinned = {'inputs/C23-run-manifest.json':'bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d',
+              'inputs/historical-review-manifest-v11.json':'da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4',
+              'inputs/canonical-INDEX.json':'037b347e22c589b06883a20ca7ccb8805101324f7bdd7001e28497bf837d9978',
+              'deployment-binding.json':'a99e4dd85a58101fda3d2dc906f45321177b9f7d31a3f57910379b18698d313d'}
+    documents = {}
+    for name, expected in pinned.items():
+        raw = (base/name).read_bytes()
+        assert hashlib.sha256(raw).hexdigest() == expected
+        documents[name] = json.loads(raw)
+    config, history, index, binding = [documents[name] for name in pinned]
+    canonical = '/data/brick1/boyjiang/glm5.1-fp8'
+    old = index['old_path_compatibility_only'].rstrip('/')+'/'
+
+    def mapped(relative):
+        for entry in sorted(index['entries'], key=lambda r:len(r['historical_path']), reverse=True):
+            prefix = entry['historical_path'].removeprefix(old)
+            if relative == prefix or relative.startswith(prefix+'/'):
+                return entry['actual_path']+relative[len(prefix):]
+        return canonical+'/archive/original-run/'+relative
+
+    selected = [row for row in history['files'] if row['path'].startswith('source-v7/sllm_store/sllm_store/')
+                or row['path'].startswith('source/ServerlessLLM/sllm/')]
+    assert len(selected) == 23
+    files = [dict(path=mapped(row['path']), bytes=row['bytes'], sha256=row['sha256']) for row in selected]
+    for row in binding['files']:
+        if row['repository'] == 'vllm':
+            files.append(dict(path=row['canonical_path'], sha256=row['history_sha256']))
+    for name in ('native-gold.json', 'store-restore-validation.json', 'native-weight-contract.json'):
+        files.append(dict(path=canonical+'/validation/'+name, sha256=config['reference_sha256'][name]))
+    reference = dict(historical_inputs_sha256=pinned, asset_files=files,
+                     reference_sha256=config['reference_sha256'], store_import_sha256=config['store_import_sha256'],
+                     event_trace_sha256=config['event_trace_sha256'], runtime_versions=binding['runtime_versions'],
+                     selected_sllm_commit=config['selected_sllm_commit'], immutable_image_id=binding['immutable_image_id'])
+    imports_path = ROOT/'reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4876764a585b--runtime-imports.json'
+    raw_imports = imports_path.read_bytes()
+    assert hashlib.sha256(raw_imports).hexdigest() == '215311152be60ce334526bdfb13db46c9343f7b39f1f652cb3899c4a840ed455'
+    reference['backend_reference'] = json.loads(raw_imports)['backend_reference']
+    reference['backend_reference_source_sha256'] = hashlib.sha256(raw_imports).hexdigest()
+    files.append(dict(path=canonical+'/store/tp8/raw-disk-verification.json', sha256=config['reference_sha256']['raw-disk-verification.json']))
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+    def github_metadata(url):
+        request = urllib.request.Request(url, headers={'User-Agent':'GLM-CPU-reference-audit'})
+        with opener.open(request, timeout=25) as response:
+            raw = response.read(2*1024**2+1)
+        if len(raw) > 2*1024**2:
+            raise RuntimeError('official metadata exceeds2MiB')
+        return json.loads(raw), dict(url=url, sha256=hashlib.sha256(raw).hexdigest())
+
+    api = 'https://api.github.com/repos/ServerlessLLM/ServerlessLLM'
+    commit, commit_source = github_metadata(api+'/commits/'+config['selected_sllm_commit'])
+    assert commit['sha'] == config['selected_sllm_commit']
+    tree, tree_source = github_metadata(api+'/git/trees/'+commit['commit']['tree']['sha']+'?recursive=1')
+    assert tree['sha'] == commit['commit']['tree']['sha'] and not tree.get('truncated')
+    reference['official_sllm_tree'] = dict(commit=config['selected_sllm_commit'], tree=tree['sha'],
+        sources=[commit_source, tree_source], files=[r for r in tree['tree'] if r['type']=='blob' and r['path'].startswith('sllm/')])
+    remote = '''import pathlib,json,hashlib,subprocess
+reference=json.loads(PAYLOAD)
+for row in reference['asset_files']:
+ p=pathlib.Path(row['path']); raw=p.read_bytes()
+ assert hashlib.sha256(raw).hexdigest()==row['sha256'], str(p)
+ assert 'bytes' not in row or row['bytes']==len(raw), str(p)
+ row['bytes']=len(raw)
+repo=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/code/ServerlessLLM')
+changed=[]
+newline_only=[]
+tracked=[]
+for entry in reference['official_sllm_tree']['files']:
+ assert entry['mode'] in ('100644','100755'), entry['path']
+ name=entry['path'];tracked.append(name);raw=(repo/name).read_bytes()
+ blob=hashlib.sha1(b'blob '+str(len(raw)).encode()+bytes([0])+raw).hexdigest()
+ if blob!=entry['sha']:
+  normalized=raw.replace(bytes([13,10]),bytes([10]))
+  normalized_blob=hashlib.sha1(b'blob '+str(len(normalized)).encode()+bytes([0])+normalized).hexdigest()
+  if normalized_blob==entry['sha']:
+   newline_only.append(dict(path=name,raw_bytes=len(raw),comparison_bytes=len(normalized),crlf_count=raw.count(bytes([13,10])),raw_sha256=hashlib.sha256(raw).hexdigest(),official_git_blob=entry['sha']))
+  else:changed.append(name)
+assert set(changed)=={'sllm/controller.py','sllm/backends/vllm_backend.py','sllm/routers/roundrobin_router.py'}, changed
+code_suffixes={'.py','.so','.json','.yaml','.yml','.toml','.jinja','.jinja2'}
+actual={p.relative_to(repo).as_posix() for p in (repo/'sllm').rglob('*') if p.is_file() and p.suffix in code_suffixes}
+expected={name for name in tracked if pathlib.Path(name).suffix in code_suffixes}
+assert actual==expected, 'undeclared SLLM code/config files'
+existing={row['path'] for row in reference['asset_files']}
+for name in tracked:
+ p=repo/name
+ if p.is_file() and str(p) not in existing:
+  raw=p.read_bytes();reference['asset_files'].append(dict(path=str(p),bytes=len(raw),sha256=hashlib.sha256(raw).hexdigest()))
+reference['sllm_official_blob_proof']={'base_commit':reference['selected_sllm_commit'],'changed_paths':changed,'unexpected_code_files':[],'verified_official_files':len(tracked),'newline_only_deployment_variants':newline_only,'newline_policy':'read-only comparison only; server bytes not rewritten; actual raw SHA256 remains pinned'}
+reference['code_closure']=[{'root':str(root),'paths':sorted(p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file() and p.suffix in code_suffixes)} for root in [repo/'sllm',pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/code/Store-source-v7/sllm_store')]]
+reference['scope']='small actual code/native/reference assets; no weight payload, no model or GPU launch; not mapped-library proof for every rank'
+print(json.dumps(reference))
+'''.replace('PAYLOAD', repr(json.dumps(reference)))
+    result = subprocess.run(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','qjhs003','python3','-'],
+                            input=remote.encode(), capture_output=True, timeout=90)
+    if result.returncode:
+        raise RuntimeError('historical runtime reference check failed: '+result.stderr.decode(errors='replace'))
+    output = json.loads(result.stdout)
+    path = ROOT/'evidence/cost-sources/controller-runtime-reference-verification.json'
+    path.write_text(json.dumps(output, indent=2)+'\n', encoding='utf-8')
+    print(json.dumps(dict(verified_files=len(output['asset_files']),
+                         bytes=sum(row['bytes'] for row in output['asset_files']), gpu_execution=False)))
+
+
 def c23_controller_audit():
     """Check small archived parents and per-attempt records; never rescan telemetry."""
     from final_statistics import LEDGER_SHA
@@ -488,5 +596,7 @@ if __name__ == '__main__':
             json.dumps(output, indent=2)+'\n', encoding='utf-8')
         print(json.dumps(dict(recoverable=False, c23_attempts=len(output['c23_attempts']),
                               original40=output['original40'])))
+    elif sys.argv[1:] == ['--controller-runtime-reference']:
+        controller_runtime_reference()
     else:
         main()

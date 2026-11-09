@@ -9,6 +9,7 @@ Serves until the lifetime timeout or `debug_stack.py down` sends TERM, then tear
 """
 import json
 import math
+import hashlib
 import pathlib
 import signal
 import socket
@@ -63,6 +64,46 @@ def matches_gold(result, expected):
     choice = result['choices'][0]
     return (choice['token_ids'] == expected['token_ids'] and choice['message']['content'] == expected['text']
             and choice['finish_reason'] == expected['finish_reason'])
+
+
+def supplement_registration():
+    data = (RUN/'controller-start.json').read_bytes()
+    if hashlib.sha256(data).hexdigest() != os.environ.get('SLLM_SUPPLEMENT_START_SHA'):
+        raise RuntimeError('supplement controller registration changed')
+    return json.loads(data)
+
+
+def serve_supplement_store():
+    """Use the old actual-import checks inside the actual Store process before allocation."""
+    import asyncio
+    import importlib
+    from run_store_server13 import verify_store_imports, verify_event_trace
+    registration = supplement_registration()
+    reference = registration['runtime_reference']
+    modules = verify_store_imports(reference['store_import_sha256'])
+    trace = verify_event_trace(reference['event_trace_sha256'])
+    import torch, vllm
+    actual = dict(torch=str(torch.__version__), vllm=str(vllm.__version__), cuda=str(torch.version.cuda))
+    if actual != reference['runtime_versions'] or sys.version_info[:2] != (3, 12):
+        raise RuntimeError('actual Store Python/Torch/vLLM/CUDA ABI differs')
+    backend = {}
+    for name, module in [('torch', torch), ('vllm', vllm)]:
+        path = pathlib.Path(module.__file__).resolve()
+        expected = reference['backend_reference'][name]
+        if str(path) != expected['path'] or hashlib.sha256(path.read_bytes()).hexdigest() != expected['sha256']:
+            raise RuntimeError('actual backend import path or bytes differ: '+name)
+        backend[name] = expected
+    write(OUT/'store-runtime-imports.json', dict(run_id=registration['run_id'], pid=os.getpid(),
+          startticks=pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19],
+          boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(), modules=modules,
+          event_trace=trace, actual_runtime_versions=actual, actual_backend_imports=backend, python=sys.version,
+          scope='actual Store imports before pool allocation; not a mapped-library claim for every GPU rank'))
+    storage, chunk, pool = sys.argv[2:]
+    if storage != '/experiment/store' or int(pool) != 768799145984 or int(chunk) != 536870912:
+        raise RuntimeError('frozen Store pool arguments differ')
+    serve = importlib.import_module('sllm_store.server').serve
+    asyncio.run(serve(host='0.0.0.0', port=8073, storage_path=storage, num_thread=4,
+                      chunk_size=int(chunk), mem_pool_size=int(pool), registration_required=True))
 
 
 def cpu_list(text):
@@ -126,7 +167,11 @@ def prepare_supplement(condition, record):
     # Both closures and metadata are checked before final eviction / admission.
     sf_paths = frozen_paths(checkpoint, source/'cache-inputs13.json')
     metadata = json.loads((source/'store-metadata-inputs.json').read_text())
-    raw = json.loads((store/'raw-disk-verification.json').read_text())
+    raw_bytes = (store/'raw-disk-verification.json').read_bytes()
+    expected_raw = supplement_registration()['runtime_reference']['reference_sha256']['raw-disk-verification.json']
+    if hashlib.sha256(raw_bytes).hexdigest() != expected_raw:
+        raise RuntimeError('raw Store verification receipt changed')
+    raw = json.loads(raw_bytes)
     store_paths = store_inputs(store, checkpoint, raw['ranks'], metadata['files'])
     client = SllmStoreClient()
     for rank in range(8):
@@ -175,29 +220,66 @@ def prepare_supplement(condition, record):
     record['preparation_complete_ns'] = time.monotonic_ns()
 
 
+def fresh_host_snapshot(record, earliest_ns):
+    from gpu_identity13 import require_monitor_ready
+    stop = time.monotonic()+15
+    while time.monotonic() < stop:
+        try:
+            with (RUN/'supplement-monitor-ready.json').open('rb') as stream:
+                data = stream.read(4*1024**2+1)
+            if len(data) > 4*1024**2:
+                raise RuntimeError('host monitor receipt exceeds4MiB')
+            snapshot = json.loads(data)
+        except FileNotFoundError:
+            time.sleep(.1)
+            continue
+        require_monitor_ready(snapshot, time.monotonic_ns(), record['run_id'], record['boot_id'])
+        if snapshot['sample_begin_ns'] >= earliest_ns and snapshot.get('registered_store_helper'):
+            return snapshot
+        time.sleep(.1)
+    raise TimeoutError('fresh bound Store helper host snapshot unavailable')
+
+
+def auxiliary_baseline(record):
+    from gpu_identity13 import require_helper_binding, require_helper_only
+    launch = record['resident_pool_identity']
+    snapshot = fresh_host_snapshot(record, launch['monotonic_ns'])
+    helper = snapshot['registered_store_helper']
+    require_helper_binding(helper, launch, snapshot['worker_identity'], record['boot_id'])
+    require_helper_only(snapshot, helper, time.monotonic_ns(), record['run_id'], record['boot_id'])
+    baseline = [int(line.split(',')[3].strip().split()[0]) for line in snapshot['gpu'].splitlines()]
+    if len(baseline) != 8:
+        raise RuntimeError('auxiliary GPU baseline does not cover8 devices')
+    record.update(helper_gpu_identity=helper, auxiliary_gpu_baseline_MiB=baseline)
+    write(OUT/'auxiliary-gpu-baseline.json', dict(snapshot=snapshot, helper=helper, memory_MiB=baseline))
+
+
 def observe_deleted(record):
+    from accept_control13 import validate_native_idle
     record['delete_command_ns'] = time.monotonic_ns()
     if http('/delete', {'model': MODEL}) != {'status': 'deleted model '+MODEL}:
         raise RuntimeError('supplement model deletion failed')
     record['delete_complete_ns'] = time.monotonic_ns()
-    begin = time.monotonic_ns()
+    rows = []
     with (OUT/'idle60.jsonl').open('x') as stream:
         for second in range(61):
-            row = dict(second=second, monotonic_ns=time.monotonic_ns(),
-                       gpu=subprocess.check_output(['nvidia-smi', '--query-gpu=index,uuid,memory.used', '--format=csv,noheader'],
-                                                   text=True, timeout=10),
-                       gpu_processes=subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid,used_memory', '--format=csv,noheader'],
-                                                             text=True, timeout=10),
-                       helper_status=pathlib.Path('/proc/self/status').read_text())
-            row['cgroup'] = {name: (pathlib.Path('/sys/fs/cgroup')/name).read_text()
-                             for name in ('memory.current', 'memory.stat', 'memory.events', 'pids.current')}
+            snapshot = fresh_host_snapshot(record, record['delete_complete_ns'])
+            shm = os.statvfs('/dev/shm')
+            cg = pathlib.Path('/sys/fs/cgroup')
+            row = dict(second=second, monotonic_ns=time.monotonic_ns(), delete_ack_ns=record['delete_complete_ns'],
+                       gpu=snapshot['gpu'], gpu_processes=snapshot['gpu_processes'], host_gpu_snapshot=snapshot,
+                       memory_current=int((cg/'memory.current').read_text()),
+                       memory_stat=(cg/'memory.stat').read_text(), cpu_stat=(cg/'cpu.stat').read_text(),
+                       pids_current=(cg/'pids.current').read_text(),
+                       shm_used_bytes=(shm.f_blocks-shm.f_bfree)*shm.f_frsize)
+            rows.append(row)
             stream.write(json.dumps(row)+'\n')
             stream.flush()
             if second < 60:
                 time.sleep(1)
-    record['idle_observation_seconds'] = (row['monotonic_ns']-begin)/1e9
-    if record['idle_observation_seconds'] < 60 or row['gpu_processes'].strip():
-        raise RuntimeError('supplement deletion release observation failed')
+    validate_native_idle(rows, record['auxiliary_gpu_baseline_MiB'], record['helper_gpu_identity'],
+                         record['run_id'], record['boot_id'])
+    record['idle_observation_seconds'] = (rows[-1]['monotonic_ns']-rows[0]['monotonic_ns'])/1e9
     write(OUT/'measurement-progress.json', record)
 
 
@@ -230,6 +312,56 @@ def require_resident_pool(client, process, pool_bytes, chunk_bytes, cpus):
     return launch
 
 
+def stop_processes(processes, env, logs, record, strict=False):
+    """Preserve all cleanup outcomes even if one shutdown operation fails."""
+    errors, forced = [], []
+    unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}
+    try:
+        for name in ('sllm', 'store', 'ray-worker'):
+            process = processes.get(name)
+            try:
+                if process is not None and process.poll() is None:
+                    process.send_signal(signal.SIGINT) if name == 'store' else process.terminate()
+            except BaseException as error:
+                errors.append(dict(stage='signal', process=name, error=repr(error)))
+        try:
+            record['ray_stop_returncode'] = subprocess.run(
+                [PYTHON, '-m', 'ray.scripts.scripts', 'stop', '--force'], env=env, timeout=30).returncode
+            if record['ray_stop_returncode'] != 0:
+                errors.append(dict(stage='ray stop', returncode=record['ray_stop_returncode']))
+        except BaseException as error:
+            errors.append(dict(stage='ray stop', error=repr(error)))
+        for name, process in processes.items():
+            try:
+                process.wait(timeout=STORE_GRACE_SECONDS if name == 'store' else 10)
+            except subprocess.TimeoutExpired:
+                forced.append(name)
+                try:
+                    process.kill()
+                    process.wait(timeout=5)
+                except BaseException as error:
+                    errors.append(dict(stage='forced wait', process=name, error=repr(error)))
+            except BaseException as error:
+                errors.append(dict(stage='wait', process=name, error=repr(error)))
+    finally:
+        for log in logs:
+            try:
+                log.close()
+            except BaseException as error:
+                errors.append(dict(stage='log close', error=repr(error)))
+        record.update(end_ns=time.monotonic_ns(), forced_kill=forced, shutdown_errors=errors,
+                      unexpected_pre_cleanup_exits=unexpected,
+                      returncodes={name:p.returncode for name, p in processes.items()})
+        if strict:
+            allowed = {'store':(0,), 'sllm':(0, -signal.SIGTERM), 'ray-worker':(0, -signal.SIGTERM)}
+            record['controlled_exit_rules'] = allowed
+            record['success'] = (record['status'] == 'supplement business and instance deletion completed'
+                and not forced and not errors and not unexpected and set(record['returncodes']) == set(allowed)
+                and all(code in allowed[name] for name, code in record['returncodes'].items()))
+        write(OUT/'result.json', record)
+    return forced
+
+
 def write(path, record):
     temporary = path.with_suffix('.tmp')
     temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))
@@ -251,8 +383,17 @@ def main():
     if condition is not None and (condition not in SUPPLEMENT_CONDITIONS or not query or
             weight_format != ('safetensors' if condition.startswith('safetensors_') else 'serverless_llm')):
         raise ValueError('supplement requires matching format, condition and gold queries')
+    if condition:
+        controller = supplement_registration()
+        reference = controller['runtime_reference']
+        if hashlib.sha256(GOLD.read_bytes()).hexdigest() != reference['reference_sha256']['native-gold.json']:
+            raise RuntimeError('frozen native gold changed')
+        if hashlib.sha256(RESTORE.read_bytes()).hexdigest() != reference['reference_sha256']['store-restore-validation.json']:
+            raise RuntimeError('frozen Store restore configuration changed')
     gold = json.loads(GOLD.read_text())
     restored = json.loads(RESTORE.read_text())
+    if condition and (restored['pool_bytes'] != 768799145984 or restored['chunk_bytes'] != 536870912):
+        raise RuntimeError('frozen716GiB pool geometry changed')
     pool_bytes, chunk_bytes = pool_for('serverless_llm' if condition else weight_format, restored)
     OUT.mkdir(exist_ok=False)
     env = dict(os.environ, STORAGE_PATH='/experiment/store', RAY_TMPDIR=str(RUN/'ray-debug'),
@@ -263,7 +404,10 @@ def main():
     record = dict(status='starting', purpose='DEBUG-UNREVIEWED', weight_format=weight_format, query=query,
                   pool_bytes=pool_bytes, chunk_bytes=chunk_bytes, worker_ip=ip, head_address=address, begin_ns=time.monotonic_ns())
     if condition:
+        if controller['condition'] != condition:
+            raise RuntimeError('supplement controller/worker condition identity differs')
         record.update(condition=condition, measurement_class='independent supplement candidate, not C23',
+                      run_id=controller['run_id'], holder=controller['holder'],
                       boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
                       pid=os.getpid(), startticks=int(pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]))
     processes, logs = {}, []
@@ -302,7 +446,8 @@ def main():
         cpus = cpu_list(pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()) & os.sched_getaffinity(0)
         assert cpus
         record['store_cpu_affinity'] = sorted(cpus)
-        launch('store', [PYTHON, '-u', '-c', STORE_SERVE, env['STORAGE_PATH'], str(chunk_bytes), str(pool_bytes)],
+        store_argv = ([PYTHON, '-u', str(pathlib.Path(__file__)), 'serve-store'] if condition else [PYTHON, '-u', '-c', STORE_SERVE])
+        launch('store', store_argv+[env['STORAGE_PATH'], str(chunk_bytes), str(pool_bytes)],
                preexec_fn=lambda: os.sched_setaffinity(0, cpus))
 
         def store_ready():
@@ -321,6 +466,7 @@ def main():
         wait_ready(healthy, 90, 'sllm')
         record.update(status='control plane healthy', healthy_ns=time.monotonic_ns())
         if condition:
+            auxiliary_baseline(record)
             prepare_supplement(condition, record)
             supplement_requests(gold, condition, record)
             observe_deleted(record)
@@ -347,32 +493,15 @@ def main():
         record['status'] = 'stopped after serving' if ready and isinstance(error, SystemExit) else 'failed'
     finally:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
-        for name in ('sllm', 'store', 'ray-worker'):
-            process = processes.get(name)
-            if process is not None and process.poll() is None:
-                process.send_signal(signal.SIGINT) if name == 'store' else process.terminate()
-        subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', '--force'], env=env, timeout=30)
-        forced = []
-        for name, process in processes.items():
-            try:
-                process.wait(timeout=STORE_GRACE_SECONDS if name == 'store' else 10)
-            except subprocess.TimeoutExpired:
-                forced.append(name)
-                process.kill()
-                process.wait(timeout=5)
-        for log in logs:
-            log.close()
-        record.update(end_ns=time.monotonic_ns(), forced_kill=forced,
-                      returncodes={name: process.returncode for name, process in processes.items()})
-        if condition:
-            record['success'] = (record['status'] == 'supplement business and instance deletion completed'
-                                 and not forced and processes['store'].returncode == 0)
-        write(OUT/'result.json', record)
+        forced = stop_processes(processes, env, logs, record, strict=bool(condition))
     # Like bootstrap_control13, only a Store that misses its grace is a failure; other helpers may need a kill.
     if condition:
         return 0 if record['success'] else 1
-    return 0 if record['status'] == 'stopped after serving' and 'store' not in forced else 1
+    return 0 if record['status'] == 'stopped after serving' and 'store' not in forced and not record['shutdown_errors'] else 1
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    if len(sys.argv) == 5 and sys.argv[1] == 'serve-store':
+        serve_supplement_store()
+    else:
+        sys.exit(main())
