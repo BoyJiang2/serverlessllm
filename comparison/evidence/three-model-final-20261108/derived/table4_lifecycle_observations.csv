@@ -1,13 +1,13 @@
 model,condition,n,observation_scope,mean_seconds
-Kimi-K2.6,safetensors_disk_cold,8,原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。,1851.6763283054752
-Kimi-K2.6,safetensors_disk_hot,8,原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。,1138.0290320941422
-Kimi-K2.6,store_disk_cold,8,原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。,796.6151718432957
-Kimi-K2.6,store_pool_hit,8,原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。,781.0752006680414
+Kimi-K2.6,safetensors_disk_cold,8,systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。,1851.6763283054752
+Kimi-K2.6,safetensors_disk_hot,8,systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。,1138.0290320941422
+Kimi-K2.6,store_disk_cold,8,systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。,796.6151718432957
+Kimi-K2.6,store_pool_hit,8,systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。,781.0752006680414
 GLM-5.1-FP8,safetensors_disk_cold,6,preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。,575.0956933601666
 GLM-5.1-FP8,safetensors_disk_hot,6,preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。,594.7221763186667
 GLM-5.1-FP8,store_disk_cold,6,preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。,276.4029876215
 GLM-5.1-FP8,store_pool_hit,6,preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。,281.7151334088333
-DeepSeek-V4-Pro,safetensors_disk_cold,9,准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。,1112.7458408681111
-DeepSeek-V4-Pro,safetensors_disk_hot,9,准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。,1483.5581940236666
-DeepSeek-V4-Pro,store_disk_cold,9,准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。,1177.2612202473333
-DeepSeek-V4-Pro,store_pool_hit,9,准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。,1203.2681193446667
+DeepSeek-V4-Pro,safetensors_disk_cold,9,宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。,1112.7458408681111
+DeepSeek-V4-Pro,safetensors_disk_hot,9,宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。,1483.5581940236666
+DeepSeek-V4-Pro,store_disk_cold,9,宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。,1177.2612202473333
+DeepSeek-V4-Pro,store_pool_hit,9,宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。,1203.2681193446667

@@ -128,9 +128,9 @@ def write_lifecycle_observations(output, primary, summary):
     trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
     labels = dict(zip(CONDITIONS, ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']))
     scopes = {
-        'Kimi-K2.6': '原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。',
+        'Kimi-K2.6': 'systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。',
         'GLM-5.1-FP8': 'preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。',
-        'DeepSeek-V4-Pro': '准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。',
+        'DeepSeek-V4-Pro': '宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。',
     }
     rows = []
     lines = ['**尚未形成统一边界的三模型生命周期总成本数据。以下仅分模型记录既有观测，不作横向总成本排名或比值。**', '']
@@ -157,6 +157,8 @@ def export(output):
     output.mkdir(exist_ok=False)
     write_startup_table(output, primary)
     write_lifecycle_observations(output, primary, summary)
+    from harmonized_analysis import export as export_harmonized
+    harmonized = export_harmonized(output, primary, CONDITIONS)
     (output / 'comparison.json').write_text(json.dumps(dict(summary=summary, arrays=primary,
         descriptive_arrays=descriptive, v4_frozen_formal_statistics=formal,
         cohort_note='Legacy primary Kimi8/GLM6 unchanged; V4 blocks2..10 uniform-source9 is comparison-only descriptive sensitivity, not a replacement for frozen formal pair-specific n10/n9.'), indent=2) + '\n')
@@ -200,44 +202,26 @@ def export(output):
         ax.set(title=model, xlabel='Startup seconds', ylabel='ECDF', ylim=(0, 1.05)); ax.legend(fontsize=8); ax.grid(alpha=.2)
     save(fig, 'fig2_ecdf', 'Qualified descriptive samples only; failures remain in the original 40-ID denominator and are never set to zero.')
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3), sharey=True)
-    for ax, model in zip(axes, MODELS):
-        prep = [summary[model][c]['prep_mean_s'] for c in CONDITIONS]; a = [summary[model][c]['A_mean_s'] for c in CONDITIONS]
-        ax.bar(range(4), prep, color='#A9BBC6', label='Recorded preparation'); ax.bar(range(4), a, bottom=prep, color=COLORS, label='Startup A')
-        ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=8)
-    save(fig, 'fig3_preparation', 'Prep+A excludes gap. Legacy Prep is target-state construction; V4 Prep includes environment/pool/admission. Not equivalent cost windows.')
-
-    original_font = plt.rcParams['font.sans-serif'][:]
-    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK SC', 'SimHei', 'DejaVu Sans']
-    labels45 = ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
-    unified = read(BASE / 'inputs/kimi-unified/condition-summaries.json')
-    assert unified['primary_complete_blocks'] == [1, 2, 3, 5, 6, 7, 8, 10]
-    for condition in CONDITIONS:
-        metric = unified['conditions'][condition]['weight_load_host_all_rank_span_s']
-        assert metric == dict(raw=[None] * 8, n=0, mean=None, median=None)
-    axes[0].set_title('Kimi 八rank统一加载指标（有效n=0）')
-    axes[0].set_ylim(0, 1)
-    axes[0].set_yticks([])
-    axes[0].text(.5, .58, '历史证据缺少完整加载起止端点',
-                 transform=axes[0].transAxes, ha='center', fontsize=12)
-    axes[0].text(.5, .39, '四条件均缺测：均值/中位数=null\n不画零值柱，不以f7值替代\n原主集仍为8个完整块',
-                 transform=axes[0].transAxes, ha='center', fontsize=10, linespacing=1.7)
-    with (BASE / 'inputs/glm-cpu/event-intervals.csv').open(encoding='utf-8') as stream:
-        glm_phases = {r['attempt_id']: r for r in csv.DictReader(stream)}
-    rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
-    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', '摄入跨度'), ('phase_quantization_postprocess_span_s', '后处理跨度'), ('phase_weights_pipeline_including_allocation_span_s', '流水线跨度')]):
-        axes[1].bar(np.arange(4) + (j - 1) * .25, [mean(float(glm_phases[i][field]) for i in primary['GLM-5.1-FP8'][c]['ids']) for c in CONDITIONS], .24, label=label)
-        axes[2].bar(np.arange(4) + (j - 1) * .25, [mean(r['metrics'][field] for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c) for c in CONDITIONS], .24, label=label)
-    axes[1].set_title('GLM八rank阶段跨度（n=6）'); axes[1].legend(fontsize=7)
-    axes[2].set_title('V4八rank阶段跨度（n=9）'); axes[2].legend(fontsize=7)
-    for ax in axes:
-        ax.set(xticks=range(4), xticklabels=labels45, ylabel='均值 / 秒'); ax.tick_params(axis='x', labelrotation=25)
-    axes[0].set_ylabel('')
-    save(fig, 'fig5_loading', 'Kimi eight-rank host span is missing (n=0), not zero; f7 observations are reported separately.\nGLM/V4 retain their original stage spans; overlapping envelopes must not be summed or called pure I/O.')
-    plt.rcParams['font.sans-serif'] = original_font
+    # Different preparation scopes remain in component tables, never a stacked total.
+    # No historical cohort has a proven common complete-loader-call metric.
+    # Plot each model's observed host phases separately, with its actual function scope.
+    for model, stem, stage_labels in [
+        ('GLM-5.1-FP8', 'fig5_glm_phases', ['Worker.load_model envelope', 'load_weights envelope', 'postprocess envelope']),
+        ('DeepSeek-V4-Pro', 'fig5_v4_phases', ['Worker.load_model envelope', 'load_weights (Store: remainder/session)', 'postprocess (Store: expert restore/H2D + processing)']),
+    ]:
+        fig, ax = plt.subplots(figsize=(10, 4.8))
+        for j, (phase, label) in enumerate(zip(['weights_pipeline_including_allocation', 'weight_ingestion', 'quantization_postprocess'], stage_labels)):
+            values = [next(r['observed_span_mean_s'] for r in harmonized['phase_summary']
+                           if r['model']==model and r['condition']==c and r['phase']==phase) for c in CONDITIONS]
+            ax.bar(np.arange(4)+(j-1)*.25, values, .24, label=label)
+        n = 6 if model=='GLM-5.1-FP8' else 9
+        ax.set(title=f'{model}: original host observations (n={n}/condition; not common loading)',
+               xticks=range(4), xticklabels=LABELS, ylabel='Mean host-envelope seconds')
+        ax.legend(fontsize=8); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
+        save(fig, stem, 'Model-specific scopes; stages overlap and must not be added or subtracted.\nNo pure disk, H2D, quantization or path-count attribution; no added CUDA synchronization.')
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 5.4))
+    rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
     originals = [r for r in kimi['runs'] if r['cohort'] == 'original']
     groups = [originals, glm_ledger['rows'], rows]
     for ax, model, group in zip(axes, MODELS, groups):
@@ -250,7 +234,7 @@ def export(output):
             for j in range(10): ax.text(j, i, 'OK' if grid[i][j] else 'FAIL', ha='center', va='center', fontsize=7, color='white')
         ax.set(yticks=range(4), yticklabels=LABELS, xticks=range(10), xticklabels=range(1, 11), title=model, xlabel='Original block (within model; not cross-model pairing)')
     save(fig, 'fig7_original40', 'All original 120 IDs retained: Kimi38/40, GLM35/40 mixed revisions, V4 38/40. No supplemental or pilot replacement.')
-    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, five figure families and two tables')
+    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, separate model phase figures, endpoint and component tables')
 
 
 if __name__ == '__main__':

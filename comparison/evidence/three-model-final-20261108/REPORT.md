@@ -1,10 +1,12 @@
 # SLLM × Kimi-K2.6 / GLM-5.1-FP8 / DeepSeek-V4-Pro 三模型对比
 
-2026-11-08。参照[指定的 Kimi/GLM 整合版 V2](https://github.com/BoyJiang2/serverlessllm/blob/1213421633a6e63fa6afdfc960207560c7d3acf1/kimi/evidence/final-report-20261107-v2/REPORT.md)的组织方式，补入已完成 B10 的 V4 正式结果。本次整理仅做 CPU 复核、统计与绘图，没有新启动模型、转换 Store 或重跑 Kimi/GLM。
+2026-11-09口径修订；保留2026-11-08历史结果。参照[指定的 Kimi/GLM 整合版 V2](https://github.com/BoyJiang2/serverlessllm/blob/1213421633a6e63fa6afdfc960207560c7d3acf1/kimi/evidence/final-report-20261107-v2/REPORT.md)的组织方式，补入已完成 B10 的 V4 正式结果。本次整理仅做 CPU 复核、统计与绘图，没有新启动模型、转换 Store 或重跑 Kimi/GLM。
 
 **GLM历史CPU补充**：新增读取既有监控与日志，补回资源采样、26条helper记录区间和一次历史转换容器成本；没有新增GPU运行，原40项35成功/5失败不变。数据来自已核验GLM提交[447765a](https://github.com/BoyJiang2/serverlessllm/commit/447765a98d1ed7edcd4075243c1b70e5ffd70032)及[服务器同步核验](https://github.com/BoyJiang2/serverlessllm/blob/5c9a7dba18a9d6da70a6dc61065f30b3fd418acc/glm/evidence/cost-sources/historical-supplement-sync.json)，副本与边界见[GLM历史CPU补充](inputs/glm-cpu/historical-supplement.md)。
 
-**三个模型在各自配置下都观察到 Store 启动等待减少；计入准备、复位及释放后，收益明显收窄。不同模型、量化、引擎、CPU、JIT、介质和计时边界，不能用绝对秒数给模型或实现排名。**
+**三个模型在各自配置下均观察到Store的A较小；A不是纯加载。Prep和Controller边界不同，不作跨模型总成本排名。严格共同完整加载指标仍缺测，不能按同名phase填入。**
+
+本轮以[97f0359历史基线](https://github.com/BoyJiang2/serverlessllm/blob/97f0359ef000e5111ac165ade4efb2a5e837a33f/comparison/evidence/three-model-final-20261108/REPORT.md)和后续2e1252d已撤混合图修订为起点，复用Kimi新补采、GLM最新历史边界/Controller审计及V4原阶段事件，仅CPU重算；未转换权重、未启动模型、未干预在途任务。详见[指标口径对照](METRIC-CROSSWALK.md)、[逐文件证据/SHA索引](EVIDENCE-INDEX.json)、[仍需补采的最小执行单](FOLLOWUP.md)。
 
 ## 交付与样本导航
 
@@ -49,35 +51,37 @@ Kimi 38、GLM C23 26、V4 38 个合格观测进入各自 ECDF；原失败仍留�
 
 ## 计时口径与准备成本
 
-| 字段 | Kimi / GLM | V4 |
-|---|---|---|
-| A | HTTP /register 调用前 → 首题 17+25 完整响应解析/context 退出的 received_ns，早于金标断言 | startup_command_ns → 自然 EOS 的 2+2 正确业务响应 received_ns；原响应先保存再校验 |
-| 首输出事件 | backend 第一次非空输出；不是客户端流式 TTFT | 同 backend 事件；不以完整 HTTP 响应代替 |
-| 路由 | ready 实例真正发布，不是仅 Controller 注册成功 | 相同定义，严格校验 engine ready → 发布 → 首输出 → generation complete → 收到响应 |
-| Prep | 目标缓存构造/准入；GLM 部分包含前一池卸载；公用环境和池初始化在外 | 从本次准备 origin 到 startup_command，包含环境、服务/池准备、注册准备及缓存准入 |
-| Gap | 准备完成 → 注册命令，实测单列 | preparation_complete_ns 与 startup_command_ns 是同一边界，差为 0；不表示无开销 |
-| controller elapsed | Kimi 原控制器实测范围 | origin → 正常退出、release_roles、journal release 后 candidate 落盘前；不含随后独立 review，不是总研究账单 |
+A统一为“激活/注册→首个正确业务完整响应”的用户可见定义；具体接点与编码实现仍分模型保留：Kimi为自己tokenizer/template冻结IDs、GLM为自己的冻结input_tokens，首题17+25；V4为自己revision/tokenizer及messages路径的2+2自然EOS（业务/固定32输入30/43token）。Kimi/GLM采样、模板和收到响应的代码实现不完全相同，不能称同请求实验。后端首输出不是客户端流式TTFT；所有主机计时都不等于CUDA设备完成时间，本轮未补加CUDA同步。
 
-三者 A 具有相近业务含义，但起点、文本、tokenizer 和终点实现并非逐字节相同。V4 输入为 30/43 token，业务自然 EOS 输出 `4`、IDs `[22,1]`，随后 fixed32 严格匹配同配置原生 gold；Kimi/GLM 为算术、cat 翻译、天空 fixed32，后者采用原报告新标准。不能把数值口径近似对齐写成同请求同实验。
+**原跨模型Prep+A堆叠图已撤下。** 下表按各自可观测范围列项；null不填零。“环境/建池”是Kimi原Prep之外的独立区间，不与原Prep拼成完整账单。GLM共享栈成本不按trial均摊；V4纯分量缺失时只报原口径合计。权重注册纯时长、目标cache与准入各自纯时长在这三模型主集都不能独立给出，均保留null。
 
-![准备与启动](derived/fig3_preparation.png)
+| 模型 | 条件 | n | 环境独立区间/s | 池初始化/s | 目标构造＋准入原合计/s | 原Prep合计/s |
+|---|---|---:|---:|---:|---:|---:|
+| Kimi-K2.6 | SF冷 | 8 | 33.227 | 229.410 | 49.398 | 49.398 |
+| Kimi-K2.6 | SF热 | 8 | 32.565 | 229.192 | 167.311 | 167.311 |
+| Kimi-K2.6 | Store冷 | 8 | 32.849 | 229.289 | 26.410 | 26.410 |
+| Kimi-K2.6 | Store池 | 8 | 34.107 | 229.731 | 91.486 | 91.486 |
+| GLM-5.1-FP8 | SF冷 | 6 | null | null | 39.818 | 39.818 |
+| GLM-5.1-FP8 | SF热 | 6 | null | null | 323.430 | 323.430 |
+| GLM-5.1-FP8 | Store冷 | 6 | null | null | 11.864 | 11.864 |
+| GLM-5.1-FP8 | Store池 | 6 | null | null | 132.754 | 132.754 |
+| DeepSeek-V4-Pro | SF冷 | 9 | null | null | null | 446.443 |
+| DeepSeek-V4-Pro | SF热 | 9 | null | null | null | 1084.352 |
+| DeepSeek-V4-Pro | Store冷 | 9 | null | null | null | 776.518 |
+| DeepSeek-V4-Pro | Store池 | 9 | null | null | null | 898.217 |
 
-| 模型 | 条件 | Prep 均值/秒 | A 均值/秒 | Prep+A/秒 | controller 均值/秒 |
-|---|---|---:|---:|---:|---:|
-| Kimi-K2.6 | SF 冷读 | 49.398 | 1271.466 | 1320.864 | 1851.676 |
-| Kimi-K2.6 | SF 热读 | 167.311 | 441.607 | 608.918 | 1138.029 |
-| Kimi-K2.6 | Store 冷读 | 26.410 | 241.266 | 267.676 | 796.615 |
-| Kimi-K2.6 | Store 池命中 | 91.486 | 158.611 | 250.097 | 781.075 |
-| GLM-5.1-FP8 | SF 冷读 | 39.818 | 448.496 | 488.315 | 缺测 |
-| GLM-5.1-FP8 | SF 热读 | 323.430 | 185.754 | 509.184 | 缺测 |
-| GLM-5.1-FP8 | Store 冷读 | 11.864 | 178.399 | 190.263 | 缺测 |
-| GLM-5.1-FP8 | Store 池命中 | 132.754 | 63.012 | 195.766 | 缺测 |
-| DeepSeek-V4-Pro | SF 冷读 | 446.443 | 556.222 | 1002.666 | 1112.746 |
-| DeepSeek-V4-Pro | SF 热读 | 1084.352 | 220.451 | 1304.803 | 1483.558 |
-| DeepSeek-V4-Pro | Store 冷读 | 776.518 | 223.752 | 1000.270 | 1177.261 |
-| DeepSeek-V4-Pro | Store 池命中 | 898.217 | 130.614 | 1028.831 | 1203.268 |
+[逐ID分项与缺测范围](derived/preparation_components.csv)。这些分量有不同纳入范围，禁止跨模型堆叠、相减称为纯磁盘/池加热成本，或据此排名总成本。
 
-图 3 相加的是不重叠的 Prep 和 A，排除 Gap；**不同模型的 Prep 语义不同，不能将上表相减称为纯磁盘/池加热成本**。V4 B2–B10 的池命中虽使 A 较 Store 冷减少约 93.14 秒，Prep+A 却增加约 28.56 秒；当前逐条件强制复位下，controller 均值也由约 1177 秒增至 1203 秒。没有测量持续保留池的 N>1 摊销，不能据此推回本次数。
+V4另可从已有时间戳严格拆出以下**连续里程碑**；不是纯建池、注册、I/O或准入时长。三段逐attempt相加等于原Prep，未估算拆分。
+
+| 条件 | n | origin→栈/池配置检查完成/s | →cache控制完成/s | →startup command/s |
+|---|---:|---:|---:|---:|
+| SF冷 | 9 | 31.007 | 410.645 | 4.791 |
+| SF热 | 9 | 31.157 | 1048.953 | 4.242 |
+| Store冷 | 9 | 391.122 | 381.333 | 4.063 |
+| Store池 | 9 | 387.026 | 504.072 | 7.120 |
+
+[V4逐次里程碑及范围](derived/v4_preparation_milestones.csv)。注册验证可能与cache操作同处中段，不能将该段改称纯注册/传输；最后一段含后续检查和调度。没有以均值差估算任何缺失纯分量。
 
 SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 文件页；9 次 acquisition 为 215.01–784.34 秒，中位数 444.53 秒，已包含在 Prep。这是实验驻留控制，不是 Store 的 CUDA pinned pool。锁前已证 Store 1513 输入全冷，不代表 SF 的 64 权重在锁前也从统一全冷起点开始；初始 SF 驻留及前序影响未记录，不推断其准备时间变化的原因。
 
@@ -87,7 +91,7 @@ SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 
 
 **尚未形成统一边界的三模型生命周期总成本数据。以下仅分模型记录既有观测，不作横向总成本排名或比值。**
 
-**Kimi-K2.6**：原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。
+**Kimi-K2.6**：systemd outercontroller激活→成功结果字典中elapsed求值；包含环境/池、请求验证、正常关闭和释放≥60秒、checkfiles/network删除；不含随后结果写入/finally/journal及进程退出。
 
 | 条件 | n | 该模型原区间均值/秒 |
 |---|---:|---:|
@@ -105,7 +109,7 @@ SF 热读控制额外用 mlock 持有 864738865152 字节（约 805.35 GiB）OS 
 | Store冷读 | 6 | 276.402988 |
 | Store池命中 | 6 | 281.715133 |
 
-**DeepSeek-V4-Pro**：准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。
+**DeepSeek-V4-Pro**：宿主准备origin→正常退出、release_roles和journal release后、candidate字典中elapsed求值；包含环境/池、验证、删除后及最终释放观察，不含随后candidate写入、进程退出和独立review。
 
 | 条件 | n | 该模型原区间均值/秒 |
 |---|---:|---:|
@@ -131,37 +135,59 @@ Kimi 和 V4 的完整控制器均值按各自原边界展示，不强行对齐�
 每条严格计算 `(complete_ns-preparation_begin_ns)/1e9`，包括条件准备、三道请求、删除与至少60秒观察；不包含此前公共环境/池初始化，不保证包含记录完成后的落盘、进程退出及父控制器清理。描述26项与主配对24项分列；不混用7次与6次均值。逐项端点与SHA见[补充JSON](inputs/glm-cpu/historical-supplement.json)和[窗口摘要](inputs/glm-cpu/historical-monitor.json)。
 共享worker/head supervisor各覆盖整批26项，实测区间分别为11204.882661/11217.540113秒；两者重叠，不相加或按ID均摊。
 
-## 图 5：权重加载与后处理的可观测边界
+## 表5：完整加载共同边界与模型内阶段观测
 
-![加载观测](derived/fig5_loading.png)
+共同定义为**八rank在fresh构造/storage分配前进入完整model_loader.load_model调用→其必要恢复/后处理正常返回后**的最早begin至最晚end。另报每rank时长和最大值。历史Kimi f7、GLM/V4外层Worker.load_model都不能只改字段名就当作该共同指标，故当前不画跨模型完整加载主柱图。
 
-Kimi 栏已按[统一指标审计](https://github.com/BoyJiang2/serverlessllm/blob/eeba65ab426e83e1057d09bd13cb16d376bf81e0/kimi/evidence/unified-loading-audit-20261108/README.md)改为缺测标注，不再用 f7 柱替代八rank统一加载跨度。共同指标为 `weight_load_host_all_rank_span_s = (max(rank_end_ns)-min(rank_begin_ns))/1e9`；边界为每rank进入完整权重加载、fresh模型构造/storage分配前，到全部权重赋值/恢复及必要原生量化/布局处理返回。它是host包络，不是纯I/O，不新增CUDA同步。
+| 历史主展示集 | 各条件原n | 严格共同完整加载有效n | 均值/中位数 |
+|---|---:|---:|---|
+| Kimi | 8 | 0 | null |
+| GLM C23 | 6 | 0 | null |
+| V4同源完整块 | 9 | 0 | null |
 
-Kimi原主集仍为B1/2/3/5/6/7/8/10共8完整块，原40项38合格/2失败不变。已核证据没有可用的完整八rank加载端点；四条件统一跨度与单rank最大时长均为8个null、有效n=0，均值/中位数null。不补0、不从宽日志减估值、不替换ID。原始槽位、缺口、身份映射和来源SHA见[逐attempt审计](https://github.com/BoyJiang2/serverlessllm/blob/eeba65ab426e83e1057d09bd13cb16d376bf81e0/kimi/evidence/unified-loading-audit-20261108/attempts.json)。私有完整rank文件不可读的限制也保留，未断言穷尽所有历史证据。
+Kimi历史单条f7均值仍为1121.367/284.511/87.859/9.998秒（精确值以原输入为准），仅是无完整rank身份/绝对端点的局部日志观测，不再替代主图；其起止含loader工厂及可选runner工作。GLM192个历史rank端点可复算，但缺逐rank startticks/直接boot以及实际GPUModelRunner映射/可选分支闭合；最新边界审计仍为C。V4虽有完整rank进程身份，但原hook位于Worker.load_model，外层还包含runner收尾，不能代替缺失的内层完整loader调用端点。具体源码/行号、有效n和原件路径见[口径表](METRIC-CROSSWALK.md)。
 
-| Kimi条件 | 统一八rank跨度有效n | 统一均值/中位数 | 单条f7专项观测n | f7专项均值（秒） |
-|---|---:|---|---:|---:|
-| SF冷读 | 0 | null / null | 8 | 1121.366858 |
-| SF热读 | 0 | null / null | 8 | 284.510617 |
-| Store冷读 | 0 | null / null | 8 | 87.859091 |
-| Store池命中 | 0 | null / null | 8 | 9.998398 |
+### Kimi新补采：独立小批，未形成完整四条件块
 
-f7仅为专项观测：范围为getloader前至loadmodel及可选LoRA/drafter/aux后，实际日志缺rank/PID和绝对加载端点，不能称八rank跨度或纯ingestion。它的数组和统计单独保留在[冻结审计输入](inputs/kimi-unified/condition-summaries.json)，不参与统一指标作图。GLM/V4原阶段数组及样本集不变；这些阶段包络可能重叠，不求和或相减伪造纯固定开销。补齐Kimi统一数值需要另行批准采集，本次只做CPU改图。
+| 新cohort/介质 | 条件 | 八rank观测 | 完整loader主机包络/s | 最大单rank/s | 资格 |
+|---|---|---:|---:|---:|---|
+| qjhs003_supplement_v1 | SF热 | 8 | 285.231648676 | 285.202741492 | 单条件合格n=1 |
+| qjhs003_supplement_v1 | Store冷 | 8 | 95.465140200 | 95.342349852 | 失败观测n=1 |
+| qjhs003_supplement_v1 | SF冷 | 0 | null | null | 未开始 |
+| qjhs003_supplement_v1 | Store池 | 0 | null | null | 未开始 |
+| qjhs000_formal64_supplement | SF冷 | 0 | null | null | 未开始 |
+| qjhs000_formal64_supplement | SF热 | 8 | 302.153546032 | 302.043261813 | 单条件合格n=1 |
+| qjhs000_formal64_supplement | Store冷 | 8 | 31.413848904 | 31.076709263 | 失败观测n=1 |
+| qjhs000_formal64_supplement | Store池 | 0 | null | null | 未开始 |
 
-V4 正式全集 Store 冷 ingestion 均值约 12.19 秒，后处理 span 约 133.01 秒；池命中约 2.97 秒与 44.99 秒。这些是主机函数观测包络，不能将差异解释为已证实的纯 PCIe/量化加速。池命中计时窗口内新增 native disk loads 为 0；预取和全部准备 I/O 并非 0。
+两个新cohort的完整块n均为0；不得把各自SF热单点或失败Store冷拼成四条件完整块，也不回填历史n=8。qjhs003小批为本地NVMe；最新qjhs000 formal64为XFS RAID、SF池64MiB，与历史配置独立。其间另一个qjhs000候选在SF热cache准入阶段即失败，无加载端点，不补图。新补采没有摄入/后处理分项端点，分项仍null。
 
-### GLM既有八rank phase补充（不是f7包络）
+### GLM：原Worker阶段，各条件n=6，不能升级为统一完整加载
 
-下表使用C23完整B5–B10，各条件n=6；均为八rank最早begin至最晚end跨度的算术均值，单位秒。不相加，不作为纯I/O或独立因果贡献；图5使用明确标注的八rank阶段跨度，不补造同定义f7。
+![GLM原始主机阶段](derived/fig5_glm_phases.png)
 
-| 条件 | ingestion跨度 | quantization跨度 | 含分配weights pipeline跨度 |
-|---|---:|---:|---:|
-| SF冷读 | 391.670848 | 0.582500 | 393.624687 |
-| SF热读 | 129.215433 | 0.275165 | 131.216366 |
-| Store冷读 | 121.473016 | 6.475432 | 123.572061 |
-| Store池命中 | 5.825793 | 2.055968 | 7.889165 |
+GLM的ingestion、postprocess及外层Worker阶段仅作本模型观测。其图不与V4同名阶段并排做因果比较。
 
-26条原始阶段跨度及起止窗口保存在[event-intervals.csv](inputs/glm-cpu/event-intervals.csv)，主表选B5–B10；旧复算已核对每条八rank覆盖与起止时间，此处只做CPU求均值。
+### V4：原Worker与分组恢复阶段，各条件n=9
+
+![V4原始主机阶段](derived/fig5_v4_phases.png)
+
+纠正旧字段解释：**Store的weight_ingestion只围V4GroupedStoreLoader.load_weights/session.begin，包括remainder恢复及hook安装，不能代表全部专家权重传输。quantization_postprocess围process_weights_after_loading，包含逐专家组恢复、H2D和权重处理，不是纯量化计算。** SF也保留其各自load_weights/后处理接点；不能从字段名推导与GLM功能等价。包络可重叠，禁止相加或均值相减称为纯磁盘、H2D、量化或路径开销；未添加CUDA同步。
+
+下表只列两模型各自外层Worker观测，**不是共同完整加载主表，不作排名**。完整逐rank时长、每attempt最大值和摄入/后处理同类数据均在CSV。
+
+| 模型 | 条件 | 观测n | Worker八rank包络均值/s | 每attempt最大单rank时长的均值/s |
+|---|---|---:|---:|---:|
+| GLM-5.1-FP8 | SF冷 | 6 | 393.624687 | 393.600161 |
+| GLM-5.1-FP8 | SF热 | 6 | 131.216366 | 131.118515 |
+| GLM-5.1-FP8 | Store冷 | 6 | 123.572061 | 123.522684 |
+| GLM-5.1-FP8 | Store池 | 6 | 7.889165 | 7.796522 |
+| DeepSeek-V4-Pro | SF冷 | 9 | 494.732700 | 494.643649 |
+| DeepSeek-V4-Pro | SF热 | 9 | 158.196931 | 157.992841 |
+| DeepSeek-V4-Pro | Store冷 | 9 | 150.256008 | 150.157247 |
+| DeepSeek-V4-Pro | Store池 | 9 | 55.670591 | 55.551708 |
+
+[逐rank端点/时长（含显式缺测槽位）](derived/rank_durations.csv) · [逐attempt包络及最大值](derived/phase_attempts.csv) · [各自阶段汇总](derived/phase_summary.csv) · [Kimi补采独立台账](derived/kimi_supplements.csv)。历史原始阶段字段及数值未改写；V4正式全集38项也逐次重算并与原metrics相等，展示表仍只取同源B2–B10。
 
 ## 表 6：启动时间的互斥分解（替代原图6）
 
@@ -223,6 +249,37 @@ Kimi fixed32 的整个 HTTP 均值约 3.61–3.69 秒；GLM 无独立持久化 b
 
 Kimi 仍用原 8 完整块、原四项均差检验/均值比与 seed20261024；原 A 四项 Holm=.03125。GLM 原 C23 n=6 四项的 Holm 仍为 .125/.125/.125/.5625。其检验族、统计量、配对几何和最小可达 p 均不同；不能将 p 值或区间横向排列解释为模型间效果差异。原计算产物完整附在 inputs/legacy；本轮没有改写它们。
 
+## 独立共享Store随机切换：不进入历史主集
+
+该批在qjhs003使用同一1TiB Store、32MiB chunk和8卡，固定Kimi→GLM→V4→Kimi→Kimi闭环后，执行六个方向各2次的冻结平衡随机序列，共12次切换（首模型初始化不计）。其时间是**直接VllmBackend激活marker→宿主解析正确响应**，不是上述HTTP注册A；不得并入原120项、主块或加载主图。46条请求按各自冻结协议通过；44条严格文本/token相同，两条固定序列Kimi fixed32仅原length_only规则通过，随机轮全部严格一致。
+
+### 缓存管理粒度
+
+- Store路径：Kimi/GLM各8条rank路径；V4为8×(61专家层组+1其余权重组)=496条路径。496不是实验次数，也不是文件总数。
+- 路径内tensor.data_*：存储payload数据文件，一个路径可以含多个文件。
+- chunk：内存池分配/归还单位；本随机批32MiB，历史Kimi/GLM/V4分别64/512/32MiB，不混用块数比较字节容量。
+
+分组粒度可能影响淘汰、重读和调用开销，但现有跨模型数据没有量化独立贡献，不能将耗时差异主要归因于路径数量。下表优先展示有效命中字节、重读字节及块复用，路径数仅作核查；GB为十进制。
+
+| 次序 | 切换 | 命中payload/GB | Store重读/GB | 申请块 | 归还块 | 实际命中/缺失路径（辅助） |
+|---|---|---:|---:|---:|---:|---:|
+| 1 | kimi→v4 | 0.000 | 877.730 | 26552 | 28125 | 0/496 |
+| 2 | v4→glm | 0.000 | 762.037 | 22712 | 21103 | 0/8 |
+| 3 | glm→kimi | 0.000 | 617.001 | 18392 | 18564 | 0/8 |
+| 4 | kimi→glm | 285.764 | 476.273 | 14195 | 14874 | 3/5 |
+| 5 | glm→v4 | 0.000 | 877.730 | 26552 | 26230 | 0/496 |
+| 6 | v4→glm | 0.000 | 762.037 | 22712 | 22183 | 0/8 |
+| 7 | glm→kimi | 0.000 | 617.001 | 18392 | 18564 | 0/8 |
+| 8 | kimi→v4 | 0.000 | 877.730 | 26552 | 27989 | 0/496 |
+| 9 | v4→kimi | 77.125 | 539.876 | 16093 | 14520 | 1/7 |
+| 10 | kimi→glm | 0.000 | 762.037 | 22712 | 23527 | 0/8 |
+| 11 | glm→v4 | 0.000 | 877.730 | 26552 | 26230 | 0/496 |
+| 12 | v4→kimi | 0.000 | 617.001 | 18392 | 17899 | 0/8 |
+
+12次中2次部分命中、10次全未命中。首个Kimi→V4激活前虽驻留281条目标路径，仍在自身lookup前全部被驱逐，最终全未命中；不能以初驻留路径数当实际命中率。文件重读是Store逻辑文件读取，不等于块设备物理读。命中/重读/块数没有被换算成纯耗时。
+
+[逐次数据/时间边界](derived/random_switches.csv) · [六方向×实际缓存状态，小样本中位数/范围及字节/块汇总](derived/random_direction_cache_summary.csv) · [原验收/协议/原件SHA索引](inputs/harmonized/random/qualification.json)。原始证据根qjhs003:/home/boyjiang/sllm-v4-pro/cache-competition-20261109/cache-sequence-directed-v1；其独立原生回放和最终74.904秒八卡释放已完成，本轮不重复GPU运行。
+
 ## 软件、模型和资源对齐
 
 | 项 | Kimi | GLM C23 | V4 |
@@ -266,9 +323,9 @@ V4 cgroup memory.current 包括文件缓存，不是完整进程 RSS/全物理�
 
 38 次合格均以正常 Store/Ray/容器退出、原 PID 身份消失、无 compute apps 和 GPU 回原零基线独立验收。结束后现场八卡均 0 MiB、无计算进程。独立 native 两轮生命周期 run `native-service-20261107T093848Z` 的源为 69f67ad，轮间 62.028 秒只余已校准 Store daemon，第二轮重新注册/恢复/请求成功；不能将它写成 88cc71e 新重跑的两轮证明。
 
-## GLM仍需新测量的缺项
+## 尚未闭合的补采项
 
-CPU已补回历史容器成本、采样峰及helper区间；以下不从旧总历时倒推：fixed32独立客户端begin/end；如必须统一的f7边界；纯save/纯填池分量；N>1持续保留池的摊销；与其他模型同端点的完整逐次controller。新增运行需独立预算、守护及审阅，不重跑或替换原40项、不为显著性增加旧样本。
+[补采清单与未来最小执行单](FOLLOWUP.md)区分能只读尝试补证和必须新布点的缺口：Kimi缺完整四条件新块及分项；GLM共同加载函数/身份映射链未闭合，历史共享父栈不能恢复每条件完整Controller；V4缺直接内层loader调用端点；Prep纯分量缺失不估算。新GLM Controller不得拼接旧加载数据。只有以后确需新增模型任务时才按最小执行单、既有授权/停止规则及占GPU前告知执行，本轮无此运行。
 
 ## 复核、来源与复现
 
@@ -278,6 +335,6 @@ V4 完成后只读 replay 全 40 journal，使用冻结 reviewer 对 38 成功�
 
 原 40 全部目录、原 journal、campaign complete 和 handles 已另打包于服务器：`/home/boyjiang/sllm-v4-pro/results/nfs40-raw-evidence-20261108.tar.gz`，56908305 字节，SHA `76ef89cb2b4de1d21605b4d65f90c33bc5057a3bfe637ff058b7a368573ef99b`；108086 个成员、44 个顶层根，gzip/tar 全读检查通过。包不含权重或 Store payload。本交付附 [receipt](inputs/v4/raw-archive-receipt.json)，完整原件仍保留服务器。
 
-本目录提供 5 组 PNG/SVG/PDF及生命周期观测、启动时间分解两组表、逐行 CSV、原输入副本与 SHA、复算脚本。[V4-MIGRATION.md](V4-MIGRATION.md)单列机制映射、上游能力、最小补丁与 Store 状态/失败契约；[REPRODUCTION.md](REPRODUCTION.md)给出 CPU 复算和服务器完整重审命令。图已视检。既有 Kimi/GLM 不重新审计大监控或重读权重，既有 V4 Store 数据不重复转换/哈希。
+本目录当前展示A、ECDF、原120项和两张分模型阶段图；Prep/生命周期/启动分解/逐rank/随机切换改以表格记录。原混合图文件保留历史归档，正文不再展示。附逐行CSV、原输入副本与SHA和CPU复算脚本。[V4-MIGRATION.md](V4-MIGRATION.md)单列机制映射、上游能力、最小补丁与 Store 状态/失败契约；[REPRODUCTION.md](REPRODUCTION.md)给出 CPU 复算和服务器完整重审命令。新分模型图已视检；验收及重算方法见[REPRODUCTION.md](REPRODUCTION.md)。既有 Kimi/GLM 不重新审计大监控或重读权重，既有 V4 Store 数据不重复转换/哈希。
 
 未验证图像/视频、长上下文覆盖、并发吞吐、在线 KV 迁移、EP-on/TP16/PP、MTP/graph、在途取消或 N>1 持续驻留收益。本报告只覆盖冻结的文本、TP8、2048/seq1/eager 和两类 V4 请求。缺测与原失败保留，不用额外运行填出理想图。

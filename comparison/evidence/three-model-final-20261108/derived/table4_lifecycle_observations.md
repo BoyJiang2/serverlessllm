@@ -1,6 +1,6 @@
 **尚未形成统一边界的三模型生命周期总成本数据。以下仅分模型记录既有观测，不作横向总成本排名或比值。**
 
-**Kimi-K2.6**：原controller elapsed；包含每条件环境/池和退出等原控制器工作，沿用Kimi原审计边界。
+**Kimi-K2.6**：systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。
 
 | 条件 | n | 该模型原区间均值/秒 |
 |---|---:|---:|
@@ -18,7 +18,7 @@
 | Store冷读 | 6 | 276.402988 |
 | Store池命中 | 6 | 281.715133 |
 
-**DeepSeek-V4-Pro**：准备origin→最终释放审计后的candidate落盘前；包含环境/池准备、退出和释放，不含随后独立review。
+**DeepSeek-V4-Pro**：宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。
 
 | 条件 | n | 该模型原区间均值/秒 |
 |---|---:|---:|

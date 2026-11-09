@@ -1,0 +1,454 @@
+{
+  "schema": "kimi-unified-loading-source-boundary-audit-v1",
+  "created_at_utc": "2026-11-08T15:13:32.377438+00:00",
+  "status": "SOURCE_ONLY_NO_MEASUREMENT",
+  "user_boundary": "Before fresh full model construction/storage allocation through weight assignment/restore and required processing return.",
+  "unified_span": {
+    "begin": "Immediately before model_loader.load_model invocation",
+    "end": "Immediately after its normal return, before runner optional LoRA/drafter/aux",
+    "all_rank": "max(end host-monotonic timestamp)-min(begin host-monotonic timestamp) for all8 authenticated expected ranks with common boot/time namespace/clock implementation",
+    "includes": "Fresh construction/storage allocation, load/restore/assignment and necessary loader postprocessing. Includes loader-internal path checks/dtype setup; not pure disk/CUDA/copy.",
+    "historical_status": "UNMEASURED exact all-rank host span; old f7 provides local logged duration without identified rank or absolute endpoints. The collected log is not a verified set of eight rank durations and cannot reconstruct inter-rank endpoints."
+  },
+  "f7": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-evidence-files-v1/v1/worker/gpu_model_runner.py",
+    "sha256": "f7a958706ee01c2c0c1d8c424fa9bfefa4ac80bb20a2eab9a8f70d0a99f351eb",
+    "bytes": 319819,
+    "lines": {
+      "timer_begin": 4750,
+      "factory": 4753,
+      "loader_call": 4754,
+      "loader_return": 4756,
+      "LoRA": 4757,
+      "drafter": 4761,
+      "aux": 4789,
+      "timer_end": 4810,
+      "evidence_finally": 4814,
+      "log": 4965
+    }
+  },
+  "f7_difference": "Adds loader factory creation and optional LoRA/drafter/aux to call boundary; evidence capture and communication-buffer preparation occur after timer end.",
+  "Store_loader": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+    "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c",
+    "bytes": 6814,
+    "lines": {
+      "constructor": 17,
+      "load_model": 64,
+      "fresh_CPU_model": 101,
+      "release_constructor_storage": 107,
+      "load_dict": 123,
+      "binding_assignment": 126,
+      "buffers_to_device": 128,
+      "restored_quant_runtime": 132,
+      "attention_processing": 138,
+      "return": 141
+    }
+  },
+  "factory": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/__init__.py",
+    "sha256": "87ab7dbfff7989abc3fc374bd37f57a4e8803e0daf9138159e70b712b6dfc129",
+    "bytes": 5223,
+    "scope": "Selects/constructs loader only; Serverless loader constructor only validates config and creates no model."
+  },
+  "SF_source": {
+    "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/b1388b1fb/vllm/model_executor/model_loader/base_loader.py",
+    "sha256": "d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df",
+    "bytes": 3680,
+    "lines": {
+      "fresh_model": 55,
+      "load_weights": 64,
+      "postprocess": 81,
+      "return": 83
+    },
+    "identity": "Official exactcommit response bytes hash matches historical installed source audit; fetched into RAM only."
+  },
+  "LoRA_source": {
+    "installed_path": "/usr/local/lib/python3.12/dist-packages/vllm/engine/arg_utils.py",
+    "url": "https://raw.githubusercontent.com/vllm-project/vllm/b1388b1fb/vllm/engine/arg_utils.py",
+    "sha256": "b576b4e3156e7669857e2ed6cbd9a4ac50062472501bc39a80d3642991b5f362",
+    "bytes": 98258,
+    "lines": {
+      "enable_lora_explicit_False": 516,
+      "LoRAConfig_conditional": 1845,
+      "only_if_enable_lora": 1859
+    },
+    "identity": "Official exactcommit response SHA; installed arg_utils raw SHA not newly recovered."
+  },
+  "frozen_38_specs": [
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_hot-retry04-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "5da626d6f2c381c0ac10201c548572c867327e67e8c1e37dd438036a66ea3663",
+        "bytes": 101352
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_disk_cold-retry04",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_disk_cold-retry04-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "9d8f7fb710c23d78ce8933ef8fae9f0a0330c417024b124129b03d4c3f8d9969",
+        "bytes": 101328
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_cold-retry04-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "4edfcaec728ca1dda6d06cfbebb5c65fdfa52eca6fe97552fc103fcaadf2332c",
+        "bytes": 101359
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_pool_hit-retry04",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_pool_hit-retry04-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "2c9410179c5e7c958948c7ee9f6d83ac2d9d61bc5de83a62e46a421a27abcf7f",
+        "bytes": 101321
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_pool_hit-retry02",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_pool_hit-retry02-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "25b6f2765d7324cf0e11242afe10a9283155dbf7ffe6d634505b4178ff533768",
+        "bytes": 101321
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_cold-retry02-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "fbfc7a23b22bad024956f85daad5606472b823e09b3a51503aebfa40702b26c4",
+        "bytes": 101359
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_disk_cold-retry02",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_disk_cold-retry02-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "5fde2693dc334fab4ea58ed9ecfe74306a652bc9bcbc4991563b78f7cd0f73a1",
+        "bytes": 101328
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_hot-retry02-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "a7802f9f174b7753faa5953ae544a6727801e4c66b5e1d937f76610da42cda4a",
+        "bytes": 101352
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "e00e09c6a6b6eac770c5bf458ca91b03c276626497438cf5ab0bbfb3ae54b90d",
+        "bytes": 101304
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_pool_hit-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "30c329c2988736aeac46a20cb061dcd66acd95637a11bf7c001a2c3410d971c7",
+        "bytes": 101298
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_hot-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "7a2d1c5f4ed4aa30faa3c21c474741bb8adb53821502611311510de1d19cd878",
+        "bytes": 101329
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "cd367a2a072911ffff4834af66af74113c7f84351bd3414c53a2611c6567a8a7",
+        "bytes": 101336
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-safetensors_disk_hot-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "90a7b61ee50a324097e712658fb31c9de7c4f6fbaecb63dae5b5e98cbb14b678",
+        "bytes": 101329
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_disk_cold-formal-v3-637f9a6c4ab0-spec.json",
+        "sha256": "1affa9827545a6e9c00d4942ade62a3260d10fb2108d7b2db2298f41340a516c",
+        "bytes": 101305
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b04-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b04-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "ce5113c09af8a7a268ce13fb956d68efe425bbb2ee9ff8987d3dfaf1d131c369",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "0b4db299d1447aed51bf1d04d01e8d83cdd94705b55ff840535bcdbebe163a93",
+        "bytes": 103752
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "9c7530a10b6cf5db2e2289e7c2fedf64a2b26382079137e1a15aab11ffd9c2ec",
+        "bytes": 103745
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "cf05a9317b0596104cda7a0ab2ac8a7882fc08b8a1b88fc131fe8844db4c2a09",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "37747c2e3a3670767e3901ac0b26f32532e2bf6d38f3b587b8aee8ec74ecf97d",
+        "bytes": 103721
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "ab2874699f00d54399b96e03f6c8072e0aa8e3c9f70a477ae63eef346e93064e",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "53fef51a79233321bca09789d6d1eff7d788cd493e161cad804f87cfda00ddc4",
+        "bytes": 103752
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "446103bc921c8160bec480d4bf0ba99735d8b5acef7679e926cf23404fdb9186",
+        "bytes": 103721
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "1f4450612754e959e1a031cf236948a18fc93ac34ccb52ab7b0679d73e3ee533",
+        "bytes": 103745
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "1aec4debfd9d9ec72850edb81493a6e9d91ed15d7e07c74e846f13f11ab01236",
+        "bytes": 103752
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "cf3eb4db5bf331cf326a3beacb4cfe29cccf7342bfa54c3558dd85a06eb1305d",
+        "bytes": 103745
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "044e8d8f14bb28e03c45f5e80dc3cf3dd50167fc0c8aa639019fb633eabe59aa",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "2549d184d0fa17c3a8c85d342631c7e9bab02d614dac901b953691fbec0e9521",
+        "bytes": 103721
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "9edddb417c8190f707d23a2425fe49c61558e0b051427d224bc807f80fd0b2d6",
+        "bytes": 103752
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "5c0f1da25f125dc6f1292f6e8b3ebfe8d018ded011d704d30f3c440f3c526119",
+        "bytes": 103745
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "b8056056a2c96747177618a3aa8cf662d868db90a981b45f004b8bc7fe4c6797",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "1e354e3fecdf81069f83cdaf0d9dd677c345ff706afb325d28145fbb764bc182",
+        "bytes": 103721
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "dfe308a452f81d331c1f01b3961103bc2cca39bdd83233a176e3aa214fd885cd",
+        "bytes": 103714
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "4c7a766bd8413b640c980eb7bff07c02fa2b05d1655f100e7b11d57408b74465",
+        "bytes": 103752
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b09-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b09-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "f6db2248af5abb05ff68b37608bb9e7a7cde716af6c65131f7be9e72e217c393",
+        "bytes": 103721
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "d94ea3c3300f7adbf937f833772cdfbed20695b92f3658bc7c95bd72cbf1e17d",
+        "bytes": 103722
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_pool_hit",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_pool_hit-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "dcd04f5ab06af90e30aa90aa3a1e05325d71ea05ef0548db2aacaff39615dcd2",
+        "bytes": 103715
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_hot",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "24ef2370ea367a24cfb4a433d303eaab9b1942e538a7c8864e52619768773135",
+        "bytes": 103746
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_cold",
+      "spec": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-spec.json",
+        "sha256": "aa69081cd246e014b71dc1c54daeb1fc77cb49538b8622b185e355bffde93efb",
+        "bytes": 103753
+      },
+      "optional_enablers": "NOT_SUPPLIED"
+    }
+  ],
+  "optional_features": {
+    "LoRA": "All38 omit enable_lora; exactcommit EngineArgs explicitly declares False and creates LoRAConfig only when true. Disabled configured path; installed arg_utils SHA and per-worker object dump not newly recovered.",
+    "drafter": "F7 assigns speculative_config406 and constructs drafter only under nonnull config513 onward; two actual saved SFhot/Storecold engine logs show speculative_config=None.",
+    "aux": "F7 defaultFalse508; only enables in speculative eagle3/extract_hidden_states block554-566. False under audited None speculative config."
+  },
+  "runtime_config_excerpt": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-fixed32-gold-difference-existing-rank-metadata-kernel-excerpts-20261107.json",
+    "sha256": "8526fcfefe0699272fa27d55e1946ffb5cf2f8861eacf7d96043c14cbf40f218",
+    "bytes": 70960
+  },
+  "installed_base_loader_evidence": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/official-sf-quant-ownership-source-audit.json",
+    "sha256": "673a068056ade820f8fec37b692c9596fa22b53abb0e4bcce96a85561f69af07",
+    "bytes": 9931
+  },
+  "backend_argument_source": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/backends/vllm_backend.py",
+    "sha256": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510",
+    "bytes": 15188,
+    "lines": [
+      169,
+      170,
+      202
+    ]
+  },
+  "limits": [
+    "No source edits, runtime imports, GPU, Store, containers, weights, cache or Git.",
+    "Configuration/source conclusions, not new per-worker introspection; two saved engine config exemplars do not constitute all38 runtime object dumps.",
+    "Shared boundary follows user definition; no new measurement or sampled result.",
+    "Before load_weights or load_dict is too late because fresh initialization already occurred."
+  ]
+}

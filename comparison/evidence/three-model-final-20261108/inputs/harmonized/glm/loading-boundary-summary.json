@@ -1,0 +1,1453 @@
+{
+  "verdict": "C",
+  "scope": "Strict common-boundary admission not proven; observed timestamp envelopes remain valid historical arithmetic, not zero or replacement trials.",
+  "runtime": {
+    "code_commit": "f176e05607d04999ab28e8ea8cd49b41270cb528",
+    "vllm_base": "43a9b1afbb7ed88e63ebeefeb55df8d445aa1992",
+    "sllm_base": "9f50241baa5386e06a9321c51f19a9ef5f964c2b",
+    "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f"
+  },
+  "source_code_sha256": "327888976d14d3f39733723d6d2db1538881e88cb9238f1b39dba26bb235758f",
+  "summary": {
+    "safetensors_disk_cold": {
+      "requested_n": 6,
+      "endpoint_valid_n": 6,
+      "observed_mean_s": 393.6246867098333,
+      "strict_unified_valid_n": 0,
+      "strict_unified_mean_s": null
+    },
+    "safetensors_disk_hot": {
+      "requested_n": 6,
+      "endpoint_valid_n": 6,
+      "observed_mean_s": 131.21636588716666,
+      "strict_unified_valid_n": 0,
+      "strict_unified_mean_s": null
+    },
+    "store_disk_cold": {
+      "requested_n": 6,
+      "endpoint_valid_n": 6,
+      "observed_mean_s": 123.57206083866667,
+      "strict_unified_valid_n": 0,
+      "strict_unified_mean_s": null
+    },
+    "store_pool_hit": {
+      "requested_n": 6,
+      "endpoint_valid_n": 6,
+      "observed_mean_s": 7.889164785166667,
+      "strict_unified_valid_n": 0,
+      "strict_unified_mean_s": null
+    }
+  },
+  "missing_rank_startticks": 192,
+  "missing_direct_rank_boot_ids": 192,
+  "model_binding": "One backend create/ready window, exact private container, one PID-pair per rank. No actor startticks substitution or invented rank model UUID.",
+  "sources_snapshot_sha256": "c06363eb429b2c96d038a91a91d1d2f6cc3170a2e57bf10e0769b632ffc43708",
+  "input_files": {
+    "tools/historical_costs.py": {
+      "bytes": 37711,
+      "sha256": "327888976d14d3f39733723d6d2db1538881e88cb9238f1b39dba26bb235758f"
+    },
+    "results/reanalysis-20261106/inputs/formal-ledger.json": {
+      "bytes": 71883,
+      "sha256": "76184b66b4418fc486ec00aa530b705542bff20d6b6950c07b00c4aa8a75a06b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact-index.json": {
+      "bytes": 388181,
+      "sha256": "d73b0cd9a01fc320d05054417b5c553553981cd18fe4a768565a03b5db0bf3b0"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a8082a7fa945--formal13-identity.json": {
+      "bytes": 6729,
+      "sha256": "1b763de68d01b249d4ff7302238f3e6abd965f0e1832087f2a24d221f85cd288"
+    },
+    "results/reanalysis-20261106/inputs/C23-run-manifest.json": {
+      "bytes": 52959,
+      "sha256": "bda7616e8310ab08178fc52bf2c2e51cf4d51544915de1b7f199a287bf8cf87d"
+    },
+    "results/reanalysis-20261106/loading-boundary-sources.json": {
+      "bytes": 163165,
+      "sha256": "c06363eb429b2c96d038a91a91d1d2f6cc3170a2e57bf10e0769b632ffc43708"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3fbf50d66226--control-input-manifest.json": {
+      "bytes": 15348,
+      "sha256": "3eac8c63cdd670a49d872922c11b821d07a0e252f2fbe80f790e169749091fb9"
+    },
+    "results/reanalysis-20261106/inputs/historical-review-manifest-v11.json": {
+      "bytes": 214107,
+      "sha256": "da681f8d83ee3416faeffad30f230365e9956c8c6763aa30487d4bb809be81b4"
+    },
+    "results/reanalysis-20261106/inputs/C23-executed-source-archive.json": {
+      "bytes": 13713,
+      "sha256": "62e283a0fb893ac030b2b0d8f97fff921ad086c032fe2c34223cf8e904375e5f"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_05/result.json": {
+      "bytes": 2683,
+      "sha256": "0e54771e24ca738d5ab308e5a15df0ffcf670dbba6ddb5d985de06a83105968b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/292ada41af70--phases.json": {
+      "bytes": 35341,
+      "sha256": "538dc5a60352d33a4222b0de46a0f849bcb022fd43fdd6e11c629f24d1df5448"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8c4d0a106428--process-672c6affed10-9398.jsonl": {
+      "bytes": 2294,
+      "sha256": "67609c97c372e0d5d6126f1fdfe70a070830ac428b3ee7b746613ff3953af665"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8e4349f9903e--process-672c6affed10-9399.jsonl": {
+      "bytes": 2294,
+      "sha256": "2a3fe9697939ee488f1c4d9e7ddd60754b49d12a72d0261e277f425ff7b6dec1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a6fcfea72435--process-672c6affed10-9400.jsonl": {
+      "bytes": 2294,
+      "sha256": "ed584fd271db403546f035bdd7fe35eb1daca9967b80f0cdea43519a9f1e2c0a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/aa439e761144--process-672c6affed10-9401.jsonl": {
+      "bytes": 2294,
+      "sha256": "347f0a05f695279f5070a0e52550873a11253239339eee3346d591ebbf062593"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7c39654d4bb3--process-672c6affed10-9402.jsonl": {
+      "bytes": 2294,
+      "sha256": "eb861d9beb6ecf8c5f6cf5cace9f4860a9299e5a30dc4c6f52dceb5f8ffd40aa"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/142184cc6700--process-672c6affed10-9403.jsonl": {
+      "bytes": 2294,
+      "sha256": "95899821433c4fde844687c2b2a2776a513abf199126b9cc92577e12252b3ef7"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/9734ed6610ae--process-672c6affed10-9404.jsonl": {
+      "bytes": 2294,
+      "sha256": "4a5458cc5baf4b1ab1a3c1caeee833c468d0236fecda578e2a939638ce2553ff"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/52df883e7e30--process-672c6affed10-9405.jsonl": {
+      "bytes": 2294,
+      "sha256": "246549f36d61720dd0716c8691030103e72349227315cad43a7ffa616a493984"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_05/result.json": {
+      "bytes": 2662,
+      "sha256": "2d8e2686b5c496fa2816306b0c2058e4270eb575a0718a868369c65870051905"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7f4a51f9a0f6--phases.json": {
+      "bytes": 35436,
+      "sha256": "259edf932b2bba354c86f8785b6e9cb561ac00080ba7537f0c05b2781d2ae319"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/6d2e33427754--process-672c6affed10-12837.jsonl": {
+      "bytes": 2311,
+      "sha256": "a606e4eff36d908ee18207036554434c97a7c3c1d2f9b1a41ccd2ba393b59887"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/320c9bbc219f--process-672c6affed10-12838.jsonl": {
+      "bytes": 2311,
+      "sha256": "a66fdfa87f3d10ed725fa11f2052eb340c4768724db54744426432ed4d6895a6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c6020ceb3b1f--process-672c6affed10-12839.jsonl": {
+      "bytes": 2311,
+      "sha256": "3c2cc7449e731c8503e16d2dcef2c03c641da79da09956daa647b767b68902a6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1ebc47fa905b--process-672c6affed10-12840.jsonl": {
+      "bytes": 2311,
+      "sha256": "a7816a226e4f65b8992881620c689cbd81c744bc43583b7db3b9b765585bd96b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f872e5e51047--process-672c6affed10-12841.jsonl": {
+      "bytes": 2311,
+      "sha256": "085d76ce459e32c2c0f785bf4ca9a88d6ceb9c1ff03ff50a352fb1aabe4b56c4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b3b8b28a7fe2--process-672c6affed10-12842.jsonl": {
+      "bytes": 2311,
+      "sha256": "bb3fe5f2f56447945b29c1ed25fc45b3c172d44f2ae08e9ca9b2ab0bc562637c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/bb9e2ec1fe03--process-672c6affed10-12843.jsonl": {
+      "bytes": 2311,
+      "sha256": "d40b8c5c5378f669a43485f840b1493032d47e77dcdcf5fa9b2c1460bc35ce1c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0006439b226e--process-672c6affed10-12844.jsonl": {
+      "bytes": 2311,
+      "sha256": "7fd1be9d3a6cb1db541aaa719ee25aa43d1830c3104bd5f10a7585f07b7d5093"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_05/result.json": {
+      "bytes": 2717,
+      "sha256": "46cf89c1db7c8671121660a6c823df770329ea3d00f04beb18f981d98aece812"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/75a3954c4119--phases.json": {
+      "bytes": 31302,
+      "sha256": "256a0ee07d773b639a90090124b612255538b72c97e0c35e171c63d6349d6b7e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/24880320eec4--process-672c6affed10-16221.jsonl": {
+      "bytes": 1904,
+      "sha256": "6199326aefaf0e98213cbbe84f9288489a1c4ee74ecc46d11be8ae1718ed153b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f011761c5946--process-672c6affed10-16222.jsonl": {
+      "bytes": 1904,
+      "sha256": "3b8cc257587d9b13795f645e48dd880ff65c5e834a014f8dc1daf6cc7afe69c0"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/9d4d7b5e7912--process-672c6affed10-16223.jsonl": {
+      "bytes": 1904,
+      "sha256": "cc2f390ea7926c66d2ee7385f3f348bbe29d6bb0f8b2c522eb65ae24ca36d408"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/408181b0fb06--process-672c6affed10-16224.jsonl": {
+      "bytes": 1904,
+      "sha256": "00fd0b6d1934ce7941333e4d92461b40942c7bf4ec0fb131769ee6cdf4518a47"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8b19e01ee4c9--process-672c6affed10-16225.jsonl": {
+      "bytes": 1904,
+      "sha256": "0c469a3e85ae59c1e95dd64ffca8abb203b79fa9ce753380ac20441a7bc42c5d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d3d9ba93c98f--process-672c6affed10-16226.jsonl": {
+      "bytes": 1904,
+      "sha256": "10a81ecaceb4afcc1d23e25bc3f3edf8ade7f605a72e4986d0d9d2a63b7fb7e4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0b8fb8fa6826--process-672c6affed10-16227.jsonl": {
+      "bytes": 1904,
+      "sha256": "bd010c0f30d9a83f18398cd8f28d89a6b8c3fb9581a2fec9cbea7b8358b32b19"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7e2a41575391--process-672c6affed10-16228.jsonl": {
+      "bytes": 1904,
+      "sha256": "991a0b4bc8ecc15ecdcac97fd4d7a40d3b878d35092bd508064a3b6a113725e6"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_05/result.json": {
+      "bytes": 2714,
+      "sha256": "3dd7da26cabda4b2f73e9b290635b53ff398fdf8270e148512d2f22e1994ecad"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/062caba157c0--phases.json": {
+      "bytes": 31302,
+      "sha256": "963ae1c054d66deef43eaefd1c3a87e79667732929da1fd2fe3999f861bf5dc0"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0400986ffb1b--process-672c6affed10-19277.jsonl": {
+      "bytes": 1904,
+      "sha256": "da04c94a84916e5f10def8be61dbef172d78cc839498b89bf724d80cfc5db6fa"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/df017a49e73f--process-672c6affed10-19278.jsonl": {
+      "bytes": 1904,
+      "sha256": "36ce7bad2fa666bcfdd4c4fab0b4bbaf735bc93bf5f027f588383658d507b4d1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e05c7e455a77--process-672c6affed10-19279.jsonl": {
+      "bytes": 1904,
+      "sha256": "a4ae313550c699b6d74ac25c5e58f7323618380640812aa6d9511ad161290462"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a8b4e03a6524--process-672c6affed10-19280.jsonl": {
+      "bytes": 1904,
+      "sha256": "dc81e3654716b30d7e07a89f995894b8a5e4a7c3e45c19bae1865d7a2c6f81c6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/65678d416c5c--process-672c6affed10-19281.jsonl": {
+      "bytes": 1904,
+      "sha256": "8deafb01d01595d9ddf4926aa9be4aaf512b7634c4ca66ab4e3bda73e06078fc"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f265eb637fb3--process-672c6affed10-19282.jsonl": {
+      "bytes": 1904,
+      "sha256": "6755a3114b144baef709873cdde33dffca5d9ba62695a6c29376949cd7acd7f9"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1b0232e34d43--process-672c6affed10-19283.jsonl": {
+      "bytes": 1904,
+      "sha256": "05ccc7af74bf53e225062719c59c9ece2c61882942fcc97abe8b07e371e89937"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/00c97debf969--process-672c6affed10-19284.jsonl": {
+      "bytes": 1904,
+      "sha256": "76112ba2a82e2691ac52bb129d81b2948d2d9253910d77690b6c799a47e70da7"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_06/result.json": {
+      "bytes": 2666,
+      "sha256": "469c371a898185e468f80e2df25743cff3b8ad8b1c30b82307c8e3727b12ee79"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/39b9b651486a--phases.json": {
+      "bytes": 35437,
+      "sha256": "b85353e624ccdf825d631dccb10803b654f5726c05a22672415a9b9bc6bb2456"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c278ee312d79--process-672c6affed10-22365.jsonl": {
+      "bytes": 2311,
+      "sha256": "7eb8a412e99aaa47d646e5d2b676b5a2bc920d27cb1b503315cc484c761cba7f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4d58aa108e36--process-672c6affed10-22366.jsonl": {
+      "bytes": 2311,
+      "sha256": "a3ad58ea339b41879849c01ee3f88d070fc7a0539c5647618ad31c0698a126b0"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c063fbc8b4bd--process-672c6affed10-22367.jsonl": {
+      "bytes": 2311,
+      "sha256": "ec071afef53baaff700f92e322579aec0fb25a86c0d77b5d33b1dc8d5293d487"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/940bfa1c62ab--process-672c6affed10-22368.jsonl": {
+      "bytes": 2311,
+      "sha256": "a3a98a9b571469890146ec7d20db29262818c2b96e2846653eb37e8ae372ce98"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/5b64663ca503--process-672c6affed10-22369.jsonl": {
+      "bytes": 2311,
+      "sha256": "aba7e7be2b709b9abf033ec0a653c4414895a5da0051566d42c56021d8aa89f1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4d96dd90e220--process-672c6affed10-22370.jsonl": {
+      "bytes": 2311,
+      "sha256": "bd75a054b71038cf52f3649769b3311d6849e953da188de8f274f2339ec7f83b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/062ed94d1085--process-672c6affed10-22371.jsonl": {
+      "bytes": 2311,
+      "sha256": "bcc83627cbdf78f8588e6998f78337ee023282eb8ced5d7bf856cd12bf65fa73"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f0f6c9b792b5--process-672c6affed10-22372.jsonl": {
+      "bytes": 2311,
+      "sha256": "32178f99efbe42232fafe5b959d065bdd6c2bd82eb79ed882f6c02ebbe08b889"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_06/result.json": {
+      "bytes": 2713,
+      "sha256": "9cfcdd2381f4c7768a22794cc282c80383caba3204f6c5aba0cbe512ac8215a2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2d0869b792d0--phases.json": {
+      "bytes": 31300,
+      "sha256": "d8d3cc0c82785b54e6f845898b1f9704c2b02b64e2b4763389863baf98986dd2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/821246015a96--process-672c6affed10-25749.jsonl": {
+      "bytes": 1904,
+      "sha256": "c1cab3af0d3922c30624614eba8a39d82d73530e202a610c082113f20780ac55"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/60b09896eccd--process-672c6affed10-25750.jsonl": {
+      "bytes": 1904,
+      "sha256": "ae4471be587de7826196cbe96fc582f7d185fdb6feaaa6a68903dc21bf64d48b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/69624fd839cb--process-672c6affed10-25751.jsonl": {
+      "bytes": 1904,
+      "sha256": "b4bc21ae32429a850cab644892446b7d40cfa055fa21dcc99369598fdf023c14"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c765e3651646--process-672c6affed10-25752.jsonl": {
+      "bytes": 1904,
+      "sha256": "ab74818014ea868e049ef3e3b4bd3ef0450b74c8545f2e681d091ef4002a1b43"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/29d6dd43d543--process-672c6affed10-25753.jsonl": {
+      "bytes": 1904,
+      "sha256": "f8d5ad9a2e613461e71e2c61cc4af24a52ddab82eaf2a7d9114faefa151ec90a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/624cbc39c291--process-672c6affed10-25754.jsonl": {
+      "bytes": 1904,
+      "sha256": "9cc858ab769420e17627334bbb1a5df94bde03d5d009c0ce25ab366a255380d3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d69d237628e1--process-672c6affed10-25755.jsonl": {
+      "bytes": 1904,
+      "sha256": "ac2478c813ec0ee6fa320d30b73c872ad0d52e7328d0ee3a08793d4089daa29f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f35ebba40849--process-672c6affed10-25756.jsonl": {
+      "bytes": 1904,
+      "sha256": "5eb2a437bc99b6d39b041b63edf5e29b58ff09417aec62bd0bbbd67d5efc27a7"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_06/result.json": {
+      "bytes": 2712,
+      "sha256": "a062ed63b35d6b6bac6c32cfb9cf5e92c112eec2116097ae9d0f46e81b4bce2e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/fb81177ed4ec--phases.json": {
+      "bytes": 31304,
+      "sha256": "54e655491dd9443ea98955f3bce4d46d65ac8ecbe8e97c542d54bc68c2c88a30"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c64ccc021bb3--process-672c6affed10-28805.jsonl": {
+      "bytes": 1904,
+      "sha256": "8db6b899466d511d94120d7c3ba18709d9d73b872e99f556770532d738d6d3c7"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2aa43b305ff0--process-672c6affed10-28806.jsonl": {
+      "bytes": 1904,
+      "sha256": "147cfb4f949021dfdbc20e19c25a8835c6b802023a6e575d4537e48e926d1dd8"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0faaebaf3ac6--process-672c6affed10-28807.jsonl": {
+      "bytes": 1904,
+      "sha256": "f520499ae86324e2bef1ee109f00199c7c304b44cecac47ce9a9a0d44a81cbdd"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d5abc7437190--process-672c6affed10-28808.jsonl": {
+      "bytes": 1904,
+      "sha256": "5720b4563b5fd7943a504066843b7231117d339d4f77a7772923173806c34609"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/97a20036313f--process-672c6affed10-28809.jsonl": {
+      "bytes": 1904,
+      "sha256": "1ad7a1aea7a1950a5d07606aecdca6a796969a7ab6daafbcdeb47dce88e24fde"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ca49c086501f--process-672c6affed10-28810.jsonl": {
+      "bytes": 1904,
+      "sha256": "99966fbf8ef204790fb2a047f5d6d511ca3781dab8efabb7283bea4700097e88"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/78df31dd5196--process-672c6affed10-28811.jsonl": {
+      "bytes": 1904,
+      "sha256": "166b3181683a8c4f22edb685212ee8890845b5038981f1ce10999362d7007035"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7da28bae83af--process-672c6affed10-28812.jsonl": {
+      "bytes": 1904,
+      "sha256": "a7b0ccda651a50175916bcc709581400e8cbcbba81f91e6171f4d199d91545fb"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_06/result.json": {
+      "bytes": 2683,
+      "sha256": "33f6be264cf2ca9f98a3f2d000bfbbb922834daed4b2247904666d9b41efcc68"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/aff33e97e38f--phases.json": {
+      "bytes": 35476,
+      "sha256": "4ac25f616de39aec25c785ab25040a973fdff92d16bee94b1353b8546be25d74"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/889796d39409--process-672c6affed10-31853.jsonl": {
+      "bytes": 2311,
+      "sha256": "5a2b358612d42678bfd5496a2f81d0d8cdc12dc32b5f450821cd334d8cd7b305"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/aab47213d473--process-672c6affed10-31854.jsonl": {
+      "bytes": 2311,
+      "sha256": "a1fd40d6c51ad317a7c184c6e5e5c7f9ff91abff4d7eb8d1ff7a927be5c341d9"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2f4c58be3e3c--process-672c6affed10-31855.jsonl": {
+      "bytes": 2311,
+      "sha256": "24f9dea46a34546fc5dbeada5f3b94d5c5940595a4b8dc9da303dd96a70fe06c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ab8fc6a46a4c--process-672c6affed10-31856.jsonl": {
+      "bytes": 2311,
+      "sha256": "719488cd17db1f52ba589d64006dbc0cbb34d87c6bf5b85c54311b1ccde8807f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7ce3ee9242b7--process-672c6affed10-31857.jsonl": {
+      "bytes": 2311,
+      "sha256": "a057df63407f0895c906f955c4f184342270cb0efc2fb9f613330e237192e3c1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f7f57f3e432d--process-672c6affed10-31858.jsonl": {
+      "bytes": 2311,
+      "sha256": "e6dbffb956cb4b7ab1074aa76a1ae722cad1c8aac4f320eb18c83ed82a754f9d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4a793483f2dd--process-672c6affed10-31859.jsonl": {
+      "bytes": 2311,
+      "sha256": "5c9dee96f8f6b33174fdd9235ed994535f538106c749e8d06aabb590b01fca2d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8fef6bc01aae--process-672c6affed10-31860.jsonl": {
+      "bytes": 2311,
+      "sha256": "d334ab31331132734487017ffab9ea1eb288016b1cd3052a8ff1ba557fce1238"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_07/result.json": {
+      "bytes": 2663,
+      "sha256": "24bbad0133ef851cd75dd0c281eda4768a03995b040f62f9803703f983339838"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/16867fdf9133--phases.json": {
+      "bytes": 35435,
+      "sha256": "4ece0c55ae3974479c4231d24b312ef7e98a67dde893620d138b6e32a57c97d6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c3934189b314--process-672c6affed10-35291.jsonl": {
+      "bytes": 2311,
+      "sha256": "b87b52159ea887ef9f0ccaf11ae88194d2f8d9b71e5042adc19dc1d96551ce49"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/336cd66e6663--process-672c6affed10-35292.jsonl": {
+      "bytes": 2311,
+      "sha256": "b582ddeea9fc285c6cf191f784fca4842ecd9b26b329b2994858dec39ccc0cf6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/49a0489a7d9e--process-672c6affed10-35293.jsonl": {
+      "bytes": 2311,
+      "sha256": "25ce773a4cd07e99a7035e880cff5f27c683ddd3df4082b878debb0260ef21f2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c53b6a86551b--process-672c6affed10-35294.jsonl": {
+      "bytes": 2311,
+      "sha256": "3295a6043530cb19025b1151b741db5e14d49fc7cc79be7d6f72e57a1879a34c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1b105a8f3cc7--process-672c6affed10-35295.jsonl": {
+      "bytes": 2311,
+      "sha256": "287d6bb76c4370d50b1d8fb05ecaad642b6b62054f135e0d05e74bb0eccc279b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0ef9d1c4b515--process-672c6affed10-35296.jsonl": {
+      "bytes": 2311,
+      "sha256": "ef36295b4c22197d30799a8970f5378e36d892f5d6983450d6312e5bbb0459bd"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/05c8a690f71f--process-672c6affed10-35297.jsonl": {
+      "bytes": 2311,
+      "sha256": "e43791b4df32fc615e8b449a1a2bb1a813b68f68096149f7edf22a072d2ff156"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/01a8a8b0051f--process-672c6affed10-35298.jsonl": {
+      "bytes": 2311,
+      "sha256": "fa6702216fe7935b6016a76856948d6c54ece180e1825d0ac0f3a9cd1d8b7515"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_07/result.json": {
+      "bytes": 2684,
+      "sha256": "86818cbead1ecbbbed19009471ca89ebb955d2093391ba220049b5c680713a1c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2a55ce56bedd--phases.json": {
+      "bytes": 35477,
+      "sha256": "a87d685204d27d549304a56b41ba9cbbd1f0a7474b478212fac496de90b5d248"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/44b7d1b15eb1--process-672c6affed10-38657.jsonl": {
+      "bytes": 2311,
+      "sha256": "4591d1116518d72bae8a030155904a6914497ce3b4fa8b83ff60f36f2fd8f317"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7743c429f8ce--process-672c6affed10-38658.jsonl": {
+      "bytes": 2311,
+      "sha256": "da8c50b33b53809512ceec3ec158c569cca19e23e9f465e2a1b98afe1f870db2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e413413fd268--process-672c6affed10-38659.jsonl": {
+      "bytes": 2311,
+      "sha256": "c39472cd22cf430231cf2dfdb11902347101daec85773cfe4b5309364fc72da1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3d168df3e513--process-672c6affed10-38660.jsonl": {
+      "bytes": 2311,
+      "sha256": "3d5fa92d76db386eb08feec28e079568609ec0d83c98ea485375be1c3ddbd451"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/bb2db287bff0--process-672c6affed10-38661.jsonl": {
+      "bytes": 2311,
+      "sha256": "78c845979dca4915e2c045671a92bfc930f67a9f83f075cbc4e7917992ef9d29"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ee9267201546--process-672c6affed10-38662.jsonl": {
+      "bytes": 2311,
+      "sha256": "34dcaab1007206a6b27b8de906241a99078ed5fd5d119293e3156bf40c86b949"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4824770a478a--process-672c6affed10-38663.jsonl": {
+      "bytes": 2311,
+      "sha256": "a0689bbcfc1be8dbd5f10c410aed4db681f719a980313ecb38f96b9fecde0bac"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/dbec30d3d719--process-672c6affed10-38664.jsonl": {
+      "bytes": 2311,
+      "sha256": "656f444c34f94ce851aa8e36a1c619807bac61f04a5ffc631d213a27cf2d441e"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_07/result.json": {
+      "bytes": 2717,
+      "sha256": "0b23ef18a87307c54834acf0907e7a370998b386eb3d24d0abc78817f0186b49"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/bb6a3fe42d28--phases.json": {
+      "bytes": 31302,
+      "sha256": "d3de194791e726d26bb996b58be7aa3e03def2f020df2f87859a3c8a52c8cb21"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f10e094661e2--process-672c6affed10-42073.jsonl": {
+      "bytes": 1904,
+      "sha256": "dafa9ea9ebd06d0956448657b3d34317b35b29f5d6f81699783927191b66cbe7"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/499f640e9f09--process-672c6affed10-42074.jsonl": {
+      "bytes": 1904,
+      "sha256": "f6a2b1602b7312752a7f87ed30f9ceaccbb48eef7d9b1b21ca02e9a6128d73e9"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1a4c44f4502f--process-672c6affed10-42075.jsonl": {
+      "bytes": 1904,
+      "sha256": "f1d3f57ca35c5ea556855c311e192208f225df72d721b13d781c5468eafbea37"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c1862752b82d--process-672c6affed10-42076.jsonl": {
+      "bytes": 1904,
+      "sha256": "b73ae536405d52dbcfd55cf15c61167ca744d7609971467443c09ebc16daab59"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/bc256f57bc01--process-672c6affed10-42077.jsonl": {
+      "bytes": 1904,
+      "sha256": "243da2d81846001f6d543a817fec1c2169ffcf901bf6e849929c1d423015b911"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d75679290a1e--process-672c6affed10-42078.jsonl": {
+      "bytes": 1904,
+      "sha256": "a90e3b50de37585927f7d98ca0d81a621df0098e54790e4cd38c52f683d67290"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/991169266afb--process-672c6affed10-42079.jsonl": {
+      "bytes": 1904,
+      "sha256": "f7128ce658b392c2c5704f45538bf67f233a8cbe8e86e341aada6eea1bb1417e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/349a509f5824--process-672c6affed10-42080.jsonl": {
+      "bytes": 1904,
+      "sha256": "41cc8a25854aa76b778c2fa7fd83ffe1c882a3ded2fe6a05e29db411fc5e3a7c"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_07/result.json": {
+      "bytes": 2715,
+      "sha256": "4ba5e24155452a9517ef25d7a2856edc1bcc8fc476dd3f909c89ff930fd63591"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ac60fbf3b9a6--phases.json": {
+      "bytes": 31299,
+      "sha256": "a240abcabe85a5b2fbcddc02ec1e6656a082d3dbff4e006af0b76399fdba22cc"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7a9e250bd18f--process-672c6affed10-45189.jsonl": {
+      "bytes": 1904,
+      "sha256": "ee2b7db31fa4e324f93b95bc60e9f3b0b6ec7267725aec65d67ac8ccea18b2b8"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ffbc4c68b246--process-672c6affed10-45190.jsonl": {
+      "bytes": 1904,
+      "sha256": "ef0562fe507c0fe0bea4d2fe3b4bff0670b115ab8a24b3d6d0cbb03f3990451d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/130316b4a7b4--process-672c6affed10-45191.jsonl": {
+      "bytes": 1904,
+      "sha256": "ddc1081e69b1189e6de86a605d33584b0eba85ea9cd6b594da5fa39545588d63"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1bb1923b2159--process-672c6affed10-45192.jsonl": {
+      "bytes": 1904,
+      "sha256": "8073995af4ef784ef08ec573c580a2e80e58ce85e4d21d7d6ca66496442ea893"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3ba8cbf56cae--process-672c6affed10-45193.jsonl": {
+      "bytes": 1904,
+      "sha256": "d163058991d108ba5f6784b5addf0132c94c351134992c963b284b4158319e9f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b7bba5217a13--process-672c6affed10-45194.jsonl": {
+      "bytes": 1904,
+      "sha256": "5270aecb63ccbb94ef8db15e028c7dc769dbb528a48dfbb0810d6a8d731a9fb3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/fc67113dbcf3--process-672c6affed10-45195.jsonl": {
+      "bytes": 1904,
+      "sha256": "7eca6755014850dfb4c81f9c3b2739ca0e6ae27a1ce33b5fbfc953f9eddc0096"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/22a3b54b22be--process-672c6affed10-45196.jsonl": {
+      "bytes": 1904,
+      "sha256": "16402b914d77ef7e4e29869a503f518a414b91791131c2775e98777163061dad"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_08/result.json": {
+      "bytes": 2664,
+      "sha256": "9371a1cbc165a390e9e64ce41dae91b0d5eb383e9e1563eb140063f8f6a6d24a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/87dd554d4ad2--phases.json": {
+      "bytes": 35435,
+      "sha256": "16b42c54265870b23428b89ec495b9683ee5eed4a5db4e163ba39d139afee00c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a76093115034--process-672c6affed10-48335.jsonl": {
+      "bytes": 2311,
+      "sha256": "5f654b3efeb94ce82e0338f48c14096fd411c69f930e40b3d6ed13fb7c2c0f32"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/5455bb97427d--process-672c6affed10-48336.jsonl": {
+      "bytes": 2311,
+      "sha256": "fd83e1e87ba2d036c28e3db88dd21086cdf4cae6e0325bed8340b76732b0fd7a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/af810ee9dad5--process-672c6affed10-48337.jsonl": {
+      "bytes": 2311,
+      "sha256": "a8dae6a73fac0acaee1198a2d788c0820b13665d9dcb7e4a9e77d978e5d4948a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/fdccce0f0b2d--process-672c6affed10-48338.jsonl": {
+      "bytes": 2311,
+      "sha256": "b00ab7aa5e118080df375d4e59a4603232702b2a4f417f02249777f1ac017396"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a4edf2115e0d--process-672c6affed10-48339.jsonl": {
+      "bytes": 2311,
+      "sha256": "ad98c9fcc57f4d83c473907b8a16d98daec8712254276fdb09ca86b49fff90b3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4ecf86f8927d--process-672c6affed10-48340.jsonl": {
+      "bytes": 2311,
+      "sha256": "697c7d8d3af204943e7386dc3e9be81312a2e528d0f06610d0b4c6d4b91e8dfa"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/87292c6f72c4--process-672c6affed10-48341.jsonl": {
+      "bytes": 2311,
+      "sha256": "0889bb7918a2ffcb7e5e18ea1f3352c029fbb597da87139b4006269e6f45dd16"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e8f8aea0d7b9--process-672c6affed10-48342.jsonl": {
+      "bytes": 2311,
+      "sha256": "8bf665b406f1320c6721f6d7e281c9864f0d3950ebe64f67ac669029fbeff938"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_08/result.json": {
+      "bytes": 2711,
+      "sha256": "149abfe3a6efce7443a41481e8a177349f6dc48a99b615d5f6be6fac077f1c94"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/93705d63529b--phases.json": {
+      "bytes": 31287,
+      "sha256": "5f1bf890f1f162415be39ac1500e32aa733603ffda87bd3e0c2da3bb331652fe"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/91bade2d849d--process-672c6affed10-51785.jsonl": {
+      "bytes": 1904,
+      "sha256": "75e892afc831440bc06e902b540807bf675d22416c86aae603ef628749603156"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7f9a674467e1--process-672c6affed10-51786.jsonl": {
+      "bytes": 1904,
+      "sha256": "585d3a002be8c4b97c784a5f74b8aaf8e99f758623c23fdcc7c5b4d3d67746a3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b51eb9302f70--process-672c6affed10-51787.jsonl": {
+      "bytes": 1904,
+      "sha256": "f0c16b52bd7ebc63b1aa4fe08ecbac11c5575dfe51a50bf04b20f1d0e7b46f2f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/4c50061d9c97--process-672c6affed10-51788.jsonl": {
+      "bytes": 1904,
+      "sha256": "256476fead719735ee8c7816190dab7be727969e6ce4848e32f857d336521a33"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/708d32d4c18d--process-672c6affed10-51789.jsonl": {
+      "bytes": 1904,
+      "sha256": "a8105246e40a0edc1e5b04d1583968150ce2e8d120f01d3b40752504c940b0c9"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/352f21334546--process-672c6affed10-51790.jsonl": {
+      "bytes": 1904,
+      "sha256": "72bc201b32025894a6cb4286d107abcac11e5bdc4a049e9c1a3d8f662441a64a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/20ca89240c96--process-672c6affed10-51791.jsonl": {
+      "bytes": 1904,
+      "sha256": "b8e39ada7d44bc26a892a76a89d7f6b1813179087ea8cd17f134d42cd12398e8"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/617b1daed2ff--process-672c6affed10-51792.jsonl": {
+      "bytes": 1904,
+      "sha256": "43a8a9def03c121b620f7746f4aa2825ec353a177e3c1e34713c107f7741c0d7"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_08/result.json": {
+      "bytes": 2682,
+      "sha256": "d837831470023f9f898310841a96fb41765f8eeb400e13377d163f970430afef"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f9c7ba384723--phases.json": {
+      "bytes": 35482,
+      "sha256": "0a961acc80a4cf1c8a3ecba4e778e365369759849186fdb9040c379273fc68f4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/aed539a2bbcf--process-672c6affed10-54891.jsonl": {
+      "bytes": 2311,
+      "sha256": "5dda140760edd45cc7ce80a7c51bc8d4dee49278c240868a07c2d54f12ff944e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/007d8b069847--process-672c6affed10-54892.jsonl": {
+      "bytes": 2311,
+      "sha256": "c8fbfd28b1789580527d43f092b8507db3e7d58265c7a075691e8b3d550e27e2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/729aad1c9f8c--process-672c6affed10-54893.jsonl": {
+      "bytes": 2311,
+      "sha256": "38a392c042415a9a3cce440cb180422a21dc32bfa3b781b09c27b2cf07dea9f2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/de2e2067abc1--process-672c6affed10-54894.jsonl": {
+      "bytes": 2311,
+      "sha256": "61e770062608f12e051555e188b6efb04600ccd5b442c39ff896c3e37e4f9de4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ca4d46d25e28--process-672c6affed10-54895.jsonl": {
+      "bytes": 2311,
+      "sha256": "e594058397ad2db7d18ef02f1f5a602957e6db3c71992b9034df12cffc4ab0fd"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d34572d2fd01--process-672c6affed10-54896.jsonl": {
+      "bytes": 2311,
+      "sha256": "abc69b665bcfeef5ce80293933a6701c547e065e896d4a9030fdba7d2323d9b3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c1907fc7f10d--process-672c6affed10-54897.jsonl": {
+      "bytes": 2311,
+      "sha256": "d74b354865e639054290bee566838bf2d3656b2d0b6ce311371cd9b97ecfb384"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/22a70c5b7273--process-672c6affed10-54898.jsonl": {
+      "bytes": 2311,
+      "sha256": "e1642b6cac64db2a7e138bde28cea9ece2cd0a84d9818c2e9373b19e0d8fc0aa"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_08/result.json": {
+      "bytes": 2715,
+      "sha256": "4a209169f11cd6c951726a3ee22d88dc35cd9bf4af63f90be792fffbe7e99c4a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/20b7ce701ad2--phases.json": {
+      "bytes": 31303,
+      "sha256": "680916055ce1fe223809c38a00592e257b2de7334b987c16766287e5b6cd4b98"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/dacb4cf50df8--process-672c6affed10-58365.jsonl": {
+      "bytes": 1904,
+      "sha256": "0f06c3e6412b52bcb4f5d336fe3f0282fe06d22e0601469b3730ad9bfff4da51"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/fed170e28641--process-672c6affed10-58366.jsonl": {
+      "bytes": 1904,
+      "sha256": "791147fc25293f88866a01ec97a9476ae3c42af1aa91ff30aae4be7326a51dbc"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d6e56b06db8f--process-672c6affed10-58367.jsonl": {
+      "bytes": 1904,
+      "sha256": "2c1914f93d0e3a48aa3e33e407d745e7a6835cf3e15f9775352bab0d87e35918"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b810a1c56ecf--process-672c6affed10-58368.jsonl": {
+      "bytes": 1904,
+      "sha256": "e2d1f9d9d8a30eaab8032fef3c0ef4898b2880761dd89b365bd5a447e78d582e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/771e0122c11e--process-672c6affed10-58369.jsonl": {
+      "bytes": 1904,
+      "sha256": "6d7dc455ff390bd8fc719d4819d1db7b67270b3302f16dad43f98280e2c178d5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7868bd29747f--process-672c6affed10-58370.jsonl": {
+      "bytes": 1904,
+      "sha256": "798aae2fe44ced9c6938bd3b079857f20642aeb49c7283a4425c7d249592ad6f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/23468e9f3750--process-672c6affed10-58371.jsonl": {
+      "bytes": 1904,
+      "sha256": "aecd852376354155f6104bec0d154c1aa7aa9ed7b056d0d6ee6721c90334c65c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8c25610866e5--process-672c6affed10-58372.jsonl": {
+      "bytes": 1904,
+      "sha256": "25c2605ca16d777041265feef2f2d3692e5f0aaefbb99498ab1a1d6c98cd970a"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_09/result.json": {
+      "bytes": 2684,
+      "sha256": "8ca3ac2129c9b689f54a8b70af7673818ade1579ee41af16f5c3dca4ed872794"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/89109128d949--phases.json": {
+      "bytes": 35484,
+      "sha256": "b29c77322ed6eb136cf5bc2f10a7f6c9cddba4abb0655752a92c1a8983177c2d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/625916f4189a--process-672c6affed10-61471.jsonl": {
+      "bytes": 2311,
+      "sha256": "8dcb12613f05844f5d5b3dfd1ed6adbf251ee5ed11473e8af14c2589d3f49fc8"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/70636a25a37d--process-672c6affed10-61472.jsonl": {
+      "bytes": 2311,
+      "sha256": "d41415198cb404412e754b43894d5cde1403f463b2014b98ba4033aafc7834da"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3aca8efde3b9--process-672c6affed10-61473.jsonl": {
+      "bytes": 2311,
+      "sha256": "a829983478e27c47d0cfdf5ad8e7c09f3a595aad59fd96f78ffba829c2137600"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2342e351b487--process-672c6affed10-61474.jsonl": {
+      "bytes": 2311,
+      "sha256": "500e554c8a8d8527c093b3a78e0c671e9792c14814fc2e145d978c8d2b70a9d6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3908e0430e55--process-672c6affed10-61475.jsonl": {
+      "bytes": 2311,
+      "sha256": "496f0334a4fdf2771335057c1ce0449dfeb4b0f6efd2a931ee7af21faf39ea91"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e1739969542a--process-672c6affed10-61476.jsonl": {
+      "bytes": 2311,
+      "sha256": "bb4877df430491bd8bc0d29b25b73b619eabc7047b0deb9e43f7250f52c53261"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f3ec5f9aa521--process-672c6affed10-61477.jsonl": {
+      "bytes": 2311,
+      "sha256": "02df2c501effb99f40f6b4b9df48bcf2c4250b3afe4bdc87428cd1a089672845"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/6f833ff75764--process-672c6affed10-61478.jsonl": {
+      "bytes": 2311,
+      "sha256": "9e31cb84fcc092ef939864d2eb388d7a548a55cda902930e32aaadc7bbaf3788"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_09/result.json": {
+      "bytes": 2714,
+      "sha256": "2d6cc242e2502efd701d79bc6d484a09d271f11d90897cecfbe01421ff5ccb72"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/35146b55c3a4--phases.json": {
+      "bytes": 31296,
+      "sha256": "1b5b6c9b23c8949479ae2ca282c2b84b5b7016d042586e7fc51001f6e0541d6a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/365c696f5607--process-672c6affed10-64953.jsonl": {
+      "bytes": 1904,
+      "sha256": "d89db7a039a98119e4ed20829133dd9c0a979a0226f4ae2d79792675dd3c00dd"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/084d20c619e4--process-672c6affed10-64954.jsonl": {
+      "bytes": 1904,
+      "sha256": "49ab147fba4af8730434d12eefd2e75fcdab213bd6084be3725940ef7811ac19"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/654fcefae9f8--process-672c6affed10-64955.jsonl": {
+      "bytes": 1904,
+      "sha256": "b0448c8859c97c0c33d819eb6c4904e79214f345ea95cb16bf07ef748b804cbe"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1546b91c3a18--process-672c6affed10-64956.jsonl": {
+      "bytes": 1904,
+      "sha256": "ee594679ce81ebe5068c79ebd736c18b23f559c4b2b5a725e1180126914077a0"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/920127dbaf88--process-672c6affed10-64957.jsonl": {
+      "bytes": 1904,
+      "sha256": "0cf32b8d7059aa9a65da261dd14a0fde014673b9411d03e9e12ba14bed941d46"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c4eae8a89eb7--process-672c6affed10-64958.jsonl": {
+      "bytes": 1904,
+      "sha256": "0b6e42743a9309d922158996d125a2ae3608a252e487dac8c7a2a70f6797570f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/745e711cec36--process-672c6affed10-64959.jsonl": {
+      "bytes": 1904,
+      "sha256": "038024654543ec1bcb158881f2f3f8e2468727ed02edab36b857ff788f507d2f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/69bee924dac7--process-672c6affed10-64960.jsonl": {
+      "bytes": 1904,
+      "sha256": "4b94f6f3ced6a2a0d6ed7c7470644d41a70d6ab4887fe16cc391f6ced710c88c"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_09/result.json": {
+      "bytes": 2661,
+      "sha256": "ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/06db86b84387--phases.json": {
+      "bytes": 35436,
+      "sha256": "d96ddb5eb78e8f707d71492aee0d3decd53ea0d7ed3d0aba5238468d9a61d0ac"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/9b7fbf3ca832--process-672c6affed10-68099.jsonl": {
+      "bytes": 2311,
+      "sha256": "41727e0c6280b1d4adcfaf47ffcda2cb1d656db98a805224b680171846e11dc1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/20d277a50c15--process-672c6affed10-68100.jsonl": {
+      "bytes": 2311,
+      "sha256": "c09d4fd949c07e7ec9f02a5f1389881f540397945c6740b41c4d6376cf39fac4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/9c7856c8b7c3--process-672c6affed10-68101.jsonl": {
+      "bytes": 2311,
+      "sha256": "4d3170adbdb9d8fb847e9f4936b428caf1c1f69a88a452eaf4be6ef91f8b478a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1f3761982677--process-672c6affed10-68102.jsonl": {
+      "bytes": 2311,
+      "sha256": "ef13431e05ebf6a3d22dd91f8a5cf863dae3e5fc8334bef4faf1dd9d7a7e340a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7c286cac17ec--process-672c6affed10-68103.jsonl": {
+      "bytes": 2311,
+      "sha256": "2e36752455d40688059d612013d4fe03ce4033d38cab53665b8f4e47dcbfd3e9"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/aafe228f3e18--process-672c6affed10-68104.jsonl": {
+      "bytes": 2311,
+      "sha256": "2b92c881141c76800bd098da49af0d1772c0e6972679fe523c79a8050ebfbc29"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/32e157bfcd50--process-672c6affed10-68105.jsonl": {
+      "bytes": 2311,
+      "sha256": "d1ad3c537696e494656f5310a608cf2bfc5d218e03035e324cba4daf9e210824"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ea6ee5066e83--process-672c6affed10-68106.jsonl": {
+      "bytes": 2311,
+      "sha256": "534602c148ee696db93d47b07ebcd622a534d01333342e1bb7155c645b47f0ee"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_09/result.json": {
+      "bytes": 2719,
+      "sha256": "e2ac9d9d606d24926d365e9c0f3594925293463d7718f7d026f7c2ff7e16b4ec"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3762e58e4b21--phases.json": {
+      "bytes": 31307,
+      "sha256": "85c421e16c9b1025fbe91d33d218352ef66f247887049bd070a580f2f4c88ffe"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/7eca93b68674--process-672c6affed10-71523.jsonl": {
+      "bytes": 1904,
+      "sha256": "a5dadd5e5bf69b4ebf5506c2e707a8879116f2e588a766bed5e870350ff355e5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/32518c750e0d--process-672c6affed10-71524.jsonl": {
+      "bytes": 1904,
+      "sha256": "790d778b5c9a14a13751dee295f3c003a6a7b4aa788913c47fbd30fbfb2e22cd"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c21f3fe3b5bc--process-672c6affed10-71525.jsonl": {
+      "bytes": 1904,
+      "sha256": "388aed5361bb665d6ba702e7a6c348621ed2cb6336ade5cc5fc4613d886d325d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/166cd49a64ec--process-672c6affed10-71526.jsonl": {
+      "bytes": 1904,
+      "sha256": "ddb7b18b3e3e4cbe6768c98eaad44d6e57411127c09b4d3615b7712479a15cd2"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c4bdfc13af21--process-672c6affed10-71527.jsonl": {
+      "bytes": 1904,
+      "sha256": "30b8b42f7a0c09c40ab05c76a0086a134eb4190d8c1b0dacc56e8601f337cddf"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3a4675a18486--process-672c6affed10-71528.jsonl": {
+      "bytes": 1904,
+      "sha256": "42e7158ae678c82b14a3173e291db9740d5d1e2eae2610dc1b12e744495db3cc"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b4dc0d338aaa--process-672c6affed10-71529.jsonl": {
+      "bytes": 1904,
+      "sha256": "95f1182327d883b5edda5c1961b724fdafec044f141f0a97bb0263eabfbb75f1"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a51792bb14d3--process-672c6affed10-71530.jsonl": {
+      "bytes": 1904,
+      "sha256": "f2f5baa33fece29edfcb0ff97ecf0ca033aca1274e87567b5c167a0e48876deb"
+    },
+    "results/reanalysis-20261106/inputs/store_disk_cold_10/result.json": {
+      "bytes": 2683,
+      "sha256": "88535060aa901af2d2412b648db282fdf1cf4bf9f03cd9c154ee05d5d9188a90"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a35013c8a62c--phases.json": {
+      "bytes": 35484,
+      "sha256": "4b66b545924b97baf6d85fa969083afc94c3bebbeb4a9141573196d6dcc623a5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/50287acce0fe--process-672c6affed10-74629.jsonl": {
+      "bytes": 2311,
+      "sha256": "b121b307da7976b0481236ed16d3ee63cc923d55e1779ff448602dedefac2b1b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/43f85118d8d1--process-672c6affed10-74630.jsonl": {
+      "bytes": 2311,
+      "sha256": "69653d7836968837bf0a4ecbbc64f94fec5a7bad679f5c164b48a1bbc17203a7"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/1d8a7c41e36e--process-672c6affed10-74631.jsonl": {
+      "bytes": 2311,
+      "sha256": "94b6f01f2f61cf8000189579566763399206dd9aa06e433d6b3dd2536b4b4f60"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8a2add94910d--process-672c6affed10-74632.jsonl": {
+      "bytes": 2311,
+      "sha256": "a2a2f1f130c3624789616c274324ad24675379a6a58ac2523efb241bdfdb7644"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/5956de9f8c59--process-672c6affed10-74633.jsonl": {
+      "bytes": 2311,
+      "sha256": "c526f839c40feb0d2c40188ad4b8f2b9c455da348a8d17b0e1c81230af262dca"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f204310e9846--process-672c6affed10-74634.jsonl": {
+      "bytes": 2311,
+      "sha256": "3b88d977c8d3ce27f6416f4a02e45661d75313ca44bad4dd1537cfd977264f03"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0ade7205716f--process-672c6affed10-74635.jsonl": {
+      "bytes": 2311,
+      "sha256": "c7f92943eb7118b059947bad952323e876db209585d583fb93423bba55ff6a1d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/0b44d218a0cf--process-672c6affed10-74636.jsonl": {
+      "bytes": 2311,
+      "sha256": "59a98e8bd6e467def8435179ea56a456789a5c608fe7adcf948bdee7b4a98eb5"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_cold_10/result.json": {
+      "bytes": 2719,
+      "sha256": "f19596e7533121a7351e303c59474cd263743d03d394daf4ea7d5ae94b609f7f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/d098011b5017--phases.json": {
+      "bytes": 31307,
+      "sha256": "60165dc24ebaf25225bba161dffe12caf2b9bb84cd72de02d827ac71d9d51f9c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/129f4cec908f--process-672c6affed10-78103.jsonl": {
+      "bytes": 1904,
+      "sha256": "fd9d9b475fee0b7081fc189f2e04487b9cfc9a5958354b7ac0042cd890cf802e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/09ca02ae5d55--process-672c6affed10-78104.jsonl": {
+      "bytes": 1904,
+      "sha256": "42b657807332bcb8a5cd554ba7247eec2653f18b0286770acfdf18bc69c8ac91"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ef7e4e7e2f89--process-672c6affed10-78105.jsonl": {
+      "bytes": 1904,
+      "sha256": "e549d7f2c6a34cff0d809dcfdddab35c229c1983c57992eaaf201b252840e1b5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/ed79839b1cbc--process-672c6affed10-78106.jsonl": {
+      "bytes": 1904,
+      "sha256": "0bcfa975c4b7ca95c0bf1bae4db28abbc425eae8b8c24b831995d9a7e6b97ff4"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/946a7d0109ae--process-672c6affed10-78107.jsonl": {
+      "bytes": 1904,
+      "sha256": "4d5bcf975426ba7fbb339c1481b825cd62e6685113b696694b9eca6823bb574d"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e4f5133d25b1--process-672c6affed10-78108.jsonl": {
+      "bytes": 1904,
+      "sha256": "70a1fd65a509507ba8a5a7f03fec7fba16c94856665f1b739a64e30eb4bca802"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/c479401a4851--process-672c6affed10-78109.jsonl": {
+      "bytes": 1904,
+      "sha256": "e68d241ce065320f41b2986c43446de25cff7bc8af3366b81c83b833e69d954e"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/920bd8d921bf--process-672c6affed10-78110.jsonl": {
+      "bytes": 1904,
+      "sha256": "a191b02d39dacf716228b4bcfadfe4dfa42b040015bea2b4c91780616bcb12b8"
+    },
+    "results/reanalysis-20261106/inputs/store_pool_hit_10/result.json": {
+      "bytes": 2662,
+      "sha256": "84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/98a0ab99f579--phases.json": {
+      "bytes": 35436,
+      "sha256": "6bb4f268b05e7812f1ce1f95b4e05fa215bc867b3877474a637061351d28a702"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e8e2572bcb3a--process-672c6affed10-81249.jsonl": {
+      "bytes": 2311,
+      "sha256": "fc702bea85c0eaec61806f38d3d978fadf08edc62f6077efd7991c58e29b79d5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a744b7670d34--process-672c6affed10-81250.jsonl": {
+      "bytes": 2311,
+      "sha256": "2f027e666353ebd61d6ef2d3570fe38194e3e225cffcf102fecd884f7067241f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/5adb991e6eec--process-672c6affed10-81251.jsonl": {
+      "bytes": 2311,
+      "sha256": "63bc5292fdd03722a396eea1b1af9313b217aa008083c2a30fca9d16dc05c4a7"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/9632f8f99791--process-672c6affed10-81252.jsonl": {
+      "bytes": 2311,
+      "sha256": "89a2c5fdb7f037ea753626cd8d6485a6eef451e52aaf53385990fcdf92e5491b"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/a1924a7d6a3f--process-672c6affed10-81253.jsonl": {
+      "bytes": 2311,
+      "sha256": "48fd161b419dbef8b7a96ae49ed43822292645a1cf5195609022d809ccbf395c"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b969f222b485--process-672c6affed10-81254.jsonl": {
+      "bytes": 2311,
+      "sha256": "9795e4e7158a32d6fcf70478dfddec3ff88082ab7533bda74d98bfe139695e83"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/18df1b9238d6--process-672c6affed10-81255.jsonl": {
+      "bytes": 2311,
+      "sha256": "fb62c5562afbd216d4d981394bc62eab40c5b76e133592ea2f234f1060acc4c5"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/855fb2d2d982--process-672c6affed10-81256.jsonl": {
+      "bytes": 2311,
+      "sha256": "d237a9244fc09acd4122514bbfffed1646e06bc50296bf4e382e14ff1384c47b"
+    },
+    "results/reanalysis-20261106/inputs/safetensors_disk_hot_10/result.json": {
+      "bytes": 2714,
+      "sha256": "945117c43cb380459978880f2c3b955802cf14f2ed867058444675c193cabe7a"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/75be3da8da05--phases.json": {
+      "bytes": 31302,
+      "sha256": "2064a48be7c62314b4a02ba8fad2292c12387e7c05af28b5827da60aa69e4b75"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/e1061f8f4c86--process-672c6affed10-84699.jsonl": {
+      "bytes": 1904,
+      "sha256": "88bd8d219f47b094bda2a651a97b8c97f422781bbc1716a97b54f16c6ec29c7f"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/6e360b766c15--process-672c6affed10-84700.jsonl": {
+      "bytes": 1904,
+      "sha256": "14ea625a811fb58222fec9317c233555293c57245bc02ab156c3ccb15a143e74"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/3dbd9c439c65--process-672c6affed10-84701.jsonl": {
+      "bytes": 1904,
+      "sha256": "eede1acec0b022f355517418d34e24dba3fa65527b789e8c5587581d721f6d19"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/8efff26e65a8--process-672c6affed10-84702.jsonl": {
+      "bytes": 1904,
+      "sha256": "b561c01c8762805ab1ed8f3313ea9b3af7e24f3250b44fa601c8e40db379ad12"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/6858df59c693--process-672c6affed10-84703.jsonl": {
+      "bytes": 1904,
+      "sha256": "3c9f0672be318e50f4f4332c65196c8ed84aadc7eeee2a63abe8dfe681d06590"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/b6b51d880803--process-672c6affed10-84704.jsonl": {
+      "bytes": 1904,
+      "sha256": "a2ab9461b67ed2ba35dbaced582312e46bf395758344138feb1864ffa90af2a6"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/f5aa5ecff921--process-672c6affed10-84705.jsonl": {
+      "bytes": 1904,
+      "sha256": "8cd7e487f57426bce47702990f0134aeaa29b79b2e946f4c4d26a5519aa21ed3"
+    },
+    "reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-exact/2d2c3f1f32ec--process-672c6affed10-84706.jsonl": {
+      "bytes": 1904,
+      "sha256": "5e5231667ce01696b3488c90f7daa17ca647ea742de83bae4d0ad5f2f1f6228f"
+    }
+  },
+  "attempts": [
+    {
+      "attempt_id": "store_disk_cold_05",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 123.392155445,
+      "max_rank_host_duration_s": 123.320684423,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "0e54771e24ca738d5ab308e5a15df0ffcf670dbba6ddb5d985de06a83105968b",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_05/phases.json",
+      "phases_sha256": "538dc5a60352d33a4222b0de46a0f849bcb022fd43fdd6e11c629f24d1df5448"
+    },
+    {
+      "attempt_id": "store_pool_hit_05",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 7.766270969,
+      "max_rank_host_duration_s": 7.730988312,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "2d8e2686b5c496fa2816306b0c2058e4270eb575a0718a868369c65870051905",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_05/phases.json",
+      "phases_sha256": "259edf932b2bba354c86f8785b6e9cb561ac00080ba7537f0c05b2781d2ae319"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_05",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 386.924334256,
+      "max_rank_host_duration_s": 386.913830035,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "46cf89c1db7c8671121660a6c823df770329ea3d00f04beb18f981d98aece812",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_05/phases.json",
+      "phases_sha256": "256a0ee07d773b639a90090124b612255538b72c97e0c35e171c63d6349d6b7e"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_05",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 146.896355329,
+      "max_rank_host_duration_s": 146.870472502,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "3dd7da26cabda4b2f73e9b290635b53ff398fdf8270e148512d2f22e1994ecad",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_05/phases.json",
+      "phases_sha256": "963ae1c054d66deef43eaefd1c3a87e79667732929da1fd2fe3999f861bf5dc0"
+    },
+    {
+      "attempt_id": "store_pool_hit_06",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 7.947273915,
+      "max_rank_host_duration_s": 7.779003897,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "469c371a898185e468f80e2df25743cff3b8ad8b1c30b82307c8e3727b12ee79",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_06/phases.json",
+      "phases_sha256": "b85353e624ccdf825d631dccb10803b654f5726c05a22672415a9b9bc6bb2456"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_06",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 394.052966931,
+      "max_rank_host_duration_s": 394.008177906,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "9cfcdd2381f4c7768a22794cc282c80383caba3204f6c5aba0cbe512ac8215a2",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_06/phases.json",
+      "phases_sha256": "d8d3cc0c82785b54e6f845898b1f9704c2b02b64e2b4763389863baf98986dd2"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_06",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 141.128799125,
+      "max_rank_host_duration_s": 140.992920634,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "a062ed63b35d6b6bac6c32cfb9cf5e92c112eec2116097ae9d0f46e81b4bce2e",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_06/phases.json",
+      "phases_sha256": "54e655491dd9443ea98955f3bce4d46d65ac8ecbe8e97c542d54bc68c2c88a30"
+    },
+    {
+      "attempt_id": "store_disk_cold_06",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 123.294726635,
+      "max_rank_host_duration_s": 123.2877447,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "33f6be264cf2ca9f98a3f2d000bfbbb922834daed4b2247904666d9b41efcc68",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_06/phases.json",
+      "phases_sha256": "4ac25f616de39aec25c785ab25040a973fdff92d16bee94b1353b8546be25d74"
+    },
+    {
+      "attempt_id": "store_pool_hit_07",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 7.88822724,
+      "max_rank_host_duration_s": 7.78653921,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "24bbad0133ef851cd75dd0c281eda4768a03995b040f62f9803703f983339838",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_07/phases.json",
+      "phases_sha256": "4ece0c55ae3974479c4231d24b312ef7e98a67dde893620d138b6e32a57c97d6"
+    },
+    {
+      "attempt_id": "store_disk_cold_07",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 123.198630666,
+      "max_rank_host_duration_s": 123.182666796,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "86818cbead1ecbbbed19009471ca89ebb955d2093391ba220049b5c680713a1c",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_07/phases.json",
+      "phases_sha256": "a87d685204d27d549304a56b41ba9cbbd1f0a7474b478212fac496de90b5d248"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_07",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 400.015942723,
+      "max_rank_host_duration_s": 399.974810582,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "0b23ef18a87307c54834acf0907e7a370998b386eb3d24d0abc78817f0186b49",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_07/phases.json",
+      "phases_sha256": "d3de194791e726d26bb996b58be7aa3e03def2f020df2f87859a3c8a52c8cb21"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_07",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 142.458753261,
+      "max_rank_host_duration_s": 142.319795316,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "4ba5e24155452a9517ef25d7a2856edc1bcc8fc476dd3f909c89ff930fd63591",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_07/phases.json",
+      "phases_sha256": "a240abcabe85a5b2fbcddc02ec1e6656a082d3dbff4e006af0b76399fdba22cc"
+    },
+    {
+      "attempt_id": "store_pool_hit_08",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 7.824381558,
+      "max_rank_host_duration_s": 7.776240851,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "9371a1cbc165a390e9e64ce41dae91b0d5eb383e9e1563eb140063f8f6a6d24a",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_08/phases.json",
+      "phases_sha256": "16b42c54265870b23428b89ec495b9683ee5eed4a5db4e163ba39d139afee00c"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_08",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 67.592260274,
+      "max_rank_host_duration_s": 67.419524549,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "149abfe3a6efce7443a41481e8a177349f6dc48a99b615d5f6be6fac077f1c94",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_08/phases.json",
+      "phases_sha256": "5f1bf890f1f162415be39ac1500e32aa733603ffda87bd3e0c2da3bb331652fe"
+    },
+    {
+      "attempt_id": "store_disk_cold_08",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 124.064145679,
+      "max_rank_host_duration_s": 124.005173855,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "d837831470023f9f898310841a96fb41765f8eeb400e13377d163f970430afef",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_08/phases.json",
+      "phases_sha256": "0a961acc80a4cf1c8a3ecba4e778e365369759849186fdb9040c379273fc68f4"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_08",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 402.4205589,
+      "max_rank_host_duration_s": 402.4205589,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "4a209169f11cd6c951726a3ee22d88dc35cd9bf4af63f90be792fffbe7e99c4a",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_08/phases.json",
+      "phases_sha256": "680916055ce1fe223809c38a00592e257b2de7334b987c16766287e5b6cd4b98"
+    },
+    {
+      "attempt_id": "store_disk_cold_09",
+      "block": 9,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 123.883385753,
+      "max_rank_host_duration_s": 123.764197074,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "8ca3ac2129c9b689f54a8b70af7673818ade1579ee41af16f5c3dca4ed872794",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_09/phases.json",
+      "phases_sha256": "b29c77322ed6eb136cf5bc2f10a7f6c9cddba4abb0655752a92c1a8983177c2d"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_09",
+      "block": 9,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 142.500670705,
+      "max_rank_host_duration_s": 142.452769314,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "2d6cc242e2502efd701d79bc6d484a09d271f11d90897cecfbe01421ff5ccb72",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_09/phases.json",
+      "phases_sha256": "1b5b6c9b23c8949479ae2ca282c2b84b5b7016d042586e7fc51001f6e0541d6a"
+    },
+    {
+      "attempt_id": "store_pool_hit_09",
+      "block": 9,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 7.79472435,
+      "max_rank_host_duration_s": 7.695487842,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "ec0d4f78dae3b0e8afa0346ead448a00d560c13bba96665adf62c0b57e37d1ab",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_09/phases.json",
+      "phases_sha256": "d96ddb5eb78e8f707d71492aee0d3decd53ea0d7ed3d0aba5238468d9a61d0ac"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_09",
+      "block": 9,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 392.259173902,
+      "max_rank_host_duration_s": 392.208596254,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "e2ac9d9d606d24926d365e9c0f3594925293463d7718f7d026f7c2ff7e16b4ec",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_09/phases.json",
+      "phases_sha256": "85c421e16c9b1025fbe91d33d218352ef66f247887049bd070a580f2f4c88ffe"
+    },
+    {
+      "attempt_id": "store_disk_cold_10",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 123.599320854,
+      "max_rank_host_duration_s": 123.575635748,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "88535060aa901af2d2412b648db282fdf1cf4bf9f03cd9c154ee05d5d9188a90",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_disk_cold_10/phases.json",
+      "phases_sha256": "4b66b545924b97baf6d85fa969083afc94c3bebbeb4a9141573196d6dcc623a5"
+    },
+    {
+      "attempt_id": "safetensors_disk_cold_10",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 386.075143547,
+      "max_rank_host_duration_s": 386.074990162,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "f19596e7533121a7351e303c59474cd263743d03d394daf4ea7d5ae94b609f7f",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_cold_10/phases.json",
+      "phases_sha256": "60165dc24ebaf25225bba161dffe12caf2b9bb84cd72de02d827ac71d9d51f9c"
+    },
+    {
+      "attempt_id": "store_pool_hit_10",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 8.114110679,
+      "max_rank_host_duration_s": 8.010871307,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "84bc3947ee848f6424fb0630cf2519f76cdd2d4fd860440197763307ed601501",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/store_pool_hit_10/phases.json",
+      "phases_sha256": "6bb4f268b05e7812f1ce1f95b4e05fa215bc867b3877474a637061351d28a702"
+    },
+    {
+      "attempt_id": "safetensors_disk_hot_10",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "valid_endpoint_ranks": 8,
+      "verified_rank_identities": 0,
+      "distinct_rank_pids": 8,
+      "contextual_single_backend_window": true,
+      "weight_load_host_all_rank_span_s": 146.721356629,
+      "max_rank_host_duration_s": 146.65560889,
+      "strict_unified_eligible": false,
+      "strict_unified_value_s": null,
+      "reason": "C: rank startticks/direct clock identity and actual GPUModelRunner body binding incomplete; outer worker RPC cannot be promoted by field name.",
+      "result_sha256": "945117c43cb380459978880f2c3b955802cf14f2ed867058444675c193cabe7a",
+      "phases_path": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/formal-trials/safetensors_disk_hot_10/phases.json",
+      "phases_sha256": "2064a48be7c62314b4a02ba8fad2292c12387e7c05af28b5827da60aa69e4b75"
+    }
+  ]
+}

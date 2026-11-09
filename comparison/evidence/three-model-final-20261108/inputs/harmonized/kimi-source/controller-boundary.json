@@ -1,0 +1,2090 @@
+{
+  "created_utc": "2026-11-08T15:15:02Z",
+  "primary_blocks": [
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    10
+  ],
+  "analysis_ref": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-actual-analysis-v1-20261107.json",
+    "sha256": "0959cf17761ec076a07711bd010e8ab4e0f061bb3707b9cd252963fe29758df1"
+  },
+  "input_manifest": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/input-manifest-v3.json",
+    "sha256": "4dd7d68f5409941c362f28e937c2dce21770a5829677dc1dcde78b2f5f70f801"
+  },
+  "schema": "kimi-controller-boundary-audit-v1",
+  "status": "SOURCE_DEFINED_SUCCESS_ENVELOPE_AND32_NORMAL_EXITS_VERIFIED",
+  "start": "systemd outercontroller ActiveEnterTimestampMonotonic microseconds /1e6, readafterimports but refersback to nativeunitactivation; not Prepstart or Pythonentry.",
+  "end": "time.monotonic()-started evaluated for elapsed in successful finaldictionary, afterreleasechecks/checkfiles/networkrm/qualification; before remainingdictvalues(unitprops), serialization or finally/process exit.",
+  "included": [
+    "unitactivation/bootstrap/admission/setup/filechecks",
+    "freshheadworker/env/Ray/Storepool/initialbaseline60/APIauthentication",
+    "targetpreparation/register+arith/translation/fixed32/validation/ownership",
+    "normaldelete/baseline60",
+    "normalcontroller/APIstop, strictStoreSIGINTexit, Raystop, PID1TERM CIDexit0",
+    "guards+observerquiet>=60 andscope/owner/unit/GPUzero verification",
+    "checkfiles/networkrm/samplequalification up to elapsedcapture"
+  ],
+  "excluded_after_elapsed_capture": [
+    "laterunitprops values in finaldictionary",
+    "finalreceiptserialization/atomicwrite",
+    "finally childclient terminate/kill housekeeping ifstillrunning",
+    "finally kerneljournal save",
+    "remainingPythoninterpreter/systemdunitexit",
+    "parentblocksupervision/externalpostchecks",
+    "historicalconversion/localization"
+  ],
+  "normal_vs_forced": "Normal StoreSIGINT/strictgone and PID1TERM afterservicesstop requireexited0/Pid0/noOOM/restart0 andnonce-normalmarkers. Exception path ABORT/controller-failed plus guardforcecleanup cannotqualify. Finally subprocessclientcleanup is not substitute for Store/CIDnormalexit.",
+  "absolute_endpoints": "Raw finalelapsedfloat retained. Numeric absolute start/end absent from selected finalreceipts; both remainnull rather than infer from wall/mtime/otherunitactive times.",
+  "source_variants": {
+    "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727": {
+      "start_line": 9,
+      "start_statement": "outer=props(run+'-controller.service');assert int(outer['MainPID'])==os.getpid() and outer['RuntimeMaxUSec']=='1h 59min 57s' and outer['TimeoutStopUSec']=='1s';started=int(outer['ActiveEnterTimestampMonotonic'])/1e6;end=started+7198",
+      "elapsed_capture_line": 588,
+      "elapsed_capture_statement": " save('controller-final.json',{'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','elapsed':time.monotonic()-started,'cids':cids,'units':{k:props(v) for k,v in units.items()},'observer':observed,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'structured_events_path':str(base/'structured-lifecycle-events.json'),'scope':'Prospective singlecondition correct requests, real producer HTTP endpoint, structured init/route/firsttoken join, owned release60'})",
+      "normal_exit_functions": {
+        "stop_service": {
+          "lines": [
+            216,
+            253
+          ],
+          "sha256": "8b01a2af6ed703f24d786722131796b27335c10e39db7e8b989be76381bd9154",
+          "source": "def stop_service(name,role,deadline):\n if name=='store':\n  begin=deadline-60;result={'protocol':'NEW_PROTOCOL_EXIT60_L1','criterion_seconds':60,'owner':None,'pass':False,'begin_monotonic':begin,'deadline_monotonic':deadline,'measurement':'controller Stop call through original finish and strictgone, including IPC and diagnostic overhead'}\n  try:\n   item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None\n   result['owner']=owner\n   call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3)\n   stop_started=time.monotonic();captures=set()\n   while item[0].poll() is None:\n    assert time.monotonic()<deadline,'Store exit60 criterion exceeded';healthy();now=time.monotonic()\n    for at in (10,20):\n     if now<deadline and now-stop_started>=at and at not in captures:\n      captures.add(at)\n      try:record=m.process_stop_snapshot(owner,deadline)\n      except Exception as error:record={'status':'DIAGNOSTIC_ERROR','error_type':type(error).__name__,'error':str(error)}\n      record={'elapsed':time.monotonic()-stop_started,'owner':owner,'snapshot':record}\n      try:save('store-stop-diagnostic-'+str(at)+'.json',record)\n      except Exception as error:\n       try:print(json.dumps({'event':'STORE_STOP_DIAGNOSTIC_SAVE_FAILED','at':at,'error_type':type(error).__name__}),flush=True)\n       except Exception:pass\n    time.sleep(.5)\n   assert time.monotonic()<deadline,'Store exit60 finish deadline exceeded'\n   finish(item,deadline)\n   if owner:assert gone(owner),'Store exit60 owned process still present'\n   completed=time.monotonic();assert completed<deadline,'Store exit60 completion verification exceeded criterion'\n   result.update(elapsed=completed-begin,completion_monotonic=completed);result['pass']=True\n   save('store-stop-exit60.json',result)\n  except BaseException as error:\n   result.update(elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error),failure_reason='criterion60_exceeded' if time.monotonic()>=deadline else 'normal_exit_or_strictgone_verification_failed')\n   try:save('store-stop-exit60.json',result)\n   except Exception as diagnostic_error:\n    try:print(json.dumps({'event':'EXIT60_EVIDENCE_SAVE_FAILED','primary_error_type':type(error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)\n    except Exception:pass\n   raise\n  return\n item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None\n call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3);finish(item,deadline)\n if owner:assert gone(owner)"
+        },
+        "normal_exit": {
+          "lines": [
+            254,
+            257
+          ],
+          "sha256": "7a7fc923f084db07c5bb0b61d18aa5299ef815e15603a893e86732d9309a5b75",
+          "source": "def normal_exit(role):\n row=inspect(role);assert row['State']['Running'], f\"normal_exit role={role}: container not running; State={row['State']!r}\";call(D+['kill','--signal=TERM',cids[role]],3);limit=time.monotonic()+5\n while inspect(role)['State']['Status']!='exited':assert time.monotonic()<limit, f'normal_exit role={role}: container exit wait deadline exceeded; cid={cids[role]}';time.sleep(.05)\n row=inspect(role);assert row['State']['ExitCode']==0 and not row['State']['OOMKilled'] and row['State']['Pid']==0 and row['RestartCount']==0, f\"normal_exit role={role}: expected exit0/Pid0/noOOM/restart0; State={row['State']!r}; RestartCount={row['RestartCount']!r}\";gb=base/('guard-'+role);go=json.loads((gb/'GO.json').read_text())['monotonic'];tmp=gb/'normal-exit.json.tmp';tmp.write_text(json.dumps({'cid':cids[role],'nonce':arms[role]['nonce'],'go_monotonic':go,'completion_monotonic':time.monotonic(),'exit_code':0}));os.replace(tmp,gb/'normal-exit.json');save(role+'-exited.json',row)"
+        }
+      },
+      "attempt_count": 12
+    },
+    "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2": {
+      "start_line": 9,
+      "start_statement": "outer=props(run+'-controller.service');assert int(outer['MainPID'])==os.getpid() and outer['RuntimeMaxUSec']=='1h 59min 57s' and outer['TimeoutStopUSec']=='1s';started=int(outer['ActiveEnterTimestampMonotonic'])/1e6;end=started+7198",
+      "elapsed_capture_line": 589,
+      "elapsed_capture_statement": " save('controller-final.json',{'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','elapsed':time.monotonic()-started,'cids':cids,'units':{k:props(v) for k,v in units.items()},'observer':observed,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'attempt':s['attempt'],'condition':s['condition'],'planned_attempts':s['planned_attempts'],'structured_events_path':str(base/'structured-lifecycle-events.json'),'scope':'Prospective singlecondition correct requests, real producer HTTP endpoint, structured init/route/firsttoken join, owned release60'})",
+      "normal_exit_functions": {
+        "stop_service": {
+          "lines": [
+            216,
+            253
+          ],
+          "sha256": "8b01a2af6ed703f24d786722131796b27335c10e39db7e8b989be76381bd9154",
+          "source": "def stop_service(name,role,deadline):\n if name=='store':\n  begin=deadline-60;result={'protocol':'NEW_PROTOCOL_EXIT60_L1','criterion_seconds':60,'owner':None,'pass':False,'begin_monotonic':begin,'deadline_monotonic':deadline,'measurement':'controller Stop call through original finish and strictgone, including IPC and diagnostic overhead'}\n  try:\n   item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None\n   result['owner']=owner\n   call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3)\n   stop_started=time.monotonic();captures=set()\n   while item[0].poll() is None:\n    assert time.monotonic()<deadline,'Store exit60 criterion exceeded';healthy();now=time.monotonic()\n    for at in (10,20):\n     if now<deadline and now-stop_started>=at and at not in captures:\n      captures.add(at)\n      try:record=m.process_stop_snapshot(owner,deadline)\n      except Exception as error:record={'status':'DIAGNOSTIC_ERROR','error_type':type(error).__name__,'error':str(error)}\n      record={'elapsed':time.monotonic()-stop_started,'owner':owner,'snapshot':record}\n      try:save('store-stop-diagnostic-'+str(at)+'.json',record)\n      except Exception as error:\n       try:print(json.dumps({'event':'STORE_STOP_DIAGNOSTIC_SAVE_FAILED','at':at,'error_type':type(error).__name__}),flush=True)\n       except Exception:pass\n    time.sleep(.5)\n   assert time.monotonic()<deadline,'Store exit60 finish deadline exceeded'\n   finish(item,deadline)\n   if owner:assert gone(owner),'Store exit60 owned process still present'\n   completed=time.monotonic();assert completed<deadline,'Store exit60 completion verification exceeded criterion'\n   result.update(elapsed=completed-begin,completion_monotonic=completed);result['pass']=True\n   save('store-stop-exit60.json',result)\n  except BaseException as error:\n   result.update(elapsed=time.monotonic()-begin,error_type=type(error).__name__,error=str(error),failure_reason='criterion60_exceeded' if time.monotonic()>=deadline else 'normal_exit_or_strictgone_verification_failed')\n   try:save('store-stop-exit60.json',result)\n   except Exception as diagnostic_error:\n    try:print(json.dumps({'event':'EXIT60_EVIDENCE_SAVE_FAILED','primary_error_type':type(error).__name__,'diagnostic_error_type':type(diagnostic_error).__name__}),flush=True)\n    except Exception:pass\n   raise\n  return\n item=services[name];nspid=int((base/role/(name+'.pid')).read_text());owner=owned_host_pid(nspid) if role=='worker' else None\n call(D+['exec','--user=2147:2147',cids[role],'/usr/bin/python3','-I','-c','import os,signal,sys;os.kill(int(sys.argv[1]),signal.SIGINT)',str(nspid)],3);finish(item,deadline)\n if owner:assert gone(owner)"
+        },
+        "normal_exit": {
+          "lines": [
+            254,
+            257
+          ],
+          "sha256": "7a7fc923f084db07c5bb0b61d18aa5299ef815e15603a893e86732d9309a5b75",
+          "source": "def normal_exit(role):\n row=inspect(role);assert row['State']['Running'], f\"normal_exit role={role}: container not running; State={row['State']!r}\";call(D+['kill','--signal=TERM',cids[role]],3);limit=time.monotonic()+5\n while inspect(role)['State']['Status']!='exited':assert time.monotonic()<limit, f'normal_exit role={role}: container exit wait deadline exceeded; cid={cids[role]}';time.sleep(.05)\n row=inspect(role);assert row['State']['ExitCode']==0 and not row['State']['OOMKilled'] and row['State']['Pid']==0 and row['RestartCount']==0, f\"normal_exit role={role}: expected exit0/Pid0/noOOM/restart0; State={row['State']!r}; RestartCount={row['RestartCount']!r}\";gb=base/('guard-'+role);go=json.loads((gb/'GO.json').read_text())['monotonic'];tmp=gb/'normal-exit.json.tmp';tmp.write_text(json.dumps({'cid':cids[role],'nonce':arms[role]['nonce'],'go_monotonic':go,'completion_monotonic':time.monotonic(),'exit_code':0}));os.replace(tmp,gb/'normal-exit.json');save(role+'-exited.json',row)"
+        }
+      },
+      "attempt_count": 20
+    }
+  },
+  "export_manifest_pins": [
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "ae77650131638dec62a2aed1e74d9c849b9b28dfae259a3253d02592235c8053"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "df1faef0e165d97364693e564cfd5ec040ce6c131784da87b1447162643c050e"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "a6fa3a9a6efb8f8b14eb35a44f06f06eca427a309582e1b2ac5bf976a5fbab88"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "3402bed41c1536753147afcb3d20e1dd098ac468c818a5547fd05e382b02d303"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "7410198f6b47f2f243b3c259178fb04ca359ec76a709ec3fcc9c7f3db239c507"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "cf3f7e1e3120a1975564ff12bb45ce9e0a60b641c194fd190221fff5c27da879"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "b4f0fa54d3662deeecf22c7fc56b75f830fb11bfc91b293eceeae08e6638bf24"
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/block-pass-summary.json",
+      "sha256": "34a77896cceeac5f44f36006dda5608b78c3af5b1bde9e7439f283c800f5f26c"
+    }
+  ],
+  "rows": [
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+      "block": 1,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_hot-retry04-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "1c00a0784160adca4150233a42b11ca9baaaf3aefc967e9a9d0cf07f7ac6fd41",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-safetensors_disk_hot-retry04/controller-final.json",
+        "sha256": "7e83f9070554ce94c62b1c945b949d2a702c078a608fa6ae465b1ea2c637286c"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-safetensors_disk_hot-retry04/cleanup-result.json",
+        "sha256": "e9f3b50e577742078098ec80fb2bc47b6e13d5ef0dcdd500cb7929ec9476c97b"
+      },
+      "recorded_controller_elapsed_s": 1081.9690876188688,
+      "Prep_plus_A_s": 551.445674563,
+      "contiguous_s": 551.538904719,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_hot-retry04/guard-head/guard-final.json",
+            "sha256": "def6f8939fa843d689cac7ac009f823cd8bda9c6d42c886da62a5933d0c19526"
+          },
+          "normal_completion_monotonic": 1124845.298455102,
+          "normal_cleanup_monotonic": 1124845.329127128,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01347443298437
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_hot-retry04/guard-worker/guard-final.json",
+            "sha256": "17a4d72d5f95ae14ee622ecedb41d4ecaac413cd2173e94fc3c7a1f7230b2318"
+          },
+          "normal_completion_monotonic": 1124844.919878615,
+          "normal_cleanup_monotonic": 1124844.958958862,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.048964789137244
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_hot-retry04/store-stop-exit60.json",
+        "sha256": "19e0647e45732e89028a09c5cf0848b54d3b4b9224d6874a696252abab2ad019"
+      },
+      "Store_normal_stop_s": 33.0942304499913,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_hot-retry04/container-exit-summary.json",
+        "sha256": "468797c3715e9fed275f7f1041bb117c03477fe3028dca1ac2899aced1b77d7f"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_disk_cold-retry04",
+      "block": 1,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_disk_cold-retry04-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "91e1cb74ab7b49043a058873d7000e3449f391d29cadf862ad0a4731541c9787",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-store_disk_cold-retry04/controller-final.json",
+        "sha256": "d875ce9751f6bac4ffcfc993c0d49cb4909966930c5228a5aca52cc679fa2637"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-store_disk_cold-retry04/cleanup-result.json",
+        "sha256": "6ecccc524eabbc24f0f3491eedcbb30aff87eb77e349643f956a48a464a06bd3"
+      },
+      "recorded_controller_elapsed_s": 791.8472618269734,
+      "Prep_plus_A_s": 265.616808413,
+      "contiguous_s": 265.711676701,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_disk_cold-retry04/guard-head/guard-final.json",
+            "sha256": "c166b4d6e5978baa536e8075cc02d9daea66564aa92080a7e0ecd163f1d373db"
+          },
+          "normal_completion_monotonic": 1125636.897719303,
+          "normal_cleanup_monotonic": 1125636.901561617,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.06109706219286
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_disk_cold-retry04/guard-worker/guard-final.json",
+            "sha256": "4ffc9d2b8a692ec33927c8feb85d962b419d393c43fd707576ac4b4714fac708"
+          },
+          "normal_completion_monotonic": 1125636.287655976,
+          "normal_cleanup_monotonic": 1125636.288810942,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.054118410917
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_disk_cold-retry04/store-stop-exit60.json",
+        "sha256": "cf009adba834eef734906fa5f4f7c59a2e6410f7b45eb276b015f402f9847e26"
+      },
+      "Store_normal_stop_s": 32.60491586802527,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_disk_cold-retry04/container-exit-summary.json",
+        "sha256": "2423f97e6a5a6bf550e1d5cb65fda747f5a5777713966f089bc160c33529be98"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b01-safetensors_disk_cold-retry04",
+      "block": 1,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-safetensors_disk_cold-retry04-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "f5601beec11f75f5dee5ecc72bb61c0872872976d5e2822bb7b6ecf45ad08ac1",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-safetensors_disk_cold-retry04/controller-final.json",
+        "sha256": "4e033df648f0d1a1ba3c0e5672fd410e4aaf2a7f37f59bbccacfe6d1c78cb1c6"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-safetensors_disk_cold-retry04/cleanup-result.json",
+        "sha256": "d3575d18c41f3c63e372165c48436241fee713f23eecd94a86c73b8e6bb3efde"
+      },
+      "recorded_controller_elapsed_s": 1864.0834755480755,
+      "Prep_plus_A_s": 1334.8940564319998,
+      "contiguous_s": 1334.989341798,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_cold-retry04/guard-head/guard-final.json",
+            "sha256": "41c387b5f48897f24161b3c2b3284382d5cfaae8141ce2fab246d38ae19ccfe5"
+          },
+          "normal_completion_monotonic": 1127500.807523097,
+          "normal_cleanup_monotonic": 1127500.822454295,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.049460356123745
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_cold-retry04/guard-worker/guard-final.json",
+            "sha256": "19cced487bb16a85322cda03e47502899ff7037b264d1463f5261a042649f049"
+          },
+          "normal_completion_monotonic": 1127500.38798849,
+          "normal_cleanup_monotonic": 1127500.408604085,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05870015104301
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_cold-retry04/store-stop-exit60.json",
+        "sha256": "04560349c453b721f2824bc744ccaf34bb97ffbb9fa4684c97bff185f6b62e9c"
+      },
+      "Store_normal_stop_s": 33.0238328021951,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-safetensors_disk_cold-retry04/container-exit-summary.json",
+        "sha256": "ec3f763230a6968c70c61ca7c48bee2dc8b39eb9605b2da319e23d4d1a993726"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b01-store_pool_hit-retry04",
+      "block": 1,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b01-store_pool_hit-retry04-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "96d3c76a7a11cc08f49c453fd1fdf0f51b4ec9094490d15431c18911ecc3bb34",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-store_pool_hit-retry04/controller-final.json",
+        "sha256": "2c5bc250a39b9759160b03c9e189578062ddc308d3de4cfb3393ab266b42bd15"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b01-store_pool_hit-retry04/cleanup-result.json",
+        "sha256": "2751c2024f8a5b78eb42f4c7812d927e5763b6f262759fbc7c0341e3109c6f89"
+      },
+      "recorded_controller_elapsed_s": 779.4484559050761,
+      "Prep_plus_A_s": 246.551256966,
+      "contiguous_s": 246.661297458,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_pool_hit-retry04/guard-head/guard-final.json",
+            "sha256": "ce95f147627adcaedc096678419d8a7676b1d20adbf4ebcb3943ae76942ecc36"
+          },
+          "normal_completion_monotonic": 1128280.123251272,
+          "normal_cleanup_monotonic": 1128280.194066312,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.062698405003175
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_pool_hit-retry04/guard-worker/guard-final.json",
+            "sha256": "7c2e9c5ea616eeef6cdb390e6190586eee042a6e526a6e992d16992bb56ff354"
+          },
+          "normal_completion_monotonic": 1128279.748934584,
+          "normal_cleanup_monotonic": 1128279.813186583,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00207421090454
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_pool_hit-retry04/store-stop-exit60.json",
+        "sha256": "f9f837423e67fd48afc89005b0d515c6129214f9adb8f4e4e040afb1698a4bbd"
+      },
+      "Store_normal_stop_s": 32.507655608002096,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b01-retry04-four-condition-pass-public-20261107/kimi-four-v1-b01-store_pool_hit-retry04/container-exit-summary.json",
+        "sha256": "dd528b4ef49b96f5e2fcbe400898d4bc18cf7b6e5f030dfe1ae7a614b749a679"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_pool_hit-retry02",
+      "block": 2,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_pool_hit-retry02-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "d20dc45cf8c0076160477df505c0b47ef59995bc90e327dab736f967f37ed08c",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-store_pool_hit-retry02/controller-final.json",
+        "sha256": "cd1d151d5651e8ea6ba5453cd32701d19ccbc9a53fe10bc708e14aaf18e6b371"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-store_pool_hit-retry02/cleanup-result.json",
+        "sha256": "7b67e9683f2edcb25d5f476b885406f42f274d3db84eba3459b62d1334e54630"
+      },
+      "recorded_controller_elapsed_s": 781.7463935490232,
+      "Prep_plus_A_s": 246.725500602,
+      "contiguous_s": 246.817785413,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_pool_hit-retry02/guard-head/guard-final.json",
+            "sha256": "ce83d60e3680bd614b1c461e87555eb4426501cff4d3c3add0bce08ac5631972"
+          },
+          "normal_completion_monotonic": 1129515.199338511,
+          "normal_cleanup_monotonic": 1129515.253823171,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.000380081124604
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_pool_hit-retry02/guard-worker/guard-final.json",
+            "sha256": "176c4ce7ccb7a3f423cc8621e3bc56e681188d41e2f62fbf4121bdba373c5630"
+          },
+          "normal_completion_monotonic": 1129514.769935275,
+          "normal_cleanup_monotonic": 1129514.798672436,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00822556694038
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_pool_hit-retry02/store-stop-exit60.json",
+        "sha256": "14f068700f323c2d752d54169b9eb2178b3ebd83c8bd0231a1652091e41b250e"
+      },
+      "Store_normal_stop_s": 32.60234616789967,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_pool_hit-retry02/container-exit-summary.json",
+        "sha256": "2699c7d9f2f87139ba6c69a38925073b5a678cbd492db733c21e52d0de1e3fb6"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_cold-retry02",
+      "block": 2,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_cold-retry02-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "738a4127b5f6b924a1fe2f27a2a0c02bcf67b03fe57e4a140e8f726b42854d37",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-safetensors_disk_cold-retry02/controller-final.json",
+        "sha256": "e68d837516bf211f106d85812799d0927bb05b2ba991bfb2807175c34359bcbc"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-safetensors_disk_cold-retry02/cleanup-result.json",
+        "sha256": "80df2478f039387f9bbeb109bc3fac50d46923299c88b744ff4c95180e1bd3a8"
+      },
+      "recorded_controller_elapsed_s": 1845.9090991830453,
+      "Prep_plus_A_s": 1308.1351346489998,
+      "contiguous_s": 1308.229128508,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_cold-retry02/guard-head/guard-final.json",
+            "sha256": "e34bc284d1dfee956014e817dd495ea8a3295086ccc4082de7ddd4a96b8e8dd0"
+          },
+          "normal_completion_monotonic": 1131361.866585506,
+          "normal_cleanup_monotonic": 1131361.922765606,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03865758981556
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_cold-retry02/guard-worker/guard-final.json",
+            "sha256": "b2e6a366d4145a05fd463aeaf5379f79ee32420215d7f32a1bff777e89e908c9"
+          },
+          "normal_completion_monotonic": 1131361.451318382,
+          "normal_cleanup_monotonic": 1131361.476537475,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.02697702799924
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_cold-retry02/store-stop-exit60.json",
+        "sha256": "be2fe832584a83f187d9dd257643dfc04c745b4fcb733b0c5b556d8cbc5bd991"
+      },
+      "Store_normal_stop_s": 35.808223054977134,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_cold-retry02/container-exit-summary.json",
+        "sha256": "42e4a0c3034d6cb7959eb941a4afe6d6171e29a4d5bc4b9cbfb2ba39fd44cbf5"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b02-store_disk_cold-retry02",
+      "block": 2,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-store_disk_cold-retry02-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "b3156aa48c460c1460c64b2e4caac1ab2ae46bd7579ee5448dbe07ac3630cf16",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-store_disk_cold-retry02/controller-final.json",
+        "sha256": "6b681033dbb2f9c63f69a810cafffb8c4c22d86e310cfdab39cb864c62abe4d9"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-store_disk_cold-retry02/cleanup-result.json",
+        "sha256": "8506ce83ddf9f45db672a3365ed5634d4ea6c78481505d5b95c11163580d2caa"
+      },
+      "recorded_controller_elapsed_s": 796.1395753039978,
+      "Prep_plus_A_s": 267.6009641,
+      "contiguous_s": 267.697430915,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_disk_cold-retry02/guard-head/guard-final.json",
+            "sha256": "1e9af04ffdae51363966fa4ad8bab896ebfe52237f3e5c2831af4720f50b9e97"
+          },
+          "normal_completion_monotonic": 1132158.102299217,
+          "normal_cleanup_monotonic": 1132158.157484733,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00650875689462
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_disk_cold-retry02/guard-worker/guard-final.json",
+            "sha256": "e973160c518cc3b06c758fd4cf7cb423ccd69835dda07ea3a8ce25b2822e8279"
+          },
+          "normal_completion_monotonic": 1132157.733116782,
+          "normal_cleanup_monotonic": 1132157.760535095,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.0704435009975
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_disk_cold-retry02/store-stop-exit60.json",
+        "sha256": "cff42cbb3e8aa659ccfb5f834530f7afb26d3aff9608816fd6e84fe0da107447"
+      },
+      "Store_normal_stop_s": 32.491511582164094,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-store_disk_cold-retry02/container-exit-summary.json",
+        "sha256": "6c846ba4e134ead5679efb8ad0b5783af90a70597e38f536621d28cef40a713d"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+      "block": 2,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b02-safetensors_disk_hot-retry02-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "6841d6d358a9fadd9440e5b94c02b681c1e379f423ff28d98fd472da3ed04d58",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-safetensors_disk_hot-retry02/controller-final.json",
+        "sha256": "cf77e59491397a5991f8b5a8b37183e15ca9fe468316505dde98991bf97541ff"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b02-safetensors_disk_hot-retry02/cleanup-result.json",
+        "sha256": "ebd5e428f88a93a55d563923f317241c0fb336f9265b008fe024740e34bba297"
+      },
+      "recorded_controller_elapsed_s": 1238.5737553089857,
+      "Prep_plus_A_s": 708.78730318,
+      "contiguous_s": 708.888648805,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_hot-retry02/guard-head/guard-final.json",
+            "sha256": "94ad1b9443ce1d8aa9b3fe3cd7ee4cdec43c7364f9bfa42b830efdca8660ca02"
+          },
+          "normal_completion_monotonic": 1133395.910251426,
+          "normal_cleanup_monotonic": 1133395.967489167,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.02608819818124
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_hot-retry02/guard-worker/guard-final.json",
+            "sha256": "6a9f2eb4c3cdf9b9bb932a5b78c50411d8fb19858f5ca5cdd75961f1aa48f14d"
+          },
+          "normal_completion_monotonic": 1133395.534720785,
+          "normal_cleanup_monotonic": 1133395.5791716,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01629628497176
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_hot-retry02/store-stop-exit60.json",
+        "sha256": "ae18423b9617fe4ec852f4bb299f8727103bcb5ca5094746876bccdb6e110d1c"
+      },
+      "Store_normal_stop_s": 32.73479285300709,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b02-retry02-four-condition-pass-public-20261107/kimi-four-v1-b02-safetensors_disk_hot-retry02/container-exit-summary.json",
+        "sha256": "2612c3da0d1b80b25136a710920a6e651ce87f0166d44c540d9e1ddc4fb51d52"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_disk_cold",
+      "block": 3,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_disk_cold-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "a3c71886191e1cf9563b7b3b61e60b9c16bb51049db9d7181afa028295ea1e01",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-store_disk_cold/controller-final.json",
+        "sha256": "1a5d433842251b73ad2b29955cd58a04a4d96c6c8159b6fb30fbc87bc0af33f9"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-store_disk_cold/cleanup-result.json",
+        "sha256": "8617aaa94e730536930f5a5db994251e611f26bae40cf223ebf91949b585d44f"
+      },
+      "recorded_controller_elapsed_s": 792.5803866630886,
+      "Prep_plus_A_s": 265.8903199,
+      "contiguous_s": 265.986661015,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "1aafec22351d3201c32350e9c1230b690a4fcc7c41b37caab408233acc3bac14"
+          },
+          "normal_completion_monotonic": 1134505.028236481,
+          "normal_cleanup_monotonic": 1134505.036067304,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.02216735598631
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "d3ef1d3be4e89e9e20ec7faba0ac5e8fb1309796e54db0641e33d1dae7b2acfa"
+          },
+          "normal_completion_monotonic": 1134504.669942694,
+          "normal_cleanup_monotonic": 1134504.675027471,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.057815009960905
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_disk_cold/store-stop-exit60.json",
+        "sha256": "b0be46a6bd93e7ff02c6aec78793677c0707d020a32ff6df4522fc9f1e24ec96"
+      },
+      "Store_normal_stop_s": 32.61161885806359,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_disk_cold/container-exit-summary.json",
+        "sha256": "1941191bf3e061bc3b7005415a06bbcbad2d8f4b2f67fcea10c38adac119524a"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b03-store_pool_hit",
+      "block": 3,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-store_pool_hit-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "38c33bfe25ec69e2acf396a62ee16ffe83e99b2a35187039e0aa529010570a80",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-store_pool_hit/controller-final.json",
+        "sha256": "9d89c1f1785c900fa2822d05136fa81516098728e28ec3cb2b4c178f7af4d584"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-store_pool_hit/cleanup-result.json",
+        "sha256": "964f013e6a356d6d9dfdb0d4e940898e135aa051edc40f76196ad280522765ba"
+      },
+      "recorded_controller_elapsed_s": 778.743494000053,
+      "Prep_plus_A_s": 252.158959987,
+      "contiguous_s": 252.252731854,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "39ff606e3a0c6e1b9e9d225866a7ff9ab3da2a9e64fe63fb6a35b6aaf1917a88"
+          },
+          "normal_completion_monotonic": 1135284.270516284,
+          "normal_cleanup_monotonic": 1135284.295740282,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.062277287011966
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "50be2b6aee323806a10a254bda3a66ce69df301a603be005b8e5d3c2c8923822"
+          },
+          "normal_completion_monotonic": 1135283.901176407,
+          "normal_cleanup_monotonic": 1135283.952502736,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.063055619131774
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_pool_hit/store-stop-exit60.json",
+        "sha256": "6bf977fa8389968a4a303a55bd0a67d20704ee3f629f2cbf5c6895cb0f8b0d10"
+      },
+      "Store_normal_stop_s": 32.056252056965604,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-store_pool_hit/container-exit-summary.json",
+        "sha256": "a46dcabf5409c57a2e32016e86ef5d571b62e6622dc6887b31024e537aea1ace"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_hot",
+      "block": 3,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_hot-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "c14f76601678efa84ee47e0760660d8bcb30c6b8f0327333ff61b75b6259bb21",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-safetensors_disk_hot/controller-final.json",
+        "sha256": "fa411e567336975dcfdb346dcc50b6d400cee594a8d54e51f857bc462bbb1ca7"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "ccdc9cdcb9977871f755fbbd1bb0b986cba01943b5abfdf654e8a8f0a54dbbba"
+      },
+      "recorded_controller_elapsed_s": 1124.433543068124,
+      "Prep_plus_A_s": 599.787648147,
+      "contiguous_s": 599.884195437,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "52aa9522355dd952c8842642f52f042fd387529f3c3b4bfb18072d0398bcb55e"
+          },
+          "normal_completion_monotonic": 1136408.643587678,
+          "normal_cleanup_monotonic": 1136408.653270228,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01734370086342
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "a8785e84dda84c384ba95c61c86ff94e139a0f2f1840fdfbef5acb40dc43b1ad"
+          },
+          "normal_completion_monotonic": 1136408.238904998,
+          "normal_cleanup_monotonic": 1136408.275033915,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03254308993928
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "f17e87181b92a49c1ad23e1e3815ef0125283133e7e4d764468ab7c55770f0c6"
+      },
+      "Store_normal_stop_s": 32.67854048195295,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "1e8c0ee71b17c28092924007edc0dddacaeb727f38d3c5d65f9189e0eede65c0"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b03-safetensors_disk_cold",
+      "block": 3,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "86fd23bff8c7a78735776d7085f7fcb2b0a4efad",
+        "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b03-safetensors_disk_cold-formal-v3-637f9a6c4ab0-command.json",
+        "sha256": "197d2d4ec0233f886e7a552acfab1137e3521de85b82e7c68896d10179c3c673",
+        "root_python_sha256": "76199b00dab85e7ae245fa663a2bd48fcaa6642fc7d879a10d4a8b895d9e4727"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-safetensors_disk_cold/controller-final.json",
+        "sha256": "bb1cd508d5d2b90508f7075c6cc0e98c51fed5347bf92e97ee14be53f5a2dd67"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b03-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "7c29207d2d1870d285c4e5b40961f49ba9d48f60c9887f4ce1cac864ba91086e"
+      },
+      "recorded_controller_elapsed_s": 1868.783217954915,
+      "Prep_plus_A_s": 1339.4173420299999,
+      "contiguous_s": 1339.512068947,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "4aba18ae21e6854e275aa1fc3483e80fc953a7cc373caec921e425fde22fdad8"
+          },
+          "normal_completion_monotonic": 1138277.542966498,
+          "normal_cleanup_monotonic": 1138277.594991646,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01218797895126
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "b3da0a0d10882141288414e3e8b671e15e0a99551eb0ccd97696ca8b5a418f07"
+          },
+          "normal_completion_monotonic": 1138277.16325462,
+          "normal_cleanup_monotonic": 1138277.182194788,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03514851606451
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "611c7978cb42c2d9d47b142ca7891fed211bba1ae9ed773eeedc28ead73279c6"
+      },
+      "Store_normal_stop_s": 32.16497766505927,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b03-four-condition-pass-public-20261107/kimi-four-v1-b03-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "14f4492c1407b86a967913c5da67f32704a0203d28e71c1528c4c4901e6298fb"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_cold",
+      "block": 5,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "528412be94b77954468ccce450fde252f7dba25692e5ef70ec678a26807bad94",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_cold/controller-final.json",
+        "sha256": "7c56ad7b09c6ca930ce251eceb9258a4f9a4eeac138cd99d3a7f1242070c11ab"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "915c0ddcea8d8d917bbd07af442701562d7e6eec2c7a3425dca8ded65a60792f"
+      },
+      "recorded_controller_elapsed_s": 1828.269117865013,
+      "Prep_plus_A_s": 1298.497987712,
+      "contiguous_s": 1298.593625811,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "deca278275d4eabd4de1e73448b10e9600b4f56fe06e0eefb5e42908c32c1d5a"
+          },
+          "normal_completion_monotonic": 1144232.350446143,
+          "normal_cleanup_monotonic": 1144232.380533375,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.06462948699482
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "379efea2825a74d93e0d760a965081c038e785644ee6a25a8bb8ad26e5bac637"
+          },
+          "normal_completion_monotonic": 1144231.990555599,
+          "normal_cleanup_monotonic": 1144232.007734827,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.04286934598349
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "ee83b7e6093e92f38307b437b4f243aafba8670fc1f9ad1939b93da0196c91eb"
+      },
+      "Store_normal_stop_s": 32.597279579145834,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "e5a7f71dd93fa903c9157928592e910dd8b4f9d7aeaeb3bb70aa5c2f4c9d4978"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b05-safetensors_disk_hot",
+      "block": 5,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "5dfd18b4dad3868086db1a2e8207a1821289bd420551ff614aa09d516b41d893",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_hot/controller-final.json",
+        "sha256": "7a0f5a8a9c4a685fcc7e35577fd6320e3924aee62968f5e0e23276ec5af1ab74"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "b050d477f6859778f832cf83c483ef6f65c6019e8c666961db69de0efb4925b6"
+      },
+      "recorded_controller_elapsed_s": 1142.3832133691758,
+      "Prep_plus_A_s": 614.896866163,
+      "contiguous_s": 614.996458587,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "ac8d68a690c65c999f428097c53c6be66aece97aaa1ad5d81132873c158a1d7b"
+          },
+          "normal_completion_monotonic": 1145374.734117828,
+          "normal_cleanup_monotonic": 1145374.743178512,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03362928703427
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "dcb09e54a90dc2de7b3bace7d04c90ed9720ec4095ee1b5f1661b834a09ce44e"
+          },
+          "normal_completion_monotonic": 1145374.335296676,
+          "normal_cleanup_monotonic": 1145374.401183843,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00277233310044
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "c1a8843f80a73263aef28559de953c17cd12028e5a24793e6f98ef8ab8bf563e"
+      },
+      "Store_normal_stop_s": 32.64988508098759,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "9a6cf9b6af778a0e5ece491d80c62716c65af172baf3b55185aff8aaec3b97de"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_pool_hit",
+      "block": 5,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_pool_hit-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "e334ba55443bac01be02d3dc6130c0f8457e79b67191d523214a9256a20f3a11",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-store_pool_hit/controller-final.json",
+        "sha256": "72bffd2a74e45a3e203d403a62ca05c010a8f59bc7b1408b3707af1eefa51a1a"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-store_pool_hit/cleanup-result.json",
+        "sha256": "5844cd94871b6db419e42984e4a81d4e75e98a2f148e8b1b967d84adb1ed9059"
+      },
+      "recorded_controller_elapsed_s": 787.3558538879734,
+      "Prep_plus_A_s": 251.055554976,
+      "contiguous_s": 251.145838225,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "a5842bbfeebcd7c80d211eec63514a49e33b55c3847ca6cae3af18eab608c419"
+          },
+          "normal_completion_monotonic": 1146162.266696181,
+          "normal_cleanup_monotonic": 1146162.324932935,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05596959008835
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "36b18337c2771c72ab1fb3aa30f68d315d512a3063aaed9217c081caf3bf44a5"
+          },
+          "normal_completion_monotonic": 1146161.92293397,
+          "normal_cleanup_monotonic": 1146161.977395479,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03827783698216
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_pool_hit/store-stop-exit60.json",
+        "sha256": "ab45b3f628fd65f4704cb4e110b24873f27475838578dc41d400fd465f1b26cd"
+      },
+      "Store_normal_stop_s": 32.583164111943915,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_pool_hit/container-exit-summary.json",
+        "sha256": "3ba4a01911d3c9d018d6a82f3dd8c52b9858cff43c8b8f97ddf66a6cb88833b1"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b05-store_disk_cold",
+      "block": 5,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b05-store_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "1c48da6d17f099a1e7a91512ea409624ca20a0d8fc496d20cd7baced8e3b7808",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-store_disk_cold/controller-final.json",
+        "sha256": "6b900e64a4b596dac33ae4b499770338b8f79b43eb9f5ebb96f0c0c2e061e38b"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-store_disk_cold/cleanup-result.json",
+        "sha256": "cef3e685c36d2ac6ea8a4f5281ea684ecde81cdb4b7fe6c4b36f921374a04cec"
+      },
+      "recorded_controller_elapsed_s": 799.6512715329882,
+      "Prep_plus_A_s": 268.89249221200004,
+      "contiguous_s": 268.986153149,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "28143efdbab5dbc700dd25c201f719bb1bed1567861d60e5e579b08d4595a765"
+          },
+          "normal_completion_monotonic": 1146962.446062517,
+          "normal_cleanup_monotonic": 1146962.45469007,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.038509094156325
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "f4b1fe1425eadee2b885368dabb9da6dc4d86a6568b4103252962e7960c5535d"
+          },
+          "normal_completion_monotonic": 1146962.095626599,
+          "normal_cleanup_monotonic": 1146962.104919375,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.0639229521621
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_disk_cold/store-stop-exit60.json",
+        "sha256": "25f6936264f2dfafb2894162e2fed42e537101f4a0c3193174c26a68ed0fa95d"
+      },
+      "Store_normal_stop_s": 32.784574870951474,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-store_disk_cold/container-exit-summary.json",
+        "sha256": "a32e986df49d61b3871571052dc7be6e904fcd7ee6a753326ecba824de95615e"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_pool_hit",
+      "block": 6,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_pool_hit-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "ffb4f7d86904762d66a9e0c0a830a1219aba2cba9b90045e9b0168fbb6130c51",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-store_pool_hit/controller-final.json",
+        "sha256": "a3ac96829c4adafc6f2e7ef32128f98f3777ecae31de1c9f2f324abaceecd703"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-store_pool_hit/cleanup-result.json",
+        "sha256": "8e8e7aa913c8997ff68a582af75a1e35509357ab38334d5bb3746156ed5d3864"
+      },
+      "recorded_controller_elapsed_s": 781.3770658508874,
+      "Prep_plus_A_s": 250.432429796,
+      "contiguous_s": 250.54960209,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "97491b068d5242526b304890589216a646d757adfef2800074533037a3a89f6a"
+          },
+          "normal_completion_monotonic": 1148186.57243509,
+          "normal_cleanup_monotonic": 1148186.642133114,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01083260914311
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "a403a524e688965a085154fd00f17117e832a2b8bb73245158f37283f4204b02"
+          },
+          "normal_completion_monotonic": 1148186.183187193,
+          "normal_cleanup_monotonic": 1148186.21223264,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.046678338898346
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_pool_hit/store-stop-exit60.json",
+        "sha256": "6110195ad9cb60bb26a8c4a5464e0cd5213046b52de77d4a4afd857c562ce64d"
+      },
+      "Store_normal_stop_s": 33.04361425200477,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_pool_hit/container-exit-summary.json",
+        "sha256": "8e47dab033758860e868f3ad44268fd51daccc8604b873a4b2a8962ced35191e"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_cold",
+      "block": 6,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "99f49875a35af6d8076189c559dd3fceadaf79de8908df1485996a68dc94687d",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_cold/controller-final.json",
+        "sha256": "7141b1508777fced63dfa5457917772fa954e319b84ee967d9a396a3aa2ae29d"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "b92ae9cc0eda2cc9c80d8d297e694d8ee8364674fa57c8f5df136ba3e0ae4745"
+      },
+      "recorded_controller_elapsed_s": 1860.7713148079347,
+      "Prep_plus_A_s": 1332.08021659,
+      "contiguous_s": 1332.175421792,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "9ce8dc14ba0270f2b79101d087e919822256b6d5d149faf316886ab4e84e5b93"
+          },
+          "normal_completion_monotonic": 1150047.510183382,
+          "normal_cleanup_monotonic": 1150047.532238561,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01934846909717
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "da3159055f57afdcd36bae34d5b11f54df02752c495aa5702b78fe81e708b1ee"
+          },
+          "normal_completion_monotonic": 1150047.179295473,
+          "normal_cleanup_monotonic": 1150047.188284402,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03378482488915
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "85f7e3081f9dd111d22109a06b8e86abb39a9e4082448371ea8c852f8224a55b"
+      },
+      "Store_normal_stop_s": 32.592851400142536,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "a937ad8d54bc6d3668667442d4e736ec5bc8daef92ae1ee61b77375b2fa6d882"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b06-store_disk_cold",
+      "block": 6,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-store_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "a1a15f5de76a2cb67da185d0b2c638fdce0c5f573a6a1382bcc5cb8ba9e1ee74",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-store_disk_cold/controller-final.json",
+        "sha256": "5a9aeb4d6be4d7888fe23365ead1897536e2c081ed3558815becdf063650241b"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-store_disk_cold/cleanup-result.json",
+        "sha256": "2133af6c4ea6d0aa3e7f4ae97095d8e6bdcf5712cd5f81dbccf284bce5fcdab7"
+      },
+      "recorded_controller_elapsed_s": 799.4689346719533,
+      "Prep_plus_A_s": 267.543106648,
+      "contiguous_s": 267.635809463,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "d3256c0b071b485d044f5d6826dc6d9b78047be97e75fd9e3e7d3e74f060f7a5"
+          },
+          "normal_completion_monotonic": 1150846.666579869,
+          "normal_cleanup_monotonic": 1150846.698468536,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.04637182713486
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "aa4bc02730dbc0ab01164a327fe9d6763d157be9dc5e2272d443b1b5903c90ec"
+          },
+          "normal_completion_monotonic": 1150846.219353281,
+          "normal_cleanup_monotonic": 1150846.249709237,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.063988883048296
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_disk_cold/store-stop-exit60.json",
+        "sha256": "7ec4cda1e5fb71565695e20a52871cf4a21bdcafef23b333cd369c8e51578378"
+      },
+      "Store_normal_stop_s": 33.15253823599778,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-store_disk_cold/container-exit-summary.json",
+        "sha256": "dc6337135fcdfcca9c8c23f2221c6241092a4501bf82f87c72d54d8377ccc450"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b06-safetensors_disk_hot",
+      "block": 6,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b06-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "b32ba370d77521b637fc21081abfc4300ba934fd95f070c7d5c7460ebe33c20e",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_hot/controller-final.json",
+        "sha256": "0774a26fc3f9fcb3602f46c95f8c2f78c98fdc7a9a551fdf4c4552b83e0fc154"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "3678cd43ad3d2c6ca23a4f8fd41ea6e705438469d5dc56a77b41c81d8be28c7c"
+      },
+      "recorded_controller_elapsed_s": 1235.1458882859442,
+      "Prep_plus_A_s": 707.755987791,
+      "contiguous_s": 707.86459189,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "eb78185eb1018d50b2162318a07a3a83e9212937280621a5d372e8c1972ab8db"
+          },
+          "normal_completion_monotonic": 1152082.761337918,
+          "normal_cleanup_monotonic": 1152082.798293622,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05535991094075
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "b01cc458c5a8e9fdd6f5e98204e8dd5d5ef06355cf4d57e3ba6cdd3983723ebb"
+          },
+          "normal_completion_monotonic": 1152082.362144826,
+          "normal_cleanup_monotonic": 1152082.383775141,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01515907980502
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "8be506acc60f6510be8cb7998f7f686aecdc036364a59dd451997da8a2a37119"
+      },
+      "Store_normal_stop_s": 32.48370201699436,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "1a28419aa49ee62d1ad4af163b695f6309ebfa483eda3276ae510c05b861f6eb"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_cold",
+      "block": 7,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "fa7d14da7623973f6010415aec9dc83fc0ba664ee739fa90852f27332aff5c83",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_cold/controller-final.json",
+        "sha256": "9609747ad5978df08dc1b9c584f241116df38ed4afa095bff57b6fd2641c606f"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "139dddc132553aa64149a0ee3538b2e8e112c8186a992f60e4875f2a4bafebc8"
+      },
+      "recorded_controller_elapsed_s": 1835.1212060470134,
+      "Prep_plus_A_s": 1307.397968798,
+      "contiguous_s": 1307.492436765,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "1d7eecf403c8c019be99fd346a104a2c85051505bc784dcf6cd5b12acffd4e17"
+          },
+          "normal_completion_monotonic": 1154227.383652892,
+          "normal_cleanup_monotonic": 1154227.390249186,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.035804242128506
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "7da3dfcb48f0fa103caf71e5582113f73817d864a6b42c4915e552671b515e9b"
+          },
+          "normal_completion_monotonic": 1154226.989305443,
+          "normal_cleanup_monotonic": 1154226.993140136,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.041051001055166
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "ff7ad9fc49eb5aeb3957a9712d3450d1a7d36d0b669c7338aeabaa90e5f800e4"
+      },
+      "Store_normal_stop_s": 32.713665053015575,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "8ddfd82a25ec00c8f96ecec21689f6a1c0fd13566dd1095bd790097f64d63f58"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b07-safetensors_disk_hot",
+      "block": 7,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "75adea52c3ce160d107c0278ec84d7ff543c206d07054bcbfe4fb5830519ac49",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_hot/controller-final.json",
+        "sha256": "5ec88464cedd749ec9d15a0d43d0d5634c0241f5270400709d0cc73aefad3ec3"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "fdd11a640b003e29c8cfde327a6634fc91fae4d7aa6d8245eb8ac4939a68ddfc"
+      },
+      "recorded_controller_elapsed_s": 1099.3381144101731,
+      "Prep_plus_A_s": 569.537300144,
+      "contiguous_s": 569.629801976,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "8b0e87cd7d079da50eeccddafa3d1264168d9ae80dda06da25d3b406ab4f224c"
+          },
+          "normal_completion_monotonic": 1155326.251447179,
+          "normal_cleanup_monotonic": 1155326.281788702,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.02600878314115
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "57b06af66b7e82577265b6edae42a9574db1981db64b007bbc227c486fd73244"
+          },
+          "normal_completion_monotonic": 1155325.870772273,
+          "normal_cleanup_monotonic": 1155325.909606986,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05487686605193
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "0cca7885fbe7676ba5cd9e3702f7f719937cb73f221105b9611e548520d70eb8"
+      },
+      "Store_normal_stop_s": 33.0611124150455,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "b0824a45c9f37aaea1307147f7d2b2e3eeb65a7401fa0ab4544c70573414b958"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_pool_hit",
+      "block": 7,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_pool_hit-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "19040d78a5e9e763db54ff58e08be4c3bb5f7bf8733487d6d8794ad9c318b482",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-store_pool_hit/controller-final.json",
+        "sha256": "83f79f3dd0787d554828fb7288b855ed706df6a772ec5be05676f2dd16f785c7"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-store_pool_hit/cleanup-result.json",
+        "sha256": "820400b6638f9edebe5882bb9e9ec8763ac75f05127a9362f8bba7f95298f1da"
+      },
+      "recorded_controller_elapsed_s": 782.4877338260412,
+      "Prep_plus_A_s": 250.47832884500002,
+      "contiguous_s": 250.570534109,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "fd203acbdb413e3475e500ddac35f89ce3a62d5ea588570b3a6cef1b666745e3"
+          },
+          "normal_completion_monotonic": 1156109.030962317,
+          "normal_cleanup_monotonic": 1156109.100378908,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01551964203827
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "4ed8daf046461ed2234ff1bf45d0c8025bb7a731685e8d83f1609bbbde65cc93"
+          },
+          "normal_completion_monotonic": 1156108.659267536,
+          "normal_cleanup_monotonic": 1156108.728493419,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.058509992901236
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_pool_hit/store-stop-exit60.json",
+        "sha256": "9be19dbed260315d70571e762c5ff3ad7d4dcb00370c834974cdcd1485f60667"
+      },
+      "Store_normal_stop_s": 32.79051247285679,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_pool_hit/container-exit-summary.json",
+        "sha256": "d8d8afa1ad5730d1bcfb57808a908e8c47ad9960fa8eb741d76c42e69ba998eb"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b07-store_disk_cold",
+      "block": 7,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b07-store_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "5c8a066d46f0ca5f26ef689fc51271b0fccca19be3c3f1ce7445e22016bcb570",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-store_disk_cold/controller-final.json",
+        "sha256": "89ea7a863834861d534ee2d75ce6b6d037ee1a94a52f4eaefbff783a3a922067"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-store_disk_cold/cleanup-result.json",
+        "sha256": "6675451af95beb5c0078def7722b49fe107d494b1a717b18adb7e6a304a7a157"
+      },
+      "recorded_controller_elapsed_s": 795.778630439192,
+      "Prep_plus_A_s": 268.664056718,
+      "contiguous_s": 268.760336181,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "e417ef8dac423357ca1a29644e94abb568ac3657e2a15606b2223df7a32c89d0"
+          },
+          "normal_completion_monotonic": 1156904.730245666,
+          "normal_cleanup_monotonic": 1156904.734391884,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.02708442416042
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "c0f5b5f1837046309a86fc3bd6f0c221da2e902c537b54404e05be2e1b45bb73"
+          },
+          "normal_completion_monotonic": 1156904.359892061,
+          "normal_cleanup_monotonic": 1156904.429927632,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.042655426077545
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_disk_cold/store-stop-exit60.json",
+        "sha256": "a909ba1f9d96adf2b363ef435ddb56d610988d957f2ec0dc941a12eeb46db00f"
+      },
+      "Store_normal_stop_s": 32.4388233020436,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-store_disk_cold/container-exit-summary.json",
+        "sha256": "7f4dbdc296d6f4d3547b32b5b8ea7fae8b78792662222be08a28f10e3ffbe789"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_cold",
+      "block": 8,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "43577c6b051e4c235218a5d85be8e5cb903bc1d1e788812e95cc408aa791dc49",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_cold/controller-final.json",
+        "sha256": "e6e21d4d8fe7d95348561dd47ab52a135ad11d6ede4f0d1c58d946b21278e825"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "b7694745f51c67f4e095420d2edd1d77d22bd4021b667a286bb04700b3589653"
+      },
+      "recorded_controller_elapsed_s": 1834.256140380865,
+      "Prep_plus_A_s": 1302.0488519809999,
+      "contiguous_s": 1302.141596433,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "830ace3a76ebea914e17ea340bfcf6e1233253a4b73e84106050e840c7da931d"
+          },
+          "normal_completion_monotonic": 1162798.566005674,
+          "normal_cleanup_monotonic": 1162798.571256683,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01131402608007
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "e57a063004ef81a5d96fca8f6bfd4d40bec11bbcadea38d554b66ba256788a0c"
+          },
+          "normal_completion_monotonic": 1162798.19958899,
+          "normal_cleanup_monotonic": 1162798.236997463,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03778265300207
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "ee73bf4107fc343c0eee8ea67ab649d960416646bf32e9dd84b1988f2cbd848d"
+      },
+      "Store_normal_stop_s": 33.10001403209753,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "4acf207bbada63ba3c63e1eb725a401bdf41f4a6229ffeb41ee9d78d195e6fa0"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b08-safetensors_disk_hot",
+      "block": 8,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "71def020c7d819896e1c08043e777be26be427fdf315fe82c54cd8ba0f17ca2b",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_hot/controller-final.json",
+        "sha256": "0f2c9f53a9faa641c1214d266a0b9da03ffbd6426929e41ce23f37896b7982ce"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "11015f72b6ba1d71646c6af36264bb4954e874c343d9224c2ae7156ba890379c"
+      },
+      "recorded_controller_elapsed_s": 1090.3524507258553,
+      "Prep_plus_A_s": 558.144346223,
+      "contiguous_s": 558.238919293,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "c907a4583f0ed9e205dfeebb55f745e6508657618974aa33fab624002f31b033"
+          },
+          "normal_completion_monotonic": 1163888.629952209,
+          "normal_cleanup_monotonic": 1163888.657629119,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01253400510177
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "2b2e7ed62e1fe768f5697d2cfcc31de68667143562100028cf08cbc2bf8db4d9"
+          },
+          "normal_completion_monotonic": 1163888.234828373,
+          "normal_cleanup_monotonic": 1163888.263179803,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00596256903373
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "fe7b992cc1c929d8d4a42fdee867d2e7da49f170e3b1f74258fde0c1ada72e2e"
+      },
+      "Store_normal_stop_s": 32.625333545031026,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "4917f408c746a9fe266908979d29ef69159cfe6552517e2547f17ea845440ea2"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_pool_hit",
+      "block": 8,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_pool_hit-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "3562c3ce40d826a094e478104f553786797697a58eb58c39641a19cc7457f3fb",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-store_pool_hit/controller-final.json",
+        "sha256": "8456a63a75c3c2c2722fc88a98f5ec346e6b0f048bea3fccb6d206e2b240f427"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-store_pool_hit/cleanup-result.json",
+        "sha256": "0a1db9c7ecc0c6bd089b96d80dcbbddf33622962d255ee5a29bd55cd3c77f2c9"
+      },
+      "recorded_controller_elapsed_s": 777.6157222802285,
+      "Prep_plus_A_s": 251.06808461100002,
+      "contiguous_s": 251.16127257,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "5669741ee7b70d41685bd5f97b72c358f6ade4b21341fb10a5f464571b85d52c"
+          },
+          "normal_completion_monotonic": 1164666.358979913,
+          "normal_cleanup_monotonic": 1164666.376357016,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00597217306495
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "21675b9252c02b5351c2718c7d6beb252c1d9eb77a5233027753886f2c693313"
+          },
+          "normal_completion_monotonic": 1164665.923955828,
+          "normal_cleanup_monotonic": 1164665.965419756,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.01286802091636
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_pool_hit/store-stop-exit60.json",
+        "sha256": "249fc3fa938185840bf03a9588bea9331ed00eeb84cf8c8e8046c47b1621da47"
+      },
+      "Store_normal_stop_s": 33.111915515968576,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_pool_hit/container-exit-summary.json",
+        "sha256": "9196a8f3ed9e594e902516752bb1bdfb1007ea9c22192e153bb315994d0dce2e"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b08-store_disk_cold",
+      "block": 8,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b08-store_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "b81920f846b324cab4ef587b013e75804e1e9c85e77a4e44bd154174d0a45c71",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-store_disk_cold/controller-final.json",
+        "sha256": "af592c46026cb6a8f66964deea08e04b55dab42b31ebf0279f1301ce76199e6a"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-store_disk_cold/cleanup-result.json",
+        "sha256": "c84246ba2fb6d7479f3d793a4ac18fd07b46ac43df42040981015334efc444ab"
+      },
+      "recorded_controller_elapsed_s": 800.0949641680345,
+      "Prep_plus_A_s": 268.648651305,
+      "contiguous_s": 268.745440992,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "81097d8922bf6ee18eee2fa380bb98d00e82f33a1280da6e4f2eba876bdf6a57"
+          },
+          "normal_completion_monotonic": 1165466.377900564,
+          "normal_cleanup_monotonic": 1165466.380375585,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.024326813872904
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "5448dd83e6a0783d92c9a8e800a978a9fddafd04d9e564a35014faa3df304892"
+          },
+          "normal_completion_monotonic": 1165465.944844661,
+          "normal_cleanup_monotonic": 1165465.956151655,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.0293093631044
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_disk_cold/store-stop-exit60.json",
+        "sha256": "cb326947327afe00229479bf5ca8e6c50ab17d7fe2c2a98ebd87061a06551d85"
+      },
+      "Store_normal_stop_s": 32.72954431292601,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-store_disk_cold/container-exit-summary.json",
+        "sha256": "17c6c8b4c469e26be6efc91e2b41739d2fd9ac2fd189227c87b2bf641e84924e"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_disk_cold",
+      "block": 10,
+      "condition": "store_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "4e9456daf50d65d16871313f47296a55a942a411c5ce150d287ffd0d696c0939",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-store_disk_cold/controller-final.json",
+        "sha256": "18a4eda8428c35263841f9a6e7405e223946aabe9f9558e99ec48e4db4202f67"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-store_disk_cold/cleanup-result.json",
+        "sha256": "0109e3114ac3802ba64790c64503e6a76eaa9332cb4851cb6a55d23073c2689e"
+      },
+      "recorded_controller_elapsed_s": 797.3603501401376,
+      "Prep_plus_A_s": 268.551035011,
+      "contiguous_s": 268.671039236,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_disk_cold/guard-head/guard-final.json",
+            "sha256": "ac531de324555fb61c1365ac98c77f06e7d1650a31df4830d9f858c63c303c14"
+          },
+          "normal_completion_monotonic": 1171698.454692407,
+          "normal_cleanup_monotonic": 1171698.486038875,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05150893586688
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_disk_cold/guard-worker/guard-final.json",
+            "sha256": "d77d521f19c74476ca003e775fc2db5258bd3aa01bfb6e0daa04d183bf58591f"
+          },
+          "normal_completion_monotonic": 1171698.023516905,
+          "normal_cleanup_monotonic": 1171698.055139561,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.05179220694117
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_disk_cold/store-stop-exit60.json",
+        "sha256": "d3520732e6090fecf3b84181a0221284fd4c82d28129d96ec8f62e4c8da9c447"
+      },
+      "Store_normal_stop_s": 32.450995980994776,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_disk_cold/container-exit-summary.json",
+        "sha256": "ac0ae97001a537e18033fbad9c3f1df2abdfc48e2e2b0db67bcd5fe75b71400f"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b10-store_pool_hit",
+      "block": 10,
+      "condition": "store_pool_hit",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-store_pool_hit-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "9b6196249ad37ae2eb6fd263c997ddf0e993e7013ba7294b5109048fb4efde72",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-store_pool_hit/controller-final.json",
+        "sha256": "f9efdd403ed645215836e3edfc48d8110d361acf404eff8530072523ccaf2d83"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-store_pool_hit/cleanup-result.json",
+        "sha256": "ecfa0cc3a5664b4226e5719b4725574f859c27ef0b13d2ebab0368e05587c772"
+      },
+      "recorded_controller_elapsed_s": 779.826886045048,
+      "Prep_plus_A_s": 252.305548003,
+      "contiguous_s": 252.399394379,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_pool_hit/guard-head/guard-final.json",
+            "sha256": "9e8ab3fc6c9a5485cd2da8942c46174a56728d7499db2d7f6c85f04757282361"
+          },
+          "normal_completion_monotonic": 1172478.784786004,
+          "normal_cleanup_monotonic": 1172478.785257552,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.011202248046175
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_pool_hit/guard-worker/guard-final.json",
+            "sha256": "73d6ed7b74e5f8777597bf8853aad9bb35a5db1f341654e1d9d001093f6e04d4"
+          },
+          "normal_completion_monotonic": 1172478.427454069,
+          "normal_cleanup_monotonic": 1172478.445579746,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.0418494020123
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_pool_hit/store-stop-exit60.json",
+        "sha256": "1fc256cc8180d870d26d325b181c31d7dc655d866c2c76d52f981c32e4d92ce5"
+      },
+      "Store_normal_stop_s": 32.449163208017126,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-store_pool_hit/container-exit-summary.json",
+        "sha256": "83e674f2342bb3404219f0f24e46a79cc31ac5d5f50102c22bf01d2d2217aa86"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_hot",
+      "block": 10,
+      "condition": "safetensors_disk_hot",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_hot-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "9cf847777ddfab82d0e74db3cb3c2ac9345d2fd3c7eaaab5c7fd1cc37a8b8be6",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_hot/controller-final.json",
+        "sha256": "fdd86bb1812841d13240178b552cfc8a669f7748040c0da5bbbc83f3a956f1fb"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_hot/cleanup-result.json",
+        "sha256": "e065fd6602e5f9f31893c2469717e21562778bdad9597270cbef34620299b758"
+      },
+      "recorded_controller_elapsed_s": 1092.0362039660104,
+      "Prep_plus_A_s": 560.988312195,
+      "contiguous_s": 561.082971503,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_hot/guard-head/guard-final.json",
+            "sha256": "906d884131133583fbd0082da3d3d78ace3249df1c3f072cbedf1e69054b2ac5"
+          },
+          "normal_completion_monotonic": 1173571.128641307,
+          "normal_cleanup_monotonic": 1173571.148325392,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.023858261993155
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_hot/guard-worker/guard-final.json",
+            "sha256": "e3ca5ede6fa378bf10a7c6fc0cabe7b7609506e0a97c07593e914ece738af797"
+          },
+          "normal_completion_monotonic": 1173570.116080723,
+          "normal_cleanup_monotonic": 1173570.138200452,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.06326763285324
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_hot/store-stop-exit60.json",
+        "sha256": "8933bdf4f942584899f1d2fc0a7ee71302e3d0c0f61f5993f786e10f3b8a37bc"
+      },
+      "Store_normal_stop_s": 33.03242318681441,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_hot/container-exit-summary.json",
+        "sha256": "744c575ccc9785c3c03482b6ef6f662418c17c38f0d61080748604efa1d5e953"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    },
+    {
+      "run_id": "kimi-four-v1-b10-safetensors_disk_cold",
+      "block": 10,
+      "condition": "safetensors_disk_cold",
+      "source_version": [
+        "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+        "b3ab9dc82aa5257eccc6f421036a32657a38349cb1325dccbca0319ae86b1086"
+      ],
+      "command_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-v1-b10-safetensors_disk_cold-formal-v3-b3ab9dc82aa5-command.json",
+        "sha256": "a552bd90baa7eff269c2a8741a9ad8299aedb96bfcb16d35ea5afa6673a6d8da",
+        "root_python_sha256": "04c717d339be1a723be05b977336215ed50d43dc3d2aac99495008e0ad3c9af2"
+      },
+      "controller_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_cold/controller-final.json",
+        "sha256": "b79641c34bc19ff357c81d3d1d146518bfdaf0742212b96c189f233180fcc626"
+      },
+      "cleanup_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_cold/cleanup-result.json",
+        "sha256": "1e4c69aa8fbe574ce1905f1a51cadd2b7606d89b323cb7746879977e2aacbf94"
+      },
+      "recorded_controller_elapsed_s": 1876.2170546569396,
+      "Prep_plus_A_s": 1344.438452191,
+      "contiguous_s": 1344.532137105,
+      "absolute_start_ns": null,
+      "absolute_elapsed_capture_ns": null,
+      "absolute_endpoint_note": "Selected final receipt preserves elapsedfloat but not the original outer ActiveEnterTimestampMonotonic or independent final elapsedcapture timestamp; no mtime/wall reconstruction.",
+      "normal_guard_proofs": {
+        "head": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_cold/guard-head/guard-final.json",
+            "sha256": "9b1988313f5ccd35c69b51675c4447394542a72eba141b78f7fd5b9f7cb564ae"
+          },
+          "normal_completion_monotonic": 1175445.85783396,
+          "normal_cleanup_monotonic": 1175445.921292731,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.00062197283842
+        },
+        "worker": {
+          "ref": {
+            "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_cold/guard-worker/guard-final.json",
+            "sha256": "72e2b36437cc765390d52b9fdcd80da62e173e10e0706cf1def32b94c9174b01"
+          },
+          "normal_completion_monotonic": 1175445.422819439,
+          "normal_cleanup_monotonic": 1175445.45228043,
+          "abort_monotonic": null,
+          "quiet_seconds": 60.03384164813906
+        }
+      },
+      "Store_normal_stop_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_cold/store-stop-exit60.json",
+        "sha256": "092a8f58767a9ae32f68d77dc5e4a9bd57a7782d84c2f88d4e8cc014034dd56b"
+      },
+      "Store_normal_stop_s": 33.04696113592945,
+      "container_exit_derived_ref": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_cold/container-exit-summary.json",
+        "sha256": "04e45f258283dc1a36e9099f4f08c49112bf2f0cb77ca85eb2223d5185e4e16e"
+      },
+      "normal_exit_verified": true,
+      "forced_cleanup_used_as_normal": false
+    }
+  ],
+  "Figure4_label": "Mean actual controller-unitactivation to success elapsedcapture envelope, includingnormalteardown/mandatedobservations; not Prep+A, fullstudyassetcost, or exactwholeOSprocessduration.",
+  "not_performed": [
+    "No current systemd/container query or execution",
+    "No GPU/Store/weights/Git/historicalrewrite"
+  ]
+}
