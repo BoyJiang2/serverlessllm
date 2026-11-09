@@ -100,3 +100,6 @@ CPU故障回归在785a冻结源码上重现失败、在修订上通过；仅证�
 实际无GPU退出控制保留4次尝试：2GiB容器报OOM；两次loopback/512任务配置未能使驱动加入；匹配既有head4CPU/8GiB、私有bridge/实际IP、8192任务上限的控制通过，HTTP0、Ray受控1、无force/无残留/无OOM且容器已删除。成功前快照661任务、memory.current3405623296B（含文件缓存，不是RSS峰值）。多变量配置纠正不当作网络或历史exit137的根因证明。CPU控制不加载模型/Store池，record.success仍false，单列component_pass，不能算GLM服务PASS。原始控制失败和成本保留在controller-supplement-cpu-signal-probe.json。
 
 当前90项相关CPU检查通过；实际模型补测仍须新commit/清单完整R1、新身份/独立guard probe与新鲜资源准入。首批不重置/替换；如新修订继续测量，另列独立cohort及新ID、代码/协议修订，不把旧失败或C23六块合并。
+
+
+第二批首条39ef784c在worker/Store/模型启动前被实际Docker Env检查拒绝。784195源码及R1漏查up的head_plan调用未传condition/start_sha；plan函数自身正确不代表实际调用接齐。原批终态0/1/3不变，原失败不重试。已有up调用片段CPU回归修复前四条件均失败、修复后通过，默认debug事件目录原值保持。仅在原调用补传与worker相同的格式/query/condition/start_sha，不改生产代码或新增包装层。独立事后观察49样本60.467971145秒、八卡0/无GPU进程/无本run容器，临时timer/slice已核停止；仍非成功Controller。完整独立R1须重新绑定当前commit。Ray无外层force证据不代表其内部所有子进程信号已逐个审计。

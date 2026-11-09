@@ -22,32 +22,40 @@
       "condition": "safetensors_disk_cold",
       "run_id": "sllm-debug-20261109T130745Z-39ef784c",
       "holder": "25f527525b2a366facdf050ddb6a2251",
-      "status": "not_started"
+      "status": "failed",
+      "primary_failure": "up head_plan caller omitted supplement condition; actual Env rejected",
+      "controller_success_metric": null,
+      "model_started": false,
+      "store_pool_started": false,
+      "post_failure_release_s": 60.467971145
     },
     {
       "condition": "safetensors_disk_hot",
       "run_id": "sllm-debug-20261109T130745Z-4a2a6569",
       "holder": "53f179813fa900c361f7a876f9fac308",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "prior admission failed; cohort halted, not replacement"
     },
     {
       "condition": "store_disk_cold",
       "run_id": "sllm-debug-20261109T130745Z-c6bdbeb7",
       "holder": "a7bd6f7c075b688f6d0a9e015573c14e",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "prior admission failed; cohort halted, not replacement"
     },
     {
       "condition": "store_pool_hit",
       "run_id": "sllm-debug-20261109T130745Z-f03c5a97",
       "holder": "870d21b71aa56adee9b293a4ec9748d8",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "prior admission failed; cohort halted, not replacement"
     }
   ],
-  "batch_state": "source_R1_pass_field_gates_pending",
+  "batch_state": "stopped_after_pre_model_head_admission_failure",
   "counts": {
     "success": 0,
-    "failed": 0,
-    "not_started": 4
+    "failed": 1,
+    "not_started": 3
   },
   "prior_cohort": {
     "file": "controller-supplement-batch.json",

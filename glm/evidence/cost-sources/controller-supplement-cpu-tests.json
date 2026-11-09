@@ -3,7 +3,7 @@
   "checks": [
     {
       "suite": "debug_stack_v1/test_debug_*.py",
-      "passed": 68
+      "passed": 69
     },
     {
       "suite": "glm/tools/test_final_costs.py",
@@ -18,7 +18,7 @@
       "passed": 10
     }
   ],
-  "tests_passed": 90,
+  "tests_passed": 91,
   "gpu_execution": false,
   "native_pool_created": false,
   "full_r1_status": "post-runtime source and budget correction pending full independent R1",
@@ -142,5 +142,26 @@
     "finalizer rejects original JSONL span below60 even if self-report claims60",
     "SLLM SIGINT exit0 before Ray SIGTERM; Ray exit1 rejected with unexpected-deceased log"
   ],
-  "cpu_signal_control_pass": "Matching head4CPU/8GiB/bridge/observed-IP/8192-task control passed; actual exit0/1 and no residual/force/OOM. Not model proof."
+  "cpu_signal_control_pass": "Matching head4CPU/8GiB/bridge/observed-IP/8192-task control passed; actual exit0/1 and no residual/force/OOM. Not model proof.",
+  "postruntime_head_caller_regression": {
+    "frozen_base": "784195a9c83002e94b8e4320fc8c4396e3e1f167",
+    "actual_up_head_assignment_executed": true,
+    "before": {
+      "tests": 30,
+      "failures": 4,
+      "conditions": [
+        "safetensors_disk_cold",
+        "safetensors_disk_hot",
+        "store_disk_cold",
+        "store_pool_hit"
+      ],
+      "actual_env": null,
+      "expected_env": "/r/events-service13a"
+    },
+    "after": {
+      "debug_tests": 69,
+      "failures": 0
+    },
+    "scope": "CPU actual caller fragment only; no model/Store PASS"
+  }
 }

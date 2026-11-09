@@ -139,6 +139,23 @@ class Source(unittest.TestCase):
 
 
 class Ownership(unittest.TestCase):
+    def test_up_head_call_propagates_supplement_inputs(self):
+        tree = ast.parse((HERE/'debug_stack.py').read_text())
+        up = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'up')
+        statement = next(node for node in ast.walk(up) if isinstance(node, ast.Assign)
+                         and any(isinstance(target, ast.Name) and target.id == 'head_plan' for target in node.targets))
+        code = compile(ast.Module(body=[statement], type_ignores=[]), '<actual up head call>', 'exec')
+        for condition in (None, 'safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'):
+            args = Mock(seconds=1800, weight_format='serverless_llm' if condition and condition.startswith('store_') else 'safetensors',
+                        no_query=False)
+            namespace = dict(vars(d), args=args, condition=condition, run_id=STATE['run_id'], holder=STATE['holder'],
+                             active=d.plan.ACTIVE, deadline=12345, run_root=Path('/unused'), sha256=lambda _: 'a'*64)
+            with self.subTest(condition=condition):
+                exec(code, namespace)
+                expected = (d.plan.worker_spec('x')['env']['SLLM_EVENT_DIR'] if condition
+                            else d.plan.head_spec()['env'].get('SLLM_EVENT_DIR'))
+                self.assertEqual(namespace['head_plan']['spec']['env'].get('SLLM_EVENT_DIR'), expected)
+
     def test_actual_supplement_head_env_must_include_shared_router_trace(self):
         state = dict(STATE, condition='safetensors_disk_cold')
         head = info(State=dict(Running=True, Pid=123))

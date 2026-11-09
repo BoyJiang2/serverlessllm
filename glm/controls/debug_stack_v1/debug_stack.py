@@ -346,7 +346,9 @@ def up(args, state=None):
             state['image'] = dict(head=dict(image_id=plan.IMAGE, restored=False))
         else:
             state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
-        head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', active=active, deadline_unix=deadline)['head']
+        head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', args.weight_format, not args.no_query,
+                              active=active, deadline_unix=deadline, supplement_condition=condition,
+                              supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['head']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
