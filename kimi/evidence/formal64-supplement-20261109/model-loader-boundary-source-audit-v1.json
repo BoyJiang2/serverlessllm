@@ -1,0 +1,231 @@
+{
+  "status": "READ_ONLY_EXISTING_STOPPED_CONTAINER_AND_PINNED_OVERLAY_SOURCE_NO_EXECUTION",
+  "cid": "74cdb57497a762e8acf7210f2d3aef04a71594099766456cc11e9f01ea750f10",
+  "sources": [
+    {
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py",
+      "sha256": "d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df",
+      "bytes": 3680,
+      "methods": [
+        {
+          "class": "BaseModelLoader",
+          "method": "load_weights",
+          "line": 37,
+          "end_line": 40,
+          "source": "def load_weights(self, model: nn.Module, model_config: ModelConfig) -> None:\n        \"\"\"Load weights into a model. This standalone API allows\n        inplace weights loading for an already-initialized model\"\"\"\n        raise NotImplementedError"
+        },
+        {
+          "class": "BaseModelLoader",
+          "method": "load_model",
+          "line": 43,
+          "end_line": 83,
+          "source": "def load_model(\n        self, vllm_config: VllmConfig, model_config: ModelConfig, prefix: str = \"\"\n    ) -> nn.Module:\n        \"\"\"Load a model with the given configurations.\"\"\"\n        device_config = vllm_config.device_config\n        load_config = vllm_config.load_config\n        load_device = (\n            device_config.device if load_config.device is None else load_config.device\n        )\n        target_device = torch.device(load_device)\n        with set_default_torch_dtype(model_config.dtype):\n            with target_device:\n                model = initialize_model(\n                    vllm_config=vllm_config,\n                    model_config=model_config,\n                    prefix=prefix,\n                )\n\n            log_model_inspection(model)\n\n            logger.debug(\"Loading weights on %s ...\", load_device)\n            self.load_weights(model, model_config)\n\n            # Log peak GPU memory after loading weights. This is needed\n            # to have test coverage on peak memory for online quantization.\n            if current_platform.is_cuda():\n                peak_memory = torch.accelerator.max_memory_allocated()\n                logger.debug_once(\n                    \"Peak GPU memory after loading weights: %s GiB\",\n                    format_gib(peak_memory),\n                    scope=\"local\",\n                )\n\n            # Process weights into kernel format. Note that when using online\n            # quantization, weights are (typically) quantized as they are loaded.\n            if _has_online_quant(model):\n                finalize_layerwise_processing(model, model_config)\n\n            process_weights_after_loading(model, model_config, target_device)\n\n        return model.eval()"
+        }
+      ]
+    },
+    {
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/default_loader.py",
+      "sha256": "e7252bc755341559c568bcc933225bd8ca855124fb553059b430000174a9feaa",
+      "bytes": 15352,
+      "methods": [
+        {
+          "class": "DefaultModelLoader",
+          "method": "load_weights",
+          "line": 368,
+          "end_line": 397,
+          "source": "def load_weights(self, model: nn.Module, model_config: ModelConfig) -> None:\n        if model_config.quantization == \"torchao\":\n            quant_config = get_quant_config(model_config, self.load_config)\n            if (\n                hasattr(quant_config, \"is_checkpoint_torchao_serialized\")\n                and quant_config.is_checkpoint_torchao_serialized\n                and torchao_version_at_least(\"0.15.0\")\n            ):\n                self.load_config.safetensors_load_strategy = \"torchao\"\n\n        self._init_ep_weight_filter(model_config)\n\n        weights_to_load = {name for name, _ in model.named_parameters()}\n        loaded_weights = model.load_weights(self.get_all_weights(model_config, model))\n\n        self.counter_after_loading_weights = time.perf_counter()\n        logger.info_once(\n            \"Loading weights took %.2f seconds\",\n            self.counter_after_loading_weights - self.counter_before_loading_weights,\n            scope=\"local\",\n        )\n        # We only enable strict check for non-quantized models\n        # that have loaded weights tracking currently.\n        if model_config.quantization is None and loaded_weights is not None:\n            weights_not_loaded = weights_to_load - loaded_weights\n            if weights_not_loaded:\n                raise ValueError(\n                    \"Following weights were not initialized from \"\n                    f\"checkpoint: {weights_not_loaded}\"\n                )"
+        }
+      ]
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+      "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c",
+      "bytes": 6814,
+      "methods": [
+        {
+          "method": "load_model",
+          "line": 64,
+          "end_line": 141,
+          "source": "def load_model(\n        self,\n        vllm_config: VllmConfig,\n        model_config: ModelConfig,\n        prefix: str = \"\",\n    ) -> nn.Module:\n        from sllm_store.torch import load_dict\n        from vllm.distributed import get_tensor_model_parallel_rank\n        \n        assert os.path.isdir(model_config.model)\n        \n        rank = get_tensor_model_parallel_rank()\n\n        local_model_path = model_config.model\n        local_model_path = os.path.join(local_model_path, f\"rank_{rank}\")\n\n        def remove_prefix(path, prefix):\n            # Normalize the paths to ensure consistency across different platforms\n            path = os.path.normpath(path)\n            prefix = os.path.normpath(prefix)\n            \n            # Check if the path starts with the prefix\n            if path.startswith(prefix):\n                # Return the path without the prefix\n                return path[len(prefix):].lstrip(os.sep)\n            \n            # Return the original path if the prefix doesn't exist\n            return path\n        \n        # vLLM needs a local model path to read model config but\n        # ServerlessLLM Store requires a global model path as the model ID\n        storage_path = os.getenv(\"STORAGE_PATH\", os.path.expanduser(\"~/models\"))\n        model_path = remove_prefix(local_model_path, storage_path)\n        \n        with set_default_torch_dtype(model_config.dtype):\n            # with torch.device(device_config.device):\n            with torch.device(\"cpu\"):\n                model = initialize_model(\n                    vllm_config=vllm_config,\n                    model_config=model_config,\n                    prefix=prefix,\n                )\n                model = model.eval()\n            state_dict = self._filter_subtensors(model.state_dict())\n            key_list = list(state_dict)\n            bindings = dict(model.named_parameters(\n                recurse=True, remove_duplicate=False))\n            bindings.update(model.named_buffers(\n                recurse=True, remove_duplicate=False))\n            del state_dict\n            # Release constructor storage before allocating the restored rank.\n            for key in key_list:\n                tensor = bindings[key]\n                tensor.data = torch.empty(0, dtype=tensor.dtype, device=\"cpu\")\n            gc.collect()\n\n            device_id = torch.cuda.current_device()\n            device_map = {\"\": device_id}\n            # Note: storage path is already included in the local model path\n            sllm_state_dict = load_dict(model_path, device_map)\n\n            for key in key_list:\n                bindings[key].data = sllm_state_dict[key]\n\n            for name, buffer in model.named_buffers(recurse=True):\n                if buffer.device.type != 'cuda':\n                    buffer.data = buffer.data.to(f'cuda:{device_id}')\n\n            for module in model.modules():\n                quant_method = getattr(module, \"quant_method\", None)\n                prepare_runtime = getattr(\n                    quant_method, \"prepare_runtime_for_restored_weights\", None)\n                if prepare_runtime is not None:\n                    prepare_runtime(module)\n            process_attention_weights_after_loading(\n                model, model_config, torch.device(f\"cuda:{device_id}\"))\n            \n        return model"
+        },
+        {
+          "method": "load_weights",
+          "line": 146,
+          "end_line": 147,
+          "source": "def load_weights(self, model, model_config):\n        pass"
+        }
+      ]
+    }
+  ],
+  "lora_config_source": {
+    "path": "/usr/local/lib/python3.12/dist-packages/vllm/engine/arg_utils.py",
+    "sha256": "b576b4e3156e7669857e2ed6cbd9a4ac50062472501bc39a80d3642991b5f362",
+    "line_excerpts": [
+      {
+        "line": 1842,
+        "text": "                \"non multimodal model\""
+      },
+      {
+        "line": 1843,
+        "text": "            )"
+      },
+      {
+        "line": 1844,
+        "text": ""
+      },
+      {
+        "line": 1845,
+        "text": "        lora_config = ("
+      },
+      {
+        "line": 1846,
+        "text": "            LoRAConfig("
+      },
+      {
+        "line": 1847,
+        "text": "                max_lora_rank=self.max_lora_rank,"
+      },
+      {
+        "line": 1848,
+        "text": "                max_loras=self.max_loras,"
+      },
+      {
+        "line": 1849,
+        "text": "                default_mm_loras=self.default_mm_loras,"
+      },
+      {
+        "line": 1850,
+        "text": "                fully_sharded_loras=self.fully_sharded_loras,"
+      },
+      {
+        "line": 1851,
+        "text": "                lora_dtype=self.lora_dtype,"
+      },
+      {
+        "line": 1852,
+        "text": "                target_modules=self.lora_target_modules,"
+      },
+      {
+        "line": 1853,
+        "text": "                enable_tower_connector_lora=self.enable_tower_connector_lora,"
+      },
+      {
+        "line": 1854,
+        "text": "                specialize_active_lora=self.specialize_active_lora,"
+      },
+      {
+        "line": 1855,
+        "text": "                max_cpu_loras=self.max_cpu_loras"
+      },
+      {
+        "line": 1856,
+        "text": "                if self.max_cpu_loras and self.max_cpu_loras > 0"
+      },
+      {
+        "line": 1857,
+        "text": "                else None,"
+      },
+      {
+        "line": 1858,
+        "text": "            )"
+      },
+      {
+        "line": 1859,
+        "text": "            if self.enable_lora"
+      },
+      {
+        "line": 1860,
+        "text": "            else None"
+      },
+      {
+        "line": 1861,
+        "text": "        )"
+      },
+      {
+        "line": 1862,
+        "text": ""
+      },
+      {
+        "line": 1863,
+        "text": "        if ("
+      },
+      {
+        "line": 1864,
+        "text": "            lora_config is not None"
+      },
+      {
+        "line": 1865,
+        "text": "            and speculative_config is not None"
+      },
+      {
+        "line": 1866,
+        "text": "            and scheduler_config.max_num_batched_tokens"
+      },
+      {
+        "line": 1867,
+        "text": "            < ("
+      },
+      {
+        "line": 1868,
+        "text": "                scheduler_config.max_num_seqs"
+      },
+      {
+        "line": 1869,
+        "text": "                * (speculative_config.num_speculative_tokens + 1)"
+      },
+      {
+        "line": 1870,
+        "text": "            )"
+      },
+      {
+        "line": 1871,
+        "text": "        ):"
+      },
+      {
+        "line": 1872,
+        "text": "            raise ValueError("
+      },
+      {
+        "line": 1873,
+        "text": "                \"Consider increasing max_num_batched_tokens or \""
+      },
+      {
+        "line": 1874,
+        "text": "                \"decreasing num_speculative_tokens\""
+      },
+      {
+        "line": 1875,
+        "text": "            )"
+      },
+      {
+        "line": 1876,
+        "text": ""
+      },
+      {
+        "line": 1877,
+        "text": "        # bitsandbytes pre-quantized model need a specific model loader"
+      },
+      {
+        "line": 1878,
+        "text": "        if model_config.quantization == \"bitsandbytes\":"
+      },
+      {
+        "line": 1879,
+        "text": "            self.quantization = self.load_format = \"bitsandbytes\""
+      },
+      {
+        "line": 1880,
+        "text": ""
+      },
+      {
+        "line": 1881,
+        "text": "        # Attention config overrides"
+      },
+      {
+        "line": 1882,
+        "text": "        attention_config = copy.deepcopy(self.attention_config)"
+      }
+    ]
+  },
+  "limits": "CPU/source derivation, not a new live object dump; source files were read from exited container filesystem and pinned host overlay."
+}

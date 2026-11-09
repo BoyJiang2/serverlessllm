@@ -1,0 +1,951 @@
+{
+  "schema": "kimi-formal64-store-stop-forensics-v1",
+  "status": "READONLY_FAILURE_PHASE_LOCALIZED_CAUSE_UNRESOLVED_NO_RETRY",
+  "epoch": 1794207380.0732608,
+  "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold",
+  "raw_export": {
+    "manifest": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/EXPORT-MANIFEST.json",
+      "sha256": "4c7eaed3933603df657381b8679f8ae339be77334b6f3044c98d331c381d6840",
+      "bytes": 48705
+    },
+    "verified_files": 126,
+    "verified_bytes": 669682
+  },
+  "current_outcome": {
+    "store_stop": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/store-stop-exit60.json",
+      "sha256": "46bae7d1fa753c334b7a04219bdd18c319a3f6838a0adab003524106611b2ee5",
+      "bytes": 614,
+      "value": {
+        "protocol": "NEW_PROTOCOL_EXIT60_L1",
+        "criterion_seconds": 60,
+        "owner": {
+          "pid": 1495474,
+          "startticks": 802293651,
+          "state": "S",
+          "ppid": 1489561,
+          "cgroup": "0::/system.slice/docker-0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7.scope"
+        },
+        "pass": false,
+        "begin_monotonic": 8024006.942325084,
+        "deadline_monotonic": 8024066.942325084,
+        "measurement": "controller Stop call through original finish and strictgone, including IPC and diagnostic overhead",
+        "elapsed": 60.084781183861196,
+        "error_type": "AssertionError",
+        "error": "Store exit60 criterion exceeded",
+        "failure_reason": "criterion60_exceeded"
+      }
+    },
+    "controller_failed": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/controller-failed.json",
+      "sha256": "42754deef93109945caf8d11cca7335f75f94c86432a07ef295cd7fabee0a4fa",
+      "bytes": 1707
+    },
+    "block_final": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/block-final.json",
+      "sha256": "fd9b00d989cd2d270aab3b30b6d821f68d459639d1990ce8a6d65f3e992bf7de",
+      "bytes": 4853
+    },
+    "formal_block_n": 0,
+    "first_SFhot": "QUALIFIED_PASS_SEPARATE_N1_DESCRIPTIVE_ONLY",
+    "Storecold": "EXIT60_FAIL_MODEL_RAW_MEASUREMENTS_NOT_QUALIFIED",
+    "later_two": "NOT_STARTED",
+    "no_retry": true
+  },
+  "proc_snapshots": [
+    {
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/store-stop-diagnostic-10.json",
+        "sha256": "f6467e4a8f4530afb80540b17d682b19412673dfbf3edd90c64ee6055ce364a9",
+        "bytes": 16388
+      },
+      "label": "store-stop-diagnostic-10.json",
+      "recorded_elapsed_after_snapshot_s": 10.506919119507074,
+      "owner": {
+        "pid": 1495474,
+        "startticks": 802293651,
+        "state": "S",
+        "ppid": 1489561,
+        "cgroup": "0::/system.slice/docker-0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7.scope"
+      },
+      "thread_count": 20,
+      "truncated": false,
+      "main": {
+        "tid": 1495474,
+        "startticks": 802293651,
+        "state_from_stat": "R",
+        "user_ticks": 579,
+        "system_ticks": 27305,
+        "vsize_bytes": 718561562624,
+        "rss_pages": 161327921,
+        "wchan": "0",
+        "syscall_number_and_fd_request": [
+          "running"
+        ],
+        "kernel_functions": []
+      },
+      "process_status_summary": {
+        "NSpid": "1495474\t1238",
+        "State": "R (running)",
+        "Uid": "2147\t2147\t2147\t2147",
+        "VmRSS": "645311684 kB",
+        "RssAnon": "644346352 kB",
+        "VmLck": "0 kB",
+        "VmPin": "0 kB",
+        "Cpus_allowed_list": "0-239",
+        "Mems_allowed_list": "0-1"
+      },
+      "other_thread_wait_channels": {
+        "grpc_global_tim:1495889": "futex_wait_queue_me",
+        "python3:1495890": "ep_poll",
+        "cuda0000300000d:1495908": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496297": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496322": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496338": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496361": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496521": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496532": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496538": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496620": "do_poll.constprop.0",
+        "python3:1574549": "futex_wait_queue_me",
+        "python3:1574631": "futex_wait_queue_me",
+        "python3:1574847": "futex_wait_queue_me",
+        "python3:1574852": "futex_wait_queue_me",
+        "python3:1574856": "futex_wait_queue_me",
+        "python3:1574857": "futex_wait_queue_me",
+        "python3:1574864": "futex_wait_queue_me",
+        "python3:1574934": "futex_wait_queue_me"
+      }
+    },
+    {
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/store-stop-diagnostic-20.json",
+        "sha256": "08d85e0d30f298137866243b7a705a360df574f66d6822ee495234c119dcbe52",
+        "bytes": 17200
+      },
+      "label": "store-stop-diagnostic-20.json",
+      "recorded_elapsed_after_snapshot_s": 20.42311259545386,
+      "owner": {
+        "pid": 1495474,
+        "startticks": 802293651,
+        "state": "S",
+        "ppid": 1489561,
+        "cgroup": "0::/system.slice/docker-0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7.scope"
+      },
+      "thread_count": 20,
+      "truncated": false,
+      "main": {
+        "tid": 1495474,
+        "startticks": 802293651,
+        "state_from_stat": "D",
+        "user_ticks": 587,
+        "system_ticks": 27756,
+        "vsize_bytes": 690372399104,
+        "rss_pages": 154446221,
+        "wchan": "os_acquire_rwlock_read",
+        "syscall_number_and_fd_request": [
+          "16",
+          "0xf",
+          "0xc0104629"
+        ],
+        "kernel_functions": [
+          "os_acquire_rwlock_read+0x35/0x50 [nvidia]",
+          "portSyncRwLockAcquireRead+0x10/0x40 [nvidia]",
+          "rmapiLockAcquire+0x2dc/0x360 [nvidia]",
+          "serverTopLock_Prologue+0x5c/0xe0 [nvidia]",
+          "serverFreeResourceTreeLockAndFindResource+0x30/0x150 [nvidia]",
+          "serverFreeResourceTree+0xed/0x970 [nvidia]",
+          "rmapiFreeWithSecInfo+0x12b/0x2b0 [nvidia]",
+          "rmapiFreeWithSecInfoTls+0x49/0x70 [nvidia]",
+          "Nv01FreeWithSecInfo+0x4e/0x60 [nvidia]",
+          "RmIoctl+0x449/0xda0 [nvidia]",
+          "rm_ioctl+0x66/0x4f0 [nvidia]",
+          "nvidia_unlocked_ioctl+0x83b/0x9b0 [nvidia]",
+          "__x64_sys_ioctl+0x92/0xd0",
+          "do_syscall_64+0x59/0xc0",
+          "entry_SYSCALL_64_after_hwframe+0x62/0xcc"
+        ]
+      },
+      "process_status_summary": {
+        "NSpid": "1495474\t1238",
+        "State": "D (disk sleep)",
+        "Uid": "2147\t2147\t2147\t2147",
+        "VmRSS": "617784884 kB",
+        "RssAnon": "616819552 kB",
+        "VmLck": "0 kB",
+        "VmPin": "0 kB",
+        "Cpus_allowed_list": "0-239",
+        "Mems_allowed_list": "0-1"
+      },
+      "other_thread_wait_channels": {
+        "grpc_global_tim:1495889": "futex_wait_queue_me",
+        "python3:1495890": "ep_poll",
+        "cuda0000300000d:1495908": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496297": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496322": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496338": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496361": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496521": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496532": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496538": "do_poll.constprop.0",
+        "cuda-EvtHandlr:1496620": "do_poll.constprop.0",
+        "python3:1574549": "futex_wait_queue_me",
+        "python3:1574631": "futex_wait_queue_me",
+        "python3:1574847": "futex_wait_queue_me",
+        "python3:1574852": "futex_wait_queue_me",
+        "python3:1574856": "futex_wait_queue_me",
+        "python3:1574857": "futex_wait_queue_me",
+        "python3:1574864": "futex_wait_queue_me",
+        "python3:1574934": "futex_wait_queue_me"
+      }
+    }
+  ],
+  "proc_counter_changes": {
+    "interval_between_recorded_elapsed_s": 9.916193475946784,
+    "main_user_ticks_delta": 8,
+    "main_system_ticks_delta": 451,
+    "main_vsize_bytes_delta": -28189163520,
+    "main_rss_pages_delta": -6881700,
+    "scope": "Proc counters indicate changes between non-atomic reads, not CUDA time or proof of cause; USER_HZ not captured, no CPU-seconds conversion."
+  },
+  "capture_semantics": {
+    "helper": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/gpu512_once_controller.py",
+      "sha256": "e06c11849d15fdefa828916e210451635ec399b942524eadcc5ab94e84652e66",
+      "bytes": 24330
+    },
+    "lines": [
+      [
+        34,
+        95
+      ],
+      [
+        97,
+        113
+      ]
+    ],
+    "sequence": "PinPID/startticks/cgroup/UID2147 and read process_status first; enumerate/sort max256threads; perthread recheck UID/Tgid/cgroup/startticks, read comm/stat/wchan/syscall/stack sequentially (4096bytes each), re-pin thread; re-pin process at end. Outer subprocess timeout<=1s. Controller elapsed is sampled after capture returns then saved. Labels10/20 are thresholds, not exact atomic sample instants.",
+    "owner_state_limit": "owner.state=S is the original stop-call identity snapshot, not the sampled main state. No /proc/maps,fd symlink resolution or userspace unwind was captured.",
+    "kernel_stack_limit": "20s snapshot is a sampled NVIDIA-driver read-lock acquisition/resource-free ioctl path. It does not identify lock owner/writer, exact CUDA API, or a permanent deadlock. Later same process/thread logs continue progressing."
+  },
+  "stderr": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/9-worker-official_module.stderr",
+      "sha256": "aac671b788351487cc05629c16e089513efc5969de672c87c0f43c6d0a687332",
+      "bytes": 25576
+    },
+    "main_namespace_pid": 1238,
+    "join": "Both proc snapshots NSpid1495474/1238 and same pinnedstartticks; glogprogress TID1238 matches service main namespacePID.",
+    "sequence": {
+      "pool_create_line": 13,
+      "pool_created_line": 14,
+      "first_model_unload_line": 151,
+      "all_models_unloaded_line": 175,
+      "release_begin_line": 176,
+      "progress_lines": [
+        177,
+        221
+      ]
+    },
+    "model_buffers_returned": {
+      "ranks": 8,
+      "chunks_per_rank": 1150,
+      "sum": 9200,
+      "scope": "Eight explicit Deallocating/Deallocated log pairs before Allmodelsunloaded; these are model borrower returns to pool, not CUDAHostUnregister or complete pool release."
+    },
+    "release_begin": {
+      "buffers": 10240,
+      "chunk_bytes": 67108864
+    },
+    "progress": [
+      {
+        "attempted": 64,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 1415,
+        "line": 177,
+        "text": "I20261109 06:22:46.561638  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=64 failed=0 total=10240 elapsed_ms=1415"
+      },
+      {
+        "attempted": 128,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 3982,
+        "line": 178,
+        "text": "I20261109 06:22:49.128717  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=128 failed=0 total=10240 elapsed_ms=3982"
+      },
+      {
+        "attempted": 192,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 5815,
+        "line": 179,
+        "text": "I20261109 06:22:50.961373  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=192 failed=0 total=10240 elapsed_ms=5815"
+      },
+      {
+        "attempted": 256,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 6379,
+        "line": 180,
+        "text": "I20261109 06:22:51.525542  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=256 failed=0 total=10240 elapsed_ms=6379"
+      },
+      {
+        "attempted": 320,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 7947,
+        "line": 181,
+        "text": "I20261109 06:22:53.093699  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=320 failed=0 total=10240 elapsed_ms=7947"
+      },
+      {
+        "attempted": 384,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 8307,
+        "line": 182,
+        "text": "I20261109 06:22:53.452994  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=384 failed=0 total=10240 elapsed_ms=8307"
+      },
+      {
+        "attempted": 448,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 11468,
+        "line": 183,
+        "text": "I20261109 06:22:56.614302  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=448 failed=0 total=10240 elapsed_ms=11468"
+      },
+      {
+        "attempted": 512,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 12582,
+        "line": 184,
+        "text": "I20261109 06:22:57.728502  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=512 failed=0 total=10240 elapsed_ms=12582"
+      },
+      {
+        "attempted": 576,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 14334,
+        "line": 185,
+        "text": "I20261109 06:22:59.480285  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=576 failed=0 total=10240 elapsed_ms=14334"
+      },
+      {
+        "attempted": 640,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 14637,
+        "line": 186,
+        "text": "I20261109 06:22:59.783111  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=640 failed=0 total=10240 elapsed_ms=14637"
+      },
+      {
+        "attempted": 704,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 16758,
+        "line": 187,
+        "text": "I20261109 06:23:01.903986  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=704 failed=0 total=10240 elapsed_ms=16758"
+      },
+      {
+        "attempted": 768,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 18825,
+        "line": 188,
+        "text": "I20261109 06:23:03.971374  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=768 failed=0 total=10240 elapsed_ms=18825"
+      },
+      {
+        "attempted": 832,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 19433,
+        "line": 189,
+        "text": "I20261109 06:23:04.579305  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=832 failed=0 total=10240 elapsed_ms=19433"
+      },
+      {
+        "attempted": 896,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 20875,
+        "line": 190,
+        "text": "I20261109 06:23:06.021670  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=896 failed=0 total=10240 elapsed_ms=20875"
+      },
+      {
+        "attempted": 960,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 22463,
+        "line": 191,
+        "text": "I20261109 06:23:07.609390  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=960 failed=0 total=10240 elapsed_ms=22463"
+      },
+      {
+        "attempted": 1024,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 24870,
+        "line": 192,
+        "text": "I20261109 06:23:10.015955  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1024 failed=0 total=10240 elapsed_ms=24870"
+      },
+      {
+        "attempted": 1088,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 25187,
+        "line": 193,
+        "text": "I20261109 06:23:10.333235  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1088 failed=0 total=10240 elapsed_ms=25187"
+      },
+      {
+        "attempted": 1152,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 26979,
+        "line": 194,
+        "text": "I20261109 06:23:12.125420  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1152 failed=0 total=10240 elapsed_ms=26979"
+      },
+      {
+        "attempted": 1216,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 27372,
+        "line": 195,
+        "text": "I20261109 06:23:12.518102  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1216 failed=0 total=10240 elapsed_ms=27372"
+      },
+      {
+        "attempted": 1280,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 30147,
+        "line": 196,
+        "text": "I20261109 06:23:15.293494  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1280 failed=0 total=10240 elapsed_ms=30147"
+      },
+      {
+        "attempted": 1344,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 31324,
+        "line": 197,
+        "text": "I20261109 06:23:16.469945  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1344 failed=0 total=10240 elapsed_ms=31324"
+      },
+      {
+        "attempted": 1408,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 32178,
+        "line": 198,
+        "text": "I20261109 06:23:17.324575  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1408 failed=0 total=10240 elapsed_ms=32178"
+      },
+      {
+        "attempted": 1472,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 33441,
+        "line": 199,
+        "text": "I20261109 06:23:18.587001  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1472 failed=0 total=10240 elapsed_ms=33441"
+      },
+      {
+        "attempted": 1536,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 35286,
+        "line": 200,
+        "text": "I20261109 06:23:20.432125  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1536 failed=0 total=10240 elapsed_ms=35286"
+      },
+      {
+        "attempted": 1600,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 37272,
+        "line": 201,
+        "text": "I20261109 06:23:22.418495  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1600 failed=0 total=10240 elapsed_ms=37272"
+      },
+      {
+        "attempted": 1664,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 37592,
+        "line": 202,
+        "text": "I20261109 06:23:22.738554  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1664 failed=0 total=10240 elapsed_ms=37592"
+      },
+      {
+        "attempted": 1728,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 39256,
+        "line": 203,
+        "text": "I20261109 06:23:24.401868  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1728 failed=0 total=10240 elapsed_ms=39256"
+      },
+      {
+        "attempted": 1792,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 39567,
+        "line": 204,
+        "text": "I20261109 06:23:24.713300  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1792 failed=0 total=10240 elapsed_ms=39567"
+      },
+      {
+        "attempted": 1856,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 41873,
+        "line": 205,
+        "text": "I20261109 06:23:27.019097  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1856 failed=0 total=10240 elapsed_ms=41873"
+      },
+      {
+        "attempted": 1920,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 43689,
+        "line": 206,
+        "text": "I20261109 06:23:28.834925  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1920 failed=0 total=10240 elapsed_ms=43689"
+      },
+      {
+        "attempted": 1984,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 44011,
+        "line": 207,
+        "text": "I20261109 06:23:29.157507  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1984 failed=0 total=10240 elapsed_ms=44011"
+      },
+      {
+        "attempted": 2048,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 45702,
+        "line": 208,
+        "text": "I20261109 06:23:30.848222  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2048 failed=0 total=10240 elapsed_ms=45702"
+      },
+      {
+        "attempted": 2112,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 46008,
+        "line": 209,
+        "text": "I20261109 06:23:31.153874  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2112 failed=0 total=10240 elapsed_ms=46008"
+      },
+      {
+        "attempted": 2176,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 48256,
+        "line": 210,
+        "text": "I20261109 06:23:33.402402  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2176 failed=0 total=10240 elapsed_ms=48256"
+      },
+      {
+        "attempted": 2240,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 49833,
+        "line": 211,
+        "text": "I20261109 06:23:34.978994  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2240 failed=0 total=10240 elapsed_ms=49833"
+      },
+      {
+        "attempted": 2304,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 50094,
+        "line": 212,
+        "text": "I20261109 06:23:35.240429  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2304 failed=0 total=10240 elapsed_ms=50094"
+      },
+      {
+        "attempted": 2368,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 51722,
+        "line": 213,
+        "text": "I20261109 06:23:36.868273  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2368 failed=0 total=10240 elapsed_ms=51722"
+      },
+      {
+        "attempted": 2432,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 51973,
+        "line": 214,
+        "text": "I20261109 06:23:37.119580  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2432 failed=0 total=10240 elapsed_ms=51973"
+      },
+      {
+        "attempted": 2496,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 52564,
+        "line": 215,
+        "text": "I20261109 06:23:37.710326  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2496 failed=0 total=10240 elapsed_ms=52564"
+      },
+      {
+        "attempted": 2560,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 55497,
+        "line": 216,
+        "text": "I20261109 06:23:40.642899  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2560 failed=0 total=10240 elapsed_ms=55497"
+      },
+      {
+        "attempted": 2624,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 55880,
+        "line": 217,
+        "text": "I20261109 06:23:41.026525  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2624 failed=0 total=10240 elapsed_ms=55880"
+      },
+      {
+        "attempted": 2688,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 56305,
+        "line": 218,
+        "text": "I20261109 06:23:41.451082  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2688 failed=0 total=10240 elapsed_ms=56305"
+      },
+      {
+        "attempted": 2752,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 57698,
+        "line": 219,
+        "text": "I20261109 06:23:42.844609  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2752 failed=0 total=10240 elapsed_ms=57698"
+      },
+      {
+        "attempted": 2816,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 57976,
+        "line": 220,
+        "text": "I20261109 06:23:43.122475  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2816 failed=0 total=10240 elapsed_ms=57976"
+      },
+      {
+        "attempted": 2880,
+        "failed": 0,
+        "total": 10240,
+        "elapsed_ms": 59859,
+        "line": 221,
+        "text": "I20261109 06:23:45.004868  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2880 failed=0 total=10240 elapsed_ms=59859"
+      }
+    ],
+    "completion_line_observed": false,
+    "last_line": "context canceled",
+    "last_line_scope": "Captured official_module stderr includes service/client stream; contextcanceled alone is not a native CUDA return-code diagnosis."
+  },
+  "native_mapping": {
+    "elf": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/_checkpoint_store.cpython-312-x86_64-linux-gnu.so",
+      "sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+      "bytes": 654888
+    },
+    "build_manifest": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-pool-explicit-release-v1/build-manifest.json",
+      "sha256": "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d",
+      "bytes": 153446
+    },
+    "build_source_pins_verified": 27,
+    "current_and_L1_spec_same_ELF": true,
+    "current_spec": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold-formal-v3-8cba8aef2142-spec.json",
+      "sha256": "544169763d6f5a13cd7d92948a83368998be6d3299d77f8bc44ec1634120341c",
+      "bytes": 89000
+    },
+    "historical_spec": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-concrete-spec-20261106.json",
+      "sha256": "c8abf4490500db723678a661e269fee1ffba10f63db311e8dde658bd16cfcf60",
+      "bytes": 65613
+    },
+    "root_admission": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/runtime-root-admission-v1.json",
+      "sha256": "bfdbea9660c8b97ebae21832f55ba898328771419b95e6c8bb81a4ed4a2ecb60",
+      "bytes": 70168
+    },
+    "sources": {
+      "sllm_store/csrc/sllm_store/pinned_memory_pool.cpp": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp",
+        "sha256": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d",
+        "bytes": 5707
+      },
+      "sllm_store/csrc/sllm_store/pinned_memory_pool.h": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/pinned_memory_pool.h",
+        "sha256": "7733b66b360ea58a15972a2d4fd28c5a893f76e06f10ef8ee0487c3e2fcce09f",
+        "bytes": 1640
+      },
+      "sllm_store/csrc/sllm_store/pinned_memory.cpp": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/pinned_memory.cpp",
+        "sha256": "e821c99d9a8f75c57adfea81f803ef307b8c67794f746274bcc0ecd0403d7a2c",
+        "bytes": 1427
+      },
+      "sllm_store/csrc/sllm_store/checkpoint_store.cpp": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/checkpoint_store.cpp",
+        "sha256": "b6a75571631e6901a50263ee96603945526d0ede6cc1288f8253688ef04dbea3",
+        "bytes": 13456
+      },
+      "sllm_store/csrc/sllm_store/model.cpp": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/model.cpp",
+        "sha256": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509",
+        "bytes": 21231
+      },
+      "sllm_store/csrc/sllm_store/checkpoint_store_py.cpp": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/checkpoint_store_py.cpp",
+        "sha256": "9947ed2618493e12918a8223230942edfe8ff8689e43719d633cf4f12478230d",
+        "bytes": 4536
+      },
+      "sllm_store/sllm_store/server.py": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/server.py",
+        "sha256": "ae2636383bfd4c89365a03b6772655a6846b2234767250fc5c2d518a8aea7d52",
+        "bytes": 9680
+      },
+      "sllm_store/tests/gpu512_once_controller.py": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/gpu512_once_controller.py",
+        "sha256": "e06c11849d15fdefa828916e210451635ec399b942524eadcc5ab94e84652e66",
+        "bytes": 24330
+      },
+      "sllm_store/tests/prepare_native_stop_diagnostic.py": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_native_stop_diagnostic.py",
+        "sha256": "dae5c89d90bf7d510110906da4364ad02fcf9cbb59e93e723373295945cb1869",
+        "bytes": 34495
+      },
+      "sllm_store/tests/python/test_pinned_pool_shutdown_logging.py": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_pinned_pool_shutdown_logging.py",
+        "sha256": "331b7c9ededeba42adde1b10407a42c3474db6a71cd35b659eba6fbc154d5ee9",
+        "bytes": 8006
+      },
+      "sllm_store/tests/python/test_native_stop_snapshot.py": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_native_stop_snapshot.py",
+        "sha256": "d63336a051fe8cb91d959abf984eaca282b1c4a1008773956e4bcdb2172dbeb2",
+        "bytes": 8914
+      }
+    },
+    "release_source_ranges": {
+      "server.py": [
+        [
+          240,
+          262
+        ]
+      ],
+      "checkpoint_store.cpp": [
+        [
+          91,
+          125
+        ],
+        [
+          316,
+          327
+        ]
+      ],
+      "pinned_memory_pool.cpp": [
+        [
+          25,
+          47
+        ],
+        [
+          60,
+          112
+        ],
+        [
+          143,
+          159
+        ]
+      ],
+      "checkpoint_store_py.cpp": [
+        [
+          75,
+          85
+        ]
+      ]
+    },
+    "path": "Python shutdown waits gRPC stop -> release_memory_pool pybind -> DrainAsyncTasks -> ClearMem -> PinnedMemoryPool.Release. Source27pins are byte-identical to95ELF buildmanifest. Observed ClearMem and releasebegin locate current slow phase after model borrower return.",
+    "loop_order": "Holds own poolmutex; validatesfree_list==pool size; perbuffer cudaHostUnregister, on success free then free_list.erase/pool.erase, on error retainsbuffer and incrementsfailure; attempted++ after branch; logs every64. Whole-loop completionline and failurehandling occur only after iterationends.",
+    "count_semantics": "Keep raw attempted/failed/total distinct. attempted2880 andfailed0 are progress counters, NOT completed10240 or successfulnormalexit. Missing later counters/endline cannot be filled by extrapolation.",
+    "GIL_scope": "release_memory_pool binding has no explicitgil_scoped_release; this is sourcefact only, not evidence GIL caused observed latency. gRPC stopped and release loop has observable laterprogress.",
+    "mapping_limit": "Verified configuredbind/deploymentpin/buildsource provenance, not a historical per-process loaded-SO map or per-CUDA-call userspace stack. fd15/request0xc0104629 not independently mapped to a device/header opcode."
+  },
+  "historical_comparison": {
+    "run_id": "kimi-native-qjhs003-pool-stop-observe-20261106-once",
+    "review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/native-qjhs003-pool-stop-observe-runtime-independent-review-20261106.json",
+      "sha256": "7230a2f8c3bfdbd94cb964664164c5c7446f4070ee63be58159cefcd76772e20",
+      "bytes": 8225
+    },
+    "stop_observation": {
+      "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/store-stop-observation.json",
+      "sha256": "3183be6d2b33c0b3b9a4b961021d9f62141e89c666a4eb211c6dd72761ccb7b0",
+      "bytes": 675
+    },
+    "pool_log_excerpt": {
+      "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/pool-shutdown-log-excerpt.json",
+      "sha256": "09ea71cb67c9dbdb5660f528a9369cbf3c5f76914fc3cbff41bc60370b6d1df2",
+      "bytes": 25526
+    },
+    "proc_summary": {
+      "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-native-qjhs003-pool-stop-observe-20261106-once-public/store-stop-sanitized-summary.json",
+      "sha256": "0a1caeffece463086b6346176cc566975cfa0d1c036357c0def2a5fb89703fac",
+      "bytes": 1795
+    },
+    "normal_controller_stop_s": 33.13935262290761,
+    "pool_end_log": {
+      "attempted": 10240,
+      "failed": 0,
+      "total": 10240,
+      "elapsed_ms": 31318
+    },
+    "complete_progress_points": 160,
+    "normal_exit0_and_strictgone": true,
+    "equal_proved": [
+      "95dELF/build59d70 release implementation",
+      "640GiB/10240buffers/chunk64MiB",
+      "8GPUStore construction and8rank model archive recipe",
+      "nominal head8CPU16GiB/worker32CPU1536GiB resource declarations"
+    ],
+    "different_or_unknown": [
+      "Historicalqjhs3 boot0145/NFS-hostedStore versus currentqjhs0 boot656/localRAID; physical GPUUUIDs differ.",
+      "Historicaltwo create/infer/delete lives versus currentone Storecoldlife (preceded by a separate SFhot64MiB case).",
+      "min_instances1/keepalive0 and previousprefix default versus newmin0/keepalive3600/explicitprefixfalse; guard/control/endpoint revisions differ while native95same.",
+      "Exact failure-time NUMA placement/page distribution, CPU scheduling/frequency, driver/kernel/module/runtimeSOmaps and externaldriverlockholders are not proved equivalent.",
+      "Historical completed pool release31318ms versus current incomplete progress59859ms are observed traces, not interchangeable stable upper bounds."
+    ],
+    "acceptance_unchanged": [
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-L1-functional-milestone-acceptance-20261106.json",
+        "sha256": "05a4d8c6e30ef6ee15c05f151b91c600979aa59e1715ef28916014a26fdfa8b0",
+        "bytes": 2964
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-L1-owner-existing-evidence-functional-acceptance-20261107.json",
+        "sha256": "0fc1be39d1c24f0b637d4fb474d47791b4caa083ecd36509b013bb93d6b92afa",
+        "bytes": 2011
+      }
+    ],
+    "scope": "OwneracceptedexistingfunctionalL1 remains; originalDIAGNOSTIC_NOT_L1/30FAIL unchanged. No retroactive formal60PASS or currentblock acceptance."
+  },
+  "cleanup": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/runtime-terminal-release-confirmation-v1.json",
+      "sha256": "6a03a63a3250528acc3ac2302352932149572173f6e106b19498815387c5d651",
+      "bytes": 13007
+    },
+    "status": "TERMINAL_FAILED_BLOCK_SAFETY_RELEASE60_VERIFIED_NOT_NORMAL_PASS",
+    "normal_cleanup_pass": false,
+    "guard_results": {
+      "head": {
+        "reference": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/guard-head/guard-final.json",
+          "sha256": "3fd29a938b01e5e22ee8d94a95a83a8b6f68bb7743da8896a50390aea40ee391",
+          "bytes": 908
+        },
+        "status": "FAILED_RETAINED",
+        "failures": [
+          "abort_requested"
+        ],
+        "quiet_seconds": 60.25912722945213
+      },
+      "worker": {
+        "reference": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-public-v1/store_disk_cold/guard-worker/guard-final.json",
+          "sha256": "34d6461b13a5b36dcade677cf29faee47555b96dc883ca50420e5220b4d93db3",
+          "bytes": 971
+        },
+        "status": "FAILED_RETAINED",
+        "failures": [
+          "abort_requested"
+        ],
+        "quiet_seconds": 60.15505067445338
+      }
+    },
+    "observer_quiet_s": 60.88731180038303,
+    "containers": [
+      {
+        "condition": "safetensors_disk_hot",
+        "role": "head",
+        "cid": "e627625723c2fe8a32f8b7175c86ac88cca4ea507722bb2267712093d2b5e251",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T05:49:22.014051627Z",
+          "FinishedAt": "2026-11-09T06:03:05.95461709Z"
+        },
+        "cgroup_exists": false
+      },
+      {
+        "condition": "safetensors_disk_hot",
+        "role": "worker",
+        "cid": "74cdb57497a762e8acf7210f2d3aef04a71594099766456cc11e9f01ea750f10",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T05:49:41.682998942Z",
+          "FinishedAt": "2026-11-09T06:03:05.554342556Z"
+        },
+        "cgroup_exists": false
+      },
+      {
+        "condition": "store_disk_cold",
+        "role": "head",
+        "cid": "8870a434d42b595e93061bd5eb3192a4b01d5e1cf9fd0565bfce24541bc963b2",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 137,
+          "Error": "",
+          "StartedAt": "2026-11-09T06:04:10.561987117Z",
+          "FinishedAt": "2026-11-09T06:23:45.674226787Z"
+        },
+        "cgroup_exists": false
+      },
+      {
+        "condition": "store_disk_cold",
+        "role": "worker",
+        "cid": "0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7",
+        "state": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 137,
+          "Error": "",
+          "StartedAt": "2026-11-09T06:04:30.225377573Z",
+          "FinishedAt": "2026-11-09T06:23:45.850980367Z"
+        },
+        "cgroup_exists": false
+      }
+    ],
+    "limits": "All release/safetyfacts remain separate from Store normalexit. Guard-forced137/noOOM/cgroupsgone/GPUzero cannot promote failednormalstop toPASS."
+  },
+  "cpu_semantics_check": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-forensics-v1/existing-cpu-stub-tests-v1.json",
+      "sha256": "b8b3a919d68151d5c2eadbd420a6a3b297a0cbc40ddbb3e07d0d56f22f00949e",
+      "bytes": 205
+    },
+    "status": "7PASS",
+    "scope": "Existing test compiles actual poolCPP with CUDA/glog stubs and tiny4KiB buffers; no actual GPU/Store initialized, no timing/performance inference."
+  },
+  "next_step_scope": {
+    "status": "PROPOSAL_ONLY_NOT_IMPLEMENTED_NO_RUNTIME_AUTHORIZATION",
+    "actual_blocker": "Normalfullpoolrelease completion within60s was not observed; remaining latency allocation among unregister/free/erase/driver locks is unresolved.",
+    "do_not_do": [
+      "No automaticformalretry or oldL1two-lifecycle rerun",
+      "No timeout/phase/config/pool/chunk/NUMA/parallelism/guard tuning fromonekernelstack",
+      "No constant-rate totalduration projection",
+      "No callingforcedcleanup normalcompletion"
+    ],
+    "observation_only": "Existing prepare_native_stop_diagnostic.py has a fixed legacy30+300s observation primitive, but its CLI/IDs/oldtwo-lifecycle templates are not directly usable for this newcase. Separate appendix details actualinterface andminimalfutureadapter; any newobservation mustretainfixed60FAIL andlabelDIAGNOSTIC, with independentfinitecap/full7200/normalstop+quiet gates.",
+    "optimization": "Before proposing a real module optimization, add reviewed diagnostic-only perphase/call accounting inexisting pinned_memory_pool.cpp and existing CPUstubtest: distinguishcudaHostUnregister versusfree/erase, preservedefaultcallorder/errorretention/idempotence/ownership andold95artifact. Any build/runtime requires newreview/approval; nothingimplementedhere."
+  },
+  "actions": "Only existing smallreceipts/source/docs/nativeELF hash reads plus existing7CPUstubtests. No Git/sync/source changes/GPU/Store/containerstart/model/weight/cache operations."
+}

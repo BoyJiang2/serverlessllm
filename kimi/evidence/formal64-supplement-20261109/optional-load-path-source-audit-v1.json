@@ -1,0 +1,500 @@
+{
+  "status": "READ_ONLY_STOPPED_CONTAINER_SOURCE_AUDIT_NO_EXECUTION",
+  "cid": "74cdb57497a762e8acf7210f2d3aef04a71594099766456cc11e9f01ea750f10",
+  "stopped_container_state": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-09T05:49:41.682998942Z",
+    "FinishedAt": "2026-11-09T06:03:05.554342556Z"
+  },
+  "sources": {
+    "arg_utils": {
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/engine/arg_utils.py",
+      "bytes": 98258,
+      "sha256": "b576b4e3156e7669857e2ed6cbd9a4ac50062472501bc39a80d3642991b5f362",
+      "line_excerpts": [
+        {
+          "line": 514,
+          "text": "    mm_tensor_ipc: MMTensorIPC = MultiModalConfig.mm_tensor_ipc"
+        },
+        {
+          "line": 515,
+          "text": "    # LoRA fields"
+        },
+        {
+          "line": 516,
+          "text": "    enable_lora: bool = False"
+        },
+        {
+          "line": 517,
+          "text": "    max_loras: int = LoRAConfig.max_loras"
+        },
+        {
+          "line": 518,
+          "text": "    max_lora_rank: MaxLoRARanks = LoRAConfig.max_lora_rank"
+        },
+        {
+          "line": 519,
+          "text": "    default_mm_loras: dict[str, str] | None = LoRAConfig.default_mm_loras"
+        },
+        {
+          "line": 520,
+          "text": "    fully_sharded_loras: bool = LoRAConfig.fully_sharded_loras"
+        },
+        {
+          "line": 521,
+          "text": "    max_cpu_loras: int | None = LoRAConfig.max_cpu_loras"
+        },
+        {
+          "line": 522,
+          "text": "    lora_dtype: str | torch.dtype | None = LoRAConfig.lora_dtype"
+        },
+        {
+          "line": 523,
+          "text": "    lora_target_modules: list[str] | None = LoRAConfig.target_modules"
+        },
+        {
+          "line": 524,
+          "text": "    enable_tower_connector_lora: bool = LoRAConfig.enable_tower_connector_lora"
+        },
+        {
+          "line": 639,
+          "text": ""
+        },
+        {
+          "line": 640,
+          "text": "    def __post_init__(self):"
+        },
+        {
+          "line": 641,
+          "text": "        # support `EngineArgs(compilation_config={...})`"
+        },
+        {
+          "line": 642,
+          "text": "        # without having to manually construct a"
+        },
+        {
+          "line": 643,
+          "text": "        # CompilationConfig object"
+        },
+        {
+          "line": 644,
+          "text": "        if isinstance(self.compilation_config, dict):"
+        },
+        {
+          "line": 645,
+          "text": "            self.compilation_config = CompilationConfig(**self.compilation_config)"
+        },
+        {
+          "line": 646,
+          "text": "        if isinstance(self.attention_config, dict):"
+        },
+        {
+          "line": 647,
+          "text": "            self.attention_config = AttentionConfig(**self.attention_config)"
+        },
+        {
+          "line": 648,
+          "text": "        if isinstance(self.kernel_config, dict):"
+        },
+        {
+          "line": 649,
+          "text": "            self.kernel_config = KernelConfig(**self.kernel_config)"
+        },
+        {
+          "line": 2248,
+          "text": ""
+        },
+        {
+          "line": 2249,
+          "text": "@dataclass"
+        },
+        {
+          "line": 2250,
+          "text": "class AsyncEngineArgs(EngineArgs):"
+        },
+        {
+          "line": 2251,
+          "text": "    \"\"\"Arguments for asynchronous vLLM engine.\"\"\""
+        },
+        {
+          "line": 2252,
+          "text": ""
+        },
+        {
+          "line": 2253,
+          "text": "    enable_log_requests: bool = False"
+        },
+        {
+          "line": 2254,
+          "text": ""
+        },
+        {
+          "line": 2255,
+          "text": "    @staticmethod"
+        },
+        {
+          "line": 2256,
+          "text": "    def add_cli_args("
+        },
+        {
+          "line": 2257,
+          "text": "        parser: FlexibleArgumentParser, async_args_only: bool = False"
+        },
+        {
+          "line": 2258,
+          "text": "    ) -> FlexibleArgumentParser:"
+        }
+      ]
+    },
+    "backend": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/backends/vllm_backend.py",
+      "bytes": 15188,
+      "sha256": "1d898372e0e9542ae1114061d754e8699d81e7350273fc24b5409aab9b264510",
+      "line_excerpts": [
+        {
+          "line": 200,
+          "text": "        )"
+        },
+        {
+          "line": 201,
+          "text": ""
+        },
+        {
+          "line": 202,
+          "text": "        self.engine_args = AsyncEngineArgs(**filtered_engine_config)"
+        },
+        {
+          "line": 203,
+          "text": ""
+        },
+        {
+          "line": 204,
+          "text": "        self.engine = None"
+        },
+        {
+          "line": 205,
+          "text": ""
+        },
+        {
+          "line": 206,
+          "text": "    async def init_backend(self) -> None:"
+        },
+        {
+          "line": 207,
+          "text": "        async with self.status_lock:"
+        },
+        {
+          "line": 208,
+          "text": "            if self.status != BackendStatus.UNINITIALIZED:"
+        },
+        {
+          "line": 209,
+          "text": "                return"
+        },
+        {
+          "line": 210,
+          "text": "            if self.trace_debug:"
+        }
+      ]
+    },
+    "runner": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+      "bytes": 323133,
+      "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7",
+      "line_excerpts": [
+        {
+          "line": 400,
+          "text": "        self.offload_config = vllm_config.offload_config"
+        },
+        {
+          "line": 401,
+          "text": "        self.compilation_config = vllm_config.compilation_config"
+        },
+        {
+          "line": 402,
+          "text": "        self.lora_config = vllm_config.lora_config"
+        },
+        {
+          "line": 403,
+          "text": "        self.load_config = vllm_config.load_config"
+        },
+        {
+          "line": 404,
+          "text": "        self.parallel_config = vllm_config.parallel_config"
+        },
+        {
+          "line": 405,
+          "text": "        self.scheduler_config = vllm_config.scheduler_config"
+        },
+        {
+          "line": 406,
+          "text": "        self.speculative_config = vllm_config.speculative_config"
+        },
+        {
+          "line": 407,
+          "text": "        self.observability_config = vllm_config.observability_config"
+        },
+        {
+          "line": 408,
+          "text": ""
+        },
+        {
+          "line": 409,
+          "text": "        model_config = self.model_config"
+        },
+        {
+          "line": 410,
+          "text": "        cache_config = self.cache_config"
+        },
+        {
+          "line": 411,
+          "text": "        scheduler_config = self.scheduler_config"
+        },
+        {
+          "line": 412,
+          "text": "        parallel_config = self.parallel_config"
+        },
+        {
+          "line": 413,
+          "text": "        self.device = device"
+        },
+        {
+          "line": 414,
+          "text": "        self.pin_memory = is_pin_memory_available()"
+        },
+        {
+          "line": 506,
+          "text": "        self.encoder_cudagraph_manager: EncoderCudaGraphManager | None = None"
+        },
+        {
+          "line": 507,
+          "text": ""
+        },
+        {
+          "line": 508,
+          "text": "        self.use_aux_hidden_state_outputs = False"
+        },
+        {
+          "line": 509,
+          "text": "        # Set up speculative decoding."
+        },
+        {
+          "line": 510,
+          "text": "        # NOTE(Jiayi): currently we put the entire draft model on"
+        },
+        {
+          "line": 511,
+          "text": "        # the last PP rank. This is not ideal if there are many"
+        },
+        {
+          "line": 512,
+          "text": "        # layers in the draft model."
+        },
+        {
+          "line": 513,
+          "text": "        if self.speculative_config and get_pp_group().is_last_rank:"
+        },
+        {
+          "line": 514,
+          "text": "            self.drafter: ("
+        },
+        {
+          "line": 515,
+          "text": "                NgramProposer  # noqa: F823"
+        },
+        {
+          "line": 516,
+          "text": "                | NgramProposerGPU"
+        },
+        {
+          "line": 524,
+          "text": "                from vllm.v1.spec_decode.ngram_proposer import NgramProposer"
+        },
+        {
+          "line": 525,
+          "text": ""
+        },
+        {
+          "line": 526,
+          "text": "                self.drafter = NgramProposer(self.vllm_config)"
+        },
+        {
+          "line": 527,
+          "text": "            elif self.speculative_config.uses_draft_model():"
+        },
+        {
+          "line": 528,
+          "text": "                self.drafter = DraftModelProposer("
+        },
+        {
+          "line": 529,
+          "text": "                    vllm_config=self.vllm_config,"
+        },
+        {
+          "line": 530,
+          "text": "                    device=self.device,"
+        },
+        {
+          "line": 531,
+          "text": "                    runner=self,"
+        },
+        {
+          "line": 532,
+          "text": "                )"
+        },
+        {
+          "line": 533,
+          "text": "            elif self.speculative_config.use_ngram_gpu():"
+        },
+        {
+          "line": 534,
+          "text": "                self.drafter = NgramProposerGPU(self.vllm_config, self.device, self)"
+        },
+        {
+          "line": 535,
+          "text": "                self.num_tokens_no_spec_gpu = torch.zeros("
+        },
+        {
+          "line": 536,
+          "text": "                    self.max_num_reqs, dtype=torch.int32, device=device"
+        },
+        {
+          "line": 537,
+          "text": "                )"
+        },
+        {
+          "line": 538,
+          "text": "                self.token_ids_gpu_tensor = torch.zeros("
+        },
+        {
+          "line": 539,
+          "text": "                    self.max_num_reqs,"
+        },
+        {
+          "line": 540,
+          "text": "                    self.max_model_len,"
+        },
+        {
+          "line": 541,
+          "text": "                    dtype=torch.int32,"
+        },
+        {
+          "line": 542,
+          "text": "                    device=device,"
+        },
+        {
+          "line": 549,
+          "text": "                )"
+        },
+        {
+          "line": 550,
+          "text": "            elif self.speculative_config.method == \"suffix\":"
+        },
+        {
+          "line": 551,
+          "text": "                self.drafter = SuffixDecodingProposer(self.vllm_config)"
+        },
+        {
+          "line": 552,
+          "text": "            elif self.speculative_config.use_eagle():"
+        },
+        {
+          "line": 553,
+          "text": "                self.drafter = EagleProposer(self.vllm_config, self.device, self)"
+        },
+        {
+          "line": 554,
+          "text": "                if self.speculative_config.method == \"eagle3\":"
+        },
+        {
+          "line": 555,
+          "text": "                    self.use_aux_hidden_state_outputs = ("
+        },
+        {
+          "line": 556,
+          "text": "                        self.drafter.eagle3_use_aux_hidden_state"
+        },
+        {
+          "line": 557,
+          "text": "                    )"
+        },
+        {
+          "line": 558,
+          "text": "            elif self.speculative_config.method == \"medusa\":"
+        },
+        {
+          "line": 559,
+          "text": "                self.drafter = MedusaProposer("
+        },
+        {
+          "line": 560,
+          "text": "                    vllm_config=self.vllm_config, device=self.device"
+        },
+        {
+          "line": 561,
+          "text": "                )"
+        },
+        {
+          "line": 562,
+          "text": "            elif self.speculative_config.method == \"extract_hidden_states\":"
+        },
+        {
+          "line": 563,
+          "text": "                self.drafter = ExtractHiddenStatesProposer("
+        },
+        {
+          "line": 564,
+          "text": "                    vllm_config=self.vllm_config, device=self.device"
+        },
+        {
+          "line": 565,
+          "text": "                )"
+        },
+        {
+          "line": 566,
+          "text": "                self.use_aux_hidden_state_outputs = True"
+        },
+        {
+          "line": 567,
+          "text": "            else:"
+        },
+        {
+          "line": 568,
+          "text": "                raise ValueError("
+        },
+        {
+          "line": 569,
+          "text": "                    \"Unknown speculative decoding method: \""
+        },
+        {
+          "line": 570,
+          "text": "                    f\"{self.speculative_config.method}\""
+        },
+        {
+          "line": 571,
+          "text": "                )"
+        },
+        {
+          "line": 572,
+          "text": "            self.rejection_sampler = RejectionSampler(self.sampler)"
+        },
+        {
+          "line": 573,
+          "text": ""
+        },
+        {
+          "line": 574,
+          "text": "        self.num_spec_tokens = 0"
+        }
+      ]
+    }
+  }
+}
