@@ -1,0 +1,78 @@
+--- source4816/sllm_store/tests/python/test_prepare_kimi_four_condition.py
++++ current/sllm_store/tests/python/test_prepare_kimi_four_condition.py
+@@ -1669,6 +1669,7 @@
+ class SmallPoolMatchedCacheTest(unittest.TestCase):
+     def protocol(self):
+         protocol=Q0RaidProfileTest().protocol()
++        protocol['resource_budget']['runs_root']='/tmp/kimi-matched-cache-historical-generator-fixture'
+         protocol['execution_scope']='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION'
+         protocol['statistics']=copy.deepcopy(p.MATCHED_STATISTICS)
+         cohort=p.SMALL_POOL_COHORT
+@@ -1950,5 +1951,67 @@
+             self.assertFalse(value['cache_valid']);self.assertFalse(value['cache_observation_validated'])
+             self.assertTrue(value['raw_cache_admitted'])
+ 
++
++class Formal64SupplementTest(unittest.TestCase):
++    def protocol(self):
++        protocol=SmallPoolMatchedCacheTest().protocol()
++        cohort=p.FORMAL64_COHORT
++        protocol['unified_loading'].update(cohort_id=cohort,block_id=cohort+'-b01')
++        for row in protocol['attempts']:row['attempt_id']=cohort+'-b01-'+row['condition']
++        protocol['execution_scope']='formal_four_only';protocol['statistics']=copy.deepcopy(p.UNIFIED_STATISTICS)
++        protocol.pop('cache_diagnostic')
++        protocol['matched_cache_dependency']={'review_path':str(p.FORMAL64_REVIEW_PATH),'review_sha256':p.FORMAL64_REVIEW_SHA}
++        return protocol
++
++    def test_actual_formal64_four_cases_preserve_full_model_gates_and_pools(self):
++        protocol=self.protocol();p.validate_protocol(protocol)
++        base=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        for attempt in protocol['attempts']:
++            spec,cmd=p.render(protocol,base,command,attempt['attempt_id'],base['native_source_pins'])
++            body=cmd['argv'][cmd['argv'].index('-c')+1]
++            self.assertEqual(spec['store_pool_bytes'],67108864 if attempt['condition'].startswith('safetensors') else 687194767360)
++            self.assertEqual(spec['execution_scope'],'formal_four_only')
++            self.assertEqual(spec['budgets']['sum'],6480);self.assertEqual(spec['budgets']['full'],7200)
++            self.assertIn("for index,want in enumerate(gold)",body);self.assertIn("collect_unified_loading(records,rank_owners,physical)",body)
++            self.assertIn("HTTP('/delete'",body);self.assertIn("assert qualification['primary_sample_qualified']",body)
++            self.assertNotIn('run_cache_diagnostic',body)
++            self.assertEqual(spec['requests']['worker']['env']['SLLM_CAPTURE_LOAD_ENDPOINTS'],'1')
++            self.assertEqual(spec['guard_sha256'],'e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e')
++            self.assertEqual(spec['cache_helper_sha256'],p.OBSERVED_CACHE_SHA)
++            self.assertIn(str(p.FORMAL64_REVIEW_PATH),spec['code_pins'])
++            self.assertEqual(spec['requests']['worker']['host_config'],base['requests']['worker']['host_config'])
++
++    def test_actual_formal_main_ten_candidate_and_frozen_fixture_outputs(self):
++        harness=UnifiedLoadingSupplementTest();harness.protocol=self.protocol
++        harness.test_actual_main_new_four_child_bundle_and_candidate_closed()
++
++    def test_formal_and_diagnostic_scopes_cannot_be_relabelled(self):
++        protocol=self.protocol()
++        for key,value in [('execution_scope','MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION'),('cache_diagnostic',{'mode':'matched_native_pre_register_v1'}),('statistics',p.MATCHED_STATISTICS)]:
++            bad=copy.deepcopy(protocol);bad[key]=value
++            with self.subTest(key=key),self.assertRaises(AssertionError):p.validate_protocol(bad)
++        bad=copy.deepcopy(protocol);bad['matched_cache_dependency']['review_sha256']='0'*64
++        with self.assertRaises(AssertionError):p.validate_protocol(bad)
++
++    def test_actual_formal_block_failure_stops_other_new_ids(self):
++        protocol=self.protocol();ids=[x['attempt_id'] for x in protocol['attempts']]
++        with tempfile.TemporaryDirectory() as directory:
++            execute,called,claims=ActualConsumerTest().block_fixture(pathlib.Path(directory),fail_at=1,run_ids=ids,block_id=protocol['unified_loading']['block_id'])
++            with self.assertRaises(AssertionError):execute()
++            final=json.loads((claims/(protocol['unified_loading']['block_id']+'-final.json')).read_text())
++            self.assertEqual([x['run_id'] for x in final['attempts']],ids)
++            self.assertEqual([x['launch_requested'] for x in final['attempts']],[True,True,False,False])
++            self.assertEqual([x['condition_terminal'] for x in final['attempts'][2:]],['NOT_STARTED','NOT_STARTED'])
++
++
++    def test_actual_main_rejects_single_attempt_wrong_block_and_diagnostic_selection(self):
++        protocol=self.protocol()
++        with tempfile.TemporaryDirectory() as directory:
++            path=pathlib.Path(directory)/'protocol.json';path.write_text(json.dumps(protocol))
++            args=['prepare','--protocol',str(path),'--protocol-sha',p.hashlib.sha256(path.read_bytes()).hexdigest()]
++            for selection in (['--attempt-id',protocol['attempts'][0]['attempt_id']],['--block','2'],['--matched-cache-only']):
++                with self.subTest(selection=selection),mock.patch.object(p,'validate_inventory'),mock.patch.object(sys,'argv',args+selection),self.assertRaisesRegex(AssertionError,'formal64 accepts only|matched cache requires'):
++                    p.main()
++
+ if __name__=='__main__':
+     unittest.main()

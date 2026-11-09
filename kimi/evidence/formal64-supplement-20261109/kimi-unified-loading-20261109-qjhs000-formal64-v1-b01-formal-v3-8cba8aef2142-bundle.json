@@ -1,0 +1,77 @@
+{
+  "status": "FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW",
+  "block_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01",
+  "logical_block_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01",
+  "execution_revision": null,
+  "source_commit": "9ee423906654d3105b330bfc6b75935b325090aa",
+  "success_rate_denominator": "launch_requested",
+  "attempts": [
+    {
+      "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot",
+      "logical_attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot",
+      "condition": "safetensors_disk_hot",
+      "command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot-formal-v3-8cba8aef2142-command.json",
+      "command_sha256": "769f3a5ef50be71c5b017e6116640bd9df2d4f3d63d79125ceec62f9bca5664e"
+    },
+    {
+      "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold",
+      "logical_attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold",
+      "condition": "store_disk_cold",
+      "command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold-formal-v3-8cba8aef2142-command.json",
+      "command_sha256": "4d441c3912991f29f78325b6c66b99cc1d2a7280902aa3193f6cc40695d40f03"
+    },
+    {
+      "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_cold",
+      "logical_attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_cold",
+      "condition": "safetensors_disk_cold",
+      "command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_cold-formal-v3-8cba8aef2142-command.json",
+      "command_sha256": "53208d4090074bdb09f79014b726bc642e094bce4ce4bcfe1267c16a3e0eb1bb"
+    },
+    {
+      "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_pool_hit",
+      "logical_attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_pool_hit",
+      "condition": "store_pool_hit",
+      "command_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_pool_hit-formal-v3-8cba8aef2142-command.json",
+      "command_sha256": "77a07347b1bc08cf2cd110b6bba8300de87fbf38a5ddf4b5840ed498d7098b25"
+    }
+  ],
+  "planned_attempts": [
+    {
+      "order": 1,
+      "block": 1,
+      "position": 1,
+      "condition": "safetensors_disk_hot",
+      "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot"
+    },
+    {
+      "order": 2,
+      "block": 1,
+      "position": 2,
+      "condition": "store_disk_cold",
+      "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold"
+    },
+    {
+      "order": 3,
+      "block": 1,
+      "position": 3,
+      "condition": "safetensors_disk_cold",
+      "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_cold"
+    },
+    {
+      "order": 4,
+      "block": 1,
+      "position": 4,
+      "condition": "store_pool_hit",
+      "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_pool_hit"
+    }
+  ],
+  "protocol_sha256": "8cba8aef2142ecd26812e3c5790086c989da03574bb4afeae468d917cdef34f2",
+  "runs_root": "/home/boyjiang/kimi-new/evidence/runs",
+  "condition_max_seconds": 7200,
+  "parent_overhead_seconds": 120,
+  "full_max_seconds": 28920,
+  "claims_root": "/home/boyjiang/kimi-new/evidence/formal-claims-root",
+  "block_python": "\nimport hashlib,json,os,pathlib,subprocess,sys,time\nassert os.geteuid()==0\nbundle=pathlib.Path(sys.argv[1]);expected=sys.argv[2];expiry=float(sys.argv[3])\nassert hashlib.sha256(bundle.read_bytes()).hexdigest()==expected\nb=json.loads(bundle.read_text());assert b['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW'\nassert len(b['attempts'])==4 and len({a['run_id'] for a in b['attempts']})==4\nassert time.time()+b['full_max_seconds']<expiry,'full block budget unavailable'\nclaims=pathlib.Path(b['claims_root']);assert claims.is_dir() and claims.stat().st_uid==0 and claims.stat().st_mode&0o777==0o700\nruns=pathlib.Path(b['runs_root'])\ndef claim(name):\n fd=os.open(claims/name,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)\n with os.fdopen(fd,'w') as f:\n  json.dump({'pid':os.getpid(),'wall':time.time(),'monotonic':time.monotonic(),'expiry':expiry},f);f.flush();os.fsync(f.fileno())\nclaim(b['block_id']+'.claim')\nledger=[{**a,'status':'NOT_STARTED','condition_terminal':'NOT_STARTED','launch_requested':False,'attempted':False,'runtime_evidence_created':False,'returncode':None,'launch_error':None,'evidence_missing':None,'result_path':None,'result_sha256':None} for a in b['attempts']]\nstatus='FAILED_RETAINED_NO_RETRY';error=None\ntry:\n for index,a in enumerate(ledger):\n  assert time.time()+(4-index)*7200+120<expiry,'remaining full block budget unavailable'\n  p=pathlib.Path(a['command_path']);assert hashlib.sha256(p.read_bytes()).hexdigest()==a['command_sha256']\n  c=json.loads(p.read_text());argv=c['argv'];specpath=pathlib.Path(argv[-3])\n  assert hashlib.sha256(specpath.read_bytes()).hexdigest()==argv[-2]==c['spec_sha256']\n  spec=json.loads(specpath.read_text());assert spec['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and spec['run_id']==a['run_id']\n  assert spec['source_commit']==b['source_commit'] and spec['protocol_sha256']==b['protocol_sha256']\n  assert not (runs/a['run_id']).exists()\n  assert argv[-1]=='FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED'\n  assert argv[0]=='/usr/bin/systemd-run' and '--wait' not in argv\n  claim(a['run_id']+'.claim')\n  argv=[argv[0],'--wait',*['--property=RemainAfterExit=no' if x=='--property=RemainAfterExit=yes' else x for x in argv[1:-1]],str(expiry)]\n  a.update(status='START_REQUESTED',condition_terminal='START_REQUESTED',launch_requested=True)\n  try:\n   result=subprocess.run(argv,timeout=7205);a['returncode']=result.returncode\n  except BaseException as launch_error:\n   a['launch_error']={'type':type(launch_error).__name__,'message':str(launch_error)}\n   raise\n  finally:\n   a['runtime_evidence_created']=(runs/a['run_id']).is_dir();a['attempted']=a['runtime_evidence_created'];has_receipt=False\n   for name in ('controller-final.json','controller-failed.json'):\n    final=runs/a['run_id']/name\n    if final.exists():\n     a.update(result_path=str(final),result_sha256=hashlib.sha256(final.read_bytes()).hexdigest())\n     a['status']=a['condition_terminal']=json.loads(final.read_text())['status'];has_receipt=True;break\n   if not has_receipt:\n    a['status']=a['condition_terminal']='TIMED_OUT_NO_RECEIPT' if a['launch_error'] and a['launch_error']['type']=='TimeoutExpired' else 'CONTROLLER_FAILED_WITHOUT_RECEIPT'\n    a['evidence_missing']=['controller-final.json','controller-failed.json'];a['cleanup_result']='NOT_OBSERVED_NO_CHILD_RECEIPT'\n  assert result.returncode==0,'attempt failed; no retry or replacement'\n  assert a['status']=='FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'\n assert time.time()<expiry\n status='FOUR_CONDITION_BLOCK_RELEASE60_PASS'\nexcept BaseException as failure:\n error={'type':type(failure).__name__,'message':str(failure)}\n raise\nfinally:\n final={'status':status,'error':error,'block_id':b['block_id'],'logical_block_id':b.get('logical_block_id',b['block_id']),'execution_revision':b.get('execution_revision'),'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'attempts':ledger,'planned_attempts':b['planned_attempts'],'success_rate_denominator':'launch_requested','launch_requested_count':sum(a['launch_requested'] for a in ledger),'runtime_evidence_created_count':sum(a['runtime_evidence_created'] for a in ledger),'attempted_legacy_semantics':'runtime evidence directory created; not the success-rate denominator'}\n fd=os.open(claims/(b['block_id']+'-final.json'),os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)\n with os.fdopen(fd,'w') as f:json.dump(final,f);f.flush();os.fsync(f.fileno())\n",
+  "block_python_sha256": "76211133f71d8c7c51bae5b335e7c2a27e014b6686dfdff8b72d0713c712729a",
+  "limits": "Requires root-owned claims directory, independent root unit coverage28920, fresh full-block authorized booking/resource admission, frozen committed child specs and independent review. Any child failure stops permanently without retry."
+}

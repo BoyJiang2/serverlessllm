@@ -1,0 +1,151 @@
+--- source4816/sllm_store/tests/prepare_kimi_four_condition.py
++++ current/sllm_store/tests/prepare_kimi_four_condition.py
+@@ -29,6 +29,9 @@
+ Q0_RUNS_ROOT = "/home/boyjiang/kimi-new/evidence/runs"
+ Q0_NODE_PROFILE = {'hostname': 'qjhs0', 'ssh_alias': 'qjhs000', 'gpu_uuids': ['GPU-ec8259a6-1812-7313-8679-ded3ed2271a0', 'GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f', 'GPU-63a1fe63-1472-9448-9361-a039cf257d14', 'GPU-393e97f5-a431-1973-5bd9-e2be28ae854a', 'GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf', 'GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d', 'GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590', 'GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da'], 'filesystem_source': '/dev/md0', 'filesystem_type': 'xfs'}
+ SMALL_POOL_COHORT = "kimi-unified-loading-20261109-qjhs000-small-pool-v1"
++FORMAL64_COHORT = "kimi-unified-loading-20261109-qjhs000-formal64-v1"
++FORMAL64_REVIEW_PATH = base.EVIDENCE/"kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/actual-matched-cache-results-independent-review-v1.json"
++FORMAL64_REVIEW_SHA = "7f9fb98630805c2ccbef481d743708eb4c49e6663cbddee323e25d516b421bf6"
+ MATCHED_CACHE_RUN = "kimi-matched-cache-only-20261109-qjhs000-v1"
+ OBSERVED_CACHE_SHA = "576732096b335b4c6bd922d4de6dfaf6dbeac63bb8701d299149d0983570e039"
+ LEGACY_CACHE_SHA = "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8"
+@@ -54,17 +57,22 @@
+     attempts = protocol["attempts"]
+     if unified:
+         loading=protocol["unified_loading"]
+-        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT)
+-        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT):
++        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT)
++        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):
+             assert protocol["node_profile"]==Q0_NODE_PROFILE
+             assert protocol["node"]==Q0_NODE_PROFILE["ssh_alias"]
+             assert protocol["assets"]["route"]=="local_raid_md0"
++        if loading["cohort_id"] in (SMALL_POOL_COHORT,FORMAL64_COHORT):
++            assert protocol["store_pool_bytes_by_condition"]=={c:(67108864 if c.startswith("safetensors") else 687194767360) for c in CONDITIONS}
++            protocol_cache_pin(protocol)
++        if loading["cohort_id"]==FORMAL64_COHORT:
++            assert protocol["execution_scope"]=="formal_four_only"
++            assert protocol.get("cache_diagnostic") is None and protocol["statistics"]==UNIFIED_STATISTICS
++            formal64_dependency(protocol)
+         if loading["cohort_id"]==SMALL_POOL_COHORT:
+             assert protocol["execution_scope"]=="MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION"
+             assert protocol["statistics"]==MATCHED_STATISTICS
+-            assert protocol["store_pool_bytes_by_condition"]=={c:(67108864 if c.startswith("safetensors") else 687194767360) for c in CONDITIONS}
+             assert protocol["cache_diagnostic"]=={"mode":"matched_native_pre_register_v1","run_id":MATCHED_CACHE_RUN,"phase_max":MATCHED_PHASES,"full_seconds":7200}
+-            protocol_cache_pin(protocol)
+         assert loading["block_id"]==loading["cohort_id"]+"-b01"
+         assert loading["stop_on_failure"] is True and loading["append_only"] is True
+         assert protocol.get("execution_revision") is None
+@@ -194,7 +202,7 @@
+ 
+ def protocol_guard_pin(protocol):
+     cohort=protocol.get("unified_loading",{}).get("cohort_id")
+-    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT):
++    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):
+         assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
+         return FORMAL_GUARD_SHA
+     assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
+@@ -205,13 +213,13 @@
+     assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
+     assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
+     assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
+-    if cohort in (Q0_COHORT,SMALL_POOL_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
++    if cohort in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
+     return guard["sha256"]
+ 
+ 
+ def protocol_cache_pin(protocol):
+     path=base.ROOT/"sllm_store/tests/file_cache_state.py"
+-    small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
++    small=protocol.get("unified_loading",{}).get("cohort_id") in (SMALL_POOL_COHORT,FORMAL64_COHORT)
+     if not small:
+         assert protocol.get("cache_observation_helper") is None,"new helper requires explicit small-pool cohort"
+         assert base.digest(path)==LEGACY_CACHE_SHA,"historical3340 helper bytes unavailable; old frozen deployment remains closed"
+@@ -222,6 +230,28 @@
+     assert value["sha256"]==OBSERVED_CACHE_SHA
+     assert hashlib.sha256(path.read_bytes()).hexdigest()==value["sha256"],"actual observation helper pin drift"
+     return value["sha256"]
++
++
++def formal64_dependency(protocol):
++    value=protocol["matched_cache_dependency"]
++    assert value=={"review_path":str(FORMAL64_REVIEW_PATH),"review_sha256":FORMAL64_REVIEW_SHA}
++    review=checked(FORMAL64_REVIEW_PATH,FORMAL64_REVIEW_SHA)
++    assert review["verdict"]=="ACCEPT_ACTUAL_MATCHED_STATE_CACHE_DIAGNOSTIC_PASS_NOT_FORMAL_MODEL_RESULT"
++    assert review["run_id"]==MATCHED_CACHE_RUN and review["formal_n"]==0 and review["primary_sample_qualified"] is False
++    assert review["read"]["clock_identity"]["container_hostname"]=="qjhs0" and review["read"]["bytes"]==595204634151
++    raw=FORMAL64_REVIEW_PATH.parent/"runtime-public-v1"
++    manifest_path=raw/"EXPORT-MANIFEST.json";manifest=checked(manifest_path,review["export_manifest_sha256"])
++    pins={str(FORMAL64_REVIEW_PATH):FORMAL64_REVIEW_SHA,str(manifest_path):review["export_manifest_sha256"]}
++    for name in ("diagnostic-cache-validity.json","10-worker-store_config.stdout"):
++        row=next(v for v in manifest["files"] if v["relative"]==name)
++        data=checked(raw/name,row["sha256"]);pins[str(raw/name)]=row["sha256"]
++        if name.endswith("stdout"):assert data=={"chunk_size":67108864,"mem_pool_size":67108864}
++        else:
++            assert data["run_id"]==MATCHED_CACHE_RUN and data["primary_sample_qualified"] is False
++            assert data["diagnostic_only"] is True and data["cache_valid"] is True and data["cache_observation_validated"] is True
++            assert data["technical_status"]=="NORMAL_COMPLETION" and data["cleanup"]["normal"] is True and data["cleanup"]["quiet_seconds"]>=60
++            assert data["model_registration"]=="NOT_PERFORMED" and all(data[key] is None for key in ("gold","model_load_endpoints","model_rank_ownership"))
++    return pins
+ 
+ 
+ def validate_unified_overlay(protocol):
+@@ -779,7 +809,8 @@
+     endpoint_manifest=validate_unified_overlay(protocol) if unified else None
+     guard_sha=protocol_guard_pin(protocol)
+     small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
+-    q0=small or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
++    formal64=protocol.get("unified_loading",{}).get("cohort_id")==FORMAL64_COHORT
++    q0=small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
+     proc_confirm=q0 or protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
+     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
+     logical_attempt_id=attempt_id
+@@ -964,7 +995,7 @@
+         anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
+         assert body.count(anchor)==1
+         body=body.replace(anchor,UNIFIED_LOADING_CODE+anchor,1)
+-    if small:
++    if small or formal64:
+         amount=protocol["store_pool_bytes_by_condition"][attempt["condition"]]
+         spec["store_pool_bytes"]=amount
+         old="'--mem-pool-size','640GB'"
+@@ -977,6 +1008,11 @@
+         assert role.count("'mem_pool_size':687194767360")==1
+         spec["role_bodies"]["store_config"]=role.replace("'mem_pool_size':687194767360","'mem_pool_size':"+str(amount),1)
+         spec["role_body_sha256"]["store_config"]=hashlib.sha256(spec["role_bodies"]["store_config"].encode()).hexdigest()
++    if formal64:
++        spec["execution_scope"]="formal_four_only"
++        spec["matched_cache_dependency"]=copy.deepcopy(protocol["matched_cache_dependency"])
++        spec["cache_dependency_scope"]="Prior64MiB cache-only diagnostic, not model/lifecycle qualification; this case must pass fresh cache and all original model/8rank/clock/normal-release gates."
++        spec["code_pins"].update(formal64_dependency(protocol))
+     body=milestone_assert_messages(body)
+     compile(body,"<formal-candidate>","exec")
+     command["argv"][index]=body
+@@ -1106,7 +1142,7 @@
+     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
+     assert protocol['resource_budget']['parent_overhead_seconds']==120
+     assets=protocol['assets']
+-    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT)
++    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT)
+     sf,archive,runs=(Q0_SF_HOST,Q0_STORE_ARCHIVE,Q0_RUNS_ROOT) if q0 else (SF_HOST,STORE_ARCHIVE,RUNS_ROOT)
+     assert assets['route']==('local_raid_md0' if q0 else 'local_nvme')
+     assert assets['safetensors']==sf and assets['store_archive']==archive
+@@ -1454,6 +1490,8 @@
+     if protocol.get('unified_loading',{}).get('cohort_id')==SMALL_POOL_COHORT:
+         assert args.matched_cache_only and protocol['execution_scope']=='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION','diagnostic protocol cannot activate formal attempts or blocks'
+     else:assert not args.matched_cache_only,'matched cache requires new explicit profile'
++    if protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:
++        assert args.block==1 and protocol['execution_scope']=='formal_four_only','formal64 accepts only its complete block1'
+     final_commit=None
+     if args.source_commit:
+         validate_frozen_protocol(protocol,args.source_commit)
+@@ -1464,7 +1502,7 @@
+         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
+         if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
+             declared.add('sllm_store/tests/python/test_vllm_loader_interface.py')
+-        if args.matched_cache_only:declared.add('sllm_store/tests/python/test_file_cache_state.py')
++        if args.matched_cache_only or protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:declared.add('sllm_store/tests/python/test_file_cache_state.py')
+         final_commit=committed_source(args.source_commit,declared)
+     if args.matched_cache_only:
+         files=prepare_matched_cache(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha)
