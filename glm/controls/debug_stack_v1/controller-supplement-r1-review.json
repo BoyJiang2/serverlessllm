@@ -1,0 +1,48 @@
+{
+  "scope": "glm-controller-supplement-v1",
+  "reviewer": "local independent readonly subagent /root/glm_controller_r1",
+  "reviewed_commit": "1ced918fc374068b3ae0f9c486f1f0ecaa86ee01",
+  "candidate_manifest_sha256": "48c85e4a204b9b2115a3e2e241c93d36828ae78378d4bc842bc96c4c6684cd30",
+  "verdict": "BLOCKED",
+  "approved": false,
+  "runtime_admission": false,
+  "verification": {
+    "source_inventory_match": true,
+    "source_tree_sha256_match": true,
+    "source_files": 83,
+    "source_bytes": 659638,
+    "debug_cpu_tests_passed": 47,
+    "historical_cost_tests_passed": 5,
+    "remote_access_or_gpu_execution": false,
+    "files_modified_by_reviewer": false
+  },
+  "blocking_findings": [
+    {"id":"B1","location":"debug_stack.py:303,442-448; candidate tool_sha256","problem":"Windows str(relative_path) produces backslashes; Linux produces forward slashes. Current candidate cannot pass on server.","minimum_fix":"Use as_posix() consistently for manifest, runtime and gate; regression-test cross-platform keys."},
+    {"id":"B2","location":"debug_stack.py:454-550; debug_guard.py:62-90","problem":"3600s is only checked after completion. After disabling work timer, finally/down/repeated cleanup/monitor join/release are not bounded by an independent host total deadline. Container guard does not supervise host controller.","minimum_fix":"Reuse independent host supervision, freeze worst-case work/normal exit/abnormal cleanup/guard/evidence budgets and perform actual fault probe."},
+    {"id":"B3","location":"debug_service.py:178-200; bootstrap_control13.py:143-158; formal_trials.py:247-277","problem":"Instance deletion requires all GPU processes empty, unlike verified C23 persistent auxiliary GPU state. Actual auxiliary baseline1769MiB/card and SHA-bound SFcold05 idle has PID3708206 at322MiB/card. Its role is not inferred from the number.","minimum_fix":"Bind same-run helper PID/startticks/cgroup/boot and return instance increment to auxiliary baseline; separately prove whole-deployment release for60s."},
+    {"id":"B4","location":"debug_service.py:225-227,279-282,127-141","problem":"Configured716GiB, TCP and register_model do not establish resident pool. Old bootstrap verifies RPC config, listener, Store RSS, log and affinity.","minimum_fix":"Reuse existing actual pool/config/listener/residency/NUMA checks bound to current Store birth identity."},
+    {"id":"B5","location":"debug_stack.py:464-467","problem":"Writable probe JSON boolean/time/SHA is accepted without actual exact-container or root guard event proof.","minimum_fix":"Bind exact probe CID/run/holder, creation/deadline, trusted actual guard event/raw SHA and independent disappearance check on same boot."},
+    {"id":"B6","location":"debug_stack.py:246-259,377-399,515-529; debug_service.py:315-337","problem":"docker stop status is ignored; head exit/OOM/forced status not retained before rm. Worker success omits all helper exit states; cleanup errors can bypass final result.","minimum_fix":"Retain exact final State/ExitCode/OOM/Error and child outcomes, freeze allowed controlled exits, reject unproved forced/abnormal exit, write failure evidence from nested finally."},
+    {"id":"B7","location":"debug_stack.py:403-438,532-541","problem":"Container absence plus empty global GPU list does not prove owned anonymous/locked/shared memory and IO release. Prior cgroup paths are forgotten; complete8GPU memory values are not validated.","minimum_fix":"Retain bound cgroups/processes and verify disappeared or empty/inactive; require complete8-card memory/process evidence and owned memory/IO release. Separate observer cost."},
+    {"id":"B8","location":"debug_plan.py:46-62; debug_service.py:225-227; debug_stack.py:442-473","problem":"83source/7tool binding omits actual external SLLM, Store native library, environment and gold/restore assets. Readonly mount is not immutable source proof.","minimum_fix":"Reuse actual import/library/path/SHA/ABI checks and bind frozen gold/restore/backend patch metadata; no756GB rescan or environment copy."},
+    {"id":"B9","location":"debug_stack.py:59-70,459-473","problem":"Admission only checks no GPU compute PID and MemAvailable>=1700GiB; missing fresh8GPU model/capacity/memory, NUMA, locked/shared memory and shared IO.","minimum_fix":"Reuse lightweight actual resource/IO checks with frozen thresholds and retain current admission proof. Owner already authorized short borrowing; no repeat run-permission question."}
+  ],
+  "historical_audit": {
+    "c23_verdict": "PASS: cannot reconstruct per-condition independent full Controller from selected C23 shared parents",
+    "checked_small_inputs":33,
+    "c23_attempts":26,
+    "original40":{"success":35,"failed":5,"not_started":0},
+    "shared_final_release_observation_s":75.982432416,
+    "worker_child_returncode":0,
+    "head_child_returncode":1,
+    "head_controlled_stop":true,
+    "scope_limit":"Do not claim every old parent log was exhausted; other14-result SHA audit is separate evidence."
+  },
+  "nonblocking_notes":[
+    "Same-worker Prep/A and arithmetic-translation-fixed32 order are correct; A is first arithmetic HTTP response, not fixed32.",
+    "Eight-rank phases use max(end)-min(begin), not an additive total or newly proved V4 equivalent boundary.",
+    "Input closure, metadata-before-final-eviction, mincore and bounded hot repair direction is reasonable; no actual Linux/full-model positive proof yet.",
+    "Fresh public stack and compilation cache differ from C23 shared infrastructure. Never splice old Prep/A or fill C23 Controller.",
+    "47+5 CPU tests do not cover full measure cleanup chain; fix concrete blockers with minimum fault regressions, not new framework."
+  ]
+}

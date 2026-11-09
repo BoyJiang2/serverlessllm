@@ -249,10 +249,25 @@ def remove_owned(state, role):
         return 'never created'
     info = inspect(cid)
     if info is None:
+        state.setdefault('exit_evidence', {})[role] = dict(container_id=cid, normal_exit_verified=False,
+                                                        reason='container absent before exit inspection')
         return 'absent'
     if not owned(info, state, role):
         raise RuntimeError(role+' container identity differs; not touching it')
-    subprocess.run(['docker', 'stop', '-t', str(STOP_SECONDS[role]), cid], capture_output=True, timeout=STOP_SECONDS[role]+60)
+    evidence = dict(container_id=cid, before=info['State'], stop_returncode=None, normal_exit_verified=False)
+    state.setdefault('exit_evidence', {})[role] = evidence
+    if info['State']['Running']:
+        stopped = subprocess.run(['docker', 'stop', '-t', str(STOP_SECONDS[role]), cid], capture_output=True,
+                                 timeout=STOP_SECONDS[role]+60)
+        evidence.update(stop_returncode=stopped.returncode, stop_stderr=stopped.stderr.decode(errors='replace'))
+    final = inspect(cid)
+    if final is None or not owned(final, state, role):
+        raise RuntimeError('final container exit identity missing')
+    evidence['final'] = final['State']
+    code = final['State']['ExitCode']
+    evidence['normal_exit_verified'] = (not final['State']['Running'] and not final['State']['OOMKilled']
+        and not final['State'].get('Error') and (code == 0 if role == 'worker' else
+        (code == 0 or (info['State']['Running'] and evidence['stop_returncode'] == 0 and code in (1, 143, -15)))))
     docker('rm', cid)
     if docker('ps', '-aq', '--no-trunc', '--filter', 'id='+cid):
         raise RuntimeError(role+' container remains after removal')
@@ -300,7 +315,9 @@ def up(args, state=None):
                  controller_clock='time.monotonic_ns on qjhs003 host',
                  lifetime_seconds=args.seconds, deadline_unix=deadline, weight_format=args.weight_format, query=not args.no_query,
                  booking=booking, guard=guard, configuration=config,
-                 tool_sha256={str(p.relative_to(TREE)): sha256(p) for p in TOOLS}, status='deploying source')
+                 tool_sha256={p.relative_to(TREE).as_posix(): sha256(p) for p in TOOLS}, status='deploying source')
+    if condition:
+        state['condition'] = condition
     receipt = run_root/'stack.json'
     with receipt.open('x') as stream:
         json.dump(state, stream, indent=2)
@@ -376,7 +393,17 @@ def status(args):
 
 def down(args):
     state = load_state(args.run_id)
-    state['down'] = {role: remove_owned(state, role) for role in ('worker', 'head')}
+    cleanup_errors = {}
+    state['down'] = {}
+    for role in ('worker', 'head'):
+        try:
+            state['down'][role] = remove_owned(state, role)
+        except Exception as error:
+            cleanup_errors[role] = repr(error)
+    state['cleanup_errors'] = cleanup_errors
+    write(HOST/'debug'/state['run_id']/'stack.json', state)
+    if cleanup_errors:
+        raise RuntimeError('owned cleanup incomplete: '+repr(cleanup_errors))
     if state.get('worker_container_id'):
         deadline = time.monotonic()+30
         while subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True, timeout=15).strip():
@@ -397,6 +424,9 @@ def down(args):
                                       'excludes any later resource observation; debug evidence, not C23')
     state.update(status='released', released_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
     write(HOST/'debug'/state['run_id']/'stack.json', state)
+    if state.get('condition') and not all(state.get('exit_evidence', {}).get(role, {}).get('normal_exit_verified')
+                                        for role in ('worker', 'head')):
+        raise RuntimeError('supplement normal container exit not verified; resources cleaned, failure retained')
     return state
 
 
@@ -440,7 +470,7 @@ def supplement_sample(state):
 
 
 def verify_supplement_review(review, source):
-    expected = {str(p.relative_to(TREE)):sha256(p) for p in TOOLS}
+    expected = {p.relative_to(TREE).as_posix():sha256(p) for p in TOOLS}
     if (review.get('scope') != 'glm-controller-supplement-v1' or review.get('verdict') != 'PASS'
             or review.get('tool_sha256') != expected or review.get('source_tree_sha256') != source['tree_sha256']
             or review.get('code_commit') != source['code_commit']

@@ -38,3 +38,11 @@
 4. 获准后四条按顺序各运行一次，保留失败和未开始计数。新增数据单列，不重跑原40项，不宣称论文原样复现。运行及释放观察期间不 Git/同步。
 
 当前状态：历史父进程/释放记录和26条结果已由 historical_costs.py --c23-controller-audit 核验，controller-history-audit.json 保留SHA与不可恢复依据；头进程受控停止 child_returncode=1 明确保留，不称正常 exit0。debug_service.py 已增加复用C23原语的缓存准入、同次三金标/Prep/A/phase 与删除后60秒观察候选。debug_stack.py 的 measure 子命令候选接入当前源码/完整source tree的R1哈希绑定、宿主连续采样、工作绝对截止和退出后至少60秒观察，但完整总截止、强制/正常退出判据、probe实际证据验证及释放归属仍须完整独立审阅；候选不能据此标ready，未开跑。默认up/status/down行为与C23原正式入口保持隔离。
+
+## 首次完整R1与整改断点
+
+独立只读R1对代码1ced918fc374068b3ae0f9c486f1f0ecaa86ee01及清单48c85e4a204b9b2115a3e2e241c93d36828ae78378d4bc842bc96c4c6684cd30给出BLOCKED，9项问题及核验证据保留在controller-supplement-r1-review.json；旧候选和旧清单在Git中保留，不能改其结论批准新代码。
+
+后续修订已修正B1的跨平台路径键并补回归；针对B4复用listener、audit_store_threads及实际RPC/RSS/日志检查，拒绝TCP已通但配置或驻留不足，输出Store出生身份；B6已开始保存rm前最终容器State并识别exit137等非正常退出，首个角色清理异常不再跳过第二个角色。51项调试CPU测试及5项历史成本测试通过，仅证明这些CPU检查；B4真实池正向和完整R1复审尚未进行。B2宿主总硬截止、B3辅助GPU基线身份、B5实际probe来源、B6剩余子进程/嵌套finally、B7完整释放归属、B8实际运行依赖/资产绑定、B9完整资源与IO准入仍须闭合。不得部署或补测当前修订。
+
+已额外按ledger逐条远端核验其余14项result SHA；与C23的26项合计覆盖原40项结果，来源和范围见../../results/reanalysis-20261106/controller-history-audit.md。不把历史记录不充分改写成零，也不宣称所有探索日志均已穷尽。

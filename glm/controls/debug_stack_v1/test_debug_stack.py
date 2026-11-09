@@ -153,6 +153,26 @@ class Ownership(unittest.TestCase):
             d.remove_owned(state, 'head')
         docker.assert_not_called()
 
+    def test_docker_stop_success_does_not_prove_normal_exit(self):
+        for code, normal in [(0, True), (137, False), (17, False)]:
+            state = dict(STATE, worker_container_id='c'*64)
+            before = info('worker', State=dict(Running=True, ExitCode=0, OOMKilled=False, Error=''))
+            after = info('worker', State=dict(Running=False, ExitCode=code, OOMKilled=False, Error=''))
+            with self.subTest(code=code), patch.object(d, 'inspect', side_effect=[before, after]), \
+                 patch.object(d.subprocess, 'run', return_value=type('R', (), dict(returncode=0, stderr=b''))()), \
+                 patch.object(d, 'docker', return_value=''):
+                self.assertEqual(d.remove_owned(state, 'worker'), 'removed')
+            self.assertEqual(state['exit_evidence']['worker']['normal_exit_verified'], normal)
+
+    def test_cleanup_failure_does_not_skip_other_owned_role(self):
+        state = dict(STATE)
+        with patch.object(d, 'load_state', return_value=state), patch.object(d, 'write'), \
+             patch.object(d, 'remove_owned', side_effect=[RuntimeError('worker failed'), 'removed']) as cleanup:
+            with self.assertRaisesRegex(RuntimeError, 'cleanup incomplete'):
+                d.down(type('Args', (), dict(run_id=STATE['run_id']))())
+        self.assertEqual(cleanup.call_count, 2)
+        self.assertIn('worker', state['cleanup_errors'])
+
 
 class HeadReadiness(unittest.TestCase):
     def run_wait(self, logs, states):
@@ -214,13 +234,17 @@ class SupplementAdmission(unittest.TestCase):
         source = dict(code_commit='a'*40, tree_sha256='b'*64)
         review = dict(scope='glm-controller-supplement-v1', verdict='PASS', code_commit=source['code_commit'],
                       source_tree_sha256=source['tree_sha256'],
-                      tool_sha256={str(p.relative_to(d.TREE)):d.sha256(p) for p in d.TOOLS},
+                      tool_sha256={p.relative_to(d.TREE).as_posix():d.sha256(p) for p in d.TOOLS},
                       work_seconds=d.SUPPLEMENT_WORK_SECONDS, total_seconds=d.SUPPLEMENT_TOTAL_SECONDS)
         return review, source
 
     def test_full_current_review_and_all_bindings_required(self):
         review, source = self.receipt()
         d.verify_supplement_review(review, source)
+        self.assertTrue(all('\\' not in key for key in review['tool_sha256']))
+        windows_keys = {key.replace('/', '\\'):value for key, value in review['tool_sha256'].items()}
+        with self.assertRaisesRegex(RuntimeError, 'R1 not approved'):
+            d.verify_supplement_review(dict(review, tool_sha256=windows_keys), source)
         for key, value in [('verdict', 'FAIL'), ('code_commit', 'c'*40), ('tool_sha256', {}),
                            ('source_tree_sha256', 'd'*64), ('work_seconds', 3600), ('total_seconds', 7200)]:
             with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'R1 not approved'):

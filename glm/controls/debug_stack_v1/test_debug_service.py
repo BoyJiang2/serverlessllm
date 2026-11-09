@@ -117,6 +117,21 @@ class SupplementRequests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'unknown supplement'):
             s.prepare_supplement('not-a-condition', {})
 
+    def test_connected_store_with_wrong_config_is_rejected(self):
+        client = types.SimpleNamespace(get_server_config=lambda:dict(mem_pool_size=64*1024**2, chunk_size=32*1024**2))
+        with patch.dict(sys.modules, listener_control13=types.SimpleNamespace(listener=None),
+                        store_numa_exec_v13=types.SimpleNamespace(audit_store_threads=None)):
+            with self.assertRaisesRegex(RuntimeError, 'configuration differs'):
+                s.require_resident_pool(client, types.SimpleNamespace(pid=1), 768799145984, 536870912, {0})
+
+    def test_matching_config_with_insufficient_rss_is_rejected(self):
+        client = types.SimpleNamespace(get_server_config=lambda:dict(mem_pool_size=768799145984, chunk_size=536870912))
+        with patch.dict(sys.modules, listener_control13=types.SimpleNamespace(listener=None),
+                        store_numa_exec_v13=types.SimpleNamespace(audit_store_threads=None)), \
+             patch.object(s.pathlib.Path, 'read_text', side_effect=['1 (store) '+' '.join(['0']*22), 'VmRSS: 1024 kB\n']):
+            with self.assertRaisesRegex(RuntimeError, 'residency not established'):
+                s.require_resident_pool(client, types.SimpleNamespace(pid=1), 768799145984, 536870912, {0})
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -201,6 +201,35 @@ def observe_deleted(record):
     write(OUT/'measurement-progress.json', record)
 
 
+def require_resident_pool(client, process, pool_bytes, chunk_bytes, cpus):
+    """The same concrete pool checks as bootstrap_control13, not TCP readiness."""
+    from listener_control13 import listener
+    from store_numa_exec_v13 import audit_store_threads
+    actual = client.get_server_config()
+    if actual != {'mem_pool_size':pool_bytes, 'chunk_size':chunk_bytes}:
+        raise RuntimeError('actual Store pool configuration differs')
+    proc = pathlib.Path('/proc')/str(process.pid)
+    first_stat = (proc/'stat').read_text()
+    status = (proc/'status').read_text()
+    rss = int(next(line.split()[1] for line in status.splitlines() if line.startswith('VmRSS:')))*1024
+    if rss < pool_bytes or 'Memory pool created with 716GB' not in (OUT/'store.log').read_text():
+        raise RuntimeError('actual Store pool residency not established')
+    socket_owner = listener(process.pid, 8073)
+    threads = audit_store_threads(process.pid, sorted(cpus))
+    second_stat = (proc/'stat').read_text()
+    start_ticks = first_stat.rsplit(')', 1)[1].split()[19]
+    if start_ticks != second_stat.rsplit(')', 1)[1].split()[19] or process.poll() is not None:
+        raise RuntimeError('Store birth identity changed while checking pool')
+    launch = dict(pid=process.pid, pid_namespace=(proc/'ns/pid').readlink().as_posix(),
+                  start_ticks=start_ticks, boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+                  node='node0', target_cpu_affinity=sorted(cpus), monotonic_ns=time.monotonic_ns())
+    write(OUT/'store-numa-launch.json', launch)
+    write(OUT/'pool-ready.json', dict(pool_bytes=pool_bytes, chunk_bytes=chunk_bytes, store_pid=process.pid,
+                                    rpc_config=actual, rss_bytes=rss, listener=socket_owner, threads=threads,
+                                    identity=launch))
+    return launch
+
+
 def write(path, record):
     temporary = path.with_suffix('.tmp')
     temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))
@@ -280,6 +309,10 @@ def main():
             with socket.create_connection(('127.0.0.1', 8073), timeout=1):
                 return True
         wait_ready(store_ready, 1800, 'store')
+        if condition:
+            from sllm_store.client import SllmStoreClient
+            record['resident_pool_identity'] = require_resident_pool(
+                SllmStoreClient(), processes['store'], pool_bytes, chunk_bytes, cpus)
         launch('sllm', [PYTHON, '-u', '-c', 'from sllm.cli._cli_utils import start_server; start_server(host="127.0.0.1",port=8343)'])
 
         def healthy():
