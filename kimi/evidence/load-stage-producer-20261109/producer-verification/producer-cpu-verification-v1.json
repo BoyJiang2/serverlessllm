@@ -1,0 +1,32 @@
+{
+  "schema": "kimi-load-stages-producer-cpu-verification-v1",
+  "created_at": "2026-11-09T09:35:40.105125+00:00",
+  "source_baseline_commit": "15b9e5c2",
+  "source_files": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch": "7b6b263e8757913dab9e4ef37c88977052ac821572baceee4f2fe78aedecfba6",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py": "7e34f7d1caa1a2818304f5a282492f9e2a7d217905fccdd3e7b03a448832c2b9",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/build-manifest.json": "79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df"
+  },
+  "source_unchanged_during_tests": true,
+  "returncode": 0,
+  "stdout": "",
+  "stderr": ".......................................\n----------------------------------------------------------------------\nRan 39 tests in 1.680s\n\nOK\n",
+  "manifest_path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/build-manifest.json",
+  "manifest_sha256": "79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df",
+  "schema_contract": {
+    "parent": "weight_load_host_span",
+    "stage_schema": "kimi-weight-load-host-stages-v1",
+    "stages": [
+      "weight_ingestion",
+      "postprocessing"
+    ],
+    "identity": "Inherited exact parent rank/PID/run/model_instance/clock; no separate clock source",
+    "default_off": "No stage timer/identity or tensor payload reads; stage helper returns immediately if no private dictionary"
+  },
+  "scope": "Actual canonical runner context and new runner overlay execute real Base/Store method AST with tiny mocks. No Torch/vLLM import, GPU, Store, container startup, model weights, cache, Git or oldoverlay changes.",
+  "limitations": [
+    "CPU/source evidence only; not real model stage measurements",
+    "No full-image patch.sh installation or actual CUDA runtime exercised",
+    "Failed/missing stages remain explicit; consumer must enforce all8/full+stage/clock/ownership and normal lifecycle gates"
+  ]
+}

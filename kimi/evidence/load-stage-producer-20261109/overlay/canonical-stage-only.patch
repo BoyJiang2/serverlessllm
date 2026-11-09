@@ -1,0 +1,134 @@
+--- a/sllm_load.patch
++++ b/sllm_load.patch
+@@ -29,7 +29,7 @@
+ new file mode 100644
+ --- /dev/null
+ +++ b/vllm/model_executor/model_loader/sllm_loader.py
+-@@ -0,0 +0,169 @@
++@@ -0,0 +0,174 @@
+ +import torch
+ +from torch import nn
+ +import collections
+@@ -152,6 +152,7 @@
+ +            device_id = torch.cuda.current_device()
+ +            device_map = {"": device_id}
+ +            # Note: storage path is already included in the local model path
+++            self._sllm_stage_endpoint("weight_ingestion", "begin", "before_store_load_dict")
+ +            sllm_state_dict = load_dict(model_path, device_map)
+ +
+ +            for key in key_list:
+@@ -161,6 +162,9 @@
+ +                if buffer.device.type != 'cuda':
+ +                    buffer.data = buffer.data.to(f'cuda:{device_id}')
+ +
+++            self._sllm_stage_endpoint("weight_ingestion", "end", "after_store_data_bindings_and_buffer_moves")
+++
+++            self._sllm_stage_endpoint("postprocessing", "begin", "before_store_runtime_hook_traversal")
+ +            for module in model.modules():
+ +                quant_method = getattr(module, "quant_method", None)
+ +                prepare_runtime = getattr(
+@@ -169,6 +173,7 @@
+ +                    prepare_runtime(module)
+ +            process_attention_weights_after_loading(
+ +                model, model_config, torch.device(f"cuda:{device_id}"))
+++            self._sllm_stage_endpoint("postprocessing", "end", "after_store_attention_postprocessing_return")
+ +            
+ +        return model
+ +    
+@@ -441,7 +446,7 @@
+  import threading
+  import time
+  from collections import defaultdict
+-@@ -4744,67 +4883,283 @@
++@@ -4744,67 +4883,291 @@
+  
+          try:
+              with DeviceMemoryProfiler() as m:
+@@ -463,7 +468,11 @@
+ +                        self.load_config.load_format = "dummy"
+ +                    model_loader = get_model_loader(self.load_config)
+ +                    if os.environ.get("SLLM_CAPTURE_LOAD_ENDPOINTS") == "1":
+-+                        load_span = {"status": "MISSING", "begin_ns": None, "end_ns": None}
+++                        load_span = {"status": "MISSING", "begin_ns": None, "end_ns": None,
+++                                     "stage_schema": "kimi-weight-load-host-stages-v1",
+++                                     "stages": {name: {"status": "MISSING", "begin_ns": None, "end_ns": None,
+++                                                       "begin_boundary": None, "end_boundary": None}
+++                                                for name in ("weight_ingestion", "postprocessing")}}
+ +                        try:
+ +                            from sllm.logger import get_clock_identity
+ +                            run_id = os.environ["SLLM_LOAD_SPAN_RUN_ID"]
+@@ -477,6 +486,7 @@
+ +                                any(not isinstance(clock_identity.get(k), str) or not clock_identity[k]
+ +                                    for k in ("boot_id", "container_hostname", "time_namespace", "monotonic_clock_implementation"))):
+ +                                raise ValueError("Load endpoint clock identity unavailable")
+++                            model_loader._sllm_load_stages = load_span["stages"]
+ +                            load_span.update(run_id=run_id, model_instance_id=instance_id,
+ +                                             clock_identity=clock_identity, pid=os.getpid(),
+ +                                             tp_rank=get_tp_group().rank_in_group,
+@@ -686,6 +696,9 @@
+ +                            if load_span is not None:
+ +                                if load_span["status"] == "STARTED":
+ +                                    load_span["status"] = "FAILED"
+++                                for stage in load_span["stages"].values():
+++                                    if stage["status"] == "STARTED":
+++                                        stage["status"] = "FAILED"
+ +                                record["weight_load_host_span"] = dict(
+ +                                    load_span, schema="kimi-weight-load-host-endpoints-v1",
+ +                                    begin_boundary="before_model_loader_load_model",
+@@ -1191,3 +1204,56 @@
+                  original_device: torch.device = original_device_states[name]
+                  p.data = p.data.to(original_device)
+  
++diff --git a/vllm/model_executor/model_loader/base_loader.py b/vllm/model_executor/model_loader/base_loader.py
++--- a/vllm/model_executor/model_loader/base_loader.py
+++++ b/vllm/model_executor/model_loader/base_loader.py
++@@ -27,6 +27,26 @@
++ 
++     def __init__(self, load_config: LoadConfig):
++         self.load_config = load_config
+++
+++    def _sllm_stage_endpoint(self, name, edge, boundary):
+++        stages = getattr(self, "_sllm_load_stages", None)
+++        if stages is None:
+++            return
+++        stage = stages[name]
+++        stage[edge + "_boundary"] = boundary
+++        if edge == "end" and stage["status"] != "STARTED":
+++            return
+++        try:
+++            import time
+++            stamp = time.monotonic_ns()
+++            if type(stamp) is not int or stamp <= 0:
+++                raise ValueError("Invalid load stage timestamp")
+++            if edge == "end" and stamp < stage["begin_ns"]:
+++                raise ValueError("Load stage clock moved backwards")
+++            stage[edge + "_ns"] = stamp
+++            stage["status"] = "STARTED" if edge == "begin" else "COMPLETE"
+++        except Exception as error:
+++            stage.update(status="MISSING", error_type=type(error).__name__)
++ 
++     @abstractmethod
++     def download_model(self, model_config: ModelConfig) -> None:
++@@ -61,7 +81,9 @@
++             log_model_inspection(model)
++ 
++             logger.debug("Loading weights on %s ...", load_device)
+++            self._sllm_stage_endpoint("weight_ingestion", "begin", "before_base_load_weights")
++             self.load_weights(model, model_config)
+++            self._sllm_stage_endpoint("weight_ingestion", "end", "after_base_load_weights_return")
++ 
++             # Log peak GPU memory after loading weights. This is needed
++             # to have test coverage on peak memory for online quantization.
++@@ -75,10 +97,12 @@
++ 
++             # Process weights into kernel format. Note that when using online
++             # quantization, weights are (typically) quantized as they are loaded.
+++            self._sllm_stage_endpoint("postprocessing", "begin", "before_online_quant_condition")
++             if _has_online_quant(model):
++                 finalize_layerwise_processing(model, model_config)
++ 
++             process_weights_after_loading(model, model_config, target_device)
+++            self._sllm_stage_endpoint("postprocessing", "end", "after_process_weights_after_loading_return")
++ 
++         return model.eval()
++ 

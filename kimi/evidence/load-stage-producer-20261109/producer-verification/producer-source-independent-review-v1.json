@@ -1,0 +1,42 @@
+{
+  "verdict": "ACCEPT_PRODUCER_SOURCE_AND_CPU_ONLY_NOT_COMPLETE_PROFILE_OR_GPU_VALIDATION",
+  "source_files": {
+    "sllm_load.patch": "7b6b263e8757913dab9e4ef37c88977052ac821572baceee4f2fe78aedecfba6",
+    "test_vllm_loader_interface.py": "7e34f7d1caa1a2818304f5a282492f9e2a7d217905fccdd3e7b03a448832c2b9"
+  },
+  "manifest_sha256": "79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df",
+  "independent_cpu": {
+    "node": "qjhs000",
+    "tests": 39,
+    "seconds": 1.681,
+    "result": "PASS",
+    "real_consumer": "Actualcanonicalrunnerandnew3moduleASTwithfakeTorch/loader; tinyatomic8files/concurrency, noCUDAorfullmodelimport"
+  },
+  "independent_strict_patch_roundtrip": {
+    "modules": [
+      "vllm/v1/worker/gpu_model_runner.py",
+      "vllm/model_executor/model_loader/base_loader.py",
+      "vllm/model_executor/model_loader/sllm_loader.py"
+    ],
+    "canonical": true,
+    "fuzz": 0,
+    "forward_reverse_returncodes": 0,
+    "outputs_and_inverse_exact_SHA": true,
+    "scope": "OnlyTemporaryDirectorysmallsourcebytes; originalbuildsourcesimmutable"
+  },
+  "checks": [
+    "Fullendpointlocationretainedbeforefreshloadercall/afterreturnbeforeLoRA/drafter/aux; nostageclock/identityreadswhenoff",
+    "SFingestionbracketsself.load_weights;postbracketsonlinequantpredicate+conditionalfinalize+process_weights_after_loading, noextraeval/dispatch",
+    "Storeingestionload_dictthroughallparameter/bufferbindings+nonCUDA.to;postruntimehooks+attention, noextrarepack",
+    "Sixorderednestedtimestampsplusinheritedrun/instance/rank/PID/domain; timestampMISSINGorloadFAILEDpreservesoriginalexceptionobject",
+    "Atomic8perrankfiles nooverwrite/partialauthority; originalsinknoFPD2H/indexread/newwriter",
+    "Stripinstrumentationrestores3originalmoduleAST; originalfullpatchFPbranchseparate/notinnewrunner; noaddedCUDA sync ormathchange"
+  ],
+  "limits": [
+    "NoCPUtestprovesactualGPUtimestampcoverage/equivalence/performance orinstallation; completeformalprofile/renderer/finalactualcommandsstillpendingseparatereview.",
+    "Canonicalfullpatchwholeimageinstallationnotperformed; strictstage-onlydeltasverifiedforward/reverse.",
+    "InnerstageshostcallsnotpureIO/devicecompletion; SFconstruct/eval/allocatorpeakandothergapsinfullonly; crossrankstageenvelopesnonadditive.",
+    "Full/ingest/postfieldfailuremustfailclosedinactualnewconsumer; cannotimputehistoryorpromoteoldfailedblock."
+  ],
+  "actions": "NoGit/sourcechanges/GPU/Store/container/cache/weightreads; onlyexistingproducerfilesreviewedandCPUtest/temp-sourcepatchvalidation."
+}

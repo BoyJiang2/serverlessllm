@@ -1,0 +1,260 @@
+--- test_vllm_loader_interface.py@15b9
++++ test_vllm_loader_interface.py@stages
+@@ -788,3 +788,257 @@
+                     self.assertEqual(span["clock_identity"]["process_startticks"], 2000 + row["tp_rank"])
+                     self.assertEqual(span["model_instance_id"], "test-run-life1")
+                     self.assertLessEqual(span["begin_ns"], span["end_ns"])
++
++
++class LoadStageEndpointsTest(unittest.TestCase):
++    def test_actual_optin_producer_declares_both_stages(self):
++        import json
++        namespace, _, _, _, modules = LoadHostEndpointsTest().fixture()
++        with mock.patch.dict(sys.modules, modules):
++            exec(LoadEvidenceTest().context(), namespace)
++        span=json.loads(namespace['logger'].info.call_args.args[1])['weight_load_host_span']
++        self.assertEqual(span['stage_schema'],'kimi-weight-load-host-stages-v1')
++        self.assertEqual(set(span['stages']),{'weight_ingestion','postprocessing'})
++        for stage in span['stages'].values():
++            self.assertEqual(stage['status'],'MISSING')
++            self.assertIsNone(stage['begin_ns']);self.assertIsNone(stage['end_ns'])
++
++    def runner_sources(self):
++        root=pathlib.Path(__file__).resolve().parents[2]/"build/kimi-vllm0191-load-stages-v1"
++        tree=ast.parse((root/"v1/worker/gpu_model_runner.py").read_text())
++        runner=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=="GPUModelRunner")
++        method=next(n for n in runner.body if isinstance(n,ast.FunctionDef) and n.name=="load_model")
++        context=next(n for n in ast.walk(method) if isinstance(n,ast.With) and any(isinstance(x.context_expr,ast.Call) and isinstance(x.context_expr.func,ast.Name) and x.context_expr.func.id=="DeviceMemoryProfiler" for x in n.items))
++        return [LoadEvidenceTest().context(),compile(ast.Module(body=[context],type_ignores=[]),"<actual-stage-runner-overlay>","exec")]
++
++    def loader_fixture(self, kind, online=False, failure=None):
++        namespace, state, model, clock, modules=LoadHostEndpointsTest().fixture()
++        events=[]
++        root=pathlib.Path(__file__).resolve().parents[2]/"build/kimi-vllm0191-load-stages-v1/model_executor/model_loader"
++        base_tree=ast.parse((root/"base_loader.py").read_text())
++        base_class=next(n for n in base_tree.body if isinstance(n,ast.ClassDef) and n.name=="BaseModelLoader")
++        helper=next(n for n in base_class.body if isinstance(n,ast.FunctionDef) and n.name=="_sllm_stage_endpoint")
++        filename="base_loader.py" if kind=="SF" else "sllm_loader.py"
++        tree=ast.parse((root/filename).read_text())
++        cls=next(n for n in tree.body if isinstance(n,ast.ClassDef))
++        method=next(n for n in cls.body if isinstance(n,ast.FunctionDef) and n.name=="load_model")
++        method.decorator_list=[]
++        original=RuntimeError("actual-"+str(failure))
++        def action(name):
++            events.append(name)
++            if name==failure:raise original
++        class Device:
++            type="cuda"
++            def __enter__(self):return self
++            def __exit__(self,*args):return False
++            def __str__(self):return "cuda:0"
++        def initialize(**kwargs):action("construct");return model
++        def evaluate():action("eval");return model
++        model.eval=evaluate
++        named=namespace["self"].model_config=types.SimpleNamespace(model="/fixture",dtype="fake")
++        config=types.SimpleNamespace(device_config=types.SimpleNamespace(device="cuda"),load_config=types.SimpleNamespace(device=None))
++        namespace["self"].vllm_config=config
++        torch=namespace["torch"];torch.device=lambda _:Device();torch.empty=lambda *a,**kw:object();torch.cuda.current_device=lambda:0
++        loaderenv=dict(torch=torch,nn=types.SimpleNamespace(Module=object),VllmConfig=object,ModelConfig=object,os=types.SimpleNamespace(path=types.SimpleNamespace(isdir=lambda _:True,join=os.path.join,normpath=os.path.normpath,expanduser=lambda path:"/fixture"),getenv=lambda *a:"/fixture",pathsep=os.pathsep,sep=os.sep),gc=types.SimpleNamespace(collect=lambda:action("collect")),set_default_torch_dtype=lambda _:contextlib.nullcontext(),initialize_model=initialize,log_model_inspection=lambda _:action("inspection"),logger=namespace["logger"],current_platform=types.SimpleNamespace(is_cuda=lambda:False),_has_online_quant=lambda _:action("online_predicate") or online,finalize_layerwise_processing=lambda *a:action("finalize"),process_weights_after_loading=lambda *a:action("post"),process_attention_weights_after_loading=lambda *a:action("attention"))
++        exec(compile(ast.Module(body=[helper,method],type_ignores=[]),"<actual-stage-loader-methods>","exec"),loaderenv)
++        params=list(model.named_parameters());buffer=list(model.named_buffers())[0][1]
++        class BufferData:
++            def to(self,device):action("buffer_to");return self
++        buffer.data=BufferData();buffer.device=types.SimpleNamespace(type="cpu")
++        # Real Store method performs every assignment; trap both reset and restored binding.
++        tracked=[]
++        for name,tensor in params:
++            tensor.data=object()
++            class Tracked(type(tensor)):
++                def __setattr__(self,key,value):
++                    if key=="data":events.append("bind:"+self.label)
++                    object.__setattr__(self,key,value)
++            changed=Tracked.__new__(Tracked);changed.__dict__.update(tensor.__dict__);changed.label=name
++            tracked.append((name,changed))
++        model.named_parameters=mock.Mock(return_value=tracked)
++        model.state_dict=lambda:dict(tracked)
++        model.modules=lambda:[types.SimpleNamespace(quant_method=types.SimpleNamespace(prepare_runtime_for_restored_weights=lambda _:action("runtime")))]
++        def restore(*args):
++            action("store_ingest")
++            return {name:object() for name,_ in tracked}
++        store=types.ModuleType("sllm_store");store.__path__=[]
++        store_torch=types.ModuleType("sllm_store.torch");store_torch.load_dict=restore
++        vllm=types.ModuleType("vllm");vllm.__path__=[]
++        distributed=types.ModuleType("vllm.distributed");distributed.get_tensor_model_parallel_rank=lambda:0
++        modules.update({"sllm_store":store,"sllm_store.torch":store_torch,"vllm":vllm,"vllm.distributed":distributed})
++        loader=type("ActualStageLoader",(),{"_sllm_stage_endpoint":loaderenv["_sllm_stage_endpoint"],"load_model":loaderenv["load_model"],"load_weights":lambda *a:action("ingest"),"_filter_subtensors":staticmethod(lambda values:values)})()
++        namespace["get_model_loader"]=lambda _:loader
++        return namespace,events,modules,loader,original
++
++    def test_actual_sf_store_calls_and_all_six_endpoints(self):
++        import json
++        for source in self.runner_sources():
++            for kind,online in (("SF",False),("SF",True),("Store",False)):
++                with self.subTest(kind=kind,online=online):
++                    namespace,events,modules,loader,_=self.loader_fixture(kind,online)
++                    ticks=iter((100,110,120,130,140,150))
++                    def stamp():
++                        value=next(ticks);events.append("ns:"+str(value));return value
++                    with mock.patch.dict(sys.modules,modules),mock.patch("time.monotonic_ns",side_effect=stamp):
++                        exec(source,namespace)
++                    span=json.loads(namespace["logger"].info.call_args.args[1])["weight_load_host_span"]
++                    self.assertEqual((span["begin_ns"],span["end_ns"]),(100,150))
++                    self.assertEqual(span["stage_schema"],"kimi-weight-load-host-stages-v1")
++                    boundaries=(("before_base_load_weights","after_base_load_weights_return"),("before_online_quant_condition","after_process_weights_after_loading_return")) if kind=="SF" else (("before_store_load_dict","after_store_data_bindings_and_buffer_moves"),("before_store_runtime_hook_traversal","after_store_attention_postprocessing_return"))
++                    for key,expected in zip(("weight_ingestion","postprocessing"),boundaries):
++                        self.assertEqual((span["stages"][key]["begin_boundary"],span["stages"][key]["end_boundary"]),expected)
++                    for key,expected in (("weight_ingestion",(110,120)),("postprocessing",(130,140))):
++                        stage=span["stages"][key]
++                        self.assertEqual(stage["status"],"COMPLETE");self.assertEqual((stage["begin_ns"],stage["end_ns"]),expected)
++                    if kind=="SF":
++                        self.assertLess(events.index("ns:110"),events.index("ingest"));self.assertLess(events.index("ingest"),events.index("ns:120"))
++                        self.assertLess(events.index("ns:130"),events.index("online_predicate"));self.assertLess(events.index("post"),events.index("ns:140"))
++                        self.assertEqual("finalize" in events,online)
++                        self.assertLess(events.index("ns:140"),events.index("eval"))
++                    else:
++                        self.assertLess(events.index("ns:110"),events.index("store_ingest"))
++                        positions=[i for i,name in enumerate(events) if name.startswith("bind:")]
++                        restore=events.index("store_ingest")
++                        self.assertEqual(len([i for i in positions if i>restore]),3)
++                        self.assertTrue(all(i<events.index("ns:120") for i in positions))
++                        self.assertLess(events.index("buffer_to"),events.index("ns:120"))
++                        self.assertLess(events.index("ns:130"),events.index("runtime"))
++                        self.assertLess(events.index("attention"),events.index("ns:140"))
++                    namespace["torch"].cuda.synchronize.assert_called_once()
++
++    def test_actual_default_off_has_no_stage_clock_or_identity_reads(self):
++        for kind in ("SF","Store"):
++            namespace,events,modules,loader,_=self.loader_fixture(kind)
++            namespace["os"].environ.pop("SLLM_CAPTURE_LOAD_ENDPOINTS")
++            with mock.patch.dict(sys.modules,modules),mock.patch("time.monotonic_ns",side_effect=AssertionError("default clock read")) as clock:
++                exec(self.runner_sources()[0],namespace)
++            clock.assert_not_called();modules["sllm.logger"].get_clock_identity.assert_not_called()
++            self.assertFalse(hasattr(loader,"_sllm_load_stages"))
++
++    def test_actual_loader_exception_retains_partial_stage_and_original_object(self):
++        import json
++        for source in self.runner_sources():
++            for kind,phase,stage in (("SF","construct",None),("SF","ingest","weight_ingestion"),("SF","post","postprocessing"),("Store","store_ingest","weight_ingestion"),("Store","runtime","postprocessing"),("Store","attention","postprocessing")):
++                with self.subTest(kind=kind,phase=phase):
++                    namespace,_,modules,_,original=self.loader_fixture(kind,failure=phase)
++                    with mock.patch.dict(sys.modules,modules):
++                        with self.assertRaises(RuntimeError) as caught:exec(source,namespace)
++                    self.assertIs(caught.exception,original)
++                    row=json.loads(namespace["logger"].info.call_args.args[1]);span=row["weight_load_host_span"]
++                    self.assertFalse(row["load_completed"]);self.assertEqual(span["status"],"FAILED")
++                    if stage is not None:
++                        self.assertEqual(span["stages"][stage]["status"],"FAILED")
++                        self.assertIsNone(span["stages"][stage]["end_ns"])
++                    else:self.assertTrue(all(x["status"]=="MISSING" for x in span["stages"].values()))
++
++    def test_actual_stage_timestamp_errors_are_missing_and_do_not_mask_model_error(self):
++        import json
++        for failed_call in (2,3,4,5):
++            namespace,_,modules,_,_=self.loader_fixture("SF")
++            count=[0]
++            def stamp():
++                count[0]+=1
++                if count[0]==failed_call:raise OSError("stage clock")
++                return count[0]*100
++            with mock.patch.dict(sys.modules,modules),mock.patch("time.monotonic_ns",side_effect=stamp):
++                exec(self.runner_sources()[0],namespace)
++            span=json.loads(namespace["logger"].info.call_args.args[1])["weight_load_host_span"]
++            self.assertTrue(any(x["status"]=="MISSING" and x.get("error_type")=="OSError" for x in span["stages"].values()))
++        for invalid in (0,-1,"invalid",True):
++            namespace,_,modules,_,_=self.loader_fixture("SF")
++            calls=[0]
++            def invalid_stamp():
++                calls[0]+=1
++                return invalid if calls[0]==2 else calls[0]*100
++            with mock.patch.dict(sys.modules,modules),mock.patch("time.monotonic_ns",side_effect=invalid_stamp):
++                exec(self.runner_sources()[0],namespace)
++            stage=json.loads(namespace["logger"].info.call_args.args[1])["weight_load_host_span"]["stages"]["weight_ingestion"]
++            self.assertEqual(stage["status"],"MISSING");self.assertIsNone(stage["begin_ns"]);self.assertIsNone(stage["end_ns"])
++        namespace,_,modules,_,original=self.loader_fixture("SF",failure="ingest")
++        with mock.patch.dict(sys.modules,modules),mock.patch("time.monotonic_ns",side_effect=[100,OSError("begin")]):
++            with self.assertRaises(RuntimeError) as caught:exec(self.runner_sources()[0],namespace)
++        self.assertIs(caught.exception,original)
++
++    def test_actual_eight_rank_stage_files_atomic_complete_and_no_overwrite(self):
++        import json
++        import threading
++        from concurrent.futures import ThreadPoolExecutor
++        for source in self.runner_sources():
++            local=threading.local()
++            _,_,_,clock,modules=LoadHostEndpointsTest().fixture()
++            modules["sllm.logger"].get_clock_identity.side_effect=lambda:dict(clock,process_startticks=3000+local.rank)
++            with tempfile.TemporaryDirectory() as directory,mock.patch.dict(sys.modules,modules):
++                def publish(rank):
++                    local.rank=rank
++                    namespace,_,_,_,_=self.loader_fixture("SF")
++                    namespace["os"].environ["SLLM_LOAD_EVIDENCE_DIR"]=directory
++                    namespace["os"].getpid=lambda:2000+rank
++                    namespace["get_tp_group"]=lambda:types.SimpleNamespace(rank_in_group=rank)
++                    exec(source,namespace)
++                    namespace["logger"].warning.assert_not_called()
++                    return namespace
++                with ThreadPoolExecutor(max_workers=8) as pool:namespaces=list(pool.map(publish,range(8)))
++                files=list(pathlib.Path(directory).iterdir());self.assertEqual(len(files),8)
++                saved={path.name:path.read_bytes() for path in files}
++                for path in files:
++                    row=json.loads(path.read_text());span=row["weight_load_host_span"];rank=row["tp_rank"]
++                    self.assertEqual(span["clock_identity"]["process_startticks"],3000+rank)
++                    self.assertEqual(span["pid"],row["pid"]);self.assertEqual(span["tp_rank"],rank)
++                    self.assertEqual(span["run_id"],"test-run");self.assertEqual(span["model_instance_id"],"test-run-life1")
++                    self.assertEqual(span["stage_schema"],"kimi-weight-load-host-stages-v1")
++                    ingestion=span["stages"]["weight_ingestion"];post=span["stages"]["postprocessing"]
++                    self.assertEqual((ingestion["status"],post["status"]),("COMPLETE","COMPLETE"))
++                    self.assertLessEqual(span["begin_ns"],ingestion["begin_ns"])
++                    self.assertLessEqual(ingestion["begin_ns"],ingestion["end_ns"])
++                    self.assertLessEqual(ingestion["end_ns"],post["begin_ns"])
++                    self.assertLessEqual(post["begin_ns"],post["end_ns"])
++                    self.assertLessEqual(post["end_ns"],span["end_ns"])
++                    self.assertEqual(path.stat().st_mode&0o777,0o600)
++                local.rank=0;exec(source,namespaces[0])
++                self.assertEqual(saved,{path.name:path.read_bytes() for path in files})
++                self.assertEqual(json.loads(namespaces[0]["logger"].warning.call_args.args[1])["event"],"SLLM_LOAD_EVIDENCE_MISSING")
++
++    def test_strip_stage_instrumentation_restores_actual_previous_module_asts(self):
++        root=pathlib.Path(__file__).resolve().parents[2]/"build/kimi-vllm0191-load-stages-v1"
++        class Strip(ast.NodeTransformer):
++            def visit_FunctionDef(self,node):
++                return None if node.name=="_sllm_stage_endpoint" else self.generic_visit(node)
++            def visit_Expr(self,node):
++                if isinstance(node.value,ast.Call) and isinstance(node.value.func,ast.Attribute) and node.value.func.attr=="_sllm_stage_endpoint":return None
++                return self.generic_visit(node)
++            def visit_Assign(self,node):
++                if any(isinstance(x,ast.Attribute) and x.attr=="_sllm_load_stages" for x in node.targets):return None
++                if any(isinstance(x,ast.Name) and x.id=="load_span" for x in node.targets) and isinstance(node.value,ast.Dict):
++                    pairs=[(k,v) for k,v in zip(node.value.keys,node.value.values) if not (isinstance(k,ast.Constant) and k.value in ("stages","stage_schema"))]
++                    node.value.keys=[k for k,v in pairs];node.value.values=[v for k,v in pairs]
++                return self.generic_visit(node)
++            def visit_For(self,node):
++                if isinstance(node.target,ast.Name) and node.target.id=="stage" and 'load_span' in ast.unparse(node.iter):return None
++                return self.generic_visit(node)
++        import json
++        manifest=json.loads((root/"build-manifest.json").read_text())
++        import hashlib
++        self.assertNotIn("_sllm_diagnostic_value_fingerprint",(root/"v1/worker/gpu_model_runner.py").read_text())
++        self.assertNotIn("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT",(root/"v1/worker/gpu_model_runner.py").read_text())
++        for row in manifest["modules"]:
++            for section in ("base","output","delta"):
++                path=pathlib.Path(row[section]["path"])
++                self.assertTrue(path.is_file());self.assertFalse(path.is_symlink())
++                self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),row[section]["sha256"])
++            before=ast.parse(pathlib.Path(row["base"]["path"]).read_text())
++            after=Strip().visit(ast.parse(pathlib.Path(row["output"]["path"]).read_text()))
++            self.assertEqual(ast.dump(before,include_attributes=False),ast.dump(after,include_attributes=False))
++        patch=(pathlib.Path(__file__).resolve().parents[2]/"vllm_patch/sllm_load.patch").read_text()
++        # The actual canonical SLLM producer is the complete new-file patch body.
++        section=patch.split("+++ b/vllm/model_executor/model_loader/sllm_loader.py\n",1)[1].split("diff --git ",1)[0]
++        canonical="".join(line[1:] for line in section.splitlines(True) if line.startswith("+"))
++        self.assertEqual(ast.dump(ast.parse(canonical),include_attributes=False),ast.dump(ast.parse((root/"model_executor/model_loader/sllm_loader.py").read_text()),include_attributes=False))
++        # Runner fragments are compared as real AST nodes, allowing the existing canonical FP-only branch to stay separate.
++        fragments=[]
++        for source in self.runner_sources():
++            tree=ast.parse(LoadEvidenceTest().context()) if isinstance(source,str) else None
++            if tree is not None:
++                fragments.append([ast.dump(n,include_attributes=False) for n in ast.walk(tree) if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Attribute) and t.attr=="_sllm_load_stages" for t in n.targets)) or (isinstance(n,ast.For) and isinstance(n.target,ast.Name) and n.target.id=="stage")])
++        overlay=ast.parse((root/"v1/worker/gpu_model_runner.py").read_text())
++        expected=[ast.dump(n,include_attributes=False) for n in ast.walk(overlay) if (isinstance(n,ast.Assign) and any(isinstance(t,ast.Attribute) and t.attr=="_sllm_load_stages" for t in n.targets)) or (isinstance(n,ast.For) and isinstance(n.target,ast.Name) and n.target.id=="stage")]
++        self.assertEqual(fragments[0],expected)

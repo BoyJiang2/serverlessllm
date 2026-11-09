@@ -1,0 +1,144 @@
+{
+  "schema": "kimi-load-stages-overlay-v1",
+  "stage_schema": "kimi-weight-load-host-stages-v1",
+  "endpoint_schema": "kimi-weight-load-host-endpoints-v1",
+  "canonical_patch": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+    "sha256": "7b6b263e8757913dab9e4ef37c88977052ac821572baceee4f2fe78aedecfba6"
+  },
+  "canonical_baseline_sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+  "canonical_baseline": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/inputs/sllm_load.patch.source15b9",
+    "sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f",
+    "provenance_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-endpoints-implementation-v1/sllm_load.patch.source15b9.snapshot"
+  },
+  "canonical_delta": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/canonical-stage-only.patch",
+    "sha256": "7929db83f4e64cac9bf1fecd79c160ad794240857761aa3c0b10113e912cc901"
+  },
+  "clock_identity_helper": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm/logger.py",
+    "sha256": "cd68c74c982e9c4119234c44b45409423008fce4c56021deac415ab9c1abfb11"
+  },
+  "modules": [
+    {
+      "logical_module": "vllm/v1/worker/gpu_model_runner.py",
+      "base": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+        "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7"
+      },
+      "output": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/v1/worker/gpu_model_runner.py",
+        "sha256": "ee88a0e0310257d52c10d43c1c8e32682640cc64f860d1bc6752e51789bddff0"
+      },
+      "delta": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/gpu_model_runner-stage-only.patch",
+        "sha256": "519d384a743a32e09b362a2d7c15205174113347aab40f3f883e7076aafffa58"
+      },
+      "inverse_exact": true,
+      "strict_patch_results": [
+        {
+          "reverse": false,
+          "stdout": "patching file vllm/v1/worker/gpu_model_runner.py\n",
+          "stderr": ""
+        },
+        {
+          "reverse": true,
+          "stdout": "patching file vllm/v1/worker/gpu_model_runner.py\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "logical_module": "vllm/model_executor/model_loader/base_loader.py",
+      "base": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/inputs/base_loader.py",
+        "sha256": "d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df",
+        "provenance_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/stopped-worker-vllm-loader-source-readonly-v1/base_loader.py"
+      },
+      "output": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/model_executor/model_loader/base_loader.py",
+        "sha256": "038a2a0108cdf72f65f981cd68a016e6852b0ce4e29a300e2449258ea75a796b"
+      },
+      "delta": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/base_loader-stage-only.patch",
+        "sha256": "e549c49cfb7956a6cccd66edd4b35a06a03d3ed1fd689144adadf44ba3b5067c"
+      },
+      "inverse_exact": true,
+      "strict_patch_results": [
+        {
+          "reverse": false,
+          "stdout": "patching file vllm/model_executor/model_loader/base_loader.py\n",
+          "stderr": ""
+        },
+        {
+          "reverse": true,
+          "stdout": "patching file vllm/model_executor/model_loader/base_loader.py\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "logical_module": "vllm/model_executor/model_loader/sllm_loader.py",
+      "base": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+        "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c"
+      },
+      "output": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/model_executor/model_loader/sllm_loader.py",
+        "sha256": "d0ba30217d285de299db50d176960a1a84d87c9940a949c19697b9f018b06b3b"
+      },
+      "delta": {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/sllm_loader-stage-only.patch",
+        "sha256": "d35f16c40b29d5eaa2231958ee7831e1253d99c9d64c992ce7b7aeb40b030409"
+      },
+      "inverse_exact": true,
+      "strict_patch_results": [
+        {
+          "reverse": false,
+          "stdout": "patching file vllm/model_executor/model_loader/sllm_loader.py\n",
+          "stderr": ""
+        },
+        {
+          "reverse": true,
+          "stdout": "patching file vllm/model_executor/model_loader/sllm_loader.py\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "all_module_inverse_exact": true,
+    "canonical_inverse_exact": true,
+    "no_added_cuda_synchronization": true,
+    "no_tensor_payload_reads": true,
+    "default_off_has_no_stage_clock_reads": true,
+    "canonical_stage_AST_equal": true
+  },
+  "canonical_strict_patch_results": [
+    {
+      "reverse": false,
+      "stdout": "patching file sllm_load.patch\n",
+      "stderr": ""
+    },
+    {
+      "reverse": true,
+      "stdout": "patching file sllm_load.patch\n",
+      "stderr": ""
+    }
+  ],
+  "limits": [
+    "CPU/source-only, no GPU runtime or new execution approval",
+    "Full old endpoint unchanged; host nested stages may exclude work and crossrank envelopes are nonadditive",
+    "No fingerprint/D2H/index read/new sink; original rank atomic sink and existing postload sync retained",
+    "Canonical fullpatch wholeimage installation not performed; stage deltas forward/reverse verified with fuzz0 and original hashes"
+  ],
+  "source_test": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py",
+    "sha256": "7e34f7d1caa1a2818304f5a282492f9e2a7d217905fccdd3e7b03a448832c2b9"
+  },
+  "test_baseline": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/inputs/test_vllm_loader_interface.py.source15b9",
+    "sha256": "169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4"
+  }
+}

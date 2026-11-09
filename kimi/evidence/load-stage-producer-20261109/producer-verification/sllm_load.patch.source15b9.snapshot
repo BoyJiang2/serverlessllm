@@ -1,0 +1,1193 @@
+diff --git a/vllm/model_executor/model_loader/__init__.py b/vllm/model_executor/model_loader/__init__.py
+--- a/vllm/model_executor/model_loader/__init__.py
++++ b/vllm/model_executor/model_loader/__init__.py
+@@ -18,6 +18,7 @@
+ )
+ from vllm.model_executor.model_loader.sharded_state_loader import ShardedStateLoader
+ from vllm.model_executor.model_loader.tensorizer_loader import TensorizerLoader
++from vllm.model_executor.model_loader.sllm_loader import ServerlessLLMLoader
+ from vllm.model_executor.model_loader.utils import (
+     get_architecture_class_name,
+     get_model_architecture,
+@@ -44,6 +45,7 @@
+     "safetensors",
+     "sharded_state",
+     "tensorizer",
++    "serverless_llm",
+ ]
+ _LOAD_FORMAT_TO_MODEL_LOADER: dict[str, type[BaseModelLoader]] = {
+     "auto": DefaultModelLoader,
+@@ -61,6 +63,7 @@
+     "safetensors": DefaultModelLoader,
+     "sharded_state": ShardedStateLoader,
+     "tensorizer": TensorizerLoader,
++    "serverless_llm": ServerlessLLMLoader,
+ }
+ 
+ 
+diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_executor/model_loader/sllm_loader.py
+new file mode 100644
+--- /dev/null
++++ b/vllm/model_executor/model_loader/sllm_loader.py
+@@ -0,0 +0,169 @@
++import torch
++from torch import nn
++import collections
++import os
++import gc
++from typing import Dict, Optional
++from vllm.config import VllmConfig, ModelConfig
++from vllm.config.load import LoadConfig
++from vllm.model_executor.model_loader.base_loader import BaseModelLoader
++from vllm.model_executor.model_loader.utils import (
++    initialize_model, process_attention_weights_after_loading)
++from vllm.utils.torch_utils import set_default_torch_dtype
++
++class ServerlessLLMLoader(BaseModelLoader):
++    # DEFAULT_PATTERN = "model-rank-{rank}-part-{part}.safetensors"
++
++    def __init__(self, load_config: LoadConfig):
++        super().__init__(load_config)
++        extra_config = ({} if load_config.model_loader_extra_config is None
++                        else load_config.model_loader_extra_config.copy())
++        # self.pattern = extra_config.pop("pattern", self.DEFAULT_PATTERN)
++        if extra_config:
++            raise ValueError(f"Unexpected extra config keys for load format "
++                             f"{load_config.load_format}: "
++                             f"{load_config.model_loader_extra_config.keys()}")
++
++    @staticmethod
++    def _filter_subtensors(
++            tensors: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
++        """
++        Filter out all tensors that share the same memory or a subset of the
++        memory of another tensor.
++        """
++        same_storage_groups = collections.defaultdict(list)
++        result = {}
++        for key, tensor in tensors.items():
++            if not tensor.numel():
++                result[key] = tensor
++            else:
++                ptr = tensor.untyped_storage().data_ptr()
++                same_storage_groups[tensor.device, ptr].append((key, tensor))
++
++        def get_end_ptr(tensor: torch.Tensor) -> int:
++            return tensor.view(-1)[-1].data_ptr() + tensor.element_size()
++
++        for group in same_storage_groups.values():
++            for k, t in group:
++                a, b = t.data_ptr(), get_end_ptr(t)
++                for k2, t2 in group:
++                    if not t2.is_contiguous():
++                        continue
++                    a2, b2 = t2.data_ptr(), get_end_ptr(t2)
++                    if a < a2 or b2 < b:
++                        continue
++                    if a2 < a or b < b2 or not t.is_contiguous():
++                        break  # t2 covers strictly more memory than t.
++                    if k2 > k:
++                        # Same tensors, keep the one with the longer key.
++                        break
++                else:
++                    result[k] = t
++        return result
++        
++    def load_model(
++        self,
++        vllm_config: VllmConfig,
++        model_config: ModelConfig,
++        prefix: str = "",
++    ) -> nn.Module:
++        from sllm_store.torch import load_dict
++        from vllm.distributed import get_tensor_model_parallel_rank
++        
++        assert os.path.isdir(model_config.model)
++        
++        rank = get_tensor_model_parallel_rank()
++
++        local_model_path = model_config.model
++        local_model_path = os.path.join(local_model_path, f"rank_{rank}")
++
++        def remove_prefix(path, prefix):
++            # Normalize the paths to ensure consistency across different platforms
++            path = os.path.normpath(path)
++            prefix = os.path.normpath(prefix)
++            
++            # Check if the path starts with the prefix
++            if path.startswith(prefix):
++                # Return the path without the prefix
++                return path[len(prefix):].lstrip(os.sep)
++            
++            # Return the original path if the prefix doesn't exist
++            return path
++        
++        # vLLM needs a local model path to read model config but
++        # ServerlessLLM Store requires a global model path as the model ID
++        storage_path = os.getenv("STORAGE_PATH", os.path.expanduser("~/models"))
++        model_path = remove_prefix(local_model_path, storage_path)
++        
++        with set_default_torch_dtype(model_config.dtype):
++            # with torch.device(device_config.device):
++            with torch.device("cpu"):
++                model = initialize_model(
++                    vllm_config=vllm_config,
++                    model_config=model_config,
++                    prefix=prefix,
++                )
++                model = model.eval()
++            state_dict = self._filter_subtensors(model.state_dict())
++            key_list = list(state_dict)
++            bindings = dict(model.named_parameters(
++                recurse=True, remove_duplicate=False))
++            bindings.update(model.named_buffers(
++                recurse=True, remove_duplicate=False))
++            del state_dict
++            # Release constructor storage before allocating the restored rank.
++            for key in key_list:
++                tensor = bindings[key]
++                tensor.data = torch.empty(0, dtype=tensor.dtype, device="cpu")
++            gc.collect()
++
++            device_id = torch.cuda.current_device()
++            device_map = {"": device_id}
++            # Note: storage path is already included in the local model path
++            sllm_state_dict = load_dict(model_path, device_map)
++
++            for key in key_list:
++                bindings[key].data = sllm_state_dict[key]
++
++            for name, buffer in model.named_buffers(recurse=True):
++                if buffer.device.type != 'cuda':
++                    buffer.data = buffer.data.to(f'cuda:{device_id}')
++
++            for module in model.modules():
++                quant_method = getattr(module, "quant_method", None)
++                prepare_runtime = getattr(
++                    quant_method, "prepare_runtime_for_restored_weights", None)
++                if prepare_runtime is not None:
++                    prepare_runtime(module)
++            process_attention_weights_after_loading(
++                model, model_config, torch.device(f"cuda:{device_id}"))
++            
++        return model
++    
++    def download_model(self, model_config: ModelConfig) -> None:
++        pass
++
++    def load_weights(self, model, model_config):
++        pass
++
++    @staticmethod
++    def save_model(
++        model: torch.nn.Module,
++        path: str,
++        pattern: Optional[str] = None,
++        max_size: Optional[int] = None,
++    ) -> None:
++        from vllm.distributed import get_tensor_model_parallel_rank
++        from sllm_store.torch import save_dict
++        
++        rank = get_tensor_model_parallel_rank()
++        state_dict = ServerlessLLMLoader._filter_subtensors(model.state_dict())
++        
++        # move all tensors to CPU
++        for key, tensor in state_dict.items():
++            state_dict[key] = tensor.cpu().contiguous()
++
++        save_path = os.path.join(path, f"rank_{rank}")
++        if not os.path.exists(save_path):
++            os.makedirs(save_path)
++        save_dict(state_dict, save_path)
+diff --git a/vllm/v1/engine/core.py b/vllm/v1/engine/core.py
+--- a/vllm/v1/engine/core.py
++++ b/vllm/v1/engine/core.py
+@@ -725,6 +725,17 @@
+             path=path, pattern=pattern, max_size=max_size
+         )
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++
++        self.model_executor.save_serverless_llm_state(
++            path=path, pattern=pattern, max_size=max_size
++        ) 
++
+     def collective_rpc(
+         self,
+         method: str | Callable[..., _R],
+diff --git a/vllm/v1/engine/core_client.py b/vllm/v1/engine/core_client.py
+--- a/vllm/v1/engine/core_client.py
++++ b/vllm/v1/engine/core_client.py
+@@ -190,6 +190,14 @@
+     ) -> None:
+         raise NotImplementedError
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        self.engine_core.save_serverless_llm_state(path, pattern, max_size)
++
+     def collective_rpc(
+         self,
+         method: str | Callable[..., _R],
+@@ -870,6 +878,14 @@
+     ) -> None:
+         self.call_utility("save_sharded_state", path, pattern, max_size)
+ 
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++        self.call_utility("save_serverless_llm_state", path, pattern, max_size)
++
+ 
+ class AsyncMPClient(MPClient):
+     """Asyncio-compatible client for multi-proc EngineCore."""
+@@ -1108,6 +1124,16 @@
+         self, path: str, pattern: str | None = None, max_size: int | None = None
+     ) -> None:
+         await self.call_utility_async("save_sharded_state", path, pattern, max_size)
++
++    async def save_serverless_llm_state_async(
++                                        self,
++                                        path: str,
++                                        pattern: str | None = None,
++                                        max_size: int | None = None,
++                                        ) -> None:
++        await self.call_utility_async("save_serverless_llm_state", path, pattern, 
++                                      max_size)
++
+ 
+     async def collective_rpc_async(
+         self,
+diff --git a/vllm/v1/executor/abstract.py b/vllm/v1/executor/abstract.py
+--- a/vllm/v1/executor/abstract.py
++++ b/vllm/v1/executor/abstract.py
+@@ -258,6 +258,18 @@
+         self.collective_rpc(
+             "save_sharded_state",
+             kwargs=dict(path=path, pattern=pattern, max_size=max_size),
++        )
++
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++        ) -> None:
++        
++        self.collective_rpc(
++            "save_serverless_llm_state",
++            kwargs=dict(path=path, pattern=pattern, max_size=max_size)
+         )
+ 
+     @abstractmethod
+diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
+--- a/vllm/v1/worker/gpu_model_runner.py
++++ b/vllm/v1/worker/gpu_model_runner.py
+@@ -4,6 +4,145 @@
+ import functools
+ import gc
+ import itertools
++import os
++
++def _sllm_diagnostic_value_fingerprint(model, registered, rank, device):
++    import hashlib
++    import json
++    import time
++
++    started = time.monotonic()
++    deadline = started + 600
++    chunk_bytes = 64 << 20
++    index_path = "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % rank
++    result = {
++        "schema": "kimi-load-boundary-value-fingerprint-v1",
++        "stage": "before_first_forward", "status": "FAIL",
++        "chunk_bytes": chunk_bytes, "budget_seconds": 600,
++        "index_path": index_path, "index_sha256": None,
++        "persistent": [], "runtime_buffers": [], "aliases": [],
++        "counts": {"index_keys": 0, "registered_names": len(registered),
++                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
++                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
++        "coverage_complete": False, "error_type": None, "error": None,
++        "scope": "Diagnostic coverage only, not cross-run equality; before first forward only. Nonregistered native allocations/workspaces and after-request state are not captured.",
++    }
++    cache = {}
++
++    def check_deadline():
++        if not time.monotonic() < deadline:
++            raise TimeoutError("diagnostic fingerprint 600-second budget exhausted")
++
++    try:
++        check_deadline()
++        assert model is not None, "loaded model unavailable"
++        with open(index_path, "rb") as stream:
++            raw = stream.read((1 << 20) + 1)
++        assert len(raw) <= 1 << 20, "tensor index size cap"
++        result["index_sha256"] = hashlib.sha256(raw).hexdigest()
++        index = json.loads(raw)
++        assert isinstance(index, dict) and index, "missing persistent tensor index"
++        result["counts"]["index_keys"] = len(index)
++        bindings = dict(model.named_parameters(remove_duplicate=False))
++        buffers = dict(model.named_buffers(remove_duplicate=False))
++        assert not (bindings.keys() & buffers.keys()), "duplicate parameter/buffer name"
++        bindings.update(buffers)
++        metadata = {row["name"]: row for row in registered}
++        assert len(metadata) == len(registered) and set(metadata) == set(bindings), "registered coverage mismatch"
++        assert set(index) <= set(bindings), "persistent key missing from model"
++
++        def range_key(name):
++            check_deadline()
++            tensor = bindings[name]
++            row = metadata[name]
++            assert tensor.is_contiguous(), "noncontiguous tensor: " + name
++            assert tensor.device.type == "cuda", "non-CUDA tensor: " + name
++            assert (str(tensor.dtype), list(tensor.shape), list(tensor.stride()),
++                    tensor.numel() * tensor.element_size()) == (
++                        row["dtype"], row["shape"], row["stride"], row["bytes"]), "tensor metadata changed: " + name
++            if row["bytes"] == 0:
++                return ("empty", name)
++            return (str(tensor.device), tensor.untyped_storage().data_ptr(),
++                    tensor.storage_offset() * tensor.element_size(), row["bytes"],
++                    row["dtype"], tuple(row["shape"]), tuple(row["stride"]))
++
++        persistent_ranges = {}
++        for name in sorted(index):
++            check_deadline()
++            entry = index[name]
++            assert len(entry) == 5, "invalid tensor index entry"
++            row = metadata[name]
++            assert (entry[1], entry[2], entry[3], entry[4]) == (
++                row["bytes"], row["shape"], row["stride"], row["dtype"]), "persistent metadata mismatch: " + name
++            key = range_key(name)
++            if row["bytes"]:
++                persistent_ranges.setdefault(key, name)
++
++        def fingerprint(name):
++            check_deadline()
++            row = metadata[name]
++            key = range_key(name)
++            value = {"name": name, "kind": row["kind"], "dtype": row["dtype"],
++                     "shape": row["shape"], "stride": row["stride"],
++                     "numbytes": row["bytes"]}
++            if key in cache:
++                value.update(sha256=cache[key][0], alias_of=cache[key][1])
++                return value
++            digest = hashlib.sha256()
++            if row["bytes"]:
++                # Contiguity was checked: reshape/view do not clone a full tensor.
++                byte_view = bindings[name].detach().reshape(-1).view(torch.uint8)
++                assert byte_view.numel() == row["bytes"], "uint8 view byte count"
++                assert byte_view.untyped_storage().data_ptr() == bindings[name].untyped_storage().data_ptr(), "byte view cloned tensor storage"
++                for offset in range(0, row["bytes"], chunk_bytes):
++                    check_deadline()
++                    cpu = byte_view[offset:offset + chunk_bytes].cpu()
++                    try:
++                        torch.cuda.synchronize(device)
++                        check_deadline()
++                        payload = memoryview(cpu.numpy())
++                        try:
++                            assert payload.nbytes <= chunk_bytes, "CPU chunk cap"
++                            digest.update(payload)
++                            result["counts"]["hashed_bytes"] += payload.nbytes
++                            result["counts"]["chunks"] += 1
++                        finally:
++                            payload.release()
++                            del payload
++                    finally:
++                        del cpu
++                    check_deadline()
++                del byte_view
++            value["sha256"] = digest.hexdigest()
++            cache[key] = (value["sha256"], name)
++            return value
++
++        for name in sorted(index):
++            result["persistent"].append(fingerprint(name))
++        for name in sorted(set(bindings) - set(index)):
++            key = range_key(name)
++            if metadata[name]["bytes"] and key in persistent_ranges:
++                value = fingerprint(name)
++                value["alias_of"] = persistent_ranges[key]
++                result["aliases"].append(value)
++            else:
++                assert metadata[name]["kind"] == "buffer", "uncovered non-index parameter: " + name
++                result["runtime_buffers"].append(fingerprint(name))
++        names = [row["name"] for group in ("persistent", "runtime_buffers", "aliases")
++                 for row in result[group]]
++        assert len(names) == len(set(names)) and set(names) == set(bindings), "incomplete fingerprint coverage"
++        check_deadline()
++        result.update(status="PASS", coverage_complete=True)
++    except Exception as error:
++        result.update(status="TIMEOUT" if isinstance(error, TimeoutError) else "FAIL",
++                      error_type=type(error).__name__, error=str(error))
++    finally:
++        result["elapsed_seconds"] = time.monotonic() - started
++        for group in ("persistent", "runtime_buffers", "aliases"):
++            result["counts"][group] = len(result[group])
++        result["counts"]["unique_hashed_ranges"] = sum(key[0] != "empty" for key in cache)
++    return result
++
+ import threading
+ import time
+ from collections import defaultdict
+@@ -4744,67 +4883,283 @@
+ 
+         try:
+             with DeviceMemoryProfiler() as m:
+-                time_before_load = time.perf_counter()
+-                if load_dummy_weights:
+-                    self.load_config.load_format = "dummy"
+-                model_loader = get_model_loader(self.load_config)
+-                self.model = model_loader.load_model(
+-                    vllm_config=self.vllm_config, model_config=self.model_config
+-                )
+-                if self.lora_config:
+-                    self.model = self.load_lora_model(
+-                        self.model, self.vllm_config, self.device
++                load_error = None
++                load_span = None
++                try:
++                    time_before_load = time.perf_counter()
++                    if load_dummy_weights:
++                        self.load_config.load_format = "dummy"
++                    model_loader = get_model_loader(self.load_config)
++                    if os.environ.get("SLLM_CAPTURE_LOAD_ENDPOINTS") == "1":
++                        load_span = {"status": "MISSING", "begin_ns": None, "end_ns": None}
++                        try:
++                            from sllm.logger import get_clock_identity
++                            run_id = os.environ["SLLM_LOAD_SPAN_RUN_ID"]
++                            instance_id = os.environ["SLLM_LOAD_SPAN_INSTANCE_ID"]
++                            if not run_id or not instance_id:
++                                raise ValueError("Load endpoint run/instance identity missing")
++                            clock_identity = get_clock_identity()
++                            if (clock_identity.get("errors") or
++                                type(clock_identity.get("process_startticks")) is not int or
++                                clock_identity["process_startticks"] <= 0 or
++                                any(not isinstance(clock_identity.get(k), str) or not clock_identity[k]
++                                    for k in ("boot_id", "container_hostname", "time_namespace", "monotonic_clock_implementation"))):
++                                raise ValueError("Load endpoint clock identity unavailable")
++                            load_span.update(run_id=run_id, model_instance_id=instance_id,
++                                             clock_identity=clock_identity, pid=os.getpid(),
++                                             tp_rank=get_tp_group().rank_in_group,
++                                             model=str(self.model_config.model),
++                                             loader_type=type(model_loader).__module__ + "." + type(model_loader).__qualname__,
++                                             status="STARTED")
++                        except Exception as endpoint_error:
++                            load_span["error_type"] = type(endpoint_error).__name__
++                    if load_span is not None and load_span["status"] == "STARTED":
++                        try:
++                            load_span["begin_ns"] = time.monotonic_ns()
++                        except Exception as endpoint_error:
++                            load_span.update(status="MISSING", error_type=type(endpoint_error).__name__)
++                    self.model = model_loader.load_model(
++                        vllm_config=self.vllm_config, model_config=self.model_config
+                     )
++                    if load_span is not None and load_span["status"] == "STARTED":
++                        try:
++                            load_span["end_ns"] = time.monotonic_ns()
++                            load_span["status"] = "COMPLETE"
++                        except Exception as endpoint_error:
++                            load_span.update(status="MISSING", error_type=type(endpoint_error).__name__)
+-                if hasattr(self, "drafter"):
+-                    logger.info_once("Loading drafter model...")
+-                    self.drafter.load_model(self.model)
+-                    if (
+-                        hasattr(self.drafter, "model")
+-                        and is_mixture_of_experts(self.drafter.model)
+-                        and self.parallel_config.enable_eplb
+-                    ):
+-                        assert not self.parallel_config.enable_elastic_ep, (
+-                            "Elastic EP is not supported with drafter model."
++                    if self.lora_config:
++                        self.model = self.load_lora_model(
++                            self.model, self.vllm_config, self.device
+                         )
+-                        spec_config = self.vllm_config.speculative_config
+-                        assert spec_config is not None
+-                        assert spec_config.draft_model_config is not None
+-                        logger.info_once(
+-                            "EPLB is enabled for drafter model %s.",
+-                            spec_config.draft_model_config.model,
+-                        )
+-                        if self.eplb_state is None:
+-                            self.eplb_state = EplbState(
+-                                self.parallel_config, self.device
++                    if hasattr(self, "drafter"):
++                        logger.info_once("Loading drafter model...")
++                        self.drafter.load_model(self.model)
++                        if (
++                            hasattr(self.drafter, "model")
++                            and is_mixture_of_experts(self.drafter.model)
++                            and self.parallel_config.enable_eplb
++                        ):
++                            assert not self.parallel_config.enable_elastic_ep, (
++                                "Elastic EP is not supported with drafter model."
+                             )
+-                        self.eplb_state.add_model(
+-                            self.drafter.model,
+-                            spec_config.draft_model_config,
+-                        )
+-                        eplb_models += 1
+-
+-                if self.use_aux_hidden_state_outputs:
+-                    if not supports_eagle3(self.get_model()):
+-                        raise RuntimeError(
+-                            "Model does not support EAGLE3 interface but "
+-                            "aux_hidden_state_outputs was requested"
+-                        )
+-
+-                    # Try to get auxiliary layers from speculative config,
+-                    # otherwise use model's default layers
+-                    aux_layers = self._get_eagle3_aux_layers_from_config()
+-                    if aux_layers:
+-                        logger.info(
+-                            "Using auxiliary layers from speculative config: %s",
+-                            aux_layers,
+-                        )
+-                    else:
+-                        aux_layers = (
+-                            self.model.get_eagle3_default_aux_hidden_state_layers()
+-                        )
+-
+-                    self.model.set_aux_hidden_state_layers(aux_layers)
+-                time_after_load = time.perf_counter()
++                            spec_config = self.vllm_config.speculative_config
++                            assert spec_config is not None
++                            assert spec_config.draft_model_config is not None
++                            logger.info_once(
++                                "EPLB is enabled for drafter model %s.",
++                                spec_config.draft_model_config.model,
++                            )
++                            if self.eplb_state is None:
++                                self.eplb_state = EplbState(
++                                    self.parallel_config, self.device
++                                )
++                            self.eplb_state.add_model(
++                                self.drafter.model,
++                                spec_config.draft_model_config,
++                            )
++                            eplb_models += 1
++
++                    if self.use_aux_hidden_state_outputs:
++                        if not supports_eagle3(self.get_model()):
++                            raise RuntimeError(
++                                "Model does not support EAGLE3 interface but "
++                                "aux_hidden_state_outputs was requested"
++                            )
++
++                        # Try to get auxiliary layers from speculative config,
++                        # otherwise use model's default layers
++                        aux_layers = self._get_eagle3_aux_layers_from_config()
++                        if aux_layers:
++                            logger.info(
++                                "Using auxiliary layers from speculative config: %s",
++                                aux_layers,
++                            )
++                        else:
++                            aux_layers = (
++                                self.model.get_eagle3_default_aux_hidden_state_layers()
++                            )
++
++                        self.model.set_aux_hidden_state_layers(aux_layers)
++                    time_after_load = time.perf_counter()
++                except BaseException as error:
++                    load_error = error
++                    raise
++                finally:
++                    captured_memory = None
++                    diagnostic_failure = None
++                    diagnostic_capture_complete = False
++                    try:
++                        if os.environ.get("SLLM_CAPTURE_LOAD_EVIDENCE") == "1":
++                            import json
++                            import uuid
++
++                            capture_started = time.perf_counter()
++                            torch.cuda.synchronize(self.device)
++                            memory = {
++                                "allocated_bytes": torch.cuda.memory_allocated(self.device),
++                                "reserved_bytes": torch.cuda.memory_reserved(self.device),
++                                "peak_allocated_bytes": torch.cuda.max_memory_allocated(self.device),
++                                "peak_reserved_bytes": torch.cuda.max_memory_reserved(self.device),
++                            }
++                            free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
++                            memory.update(driver_free_bytes=free_bytes, driver_total_bytes=total_bytes)
++                            captured_memory = memory
++                            device_uuid = "GPU-" + str(uuid.UUID(
++                                str(torch.cuda.get_device_properties(self.device).uuid).removeprefix("GPU-")
++                            ))
++                            model = getattr(self, "model", None)
++                            registered = []
++                            storages = {}
++                            quant_methods = defaultdict(int)
++                            kernel_backends = defaultdict(int)
++                            for _, module in (model.named_modules() if model is not None else ()):
++                                method = getattr(module, "quant_method", None)
++                                if method is not None:
++                                    method_name = type(method).__module__ + "." + type(method).__qualname__
++                                    quant_methods[method_name] += 1
++                                    backend = getattr(method, "kernel_backend", None)
++                                    if backend is not None:
++                                        kernel_backends[method_name + ":" + str(backend)] += 1
++                            for kind, tensors in (
++                                ("parameter", model.named_parameters(remove_duplicate=False) if model is not None else ()),
++                                ("buffer", model.named_buffers(remove_duplicate=False) if model is not None else ()),
++                            ):
++                                for name, tensor in tensors:
++                                    storage = tensor.untyped_storage()
++                                    storage_key = (str(tensor.device), storage.data_ptr())
++                                    if tensor.device.type == "meta" or storage.nbytes() == 0:
++                                        storage_key = (kind, name)
++                                    if storage_key not in storages:
++                                        storages[storage_key] = {
++                                            "storage_id": len(storages), "device": str(tensor.device),
++                                            "bytes": storage.nbytes(), "names": [],
++                                        }
++                                    owner = storages[storage_key]
++                                    owner["names"].append(kind + ":" + name)
++                                    registered.append({
++                                        "kind": kind, "name": name, "device": str(tensor.device),
++                                        "shape": list(tensor.shape), "stride": list(tensor.stride()),
++                                        "dtype": str(tensor.dtype),
++                                        "bytes": tensor.numel() * tensor.element_size(),
++                                        "storage_id": owner["storage_id"],
++                                        "storage_offset": tensor.storage_offset(),
++                                    })
++                            record = {
++                                "event": "SLLM_LOAD_EVIDENCE", "pid": os.getpid(),
++                                "tp_rank": get_tp_group().rank_in_group, "device": str(self.device),
++                                "device_uuid": device_uuid,
++                                "phase": "load_boundary_before_profiler_exit_reset",
++                                "load_completed": load_error is None,
++                                "load_error_type": None if load_error is None else type(load_error).__name__,
++                                "registered_model_available": model is not None,
++                                "memory": memory, "quant_method_counts": dict(quant_methods) if model is not None else None,
++                                "kernel_backend_counts": dict(kernel_backends) if model is not None else None,
++                                "registered_tensors": registered if model is not None else None,
++                                "registered_storages": list(storages.values()) if model is not None else None,
++                                "unique_registered_storage_bytes": sum(x["bytes"] for x in storages.values()) if model is not None else None,
++                                "empty_g_idx_keys": [x["name"] for x in registered
++                                                     if "g_idx" in x["name"] and x["bytes"] == 0] if model is not None else None,
++                                "capture_seconds": time.perf_counter() - capture_started,
++                                "synchronized": True,
++                                "coverage": "registered parameter/buffer storage only; nonregistered workspace, native allocations and driver peak are not covered",
++                            }
++                            if load_span is not None:
++                                if load_span["status"] == "STARTED":
++                                    load_span["status"] = "FAILED"
++                                record["weight_load_host_span"] = dict(
++                                    load_span, schema="kimi-weight-load-host-endpoints-v1",
++                                    begin_boundary="before_model_loader_load_model",
++                                    end_boundary="after_model_loader_load_model_return_before_optional_runner_setup",
++                                    added_cuda_synchronization=False)
++                            if os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
++                                if load_error is not None:
++                                    record["diagnostic_value_fingerprint"] = {
++                                        "schema": "kimi-load-boundary-value-fingerprint-v1",
++                                        "stage": "before_first_forward", "status": "SKIPPED_LOAD_ERROR",
++                                        "index_path": "/store/vllm/kimi-k2.6-sf-reference/rank_%d/tensor_index.json" % record["tp_rank"],
++                                        "index_sha256": None, "persistent": [], "runtime_buffers": [], "aliases": [],
++                                        "counts": {"index_keys": 0, "registered_names": len(registered),
++                                                   "persistent": 0, "runtime_buffers": 0, "aliases": 0,
++                                                   "unique_hashed_ranges": 0, "hashed_bytes": 0, "chunks": 0},
++                                        "elapsed_seconds": 0,
++                                        "coverage_complete": False, "error_type": type(load_error).__name__,
++                                        "error": str(load_error), "chunk_bytes": 64 << 20, "budget_seconds": 600,
++                                    }
++                                else:
++                                    fingerprint = _sllm_diagnostic_value_fingerprint(
++                                        model, registered, record["tp_rank"], self.device)
++                                    record["diagnostic_value_fingerprint"] = fingerprint
++                                    if fingerprint["status"] != "PASS":
++                                        error_cls = TimeoutError if fingerprint["status"] == "TIMEOUT" else RuntimeError
++                                        diagnostic_failure = error_cls("Diagnostic value fingerprint failed: " + str(fingerprint["error"]))
++                            serialized = json.dumps(record, sort_keys=True)
++                            evidence_dir = os.environ.get("SLLM_LOAD_EVIDENCE_DIR")
++                            if evidence_dir:
++                                import stat
++                                assert os.path.isabs(evidence_dir)
++                                payload = serialized.encode("utf-8")
++                                directory = os.open(evidence_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
++                                filename = "rank-%d-pid-%d.json" % (record["tp_rank"], record["pid"])
++                                temporary = "." + filename + ".partial"
++                                temporary_created = published = False
++                                write_error = None
++                                try:
++                                    info = os.fstat(directory)
++                                    assert info.st_uid == os.geteuid() and stat.S_IMODE(info.st_mode) == 0o700
++                                    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=directory)
++                                    temporary_created = True
++                                    with os.fdopen(fd, "wb") as stream:
++                                        stream.write(payload)
++                                        stream.flush()
++                                        os.fsync(stream.fileno())
++                                    os.link(temporary, filename, src_dir_fd=directory, dst_dir_fd=directory, follow_symlinks=False)
++                                    published = True
++                                    os.fsync(directory)
++                                except BaseException as error:
++                                    write_error = error
++                                    if published:
++                                        try:
++                                            os.unlink(filename, dir_fd=directory)
++                                        except OSError:
++                                            pass
++                                    raise
++                                finally:
++                                    try:
++                                        try:
++                                            if temporary_created:
++                                                os.unlink(temporary, dir_fd=directory)
++                                        finally:
++                                            os.close(directory)
++                                    except OSError:
++                                        if write_error is None:
++                                            raise
++                                logger.info("SLLM_LOAD_EVIDENCE_FILE %s", json.dumps({
++                                    "event": "SLLM_LOAD_EVIDENCE_FILE", "tp_rank": record["tp_rank"],
++                                    "pid": record["pid"], "device_uuid": record["device_uuid"],
++                                    "filename": filename, "bytes": len(payload),
++                                    "load_completed": record["load_completed"],
++                                }, sort_keys=True))
++                            else:
++                                logger.info("SLLM_LOAD_EVIDENCE %s", serialized)
++                            diagnostic_capture_complete = True
++                    except BaseException as evidence_error:
++                        diagnostic_failure = evidence_error
++                        try:
++                            logger.warning("SLLM_LOAD_EVIDENCE_MISSING %s", json.dumps({
++                                "event": "SLLM_LOAD_EVIDENCE_MISSING",
++                                "load_completed": load_error is None,
++                                "capture_error_type": type(evidence_error).__name__,
++                                "memory": captured_memory,
++                            }, sort_keys=True))
++                        except BaseException:
++                            pass
++                        if load_error is None and not isinstance(evidence_error, Exception):
++                            raise
++                    if load_error is None and os.environ.get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") == "1":
++                        if diagnostic_failure is not None:
++                            raise diagnostic_failure
++                        if not diagnostic_capture_complete:
++                            raise RuntimeError("Diagnostic fingerprint requires successful load-evidence capture")
+             self.model_memory_usage = m.consumed_memory
+         except torch.cuda.OutOfMemoryError as e:
+             msg = (
+@@ -4989,6 +5344,20 @@
+                     "Following weights were not loaded from checkpoint: %s",
+                     weights_not_loaded,
+                 )
++
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        from vllm.model_executor.model_loader import ServerlessLLMLoader
++        ServerlessLLMLoader.save_model(
++            self.model,
++            path,
++            pattern=pattern,
++            max_size=max_size,
++        )
+ 
+     def _get_prompt_logprobs_dict(
+         self,
+diff --git a/vllm/v1/worker/gpu_worker.py b/vllm/v1/worker/gpu_worker.py
+--- a/vllm/v1/worker/gpu_worker.py
++++ b/vllm/v1/worker/gpu_worker.py
+@@ -827,7 +827,19 @@
+             all_gather_group=get_tp_group(),
+             all_gather_tensors=all_gather_tensors,
+         )
++        
++    def save_serverless_llm_state(
++        self,
++        path: str,
++        pattern: str | None = None,
++        max_size: int | None = None,
++    ) -> None:
++        self.model_runner.save_serverless_llm_state(
++            path,
++            pattern=pattern,
++            max_size=max_size,
++        )
+ 
+         return None
+ 
+--- a/vllm/tokenizers/hf.py
++++ b/vllm/tokenizers/hf.py
+@@ -1,125 +13,158 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ import contextlib
+ import copy
++import json
+ from pathlib import Path
+ from typing import TypeAlias
+ 
+ from transformers import AutoTokenizer, PreTrainedTokenizer, PreTrainedTokenizerFast
++from transformers import __version__ as transformers_version
++from transformers.dynamic_module_utils import get_class_from_dynamic_module
+ 
+ from vllm.transformers_utils.config import get_sentence_transformer_tokenizer_config
+ 
+ from .protocol import TokenizerLike
+ 
+ HfTokenizer: TypeAlias = PreTrainedTokenizer | PreTrainedTokenizerFast
+ 
+ 
+ def get_cached_tokenizer(tokenizer: HfTokenizer) -> HfTokenizer:
+     """
+     By default, transformers will recompute multiple tokenizer properties
+     each time they are called, leading to a significant slowdown.
+     This proxy caches these properties for faster access.
+     """
+     cached_tokenizer = copy.copy(tokenizer)
+ 
+     tokenizer_all_special_ids = tokenizer.all_special_ids
+     tokenizer_all_special_tokens = tokenizer.all_special_tokens
+     tokenizer_vocab = tokenizer.get_vocab()
+     tokenizer_len = len(tokenizer)
+ 
+     max_token_id = max(tokenizer_vocab.values())
+     max_chars_per_token = max(len(tok) for tok in tokenizer_vocab)
+ 
+     # Some tokenizers (e.g., QwenTokenizer) have special tokens that
+     # are added and included in the implementation of the vocab_size
+     # property, but not in get_vocab(); if there is an implementation
+     # of vocab size, we should take the greater value.
+     if hasattr(tokenizer, "vocab_size"):
+         with contextlib.suppress(NotImplementedError):
+             max_token_id = max(max_token_id, tokenizer.vocab_size)
+ 
+     class CachedTokenizer(tokenizer.__class__):  # type: ignore
+         @property
+         def all_special_ids(self) -> list[int]:
+             return tokenizer_all_special_ids
+ 
+         @property
+         def all_special_tokens(self) -> list[str]:
+             return tokenizer_all_special_tokens
+ 
+         @property
+         def max_token_id(self) -> int:
+             return max_token_id
+ 
+         @property
+         def max_chars_per_token(self) -> int:
+             return max_chars_per_token
+ 
+         def get_vocab(self) -> dict[str, int]:
+             return tokenizer_vocab
+ 
+         def __len__(self) -> int:
+             return tokenizer_len
+ 
+         def __reduce__(self):
+             return get_cached_tokenizer, (tokenizer,)
+ 
+     CachedTokenizer.__name__ = f"Cached{tokenizer.__class__.__name__}"
+ 
+     cached_tokenizer.__class__ = CachedTokenizer
+     return cached_tokenizer
+ 
+ 
+ class CachedHfTokenizer(TokenizerLike):
+     @classmethod
+     def from_pretrained(
+         cls,
+         path_or_repo_id: str | Path,
+         *args,
+         trust_remote_code: bool = False,
+         revision: str | None = None,
+         download_dir: str | None = None,
+         **kwargs,
+     ) -> HfTokenizer:
+         try:
+-            tokenizer = AutoTokenizer.from_pretrained(
++            tokenizer_cls = AutoTokenizer
++            if trust_remote_code is True and transformers_version == "5.5.1":
++                tokenizer_path = Path(path_or_repo_id) / (kwargs.get("subfolder") or "")
++                if tokenizer_path.is_dir() and (tokenizer_path / "config.json").is_file():
++                    with (tokenizer_path / "config.json").open(encoding="utf-8") as config_file:
++                        model_type = json.load(config_file).get("model_type")
++                    if model_type == "kimi_k25":
++                        with (tokenizer_path / "tokenizer_config.json").open(encoding="utf-8") as config_file:
++                            tokenizer_config = json.load(config_file)
++                        class_reference = "tokenization_kimi.TikTokenTokenizer"
++                        if (
++                            tokenizer_config.get("tokenizer_class") != "TikTokenTokenizer"
++                            or tokenizer_config.get("auto_map", {}).get("AutoTokenizer")
++                            != [class_reference, None]
++                        ):
++                            raise ValueError("Unexpected local Kimi tokenizer class or auto_map")
++                        tokenizer_cls = get_class_from_dynamic_module(
++                            class_reference,
++                            str(tokenizer_path),
++                            revision=revision,
++                            cache_dir=download_dir,
++                            **{
++                                key: value
++                                for key, value in kwargs.items()
++                                if key in (
++                                    "code_revision", "local_files_only", "token",
++                                    "force_download", "proxies",
++                                )
++                            },
++                        )
++            tokenizer = tokenizer_cls.from_pretrained(
+                 path_or_repo_id,
+                 *args,
+                 trust_remote_code=trust_remote_code,
+                 revision=revision,
+                 cache_dir=download_dir,
+                 **kwargs,
+             )
+         except ValueError as e:
+             # If the error pertains to the tokenizer class not existing or not
+             # currently being imported,
+             # suggest using the --trust-remote-code flag.
+             if not trust_remote_code and (
+                 "does not exist or is not currently imported." in str(e)
+                 or "requires you to execute the tokenizer file" in str(e)
+             ):
+                 err_msg = (
+                     "Failed to load the tokenizer. If the tokenizer "
+                     "is a custom tokenizer not yet available in the "
+                     "HuggingFace transformers library, consider "
+                     "setting `trust_remote_code=True` in LLM or using "
+                     "the `--trust-remote-code` flag in the CLI."
+                 )
+                 raise RuntimeError(err_msg) from e
+             else:
+                 raise e
+ 
+         # The special_tokens in tokenizer should also be
+         # controlled by do_lower_case in encoder_config
+         encoder_config = get_sentence_transformer_tokenizer_config(
+             path_or_repo_id, revision
+         )
+         if isinstance(encoder_config, dict) and encoder_config.get(
+             "do_lower_case", False
+         ):
+             special_tokens_map = {
+                 k: v.lower() for k, v in tokenizer.special_tokens_map.items()
+             }
+             tokenizer.add_special_tokens(special_tokens_map)
+ 
+         return get_cached_tokenizer(tokenizer)
+diff --git a/vllm/model_executor/layers/rotary_embedding/common.py b/vllm/model_executor/layers/rotary_embedding/common.py
+--- a/vllm/model_executor/layers/rotary_embedding/common.py
++++ b/vllm/model_executor/layers/rotary_embedding/common.py
+@@ -1,25 +1,26 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+ 
+ import math
+ from importlib.util import find_spec
+ 
+ import torch
+ 
+ from vllm.logger import init_logger
+ from vllm.model_executor.custom_op import CustomOp
++from vllm.platforms import current_platform
+ from vllm.utils.torch_utils import direct_register_custom_op
+ 
+ logger = init_logger(__name__)
+ 
+ 
+ # common functions
+ def rotate_neox(x: torch.Tensor) -> torch.Tensor:
+     x1 = x[..., : x.shape[-1] // 2]
+     x2 = x[..., x.shape[-1] // 2 :]
+     return torch.cat((-x2, x1), dim=-1)
+ 
+ 
+ def rotate_gptj(x: torch.Tensor) -> torch.Tensor:
+     x1 = x[..., ::2]
+     x2 = x[..., 1::2]
+@@ -122,31 +123,31 @@
+ @CustomOp.register("apply_rotary_emb")
+ class ApplyRotaryEmb(CustomOp):
+     # --8<-- [end:apply_rotary_emb]
+ 
+     def __init__(
+         self,
+         enforce_enable: bool = False,
+         is_neox_style: bool = True,
+         enable_fp32_compute: bool = False,
+     ) -> None:
+         super().__init__(enforce_enable=enforce_enable)
+         self.is_neox_style = is_neox_style
+         self.enable_fp32_compute = enable_fp32_compute
+ 
+         self.apply_rotary_emb_flash_attn = None
+-        if find_spec("flash_attn") is not None:
++        if current_platform.is_rocm() and find_spec("flash_attn") is not None:
+             from flash_attn.ops.triton.rotary import apply_rotary
+ 
+             self.apply_rotary_emb_flash_attn = apply_rotary
+ 
+     @staticmethod
+     def forward_static(
+         x: torch.Tensor,
+         cos: torch.Tensor,
+         sin: torch.Tensor,
+         is_neox_style: bool = True,
+         enable_fp32_compute: bool = False,
+     ) -> torch.Tensor:
+         """
+         Args:
+             x: [batch_size (optional), seq_len, num_heads, head_size]
+diff --git a/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py b/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
+--- a/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
++++ b/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe.py
+@@ -1549,7 +1549,11 @@
+             )
+         replace_parameter(layer, "w2_weight_scale", marlin_w2_scales)
+ 
+-        layer.workspace = marlin_make_workspace_new(device, 4)
++        self.prepare_runtime_for_restored_weights(layer)
++
++    def prepare_runtime_for_restored_weights(self, layer: torch.nn.Module) -> None:
++        layer.workspace = marlin_make_workspace_new(
++            layer.w13_weight_packed.device, 4)
+ 
+     def get_fused_moe_quant_config(
+         self, layer: torch.nn.Module
+diff --git a/vllm/model_executor/model_loader/utils.py b/vllm/model_executor/model_loader/utils.py
+--- a/vllm/model_executor/model_loader/utils.py
++++ b/vllm/model_executor/model_loader/utils.py
+@@ -55,104 +55,110 @@
+         # new-style model class
+         with set_current_vllm_config(vllm_config, check_compile=True, prefix=prefix):
+             model = model_class(vllm_config=vllm_config, prefix=prefix)
+             record_metadata_for_reloading(model)
+             return model
+ 
+     msg = (
+         "vLLM model class should accept `vllm_config` and `prefix` as "
+         "input arguments. Possibly you have an old-style model class"
+         " registered from out of tree and it is used for new vLLM version. "
+         "Check https://docs.vllm.ai/en/latest/design/arch_overview.html "
+         "for the design and update the model class accordingly."
+     )
+     warnings.warn(msg, DeprecationWarning, stacklevel=2)
+ 
+     logger.warning(
+         "Trying to guess the arguments for old-style model class %s",
+         model_class,
+     )
+     # try to be compatible with old-style model class
+     kwargs: dict[str, Any] = {}
+     if "prefix" in all_params:
+         kwargs["prefix"] = prefix
+     if "config" in all_params:
+         kwargs["config"] = model_config.hf_config
+     if "cache_config" in all_params:
+         kwargs["cache_config"] = vllm_config.cache_config
+     if "quant_config" in all_params:
+         kwargs["quant_config"] = vllm_config.quant_config
+     if "lora_config" in all_params:
+         kwargs["lora_config"] = vllm_config.lora_config
+     if "scheduler_config" in all_params:
+         kwargs["scheduler_config"] = vllm_config.scheduler_config
+     with set_current_vllm_config(vllm_config, check_compile=True, prefix=prefix):
+         model = model_class(**kwargs)
+         record_metadata_for_reloading(model)
+ 
+     return model
+ 
+ 
++def process_attention_weights_after_loading(
++    model: nn.Module, model_config: ModelConfig, target_device: torch.device
++) -> None:
++    # Initialize post-load attention weights for both Attention and MLA.
++    # NOTE: Happens after other modules so we can easily decompress weights.
++    for _, module in model.named_modules():
++        if isinstance(module, (Attention, MLAAttention)) and hasattr(
++            module, "process_weights_after_loading"
++        ):
++            # TODO(lucas): see if there is a way to unify the signatures
++            # of process_weights_after_loading
++            with device_loading_context(module, target_device):
++                module.process_weights_after_loading(model_config.dtype)
++
++
+ def process_weights_after_loading(
+     model: nn.Module, model_config: ModelConfig, target_device: torch.device
+ ) -> None:
+     for _, module in model.named_modules():
+         quant_method = getattr(module, "quant_method", None)
+         if isinstance(quant_method, QuantizeMethodBase):
+             # When quant methods need to process weights after loading
+             # (for repacking, quantizing, etc), they expect parameters
+             # to be on the global target device. This scope is for the
+             # case where cpu offloading is used, where we will move the
+             # parameters onto device for processing and back off after.
+             with device_loading_context(module, target_device):
+                 quant_method.process_weights_after_loading(module)
+ 
+-    # Initialize post-load attention weights for both Attention and MLA.
+-    # NOTE: Happens after other modules so we can easily decompress weights.
+-    for _, module in model.named_modules():
+-        if isinstance(module, (Attention, MLAAttention)) and hasattr(
+-            module, "process_weights_after_loading"
+-        ):
+-            # TODO(lucas): see if there is a way to unify the signatures
+-            # of process_weights_after_loading
+-            with device_loading_context(module, target_device):
+-                module.process_weights_after_loading(model_config.dtype)
++    process_attention_weights_after_loading(model, model_config, target_device)
+ 
+     # Needed for torchao model reloading via model.reload_weights
+     # @kylesayrs @jerryzh168 this can be removed if callers move to `reload_weights`
+     if model_config.quantization == "torchao":
+         set_torchao_reload_attrs(model, model_config)
+ 
+ 
+ @contextmanager
+ def device_loading_context(module: torch.nn.Module, target_device: torch.device):
+     if target_device.type == "cpu":
+         # If target is CPU, no need to move anything
+         yield module
+         return
+ 
+     original_device_states: dict[str, torch.device] = {}
+     uva_offloaded_parameters: list[str] = []
+ 
+     # Store original device states and move parameters to GPU if they're on CPU
+     for name, p in module.named_parameters():
+         if p.device.type == "cpu":
+             original_device_states[name] = p.device
+             p.data = p.data.to(target_device)
+         if getattr(p, "_vllm_is_uva_offloaded", False):
+             uva_offloaded_parameters.append(name)
+         # Parameters already on target device are not touched
+ 
+     try:
+         yield module
+ 
+     finally:
+         use_pin_memory = (
+             is_pin_memory_available()
+             and not envs.VLLM_WEIGHT_OFFLOADING_DISABLE_PIN_MEMORY
+         )
+         # Restore parameters to their original devices, ignoring new parameters
+         for name, p in module.named_parameters():
+             if name in original_device_states:
+                 original_device: torch.device = original_device_states[name]
+                 p.data = p.data.to(original_device)
+ 

@@ -1,0 +1,53 @@
+diff --git a/vllm/model_executor/model_loader/base_loader.py b/vllm/model_executor/model_loader/base_loader.py
+--- a/vllm/model_executor/model_loader/base_loader.py
++++ b/vllm/model_executor/model_loader/base_loader.py
+@@ -27,6 +27,26 @@
+ 
+     def __init__(self, load_config: LoadConfig):
+         self.load_config = load_config
++
++    def _sllm_stage_endpoint(self, name, edge, boundary):
++        stages = getattr(self, "_sllm_load_stages", None)
++        if stages is None:
++            return
++        stage = stages[name]
++        stage[edge + "_boundary"] = boundary
++        if edge == "end" and stage["status"] != "STARTED":
++            return
++        try:
++            import time
++            stamp = time.monotonic_ns()
++            if type(stamp) is not int or stamp <= 0:
++                raise ValueError("Invalid load stage timestamp")
++            if edge == "end" and stamp < stage["begin_ns"]:
++                raise ValueError("Load stage clock moved backwards")
++            stage[edge + "_ns"] = stamp
++            stage["status"] = "STARTED" if edge == "begin" else "COMPLETE"
++        except Exception as error:
++            stage.update(status="MISSING", error_type=type(error).__name__)
+ 
+     @abstractmethod
+     def download_model(self, model_config: ModelConfig) -> None:
+@@ -61,7 +81,9 @@
+             log_model_inspection(model)
+ 
+             logger.debug("Loading weights on %s ...", load_device)
++            self._sllm_stage_endpoint("weight_ingestion", "begin", "before_base_load_weights")
+             self.load_weights(model, model_config)
++            self._sllm_stage_endpoint("weight_ingestion", "end", "after_base_load_weights_return")
+ 
+             # Log peak GPU memory after loading weights. This is needed
+             # to have test coverage on peak memory for online quantization.
+@@ -75,10 +97,12 @@
+ 
+             # Process weights into kernel format. Note that when using online
+             # quantization, weights are (typically) quantized as they are loaded.
++            self._sllm_stage_endpoint("postprocessing", "begin", "before_online_quant_condition")
+             if _has_online_quant(model):
+                 finalize_layerwise_processing(model, model_config)
+ 
+             process_weights_after_loading(model, model_config, target_device)
++            self._sllm_stage_endpoint("postprocessing", "end", "after_process_weights_after_loading_return")
+ 
+         return model.eval()
+ 

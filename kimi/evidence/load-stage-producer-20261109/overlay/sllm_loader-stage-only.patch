@@ -1,0 +1,29 @@
+diff --git a/vllm/model_executor/model_loader/sllm_loader.py b/vllm/model_executor/model_loader/sllm_loader.py
+--- a/vllm/model_executor/model_loader/sllm_loader.py
++++ b/vllm/model_executor/model_loader/sllm_loader.py
+@@ -120,6 +120,7 @@
+             device_id = torch.cuda.current_device()
+             device_map = {"": device_id}
+             # Note: storage path is already included in the local model path
++            self._sllm_stage_endpoint("weight_ingestion", "begin", "before_store_load_dict")
+             sllm_state_dict = load_dict(model_path, device_map)
+ 
+             for key in key_list:
+@@ -129,6 +130,9 @@
+                 if buffer.device.type != 'cuda':
+                     buffer.data = buffer.data.to(f'cuda:{device_id}')
+ 
++            self._sllm_stage_endpoint("weight_ingestion", "end", "after_store_data_bindings_and_buffer_moves")
++
++            self._sllm_stage_endpoint("postprocessing", "begin", "before_store_runtime_hook_traversal")
+             for module in model.modules():
+                 quant_method = getattr(module, "quant_method", None)
+                 prepare_runtime = getattr(
+@@ -137,6 +141,7 @@
+                     prepare_runtime(module)
+             process_attention_weights_after_loading(
+                 model, model_config, torch.device(f"cuda:{device_id}"))
++            self._sllm_stage_endpoint("postprocessing", "end", "after_store_attention_postprocessing_return")
+             
+         return model
+     
