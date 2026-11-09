@@ -136,6 +136,7 @@ def _run(paths, allowed_roots, deadline, action, *, observation=None, telemetry=
             identity = _identity(info)
             _verify(fd, path, identity)
             opened.append((fd, path, identity, _trust(info)))
+        expected_read_bytes = sum(identity["size"] for _, _, identity, _ in opened)
         for fd, path, identity, trust in opened:
             _check_deadline(deadline)
             _verify(fd, path, identity)
@@ -169,7 +170,9 @@ def _run(paths, allowed_roots, deadline, action, *, observation=None, telemetry=
                         observation["read_bytes"] += count
                         observation["read_end_ns"] = returned_ns
                     _check_deadline(read_deadline)
-                    if observation is not None and telemetry and time.monotonic() >= next_telemetry:
+                    if (observation is not None and telemetry and
+                            observation["read_bytes"] < expected_read_bytes and
+                            time.monotonic() >= next_telemetry):
                         telemetry("read_progress")
                         _check_deadline(read_deadline)
                         next_telemetry = time.monotonic() + 30

@@ -410,6 +410,39 @@ class ObservedCacheTest(unittest.TestCase):
         self.assertEqual(result["sweeps"][0]["status"], "QUERYING")
         self.assertTrue(result["read_complete"])
 
+    def test_last_read_skips_heavy_progress_that_would_delay_query_zero(self):
+        actual = os.preadv
+        events = []
+        def read(*args):
+            count = actual(*args)
+            self.clock[0] += 30
+            return count
+        def telemetry(label):
+            events.append(label)
+            if label == "read_progress":self.clock[0] += 5
+        result = self.observed(read=read, telemetry=telemetry)
+        self.assertNotIn("read_progress", events)
+        self.assertEqual(result["read_end_ns"], 130 * 10**9)
+        self.assertEqual(result["sweeps"][0]["query_begin_ns"], result["read_end_ns"])
+        self.assertTrue(result["admitted"])
+
+    def test_nonfinal_file_read_still_reports_due_progress(self):
+        second = self.root / "second.bin";second.write_bytes(b"y")
+        run, read = cache._run, os.preadv
+        events = []
+        def both(paths, roots, deadline, action, **kwargs):
+            return run([self.path, second], roots, deadline, action, **kwargs)
+        def slow_read(*args):
+            count = read(*args);self.clock[0] += 30;return count
+        def telemetry(label):
+            events.append(label)
+            if label == "read_progress":self.clock[0] += 3
+        with mock.patch.object(cache, "_run", side_effect=both):
+            result = self.observed(read=slow_read, telemetry=telemetry)
+        self.assertEqual(events.count("read_progress"), 1)
+        self.assertEqual(result["read_end_ns"], 163 * 10**9)
+        self.assertTrue(result["admitted"])
+
     def test_zero_payload_is_not_invented_read_endpoint(self):
         self.path.write_bytes(b"")
         with self.assertRaises(ValueError) as caught:self.observed()

@@ -28,6 +28,12 @@ Q0_SF_HOST = "/mnt/raid/models/Kimi-K2.6"
 Q0_STORE_ARCHIVE = "/home/boyjiang/kimi-new/store-conversion-20261105-once"
 Q0_RUNS_ROOT = "/home/boyjiang/kimi-new/evidence/runs"
 Q0_NODE_PROFILE = {'hostname': 'qjhs0', 'ssh_alias': 'qjhs000', 'gpu_uuids': ['GPU-ec8259a6-1812-7313-8679-ded3ed2271a0', 'GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f', 'GPU-63a1fe63-1472-9448-9361-a039cf257d14', 'GPU-393e97f5-a431-1973-5bd9-e2be28ae854a', 'GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf', 'GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d', 'GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590', 'GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da'], 'filesystem_source': '/dev/md0', 'filesystem_type': 'xfs'}
+SMALL_POOL_COHORT = "kimi-unified-loading-20261109-qjhs000-small-pool-v1"
+MATCHED_CACHE_RUN = "kimi-matched-cache-only-20261109-qjhs000-v1"
+OBSERVED_CACHE_SHA = "576732096b335b4c6bd922d4de6dfaf6dbeac63bb8701d299149d0983570e039"
+LEGACY_CACHE_SHA = "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8"
+MATCHED_PHASES = [300,300,1200,120,2400,0,0,0,720,180]
+MATCHED_STATISTICS = {"scope":"single_cache_diagnostic_no_formal_model_samples","success_rate_denominator":"launch_requested","stopping":"technical_failure_abort_no_retry_partial_cache_sticky_normal_teardown"}
 DIAGNOSTIC_OVERLAY_SHA = '86643c1b628f293873fb00a8071b1feab59c4112b87ae43875fe8ca9692b1f25'
 DIAGNOSTIC_MANIFEST = base.ROOT/'sllm_store/build/kimi-vllm0191-diagnostic-values-v1/build-manifest.json'
 DIAGNOSTIC_MANIFEST_SHA = '95b872094858c38438b31a7ed10a8c56474a6faba3c8bee63d00e060096dde21'
@@ -48,11 +54,17 @@ def validate_protocol(protocol):
     attempts = protocol["attempts"]
     if unified:
         loading=protocol["unified_loading"]
-        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT)
-        if loading["cohort_id"]==Q0_COHORT:
+        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT)
+        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT):
             assert protocol["node_profile"]==Q0_NODE_PROFILE
             assert protocol["node"]==Q0_NODE_PROFILE["ssh_alias"]
             assert protocol["assets"]["route"]=="local_raid_md0"
+        if loading["cohort_id"]==SMALL_POOL_COHORT:
+            assert protocol["execution_scope"]=="MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION"
+            assert protocol["statistics"]==MATCHED_STATISTICS
+            assert protocol["store_pool_bytes_by_condition"]=={c:(67108864 if c.startswith("safetensors") else 687194767360) for c in CONDITIONS}
+            assert protocol["cache_diagnostic"]=={"mode":"matched_native_pre_register_v1","run_id":MATCHED_CACHE_RUN,"phase_max":MATCHED_PHASES,"full_seconds":7200}
+            protocol_cache_pin(protocol)
         assert loading["block_id"]==loading["cohort_id"]+"-b01"
         assert loading["stop_on_failure"] is True and loading["append_only"] is True
         assert protocol.get("execution_revision") is None
@@ -182,7 +194,7 @@ UNIFIED_STATISTICS = {"scope":"single_block_descriptive_no_inference","success_r
 
 def protocol_guard_pin(protocol):
     cohort=protocol.get("unified_loading",{}).get("cohort_id")
-    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT):
+    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT):
         assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
         return FORMAL_GUARD_SHA
     assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
@@ -193,8 +205,23 @@ def protocol_guard_pin(protocol):
     assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
     assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
     assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
-    if cohort==Q0_COHORT:assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
+    if cohort in (Q0_COHORT,SMALL_POOL_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
     return guard["sha256"]
+
+
+def protocol_cache_pin(protocol):
+    path=base.ROOT/"sllm_store/tests/file_cache_state.py"
+    small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
+    if not small:
+        assert protocol.get("cache_observation_helper") is None,"new helper requires explicit small-pool cohort"
+        assert base.digest(path)==LEGACY_CACHE_SHA,"historical3340 helper bytes unavailable; old frozen deployment remains closed"
+        return LEGACY_CACHE_SHA
+    value=protocol["cache_observation_helper"]
+    assert value["path"]==str(path) and path.is_file() and not path.is_symlink()
+    assert value["baseline_sha256"]==LEGACY_CACHE_SHA and value["revision"]=="file-cache-warm-observation-v1"
+    assert value["sha256"]==OBSERVED_CACHE_SHA
+    assert hashlib.sha256(path.read_bytes()).hexdigest()==value["sha256"],"actual observation helper pin drift"
+    return value["sha256"]
 
 
 def validate_unified_overlay(protocol):
@@ -573,12 +600,186 @@ def milestone_assert_messages(body):
     return body
 
 
+MATCHED_CACHE_CODE = """
+cache_observation=None
+cache_observation_validated=False
+cache_telemetry_count=0
+cache_callback_markers=[]
+cache_previous_counters={}
+cache_phase_deadline=None
+def cache_text(path,deadline,optional=False):
+ assert time.monotonic()<deadline,'telemetry deadline'
+ p=pathlib.Path(path)
+ try:
+  with p.open() as stream:value=stream.read((1<<20)+1)
+ except FileNotFoundError:
+  if optional:return None
+  raise
+ assert len(value)<=1<<20,'bounded telemetry file exceeds1MiB'
+ assert time.monotonic()<deadline,'telemetry deadline'
+ return value
+def cache_ancestors(owner,deadline):
+ root=pathlib.Path('/sys/fs/cgroup');group=owner['cgroup']
+ assert group.startswith('0::/') and '\\n' not in group,'unified cgroup required'
+ relative=group[3:];assert '..' not in pathlib.PurePosixPath(relative).parts
+ current=root/relative.lstrip('/');rows=[]
+ while True:
+  assert current==root or root in current.parents
+  assert len(rows)<64
+  data={name:cache_text(current/name,deadline) for name in ('cgroup.controllers','cgroup.subtree_control')}
+  delegated=current==root or 'cpuset' in cache_text(current.parent/'cgroup.subtree_control',deadline).split()
+  for name in ('memory.max','memory.high','memory.current','memory.numa_stat','memory.events','memory.stat','memory.pressure','cpu.stat','cpu.pressure','cpuset.cpus.effective','cpuset.mems.effective'):
+   data[name]=cache_text(current/name,deadline,optional=(current==root and name in ('memory.max','memory.high','memory.current','memory.events')) or (not delegated and name.startswith('cpuset.')))
+  data['not_exposed']={k:('cpuset_not_enabled_in_parent_subtree_control_use_ancestor_and_kernel_process_allowed_masks' if k.startswith('cpuset.') else 'kernel_root_cgroup_interface_not_exposed_not_zero') for k,v in data.items() if v is None};data['path']=str(current);rows.append(data)
+  if current==root:break
+  current=current.parent
+ return rows
+def cache_mask(value):
+ result=set()
+ for part in value.strip().split(','):
+  ends=[int(v) for v in part.split('-')];assert len(ends) in (1,2) and 0<=ends[0]<=ends[-1]<65536
+  result.update(range(ends[0],ends[-1]+1))
+ assert result
+ return result
+def cache_metadata(label):
+ global cache_telemetry_count
+ stamp={'label':label,'monotonic_ns':time.monotonic_ns(),'wall':time.time(),'pid':os.getpid(),'clock_identity':clock_identity}
+ # Query/read boundary callbacks cannot delay the producer's fixed round0 start.
+ if label in ('read_begin','read_end') or label.endswith('_begin'):
+  cache_callback_markers.append(stamp);return
+ deadline=min(cache_phase_deadline,time.monotonic()+5)
+ healthy()
+ owners={'reader':identity(os.getpid()),'Store':identity(store_owner['pid'])}
+ assert owners['Store']['startticks']==store_owner['startticks'] and owners['Store']['cgroup']==store_owner['cgroup'],'Store identity drift'
+ data={'producer_callback':stamp,'collection_begin_ns':time.monotonic_ns(),'clock_identity':clock_identity,'owners':owners,'host':{},'processes':{},'numa':{},'cgroup_ancestors':{}}
+ for name in ('meminfo','vmstat','stat','diskstats','self/mountinfo','pressure/memory','pressure/cpu','pressure/io'):
+  data['host'][name]=cache_text(pathlib.Path('/proc')/name,deadline)
+ for name,owner in owners.items():
+  data['processes'][name]={'status':cache_text(pathlib.Path('/proc')/str(owner['pid'])/'status',deadline),'numa_maps':cache_text(pathlib.Path('/proc')/str(owner['pid'])/'numa_maps',deadline),'cgroup':owner['cgroup']}
+  data['cgroup_ancestors'][name]=cache_ancestors(owner,deadline)
+ mounts=[line.split() for line in data['host']['self/mountinfo'].splitlines() if ' - cgroup2 ' in line and line.split()[4]=='/sys/fs/cgroup']
+ assert len(mounts)==1 and mounts[0][3]=='/','hidden cgroup mount ancestors'
+ ns_self=os.readlink('/proc/self/ns/cgroup');ns_host=os.readlink('/proc/1/ns/cgroup')
+ assert ns_self==ns_host,'reader cgroup namespace differs from host PID1'
+ data['cgroup_mount_proof']={'mountinfo_fields':mounts[0],'reader_namespace':ns_self,'host_pid1_namespace':ns_host}
+ online=cache_text('/sys/devices/system/node/online',deadline).strip();data['numa_online']=online
+ nodes=set()
+ for part in online.split(','):
+  ends=[int(v) for v in part.split('-')];assert len(ends) in (1,2)
+  nodes.update(range(ends[0],ends[-1]+1))
+ assert 0<len(nodes)<=256
+ for node in sorted(nodes):
+  data['numa'][str(node)]={name:cache_text(pathlib.Path('/sys/devices/system/node')/('node'+str(node))/name,deadline) for name in ('meminfo','vmstat','numastat')}
+ for name,process in data['processes'].items():
+  status=dict(line.split(':',1) for line in process['status'].splitlines() if ':' in line)
+  process['effective_allowed_masks']={}
+  for kind in ('cpus','mems'):
+   actual=cache_mask(status['Cpus_allowed_list' if kind=='cpus' else 'Mems_allowed_list'])
+   visible=[row['cpuset.'+kind+'.effective'] for row in data['cgroup_ancestors'][name] if row['cpuset.'+kind+'.effective'] is not None]
+   assert visible and all(actual<=cache_mask(value) for value in visible),'effective cpuset/process allowed masks incompatible'
+   process['effective_allowed_masks'][kind]={'kernel_process_allowed':sorted(actual),'visible_ancestor_masks':visible,'scope':'Missing nondelegated interfaces are not unlimited; real process allowed mask and visible ancestor constraints must agree.'}
+ # Existing independent observer owns the GPU sampler; do not add NVML/RPC in read callbacks.
+ data['GPU_observation']={'initial_fresh_store_baseline':initial,'independent_observer_evidence':str(ob),'scope':'Initial actual GPU context baseline plus existing independent live observer; this callback does not fabricate a fresh GPU measurement.'}
+ log=services['store'][2]
+ with log.open() as stream:text=stream.read((4<<20)+1)
+ assert len(text)<=4<<20,'Store log exceeds bounded diagnostic evidence'
+ assert not re.search(r'Model .+ is registered|Loading model .+ to host|Finished loading model .+ from disk',text),'cache-only mode observed model activity'
+ data['Store_control']={'config':config,'model_activity_lines_observed':False,'service_log_path':str(log),'service_log_bytes':log.stat().st_size,'scope':'No model registration/load request is issued by this diagnostic; bounded Store log checked at this observation.'}
+ for name,owner in owners.items():
+  after=identity(owner['pid']);assert after['startticks']==owner['startticks'] and after['cgroup']==owner['cgroup'],'telemetry producer identity drift'
+ if label=='baseline':
+  info=dict(line.split(':',1) for line in data['host']['meminfo'].splitlines())
+  assert int(info['MemAvailable'].split()[0])*1024>=1680*1024**3,'original native1680GiB admission retained'
+  required=sum(v['bytes'] for v in frozen_files()['files'])+64*1024**3
+  status=dict(line.split(':',1) for line in data['processes']['reader']['status'].splitlines() if ':' in line)
+  allowed=set()
+  for part in status['Mems_allowed_list'].strip().split(','):
+   ends=[int(v) for v in part.split('-')];allowed.update(range(ends[0],ends[-1]+1))
+  assert allowed and allowed<=nodes
+  capacity=sum(int(next(line.split()[3] for line in data['numa'][str(node)]['meminfo'].splitlines() if 'MemTotal:' in line))*1024 for node in allowed)
+  assert capacity>=required,'allowed NUMA total capacity insufficient; not an availability guarantee'
+  for row in data['cgroup_ancestors']['reader']:
+   if row['memory.current'] is None:
+    assert row['path']=='/sys/fs/cgroup' and row['memory.max'] is None and row['memory.high'] is None;continue
+   current=int(row['memory.current'])
+   for limit in ('memory.max','memory.high'):
+    value=row[limit]
+    if value is not None and value.strip()!='max':assert int(value)-current>=required,'effective ancestor remaining cache headroom insufficient'
+  data['admission']={'required_finite_ancestor_headroom_bytes':required,'allowed_NUMA_total_bytes':capacity,'limits':'Aggregate/total/headroom admission is not proof of subsequent per-node free memory or cache retention.'}
+ counters={}
+ for name,text in [('host_vmstat',data['host']['vmstat'])]+[('node'+node+':'+field,values[field]) for node,values in data['numa'].items() for field in ('vmstat','numastat')]+[(owner+':'+row['path']+':'+field,row[field]) for owner,rows in data['cgroup_ancestors'].items() for row in rows for field in ('memory.stat','memory.events','cpu.stat') if row[field] is not None]:
+  counters[name]={line.split()[0]:int(line.split()[1]) for line in text.splitlines() if len(line.split())==2 and line.split()[1].isdigit() and (name.endswith(('memory.events','cpu.stat')) or line.startswith(('pgscan','pgsteal','pgfault','pgmajfault','workingset_refault','numa_')))}
+ data['counter_deltas_from_previous_same_process_observation']={}
+ for name,values in counters.items():
+  old=cache_previous_counters.get(name)
+  data['counter_deltas_from_previous_same_process_observation'][name]={key:(value-old[key] if old is not None and key in old and value>=old[key] else None) for key,value in values.items()}
+ cache_previous_counters.clear();cache_previous_counters.update(counters)
+ data['counter_delta_scope']='Selected cumulative reclaim/NUMA/fault/memory-event/CPU counters only; first/missing/reset differences remain null, no gauge treated as rate or causal attribution.'
+ data['collection_end_ns']=time.monotonic_ns();assert time.monotonic()<deadline
+ cache_telemetry_count+=1;save('cache-telemetry-'+str(cache_telemetry_count).zfill(3)+'-'+label+'.json',data);assert time.monotonic()<deadline,'telemetry save exceeded deadline'
+def run_cache_diagnostic():
+ global cache_observation,cache_phase_deadline,cache_observation_validated
+ cache_observation_validated=False
+ assert s['diagnostic_mode']=='matched_native_pre_register_v1' and s['store_pool_bytes']==67108864
+ assert s['config']['placement_config']=={'memory_pool':[]} and s['config']['backend_config']['load_format']=='safetensors'
+ group=frozen_files();paths=[v['path'] for v in group['files']]
+ cache_phase_deadline=time.monotonic()+2400
+ assert cache_phase_deadline+600+120+180<end,'full cache/normal-stop/release/evidence slot unavailable'
+ event('target_condition_construction_begin')
+ try:
+  cache_observation=cache.warm_file_cache_observed(paths,allowed_roots=[group['root']],deadline=cache_phase_deadline,telemetry=cache_metadata)
+ except BaseException as error:
+  cache_observation=getattr(error,'cache_observation',None)
+  try:save('cache-observation-partial.json',{'observation':cache_observation,'error_type':type(error).__name__,'error':str(error),'callback_markers':cache_callback_markers})
+  except Exception:pass
+  raise
+ save('cache-observation-result.json',cache_observation)
+ assert cache_observation['schema']=='file-cache-warm-observation-v1'
+ same_clock(cache_observation['clock_identity'],clock_identity)
+ assert cache_observation['pid']==os.getpid() and cache_observation['observation_complete'] is True and cache_observation['read_complete'] is True and cache_observation['technical_status']=='COMPLETED'
+ assert cache_observation['read_bytes']==sum(v['bytes'] for v in group['files'])
+ assert set(v['path'] for v in cache_observation['read_files'])==set(paths) and len(cache_observation['read_files'])==len(paths)
+ assert [v['offset_s'] for v in cache_observation['sweeps']]==[0,30,60,90,120]
+ expected={v['path']:v for v in group['files']}
+ page_bytes=os.sysconf('SC_PAGE_SIZE');assert type(page_bytes) is int and page_bytes>0
+ rb=cache_observation['read_begin_ns'];re_=cache_observation['read_end_ns']
+ assert type(rb) is int and type(re_) is int and 0<rb<=re_
+ for row in cache_observation['read_files']:
+  frozen=expected[row['path']]
+  assert row['read_bytes']==frozen['bytes'] and rb<=row['read_begin_ns']<=row['read_end_ns']<=re_
+ for sweep in cache_observation['sweeps']:
+  assert sweep['status']=='OBSERVED' and sweep['scheduled_ns']==re_+sweep['offset_s']*1000000000
+  assert sweep['scheduled_ns']<=sweep['query_begin_ns']<=sweep['scheduled_ns']+2000000000
+  assert sweep['query_begin_ns']<=sweep['query_end_ns']<sweep['scheduled_ns']+30000000000
+  assert len(sweep['files'])==len(paths) and set(v['path'] for v in sweep['files'])==set(paths)
+  for row in sweep['files']:
+   frozen=expected[row['path']]
+   assert row['identity']=={'dev':frozen['dev'],'ino':frozen['ino'],'size':frozen['bytes'],'mtime_ns':frozen['mtime_ns'],'uid':frozen['uid']}
+   assert type(row['pages']) is int and row['pages']==(frozen['bytes']+page_bytes-1)//page_bytes,'nonempty file page coverage missing'
+   assert row['read_bytes']==frozen['bytes'],'per-file fullread byte coverage missing'
+   assert type(row['resident_pages']) is int and 0<=row['resident_pages']<=row['pages']
+   assert sweep['query_begin_ns']<=row['query_begin_ns']<=row['query_end_ns']<=sweep['query_end_ns']
+  assert type(sweep['all_hot']) is bool and sweep['all_hot']==(sum(v['pages'] for v in sweep['files'])>0 and all(v['resident_pages']==v['pages'] for v in sweep['files']))
+ assert type(cache_observation['admitted']) is bool
+ assert cache_observation['admitted']==all(v['all_hot'] is True for v in cache_observation['sweeps']),'sticky cache validity drift'
+ frozen_files();cache_metadata('observations_complete')
+ save('cache-observation-callback-markers.json',cache_callback_markers)
+ event('cache_diagnostic_observations_complete');cache_observation_validated=True
+def finish_cache_diagnostic(cleanup):
+ normal=cleanup['normal'] is True
+ cache_valid=cache_observation_validated and cache_observation is not None and cache_observation.get('admitted') is True
+ value={'run_id':run,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'diagnostic_only':True,'primary_sample_qualified':False,'cache_valid':cache_valid,'cache_observation_validated':cache_observation_validated,'raw_cache_admitted':cache_observation.get('admitted') if cache_observation is not None else None,'cache_observation_complete':cache_observation is not None and cache_observation.get('observation_complete') is True,'technical_status':'NORMAL_COMPLETION' if normal else 'TECHNICAL_FAILURE','model_registration':'NOT_PERFORMED','model_load_endpoints':None,'gold':None,'model_rank_ownership':None,'cleanup':cleanup,'status':('DIAGNOSTIC_CACHE_ADMITTED_NORMAL_RELEASE60' if cache_valid else 'DIAGNOSTIC_CACHE_NOT_ADMITTED_NORMAL_RELEASE60') if normal else 'DIAGNOSTIC_TECHNICAL_FAILED'}
+ save('diagnostic-cache-validity.json',value);save('condition-terminal.json',{'run_id':run,'normal':normal,'status':value['status'],'primary_sample_qualified':False});save('cleanup-result.json',cleanup)
+ return value
+"""
+
 def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_id=None):
     validate_protocol(protocol)
     unified=protocol.get("schema")=="kimi-unified-loading-remeasurement-v1"
     endpoint_manifest=validate_unified_overlay(protocol) if unified else None
     guard_sha=protocol_guard_pin(protocol)
-    q0=protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
+    small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
+    q0=small or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
     proc_confirm=q0 or protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
     logical_attempt_id=attempt_id
@@ -586,7 +787,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
     if diagnostic_run_id is None:
         assert (attempt_id in execution_mapping(protocol)[0].values()) if unified else re.fullmatch(r"kimi-four-v1-b[0-9]{2}-[a-z_]+(?:-retry0[234])?", attempt_id)
     else:
-        assert diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
+        assert (small and diagnostic_run_id==MATCHED_CACHE_RUN) or diagnostic_run_id=='kimi-sfhot-repeatability-20261107-once' or re.fullmatch(r"kimi-diagnostic-value-20261107-(?:sf1|sf2|storecold|poolhit)", diagnostic_run_id)
         attempt_id=diagnostic_run_id
     assert not (pathlib.Path(protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))) / attempt_id).exists(), "identity already used"
     assert spec["image"] == protocol["deployment"]["image"]
@@ -615,7 +816,7 @@ def render(protocol, spec, command, attempt_id, source_pins, *, diagnostic_run_i
         spec['head_control_guard_policy']=copy.deepcopy(head_policy)
     old_run = spec["run_id"]
     spec.update(run_id=attempt_id, logical_attempt_id=logical_attempt_id, execution_revision=copy.deepcopy(protocol.get("execution_revision")), condition=attempt["condition"], status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",
-                protocol_sha256=PROTOCOL_SHA, cache_helper_sha256="3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8", input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
+                protocol_sha256=PROTOCOL_SHA, cache_helper_sha256=protocol_cache_pin(protocol), input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
     patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';patch_sha=ENDPOINT_PATCH_SHA if unified else DIAGNOSTIC_PATCH_SHA
@@ -763,6 +964,19 @@ if sys.argv[1]=='pool':
         anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
         assert body.count(anchor)==1
         body=body.replace(anchor,UNIFIED_LOADING_CODE+anchor,1)
+    if small:
+        amount=protocol["store_pool_bytes_by_condition"][attempt["condition"]]
+        spec["store_pool_bytes"]=amount
+        old="'--mem-pool-size','640GB'"
+        assert body.count(old)==1
+        body=body.replace(old,"'--mem-pool-size',"+repr("64MB" if amount==67108864 else "640GB"),1)
+        old="assert config=={'mem_pool_size':687194767360,'chunk_size':67108864}"
+        assert body.count(old)==1
+        body=body.replace(old,"assert config=={'mem_pool_size':"+str(amount)+",'chunk_size':67108864}",1)
+        role=spec["role_bodies"]["store_config"]
+        assert role.count("'mem_pool_size':687194767360")==1
+        spec["role_bodies"]["store_config"]=role.replace("'mem_pool_size':687194767360","'mem_pool_size':"+str(amount),1)
+        spec["role_body_sha256"]["store_config"]=hashlib.sha256(spec["role_bodies"]["store_config"].encode()).hexdigest()
     body=milestone_assert_messages(body)
     compile(body,"<formal-candidate>","exec")
     command["argv"][index]=body
@@ -887,11 +1101,12 @@ def validate_frozen_protocol(protocol, source_commit):
     assert protocol['status'].startswith('FROZEN_') and 'DRAFT' not in protocol['status']
     assert protocol['final_deploy_commit']==source_commit
     protocol_guard_pin(protocol)
+    protocol_cache_pin(protocol)
     assert protocol['resource_budget']['per_condition_max_seconds']==7200
     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
     assert protocol['resource_budget']['parent_overhead_seconds']==120
     assets=protocol['assets']
-    q0=protocol.get('unified_loading',{}).get('cohort_id')==Q0_COHORT
+    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT)
     sf,archive,runs=(Q0_SF_HOST,Q0_STORE_ARCHIVE,Q0_RUNS_ROOT) if q0 else (SF_HOST,STORE_ARCHIVE,RUNS_ROOT)
     assert assets['route']==('local_raid_md0' if q0 else 'local_nvme')
     assert assets['safetensors']==sf and assets['store_archive']==archive
@@ -908,7 +1123,7 @@ def validate_frozen_protocol(protocol, source_commit):
     for key in (('conditions',) if unified else ('conditions','design','attempts')):
         assert protocol[key]==original[key],('preregistered contract changed',key)
     if unified:
-        assert protocol['statistics']==UNIFIED_STATISTICS
+        assert protocol['statistics']==(MATCHED_STATISTICS if protocol['unified_loading']['cohort_id']==SMALL_POOL_COHORT else UNIFIED_STATISTICS)
         validate_unified_overlay(protocol)
     statistics=copy.deepcopy(protocol['statistics'])
     assert statistics.pop('success_rate_denominator',None)=='launch_requested','launch-requested success-rate denominator must be preregistered'
@@ -1123,6 +1338,93 @@ def prepare_diagnostic(protocol, original_spec, original_command, pins, final_co
     return outputs
 
 
+MATCHED_HEALTH_HTTP = """import sys,json,urllib.request
+assert sys.argv[1]=='/health' and json.loads(sys.argv[2]) is None
+assert all(json.loads(v) is None for v in sys.argv[4:])
+with urllib.request.urlopen('http://127.0.0.1:8343/health',timeout=float(sys.argv[3])) as response:
+ response.read();print(json.dumps({'status':response.status}),flush=True)
+"""
+
+
+def render_matched_cache(protocol, original_spec, original_command, pins):
+    assert protocol['unified_loading']['cohort_id']==SMALL_POOL_COHORT
+    assert protocol['execution_scope']=='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION'
+    attempt=next(a for a in protocol['attempts'] if a['condition']=='safetensors_disk_hot')
+    spec,command=render(protocol,original_spec,original_command,attempt['attempt_id'],pins,diagnostic_run_id=MATCHED_CACHE_RUN)
+    index=command['argv'].index('-c')+1;body=command['argv'][index]
+    spec.update(diagnostic_only=True,diagnostic_mode='matched_native_pre_register_v1',primary_sample_qualified=False,planned_attempts=[{'attempt_id':MATCHED_CACHE_RUN,'condition':'matched_cache_only','status':'NOT_STARTED'}])
+    spec.pop('correctness')
+    spec['actual_request_parameters']=[];spec['request_observability']='Only APIhealth; no register, inference, model delete, gold or model-load endpoint request.'
+    spec['unified_loading'].pop('model_instance_id',None)
+    for role in spec['requests'].values():
+        for key in list(role['env']):
+            if key.startswith('SLLM_CAPTURE_LOAD_') or key.startswith('SLLM_LOAD_SPAN_') or key=='SLLM_LOAD_EVIDENCE_DIR':role['env'].pop(key)
+        role['env'].update(SLLM_CAPTURE_LOAD_EVIDENCE='0',SLLM_CAPTURE_LOAD_ENDPOINTS='0',SLLM_DIAGNOSTIC_VALUE_FINGERPRINT='0')
+    for name in ('tokens',):
+        spec['role_bodies'].pop(name);spec['role_body_sha256'].pop(name)
+    store=spec['role_bodies']['store_config'].split("\nif sys.argv[1]=='pool':",1)[0].replace("(1700 if sys.argv[1]=='pool' else float(sys.argv[1]))","float(sys.argv[1])")
+    spec['role_bodies']['store_config']=store;spec['role_bodies']['http']=MATCHED_HEALTH_HTTP
+    for name in ('store_config','http'):spec['role_body_sha256'][name]=hashlib.sha256(spec['role_bodies'][name].encode()).hexdigest()
+    body=replace_function(body,'HTTP',"""def HTTP(path,payload,seconds,monitor=False):
+ assert path=='/health' and payload is None
+ return json.loads(execute('head','http',[path,'null',str(seconds-3),'null','null'],seconds=seconds,monitor=monitor))
+""")
+    begin=body.index(" for life in (1,):")
+    finish=body.index(" jit_snapshot('after')",begin)
+    body=body[:begin]+" run_cache_diagnostic()\n"+body[finish:]
+    old="gold=s['correctness']['requests'];assert len(gold)==3;"
+    assert body.count(old)==1;body=body.replace(old,'',1)
+    old="assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit']"
+    assert body.count(old)==1
+    body=body.replace(old,"assert s['status']=='FROZEN_MATCHED_CACHE_DIAGNOSTIC_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION' and s['source_commit'] and s['diagnostic_only'] is True",1)
+    old="qualification=finalize_sample_evidence("
+    begin=body.index(old);finish=body.index("\n",begin)
+    body=body[:begin]+"diagnostic_result=finish_cache_diagnostic("+body[begin+len(old):finish].split(",'normal completion'")[0]+")"+body[finish:]
+    begin=body.index(" save('controller-final.json',")
+    finish=body.index("\nexcept BaseException as error:",begin)
+    body=body[:begin]+""" save('controller-final.json',{'status':diagnostic_result['status'],'diagnostic_only':True,'primary_sample_qualified':False,'cache_valid':diagnostic_result['cache_valid'],'elapsed':time.monotonic()-started,'cids':cids,'units':{k:props(v) for k,v in units.items()},'observer':observed,'source_commit':s['source_commit'],'protocol_sha256':s['protocol_sha256'],'scope':'Single matched-state cache observation; no model registration/inference/delete; normal cleanup does not change sticky cache validity.'})"""+body[finish:]
+    begin=body.index("except BaseException as error:\n if sample_active_gate")
+    finish=body.index(" for name in ('guard-head','guard-worker','observer'):",begin)
+    body=body[:begin]+"""except BaseException as error:
+ try:finish_cache_diagnostic({'normal':False,'status':'TECHNICAL_FAILURE','quiet_seconds':None,'reason':type(error).__name__+':'+str(error)})
+ except Exception:
+  pass
+"""+body[finish:]
+    body=body.replace("'status':'NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY'","'status':'DIAGNOSTIC_TECHNICAL_FAILED'",1)
+    remove={'fixed32_observation','check_response','head_log_paths','head_log_positions','router_started_since','log_positions','records_since','load_records','construct_cache','assert_cache_state','validated_http_events','mark_sample_gate','record_http_sample','recover_http_samples','preserve_sample_metrics','sample_qualification','condition_terminal','finalize_sample_evidence','collect_structured_events','collect_unified_loading'}
+    for node in reversed(ast.parse(body).body):
+        if isinstance(node,ast.FunctionDef) and node.name in remove:
+            text=ast.get_source_segment(body,node);assert body.count(text)==1;body=body.replace(text,'',1)
+    for name in ('sample_metrics','sample_gates','sample_active_gate','condition_normal'):
+        for node in reversed(ast.parse(body).body):
+            if isinstance(node,ast.Assign) and any(isinstance(n,ast.Name) and n.id==name for n in node.targets):body=body.replace(ast.get_source_segment(body,node),'',1)
+    marker="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
+    assert body.count(marker)==1;body=body.replace(marker,MATCHED_CACHE_CODE+marker,1)
+    assert '/register' not in body and '/v1/chat/completions' not in body and "HTTP('/delete'" not in body
+    assert all(name not in body for name in ('collect_unified_loading','finalize_sample_evidence','FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'))
+    compile(body,'<matched-cache-only-root>','exec')
+    command['argv'][index]=body;command['root_python_sha256']=hashlib.sha256(body.encode()).hexdigest()
+    spec['budgets'].update(phase_names=['headbootstrap','workerbootstrap','rayjoin_pool','api','cache_diagnostic','register_SKIPPED','requests_SKIPPED','delete_SKIPPED','orderedstop600_release120','evidence'],phase_max=MATCHED_PHASES,sum=sum(MATCHED_PHASES))
+    assert spec['budgets']['sum']==5220 and spec['budgets']['full']==7200
+    return spec,command
+
+
+def prepare_matched_cache(protocol, spec, command, pins, source_commit, protocol_path, protocol_sha):
+    spec,command=render_matched_cache(protocol,spec,command,pins)
+    spec.update(source_commit=source_commit,protocol_path=str(protocol_path),protocol_sha256=protocol_sha,source_pin_status='COMMITTED_REMOTE_VERIFIED' if source_commit else 'CANDIDATE_CURRENT_BYTES_NOT_SOURCE_ADMISSION')
+    status='FROZEN_MATCHED_CACHE_DIAGNOSTIC_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION' if source_commit else 'MATCHED_CACHE_DIAGNOSTIC_CANDIDATE_NOT_EXECUTABLE'
+    spec['status']=command['status']=status
+    spec['code_pins'][str(protocol_path)]=protocol_sha
+    version='matched-cache-v1-'+protocol_sha[:12]
+    sp=base.EVIDENCE/(MATCHED_CACHE_RUN+'-'+version+'-spec.json')
+    cp=sp.with_name(sp.name.replace('-spec.json','-command.json'))
+    command['argv'][-3]=str(sp);sb=json_bytes(spec);command['argv'][-2]=command['spec_sha256']=hashlib.sha256(sb).hexdigest()
+    files=[(sp,sb),(cp,json_bytes(command))]
+    assert all(not p.exists() for p,_ in files),'diagnostic output identity already prepared'
+    for path,data in files:base.write_new(path,data)
+    return files
+
+
 def json_bytes(value):
     return (json.dumps(value,ensure_ascii=False,indent=2)+chr(10)).encode()
 
@@ -1130,7 +1432,7 @@ def json_bytes(value):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     selection=parser.add_mutually_exclusive_group(required=True)
-    selection.add_argument('--attempt-id');selection.add_argument('--block',type=int,choices=range(1,11));selection.add_argument('--diagnostic',action='store_true');selection.add_argument('--sfhot-repeatability',action='store_true')
+    selection.add_argument('--matched-cache-only',action='store_true');selection.add_argument('--attempt-id');selection.add_argument('--block',type=int,choices=range(1,11));selection.add_argument('--diagnostic',action='store_true');selection.add_argument('--sfhot-repeatability',action='store_true')
     parser.add_argument('--diagnostic-overlay',type=pathlib.Path);parser.add_argument('--diagnostic-overlay-sha')
     parser.add_argument('--source-commit')
     parser.add_argument('--protocol',type=pathlib.Path,default=PROTOCOL)
@@ -1148,7 +1450,10 @@ def main():
     original_command=checked(base.EXIT60_BASE_COMMAND,base.EXIT60_BASE_COMMAND_SHA)
     pins={relative:base.digest(base.ROOT/relative) for relative in original_spec['native_source_pins']}
     pins['sllm/logger.py']=base.digest(base.ROOT/'sllm/logger.py')
-    pins['sllm_store/tests/file_cache_state.py']='3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8'
+    pins['sllm_store/tests/file_cache_state.py']=protocol_cache_pin(protocol)
+    if protocol.get('unified_loading',{}).get('cohort_id')==SMALL_POOL_COHORT:
+        assert args.matched_cache_only and protocol['execution_scope']=='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION','diagnostic protocol cannot activate formal attempts or blocks'
+    else:assert not args.matched_cache_only,'matched cache requires new explicit profile'
     final_commit=None
     if args.source_commit:
         validate_frozen_protocol(protocol,args.source_commit)
@@ -1159,7 +1464,11 @@ def main():
         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
         if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
             declared.add('sllm_store/tests/python/test_vllm_loader_interface.py')
+        if args.matched_cache_only:declared.add('sllm_store/tests/python/test_file_cache_state.py')
         final_commit=committed_source(args.source_commit,declared)
+    if args.matched_cache_only:
+        files=prepare_matched_cache(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha)
+        print(json.dumps({'status':'MATCHED_CACHE_DIAGNOSTIC_PREPARED_NOT_EXECUTED','diagnostic_only':True,'primary_sample_qualified':False,'files':[{'path':str(path),'sha256':hashlib.sha256(data).hexdigest()} for path,data in files]}));return
     if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
         assert not args.diagnostic and not args.sfhot_repeatability,'new cohort is separate from historical diagnostics'
     if args.diagnostic or args.sfhot_repeatability:

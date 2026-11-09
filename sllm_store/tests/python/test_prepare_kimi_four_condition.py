@@ -24,6 +24,7 @@ def setUpModule():
     from unittest import mock
     def digest(path):
         if pathlib.Path(path)==_HISTORICAL_PATCH:return p.DIAGNOSTIC_PATCH_SHA
+        if pathlib.Path(path)==p.base.ROOT/'sllm_store/tests/file_cache_state.py':return p.LEGACY_CACHE_SHA
         if pathlib.Path(path)==p.base.ROOT/'sllm_store/tests/guard_cuda_micro.py':return p.FORMAL_GUARD_SHA
         return _HISTORICAL_DIGEST(path)
     _HISTORICAL_PATCH_MOCK=mock.patch.object(p.base,'digest',side_effect=digest)
@@ -1598,6 +1599,8 @@ class Q0RaidProfileTest(unittest.TestCase):
         protocol['resource_budget']['runs_root']=p.Q0_RUNS_ROOT
         return protocol
 
+    # Historical q0 IDs have since run; this fixture uses an isolated run root, never deployment admission.
+    @mock.patch.object(p,'Q0_RUNS_ROOT','/tmp/kimi-q0-historical-generator-fixture')
     def test_actual_q0_render_pins_ids_and_negative_profile(self):
         protocol=self.protocol();p.validate_protocol(protocol)
         original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
@@ -1661,6 +1664,291 @@ class Q0RaidProfileTest(unittest.TestCase):
             for source,fstype in [('/dev/md0evil','xfs'),('/dev/md0[/unknown]','xfs'),('/dev/nvme1n1','xfs'),('qjhs0:/home','nfs4'),('/dev/md0','ext4')]:
                 result['filesystems'][0].update(source=source,fstype=fstype)
                 with self.subTest(source=source),self.assertRaises(AssertionError):exec(p.Q0_STORAGE_ROUTE_CODE,namespace)
+
+
+class SmallPoolMatchedCacheTest(unittest.TestCase):
+    def protocol(self):
+        protocol=Q0RaidProfileTest().protocol()
+        protocol['execution_scope']='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION'
+        protocol['statistics']=copy.deepcopy(p.MATCHED_STATISTICS)
+        cohort=p.SMALL_POOL_COHORT
+        protocol['unified_loading'].update(cohort_id=cohort,block_id=cohort+'-b01')
+        for row in protocol['attempts']:row['attempt_id']=cohort+'-b01-'+row['condition']
+        protocol['store_pool_bytes_by_condition']={c:(67108864 if c.startswith('safetensors') else 687194767360) for c in p.CONDITIONS}
+        helper=p.base.ROOT/'sllm_store/tests/file_cache_state.py'
+        protocol['cache_observation_helper']={'path':str(helper),'sha256':p.hashlib.sha256(helper.read_bytes()).hexdigest(),'baseline_sha256':p.LEGACY_CACHE_SHA,'revision':'file-cache-warm-observation-v1'}
+        protocol['cache_diagnostic']={'mode':'matched_native_pre_register_v1','run_id':p.MATCHED_CACHE_RUN,'phase_max':[300,300,1200,120,2400,0,0,0,720,180],'full_seconds':7200}
+        return protocol
+
+    def test_actual_sf64_store640_triplet_and_new_helper_pin(self):
+        protocol=self.protocol()
+        original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        for attempt in protocol['attempts']:
+            spec,cmd=p.render(protocol,original,command,attempt['attempt_id'],original['native_source_pins'])
+            amount=67108864 if attempt['condition'].startswith('safetensors') else 687194767360
+            body=cmd['argv'][cmd['argv'].index('-c')+1]
+            self.assertEqual(spec['store_pool_bytes'],amount)
+            self.assertIn("'--mem-pool-size','"+('64MB' if amount==67108864 else '640GB')+"'",body)
+            self.assertIn("assert config=={'mem_pool_size':"+str(amount)+",'chunk_size':67108864}",body)
+            self.assertIn("'mem_pool_size':"+str(amount),spec['role_bodies']['store_config'])
+            self.assertEqual(spec['cache_helper_sha256'],protocol['cache_observation_helper']['sha256'])
+            self.assertEqual(spec['native_source_pins']['sllm_store/tests/file_cache_state.py'],spec['cache_helper_sha256'])
+        for group,key,value in [('cache_observation_helper','sha256','0'*64),('store_pool_bytes_by_condition','store_disk_cold',67108864)]:
+            bad=copy.deepcopy(protocol);bad[group][key]=value
+            with self.subTest(key=key),self.assertRaises(AssertionError):p.validate_protocol(bad)
+
+    def test_actual_matched_mode_has_native_lifecycle_without_model_calls(self):
+        protocol=self.protocol()
+        original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,cmd=p.render_matched_cache(protocol,original,command,original['native_source_pins'])
+        body=cmd['argv'][cmd['argv'].index('-c')+1]
+        self.assertEqual(spec['run_id'],p.MATCHED_CACHE_RUN)
+        self.assertFalse(spec['primary_sample_qualified']);self.assertEqual(spec['budgets']['sum'],5220)
+        self.assertEqual(spec['budgets']['full'],7200)
+        tree=ast.parse(body)
+        self.assertNotIn('/register',body);self.assertNotIn('/v1/chat/completions',body);self.assertNotIn("HTTP('/delete'",body)
+        self.assertNotIn('collect_unified_loading',body);self.assertNotIn('finalize_sample_evidence',body)
+        self.assertIn('cache.warm_file_cache_observed',body)
+        self.assertIn("store_stop_end=time.monotonic()+60",body)
+        self.assertIn("normal_exit('worker');normal_exit('head')",body)
+        self.assertIn("stop_end+120+180<end",body)
+        self.assertNotIn('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS',body)
+        compile(body,'<actual-matched-root>','exec')
+
+
+    def diagnostic_fixture(self, admitted=True):
+        protocol=self.protocol()
+        original=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA)
+        command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
+        spec,cmd=p.render_matched_cache(protocol,original,command,original['native_source_pins'])
+        body=cmd['argv'][cmd['argv'].index('-c')+1]
+        identity={'boot_id':'fixture','time_namespace':'time:[1]','monotonic_clock_implementation':'clock_gettime(CLOCK_MONOTONIC)'}
+        rows=[dict(path='/fixture/a',dev=1,ino=1,bytes=4,mtime_ns=5,uid=6)]
+        begin=1000000000;end=2000000000
+        observation={'schema':'file-cache-warm-observation-v1','pid':123,'clock_identity':identity,'observation_complete':True,'read_complete':True,'technical_status':'COMPLETED','read_begin_ns':begin,'read_end_ns':end,'read_bytes':4,'read_files':[dict(path='/fixture/a',read_begin_ns=begin,read_end_ns=end,read_bytes=4)],'sweeps':[],'admitted':admitted}
+        for offset in (0,30,60,90,120):
+            scheduled=end+offset*10**9
+            hot=admitted or offset!=0
+            observation['sweeps'].append(dict(offset_s=offset,scheduled_ns=scheduled,query_begin_ns=scheduled,query_end_ns=scheduled+1000,status='OBSERVED',all_hot=hot,files=[dict(path='/fixture/a',identity={'dev':1,'ino':1,'size':4,'mtime_ns':5,'uid':6},read_bytes=4,pages=1,resident_pages=int(hot),query_begin_ns=scheduled,query_end_ns=scheduled+1000)]))
+        saved={};called=[];now=[1000.]
+        def observe(*args,**kwargs):called.append('single_fullread');return copy.deepcopy(observation)
+        ns={'cache_observation':None,'cache_callback_markers':[],'cache_phase_deadline':None,'started':0,'json':json,'s':spec,'run':p.MATCHED_CACHE_RUN,'os':types.SimpleNamespace(getpid=lambda:123,replace=__import__('os').replace,sysconf=lambda name:4096),'clock_identity':identity,'time':types.SimpleNamespace(monotonic=lambda:now[0]),'end':7198,'cache':types.SimpleNamespace(warm_file_cache_observed=observe),'save':lambda n,v:saved.setdefault(n,copy.deepcopy(v)),'frozen_files':lambda:{'root':'/fixture','files':rows},'cache_metadata':lambda label:called.append(label),'event':lambda label:called.append(label),'same_clock':lambda a,b:self.assertEqual(a,b)}
+        exec(functions_from(p.MATCHED_CACHE_CODE),ns)
+        ns['cache_metadata']=lambda label:called.append(label)
+        return spec,body,ns,saved,called,now,observation
+
+    def test_actual_partial_cache_continues_normal_stop_and_stays_false(self):
+        for admitted in (False,True):
+            with self.subTest(admitted=admitted),tempfile.TemporaryDirectory() as directory:
+                spec,body,ns,saved,called,now,observation=self.diagnostic_fixture(admitted)
+                ns['run_cache_diagnostic']()
+                self.assertEqual(called.count('single_fullread'),1)
+                self.assertEqual(ns['cache_observation']['admitted'],admitted)
+                base=pathlib.Path(directory);ob=base/'observer';ob.mkdir()
+                cids={r:'fixture-'+r for r in ('head','worker')};arms={r:{'nonce':r} for r in cids}
+                for role in cids:
+                    gb=base/('guard-'+role);gb.mkdir()
+                    (gb/'GO.json').write_text(json.dumps({'monotonic':0,'cid':cids[role],'nonce':role}))
+                    raw=json.dumps({'process':{'args':[spec['requests'][role]['entrypoint'],*spec['requests'][role]['cmd']]}}).encode()
+                    (gb/'oci.raw.json').write_bytes(raw)
+                    (gb/'guard-final.json').write_text(json.dumps({'status':'KERNEL_CLEANUP_RELEASE_PASS','failures':[],'quiet_seconds':60.1,'raw_oci_sha256':p.hashlib.sha256(raw).hexdigest(),'pinned_identities':[]}))
+                (ob/'observer-final.json').write_text(json.dumps({'quiet_seconds':60.2}))
+                class FakePath(type(pathlib.Path())):
+                    def stat(self,*args,**kwargs):
+                        value=super().stat(*args,**kwargs)
+                        return types.SimpleNamespace(st_uid=0,st_mode=0o600) if self.name=='oci.raw.json' else value
+                    def exists(self):
+                        return False if str(self).startswith('/sys/fs/cgroup/') else super().exists()
+                stopped=[]
+                def props(unit):
+                    role={'h':'head','w':'worker','o':'observer'}[unit];key='observer' if role=='observer' else role+'_guard'
+                    return {'MainPID':'0' if len(stopped)==2 else '1','ActiveEnterTimestampMonotonic':'0','RuntimeMaxUSec':str(spec['budgets'][key]['native'])+'s','Result':'success','ExecMainCode':'1','ExecMainStatus':'0'}
+                ns.update(pathlib=types.SimpleNamespace(Path=FakePath),json=json,hashlib=p.hashlib,re=__import__('re'),base=FakePath(base),ob=FakePath(ob),cids=cids,arms=arms,units={'head':'h','worker':'w','observer':'o'},started=0,controller_initial={},store_owner={},observer_owner={},D=['docker'],network='fixture',props=props,gone=lambda owner:True,checkfiles=lambda:called.append('checkfiles'),call=lambda *args:called.append('network_remove'),jit_snapshot=lambda *args:None,execute=lambda *args,**kw:called.append('controller_shutdown'),stop_service=lambda name,*args:called.append(name+'_stop'),official=lambda *args,**kw:called.append('ray_stop'),normal_exit=lambda role:stopped.append(role),m=types.SimpleNamespace(gpu=lambda:{'gpu':{'used_mib':0,'processes':[]}}))
+                start=body.index(" jit_snapshot('after')")
+                finish=body.index("\nexcept BaseException as error:",start)
+                exec(__import__('textwrap').dedent(body[start:finish]),ns)
+                self.assertEqual(stopped,['worker','head'])
+                self.assertIn('api_stop',called);self.assertIn('store_stop',called);self.assertIn('release_quiet60_complete',called)
+                final=saved['controller-final.json']
+                self.assertEqual(final['cache_valid'],admitted);self.assertFalse(final['primary_sample_qualified'])
+                self.assertEqual(saved['cleanup-result.json']['normal'],True)
+                self.assertEqual(saved['diagnostic-cache-validity.json']['cache_valid'],admitted)
+                self.assertNotIn('sample-validity.json',saved);self.assertNotIn('unified-loading-host-span.json',saved)
+                # The same actual admission must reject a late stop before any shutdown call.
+                now[0]=6200.;called.clear();stopped.clear()
+                with self.assertRaises(AssertionError):exec(__import__('textwrap').dedent(body[start:finish]),ns)
+                self.assertNotIn('controller_shutdown',called);self.assertEqual(stopped,[])
+
+    def test_actual_cache_technical_error_retains_primary_and_aborts(self):
+        spec,body,ns,saved,called,now,observation=self.diagnostic_fixture(False)
+        error=RuntimeError('identity changed');error.cache_observation={'read_complete':False,'admitted':False}
+        ns['cache']=types.SimpleNamespace(warm_file_cache_observed=mock.Mock(side_effect=error))
+        with self.assertRaises(RuntimeError) as caught:ns['run_cache_diagnostic']()
+        self.assertIs(caught.exception,error);self.assertIs(ns['cache_observation'],error.cache_observation)
+        with tempfile.TemporaryDirectory() as directory:
+            base=pathlib.Path(directory)
+            for name in ('guard-head','guard-worker','observer'):(base/name).mkdir()
+            ns.update(base=base,units={},cids={},pathlib=pathlib,__import__=__import__,injected=error)
+            handler=next(n for n in ast.parse(body).body if isinstance(n,ast.Try) and n.handlers).handlers[0]
+            source=ast.get_source_segment(body,handler)
+            with self.assertRaises(RuntimeError) as caught:exec("try:\n raise injected\n"+source,ns)
+            self.assertIs(caught.exception,error)
+            self.assertTrue(all((base/name/'ABORT').exists() for name in ('guard-head','guard-worker','observer')))
+            self.assertEqual(saved['controller-failed.json']['error'],'identity changed')
+            self.assertFalse(saved['diagnostic-cache-validity.json']['primary_sample_qualified'])
+
+    def test_actual_root_cgroup_missing_interfaces_are_explicit_not_zero(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);child=root/'x';child.mkdir()
+            fields=('cgroup.controllers','cgroup.subtree_control','memory.max','memory.high','memory.current','memory.numa_stat','memory.events','memory.stat','memory.pressure','cpu.stat','cpu.pressure','cpuset.cpus.effective','cpuset.mems.effective')
+            for target in (root,child):
+                for name in fields:
+                    if target==root and name in ('memory.max','memory.high','memory.current','memory.events'):continue
+                    (target/name).write_text('0')
+            path=lambda value:root if str(value)=='/sys/fs/cgroup' else pathlib.Path(value)
+            ns={'pathlib':types.SimpleNamespace(Path=path,PurePosixPath=pathlib.PurePosixPath),'time':types.SimpleNamespace(monotonic=lambda:0)}
+            exec(functions_from(p.MATCHED_CACHE_CODE),ns)
+            rows=ns['cache_ancestors']({'cgroup':'0::/x'},10)
+            self.assertIsNone(rows[-1]['memory.current']);self.assertIn('memory.current',rows[-1]['not_exposed'])
+            (child/'memory.events').unlink()
+            with self.assertRaises(FileNotFoundError):ns['cache_ancestors']({'cgroup':'0::/x'},10)
+
+
+    def test_actual_local_store_registers_eight_metadata_paths_without_payload_load(self):
+        import asyncio,os
+        source=(p.base.ROOT/'sllm/store_manager.py').read_text()
+        cls=next(n for n in ast.parse(source).body if isinstance(n,ast.ClassDef) and n.name=='SllmLocalStore')
+        methods=[n for n in cls.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name in ('__init__','register_model','_get_model_path')]
+        ns={'asyncio':types.SimpleNamespace(Lock=asyncio.Lock,create_task=lambda coroutine:coroutine.close()),'SllmStoreClient':object,'Mapping':dict,'os':os,'logger':types.SimpleNamespace(info=lambda *a:None,error=lambda *a:None)}
+        exec(compile(ast.Module(body=methods,type_ignores=[]),'<actual-local-store-methods>','exec'),ns)
+        called=[]
+        class Client:
+            def register_model(self,path):called.append(path);return 77125095424
+            def load_into_cpu(self,*args):raise AssertionError('unexpected CPU payload load')
+            def load_into_gpu(self,*args):raise AssertionError('unexpected GPU restore')
+        async def no_loading():return None
+        store=types.SimpleNamespace(loading_loop=no_loading)
+        ns['__init__'](store,'0',Client(),67108864,67108864,{})
+        store._get_model_path=types.MethodType(ns['_get_model_path'],store)
+        value=asyncio.run(ns['register_model'](store,'kimi-k2.6-sf-reference','vllm',{'tensor_parallel_size':8,'load_format':'safetensors'}))
+        self.assertEqual(called,['vllm/kimi-k2.6-sf-reference/rank_'+str(i) for i in range(8)])
+        self.assertEqual(value,617000763392);self.assertEqual(store.pinned_memory_pool_chunks,1)
+        self.assertEqual(store.pinned_memory_pool_usage,0);self.assertEqual(store.io_queue,[])
+
+    def test_actual_nonroot_cpuset_not_delegated_uses_explicit_na(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);child=root/'x';child.mkdir()
+            fields=('memory.max','memory.high','memory.current','memory.numa_stat','memory.events','memory.stat','memory.pressure','cpu.stat','cpu.pressure')
+            for target in (root,child):
+                (target/'cgroup.controllers').write_text('memory pids')
+                (target/'cgroup.subtree_control').write_text('memory pids')
+                for name in fields:
+                    if target==root and name in ('memory.max','memory.high','memory.current','memory.events'):continue
+                    (target/name).write_text('0')
+            for name in ('cpuset.cpus.effective','cpuset.mems.effective'):(root/name).write_text('0-1')
+            path=lambda value:root if str(value)=='/sys/fs/cgroup' else pathlib.Path(value)
+            ns={'pathlib':types.SimpleNamespace(Path=path,PurePosixPath=pathlib.PurePosixPath),'time':types.SimpleNamespace(monotonic=lambda:0)}
+            exec(functions_from(p.MATCHED_CACHE_CODE),ns)
+            rows=ns['cache_ancestors']({'cgroup':'0::/x'},10)
+            self.assertIsNone(rows[0]['cpuset.mems.effective'])
+            self.assertIn('not_enabled_in_parent',rows[0]['not_exposed']['cpuset.mems.effective'])
+            self.assertEqual(rows[-1]['cpuset.mems.effective'],'0-1')
+            (root/'cgroup.subtree_control').write_text('cpuset memory pids')
+            with self.assertRaises(FileNotFoundError):ns['cache_ancestors']({'cgroup':'0::/x'},10)
+
+    def test_actual_diagnostic_main_two_closed_outputs_and_refuses_formal_activation(self):
+        protocol=self.protocol()
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);ep=root/'prepared';ep.mkdir()
+            sf=root/'sf';archive=root/'archive';store=archive/'vllm/kimi-k2.6-sf-reference';runs=root/'runs'
+            for target in (sf,store,runs):target.mkdir(parents=True)
+            inventory={'roots':{}}
+            for kind,target in [('safetensors',sf),('store',store)]:
+                f=target/'tiny';f.write_bytes(b'tiny');st=f.stat()
+                inventory['roots'][kind]={'root':str(target),'files':[dict(path=str(f),resolved=str(f),relative=f.name,dev=st.st_dev,ino=st.st_ino,bytes=st.st_size,mtime_ns=st.st_mtime_ns,uid=st.st_uid,payload=True)]}
+            ip=root/'inventory.json';ip.write_text(json.dumps(inventory))
+            protocol['assets'].update(input_inventory_path=str(ip),input_inventory_sha256=p.hashlib.sha256(ip.read_bytes()).hexdigest(),safetensors=str(sf),store_archive=str(archive),store=str(store))
+            protocol['resource_budget']['runs_root']=str(runs)
+            pp=root/'protocol.json';pp.write_text(json.dumps(protocol));sha=p.hashlib.sha256(pp.read_bytes()).hexdigest()
+            args=['prepare','--protocol',str(pp),'--protocol-sha',sha]
+            with mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(sys,'argv',args+['--matched-cache-only']),mock.patch('builtins.print'):
+                p.main()
+            self.assertEqual(len(list(ep.iterdir())),2);self.assertEqual(list(runs.iterdir()),[])
+            sp=next(ep.glob('*-spec.json'));out=json.loads(sp.read_text())
+            self.assertIsNone(out['source_commit']);self.assertFalse(out['primary_sample_qualified'])
+            self.assertEqual(out['status'],'MATCHED_CACHE_DIAGNOSTIC_CANDIDATE_NOT_EXECUTABLE')
+            command=json.loads(next(ep.glob('*-command.json')).read_text())
+            self.assertIn('--property=RuntimeMaxSec=7197',command['argv'])
+            self.assertEqual(command['argv'][-1],'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED')
+            with mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(sys,'argv',args+['--block','1']),self.assertRaises(AssertionError):
+                p.main()
+            with mock.patch.object(p.base,'EVIDENCE',ep),mock.patch.object(sys,'argv',args+['--matched-cache-only']),self.assertRaises(AssertionError):
+                p.main()
+
+
+    def test_actual_metadata_admission_namespaces_headroom_and_save_boundaries(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log=pathlib.Path(directory)/'store.stderr';log.write_text('')
+            saved=[];now=[0.];control={'mount_root':'/','namespace':'cgroup:[1]','max':'max','scan':10}
+            def text(path,deadline,optional=False):
+                path=str(path)
+                if path=='/proc/meminfo':return 'MemAvailable: 2000000000 kB\n'
+                if path=='/proc/vmstat':return 'pgscan_kswapd '+str(control['scan'])+'\nnuma_hit 2\n'
+                if path=='/proc/self/mountinfo':return '1 0 0:1 '+control['mount_root']+' /sys/fs/cgroup rw - cgroup2 cgroup rw\n'
+                if path.endswith('/status'):return 'Mems_allowed_list: 0-1\nCpus_allowed_list: 0-1\nVmRSS: 10 kB\nVmLck: 0 kB\n'
+                if path=='/sys/devices/system/node/online':return '0-1'
+                if '/node' in path and path.endswith('/meminfo'):return 'Node 0 MemTotal: 1000000000 kB\n'
+                if path.startswith('/sys/fs/cgroup'):
+                    name=pathlib.Path(path).name;root=pathlib.Path(path).parent==pathlib.Path('/sys/fs/cgroup')
+                    if root and name in ('memory.max','memory.high','memory.current','memory.events'):
+                        self.assertTrue(optional);return None
+                    if name in ('cgroup.controllers','cgroup.subtree_control'):return 'cpuset cpu memory'
+                    if name.startswith('cpuset.'):return '0-1'
+                    if name=='memory.max':return control['max']
+                    if name=='memory.high':return 'max'
+                    if name=='memory.current':return '100'
+                    if name in ('memory.stat','memory.events','cpu.stat'):return 'pgscan 1\n'
+                return 'fixture\n'
+            def identity(pid):return dict(pid=pid,startticks=1,cgroup='0::/'+('reader' if pid==123 else 'worker'))
+            clock={'boot_id':'fixture'}
+            ns={'pathlib':pathlib,'os':types.SimpleNamespace(getpid=lambda:123,readlink=lambda name:control['namespace'] if '/self/' in name else 'cgroup:[1]'),'time':types.SimpleNamespace(monotonic=lambda:now[0],monotonic_ns=lambda:int(now[0]*1e9)+1,time=lambda:1),'clock_identity':clock,'cache_phase_deadline':100,'healthy':lambda:None,'identity':identity,'store_owner':identity(456),'cache_previous_counters':{},'cache_callback_markers':[],'cache_telemetry_count':0,'initial':{'quiet_seconds':60},'ob':pathlib.Path(directory),'services':{'store':(None,None,log)},'config':{'mem_pool_size':67108864,'chunk_size':67108864},'re':__import__('re'),'frozen_files':lambda:{'files':[{'bytes':4}]},'save':lambda name,value:saved.append((name,copy.deepcopy(value)))}
+            exec(functions_from(p.MATCHED_CACHE_CODE),ns);ns['cache_text']=text
+            ns['cache_metadata']('baseline')
+            first=saved[-1][1]
+            self.assertEqual(first['admission']['required_finite_ancestor_headroom_bytes'],4+64*1024**3)
+            self.assertIsNone(first['counter_deltas_from_previous_same_process_observation']['host_vmstat']['pgscan_kswapd'])
+            control['scan']=12;ns['cache_metadata']('read_progress')
+            self.assertEqual(saved[-1][1]['counter_deltas_from_previous_same_process_observation']['host_vmstat']['pgscan_kswapd'],2)
+            for field,value in [('mount_root','/hidden'),('namespace','cgroup:[2]'),('max','1000')]:
+                previous=control[field];control[field]=value
+                with self.subTest(field=field),self.assertRaises(AssertionError):ns['cache_metadata']('baseline')
+                control[field]=previous
+            def slow_save(name,value):saved.append((name,copy.deepcopy(value)));now[0]=6
+            ns['save']=slow_save
+            with self.assertRaises(AssertionError):ns['cache_metadata']('read_progress')
+            self.assertEqual(saved[-1][1]['collection_end_ns'],1)
+
+
+    def test_actual_consumer_rejects_nonempty_zero_pages_and_shortread(self):
+        for mutation in ('zero_pages','shortread'):
+            spec,body,ns,saved,called,now,observation=self.diagnostic_fixture(True)
+            original=ns['frozen_files']()['files'][0]
+            second=dict(original,path='/fixture/b',ino=2)
+            ns['frozen_files']=lambda:{'root':'/fixture','files':[original,second]}
+            observation['read_bytes']=8
+            observation['read_files'].append(dict(observation['read_files'][0],path='/fixture/b'))
+            for sweep in observation['sweeps']:
+                second_row=copy.deepcopy(sweep['files'][0]);second_row['path']='/fixture/b';second_row['identity']['ino']=2;sweep['files'].append(second_row)
+            if mutation=='zero_pages':observation['sweeps'][0]['files'][0].update(pages=0,resident_pages=0)
+            else:observation['sweeps'][0]['files'][0]['read_bytes']=0
+            # Both claimedall_hot and aggregate positive pages are insufficient proof of each finite file.
+            self.assertTrue(all(s['all_hot'] for s in observation['sweeps']))
+            with self.subTest(mutation=mutation),self.assertRaises(AssertionError):ns['run_cache_diagnostic']()
+            value=ns['finish_cache_diagnostic']({'normal':False,'status':'TECHNICAL_FAILURE','quiet_seconds':None})
+            self.assertFalse(value['cache_valid']);self.assertFalse(value['cache_observation_validated'])
+            self.assertTrue(value['raw_cache_admitted'])
 
 if __name__=='__main__':
     unittest.main()
