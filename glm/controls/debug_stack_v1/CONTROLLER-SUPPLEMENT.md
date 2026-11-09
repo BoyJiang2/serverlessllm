@@ -76,3 +76,8 @@ B8已通过SSH只读复核57个小型运行源码/native/配置资产，共20073
 下一修订仅在已有实现/测试中修复：ENOENT/ESRCH发生后重新inspect同一CID，只有确认退出/移除才保留明确missing/race并继续；身份复用/仍活且不明/权限错误仍失败。私有slice在Main存活期间持续保留层级memory.events，oom/oom_kill非零或缺失均失败；子Docker cgroup消失后仍能保留计数，不把OOMKilled=false当无OOM。实际准入核cgroup2且未启用memory_localevents；qjhs003只读挂载核验为cgroup2 rw,nosuid,nodev,noexec,relatime，未修改挂载。监控和释放收据保存原始OOM字段。去除up中重复同值cgroup-parent，复用原docker_args既有参数。
 
 CPU故障回归在785a冻结源码上重现失败、在修订上通过；仅证明故障注入判据，未制造真实OOM、未运行模型。完整新R1及实际root CPU probe仍待完成，四条件补测仍0启动。
+
+
+4f26完整复审关闭上述两项，但新增确认R1-4f26-01：首个监控样本失败仍可能先进入up，且worker在大池建立后才等host snapshot。独立完整审阅转录保留在controller-supplement-r1-4f26-review.json，仍为BLOCKED，原候选不改。
+
+后续必要修订只加两个既有路径的握手：Main在up之前有界等待本run/boot首个真实健康host收据，错误/超时/失配不调用up；worker在launch Store之前复用fresh_host_snapshot的建池前分支，要求本run/boot/holder、stack精确workerCID及自身Docker hostname、新鲜健康host收据，不要求尚未存在的Store helper；建池后原helper绑定不变。等待计入原1800秒绝对工作截止，不增加或重置预算。CPU故障测试执行实际Main工作片段和实际建池片段，确认拒绝时up/Store launch未调用；另覆盖健康、错误CID及不健康收据，仍不当作真实监控或模型通过。当前86项相关CPU检查通过，待新commit/manifest完整R1及现场probe。

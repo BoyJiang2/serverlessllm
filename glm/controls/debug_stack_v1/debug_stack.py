@@ -753,6 +753,26 @@ def verify_runtime_assets(reference):
             raise RuntimeError('unexpected runtime code/config files appeared')
 
 
+def await_first_monitor(root, errors, run, boot):
+    from gpu_identity13 import require_monitor_ready
+    deadline = time.monotonic()+10
+    while time.monotonic() < deadline:
+        if errors:
+            raise RuntimeError('monitor failed before container startup: '+repr(errors))
+        try:
+            with (root/'supplement-monitor-ready.json').open('rb') as stream:
+                raw = stream.read(4*1024**2+1)
+        except FileNotFoundError:
+            time.sleep(.1)
+            continue
+        if len(raw) > 4*1024**2:
+            raise RuntimeError('host monitor receipt exceeds4MiB')
+        snapshot = json.loads(raw)
+        require_monitor_ready(snapshot, time.monotonic_ns(), run, boot)
+        return snapshot
+    raise TimeoutError('no healthy host monitor before container startup')
+
+
 def measure(args):
     """One independent supplementary condition; never changes a historical ID."""
     begin_ns, unit = controller_unit(args.controller_unit)
@@ -831,6 +851,7 @@ def measure(args):
     previous = signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('supplement absolute work deadline')))
     signal.setitimer(signal.ITIMER_REAL, max(.001, SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9))
     try:
+        await_first_monitor(root, monitor_errors, state['run_id'], boot)
         args.head_only, args.no_query, args.borrow = False, False, True
         args.seconds, args.booking_id, args.booking_end = SUPPLEMENT_WORK_SECONDS, None, None
         remaining = SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9

@@ -3,7 +3,7 @@
   "checks": [
     {
       "suite": "debug_stack_v1/test_debug_*.py",
-      "passed": 60
+      "passed": 64
     },
     {
       "suite": "glm/tools/test_final_costs.py",
@@ -18,10 +18,10 @@
       "passed": 10
     }
   ],
-  "tests_passed": 82,
+  "tests_passed": 86,
   "gpu_execution": false,
   "native_pool_created": false,
-  "full_r1_status": "785a BLOCKED two source findings; corrected revision awaiting new full R1",
+  "full_r1_status": "4f26 BLOCKED first-monitor ordering; double gate corrected, awaiting new full R1",
   "retained_prior_failures": [
     "Git-less source snapshot refused Git HEAD verification",
     "remote metadata source escaping SyntaxError fixed with bytes([0])",
@@ -57,5 +57,12 @@
     },
     "scope": "CPU fault injection only; no real cgroup or OOM created"
   },
-  "readonly_cgroup_mount_check": "qjhs003 cgroup2 rw,nosuid,nodev,noexec,relatime; no memory_localevents; not a runtime admission"
+  "readonly_cgroup_mount_check": "qjhs003 cgroup2 rw,nosuid,nodev,noexec,relatime; no memory_localevents; not a runtime admission",
+  "monitor_readiness_regressions": [
+    "execute actual measure work fragment: first sample error raises before up",
+    "actual first receipt validation: healthy passes, unhealthy fails",
+    "worker pre-pool receipt: healthy exact CID passes, wrong CID/health fails",
+    "execute actual pre-pool fragment: rejected handshake never calls Store launch"
+  ],
+  "boundary": "CPU fault-injection/control fragments only; no real monitor/Store/model runtime PASS"
 }

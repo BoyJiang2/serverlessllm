@@ -1,0 +1,72 @@
+{
+  "scope": "glm-controller-supplement-v1",
+  "review_type": "complete_local_readonly_R1",
+  "reviewer": "/root/glm_controller_r1",
+  "reviewed_commit": "4f26db8f094ffab95ae17f1878113601a92b0424",
+  "manifest": "glm/controls/debug_stack_v1/controller-supplement-r1-corrected.json",
+  "manifest_sha256": "9ec28d9644dde82ad84d22fb128b407ab98460f40bf767b9ed37a9526819288c",
+  "source_tree_sha256": "9abcaf3e28fcec60104622733d33cae4a44b33bc6bc8afaf10d4723d17edd3ca",
+  "verdict": "BLOCKED",
+  "approved": false,
+  "runtime_admission": false,
+  "record_kind": "primary-agent transcription of independent complete readonly review; wording condensed",
+  "closure_verification": {
+    "source_files_verified": 83,
+    "source_bytes": 670312,
+    "tools_verified": 8,
+    "reviewed_extras_verified": 8,
+    "all_sha_match": true,
+    "remote_access": false,
+    "files_modified": false,
+    "probe_gpu_pool_started": false,
+    "cpu_checks_read": 82
+  },
+  "previous_blockers": {
+    "R1_785a_01": "RESOLVED: confirmed exit/removal only; explicit missing; PID/inode identity still fails",
+    "R1_785a_02": "RESOLVED: retained private slice hierarchical OOM counters; nonzero/missing reject"
+  },
+  "blocking_findings": [
+    {
+      "id": "R1-4f26-01",
+      "priority": "P1",
+      "category": "monitor_readiness_before_large_allocation",
+      "locations": [
+        "debug_stack.py:828-844",
+        "debug_stack.py:345-365",
+        "debug_service.py:472-495"
+      ],
+      "problem": "Monitor thread starts but no healthy first sample gate precedes up; worker allocates716GiB pool before auxiliary baseline waits for healthy snapshot.",
+      "minimum_fix": [
+        "bounded actual healthy first snapshot before up; error/timeout/wrong run/boot abort",
+        "fresh host receipt bound to exact worker CID before Store creation; no requirement for not-yet-existent helper",
+        "retain post-pool strict helper binding and the same absolute1800s budget"
+      ],
+      "required_regression": [
+        "failed first sample prevents up",
+        "missing/stale/wrong run/boot/CID pre-pool snapshot prevents Store launch",
+        "correct same-run healthy snapshot can proceed"
+      ]
+    }
+  ],
+  "complete_review_summary": {
+    "B1": "RESOLVED",
+    "B2": "SOURCE_DESIGN_CLOSED_ACTUAL_PROBE_PENDING",
+    "B3": "SOURCE_CLOSED",
+    "B4": "SOURCE_CLOSED_ACTUAL_POOL_PENDING",
+    "B5": "SOURCE_DESIGN_CLOSED_ACTUAL_PROBE_PENDING",
+    "B6": "SOURCE_CLOSED",
+    "B7": "SOURCE_CLOSED",
+    "B8": "DECLARED_SCOPE_CLOSED_NOT_ALL_RANK_MACHINE_CODE",
+    "B9": "SOURCE_CLOSED_FRESH_CHECK_PENDING",
+    "same_run_metrics": "Controller/Prep/first-arithmetic A/gold/phases same run; not merged with C23",
+    "kernel_exit": "normal same InvocationID and boot only; provisional inner endpoint not final"
+  },
+  "field_admission_pending": [
+    "new code/manifest independent R1",
+    "actual root CPU host timeout/exact-slice probes and independent SSH verification",
+    "actual root proof/unit/timer/cgroup/deadline/hash/birth verification",
+    "fresh full resource/IO and bounded authorized window before each condition",
+    "fixed order one each; failures retained and stop next",
+    "raw cache/token/phase/monitor/exit/release evidence and kernel finalization"
+  ]
+}

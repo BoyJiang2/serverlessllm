@@ -1,4 +1,5 @@
 import datetime
+import ast
 import copy
 import json
 from pathlib import Path
@@ -6,7 +7,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -231,6 +232,36 @@ class ControllerClock(unittest.TestCase):
 
 
 class SupplementAdmission(unittest.TestCase):
+    def test_actual_measure_work_fragment_does_not_call_up_after_monitor_failure(self):
+        tree = ast.parse((HERE/'debug_stack.py').read_text())
+        measure = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'measure')
+        work = next(n for n in measure.body if isinstance(n, ast.Try) and any(
+                    isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == 'up'
+                    for call in ast.walk(n)))
+        start = Mock()
+        namespace = dict(vars(d), root=Path('/unused'), monitor_errors=['first sample failed'], state=STATE, boot='boot', up=start)
+        with patch.object(sys, 'path', [str(d.TREE/'runtime/active'), *sys.path]), \
+             self.assertRaisesRegex(RuntimeError, 'before container startup'):
+            exec(compile(ast.Module(body=work.body, type_ignores=[]), '<actual-measure-work-CPU>', 'exec'), namespace)
+        start.assert_not_called()
+
+    def test_first_monitor_gate_rejects_failure_and_unhealthy_receipt(self):
+        with tempfile.TemporaryDirectory() as temp, \
+             patch.object(sys, 'path', [str(d.TREE/'runtime/active'), *sys.path]):
+            root = Path(temp)
+            with self.assertRaisesRegex(RuntimeError, 'before container startup'):
+                d.await_first_monitor(root, ['sample failed'], 'run', 'boot')
+            now = d.time.monotonic_ns()
+            row = dict(sample_begin_ns=now, last_sample_ns=now, sample_end_ns=now, run_id='run', boot_id='boot',
+                       observers_ok=True, history_ok=True, first_monitor_error=None, foreign_gpu_pids=[])
+            path = root/'supplement-monitor-ready.json'
+            path.write_text(json.dumps(row))
+            self.assertEqual(d.await_first_monitor(root, [], 'run', 'boot'), row)
+            row['observers_ok'] = False
+            path.write_text(json.dumps(row))
+            with self.assertRaisesRegex(RuntimeError, 'unhealthy'):
+                d.await_first_monitor(root, [], 'run', 'boot')
+
     def test_monitor_cgroup_disappearance_and_pid_reuse_remain_distinct(self):
         cid = 'c'*64
         base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')

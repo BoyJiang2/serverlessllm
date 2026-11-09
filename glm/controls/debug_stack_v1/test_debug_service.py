@@ -1,11 +1,13 @@
 import ast
 import copy
+import json
 from pathlib import Path
 import sys
 import types
 import unittest
 import subprocess
-from unittest.mock import patch
+import tempfile
+from unittest.mock import Mock, patch
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -75,6 +77,42 @@ class Helpers(unittest.TestCase):
 
 
 class SupplementRequests(unittest.TestCase):
+    def test_actual_pre_pool_fragment_does_not_launch_store_after_monitor_failure(self):
+        tree = ast.parse((HERE/'debug_service.py').read_text())
+        main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        work = next(n for n in main.body if isinstance(n, ast.Try))
+        index = next(i for i,n in enumerate(work.body) if any(isinstance(call, ast.Call)
+                     and isinstance(call.func, ast.Name) and call.func.id == 'fresh_host_snapshot' for call in ast.walk(n)))
+        launch = Mock()
+        gate = Mock(side_effect=RuntimeError('unhealthy or missing pre-pool monitor'))
+        namespace = dict(vars(s), condition='store_disk_cold', record={}, fresh_host_snapshot=gate, launch=launch)
+        with self.assertRaisesRegex(RuntimeError, 'pre-pool monitor'):
+            exec(compile(ast.Module(body=work.body[index:index+3], type_ignores=[]), '<actual-pre-pool-CPU>', 'exec'), namespace)
+        launch.assert_not_called()
+
+    def test_pre_pool_gate_requires_healthy_receipt_and_exact_worker(self):
+        with tempfile.TemporaryDirectory() as temp, patch.object(sys, 'path', [str(ACTIVE), *sys.path]):
+            root = Path(temp)
+            (root/'stack.json').write_text(json.dumps(dict(run_id='run', holder='holder', worker_container_id='c'*64)))
+            row = dict(sample_begin_ns=100, last_sample_ns=150, sample_end_ns=160, run_id='run', boot_id='boot',
+                       observers_ok=True, history_ok=True, first_monitor_error=None, foreign_gpu_pids=[],
+                       registered_store_helper=None, worker_identity=dict(container_id='c'*64))
+            path = root/'supplement-monitor-ready.json'
+            path.write_text(json.dumps(row))
+            record = dict(run_id='run', boot_id='boot', holder='holder')
+            with patch.object(s, 'RUN', root), patch.object(s.socket, 'gethostname', return_value='c'*12), \
+                 patch.object(s.time, 'monotonic_ns', return_value=200):
+                self.assertEqual(s.fresh_host_snapshot(record, 100, require_helper=False), row)
+                row['worker_identity']['container_id'] = 'd'*64
+                path.write_text(json.dumps(row))
+                with patch.object(s.time, 'monotonic', side_effect=[0, 0, 16]), patch.object(s.time, 'sleep'):
+                    with self.assertRaisesRegex(TimeoutError, 'bound host monitor'):
+                        s.fresh_host_snapshot(record, 100, require_helper=False)
+                row['observers_ok'] = False
+                path.write_text(json.dumps(row))
+                with self.assertRaisesRegex(RuntimeError, 'unhealthy'):
+                    s.fresh_host_snapshot(record, 100, require_helper=False)
+
     def test_auxiliary_baseline_is_same_run_identity_not_empty_gpu(self):
         launch = dict(pid=12, pid_namespace='pid:[123]', start_ticks='9', boot_id='boot', monotonic_ns=10)
         helper = dict(host_pid=101, namespace_pid=12, pid_namespace='pid:[123]', start_ticks='9', boot_id='boot',

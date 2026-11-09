@@ -223,8 +223,12 @@ def prepare_supplement(condition, record):
     record['preparation_complete_ns'] = time.monotonic_ns()
 
 
-def fresh_host_snapshot(record, earliest_ns):
+def fresh_host_snapshot(record, earliest_ns, require_helper=True):
     from gpu_identity13 import require_monitor_ready
+    if not require_helper:
+        stack = json.loads((RUN/'stack.json').read_text())
+        if stack['run_id'] != record['run_id'] or stack['holder'] != record['holder']:
+            raise RuntimeError('pre-pool stack identity differs')
     stop = time.monotonic()+15
     while time.monotonic() < stop:
         try:
@@ -237,10 +241,16 @@ def fresh_host_snapshot(record, earliest_ns):
             time.sleep(.1)
             continue
         require_monitor_ready(snapshot, time.monotonic_ns(), record['run_id'], record['boot_id'])
-        if snapshot['sample_begin_ns'] >= earliest_ns and snapshot.get('registered_store_helper'):
-            return snapshot
+        if snapshot['sample_begin_ns'] >= earliest_ns:
+            if require_helper and snapshot.get('registered_store_helper'):
+                return snapshot
+            if not require_helper:
+                worker = snapshot.get('worker_identity')
+                if (worker and worker['container_id'] == stack['worker_container_id']
+                        and worker['container_id'][:12] == socket.gethostname()):
+                    return snapshot
         time.sleep(.1)
-    raise TimeoutError('fresh bound Store helper host snapshot unavailable')
+    raise TimeoutError('fresh bound host monitor snapshot unavailable')
 
 
 def auxiliary_baseline(record):
@@ -469,6 +479,8 @@ def main():
         cpus = cpu_list(pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()) & os.sched_getaffinity(0)
         assert cpus
         record['store_cpu_affinity'] = sorted(cpus)
+        if condition:
+            write(OUT/'pre-pool-host-monitor.json', fresh_host_snapshot(record, time.monotonic_ns(), require_helper=False))
         store_argv = ([PYTHON, '-u', str(pathlib.Path(__file__)), 'serve-store'] if condition else [PYTHON, '-u', '-c', STORE_SERVE])
         launch('store', store_argv+[env['STORAGE_PATH'], str(chunk_bytes), str(pool_bytes)],
                preexec_fn=lambda: os.sched_setaffinity(0, cpus))
