@@ -550,6 +550,15 @@ try:
  assert begin<worker['preparation_begin_ns']<worker['preparation_complete_ns']<=worker['startup_command_ns']<worker['correct_business_response_ns']<end
  assert result['release_observation_s']>=60 and worker['idle_observation_seconds']>=60
  assert end>=result['controller_end_ns'] and (end-begin)/1e9<=3600
+ for name,reported in [('release60.jsonl',result['release_observation_s']),('debug-service/idle60.jsonl',worker['idle_observation_seconds'])]:
+  path=root/name
+  with path.open('rb') as f:data=f.read(16*1024**2+1)
+  assert len(data)<=16*1024**2
+  inputs[name]={'path':str(path),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
+  samples=[json.loads(line) for line in data.splitlines() if line.strip()];points=[row['monotonic_ns'] for row in samples]
+  assert len(points)>1 and all(0<b-a<=5*10**9 for a,b in zip(points,points[1:]))
+  observed=(points[-1]-points[0])/1e9
+  assert begin<=points[0]<points[-1]<=end and observed>=60 and abs(observed-reported)<1e-6
  gold_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json');gold_bytes=gold_path.read_bytes()
  assert hashlib.sha256(gold_bytes).hexdigest()=='9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
  gold=json.loads(gold_bytes)

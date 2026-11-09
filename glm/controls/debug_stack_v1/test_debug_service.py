@@ -185,8 +185,8 @@ class SupplementRequests(unittest.TestCase):
 
 class ShutdownEvidence(unittest.TestCase):
     class Process:
-        def __init__(self, code):
-            self.code, self.returncode, self.waited = code, None, 0
+        def __init__(self, code, pid):
+            self.code, self.returncode, self.waited, self.pid = code, None, 0, pid
         def poll(self):
             return self.returncode
         def terminate(self):
@@ -198,26 +198,49 @@ class ShutdownEvidence(unittest.TestCase):
             self.returncode = self.code
             return self.code
 
-    def test_auxiliary_abnormal_exit_is_not_hidden_by_store_zero(self):
-        for code, expected in [(0, True), (-15, True), (17, False), (-9, False)]:
-            processes = {n:self.Process(code if n == 'sllm' else 0) for n in ('sllm', 'store', 'ray-worker')}
-            record = dict(status='supplement business and instance deletion completed')
-            with self.subTest(code=code), patch.object(s.subprocess, 'run', return_value=types.SimpleNamespace(returncode=0)), \
-                 patch.object(s, 'write') as saved:
-                s.stop_processes(processes, {}, [], record, strict=True)
-            self.assertEqual(record['success'], expected)
+    def run_cleanup(self, sllm_code=0, ray_code=0, unexpected_ray=False, ray_timeout=False):
+        processes = {name:self.Process(sllm_code if name == 'sllm' else ray_code if name == 'ray-worker' else 0, 100+i)
+                     for i,name in enumerate(('sllm','store','ray-worker'))}
+        record = dict(status='supplement business and instance deletion completed',
+                      child_births={name:dict(pid=p.pid, startticks=9) for name,p in processes.items()})
+        original_read = Path.read_text
+        def read(path, **kwargs):
+            if path.as_posix().startswith('/proc/'):
+                return '100 (helper) '+' '.join(['0']*19+['9'])
+            return original_read(path, **kwargs)
+        with tempfile.TemporaryDirectory() as temp, patch.object(s, 'OUT', Path(temp)), \
+             patch.object(s.pathlib.Path, 'read_text', read), patch.object(s, 'write') as saved, \
+             patch.object(s.subprocess, 'run', side_effect=subprocess.TimeoutExpired('ray stop',30) if ray_timeout else None,
+                          return_value=types.SimpleNamespace(returncode=0, stdout='Did not find any active Ray processes.', stderr='')) as stop:
+            (Path(temp)/'sllm.log').write_text('Application shutdown complete.\nFinished server process [100]\n')
+            (Path(temp)/'ray-worker.log').write_text('Some Ray subprocesses exited unexpectedly:' if unexpected_ray else 'Ray runtime started.')
+            s.stop_processes(processes, {}, [], record, strict=True)
             saved.assert_called_once()
+            self.assertNotIn('--force', stop.call_args.args[0])
+        return record, processes
+
+    def test_auxiliary_abnormal_exit_is_not_hidden_by_store_zero(self):
+        for code, expected in [(0, True), (-15, False), (15, False), (17, False), (-9, False)]:
+            with self.subTest(code=code):
+                record, _ = self.run_cleanup(sllm_code=code)
+                self.assertEqual(record['success'], expected)
+
+    def test_ray_hook_one_is_conditional_and_http_exits_before_ray_signal(self):
+        record, _ = self.run_cleanup(ray_code=1)
+        self.assertTrue(record['success'])
+        self.assertTrue(record['ray_cli_controlled_hook_evidence'])
+        self.assertEqual(record['signal_requests']['sllm']['signal'], s.signal.SIGINT)
+        self.assertLessEqual(record['signal_requests']['sllm']['exit_observed_ns'],
+                             record['signal_requests']['ray-worker']['requested_ns'])
+        failed, _ = self.run_cleanup(ray_code=1, unexpected_ray=True)
+        self.assertFalse(failed['success'])
+        self.assertFalse(failed['ray_cli_controlled_hook_evidence'])
 
     def test_ray_stop_timeout_still_waits_all_children_and_saves_failure(self):
-        processes = {n:self.Process(0) for n in ('sllm', 'store', 'ray-worker')}
-        record = dict(status='supplement business and instance deletion completed')
-        with patch.object(s.subprocess, 'run', side_effect=subprocess.TimeoutExpired('ray stop', 30)), \
-             patch.object(s, 'write') as saved:
-            s.stop_processes(processes, {}, [], record, strict=True)
+        record, processes = self.run_cleanup(ray_timeout=True)
         self.assertFalse(record['success'])
         self.assertEqual(record['shutdown_errors'][0]['stage'], 'ray stop')
         self.assertTrue(all(p.waited == 1 for p in processes.values()))
-        saved.assert_called_once()
 
     def test_matching_config_with_insufficient_rss_is_rejected(self):
         client = types.SimpleNamespace(get_server_config=lambda:dict(mem_pool_size=768799145984, chunk_size=536870912))

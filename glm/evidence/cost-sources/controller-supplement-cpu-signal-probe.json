@@ -1,0 +1,686 @@
+{
+  "scope": "CPU signal controls; not GLM model outcomes",
+  "original_receipt_sha256": "43cddf48b140036e60531e72709cbf9c1739d8c3d4539f48646518ea8add09f3",
+  "attempts": [
+    {
+      "name": "sllm-glm-cpu-exit-6adde2065528",
+      "holder": "94ffbecab57c418cb065bf9390f8d8f7",
+      "container_id": "a859005f6dc47acfe0ac06423eb20313566d523fad4e264dd721e12f0045870e",
+      "immutable_image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "controller_module_sha256": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+      "function_payload_sha256": "a56626e29891ec1fed4e98566305af159c8b1f579a53f04867a3f6e738bf8e70",
+      "before": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {}
+        },
+        "NetworkMode": "none",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,size=512m,uid=2147,gid=2147"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 268435456,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 2147483648,
+        "NanoCpus": 2000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 4294967296,
+        "MemorySwappiness": null,
+        "OomKillDisable": false,
+        "PidsLimit": 512,
+        "Ulimits": [],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+            "Target": "/experiment/.venv",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+            "Target": "/experiment/serving-deps",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+            "Target": "/experiment/runtime-metadata",
+            "ReadOnly": true
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": true,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-09T12:04:27.800086389Z",
+        "FinishedAt": "2026-11-09T12:05:09.794882698Z"
+      },
+      "stdout": "{\"status\": \"CPU signal component only; no model/business proof\", \"child_births\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 135018593}}, \"signal_requests\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 135018593, \"signal\": 15, \"requested_ns\": 1350215964336390, \"alive_before\": true, \"delivery_returned_ns\": 1350215964360986}}, \"shutdown_work_deadline_monotonic_s\": 1350505.964222508, \"ray_stop_returncode\": 0, \"ray_stop_stdout\": \"2026-11-09 12:05:09,610\\tINFO scripts.py:1334 -- Did not find any active Ray processes.\\n\", \"ray_stop_stderr\": \"\", \"end_ns\": 1350227627725901, \"forced_kill\": [\"ray-worker\"], \"shutdown_errors\": [{\"stage\": \"shutdown log evidence\", \"error\": \"FileNotFoundError(2, 'No such file or directory')\"}], \"unexpected_pre_cleanup_exits\": {}, \"returncodes\": {\"ray-worker\": -9}, \"shutdown_log_sha256\": {\"ray-worker\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}, \"controlled_exit_rules\": {\"store\": [0], \"sllm\": [0], \"ray-worker\": [0, -15]}, \"ray_cli_controlled_hook_evidence\": false, \"http_graceful_shutdown_evidence\": false, \"controller_shutdown_method_called\": \"not asserted\", \"success\": false, \"scope\": \"actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof\", \"component_error\": \"RuntimeError('bounded CPU Ray readiness failed')\", \"model_started\": false, \"store_pool_started\": false, \"component_pass\": false, \"log_text\": {\"ray-worker\": \"\"}}\n",
+      "stderr": "",
+      "start_ns": 1350185552802536,
+      "end_ns": 1350227812299422,
+      "scope": "bounded CPU-only signal component, not model/runtime approval",
+      "container_removed": true
+    },
+    {
+      "name": "sllm-glm-cpu-exit-0a7ec3acd108",
+      "holder": "dd4986a04b8342c19516c137eecc20ff",
+      "container_id": "2d1944dbdf81398b9bdf8729cac4dba429213e9c9c36d0dd501e6f0fa8fde501",
+      "immutable_image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "controller_module_sha256": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+      "function_payload_sha256": "a56626e29891ec1fed4e98566305af159c8b1f579a53f04867a3f6e738bf8e70",
+      "probe_limits": {
+        "cpu_max": 4,
+        "memory_max_bytes": 8589934592,
+        "pids_max": 512,
+        "entry_timeout_s": 130,
+        "kill_after_s": 5
+      },
+      "source_text": "import pathlib,subprocess,sys,signal,time,json,hashlib,urllib.request,os\nOUT=pathlib.Path('/tmp/control');OUT.mkdir();PYTHON=sys.executable;STORE_GRACE_SECONDS=240\ndef stop_processes(processes, env, logs, record, strict=False):\n    \"\"\"Preserve shutdown evidence; keep Ray available while the HTTP server exits.\"\"\"\n    errors, forced, waited = [], [], set()\n    unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}\n    signals = record.setdefault('signal_requests', {})\n    store_deadline = None\n    shutdown_begin = time.monotonic()\n    shutdown_deadline = shutdown_begin+290  # reserve10s for evidence before the300s hard worker alarm\n    if strict:\n        record['shutdown_work_deadline_monotonic_s'] = shutdown_deadline\n\n    def request_stop(name, signum):\n        process = processes.get(name)\n        if process is None or process.poll() is not None:\n            return\n        try:\n            if strict:\n                expected = record['child_births'][name]\n                raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                if expected != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                    raise RuntimeError('child birth differs before shutdown signal')\n                signals[name] = dict(expected, signal=signum, requested_ns=time.monotonic_ns(), alive_before=True)\n            process.send_signal(signum)\n            if strict:\n                signals[name]['delivery_returned_ns'] = time.monotonic_ns()\n        except BaseException as error:\n            errors.append(dict(stage='signal', process=name, error=repr(error)))\n\n    def wait(name, seconds):\n        process = processes.get(name)\n        if process is None or name in waited:\n            return\n        waited.add(name)\n        try:\n            remaining = min(seconds, shutdown_deadline-time.monotonic()) if strict else seconds\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired(name, 0)\n            process.wait(timeout=max(.001, remaining))\n            if strict and name in signals:\n                signals[name]['exit_observed_ns'] = time.monotonic_ns()\n        except subprocess.TimeoutExpired:\n            forced.append(name)\n            try:\n                if strict:\n                    raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                    if record['child_births'].get(name) != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                        raise RuntimeError('child birth unknown before forced failure cleanup')\n                process.kill()\n                process.wait(timeout=5)\n            except BaseException as error:\n                errors.append(dict(stage='forced wait', process=name, error=repr(error)))\n        except BaseException as error:\n            errors.append(dict(stage='wait', process=name, error=repr(error)))\n\n    try:\n        request_stop('sllm', signal.SIGINT if strict else signal.SIGTERM)\n        if strict:\n            wait('sllm', 10)\n        request_stop('store', signal.SIGINT)\n        if strict:\n            store_deadline = signals.get('store', {}).get('requested_ns', time.monotonic_ns())/1e9+STORE_GRACE_SECONDS\n        request_stop('ray-worker', signal.SIGTERM)\n        if strict:\n            wait('ray-worker', 10)\n        try:\n            options = [] if strict else ['--force']\n            remaining = min(30, shutdown_deadline-time.monotonic()) if strict else 30\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired('ray stop', 0)\n            stopped = subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', *options],\n                                     env=env, timeout=remaining, capture_output=bool(strict), text=bool(strict))\n            record['ray_stop_returncode'] = stopped.returncode\n            if strict:\n                record.update(ray_stop_stdout=stopped.stdout, ray_stop_stderr=stopped.stderr)\n                if 'Did not find any active Ray processes.' not in stopped.stdout:\n                    errors.append(dict(stage='Ray residuals after CLI shutdown', stdout=stopped.stdout, stderr=stopped.stderr))\n            if stopped.returncode != 0:\n                errors.append(dict(stage='ray stop', returncode=stopped.returncode))\n        except BaseException as error:\n            errors.append(dict(stage='ray stop', error=repr(error)))\n        for name in processes:\n            seconds = max(.001, store_deadline-time.monotonic()) if strict and name == 'store' else STORE_GRACE_SECONDS if name == 'store' else 10\n            wait(name, seconds)\n    finally:\n        for log in logs:\n            try:\n                log.close()\n            except BaseException as error:\n                errors.append(dict(stage='log close', error=repr(error)))\n        record.update(end_ns=time.monotonic_ns(), forced_kill=forced, shutdown_errors=errors,\n                      unexpected_pre_cleanup_exits=unexpected,\n                      returncodes={name:p.returncode for name, p in processes.items()})\n        if strict:\n            def tail(name):\n                path = OUT/(name+'.log')\n                if path.stat().st_size > 256*1024 and name == 'ray-worker':\n                    raise RuntimeError('Ray CLI log too large for complete unexpected-exit check')\n                with path.open('rb') as stream:\n                    stream.seek(max(0, path.stat().st_size-256*1024))\n                    raw = stream.read()\n                record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()\n                return raw.decode(errors='replace')\n            try:\n                ray_log, sllm_log = tail('ray-worker'), tail('sllm')\n                ray_signal = signals.get('ray-worker', {})\n                ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True\n                    and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)\n                    and 'Some Ray subprocesses exited unexpectedly:' not in ray_log\n                    and 'Remaining processes will be killed.' not in ray_log)\n                sllm_signal = signals.get('sllm', {})\n                http_shutdown = (sllm_signal.get('signal') == signal.SIGINT and sllm_signal.get('alive_before') is True\n                    and sllm_signal.get('requested_ns', 0) < sllm_signal.get('delivery_returned_ns', 0) <= sllm_signal.get('exit_observed_ns', 0)\n                    and 'Application shutdown complete.' in sllm_log\n                    and 'Finished server process [%s]' % sllm_signal.get('pid') in sllm_log)\n            except BaseException as error:\n                ray_hook = http_shutdown = False\n                errors.append(dict(stage='shutdown log evidence', error=repr(error)))\n            allowed = {'store':(0,), 'sllm':(0,), 'ray-worker':(0, -signal.SIGTERM, 1) if ray_hook else (0, -signal.SIGTERM)}\n            record.update(controlled_exit_rules=allowed, ray_cli_controlled_hook_evidence=ray_hook,\n                          http_graceful_shutdown_evidence=http_shutdown, controller_shutdown_method_called='not asserted')\n            record['success'] = (record['status'] == 'supplement business and instance deletion completed'\n                and not forced and not errors and not unexpected and http_shutdown\n                and time.monotonic() <= shutdown_deadline\n                and set(record['returncodes']) == set(allowed)\n                and all(code in allowed[name] for name, code in record['returncodes'].items()))\n        write(OUT/'result.json', record)\n    return forced\n\ndef write(path, record):\n    temporary = path.with_suffix('.tmp')\n    temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))\n    temporary.replace(path)\nprocesses={};logs=[];record={'status':'CPU signal component only; no model/business proof','child_births':{}};component_error=None\ntry:\n env=dict(os.environ)\n def launch(name,args):\n  log=(OUT/(name+'.log')).open('x');logs.append(log);p=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,env=env);processes[name]=p\n  stat=(pathlib.Path('/proc')/str(p.pid)/'stat').read_text();record['child_births'][name]={'pid':p.pid,'startticks':int(stat.rsplit(')',1)[1].split()[19])}\n launch('ray-worker',[PYTHON,'-m','ray.scripts.scripts','start','--head','--node-ip-address=127.0.0.1','--port=26532','--num-cpus=1','--num-gpus=0','--object-store-memory=268435456','--include-dashboard=false','--disable-usage-stats','--block'])\n limit=time.monotonic()+30\n while 'Ray runtime started.' not in (OUT/'ray-worker.log').read_text():\n  if processes['ray-worker'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU Ray readiness failed')\n  time.sleep(.1)\n driver=\"\"\"import ray,uvicorn\nray.init(address='127.0.0.1:26532',log_to_driver=False)\nasync def app(scope,receive,send):\n if scope['type']=='lifespan':\n  while True:\n   event=await receive()\n   if event['type']=='lifespan.startup':await send({'type':'lifespan.startup.complete'})\n   elif event['type']=='lifespan.shutdown':await send({'type':'lifespan.shutdown.complete'});return\n else:\n  await send({'type':'http.response.start','status':200,'headers':[]});await send({'type':'http.response.body','body':b'CPU-control'})\nuvicorn.run(app,host='127.0.0.1',port=18443)\n\"\"\"\n launch('sllm',[PYTHON,'-u','-c',driver])\n limit=time.monotonic()+30\n while True:\n  if processes['sllm'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU ASGI readiness failed')\n  try:\n   with urllib.request.urlopen('http://127.0.0.1:18443/health',timeout=.5) as response:\n    assert response.read()==b'CPU-control';break\n  except OSError:time.sleep(.1)\nexcept BaseException as error:component_error=repr(error)\nfinally:\n stop_processes(processes,os.environ,logs,record,strict=True)\nrecord.update(scope='actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof',component_error=component_error,model_started=False,store_pool_started=False)\nrecord['component_pass']=(component_error is None and record['returncodes']=={'ray-worker':1,'sllm':0} and record['http_graceful_shutdown_evidence'] and record['ray_cli_controlled_hook_evidence'] and not record['shutdown_errors'] and not record['forced_kill'] and not record['unexpected_pre_cleanup_exits'])\nrecord['log_text']={name:(OUT/(name+'.log')).read_text()[-10000:] for name in processes}\nprint(json.dumps(record))\nsys.exit(0 if record['component_pass'] else 1)\n",
+      "before": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {}
+        },
+        "NetworkMode": "none",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,size=512m,uid=2147,gid=2147"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 536870912,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 8589934592,
+        "NanoCpus": 4000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 17179869184,
+        "MemorySwappiness": null,
+        "OomKillDisable": false,
+        "PidsLimit": 512,
+        "Ulimits": [],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+            "Target": "/experiment/.venv",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+            "Target": "/experiment/serving-deps",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+            "Target": "/experiment/runtime-metadata",
+            "ReadOnly": true
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-09T12:09:20.059993029Z",
+        "FinishedAt": "2026-11-09T12:09:58.553526402Z"
+      },
+      "stdout": "{\"status\": \"CPU signal component only; no model/business proof\", \"child_births\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 135047805}, \"sllm\": {\"pid\": 528, \"startticks\": 135048195}}, \"signal_requests\": {\"sllm\": {\"pid\": 528, \"startticks\": 135048195, \"signal\": 2, \"requested_ns\": 1350511998100382, \"alive_before\": true, \"delivery_returned_ns\": 1350511998115213, \"exit_observed_ns\": 1350512512089072}, \"ray-worker\": {\"pid\": 8, \"startticks\": 135047805, \"signal\": 15, \"requested_ns\": 1350512512210980, \"alive_before\": true, \"delivery_returned_ns\": 1350512512218268, \"exit_observed_ns\": 1350514854592965}}, \"shutdown_work_deadline_monotonic_s\": 1350801.997972921, \"ray_stop_returncode\": 0, \"ray_stop_stdout\": \"2026-11-09 12:09:58,373\\tINFO scripts.py:1334 -- Did not find any active Ray processes.\\n\", \"ray_stop_stderr\": \"\", \"end_ns\": 1350516388954820, \"forced_kill\": [], \"shutdown_errors\": [], \"unexpected_pre_cleanup_exits\": {}, \"returncodes\": {\"ray-worker\": 1, \"sllm\": 1}, \"shutdown_log_sha256\": {\"ray-worker\": \"4edf6a22f1bb380a489f9cf1a665937e428bf466ace6ace319a2f77efec42559\", \"sllm\": \"ba01251de12e5ec47a9eee9c4d3423234d380392da1ad146112b97d2d75bb131\"}, \"controlled_exit_rules\": {\"store\": [0], \"sllm\": [0], \"ray-worker\": [0, -15, 1]}, \"ray_cli_controlled_hook_evidence\": true, \"http_graceful_shutdown_evidence\": false, \"controller_shutdown_method_called\": \"not asserted\", \"success\": false, \"scope\": \"actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof\", \"component_error\": \"RuntimeError('bounded CPU ASGI readiness failed')\", \"model_started\": false, \"store_pool_started\": false, \"component_pass\": false, \"log_text\": {\"ray-worker\": \"2026-11-09 12:09:21,566\\tINFO usage_lib.py:441 -- Usage stats collection is disabled.\\n2026-11-09 12:09:21,566\\tINFO scripts.py:913 -- Local node IP: 127.0.0.1\\n2026-11-09 12:09:24,054\\tSUCC scripts.py:949 -- --------------------\\n2026-11-09 12:09:24,054\\tSUCC scripts.py:950 -- Ray runtime started.\\n2026-11-09 12:09:24,054\\tSUCC scripts.py:951 -- --------------------\\n2026-11-09 12:09:24,054\\tINFO scripts.py:953 -- Next steps\\n2026-11-09 12:09:24,054\\tINFO scripts.py:956 -- To add another node to this Ray cluster, run\\n2026-11-09 12:09:24,054\\tINFO scripts.py:959 --   ray start --address='127.0.0.1:26532'\\n2026-11-09 12:09:24,054\\tINFO scripts.py:968 -- To connect to this Ray cluster:\\n2026-11-09 12:09:24,054\\tINFO scripts.py:970 -- import ray\\n2026-11-09 12:09:24,054\\tINFO scripts.py:971 -- ray.init(_node_ip_address='127.0.0.1')\\n2026-11-09 12:09:24,054\\tINFO scripts.py:1002 -- To terminate the Ray runtime, run\\n2026-11-09 12:09:24,054\\tINFO scripts.py:1003 --   ray stop\\n2026-11-09 12:09:24,055\\tINFO scripts.py:1006 -- To view the status of the cluster, use\\n2026-11-09 12:09:24,055\\tINFO scripts.py:1007 --   ray status\\n2026-11-09 12:09:24,055\\tINFO scripts.py:1123 -- --block\\n2026-11-09 12:09:24,055\\tINFO scripts.py:1124 -- This command will now block forever until terminated by a signal.\\n2026-11-09 12:09:24,055\\tINFO scripts.py:1127 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.\\n\", \"sllm\": \"2026-11-09 12:09:24,530\\tINFO worker.py:1747 -- Connecting to existing Ray cluster at address: 127.0.0.1:26532...\\n[2026-11-09 12:09:24,539 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:25,540 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:26,543 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:27,545 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:28,546 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:29,547 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:30,547 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:31,548 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:32,549 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:33,550 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:34,550 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:35,551 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:36,552 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:37,553 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:38,554 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:39,554 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:40,555 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:41,556 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:42,557 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:43,557 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:44,558 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:45,559 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:46,560 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:47,560 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:48,561 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:49,562 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:50,563 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:51,563 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:52,564 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:09:53,565 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\nTraceback (most recent call last):\\n  File \\\"/experiment/serving-deps/ray/_private/worker.py\\\", line 1883, in init\\n    _global_node = ray._private.node.Node(\\n                   ^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/node.py\\\", line 276, in __init__\\n    node_info = ray._private.services.get_node_to_connect_for_driver(\\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/services.py\\\", line 467, in get_node_to_connect_for_driver\\n    return global_state.get_node_to_connect_for_driver(node_ip_address)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/state.py\\\", line 822, in get_node_to_connect_for_driver\\n    return self.global_state_accessor.get_node_to_connect_for_driver(\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"python/ray/includes/global_state_accessor.pxi\\\", line 279, in ray._raylet.GlobalStateAccessor.get_node_to_connect_for_driver\\nRuntimeError: b'RPC Error message: Deadline Exceeded; RPC Error details: '\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"<string>\\\", line 2, in <module>\\n  File \\\"/experiment/serving-deps/ray/_private/client_mode_hook.py\\\", line 104, in wrapper\\n    return func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/worker.py\\\", line 1891, in init\\n    if gcs_address == ray._private.utils.read_ray_address(_temp_dir):\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/utils.py\\\", line 98, in read_ray_address\\n    def read_ray_address(temp_dir: Optional[str] = None) -> str:\\n    \\nKeyboardInterrupt\\n\"}}\n",
+      "stderr": "",
+      "start_ns": 1350477818415915,
+      "end_ns": 1350516501247640,
+      "scope": "bounded CPU-only signal component, not model/runtime approval",
+      "container_removed": true
+    },
+    {
+      "name": "sllm-glm-cpu-exit-bed5a8c0e179",
+      "holder": "5c98a10552e04a25bf79e5dc28546a40",
+      "container_id": "f291bec6f3d86021f0c318a791d9d68c8eca069c8284428044cfd0eca55b083f",
+      "immutable_image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "controller_module_sha256": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+      "function_payload_sha256": "a56626e29891ec1fed4e98566305af159c8b1f579a53f04867a3f6e738bf8e70",
+      "probe_limits": {
+        "cpu_max": 4,
+        "memory_max_bytes": 8589934592,
+        "pids_max": 512,
+        "entry_timeout_s": 130,
+        "kill_after_s": 5
+      },
+      "source_text": "import pathlib,subprocess,sys,signal,time,json,hashlib,urllib.request,os\nOUT=pathlib.Path('/tmp/control');OUT.mkdir();PYTHON=sys.executable;STORE_GRACE_SECONDS=240\ndef stop_processes(processes, env, logs, record, strict=False):\n    \"\"\"Preserve shutdown evidence; keep Ray available while the HTTP server exits.\"\"\"\n    errors, forced, waited = [], [], set()\n    unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}\n    signals = record.setdefault('signal_requests', {})\n    store_deadline = None\n    shutdown_begin = time.monotonic()\n    shutdown_deadline = shutdown_begin+290  # reserve10s for evidence before the300s hard worker alarm\n    if strict:\n        record['shutdown_work_deadline_monotonic_s'] = shutdown_deadline\n\n    def request_stop(name, signum):\n        process = processes.get(name)\n        if process is None or process.poll() is not None:\n            return\n        try:\n            if strict:\n                expected = record['child_births'][name]\n                raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                if expected != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                    raise RuntimeError('child birth differs before shutdown signal')\n                signals[name] = dict(expected, signal=signum, requested_ns=time.monotonic_ns(), alive_before=True)\n            process.send_signal(signum)\n            if strict:\n                signals[name]['delivery_returned_ns'] = time.monotonic_ns()\n        except BaseException as error:\n            errors.append(dict(stage='signal', process=name, error=repr(error)))\n\n    def wait(name, seconds):\n        process = processes.get(name)\n        if process is None or name in waited:\n            return\n        waited.add(name)\n        try:\n            remaining = min(seconds, shutdown_deadline-time.monotonic()) if strict else seconds\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired(name, 0)\n            process.wait(timeout=max(.001, remaining))\n            if strict and name in signals:\n                signals[name]['exit_observed_ns'] = time.monotonic_ns()\n        except subprocess.TimeoutExpired:\n            forced.append(name)\n            try:\n                if strict:\n                    raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                    if record['child_births'].get(name) != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                        raise RuntimeError('child birth unknown before forced failure cleanup')\n                process.kill()\n                process.wait(timeout=5)\n            except BaseException as error:\n                errors.append(dict(stage='forced wait', process=name, error=repr(error)))\n        except BaseException as error:\n            errors.append(dict(stage='wait', process=name, error=repr(error)))\n\n    try:\n        request_stop('sllm', signal.SIGINT if strict else signal.SIGTERM)\n        if strict:\n            wait('sllm', 10)\n        request_stop('store', signal.SIGINT)\n        if strict:\n            store_deadline = signals.get('store', {}).get('requested_ns', time.monotonic_ns())/1e9+STORE_GRACE_SECONDS\n        request_stop('ray-worker', signal.SIGTERM)\n        if strict:\n            wait('ray-worker', 10)\n        try:\n            options = [] if strict else ['--force']\n            remaining = min(30, shutdown_deadline-time.monotonic()) if strict else 30\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired('ray stop', 0)\n            stopped = subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', *options],\n                                     env=env, timeout=remaining, capture_output=bool(strict), text=bool(strict))\n            record['ray_stop_returncode'] = stopped.returncode\n            if strict:\n                record.update(ray_stop_stdout=stopped.stdout, ray_stop_stderr=stopped.stderr)\n                if 'Did not find any active Ray processes.' not in stopped.stdout:\n                    errors.append(dict(stage='Ray residuals after CLI shutdown', stdout=stopped.stdout, stderr=stopped.stderr))\n            if stopped.returncode != 0:\n                errors.append(dict(stage='ray stop', returncode=stopped.returncode))\n        except BaseException as error:\n            errors.append(dict(stage='ray stop', error=repr(error)))\n        for name in processes:\n            seconds = max(.001, store_deadline-time.monotonic()) if strict and name == 'store' else STORE_GRACE_SECONDS if name == 'store' else 10\n            wait(name, seconds)\n    finally:\n        for log in logs:\n            try:\n                log.close()\n            except BaseException as error:\n                errors.append(dict(stage='log close', error=repr(error)))\n        record.update(end_ns=time.monotonic_ns(), forced_kill=forced, shutdown_errors=errors,\n                      unexpected_pre_cleanup_exits=unexpected,\n                      returncodes={name:p.returncode for name, p in processes.items()})\n        if strict:\n            def tail(name):\n                path = OUT/(name+'.log')\n                if path.stat().st_size > 256*1024 and name == 'ray-worker':\n                    raise RuntimeError('Ray CLI log too large for complete unexpected-exit check')\n                with path.open('rb') as stream:\n                    stream.seek(max(0, path.stat().st_size-256*1024))\n                    raw = stream.read()\n                record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()\n                return raw.decode(errors='replace')\n            try:\n                ray_log, sllm_log = tail('ray-worker'), tail('sllm')\n                ray_signal = signals.get('ray-worker', {})\n                ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True\n                    and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)\n                    and 'Some Ray subprocesses exited unexpectedly:' not in ray_log\n                    and 'Remaining processes will be killed.' not in ray_log)\n                sllm_signal = signals.get('sllm', {})\n                http_shutdown = (sllm_signal.get('signal') == signal.SIGINT and sllm_signal.get('alive_before') is True\n                    and sllm_signal.get('requested_ns', 0) < sllm_signal.get('delivery_returned_ns', 0) <= sllm_signal.get('exit_observed_ns', 0)\n                    and 'Application shutdown complete.' in sllm_log\n                    and 'Finished server process [%s]' % sllm_signal.get('pid') in sllm_log)\n            except BaseException as error:\n                ray_hook = http_shutdown = False\n                errors.append(dict(stage='shutdown log evidence', error=repr(error)))\n            allowed = {'store':(0,), 'sllm':(0,), 'ray-worker':(0, -signal.SIGTERM, 1) if ray_hook else (0, -signal.SIGTERM)}\n            record.update(controlled_exit_rules=allowed, ray_cli_controlled_hook_evidence=ray_hook,\n                          http_graceful_shutdown_evidence=http_shutdown, controller_shutdown_method_called='not asserted')\n            record['success'] = (record['status'] == 'supplement business and instance deletion completed'\n                and not forced and not errors and not unexpected and http_shutdown\n                and time.monotonic() <= shutdown_deadline\n                and set(record['returncodes']) == set(allowed)\n                and all(code in allowed[name] for name, code in record['returncodes'].items()))\n        write(OUT/'result.json', record)\n    return forced\n\ndef write(path, record):\n    temporary = path.with_suffix('.tmp')\n    temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))\n    temporary.replace(path)\nprocesses={};logs=[];record={'status':'CPU signal component only; no model/business proof','child_births':{}};component_error=None\ntry:\n env=dict(os.environ)\n def launch(name,args):\n  log=(OUT/(name+'.log')).open('x');logs.append(log);p=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,env=env);processes[name]=p\n  stat=(pathlib.Path('/proc')/str(p.pid)/'stat').read_text();record['child_births'][name]={'pid':p.pid,'startticks':int(stat.rsplit(')',1)[1].split()[19])}\n launch('ray-worker',[PYTHON,'-m','ray.scripts.scripts','start','--head','--node-ip-address=127.0.0.1','--port=26532','--num-cpus=1','--num-gpus=0','--object-store-memory=268435456','--include-dashboard=false','--disable-usage-stats','--block'])\n limit=time.monotonic()+30\n while 'Ray runtime started.' not in (OUT/'ray-worker.log').read_text():\n  if processes['ray-worker'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU Ray readiness failed')\n  time.sleep(.1)\n driver=\"\"\"import ray,uvicorn\nray.init(address='127.0.0.1:26532',_node_ip_address='127.0.0.1',log_to_driver=False)\nasync def app(scope,receive,send):\n if scope['type']=='lifespan':\n  while True:\n   event=await receive()\n   if event['type']=='lifespan.startup':await send({'type':'lifespan.startup.complete'})\n   elif event['type']=='lifespan.shutdown':await send({'type':'lifespan.shutdown.complete'});return\n else:\n  await send({'type':'http.response.start','status':200,'headers':[]});await send({'type':'http.response.body','body':b'CPU-control'})\nuvicorn.run(app,host='127.0.0.1',port=18443)\n\"\"\"\n launch('sllm',[PYTHON,'-u','-c',driver])\n limit=time.monotonic()+30\n while True:\n  if processes['sllm'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU ASGI readiness failed')\n  try:\n   with urllib.request.urlopen('http://127.0.0.1:18443/health',timeout=.5) as response:\n    assert response.read()==b'CPU-control';break\n  except OSError:time.sleep(.1)\nexcept BaseException as error:component_error=repr(error)\nfinally:\n stop_processes(processes,os.environ,logs,record,strict=True)\nrecord.update(scope='actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof',component_error=component_error,model_started=False,store_pool_started=False)\nrecord['component_pass']=(component_error is None and record['returncodes']=={'ray-worker':1,'sllm':0} and record['http_graceful_shutdown_evidence'] and record['ray_cli_controlled_hook_evidence'] and not record['shutdown_errors'] and not record['forced_kill'] and not record['unexpected_pre_cleanup_exits'])\nrecord['log_text']={name:(OUT/(name+'.log')).read_text()[-10000:] for name in processes}\nprint(json.dumps(record))\nsys.exit(0 if record['component_pass'] else 1)\n",
+      "before": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {}
+        },
+        "NetworkMode": "none",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,size=512m,uid=2147,gid=2147"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 536870912,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 8589934592,
+        "NanoCpus": 4000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 17179869184,
+        "MemorySwappiness": null,
+        "OomKillDisable": false,
+        "PidsLimit": 512,
+        "Ulimits": [],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+            "Target": "/experiment/.venv",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+            "Target": "/experiment/serving-deps",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+            "Target": "/experiment/runtime-metadata",
+            "ReadOnly": true
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-09T12:12:01.451379056Z",
+        "FinishedAt": "2026-11-09T12:12:39.440147488Z"
+      },
+      "stdout": "{\"status\": \"CPU signal component only; no model/business proof\", \"child_births\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 135063944}, \"sllm\": {\"pid\": 528, \"startticks\": 135064334}}, \"signal_requests\": {\"sllm\": {\"pid\": 528, \"startticks\": 135064334, \"signal\": 2, \"requested_ns\": 1350673390434720, \"alive_before\": true, \"delivery_returned_ns\": 1350673390450203, \"exit_observed_ns\": 1350673904417775}, \"ray-worker\": {\"pid\": 8, \"startticks\": 135063944, \"signal\": 15, \"requested_ns\": 1350673904528983, \"alive_before\": true, \"delivery_returned_ns\": 1350673904537213, \"exit_observed_ns\": 1350675752038932}}, \"shutdown_work_deadline_monotonic_s\": 1350963.390293065, \"ray_stop_returncode\": 0, \"ray_stop_stdout\": \"2026-11-09 12:12:39,264\\tINFO scripts.py:1334 -- Did not find any active Ray processes.\\n\", \"ray_stop_stderr\": \"\", \"end_ns\": 1350677275579059, \"forced_kill\": [], \"shutdown_errors\": [], \"unexpected_pre_cleanup_exits\": {}, \"returncodes\": {\"ray-worker\": 1, \"sllm\": 1}, \"shutdown_log_sha256\": {\"ray-worker\": \"2448b1eca6729ddc43cbc2139ccf34bcdb0fa288952350a64d0a54163f541424\", \"sllm\": \"155bbba6d6cc53e665a1caef4f8ce4b4584fba9c7b5bf6fa678dc5e5e71e8d2f\"}, \"controlled_exit_rules\": {\"store\": [0], \"sllm\": [0], \"ray-worker\": [0, -15, 1]}, \"ray_cli_controlled_hook_evidence\": true, \"http_graceful_shutdown_evidence\": false, \"controller_shutdown_method_called\": \"not asserted\", \"success\": false, \"scope\": \"actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof\", \"component_error\": \"RuntimeError('bounded CPU ASGI readiness failed')\", \"model_started\": false, \"store_pool_started\": false, \"component_pass\": false, \"log_text\": {\"ray-worker\": \"2026-11-09 12:12:02,952\\tINFO usage_lib.py:441 -- Usage stats collection is disabled.\\n2026-11-09 12:12:02,952\\tINFO scripts.py:913 -- Local node IP: 127.0.0.1\\n2026-11-09 12:12:05,438\\tSUCC scripts.py:949 -- --------------------\\n2026-11-09 12:12:05,438\\tSUCC scripts.py:950 -- Ray runtime started.\\n2026-11-09 12:12:05,438\\tSUCC scripts.py:951 -- --------------------\\n2026-11-09 12:12:05,438\\tINFO scripts.py:953 -- Next steps\\n2026-11-09 12:12:05,438\\tINFO scripts.py:956 -- To add another node to this Ray cluster, run\\n2026-11-09 12:12:05,438\\tINFO scripts.py:959 --   ray start --address='127.0.0.1:26532'\\n2026-11-09 12:12:05,438\\tINFO scripts.py:968 -- To connect to this Ray cluster:\\n2026-11-09 12:12:05,438\\tINFO scripts.py:970 -- import ray\\n2026-11-09 12:12:05,438\\tINFO scripts.py:971 -- ray.init(_node_ip_address='127.0.0.1')\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1002 -- To terminate the Ray runtime, run\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1003 --   ray stop\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1006 -- To view the status of the cluster, use\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1007 --   ray status\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1123 -- --block\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1124 -- This command will now block forever until terminated by a signal.\\n2026-11-09 12:12:05,438\\tINFO scripts.py:1127 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.\\n\", \"sllm\": \"2026-11-09 12:12:05,912\\tINFO worker.py:1747 -- Connecting to existing Ray cluster at address: 127.0.0.1:26532...\\n[2026-11-09 12:12:05,924 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:06,925 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:07,926 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:08,927 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:09,928 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:10,928 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:11,929 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:12,930 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:13,930 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:14,931 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:15,932 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:16,932 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:17,933 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:18,934 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:19,934 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:20,935 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:21,936 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:22,936 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:23,937 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:24,938 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:25,938 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:26,939 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:27,940 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:28,940 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:29,941 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:30,941 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:31,942 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:32,943 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:33,943 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\n[2026-11-09 12:12:34,944 W 528 528] global_state_accessor.cc:506: Some processes that the driver needs to connect to have not registered with GCS, so retrying. Have you run 'ray start' on this node?\\nTraceback (most recent call last):\\n  File \\\"/experiment/serving-deps/ray/_private/worker.py\\\", line 1883, in init\\n    _global_node = ray._private.node.Node(\\n                   ^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/node.py\\\", line 276, in __init__\\n    node_info = ray._private.services.get_node_to_connect_for_driver(\\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/services.py\\\", line 467, in get_node_to_connect_for_driver\\n    return global_state.get_node_to_connect_for_driver(node_ip_address)\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/state.py\\\", line 822, in get_node_to_connect_for_driver\\n    return self.global_state_accessor.get_node_to_connect_for_driver(\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"python/ray/includes/global_state_accessor.pxi\\\", line 279, in ray._raylet.GlobalStateAccessor.get_node_to_connect_for_driver\\nRuntimeError: b'RPC Error message: Deadline Exceeded; RPC Error details: '\\n\\nDuring handling of the above exception, another exception occurred:\\n\\nTraceback (most recent call last):\\n  File \\\"<string>\\\", line 2, in <module>\\n  File \\\"/experiment/serving-deps/ray/_private/client_mode_hook.py\\\", line 104, in wrapper\\n    return func(*args, **kwargs)\\n           ^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/worker.py\\\", line 1891, in init\\n    if gcs_address == ray._private.utils.read_ray_address(_temp_dir):\\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \\\"/experiment/serving-deps/ray/_private/utils.py\\\", line 98, in read_ray_address\\n    def read_ray_address(temp_dir: Optional[str] = None) -> str:\\n    \\nKeyboardInterrupt\\n\"}}\n",
+      "stderr": "",
+      "start_ns": 1350639210790540,
+      "end_ns": 1350677343735381,
+      "scope": "bounded CPU-only signal component, not model/runtime approval",
+      "container_removed": true
+    },
+    {
+      "name": "sllm-glm-cpu-exit-8297345cc3ee",
+      "holder": "ddae1c5d0096451b87c7a1f3d11ab00d",
+      "container_id": "37960b6dd220ad5c2064513ccbf04cba75a7dbdc0c750666c67bdb85764084d5",
+      "immutable_image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "controller_module_sha256": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+      "function_payload_sha256": "a56626e29891ec1fed4e98566305af159c8b1f579a53f04867a3f6e738bf8e70",
+      "probe_limits": {
+        "cpu_max": 4,
+        "memory_max_bytes": 8589934592,
+        "pids_max": 8192,
+        "entry_timeout_s": 130,
+        "kill_after_s": 5
+      },
+      "source_text": "import pathlib,subprocess,sys,signal,time,json,hashlib,urllib.request,os,socket\nOUT=pathlib.Path('/tmp/control');OUT.mkdir();PYTHON=sys.executable;STORE_GRACE_SECONDS=240\ndef stop_processes(processes, env, logs, record, strict=False):\n    \"\"\"Preserve shutdown evidence; keep Ray available while the HTTP server exits.\"\"\"\n    errors, forced, waited = [], [], set()\n    unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}\n    signals = record.setdefault('signal_requests', {})\n    store_deadline = None\n    shutdown_begin = time.monotonic()\n    shutdown_deadline = shutdown_begin+290  # reserve10s for evidence before the300s hard worker alarm\n    if strict:\n        record['shutdown_work_deadline_monotonic_s'] = shutdown_deadline\n\n    def request_stop(name, signum):\n        process = processes.get(name)\n        if process is None or process.poll() is not None:\n            return\n        try:\n            if strict:\n                expected = record['child_births'][name]\n                raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                if expected != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                    raise RuntimeError('child birth differs before shutdown signal')\n                signals[name] = dict(expected, signal=signum, requested_ns=time.monotonic_ns(), alive_before=True)\n            process.send_signal(signum)\n            if strict:\n                signals[name]['delivery_returned_ns'] = time.monotonic_ns()\n        except BaseException as error:\n            errors.append(dict(stage='signal', process=name, error=repr(error)))\n\n    def wait(name, seconds):\n        process = processes.get(name)\n        if process is None or name in waited:\n            return\n        waited.add(name)\n        try:\n            remaining = min(seconds, shutdown_deadline-time.monotonic()) if strict else seconds\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired(name, 0)\n            process.wait(timeout=max(.001, remaining))\n            if strict and name in signals:\n                signals[name]['exit_observed_ns'] = time.monotonic_ns()\n        except subprocess.TimeoutExpired:\n            forced.append(name)\n            try:\n                if strict:\n                    raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()\n                    if record['child_births'].get(name) != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):\n                        raise RuntimeError('child birth unknown before forced failure cleanup')\n                process.kill()\n                process.wait(timeout=5)\n            except BaseException as error:\n                errors.append(dict(stage='forced wait', process=name, error=repr(error)))\n        except BaseException as error:\n            errors.append(dict(stage='wait', process=name, error=repr(error)))\n\n    try:\n        request_stop('sllm', signal.SIGINT if strict else signal.SIGTERM)\n        if strict:\n            wait('sllm', 10)\n        request_stop('store', signal.SIGINT)\n        if strict:\n            store_deadline = signals.get('store', {}).get('requested_ns', time.monotonic_ns())/1e9+STORE_GRACE_SECONDS\n        request_stop('ray-worker', signal.SIGTERM)\n        if strict:\n            wait('ray-worker', 10)\n        try:\n            options = [] if strict else ['--force']\n            remaining = min(30, shutdown_deadline-time.monotonic()) if strict else 30\n            if remaining <= 0:\n                raise subprocess.TimeoutExpired('ray stop', 0)\n            stopped = subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', *options],\n                                     env=env, timeout=remaining, capture_output=bool(strict), text=bool(strict))\n            record['ray_stop_returncode'] = stopped.returncode\n            if strict:\n                record.update(ray_stop_stdout=stopped.stdout, ray_stop_stderr=stopped.stderr)\n                if 'Did not find any active Ray processes.' not in stopped.stdout:\n                    errors.append(dict(stage='Ray residuals after CLI shutdown', stdout=stopped.stdout, stderr=stopped.stderr))\n            if stopped.returncode != 0:\n                errors.append(dict(stage='ray stop', returncode=stopped.returncode))\n        except BaseException as error:\n            errors.append(dict(stage='ray stop', error=repr(error)))\n        for name in processes:\n            seconds = max(.001, store_deadline-time.monotonic()) if strict and name == 'store' else STORE_GRACE_SECONDS if name == 'store' else 10\n            wait(name, seconds)\n    finally:\n        for log in logs:\n            try:\n                log.close()\n            except BaseException as error:\n                errors.append(dict(stage='log close', error=repr(error)))\n        record.update(end_ns=time.monotonic_ns(), forced_kill=forced, shutdown_errors=errors,\n                      unexpected_pre_cleanup_exits=unexpected,\n                      returncodes={name:p.returncode for name, p in processes.items()})\n        if strict:\n            def tail(name):\n                path = OUT/(name+'.log')\n                if path.stat().st_size > 256*1024 and name == 'ray-worker':\n                    raise RuntimeError('Ray CLI log too large for complete unexpected-exit check')\n                with path.open('rb') as stream:\n                    stream.seek(max(0, path.stat().st_size-256*1024))\n                    raw = stream.read()\n                record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()\n                return raw.decode(errors='replace')\n            try:\n                ray_log, sllm_log = tail('ray-worker'), tail('sllm')\n                ray_signal = signals.get('ray-worker', {})\n                ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True\n                    and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)\n                    and 'Some Ray subprocesses exited unexpectedly:' not in ray_log\n                    and 'Remaining processes will be killed.' not in ray_log)\n                sllm_signal = signals.get('sllm', {})\n                http_shutdown = (sllm_signal.get('signal') == signal.SIGINT and sllm_signal.get('alive_before') is True\n                    and sllm_signal.get('requested_ns', 0) < sllm_signal.get('delivery_returned_ns', 0) <= sllm_signal.get('exit_observed_ns', 0)\n                    and 'Application shutdown complete.' in sllm_log\n                    and 'Finished server process [%s]' % sllm_signal.get('pid') in sllm_log)\n            except BaseException as error:\n                ray_hook = http_shutdown = False\n                errors.append(dict(stage='shutdown log evidence', error=repr(error)))\n            allowed = {'store':(0,), 'sllm':(0,), 'ray-worker':(0, -signal.SIGTERM, 1) if ray_hook else (0, -signal.SIGTERM)}\n            record.update(controlled_exit_rules=allowed, ray_cli_controlled_hook_evidence=ray_hook,\n                          http_graceful_shutdown_evidence=http_shutdown, controller_shutdown_method_called='not asserted')\n            record['success'] = (record['status'] == 'supplement business and instance deletion completed'\n                and not forced and not errors and not unexpected and http_shutdown\n                and time.monotonic() <= shutdown_deadline\n                and set(record['returncodes']) == set(allowed)\n                and all(code in allowed[name] for name, code in record['returncodes'].items()))\n        write(OUT/'result.json', record)\n    return forced\n\ndef write(path, record):\n    temporary = path.with_suffix('.tmp')\n    temporary.write_text(json.dumps(record, indent=2, ensure_ascii=False))\n    temporary.replace(path)\nprocesses={};logs=[];record={'status':'CPU signal component only; no model/business proof','child_births':{}};component_error=None\ntry:\n env=dict(os.environ)\n ip=socket.gethostbyname(socket.gethostname())\n def launch(name,args):\n  log=(OUT/(name+'.log')).open('x');logs.append(log);p=subprocess.Popen(args,stdout=log,stderr=subprocess.STDOUT,env=env);processes[name]=p\n  stat=(pathlib.Path('/proc')/str(p.pid)/'stat').read_text();record['child_births'][name]={'pid':p.pid,'startticks':int(stat.rsplit(')',1)[1].split()[19])}\n launch('ray-worker',[PYTHON,'-m','ray.scripts.scripts','start','--head','--node-ip-address='+ip,'--port=26532','--num-cpus=1','--num-gpus=0','--object-store-memory=268435456','--include-dashboard=false','--disable-usage-stats','--block'])\n limit=time.monotonic()+30\n while 'Ray runtime started.' not in (OUT/'ray-worker.log').read_text():\n  if processes['ray-worker'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU Ray readiness failed')\n  time.sleep(.1)\n driver=\"\"\"import ray,uvicorn\nray.init(address=RAY_ADDRESS,_node_ip_address=RAY_IP,log_to_driver=False)\nasync def app(scope,receive,send):\n if scope['type']=='lifespan':\n  while True:\n   event=await receive()\n   if event['type']=='lifespan.startup':await send({'type':'lifespan.startup.complete'})\n   elif event['type']=='lifespan.shutdown':await send({'type':'lifespan.shutdown.complete'});return\n else:\n  await send({'type':'http.response.start','status':200,'headers':[]});await send({'type':'http.response.body','body':b'CPU-control'})\nuvicorn.run(app,host='127.0.0.1',port=18443)\n\"\"\"\n driver=driver.replace('RAY_ADDRESS',repr(ip+':26532')).replace('RAY_IP',repr(ip))\n launch('sllm',[PYTHON,'-u','-c',driver])\n limit=time.monotonic()+30\n while True:\n  if processes['sllm'].poll() is not None or time.monotonic()>limit:raise RuntimeError('bounded CPU ASGI readiness failed')\n  try:\n   with urllib.request.urlopen('http://127.0.0.1:18443/health',timeout=.5) as response:\n    assert response.read()==b'CPU-control';break\n  except OSError:time.sleep(.1)\nexcept BaseException as error:component_error=repr(error)\nfinally:\n record['pre_shutdown_cgroup']={n:(pathlib.Path('/sys/fs/cgroup')/n).read_text() for n in ('pids.current','pids.events','memory.current','memory.events')}\n stop_processes(processes,os.environ,logs,record,strict=True)\n record['ray_internal_logs']={p.name:p.read_text(errors='replace')[-6000:] for p in pathlib.Path('/tmp/ray/session_latest/logs').glob('*') if p.name in ('raylet.err','raylet.out','gcs_server.err')}\nrecord.update(scope='actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof',component_error=component_error,model_started=False,store_pool_started=False)\nrecord['component_pass']=(component_error is None and record['returncodes']=={'ray-worker':1,'sllm':0} and record['http_graceful_shutdown_evidence'] and record['ray_cli_controlled_hook_evidence'] and not record['shutdown_errors'] and not record['forced_kill'] and not record['unexpected_pre_cleanup_exits'])\nrecord['log_text']={name:(OUT/(name+'.log')).read_text()[-10000:] for name in processes}\nprint(json.dumps(record))\nsys.exit(0 if record['component_pass'] else 1)\n",
+      "before": {
+        "Binds": null,
+        "ContainerIDFile": "",
+        "LogConfig": {
+          "Type": "json-file",
+          "Config": {}
+        },
+        "NetworkMode": "bridge",
+        "PortBindings": {},
+        "RestartPolicy": {
+          "Name": "no",
+          "MaximumRetryCount": 0
+        },
+        "AutoRemove": false,
+        "VolumeDriver": "",
+        "VolumesFrom": null,
+        "ConsoleSize": [
+          0,
+          0
+        ],
+        "CapAdd": null,
+        "CapDrop": [
+          "ALL"
+        ],
+        "CgroupnsMode": "private",
+        "Dns": [],
+        "DnsOptions": [],
+        "DnsSearch": [],
+        "ExtraHosts": null,
+        "GroupAdd": null,
+        "IpcMode": "private",
+        "Cgroup": "",
+        "Links": null,
+        "OomScoreAdj": 0,
+        "PidMode": "",
+        "Privileged": false,
+        "PublishAllPorts": false,
+        "ReadonlyRootfs": true,
+        "SecurityOpt": [
+          "no-new-privileges"
+        ],
+        "Tmpfs": {
+          "/tmp": "rw,size=512m,uid=2147,gid=2147"
+        },
+        "UTSMode": "",
+        "UsernsMode": "",
+        "ShmSize": 536870912,
+        "Runtime": "runc",
+        "Isolation": "",
+        "CpuShares": 0,
+        "Memory": 8589934592,
+        "NanoCpus": 4000000000,
+        "CgroupParent": "",
+        "BlkioWeight": 0,
+        "BlkioWeightDevice": [],
+        "BlkioDeviceReadBps": [],
+        "BlkioDeviceWriteBps": [],
+        "BlkioDeviceReadIOps": [],
+        "BlkioDeviceWriteIOps": [],
+        "CpuPeriod": 0,
+        "CpuQuota": 0,
+        "CpuRealtimePeriod": 0,
+        "CpuRealtimeRuntime": 0,
+        "CpusetCpus": "",
+        "CpusetMems": "",
+        "Devices": [],
+        "DeviceCgroupRules": null,
+        "DeviceRequests": null,
+        "MemoryReservation": 0,
+        "MemorySwap": 17179869184,
+        "MemorySwappiness": null,
+        "OomKillDisable": false,
+        "PidsLimit": 8192,
+        "Ulimits": [],
+        "CpuCount": 0,
+        "CpuPercent": 0,
+        "IOMaximumIOps": 0,
+        "IOMaximumBandwidth": 0,
+        "Mounts": [
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/.venv",
+            "Target": "/experiment/.venv",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/serving-deps",
+            "Target": "/experiment/serving-deps",
+            "ReadOnly": true
+          },
+          {
+            "Type": "bind",
+            "Source": "/data/brick1/boyjiang/glm5.1-fp8/archive/original-run/runtime-metadata",
+            "Target": "/experiment/runtime-metadata",
+            "ReadOnly": true
+          }
+        ],
+        "MaskedPaths": [
+          "/proc/asound",
+          "/proc/acpi",
+          "/proc/kcore",
+          "/proc/keys",
+          "/proc/latency_stats",
+          "/proc/timer_list",
+          "/proc/timer_stats",
+          "/proc/sched_debug",
+          "/proc/scsi",
+          "/sys/firmware",
+          "/sys/devices/virtual/powercap"
+        ],
+        "ReadonlyPaths": [
+          "/proc/bus",
+          "/proc/fs",
+          "/proc/irq",
+          "/proc/sys",
+          "/proc/sysrq-trigger"
+        ]
+      },
+      "after": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-09T12:17:34.779566632Z",
+        "FinishedAt": "2026-11-09T12:17:44.658084978Z"
+      },
+      "stdout": "{\"status\": \"CPU signal component only; no model/business proof\", \"child_births\": {\"ray-worker\": {\"pid\": 8, \"startticks\": 135097299}, \"sllm\": {\"pid\": 526, \"startticks\": 135097690}}, \"pre_shutdown_cgroup\": {\"pids.current\": \"661\\n\", \"pids.events\": \"max 0\\n\", \"memory.current\": \"3405623296\\n\", \"memory.events\": \"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\n\"}, \"signal_requests\": {\"sllm\": {\"pid\": 526, \"startticks\": 135097690, \"signal\": 2, \"requested_ns\": 1350977804558376, \"alive_before\": true, \"delivery_returned_ns\": 1350977804569069, \"exit_observed_ns\": 1350978618838004}, \"ray-worker\": {\"pid\": 8, \"startticks\": 135097299, \"signal\": 15, \"requested_ns\": 1350978618948128, \"alive_before\": true, \"delivery_returned_ns\": 1350978618955806, \"exit_observed_ns\": 1350980952359696}}, \"shutdown_work_deadline_monotonic_s\": 1351267.804495323, \"ray_stop_returncode\": 0, \"ray_stop_stdout\": \"2026-11-09 12:17:44,479\\tINFO scripts.py:1334 -- Did not find any active Ray processes.\\n\", \"ray_stop_stderr\": \"\", \"end_ns\": 1350982493229444, \"forced_kill\": [], \"shutdown_errors\": [], \"unexpected_pre_cleanup_exits\": {}, \"returncodes\": {\"ray-worker\": 1, \"sllm\": 0}, \"shutdown_log_sha256\": {\"ray-worker\": \"d79fd54d70e462564ba97ada85e500128635a6b615dce9fbac588501c641ba69\", \"sllm\": \"9154878a4105755a73a89edd933dd1f45a4f55128c11484b1e1541677cbf2f84\"}, \"controlled_exit_rules\": {\"store\": [0], \"sllm\": [0], \"ray-worker\": [0, -15, 1]}, \"ray_cli_controlled_hook_evidence\": true, \"http_graceful_shutdown_evidence\": true, \"controller_shutdown_method_called\": \"not asserted\", \"success\": false, \"ray_internal_logs\": {\"raylet.err\": \"\", \"raylet.out\": \"cution time: mean = 5.074 us, total = 5.074 us, Queueing time: mean = 7.487 us, max = 7.487 us, min = 7.487 us, total = 7.487 us\\n[state-dump] \\tNodeManager.deadline_timer.spill_objects_when_over_threshold - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tMemoryMonitor.CheckIsMemoryUsageAboveThreshold - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.deadline_timer.flush_free_objects - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalKVGcsService.grpc_client.GetInternalConfig - 1 total (0 active), Execution time: mean = 1.134 ms, total = 1.134 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch - 1 total (0 active), Execution time: mean = 1.144 ms, total = 1.144 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.ScheduleAndDispatchTasks - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tClusterResourceManager.ResetRemoteNodeView - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::NodeInfoGcsService.grpc_client.RegisterNode.OnReplyReceived - 1 total (0 active), Execution time: mean = 225.783 us, total = 225.783 us, Queueing time: mean = 7.842 us, max = 7.842 us, min = 7.842 us, total = 7.842 us\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberPoll - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::InternalPubSubGcsService.grpc_client.GcsSubscriberCommandBatch.OnReplyReceived - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.deadline_timer.debug_state_dump - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tNodeManager.CheckForUnexpectedWorkerDisconnects - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tRayletWorkerPool.deadline_timer.kill_idle_workers - 1 total (1 active), Execution time: mean = 0.000 s, total = 0.000 s, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] \\tray::rpc::NodeInfoGcsService.grpc_client.RegisterNode - 1 total (0 active), Execution time: mean = 1.682 ms, total = 1.682 ms, Queueing time: mean = 0.000 s, max = -0.000 s, min = 9223372036.855 s, total = 0.000 s\\n[state-dump] DebugString() time ms: 0\\n[state-dump] \\n[state-dump] \\n[2026-11-09 12:17:38,916 I 373 373] (raylet) accessor.cc:784: Received notification for node, IsAlive = 1 node_id=2310d33cce17b95f55cd2f50a35cc3c1c51b4198a96af3806a768083\\n[2026-11-09 12:17:39,488 I 373 373] (raylet) worker_pool.cc:527: Started worker process with pid 625, the token is 0\\n[2026-11-09 12:17:39,850 I 373 404] (raylet) object_store.cc:38: Object store current usage 8e-09 / 0.268435 GB.\\n[2026-11-09 12:17:39,854 I 373 373] (raylet) worker_pool.cc:724: Job 01000000 already started in worker pool.\\n[2026-11-09 12:17:40,611 I 373 373] (raylet) node_manager.cc:1391: Disconnecting client, graceful=true, disconnect_type=3, has_creation_task_exception=false worker_id=01000000ffffffffffffffffffffffffffffffffffffffffffffffff\\n[2026-11-09 12:17:40,611 I 373 373] (raylet) node_manager.cc:1483: Driver (pid=526) is disconnected. worker_id=01000000ffffffffffffffffffffffffffffffffffffffffffffffff job_id=01000000\\n[2026-11-09 12:17:40,613 W 373 404] (raylet) store.cc:368: Disconnecting client due to connection error with code 2: End of file\\n[2026-11-09 12:17:40,613 I 373 373] (raylet) worker_pool.cc:724: Job 01000000 already started in worker pool.\\n[2026-11-09 12:17:40,771 I 373 373] (raylet) main.cc:847: received SIGTERM. Existing local drain request = None\\n[2026-11-09 12:17:40,771 I 373 373] (raylet) main.cc:338: Raylet graceful shutdown triggered, reason = EXPECTED_TERMINATION, reason message = received SIGTERM\\n[2026-11-09 12:17:40,771 I 373 373] (raylet) main.cc:341: Shutting down...\\n[2026-11-09 12:17:40,771 I 373 373] (raylet) accessor.cc:534: Unregistering node node_id=2310d33cce17b95f55cd2f50a35cc3c1c51b4198a96af3806a768083\\n[2026-11-09 12:17:40,771 I 373 373] (raylet) accessor.cc:547: Finished unregistering node info, status = OK node_id=2310d33cce17b95f55cd2f50a35cc3c1c51b4198a96af3806a768083\\n[2026-11-09 12:17:40,771 W 373 404] (raylet) store.cc:368: Disconnecting client due to connection error with code 2: End of file\\n[2026-11-09 12:17:40,772 I 373 373] (raylet) agent_manager.cc:115: Killing agent dashboard_agent, pid 460.\\n[2026-11-09 12:17:40,781 I 373 461] (raylet) agent_manager.cc:82: Agent process with name dashboard_agent exited, exit code 0.\\n[2026-11-09 12:17:40,781 I 373 373] (raylet) agent_manager.cc:115: Killing agent runtime_env_agent, pid 462.\\n[2026-11-09 12:17:40,786 I 373 463] (raylet) agent_manager.cc:82: Agent process with name runtime_env_agent exited, exit code 0.\\n[2026-11-09 12:17:40,786 I 373 373] (raylet) io_service_pool.cc:49: IOServicePool is stopped.\\n[2026-11-09 12:17:40,798 I 373 373] (raylet) stats.h:136: Stats module has shutdown.\\n\", \"gcs_server.err\": \"\"}, \"scope\": \"actual Ray plus minimal ASGI/Uvicorn CPU signal control; not ServerlessLLM model/service proof\", \"component_error\": null, \"model_started\": false, \"store_pool_started\": false, \"component_pass\": true, \"log_text\": {\"ray-worker\": \"2026-11-09 12:17:36,522\\tINFO usage_lib.py:441 -- Usage stats collection is disabled.\\n2026-11-09 12:17:36,522\\tINFO scripts.py:913 -- Local node IP: 172.17.0.2\\n2026-11-09 12:17:39,006\\tSUCC scripts.py:949 -- --------------------\\n2026-11-09 12:17:39,006\\tSUCC scripts.py:950 -- Ray runtime started.\\n2026-11-09 12:17:39,006\\tSUCC scripts.py:951 -- --------------------\\n2026-11-09 12:17:39,006\\tINFO scripts.py:953 -- Next steps\\n2026-11-09 12:17:39,006\\tINFO scripts.py:956 -- To add another node to this Ray cluster, run\\n2026-11-09 12:17:39,006\\tINFO scripts.py:959 --   ray start --address='172.17.0.2:26532'\\n2026-11-09 12:17:39,006\\tINFO scripts.py:968 -- To connect to this Ray cluster:\\n2026-11-09 12:17:39,006\\tINFO scripts.py:970 -- import ray\\n2026-11-09 12:17:39,006\\tINFO scripts.py:971 -- ray.init(_node_ip_address='172.17.0.2')\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1002 -- To terminate the Ray runtime, run\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1003 --   ray stop\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1006 -- To view the status of the cluster, use\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1007 --   ray status\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1123 -- --block\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1124 -- This command will now block forever until terminated by a signal.\\n2026-11-09 12:17:39,006\\tINFO scripts.py:1127 -- Running subprocesses are monitored and a message will be printed if any of them terminate unexpectedly. Subprocesses exit with SIGTERM will be treated as graceful, thus NOT reported.\\n\", \"sllm\": \"2026-11-09 12:17:39,468\\tINFO worker.py:1747 -- Connecting to existing Ray cluster at address: 172.17.0.2:26532...\\n2026-11-09 12:17:39,478\\tINFO worker.py:1927 -- Connected to Ray cluster.\\nINFO:     Started server process [526]\\nINFO:     Waiting for application startup.\\nINFO:     Application startup complete.\\nINFO:     Uvicorn running on http://127.0.0.1:18443 (Press CTRL+C to quit)\\nINFO:     127.0.0.1:35826 - \\\"GET /health HTTP/1.1\\\" 200 OK\\nINFO:     Shutting down\\nINFO:     Waiting for application shutdown.\\nINFO:     Application shutdown complete.\\nINFO:     Finished server process [526]\\n\"}}\n",
+      "stderr": "",
+      "start_ns": 1350972520965509,
+      "end_ns": 1350982710635321,
+      "scope": "bounded CPU-only signal component, not model/runtime approval",
+      "container_removed": true
+    }
+  ],
+  "summary": [
+    {
+      "name": "sllm-glm-cpu-exit-6adde2065528",
+      "elapsed_s": 42.259496886,
+      "exitcode": 1,
+      "OOMKilled": true,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 2.0,
+        "memory_max_bytes": 2147483648,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-0a7ec3acd108",
+      "elapsed_s": 38.682831725,
+      "exitcode": 1,
+      "OOMKilled": false,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-bed5a8c0e179",
+      "elapsed_s": 38.132944841,
+      "exitcode": 1,
+      "OOMKilled": false,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-8297345cc3ee",
+      "elapsed_s": 10.189669812,
+      "exitcode": 0,
+      "OOMKilled": false,
+      "component_pass": true,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 8192,
+        "network": "bridge"
+      }
+    }
+  ],
+  "causality_limits": [
+    "The2GiB probe reported container OOM; no GPU/model/Store pool was started.",
+    "Two loopback/512-task configurations failed driver admission; exact unique cause is not established.",
+    "The matching bridge/observed-IP/8192-task control succeeded; its pre-shutdown snapshot had661tasks and3405623296B memory.current. Multiple configuration changes are not an isolated network causal experiment.",
+    "CPU signal component PASS is not complete GLM/Store/service PASS; previous failures remain in controls cost ledger."
+  ]
+}

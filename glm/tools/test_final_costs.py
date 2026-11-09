@@ -42,6 +42,8 @@ class CostsTests(unittest.TestCase):
             write('debug-service/phases.json', dict(phases=dict(weights_pipeline_including_allocation=dict(
                   ranks={str(i):{} for i in range(8)}))))
             write('debug-service/measurement-progress.json', dict(requests=[1,2,0]))
+            for name,first in [('release60.jsonl',120),('debug-service/idle60.jsonl',50)]:
+                (root/name).write_text(''.join(json.dumps(dict(monotonic_ns=(first+i)*10**9))+'\n' for i in range(61)))
             def remote(argv, **kwargs):
                 script = kwargs['input'].decode().replace(
                     "pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run", 'pathlib.Path('+repr(str(root))+')')
@@ -65,6 +67,14 @@ class CostsTests(unittest.TestCase):
                 failed = json.loads((root/'controller-final.json').read_text())
                 self.assertFalse(failed['success'])
                 self.assertIsNone(failed['metrics'])
+                (root/'controller-final.json').unlink()
+                unit['ExecMainStatus'] = '0'
+                (root/'release60.jsonl').write_text(''.join(json.dumps(dict(monotonic_ns=120*10**9+i*999000000))+'\n'
+                                                           for i in range(61)))
+                finalize_controller(run)
+                short = json.loads((root/'controller-final.json').read_text())
+                self.assertFalse(short['success'])
+                self.assertIsNone(short['metrics'])
 
     def test_real_archive_cannot_split_shared_controller_into_conditions(self):
         result = c23_controller_audit()

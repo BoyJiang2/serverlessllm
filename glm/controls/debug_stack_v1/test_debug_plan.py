@@ -72,6 +72,18 @@ class FrozenDerivation(unittest.TestCase):
         loops.sort(key=lambda n: n.lineno)
         self.assertEqual(tuple(e.value for e in loops[0].iter.elts), p.FORMAL_DROPPED_ENV)
 
+    def test_supplement_shares_actual_formal_head_event_environment(self):
+        config = dict(self.g1, execution_purpose='formal-continuation')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root/'run-manifest.json').write_text(json.dumps(config))
+            with patch.object(self.materialize, 'validate_scope', return_value=False):
+                formal = self.materialize.expected_spec(root, 'headservice13a')
+        plan = p.plan(RUN, HOLDER, 1800, IP, deadline_unix=DEADLINE,
+                      supplement_condition='safetensors_disk_cold', supplement_start_sha='a'*64)
+        for role in ('head', 'worker'):
+            self.assertEqual(plan[role]['spec']['env']['SLLM_EVENT_DIR'], formal['env']['SLLM_EVENT_DIR'])
+
 
 class DebugOverlay(unittest.TestCase):
     def setUp(self):

@@ -228,6 +228,9 @@ def create_and_start(argv, role, state, receipt):
     if info is None or not owned(info, state, role) or not info['State']['Running']:
         raise RuntimeError(role+' container not running under this holder')
     if state.get('condition'):
+        env = dict(value.split('=', 1) for value in info['Config']['Env'])
+        if env.get('SLLM_EVENT_DIR') != plan.worker_spec('x')['env']['SLLM_EVENT_DIR']:
+            raise RuntimeError('supplement head/worker event directory differs from the shared C23 boundary')
         cg, = [line[3:] for line in (pathlib.Path('/proc')/str(info['State']['Pid'])/'cgroup').read_text().splitlines()
                 if line.startswith('0::')]
         if not cg.startswith(state['verified_slice_cgroup']+'/'):
@@ -485,9 +488,12 @@ def supplement_sample(state):
                         row['processes'].append(dict(container_id=cid, pid=int(member), stat=(member_proc/'stat').read_text(),
                             status=(member_proc/'status').read_text(), cgroup=(member_proc/'cgroup').read_text(),
                             pid_namespace=(member_proc/'ns/pid').readlink().as_posix()))
-                    except FileNotFoundError:
+                    except OSError as error:
+                        if error.errno not in (errno.ENOENT, errno.ESRCH):
+                            raise
                         # Birth/disappearance is explicit; it is never a zero-memory sample.
-                        row.setdefault('processes_disappeared_during_sample', []).append(int(member))
+                        row.setdefault('processes_disappeared_during_sample', []).append(
+                            dict(pid=int(member), container_id=cid, errno=error.errno, filename=error.filename))
                 item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
                 if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
                     raise RuntimeError('monitor PID reused')
@@ -495,11 +501,35 @@ def supplement_sample(state):
             if error.errno not in (errno.ENOENT, errno.ESRCH):
                 raise
             final = inspect(cid)
+            deadline = min(time.monotonic()+2, row['sample_begin_ns']/1e9+4)
+            rechecks = []
+            while final is not None and final['State']['Running'] and time.monotonic() < deadline:
+                if not owned(final, state, role) or final['State']['Pid'] != pid:
+                    raise RuntimeError('container birth identity changed during exit verification') from error
+                if item.get('cgroup_path'):
+                    group = pathlib.Path(item['cgroup_path'])
+                    if group.exists() and group.stat().st_ino != state['bound_cgroups'][role]['inode']:
+                        raise RuntimeError('cgroup inode reused during exit verification') from error
+                try:
+                    stat = (pathlib.Path('/proc')/str(pid)/'stat').read_text()
+                except OSError as missing:
+                    if missing.errno not in (errno.ENOENT, errno.ESRCH):
+                        raise
+                else:
+                    if item.get('startticks') is None or int(stat.rsplit(')', 1)[1].split()[19]) != item['startticks']:
+                        raise RuntimeError('monitor PID reused or birth proof unavailable') from error
+                rechecks.append(dict(monotonic_ns=time.monotonic_ns(), state=final['State']))
+                time.sleep(.05)
+                final = inspect(cid)
             if final is not None and (not owned(final, state, role) or final['State']['Running']):
-                raise RuntimeError('missing live container process/cgroup remains unverified') from error
+                details = dict(role=role, container_id=cid, pid=pid, startticks=item.get('startticks'),
+                               cgroup_path=item.get('cgroup_path'), errno=error.errno, filename=error.filename,
+                               stage='container init or cgroup read', rechecks=rechecks)
+                raise RuntimeError('missing live container process/cgroup remains unverified: '+json.dumps(details)) from error
             item = dict(container_id=cid, absent=final is None, pid=0,
                         docker_state=final['State'] if final else None,
-                        disappeared_during_sample=True, memory_observation='missing; not zero', error=repr(error))
+                        disappeared_during_sample=True, memory_observation='missing; not zero', error=repr(error),
+                        errno=error.errno, filename=error.filename, rechecks=rechecks)
             row['processes'] = [p for p in row['processes'] if p.get('container_id') != cid]
         row['containers'][role] = item
     row['gpu'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
@@ -886,11 +916,13 @@ def measure(args):
         except BaseException as error:
             result.update(success=False, cleanup_error=repr(error))
         try:
-            release_begin = time.monotonic_ns()
+            release_begin = None
             previous_io = None
             with (root/'release60.jsonl').open('x') as stream:
                 while True:
                     row = supplement_sample(state)
+                    if release_begin is None:
+                        release_begin = row['monotonic_ns']
                     stream.write(json.dumps(row)+'\n'); stream.flush()
                     require_supplement_release(row, baseline)
                     current_io = {role:entry['values']['io.stat'] for role, entry in row['retained_cgroups'].items()

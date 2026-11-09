@@ -326,36 +326,88 @@ def require_resident_pool(client, process, pool_bytes, chunk_bytes, cpus):
 
 
 def stop_processes(processes, env, logs, record, strict=False):
-    """Preserve all cleanup outcomes even if one shutdown operation fails."""
-    errors, forced = [], []
+    """Preserve shutdown evidence; keep Ray available while the HTTP server exits."""
+    errors, forced, waited = [], [], set()
     unexpected = {name:p.poll() for name, p in processes.items() if p.poll() is not None}
-    try:
-        for name in ('sllm', 'store', 'ray-worker'):
-            process = processes.get(name)
-            try:
-                if process is not None and process.poll() is None:
-                    process.send_signal(signal.SIGINT) if name == 'store' else process.terminate()
-            except BaseException as error:
-                errors.append(dict(stage='signal', process=name, error=repr(error)))
+    signals = record.setdefault('signal_requests', {})
+    store_deadline = None
+    shutdown_begin = time.monotonic()
+    shutdown_deadline = shutdown_begin+290  # reserve10s for evidence before the300s hard worker alarm
+    if strict:
+        record['shutdown_work_deadline_monotonic_s'] = shutdown_deadline
+
+    def request_stop(name, signum):
+        process = processes.get(name)
+        if process is None or process.poll() is not None:
+            return
         try:
-            record['ray_stop_returncode'] = subprocess.run(
-                [PYTHON, '-m', 'ray.scripts.scripts', 'stop', '--force'], env=env, timeout=30).returncode
-            if record['ray_stop_returncode'] != 0:
-                errors.append(dict(stage='ray stop', returncode=record['ray_stop_returncode']))
+            if strict:
+                expected = record['child_births'][name]
+                raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()
+                if expected != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):
+                    raise RuntimeError('child birth differs before shutdown signal')
+                signals[name] = dict(expected, signal=signum, requested_ns=time.monotonic_ns(), alive_before=True)
+            process.send_signal(signum)
+            if strict:
+                signals[name]['delivery_returned_ns'] = time.monotonic_ns()
+        except BaseException as error:
+            errors.append(dict(stage='signal', process=name, error=repr(error)))
+
+    def wait(name, seconds):
+        process = processes.get(name)
+        if process is None or name in waited:
+            return
+        waited.add(name)
+        try:
+            remaining = min(seconds, shutdown_deadline-time.monotonic()) if strict else seconds
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired(name, 0)
+            process.wait(timeout=max(.001, remaining))
+            if strict and name in signals:
+                signals[name]['exit_observed_ns'] = time.monotonic_ns()
+        except subprocess.TimeoutExpired:
+            forced.append(name)
+            try:
+                if strict:
+                    raw = (pathlib.Path('/proc')/str(process.pid)/'stat').read_text()
+                    if record['child_births'].get(name) != dict(pid=process.pid, startticks=int(raw.rsplit(')', 1)[1].split()[19])):
+                        raise RuntimeError('child birth unknown before forced failure cleanup')
+                process.kill()
+                process.wait(timeout=5)
+            except BaseException as error:
+                errors.append(dict(stage='forced wait', process=name, error=repr(error)))
+        except BaseException as error:
+            errors.append(dict(stage='wait', process=name, error=repr(error)))
+
+    try:
+        request_stop('sllm', signal.SIGINT if strict else signal.SIGTERM)
+        if strict:
+            wait('sllm', 10)
+        request_stop('store', signal.SIGINT)
+        if strict:
+            store_deadline = signals.get('store', {}).get('requested_ns', time.monotonic_ns())/1e9+STORE_GRACE_SECONDS
+        request_stop('ray-worker', signal.SIGTERM)
+        if strict:
+            wait('ray-worker', 10)
+        try:
+            options = [] if strict else ['--force']
+            remaining = min(30, shutdown_deadline-time.monotonic()) if strict else 30
+            if remaining <= 0:
+                raise subprocess.TimeoutExpired('ray stop', 0)
+            stopped = subprocess.run([PYTHON, '-m', 'ray.scripts.scripts', 'stop', *options],
+                                     env=env, timeout=remaining, capture_output=bool(strict), text=bool(strict))
+            record['ray_stop_returncode'] = stopped.returncode
+            if strict:
+                record.update(ray_stop_stdout=stopped.stdout, ray_stop_stderr=stopped.stderr)
+                if 'Did not find any active Ray processes.' not in stopped.stdout:
+                    errors.append(dict(stage='Ray residuals after CLI shutdown', stdout=stopped.stdout, stderr=stopped.stderr))
+            if stopped.returncode != 0:
+                errors.append(dict(stage='ray stop', returncode=stopped.returncode))
         except BaseException as error:
             errors.append(dict(stage='ray stop', error=repr(error)))
-        for name, process in processes.items():
-            try:
-                process.wait(timeout=STORE_GRACE_SECONDS if name == 'store' else 10)
-            except subprocess.TimeoutExpired:
-                forced.append(name)
-                try:
-                    process.kill()
-                    process.wait(timeout=5)
-                except BaseException as error:
-                    errors.append(dict(stage='forced wait', process=name, error=repr(error)))
-            except BaseException as error:
-                errors.append(dict(stage='wait', process=name, error=repr(error)))
+        for name in processes:
+            seconds = max(.001, store_deadline-time.monotonic()) if strict and name == 'store' else STORE_GRACE_SECONDS if name == 'store' else 10
+            wait(name, seconds)
     finally:
         for log in logs:
             try:
@@ -366,10 +418,37 @@ def stop_processes(processes, env, logs, record, strict=False):
                       unexpected_pre_cleanup_exits=unexpected,
                       returncodes={name:p.returncode for name, p in processes.items()})
         if strict:
-            allowed = {'store':(0,), 'sllm':(0, -signal.SIGTERM), 'ray-worker':(0, -signal.SIGTERM)}
-            record['controlled_exit_rules'] = allowed
+            def tail(name):
+                path = OUT/(name+'.log')
+                if path.stat().st_size > 256*1024 and name == 'ray-worker':
+                    raise RuntimeError('Ray CLI log too large for complete unexpected-exit check')
+                with path.open('rb') as stream:
+                    stream.seek(max(0, path.stat().st_size-256*1024))
+                    raw = stream.read()
+                record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()
+                return raw.decode(errors='replace')
+            try:
+                ray_log, sllm_log = tail('ray-worker'), tail('sllm')
+                ray_signal = signals.get('ray-worker', {})
+                ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True
+                    and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)
+                    and 'Some Ray subprocesses exited unexpectedly:' not in ray_log
+                    and 'Remaining processes will be killed.' not in ray_log)
+                sllm_signal = signals.get('sllm', {})
+                http_shutdown = (sllm_signal.get('signal') == signal.SIGINT and sllm_signal.get('alive_before') is True
+                    and sllm_signal.get('requested_ns', 0) < sllm_signal.get('delivery_returned_ns', 0) <= sllm_signal.get('exit_observed_ns', 0)
+                    and 'Application shutdown complete.' in sllm_log
+                    and 'Finished server process [%s]' % sllm_signal.get('pid') in sllm_log)
+            except BaseException as error:
+                ray_hook = http_shutdown = False
+                errors.append(dict(stage='shutdown log evidence', error=repr(error)))
+            allowed = {'store':(0,), 'sllm':(0,), 'ray-worker':(0, -signal.SIGTERM, 1) if ray_hook else (0, -signal.SIGTERM)}
+            record.update(controlled_exit_rules=allowed, ray_cli_controlled_hook_evidence=ray_hook,
+                          http_graceful_shutdown_evidence=http_shutdown, controller_shutdown_method_called='not asserted')
             record['success'] = (record['status'] == 'supplement business and instance deletion completed'
-                and not forced and not errors and not unexpected and set(record['returncodes']) == set(allowed)
+                and not forced and not errors and not unexpected and http_shutdown
+                and time.monotonic() <= shutdown_deadline
+                and set(record['returncodes']) == set(allowed)
                 and all(code in allowed[name] for name, code in record['returncodes'].items()))
         write(OUT/'result.json', record)
     return forced
@@ -430,6 +509,10 @@ def main():
         log = (OUT/(name+'.log')).open('x')
         logs.append(log)
         processes[name] = subprocess.Popen(args, stdout=log, stderr=subprocess.STDOUT, env=env, **options)
+        if condition:
+            raw = (pathlib.Path('/proc')/str(processes[name].pid)/'stat').read_text()
+            record.setdefault('child_births', {})[name] = dict(pid=processes[name].pid,
+                startticks=int(raw.rsplit(')', 1)[1].split()[19]))
 
     def wait_ready(check, seconds, name):
         stop = time.monotonic()+seconds
@@ -528,7 +611,13 @@ def main():
         record['status'] = 'stopped after serving' if ready and isinstance(error, SystemExit) else 'failed'
     finally:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        if condition:
+            record['shutdown_begin_ns'] = time.monotonic_ns()
+            signal.signal(signal.SIGALRM, signal.SIG_DFL)
+            signal.setitimer(signal.ITIMER_REAL, 300)
         forced = stop_processes(processes, env, logs, record, strict=bool(condition))
+        if condition:
+            signal.setitimer(signal.ITIMER_REAL, 0)
     # Like bootstrap_control13, only a Store that misses its grace is a failure; other helpers may need a kill.
     if condition:
         return 0 if record['success'] else 1

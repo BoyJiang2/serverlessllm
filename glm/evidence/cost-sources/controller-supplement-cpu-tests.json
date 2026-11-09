@@ -3,7 +3,7 @@
   "checks": [
     {
       "suite": "debug_stack_v1/test_debug_*.py",
-      "passed": 64
+      "passed": 68
     },
     {
       "suite": "glm/tools/test_final_costs.py",
@@ -18,10 +18,10 @@
       "passed": 10
     }
   ],
-  "tests_passed": 86,
+  "tests_passed": 90,
   "gpu_execution": false,
   "native_pool_created": false,
-  "full_r1_status": "4f26 BLOCKED first-monitor ordering; double gate corrected, awaiting new full R1",
+  "full_r1_status": "post-runtime source and budget correction pending full independent R1",
   "retained_prior_failures": [
     "Git-less source snapshot refused Git HEAD verification",
     "remote metadata source escaping SyntaxError fixed with bytes([0])",
@@ -30,7 +30,10 @@
     "root-probe fixture FileNotFoundError lacked errno; corrected fixture to errno2",
     "Windows temporary path escaping in finalizer CPU fixture; changed fixture paths to POSIX",
     "new monitoring fixture initially intercepted plan JSON reads; delegated real JSON file reads without changing production behavior",
-    "cgroup/PID-reuse CPU fixture initially used Windows drive resolution for Linux paths; mocked Linux path resolution only in fixture, production containment check unchanged"
+    "cgroup/PID-reuse CPU fixture initially used Windows drive resolution for Linux paths; mocked Linux path resolution only in fixture, production containment check unchanged",
+    "post-runtime stop function initially lacked one closing dict parenthesis; CPU import refused, syntax corrected before any runtime probe",
+    "CPU signal2GiB container OOM (no model/GPU/Store)",
+    "Two loopback/512-task CPU configurations failed driver admission; exact cause not established, all removed"
   ],
   "extra_syntax_checks": [
     "installer embedded Python AST",
@@ -64,5 +67,80 @@
     "worker pre-pool receipt: healthy exact CID passes, wrong CID/health fails",
     "execute actual pre-pool fragment: rejected handshake never calls Store launch"
   ],
-  "boundary": "CPU fault-injection/control fragments only; no real monitor/Store/model runtime PASS"
+  "boundary": "CPU fault-injection/control fragments only; no real monitor/Store/model runtime PASS",
+  "actual_cpu_signal_controls": [
+    {
+      "name": "sllm-glm-cpu-exit-6adde2065528",
+      "elapsed_s": 42.259496886,
+      "exitcode": 1,
+      "OOMKilled": true,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 2.0,
+        "memory_max_bytes": 2147483648,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-0a7ec3acd108",
+      "elapsed_s": 38.682831725,
+      "exitcode": 1,
+      "OOMKilled": false,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-bed5a8c0e179",
+      "elapsed_s": 38.132944841,
+      "exitcode": 1,
+      "OOMKilled": false,
+      "component_pass": false,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 512,
+        "network": "none"
+      }
+    },
+    {
+      "name": "sllm-glm-cpu-exit-8297345cc3ee",
+      "elapsed_s": 10.189669812,
+      "exitcode": 0,
+      "OOMKilled": false,
+      "component_pass": true,
+      "model_started": false,
+      "store_pool_started": false,
+      "container_removed": true,
+      "limits": {
+        "cpus": 4.0,
+        "memory_max_bytes": 8589934592,
+        "pids": 8192,
+        "network": "bridge"
+      }
+    }
+  ],
+  "new_regressions": [
+    "supplement head event environment equals formal-continuation derivation",
+    "actual Docker event env missing rejected",
+    "memberESRCH distinct from init exit; delayed Docker status bounded",
+    "actual release loop does not count pre-first-sample delay",
+    "finalizer rejects original JSONL span below60 even if self-report claims60",
+    "SLLM SIGINT exit0 before Ray SIGTERM; Ray exit1 rejected with unexpected-deceased log"
+  ],
+  "cpu_signal_control_pass": "Matching head4CPU/8GiB/bridge/observed-IP/8192-task control passed; actual exit0/1 and no residual/force/OOM. Not model proof."
 }

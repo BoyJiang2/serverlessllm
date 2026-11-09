@@ -81,3 +81,22 @@ CPU故障回归在785a冻结源码上重现失败、在修订上通过；仅证�
 4f26完整复审关闭上述两项，但新增确认R1-4f26-01：首个监控样本失败仍可能先进入up，且worker在大池建立后才等host snapshot。独立完整审阅转录保留在controller-supplement-r1-4f26-review.json，仍为BLOCKED，原候选不改。
 
 后续必要修订只加两个既有路径的握手：Main在up之前有界等待本run/boot首个真实健康host收据，错误/超时/失配不调用up；worker在launch Store之前复用fresh_host_snapshot的建池前分支，要求本run/boot/holder、stack精确workerCID及自身Docker hostname、新鲜健康host收据，不要求尚未存在的Store helper；建池后原helper绑定不变。等待计入原1800秒绝对工作截止，不增加或重置预算。CPU故障测试执行实际Main工作片段和实际建池片段，确认拒绝时up/Store launch未调用；另覆盖健康、错误CID及不健康收据，仍不当作真实监控或模型通过。当前86项相关CPU检查通过，待新commit/manifest完整R1及现场probe。
+
+
+## 首次实际补测失败与当前必要修订（不追认旧数据）
+
+3f2e5697源码R1及实际root CPU guard probe通过后，独立SF冷读run sllm-debug-20261109T105600Z-3d427ecc已运行。716GiB池实际RSS770023387136B，完整cold cache准入通过，官方FP8/TP8首算术gold正确；但phase汇总随后因router_instance_published=0失败，translation/fixed32未完成。首批终态0成功/1失败/3未开始，后3未启动；原40仍35/5。失败进程成本1323.152534秒单列，Controller成功值null。
+
+缺失事件的源码/配置依据已闭合：正式materialize_control13对head/worker派生共享/r/events-<label>，补充plan此前只用raw head模板（无SLLM_EVENT_DIR），而实际router/controller actor在head。新修订只在补充plan给head/worker共享worker既有目录，并核实际Docker env，保留严格router唯一事件断言；不更改原生产源码/模型，也不跳过校验。
+
+退出监控旧泛化错误未保留errno/filename，具体触发路径未知；不能直接认定Docker状态滞后已证实。修订将成员ENOENT/ESRCH显式记录为该成员消失；init/CG错误只在原5秒sample预算内最多2秒同CID复核，继续检查PID/startticks/CG inode。确认Exited/Absent才接受missing，活身份不明/权限/复用仍失败，保存原errno/filename/阶段与每次State。缺失不填零。
+
+原程序自报60.236704707秒，原release文件首末仅59.926809936秒，原失败不改。事后独立48样本61.225920305秒仅证明清理完成；GPU均0、无进程/容器，两临时deadline timer与private slice已核inactive，原全局安全guard未动。修订运行循环按首实际row.monotonic_ns起计；finalizer独立读取并SHA登记idle/release JSONL，复算首末>=60、相邻最大5秒及自报一致。不能用自报时长覆盖原始文件缺口。
+
+受控退出采用同一次Popen出生/主动信号时间线与最终日志：SLLM仅一次SIGINT，先有界等待HTTP完整shutdown+匹配PID+返回0；这不宣称调用了controller.shutdown。随后Store SIGINT，其240秒grace从实际请求时点固定；Ray CLI SIGTERM后先等自身退出，再调用非force ray stop，成功还要求“没有活跃Ray进程”原生输出，避免仅以未带--force推断没有内部强杀。Ray CLI的受控exit1仅在主动SIGTERM、信号前活、出生一致、退出在后、完整同次CLI日志无unexpected-deceased证据时成立；不普遍允许1或SLLM正15。其源码依据为实际Ray node.py/worker.py及精确原镜像Uvicorn server.py的SHA。超时/强杀/OOM/身份不明仍失败。
+
+退出工作软截止从stop入口固定290秒，各wait/subprocess取剩余预算；Store240秒不在Ray等待之后重置。worker进入finally时另装默认SIGALRM的300秒硬终止，超时不能发布正常成功；给日志/结果写入留10秒。原默认debug路径和C23生产入口不改变，严格补充路径才采用该规则。
+
+实际无GPU退出控制保留4次尝试：2GiB容器报OOM；两次loopback/512任务配置未能使驱动加入；匹配既有head4CPU/8GiB、私有bridge/实际IP、8192任务上限的控制通过，HTTP0、Ray受控1、无force/无残留/无OOM且容器已删除。成功前快照661任务、memory.current3405623296B（含文件缓存，不是RSS峰值）。多变量配置纠正不当作网络或历史exit137的根因证明。CPU控制不加载模型/Store池，record.success仍false，单列component_pass，不能算GLM服务PASS。原始控制失败和成本保留在controller-supplement-cpu-signal-probe.json。
+
+当前90项相关CPU检查通过；实际模型补测仍须新commit/清单完整R1、新身份/独立guard probe与新鲜资源准入。首批不重置/替换；如新修订继续测量，另列独立cohort及新ID、代码/协议修订，不把旧失败或C23六块合并。

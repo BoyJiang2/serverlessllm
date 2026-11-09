@@ -125,6 +125,9 @@ def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=Tr
     source = debug_run_root(run_id)/'source'
     head = overlay(head_spec(active), 'head', seconds)
     worker = overlay(worker_spec(head_ip, active), 'worker', seconds, weight_format, query, supplement_condition, supplement_start_sha)
+    if supplement_condition is not None:
+        # C23's formal derivation gives both Ray nodes the same event directory.
+        head['env']['SLLM_EVENT_DIR'] = worker['env']['SLLM_EVENT_DIR']
     if deadline_unix is None:
         deadline_unix = int(time.time())+seconds+DEADLINE_GRACE
     return dict(run_id=run_id, purpose=PURPOSE, image_id=IMAGE, lifetime_seconds=seconds, deadline_unix=deadline_unix,

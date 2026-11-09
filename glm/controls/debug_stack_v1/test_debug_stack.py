@@ -139,6 +139,14 @@ class Source(unittest.TestCase):
 
 
 class Ownership(unittest.TestCase):
+    def test_actual_supplement_head_env_must_include_shared_router_trace(self):
+        state = dict(STATE, condition='safetensors_disk_cold')
+        head = info(State=dict(Running=True, Pid=123))
+        head['Config']['Env'] = []
+        with patch.object(d, 'docker', side_effect=['c'*64, '']), patch.object(d, 'write'), \
+             patch.object(d, 'inspect', return_value=head), self.assertRaisesRegex(RuntimeError, 'event directory differs'):
+            d.create_and_start(['docker','create'], 'head', state, Path('/unused'))
+
     def test_owned_requires_every_identity_field(self):
         self.assertTrue(d.owned(info(), STATE, 'head'))
         self.assertTrue(d.owned(info('worker'), STATE, 'worker'))
@@ -232,6 +240,23 @@ class ControllerClock(unittest.TestCase):
 
 
 class SupplementAdmission(unittest.TestCase):
+    def test_actual_release_loop_counts_from_first_sample_not_pre_sample_delay(self):
+        tree = ast.parse((HERE/'debug_stack.py').read_text())
+        function = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'measure')
+        main = next(n for n in function.body if isinstance(n, ast.Try) and n.finalbody)
+        release = next(n for n in main.finalbody if isinstance(n, ast.Try) and any(
+                       isinstance(value, ast.Constant) and value.value == 'release60.jsonl' for value in ast.walk(n)))
+        rows = [dict(monotonic_ns=t, retained_cgroups={'head':dict(absent=True), 'worker':dict(absent=True)})
+                for t in (10**9, 60950000000, 61000000000)]
+        with tempfile.TemporaryDirectory() as temp, patch.object(d.time, 'sleep'), \
+             patch.object(d.time, 'monotonic_ns', return_value=0):
+            sample = Mock(side_effect=rows)
+            namespace = dict(vars(d), root=Path(temp), state={}, baseline={}, result={},
+                             supplement_sample=sample, require_supplement_release=Mock())
+            exec(compile(ast.Module(body=release.body, type_ignores=[]), '<actual-release-loop-CPU>', 'exec'), namespace)
+            self.assertEqual(sample.call_count, 3)
+            self.assertEqual(namespace['result']['release_observation_s'], 60)
+
     def test_actual_measure_work_fragment_does_not_call_up_after_monitor_failure(self):
         tree = ast.parse((HERE/'debug_stack.py').read_text())
         measure = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'measure')
@@ -266,7 +291,7 @@ class SupplementAdmission(unittest.TestCase):
         cid = 'c'*64
         base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')
         original_read, original_stat = Path.read_text, Path.stat
-        for mode in ('cgroup_exit', 'pid_reuse'):
+        for mode in ('cgroup_exit', 'pid_reuse', 'member_exit'):
             gone, stat_reads = [False], [0]
             def stat(path, **kwargs):
                 if path == base:
@@ -283,6 +308,10 @@ class SupplementAdmission(unittest.TestCase):
                     return '123 (init) '+' '.join(['0']*19+[str(tick)])
                 if path == Path('/proc/123/cgroup'):
                     return '0::'+base.as_posix().removeprefix('/sys/fs/cgroup')+'\n'
+                if path == base/'cgroup.procs' and mode == 'member_exit':
+                    return '999'
+                if path == Path('/proc/999/stat'):
+                    raise ProcessLookupError(3, 'member exited', str(path))
                 if path == base/'memory.current' and mode == 'cgroup_exit':
                     gone[0] = True
                     raise FileNotFoundError(2, 'cgroup exited between reads')
@@ -295,10 +324,15 @@ class SupplementAdmission(unittest.TestCase):
                 if mode == 'pid_reuse':
                     with self.assertRaisesRegex(RuntimeError, 'PID reused'):
                         d.supplement_sample(dict(STATE, head_container_id=cid))
-                else:
+                elif mode == 'cgroup_exit':
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertTrue(row['retained_cgroups']['head']['absent'])
                     self.assertTrue(row['containers']['head']['disappeared_during_sample'])
+                else:
+                    row = d.supplement_sample(dict(STATE, head_container_id=cid))
+                    self.assertEqual(row['processes_disappeared_during_sample'][0]['pid'], 999)
+                    self.assertEqual(row['processes_disappeared_during_sample'][0]['errno'], 3)
+                    self.assertFalse(row['containers']['head'].get('disappeared_during_sample', False))
 
     def test_monitor_requires_same_container_exit_before_accepting_missing_process(self):
         before = info(State=dict(Pid=123, Running=True))
@@ -318,8 +352,14 @@ class SupplementAdmission(unittest.TestCase):
             self.assertTrue(row['containers']['head']['disappeared_during_sample'])
             self.assertEqual(row['containers']['head']['memory_observation'], 'missing; not zero')
         with patch.object(d, 'inspect', side_effect=[before, before]), \
+             patch.object(d.time, 'monotonic', side_effect=[0, 3]), \
              patch.object(d.pathlib.Path, 'read_text', read), self.assertRaisesRegex(RuntimeError, 'remains unverified'):
             d.supplement_sample(dict(STATE, head_container_id='c'*64))
+        with patch.object(d, 'inspect', side_effect=[before, before, stopped]), \
+             patch.object(d.pathlib.Path, 'read_text', read), \
+             patch.object(d.subprocess, 'check_output', side_effect=['', '']):
+            row = d.supplement_sample(dict(STATE, head_container_id='c'*64))
+        self.assertTrue(row['containers']['head']['rechecks'])
 
     def test_idle_gpu_does_not_bypass_host_numa_or_io_admission(self):
         gib = 1024**3
