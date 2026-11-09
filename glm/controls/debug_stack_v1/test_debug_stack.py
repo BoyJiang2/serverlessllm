@@ -139,6 +139,32 @@ class Source(unittest.TestCase):
 
 
 class Ownership(unittest.TestCase):
+    def test_actual_worker_call_uses_sleep_only_for_explicit_startup_control(self):
+        tree = ast.parse((HERE/'debug_stack.py').read_text())
+        up = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'up')
+        statement = next(node for node in ast.walk(up) if isinstance(node, ast.Assign)
+                         and any(isinstance(target, ast.Name) and target.id == 'worker' for target in node.targets))
+        for startup in (False, True):
+            args = Mock(seconds=300, weight_format='safetensors', no_query=False, condition='safetensors_disk_cold')
+            namespace = dict(vars(d), args=args, state={'startup_only':startup}, condition=args.condition,
+                             run_id=STATE['run_id'], holder=STATE['holder'], active=d.plan.ACTIVE,
+                             deadline=12345, run_root=Path('/unused'), ip='172.17.0.2', sha256=lambda _: 'a'*64)
+            exec(compile(ast.Module(body=[statement], type_ignores=[]), '<actual worker call>', 'exec'), namespace)
+            argv = namespace['worker']['spec']['argv']
+            self.assertEqual(argv[-2:] == ['/bin/sleep','30'], startup)
+            self.assertEqual(any('debug_service.py' in part for part in argv), not startup)
+
+    def test_startup_control_cannot_reuse_full_model_review(self):
+        source = {'tree_sha256':'x', 'code_commit':'c'}
+        tools = {p.relative_to(d.TREE).as_posix():d.sha256(p) for p in d.TOOLS}
+        review = dict(scope='glm-startup-monitor-control-v1', verdict='PASS', tool_sha256=tools,
+                      source_tree_sha256='x', code_commit='c', work_seconds=180, total_seconds=900)
+        d.verify_supplement_review(review, source, True)
+        with self.assertRaises(RuntimeError):
+            d.verify_supplement_review(review, source)
+        with self.assertRaises(RuntimeError):
+            d.verify_supplement_review(dict(review, scope='glm-controller-supplement-v1'), source, True)
+
     def test_actual_monitor_retains_rejected_sample_without_ready(self):
         tree = ast.parse((HERE/'debug_stack.py').read_text())
         measure = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'measure')
@@ -176,7 +202,7 @@ class Ownership(unittest.TestCase):
         for condition in (None, 'safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'):
             args = Mock(seconds=1800, weight_format='serverless_llm' if condition and condition.startswith('store_') else 'safetensors',
                         no_query=False)
-            namespace = dict(vars(d), args=args, condition=condition, run_id=STATE['run_id'], holder=STATE['holder'],
+            namespace = dict(vars(d), args=args, state={}, condition=condition, run_id=STATE['run_id'], holder=STATE['holder'],
                              active=d.plan.ACTIVE, deadline=12345, run_root=Path('/unused'), sha256=lambda _: 'a'*64)
             with self.subTest(condition=condition):
                 exec(code, namespace)
@@ -527,6 +553,15 @@ class SupplementAdmission(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'probe evidence differs'):
                 d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice')
             proof['completed_unix'] = 100
+            proof['deadline_delay_seconds'] = 900
+            proof['deadline_next_monotonic_usec'] = 900000000
+            startup_outputs = ['{ argv[]=/usr/bin/systemctl kill --kill-who=all --signal=SIGKILL '+run+'.slice ; }',
+                               'active', json.dumps(dict(data=900000000))]
+            with patch.object(d.subprocess, 'check_output', side_effect=startup_outputs):
+                d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice', startup_only=True)
+            proof['deadline_delay_seconds'] = 3240
+            with patch.object(d.subprocess, 'check_output', side_effect=startup_outputs), self.assertRaisesRegex(RuntimeError, 'total budget'):
+                d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice', startup_only=True)
             with patch.object(d.subprocess, 'check_output', side_effect=['wrong-slice']):
                 with self.assertRaisesRegex(RuntimeError, 'not armed'):
                     d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice')

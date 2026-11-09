@@ -120,7 +120,7 @@ def debug_args(spec, run_id, holder, source, deadline_unix):
     return args
 
 
-def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE, deadline_unix=None, supplement_condition=None, supplement_start_sha=None):
+def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE, deadline_unix=None, supplement_condition=None, supplement_start_sha=None, startup_only=False):
     """The worker half needs the head's observed bridge IP, so `up` re-plans after the head starts."""
     source = debug_run_root(run_id)/'source'
     head = overlay(head_spec(active), 'head', seconds)
@@ -128,6 +128,10 @@ def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=Tr
     if supplement_condition is not None:
         # C23's formal derivation gives both Ray nodes the same event directory.
         head['env']['SLLM_EVENT_DIR'] = worker['env']['SLLM_EVENT_DIR']
+    if startup_only:
+        if supplement_condition != 'safetensors_disk_cold' or not query or weight_format != 'safetensors':
+            raise ValueError('startup control requires the reviewed safetensors cold plan')
+        worker['argv'] = lifetime_wrapper(seconds, 'worker')+['/bin/sleep', '30']
     if deadline_unix is None:
         deadline_unix = int(time.time())+seconds+DEADLINE_GRACE
     return dict(run_id=run_id, purpose=PURPOSE, image_id=IMAGE, lifetime_seconds=seconds, deadline_unix=deadline_unix,

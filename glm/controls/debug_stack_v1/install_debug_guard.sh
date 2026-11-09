@@ -3,7 +3,7 @@
 # Debug GPU runs refuse to start unless this timer is active and runs exactly the debug_guard.py shipped with them.
 set -euo pipefail
 [ "$(id -u)" = 0 ] || { echo 'run as root: sudo bash install_debug_guard.sh' >&2; exit 1; }
-if [[ "${1:-}" == --supplement-probe-start || "${1:-}" == --supplement-probe-verify ]]; then
+if [[ "${1:-}" == --supplement-probe-start || "${1:-}" == --supplement-probe-verify || "${1:-}" == --startup-probe-verify ]]; then
 /usr/bin/python3 -I - "$0" "$@" <<'PY'
 import hashlib,json,os,pathlib,re,signal,subprocess,sys,time
 script,mode,run,holder=sys.argv[1:]
@@ -104,8 +104,9 @@ else:
     # Hold only this empty new slice until its controller service is started.
     hold=user_service(run+'-slice-hold',run+'.slice','/bin/sleep','60')
     call('systemctl','set-property','--runtime',run+'.slice','MemoryMax=1825361100800','MemorySwapMax=0','TasksMax=8192')
+    delay=900 if mode=='--startup-probe-verify' else 3240
     armed_ns=time.monotonic_ns()
-    call('systemd-run','--unit='+run+'-deadline','--on-active=3240s','--timer-property=AccuracySec=1s',
+    call('systemd-run','--unit='+run+'-deadline','--on-active='+str(delay)+'s','--timer-property=AccuracySec=1s',
          '--property=Type=oneshot','--property=RemainAfterExit=yes','/usr/bin/systemctl','kill',
          '--kill-who=all','--signal=SIGKILL',run+'.slice')
     timer_path='/org/freedesktop/systemd1/unit/'+''.join(c if c.isalnum() else '_%02x'%ord(c) for c in run+'-deadline.timer')
@@ -114,7 +115,7 @@ else:
     proof=dict(registration,host_probe_final=host,slice_probe_final=killed,container_final=final,
                host_slice_empty=True,probe_slice_empty=True,contrast_survived=True,main_slice=props(run+'.slice'),
                main_hold=hold,deadline_timer=props(run+'-deadline.timer'),deadline_service=props(run+'-deadline.service'),
-               armed_ns=armed_ns,deadline_delay_seconds=3240,deadline_next_monotonic_usec=next_usec,completed_unix=time.time(),
+               armed_ns=armed_ns,deadline_delay_seconds=delay,deadline_next_monotonic_usec=next_usec,completed_unix=time.time(),
                guard_sha256=hashlib.sha256(pathlib.Path('/usr/local/lib/sllm-debug-guard/debug_guard.py').read_bytes()).hexdigest(),
                removed_by_guard=True,scope='actual CPU root-service and exact-slice deadline probes; not GPU/model proof')
     write('guard-verification.json',proof)

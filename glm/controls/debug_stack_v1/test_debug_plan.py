@@ -31,6 +31,20 @@ def load(name, path):
 
 
 class FrozenDerivation(unittest.TestCase):
+    def test_startup_control_changes_only_worker_entry_and_keeps_identity_and_gpu_plan(self):
+        args = dict(run_id=RUN, holder=HOLDER, seconds=300, head_ip=IP, deadline_unix=DEADLINE,
+                    supplement_condition='safetensors_disk_cold', supplement_start_sha='a'*64)
+        normal = p.plan(**args)
+        control = p.plan(**args, startup_only=True)
+        self.assertEqual(control['head'], normal['head'])
+        expected = dict(normal['worker']['spec'], argv=p.lifetime_wrapper(300, 'worker')+['/bin/sleep', '30'])
+        self.assertEqual(control['worker']['spec'], expected)
+        self.assertEqual(control['worker']['docker_argv'],
+                         p.debug_args(expected, RUN, HOLDER, control['source'], DEADLINE))
+        for condition in (None, 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'):
+            with self.subTest(condition=condition), self.assertRaises(ValueError):
+                p.plan(**dict(args, supplement_condition=condition), startup_only=True)
+
     @classmethod
     def setUpClass(cls):
         receipt = json.loads((PACKET/'executed-source-archive.json').read_text())

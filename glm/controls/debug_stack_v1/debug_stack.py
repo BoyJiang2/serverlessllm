@@ -305,6 +305,8 @@ def up(args, state=None):
                                         'independently reviewed supplementary entry, not the original formal gate',
                                         'fresh native-home compilation cache; compilation costs remain charged',
                                         'DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs']
+    if state and state.get('startup_only'):
+        config.update(pool_bytes=0, chunk_bytes=None, measurement_class='startup monitor control; no worker application')
     deadline = (args.guard_deadline_unix if condition else int(time.time())+args.seconds+plan.DEADLINE_GRACE)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
     run_id = state['run_id'] if state else 'sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8]
@@ -348,7 +350,8 @@ def up(args, state=None):
             state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
         head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', args.weight_format, not args.no_query,
                               active=active, deadline_unix=deadline, supplement_condition=condition,
-                              supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['head']
+                              supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None,
+                              startup_only=state.get('startup_only', False))['head']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
@@ -363,7 +366,8 @@ def up(args, state=None):
                 state['image']['worker'] = restore_with_receipt(run_root/'image-init-worker.json')
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
                                active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
-                               supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['worker']
+                               supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None,
+                               startup_only=state.get('startup_only', False))['worker']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -629,13 +633,13 @@ def require_supplement_release(row, baseline):
             raise RuntimeError('owned cgroup active or anonymous/locked/shared memory retained')
 
 
-def verify_supplement_review(review, source):
+def verify_supplement_review(review, source, startup_only=False):
     expected = {p.relative_to(TREE).as_posix():sha256(p) for p in TOOLS}
-    if (review.get('scope') != 'glm-controller-supplement-v1' or review.get('verdict') != 'PASS'
+    if (review.get('scope') != ('glm-startup-monitor-control-v1' if startup_only else 'glm-controller-supplement-v1') or review.get('verdict') != 'PASS'
             or review.get('tool_sha256') != expected or review.get('source_tree_sha256') != source['tree_sha256']
             or review.get('code_commit') != source['code_commit']
-            or review.get('work_seconds') != SUPPLEMENT_WORK_SECONDS
-            or review.get('total_seconds') != SUPPLEMENT_TOTAL_SECONDS):
+            or review.get('work_seconds') != (180 if startup_only else SUPPLEMENT_WORK_SECONDS)
+            or review.get('total_seconds') != (900 if startup_only else SUPPLEMENT_TOTAL_SECONDS)):
         raise RuntimeError('current full supplement R1 not approved')
 
 
@@ -735,7 +739,7 @@ def supplement_resources():
     return sample
 
 
-def verify_root_probe(path, run, boot, origin_ns, slice_cgroup):
+def verify_root_probe(path, run, boot, origin_ns, slice_cgroup, startup_only=False):
     path = pathlib.Path(path)
     meta, parent = path.stat(), path.parent.stat()
     if (path.is_symlink() or path.parent.is_symlink() or path.parent != pathlib.Path('/run')/run
@@ -764,8 +768,10 @@ def verify_root_probe(path, run, boot, origin_ns, slice_cgroup):
     data = json.loads(subprocess.check_output(['busctl','--system','--json=short','get-property',
         'org.freedesktop.systemd1',timer_path,'org.freedesktop.systemd1.Timer','NextElapseUSecMonotonic'],text=True,timeout=15))
     deadline_ns = int(data['data'])*1000
+    lower, upper = (660, 905) if startup_only else (3000, 3245)
     if (int(data['data']) != proof['deadline_next_monotonic_usec']
-            or not origin_ns+3000*10**9 <= deadline_ns <= origin_ns+3245*10**9):
+            or (startup_only and proof.get('deadline_delay_seconds') != 900)
+            or not origin_ns+lower*10**9 <= deadline_ns <= origin_ns+upper*10**9):
         raise RuntimeError('actual exact-slice deadline does not fit the frozen total budget')
     for item in (proof['host']['process'], proof['setsid_child'], proof['slice_sentinel']['process'], proof['container_process']):
         proc = pathlib.Path('/proc')/str(item['pid'])/'stat'
@@ -822,10 +828,14 @@ def await_first_monitor(root, errors, run, boot):
 def measure(args):
     """One independent supplementary condition; never changes a historical ID."""
     begin_ns, unit = controller_unit(args.controller_unit)
+    startup_only = getattr(args, 'startup_only', False)
+    work_seconds, total_seconds = (180, 900) if startup_only else (SUPPLEMENT_WORK_SECONDS, SUPPLEMENT_TOTAL_SECONDS)
+    if startup_only and args.condition != 'safetensors_disk_cold':
+        raise ValueError('startup control is not a four-condition model attempt')
     boot = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     source = verified_source(args.source_tree)
     review = json.loads(pathlib.Path(args.review).read_text())
-    verify_supplement_review(review, source)
+    verify_supplement_review(review, source, startup_only)
     verify_runtime_assets(review['runtime_reference'])
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(args.source_tree))
@@ -839,11 +849,13 @@ def measure(args):
         raise RuntimeError('supplement independent guard not ready')
     # A new actual probe receipt is mandatory; a prior timer snapshot alone is insufficient.
     run = args.controller_unit.removesuffix('-controller.service')
-    probe = verify_root_probe(args.guard_probe, run, boot, begin_ns, unit['verified_slice_cgroup'])
+    probe = verify_root_probe(args.guard_probe, run, boot, begin_ns, unit['verified_slice_cgroup'], startup_only)
     admission = supplement_resources()
     if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
         raise RuntimeError('restore original image before the supplement, outside timing')
     state = dict(run_id=run, holder=probe['holder'], verified_slice_cgroup=unit['verified_slice_cgroup'])
+    if startup_only:
+        state['startup_only'] = True
     debug_root = HOST/'debug'
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
@@ -851,7 +863,7 @@ def measure(args):
     root.mkdir(mode=0o700)
     initial = dict(state, controller_begin_ns=begin_ns, boot_id=boot, pid=os.getpid(),
                    startticks=int(pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
-                   condition=args.condition, work_seconds=SUPPLEMENT_WORK_SECONDS, total_seconds=SUPPLEMENT_TOTAL_SECONDS,
+                   condition=args.condition, work_seconds=work_seconds, total_seconds=total_seconds,
                    r1_sha256=sha256(args.review), guard_probe_sha256=sha256(args.guard_probe))
     initial['independent_controller_unit'] = unit
     initial['resource_admission'] = admission
@@ -903,12 +915,12 @@ def measure(args):
     thread.start()
     result = dict(initial, status='failed', success=False)
     previous = signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('supplement absolute work deadline')))
-    signal.setitimer(signal.ITIMER_REAL, max(.001, SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9))
+    signal.setitimer(signal.ITIMER_REAL, max(.001, work_seconds-(time.monotonic_ns()-begin_ns)/1e9))
     try:
         await_first_monitor(root, monitor_errors, state['run_id'], boot)
         args.head_only, args.no_query, args.borrow = False, False, True
-        args.seconds, args.booking_id, args.booking_end = SUPPLEMENT_WORK_SECONDS, None, None
-        remaining = SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9
+        args.seconds, args.booking_id, args.booking_end = 300 if startup_only else work_seconds, None, None
+        remaining = work_seconds-(time.monotonic_ns()-begin_ns)/1e9
         if remaining <= 0:
             raise TimeoutError('absolute supplement work budget exhausted before startup')
         args.guard_deadline_unix = int(time.time()+remaining+600)
@@ -921,6 +933,10 @@ def measure(args):
             if worker is None:
                 raise RuntimeError('supplement worker disappeared')
             if not worker['State']['Running']:
+                if startup_only:
+                    if worker['State']['ExitCode'] != 0 or worker['State']['OOMKilled']:
+                        raise RuntimeError('startup sleep worker did not finish normally')
+                    break
                 worker_result = json.loads((root/'debug-service/result.json').read_text())
                 result['worker'] = worker_result
                 if worker['State']['ExitCode'] != 0 or worker_result.get('success') is not True:
@@ -965,12 +981,16 @@ def measure(args):
             result.update(success=False, monitor_errors=monitor_errors, monitor_alive=thread.is_alive())
         result.update(controller_end_ns=time.monotonic_ns(), end_boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip())
         result['controller_elapsed_s'] = (result['controller_end_ns']-begin_ns)/1e9 if result['end_boot_id'] == boot else None
-        if result['controller_elapsed_s'] is None or result['controller_elapsed_s'] > SUPPLEMENT_TOTAL_SECONDS:
+        if result['controller_elapsed_s'] is None or result['controller_elapsed_s'] > total_seconds:
             result.update(success=False, budget_or_clock_failure=True)
         result['status'] = 'components passed; awaiting kernel unit exit finalization' if result['success'] else 'failed independent supplement'
         result['last_private_slice_memory_events'] = state.get('last_private_slice_memory_events')
         result['controller_metric_provisional'] = True
         result['controller_finalizer'] = 'historical_costs.py --finalize-controller '+state['run_id']
+        if startup_only:
+            result.update(measurement_class='startup monitor control only', model_service_pass=False,
+                          publish_controller=False, controller_finalizer=None,
+                          status='startup control passed' if result['success'] else 'startup control failed')
         write(root/'controller-result.json', result)
     return result
 
@@ -994,6 +1014,7 @@ if __name__ == '__main__':
     measurement.add_argument('--review', required=True)
     measurement.add_argument('--guard-probe', required=True)
     measurement.add_argument('--controller-unit', required=True)
+    measurement.add_argument('--startup-only', action='store_true', help='reviewed bounded GPU-container startup control; no worker application, Store or model')
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()

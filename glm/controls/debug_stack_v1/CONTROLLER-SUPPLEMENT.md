@@ -112,3 +112,20 @@ fb854930完整R1通过并实际新guard/probe/资源准入后，第三批首条0
 独立CPU-only head启动采样25秒得到20样本约0.26–0.28秒，无异常并已删除容器；它不覆盖GPU worker/NVIDIA初始化，不能认定NVML是根因，也不证明原故障已修复。取证修订仅在现有supplement_sample记录Docker inspect、init/cgroup、成员/proc、smaps_rollup、两次GPU查询及剩余读取的分段monotonic时间；monitor在失败时保留原snapshot、上一时刻、错误和collect/validate阶段，失败不发布健康ready。原5秒判据不改。注入6秒样本和采集异常的实际monitor函数CPU回归通过，当前92项相关检查；该修订是可定位下一控制的取证准备，不是慢采样修复或运行批准。
 
 下一现场控制只允许一次有界GPU容器启动取证（不是模型重试）：复用既有head及worker派生/挂载，worker轻量sleep入口，不启动Ray worker/Store/模型；将涉及NVIDIA运行时，须先冻结完整实际命令/身份/最长预算及独立守护、完整只读R1和现场准入，取得分段/失败证据后再判断下一步，未复现不能无限重复。当前不启动第四补测cohort或再占大池。
+
+
+## 一次轻量GPU容器启动控制（待本修订完整R1与现场准入）
+
+实际缺口是第三批返回后被5秒校验拒绝的样本未落盘；NVML只是候选，不能将CPU head未复现当修复。因此只在既有measure增加--startup-only，沿用原身份、资源检查、源文件SHA、宿主监控、私有slice与两角色清理，不新增框架/环境/权重副本。
+
+冻结执行形态：root systemd controller启动当前冻结debug_stack.py measure --startup-only --condition safetensors_disk_cold --source-tree <同commit的已核验source-debug目录> --review <scope=glm-startup-monitor-control-v1的本修订PASS清单> --guard-probe /run/<新run>/guard-verification.json --controller-unit <新run>-controller.service。该condition只选原SF模板，完全不做缓存控制，不是SF冷读样本。新run唯一身份由清单记录，不使用任何旧终态ID。
+
+head仍是既有CPU Ray head；worker沿用原GPU/NVIDIA容器配置、挂载、环境和身份，但argv确定改为现有lifetime_wrapper(300, worker)+[/bin/sleep,30]。不会执行debug_service.py或任何Ray worker/Store/模型入口；配置收据pool_bytes=0。保留模型只读挂载不等于读取权重。成功只表示该次容器启动与监控控制通过，不能发布Controller/Prep/A模型测量，不运行历史finalizer。
+
+预算：工作原点仍由root unit内核ExecMainStartTimestampMonotonic冻结；绝对工作180秒，容器300秒timeout；清理沿用worker320秒+head70秒等待与现有Docker命令期限，释放观察原始首末至少60秒。总硬截止900秒由私有slice外独立root timer绑定精确run执行SIGKILL，覆盖controller和Docker兄弟cgroup；超时一律控制失败，不能保证超时后仍留有完整观察。原3570+30秒unit只作额外兜底，不能代替900秒slice timer。180+320+70+60=630秒，其余270秒为Docker/取证预算；若串行命令未在该硬上限内完成则失败，不续期。
+
+守护先执行现有--supplement-probe-start，新SSH核验执行新增显式--startup-probe-verify；模式仅将新run独立timer改为900秒，旧默认3240秒不变，不触碰全局guard安装。现场校验root只读proof的delay=900、run/holder/boot/代码SHA、真实timer下一monotonic时刻落在Main原点+660..905秒、exact slice/出生身份及实际CPU故障probe，不能复用旧probe或旧R1。660下界与proof最多120秒旧化及安装/启动余量配合，上界确保不超过总预算；不能据此将正常模型补测改用900秒。
+
+控制前必须完整源码/manifest独立只读R1，且新鲜8卡/NUMA/匿名/锁页/共享内存/本地I/O与授权准入通过。运行中原5秒门不变，异常原snapshot及分段时刻保留，立即失败并进入清理；仅一次，不因为未复现重复分配。完成或失败均保存unit退出、容器State、OOM/cgroup及至少60秒释放证据，硬截止/失败观察不足明确保留。执行与观察期间不Git/同步。
+
+CPU验证：73调试测试+6成本+6C23参数+10导入=95。新增实际head/worker调用传播、仅sleep argv与默认路径对照、scope/180/900审阅隔离及root900拒绝旧3240校验；最初测试fixture漏state导致5个NameError已保留为整改过程，补fixture后通过，不改实际up逻辑以迎合fixture。此处不是GPU运行批准。
