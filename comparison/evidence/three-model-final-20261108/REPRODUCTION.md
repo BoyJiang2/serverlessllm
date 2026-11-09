@@ -1,49 +1,94 @@
-# CPU重算与验收（2026-11-09修订）
+# CPU 复算与证据路径
 
-只使用既有Python、Matplotlib和Numpy；不需要CUDA、Torch、vLLM、Ray、root、模型、Store池或权重。不要为复算创建推理环境。NEW_DIR必须不存在，脚本拒绝覆盖。
+本目录不需要 CUDA、Torch、vLLM、Ray、root 或权重。生成图需要现有 Matplotlib/Numpy；统计 helper 使用标准库。不要为复算启动模型、重建环境或重读 Store payload。
+
+## 本地可移植复算
+
+在本目录运行，NEW_DIR 必须不存在（脚本拒绝覆盖）：
 
 ```bash
 python reproduce.py /absolute/NEW_DIR
-python -m unittest discover -s . -p test_harmonized_analysis.py -v
 ```
 
-第一条先核验INPUTS.json全部原输入SHA；重做V4原40项/38合格/2原失败的review join和冻结正式统计并要求与旧输出完全相等，保留Kimi原n8、GLM C23 n6、V4同源展示n9与全部描述性样本数。历史正式V4各对n10/n9不改。
+脚本先校验 INPUTS.json 中全部字节 SHA，按原40 ID从 raw-replay 读取，不直接相信已派生 success 字段；与38份原 runtime-review 及65ee修订中的两个失败声明进行身份/版本/指标 join，重算冻结 V4 正式统计并要求与原输出相等。它不在本机重新证明 GPU/释放真实性；该证明来自原始报告和服务器完整只读 reviewer 重放。
 
-新增harmonized_analysis.py仅做端点算术及范围标注：
+随后检查 Kimi/GLM 既有数组、完整块、每行互斥阶段和、V4同源B2–B10，导出 comparison.json/csv 和7组PNG/SVG/PDF。Kimi/GLM 的科学结果沿用原报告及其已保存独立复算回执，本脚本不声称再次执行它们的原统计CLI或重审大监控。原统计CLI复现方法在 inputs/legacy/REPORT.md 的链接中。
 
-- GLM原192条Worker端点与phases交叉验证；模型内三个阶段各rank重算，不将最新C判定升级成统一边界。
-- V4全部38合格尝试按原始phase事件匹配八rank、PID/startticks/boot/time namespace/clock；各包络必须等于旧metrics；主表仍选B2–B10的36项。
-- Kimi两次独立新补采均按原rank端点重算，各自保留16观测和16缺测槽位；合格/失败/未开始分列，完整块n0不变。历史f7不替代八rank值。
-- Prep只用真实端点拆分。V4三段里程碑逐次之和必须等于原Prep；纯分量无证据则null。Kimi环境/建池处于原Prep外，不加总冒充Controller。
-- 随机12次来自独立已验收cohort，六个非自切换方向各2次；字节和块数优先。不能与历史样本拼接。
-- 5项小测试验证all-rank包络与最大单rank不同、缺rank/缺端点/重复rank为null、反向端点报错。
+本次在Windows现有Python3.13.1运行成功，reproduction.log保存原输出。跨Python版本的极末位浮点/PDF元数据/字体渲染可能不同，不要求不同平台整文件SHA相同。输入SHA必须完全相同。
 
-产物包含原A/ECDF/120编号图、按97f0359原绘图代码恢复的图3 Prep+A和图6互斥事件分解、两张分模型阶段PNG/SVG/PDF、逐rank/逐attempt/阶段均值、Prep分项/里程碑、独立Kimi补采和随机方向缓存表。图3与图6已按用户指定版式恢复正文引用和生成代码；三模型Prep范围差异仍写入图注，图后保留数值表。混合图4/旧图5仅历史归档，不作为统一边界数据。
+## 服务器完整重审（可选，勿重复作为新实验）
 
-实际分模型绘图消费者额外检查（使用本目录derived，不触发模型）：
+本次实际执行目录：
+
+```text
+/home/boyjiang/sllm-v4-pro/analysis-nfs40-20261108-v2/
+/home/boyjiang/sllm-v4-pro/results/nfs40-final-20261108-v2/
+```
+
+原始CPU命令（原输出已存在，若确需重放必须指定新输出）：
 
 ```bash
-python figure5-render-check.py
+python3 /home/boyjiang/sllm-v4-pro/analysis-nfs40-20261108-v2/collect_v4_formal_results.py \
+  --code /path/to/checkout-at-88cc71ec50c8668c26f26636d7d432c3351356fe \
+  --evidence /home/boyjiang/sllm-v4-pro/evidence \
+  --output /absolute/NEW_FULL_REVIEW_DIR
 ```
 
-此脚本执行reproduce.py中的实际绘图循环与save函数，校验每模型12个阶段柱、明确非共同加载标签、所有主集共同指标n0/null。它只更新两张分模型阶段图与自己的回执。
+Collector要求无在途canonical作业、干净执行源88cc71e、原protocol bffa18…、65ee修订和完整原evidence。报告发布提交高于88cc71e，因此最终发布后的当前checkout不能直接拿来通过这个执行源门禁；先使用原执行提交的独立只读副本。不要为迁就重放修改源门禁、冻结协议或失败记录。
 
-## 本轮必要校验
+它会读约数百MB的小型原监控/缓存/请求证据，不读805GiB权重或877GB Store payload。原始v1资源汇总因gpu=null失败，v1脚本/日志/receipt原样保留；v2只将缺失采样显式保留，没有改变runtime资格规则。
 
-harmonized-reproduction.log保存成功CPU命令、5项测试和消费者检查；VALIDATION.json的harmonized_revision列明范围，旧验证历史保留。comparison.json的全部旧数组/主集/正式统计必须与重算相等；新增逐rank数据量1552行（GLM576、V4912、Kimi两个新补采各32槽），不能把它当实验次数。随机12行单独核六方向、阶段统计的n为attempt数。
+## 原始归档
 
-MANIFEST.json绑定整个交付目录除自身及Python临时缓存外的路径/大小/SHA；INPUTS.json只绑定不可改的输入。跨平台PDF时间元数据/字体可以不同，数值、原输入SHA和资格不可不同。新代码/输入/输出发布后与服务器及远端提交独立核对。
+服务器 `results/nfs40-raw-evidence-20261108.tar.gz` 为40个attempt完整树+原journal+campaign complete+handles，SHA见 inputs/v4/raw-archive-receipt.json。只读归档的第一次writer完成tar后，在Python3.10的hashlib.file_digest处失败；随后对**同一个已完成包**用流式sha256并全读gzip/tar检查，不重建包或模型。该分析兼容性问题记录在receipt。
 
-## 原始取证与历史重审范围
+原生参考、Store完整验真、独立恢复、两轮服务等前置证据仍在仓库docs/evidence；正式原始包不替代它们。模型/Store资产保留原路径，报告不复制大资产。
 
-本轮没有重复扫描GLM的1.07GB资源监控或重读模型/Store payload；优先复用已完成的loading-boundary、controller-history审计。V4新增读取的是38项小型事件/准备收据和固定源码，收集器副本在inputs/harmonized/sources/，原始路径与SHA在report-boundaries-20261109.json.sources。首次CPU收集因engine-src子目录定位失败停止、未写输出；修正已存在固定源码路径后成功，无模型失败或GPU重试。
+## 文件完整性
 
-本轮两个临时CPU重算失败分别为编辑前Windows默认编码读取失败、撤除旧绘图块后一个局部变量缺失；均在本机修正，正式成功重算使用独立新输出，没有覆盖原数据或GPU运行。旧/临时目录位于报告外，不作为实验样本。
+MANIFEST.json列出本目录除自身外所有交付文件SHA/大小。发布回执是该manifest生成之后的外部文件，不参与自引用。可用标准库逐项验证：
 
-原V4完整只读reviewer重放已完成，绑定执行源88cc71e；结果在inputs/v4/results/及原收据。原始归档/home/boyjiang/sllm-v4-pro/results/nfs40-raw-evidence-20261108.tar.gz为56,908,305字节，SHA见inputs/v4/raw-archive-receipt.json；不用为本轮补图重复运行reviewer或转换。此前collector-v1的gpu=null CPU错误、v2缺测处理、全部模型失败与独立生命周期证据均保留，不能改成新运行。
+```python
+import hashlib, json, pathlib
+base = pathlib.Path('.')
+for row in json.loads((base/'MANIFEST.json').read_bytes())['files']:
+    data = (base/row['path']).read_bytes()
+    assert len(data) == row['bytes']
+    assert hashlib.sha256(data).hexdigest() == row['sha256']
+```
 
-GLM原CPU分析来源447765a、后续loading-boundary/controller-history输入见METRIC-CROSSWALK.md；新补测候选不是历史Controller数据。原Kimi/GLM统计CLI的历史复算方法保留inputs/legacy/REPORT.md；本脚本不声称重执行其GPU验收或大监控扫描。
+## GLM历史CPU补充
 
-## 待补采
+新增四份inputs/glm-cpu证据已加入INPUTS及MANIFEST。reproduce.py继续核验这些输入SHA，但原七图/冻结比较数组不变；新附表单独读取historical-supplement.json，不能把helper区间改名controller。完整CPU采集与复算源码固定在GLM提交447765a，现有仓库根运行：
 
-共同完整loader主指标的三个历史主集都未获统一功能边界资格。原Worker阶段不是零，但也不是共同指标；详见FOLLOWUP.md。任何新GPU任务先形成具体执行单、沿用已有授权及停止规则，占GPU前告知；报告发布不以补齐理想柱图为前提。
+```bash
+python -m unittest discover -s glm/tools -p test_final_costs.py
+python glm/tools/historical_costs.py --c23-supplement
+```
+
+该命令使用GLM归档，不能在本三模型子目录直接运行。无需再次扫描1.07 GB监控；historical-monitor.json已记录路径、整文件SHA、执行函数SHA、52个端点窗口及缺口。原大监控没有复制入报告。新增phase附表可在本目录用标准库复算：
+
+```python
+import csv, statistics
+from pathlib import Path
+rows=list(csv.DictReader(Path("inputs/glm-cpu/event-intervals.csv").open()))
+for condition in sorted({r["condition"] for r in rows}):
+    selected=[r for r in rows if r["condition"]==condition and 5<=int(r["block"])<=10]
+    assert len(selected)==6
+    print(condition, [statistics.fmean(float(r[k]) for r in selected) for k in ("phase_weight_ingestion_span_s","phase_quantization_postprocess_span_s","phase_weights_pipeline_including_allocation_span_s")])
+```
+
+## 图4与图5补图
+
+reproduce.py已直接更新：图4的GLM按原主集精确6个ID读取historical-supplement.json中的helper生命周期均值；图5从event-intervals.csv按同一ID集合计算八rank跨度。不改称同口径controller或f7。其余模型数据和五组图未改，PNG/SVG/PDF同步更新。中文标签优先使用现有Microsoft YaHei/Noto Sans CJK SC/SimHei字体，无新环境。图值、精确ID、源码SHA及仅执行绘图段的范围见derived/glm-fig4-fig5-values.json；没有声称重跑完整原统计CLI。
+
+## 图3 V4 Prep唯一修订（2026-11-09）
+
+报告与图表结构恢复97f0359。只将V4的Prep输入换为各次首个已记录cache-control/pool-fill begin到原startup_command_ns；原Prep未改写在原qualified-rows/result中，并在derived/v4-prep-adjustment.csv逐次并列保留。其他模型、A、Controller、全部样本/正式统计和其他六张图沿用基线。
+
+```bash
+python reproduce.py /absolute/NEW_DIR
+python -m unittest discover -s . -p test_v4_prep_adjustment.py -v
+```
+
+新增输入inputs/v4-prep/target-cache-timestamps.json绑定36个attempt的小型原始收据投影、原件路径/SHA、时钟与冻结88cc71e生产源码。不是均值相减；每次先算(end-begin)/1e9，再按原条件n9求均值。缓存helper启动/清单解析在首记录之前且缺独立起止，未估算补入；不以注册完成或文件mtime代替缓存begin。缓存预处理、SF热mlock和池命中权重填池/确认在区间内保留，空池初始化在区间外。

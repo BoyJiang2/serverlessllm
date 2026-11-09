@@ -23,6 +23,47 @@ def mean(values):
     return statistics.fmean(values)
 
 
+def target_cache_preparation(row):
+    starts = {
+        'safetensors_disk_cold': ('cache-reclaim/summary.json', 'preparation_begin_ns'),
+        'safetensors_disk_hot': ('cache-prelease-store-cold/summary.json', 'preparation_begin_ns'),
+        'store_disk_cold': ('cache-other/summary.json', 'preparation_begin_ns'),
+        'store_pool_hit': ('trial-service-ready.json', 'pool_fill_begin_ns'),
+    }
+    source, field = starts[row['condition']]
+    try:
+        begin = row['receipts'][source]['values'][field]
+        ready = row['receipts']['trial-service-ready.json']['values']
+        clock = row['receipts']['trial-startup.json']['values']['cache_identity']
+    except KeyError as error:
+        raise ValueError(f"Missing exact cache-preparation endpoint: {row['attempt_id']} {source}:{field}") from error
+    end = row['startup_command_ns']
+    origin = row['original_preparation_begin_ns']
+    if not all(type(v) is int for v in (begin, end, origin)):
+        raise ValueError('Non-integer preparation endpoint')
+    assert origin <= ready['store_validation_complete_ns'] <= begin <= end
+    assert row['original_preparation_complete_ns'] == end
+    assert math.isclose((end-origin)/1e9, row['original_preparation_s'], abs_tol=1e-8)
+    for name, receipt in row['receipts'].items():
+        if name.endswith('/summary.json'):
+            data = receipt['values']
+            assert {k:data['identity'][k] for k in clock} == clock
+            assert begin <= data['preparation_begin_ns'] <= data['total_cache_admission_end_ns'] <= end
+    if row['condition'] == 'safetensors_disk_hot':
+        lease = row['receipts']['trial-cache-lease-locked.json']['values']
+        assert begin <= lease['begin_ns'] <= lease['locked_ns'] <= end
+    if row['condition'] == 'store_pool_hit':
+        assert begin <= ready['pool_fill_complete_ns'] <= ready['pool_confirmation_begin_ns'] <= ready['pool_confirmation_complete_ns'] <= end
+    return dict(attempt_id=row['attempt_id'], condition=row['condition'], block=row['block'],
+        original_prep_begin_ns=origin, target_cache_begin_ns=begin, admission_complete_ns=end,
+        original_prep_s=(end-origin)/1e9, adjusted_prep_s=(end-begin)/1e9,
+        excluded_prefix_s=(begin-origin)/1e9, begin_source=row['receipts'][source]['path'],
+        begin_field=field, begin_source_sha256=row['receipts'][source]['sha256'],
+        end_source=row['receipts']['trial-startup.json']['path'],
+        end_field='record.startup_command_ns',
+        end_source_sha256=row['receipts']['trial-startup.json']['sha256'])
+
+
 def build():
     manifest = read(BASE / 'INPUTS.json')
     for name, digest in manifest['files'].items():
@@ -47,6 +88,8 @@ def build():
     glm = read(legacy / 'kimi-glm-existing-plot-input-20261107.json')
     old_summary = read(legacy / 'comparison-summary.json')
     stages = read(legacy / 'kimi-glm-mutually-exclusive-stage-input-20261107.json')
+    adjusted = {r['attempt_id']: target_cache_preparation(r) for r in read(BASE / 'inputs/v4-prep/target-cache-timestamps.json')['attempts']}
+    assert len(adjusted) == 36
     primary = {m: {} for m in MODELS}
     for model in MODELS[:2]:
         for c in CONDITIONS:
@@ -68,7 +111,7 @@ def build():
         assert min(route + after_route + tail) >= 0
         primary[MODELS[2]][c] = dict(blocks=[r['block'] for r in group], ids=[r['attempt_id'] for r in group],
             A_s=[m['command_to_correct_business_response_s'] for m in metrics],
-            prep_s=[m['preparation_s'] for m in metrics], gap_s=[0.0] * 9,
+            prep_s=[adjusted[r['attempt_id']]['adjusted_prep_s'] for r in group], gap_s=[0.0] * 9,
             startup_segments_s=dict(command_to_route_s=route, route_to_backend_first_token_s=after_route,
                                    backend_first_token_to_correct_http_s=tail),
             controller_mean_s=mean(r['runtime_observations']['total_elapsed_seconds'] for r in group))
@@ -91,7 +134,8 @@ def build():
             assert all(math.isclose(a, sum(s), abs_tol=1e-8) for a, s in zip(g['A_s'], zip(*g['startup_segments_s'].values())))
             summary[model][c] = dict(n=len(g['A_s']), blocks=g['blocks'], A_mean_s=mean(g['A_s']),
                 A_median_s=statistics.median(g['A_s']), prep_mean_s=mean(g['prep_s']), gap_mean_s=mean(g['gap_s']),
-                prep_plus_A_mean_s=mean(g['prep_s']) + mean(g['A_s']),
+                prep_plus_A_mean_s=(mean(p+a for p,a in zip(g['prep_s'],g['A_s'],strict=True))
+                                    if model == MODELS[2] else mean(g['prep_s']) + mean(g['A_s'])),
                 controller_mean_s=g['controller_mean_s'])
     for model in MODELS:
         cold = summary[model][CONDITIONS[0]]['A_mean_s']
@@ -100,65 +144,18 @@ def build():
     return primary, descriptive, summary, formal, kimi, read(legacy / 'comparison-all40-glm-ledger.json')
 
 
-def write_startup_table(output, primary):
-    columns = ['model', 'condition', 'n', 'command_to_route_s',
-               'route_to_backend_first_token_s', 'backend_first_token_to_correct_http_s', 'A_s']
-    rows = []
-    for model in MODELS:
-        for condition in CONDITIONS:
-            group = primary[model][condition]
-            row = dict(model=model, condition=condition, n=len(group['A_s']), A_s=mean(group['A_s']))
-            row.update({key: mean(values) for key, values in group['startup_segments_s'].items()})
-            assert math.isclose(sum(row[key] for key in columns[3:6]), row['A_s'], abs_tol=1e-8)
-            rows.append(row)
-    with (output / 'table6_exclusive.csv').open('w', newline='', encoding='utf-8') as stream:
-        writer = csv.DictWriter(stream, fieldnames=columns)
-        writer.writeheader()
-        writer.writerows(rows)
-    labels = dict(zip(CONDITIONS, ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']))
-    lines = ['| 模型 | 条件 | n | 命令→路由发布 | 路由→后端首输出 | 首输出→正确HTTP响应 | 合计 A |',
-             '|---|---|---:|---:|---:|---:|---:|']
-    for row in rows:
-        values = ' | '.join(f'{row[key]:.6f}' for key in columns[3:])
-        lines.append(f"| {row['model']} | {labels[row['condition']]} | {row['n']} | {values} |")
-    (output / 'table6_exclusive.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
-
-
-def write_lifecycle_observations(output, primary, summary):
-    trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
-    labels = dict(zip(CONDITIONS, ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']))
-    scopes = {
-        'Kimi-K2.6': 'systemd outercontroller激活→成功结果字典elapsed求值；含环境/池、请求验证、正常关闭与至少60秒释放及检查；不含随后落盘/finally/进程退出。',
-        'GLM-5.1-FP8': 'preparation_begin_ns→complete_ns；排除公共环境/建池，不保证覆盖之后退出和父控制器清理。',
-        'DeepSeek-V4-Pro': '宿主准备origin→release_roles/journal release后candidate字典elapsed求值；含环境/池、退出及释放，不含随后写入/进程退出/独立review。',
-    }
-    rows = []
-    lines = ['**尚未形成统一边界的三模型生命周期总成本数据。以下仅分模型记录既有观测，不作横向总成本排名或比值。**', '']
-    for model in MODELS:
-        lines.extend([f'**{model}**：{scopes[model]}', '', '| 条件 | n | 该模型原区间均值/秒 |', '|---|---:|---:|'])
-        for condition in CONDITIONS:
-            group = primary[model][condition]
-            value = (mean(trials[i]['recorded_attempt_s'] for i in group['ids'])
-                     if model == 'GLM-5.1-FP8' else summary[model][condition]['controller_mean_s'])
-            assert value is not None and value > 0
-            rows.append(dict(model=model, condition=condition, n=len(group['ids']),
-                             observation_scope=scopes[model], mean_seconds=value))
-            lines.append(f"| {labels[condition]} | {len(group['ids'])} | {value:.6f} |")
-        lines.append('')
-    with (output / 'table4_lifecycle_observations.csv').open('w', newline='', encoding='utf-8') as stream:
-        writer = csv.DictWriter(stream, fieldnames=['model', 'condition', 'n', 'observation_scope', 'mean_seconds'])
-        writer.writeheader()
-        writer.writerows(rows)
-    (output / 'table4_lifecycle_observations.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
-
-
 def export(output):
     primary, descriptive, summary, formal, kimi, glm_ledger = build()
     output.mkdir(exist_ok=False)
-    write_startup_table(output, primary)
-    write_lifecycle_observations(output, primary, summary)
-    from harmonized_analysis import export as export_harmonized
-    harmonized = export_harmonized(output, primary, CONDITIONS)
+    prep_rows = [target_cache_preparation(r) for r in read(BASE / 'inputs/v4-prep/target-cache-timestamps.json')['attempts']]
+    business = {attempt:a for group in primary[MODELS[2]].values() for attempt,a in zip(group['ids'],group['A_s'],strict=True)}
+    for row in prep_rows:
+        row.update(A_s=business[row['attempt_id']],
+                   adjusted_prep_plus_A_s=row['adjusted_prep_s']+business[row['attempt_id']],
+                   original_prep_plus_A_s=row['original_prep_s']+business[row['attempt_id']])
+    with (output / 'v4-prep-adjustment.csv').open('w', newline='', encoding='utf-8') as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(prep_rows[0]))
+        writer.writeheader(); writer.writerows(prep_rows)
     (output / 'comparison.json').write_text(json.dumps(dict(summary=summary, arrays=primary,
         descriptive_arrays=descriptive, v4_frozen_formal_statistics=formal,
         cohort_note='Legacy primary Kimi8/GLM6 unchanged; V4 blocks2..10 uniform-source9 is comparison-only descriptive sensitivity, not a replacement for frozen formal pair-specific n10/n9.'), indent=2) + '\n')
@@ -207,23 +204,42 @@ def export(output):
         prep = [summary[model][c]['prep_mean_s'] for c in CONDITIONS]; a = [summary[model][c]['A_mean_s'] for c in CONDITIONS]
         ax.bar(range(4), prep, color='#A9BBC6', label='Recorded preparation'); ax.bar(range(4), a, bottom=prep, color=COLORS, label='Startup A')
         ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=8)
-    save(fig, 'fig3_preparation', 'Prep+A excludes gap. Legacy Prep is target-state construction; V4 Prep includes environment/pool/admission. Not equivalent cost windows.')
+    save(fig, 'fig3_preparation', 'Prep+A excludes gap. V4 Prep now starts at recorded cache-control / pool-fill begin; setup/pool-init/registration excluded.\nOriginal V4 Prep is retained in evidence. No new model run; all other series and cohorts unchanged.')
 
-    # Weight phases keep their separate model-specific scope labels.
-    for model, stem, stage_labels in [
-        ('GLM-5.1-FP8', 'fig5_glm_phases', ['Worker.load_model envelope', 'load_weights envelope', 'postprocess envelope']),
-        ('DeepSeek-V4-Pro', 'fig5_v4_phases', ['Worker.load_model envelope', 'load_weights (Store: remainder/session)', 'postprocess (Store: expert restore/H2D + processing)']),
-    ]:
-        fig, ax = plt.subplots(figsize=(10, 4.8))
-        for j, (phase, label) in enumerate(zip(['weights_pipeline_including_allocation', 'weight_ingestion', 'quantization_postprocess'], stage_labels)):
-            values = [next(r['observed_span_mean_s'] for r in harmonized['phase_summary']
-                           if r['model']==model and r['condition']==c and r['phase']==phase) for c in CONDITIONS]
-            ax.bar(np.arange(4)+(j-1)*.25, values, .24, label=label)
-        n = 6 if model=='GLM-5.1-FP8' else 9
-        ax.set(title=f'{model}: original host observations (n={n}/condition; not common loading)',
-               xticks=range(4), xticklabels=LABELS, ylabel='Mean host-envelope seconds')
-        ax.legend(fontsize=8); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
-        save(fig, stem, 'Model-specific scopes; stages overlap and must not be added or subtracted.\nNo pure disk, H2D, quantization or path-count attribution; no added CUDA synchronization.')
+    original_font = plt.rcParams['font.sans-serif'][:]
+    plt.rcParams['font.sans-serif'] = ['Microsoft YaHei', 'Noto Sans CJK SC', 'SimHei', 'DejaVu Sans']
+    labels45 = ['SF冷读', 'SF热读', 'Store冷读', 'Store池命中']
+    glm_trials = {r['attempt_id']: r for r in read(BASE / 'inputs/glm-cpu/historical-supplement.json')['trials']}
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.5), sharey=True)
+    for ax, model in zip(axes, MODELS):
+        if model == 'GLM-5.1-FP8':
+            assert all(len(primary[model][c]['ids']) == 6 for c in CONDITIONS)
+            values = [mean(glm_trials[i]['recorded_attempt_s'] for i in primary[model][c]['ids']) for c in CONDITIONS]
+            title, ylabel = 'GLM-5.1-FP8（helper，n=6）', '准备开始→记录完成 / 秒'
+        else:
+            values = [summary[model][c]['controller_mean_s'] for c in CONDITIONS]
+            title, ylabel = model + '（controller）', '各自controller区间均值 / 秒'
+        ax.bar(range(4), values, color=COLORS)
+        ax.set(title=title, xticks=range(4), xticklabels=labels45, ylabel=ylabel)
+        ax.tick_params(axis='x', labelrotation=25)
+    save(fig, 'fig4_controller', 'GLM包含准备、三道请求、删除和至少60秒观察；Kimi/V4为各自controller区间。\n各栏端点不同，不能视为同一总成本指标；原40项未重跑。')
+
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.7))
+    load = read(BASE / 'inputs/legacy/kimi-existing-startup-log-runtime-results-audit-20261107.json')
+    axes[0].bar(range(4), [load['primary8_complete_blocks_description'][c]['mean_s'] for c in CONDITIONS], color=COLORS)
+    axes[0].set_title('Kimi f7日志加载包络（n=8）')
+    with (BASE / 'inputs/glm-cpu/event-intervals.csv').open(encoding='utf-8') as stream:
+        glm_phases = {r['attempt_id']: r for r in csv.DictReader(stream)}
+    rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
+    for j, (field, label) in enumerate([('phase_weight_ingestion_span_s', '摄入跨度'), ('phase_quantization_postprocess_span_s', '后处理跨度'), ('phase_weights_pipeline_including_allocation_span_s', '流水线跨度')]):
+        axes[1].bar(np.arange(4) + (j - 1) * .25, [mean(float(glm_phases[i][field]) for i in primary['GLM-5.1-FP8'][c]['ids']) for c in CONDITIONS], .24, label=label)
+        axes[2].bar(np.arange(4) + (j - 1) * .25, [mean(r['metrics'][field] for r in rows if r['success'] and r['block'] >= 2 and r['condition'] == c) for c in CONDITIONS], .24, label=label)
+    axes[1].set_title('GLM八rank阶段跨度（n=6）'); axes[1].legend(fontsize=7)
+    axes[2].set_title('V4八rank阶段跨度（n=9）'); axes[2].legend(fontsize=7)
+    for ax in axes:
+        ax.set(xticks=range(4), xticklabels=labels45, ylabel='均值 / 秒'); ax.tick_params(axis='x', labelrotation=25)
+    save(fig, 'fig5_loading', '各栏观测定义不同：Kimi为f7日志，GLM/V4为八rank阶段包络。\n阶段区间可能重叠，摄入、后处理与流水线不能相加，也不是纯磁盘I/O。')
+    plt.rcParams['font.sans-serif'] = original_font
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
     for ax, model in zip(axes, MODELS):
@@ -234,7 +250,6 @@ def export(output):
     save(fig, 'fig6_exclusive', 'The three non-overlapping host-event intervals sum to A. Backend first output is not client streaming TTFT or GPU token time.')
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 5.4))
-    rows = read(BASE / 'inputs/v4/results/qualified-rows.json')
     originals = [r for r in kimi['runs'] if r['cohort'] == 'original']
     groups = [originals, glm_ledger['rows'], rows]
     for ax, model, group in zip(axes, MODELS, groups):
@@ -247,7 +262,7 @@ def export(output):
             for j in range(10): ax.text(j, i, 'OK' if grid[i][j] else 'FAIL', ha='center', va='center', fontsize=7, color='white')
         ax.set(yticks=range(4), yticklabels=LABELS, xticks=range(10), xticklabels=range(1, 11), title=model, xlabel='Original block (within model; not cross-model pairing)')
     save(fig, 'fig7_original40', 'All original 120 IDs retained: Kimi38/40, GLM35/40 mixed revisions, V4 38/40. No supplemental or pilot replacement.')
-    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums, separate model phase figures, endpoint and component tables')
+    print('CPU_COMPARISON_OK: SHA inputs, V4 independent-review join, frozen statistics, cohort counts, interval sums and seven figure families')
 
 
 if __name__ == '__main__':
