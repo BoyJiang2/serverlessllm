@@ -1,0 +1,154 @@
+{
+  "verdict": "ACCEPT_ACTUAL_MATCHED_STATE_CACHE_DIAGNOSTIC_PASS_NOT_FORMAL_MODEL_RESULT",
+  "run_id": "kimi-matched-cache-only-20261109-qjhs000-v1",
+  "verified_raw_copies": 41,
+  "export_manifest_sha256": "00dc51b1b8d5623d3aaf44fe9bfd374a03274fdace8c7067c0209d75386025ae",
+  "independent_checks_completed": [
+    "Every export path size and SHA; actual read_files84 unique identities/bytes/time ordering; exact sum595204634151 bytes",
+    "All84 files in each of5 sweeps: identity and read timestamps match read phase, pages=ceil(bytes/4096), resident_pages=pages; privileged mincore identity/trust fields",
+    "Fixed offsets anchored producer read_end:0/30/60/90/120; start within2s and final query_end within scheduled+30s; callbacks match same PID/startticks/clock",
+    "Controller source/protocol and activation actualcommand match approved final artifacts",
+    "64MiB GetConfig and CLI/C++1buffer67108864; release attempted1 failed0",
+    "Both guards PASS failures empty/noabort/quiet>=60; observer0gaps/quiet>=60; unitsMainPID0 success; public terminal bothCIDexit0/Pid0/noOOM/scopesgone/eightGPU0/appsnone"
+  ],
+  "read": {
+    "files": 84,
+    "bytes": 595204634151,
+    "read_complete": true,
+    "producer_begin_ns": 8018184793077963,
+    "producer_end_ns": 8018347919028726,
+    "seconds": 163.125950763,
+    "pid": 1158670,
+    "clock_identity": {
+      "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+      "container_hostname": "qjhs0",
+      "process_startticks": 801804376,
+      "time_namespace": "time:[4026531834]",
+      "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)"
+    }
+  },
+  "five_sweeps": [
+    {
+      "offset_seconds": 0,
+      "files": 84,
+      "pages": 145313657,
+      "resident_pages": 145313657,
+      "start_lateness_seconds": 0.000230996,
+      "query_seconds": 18.60439591
+    },
+    {
+      "offset_seconds": 30,
+      "files": 84,
+      "pages": 145313657,
+      "resident_pages": 145313657,
+      "start_lateness_seconds": 0.000360856,
+      "query_seconds": 18.730127401
+    },
+    {
+      "offset_seconds": 60,
+      "files": 84,
+      "pages": 145313657,
+      "resident_pages": 145313657,
+      "start_lateness_seconds": 0.000512531,
+      "query_seconds": 18.908000021
+    },
+    {
+      "offset_seconds": 90,
+      "files": 84,
+      "pages": 145313657,
+      "resident_pages": 145313657,
+      "start_lateness_seconds": 0.00059928,
+      "query_seconds": 18.93766892
+    },
+    {
+      "offset_seconds": 120,
+      "files": 84,
+      "pages": 145313657,
+      "resident_pages": 145313657,
+      "start_lateness_seconds": 0.000566309,
+      "query_seconds": 19.012638803
+    }
+  ],
+  "normal_release": {
+    "quiet_seconds": {
+      "head": 60.16924455203116,
+      "worker": 60.23491539247334,
+      "observer": 60.479751477018
+    },
+    "store_stop_seconds": 2.248460895381868,
+    "observer_gaps": 0,
+    "containers_exit0": true
+  },
+  "resource_view": {
+    "sha256": "7ba7b3398e8e4fb0f10e112f515a66f0b030e14d47340f8e69cc6a6075196a68",
+    "frames": 12,
+    "source_references_match_private_manifest": true,
+    "stable_reader_store_identity": true,
+    "mountroot_and_namespace_match": true,
+    "numa_nodes": [
+      0,
+      1
+    ],
+    "finite_nonroot_ancestor_headroom_verified": true,
+    "root_missing_memory_fields_remain_null": true,
+    "MemAvailable_min_bytes": 1919666110464,
+    "MemAvailable_max_bytes": 1919839457280,
+    "max_collection_seconds": 0.040549326
+  },
+  "source_commit": "4816aeaae2130923635521c9fa5b5a390fd1bf07",
+  "protocol_sha256": "99cd74843008707d6e60620082be2e1f122c6b995fb32924a0168f0e84846f45",
+  "command_sha256": "a53b0688618cd8ce4bfcbd84f5b581af97adddfaf9cf94206ef0c0c733dd3664",
+  "formal_n": 0,
+  "primary_sample_qualified": false,
+  "limits": [
+    "Ordinary SSH independently read exported byte copies; private raw telemetry/address strings, Docker service exec exit verification and root launch execution are attributed to parent exports/controller validated normal tail, not independently read private originals.",
+    "Sequential per-file mincore sweeps are not atomic whole-set or continuous120s residency proof; each of five scheduled sweeps independently observed all frozen pages resident.",
+    "Producer read duration is first preadv begin through final preadv return, not pure cold disk throughput.",
+    "Real64MiB Store CUDA contexts/pinned pool active: not CPU-only. No model registration/loading/inference/delete/gold/8rank model ownership measurement; does not validate future small-pool SF lifecycle.",
+    "No causal claim for previous640GiB-pool warm failure; changed resource profile and different runtime state. Historical failedq0/worker52.0636/additional65.95 safetyrelease unchanged.",
+    "Missing counters remain null; ancestor cumulative counters are not attribution of this run."
+  ],
+  "evidence_sha256": {
+    "controller-final.json": "575631cecfd606f99cee04fd9c9d816f25df4ecaa9103a837d68da65d867d5a1",
+    "diagnostic-cache-validity.json": "f015b9e3c950140e16ad722775fd77d3b3ac3c8b07768f99b3d9fe091530420f",
+    "condition-terminal.json": "d5dd1675afd2a5fa6ca66561db1157ce32fb7a363dceee71b54e9a4e96c2083a",
+    "cleanup-result.json": "9932aa30412df42bfd9c0329a3eb90dd6a10a9675a8e30b8bbed7a35f5be34cd",
+    "cache-observation-result.json": "55fe9c7708f8d0d80dcefbeca431f44a4819c7f8c5bfe2ae83f6fca1e1558794",
+    "cache-observation-callback-markers.json": "27a9ee79f11d2839895f4294e072dbcd52fe06e9bb08a9781dbd431183c45517",
+    "storage-route-admission.json": "3c9c0158400282a69a080ec134bfe2132db58f8cd4520ca3a4c187178663d41b",
+    "store-stop-exit60.json": "92664921006fb3edaa89e12dac1c653ed49ccdab3813c5129b6ca59fd99fa47f",
+    "guard-head/guard-final.json": "6d6fd891e8101e6ba84d37546e7691f4c40a4354cd37614df98930f453950966",
+    "guard-worker/guard-final.json": "1b219423d8af38e6294253f772c2f230e16da077a672bc817995b18be8023050",
+    "observer/observer-final.json": "b5f0612fb679c7da0603e74e68698e7dc5c52d057722185cea7d60a14668eacf",
+    "9-worker-official_module.stdout": "b6c812145fed7a2120a572658fa1735bd9d13bd9f4ab96ff57e5df0e793becfb",
+    "9-worker-official_module.stderr": "4157d924dbff93fee2601fb6caf9cfeae966a77c382f2e728c77e5ff75cdbaf9",
+    "10-worker-store_config.stdout": "4b89cfe35150c342f3a5673ed85aa02c5d682b09fe7203116123b5d93aa9799a",
+    "10-worker-store_config-exec.json": "05bbfb5cbdb8f5a4283edd1771115ac344bb82feb2797f4f489e70e487047f1b",
+    "28-head-controller_shutdown.stdout": "1b81d919ab067a001522db3c164b6251eab0d4f60bcdfb6d95564add7a6783b4",
+    "28-head-controller_shutdown.stderr": "94e79d200dc77440b1f660a152a99267313172493841182d9454c4bca35078d3",
+    "28-head-controller_shutdown-exec.json": "5b05bacd72b29a91ee1950d1a92ccd475370f48ab616e7c54b3f81c83cc25dae",
+    "event-api_controller_authentication_complete.json": "ce4f521acf9571aee0ca0cfa4b24c97c4cdfd97323b4d37bc127f235978da661",
+    "event-api_startup_begin.json": "cc26a138afac06652d8d414c8227f1b095ea04134598b034859a44e2abec2d9c",
+    "event-cache_diagnostic_observations_complete.json": "e5fb9e58da1af440aace96812371f35bb53f326db02498eff19f209b77f46ee0",
+    "event-common_environment_begin.json": "d3aa6e1f1ed287d5348037cdf1424eb28242934d23958520127c155a24ccaeb8",
+    "event-common_environment_complete.json": "4c9d81a24cff0264212bbab6b360ed6ac3a70983c7a7e3758ff2faaeb7085338",
+    "event-containers_normal_exit_complete.json": "a8e921588191695e01ea13d37fc7d4293388327e6e688bec9794fab6eac8731f",
+    "event-controller_shutdown_and_api_stop_begin.json": "62656f34908aee901a8db8e4e3250199154a868eff08d3167b6027f993a205cf",
+    "event-controller_shutdown_and_api_stop_complete.json": "f5e21f952f656fb8ccb6482180d381dfa5076fe63e9844858307a3c8669f4bb7",
+    "event-initial_baseline60_begin.json": "49ea99bf660aa01798ffda67dbb71cababe4d694368c3bc24447dd6736a3ee3e",
+    "event-initial_baseline60_complete.json": "1e78aa60c640e834531c445e4bdf8fd8d4d7bf16b38257a6a2f3d7754d8454dd",
+    "event-ordered_final_stop_begin.json": "7b399a513bb5a6e201676dc98b7a62b80233976c84e520ae752fabc91896e9ec",
+    "event-ray_join_begin.json": "8ab7fd0877982e992deaf287074b98346ea38a53441bb9c6d32ebf5ea723beec",
+    "event-ray_join_complete.json": "33a421cd9ada6001e46fec96a571e488a83065931ba5dc0cacc6b3a2494290ee",
+    "event-release_quiet60_complete.json": "00e02cfc4b09eea504ed2f520e724c25e9d6ddfb127de8d2aadf498748ed63e9",
+    "event-store_pool_initialization_begin.json": "2920d4825cb31243bb45018c1a587c9bf9b34ab414a1d65f018755f700969594",
+    "event-store_pool_initialization_complete.json": "f7dec703b4831fbdfda51a425c3ee665b1171bd637b35c046133e999ee5177e3",
+    "event-target_condition_construction_begin.json": "0342081928c11f04fbcb441988cf4df18d0bd45d42f754f26197d25df1239f21",
+    "runtime-user-authorization-v1.json": "35cbe70ed038ccf6f729b2a4248e0e68541e3509b985e4aec528502f14d8fdff",
+    "runtime-fresh-booking-v1.json": "6af425893ad76c35ebeff54108eda9c8ea5043072cae8b18295606e6e149267f",
+    "runtime-root-admission-v1.json": "6c255ee0979f15e6c3311876ac64253c9e42f21ee753fa6e079d24e435e9120f",
+    "runtime-activation-receipt-v1.json": "c700cc412c2d35b27569ad82f6fac363a7267b01c4005c2ee1f1ce6c56b868ac",
+    "runtime-terminal-release-confirmation-v1.json": "2e57e6a229090af67d4df0be302a83dfa76e1bdd7f1beed76ff8ffcf9ea3255d",
+    "one-shot-start.claim.json": "9e25ded005eda9b75863bc696c396a91876a7bb3be48f39bece4004145d91092"
+  }
+}
