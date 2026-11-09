@@ -80,3 +80,26 @@ source revision04fbc526（实现4904638c）复用原debug_service的Ray CLI、dr
 独立审阅对候选 df88e94a 清单 ecb515c4… 给出 BLOCKED。发布器此前可把两个仅满足长度的观察窗口和缺少八 rank 端点的结果判为成功。连续监控此前可能让下一健康样本覆盖加载期间记录的未归属 GPU 进程。冻结候选和旧测量回执保留。
 
 发布器现在绑定删除确认、实例观察、容器移除、整栈释放观察及宿主退出的先后顺序，从同次端点复算 Prep、两种 A 和七阶段八 rank 跨度，并校验三请求顺序及缓存条件。监控在枚举到新 GPU PID 时用既有容器 cgroup 和 PID 出生身份复核。仍无法归属时保存拒绝样本并结束本轮采样。CPU 回归覆盖错位观察、缺指标、空端点及未归属样本后紧跟健康样本。第四批须重新绑定源码和清单复审，再按每条至少 3900 秒的剩余有效窗口逐条准入。
+
+## 第四批已通过源码复审，待现场准入
+
+完整范围复审已通过，运行代码为 `16f6c59a`，批准清单为 `glm/controls/debug_stack_v1/controller-supplement-r1-v4-approved.json`。服务器同名副本 SHA-256 为 `007c9a285cb4272acce1490fd5b6dc8cfc73de412cb3a0abdd41f08f58a8c1d6`。2026-11-10 02:40（UTC+8）核验首条的宿主 unit 尚不存在。第四批按清单顺序执行，每个条件各一次。
+
+首条执行参数来自批准清单。确认模型和 716 GiB Store 池的授权范围后，启动前核验至少剩余 3900 秒，并检查八卡、主机及 NUMA 内存、锁页与共享内存、I/O、部署 SHA。使用以下路径和身份安装新探针，断开首次 SSH 后独立验证探针。
+
+```text
+host=qjhs003
+run_id=sllm-debug-20261109T183328Z-71a4a759
+holder=9746df9f20286e6092bca77a3c7a8e6c
+condition=safetensors_disk_cold
+tools=/data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-5a91f175b86f/controls/debug_stack_v1
+source_tree=/data/brick1/boyjiang/glm5.1-fp8/code/source-debug-16f6c59a2509-70a71e5dca77
+review=/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-supplement-r1-v4-approved.json
+probe=/run/sllm-debug-20261109T183328Z-71a4a759/guard-verification.json
+unit=sllm-debug-20261109T183328Z-71a4a759-controller.service
+slice=sllm-debug-20261109T183328Z-71a4a759.slice
+probe_modes=--supplement-probe-start --supplement-probe-verify
+measure_mode=measure
+```
+
+完整模型探针使用 3240 秒独立私有 slice 截止。宿主 controller unit 使用 3570 秒运行上限和 30 秒停止上限。释放完成且 unit 已退出后，在本地调用 `glm/tools/historical_costs.py --finalize-controller <run_id>`。以生成的 `controller-final.json` 中 `success=true` 作为继续下一条的必要条件。失败则保留该条证据与成本，后续未开始条目保持原状态。
