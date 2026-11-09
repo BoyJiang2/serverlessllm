@@ -11,6 +11,8 @@ import pathlib
 import re
 import shutil
 import subprocess
+import signal
+import threading
 import time
 import uuid
 
@@ -36,6 +38,8 @@ HEAD_READY_MARK = 'Ray runtime started.'
 STOP_SECONDS = dict(head=70, worker=320)  # TERM reaches the entry through timeout; worker needs the Store grace
 TOOLS = (HERE/'debug_plan.py', HERE/'debug_stack.py', HERE/'debug_service.py', HERE/'debug_guard.py',
          TREE/'controls/service_smoke_v1/docker_args.py', TREE/'tools/restore_original_image.py', TREE/'tools/docker_plan.py')
+SUPPLEMENT_WORK_SECONDS = 1800
+SUPPLEMENT_TOTAL_SECONDS = 3600
 
 
 def sha256(path):
@@ -88,7 +92,7 @@ def gpu_authority(borrow, booking_id, booking_end, seconds, now=None):
     if seconds > BORROW_MAX_SECONDS:
         raise ValueError('borrowed GPU time is capped at %d s' % BORROW_MAX_SECONDS)
     now = now or datetime.datetime.now(datetime.timezone.utc)
-    return dict(mode='borrowed without booking', authorized_by='owner instruction in chat, 2026-10-28',
+    return dict(mode='borrowed without booking', authorized_by='owner instruction in this chat; latest short-borrow confirmation 2026-11-09',
                 checked_utc=now.isoformat(), max_lifetime_seconds=BORROW_MAX_SECONDS,
                 scope='GPUs idle and no formal or debug containers when up ran; not a reservation')
 
@@ -255,7 +259,7 @@ def remove_owned(state, role):
     return 'removed'
 
 
-def up(args):
+def up(args, state=None):
     controller_begin_ns = time.monotonic_ns()
     controller_boot_id = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     gpu = not args.head_only
@@ -267,17 +271,31 @@ def up(args):
         raise RuntimeError('independent host guard not ready (%s); install once: sudo bash install_debug_guard.sh'
                            % '; '.join(guard['problems']))
     config = configuration(args.weight_format, not args.no_query, gpu)
-    deadline = int(time.time())+args.seconds+plan.DEADLINE_GRACE
+    condition = getattr(args, 'condition', None)
+    if condition:
+        config.update(pool_bytes=config['c23_pool_bytes'], measurement_class='independent supplement candidate',
+                      request_order=['arithmetic', 'translation', 'fixed32'], condition=condition)
+        config['differs_from_formal'] = ['fresh public stack for each condition instead of C23 shared stack',
+                                        'independently reviewed supplementary entry, not the original formal gate',
+                                        'fresh native-home compilation cache; compilation costs remain charged',
+                                        'DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs']
+    deadline = int(time.time())+args.seconds+(0 if condition else plan.DEADLINE_GRACE)
     stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
-    run_id = 'sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8]
-    holder = uuid.uuid4().hex
+    run_id = state['run_id'] if state else 'sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8]
+    holder = state['holder'] if state else uuid.uuid4().hex
     debug_root = HOST/'debug'
     debug_root.mkdir(mode=0o700, exist_ok=True)
     if debug_root.stat().st_uid != UID or debug_root.is_symlink():
         raise RuntimeError('debug root owner or type differs')
     run_root = debug_root/run_id
-    run_root.mkdir(mode=0o700)
-    state = dict(run_id=run_id, holder=holder, purpose=plan.PURPOSE, image_id=plan.IMAGE, mode='head-only' if args.head_only else 'gpu',
+    if condition and state:
+        registered = json.loads((run_root/'controller-start.json').read_text())
+        if registered['holder'] != holder or registered['run_id'] != run_id or (run_root/'stack.json').exists():
+            raise RuntimeError('supplement preallocated identity differs')
+    else:
+        run_root.mkdir(mode=0o700)
+    state = {} if state is None else state
+    state.update(run_id=run_id, holder=holder, purpose=plan.PURPOSE, image_id=plan.IMAGE, mode='head-only' if args.head_only else 'gpu',
                  controller_begin_ns=controller_begin_ns, controller_boot_id=controller_boot_id,
                  controller_clock='time.monotonic_ns on qjhs003 host',
                  lifetime_seconds=args.seconds, deadline_unix=deadline, weight_format=args.weight_format, query=not args.no_query,
@@ -292,7 +310,14 @@ def up(args):
         from restore_original_image import restore_with_receipt
         # The image is verified, and restored from the archive if absent, right before each create; nothing here
         # relies on a running container keeping it or on when the node removes images.
-        state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
+        if getattr(args, 'condition', None):
+            # A timed supplement does not initiate asynchronous Docker image import.
+            # If cleanup removes the image, retain failure and restore outside this batch.
+            if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
+                raise RuntimeError('supplement image missing')
+            state['image'] = dict(head=dict(image_id=plan.IMAGE, restored=False))
+        else:
+            state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
         head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', active=active, deadline_unix=deadline)['head']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
@@ -300,9 +325,14 @@ def up(args):
             raise RuntimeError('head address is not private')
         state.update(head_ip=ip, status='head running', head_ready_seconds=wait_head_ready(head['Id']))
         if gpu:
-            state['image']['worker'] = restore_with_receipt(run_root/'image-init-worker.json')
+            if getattr(args, 'condition', None):
+                if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
+                    raise RuntimeError('supplement image missing before worker create')
+                state['image']['worker'] = dict(image_id=plan.IMAGE, restored=False)
+            else:
+                state['image']['worker'] = restore_with_receipt(run_root/'image-init-worker.json')
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
-                               active=active, deadline_unix=deadline)['worker']
+                               active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None))['worker']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -370,6 +400,159 @@ def down(args):
     return state
 
 
+def supplement_sample(state):
+    """Host sampling, attributed by exact container ID and its host cgroup."""
+    row = dict(monotonic_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(), containers={})
+    for role in ('head', 'worker'):
+        cid = state.get(role+'_container_id')
+        if not cid:
+            continue
+        info = inspect(cid)
+        if info is None:
+            row['containers'][role] = dict(container_id=cid, absent=True)
+            continue
+        if not owned(info, state, role):
+            raise RuntimeError('monitor container ownership differs')
+        pid = info['State']['Pid']
+        item = dict(container_id=cid, docker_state=info['State'], pid=pid)
+        if pid:
+            proc = pathlib.Path('/proc')/str(pid)
+            before = proc.joinpath('stat').read_text()
+            item.update(startticks=int(before.rsplit(')', 1)[1].split()[19]), status=proc.joinpath('status').read_text())
+            cg, = [line[3:] for line in proc.joinpath('cgroup').read_text().splitlines() if line.startswith('0::')]
+            base = pathlib.Path('/sys/fs/cgroup')/cg.lstrip('/')
+            if not base.resolve().is_relative_to(pathlib.Path('/sys/fs/cgroup')):
+                raise RuntimeError('cgroup escaped host mount')
+            item['cgroup_path'] = str(base)
+            item['cgroup'] = {name:(base/name).read_text() for name in
+                              ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+            item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
+            if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
+                raise RuntimeError('monitor PID reused')
+        row['containers'][role] = item
+    row['gpu'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
+                                        '--query-gpu=index,uuid,memory.used', '--format=csv,noheader'], text=True, timeout=15)
+    row['gpu_processes'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
+                                                  '--query-compute-apps=pid,used_memory', '--format=csv,noheader'], text=True, timeout=15)
+    row['disk_stat'] = pathlib.Path('/sys/block/nvme1n1/stat').read_text()
+    row['network'] = pathlib.Path('/proc/net/dev').read_text()
+    return row
+
+
+def verify_supplement_review(review, source):
+    expected = {str(p.relative_to(TREE)):sha256(p) for p in TOOLS}
+    if (review.get('scope') != 'glm-controller-supplement-v1' or review.get('verdict') != 'PASS'
+            or review.get('tool_sha256') != expected or review.get('source_tree_sha256') != source['tree_sha256']
+            or review.get('code_commit') != source['code_commit']
+            or review.get('work_seconds') != SUPPLEMENT_WORK_SECONDS
+            or review.get('total_seconds') != SUPPLEMENT_TOTAL_SECONDS):
+        raise RuntimeError('current full supplement R1 not approved')
+
+
+def measure(args):
+    """One independent supplementary condition; never changes a historical ID."""
+    begin_ns = time.monotonic_ns()
+    boot = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    source = verified_source(args.source_tree)
+    review = json.loads(pathlib.Path(args.review).read_text())
+    verify_supplement_review(review, source)
+    refuse_shared_state(True)
+    guard = guard_state()
+    if not guard['active']:
+        raise RuntimeError('supplement independent guard not ready')
+    # A new actual probe receipt is mandatory; a prior timer snapshot alone is insufficient.
+    probe = json.loads(pathlib.Path(args.guard_probe).read_text())
+    if (probe.get('boot_id') != boot or probe.get('guard_sha256') != sha256(HERE/'debug_guard.py')
+            or probe.get('removed_by_guard') is not True or not 0 <= time.time()-probe['completed_unix'] <= 900):
+        raise RuntimeError('fresh actual supplement guard probe missing')
+    available = next(int(line.split()[1])*1024 for line in pathlib.Path('/proc/meminfo').read_text().splitlines()
+                     if line.startswith('MemAvailable:'))
+    if available < 1700*1024**3:
+        raise RuntimeError('supplement host-memory admission below1700GiB')
+    if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
+        raise RuntimeError('restore original image before the supplement, outside timing')
+    stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+    state = dict(run_id='sllm-debug-'+stamp+'-'+uuid.uuid4().hex[:8], holder=uuid.uuid4().hex)
+    debug_root = HOST/'debug'
+    if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
+        raise RuntimeError('supplement debug directory owner/type differs')
+    root = HOST/'debug'/state['run_id']
+    root.mkdir(mode=0o700)
+    initial = dict(state, controller_begin_ns=begin_ns, boot_id=boot, pid=os.getpid(),
+                   startticks=int(pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
+                   condition=args.condition, work_seconds=SUPPLEMENT_WORK_SECONDS, total_seconds=SUPPLEMENT_TOTAL_SECONDS,
+                   r1_sha256=sha256(args.review), guard_probe_sha256=sha256(args.guard_probe))
+    write(root/'controller-start.json', initial)
+    stopped = threading.Event()
+    monitor_errors = []
+
+    def monitor():
+        try:
+            with (root/'controller-monitor.jsonl').open('x') as stream:
+                while not stopped.is_set():
+                    stream.write(json.dumps(supplement_sample(state))+'\n')
+                    stream.flush()
+                    stopped.wait(1)
+        except BaseException as error:
+            monitor_errors.append(repr(error))
+
+    thread = threading.Thread(target=monitor, daemon=True)
+    thread.start()
+    result = dict(initial, status='failed', success=False)
+    previous = signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('supplement absolute work deadline')))
+    signal.setitimer(signal.ITIMER_REAL, max(.001, SUPPLEMENT_WORK_SECONDS-(time.monotonic_ns()-begin_ns)/1e9))
+    try:
+        args.head_only, args.no_query, args.borrow = False, False, True
+        args.seconds, args.booking_id, args.booking_end = SUPPLEMENT_WORK_SECONDS, None, None
+        args.weight_format = 'safetensors' if args.condition.startswith('safetensors_') else 'serverless_llm'
+        up(args, state)
+        while True:
+            if monitor_errors:
+                raise RuntimeError('continuous monitor failed: '+repr(monitor_errors))
+            worker = inspect(state['worker_container_id'])
+            if worker is None:
+                raise RuntimeError('supplement worker disappeared')
+            if not worker['State']['Running']:
+                worker_result = json.loads((root/'debug-service/result.json').read_text())
+                result['worker'] = worker_result
+                if worker['State']['ExitCode'] != 0 or worker_result.get('success') is not True:
+                    raise RuntimeError('supplement native lifecycle failed')
+                break
+            time.sleep(1)
+        result.update(status='business and worker exit verified', success=True)
+    except BaseException as error:
+        result['error'] = repr(error)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+        try:
+            down(args=argparse.Namespace(run_id=state['run_id']))
+            result['all_owned_containers_removed_ns'] = time.monotonic_ns()
+            release_begin = time.monotonic_ns()
+            with (root/'release60.jsonl').open('x') as stream:
+                while True:
+                    row = supplement_sample(state)
+                    stream.write(json.dumps(row)+'\n'); stream.flush()
+                    if row['gpu_processes'].strip() or any(not r.get('absent') for r in row['containers'].values()):
+                        raise RuntimeError('supplement final release evidence not clean')
+                    if (row['monotonic_ns']-release_begin)/1e9 >= 60:
+                        break
+                    time.sleep(1)
+            result['release_observation_s'] = (row['monotonic_ns']-release_begin)/1e9
+        except BaseException as error:
+            result.update(success=False, release_error=repr(error))
+        stopped.set(); thread.join(timeout=150)
+        if thread.is_alive() or monitor_errors:
+            result.update(success=False, monitor_errors=monitor_errors, monitor_alive=thread.is_alive())
+        result.update(controller_end_ns=time.monotonic_ns(), end_boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip())
+        result['controller_elapsed_s'] = (result['controller_end_ns']-begin_ns)/1e9 if result['end_boot_id'] == boot else None
+        if result['controller_elapsed_s'] is None or result['controller_elapsed_s'] > SUPPLEMENT_TOTAL_SECONDS:
+            result.update(success=False, budget_or_clock_failure=True)
+        result['status'] = 'passed independent supplement' if result['success'] else 'failed independent supplement'
+        write(root/'controller-result.json', result)
+    return result
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Debug-only GPU stack lifecycle on qjhs003; never formal.')
     sub = parser.add_subparsers(dest='action', required=True)
@@ -383,7 +566,12 @@ if __name__ == '__main__':
     start.add_argument('--booking-end', help='ISO time with timezone, e.g. 2026-10-29T14:00:00+08:00')
     start.add_argument('--borrow', action='store_true',
                        help='owner-approved use of idle GPUs without a booking; lifetime capped at %d s' % BORROW_MAX_SECONDS)
+    measurement = sub.add_parser('measure', help='one independently reviewed four-condition supplementary sample; not C23')
+    measurement.add_argument('--source-tree', required=True)
+    measurement.add_argument('--condition', required=True, choices=('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'))
+    measurement.add_argument('--review', required=True)
+    measurement.add_argument('--guard-probe', required=True)
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()
-    print(json.dumps(dict(up=up, status=status, down=down)[args.action](args), indent=2))
+    print(json.dumps(dict(up=up, status=status, down=down, measure=measure)[args.action](args), indent=2))

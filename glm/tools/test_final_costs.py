@@ -2,10 +2,18 @@ import unittest
 import json
 
 from final_costs import counters, pss_summary, span, historical_monitor
-from historical_costs import loading_rank_pair
+from historical_costs import loading_rank_pair, c23_controller_audit
 
 
 class CostsTests(unittest.TestCase):
+    def test_real_archive_cannot_split_shared_controller_into_conditions(self):
+        result = c23_controller_audit()
+        self.assertFalse(result['controller_recoverable_by_condition'])
+        self.assertEqual(len(result['c23_attempts']), 26)
+        self.assertTrue(all(r['controller_elapsed_s'] is None for r in result['c23_attempts']))
+        self.assertEqual(result['shared_parents']['head']['child_returncode'], 1)
+        self.assertGreaterEqual(result['shared_final_release_observation_s'], 60)
+
     def test_loading_pair_missing_duplicate_or_wrong_process(self):
         first = dict(name='weights_pipeline_including_allocation_begin', rank=0,
                      pid=12, container_hostname='owned', monotonic_ns=10)

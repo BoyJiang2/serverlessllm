@@ -408,11 +408,85 @@ def c23_loading_boundary():
     print(json.dumps(dict(verdict='C', ranks=len(endpoints), attempts=len(attempts), summary=summary)))
 
 
+def c23_controller_audit():
+    """Check small archived parents and per-attempt records; never rescan telemetry."""
+    from final_statistics import LEDGER_SHA
+    directory = ROOT/'results/reanalysis-20261106'
+    packet = ROOT/'reviews/actual-controls/sllm-glm51fp8-20261027T011726Z-28c92313'
+    sources = {}
+
+    def read(path, expected=None):
+        raw = path.read_bytes()
+        sha = hashlib.sha256(raw).hexdigest()
+        if expected is not None:
+            assert sha == expected, str(path)
+        sources[path.relative_to(ROOT).as_posix()] = dict(bytes=len(raw), sha256=sha)
+        return json.loads(raw)
+
+    ledger = read(directory/'inputs/formal-ledger.json', LEDGER_SHA)
+    index = read(packet/'formal-exact-index.json', 'd73b0cd9a01fc320d05054417b5c553553981cd18fe4a768565a03b5db0bf3b0')
+
+    def archived(name):
+        entry, = [r for r in index['files'] if r['path'].endswith('/'+name)]
+        return read(packet/entry['local_path'], entry['sha256'])
+
+    parents = {role: archived(name+'-supervisor-result.json')
+               for role, name in [('worker', 'formal13'), ('head', 'headformal13')]}
+    for role, name in [('worker', 'formal13'), ('head', 'headformal13')]:
+        dispatch = archived(name+'-dispatch.json')
+        parent = parents[role]
+        assert all(parent[k] == dispatch[k] for k in ('boot_id', 'run_id', 'code_commit', 'manifest_sha256'))
+        assert dispatch['dispatch_monotonic_ns'] <= parent['begin_ns'] < parent['end_ns']
+        assert parent['child_alive_at_end'] is False
+    assert parents['head']['boot_id'] == parents['worker']['boot_id']
+    release = archived('release60-allstopped.json')
+    release_span = span(release[0]['monotonic_ns'], release[-1]['monotonic_ns'])
+    assert len(release) == 61 and release_span >= 60
+    assert max(p['end_ns'] for p in parents.values()) < release[0]['monotonic_ns']
+    assert all(not r['own_running'] and not r['gpu_processes'] and not r['processes'] for r in release)
+    trials = []
+    for row in ledger['rows']:
+        if row.get('protocol_revision') != 'v13-canonical23-qualified-disk-jit-seed':
+            continue
+        result = read(directory/'inputs'/row['attempt_id']/'result.json', row['result_sha256'])
+        assert result['execution_run_id'] == parents['worker']['run_id']
+        assert result['code_commit'] == parents['worker']['code_commit']
+        begin, end = result['preparation_begin_ns'], result['complete_ns']
+        assert all(p['begin_ns'] < begin < end < p['end_ns'] for p in parents.values())
+        assert result['idle_observation_seconds'] >= 60
+        trials.append(dict(attempt_id=row['attempt_id'], condition=result['condition'], block=result['block'],
+                           preparation_begin_ns=begin, helper_complete_ns=end,
+                           helper_elapsed_s=span(begin, end),
+                           prep_s=result['metrics']['preparation_s'],
+                           A_command_to_first_arithmetic_response_s=result['metrics']['command_to_correct_business_response_s'],
+                           controller_begin_ns=None, controller_end_ns=None, controller_elapsed_s=None,
+                           reason='Shared parent remains alive after this helper result; no per-attempt deployment exit.'))
+    assert len(trials) == 26 and sum(5 <= r['block'] <= 10 for r in trials) == 24
+    counts = {s: sum(r['status'] == s for r in ledger['rows']) for s in ('success', 'failed', 'not_started')}
+    assert len(ledger['rows']) == 40 and counts['success'] == 35
+    return dict(schema='glm-controller-historical-audit-v1', sources=sources,
+                original40=counts, c23_attempts=trials, shared_parents=parents,
+                shared_final_release_observation_s=release_span,
+                controller_recoverable_by_condition=False,
+                limitations=['Only one shared parent lifecycle exists for 26 trials; it cannot be divided into four condition lifecycles.',
+                             'Head child_returncode=1 with controlled_stop is retained; supervisor success is not normal child exit0.',
+                             'Helper complete_ns is not process exit, and per-instance idle60 is not whole-deployment release60.',
+                             'Only SHA-bound small archive records were read; no new monitoring scan or GPU execution.'],
+                next_step='Separate four-condition batch with same-run Controller/Prep/A/loading; no historical-block splice.')
+
+
 if __name__ == '__main__':
     import sys
     if sys.argv[1:] == ['--c23-supplement']:
         c23_supplement()
     elif sys.argv[1:] == ['--c23-loading-boundary']:
         c23_loading_boundary()
+    elif sys.argv[1:] == ['--c23-controller-audit']:
+        output = c23_controller_audit()
+        output['analysis_sha256'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+        (ROOT/'results/reanalysis-20261106/controller-history-audit.json').write_text(
+            json.dumps(output, indent=2)+'\n', encoding='utf-8')
+        print(json.dumps(dict(recoverable=False, c23_attempts=len(output['c23_attempts']),
+                              original40=output['original40'])))
     else:
         main()

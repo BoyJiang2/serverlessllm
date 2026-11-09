@@ -80,7 +80,7 @@ def lifetime_wrapper(seconds, role):
     return ['/usr/bin/timeout', '--foreground', '--signal=TERM', '--kill-after='+KILL_AFTER[role], str(seconds)+'s']
 
 
-def overlay(spec, role, seconds, weight_format='safetensors', query=True):
+def overlay(spec, role, seconds, weight_format='safetensors', query=True, supplement_condition=None):
     """Only argv, the formal-dropped switches and the two debug switches may differ from the frozen derivation."""
     result = copy.deepcopy(spec)
     if role == 'head':
@@ -93,6 +93,12 @@ def overlay(spec, role, seconds, weight_format='safetensors', query=True):
         for key in FORMAL_DROPPED_ENV:
             result['env'].pop(key, None)
         result['env'].update(SLLM_DEBUG_WEIGHT_FORMAT=weight_format, SLLM_DEBUG_QUERY='1' if query else '0')
+        if supplement_condition is not None:
+            choices = ('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit')
+            if supplement_condition not in choices or not query or weight_format != (
+                    'safetensors' if supplement_condition.startswith('safetensors_') else 'serverless_llm'):
+                raise ValueError('supplement condition and format/query differ')
+            result['env']['SLLM_SUPPLEMENT_CONDITION'] = supplement_condition
     else:
         raise ValueError('role must be head or worker')
     return result
@@ -111,11 +117,11 @@ def debug_args(spec, run_id, holder, source, deadline_unix):
     return args
 
 
-def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE, deadline_unix=None):
+def plan(run_id, holder, seconds, head_ip, weight_format='safetensors', query=True, active=ACTIVE, deadline_unix=None, supplement_condition=None):
     """The worker half needs the head's observed bridge IP, so `up` re-plans after the head starts."""
     source = debug_run_root(run_id)/'source'
     head = overlay(head_spec(active), 'head', seconds)
-    worker = overlay(worker_spec(head_ip, active), 'worker', seconds, weight_format, query)
+    worker = overlay(worker_spec(head_ip, active), 'worker', seconds, weight_format, query, supplement_condition)
     if deadline_unix is None:
         deadline_unix = int(time.time())+seconds+DEADLINE_GRACE
     return dict(run_id=run_id, purpose=PURPOSE, image_id=IMAGE, lifetime_seconds=seconds, deadline_unix=deadline_unix,

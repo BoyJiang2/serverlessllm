@@ -209,5 +209,32 @@ class ControllerClock(unittest.TestCase):
                 self.assertEqual(result['status'], 'released')
 
 
+class SupplementAdmission(unittest.TestCase):
+    def receipt(self):
+        source = dict(code_commit='a'*40, tree_sha256='b'*64)
+        review = dict(scope='glm-controller-supplement-v1', verdict='PASS', code_commit=source['code_commit'],
+                      source_tree_sha256=source['tree_sha256'],
+                      tool_sha256={str(p.relative_to(d.TREE)):d.sha256(p) for p in d.TOOLS},
+                      work_seconds=d.SUPPLEMENT_WORK_SECONDS, total_seconds=d.SUPPLEMENT_TOTAL_SECONDS)
+        return review, source
+
+    def test_full_current_review_and_all_bindings_required(self):
+        review, source = self.receipt()
+        d.verify_supplement_review(review, source)
+        for key, value in [('verdict', 'FAIL'), ('code_commit', 'c'*40), ('tool_sha256', {}),
+                           ('source_tree_sha256', 'd'*64), ('work_seconds', 3600), ('total_seconds', 7200)]:
+            with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'R1 not approved'):
+                d.verify_supplement_review(dict(review, **{key:value}), source)
+
+    def test_no_r1_rejected_before_resource_or_docker_calls(self):
+        with patch.object(d, 'verified_source', return_value=dict(tree_sha256='b'*64)), \
+             patch.object(d.pathlib.Path, 'read_text', side_effect=['boot', '{"verdict":"FAIL"}']), \
+             patch.object(d, 'refuse_shared_state') as resource, patch.object(d, 'docker') as docker:
+            with self.assertRaisesRegex(RuntimeError, 'R1 not approved'):
+                d.measure(type('Args', (), dict(source_tree='unused', review='unused'))())
+        resource.assert_not_called()
+        docker.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()
