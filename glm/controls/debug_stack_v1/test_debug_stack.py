@@ -178,20 +178,27 @@ class Ownership(unittest.TestCase):
         exec(compile(ast.Module(body=[rule], type_ignores=[]), '<actual monitor rule>', 'exec'), rules)
         snapshot = dict(sample_begin_ns=1, last_sample_ns=6_000_000_002, sample_end_ns=6_000_000_003,
                         stage_timings_ns=[['GPU devices', 1, 6_000_000_002]])
-        for failure in (None, OSError(5, 'injected GPU query failure')):
-            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+        foreign = dict(sample_begin_ns=1, last_sample_ns=2, sample_end_ns=3, gpu='same', foreign_gpu_pids=[123])
+        healthy = dict(foreign, foreign_gpu_pids=[])
+        for sample, failure in [(snapshot,None),(None,OSError(5, 'injected GPU query failure')),
+                                (foreign,[foreign,healthy])]:
+            with self.subTest(sample=sample, failure=failure), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 errors = []
-                sampler = Mock(return_value=snapshot, side_effect=failure)
+                sampler = Mock(return_value=sample, side_effect=failure)
                 namespace = dict(vars(d), root=root, state={}, stopped=Mock(is_set=Mock(return_value=False)),
                                  monitor_errors=errors, supplement_sample=sampler,
+                                 gpu_memory_by_uuid=lambda _: {'gpu':0}, baseline={'gpu':0},
                                  require_monitor_sample=rules['require_monitor_sample'])
                 exec(compile(ast.Module(body=[monitor], type_ignores=[]), '<actual monitor>', 'exec'), namespace)
                 namespace['monitor']()
                 receipt = json.loads((root/'controller-monitor-rejected.json').read_text())
                 self.assertFalse(receipt['healthy'])
-                self.assertEqual(receipt['snapshot'], snapshot if failure is None else None)
-                self.assertEqual(receipt['stage'], 'validate' if failure is None else 'collect')
+                self.assertEqual(receipt['snapshot'], sample)
+                self.assertEqual(receipt['stage'], 'validate' if sample is not None else 'collect')
+                if sample is foreign:
+                    self.assertIn('unattributed GPU processes',receipt['error'])
+                    sampler.assert_called_once()
                 self.assertTrue(errors)
                 self.assertFalse((root/'supplement-monitor-ready.json').exists())
                 self.assertEqual((root/'controller-monitor.jsonl').read_bytes(), b'')

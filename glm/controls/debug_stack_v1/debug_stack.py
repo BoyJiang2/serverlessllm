@@ -559,6 +559,29 @@ def supplement_sample(state):
     row['network'] = pathlib.Path('/proc/net/dev').read_text()
     row['gpu_pids'] = sorted({int(line.split(',', 1)[0]) for line in row['gpu_processes'].splitlines()})
     owned_pids = {p['pid'] for p in row['processes']}
+    # GPU enumeration follows the member scan. A new PID needs a fresh birth
+    # and an exact, still-registered container cgroup before it can be attributed.
+    for pid in set(row['gpu_pids'])-owned_pids:
+        proc = pathlib.Path('/proc')/str(pid)
+        try:
+            stat = (proc/'stat').read_text()
+            group = (proc/'cgroup').read_text()
+            status = (proc/'status').read_text()
+            namespace = (proc/'ns/pid').readlink().as_posix()
+            first = stat.rsplit(')',1)[1].split()[19]
+            last = (proc/'stat').read_text().rsplit(')',1)[1].split()[19]
+            matches = [item for item in row['containers'].values() if item.get('raw_cgroup')==group]
+            if first==last and len(matches)==1:
+                item = matches[0]
+                base = pathlib.Path(item['cgroup_path'])
+                registered = next(r for r in state['bound_cgroups'].values() if r['container_id']==item['container_id'])
+                if base.stat().st_ino==registered['inode']:
+                    row['processes'].append(dict(container_id=item['container_id'], pid=pid, stat=stat,
+                        status=status, cgroup=group, pid_namespace=namespace, sampled_after_gpu_query=True))
+                    owned_pids.add(pid)
+        except OSError:
+            # Missing or unreadable identity stays unattributed and fails the monitor gate.
+            pass
     row['foreign_gpu_pids'] = [p for p in row['gpu_pids'] if p not in owned_pids]
     row['registered_store_helper'] = None
     worker = row['containers'].get('worker', {})
@@ -890,6 +913,8 @@ def measure(args):
                                            previous_begin, previous_mid)
                     if list(gpu_memory_by_uuid(snapshot['gpu'])) != list(baseline):
                         raise RuntimeError('GPU UUID identity changed during supplement')
+                    if snapshot['foreign_gpu_pids']:
+                        raise RuntimeError('unattributed GPU processes: '+repr(snapshot['foreign_gpu_pids']))
                     previous_begin, previous_mid = snapshot['sample_begin_ns'], snapshot['last_sample_ns']
                     events = dict(line.split() for line in snapshot['private_slice_memory_events'].splitlines())
                     oom = (not {'oom', 'oom_kill'} <= events.keys()

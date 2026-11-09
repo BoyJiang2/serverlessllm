@@ -547,10 +547,14 @@ try:
  assert worker['success'] is True and worker['run_id']==run and worker['condition']==start['condition']
  assert worker['holder']==start['holder']==stack['holder']==result['holder']
  assert worker['boot_id']==start['boot_id']==pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
- assert begin<worker['preparation_begin_ns']<worker['preparation_complete_ns']<=worker['startup_command_ns']<worker['correct_business_response_ns']<end
+ prep,prepared,command,trigger,response=(worker[k] for k in ('preparation_begin_ns','preparation_complete_ns','startup_command_ns','business_trigger_ns','correct_business_response_ns'))
+ deleted,removed=worker['delete_complete_ns'],result['all_owned_containers_removed_ns']
+ assert begin<prep<prepared<=command<trigger<response<deleted<removed<end
  assert result['release_observation_s']>=60 and worker['idle_observation_seconds']>=60
  assert end>=result['controller_end_ns'] and (end-begin)/1e9<=3600
- for name,reported in [('release60.jsonl',result['release_observation_s']),('debug-service/idle60.jsonl',worker['idle_observation_seconds'])]:
+ for name,reported,earliest,latest in [
+     ('release60.jsonl',result['release_observation_s'],removed,result['controller_end_ns']),
+     ('debug-service/idle60.jsonl',worker['idle_observation_seconds'],deleted,removed)]:
   path=root/name
   with path.open('rb') as f:data=f.read(16*1024**2+1)
   assert len(data)<=16*1024**2
@@ -558,20 +562,46 @@ try:
   samples=[json.loads(line) for line in data.splitlines() if line.strip()];points=[row['monotonic_ns'] for row in samples]
   assert len(points)>1 and all(0<b-a<=5*10**9 for a,b in zip(points,points[1:]))
   observed=(points[-1]-points[0])/1e9
-  assert begin<=points[0]<points[-1]<=end and observed>=60 and abs(observed-reported)<1e-6
+  assert earliest<=points[0]<points[-1]<=latest and observed>=60 and abs(observed-reported)<1e-6
  gold_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json');gold_bytes=gold_path.read_bytes()
  assert hashlib.sha256(gold_bytes).hexdigest()=='9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
  gold=json.loads(gold_bytes)
  for number in (1,2,0):
-  case=gold['requests'][number];expected=gold['results'][number];response=read('debug-service/'+case['name']+'-response.json');choice=response['choices'][0]
+  case=gold['requests'][number];expected=gold['results'][number]
+  choice=read('debug-service/'+case['name']+'-response.json')['choices'][0]
   assert choice['token_ids']==expected['token_ids'] and choice['message']['content']==expected['text'] and choice['finish_reason']==expected['finish_reason']
   assert len(choice['token_ids'])>0 and len(choice['logprobs'])==len(choice['token_ids'])
   assert all(math.isfinite(row[str(token)]['logprob']) for token,row in zip(choice['token_ids'],choice['logprobs'],strict=True))
- cache=read('debug-service/cache-admission/summary.json');assert cache['passed'] is True
+ cache=read('debug-service/cache-admission/summary.json')
+ assert cache['passed'] is True and cache['condition']==start['condition'] and cache['files']
+ if start['condition']=='store_pool_hit':assert cache['pool_confirmed_ranks']==list(range(8))
+ else:
+  hot=start['condition']=='safetensors_disk_hot'
+  assert all(row['pages']>0 and row['resident_pages']==(row['pages'] if hot else 0) for row in cache['files'])
  phases=read('debug-service/phases.json')
- pipeline=phases['phases']['weights_pipeline_including_allocation']['ranks'];assert set(pipeline)==set(map(str,range(8)))
- assert len(read('debug-service/measurement-progress.json')['requests'])==3
- metrics=dict(worker['metrics']);metrics['controller_s']=(end-begin)/1e9
+ requests=read('debug-service/measurement-progress.json')['requests']
+ assert requests==worker['requests'] and [row['name'] for row in requests]==[gold['requests'][n]['name'] for n in (1,2,0)]
+ previous=command
+ for row in requests:
+  assert previous<row['begin_ns']<row['response_complete_ns']<deleted and row['gold_match'] is True
+  previous=row['response_complete_ns']
+ assert (requests[0]['begin_ns'],requests[0]['response_complete_ns'])==(trigger,response)
+ assert (phases['begin_ns'],phases['end_ns'],phases['request_id'])==(command,response,requests[0]['request_id'])
+ published=phases['control_events']['router_instance_published']['monotonic_ns']
+ assert command<=published<=phases['first_token_observed_ns']<=response and trigger<=phases['first_token_observed_ns']
+ metrics={'preparation_s':(prepared-prep)/1e9,'command_to_correct_business_response_s':(response-command)/1e9,
+          'trigger_to_correct_business_response_s':(response-trigger)/1e9}
+ assert set(phases['phases'])=={'device_setup_including_communication','communication_groups','weights_pipeline_including_allocation',
+                               'weight_ingestion','quantization_postprocess','kv_cache_allocation','compile_graph_and_warmup'}
+ for name,phase in phases['phases'].items():
+  ranks=phase['ranks']
+  assert set(ranks)==set(map(str,range(8)))
+  assert all(type(row['begin_ns']) is int and type(row['end_ns']) is int and command<=row['begin_ns']<=row['end_ns']<=response for row in ranks.values())
+  span=(max(row['end_ns'] for row in ranks.values())-min(row['begin_ns'] for row in ranks.values()))/1e9
+  assert span==phase['min_begin_to_max_end_seconds']
+  metrics['phase_'+name+'_span_s']=span
+ assert metrics==worker['metrics']
+ metrics['controller_s']=(end-begin)/1e9
  out.update(success=True,metrics=metrics,controller_begin_ns=begin,controller_end_ns=end,clock='systemd CLOCK_MONOTONIC microseconds converted to ns;1us resolution',code_commit=stack['source']['code_commit'],protocol_revision='independent-controller-supplement-v1',sample_n=1,scope='same-run Controller/Prep/A/phases; not historical C23 blocks; phase envelopes not proven V4 equivalent')
 except BaseException as error:
  out['failure']=repr(error)

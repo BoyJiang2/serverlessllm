@@ -27,21 +27,38 @@ class CostsTests(unittest.TestCase):
             identity = dict(run_id=run, holder='b'*32, boot_id='boot')
             write('controller-start.json', dict(identity, condition='store_disk_cold', controller_begin_ns=10**9,
                                                 independent_controller_unit=dict(InvocationID='a'*32)))
-            write('controller-result.json', dict(identity, success=True, release_observation_s=60, controller_end_ns=190*10**9))
+            write('controller-result.json', dict(identity, success=True, release_observation_s=60,
+                  all_owned_containers_removed_ns=119*10**9, controller_end_ns=190*10**9))
             write('stack.json', dict(identity, source=dict(code_commit='c'*40)))
-            write('debug-service/result.json', dict(identity, success=True, condition='store_disk_cold',
+            requests = [dict(name='case'+str(i), begin_ns=begin, response_complete_ns=end,
+                             request_id='request'+str(i), gold_match=True)
+                        for i,begin,end in [(1,4500000000,5*10**9),(2,6*10**9,7*10**9),(0,8*10**9,9*10**9)]]
+            phase_names = ('device_setup_including_communication','communication_groups',
+                           'weights_pipeline_including_allocation','weight_ingestion','quantization_postprocess',
+                           'kv_cache_allocation','compile_graph_and_warmup')
+            phase = dict(ranks={str(i):dict(begin_ns=4100000000,end_ns=4400000000) for i in range(8)},
+                         min_begin_to_max_end_seconds=.3)
+            metrics = dict(preparation_s=1, command_to_correct_business_response_s=1,
+                           trigger_to_correct_business_response_s=.5)
+            metrics.update({'phase_'+name+'_span_s':.3 for name in phase_names})
+            worker = dict(identity, success=True, condition='store_disk_cold',
                   preparation_begin_ns=2*10**9, preparation_complete_ns=3*10**9, startup_command_ns=4*10**9,
-                  correct_business_response_ns=5*10**9, idle_observation_seconds=60, metrics=dict(preparation_s=1)))
+                  business_trigger_ns=4500000000, correct_business_response_ns=5*10**9,
+                  delete_complete_ns=49*10**9, idle_observation_seconds=60, metrics=metrics, requests=requests)
+            write('debug-service/result.json', worker)
             gold = dict(requests=[dict(name='case'+str(i)) for i in range(3)],
                         results=[dict(token_ids=[1], text='ok', finish_reason='stop')]*3)
             write('gold.json', gold)
             for i in range(3):
                 write('debug-service/case'+str(i)+'-response.json', dict(choices=[dict(token_ids=[1],
                       message=dict(content='ok'), finish_reason='stop', logprobs=[{'1':dict(logprob=-.5)}])]))
-            write('debug-service/cache-admission/summary.json', dict(passed=True))
-            write('debug-service/phases.json', dict(phases=dict(weights_pipeline_including_allocation=dict(
-                  ranks={str(i):{} for i in range(8)}))))
-            write('debug-service/measurement-progress.json', dict(requests=[1,2,0]))
+            write('debug-service/cache-admission/summary.json', dict(passed=True, condition='store_disk_cold',
+                  files=[dict(pages=1,resident_pages=0)]))
+            phases = dict(begin_ns=4*10**9,end_ns=5*10**9,request_id='request1',first_token_observed_ns=4800000000,
+                          control_events=dict(router_instance_published=dict(monotonic_ns=4400000000)),
+                          phases={name:phase for name in phase_names})
+            write('debug-service/phases.json', phases)
+            write('debug-service/measurement-progress.json', dict(requests=requests))
             for name,first in [('release60.jsonl',120),('debug-service/idle60.jsonl',50)]:
                 (root/name).write_text(''.join(json.dumps(dict(monotonic_ns=(first+i)*10**9))+'\n' for i in range(61)))
             def remote(argv, **kwargs):
@@ -59,8 +76,23 @@ class CostsTests(unittest.TestCase):
             with patch('subprocess.run', side_effect=remote), contextlib.redirect_stdout(io.StringIO()):
                 finalize_controller(run)
                 good = json.loads((root/'controller-final.json').read_text())
-                self.assertTrue(good['success'])
+                self.assertTrue(good['success'], good.get('failure'))
                 self.assertEqual(good['metrics']['controller_s'], 199)
+                cases = [
+                    ('debug-service/result.json', dict(worker, delete_complete_ns=55*10**9)),
+                    ('controller-result.json', dict(identity, success=True, release_observation_s=60,
+                         all_owned_containers_removed_ns=125*10**9, controller_end_ns=190*10**9)),
+                    ('debug-service/result.json', dict(worker, metrics=dict(preparation_s=1))),
+                    ('debug-service/phases.json', dict(phases, phases={name:dict(phase, ranks={str(i):{} for i in range(8)})
+                                                                     for name in phase_names})),
+                ]
+                for name,invalid in cases:
+                    original = (root/name).read_bytes()
+                    (root/'controller-final.json').unlink()
+                    write(name, invalid)
+                    finalize_controller(run)
+                    self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
+                    (root/name).write_bytes(original)
                 (root/'controller-final.json').unlink()
                 unit['ExecMainStatus'] = '1'
                 finalize_controller(run)
