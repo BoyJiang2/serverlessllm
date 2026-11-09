@@ -16,7 +16,7 @@
 
 四条均保留 768799145984 字节 Store 池（716 GiB）；SF 不能沿用调试默认 64 MiB 池。池命中须逐 rank 原生确认，SF 热读须冻结完整输入列表及完整 mincore 全驻留，冷读须目标列表全部页面零驻留。复用 C23 的文件级控制与 NUMA 放置；不能清全机缓存。元数据身份读取必须在最终驱逐/扫描前完成。
 
-冻结主区间：宿主 controller 入口（资源核验、代码/镜像恢复、部署之前）到本实验正常受控退出且全退出后至少60秒释放观察完成、证据落盘；同一宿主 boot ID、CLOCK_MONOTONIC，记录 PID/startticks、精确容器 ID/cgroup 与 run/holder。证据最终收据自身的写入不递归计时，终点之后不能再做实验清理；异常退出单列失败。另列部署到首正确算术响应、实例生命周期和完整退出。注册后的请求顺序 arithmetic→translation→fixed32；逐 token/文本/finish_reason/有限 logprob 校验。非流式 HTTP 完成不称最后 token。
+冻结主区间：新root管理的systemd瞬态controller service之ExecMainStartTimestampMonotonic，到该Main进程正常退出的ExecMainExitTimestampMonotonic（微秒精度，转换为ns）；Main退出之前必须完成本实验栈正常受控退出及全退出后至少60秒释放观察、证据落盘；同一宿主 boot ID、CLOCK_MONOTONIC，记录 PID/startticks、精确容器 ID/cgroup 与 run/holder。证据最终收据自身的写入不递归计时，终点之后不能再做实验清理；异常退出单列失败。另列部署到首正确算术响应、实例生命周期和完整退出。注册后的请求顺序 arithmetic→translation→fixed32；逐 token/文本/finish_reason/有限 logprob 校验。非流式 HTTP 完成不称最后 token。
 
 每条统一输出：Controller=上述完整宿主区间；Prep=本次 preparation_complete_ns−preparation_begin_ns；A=本次首算术 HTTP 正确响应完成−注册命令发出（另列 trigger 起点）；已有 phase_* 使用同一请求窗口中八 rank 最早 begin→最晚 end，保留原始事件和SHA，不相加成总耗时。每条只有一个新 run/attempt 身份，统一 manifest 绑定配置、缓存证据、原始 token、阶段文件及结果。任何缺失指标为 null/失败，禁止借用旧六块或其他尝试的字段拼成一行。
 
@@ -52,3 +52,18 @@
 B8已通过SSH只读复核57个小型运行源码/native/配置资产，共2007325字节。服务器源码副本没有.git，因此没有clone或补复制；改用冻结官方提交9f50241baa5386e06a9321c51f19a9ef5f964c2b的31个Git blob核对：3处已知补丁按原历史SHA匹配，其余28处仅CRLF部署差异。只做只读换行比较，服务器原字节不改，运行准入仍钉住实际raw SHA；gold/restore不做换行归一化。源依据、文件清单和旧native副本/overlay区别保留在../../evidence/cost-sources/controller-runtime-reference-verification.json；首次预检失败单列保留。真正Store进程在创建大池前复用原verify_store_imports/verify_event_trace并核实际Python/Torch/vLLM/CUDA及导入路径，不能称所有rank机器码证明。
 
 78项相关CPU检查通过（57调试候选+5历史成本+6C23参数回归+10旧native导入校验），不代表完整measure链或GPU通过。**当前仍缺B2独立exact-slice总截止与实际CPU故障probe、B5可信root probe来源及对应完整复审；宿主独立unit身份检查只是部分接线，不能当守护已部署。** Controller最终端点还需绑定实际正常退出证据，不能将自身写result前的内层时间冒称完整进程退出时刻。原四条件补测全部未开始，GPU/Store池占用为零（本任务未启动，不代表最新全机快照）。
+
+
+## 当前独立截止与最终端点修订（待完整R1）
+
+实际阻塞是宿主controller及Docker子树的独立硬截止、可信故障probe和内层终点不覆盖进程退出。仅修改现有debug_stack.py、debug_service.py、install_debug_guard.sh、historical_costs.py及对应既有测试；不新增运行框架、镜像、环境或权重副本。
+
+- 每条使用唯一run/holder，root管理的私有`<run>.slice`，controller与两个Docker容器必须实际处于该slice。新slice上限1700GiB、Swap0、Tasks8192。默认debug与C23模板不变；补充容器增加同一私有cgroup-parent。
+- 独立root瞬态controller service：User/Group2147，RuntimeMaxSec3570、TimeoutStopSec30、KillModecontrol-group、SendSIGKILLyes、Restartno、RemainAfterExityes，不使用--collect。保留退出元数据供后置CPU复算。工作阶段仍只允许原点起1800秒，不因步骤重置。
+- 另一条root timer位于私有slice外，probe核验后3240秒对精确私有slice执行systemctl kill --kill-who=all --signal=SIGKILL；本次Main启动时再次核对实际下一次monotonic触发时刻，使其落在Main原点后3000–3245秒。只杀本run，不操作其他资源。该强杀用于故障兜底；触发后本条失败，不能称正常退出。
+- 既有安装脚本新增两个显式CPU probe模式；不调用其默认全局安装模式。先启动有TERM-ignore/setsid子进程的有界CPU服务、32MiB无网络/runc/noGPU小容器、同slice哨兵及另一slice对照；断开SSH后独立核验实际超时、精确slice清空、137非OOM及对照存活，再删除本次小容器和对照。root只读收据存/run/<run>，含PID出生、boot、源码SHA、unit、timer、实际触发时刻；controller拒绝用户可写、过期或失配收据。CPU probe不是GPU/模型验证。
+- 退出路径只由measure清理一次；up失败不重复先清理再被外层清理。每角色保留rm前最终State；强杀、137、OOM或证据缺失均失败。Store进程有240秒grace，嵌套finally保留错误。3240秒slice兜底与3570+30秒宿主上限仍需实际CPU验证；不靠事后时间比较当守护。
+- 内层controller-result.json仅组件结果，标记controller_metric_provisional；不是主Controller。Main退出后historical_costs.py --finalize-controller <run>独立读取systemd原点/退出、InvocationID、同boot/run/holder及同次worker/cache/三金标/phases的SHA。正常退出且两次60秒观察均通过才发布Controller；否则metrics=null并保留失败。不得将内层预退出时间或旧helper填入主栏。
+- 独立守护安装/probe、源码部署、镜像恢复及闲置slice等公共准备成本另账，不因放在主Controller外消失。主Controller包含本次资源/代码检查、建池、缓存控制、部署/请求及两层释放观察。镜像必须已存在，缺失则停止，不在计时里发起异步load。
+
+当前只完成CPU源码检查，不存在本修订实际root probe、四条件运行或批准。18:23(+08)只读快照八卡0MiB，主机MemAvailable2018325405696字节；快照不授予后续准入。下一步完整源码/预算R1，之后实际CPU守护probe及新鲜资源检查，通过才按固定顺序各一次；异常停止后续，不与C23六块拼接。

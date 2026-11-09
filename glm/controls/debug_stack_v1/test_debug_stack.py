@@ -286,12 +286,12 @@ class SupplementAdmission(unittest.TestCase):
         cgroup = slice_cgroup+'/'+unit
         properties = dict(Id=unit, User='2147', MainPID='123', KillMode='control-group', SendSIGKILL='yes',
                           RuntimeMaxUSec='59min 30s', TimeoutStopUSec='30s', NRestarts='0', InvocationID='a'*32,
-                          Transient='yes', Restart='no', ActiveState='active', SubState='running',
+                          Transient='yes', Restart='no', RemainAfterExit='yes', ActiveState='active', SubState='running',
                           Slice=STATE['run_id']+'.slice', ControlGroup=cgroup,
                           ExecStart=str(d.HERE/'debug_stack.py')+' measure', ExecMainStartTimestampMonotonic='1')
         self.assertEqual(d.verify_controller_unit(properties, unit, 123, cgroup, 'a'*32, slice_cgroup), 1000)
         for key, value in [('MainPID','124'), ('RuntimeMaxUSec','infinity'), ('KillMode','process'),
-                           ('Slice','system.slice'), ('ControlGroup','/other')]:
+                           ('Slice','system.slice'), ('ControlGroup','/other'), ('RemainAfterExit','no')]:
             with self.subTest(key=key), self.assertRaisesRegex(RuntimeError, 'deadline/identity differs'):
                 d.verify_controller_unit(dict(properties, **{key:value}), unit, 123, cgroup, 'a'*32, slice_cgroup)
 
@@ -309,6 +309,46 @@ class SupplementAdmission(unittest.TestCase):
                        'memory.stat':'anon 4096\nshmem 0\nunevictable 0\n'})
         with self.assertRaisesRegex(RuntimeError, 'memory retained'):
             d.require_supplement_release(dict(row, retained_cgroups={'head':dict(absent=True), 'worker':retained}), baseline)
+
+    def test_root_probe_rejects_writable_stale_or_unarmed_evidence(self):
+        run = STATE['run_id']
+        path = d.pathlib.Path('/run')/run/'guard-verification.json'
+        birth = dict(pid=999999999, stat='0 (probe) '+' '.join(['0']*20))
+        proof = dict(run_id=run, holder='a'*32, boot_id='boot', completed_unix=100,
+                     installer_sha256='installer', guard_sha256='guard',
+                     host_probe_final=dict(Result='timeout'),
+                     slice_probe_final=dict(Result='success', ExecMainStatus='0'),
+                     container_final=dict(Id='c'*64, State=dict(Running=False, ExitCode=137, OOMKilled=False)),
+                     main_slice=dict(ControlGroup='/'+run+'.slice', MemoryMax='1825361100800', MemorySwapMax='0', TasksMax='8192'),
+                     deadline_next_monotonic_usec=3200000000, host=dict(process=birth), setsid_child=birth,
+                     slice_sentinel=dict(process=birth), container_process=birth)
+        file_mode = [0o100444]
+        def stat(p, **kwargs):
+            if p == path:
+                return type('Stat', (), dict(st_uid=0, st_mode=file_mode[0]))()
+            if p == path.parent:
+                return type('Stat', (), dict(st_uid=0, st_mode=0o40755))()
+            raise FileNotFoundError(2, 'absent probe process', str(p))
+        outputs = lambda: iter(['{ argv[]=/usr/bin/systemctl kill --kill-who=all --signal=SIGKILL '+run+'.slice ; }',
+                                'active', json.dumps(dict(data=3200000000))])
+        with patch.object(d.pathlib.Path, 'stat', stat), patch.object(d.pathlib.Path, 'is_symlink', return_value=False), \
+             patch.object(d.pathlib.Path, 'read_text', side_effect=lambda: json.dumps(proof)), \
+             patch.object(d.time, 'time', return_value=101), \
+             patch.object(d, 'sha256', side_effect=lambda p: 'installer' if p.name.endswith('.sh') else 'guard'), \
+             patch.object(d, 'inspect', return_value=None), \
+             patch.object(d.subprocess, 'check_output', side_effect=outputs()):
+            self.assertEqual(d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice'), proof)
+            file_mode[0] = 0o100644
+            with self.assertRaisesRegex(RuntimeError, 'root ownership'):
+                d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice')
+            file_mode[0] = 0o100444
+            proof['completed_unix'] = -100
+            with self.assertRaisesRegex(RuntimeError, 'probe evidence differs'):
+                d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice')
+            proof['completed_unix'] = 100
+            with patch.object(d.subprocess, 'check_output', side_effect=['wrong-slice']):
+                with self.assertRaisesRegex(RuntimeError, 'not armed'):
+                    d.verify_root_probe(path, run, 'boot', 1, '/'+run+'.slice')
 
 
 if __name__ == '__main__':

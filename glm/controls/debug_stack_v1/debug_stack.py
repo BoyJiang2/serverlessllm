@@ -38,6 +38,7 @@ HEAD_READY_SECONDS = 120
 HEAD_READY_MARK = 'Ray runtime started.'
 STOP_SECONDS = dict(head=70, worker=320)  # TERM reaches the entry through timeout; worker needs the Store grace
 TOOLS = (HERE/'debug_plan.py', HERE/'debug_stack.py', HERE/'debug_service.py', HERE/'debug_guard.py',
+         HERE/'install_debug_guard.sh',
          TREE/'controls/service_smoke_v1/docker_args.py', TREE/'tools/restore_original_image.py', TREE/'tools/docker_plan.py')
 SUPPLEMENT_WORK_SECONDS = 1800
 SUPPLEMENT_TOTAL_SECONDS = 3600
@@ -225,6 +226,11 @@ def create_and_start(argv, role, state, receipt):
     info = inspect(cid)
     if info is None or not owned(info, state, role) or not info['State']['Running']:
         raise RuntimeError(role+' container not running under this holder')
+    if state.get('condition'):
+        cg, = [line[3:] for line in (pathlib.Path('/proc')/str(info['State']['Pid'])/'cgroup').read_text().splitlines()
+                if line.startswith('0::')]
+        if not cg.startswith(state['verified_slice_cgroup']+'/'):
+            raise RuntimeError('supplement container escaped independently guarded private slice')
     return info
 
 
@@ -337,6 +343,8 @@ def up(args, state=None):
         else:
             state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
         head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', active=active, deadline_unix=deadline)['head']
+        if condition:
+            head_plan['docker_argv'][2:2] = ['--cgroup-parent='+run_id+'.slice']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
@@ -352,12 +360,18 @@ def up(args, state=None):
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
                                active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
                                supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['worker']
+            if condition:
+                worker['docker_argv'][2:2] = ['--cgroup-parent='+run_id+'.slice']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         write(receipt, state)
     except BaseException as error:
         state.update(status='failed during up', error=repr(error))
+        if condition:
+            # measure owns the single cleanup pass and its absolute root deadline.
+            write(receipt, state)
+            raise
         cleanup = {}
         for role in ('worker', 'head'):
             try:
@@ -563,6 +577,7 @@ def verify_controller_unit(properties, unit, pid, cgroup, invocation, slice_cgro
             or properties.get('Id') != unit or properties.get('User') != '2147'
             or properties.get('MainPID') != str(pid) or properties.get('KillMode') != 'control-group'
             or properties.get('Transient') != 'yes' or properties.get('Restart') != 'no'
+            or properties.get('RemainAfterExit') != 'yes'
             or properties.get('ActiveState') != 'active' or properties.get('SubState') != 'running'
             or properties.get('SendSIGKILL') != 'yes' or properties.get('RuntimeMaxUSec') != '59min 30s'
             or properties.get('TimeoutStopUSec') != '30s' or properties.get('NRestarts') != '0'
@@ -582,7 +597,7 @@ def controller_unit(unit):
         raise RuntimeError('supplement requires its independent root-managed transient service')
     names = ('Id', 'User', 'MainPID', 'KillMode', 'SendSIGKILL', 'RuntimeMaxUSec', 'TimeoutStopUSec',
              'NRestarts', 'InvocationID', 'ControlGroup', 'Slice', 'ExecStart', 'ExecMainStartTimestampMonotonic',
-             'Transient', 'Restart', 'ActiveState', 'SubState')
+             'Transient', 'Restart', 'ActiveState', 'SubState', 'RemainAfterExit')
     raw = subprocess.check_output(['systemctl', '--system', 'show', unit, '--property='+','.join(names)],
                                   text=True, timeout=15, env=dict(os.environ, LC_ALL='C'))
     properties = dict(line.split('=', 1) for line in raw.splitlines() if '=' in line)
@@ -646,6 +661,47 @@ def supplement_resources():
     return sample
 
 
+def verify_root_probe(path, run, boot, origin_ns, slice_cgroup):
+    path = pathlib.Path(path)
+    meta, parent = path.stat(), path.parent.stat()
+    if (path.is_symlink() or path.parent.is_symlink() or path.parent != pathlib.Path('/run')/run
+            or meta.st_uid != 0 or meta.st_mode & 0o222 or parent.st_uid != 0 or parent.st_mode & 0o022):
+        raise RuntimeError('root probe evidence is not protected by root ownership')
+    proof = json.loads(path.read_text())
+    if (proof['run_id'] != run or proof['boot_id'] != boot or not re.fullmatch('[0-9a-f]{32}', proof['holder'])
+            or proof['installer_sha256'] != sha256(HERE/'install_debug_guard.sh')
+            or proof['guard_sha256'] != sha256(HERE/'debug_guard.py')
+            or not 0 <= time.time()-proof['completed_unix'] <= 120
+            or proof['host_probe_final']['Result'] != 'timeout'
+            or proof['slice_probe_final']['Result'] != 'success' or proof['slice_probe_final']['ExecMainStatus'] != '0'
+            or proof['container_final']['State']['Running'] or proof['container_final']['State']['ExitCode'] != 137
+            or proof['container_final']['State']['OOMKilled'] or proof['main_slice']['ControlGroup'] != slice_cgroup
+            or proof['main_slice']['MemoryMax'] != '1825361100800' or proof['main_slice']['MemorySwapMax'] != '0'
+            or proof['main_slice']['TasksMax'] != '8192'):
+        raise RuntimeError('actual CPU deadline/slice probe evidence differs')
+    expected_slice = run+'.slice'
+    service = subprocess.check_output(['systemctl','show',run+'-deadline.service','--property=ExecStart','--value'],
+                                      text=True, timeout=15)
+    expected_command = 'argv[]=/usr/bin/systemctl kill --kill-who=all --signal=SIGKILL '+expected_slice+' ;'
+    if expected_command not in service or subprocess.check_output(['systemctl','is-active',run+'-deadline.timer'],
+                                                                  text=True, timeout=15).strip() != 'active':
+        raise RuntimeError('actual independent exact-slice deadline is not armed')
+    timer_path='/org/freedesktop/systemd1/unit/'+''.join(c if c.isalnum() else '_%02x'%ord(c) for c in run+'-deadline.timer')
+    data = json.loads(subprocess.check_output(['busctl','--system','--json=short','get-property',
+        'org.freedesktop.systemd1',timer_path,'org.freedesktop.systemd1.Timer','NextElapseUSecMonotonic'],text=True,timeout=15))
+    deadline_ns = int(data['data'])*1000
+    if (int(data['data']) != proof['deadline_next_monotonic_usec']
+            or not origin_ns+3000*10**9 <= deadline_ns <= origin_ns+3245*10**9):
+        raise RuntimeError('actual exact-slice deadline does not fit the frozen total budget')
+    for item in (proof['host']['process'], proof['setsid_child'], proof['slice_sentinel']['process'], proof['container_process']):
+        proc = pathlib.Path('/proc')/str(item['pid'])/'stat'
+        if proc.exists() and proc.read_text().rsplit(')',1)[1].split()[19] == item['stat'].rsplit(')',1)[1].split()[19]:
+            raise RuntimeError('probe birth identity still alive')
+    if inspect(proof['container_final']['Id']) is not None:
+        raise RuntimeError('CPU probe container metadata was not removed')
+    return proof
+
+
 def verify_runtime_assets(reference):
     if reference['immutable_image_id'] != plan.IMAGE:
         raise RuntimeError('original GLM image identity changed')
@@ -688,14 +744,12 @@ def measure(args):
     if not guard['active']:
         raise RuntimeError('supplement independent guard not ready')
     # A new actual probe receipt is mandatory; a prior timer snapshot alone is insufficient.
-    probe = json.loads(pathlib.Path(args.guard_probe).read_text())
-    if (probe.get('boot_id') != boot or probe.get('guard_sha256') != sha256(HERE/'debug_guard.py')
-            or probe.get('removed_by_guard') is not True or not 0 <= time.time()-probe['completed_unix'] <= 900):
-        raise RuntimeError('fresh actual supplement guard probe missing')
+    run = args.controller_unit.removesuffix('-controller.service')
+    probe = verify_root_probe(args.guard_probe, run, boot, begin_ns, unit['verified_slice_cgroup'])
     admission = supplement_resources()
     if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
         raise RuntimeError('restore original image before the supplement, outside timing')
-    state = dict(run_id=args.controller_unit.removesuffix('-controller.service'), holder=uuid.uuid4().hex)
+    state = dict(run_id=run, holder=probe['holder'], verified_slice_cgroup=unit['verified_slice_cgroup'])
     debug_root = HOST/'debug'
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
@@ -802,7 +856,9 @@ def measure(args):
         result['controller_elapsed_s'] = (result['controller_end_ns']-begin_ns)/1e9 if result['end_boot_id'] == boot else None
         if result['controller_elapsed_s'] is None or result['controller_elapsed_s'] > SUPPLEMENT_TOTAL_SECONDS:
             result.update(success=False, budget_or_clock_failure=True)
-        result['status'] = 'passed independent supplement' if result['success'] else 'failed independent supplement'
+        result['status'] = 'components passed; awaiting kernel unit exit finalization' if result['success'] else 'failed independent supplement'
+        result['controller_metric_provisional'] = True
+        result['controller_finalizer'] = 'historical_costs.py --finalize-controller '+state['run_id']
         write(root/'controller-result.json', result)
     return result
 
@@ -829,4 +885,7 @@ if __name__ == '__main__':
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()
-    print(json.dumps(dict(up=up, status=status, down=down, measure=measure)[args.action](args), indent=2))
+    outcome = dict(up=up, status=status, down=down, measure=measure)[args.action](args)
+    print(json.dumps(outcome, indent=2))
+    if args.action == 'measure' and not outcome['success']:
+        sys.exit(1)

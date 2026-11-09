@@ -516,6 +516,69 @@ print(json.dumps(reference))
                          bytes=sum(row['bytes'] for row in output['asset_files']), gpu_execution=False)))
 
 
+def finalize_controller(run):
+    """Finalize a new sample from kernel unit exit, never an inner self-reported end."""
+    import re, subprocess
+    if not re.fullmatch(r'sllm-debug-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run):
+        raise ValueError('new supplementary run identity required')
+    script = '''import pathlib,json,hashlib,subprocess,math
+run=RUN
+root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run
+names=('Id','Result','ExecMainCode','ExecMainStatus','MainPID','InvocationID','ExecMainStartTimestampMonotonic','ExecMainExitTimestampMonotonic')
+raw=subprocess.check_output(['systemctl','show',run+'-controller.service','--property='+','.join(names)],text=True,timeout=15)
+unit=dict(line.split('=',1) for line in raw.splitlines() if '=' in line)
+if unit.get('MainPID') not in ('0',''):raise RuntimeError('controller still active; no finalization during measurement')
+inputs={}
+def read(name):
+ p=root/name
+ if not p.exists():inputs[name]={'path':str(p),'missing':True};return {}
+ data=p.read_bytes();inputs[name]={'path':str(p),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()};return json.loads(data)
+start=read('controller-start.json')
+result=read('controller-result.json')
+stack=read('stack.json')
+out={'schema':'glm-independent-controller-supplement-v1','attempt_id':run,'condition':start.get('condition'),'unit':unit,'success':False,'metrics':None,'inputs':inputs,'original40_modified':False}
+try:
+ assert unit['Id']==run+'-controller.service' and unit['Result']=='success' and unit['ExecMainCode']=='1' and unit['ExecMainStatus']=='0'
+ assert unit['InvocationID']==start['independent_controller_unit']['InvocationID']
+ begin=int(unit['ExecMainStartTimestampMonotonic'])*1000;end=int(unit['ExecMainExitTimestampMonotonic'])*1000
+ assert begin==start['controller_begin_ns'] and begin<end
+ assert result['success'] is True and result['run_id']==stack['run_id']==start['run_id']==run
+ worker=read('debug-service/result.json')
+ assert worker['success'] is True and worker['run_id']==run and worker['condition']==start['condition']
+ assert worker['holder']==start['holder']==stack['holder']==result['holder']
+ assert worker['boot_id']==start['boot_id']==pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+ assert begin<worker['preparation_begin_ns']<worker['preparation_complete_ns']<=worker['startup_command_ns']<worker['correct_business_response_ns']<end
+ assert result['release_observation_s']>=60 and worker['idle_observation_seconds']>=60
+ assert end>=result['controller_end_ns'] and (end-begin)/1e9<=3600
+ gold_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json');gold_bytes=gold_path.read_bytes()
+ assert hashlib.sha256(gold_bytes).hexdigest()=='9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0'
+ gold=json.loads(gold_bytes)
+ for number in (1,2,0):
+  case=gold['requests'][number];expected=gold['results'][number];response=read('debug-service/'+case['name']+'-response.json');choice=response['choices'][0]
+  assert choice['token_ids']==expected['token_ids'] and choice['message']['content']==expected['text'] and choice['finish_reason']==expected['finish_reason']
+  assert len(choice['token_ids'])>0 and len(choice['logprobs'])==len(choice['token_ids'])
+  assert all(math.isfinite(row[str(token)]['logprob']) for token,row in zip(choice['token_ids'],choice['logprobs'],strict=True))
+ cache=read('debug-service/cache-admission/summary.json');assert cache['passed'] is True
+ phases=read('debug-service/phases.json')
+ pipeline=phases['phases']['weights_pipeline_including_allocation']['ranks'];assert set(pipeline)==set(map(str,range(8)))
+ assert len(read('debug-service/measurement-progress.json')['requests'])==3
+ metrics=dict(worker['metrics']);metrics['controller_s']=(end-begin)/1e9
+ out.update(success=True,metrics=metrics,controller_begin_ns=begin,controller_end_ns=end,clock='systemd CLOCK_MONOTONIC microseconds converted to ns;1us resolution',code_commit=stack['source']['code_commit'],protocol_revision='independent-controller-supplement-v1',sample_n=1,scope='same-run Controller/Prep/A/phases; not historical C23 blocks; phase envelopes not proven V4 equivalent')
+except BaseException as error:
+ out['failure']=repr(error)
+out['unit_snapshot_sha256']=hashlib.sha256(raw.encode()).hexdigest()
+out['finalizer_source_sha256']=ANALYSIS_SHA
+p=root/'controller-final.json'
+with p.open('x') as f:json.dump(out,f,indent=2)
+print(json.dumps(out))
+'''.replace('RUN', repr(run), 1).replace('ANALYSIS_SHA', repr(hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
+    result = subprocess.run(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','qjhs003','python3','-I','-'],
+                            input=script.encode(), capture_output=True, timeout=90, check=True)
+    output = json.loads(result.stdout)
+    print(json.dumps(dict(attempt_id=run, success=output['success'], metrics=output['metrics'],
+                          evidence='/data/brick1/boyjiang/glm5.1-fp8/debug/'+run+'/controller-final.json')))
+
+
 def c23_controller_audit():
     """Check small archived parents and per-attempt records; never rescan telemetry."""
     from final_statistics import LEDGER_SHA
@@ -598,5 +661,7 @@ if __name__ == '__main__':
                               original40=output['original40'])))
     elif sys.argv[1:] == ['--controller-runtime-reference']:
         controller_runtime_reference()
+    elif len(sys.argv)==3 and sys.argv[1]=='--finalize-controller':
+        finalize_controller(sys.argv[2])
     else:
         main()

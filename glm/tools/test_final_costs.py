@@ -1,11 +1,71 @@
 import unittest
 import json
+import contextlib
+import hashlib
+import io
+from pathlib import Path
+import tempfile
+from unittest.mock import patch
 
 from final_costs import counters, pss_summary, span, historical_monitor
-from historical_costs import loading_rank_pair, c23_controller_audit
+from historical_costs import loading_rank_pair, c23_controller_audit, finalize_controller
 
 
 class CostsTests(unittest.TestCase):
+    def test_controller_finalizer_uses_kernel_exit_and_retains_failed_exit(self):
+        run = 'sllm-debug-20261109T110000Z-abcdef12'
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root/'debug-service/cache-admission').mkdir(parents=True)
+            def write(name, value):
+                (root/name).write_text(json.dumps(value), encoding='utf8')
+            write('boot', 'unused')
+            (root/'boot').write_text('boot')
+            unit = dict(Id=run+'-controller.service', Result='success', ExecMainCode='1', ExecMainStatus='0',
+                        MainPID='0', InvocationID='a'*32, ExecMainStartTimestampMonotonic='1000000',
+                        ExecMainExitTimestampMonotonic='200000000')
+            identity = dict(run_id=run, holder='b'*32, boot_id='boot')
+            write('controller-start.json', dict(identity, condition='store_disk_cold', controller_begin_ns=10**9,
+                                                independent_controller_unit=dict(InvocationID='a'*32)))
+            write('controller-result.json', dict(identity, success=True, release_observation_s=60, controller_end_ns=190*10**9))
+            write('stack.json', dict(identity, source=dict(code_commit='c'*40)))
+            write('debug-service/result.json', dict(identity, success=True, condition='store_disk_cold',
+                  preparation_begin_ns=2*10**9, preparation_complete_ns=3*10**9, startup_command_ns=4*10**9,
+                  correct_business_response_ns=5*10**9, idle_observation_seconds=60, metrics=dict(preparation_s=1)))
+            gold = dict(requests=[dict(name='case'+str(i)) for i in range(3)],
+                        results=[dict(token_ids=[1], text='ok', finish_reason='stop')]*3)
+            write('gold.json', gold)
+            for i in range(3):
+                write('debug-service/case'+str(i)+'-response.json', dict(choices=[dict(token_ids=[1],
+                      message=dict(content='ok'), finish_reason='stop', logprobs=[{'1':dict(logprob=-.5)}])]))
+            write('debug-service/cache-admission/summary.json', dict(passed=True))
+            write('debug-service/phases.json', dict(phases=dict(weights_pipeline_including_allocation=dict(
+                  ranks={str(i):{} for i in range(8)}))))
+            write('debug-service/measurement-progress.json', dict(requests=[1,2,0]))
+            def remote(argv, **kwargs):
+                script = kwargs['input'].decode().replace(
+                    "pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run", 'pathlib.Path('+repr(str(root))+')')
+                script = script.replace('/proc/sys/kernel/random/boot_id', (root/'boot').as_posix()).replace(
+                    '/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json', (root/'gold.json').as_posix()).replace(
+                    '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0',
+                    hashlib.sha256((root/'gold.json').read_bytes()).hexdigest())
+                output = io.StringIO()
+                with contextlib.redirect_stdout(output), patch('subprocess.check_output', return_value='\n'.join(
+                        k+'='+v for k,v in unit.items())):
+                    exec(compile(script, '<CPU-finalizer-fixture>', 'exec'), {})
+                return type('Result', (), dict(stdout=output.getvalue().encode()))()
+            with patch('subprocess.run', side_effect=remote), contextlib.redirect_stdout(io.StringIO()):
+                finalize_controller(run)
+                good = json.loads((root/'controller-final.json').read_text())
+                self.assertTrue(good['success'])
+                self.assertEqual(good['metrics']['controller_s'], 199)
+                (root/'controller-final.json').unlink()
+                unit['ExecMainStatus'] = '1'
+                finalize_controller(run)
+                failed = json.loads((root/'controller-final.json').read_text())
+                self.assertFalse(failed['success'])
+                self.assertIsNone(failed['metrics'])
+
     def test_real_archive_cannot_split_shared_controller_into_conditions(self):
         result = c23_controller_audit()
         self.assertFalse(result['controller_recoverable_by_condition'])

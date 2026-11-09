@@ -118,14 +118,17 @@ def supplement_requests(gold, condition, record):
     """One same-run Prep/A/phase record; caller must finish cache admission first."""
     from phase_summary import summarize
     record['condition'] = condition
+    config = model_config(gold, 'safetensors' if condition.startswith('safetensors_') else 'serverless_llm')
+    write(OUT/'model-config.json', config)
     record['startup_command_ns'] = time.monotonic_ns()
-    if http('/register', model_config(gold, 'safetensors' if condition.startswith('safetensors_') else 'serverless_llm')) != {'status': 'ok'}:
+    if http('/register', config) != {'status': 'ok'}:
         raise RuntimeError('supplement registration failed')
     record['register_complete_ns'] = time.monotonic_ns()
     for number in (1, 2, 0):
         case = gold['requests'][number]
         body = gold_request(gold, number)
         body['request_id'] = 'supplement-'+condition+'-'+case['name']
+        write(OUT/(case['name']+'-request.json'), body)
         begin = time.monotonic_ns()
         result = http('/v1/chat/completions', body)
         end = time.monotonic_ns()
@@ -442,6 +445,26 @@ def main():
                               '--min-worker-port=22000', '--max-worker-port=22999',
                               '--object-store-memory=268435456', '--disable-usage-stats', '--block'])
         wait_ready(lambda: 'Ray runtime started.' in (OUT/'ray-worker.log').read_text(), 60, 'ray-worker')
+        if condition:
+            import ray
+            ray.init(address=address, _node_ip_address=ip, log_to_driver=False)
+            try:
+                stop_at = time.monotonic()+60
+                while time.monotonic() < stop_at:
+                    nodes = [node for node in ray.nodes() if node['Alive']]
+                    if len(nodes) == 2:
+                        break
+                    time.sleep(.2)
+                addresses = {node['NodeManagerAddress'] for node in nodes}
+                if (len(nodes) != 2 or addresses != {ip, address.rsplit(':', 1)[0]}
+                        or sum(node['Resources'].get('GPU', 0) for node in nodes) != 8):
+                    raise RuntimeError('Ray must contain exactly this private head and local8GPU worker')
+                own, = [node for node in nodes if node['NodeManagerAddress'] == ip]
+                if own['NodeID'] != str(ray.get_runtime_context().get_node_id()) or own['Resources']['GPU'] != 8:
+                    raise RuntimeError('Ray worker physical/logical identity differs')
+                write(OUT/'ray-nodes.json', nodes)
+            finally:
+                ray.shutdown()
         # store_numa_exec_v13 pins only the Store to node-0 CPUs; do the same without its formal receipt.
         cpus = cpu_list(pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()) & os.sched_getaffinity(0)
         assert cpus

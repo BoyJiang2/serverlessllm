@@ -3,11 +3,11 @@
   "checks": [
     {
       "suite": "debug_stack_v1/test_debug_*.py",
-      "passed": 57
+      "passed": 58
     },
     {
       "suite": "glm/tools/test_final_costs.py",
-      "passed": 5
+      "passed": 6
     },
     {
       "suite": "glm/tools/test_c23_regression.py",
@@ -18,14 +18,21 @@
       "passed": 10
     }
   ],
-  "tests_passed": 78,
+  "tests_passed": 80,
   "gpu_execution": false,
   "native_pool_created": false,
-  "full_r1_status": "BLOCKED; pending new code review",
+  "full_r1_status": "BLOCKED; current root probe and kernel-exit candidate awaiting full independent R1",
   "retained_prior_failures": [
     "Git-less source snapshot refused Git HEAD verification",
     "remote metadata source escaping SyntaxError fixed with bytes([0])",
     "raw official-blob differences diagnosed as28 CRLF-only variants and3 pinned patches; no server rewrite",
-    "stale CPU unit fixture lacked controller_unit, corrected fixture only"
+    "stale CPU unit fixture lacked controller_unit, corrected fixture only",
+    "root-probe fixture FileNotFoundError lacked errno; corrected fixture to errno2",
+    "Windows temporary path escaping in finalizer CPU fixture; changed fixture paths to POSIX"
+  ],
+  "extra_syntax_checks": [
+    "installer embedded Python AST",
+    "qjhs003 bash -n only; no script executed",
+    "post-exit finalizer remote Python AST"
   ]
 }
