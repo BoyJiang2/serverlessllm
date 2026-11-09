@@ -1,0 +1,31 @@
+{
+  "verdict": "CHANGES_REQUIRED_NARROW_ABORT_PROVENANCE_AND_INLINE_METADATA",
+  "reviewed_source_sha256": "7ce5eb966ee951ec5d5a33e2761c021fefbca9b8b3402ff4bd71eb3742248c06",
+  "reviewed_test_sha256": "84cfb932f16c44b718b5fab8626840b8bf0c970939590f63872ab2d60ad4d560",
+  "independent_cpu": {
+    "node": "qjhs000",
+    "tests": 112,
+    "seconds": 35.356,
+    "result": "PASS",
+    "scope": "ActualCPUsmallconsumersonly, notGPU/Store/model/cache"
+  },
+  "previous_WIP_fixes_verified": [
+    "NonemptyInvocationIDpinnedbeforePIDpositive",
+    "Childphaseeventrun/source/proto/PID/startticks/SHAandclockdomainbinding",
+    "Liveknownunitwithmissingdirectorycannotreleasebasedonemptyseen"
+  ],
+  "issues": [
+    {
+      "location": "native_abort_release",
+      "detail": "Trustedguarddirectoryexistsbutunitnot-foundwhilelocalstartedsetemptyisclassifiedNOT_STARTED; directoryis evidenceguardran/started, shouldnotberasedbyunitabsence. Can falselyclaimabortrelease complete thoughparentstillstops.",
+      "minimum_fix": "Treatexistingtrustedguarddirectoryasstarted; not-foundthenUNKNOWN_AFTER_STARTED/incomplete. Addactualnegativefixture."
+    },
+    {
+      "location": "render stageonly output metadata",
+      "detail": "Newstagebody replacesargv/rootSHA butinline_linesstillinherited365; previousfixexists onlyinrender_store_stop_observation.",
+      "minimum_fix": "Onlynewstagebranchsetinline_lines=len(body.splitlines()); assert4realrenderoutputs. Noexecutionlogicchange."
+    }
+  ],
+  "scope": "NoACCEPTuntilfrozenfix. Nobroadframework/timeout/guard/modelchangesrequested. Source/testmustbefreshhashedafterfix.",
+  "actions": "Norepoedit/Git/GPU/Store/container/cache/weightoperations; original112CPUtestsranonce."
+}

@@ -1,0 +1,488 @@
+--- /home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/test-before.py
++++ /home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py
+@@ -18,9 +18,13 @@
+ _HISTORICAL_DIGEST=p.base.digest
+ _HISTORICAL_PATCH=p.base.ROOT/'sllm_store/vllm_patch/sllm_load.patch'
+ _HISTORICAL_PATCH_MOCK=None
++_HISTORICAL_ENDPOINT_MOCK=None
++_CURRENT_UNIFIED_VALIDATOR=p.validate_unified_overlay
++_CURRENT_RENDER=p.render
++_HISTORICAL_RENDER_MOCK=None
+ 
+ def setUpModule():
+-    global _HISTORICAL_PATCH_MOCK
++    global _HISTORICAL_PATCH_MOCK, _HISTORICAL_ENDPOINT_MOCK, _HISTORICAL_RENDER_MOCK
+     from unittest import mock
+     def digest(path):
+         if pathlib.Path(path)==_HISTORICAL_PATCH:return p.DIAGNOSTIC_PATCH_SHA
+@@ -29,9 +33,31 @@
+         return _HISTORICAL_DIGEST(path)
+     _HISTORICAL_PATCH_MOCK=mock.patch.object(p.base,'digest',side_effect=digest)
+     _HISTORICAL_PATCH_MOCK.start()
++    # Old full-endpoint generator fixtures consume exact immutable old source
++    # snapshots only within this test wrapper. Actual runtime admission stays shut.
++    snapshots=p.base.ROOT/'sllm_store/build/kimi-vllm0191-load-stages-v1/inputs'
++    actual_read=pathlib.Path.read_bytes
++    fixtures={_HISTORICAL_PATCH:actual_read(snapshots/'sllm_load.patch.source15b9'),
++              p.base.ROOT/'sllm_store/tests/python/test_vllm_loader_interface.py':actual_read(snapshots/'test_vllm_loader_interface.py.source15b9')}
++    assert p.hashlib.sha256(fixtures[_HISTORICAL_PATCH]).hexdigest()==p.ENDPOINT_PATCH_SHA
++    assert p.hashlib.sha256(fixtures[p.base.ROOT/'sllm_store/tests/python/test_vllm_loader_interface.py']).hexdigest()=='169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4'
++    def historical_validation(protocol):
++        if protocol['unified_loading']['cohort_id']==p.STAGE_COHORT:return _CURRENT_UNIFIED_VALIDATOR(protocol)
++        def read(path):return fixtures[path] if path in fixtures else actual_read(path)
++        with mock.patch.object(pathlib.Path,'read_bytes',read):return _CURRENT_UNIFIED_VALIDATOR(protocol)
++    _HISTORICAL_ENDPOINT_MOCK=mock.patch.object(p,'validate_unified_overlay',side_effect=historical_validation)
++    _HISTORICAL_ENDPOINT_MOCK.start()
++    def historical_render(protocol,*args,**kwargs):
++        if protocol.get('schema')!='kimi-unified-loading-remeasurement-v1' or protocol['unified_loading']['cohort_id']==p.STAGE_COHORT:return _CURRENT_RENDER(protocol,*args,**kwargs)
++        def read(path):return fixtures[path] if path in fixtures else actual_read(path)
++        with mock.patch.object(pathlib.Path,'read_bytes',read):return _CURRENT_RENDER(protocol,*args,**kwargs)
++    _HISTORICAL_RENDER_MOCK=mock.patch.object(p,'render',side_effect=historical_render)
++    _HISTORICAL_RENDER_MOCK.start()
+ 
+ def tearDownModule():
+     _HISTORICAL_PATCH_MOCK.stop()
++    _HISTORICAL_ENDPOINT_MOCK.stop()
++    _HISTORICAL_RENDER_MOCK.stop()
+ 
+ 
+ class PreparationTest(unittest.TestCase):
+@@ -1415,7 +1441,7 @@
+                 for target in (sf,store,runs):target.mkdir(parents=True)
+                 protocol=self.protocol()
+                 protocol.update(status='FROZEN_UNIFIED_LOADING_SUPPLEMENT',final_deploy_commit=p.SOURCE)
+-                protocol['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
++                protocol['events'].update(primary_http_endpoint='json_parse_complete_ns' if protocol['unified_loading']['cohort_id']==p.STAGE_COHORT else 'received_ns',primary_start_event='same_http_client_registration_command_ns')
+                 protocol['resource_budget'].update(per_condition_max_seconds=7200,per_complete_block_max_seconds=28920,parent_overhead_seconds=120,runs_root=str(runs))
+                 protocol['correctness']['observability']='logprobs=1; return_token_ids omitted; trace supplies own actualIDs'
+                 for request in protocol['correctness']['requests']:request['logprobs']=1
+@@ -1441,6 +1467,11 @@
+                     self.assertEqual(spec['protocol_sha256'],psha);self.assertEqual(spec['source_commit'],p.SOURCE if frozen else None)
+                     self.assertTrue(spec['run_id'].startswith(protocol['unified_loading']['block_id']+'-'))
+                     self.assertEqual(spec['unified_loading']['model_instance_id'],spec['run_id']+'-life1')
++                    if protocol['unified_loading']['cohort_id']==p.STAGE_COHORT:
++                        self.assertEqual(command['inline_lines'],len(command['argv'][command['argv'].index('-c')+1].splitlines()))
++                        self.assertEqual(spec['requests']['worker']['env']['SLLM_CAPTURE_LOAD_ENDPOINTS'],'1')
++                        self.assertEqual(spec['requests']['worker']['env']['SLLM_LOAD_SPAN_RUN_ID'],spec['run_id'])
++                        self.assertEqual(spec['requests']['worker']['env']['SLLM_LOAD_SPAN_INSTANCE_ID'],spec['run_id']+'-life1')
+                     self.assertIn(p.ENDPOINT_MANIFEST_SHA,spec['code_pins'].values())
+                 launch=json.loads(next(ep.glob('*-root-command.json')).read_text())
+                 self.assertIn('--property=RuntimeMaxSec=28917',launch['argv'])
+@@ -2191,5 +2222,417 @@
+         latchenv['latch'](True,'candidate_normal');latchenv['latch'](True,'must_not_upgrade')
+         self.assertFalse(result['criterion60_pass']);self.assertEqual(len(rows),1)
+ 
++
++class LoadStageProfileTest(unittest.TestCase):
++    def protocol(self):
++        value=Formal64SupplementTest().protocol();cohort=p.STAGE_COHORT
++        value['unified_loading'].update(cohort_id=cohort,block_id=cohort+'-b01',stage_schema=p.STAGE_SCHEMA,canonical_patch_sha256='7b6b263e8757913dab9e4ef37c88977052ac821572baceee4f2fe78aedecfba6',overlay_manifest={'path':str(p.base.ROOT/'sllm_store/build/kimi-vllm0191-load-stages-v1/build-manifest.json'),'sha256':'79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df'})
++        value['unified_loading'].pop('overlay');value['execution_scope']='full_load_stage_four_only';value['normal_stop_bound']=300
++        value['events'].update(primary_http_endpoint='json_parse_complete_ns',secondary_http_endpoint='received_ns')
++        for a in value['attempts']:a['attempt_id']=cohort+'-b01-'+a['condition']
++        return value
++
++    def render(self,index=0):
++        protocol=self.protocol();spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);cmd=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        out,command=p.render(protocol,spec,cmd,protocol['attempts'][index]['attempt_id'],spec['native_source_pins'])
++        body=command['argv'][command['argv'].index('-c')+1]
++        return out,command,body
++
++    def test_four_actual_render_stage_mounts_sources_and_only_new300(self):
++        old=Formal64SupplementTest().protocol();base=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);cmd=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        for i in range(4):
++            spec,command,body=self.render(i)
++            prior,legacy=p.render(old,base,cmd,old['attempts'][i]['attempt_id'],base['native_source_pins'])
++            self.assertEqual(spec['role_bodies'],prior['role_bodies']);self.assertEqual(spec['budgets'],prior['budgets'])
++            self.assertEqual(spec['store_pool_bytes'],prior['store_pool_bytes']);self.assertEqual(spec['normal_stop_bound'],300)
++            self.assertEqual(spec['authorization_status'],'PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION')
++            expected_env={'SLLM_CAPTURE_LOAD_ENDPOINTS':'1','SLLM_LOAD_SPAN_RUN_ID':spec['run_id'],'SLLM_LOAD_SPAN_INSTANCE_ID':spec['run_id']+'-life1'}
++            self.assertEqual(spec['load_endpoint_environment'],expected_env)
++            for request in spec['requests'].values():
++                self.assertEqual({key:request['env'][key] for key in expected_env},expected_env)
++                self.assertNotIn('SLLM_DIAGNOSTIC_VALUE_FINGERPRINT',request['env'])
++            if 'env' in spec:self.assertEqual({key:spec['env'][key] for key in expected_env},expected_env)
++            self.assertNotIn('pool_exit60_l1_scope',spec)
++            self.assertEqual(spec['active_store_stop_policy']['criterion_seconds'],300)
++            self.assertEqual(spec['prior_pool_exit60_l1_scope']['store_exit_seconds'],60)
++            self.assertIn("store_stop_end=time.monotonic()+300",body);self.assertIn('stop_end+120<active+native',body);self.assertIn("stop_end+120<active+b['overall']",body)
++            self.assertIn("store_stop_end=time.monotonic()+60",legacy['argv'][legacy['argv'].index('-c')+1])
++            self.assertIn('weight_load_host_all_rank_span_s',body);self.assertNotIn('DIAGNOSTIC_STORE_STOP_FIXED60_OBSERVE300',body)
++            manifest=p.validate_stage_overlay(self.protocol())
++            for module in manifest['modules']:
++                matches=[o for o in spec['overlays'] if o['source']==module['output']['path']]
++                self.assertEqual(len(matches),1)
++                for request in spec['requests'].values():
++                    mounts=[m for m in request['mounts'] if m['Target']==matches[0]['target']]
++                    self.assertEqual(len(mounts),1);self.assertEqual(mounts[0]['Source'],module['output']['path']);self.assertTrue(mounts[0]['ReadOnly'])
++                self.assertEqual(spec['code_pins'][module['output']['path']],module['output']['sha256'])
++            self.assertIn('verify_original_load_files_after()',body)
++            compile(body,'<actual-new-stage-profile>','exec')
++
++    def test_new_protocol_rejects_wrong_stage_source_or_stop_scope(self):
++        for field,value in [('normal_stop_bound',60),('execution_scope',p.STOP_OBSERVE_SCOPE)]:
++            bad=self.protocol();bad[field]=value
++            with self.subTest(field=field),self.assertRaises(AssertionError):p.validate_protocol(bad)
++        bad=self.protocol();bad['unified_loading']['overlay_manifest']['sha256']='0'*64
++        with self.assertRaises(AssertionError):p.validate_stage_overlay(bad)
++        old=UnifiedLoadingSupplementTest().protocol();base=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);cmd=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        # Real current producer bytes must never be accepted by the old frozen048 profile.
++        with mock.patch.object(p,'validate_unified_overlay',_CURRENT_UNIFIED_VALIDATOR),self.assertRaisesRegex(AssertionError,'endpoint pin drift'):
++            _CURRENT_RENDER(old,base,cmd,old['attempts'][0]['attempt_id'],base['native_source_pins'])
++
++    def collector(self):
++        old,records,owners,physical,saved=UnifiedLoadingSupplementTest().fixture();ns=old.__globals__
++        _,_,body=self.render(1)
++        node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='collect_unified_loading')
++        exec(compile(ast.Module(body=[node],type_ignores=[]),'<actual-stage-collector>','exec'),ns)
++        for record in records:
++            value=record['weight_load_host_span'];left=value['begin_ns'];right=value['end_ns']
++            value['loader_type']='vllm.model_executor.model_loader.sllm_loader.ServerlessLLMLoader';value['stage_schema']=p.STAGE_SCHEMA
++            value['stages']={
++                'weight_ingestion':{'status':'COMPLETE','begin_ns':left+20,'end_ns':left+80,'begin_boundary':'before_store_load_dict','end_boundary':'after_store_data_bindings_and_buffer_moves'},
++                'postprocessing':{'status':'COMPLETE','begin_ns':left+100,'end_ns':right-10,'begin_boundary':'before_store_runtime_hook_traversal','end_boundary':'after_store_attention_postprocessing_return'}}
++        return ns['collect_unified_loading'],records,owners,physical,saved
++
++    def test_actual_stage_collector_extrema_and_perrank_durations(self):
++        consume,records,owners,physical,saved=self.collector();consume(records,owners,physical)
++        result=saved['unified-loading-host-span.json']
++        self.assertEqual(result['weight_load_host_all_rank_span_s'],270/1e9)
++        self.assertEqual(result['max_rank_weight_load_host_duration_ns'],200)
++        self.assertEqual(result['stage_spans']['weight_ingestion']['span_ns'],130)
++        self.assertEqual(result['stage_spans']['weight_ingestion']['max_rank_duration_ns'],60)
++        self.assertEqual(result['ranks'][0]['stages']['postprocessing']['host_duration_ns'],90)
++
++    def test_actual_stage_collector_rejects_missing_failed_reversed_outside_and_wrong_boundary(self):
++        for error in ['schema','missing','failed','null','order','outside','bounds','owner','source_clock']:
++            consume,records,owners,physical,saved=self.collector();value=records[0]['weight_load_host_span']
++            if error=='schema':value['stage_schema']='old'
++            elif error=='missing':del value['stages']['postprocessing']
++            elif error=='failed':value['stages']['weight_ingestion']['status']='FAILED'
++            elif error=='null':value['stages']['weight_ingestion']['end_ns']=None
++            elif error=='order':value['stages']['postprocessing']['begin_ns']=value['begin_ns']
++            elif error=='outside':value['stages']['postprocessing']['end_ns']=value['end_ns']+1
++            elif error=='bounds':value['stages']['weight_ingestion']['begin_boundary']='guessed'
++            elif error=='owner':owners[0]['startticks']+=1
++            else:value['clock_identity']['time_namespace']='other'
++            with self.subTest(error=error),self.assertRaises((AssertionError,KeyError)):consume(records,owners,physical)
++            self.assertNotIn('unified-loading-host-span.json',saved)
++
++    def test_actual_parse_primary_and_received_secondary_not_renamed_equivalent(self):
++        _,_,body=self.render()
++        with tempfile.TemporaryDirectory() as directory:
++            ns,rows=SampleEvidenceTest().setup_evidence(pathlib.Path(directory));row,want,index=rows[0]
++            wanted=['record_http_sample','validated_http_events','check_response']
++            nodes=[n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name in wanted]
++            exec(compile(ast.Module(body=nodes,type_ignores=[]),'<actual-stage-HTTP-consumer>','exec'),ns)
++            ns['s']['primary_http_endpoint']='json_parse_complete_ns'
++            answer=ns['check_response'](row,want,index,1);metric=ns['sample_metrics']['arithmetic']
++            self.assertEqual(answer['primary_A_ns'],5);self.assertEqual(answer['received_primary_A_ns'],6)
++            self.assertEqual(answer['monotonic_ns'],row['json_parse_complete_ns']);self.assertEqual(answer['endpoint'],'json_parse_complete_ns')
++            self.assertEqual(metric['primary_A_ns'],5);self.assertEqual(metric['received_primary_A_ns'],6)
++            self.assertEqual(metric['business_B_ns'],4);self.assertEqual(metric['producer_times']['received_ns'],7)
++
++    def test_actual_original_file_reader_hashes_full_bytes_then_rejects_drift(self):
++        ns={'os':os,'stat':__import__('stat'),'re':__import__('re'),'json':json,'hashlib':p.hashlib,'pathlib':pathlib,'original_load_files':{}}
++        exec(functions_from(p.STAGE_RANK_FILE_CODE),ns)
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);ns.update(base=root,run='tiny',save=lambda name,value:(root/name).write_text(json.dumps(value)))
++            evidence=root/'worker/load-evidence';evidence.mkdir(parents=True,mode=0o700)
++            for rank in range(8):
++                path=evidence/('rank-%d-pid-%d.json'%(rank,100+rank));raw=json.dumps({'rank':rank,'extra_unconsumed_field':'must hash all original bytes'}).encode();path.write_bytes(raw);path.chmod(0o600)
++                self.assertEqual(ns['read_original_load_file'](path,{'tp_rank':rank,'pid':100+rank},'before'),raw)
++                self.assertEqual(ns['original_load_files'][path.name]['sha256'],p.hashlib.sha256(raw).hexdigest())
++            ns['publish_original_load_files_before']();ns['verify_original_load_files_after']()
++            self.assertEqual(len(json.loads((root/'load-evidence-original-files-before.json').read_text())['files']),8)
++            path.write_bytes(b'changed-but-same-owner')
++            with self.assertRaises(AssertionError):ns['read_original_load_file'](path,{'tp_rank':7,'pid':107},'after')
++
++    def test_actual_new_main_ten_artifacts_candidate_and_frozen_source_gate(self):
++        harness=UnifiedLoadingSupplementTest();harness.protocol=self.protocol
++        with mock.patch.object(p,'ENDPOINT_MANIFEST_SHA','79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df'):
++            harness.test_actual_main_new_four_child_bundle_and_candidate_closed()
++
++
++    def test_new_store300_actual_function_gates_and_unchanged_nonstore(self):
++        _,_,body=self.render(1);nodes=ast.parse(body).body
++        stop=next(n for n in nodes if isinstance(n,ast.FunctionDef) and n.name=='stop_service');source=ast.get_source_segment(body,stop)
++        self.assertIn("begin=deadline-300",source);self.assertIn("'criterion_seconds':300",source)
++        self.assertIn("store-stop-exit300.json",source);self.assertNotIn('DIAGNOSTIC_NOT_L1',source)
++        self.assertIn("finish(item,deadline)",source);self.assertIn("if owner:assert gone(owner)",source)
++        self.assertIn('stop_end+120<active+native',body);self.assertIn("stop_end+120<active+b['overall']",body)
++        self.assertEqual(125+30+300+40+40+17+17,569)
++
++
++
++    def test_actual_store300_stop_preserves_strict_finish_gone_and_original_errors(self):
++        _,_,body=self.render(1);node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service');source=ast.get_source_segment(body,node)
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);(root/'worker').mkdir();(root/'worker/store.pid').write_text('123')
++            for exit_at,wrong_gone,finish_late in [(136.173,False,False),(301,False,False),(20,True,False),(20,False,True)]:
++                with self.subTest(exit_at=exit_at,wrong_gone=wrong_gone,finish_late=finish_late):
++                    now=[0.0];saved={};signals=[]
++                    def finish(*args):
++                        if finish_late:now[0]=300
++                    env={'time':types.SimpleNamespace(monotonic=lambda:now[0],sleep=lambda seconds:now.__setitem__(0,now[0]+seconds)),'base':root,'services':{'store':(types.SimpleNamespace(poll=lambda:0 if now[0]>=exit_at else None),)},'owned_host_pid':lambda pid:{'pid':123},'D':[],'cids':{'worker':'own'},'call':lambda argv,*args:signals.append(argv),'healthy':lambda:None,'finish':finish,'gone':lambda owner:not wrong_gone,'save':lambda name,row:saved.update({name:copy.deepcopy(row)}),'json':json,'m':types.SimpleNamespace(process_stop_snapshot=lambda *args:{})}
++                    exec(source,env)
++                    if exit_at>300 or wrong_gone or finish_late:
++                        with self.assertRaises(AssertionError):env['stop_service']('store','worker',300)
++                        self.assertFalse(saved['store-stop-exit300.json']['pass'])
++                    else:
++                        env['stop_service']('store','worker',300);self.assertTrue(saved['store-stop-exit300.json']['pass'])
++                    self.assertEqual(saved['store-stop-exit300.json']['criterion_seconds'],300)
++                    self.assertNotIn('store-stop-exit60.json',saved)
++                    self.assertEqual(len(signals),1)
++
++    def test_actual_guard_native_go_and_global_tail_slot_gates_before_shutdown(self):
++        spec,_,body=self.render();tree=ast.parse(body)
++        main=next(n for n in tree.body if isinstance(n,ast.Try) and any(isinstance(t,ast.Assign) and any(isinstance(v,ast.Name) and v.id=='stop_started' for v in t.targets) for t in n.body))
++        index=next(i for i,n in enumerate(main.body) if isinstance(n,ast.Assign) and any(isinstance(v,ast.Name) and v.id=='stop_started' for v in n.targets))
++        gate=compile(ast.Module(body=main.body[index:index+4],type_ignores=[]),'<actual-stage-stop-slot-gates>','exec')
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory)
++            for role in ('head','worker'):
++                d=root/('guard-'+role);d.mkdir();(d/'GO.json').write_text(json.dumps({'cid':role,'nonce':role,'monotonic':0}))
++            for bad in (None,'global','native','go','overall','observer'):
++                calls=[]
++                def properties(role):
++                    budget=spec['budgets']['observer' if role=='observer' else role+'_guard']
++                    active=-10000 if bad=='native' else 0
++                    return {'MainPID':'1','ActiveEnterTimestampMonotonic':str(active*10**6),'RuntimeMaxUSec':str(budget['native'])+'s'}
++                budgets=copy.deepcopy(spec['budgets'])
++                if bad=='overall':budgets['head_guard']['overall']=800
++                if bad=='observer':budgets['observer']['duration']=800
++                if bad=='go':budgets['head_guard']['deadline']=699
++                env={'time':types.SimpleNamespace(monotonic=lambda:100),'started':0,'end':999 if bad=='global' else 2000,'props':properties,'units':{r:r for r in ('head','worker','observer')},'s':{'budgets':budgets},'re':__import__('re'),'json':json,'base':root,'cids':{'head':'head','worker':'worker'},'arms':{'head':{'nonce':'head'},'worker':{'nonce':'worker'}}}
++                try:exec(gate,env);calls.append('shutdown-would-start')
++                except AssertionError:
++                    self.assertIsNotNone(bad)
++                self.assertEqual(bool(calls),bad is None)
++
++    def test_old_frozen_constants_and_actual_formal64_body_are_byte_identical(self):
++        snapshot=p.base.EVIDENCE/'kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/prepare-before.py'
++        data=snapshot.read_bytes();self.assertEqual(p.hashlib.sha256(data).hexdigest(),'629f05d2e2f707014d47e9319b864344df387e97e3df1f841f4da0c32f5f6af6')
++        old=types.ModuleType('frozen_prepare');old.__file__=str(snapshot);exec(compile(data,str(snapshot),'exec'),old.__dict__)
++        for name in ('BLOCK_BODY','UNIFIED_LOADING_CODE','HTTP_BODY','HTTP_EVENTS','SAMPLE_EVIDENCE','RESPONSE','LOOP'):
++            self.assertEqual(getattr(p,name),getattr(old,name),name)
++        protocol=Formal64SupplementTest().protocol();spec=p.checked(p.base.EXIT60_BASE_SPEC,p.base.EXIT60_BASE_SPEC_SHA);command=p.checked(p.base.EXIT60_BASE_COMMAND,p.base.EXIT60_BASE_COMMAND_SHA)
++        actual_read=pathlib.Path.read_bytes;inputs=p.base.ROOT/'sllm_store/build/kimi-vllm0191-load-stages-v1/inputs'
++        sources={_HISTORICAL_PATCH:(inputs/'sllm_load.patch.source15b9').read_bytes(),p.base.ROOT/'sllm_store/tests/python/test_vllm_loader_interface.py':(inputs/'test_vllm_loader_interface.py.source15b9').read_bytes()}
++        def read(path):return sources[path] if path in sources else actual_read(path)
++        with mock.patch.object(pathlib.Path,'read_bytes',read):
++            before,oldcmd=old.render(protocol,spec,command,protocol['attempts'][1]['attempt_id'],spec['native_source_pins'])
++            after,newcmd=_CURRENT_RENDER(protocol,spec,command,protocol['attempts'][1]['attempt_id'],spec['native_source_pins'])
++        self.assertEqual(oldcmd['argv'][oldcmd['argv'].index('-c')+1],newcmd['argv'][newcmd['argv'].index('-c')+1])
++        self.assertEqual(before['role_bodies'],after['role_bodies']);self.assertEqual(before['requests'],after['requests'])
++
++class NativeControllerSpanTest(unittest.TestCase):
++    def fixture(self,root,*,first_error=None,exit_code='0',clock_bad=False,drift=False,delayed=False):
++        import time as real_time
++        unit='tiny-controller.service';run='tiny';claims=root/'claims';claims.mkdir();runs=root/'runs';work=runs/run;work.mkdir(parents=True)
++        clock={'boot_id':pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),'time_namespace':os.readlink('/proc/self/ns/time'),'monotonic_clock_implementation':real_time.get_clock_info('monotonic').implementation,'process_startticks':500,'container_hostname':os.uname().nodename}
++        if clock_bad:clock['boot_id']='wrong'
++        (work/'event-common_environment_begin.json').write_text(json.dumps({'clock_identity':clock,'run_id':run,'source_commit':'a'*40,'protocol_sha256':'b'*64,'pid':123}))
++        def create_guards():
++            for name in ('guard-head','guard-worker','observer'):
++                d=work/name;d.mkdir(mode=0o700)
++                (d/('observer-final.json' if name=='observer' else 'guard-final.json')).write_text(json.dumps({'quiet_seconds':30}))
++        if not delayed:create_guards()
++        counter=[0.0];calls=[];query_count=[0];failed=[False];aborting=[False]
++        a={'run_id':run,'command_sha256':'c'*64,'spec_sha256':'d'*64}
++        argv=['/usr/bin/systemd-run','--unit='+unit,'--property=RemainAfterExit=yes','/usr/bin/python3','-c','unchanged-child-body']
++        def props(name,terminal=True):
++            return {'Id':name,'LoadState':'loaded','ActiveState':'active','SubState':'exited' if terminal else 'running','MainPID':'0' if terminal else '123','ExecMainPID':'123','ExecMainStartTimestampMonotonic':'1000000','ExecMainExitTimestampMonotonic':'3000000' if terminal else '0','ExecMainCode':'1','ExecMainStatus':exit_code,'Result':'success' if exit_code=='0' else 'exit-code','NRestarts':'0','InvocationID':'invocation'}
++        def execute(command,**kwargs):
++            calls.append(command)
++            if command[0]=='/usr/bin/systemd-run':
++                if first_error=='launch':failed[0]=True;aborting[0]=True;raise p.subprocess.TimeoutExpired(command,1)
++                return types.SimpleNamespace(returncode=0)
++            name=command[2]
++            if name==unit:
++                query_count[0]+=1
++                if first_error=='poll' and not failed[0]:failed[0]=True;aborting[0]=True;raise PermissionError('status transport unknown')
++                if delayed and query_count[0]==2:create_guards()
++                terminal=query_count[0]>1 or aborting[0]
++                value=props(name,terminal)
++                if delayed and query_count[0]==1:value.update(MainPID='0',ExecMainPID='0',ExecMainStartTimestampMonotonic='0',ExecMainExitTimestampMonotonic='0',ActiveState='activating',SubState='start')
++                if delayed and query_count[0]==2:value=props(name,False)
++                if drift and query_count[0]>1:value['InvocationID']='different'
++                if aborting[0] and query_count[0]>=3:
++                    for key in ('guard-head','guard-worker','observer'):
++                        (work/key/('observer-final.json' if key=='observer' else 'guard-final.json')).write_text(json.dumps({'quiet_seconds':60.1}))
++            else:value=props(name,aborting[0] and query_count[0]>=3)
++            return types.SimpleNamespace(stdout='\n'.join(k+'='+v for k,v in value.items()),returncode=0)
++        def sleep(delay):counter[0]+=delay
++        cpu_os=types.SimpleNamespace(**{key:getattr(os,key) for key in dir(os) if not key.startswith('__')});cpu_os.readlink=lambda path:os.readlink('/proc/self/ns/time' if str(path)=='/proc/1/ns/time' else path)
++        ns={'json':json,'hashlib':p.hashlib,'os':cpu_os,'pathlib':pathlib,'subprocess':types.SimpleNamespace(run=execute,CompletedProcess=p.subprocess.CompletedProcess,CalledProcessError=p.subprocess.CalledProcessError),'time':types.SimpleNamespace(monotonic=lambda:counter[0],sleep=sleep,get_clock_info=real_time.get_clock_info),'claims':claims,'runs':runs,'b':{'source_commit':'a'*40,'protocol_sha256':'b'*64}}
++        exec(functions_from(p.stage_block_body()),ns)
++        actual_lstat=pathlib.Path.lstat
++        def lstat(path,*args,**kwargs):
++            info=actual_lstat(path,*args,**kwargs)
++            if path in [work/name for name in ('guard-head','guard-worker','observer')] or path.name=='ABORT':
++                values=list(info);values[4]=0;return os.stat_result(values)
++            return info
++        return ns,a,argv,calls,counter,query_count,lstat
++
++    def test_actual_retained_native_wait_records_true_us_endpoints_and_clock(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);ns,a,argv,calls,clock,queries,_=self.fixture(root)
++            result=ns['native_controller_wait'](a,argv,{},10)
++            self.assertEqual(result.returncode,0);row=a['native_unit_span']
++            self.assertEqual((row['native_start_us'],row['native_exit_us'],row['span_ns']),(1000000,3000000,2000000000))
++            self.assertEqual(row['clock_proof']['status'],'VALID');self.assertEqual(row['termination_class'],'NORMAL_EXIT0')
++            self.assertNotIn('--wait',calls[0]);self.assertIn('--property=RemainAfterExit=yes',calls[0])
++            self.assertEqual(len(list((root/'claims').glob('*controller-unit-span.json'))),1)
++
++    def test_actual_unknown_start_and_poll_failures_wait_for_real_guard_release(self):
++        for fault,delayed in [('launch',False),('poll',False),('launch',True)]:
++            with self.subTest(fault=fault,delayed=delayed),tempfile.TemporaryDirectory() as directory:
++                root=pathlib.Path(directory);ns,a,argv,calls,clock,queries,lstat=self.fixture(root,first_error=fault,delayed=delayed)
++                actual_stat=pathlib.Path.stat
++                def fake_stat(path,*args,**kwargs):
++                    info=actual_stat(path,*args,**kwargs)
++                    if path.name in ('guard-head','guard-worker','observer','ABORT'):
++                        fields=list(info);fields[4]=0;return os.stat_result(fields)
++                    return info
++                with mock.patch.object(pathlib.Path,'lstat',lstat),mock.patch.object(pathlib.Path,'stat',fake_stat):
++                    with self.assertRaises((PermissionError,p.subprocess.TimeoutExpired)):
++                        ns['native_controller_wait'](a,argv,{},5)
++                self.assertEqual(a['owned_abort_release']['status'],'CHILD_EXIT_AND_STARTED_GUARDS_RELEASE60_OBSERVED')
++                self.assertGreaterEqual(queries[0],3);self.assertGreater(clock[0],0)
++                self.assertTrue(all((root/'runs/tiny'/name/'ABORT').is_file() for name in ('guard-head','guard-worker','observer')))
++                self.assertEqual(len([c for c in calls if c[0]=='/usr/bin/systemd-run']),1)
++
++    def test_actual_nonzero_exit_is_not_success_even_with_endpoint(self):
++        with tempfile.TemporaryDirectory() as directory:
++            ns,a,argv,*_=self.fixture(pathlib.Path(directory),exit_code='7')
++            ns['native_abort_release']=lambda *args:{'status':'INCOMPLETE_TEST_DOUBLE'}
++            with self.assertRaises(p.subprocess.CalledProcessError):ns['native_controller_wait'](a,argv,{},10)
++            self.assertEqual(a['native_unit_span']['termination_class'],'NONZERO_EXIT')
++
++    def test_actual_clock_mismatch_and_invocation_drift_preserve_failure(self):
++        for clock_bad,drift in [(True,False),(False,True)]:
++            with self.subTest(clock_bad=clock_bad,drift=drift),tempfile.TemporaryDirectory() as directory:
++                ns,a,argv,*_=self.fixture(pathlib.Path(directory),clock_bad=clock_bad,drift=drift)
++                # Avoid a real wait here; failure cleanup itself is covered above.
++                ns['native_abort_release']=lambda *args:{'status':'INCOMPLETE_TEST_DOUBLE'}
++                with self.assertRaisesRegex(AssertionError,'clock proof|invocation/PID drift|invocation drift before PID pin'):ns['native_controller_wait'](a,argv,{},5)
++                self.assertNotEqual(a['owned_abort_release']['status'],'CHILD_EXIT_AND_STARTED_GUARDS_RELEASE60_OBSERVED')
++
++    def test_actual_nonempty_invocation_pidzero_window_and_child_event_identity(self):
++        with tempfile.TemporaryDirectory() as directory:
++            ns,a,argv,*_=self.fixture(pathlib.Path(directory));states=[]
++            def prop(inv,pid,start,end):return {'Id':'tiny-controller.service','LoadState':'loaded','InvocationID':inv,'ExecMainPID':pid,'MainPID':pid,'ExecMainStartTimestampMonotonic':start,'ExecMainExitTimestampMonotonic':end,'NRestarts':'0','ActiveState':'activating','SubState':'start'}
++            sequence=iter([prop('first','0','0','0'),prop('second','123','1000000','0')])
++            ns['native_properties']=lambda *args,**kwargs:next(sequence)
++            ns['native_abort_release']=lambda *args:{'status':'INCOMPLETE_TEST_DOUBLE'}
++            with self.assertRaisesRegex(AssertionError,'invocation drift before PID pin'):ns['native_controller_wait'](a,argv,{},5)
++            self.assertEqual(a['native_invocation_pin'],'first')
++            self.assertIsNone(a['native_unit_span']['span_ns'])
++        for key,value in [('run_id','other'),('source_commit','x'*40),('protocol_sha256','x'*64),('pid',999)]:
++            with self.subTest(key=key),tempfile.TemporaryDirectory() as directory:
++                root=pathlib.Path(directory);ns,a,argv,*_=self.fixture(root)
++                event=root/'runs/tiny/event-common_environment_begin.json';row=json.loads(event.read_text());row[key]=value;event.write_text(json.dumps(row))
++                ns['native_abort_release']=lambda *args:{'status':'INCOMPLETE_TEST_DOUBLE'}
++                with self.assertRaisesRegex(AssertionError,'initial event/native identity mismatch'):ns['native_controller_wait'](a,argv,{},5)
++
++    def test_actual_abort_does_not_treat_absent_directory_live_known_guard_as_released(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);ns,a,argv,*_=self.fixture(root)
++            for folder in (root/'runs/tiny').iterdir():
++                if folder.is_dir():
++                    for f in folder.iterdir():f.unlink()
++                    folder.rmdir()
++            calls=[]
++            def props(unit,*args,**kwargs):
++                calls.append(unit)
++                if unit=='tiny-controller.service':return {'Id':unit,'LoadState':'loaded','MainPID':'0','ExecMainPID':'123','ExecMainExitTimestampMonotonic':'3000000','InvocationID':'invocation'}
++                return {'Id':unit,'LoadState':'loaded','ActiveState':'active','MainPID':'456','ExecMainPID':'456'}
++            ns['native_properties']=props
++            with self.assertRaisesRegex(TimeoutError,'release not established'):ns['native_abort_release'](a,'tiny-controller.service',{},.5)
++            self.assertIn('tiny-head-guard.service',calls);self.assertIn('tiny-worker-guard.service',calls);self.assertIn('tiny-observer.service',calls)
++
++    def test_actual_abort_published_final_notfound_unit_is_unknown_not_release(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);ns,a,argv,calls,clock,queries,lstat=self.fixture(root)
++            def properties(unit,*args,**kwargs):
++                if unit=='tiny-controller.service':return {'Id':unit,'LoadState':'loaded','MainPID':'0','ExecMainPID':'123','ExecMainExitTimestampMonotonic':'3000000','InvocationID':'invocation'}
++                return {'Id':unit,'LoadState':'not-found','ActiveState':'inactive','MainPID':'0','ExecMainPID':'0'}
++            ns['native_properties']=properties;actual_stat=pathlib.Path.stat
++            def stat(path,*args,**kwargs):
++                value=actual_stat(path,*args,**kwargs)
++                if path.name in ('guard-head','guard-worker','observer','ABORT'):
++                    fields=list(value);fields[4]=0;return os.stat_result(fields)
++                return value
++            with mock.patch.object(pathlib.Path,'lstat',lstat),mock.patch.object(pathlib.Path,'stat',stat):
++                with self.assertRaisesRegex(TimeoutError,'release not established'):ns['native_abort_release'](a,'tiny-controller.service',{},.5)
++            self.assertTrue(all((root/'runs/tiny'/name/'ABORT').exists() for name in ('guard-head','guard-worker','observer')))
++
++    def test_actual_abort_empty_precreated_dirs_notfound_are_not_started(self):
++        with tempfile.TemporaryDirectory() as directory:
++            root=pathlib.Path(directory);ns,a,argv,calls,clock,queries,lstat=self.fixture(root)
++            for name in ('guard-head','guard-worker','observer'):
++                for path in (root/'runs/tiny'/name).iterdir():path.unlink()
++            def properties(unit,*args,**kwargs):
++                if unit=='tiny-controller.service':return {'Id':unit,'LoadState':'loaded','MainPID':'0','ExecMainPID':'123','ExecMainExitTimestampMonotonic':'3000000','InvocationID':'invocation'}
++                return {'Id':unit,'LoadState':'not-found','ActiveState':'inactive','MainPID':'0','ExecMainPID':'0'}
++            ns['native_properties']=properties;actual_stat=pathlib.Path.stat
++            def stat(path,*args,**kwargs):
++                value=actual_stat(path,*args,**kwargs)
++                if path.name in ('guard-head','guard-worker','observer','ABORT'):
++                    fields=list(value);fields[4]=0;return os.stat_result(fields)
++                return value
++            with mock.patch.object(pathlib.Path,'lstat',lstat),mock.patch.object(pathlib.Path,'stat',stat):
++                result=ns['native_abort_release'](a,'tiny-controller.service',{},.5)
++            self.assertEqual(result['status'],'CHILD_EXIT_KNOWN_GUARDS_NOT_STARTED')
++            self.assertTrue(all(row['status']=='NOT_STARTED' for row in result['guard_states'].values()))
++            self.assertFalse(result['normal_cleanup'])
++
++    def test_actual_stage_block_uses_retained_wait_only_and_new_status(self):
++        body=p.stage_block_body();compile(body,'<new-retained-block>','exec')
++        self.assertIn('result=native_controller_wait(a,argv,spec,child_deadline)',body)
++        self.assertNotIn("argv=[argv[0],'--wait'",body);self.assertNotIn('--property=RemainAfterExit=no',body)
++        self.assertIn("assert result.returncode==0",body);self.assertIn('THREE_STAGE_EXIT300_SINGLE_CONDITION_CORRECT_RELEASE60_PASS',body)
++        self.assertIn("claim(a['run_id']+'.claim')",body)
++
++
++
++class NativeStageBlockConsumerTest(unittest.TestCase):
++    def test_actual_generated_block_argv_native_receipts_and_stop_on_bad_final(self):
++        for fail_at in (None,1):
++            with self.subTest(fail_at=fail_at),tempfile.TemporaryDirectory() as directory:
++                root=pathlib.Path(directory);_,_,claims=ActualConsumerTest().block_fixture(root)
++                bundle=json.loads((root/'bundle.json').read_text());runs=root/'runs';calls=[]
++                import time as real_time
++                boot=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip();namespace=os.readlink('/proc/self/ns/time');impl=real_time.get_clock_info('monotonic').implementation
++                real_run=p.subprocess.run;real_stat=pathlib.Path.stat;real_readlink=os.readlink
++                def stats(path,*args,**kwargs):
++                    value=real_stat(path,*args,**kwargs)
++                    if path==claims or path.name in ('guard-head','guard-worker','observer','ABORT'):
++                        fields=list(value);fields[4]=0;return os.stat_result(fields)
++                    return value
++                def command(argv,**kwargs):
++                    if argv[0]=='/usr/bin/systemd-run':
++                        self.assertNotIn('--wait',argv);self.assertIn('--property=RemainAfterExit=yes',argv)
++                        index=len(calls);calls.append(argv);a=bundle['attempts'][index];work=runs/a['run_id'];work.mkdir()
++                        (work/'event-common_environment_begin.json').write_text(json.dumps({'clock_identity':{'boot_id':boot,'time_namespace':namespace,'monotonic_clock_implementation':impl,'process_startticks':500,'container_hostname':os.uname().nodename},'run_id':a['run_id'],'source_commit':bundle['source_commit'],'protocol_sha256':bundle['protocol_sha256'],'pid':123}))
++                        failed=index==fail_at
++                        (work/('controller-failed.json' if failed else 'controller-final.json')).write_text(json.dumps({'status':'FAILED_RETAINED' if failed else 'THREE_STAGE_EXIT300_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'}))
++                        for name in ('guard-head','guard-worker','observer'):
++                            d=work/name;d.mkdir(mode=0o700);(d/('observer-final.json' if name=='observer' else 'guard-final.json')).write_text(json.dumps({'quiet_seconds':60.1}))
++                        return p.subprocess.CompletedProcess(argv,0)
++                    self.assertEqual(argv[:2],['/usr/bin/systemctl','show'])
++                    unit=argv[2];values={'Id':unit,'LoadState':'loaded','ActiveState':'active','SubState':'exited','MainPID':'0','ExecMainPID':'123','ExecMainStartTimestampMonotonic':'1000000','ExecMainExitTimestampMonotonic':'2000000','ExecMainCode':'1','ExecMainStatus':'0','Result':'success','NRestarts':'0','InvocationID':unit+'-inv'}
++                    return p.subprocess.CompletedProcess(argv,0,stdout='\n'.join(k+'='+v for k,v in values.items()))
++                with mock.patch('os.geteuid',return_value=0),mock.patch.object(pathlib.Path,'stat',stats),mock.patch('os.readlink',side_effect=lambda path:namespace if str(path)=='/proc/1/ns/time' else real_readlink(path)),mock.patch('time.time',return_value=100),mock.patch('time.monotonic',return_value=100),mock.patch('subprocess.run',side_effect=command),mock.patch.object(sys,'argv',['block',str(root/'bundle.json'),p.hashlib.sha256((root/'bundle.json').read_bytes()).hexdigest(),'30000']):
++                    if fail_at is None:exec(compile(p.stage_block_body(),'<actual-new-stage-BLOCK_BODY>','exec'),{})
++                    else:
++                        with self.assertRaises(AssertionError):exec(compile(p.stage_block_body(),'<actual-new-stage-BLOCK_BODY>','exec'),{})
++                final=json.loads((claims/'tinyblock-final.json').read_text())
++                self.assertEqual(len(calls),4 if fail_at is None else 2)
++                self.assertEqual(len(list(claims.glob('*controller-unit-span.json'))),len(calls))
++                self.assertEqual(final['status'],'THREE_STAGE_EXIT300_BLOCK_RELEASE60_PASS' if fail_at is None else 'FAILED_RETAINED_NO_RETRY')
++                if fail_at is not None:
++                    self.assertEqual([a['status'] for a in final['attempts'][2:]],['NOT_STARTED','NOT_STARTED'])
++                    self.assertEqual(final['attempts'][1]['owned_abort_release']['status'],'CHILD_EXIT_AND_STARTED_GUARDS_RELEASE60_OBSERVED')
++
+ if __name__=='__main__':
+     unittest.main()

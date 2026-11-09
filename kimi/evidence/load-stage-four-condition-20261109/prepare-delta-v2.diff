@@ -1,0 +1,567 @@
+--- /home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/prepare-before.py
++++ /home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py
+@@ -32,6 +32,8 @@
+ STOP_OBSERVE_COHORT = "kimi-store-stop-observe-20261109-qjhs000-v1"
+ STOP_OBSERVE_SCOPE = "STORE_STOP_OBSERVATION_ONLY_NOT_PERFORMANCE"
+ STOP_OBSERVE_STATISTICS = {"scope":"single_storecold_stop_observation_not_performance","success_rate_denominator":"launch_requested","stopping":"criterion60_latched_observation300_technical_failure_abort_no_retry"}
++STAGE_COHORT = "kimi-load-stages-20261109-qjhs000-v1"
++STAGE_SCHEMA = "kimi-weight-load-host-stages-v1"
+ FORMAL64_COHORT = "kimi-unified-loading-20261109-qjhs000-formal64-v1"
+ FORMAL64_REVIEW_PATH = base.EVIDENCE/"kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/actual-matched-cache-results-independent-review-v1.json"
+ FORMAL64_REVIEW_SHA = "7f9fb98630805c2ccbef481d743708eb4c49e6663cbddee323e25d516b421bf6"
+@@ -60,14 +62,21 @@
+     attempts = protocol["attempts"]
+     if unified:
+         loading=protocol["unified_loading"]
+-        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
+-        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
++        assert loading["cohort_id"] in ("kimi-unified-loading-20261109","kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT)
++        if loading["cohort_id"] in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT):
+             assert protocol["node_profile"]==Q0_NODE_PROFILE
+             assert protocol["node"]==Q0_NODE_PROFILE["ssh_alias"]
+             assert protocol["assets"]["route"]=="local_raid_md0"
+-        if loading["cohort_id"] in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
++        if loading["cohort_id"] in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT):
+             assert protocol["store_pool_bytes_by_condition"]=={c:(67108864 if c.startswith("safetensors") else 687194767360) for c in CONDITIONS}
+             protocol_cache_pin(protocol)
++        if loading["cohort_id"]==STAGE_COHORT:
++            assert protocol["execution_scope"]=="full_load_stage_four_only"
++            assert protocol["statistics"]==UNIFIED_STATISTICS and protocol.get("cache_diagnostic") is None
++            assert loading["stage_schema"]==STAGE_SCHEMA and protocol["normal_stop_bound"]==300
++            assert protocol["events"]["primary_http_endpoint"]=="json_parse_complete_ns"
++            assert protocol["events"]["secondary_http_endpoint"]=="received_ns"
++            formal64_dependency(protocol)
+         if loading["cohort_id"]==FORMAL64_COHORT:
+             assert protocol["execution_scope"]=="formal_four_only"
+             assert protocol.get("cache_diagnostic") is None and protocol["statistics"]==UNIFIED_STATISTICS
+@@ -210,7 +219,7 @@
+ 
+ def protocol_guard_pin(protocol):
+     cohort=protocol.get("unified_loading",{}).get("cohort_id")
+-    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):
++    if cohort not in ("kimi-unified-loading-20261109-proc-confirm-v2",Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT):
+         assert protocol.get("proc_identity_confirmation_guard") is None,"new guard declaration requires explicit v2 cohort"
+         return FORMAL_GUARD_SHA
+     assert protocol.get("schema")=="kimi-unified-loading-remeasurement-v1","new guard cannot override historical40 schema"
+@@ -221,13 +230,13 @@
+     assert guard["revision"]=="normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
+     assert re.fullmatch("[0-9a-f]{64}",guard["sha256"]) and guard["sha256"]!=FORMAL_GUARD_SHA
+     assert hashlib.sha256(path.read_bytes()).hexdigest()==guard["sha256"],"v2 actual guard pin drift"
+-    if cohort in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
++    if cohort in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT):assert guard["sha256"]=="e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e"
+     return guard["sha256"]
+ 
+ 
+ def protocol_cache_pin(protocol):
+     path=base.ROOT/"sllm_store/tests/file_cache_state.py"
+-    small=protocol.get("unified_loading",{}).get("cohort_id") in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
++    small=protocol.get("unified_loading",{}).get("cohort_id") in (SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT)
+     if not small:
+         assert protocol.get("cache_observation_helper") is None,"new helper requires explicit small-pool cohort"
+         assert base.digest(path)==LEGACY_CACHE_SHA,"historical3340 helper bytes unavailable; old frozen deployment remains closed"
+@@ -263,6 +272,8 @@
+ 
+ 
+ def validate_unified_overlay(protocol):
++    if protocol["unified_loading"]["cohort_id"]==STAGE_COHORT:
++        return validate_stage_overlay(protocol)
+     loading=protocol["unified_loading"]
+     root=base.ROOT/"sllm_store/build/kimi-vllm0191-load-endpoints-v1"
+     assert loading["canonical_patch_sha256"]==ENDPOINT_PATCH_SHA
+@@ -817,7 +828,8 @@
+     endpoint_manifest=validate_unified_overlay(protocol) if unified else None
+     guard_sha=protocol_guard_pin(protocol)
+     small=protocol.get("unified_loading",{}).get("cohort_id")==SMALL_POOL_COHORT
+-    formal64=protocol.get("unified_loading",{}).get("cohort_id")==FORMAL64_COHORT
++    stage=protocol.get("unified_loading",{}).get("cohort_id")==STAGE_COHORT
++    formal64=protocol.get("unified_loading",{}).get("cohort_id") in (FORMAL64_COHORT,STAGE_COHORT)
+     q0=small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==STOP_OBSERVE_COHORT or protocol.get("unified_loading",{}).get("cohort_id")==Q0_COHORT
+     proc_confirm=q0 or protocol.get("unified_loading",{}).get("cohort_id")=="kimi-unified-loading-20261109-proc-confirm-v2"
+     attempt = next(a for a in protocol["attempts"] if a["attempt_id"] == attempt_id)
+@@ -858,7 +870,7 @@
+                 protocol_sha256=PROTOCOL_SHA, cache_helper_sha256=protocol_cache_pin(protocol), input_inventory={"path":protocol["assets"].get("input_inventory_path",str(INVENTORY)),"sha256":protocol["assets"].get("input_inventory_sha256",INVENTORY_SHA)},
+                 correctness=protocol["correctness"], attempt=attempt, native_source_pins=copy.deepcopy(source_pins), primary_http_endpoint=protocol['events'].get('primary_http_endpoint','received_ns'))
+     spec["native_source_pins"]["sllm_store/tests/file_cache_state.py"]=spec["cache_helper_sha256"]
+-    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';patch_sha=ENDPOINT_PATCH_SHA if unified else DIAGNOSTIC_PATCH_SHA
++    patch=base.ROOT/'sllm_store/vllm_patch/sllm_load.patch';patch_sha=protocol['unified_loading']['canonical_patch_sha256'] if stage else ENDPOINT_PATCH_SHA if unified else DIAGNOSTIC_PATCH_SHA
+     assert (hashlib.sha256(patch.read_bytes()).hexdigest() if unified else base.digest(patch))==patch_sha
+     spec['code_pins'][str(patch)]=patch_sha
+     guard=base.ROOT/'sllm_store/tests/guard_cuda_micro.py';assert spec['guard']==str(guard) and (hashlib.sha256(guard.read_bytes()).hexdigest() if proc_confirm else base.digest(guard))==guard_sha
+@@ -982,27 +994,35 @@
+     if unified:
+         loading=copy.deepcopy(protocol["unified_loading"]);loading["model_instance_id"]=attempt_id+"-life1"
+         spec["unified_loading"]=loading
+-        old_runner=next(o for o in spec["overlays"] if o["target"].endswith("/v1/worker/gpu_model_runner.py"))
+-        old_path=old_runner["source"];new_path=endpoint_manifest["output_overlay"]["path"]
+-        old_runner.update(source=new_path,sha256=ENDPOINT_OVERLAY_SHA)
+-        spec["code_pins"].pop(old_path,None)
+-        for role,request in spec["requests"].items():
+-            for mount in request["mounts"]:
+-                if mount["Target"]==old_runner["target"]:
+-                    assert mount["Source"]==old_path and mount["ReadOnly"] is True
+-                    mount["Source"]=new_path
+-            request["env"].update(SLLM_CAPTURE_LOAD_ENDPOINTS="1",SLLM_LOAD_SPAN_RUN_ID=attempt_id,SLLM_LOAD_SPAN_INSTANCE_ID=loading["model_instance_id"])
++        if stage:
++            install_stage_overlays(spec,endpoint_manifest,loading)
++        else:
++            old_runner=next(o for o in spec["overlays"] if o["target"].endswith("/v1/worker/gpu_model_runner.py"))
++            old_path=old_runner["source"];new_path=endpoint_manifest["output_overlay"]["path"]
++            old_runner.update(source=new_path,sha256=ENDPOINT_OVERLAY_SHA)
++            spec["code_pins"].pop(old_path,None)
++            for role,request in spec["requests"].items():
++                for mount in request["mounts"]:
++                    if mount["Target"]==old_runner["target"]:
++                        assert mount["Source"]==old_path and mount["ReadOnly"] is True
++                        mount["Source"]=new_path
++            for key in ("canonical_patch","clock_identity_helper","output_overlay","endpoint_only_patch"):
++                row=endpoint_manifest[key];spec["code_pins"][row["path"]]=row["sha256"]
++            spec["code_pins"][loading["overlay_manifest"]["path"]]=ENDPOINT_MANIFEST_SHA
++            spec["canonical_patch_provenance"]="New supplemental endpoint-only overlay from frozen f7; historical6fc/866 lineage unchanged and not admitted by this branch."
++        endpoint_env={"SLLM_CAPTURE_LOAD_ENDPOINTS":"1","SLLM_LOAD_SPAN_RUN_ID":attempt_id,"SLLM_LOAD_SPAN_INSTANCE_ID":loading["model_instance_id"]}
++        for request in spec["requests"].values():
++            request["env"].update(endpoint_env)
+             assert request["env"].get("SLLM_DIAGNOSTIC_VALUE_FINGERPRINT") is None
+-        for key in ("canonical_patch","clock_identity_helper","output_overlay","endpoint_only_patch"):
+-            row=endpoint_manifest[key];spec["code_pins"][row["path"]]=row["sha256"]
+-        spec["code_pins"][loading["overlay_manifest"]["path"]]=ENDPOINT_MANIFEST_SHA
+-        spec["canonical_patch_provenance"]="New supplemental endpoint-only overlay from frozen f7; historical6fc/866 lineage unchanged and not admitted by this branch."
++        if stage:
++            if "env" in spec:spec["env"].update(endpoint_env)
++            spec["load_endpoint_environment"]=endpoint_env
+         anchor="mark_sample_gate('ownership',True,'all8 rank owners physically authenticated')"
+         assert body.count(anchor)==1
+         body=body.replace(anchor,"collect_unified_loading(records,rank_owners,physical);"+anchor,1)
+         anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
+         assert body.count(anchor)==1
+-        body=body.replace(anchor,UNIFIED_LOADING_CODE+anchor,1)
++        body=body.replace(anchor,(STAGE_LOADING_CODE if stage else UNIFIED_LOADING_CODE)+anchor,1)
+     if small or formal64 or protocol.get("unified_loading",{}).get("cohort_id")==STOP_OBSERVE_COHORT:
+         amount=protocol["store_pool_bytes_by_condition"][attempt["condition"]]
+         spec["store_pool_bytes"]=amount
+@@ -1021,6 +1041,23 @@
+         spec["matched_cache_dependency"]=copy.deepcopy(protocol["matched_cache_dependency"])
+         spec["cache_dependency_scope"]="Prior64MiB cache-only diagnostic, not model/lifecycle qualification; this case must pass fresh cache and all original model/8rank/clock/normal-release gates."
+         spec["code_pins"].update(formal64_dependency(protocol))
++    if stage:
++        body=stage_http_endpoint_body(body)
++        body=stage_rank_file_body(body)
++        spec["execution_scope"]="full_load_stage_four_only"
++        spec["normal_stop_bound"]=300
++        spec["proposed_normal_stop_bound_seconds"]=300
++        spec["prior_pool_exit60_l1_scope"]=spec.pop("pool_exit60_l1_scope")
++        spec["prior_explicit_release_derivation"]=spec.pop("explicit_release_derivation")
++        spec["active_store_stop_policy"]={"criterion_seconds":300,"protocol":"THREE_STAGE_EXIT300_PENDING_APPROVAL","receipt":"store-stop-exit300.json","includes":"original SIGINT/IPC, finish, strictgone and diagnostics","quiet_release_seconds":60,"authorization":"PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION"}
++        spec["controller_cost_event_semantics"]["scope"]="Actual controller-observed operation boundaries include IPC/polling/evidence IO; prospective primary A exact JSON parse completion, secondary received A and existing B/D explicitly retained. Native unit span is separate."
++        spec["controller_cost_event_semantics"]["api_stop"]="Original controller_shutdown plus API stop/finish unchanged30; Store uses new-profile proposed strict300 receipt, pending approval. RELEASE60 means normal guard/GPU quiet60, not Store stop duration."
++        spec["pending_runtime_approval"]=True
++        spec["authorization_status"]="PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION"
++        for relative in ("sllm_store/tests/prepare_kimi_four_condition.py","sllm_store/tests/python/test_prepare_kimi_four_condition.py"):
++            path=base.ROOT/relative;spec["code_pins"][str(path)]=hashlib.sha256(path.read_bytes()).hexdigest()
++        body=stage_stop_bound_body(body)
++        spec["measurement_endpoint_policy"]={"primary_A":"json_parse_complete_ns-registration_command_ns","secondary_A":"received_ns-registration_command_ns","business_B_D":"received_ns-business_trigger_ns","GLM_history":"C23 received is after json.load return/context exit; precise parse endpoint is a prospective delta, not identical."}
+     body=milestone_assert_messages(body)
+     compile(body,"<formal-candidate>","exec")
+     command["argv"][index]=body
+@@ -1030,6 +1067,7 @@
+     spec["budgets"]["sum"]=sum(spec["budgets"]["phase_max"])
+     assert spec["budgets"]["sum"]==6480<7200
+     command.update(status="CANDIDATE_NOT_FROZEN_NOT_EXECUTABLE",root_python_sha256=hashlib.sha256(body.encode()).hexdigest())
++    if stage:command["inline_lines"]=len(body.splitlines())
+     return spec,command
+ 
+ 
+@@ -1103,14 +1141,17 @@
+         assert entry.get('logical_attempt_id',row['attempt_id'])==row['attempt_id']
+         assert pathlib.Path(entry['command_path']).is_absolute()
+         assert re.fullmatch('[0-9a-f]{64}',entry['command_sha256'])
+-    compile(BLOCK_BODY,'<four-condition-block>','exec')
+-    return {'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':execution_mapping(protocol)[1][str(block_number)],'logical_block_id':execution_mapping(protocol)[1][str(block_number)] if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1' else 'kimi-four-v1-b%02d'%block_number,'execution_revision':copy.deepcopy(protocol.get('execution_revision')),
++    block_body=stage_block_body() if protocol.get('unified_loading',{}).get('cohort_id')==STAGE_COHORT else BLOCK_BODY
++    compile(block_body,'<four-condition-block>','exec')
++    bundle={'status':'CANDIDATE_BLOCK_NOT_FROZEN_NOT_EXECUTABLE','block_id':execution_mapping(protocol)[1][str(block_number)],'logical_block_id':execution_mapping(protocol)[1][str(block_number)] if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1' else 'kimi-four-v1-b%02d'%block_number,'execution_revision':copy.deepcopy(protocol.get('execution_revision')),
+             'source_commit':source_commit,'success_rate_denominator':'launch_requested','attempts':copy.deepcopy(entries),'planned_attempts':copy.deepcopy(protocol['attempts']),
+             'protocol_sha256':PROTOCOL_SHA,'runs_root':protocol['resource_budget'].get('runs_root','/home/boyjiang/kimi-new/evidence/runs'),
+             'condition_max_seconds':7200,'parent_overhead_seconds':120,'full_max_seconds':28920,
+             'claims_root':'/home/boyjiang/kimi-new/evidence/formal-claims-root',
+-            'block_python':BLOCK_BODY,'block_python_sha256':hashlib.sha256(BLOCK_BODY.encode()).hexdigest(),
++            'block_python':block_body,'block_python_sha256':hashlib.sha256(block_body.encode()).hexdigest(),
+             'limits':'Requires root-owned claims directory, independent root unit coverage28920, fresh full-block authorized booking/resource admission, frozen committed child specs and independent review. Any child failure stops permanently without retry.'}
++    if protocol.get('unified_loading',{}).get('cohort_id')==STAGE_COHORT:bundle.update(authorization_status='PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION',proposed_normal_stop_bound_seconds=300)
++    return bundle
+ 
+ 
+ def committed_source(source_commit, declared):
+@@ -1150,7 +1191,7 @@
+     assert protocol['resource_budget']['per_complete_block_max_seconds']==28920
+     assert protocol['resource_budget']['parent_overhead_seconds']==120
+     assets=protocol['assets']
+-    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT)
++    q0=protocol.get('unified_loading',{}).get('cohort_id') in (Q0_COHORT,SMALL_POOL_COHORT,FORMAL64_COHORT,STOP_OBSERVE_COHORT,STAGE_COHORT)
+     sf,archive,runs=(Q0_SF_HOST,Q0_STORE_ARCHIVE,Q0_RUNS_ROOT) if q0 else (SF_HOST,STORE_ARCHIVE,RUNS_ROOT)
+     assert assets['route']==('local_raid_md0' if q0 else 'local_nvme')
+     assert assets['safetensors']==sf and assets['store_archive']==archive
+@@ -1159,7 +1200,7 @@
+     assert pathlib.Path(assets['input_inventory_path']).is_absolute()
+     assert assets['input_inventory_path']!=str(INVENTORY) and assets['input_inventory_sha256']!=INVENTORY_SHA,'old NFS inventory cannot admit local assets'
+     assert re.fullmatch('[0-9a-f]{64}',assets['input_inventory_sha256'])
+-    assert protocol['events']['primary_http_endpoint']=='received_ns'
++    assert protocol['events']['primary_http_endpoint']==('json_parse_complete_ns' if protocol.get('unified_loading',{}).get('cohort_id')==STAGE_COHORT else 'received_ns')
+     assert protocol['events']['primary_start_event']=='same_http_client_registration_command_ns'
+     # Keep the preregistered orders, own gold and statistics intact.
+     original=checked(PROTOCOL,PROTOCOL_SHA)
+@@ -1569,6 +1610,324 @@
+     return (json.dumps(value,ensure_ascii=False,indent=2)+chr(10)).encode()
+ 
+ 
++
++STAGE_BASE_SHA = {
++    'vllm/v1/worker/gpu_model_runner.py':'f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7',
++    'vllm/model_executor/model_loader/base_loader.py':'d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df',
++    'vllm/model_executor/model_loader/sllm_loader.py':'625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c',
++}
++
++
++def validate_stage_overlay(protocol):
++    loading=protocol['unified_loading'];value=loading['overlay_manifest']
++    root=base.ROOT/'sllm_store/build/kimi-vllm0191-load-stages-v1'
++    assert value['path']==str(root/'build-manifest.json') and re.fullmatch('[0-9a-f]{64}',value['sha256'])
++    manifest=checked(pathlib.Path(value['path']),value['sha256'])
++    assert manifest['schema']=='kimi-load-stages-overlay-v1' and manifest['stage_schema']==STAGE_SCHEMA
++    assert manifest['canonical_baseline_sha256']==ENDPOINT_PATCH_SHA
++    assert manifest['canonical_patch']=={'path':str(base.ROOT/'sllm_store/vllm_patch/sllm_load.patch'),'sha256':loading['canonical_patch_sha256']}
++    assert manifest['clock_identity_helper']['path']==str(base.ROOT/'sllm/logger.py')
++    assert len(manifest['modules'])==3 and {m['logical_module'] for m in manifest['modules']}==set(STAGE_BASE_SHA)
++    assert manifest['canonical_baseline']['sha256']==ENDPOINT_PATCH_SHA
++    refs=[manifest[key] for key in ('canonical_baseline','canonical_patch','canonical_delta','clock_identity_helper','source_test','test_baseline')]
++    for module in manifest['modules']:
++        assert module['base']['sha256']==STAGE_BASE_SHA[module['logical_module']] and module['inverse_exact'] is True
++        assert pathlib.Path(module['output']['path']).is_relative_to(root)
++        refs.extend(module[key] for key in ('base','output','delta'))
++    assert all(manifest['checks'][key] is True for key in ('all_module_inverse_exact','canonical_inverse_exact','no_added_cuda_synchronization','no_tensor_payload_reads'))
++    for row in refs:
++        path=pathlib.Path(row['path'])
++        assert path.is_relative_to(base.ROOT) and path.is_file() and not path.is_symlink()
++        assert re.fullmatch('[0-9a-f]{64}',row['sha256']) and hashlib.sha256(path.read_bytes()).hexdigest()==row['sha256'],('stage overlay/source drift',str(path))
++    return manifest
++
++
++def install_stage_overlays(spec,manifest,loading):
++    prefix=next(o['target'] for o in spec['overlays'] if o['target'].endswith('/vllm/v1/worker/gpu_model_runner.py')).removesuffix('v1/worker/gpu_model_runner.py')
++    for module in manifest['modules']:
++        target=prefix+module['logical_module'].removeprefix('vllm/')
++        entries=[o for o in spec['overlays'] if o['target']==target]
++        assert len(entries)<=1
++        source=module['output']['path'];digest=module['output']['sha256']
++        if entries:
++            old=entries[0]['source'];spec['code_pins'].pop(old,None)
++            entries[0].update(source=source,sha256=digest)
++        else:spec['overlays'].append({'source':source,'target':target,'sha256':digest})
++        for request in spec['requests'].values():
++            mounts=[m for m in request['mounts'] if m['Target']==target]
++            assert len(mounts)<=1 and (not mounts or mounts[0]['ReadOnly'] is True)
++            if mounts:mounts[0]['Source']=source
++            else:request['mounts'].append({'Type':'bind','Source':source,'Target':target,'ReadOnly':True})
++        for key in ('base','output','delta'):
++            row=module[key];spec['code_pins'][row['path']]=row['sha256']
++    for key in ('canonical_baseline','canonical_patch','canonical_delta','clock_identity_helper','source_test','test_baseline'):
++        row=manifest[key];spec['code_pins'][row['path']]=row['sha256']
++    spec['code_pins'][loading['overlay_manifest']['path']]=loading['overlay_manifest']['sha256']
++    spec['canonical_patch_provenance']='New opt-in three-stage overlay; exact f919/base-loader/v6 lineage; no new synchronization or tensor reads.'
++    for overlay in spec['overlays']:
++        assert hashlib.sha256(pathlib.Path(overlay['source']).read_bytes()).hexdigest()==overlay['sha256'],'active overlay bytes drift'
++        spec['code_pins'].setdefault(overlay['source'],overlay['sha256'])
++        for request in spec['requests'].values():
++            matches=[m for m in request['mounts'] if m['Target']==overlay['target']]
++            assert len(matches)==1 and matches[0]['Source']==overlay['source'] and matches[0]['ReadOnly'] is True
++        assert spec['code_pins'][overlay['source']]==overlay['sha256']
++
++
++STAGE_LOADING_CODE = UNIFIED_LOADING_CODE.replace(
++ "  ranks.append(dict(value,device_uuid=record['device_uuid'],host_owner=owner,host_duration_ns=end-begin,host_duration_s=(end-begin)/1e9))",
++ """  assert value['stage_schema']=='kimi-weight-load-host-stages-v1' and set(value['stages'])=={'weight_ingestion','postprocessing'},'rankload stage schema missing'
++  if value['loader_type'].endswith('.DefaultModelLoader'):
++   boundaries=(('before_base_load_weights','after_base_load_weights_return'),('before_online_quant_condition','after_process_weights_after_loading_return'))
++  else:
++   assert value['loader_type'].endswith('.ServerlessLLMLoader'),'unsupported stage loader'
++   boundaries=(('before_store_load_dict','after_store_data_bindings_and_buffer_moves'),('before_store_runtime_hook_traversal','after_store_attention_postprocessing_return'))
++  previous=begin;stages={}
++  for name,bounds in zip(('weight_ingestion','postprocessing'),boundaries):
++   stage=value['stages'][name];left=stage['begin_ns'];right=stage['end_ns']
++   assert stage['status']=='COMPLETE' and type(left) is int and type(right) is int and previous<=left<=right<=end,'rankload stage incomplete/outside ordered full interval'
++   assert (stage['begin_boundary'],stage['end_boundary'])==bounds,'rankload stage boundaries changed'
++   stages[name]=dict(stage,host_duration_ns=right-left,host_duration_s=(right-left)/1e9);previous=right
++  ranks.append(dict(value,stages=stages,device_uuid=record['device_uuid'],host_owner=owner,host_duration_ns=end-begin,host_duration_s=(end-begin)/1e9))""").replace(
++ " save('unified-loading-host-span.json',",
++ """ stage_spans={}
++ for name in ('weight_ingestion','postprocessing'):
++  left=min(v['stages'][name]['begin_ns'] for v in ranks);right=max(v['stages'][name]['end_ns'] for v in ranks);largest=max(v['stages'][name]['host_duration_ns'] for v in ranks)
++  stage_spans[name]={'begin_ns':left,'end_ns':right,'span_ns':right-left,'span_s':(right-left)/1e9,'max_rank_duration_ns':largest,'max_rank_duration_s':largest/1e9}
++ save('unified-loading-host-span.json',""").replace("'scope':'Host load_model call envelope;", "'weight_load_host_all_rank_span_s':(end-begin)/1e9,'full_span_alias_policy':'weight_load_host_span_s retains the same max(full.end)-min(full.begin) value; stage envelopes not additive','stage_schema':'kimi-weight-load-host-stages-v1','stage_spans':stage_spans,'scope':'Host load_model call envelope;")
++
++
++def stage_http_endpoint_body(body):
++    events=HTTP_EVENTS.replace("'monotonic_ns':row[s['primary_http_endpoint']]", "'monotonic_ns':row['json_parse_complete_ns'] if index==0 else row['received_ns']").replace("'endpoint':s['primary_http_endpoint']", "'endpoint':'json_parse_complete_ns' if index==0 else 'received_ns'")
++    events=events.replace("primary_A_ns=row['received_ns']-row['registration_command_ns']", "primary_A_ns=row['json_parse_complete_ns']-row['registration_command_ns'],received_primary_A_ns=row['received_ns']-row['registration_command_ns']")
++    body=replace_function(body,'validated_http_events',ast.get_source_segment(events,next(n for n in ast.parse(events).body if isinstance(n,ast.FunctionDef) and n.name=='validated_http_events')))
++    node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='record_http_sample');source=ast.get_source_segment(body,node)
++    source=source.replace("valid_primary=index==0 and type(command) is int and type(received) is int and 0<command<=received", "primary=times['json_parse_complete_ns'];valid_primary=index==0 and type(command) is int and type(primary) is int and 0<command<=primary")
++    source=source.replace("'primary_A_ns':received-command if valid_primary else None", "'primary_A_ns':primary-command if valid_primary else None,'received_primary_A_ns':received-command if index==0 and type(command) is int and type(received) is int and 0<command<=received else None,'primary_A_endpoint':'json_parse_complete_ns','secondary_A_endpoint':'received_ns','business_B_endpoint':'received_ns'")
++    return replace_function(body,'record_http_sample',source)
++
++
++def stage_stop_bound_body(body):
++    node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='stop_service')
++    original=ast.get_source_segment(body,node);head,tail=original.split('  return\n',1)
++    assert "begin=deadline-60" in head and "'criterion_seconds':60" in head
++    head=head.replace('begin=deadline-60','begin=deadline-300').replace("'criterion_seconds':60","'criterion_seconds':300").replace('EXIT60','EXIT300').replace('exit60','exit300').replace('criterion60','criterion300')
++    body=replace_function(body,'stop_service',head+'  return\n'+tail)
++    old="store_stop_end=time.monotonic()+60;assert store_stop_end<stop_end,'full Store60 stop slot unavailable'"
++    assert body.count(old)==1
++    body=body.replace(old,"store_stop_end=time.monotonic()+300;assert store_stop_end<stop_end,'full Store300 stop slot unavailable'",1)
++    assert base.GRACE_GATE in body,'full600+120+180 actual guard/native/GO admission must remain'
++    body=body.replace("('store-stop-exit60.json','head-exited.json'", "('store-stop-exit300.json','head-exited.json'",1)
++    return body.replace('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','THREE_STAGE_EXIT300_SINGLE_CONDITION_CORRECT_RELEASE60_PASS').replace('NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY','THREE_STAGE_EXIT300_FAILED_RETAINED_NO_RETRY')
++
++
++NATIVE_CONTROLLER_CODE = r"""
++def native_properties(unit,deadline,allow_not_found=False):
++ remaining=deadline-time.monotonic();assert remaining>0,'native controller query deadline exhausted'
++ keys='Id,LoadState,ActiveState,SubState,MainPID,ExecMainPID,ExecMainStartTimestampMonotonic,ExecMainExitTimestampMonotonic,ExecMainCode,ExecMainStatus,Result,NRestarts,InvocationID'
++ result=subprocess.run(['/usr/bin/systemctl','show',unit,'--property='+keys],capture_output=True,text=True,timeout=min(3,remaining),check=True)
++ value=dict(line.split('=',1) for line in result.stdout.splitlines() if '=' in line)
++ assert value['Id']==unit and (value['LoadState']=='loaded' or allow_not_found and value['LoadState']=='not-found'),'child unit not authenticated'
++ return value
++
++def native_unit_receipt(a,unit,value,error=None):
++ start=int(value.get('ExecMainStartTimestampMonotonic','0')) if value.get('ExecMainStartTimestampMonotonic','0').isdecimal() else 0;end=int(value.get('ExecMainExitTimestampMonotonic','0')) if value.get('ExecMainExitTimestampMonotonic','0').isdecimal() else 0
++ proof={'status':'MISSING'}
++ try:
++  boot=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip();collector=os.readlink('/proc/self/ns/time');manager=os.readlink('/proc/1/ns/time')
++  proof={'status':'MISSING','boot_id':boot,'collector_time_namespace':collector,'manager_time_namespace':manager,'monotonic_clock_implementation':time.get_clock_info('monotonic').implementation,'collector_pid':os.getpid()}
++  assert boot and collector==manager,'systemd manager/collector time namespace differs'
++  phase=runs/a['run_id']/'event-common_environment_begin.json'
++  assert phase.is_file() and not phase.is_symlink() and phase.stat().st_size<=2<<20,'child clock event unavailable'
++  raw=phase.read_bytes();event=json.loads(raw);clock=event['clock_identity'];pin=a.get('native_identity_pin',{})
++  assert event['run_id']==a['run_id'] and event['source_commit']==b['source_commit'] and event['protocol_sha256']==b['protocol_sha256'],'child event run/source/protocol mismatch'
++  assert event['pid']==int(value.get('ExecMainPID','0'))==pin.get('ExecMainPID') and value.get('InvocationID')==pin.get('InvocationID'),'child event/native process identity mismatch'
++  assert type(clock.get('process_startticks')) is int and clock['process_startticks']>0 and clock['process_startticks']==pin.get('process_startticks'),'child process startticks not bound'
++  assert hashlib.sha256(raw).hexdigest()==pin.get('phase_event_sha256'),'child phase event changed since native identity pin'
++  proof['child_phase_clock_identity']=clock
++  proof['identity_provenance']='Exact retained native invocation/ExecMainPID bound to same-run root-produced self-clock event SHA/startticks; no fabricated post-exit proc identity.'
++  assert (clock['boot_id'],clock['time_namespace'],clock['monotonic_clock_implementation'])==(boot,collector,proof['monotonic_clock_implementation']),'child phase/systemd clock domain mismatch'
++  proof.update(status='VALID',child_phase_event_sha256=hashlib.sha256(raw).hexdigest())
++ except Exception as clock_error:proof.update(status='MISSING',error_type=type(clock_error).__name__,error=str(clock_error))
++ pin=a.get('native_identity_pin',{});owned=value.get('InvocationID')==a.get('native_invocation_pin') and value.get('ExecMainPID','0').isdecimal() and int(value.get('ExecMainPID','0'))==pin.get('ExecMainPID')
++ observed=owned and start>0 and end>=start and end>0 and int(value['ExecMainPID'])>0
++ code=value.get('ExecMainCode');status=value.get('ExecMainStatus')
++ return {'schema':'kimi-controller-native-unit-span-v1','run_id':a['run_id'],'unit':unit,'source_commit':b['source_commit'],'protocol_sha256':b['protocol_sha256'],'command_sha256':a['command_sha256'],'spec_sha256':a['spec_sha256'],'systemd_properties':dict(value),'native_start_us':start if start>0 else None,'native_exit_us':end if end>0 else None,'start_ns':start*1000 if observed else None,'end_ns':end*1000 if observed else None,'span_ns':(end-start)*1000 if observed else None,'clock_proof':proof,'precision':'systemd integer microseconds; multiplication does not add precision','observation_status':'OBSERVED' if observed else 'NOT_OBSERVED_NATIVE_ENDPOINT','termination_class':'NORMAL_EXIT0' if observed and code=='1' and status=='0' and value.get('Result')=='success' else 'NONZERO_EXIT' if observed and code=='1' else 'SIGNAL_OR_FORCED' if observed else 'NOT_OBSERVED','error':error,'scope':'Exact child main process entry through process exit; failed/forced span is not normal cleanup proof; excludes parent launch and later external release.'}
++
++def native_controller_wait(a,argv,spec,deadline):
++ unit=next(v.split('=',1)[1] for v in argv if v.startswith('--unit='));value={};pin=None;invocation=None;primary=None
++ try:
++  assert '--wait' not in argv and '--property=RemainAfterExit=yes' in argv,'retained child launch required'
++  launch=subprocess.run(argv,timeout=min(30,deadline-time.monotonic()))
++  a['launch_returncode']=launch.returncode
++  assert launch.returncode==0,'systemd child start request failed or outcome uncertain'
++  while True:
++   value=native_properties(unit,deadline)
++   assert value['NRestarts']=='0','child unit restarted'
++   assert value['InvocationID'],'child invocation unavailable'
++   if invocation is None:invocation=value['InvocationID'];a['native_invocation_pin']=invocation
++   else:assert invocation==value['InvocationID'],'child invocation drift before PID pin'
++   pid=int(value['ExecMainPID'])
++   if pin is None and pid>0:
++    pin=(value['InvocationID'],pid);a['native_identity_pin']={'InvocationID':pin[0],'ExecMainPID':pin[1]}
++   if pin is not None:
++    assert (value['InvocationID'],pid)==pin,'child invocation/PID drift'
++    phase=runs/a['run_id']/'event-common_environment_begin.json'
++    if phase.is_file() and 'process_startticks' not in a['native_identity_pin']:
++     assert not phase.is_symlink() and phase.stat().st_size<=2<<20,'untrusted child event'
++     raw=phase.read_bytes();event=json.loads(raw);clock=event['clock_identity']
++     assert event['run_id']==a['run_id'] and event['source_commit']==b['source_commit'] and event['protocol_sha256']==b['protocol_sha256'] and event['pid']==pid,'child initial event/native identity mismatch'
++     assert type(clock.get('process_startticks')) is int and clock['process_startticks']>0,'child initial startticks unavailable'
++     a['native_identity_pin'].update(process_startticks=clock['process_startticks'],phase_event_sha256=hashlib.sha256(raw).hexdigest())
++   start=int(value['ExecMainStartTimestampMonotonic']);end=int(value['ExecMainExitTimestampMonotonic'])
++   assert int(value['MainPID']) in (0,pid),'child MainPID differs from execution PID'
++   if int(value['MainPID'])==0 and end>0 and value['ActiveState'] in ('active','inactive','failed') and value['SubState'] in ('exited','dead','failed'):
++    assert pin is not None and start>0 and end>=start,'native process endpoints unavailable'
++    receipt=native_unit_receipt(a,unit,value)
++    a['native_unit_span']=receipt
++    path=claims/(a['run_id']+'-controller-unit-span.json')
++    fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
++    with os.fdopen(fd,'w') as stream:json.dump(receipt,stream);stream.flush();os.fsync(stream.fileno())
++    a['native_unit_span_ref']={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
++    assert receipt['clock_proof']['status']=='VALID','native controller/phase clock proof unavailable'
++    if value['ExecMainCode']!='1' or value['ExecMainStatus']!='0' or value['Result']!='success':raise subprocess.CalledProcessError(int(value['ExecMainStatus']) or 1,argv)
++    return subprocess.CompletedProcess(argv,0)
++   assert time.monotonic()+.2<deadline,'native child wait budget exhausted'
++   time.sleep(.2)
++ except BaseException as error:
++  primary=error
++  a['native_unit_span']=native_unit_receipt(a,unit,value,{'type':type(error).__name__,'message':str(error)})
++  try:
++   a['owned_abort_release']=native_abort_release(a,unit,spec,deadline)
++   terminal=a['owned_abort_release'].get('terminal_native_properties')
++   if terminal:
++    a['native_unit_span_after_abort']=native_unit_receipt(a,unit,terminal,{'type':type(error).__name__,'message':str(error)})
++    path=claims/(a['run_id']+'-controller-unit-span-after-abort.json')
++    fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
++    with os.fdopen(fd,'w') as stream:json.dump(a['native_unit_span_after_abort'],stream);stream.flush();os.fsync(stream.fileno())
++    a['native_unit_span_after_abort_ref']={'path':str(path),'sha256':hashlib.sha256(path.read_bytes()).hexdigest()}
++  except BaseException as cleanup_error:a['owned_abort_release']={'status':'INCOMPLETE','error_type':type(cleanup_error).__name__,'error':str(cleanup_error),'independent_guard_coverage_retained':True}
++  raise primary
++
++def native_abort_release(a,unit,spec,deadline):
++ # Revisit exact known unit names and late directories until release or original cap.
++ root=runs/a['run_id'];started=set();errors=[];states={}
++ while time.monotonic()<deadline:
++  for name in ('guard-head','guard-worker','observer'):
++   directory=root/name
++   if directory.exists():
++    info=directory.lstat();assert directory.is_dir() and not directory.is_symlink() and info.st_uid==0 and info.st_mode&0o777==0o700,'untrusted owned abort directory'
++    marker=directory/'ABORT'
++    if not marker.exists():
++     fd=os.open(marker,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600);os.close(fd)
++    else:assert marker.is_file() and not marker.is_symlink() and marker.stat().st_uid==0,'untrusted abort marker'
++  try:
++   state=native_properties(unit,deadline);pin=a.get('native_identity_pin')
++   if a.get('native_invocation_pin'):assert state['InvocationID']==a['native_invocation_pin'],'owned child invocation changed during abort'
++   if pin:assert state['InvocationID']==pin['InvocationID'] and int(state['ExecMainPID'])==pin['ExecMainPID'],'owned child invocation changed during abort'
++   child_done=int(state['MainPID'])==0 and int(state['ExecMainExitTimestampMonotonic'])>0
++   done=child_done
++   for name in ('guard-head','guard-worker','observer'):
++    guardunit=a['run_id']+('-observer.service' if name=='observer' else '-'+name.removeprefix('guard-')+'-guard.service')
++    guard=native_properties(guardunit,deadline,allow_not_found=True);directory=root/name
++    if guard['LoadState']=='not-found':
++     producer_markers=('guard-events.jsonl','ARMED.json','GO.json','GO-ACK.json','guard-final.json','observer-ready.json','observer-final.json')
++     published=directory.exists() and any((directory/marker).exists() for marker in producer_markers)
++     if published:started.add(name)
++     absent=name not in started
++     states[name]={'status':'NOT_STARTED' if child_done and absent else 'UNKNOWN_PRODUCER_OR_STARTED_WITHOUT_UNIT','properties':guard,'producer_file_observed':published}
++     done=done and child_done and absent
++     continue
++    executing=int(guard.get('MainPID','0') or 0)>0 or int(guard.get('ExecMainPID','0') or 0)>0 or guard.get('ActiveState')=='activating'
++    if executing:started.add(name)
++    if name not in started:
++     states[name]={'status':'UNEXECUTED_UNIT','properties':guard};done=done and child_done
++     continue
++    final=directory/('observer-final.json' if name=='observer' else 'guard-final.json')
++    released=False
++    if final.is_file() and not final.is_symlink() and final.stat().st_size<=2<<20:
++     report=json.loads(final.read_text());released=int(guard['MainPID'])==0 and type(report.get('quiet_seconds')) in (int,float) and report['quiet_seconds']>=60
++    states[name]={'status':'RELEASE60_OBSERVED' if released else 'WAITING_FOR_STARTED_GUARD_RELEASE','properties':guard}
++    done=done and released
++   if done:return {'status':'CHILD_EXIT_AND_STARTED_GUARDS_RELEASE60_OBSERVED' if started else 'CHILD_EXIT_KNOWN_GUARDS_NOT_STARTED','guard_states':states,'started_guard_names':sorted(started),'errors':errors,'normal_cleanup':False,'terminal_native_properties':state}
++  except Exception as error:
++   row={'type':type(error).__name__,'message':str(error)}
++   if len(errors)<32 and (not errors or errors[-1]!=row):errors.append(row)
++  if time.monotonic()+.2>=deadline:break
++  time.sleep(.2)
++ raise TimeoutError('owned abort/release not established within original wait budget')
++"""
++
++
++def stage_block_body():
++    body=BLOCK_BODY
++    old="  argv=[argv[0],'--wait',*['--property=RemainAfterExit=no' if x=='--property=RemainAfterExit=yes' else x for x in argv[1:-1]],str(expiry)]"
++    assert body.count(old)==1
++    body=body.replace(old,"  argv=[*argv[:-1],str(expiry)]\n  a['spec_sha256']=c['spec_sha256'];child_deadline=min(parent_end,time.monotonic()+7205)",1)
++    body=body.replace("status='FAILED_RETAINED_NO_RETRY';error=None", "parent_started=time.monotonic();parent_end=parent_started+b['full_max_seconds']-3\nstatus='FAILED_RETAINED_NO_RETRY';error=None",1)
++    body=body.replace("   result=subprocess.run(argv,timeout=7205);a['returncode']=result.returncode", "   result=native_controller_wait(a,argv,spec,child_deadline);a['returncode']=result.returncode",1)
++    body=body.replace("claim(b['block_id']+'.claim')",NATIVE_CONTROLLER_CODE+"\nclaim(b['block_id']+'.claim')",1)
++    anchor="  assert result.returncode==0,'attempt failed; no retry or replacement'"
++    assert body.count(anchor)==1
++    body=body.replace(anchor,"  if a['launch_error'] is None and a['status']!='THREE_STAGE_EXIT300_SINGLE_CONDITION_CORRECT_RELEASE60_PASS':\n   try:a['owned_abort_release']=native_abort_release(a,next(v.split('=',1)[1] for v in argv if v.startswith('--unit=')),spec,child_deadline)\n   except BaseException as cleanup_error:a['owned_abort_release']={'status':'INCOMPLETE','error_type':type(cleanup_error).__name__,'error':str(cleanup_error)}\n"+anchor,1)
++    return body.replace('FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS','THREE_STAGE_EXIT300_SINGLE_CONDITION_CORRECT_RELEASE60_PASS').replace('FOUR_CONDITION_BLOCK_RELEASE60_PASS','THREE_STAGE_EXIT300_BLOCK_RELEASE60_PASS')
++
++
++STAGE_RANK_FILE_CODE = r"""
++original_load_files={}
++def read_original_load_file(path,announcement,phase):
++ assert re.fullmatch(r'rank-[0-7]-pid-[0-9]+\.json',path.name),'rank evidence name invalid'
++ directory=path.parent.lstat();assert stat.S_ISDIR(directory.st_mode) and directory.st_uid==2147 and stat.S_IMODE(directory.st_mode)==0o700 and not path.parent.is_symlink() and path.parent.resolve()==path.parent,'rank evidence parent owner/mode/alias'
++ fd=os.open(path,os.O_RDONLY|os.O_CLOEXEC|os.O_NOFOLLOW)
++ with os.fdopen(fd,'rb') as stream:
++  before=os.fstat(stream.fileno());named=path.lstat()
++  assert stat.S_ISREG(before.st_mode) and stat.S_ISREG(named.st_mode) and before.st_uid==2147 and stat.S_IMODE(before.st_mode)==0o600,'rank file owner/type/mode'
++  assert (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)==(named.st_dev,named.st_ino,named.st_size,named.st_mtime_ns),'rank file path identity'
++  assert 0<before.st_size<=16<<20,'rank file cap'
++  raw=stream.read((16<<20)+1);after=os.fstat(stream.fileno())
++ assert (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)==(after.st_dev,after.st_ino,after.st_size,after.st_mtime_ns) and len(raw)==before.st_size,'rank file changed while read'
++ directory_after=path.parent.lstat();assert (directory.st_dev,directory.st_ino)==(directory_after.st_dev,directory_after.st_ino),'rank directory identity drift'
++ named=path.lstat();assert (before.st_dev,before.st_ino,before.st_size,before.st_mtime_ns)==(named.st_dev,named.st_ino,named.st_size,named.st_mtime_ns),'rank file name changed'
++ row={'path':str(path),'filename':path.name,'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'dev':before.st_dev,'ino':before.st_ino,'mtime_ns':before.st_mtime_ns,'uid':before.st_uid,'mode':stat.S_IMODE(before.st_mode),'tp_rank':announcement['tp_rank'],'pid':announcement['pid'],'directory_dev':directory.st_dev,'directory_ino':directory.st_ino,'directory_uid':directory.st_uid,'directory_mode':stat.S_IMODE(directory.st_mode)}
++ assert path.name=='rank-'+str(row['tp_rank'])+'-pid-'+str(row['pid'])+'.json','rank filename identity'
++ if phase=='before':
++  if path.name in original_load_files:assert original_load_files[path.name]==row,'rank evidence changed on repeated initial read'
++  else:original_load_files[path.name]=row
++ else:assert original_load_files[path.name]==row,'rank evidence full-file hash/identity drift after lifecycle'
++ return raw
++
++def publish_original_load_files_before():
++ assert len(original_load_files)==8 and {r['tp_rank'] for r in original_load_files.values()}==set(range(8)) and len({r['pid'] for r in original_load_files.values()})==8,'eight original rank files required'
++ path=base/'load-evidence-original-files-before.json'
++ if not path.exists():save(path.name,{'run_id':run,'phase':'before','files':list(original_load_files.values()),'scope':'Hashes of entire original producer files, not derived subset hashes.'})
++
++def verify_original_load_files_after():
++ directory=base/'worker/load-evidence'
++ assert {p.name for p in directory.iterdir()}==set(original_load_files),'unexpected/missing/partial rank files after lifecycle'
++ for row in original_load_files.values():read_original_load_file(pathlib.Path(row['path']),row,'after')
++ assert len(original_load_files)==8,'full rank files were not initially observed'
++ save('load-evidence-original-files-after.json',{'run_id':run,'phase':'after_lifecycle','files':list(original_load_files.values()),'all8_entire_original_hashes_unchanged':True})
++"""
++
++
++def stage_rank_file_body(body):
++    node=next(n for n in ast.parse(body).body if isinstance(n,ast.FunctionDef) and n.name=='records_since')
++    source=ast.get_source_segment(body,node)
++    old="raw=(edir/name).read_bytes();assert len(raw)==ann['bytes']"
++    assert source.count(old)==1
++    source=source.replace("edir=base/'worker/load-evidence';info=os.stat(edir)","edir=base/'worker/load-evidence';info=edir.lstat();assert stat.S_ISDIR(info.st_mode) and not edir.is_symlink() and edir.resolve()==edir,'rank evidence directory alias'",1)
++    source=source.replace(old,"raw=read_original_load_file(edir/name,ann,'before');assert len(raw)==ann['bytes']",1)
++    source=source.replace(' return load_records(rows)'," result=load_records(rows);publish_original_load_files_before();return result",1)
++    body=replace_function(body,'records_since',source)
++    anchor="\ntry:\n save('storage-route-admission.json',storage_route_proof)"
++    assert body.count(anchor)==1
++    body=body.replace(anchor,STAGE_RANK_FILE_CODE+anchor,1)
++    anchor=" qualification=finalize_sample_evidence("
++    assert body.count(anchor)==1
++    body=body.replace(anchor," verify_original_load_files_after()\n"+anchor,1)
++    # Failure path also preserves post-lifecycle hashes without replacing its error.
++    body+="\n if original_load_files and not (base/'load-evidence-original-files-after.json').exists():\n  original_error=__import__('sys').exc_info()[1]\n  try:verify_original_load_files_after()\n  except BaseException as evidence_error:\n   try:save('load-evidence-original-files-after-error.json',{'type':type(evidence_error).__name__,'error':str(evidence_error),'files_observed_before':list(original_load_files.values())})\n   except Exception:pass\n   if original_error is None:raise\n"
++    return body
++
+ def main():
+     parser=argparse.ArgumentParser(description=__doc__)
+     selection=parser.add_mutually_exclusive_group(required=True)
+@@ -1598,8 +1957,8 @@
+     if protocol.get('unified_loading',{}).get('cohort_id')==SMALL_POOL_COHORT:
+         assert args.matched_cache_only and protocol['execution_scope']=='MATCHED_CACHE_DIAGNOSTIC_ONLY_NO_FORMAL_ACTIVATION','diagnostic protocol cannot activate formal attempts or blocks'
+     else:assert not args.matched_cache_only,'matched cache requires new explicit profile'
+-    if protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:
+-        assert args.block==1 and protocol['execution_scope']=='formal_four_only','formal64 accepts only its complete block1'
++    if protocol.get('unified_loading',{}).get('cohort_id') in (FORMAL64_COHORT,STAGE_COHORT):
++        assert args.block==1 and protocol['execution_scope'] in ('formal_four_only','full_load_stage_four_only'),'formal64 accepts only its complete block1'
+     final_commit=None
+     if args.source_commit:
+         validate_frozen_protocol(protocol,args.source_commit)
+@@ -1610,7 +1969,9 @@
+         declared.update(pathlib.Path(path).relative_to(base.ROOT).as_posix() for path in original_spec['code_pins'] if pathlib.Path(path).is_relative_to(base.ROOT) and pathlib.Path(path).suffix=='.py' and 'build' not in pathlib.Path(path).relative_to(base.ROOT).parts)
+         if protocol.get('schema')=='kimi-unified-loading-remeasurement-v1':
+             declared.add('sllm_store/tests/python/test_vllm_loader_interface.py')
+-        if args.matched_cache_only or args.store_stop_observe or protocol.get('unified_loading',{}).get('cohort_id')==FORMAL64_COHORT:declared.add('sllm_store/tests/python/test_file_cache_state.py')
++        if protocol.get('unified_loading',{}).get('cohort_id')==STAGE_COHORT:
++            declared.update(('sllm_store/tests/prepare_kimi_four_condition.py','sllm_store/tests/python/test_prepare_kimi_four_condition.py'))
++        if args.matched_cache_only or args.store_stop_observe or protocol.get('unified_loading',{}).get('cohort_id') in (FORMAL64_COHORT,STAGE_COHORT):declared.add('sllm_store/tests/python/test_file_cache_state.py')
+         final_commit=committed_source(args.source_commit,declared)
+     if args.store_stop_observe:
+         files=prepare_store_stop_observation(protocol,original_spec,original_command,pins,final_commit,args.protocol,args.protocol_sha)
+@@ -1646,7 +2007,7 @@
+         if final_commit:bundle['status']='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW'
+         bp=base.EVIDENCE/(bundle['block_id']+'-'+version+'-bundle.json');bb=json_bytes(bundle)
+         unit=bundle['block_id']+'-formal-controller.service'
+-        argv=['/usr/bin/systemd-run','--unit='+unit,'--property=Type=exec','--property=RuntimeMaxSec=28917','--property=TimeoutStopSec=1','--property=Restart=no','--property=KillMode=control-group','--property=SendSIGKILL=yes','--property=FinalKillSignal=SIGKILL','/usr/bin/python3','-I','-c',BLOCK_BODY,str(bp),hashlib.sha256(bb).hexdigest(),'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED']
++        argv=['/usr/bin/systemd-run','--unit='+unit,'--property=Type=exec','--property=RuntimeMaxSec=28917','--property=TimeoutStopSec=1','--property=Restart=no','--property=KillMode=control-group','--property=SendSIGKILL=yes','--property=FinalKillSignal=SIGKILL','/usr/bin/python3','-I','-c',bundle['block_python'],str(bp),hashlib.sha256(bb).hexdigest(),'FRESH_VERIFIED_BOOKING_EXPIRY_EPOCH_REQUIRED']
+         launch={'status':bundle['status'],'block_max_seconds':28920,'parent_overhead_seconds':120,'bundle_sha256':hashlib.sha256(bb).hexdigest(),'argv':argv}
+         outputs.extend(((bp,bb),(bp.with_name(bp.name.replace('-bundle.json','-root-command.json')),json_bytes(launch))))
+     assert all(not path.exists() for path,_ in outputs),'prepared output already exists'

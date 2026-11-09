@@ -1,0 +1,793 @@
+{
+  "schema": "kimi-unified-loading-remeasurement-v1",
+  "status": "DRAFT_THREE_STAGE_EXIT300_PENDING_SOURCE_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION",
+  "epoch": 1794218865.7464724,
+  "user_direction": "Prepare one new complete four-condition supplemental block only. First SFhot is the real small-pool model lifecycle validation, without another L1 probe. Runtime activation requires separate new user approval and freshfull28920window.",
+  "node": "qjhs000",
+  "source_root": "/home/boyjiang/kimi-new/ServerlessLLM",
+  "audited_events_source_commit": "70b23a3af65fae77b4b762942cf4a682a7c474f6",
+  "final_deploy_commit": null,
+  "conditions": [
+    "safetensors_disk_cold",
+    "safetensors_disk_hot",
+    "store_disk_cold",
+    "store_pool_hit"
+  ],
+  "design": {
+    "blocks": 1,
+    "realized_condition_orders": [
+      [
+        "safetensors_disk_hot",
+        "store_disk_cold",
+        "safetensors_disk_cold",
+        "store_pool_hit"
+      ]
+    ]
+  },
+  "attempts": [
+    {
+      "order": 1,
+      "block": 1,
+      "position": 1,
+      "condition": "safetensors_disk_hot",
+      "attempt_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_hot"
+    },
+    {
+      "order": 2,
+      "block": 1,
+      "position": 2,
+      "condition": "store_disk_cold",
+      "attempt_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_disk_cold"
+    },
+    {
+      "order": 3,
+      "block": 1,
+      "position": 3,
+      "condition": "safetensors_disk_cold",
+      "attempt_id": "kimi-load-stages-20261109-qjhs000-v1-b01-safetensors_disk_cold"
+    },
+    {
+      "order": 4,
+      "block": 1,
+      "position": 4,
+      "condition": "store_pool_hit",
+      "attempt_id": "kimi-load-stages-20261109-qjhs000-v1-b01-store_pool_hit"
+    }
+  ],
+  "assets": {
+    "safetensors": "/mnt/raid/models/Kimi-K2.6",
+    "safetensors_payload_bytes": 595177988208,
+    "store": "/home/boyjiang/kimi-new/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+    "store_all_files_bytes": 617029596501,
+    "store_tensor_payload_bytes": 617000763392,
+    "inventory_sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+    "policy": "Reuse read-only assets; no conversion, model download or duplicate payload copy. Frozen per-file admission inventory required.",
+    "route": "local_raid_md0",
+    "store_archive": "/home/boyjiang/kimi-new/store-conversion-20261105-once",
+    "input_inventory_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2.json",
+    "input_inventory_sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+    "copy_verification_path": "/home/boyjiang/kimi-new/store-migration-verified-20261105.json",
+    "copy_verification_sha256": "9044e6f42408b56af33704381c41a282a73dca51e820625ebecf7cd270e92598",
+    "storage_scope": "qjhs000 local /dev/md0 XFS RAID: SF under /mnt/raid[/data], Store/raw outputs/source/overlays/ELFs/control/claims under /home[/home]. This /home is exported to qjhs003 over NFS; qjhs000 inputs do not traverse that NFS client. This cohort is not the historical qjhs003 NVMe route.",
+    "qjhs000_inventory_independent_review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2-independent-review-20261109.json",
+      "sha256": "a3d0ae2f2ca0aed40b5c8d960d092020963a7379af108dce2917bd2edd1c2a59"
+    }
+  },
+  "correctness": {
+    "own_safetensors_gold_path": "/home/boyjiang/kimi-new/evidence/kimi-sf-fixed32-accepted-reference-20261106.json",
+    "own_safetensors_gold_sha256": "cbf8cf72cbca41df7997f6b8581ace9798892415e0088d3467d46217ffb19f98",
+    "order": [
+      "arithmetic",
+      "translation",
+      "fixed32"
+    ],
+    "requests": [
+      {
+        "case": "arithmetic",
+        "messages": [
+          {
+            "role": "user",
+            "content": "请计算17加25。只输出整数结果，不要解释。"
+          }
+        ],
+        "input_tokens": [
+          163587,
+          2482,
+          163601,
+          2066,
+          6130,
+          1810,
+          865,
+          1453,
+          292,
+          989,
+          13791,
+          55796,
+          3764,
+          378,
+          2556,
+          8637,
+          292,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "temperature": 0,
+        "top_p": 1.0,
+        "top_k": 0,
+        "min_p": 0.0,
+        "seed": 20261024,
+        "n": 1,
+        "max_tokens": 128,
+        "ignore_eos": false,
+        "expected": {
+          "content": " 42",
+          "token_ids": [
+            5512,
+            163586
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 23,
+          "completion_tokens": 2
+        },
+        "logprobs": 1
+      },
+      {
+        "case": "translation",
+        "messages": [
+          {
+            "role": "user",
+            "content": "请将英文单词cat翻译成中文。只输出译文，不要解释。"
+          }
+        ],
+        "input_tokens": [
+          163587,
+          2482,
+          163601,
+          117914,
+          17772,
+          26735,
+          9793,
+          110004,
+          16717,
+          292,
+          989,
+          13791,
+          65264,
+          378,
+          2556,
+          8637,
+          292,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "temperature": 0,
+        "top_p": 1.0,
+        "top_k": 0,
+        "min_p": 0.0,
+        "seed": 20261024,
+        "n": 1,
+        "max_tokens": 128,
+        "ignore_eos": false,
+        "expected": {
+          "content": " 猫",
+          "token_ids": [
+            6927,
+            163586
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 23,
+          "completion_tokens": 2
+        },
+        "logprobs": 1
+      },
+      {
+        "case": "fixed32",
+        "messages": [
+          {
+            "role": "user",
+            "content": "用中文解释为什么天空通常呈蓝色，写一段完整且连贯的说明。"
+          }
+        ],
+        "input_tokens": [
+          163587,
+          2482,
+          163601,
+          557,
+          16717,
+          8637,
+          3975,
+          16814,
+          8047,
+          6346,
+          18564,
+          378,
+          2283,
+          13072,
+          11023,
+          1669,
+          77733,
+          269,
+          5787,
+          292,
+          163586,
+          163588,
+          69702,
+          163601,
+          163606,
+          163607
+        ],
+        "temperature": 0,
+        "top_p": 1.0,
+        "top_k": 0,
+        "min_p": 0.0,
+        "seed": 20261024,
+        "n": 1,
+        "max_tokens": 32,
+        "ignore_eos": true,
+        "expected": {
+          "content": " 天空呈现蓝色，主要是由于**瑞利散射**这一光学现象。\n\n太阳光本质上是由多种颜色的光混合而成的白光，不同颜色的光具有不同的波长——红光",
+          "token_ids": [
+            16814,
+            10201,
+            18564,
+            378,
+            101297,
+            381,
+            7249,
+            1147,
+            133637,
+            381,
+            2837,
+            47516,
+            6246,
+            7087,
+            133282,
+            51633,
+            13464,
+            8661,
+            39708,
+            1482,
+            13935,
+            45530,
+            145344,
+            378,
+            2577,
+            39708,
+            1482,
+            3478,
+            6263,
+            115010,
+            35086,
+            119304
+          ],
+          "finish_reason": "length",
+          "prompt_tokens": 26,
+          "completion_tokens": 32
+        },
+        "logprobs": 1,
+        "validation_mode": "fixed32_length_only_v1"
+      }
+    ],
+    "template": {
+      "tokenizer": "Kimi own tokenizer/template from accepted official SF reference; never GLM token IDs",
+      "add_generation_prompt": true,
+      "thinking": false,
+      "preserve_thinking": false
+    },
+    "native_transport": "input_tokens -> TokensPrompt; no chat-template or OpenAI-only fields passed to SamplingParams",
+    "token_validation": "Trace verifies actual prompt+sampled IDs for all requests; arithmetic/translation content/token/usage/finish exact SF gold; fixed32_length_only_v1 requires actual32 and length with exact usage, strict reference differences reported separately, not a qualification gate.",
+    "observability": "GLM actual requests logprobs=1 and return_token_ids=True; Kimi native SamplingParams receives logprobs=1 and obtains actual IDs via existing trace. Unsupported OpenAI return_token_ids/top_logprobs/stream/template kwargs are not passed to SamplingParams. Kimi explicitly top_p=1/top_k=0/min_p=0/n=1; GLM call omitted those fields. Kimi effective greedy behavior is verified from actual image source, not guessed; no claim that omission itself proves identical GLM defaults.; User-approved prospective fixed32_length_only_v1: actual32tokens/length; strict SF text/token differences recorded but not performance failure; first arithmetic and translation remain exact; LP1 unchanged, earlier additional LP2 observation is not part of formal samples.",
+    "historical_AAB_preserved": true
+  },
+  "common_configuration": {
+    "tp": 8,
+    "gpu_memory_utilization": 0.8,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "enforce_eager": true,
+    "enable_prefix_caching": false,
+    "trust_remote_code": true,
+    "mm_encoder_tp_mode": "data",
+    "chunk_bytes": 67108864,
+    "io_threads": 4,
+    "shm_bytes": 8589934592,
+    "pids_limit": 4096,
+    "worker_memory_bytes": 1649267441664,
+    "worker_cpus": 32,
+    "trace_debug": true,
+    "min_instances": 0,
+    "max_instances": 1,
+    "placement_memory_pool": [],
+    "load_formats": {
+      "safetensors_disk_cold": "safetensors",
+      "safetensors_disk_hot": "safetensors",
+      "store_disk_cold": "serverless_llm",
+      "store_pool_hit": "serverless_llm"
+    },
+    "fresh_services_every_condition": true,
+    "config_delta_from_L1": "Explicit prefix caching false to align GLM; min_instances0 makes first arithmetic trigger startup. These are new formal protocol configs, not relabeling L1 timings.",
+    "jit": "Fresh per-attempt empty explicitly located JIT/cache directories, same env for all4; record before/after. No hidden warmup request or shared mutable compiled cache.",
+    "pool_size_source": "store_pool_bytes_by_condition: SFcold/SFhot64MiB controlpool; Storecold/poolhit640GiB. Chunk64MiB/threads4 and all other model/resource settings unchanged."
+  },
+  "cache_admission": {
+    "contract_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-cache-existing-api-readonly-contract-20261106.md",
+    "contract_sha256": "848eba9b1c3a82b68e64d71b121630c1dd0f1097b6ac92fd812fd7a5767a3c5f",
+    "disk_cold": "Identity-checked frozen file list; file-specific eviction then all mincore pages==0 at admission. Kernel hint success alone insufficient.",
+    "disk_hot": "Sequential bounded prefetch then every mincore page resident at admission. Incomplete hot state is admission failure.",
+    "pool_hit": "Same authenticated Store instance, fresh exclusive log window containing exactly8 rank ToHost Finished-loading-success events. No intervening unload/ClearMem/eviction/extra load; CPU async ACK and manager bookkeeping are not residency proof.",
+    "store_cold": "Use a fresh initialized Store with no host load, model allocation or queue before target startup; prove fresh PID/startticks and no target load events, rather than relying on ambiguous ClearMem ack.",
+    "scope": "qjhs000 local /dev/md0 XFS RAID client file-page cache only; disk/controller hardware cache uncontrolled. Exact finite SF/Store input inventory, no global cache drop or unrelated files.",
+    "target_files": "Frozen qjhs000 inventory84SF and104Store regular files:128payload stat only,60metadata freshly SHA256 checked; full Store migration proof is separate9044 receipt, not a new payload rehash.",
+    "missing_tool": "RESOLVED: committed finite-list two-stage operation then residency query helper3340bf6a; CPU12 plus independent review. Real model cache operations occur only during approved guarded attempt.",
+    "formal_cache_scope": "Each formalcase reconstructs and verifies its own original cachecondition. SFhot uses ordinary helper warm +all-hot result+independent query before timedregistration; prior five-sweep diagnostic is dependency evidence only, not a replacement freshpredicate or continuousresidency guarantee."
+  },
+  "events": {
+    "sequence": [
+      "previous_state_cleanup",
+      "common_initialization",
+      "target_condition_construction",
+      "cache_pool_admission_complete",
+      "command_register_begin",
+      "command_register_complete",
+      "trigger_arithmetic_http_begin",
+      "backend_init_begin",
+      "backend_init_ready",
+      "router_instance_published",
+      "backend_first_token_observed",
+      "arithmetic_http_complete_correct",
+      "translation_http_begin",
+      "translation_http_complete_correct",
+      "fixed32_http_begin",
+      "fixed32_http_complete_correct",
+      "delete_begin",
+      "delete_complete",
+      "final_stop_begin",
+      "Store_exit0_and_strictgone",
+      "API_exit0_and_strictgone",
+      "containers_exit0",
+      "release_quiet60_complete"
+    ],
+    "concurrency": "Actual events may overlap; only real same-clock intervals form exclusive stacks. backend init/route/first token are not additive phase spans.",
+    "identity": "Capture boot_id, process startticks, container hostname, time namespace, monotonic implementation for each producer. Reject invalid cross-domain subtraction; keep wall clock separate.",
+    "primary_start": "Same HTTP producer immediately before perform_http register, followed in that process by arithmetic; no parent Docker launch or polling in A.",
+    "ready_requests": "Translation then fixed32 after first arithmetic has completed; separately report their request durations.",
+    "first_token": "Backend first nonempty generation observed, not client stream TTFT.",
+    "fixed32": "Actual32 generated token IDs and length finish; non-stream HTTP complete is not last-token timestamp.",
+    "missing": "No per-token timestamp: TPOT and pure generation remain unmeasured.",
+    "gaps": "Keep preparation-complete-to-register gap explicitly. Do not silently omit from contiguous total.",
+    "primary_http_endpoint": "json_parse_complete_ns",
+    "primary_start_event": "same_http_client_registration_command_ns",
+    "primary_end": "Exact producer json.loads return timestamp inside response context, before context close and helper return; only arithmetic primary A uses this new endpoint.",
+    "parent_scope": "Parent dispatch, receive, validation and persistence separate; event endpoints remain immutable producer timestamps.",
+    "cost_events": "Controller phase events remain actual observer boundaries; native systemd main process start/exit is separate full span; proposed strict Store300 exclusive to this new profile; quiet60 unchanged.",
+    "secondary_http_endpoint": "received_ns",
+    "secondary_end": "received_ns after helper/context return; retained secondary A matches historical C23 endpoint semantics, not exact equal numeric endpoint."
+  },
+  "statistics": {
+    "scope": "single_block_descriptive_no_inference",
+    "success_rate_denominator": "launch_requested",
+    "stopping": "any_failure_stop_no_retry"
+  },
+  "resource_budget": {
+    "status": "FROZEN_CONFIGURED_MAXIMA_NOT_EXPECTED_RUNTIME",
+    "per_condition_max_seconds": 7200,
+    "per_complete_block_max_seconds": 28920,
+    "release_quiet_min_seconds": 60,
+    "purpose": "Hard ceilings, not expected times or measured throughput; no historical node timings used to shorten qjhs000 admission.",
+    "guard": "Reuse existing independent exact-CID guards + observer + root-owned bounded units; validate full block reservation/resources and each remaining full condition budget before activation.",
+    "during_timing": "No Git, publication, synchronization or competing workload administration.",
+    "parent_overhead_seconds": 120,
+    "runs_root": "/home/boyjiang/kimi-new/evidence/runs",
+    "per_attempt_phase_caps_seconds": [
+      300,
+      300,
+      1200,
+      120,
+      1800,
+      1500,
+      180,
+      180,
+      720,
+      180
+    ],
+    "nominal_phase_sum_seconds": 6480,
+    "attempt_supervision_slack_seconds": 720,
+    "lifecycle": "Exactly one independent4conditionblock, freshservices/pool/CIDs/JIT percase. SFhotfirst validates64MiB realmodel lifecycle; anyfailure stopsremainingNOT_STARTED, no automaticretry.",
+    "note": "4*7200+120=28920hardceiling;6480declaredphasecaps eachcase, notexpectedruntime. No diag5220budget or mandatoryextraL1probe.",
+    "total_cohort_hard_max_seconds": 28920
+  },
+  "deployment": {
+    "image": "sha256:ec5b4131a127045cefe4c84d349ea5d649e6f028d28df7711bdb1f40faa38c27",
+    "extension_sha256": "95d141504aa4b27901fa6180988cdf8685fc3c5d17f72226a82a50aac3a0c4fd",
+    "pin_policy": "Final runner/code/overlay/client/ELF/assets pins and independent review must be frozen before launch. No claim from HEAD alone.",
+    "formal_samples": 0,
+    "run_id_claim": "O_CREAT|O_EXCL0600 for block and each attempt; existing claim means read-only status, never relaunch.",
+    "final_source_commit": "98696ed4334fdb47d76ccf2127d481db59cbe5be",
+    "Store_extension_manifest_sha256": "59d70f4710ca19d95515e5ca99c5f14ddabd963b2051720908c748e766c2ee2d",
+    "tensor_extension_sha256": "9d629824c2a13391cd1e1b90edc3c690aa807b8e33d94268e4e21a87107133d5",
+    "new_planned_attempts": 4
+  },
+  "before_freeze": [
+    "IndependenttwofileCPU/source/candidate10review",
+    "Parentcommit/push/strict sourceblob+remotevalidation",
+    "Appendfinalprotocolboundtoactualnewsource andgenerateactual10",
+    "Independentactual10review/publication",
+    "Separatecompleteblockrunapproval andfreshfull28920booking/resources/root/claims/guards"
+  ],
+  "publication": {
+    "status": "PENDING_FORMAL64_SOURCE_COMMIT_AND_ACTUAL10_REVIEW",
+    "q0_non_diagnostic_baseline": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/protocol-frozen-qjhs000-v1.json",
+      "sha256": "b0346585d59ddc993041e94e4062a621bbb8cc7b56b9ae241c0c3a7385f4a165"
+    },
+    "matched_cache_results_main_commit": "cf5dba96e6e930190455571ce16f1d76a11ca98f",
+    "limits": "Published cache-only actualresult is not model/L1/formalqualification.",
+    "historical_q0_source_publication": {
+      "branch": "kimi-qjhs002-aligned-tail",
+      "github_remote_verified_sha": "91fb2a10481b44c9d50a2cd963ecf0ac0d250c80",
+      "local_tracked_clean_after_commit": true,
+      "only_explicit_files_staged": [
+        "sllm_store/tests/prepare_kimi_four_condition.py",
+        "sllm_store/tests/python/test_prepare_kimi_four_condition.py"
+      ]
+    },
+    "historical_q0_source_independent_review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/source-and-candidate-independent-review-qjhs000-v1.json",
+      "sha256": "52c9a82353685b24917a3c89a430afea90d49a81f1ededadf80e283d7ae5f84c"
+    }
+  },
+  "historical_functional_acceptance_decision_preserved": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-L1-functional-milestone-acceptance-20261106.json",
+    "sha256": "05a4d8c6e30ef6ee15c05f151b91c600979aa59e1715ef28916014a26fdfa8b0",
+    "old_30s_FAIL_and_raw_diagnostic_verdict_unchanged": true
+  },
+  "L1_canonical_status": {
+    "status": "FUNCTIONAL_EVIDENCE_COMPLETE_FORMAL_L1_ACCEPTANCE_REQUIRES_SEPARATE_CLARIFICATION",
+    "raw_run": "kimi-native-qjhs003-pool-stop-observe-20261106-once",
+    "raw_status": "DIAGNOSTIC_NOT_L1_NATIVE_OBSERVATION_RELEASE_COMPLETE",
+    "old30_verdict": "FAIL_UNCHANGED",
+    "prior_acceptance_decision_retained": true,
+    "no_new_L1_execution_claim": true,
+    "performance_authorization": "User separately explicitly requested run after localization verification; do not infer L1 relabeling from performance authorization.",
+    "status_is_historical_pre_owner_acceptance_annotation": true,
+    "current_owner_separate_decision": "OWNER_ACCEPTED_L1_FUNCTIONAL_ACCEPTANCE_FROM_EXISTING_EVIDENCE_NO_RAW_RELABEL",
+    "owner_acceptance_ref": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-L1-owner-existing-evidence-functional-acceptance-20261107.json",
+      "sha256": "0fc1be39d1c24f0b637d4fb474d47791b4caa083ecd36509b013bb93d6b92afa"
+    },
+    "clarification": "The inherited status wording is a historical annotation. Owner separately accepted existing-evidence L1 functional acceptance on2026-11-07; raw DIAGNOSTIC_NOT_L1 and legacy30FAIL labels stay unchanged, no newly executed formalL1 or retroactive60protocol run is claimed."
+  },
+  "new_performance_Store_shutdown_policy": {
+    "criterion_seconds": 300,
+    "scope": "New stage cohort only; original signal/finish/strictgone unchanged; original60 failures not relabeled",
+    "status": "PROPOSED_PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION",
+    "release_quiet_seconds": 60,
+    "aggregate_ordered_stop_slot_seconds": 600,
+    "release_cleanup_slot_seconds": 120,
+    "evidence_slot_seconds": 180
+  },
+  "sample_qualification": {
+    "required": "all8 full+weight_ingestion+postprocessing actual producer endpoints with perrank identity/clock/owner/file hashes; cache+own gold+normal new-profile Store300/API30/strictgone/normal container exits/guard and GPU release>=60; complete-block analysis only if all4 PASS",
+    "old_samples": "No old40/38/8primary/history/gold replacement or phase backfill; new n1 per condition and full-block n1 only if complete."
+  },
+  "sampling_parameter_evidence": {
+    "GLM_executed_source": "/data/brick1/boyjiang/glm5.1-fp8/validation/controls/sllm-glm51fp8-20261027T011726Z-28c92313/executed-source-f176e05/formal_trials.py",
+    "GLM_source_sha256": "18cf7d97d9c12f971fcfcdf1ae1c09e483bb76a48fa45314bc1ff9b5417094e4",
+    "GLM_actual_fields": "model,input_tokens,temperature0,seed20261024,max_tokens,ignore_eos,logprobs1,return_token_idsTrue,request_id; omitted top_p/top_k/min_p/n",
+    "Kimi_sampler_source_sha256": "8512e73c45a6d2f8015f2ca8d94c9fc9a05ca390d6206e2b387ad6550e9b014a",
+    "scope": "Same request texts/order/maxEOS/temperature/seed/logprobs intent and measured HTTP boundaries; model tokenizer/template, output interface, versions, quantization, infrastructure lifetime and instrumentation differences disclosed; not all workload/environment byte-identical."
+  },
+  "router_start_barrier_amendment": {
+    "prior_protocol_sha256": "a373fecaa0807c7f780d48dad0f43dc3ee92993f8b8b4e4fb8b4b5c3f14cf3cd",
+    "reason": "First formal b01 hot arithmetic returned HTTP200 Instance stopped; controller published registration without awaiting router start. Only await existing start; no HTTP retry, preload or timing endpoint change.",
+    "prior_block_status": "FAILED_RETAINED_NO_RETRY",
+    "prior_run_id": "kimi-four-v1-b01-safetensors_disk_hot",
+    "preserved": "All40 IDs/order/gold/statistics/budgets; b01 failure and unused b01 conditions NOT_STARTED; no replacement samples.",
+    "next_candidate": "Original planned block2, only with separate postfailure runtime approval and fresh full admission.",
+    "independent_review_sha256": "49abe110a95d2af4c3f6a3afe4cf5db7ec0dbcd6fde1a1bff0ec1174c1d02a16"
+  },
+  "outer_argv_fix_amendment": {
+    "prior_protocol_sha256": "3ecd51f47eeaf5e661b5872aa44a155ca639d786a868eab2f0fc5066c2f9a1f3",
+    "failure_review_sha256": "63c87c7b4065a9252742dc20f0de4778c2ca888c4d06b30513fe1231b5aa87fb",
+    "exact_argument_fix_review_sha256": "059ee8fa8061cb86294890f59824d9913cee329ad48d6c9b474cd91610bc8302",
+    "scope": "Only the exact outer RemainAfterExit argument changes to no; nested controller body remains byte-identical and guard yes retained. Strict Result/ExecMainCode/Status and release60 gates unchanged."
+  },
+  "normal_guard_revision": {
+    "scope": "normal_exit_marker retains UID-first and original post-owned UID check. Worker remains strict for all errors. Only explicit head-control-only mode permits PermissionError while initially discovering a host PID not proven owned; warning means unknown global-host coverage, not proven unrelated.",
+    "failure_handling": "Own PID/pidfd/revalidation/cgroup/OCI errors remain fatal and immediately use existing ABORT. Head-only unknown host PermissionError warnings are retained separately/deduplicated and do not invalidate performance; they do not bypass normal head exit0/own scope empty/known PID gone/quiet60.",
+    "bounds": "abort cutoff uses original overall-deadline40 plus mandatory60quiet, min existing GO total; no release shortening or full-budget increase",
+    "guard_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf",
+    "cpu_receipt_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-head-control-permission-policy-source-cpu-verification-20261107.json",
+    "cpu_receipt_sha256": "7f77b19d094e34a51641b6ef4c927261d9fe27682fd3fa2e3dc329c7529f4aa2",
+    "retained_failed_protocol": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-local-nvme-length-only-v6-api-ref-20261107.json",
+    "retained_failed_protocol_sha256": "8962696091895be6acb892c802ae44dd75ee17b20c9c19ad574cb4e69763cb69",
+    "not_claimed": "historical PermissionError target unknown due missingPID; not retrospectively excused or promoted toPASS; no Store/loader/ELF/env/model change",
+    "approval": "User explicitly approved retry04 once then requested head checks be loosened and subsequent work autonomous; fresh full-window/resource gates retained.",
+    "independent_source_review_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-head-control-permission-policy-independent-source-review-20261107.json",
+    "independent_source_review_sha256": "954ee512a92b620ec8e0ddfc7dae765398fcb8ed4244a4b0632ca186c3563203",
+    "historical_v7_guard_policy": {
+      "scope": "normal_exit_marker only; UID-first skips processes already excluded by root-only identity, original post-owned UID/PIDFD/startticks/CID/cgroup checks retained; unknown/root unreadable stillFAIL",
+      "failure_handling": "record pid/stage/errno/filename; publish existing ABORT seen by unchanged actual healthy; failure enters existing owned cleanup immediately; publication Exception cannot stop cleanup",
+      "bounds": "abort cutoff uses original overall-deadline40 plus mandatory60quiet, min existing GO total; no release shortening or full-budget increase",
+      "guard_sha256": "bb3170eded6d84bbf42c5a205410e10ce98783a50cc95f4a59166737eda20645",
+      "cpu_receipt_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-normal-discovery-failfast-source-cpu-verification-v2-20261107.json",
+      "cpu_receipt_sha256": "d755205c67323719087715d7a0b644df7f89003ed19ee3cbea95b9dfcbdc0c64",
+      "retained_failed_protocol": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-local-nvme-length-only-v6-api-ref-20261107.json",
+      "retained_failed_protocol_sha256": "8962696091895be6acb892c802ae44dd75ee17b20c9c19ad574cb4e69763cb69",
+      "not_claimed": "historical PermissionError target unknown due missingPID; not retrospectively excused or promoted toPASS; no Store/loader/ELF/env/model change",
+      "approval": "PENDING_NEW_EXPLICIT_GPU_APPROVAL_AFTER_CONCRETE_REVIEW",
+      "independent_source_review_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-normal-discovery-failfast-independent-source-review-v2-20261107.json",
+      "independent_source_review_sha256": "043ff264f78814ebf843501bdc7f798befe77852119f3daa8922ef3ab39c0120"
+    }
+  },
+  "head_control_guard_policy": {
+    "mode": "unknown_host_permission_warning_head_only_v1",
+    "flag": "--head-control-only",
+    "role": "head",
+    "required_head_environment": {
+      "NVIDIA_VISIBLE_DEVICES": "void",
+      "CUDA_VISIBLE_DEVICES": ""
+    },
+    "warning_scope": "Only initial identity PermissionError for an unknown host PID without positive owned evidence; not claimed unrelated. Include PID/stage/path/error and deduplicate warnings.",
+    "fatal_scope": "Known/pinned or own-cgroup PID and pidfd/revalidation failures, other error types, own scope/OCI/PID0/exit0/gone failures; all worker discovery errors remain fatal.",
+    "release_scope": "Own CID normal exit0, own cgroup empty/gone and authenticated/pinned task identities gone; minimum60s quiet remains. Does not claim complete identity discovery of every inaccessible host PID on head.",
+    "qualification": "Head unknown-host PermissionError warning alone does not invalidate a performance sample; GPU worker ownership and independent observer remain strict.",
+    "authorization_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-user-retry04-head-control-autonomy-authorization-20261107.json",
+    "authorization_sha256": "283d4544b0a633a76f1bb7dc3aba408413ca41076555b711788953bf808c8389",
+    "prior_unexecuted_plan": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-normal-guard-v7-retry04-20261107.json",
+    "prior_unexecuted_sha256": "fd8705c62cdba35aea0f71231633de8be15f0f28ad5b22a848825dd179f03559"
+  },
+  "cache_construction_evidence_revision": {
+    "scope": "Diagnostic evidence only: save raw construction return before existing healthy/admitted/identity checks; add failure context and full traceback/frames. Same evict/warm calls, zero-resident cold criterion, hot criterion, time endpoints, resource/runtime/exit/release limits and model/loader/ELF unchanged. No retry loop added.",
+    "source_commit": "835e2b5e992dd4098f013ddfdf5de4415db373f1",
+    "source_sha256": "407c56f6f26388f3721be4ea4464b98995c2f53be0da5c3a64ea697c86550ffa",
+    "test_sha256": "61e58c8afd75a4322e16d85840e61311fada73c4ef4ec5cc847daf5708601cc1",
+    "helper_sha256_unchanged": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+    "cpu_receipt": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-cache-construction-failure-diagnostics-source-cpu-verification-20261107.json",
+      "sha256": "d8f0d294142148f6a46f09faf45603ef7fd2921d21fecd708e52b38b7bd0eccc"
+    },
+    "source_review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-cache-construction-diagnostics-independent-source-review-20261107.json",
+      "sha256": "37ceb03ee60c635b79f08e8888f925fd87b1e7cfb25484cfd33ffd869e8b3167"
+    },
+    "prior_protocol": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-head-control-v8-retry04-20261107.json",
+      "sha256": "637f9a6c4ab0734f9f3e6bad938fa295ea80e357c03bd665682d6e78de9491a5"
+    },
+    "trace_reconciliation": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-cache-admission-terminal-trace-independent-reconciliation-20261107.json",
+      "sha256": "c5266e5f5c12101f3e2d186515cf3f3a105eab67352e56bb79cef86469784b67"
+    },
+    "current_single_shard_diagnostic": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-cache-admission-failure-public-20261107/shard33-single-evict-diagnostic-result.json",
+      "sha256": "41459cdc8c4db40f56ff72003014f250509e3bb822631420029bd0f38e549cf4"
+    },
+    "continuation_disposition_review": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b04-posthoc-cache-diagnostic-planned-resume-independent-review-20261107.json",
+      "sha256": "cbdf41056e66ce69a942d0892847bdbb722f2c5fc44e86d5a2586a93249a692f"
+    },
+    "limits": "Original b04 rejection had resident pages but original count/file/cause unknown; posthoc6pages and later0pages are separate current-state observations, never backfilled. No claim root cause fixed, no old receipt relabel."
+  },
+  "unified_loading": {
+    "cohort_id": "kimi-load-stages-20261109-qjhs000-v1",
+    "block_id": "kimi-load-stages-20261109-qjhs000-v1-b01",
+    "stop_on_failure": true,
+    "append_only": true,
+    "canonical_patch_sha256": "7b6b263e8757913dab9e4ef37c88977052ac821572baceee4f2fe78aedecfba6",
+    "overlay_manifest": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-stages-v1/build-manifest.json",
+      "sha256": "79e0584259faee50d6f62ff947f7ef98118da9abc0f6657f30e59e9ac4f434df"
+    },
+    "stage_schema": "kimi-weight-load-host-stages-v1"
+  },
+  "cohort_scope": "Only one new4condition block, actual3 stage endpoints, prospective parse A plus received A, retained systemd controller span and proposed Store300. No old ID or sample mixture; CPU candidate only.",
+  "proc_identity_confirmation_guard": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/guard_cuda_micro.py",
+    "sha256": "e974f8976100d87aaa59a51abd036d4784cc16820b70326213412f70bae7519e",
+    "baseline_sha256": "b2cdce70cd57ecd9894968fd50dc88da2e5ffb26bec61d29ffc8780671f316cf",
+    "revision": "normal-worker-exe-permission-same-pid-bounded-confirmation-v1"
+  },
+  "proc_identity_confirmation_guard_cpu_ref": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-guard-bounded-permission-recheck-source-cpu-verification-v2-20261109.json",
+    "sha256": "491e45df0275ee3a9a78cdf58251945105fa8794674cd8fb566d4fe6bf594e50"
+  },
+  "GPU_approval": {
+    "status": "NOT_GRANTED_BY_CPU_PREPARATION",
+    "requires": "Explicit approval of this new four-condition block and new normal Store300 policy plus fresh complete28920 window/resources; no reuse of prior authorization receipt."
+  },
+  "node_profile": {
+    "hostname": "qjhs0",
+    "ssh_alias": "qjhs000",
+    "gpu_uuids": [
+      "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+      "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+      "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+      "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+      "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+      "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+      "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+      "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da"
+    ],
+    "filesystem_source": "/dev/md0",
+    "filesystem_type": "xfs"
+  },
+  "node_route_revision": {
+    "scope": "Independent qjhs000 RAID supplemental cohort; old40 and old qjhs3 v1/v2 IDs untouched; no historical sample reused.",
+    "source_baseline_commit": "98696ed4334fdb47d76ccf2127d481db59cbe5be",
+    "source_changes": "Only prepare/test formal64selector and strict diagnosticdependency. Guard/helper/overlay/nativeELFs/loader/kernel unchanged.",
+    "approved_node": "qjhs000",
+    "filesystem": "/dev/md0 XFS RAID; /mnt/raid binds /data and /home binds /home; not qjhs3 NVMe.",
+    "booking_reference": "NOT_RUNTIME_ADMISSION_USE_FRESH_BOOKING",
+    "fresh_runtime_admission_required": true,
+    "evidence": [
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-qjhs000-node-readonly-plan-20261109.json",
+        "sha256": "dc37110ece5053c15e7f83c7ed8ed41132e49079ef211a84983148c98baa1618"
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-qjhs000-image-pins-readonly-addendum-20261109.json",
+        "sha256": "6a656534b76281c247a26b8cf7eb1f5838f71cc1a72675900bff7782e26bd76d"
+      }
+    ],
+    "unexecuted_qjhs003_v2_retained": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109-proc-confirm-v2/protocol-frozen-v2.json",
+    "supersedes_candidate_versions_only": [
+      "v1",
+      "v2",
+      "v3"
+    ],
+    "baseline_source_commit": "4816aeaae2130923635521c9fa5b5a390fd1bf07"
+  },
+  "historical_qjhs003_protocol_provenance": {
+    "scope": "Historical qjhs003 provenance only; not qjhs000 asset placement, inventory, cache scope or one-off cost.",
+    "assets": {
+      "inventory_sha256": "11210141c7428151fa544c33ec6c79c0083bfc631578777e2ba5a9afaf9f3256",
+      "copy_verification_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-Store-localization-copy-only-independent-acceptance-20261106.json",
+      "copy_verification_sha256": "fd8f64fca32afd86aae225d36d044bf4666b01aadbb3a9c612ad9540d0f69f4a",
+      "storage_scope": "Weight and metadata input files plus raw run outputs use qjhs003 XFS /dev/nvme1n1, same device as GLM assets. Shared checkout/.git, source overlays/ELF, control specs and claims still NFS; not all I/O identical. Device cache uncontrolled; local page-cache condition tested by mincore."
+    },
+    "cache_admission_scope": "Local qjhs003 NVMe filesystem page cache; physical SSD cache uncontrolled. NFS remains only for shared source/control paths, not weight input/cache targets.",
+    "prospective_validation_revision": {
+      "id": "kimi-fixed32-length-only-v1",
+      "user_selected_rule": "actual32_generated_tokens_and_finish_reason_length",
+      "not_accepted_as_correctness_proof": "No claim fixed32 text/token equivalence or weight equality; raw strict reference flags retained separately",
+      "unchanged": [
+        "arithmetic/cat exact own gold",
+        "three original requests order and LP1 sampling",
+        "Kimi tokenizer/chat/thinking settings",
+        "HTTP registration-to-first arithmetic JSON parsed endpoint",
+        "four conditions localNVMe assets",
+        "7200percondition28920perblock, Store60, finalrelease60",
+        "fullblock pairing, original10logicalblocks40logicalconditions, original fixed orders, statistics/cost definitions"
+      ],
+      "history": "All prior files/IDs/FAIL/gold remain byte-identical; previous one qualified SFhot condition belongs old criterion version and is not selected as replacement for new complete block",
+      "sample_status": "No new samples under this rule; planned40 new eligible runtime attempts max after4 historical launches; formal success denominators reported by criterion version",
+      "historical_v4_token_validation": "Existing trace_debug get_current_tokens after responses: exact unique prompt prefixes and cumulative full prompt+generated IDs, output content/usage/finish match own SF gold.",
+      "historical_v4_qualification_rule": "primary only if cache, own text/usage/finish+traceIDs, comparable clock and physical ownership valid, normal condition terminal and normal cleanup with quiet>=60. Cleanup failure makes unqualified but raw A/B retained; no post-result selection.",
+      "user_decision_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-user-fixed32-length-only-performance-policy-20261107.json",
+      "user_decision_sha256": "57f0ca1e9bcf03ad1e5fcdaeeb3f2e07aff29429f34b067117f9ee951425488e",
+      "source_review_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-fixed32-length-only-independent-source-review-20261107.json",
+      "source_review_sha256": "edcde6662c9be62bb2f593d5c43f2413002852a44e8a61785a61cf0f1f47094e",
+      "author_cpu_receipt_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-fixed32-length-only-and-b01-restart-source-cpu-verification-v2-20261107.json",
+      "author_cpu_receipt_sha256": "67782f5f3ce23573f55d9ac3872b5a74302ade7adeac266c09f021a521c02a5a"
+    },
+    "oneoff_localization": {
+      "separate_oneoff_localization_including_SHA_s": 2019.0177716859616,
+      "oneoff_scope": "Observed copy plus fresh target SHA validation duration, not loader/model latency; source checkpoint payload not copied. Original conversion costs retained separately in prior receipts."
+    },
+    "source_files_before_commit": [
+      {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+        "sha256": "a8d18c3ddbc7530ac163acfe66ccad7c8044b946b0f1c22e1304a70b334be243",
+        "bytes": 106053
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+        "sha256": "025bd284104d5a7d67f9aa6bc15d38bd238c9cfcc71d6347cb7be58af693bcce",
+        "bytes": 140587
+      }
+    ]
+  },
+  "historical_spec_metadata_disposition": {
+    "field": "qjhs003_observation_derivation",
+    "current_admission": false,
+    "meaning": "Inherited qjhs003 ancestor lineage only, including required_hostname/readiness_path/shared_paths. Never use this old field as qjhs000 readiness. Current gate is qjhs000 node_profile, actual controller hostname assertion, q0 file inventory, RAID route proof, fresh root/GPU/memory/window, independent guards and exact pins."
+  },
+  "execution_scope": "full_load_stage_four_only",
+  "store_pool_bytes_by_condition": {
+    "safetensors_disk_cold": 67108864,
+    "safetensors_disk_hot": 67108864,
+    "store_disk_cold": 687194767360,
+    "store_pool_hit": 687194767360
+  },
+  "cache_observation_helper": {
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/file_cache_state.py",
+    "sha256": "576732096b335b4c6bd922d4de6dfaf6dbeac63bb8701d299149d0983570e039",
+    "baseline_sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+    "revision": "file-cache-warm-observation-v1"
+  },
+  "matched_cache_dependency": {
+    "review_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache64m-implementation-v1/actual-matched-cache-results-independent-review-v1.json",
+    "review_sha256": "7f9fb98630805c2ccbef481d743708eb4c49e6663cbddee323e25d516b421bf6"
+  },
+  "freeze_scope_note": "DRAFT final_deploy_commit null; source review/commit/remote blob verification and independent actual rendered-byte review still required. No runtime authorized by this candidate.",
+  "normal_stop_bound": 300,
+  "proposed_normal_stop_bound_seconds": 300,
+  "authorization_status": "PENDING_USER_PROTOCOL_AND_RUNTIME_AUTHORIZATION",
+  "prior_formal64_protocol": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/protocol-frozen-formal64-v1.json",
+    "sha256": "8cba8aef2142ecd26812e3c5790086c989da03574bb4afeae468d917cdef34f2",
+    "prior_status_fields_preserved_for_history": {
+      "status": "FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW_AND_NEW_RUNTIME_APPROVAL",
+      "final_deploy_commit": "9ee423906654d3105b330bfc6b75935b325090aa",
+      "GPU_approval": {
+        "status": "PENDING_NEW_FOUR_CONDITION_BLOCK_RUNTIME_APPROVAL",
+        "runtime_started": false,
+        "requires_fresh_full_seconds": 28920,
+        "recorded20hbooking_insufficient_at_preparation": true
+      },
+      "new_performance_Store_shutdown_policy": {
+        "window_s": 60,
+        "reason": "Single prior normal stop33.13935262290761 plus prospective margin; not an official or established stable bound.",
+        "success": "official Store exec0 AND authenticated owner PID/startticks gone, no forced termination substituted; API/CID normal exits, all8 GPUzero/no owned compute and independent quiet>=60.",
+        "measurement": "controller-issued Store-stop deadline through signal IPC/wait/diagnostics/exit0/strictgone; not pure CUDA unregister.",
+        "failure": "At or beyond60 or any abnormal exit retain failure and stop. No automatic120/300, background release or os._exit.",
+        "legacy_section_id": "Inherited NEW_PROTOCOL_EXIT60_L1 identifier denotes stop-only assertion in these performance files, not acceptance of full two-cycle L1 or historical relabeling."
+      },
+      "previous_cohort_terminal": {
+        "block_id": "kimi-unified-loading-20261109-b01",
+        "status": "FAILED_RETAINED_NO_RETRY",
+        "ref": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/runtime-public-v1/block-final.json",
+          "sha256": "bbaa2a04d0de7573cf609f8b47346a3cca1223242e81f9279dc3b8fe003ffcb4"
+        },
+        "export_manifest_ref": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-remeasurement-20261109/runtime-public-v1/EXPORT-MANIFEST.json",
+          "sha256": "c420492bdfd97cea11c95ed7a77dce1d528e72efe0d8adfa4f04485a81617dc7"
+        },
+        "attempts": [
+          {
+            "run_id": "kimi-unified-loading-20261109-b01-safetensors_disk_hot",
+            "condition": "safetensors_disk_hot",
+            "status": "FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS",
+            "launch_requested": true
+          },
+          {
+            "run_id": "kimi-unified-loading-20261109-b01-store_disk_cold",
+            "condition": "store_disk_cold",
+            "status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+            "launch_requested": true
+          },
+          {
+            "run_id": "kimi-unified-loading-20261109-b01-safetensors_disk_cold",
+            "condition": "safetensors_disk_cold",
+            "status": "NOT_STARTED",
+            "launch_requested": false
+          },
+          {
+            "run_id": "kimi-unified-loading-20261109-b01-store_pool_hit",
+            "condition": "store_pool_hit",
+            "status": "NOT_STARTED",
+            "launch_requested": false
+          }
+        ],
+        "policy": "v1 SFhotPASS/StorecoldFAIL/2NOT_STARTED retained; no reuse/backfill into this independentnew4IDcohort"
+      }
+    }
+  },
+  "GLM_endpoint_and_sampling_boundary": {
+    "source_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/load-stage-implementation-v1/GLM-ACTUAL-C23-HTTP-BOUNDARIES-v1.json",
+    "sha256": "b58f59aed9021854e3a34022fe26aea015881a84b3fc723c5a24b0361ae19dab",
+    "scope": "GLM historical A ends at received after json.load/context-return. New exact parse primary is a prospective requested delta; received secondary is explicit. Kimi explicit top_p/top_k/min_p/n unchanged; no effective default equivalence claim for omitted GLM parameters."
+  }
+}
