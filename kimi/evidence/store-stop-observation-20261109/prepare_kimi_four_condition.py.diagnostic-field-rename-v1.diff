@@ -1,0 +1,14 @@
+--- sllm_store/tests/prepare_kimi_four_condition.py@review12ebb
++++ sllm_store/tests/prepare_kimi_four_condition.py@rename-v1
+@@ -1537,9 +1537,9 @@
+     old="assert s['status']=='FROZEN_EXECUTION_PLAN_REQUIRES_INDEPENDENT_REVIEW' and s['source_commit']"
+     assert body.count(old)==1;body=body.replace(old,"assert s['status']=='FROZEN_STORE_STOP_OBSERVATION_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION' and s['source_commit'] and s['diagnostic_only'] is True",1)
+     old=" verdict=sample_qualification(sample_gates,terminal,cleanup,sample_metrics)"
+-    assert body.count(old)==1;body=body.replace(old,old+"\n verdict['model_lifecycle_qualified']=verdict['primary_sample_qualified'];verdict['primary_sample_qualified']=False;verdict['invalid_reasons'].append('DIAGNOSTIC_ONLY_NOT_PERFORMANCE')",1)
++    assert body.count(old)==1;body=body.replace(old,old+"\n verdict['diagnostic_prerequisites_valid']=verdict['primary_sample_qualified'];verdict['primary_sample_qualified']=False;verdict['invalid_reasons'].append('DIAGNOSTIC_ONLY_NOT_PERFORMANCE')",1)
+     old=";assert qualification['primary_sample_qualified'],'missing or invalid sample evidence'"
+-    assert body.count(old)==1;body=body.replace(old,";assert qualification['model_lifecycle_qualified'],'missing or invalid diagnostic model evidence'",1)
++    assert body.count(old)==1;body=body.replace(old,";assert qualification['diagnostic_prerequisites_valid'],'missing or invalid diagnostic model evidence'",1)
+     body=body.replace("'status':'FORMAL_SINGLE_CONDITION_CORRECT_RELEASE60_PASS'","'status':'DIAGNOSTIC_STORE_STOP_OBSERVATION_NORMAL_RELEASE60_NOT_PERFORMANCE','primary_sample_qualified':False,'criterion60_pass':json.loads((base/'store-stop-exit60.json').read_text())['pass']",1)
+     body=body.replace("'status':'NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY'","'status':'DIAGNOSTIC_STORE_STOP_OBSERVATION_TECHNICAL_FAILED'",1)
+     compile(body,'<store-stop-observation>','exec')

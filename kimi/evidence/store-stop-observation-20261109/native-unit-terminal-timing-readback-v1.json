@@ -1,0 +1,69 @@
+{
+  "status": "READ_ONLY_POST_TERMINAL_SYSTEMD_UNIT_LIFETIME_CAPTURE_NOT_NEW_RUNTIME",
+  "observed_epoch": 1794212761.1593118,
+  "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+  "time_namespace": "time:[4026531834]",
+  "boundary": "systemd ExecMainStartTimestampMonotonic -> ExecMainExitTimestampMonotonic, includes process lifetime and exit; failed cleanup remains failed and includes abort release",
+  "rows": [
+    {
+      "unit": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-formal-controller.service",
+      "scope": "failed_two_case_parent_block",
+      "raw_systemd_properties": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainStartTimestampMonotonic": "8022002675770",
+        "ExecMainExitTimestampMonotonic": "8024159123035",
+        "ExecMainPID": "1400874",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "LoadState": "loaded"
+      },
+      "begin_ns": 8022002675770000,
+      "end_ns": 8024159123035000,
+      "duration_s": 2156.447265,
+      "clock_resolution_ns": 1000,
+      "normal_success": false,
+      "missing_reason": null
+    },
+    {
+      "unit": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold-controller.service",
+      "scope": "failed_Storecold_child_including_abort_cleanup",
+      "raw_systemd_properties": {
+        "MainPID": "0",
+        "Result": "exit-code",
+        "ExecMainStartTimestampMonotonic": "8022891337091",
+        "ExecMainExitTimestampMonotonic": "8024159055602",
+        "ExecMainPID": "1486573",
+        "ExecMainCode": "1",
+        "ExecMainStatus": "1",
+        "LoadState": "loaded"
+      },
+      "begin_ns": 8022891337091000,
+      "end_ns": 8024159055602000,
+      "duration_s": 1267.718511,
+      "clock_resolution_ns": 1000,
+      "normal_success": false,
+      "missing_reason": null
+    },
+    {
+      "unit": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot-controller.service",
+      "scope": "successful_SFhot_child_unit_already_unloaded",
+      "raw_systemd_properties": {
+        "MainPID": "0",
+        "Result": "success",
+        "ExecMainStartTimestampMonotonic": "0",
+        "ExecMainExitTimestampMonotonic": "0",
+        "ExecMainPID": "0",
+        "ExecMainCode": "0",
+        "ExecMainStatus": "0",
+        "LoadState": "not-found"
+      },
+      "begin_ns": null,
+      "end_ns": null,
+      "duration_s": null,
+      "clock_resolution_ns": 1000,
+      "normal_success": null,
+      "missing_reason": "successful transient unit unloaded; no exact native exit snapshot retained. Do not backfill with Prep+A or event envelope."
+    }
+  ]
+}

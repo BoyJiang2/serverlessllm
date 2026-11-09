@@ -1,0 +1,120 @@
+{
+  "CPU_acceptance_tests": [
+    "Actual generated BLOCK_BODY mocked systemd-run/systemctl: child argv exact original RemainAfterExit=yes, no --wait, no other property/role/body/resource changes.",
+    "Delayed activation starts with MainPID0/start0: cannot be accepted before true positive native start+exit; source-clock query timestamps do not substitute endpoints.",
+    "Fast exit0 before first poll still captured from retained metadata; raw microseconds converted exactly, no need to observe running MainPID.",
+    "Normal exit0+original PASS permits next attempt only after receipt capture; process exit0+child FAIL or nonzero+PASS JSON both stop.",
+    "Killed/timeout main process yields observed failure/forced span separately; missing native exit or failed-before-exec stays null, no synthetic elapsed or qualification.",
+    "Invocation/unit/restart/spec/command drift rejects, exactly-one invocation from unused original claims; no duplicate new registry.",
+    "Poll/query/receipt overhead stays inside original child wrapper and parent absolute budget; late poll stops rather than extending budgets.",
+    "Already-settled standalone diagnostic receipt can be read externally without mutating its executable body.",
+    "Strip only launch/wait/receipt telemetry delta to prove all original child controller body, nine role bodies, requests, loader overlay/gold/cache/Storeexit60/release and stop-on-failure logic unchanged."
+  ],
+  "actual_source": {
+    "BLOCK_BODY_sha256": "76211133f71d8c7c51bae5b335e7c2a27e014b6686dfdff8b72d0713c712729a",
+    "BLOCK_BODY_source_lines": [
+      1036,
+      1093
+    ],
+    "current_consumed_path": {
+      "line1063": "assert original frozen child argv has no --wait",
+      "line1065": "current BLOCK_BODY injects --wait and rewrites RemainAfterExit=yes to no",
+      "line1068": "subprocess.run waits up to7205s, result.returncode currently represents --wait outcome",
+      "lines1074_1085": "finally reads actual child final/failure receipts and retains statuses",
+      "lines1086_1087": "nonzero result or non-PASS child receipt stops subsequent attempts"
+    },
+    "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+    "sha256": "629f05d2e2f707014d47e9319b864344df387e97e3df1f841f4da0c32f5f6af6"
+  },
+  "created_epoch": 1794212794.3729548,
+  "metric_definition": {
+    "begin": "systemd recorded start of the configured direct child main process (/usr/bin/python3 -I -c original controller) for the exact invocation; not parent preparation, booking, SSH, or systemd-run client submission.",
+    "distinctions": [
+      "Report successful normal full span separately from failed/nonzero/forced spans.",
+      "A failed controller elapsed field is its own recorded exception point; it cannot replace process-exit endpoint.",
+      "Raw endpoint missing stays null with reason. Never estimate it from Prep+A, common environment events or maxrank loader duration.",
+      "Unit span is host control-plane elapsed, not pure model load, GPU kernel time or client TTFT."
+    ],
+    "end": "systemd recorded main process exit, after its executed finally/cleanup/release path if that path completed; on forced kill it is the real process termination endpoint, not proof cleanup/release completed.",
+    "excludes": [
+      "external parent startup/command submission and parent postprocessing",
+      "later external abort release after a killed/dead controller unless its own wait encompasses it",
+      "future/earlier attempts and shared source/build setup"
+    ],
+    "includes_when_executed": [
+      "child admission/preflight and run preparation",
+      "container create/start, bootstrap, Ray/API/Store setup",
+      "target cache/pool Prep",
+      "registration, arithmetic/translation/fixed32, model delete",
+      "ordered normal shutdown or attempted failure cleanup",
+      "guard/observer>=60 release waiting inside controller",
+      "receipt/finally/exit overhead within main process"
+    ],
+    "name": "controller_process_unit_entry_to_exit_span",
+    "source_clock_identity": "Collector records Linux boot_id and monotonic clock implementation with time namespace; loader/client joins require same trusted monotonic domain. Keep actual systemd us clock endpoint plus collection-domain evidence, do not pretend systemd has actor identity or per-rank PID."
+  },
+  "not_implemented": [
+    "No source/overlay/spec/figure changes",
+    "No unit creation/start/stop or systemd mutation",
+    "No GPU/Store/container/cache/model reads",
+    "No new timing data or inferred old samples"
+  ],
+  "old_data": {
+    "SFhot": "Parent actual readback confirms successful child unit was garbage-collected after --wait/RemainAfterExit=no; native ExecMainStart/Exit timestamps are zero/unavailable. Exact systemd process span must stay null.",
+    "SFhot_existing_event_envelope": "Only existing common_environment_begin\u2192release_quiet60_complete event span can be reported, named as that event envelope; it omits time outside those events and is not exact unit full span.",
+    "failed_Storecold_and_parent": "Parent reports retained units have ExecMainStart/ExitTimestampMonotonic and ExecMainPID; readback proof will be stored separately. Those spans are observed failure spans, not normal completion. No fresh runtime is needed to read retained metadata.",
+    "readback_scope": "This addendum independently read the frozen BLOCK_BODY source only; old unit property observations are parent-supplied pending SHA-linked small readback receipt. No systemd mutation or live process action performed here.",
+    "standalone_stop_diagnostic": "Existing standalone RemainAfterExit=yes already retains unit data after normal/failed execution; external post-terminal readback suffices without editing diagnostic executable body."
+  },
+  "proposed_small_receipt_schema": {
+    "collector_clock_identity": "actual collector identity/domain",
+    "command_sha256": "frozen command",
+    "end_ns": "us*1000 or null",
+    "linked_controller_result": "existing path+SHA/status or null",
+    "native_exit_us": "positive integer or null",
+    "native_start_us": "positive integer or null",
+    "normal_cleanup_qualified": "crosschecked original controller/cleanup/guard evidence, separate from process exit",
+    "observation_status": "OBSERVED or explicit missing reason",
+    "precision": "systemd integer microseconds",
+    "protocol_sha256": "frozen protocol",
+    "run_id": "exact child run",
+    "schema": "kimi-controller-native-unit-span-v1",
+    "source_commit": "actual frozen deployment",
+    "span_ns": "difference*1000 or null",
+    "spec_sha256": "actual consumed spec",
+    "start_ns": "us*1000 or null",
+    "systemd_properties": "raw limited property map, no Environment/ExecStart body dumps",
+    "termination_class": "NORMAL_EXIT0 / NONZERO_EXIT / SIGNAL_OR_FORCED / NOT_OBSERVED (strict codes mapped from actual supported properties)",
+    "unit": "planned unique exact unit"
+  },
+  "recommended_minimum_change": {
+    "cleanup": "Retained exited unit has no controller process; retain metadata for readback. Do not add stop/reset-failed/GC operations to the timed path merely to clear the unit. Preserve original guard/container teardown and release rules.",
+    "conversion": "Parse systemd timestamps as exact integer microseconds. start_ns=start_us*1000; end_ns=end_us*1000; full_controller_process_span_ns=(end_us-start_us)*1000. Preserve original us and units; do not claim nanosecond precision from multiplication. Do not use wall-clock timestamps.",
+    "failure_result": "Always retain actual raw code/status/result and original child failure. Nonzero exit, signal/deadline termination, bad/missing final receipt or missing endpoint stops remaining attempts per original policy. A failure span never becomes a successful full lifecycle span.",
+    "identity": "Exact planned unique unit name + existing unused claim/run checks + run_id/source_commit/protocol/spec/command SHA bindings. Record invocation identity (InvocationID if exposed); bind initial/terminal metadata to that same invocation, reject changed nonempty identity or unit restart. Preserve raw property values and query capture time/domain.",
+    "launch": "Run the existing systemd-run start request bounded within the same existing per-attempt and parent absolute budgets. Launch request returncode is recorded separately; it is not child success. No new unit/actor/process registry/launch wrapper.",
+    "location": "Existing BLOCK_BODY launch/wait only, with matching actual renderer CPU tests; child controller body/roles untouched.",
+    "normal_result": "Only actual process ExecMainCode/exited+status0 AND Result success AND original child controller-final PASS/normal cleanup/release>=60 qualify. MainPID0 or a PASS JSON alone never suffices.",
+    "poll": "In the same existing parent attempt loop, bounded systemctl show of the one exact fresh child unit waits for terminal execution properties; no model/Ray/Store polling. Each call/sleep consumes the original7205 wrapper/parent absolute time, not extra tail time.",
+    "preserve_child_argv": "Keep original frozen --property=RemainAfterExit=yes and all other child settings. Replace only existing parent --wait/RemainAfterExit=no argv transformation with expiry substitution. Do not combine --wait with RemainAfterExit=yes.",
+    "publish": "Parent atomically/O_EXCL persists small native-unit-span receipt and adds its path/hash to existing ledger before evaluating the original child receipt stop gate. Capture true endpoint even for nonzero/forced exit, but eligibility stays false. No post-GC delayed lookup, no fabricated last-poll timestamp substituted for kernel/systemd endpoint.",
+    "readback_properties": [
+      "Id",
+      "LoadState",
+      "ActiveState",
+      "SubState",
+      "MainPID",
+      "ExecMainPID",
+      "ExecMainStartTimestampMonotonic",
+      "ExecMainExitTimestampMonotonic",
+      "ExecMainCode",
+      "ExecMainStatus",
+      "Result",
+      "RestartCount or actual supported NRestarts property (inspect once in CPU/source preparation; do not guess field compatibility)",
+      "InvocationID if exposed"
+    ],
+    "terminal_predicate": "Do not use MainPID==0 alone. Successful launch may precede actual start. Require nonzero positive ExecMainStartTimestampMonotonic, positive ExecMainPID, ExecMainExitTimestampMonotonic>=start and >0, MainPID==0 and non-activating state. A unit that fails before exec has missing endpoint/status explicitly, not zero-duration success. Rapid successful exit need not have a positive MainPID observed by the poll."
+  },
+  "scope": "Addendum to staged loader endpoint proposal only. No old duration reconstruction, new runtime, source edit or new management framework.",
+  "status": "READONLY_PROSPECTIVE_CONTROLLER_UNIT_SPAN_PLAN_NOT_IMPLEMENTED"
+}

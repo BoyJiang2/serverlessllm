@@ -1,0 +1,112 @@
+{
+  "schema": "kimi-store-stop-observation-cpu-preparation-v1",
+  "created_at": "2026-11-09T07:23:48.497000+00:00",
+  "state": "CPU_PREPARED_REQUIRES_INDEPENDENT_REVIEW_COMMIT_PUBLICATION_FINAL_FREEZE_AND_NEW_RUNTIME_APPROVAL",
+  "base_source": "9ee423906654d3105b330bfc6b75935b325090aa",
+  "files": [
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "sha256": "83a42fa6cbc56757e1cb401aba976fe171a0075c98ed7cc95884af895cd041b9",
+      "bytes": 147312
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+      "sha256": "a52708c1cfc3d1c6d5485c66b25550638e58810623e3646e0b057676216170fc",
+      "bytes": 189615
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/protocol-candidate-store-stop-observation-v2.json",
+      "sha256": "df2042cd8d79cc9d7a7c7ed2de1e69c90574e4879d9eec89833f43ea05377812",
+      "bytes": 46963
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/actual-main-candidate-preparation-v2.json",
+      "sha256": "5d5c7a7d1e610eb8f373accfada9419660b165afce822b026d7aff702f96c68d",
+      "bytes": 1578
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/renderer-cpu-verification-final-v1.json",
+      "sha256": "594a4a29d175cde4c029d4ec6661ed3e736e1a30210b7bc8fb927d28fe844f3b",
+      "bytes": 1042
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/original9ee-q0-fixture-reproduction-v1.json",
+      "sha256": "0dd55e9b137d2ad30423783f0fa8a55156c7fa50513369515dccc96917f239ac",
+      "bytes": 1546
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/renderer-matrix-v1.txt",
+      "sha256": "1ddbf3ae301b49dc098240ec96751b5a0ed96a333760a050f22656f49192ad7a",
+      "bytes": 1165
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/renderer-matrix-qjhs003-v1.txt",
+      "sha256": "b4005271db1e834a11f3c656c8d1395248e69e61cd3c56be90038112d8f38b03",
+      "bytes": 193
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/renderer-matrix-qjhs000-v2.txt",
+      "sha256": "13c2e1e330c8e786f05b28abd2ee5e03be5f5525aa63e6583190590d900285e8",
+      "bytes": 193
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/renderer-matrix-qjhs000-final-v1.txt",
+      "sha256": "793c8050eb53a77bd665c3d4d826e7e7d7e18f1419eea215af3ee6743b6d3c0d",
+      "bytes": 193
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/prepare_kimi_four_condition.py.9ee-to-stop-observe-v1.diff",
+      "sha256": "253c8b37b929d23ed8a744df04d98fb0034cb97e63b55304bc343a21bb0ac5f9",
+      "bytes": 18315
+    },
+    {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/stop-observe-preparation-v1/test_prepare_kimi_four_condition.py.9ee-to-stop-observe-v1.diff",
+      "sha256": "081ff6bca1e4d361e1f18fe3b19722f8b61799002aaf032a3916e87f8f10314e",
+      "bytes": 14552
+    }
+  ],
+  "new_active_id": "kimi-store-stop-observe-20261109-qjhs000-v1-b01-store_disk_cold",
+  "active_diagnostic_attempts": 1,
+  "formal_n": 0,
+  "criterion": {
+    "criterion_seconds": 60,
+    "observation_seconds": 300,
+    "begin": "Original caller immediately before Stop, deadline300-300; includes owner authentication, signal IPC, diagnostics, finish and strictgone",
+    "criterion60_failure": "Separate immutable one-write receipt; latchedFalse cannot upgrade on late normalexit",
+    "cap": "Fixed300 from samebegin, technical timeout/error original exception preserved then existingABORT cleanup; no sliding/retry",
+    "immediacy_limit": "Single controller cooperative checks before/after bounded IPC/health/snapshot/finish operations; failure record carries actual recording time and elapsed, never backdated. Snapshot deadline no laterthancriterion60.",
+    "qualification": "Always primaryfalse and explicitdiagnostic final; actual model/cache/gold/clock/ownership data remain true/false, never erased or promoted"
+  },
+  "budgets": {
+    "full": 7200,
+    "phase_sum": 6480,
+    "ordered_stop": 600,
+    "release_reserve": 120,
+    "evidence_reserve": 180,
+    "quiet_min": 60,
+    "runtime_admission": "Actual caller must prove complete300 within existingordered600 and retain120+180, existingguardcoverageunchanged"
+  },
+  "tests": {
+    "red": "Actual missingobservationconsumer before source implementation:1AttributeError; retained transcript",
+    "new_actual_consumers": 5,
+    "q0_original88_plus_new5_final": "93PASS26.100s sourceSHA unchangedduringrun",
+    "old_q0_fixture_error": "Exact9ee source reconstructed in memory from frozen4816+storedformal64diff, exactSHAverified; isolatedoriginaltest alsofails missingq3path. Only test metadata path corrected toQ0_STORE_ARCHIVE, all originalcoverage kept, exactSHAassert added. q0/q3index859fcbe7... byteidentical. Initialerror receipt retained.",
+    "q3_additional_only": "93PASS26.048s before finalboundary delta; not substitutedforq0pass"
+  },
+  "operations": {
+    "source_files_modified": 2,
+    "GPU": 0,
+    "Store_start": 0,
+    "container_start": 0,
+    "weight_read": 0,
+    "cache_operation": 0,
+    "Git": 0
+  },
+  "limitations": [
+    "Candidate is closed; sourcecommit=None; no prepared argv executed.",
+    "Four protocol design rows are inactive templates exceptStorecold; main forbids block/attempt/matched/legacydiagnostic modes fornewcohort.",
+    "Prior failed60criterion and formalblock remainunaltered; future lateexit is notL1/formalperformancePASS.",
+    "Inherited pool_exit60_l1_scope/preparation_scope fields in spec preserve historical lineage; top-level newdiagnostic mode/scope/qualification governthisnewcase.",
+    "Independent source/artifact review and final publishedsource/frozenplan have not yet completed."
+  ]
+}

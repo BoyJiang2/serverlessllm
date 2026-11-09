@@ -1,0 +1,204 @@
+{
+  "CPU_acceptance_tests": [
+    "Actual Base load_model AST with fake initialize/load_weights/post functions: precise begin/end order, conditional finalize both branches, model.eval gap and no changed dispatch.",
+    "Actual SLLM load_model AST with tiny fake model/storage: load_dict\u2192all data assignments\u2192buffer moves\u2192runtime hooks\u2192attention order, no repack; stage interval covers every binding and buffer move.",
+    "Actual runner opt-in+default-off producer: all3 stage/full capture, identity/group propagation, before optional setup; original exception object survives failure in construct/ingest/post and failed timestamp capture.",
+    "8 concurrent actual producer records publish losslessly/no-overwrite; no partial-final authority; all8 stage keys/clock/source identities consumed from actual files.",
+    "Actual renderer consumer: valid all8 stages and exact flags/pins/mounts; missing phase/rank, wrong instance/owner/startticks, negative/out-of-order/outside-full ns and filehash drift rejected.",
+    "Extrema fixture with different earliest begin/latest end ranks proves max(end)-min(begin), distinct max perrank duration, nonadditive aggregate stages and complete-block failure exclusion.",
+    "Reverse-strip producer/canonical/new generated overlays restores exact previous relevant AST/bytes; changed modules only; no FP/D2H/index reads, CUDA sync/barrier, loader codec or tensor semantics changes."
+  ],
+  "boundaries": {
+    "SF_ingestion": {
+      "begin": "Immediately before self.load_weights(model, model_config).",
+      "end": "Immediately after self.load_weights returns.",
+      "includes": "DefaultModelLoader.load_weights lines368-397: weight filter/name bookkeeping, get_all_weights/model.load_weights iterator consumption and binding/validation; any online quantization performed during loading is included.",
+      "not_pure_disk_IO": true,
+      "producer": "BaseModelLoader.load_model inherited by DefaultModelLoader",
+      "source_lines": [
+        64,
+        64
+      ]
+    },
+    "SF_postprocessing": {
+      "begin": "Immediately before _has_online_quant(model) conditional.",
+      "conditional_finalization": "Branch existence proven; actual _has_online_quant result not independently dumped for these runs; do not assert it ran or did not run.",
+      "end": "Immediately after process_weights_after_loading(model,model_config,target_device) returns.",
+      "includes": "_has_online_quant predicate, conditional finalize_layerwise_processing if enabled, and full existing process_weights_after_loading native operation.",
+      "producer": "BaseModelLoader.load_model",
+      "source_lines": [
+        78,
+        81
+      ]
+    },
+    "Store_ingestion": {
+      "begin": "Immediately before load_dict(model_path,device_map).",
+      "end": "Immediately after all key_list parameter/persistent-buffer data bindings and all remaining non-CUDA buffer .to(cuda) assignments finish.",
+      "includes": "load_dict\u2192load_dict_non_blocking(confirm_before_restore=True): host load request, index decode, native allocation/IPC descriptors, GPU transfer request, confirm completion/IPC close, restore_tensors and all actual model bindings/migrations.",
+      "producer": "ServerlessLLMLoader.load_model",
+      "scope_note": "Host call interval includes transfer waits; no new synchronization, no claim that every asynchronous GPU operation has independently completed.",
+      "source_lines": [
+        123,
+        130
+      ]
+    },
+    "Store_postprocessing": {
+      "begin": "Immediately before for module in model.modules() runtime-init traversal.",
+      "end": "Immediately after process_attention_weights_after_loading returns.",
+      "includes": "Existing optional quant_method.prepare_runtime_for_restored_weights hooks and attention initialization; never call full quant repack/process again.",
+      "producer": "ServerlessLLMLoader.load_model",
+      "source_lines": [
+        132,
+        139
+      ]
+    },
+    "full": {
+      "added_cuda_sync": false,
+      "begin": "Immediately before model_loader.load_model(vllm_config,model_config), before fresh initialize_model/storage allocation within selected loader.",
+      "end": "Immediately after that call returns, before optional runner LoRA/drafter/EPLB/aux setup.",
+      "preserve_existing": true,
+      "producer": "gpu_model_runner.py",
+      "source_lines": [
+        4780,
+        4788
+      ]
+    }
+  },
+  "created_epoch": 1794211967.5674417,
+  "error_and_null_rules": [
+    "Capture disabled: zero stage clock reads, no new identity reads or tensor/data access; load behavior byte/AST-equivalent after stripping instrumentation.",
+    "Timestamp/identity errors produce MISSING stage fields/null; never synthesize endpoints, use zero, use a later timestamp, or replace original model exception.",
+    "If ingestion/processing call raises, preserve identical original exception; retain started begin with null end/FAILED if record can be emitted; no COMPLETE for failed call.",
+    "File-sink/missing rank/hash/clock/owner/source mismatch is fatal to qualification under existing evidence contract, never fallback to stdout parsing.",
+    "All endpoint ns integers positive, statuses COMPLETE, end>=begin, perrank nesting/order and exact clock-domain join required; stage failures retain raw evidence but cannot qualify new stage sample.",
+    "No field is backfilled for old runs; unstarted cases keep all8 null slots and explicit NOT_STARTED."
+  ],
+  "existing_state": {
+    "SFhot_cache_observation": "Previously diagnosed full84 read and5 snapshots all-hot with normal release; separate diagnostic, not four-condition measurement.",
+    "historical_f7": "Separate local logged duration without identified rank or absolute endpoints; no stage endpoint reconstruction.",
+    "latest_new_block": "SFhot qualified1; Storecold failed exit60 despite observed endpoint; SFcold/poolhit NOT_STARTED; complete_block_n0.",
+    "old_new_endpoint_data": "full8 host endpoints observed for two attempts; ingestion/postprocessing historical endpoints remain null, never subtraction estimates."
+  },
+  "freeze_table": {
+    "authorization": "No new GPU/Store/runtime performed or approved by this plan; new official block requires reviewed stage overlay+source+candidate+full resource/window admission after parent scope approval",
+    "capacity": "SFhot chosen64MiB Store-control pool, Storecold/poolhit original640GiB payload pool; fixed per approved protocol, no capacity repair in instrumentation",
+    "data": "new four-condition supplemental block only; old40/38/8primary/L1 and original gold/failures immutable",
+    "lifecycle": "Original Store exit60 and normal exit/release>=60 gates unchanged; current Storecold failure unresolved for formal qualification",
+    "load_boundary": "existing full exact boundary retained; new two inner exact boundaries explicitly declared, host clocks only",
+    "sampling": "Original request texts/template/token IDs/params/length-onlyfixed32/business strict acceptance unchanged",
+    "timing": "Same-round target Prep/A/Gap and actual controller endpoints reported separately; no sum labeled total lifecycle without a measured continuous endpoint"
+  },
+  "gaps_and_overlap": {
+    "excluded_inner_work": [
+      "SF fresh initialize_model/storage allocation lines54-59, log_model_inspection61 and debug63 precede ingestion.",
+      "SF allocator peak sampling/logger66-74 lies between ingestion and postprocessing.",
+      "SF final model.eval83 follows postprocessing but remains inside full load_model call.",
+      "Store fresh CPU construction/eval100-106, state_dict/filter/binding map and constructor storage release107-118 precede ingestion.",
+      "Store device selection/map120-121 precede ingestion; path/preparation before98 also belongs to full only.",
+      "Context manager exits/return overhead is in full but outside selected inner regions."
+    ],
+    "not_additive": "Do not label full-ingestion-postprocessing as construction or derive missing stages from full. Across ranks, ingestion and postprocessing extrema may overlap due to rank skew; aggregate spans are not additive.",
+    "record_optional_boundary_gap": "Only raw stamped endpoints and named stage intervals; no new third timing convention or inferred I/O span.",
+    "within_rank": "full.begin <= ingest.begin <= ingest.end <= post.begin <= post.end <= full.end must hold on success. No inserted barriers or sync."
+  },
+  "minimum_implementation": {
+    "consumer_delta": "New supplemental schema branch only: active overlays/actual RO mounts/codepins/manifests agree for all3 changed logical modules; endpoint-file hashes identical first/final; all8 stage+full endpoints validated with exact run/instance and owner; fullminbegin/maxend retained; stage/maxrank summaries separate; one new four-condition block with fresh IDs, percondition n1 only if qualified, complete-block gate remains mandatory.",
+    "generator_consumer_files": [
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py"
+    ],
+    "logical_runtime_modules": [
+      "vllm/v1/worker/gpu_model_runner.py (reuse full endpoint and atomic evidence sink)",
+      "vllm/model_executor/model_loader/base_loader.py (new only inner stage stamps)",
+      "vllm/model_executor/model_loader/sllm_loader.py (new only inner stage stamps)"
+    ],
+    "overlay_build": "Generate new versioned small overlay directory under current R/sllm_store/build; base on immutable f919 runner and625ad SLLM runtime plus audited immutable base_loader bytes. Never edit f919, old f7, v6 or their manifests. New manifest pins base sources, canonical patch, each generated module, and exact reverse-delta. No new checkout/environment/model/ELF copy.",
+    "schema_proposal": {
+      "activation": "Reuse explicit SLLM_CAPTURE_LOAD_ENDPOINTS=1 with mandatory SLLM_LOAD_SPAN_RUN_ID and SLLM_LOAD_SPAN_INSTANCE_ID. New protocol stage_schema revision and strict new overlay pins distinguish stage-capable run; old v1 evidence is not silently accepted as new.",
+      "additional": "weight_load_host_span.stages={weight_ingestion:{status,begin_ns,end_ns,begin_boundary,end_boundary},postprocessing:{same}}",
+      "identity": "Inherited parent record schema/run_id/model_instance_id/tp_rank/pid/model/loader_type/clock_identity and existing host_owner/NVML checks; stage timestamps same executing process/clock.",
+      "parent": "weight_load_host_span retains v1 full endpoints and identity unchanged"
+    },
+    "sharing": "Runner creates one opt-in private stage-record dict on the selected loader instance before full begin. Base/SLLM writes only its inner begin/end/status into that dict; runner reuses existing run/rank/PID/clock identity and publishes via same existing lossless per-rank atomic file. No new module, file writer, RPC, wrapper, global registry or model tensor attribute.",
+    "tracked_producer_files": [
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+      "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py"
+    ]
+  },
+  "not_performed": [
+    "No source/overlay/figure edit",
+    "No Git",
+    "No model/payload reads",
+    "No GPU/container/Store/cache operation",
+    "No inference, timing samples or runtime reproduction"
+  ],
+  "optional_paths": {
+    "LoRA": "Current frozen backend/spec no explicit enable_lora; audited EngineArgs enable_lora=False and config construction conditional. This is source/default chain evidence, not an independent per-rank live lora_config dump. Runner optional LoRA is after full endpoint regardless.",
+    "aux": "Runner default use_aux_hidden_state_outputs=False; enabling branches require speculative configuration; same observed None chain supports inactive. Not independently live-dumped per rank.",
+    "drafter": "Existing actual runtime config log speculative_config=None, runner only initializes drafter under speculative_config; disabled for observed runs per this chain.",
+    "online_quantization": "Do not infer from compressed-tensors/Marlin class names that online finalization ran; record optional branch execution booleans from actual code if implementation includes them, otherwise state conditional."
+  },
+  "scope": "New four-condition supplemental block only after implementation, CPU review, source/overlay freeze and separate full runtime admission. No old sample relabel or automatic retry.",
+  "source_refs": [
+    {
+      "bytes": 12987,
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/model-loader-boundary-source-audit-v1.json",
+      "sha256": "f273a74e2f49159cedd7ee384a1a376cbd7758b7406ef88188a5193dc9ef7bf4"
+    },
+    {
+      "bytes": 13828,
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/optional-load-path-source-audit-v1.json",
+      "sha256": "46020b3ed234bcee5fe2db7348849d22f892aba72a3df6c4207596e0b795d600"
+    },
+    {
+      "bytes": 2336,
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/formal64-supplement-v1/runtime-config-scalar-observations-v1.json",
+      "sha256": "6bd5c155ac9016eb5ed63e1d15e9d59787288856b3b739e9f55c63864ed13ea8"
+    }
+  ],
+  "sources": [
+    {
+      "bytes": 3680,
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/base_loader.py",
+      "provenance": "existing exited-container/full-method source audit; base/default not freshly imported or executed; SLLM host overlay independently rehashed",
+      "sha256": "d96582d2bb9772d5990e4257cd09c5fcd9b94905d4defd87bee17136321279df"
+    },
+    {
+      "bytes": 15352,
+      "path": "/usr/local/lib/python3.12/dist-packages/vllm/model_executor/model_loader/default_loader.py",
+      "provenance": "existing exited-container/full-method source audit; base/default not freshly imported or executed; SLLM host overlay independently rehashed",
+      "sha256": "e7252bc755341559c568bcc933225bd8ca855124fb553059b430000174a9feaa"
+    },
+    {
+      "bytes": 6814,
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-restore-runtime-v6/model_executor/model_loader/sllm_loader.py",
+      "provenance": "existing exited-container/full-method source audit; base/default not freshly imported or executed; SLLM host overlay independently rehashed",
+      "sha256": "625ad40a3cb003a2c68a31e96f21fab5c44f6e915d627cc12069ac51e4c57f5c"
+    },
+    {
+      "bytes": 323133,
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/build/kimi-vllm0191-load-endpoints-v1/v1/worker/gpu_model_runner.py",
+      "provenance": "actual server small source bytes read/hashed, no import",
+      "sha256": "f91922c41b220fc9abd9378cff936716b8457e115989f436fdd1a81d51f582c7"
+    },
+    {
+      "bytes": 6060,
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/sllm_store/torch.py",
+      "provenance": "actual server small source bytes read/hashed, no import",
+      "sha256": "1dd5eb72393c67f2d51128c0bf4abb9e8508e5509cc4b42e666ae0b6da2d7adc"
+    },
+    {
+      "bytes": 57874,
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/vllm_patch/sllm_load.patch",
+      "provenance": "actual server small source bytes read/hashed, no import",
+      "sha256": "048e5ac681e7e19250babb17b9241f11437a970c6f681f8a5013418b7c69459f"
+    },
+    {
+      "bytes": 46695,
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_vllm_loader_interface.py",
+      "provenance": "actual server small source bytes read/hashed, no import",
+      "sha256": "169e97f4035c18d37b1cf01057a2c726a9128b431c3adda62dd5135101a59ba4"
+    }
+  ],
+  "status": "SOURCE_ONLY_STAGE_ENDPOINT_PLAN_NOT_IMPLEMENTED_NOT_RUNTIME_APPROVAL"
+}

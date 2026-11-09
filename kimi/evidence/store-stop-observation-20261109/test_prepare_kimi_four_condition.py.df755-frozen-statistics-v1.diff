@@ -1,0 +1,45 @@
+--- test_prepare_kimi_four_condition.py@df755
++++ test_prepare_kimi_four_condition.py@frozen-statistics
+@@ -2055,6 +2055,16 @@
+ 
+     def test_actual_main_two_closed_files_and_mode_rejections(self):
+         protocol=self.protocol()
++        frozen=copy.deepcopy(protocol)
++        frozen.update(status='FROZEN_STORE_STOP_OBSERVATION',final_deploy_commit=p.SOURCE)
++        frozen['resource_budget'].update(runs_root=p.Q0_RUNS_ROOT,per_condition_max_seconds=7200,per_complete_block_max_seconds=28920,parent_overhead_seconds=120)
++        frozen['assets'].update(input_inventory_path='/tmp/declared-new-local-inventory.json',input_inventory_sha256='1'*64)
++        frozen['events'].update(primary_http_endpoint='received_ns',primary_start_event='same_http_client_registration_command_ns')
++        frozen['correctness']['observability']='logprobs=1; return_token_ids omitted; actual IDs from trace'
++        for request in frozen['correctness']['requests']:request['logprobs']=1
++        p.validate_frozen_protocol(frozen,p.SOURCE) # Actual validator, not mocked.
++        invalid=copy.deepcopy(frozen);invalid['statistics']=copy.deepcopy(p.UNIFIED_STATISTICS)
++        with self.assertRaises(AssertionError):p.validate_frozen_protocol(invalid,p.SOURCE)
+         with tempfile.TemporaryDirectory() as directory:
+             root=pathlib.Path(directory);output=root/'out';output.mkdir()
+             pp=root/'protocol.json';pp.write_text(json.dumps(protocol))
+@@ -2065,6 +2075,25 @@
+             spec=json.loads(next(output.glob('*-spec.json')).read_text())
+             self.assertIsNone(spec['source_commit']);self.assertEqual(spec['status'],'STORE_STOP_OBSERVATION_CANDIDATE_NOT_EXECUTABLE')
+             self.assertFalse(spec['primary_sample_qualified'])
++            finalout=root/'frozen-output';finalout.mkdir()
++            sf=root/'checkpoint';archive=root/'archive';store=archive/'vllm/kimi-k2.6-sf-reference';runs=root/'isolated-runs'
++            inventory={'roots':{}}
++            for name,target in (('safetensors',sf),('store',store)):
++                target.mkdir(parents=True);leaf=target/'tiny';leaf.write_bytes(b'tiny');st=leaf.stat()
++                inventory['roots'][name]={'root':str(target),'files':[dict(path=str(leaf),resolved=str(leaf),relative=leaf.name,dev=st.st_dev,ino=st.st_ino,bytes=st.st_size,mtime_ns=st.st_mtime_ns,uid=st.st_uid,payload=True)]}
++            ip=root/'inventory.json';ip.write_text(json.dumps(inventory))
++            frozen['assets'].update(safetensors=str(sf),store_archive=str(archive),store=str(store),input_inventory_path=str(ip),input_inventory_sha256=p.hashlib.sha256(ip.read_bytes()).hexdigest())
++            frozen['resource_budget']['runs_root']=str(runs)
++            fp=root/'frozen-protocol.json';fp.write_text(json.dumps(frozen))
++            finalargs=['prepare','--protocol',str(fp),'--protocol-sha',p.hashlib.sha256(fp.read_bytes()).hexdigest(),'--store-stop-observe','--source-commit',p.SOURCE]
++            # Real main, frozen validator and tiny-file inventory consumer; only external source Git/API gate mocked.
++            with mock.patch.object(p,'Q0_SF_HOST',str(sf)),mock.patch.object(p,'Q0_STORE_ARCHIVE',str(archive)),mock.patch.object(p,'Q0_RUNS_ROOT',str(runs)),mock.patch.object(p.base,'EVIDENCE',finalout),mock.patch.object(p,'committed_source',return_value=p.SOURCE) as gate,mock.patch.object(sys,'argv',finalargs),mock.patch('builtins.print'):
++                p.main()
++            self.assertEqual(gate.call_count,1);self.assertEqual(len(list(finalout.iterdir())),2)
++            finalspec=json.loads(next(finalout.glob('*-spec.json')).read_text())
++            self.assertEqual(finalspec['source_commit'],p.SOURCE)
++            self.assertEqual(finalspec['status'],'FROZEN_STORE_STOP_OBSERVATION_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION')
++            self.assertFalse(finalspec['primary_sample_qualified']);self.assertFalse(runs.exists())
+             for selection in (['--block','1'],['--attempt-id',protocol['attempts'][1]['attempt_id']],['--matched-cache-only']):
+                 with self.subTest(selection=selection),mock.patch.object(p,'validate_inventory'),mock.patch.object(sys,'argv',argv+selection),self.assertRaisesRegex(AssertionError,'stop observation protocol'):
+                     p.main()

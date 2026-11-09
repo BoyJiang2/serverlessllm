@@ -1,0 +1,10 @@
+--- prepare_kimi_four_condition.py@09d8612
++++ prepare_kimi_four_condition.py@inline-lines-v1
+@@ -1544,6 +1544,7 @@
+     body=body.replace("'status':'NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY'","'status':'DIAGNOSTIC_STORE_STOP_OBSERVATION_TECHNICAL_FAILED'",1)
+     compile(body,'<store-stop-observation>','exec')
+     command['argv'][index]=body;command['root_python_sha256']=hashlib.sha256(body.encode()).hexdigest()
++    command['inline_lines']=len(body.splitlines())
+     spec.update(diagnostic_only=True,diagnostic_mode='store_stop_fixed60_observe300_v1',execution_scope=STOP_OBSERVE_SCOPE,primary_sample_qualified=False,store_stop_observation=copy.deepcopy(protocol['store_stop_observation']))
+     spec['planned_attempts']=[{'attempt_id':attempt['attempt_id'],'condition':'store_disk_cold','status':'NOT_STARTED'}]
+     spec['code_pins'].update(formal64_dependency(protocol))
