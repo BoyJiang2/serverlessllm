@@ -1,0 +1,1677 @@
+{
+  "schema": "kimi-qjhs000-failed-cachewarm-readonly-analysis-v2",
+  "status": "CACHE_ADMISSION_FAILURE_CONFIRMED_CAUSE_UNRESOLVED_NO_RETRY",
+  "epoch": 1794192193.7681756,
+  "run_id": "kimi-unified-loading-20261109-qjhs000-raid-v1-b01-safetensors_disk_hot",
+  "source_commit": "91fb2a10481b44c9d50a2cd963ecf0ac0d250c80",
+  "protocol_sha256": "b0346585d59ddc993041e94e4062a621bbb8cc7b56b9ae241c0c3a7385f4a165",
+  "evidence_scope": {
+    "public_export": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/EXPORT-MANIFEST.json",
+      "sha256": "ea4d09d4e715267bbd9adf0c26b0f103d745acc78be14f27d940771151ed6771",
+      "bytes": 8088
+    },
+    "export_files_verified": 18,
+    "raw_private_run": "Not read: owner PermissionError; only parent byte-identical public receipts consumed.",
+    "raw_refs": [
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/cache-construction-result.json",
+        "sha256": "3bce03047306d101233308ec9595ea1a69d15aa0fc58538cac33723c2c1b4849",
+        "bytes": 32573
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/controller-failed.json",
+        "sha256": "6294c4f54e873311db41cd666142bd32605d29290ab46a6147de9b8e6e43edb0",
+        "bytes": 1924
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/condition-terminal.json",
+        "sha256": "39625fae749fa0500f9835f7b59fa7c1405449b40e58093918f3b0098e1a98f2",
+        "bytes": 551
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/sample-validity.json",
+        "sha256": "d036415133b61eb442bbae1e676a21d6d5280b8dc77c0df2b07020bf03a8406c",
+        "bytes": 2601
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/sample-metrics.json",
+        "sha256": "2462403e3e3668b94b0fcd815fa158c4ba1ce443dbf3f75b3de3a76d199fdac2",
+        "bytes": 925
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/block-final.json",
+        "sha256": "afa3f35d0b0856680a73012c4b5ffc14c45cdfcc72496493c8a81ec09981993e",
+        "bytes": 4524
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/fresh-root-activation-admission-v1.json",
+        "sha256": "87cdbab9277356b2cd6590ca54c63264e703a6b6c2260d3184c4a28bb081686f",
+        "bytes": 996
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/additional-postfailure-release60-v1.json",
+        "sha256": "548f3672dbacaf89970ca72f4e4a31fa7bd5c045d348a39d8cf5be47d1ebae16",
+        "bytes": 14537
+      }
+    ]
+  },
+  "helper": {
+    "source": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/file_cache_state.py",
+      "sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+      "bytes": 8478
+    },
+    "warm_lines": "128-148",
+    "residency_lines": "149-171",
+    "trust_lines": "40-56",
+    "semantics": "Open and verify finite manifest, full serial buffered preadv in <=8MiB scratch buffers, then inspect all files in8MiB mmap/mincore windows. No warm-path fadvise, mlock or residency pin. Counts are sequential snapshots, not an atomic all-file snapshot. read_bytes are preadv return bytes, not physical RAID IO. cap/identity checks establish trust, not future retention.",
+    "admission": "warm admitted requires pages>0 and sum(resident_pages)==sum(pages); query admitted=None; all_hot separately tested."
+  },
+  "observed": {
+    "file_count": 84,
+    "payload_count": 64,
+    "metadata_count": 20,
+    "read_bytes": 595204634151,
+    "file_bytes": 595204634151,
+    "all_files_read_completely": true,
+    "pages": 145313657,
+    "resident_pages": 98275914,
+    "missing_pages": 47037743,
+    "resident_fraction": 0.676301980343114,
+    "page_bytes": 4096,
+    "page_size_scope": "4096 geometry independently consistent with every file recorded pages; no live sysconf/probe performed.",
+    "resident_page_bytes": 402538143744,
+    "missing_page_bytes": 192666595328,
+    "fully_resident_files": 59,
+    "zero_resident_files": 4,
+    "partially_resident_files": 21,
+    "pattern": "Payload00001..00021 are partial (0.6047%..18.0846%); payload00022..00064 fully resident. LICENSE/README/THIRD_PARTY_NOTICES/configuration.json zero-resident. All were fully read earlier; missing pages were not resident in their later query windows. No earlier mincore snapshot proves their prior exact residency.",
+    "files": [
+      {
+        "order": 1,
+        "name": "LICENSE",
+        "bytes": 1465,
+        "read_bytes": 1465,
+        "pages": 1,
+        "resident_pages": 0,
+        "resident_fraction": 0.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 2,
+        "name": "README.md",
+        "bytes": 29325,
+        "read_bytes": 29325,
+        "pages": 8,
+        "resident_pages": 0,
+        "resident_fraction": 0.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 3,
+        "name": "THIRD_PARTY_NOTICES.md",
+        "bytes": 1662,
+        "read_bytes": 1662,
+        "pages": 1,
+        "resident_pages": 0,
+        "resident_fraction": 0.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 4,
+        "name": "chat_template.jinja",
+        "bytes": 4022,
+        "read_bytes": 4022,
+        "pages": 1,
+        "resident_pages": 1,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 5,
+        "name": "config.json",
+        "bytes": 5416,
+        "read_bytes": 5416,
+        "pages": 2,
+        "resident_pages": 2,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 6,
+        "name": "configuration.json",
+        "bytes": 51,
+        "read_bytes": 51,
+        "pages": 1,
+        "resident_pages": 0,
+        "resident_fraction": 0.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 7,
+        "name": "configuration_deepseek.py",
+        "bytes": 10615,
+        "read_bytes": 10615,
+        "pages": 3,
+        "resident_pages": 3,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 8,
+        "name": "configuration_kimi_k25.py",
+        "bytes": 5435,
+        "read_bytes": 5435,
+        "pages": 2,
+        "resident_pages": 2,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 9,
+        "name": "generation_config.json",
+        "bytes": 52,
+        "read_bytes": 52,
+        "pages": 1,
+        "resident_pages": 1,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 10,
+        "name": "kimi_k25_processor.py",
+        "bytes": 6906,
+        "read_bytes": 6906,
+        "pages": 2,
+        "resident_pages": 2,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 11,
+        "name": "kimi_k25_vision_processing.py",
+        "bytes": 10019,
+        "read_bytes": 10019,
+        "pages": 3,
+        "resident_pages": 3,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 12,
+        "name": "media_utils.py",
+        "bytes": 13179,
+        "read_bytes": 13179,
+        "pages": 4,
+        "resident_pages": 4,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 13,
+        "name": "model-00001-of-000064.safetensors",
+        "bytes": 995001888,
+        "read_bytes": 995001888,
+        "pages": 242921,
+        "resident_pages": 1469,
+        "resident_fraction": 0.006047233462730682,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 14,
+        "name": "model-00002-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 235745,
+        "resident_fraction": 0.09844090518279913,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 15,
+        "name": "model-00003-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 16575,
+        "resident_fraction": 0.006921283604763179,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 16,
+        "name": "model-00004-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 17173,
+        "resident_fraction": 0.007170992660307576,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 17,
+        "name": "model-00005-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 20964,
+        "resident_fraction": 0.00875401444888418,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 18,
+        "name": "model-00006-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 18576,
+        "resident_fraction": 0.007756848521392508,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 19,
+        "name": "model-00007-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 23286,
+        "resident_fraction": 0.009723620514058244,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 20,
+        "name": "model-00008-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 23957,
+        "resident_fraction": 0.010003812447620603,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 21,
+        "name": "model-00009-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 20206,
+        "resident_fraction": 0.008437493605903155,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 22,
+        "name": "model-00010-of-000064.safetensors",
+        "bytes": 9809047464,
+        "read_bytes": 9809047464,
+        "pages": 2394787,
+        "resident_pages": 24644,
+        "resident_fraction": 0.010290685559926623,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 23,
+        "name": "model-00011-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 31420,
+        "resident_fraction": 0.013120159279234739,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 24,
+        "name": "model-00012-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 18184,
+        "resident_fraction": 0.007593156471470543,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 25,
+        "name": "model-00013-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 22294,
+        "resident_fraction": 0.009309383544597684,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 26,
+        "name": "model-00014-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 23003,
+        "resident_fraction": 0.009605443154049544,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 27,
+        "name": "model-00015-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 30485,
+        "resident_fraction": 0.012729728059435742,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 28,
+        "name": "model-00016-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 36006,
+        "resident_fraction": 0.015035151336986822,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 29,
+        "name": "model-00017-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 29598,
+        "resident_fraction": 0.012359340367498084,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 30,
+        "name": "model-00018-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 23723,
+        "resident_fraction": 0.009906096071969628,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 31,
+        "name": "model-00019-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 25390,
+        "resident_fraction": 0.010602191091654042,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 32,
+        "name": "model-00020-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 25154,
+        "resident_fraction": 0.010503643746335792,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 33,
+        "name": "model-00021-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 433088,
+        "resident_fraction": 0.1808460707169069,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 34,
+        "name": "model-00022-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 35,
+        "name": "model-00023-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 36,
+        "name": "model-00024-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 37,
+        "name": "model-00025-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 38,
+        "name": "model-00026-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 39,
+        "name": "model-00027-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 40,
+        "name": "model-00028-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 41,
+        "name": "model-00029-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 42,
+        "name": "model-00030-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 43,
+        "name": "model-00031-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 44,
+        "name": "model-00032-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 45,
+        "name": "model-00033-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 46,
+        "name": "model-00034-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 47,
+        "name": "model-00035-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 48,
+        "name": "model-00036-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 49,
+        "name": "model-00037-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 50,
+        "name": "model-00038-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 51,
+        "name": "model-00039-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 52,
+        "name": "model-00040-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 53,
+        "name": "model-00041-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 54,
+        "name": "model-00042-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 55,
+        "name": "model-00043-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 56,
+        "name": "model-00044-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 57,
+        "name": "model-00045-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 58,
+        "name": "model-00046-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 59,
+        "name": "model-00047-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 60,
+        "name": "model-00048-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 61,
+        "name": "model-00049-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 62,
+        "name": "model-00050-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 63,
+        "name": "model-00051-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 64,
+        "name": "model-00052-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 65,
+        "name": "model-00053-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 66,
+        "name": "model-00054-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 67,
+        "name": "model-00055-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 68,
+        "name": "model-00056-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 69,
+        "name": "model-00057-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 70,
+        "name": "model-00058-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 71,
+        "name": "model-00059-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 72,
+        "name": "model-00060-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 73,
+        "name": "model-00061-of-000064.safetensors",
+        "bytes": 9809050936,
+        "read_bytes": 9809050936,
+        "pages": 2394788,
+        "resident_pages": 2394788,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 74,
+        "name": "model-00062-of-000064.safetensors",
+        "bytes": 4697635160,
+        "read_bytes": 4697635160,
+        "pages": 1146884,
+        "resident_pages": 1146884,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 75,
+        "name": "model-00063-of-000064.safetensors",
+        "bytes": 108556344,
+        "read_bytes": 108556344,
+        "pages": 26504,
+        "resident_pages": 26504,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 76,
+        "name": "model-00064-of-000064.safetensors",
+        "bytes": 833769904,
+        "read_bytes": 833769904,
+        "pages": 203558,
+        "resident_pages": 203558,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 77,
+        "name": "model.safetensors.index.json",
+        "bytes": 23597438,
+        "read_bytes": 23597438,
+        "pages": 5762,
+        "resident_pages": 5762,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 78,
+        "name": "modeling_deepseek.py",
+        "bytes": 78528,
+        "read_bytes": 78528,
+        "pages": 20,
+        "resident_pages": 20,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 79,
+        "name": "modeling_kimi_k25.py",
+        "bytes": 50961,
+        "read_bytes": 50961,
+        "pages": 13,
+        "resident_pages": 13,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 80,
+        "name": "preprocessor_config.json",
+        "bytes": 742,
+        "read_bytes": 742,
+        "pages": 1,
+        "resident_pages": 1,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 81,
+        "name": "tiktoken.model",
+        "bytes": 2795286,
+        "read_bytes": 2795286,
+        "pages": 683,
+        "resident_pages": 683,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 82,
+        "name": "tokenization_kimi.py",
+        "bytes": 13462,
+        "read_bytes": 13462,
+        "pages": 4,
+        "resident_pages": 4,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 83,
+        "name": "tokenizer_config.json",
+        "bytes": 4862,
+        "read_bytes": 4862,
+        "pages": 2,
+        "resident_pages": 2,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      },
+      {
+        "order": 84,
+        "name": "tool_declaration_ts.py",
+        "bytes": 16517,
+        "read_bytes": 16517,
+        "pages": 5,
+        "resident_pages": 5,
+        "resident_fraction": 1.0,
+        "mincore_trust": {
+          "effective_uid": 0,
+          "filesystem_uid": 0,
+          "file_owner_uid": 8889,
+          "cap_fowner": true,
+          "full_identity_uid_map": true
+        }
+      }
+    ]
+  },
+  "timing": {
+    "begin": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/event-target_condition_construction_begin.json",
+      "sha256": "19ad040d015e4c5813c11d329bf2c268e2978a46a570afbe5ad9e96a129d06bd",
+      "bytes": 922
+    },
+    "begin_monotonic_ns": 8010080425329310,
+    "begin_wall_epoch": 1794191438.5238664,
+    "begin_clock_identity": {
+      "boot_id": "6560514b-bffd-4702-95fb-1b76ff03dd9e",
+      "container_hostname": "qjhs0",
+      "process_startticks": 800930875,
+      "time_namespace": "time:[4026531834]",
+      "monotonic_clock_implementation": "clock_gettime(CLOCK_MONOTONIC)"
+    },
+    "failure_terminal": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/condition-terminal.json",
+      "sha256": "39625fae749fa0500f9835f7b59fa7c1405449b40e58093918f3b0098e1a98f2",
+      "bytes": 551
+    },
+    "failure_terminal_monotonic_ns": 8010329034027846,
+    "begin_to_failed_condition_upper_envelope_s": 248.608698536,
+    "scope": "Construction begin includes event-write then helper verification/read/mincore/result save/healthy/assert and exception sample-finalization through condition-terminal timestamp. Same generated root process supplies both times. Exact helper return or read-end monotonic timestamp was not saved; this envelope is not exact pure warm IO or success Prep.",
+    "controller_failed_elapsed_s": 1020.2797479527071,
+    "controller_elapsed_scope": "Overall controller started-to-failure evidence field, not cachewarm duration.",
+    "success_admission_complete_event": "NOT_REACHED",
+    "independent_postconstruction_query": "NOT_REACHED: raw result admitted=False assertion precedes query."
+  },
+  "memory_evidence": {
+    "initial_global_mem_available_kib": 1866696564,
+    "initial_global_mem_available_GiB": 1780.2205696105957,
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/fresh-root-activation-admission-v1.json",
+      "sha256": "87cdbab9277356b2cd6590ca54c63264e703a6b6c2260d3184c4a28bb081686f",
+      "bytes": 996
+    },
+    "limits": "Initial aggregate availability preceded Store pool construction. It is not warm-phase free memory, per-NUMA-node pagecache capacity or guarantee allocations can use every node. Later explicit configuration and postfailure node meminfo are now referenced separately; original failure-time per-node allocation/reclaim/numa_maps, effective ancestor policies and pressure history remain unavailable. No new probes were performed by this analysis.",
+    "store_pool_bytes_configured": 687194767360,
+    "store_pool_scope": "Configured pinned pool, initialized before cache preparation per existing event; no per-NUMA placement evidence.",
+    "postfailure_configuration": {
+      "reference": {
+        "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/postfailure-memory-policy-readonly-v1.json",
+        "sha256": "f44a0557a22f79900dcbea873c7cf5e447db9f8efb4a2df63cb622a1ac0f04f6",
+        "bytes": 3282
+      },
+      "status": "POSTFAILURE_READONLY_CONFIGURATION_NOT_FAILURE_TIME_MEMORY_STATE",
+      "numa_online": "0-1",
+      "controller_properties": "AllowedMemoryNodes=\nMemoryHigh=infinity\nMemoryMax=infinity\nCPUAffinity=\n",
+      "container_memory_policy": {
+        "head": {
+          "Memory": 17179869184,
+          "MemorySwap": 17179869184,
+          "MemoryReservation": 0,
+          "CpusetCpus": "",
+          "CpusetMems": "",
+          "NanoCpus": 8000000000,
+          "OomKillDisable": null
+        },
+        "worker": {
+          "Memory": 1649267441664,
+          "MemorySwap": 1649267441664,
+          "MemoryReservation": 0,
+          "CpusetCpus": "",
+          "CpusetMems": "",
+          "NanoCpus": 32000000000,
+          "OomKillDisable": null
+        }
+      },
+      "interpretation": "Explicit controller MemoryMax/High infinity and empty CPUAffinity/AllowedMemoryNodes; worker1536GiB/head16GiB caps and empty requested CpusetCpus/Mems. No explicit binding or controller cap is demonstrated by these settings. Empty requested fields do not establish effective ancestor cpusets, actual mempolicy or allocations. Per-node meminfo was taken after abort/release and cannot establish failure-time local capacity/reclaim or NUMA cause."
+    }
+  },
+  "qjhs003_comparison": {
+    "actual_analysis": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-condition-actual-analysis-v1-20261107.json",
+      "sha256": "0959cf17761ec076a07711bd010e8ab4e0f061bb3707b9cd252963fe29758df1",
+      "bytes": 314057
+    },
+    "selection": "All readily located construction receipts among fixed primary8blocks SFhot, without favorable timing selection;5found and3notfound in direct public directories. Missing here does not mean globally nonexistent.",
+    "rows": [
+      {
+        "run_id": "kimi-four-v1-b05-safetensors_disk_hot",
+        "block": 5,
+        "cache_construction": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b05-four-condition-pass-public-20261107/kimi-four-v1-b05-safetensors_disk_hot/cache-construction-result.json",
+          "sha256": "f9b280159c9f703093205e2be2b88a29a105fd830af58e2f13ec3670f6392403",
+          "bytes": 37394
+        },
+        "construction_begin": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_hot/event-target_condition_construction_begin.json",
+          "sha256": "632052990e4477b926bfee672f297428e5fb6daeb735f63c3ebabe712c69a6f8"
+        },
+        "cache_admission_complete": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b05-safetensors_disk_hot/event-cache_pool_admission_complete.json",
+          "sha256": "278a659d58131214878a7f747f8f45825dbb6a6703ab27a5bc01007f42ce5e49"
+        },
+        "files": 84,
+        "read_bytes": 595204634151,
+        "pages": 145313657,
+        "resident_pages": 145313657,
+        "admitted": true,
+        "construction_begin_to_admission_complete_s": 160.976553941
+      },
+      {
+        "run_id": "kimi-four-v1-b06-safetensors_disk_hot",
+        "block": 6,
+        "cache_construction": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b06-four-condition-pass-public-20261107/kimi-four-v1-b06-safetensors_disk_hot/cache-construction-result.json",
+          "sha256": "f9b280159c9f703093205e2be2b88a29a105fd830af58e2f13ec3670f6392403",
+          "bytes": 37394
+        },
+        "construction_begin": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_hot/event-target_condition_construction_begin.json",
+          "sha256": "308b0bcab60f2fd0723f0977cd7fb1ea6f34cb79d4181b8186c9ae075f8296e5"
+        },
+        "cache_admission_complete": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b06-safetensors_disk_hot/event-cache_pool_admission_complete.json",
+          "sha256": "63f179b6e9c4e7e7e0cb0b8c49e706976e8e515cc431c30156b3cd0c6d435cbf"
+        },
+        "files": 84,
+        "read_bytes": 595204634151,
+        "pages": 145313657,
+        "resident_pages": 145313657,
+        "admitted": true,
+        "construction_begin_to_admission_complete_s": 266.887481342
+      },
+      {
+        "run_id": "kimi-four-v1-b07-safetensors_disk_hot",
+        "block": 7,
+        "cache_construction": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b07-four-condition-pass-public-20261107/kimi-four-v1-b07-safetensors_disk_hot/cache-construction-result.json",
+          "sha256": "f9b280159c9f703093205e2be2b88a29a105fd830af58e2f13ec3670f6392403",
+          "bytes": 37394
+        },
+        "construction_begin": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_hot/event-target_condition_construction_begin.json",
+          "sha256": "bcf114077f3658ee57444d48e7498449f7e0f70033f8799ff91de706b0e72f5e"
+        },
+        "cache_admission_complete": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b07-safetensors_disk_hot/event-cache_pool_admission_complete.json",
+          "sha256": "49b6393832ba868c55e11239708973c9200e67db3ef83097f9d5a7afc2aa7b0f"
+        },
+        "files": 84,
+        "read_bytes": 595204634151,
+        "pages": 145313657,
+        "resident_pages": 145313657,
+        "admitted": true,
+        "construction_begin_to_admission_complete_s": 132.576148678
+      },
+      {
+        "run_id": "kimi-four-v1-b08-safetensors_disk_hot",
+        "block": 8,
+        "cache_construction": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b08-four-condition-pass-public-20261107/kimi-four-v1-b08-safetensors_disk_hot/cache-construction-result.json",
+          "sha256": "f9b280159c9f703093205e2be2b88a29a105fd830af58e2f13ec3670f6392403",
+          "bytes": 37394
+        },
+        "construction_begin": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_hot/event-target_condition_construction_begin.json",
+          "sha256": "6ba75e2b5d2c00e3cb7796ca74b5feb90b7dc4920d801ba49b3e9239cb300384"
+        },
+        "cache_admission_complete": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b08-safetensors_disk_hot/event-cache_pool_admission_complete.json",
+          "sha256": "83a0b68ad756ecaaf83fec78a2c5db7895e67a8c50efd6ef303eb7ee54829106"
+        },
+        "files": 84,
+        "read_bytes": 595204634151,
+        "pages": 145313657,
+        "resident_pages": 145313657,
+        "admitted": true,
+        "construction_begin_to_admission_complete_s": 132.451102876
+      },
+      {
+        "run_id": "kimi-four-v1-b10-safetensors_disk_hot",
+        "block": 10,
+        "cache_construction": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-b10-four-condition-pass-public-20261107/kimi-four-v1-b10-safetensors_disk_hot/cache-construction-result.json",
+          "sha256": "f9b280159c9f703093205e2be2b88a29a105fd830af58e2f13ec3670f6392403",
+          "bytes": 37394
+        },
+        "construction_begin": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_hot/event-target_condition_construction_begin.json",
+          "sha256": "64325a30ea20913093d531aef37aaa644db155f7ce0424638bf7f7d54ec5ac2a"
+        },
+        "cache_admission_complete": {
+          "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-four-analysis-input-snapshot-v1-20261107/runs/kimi-four-v1-b10-safetensors_disk_hot/event-cache_pool_admission_complete.json",
+          "sha256": "98a4e171dd050054f8ed479c2037d27b1a2026e9c318328185ee159590dbc056"
+        },
+        "files": 84,
+        "read_bytes": 595204634151,
+        "pages": 145313657,
+        "resident_pages": 145313657,
+        "admitted": true,
+        "construction_begin_to_admission_complete_s": 129.081861094
+      }
+    ],
+    "not_located_in_review_scope": [
+      "kimi-four-v1-b01-safetensors_disk_hot-retry04",
+      "kimi-four-v1-b02-safetensors_disk_hot-retry02",
+      "kimi-four-v1-b03-safetensors_disk_hot"
+    ],
+    "limits": "Historical localNVMe/qjhs3 and localRAID/qjhs0 are different nodes/storage routes/boots. q3 successful spans include a second admission query; q0 failed before that query. Times are not pure-read comparisons or causal estimates."
+  },
+  "hypotheses_not_established": [
+    {
+      "possibility": "NUMA-local allocation/reclaim constraints despite globally sufficient RAM",
+      "required_missing_evidence": "Original per-node allocation/free/file-page/reclaim state and actual root-controller/Store CPU/mempolicy/cpuset placement."
+    },
+    {
+      "possibility": "Other host memory consumers or global/file-page reclaim during sequential warming",
+      "required_missing_evidence": "Contemporaneous host/cgroup memory pressure and allocation/reclaim history, not present in the exported receipts."
+    },
+    {
+      "possibility": "Streaming read/file-page replacement policy interactions",
+      "required_missing_evidence": "Original kernel/file-page reclaim/readahead traces or controlled independently approved diagnostic; not inferred solely from residency pattern."
+    }
+  ],
+  "not_supported": [
+    "No evidence of incomplete preadv/short-read, timeout or loader failure: helper returned normal result then exact all-hot gate rejected it.",
+    "No inference that RAID slower caused eviction; physical device cache is outside mincore scope.",
+    "No attribution to NUMA without original per-node evidence.",
+    "No inference that initial aggregate MemAvailable guarantees this page-cache predicate.",
+    "No proposal to weaken full-hot requirement, add automatic retries or alter old failure."
+  ],
+  "terminal": {
+    "block": "FAILED_RETAINED_NO_RETRY",
+    "launch_requested_count": 1,
+    "later_three": "NOT_STARTED",
+    "HTTP_and_load_endpoints": "NOT_OBSERVED; not latency0",
+    "original_cleanup_normal": false,
+    "original_worker_quiet_s": 52.06363920029253,
+    "original_worker_failures": [
+      "abort_cleanup_exceeded",
+      "abort_requested",
+      "release60_incomplete"
+    ],
+    "additional_postfailure_release_status": "ADDITIONAL_POST_FAILURE_READONLY_RELEASE60_CONFIRMED_NOT_ORIGINAL_GUARD_PASS",
+    "additional_release_span_s": 65.95225450862199,
+    "additional_release_scope": "Separate postfailure release observation; does not make original guard/cleanup or failed sample pass."
+  },
+  "actions": "Read-only source/small historical+public receipts only; no Git/sync/source edits/model/container/Store/cache probe or retry."
+}

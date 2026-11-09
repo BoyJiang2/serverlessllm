@@ -1,0 +1,82 @@
+{
+  "status": "ACCEPT_FAILED_NO_LOAD_RESULTS_AND_SUPPLEMENTARY_RELEASE_EVIDENCE",
+  "reviewed_at_utc": "2026-11-09T02:41:41.730293+00:00",
+  "raw_export_manifest_sha256": "ea4d09d4e715267bbd9adf0c26b0f103d745acc78be14f27d940771151ed6771",
+  "raw_small_files_verified": 18,
+  "raw_files_sha256": {
+    "controller-failed.json": "6294c4f54e873311db41cd666142bd32605d29290ab46a6147de9b8e6e43edb0",
+    "condition-terminal.json": "39625fae749fa0500f9835f7b59fa7c1405449b40e58093918f3b0098e1a98f2",
+    "cleanup-result.json": "932290121197b546ab2db4d7cef600ce974bae82e12a0951ac393e7d68e9a47f",
+    "sample-validity.json": "d036415133b61eb442bbae1e676a21d6d5280b8dc77c0df2b07020bf03a8406c",
+    "sample-metrics.json": "2462403e3e3668b94b0fcd815fa158c4ba1ce443dbf3f75b3de3a76d199fdac2",
+    "cache-construction-result.json": "3bce03047306d101233308ec9595ea1a69d15aa0fc58538cac33723c2c1b4849",
+    "event-target_condition_construction_begin.json": "19ad040d015e4c5813c11d329bf2c268e2978a46a570afbe5ad9e96a129d06bd",
+    "event-store_pool_initialization_complete.json": "4e9175663d3ee3beef0542479876060bd501a40f8d5ad4bd26ac3ced95c91433",
+    "event-initial_baseline60_begin.json": "8500e78b5e2300a2747159c0bde6be7ad817bf2dc04c3c34d9c1f7ab0b4076b2",
+    "guard-head/guard-final.json": "deed8c7b98a6c5568040c07415d557f2db63e4d52becb3edf3855c4c5c120cf6",
+    "guard-worker/guard-final.json": "e8c705b413eb1e751383b63b32ed89ef308f3d315f6379148d5a013f1737def6",
+    "observer/observer-final.json": "2f9fa76edd9d3c5d0454334b90e656ad45b6f4efc6b83268b6ebc33155e99da3",
+    "storage-route-admission.json": "3c9c0158400282a69a080ec134bfe2132db58f8cd4520ca3a4c187178663d41b",
+    "block-final.json": "afa3f35d0b0856680a73012c4b5ffc14c45cdfcc72496493c8a81ec09981993e",
+    "additional-postfailure-release60-v1.json": "548f3672dbacaf89970ca72f4e4a31fa7bd5c045d348a39d8cf5be47d1ebae16",
+    "activation-systemd-run-receipt-v1.json": "8c1ad9c7b1e46bbed63890b22bf654912080d23edfaebe0694221e979d50fdfe",
+    "fresh-root-activation-admission-v1.json": "87cdbab9277356b2cd6590ca54c63264e703a6b6c2260d3184c4a28bb081686f",
+    "fresh-booking-final-activation-v1.json": "5d001185f8cdfe603e27492fa244cfd00306d6a46d5b5271281dfbf8a63ca692"
+  },
+  "cohort_counts": {
+    "planned": 4,
+    "launch_requested": 1,
+    "qualified": 0,
+    "failed": 1,
+    "not_started": 3,
+    "complete_blocks": 0,
+    "rank_endpoints_observed": 0,
+    "csv_expected_rank_slots": 32,
+    "csv_actual_rank_or_endpoint_slots": 0
+  },
+  "failure": {
+    "stage": "SFhot cache construction before model registration/load",
+    "operation": "warm",
+    "admitted": false,
+    "resident_pages": 98275914,
+    "pages": 145313657,
+    "source": "controller-failed traceback and original cache-construction result agree",
+    "causal_boundary": "The incomplete warm residency is observed; its underlying cause is not established by this review. No model/loader/endpoint repair is proven. Catchall NEW_PROTOCOL_EXIT60_L1_FAILED label is not evidence Store60 expired."
+  },
+  "postprocess": {
+    "implementation_sha256": "717e81ab4b97c20bcd644a08c2a1965228ab85047f4575ccd9e70b475b4c1135",
+    "results_json_sha256": "c7bda371192e164462d438b7c37724dfb31f46199e958d54430d5cb21bc3bfe2",
+    "results_csv_sha256": "6d4ad96490521c5c0d281dad4f783a461b5ed27b203547ca5ced6780c00bc72d",
+    "independent_checks": "All4measurements None; allcompleteblock n0/null; all32CSV expected slots with actualrank/endpoints blank and missingreason. No oldf7/q3/oldformal data mixed."
+  },
+  "original_release_failures_retained": {
+    "head_quiet_seconds": 60.17900052387267,
+    "worker_quiet_seconds": 52.06363920029253,
+    "worker_failures": [
+      "abort_cleanup_exceeded",
+      "abort_requested",
+      "release60_incomplete"
+    ],
+    "observer_quiet_seconds": 60.75977881625295,
+    "observer_gaps": 1,
+    "observer_max_query_seconds": 21.840814859606326,
+    "normal_cleanup": false,
+    "normal_exit_proven": false
+  },
+  "supplementary_postfailure_release": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/runtime-public-v1/additional-postfailure-release60-v1.json",
+    "sha256": "548f3672dbacaf89970ca72f4e4a31fa7bd5c045d348a39d8cf5be47d1ebae16",
+    "samples": 5,
+    "sampled_span_seconds": 65.95225450862199,
+    "all8_gpu_zero_noapps_eachsample": true,
+    "bothCID_exited_pid0_exit137_noOOM_and_scopes_absent_or_empty": true,
+    "original_pinned_identities_gone_eachsample": true,
+    "meaning": "Additional post-failure sampled safety-release evidence only. Does not repair52.0636 originalguard quiet, eraseobservergap1, establish graceful exit or reclassify attempt/block PASS."
+  },
+  "scope_limits": [
+    "Reviewer independently verified public exportbytes and supplementarysample consistency; raw private rootlogs/claims/currentliveq0 state not read directly. Root sample collection execution attributed to parent.",
+    "Five read-only samples over65.952s are sampled observations, not a new continuous independentguard monitor or retroactive originalquiet60pass.",
+    "Source/protocol/old40/main8 remain unchanged; no retry authorized or performed by this review.",
+    "No new GPU/Store/container/model/cache/weights/Git/source edits or tests executed."
+  ]
+}
