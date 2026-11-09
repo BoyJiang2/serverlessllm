@@ -2282,5 +2282,19 @@
   "-slice-probe-deadline.timer": "LoadState=not-found\nActiveState=inactive\nSubState=dead\n",
   ".slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
   "-host-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
-  "-slice-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n"
+  "-slice-probe.slice": "LoadState=loaded\nActiveState=inactive\nSubState=dead\n",
+  "forensic_source_review": {
+    "reviewer": "/root/glm_controller_r1",
+    "reviewed_commit": "beeea857b6cdf2fd5a9f4419a5c521cddc931689",
+    "verdict": "PASS_FOR_FORENSIC_SOURCE_CHANGE_ONLY",
+    "blocking_findings": [],
+    "runtime_approval": false,
+    "debug_stack_sha256": "0fea87137db66c287d859eef25f85d266011ff5490d1aa697656f1f8d947271a",
+    "limits": [
+      "returned rejected snapshots and previous clocks retained; collection exceptions snapshot null",
+      "partial in-flight stage not guaranteed if collection raises or guard terminates",
+      "CPU head control not GPU-worker or NVML root-cause proof",
+      "next small GPU-runtime control requires frozen complete scope/budget/identity/actual guard/resource admission; no fourth model cohort yet"
+    ]
+  }
 }
