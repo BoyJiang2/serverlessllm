@@ -1,0 +1,285 @@
+{
+  "epoch": 1794205557.4216473,
+  "scope": "READ_ONLY_EXISTING_FAILED_RUN_NO_NEW_PROBE",
+  "files": {
+    "controller-failed.json": {
+      "sha256": "42754deef93109945caf8d11cca7335f75f94c86432a07ef295cd7fabee0a4fa",
+      "value": {
+        "status": "NEW_PROTOCOL_EXIT60_L1_FAILED_RETAINED_NO_RETRY",
+        "error_type": "AssertionError",
+        "error": "Store exit60 criterion exceeded",
+        "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 597, in <module>\n  File \"<string>\", line 226, in stop_service\nAssertionError: Store exit60 criterion exceeded\n",
+        "traceback_frames": [
+          {
+            "filename": "<string>",
+            "lineno": 597,
+            "name": "<module>"
+          },
+          {
+            "filename": "<string>",
+            "lineno": 226,
+            "name": "stop_service"
+          }
+        ],
+        "cids": {
+          "head": "8870a434d42b595e93061bd5eb3192a4b01d5e1cf9fd0565bfce24541bc963b2",
+          "worker": "0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7"
+        },
+        "source_commit": "9ee423906654d3105b330bfc6b75935b325090aa",
+        "protocol_sha256": "8cba8aef2142ecd26812e3c5790086c989da03574bb4afeae468d917cdef34f2",
+        "attempt": {
+          "order": 2,
+          "block": 1,
+          "position": 2,
+          "condition": "store_disk_cold",
+          "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold"
+        },
+        "condition": "store_disk_cold",
+        "planned_attempts": [
+          {
+            "order": 1,
+            "block": 1,
+            "position": 1,
+            "condition": "safetensors_disk_hot",
+            "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_hot"
+          },
+          {
+            "order": 2,
+            "block": 1,
+            "position": 2,
+            "condition": "store_disk_cold",
+            "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold"
+          },
+          {
+            "order": 3,
+            "block": 1,
+            "position": 3,
+            "condition": "safetensors_disk_cold",
+            "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-safetensors_disk_cold"
+          },
+          {
+            "order": 4,
+            "block": 1,
+            "position": 4,
+            "condition": "store_pool_hit",
+            "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_pool_hit"
+          }
+        ],
+        "elapsed": 1175.6901921937242
+      }
+    },
+    "store-stop-exit60.json": {
+      "sha256": "46bae7d1fa753c334b7a04219bdd18c319a3f6838a0adab003524106611b2ee5",
+      "value": {
+        "protocol": "NEW_PROTOCOL_EXIT60_L1",
+        "criterion_seconds": 60,
+        "owner": {
+          "pid": 1495474,
+          "startticks": 802293651,
+          "state": "S",
+          "ppid": 1489561,
+          "cgroup": "0::/system.slice/docker-0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7.scope"
+        },
+        "pass": false,
+        "begin_monotonic": 8024006.942325084,
+        "deadline_monotonic": 8024066.942325084,
+        "measurement": "controller Stop call through original finish and strictgone, including IPC and diagnostic overhead",
+        "elapsed": 60.084781183861196,
+        "error_type": "AssertionError",
+        "error": "Store exit60 criterion exceeded",
+        "failure_reason": "criterion60_exceeded"
+      }
+    },
+    "cleanup-result.json": {
+      "sha256": "ec40af1c57ad4f680e95ce64752bc2c71bee9033af61900e843af214d1c2a81b",
+      "value": {
+        "run_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold",
+        "attempt": {
+          "order": 2,
+          "block": 1,
+          "position": 2,
+          "condition": "store_disk_cold",
+          "attempt_id": "kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold"
+        },
+        "condition": "store_disk_cold",
+        "normal": false,
+        "status": "FAILED",
+        "quiet_seconds": null,
+        "reason": "AssertionError:Store exit60 criterion exceeded",
+        "evidence": [
+          {
+            "path": "/home/boyjiang/kimi-new/evidence/runs/kimi-unified-loading-20261109-qjhs000-formal64-v1-b01-store_disk_cold/store-stop-exit60.json",
+            "sha256": "46bae7d1fa753c334b7a04219bdd18c319a3f6838a0adab003524106611b2ee5"
+          }
+        ]
+      }
+    },
+    "guard-head/guard-final.json": {
+      "sha256": "3fd29a938b01e5e22ee8d94a95a83a8b6f68bb7743da8896a50390aea40ee391",
+      "value": {
+        "status": "FAILED_RETAINED",
+        "cid": "8870a434d42b595e93061bd5eb3192a4b01d5e1cf9fd0565bfce24541bc963b2",
+        "failures": [
+          "abort_requested"
+        ],
+        "quiet_seconds": 60.25912722945213,
+        "max_cycle_seconds": 0.42800174839794636,
+        "raw_oci_sha256": "d2c4cbcb07a4a8e01b5ded4e25b212038ce542bb1d5dede95eeba1cfc74702d4",
+        "oci_seen": true,
+        "scope_seen": true,
+        "abort_monotonic": 8024067.122195897,
+        "pinned_identities": [
+          {
+            "pid": 1486717,
+            "startticks": 802289247,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 1486729,
+            "startticks": 802289247,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          }
+        ],
+        "normal_completion_monotonic": null,
+        "normal_cleanup_monotonic": null,
+        "warnings": [],
+        "host_discovery_coverage": "Unknown host PermissionError may be omitted; not proven unrelated. Known pins/owned runtime/own scope and all cleanup checks remain strict."
+      }
+    },
+    "guard-worker/guard-final.json": {
+      "sha256": "34d6461b13a5b36dcade677cf29faee47555b96dc883ca50420e5220b4d93db3",
+      "value": {
+        "status": "FAILED_RETAINED",
+        "cid": "0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7",
+        "failures": [
+          "abort_requested"
+        ],
+        "quiet_seconds": 60.15505067445338,
+        "max_cycle_seconds": 0.536864161491394,
+        "raw_oci_sha256": "bfdc07d2732e0c34f5ca824b346114cfd2d3e35bef1e2216f769efdc9cfc2ca8",
+        "oci_seen": true,
+        "scope_seen": true,
+        "abort_monotonic": 8024067.128764193,
+        "pinned_identities": [
+          {
+            "pid": 1489561,
+            "startticks": 802291213,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 1489574,
+            "startticks": 802291213,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 1599583,
+            "startticks": 802406714,
+            "exe": "/usr/bin/containerd-shim-runc-v2",
+            "cgroup": "0::/system.slice/containerd.service"
+          },
+          {
+            "pid": 1599598,
+            "startticks": 802406715,
+            "exe": "/usr/bin/runc",
+            "cgroup": "0::/system.slice/containerd.service"
+          }
+        ],
+        "normal_completion_monotonic": null,
+        "normal_cleanup_monotonic": null
+      }
+    },
+    "observer/observer-final.json": {
+      "sha256": "e41713ef5ea7ea3c59932e59610098158395b74a524fb5a6ad1626e02249b6a3",
+      "value": {
+        "gpu_uuids": [
+          "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0",
+          "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f",
+          "GPU-63a1fe63-1472-9448-9361-a039cf257d14",
+          "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a",
+          "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf",
+          "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d",
+          "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590",
+          "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da"
+        ],
+        "quiet_seconds": 60.88731180038303,
+        "peak_mib_by_uuid": {
+          "GPU-ec8259a6-1812-7313-8679-ded3ed2271a0": 118051,
+          "GPU-e1f24dab-25b5-17b8-8b83-6586be0ffa7f": 118047,
+          "GPU-63a1fe63-1472-9448-9361-a039cf257d14": 118049,
+          "GPU-393e97f5-a431-1973-5bd9-e2be28ae854a": 118049,
+          "GPU-3ff749b8-613e-59d2-963e-37f31a97dbaf": 118049,
+          "GPU-af44e1f0-3b92-1018-d09e-e0d86353b42d": 118135,
+          "GPU-c3ba52cb-d775-c5a4-5989-08a6e3cc0590": 118051,
+          "GPU-b1207fd6-ebb7-4cf8-aeb3-7e178be257da": 118049
+        },
+        "monitor": {
+          "samples": 733,
+          "memory_samples": 733,
+          "gaps": 0,
+          "max_query_seconds": 14.032323285005987,
+          "max_memory_interval_seconds": 14.413518060930073,
+          "peak_kind": "SAMPLED_LOWER_BOUND",
+          "peak_coverage": "SAMPLED_NO_QUERY_ERRORS"
+        }
+      }
+    }
+  },
+  "owned_processes": [],
+  "cid": "0eab2751d7070b4c7f6ea079d1c0bffcaca2eceaabf69842e5862592849347a7",
+  "cgroup_exists": false,
+  "container": {
+    "Status": "exited",
+    "Running": false,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 0,
+    "ExitCode": 137,
+    "Error": "",
+    "StartedAt": "2026-11-09T06:04:30.225377573Z",
+    "FinishedAt": "2026-11-09T06:23:45.850980367Z"
+  },
+  "store_stderr_sha256": "aac671b788351487cc05629c16e089513efc5969de672c87c0f43c6d0a687332",
+  "store_shutdown_lines": [
+    "I20261109 06:23:01.903986  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=704 failed=0 total=10240 elapsed_ms=16758",
+    "I20261109 06:23:03.971374  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=768 failed=0 total=10240 elapsed_ms=18825",
+    "I20261109 06:23:04.579305  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=832 failed=0 total=10240 elapsed_ms=19433",
+    "I20261109 06:23:06.021670  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=896 failed=0 total=10240 elapsed_ms=20875",
+    "I20261109 06:23:07.609390  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=960 failed=0 total=10240 elapsed_ms=22463",
+    "I20261109 06:23:10.015955  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1024 failed=0 total=10240 elapsed_ms=24870",
+    "I20261109 06:23:10.333235  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1088 failed=0 total=10240 elapsed_ms=25187",
+    "I20261109 06:23:12.125420  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1152 failed=0 total=10240 elapsed_ms=26979",
+    "I20261109 06:23:12.518102  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1216 failed=0 total=10240 elapsed_ms=27372",
+    "I20261109 06:23:15.293494  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1280 failed=0 total=10240 elapsed_ms=30147",
+    "I20261109 06:23:16.469945  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1344 failed=0 total=10240 elapsed_ms=31324",
+    "I20261109 06:23:17.324575  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1408 failed=0 total=10240 elapsed_ms=32178",
+    "I20261109 06:23:18.587001  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1472 failed=0 total=10240 elapsed_ms=33441",
+    "I20261109 06:23:20.432125  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1536 failed=0 total=10240 elapsed_ms=35286",
+    "I20261109 06:23:22.418495  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1600 failed=0 total=10240 elapsed_ms=37272",
+    "I20261109 06:23:22.738554  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1664 failed=0 total=10240 elapsed_ms=37592",
+    "I20261109 06:23:24.401868  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1728 failed=0 total=10240 elapsed_ms=39256",
+    "I20261109 06:23:24.713300  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1792 failed=0 total=10240 elapsed_ms=39567",
+    "I20261109 06:23:27.019097  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1856 failed=0 total=10240 elapsed_ms=41873",
+    "I20261109 06:23:28.834925  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1920 failed=0 total=10240 elapsed_ms=43689",
+    "I20261109 06:23:29.157507  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=1984 failed=0 total=10240 elapsed_ms=44011",
+    "I20261109 06:23:30.848222  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2048 failed=0 total=10240 elapsed_ms=45702",
+    "I20261109 06:23:31.153874  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2112 failed=0 total=10240 elapsed_ms=46008",
+    "I20261109 06:23:33.402402  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2176 failed=0 total=10240 elapsed_ms=48256",
+    "I20261109 06:23:34.978994  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2240 failed=0 total=10240 elapsed_ms=49833",
+    "I20261109 06:23:35.240429  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2304 failed=0 total=10240 elapsed_ms=50094",
+    "I20261109 06:23:36.868273  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2368 failed=0 total=10240 elapsed_ms=51722",
+    "I20261109 06:23:37.119580  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2432 failed=0 total=10240 elapsed_ms=51973",
+    "I20261109 06:23:37.710326  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2496 failed=0 total=10240 elapsed_ms=52564",
+    "I20261109 06:23:40.642899  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2560 failed=0 total=10240 elapsed_ms=55497",
+    "I20261109 06:23:41.026525  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2624 failed=0 total=10240 elapsed_ms=55880",
+    "I20261109 06:23:41.451082  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2688 failed=0 total=10240 elapsed_ms=56305",
+    "I20261109 06:23:42.844609  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2752 failed=0 total=10240 elapsed_ms=57698",
+    "I20261109 06:23:43.122475  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2816 failed=0 total=10240 elapsed_ms=57976",
+    "I20261109 06:23:45.004868  1238 pinned_memory_pool.cpp:97] PinnedMemoryPool shutdown progress attempted=2880 failed=0 total=10240 elapsed_ms=59859"
+  ]
+}
