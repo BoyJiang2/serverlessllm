@@ -18,7 +18,7 @@ python -m unittest discover -s . -p test_harmonized_analysis.py -v
 - 随机12次来自独立已验收cohort，六个非自切换方向各2次；字节和块数优先。不能与历史样本拼接。
 - 5项小测试验证all-rank包络与最大单rank不同、缺rank/缺端点/重复rank为null、反向端点报错。
 
-产物包含原A/ECDF/120编号图、两张分模型阶段PNG/SVG/PDF、逐rank/逐attempt/阶段均值、Prep分项/里程碑、独立Kimi补采和随机方向缓存表。撤下的原Prep堆叠与混合图4/图5/图6文件保留历史归档，当前正文不引用，不再由新脚本生成。
+产物包含原A/ECDF/120编号图、按97f0359原绘图代码恢复的图3 Prep+A和图6互斥事件分解、两张分模型阶段PNG/SVG/PDF、逐rank/逐attempt/阶段均值、Prep分项/里程碑、独立Kimi补采和随机方向缓存表。图3与图6已按用户指定版式恢复正文引用和生成代码；三模型Prep范围差异仍写入图注，图后保留数值表。混合图4/旧图5仅历史归档，不作为统一边界数据。
 
 实际分模型绘图消费者额外检查（使用本目录derived，不触发模型）：
 

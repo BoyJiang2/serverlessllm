@@ -202,9 +202,14 @@ def export(output):
         ax.set(title=model, xlabel='Startup seconds', ylabel='ECDF', ylim=(0, 1.05)); ax.legend(fontsize=8); ax.grid(alpha=.2)
     save(fig, 'fig2_ecdf', 'Qualified descriptive samples only; failures remain in the original 40-ID denominator and are never set to zero.')
 
-    # Different preparation scopes remain in component tables, never a stacked total.
-    # No historical cohort has a proven common complete-loader-call metric.
-    # Plot each model's observed host phases separately, with its actual function scope.
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3), sharey=True)
+    for ax, model in zip(axes, MODELS):
+        prep = [summary[model][c]['prep_mean_s'] for c in CONDITIONS]; a = [summary[model][c]['A_mean_s'] for c in CONDITIONS]
+        ax.bar(range(4), prep, color='#A9BBC6', label='Recorded preparation'); ax.bar(range(4), a, bottom=prep, color=COLORS, label='Startup A')
+        ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=8)
+    save(fig, 'fig3_preparation', 'Prep+A excludes gap. Legacy Prep is target-state construction; V4 Prep includes environment/pool/admission. Not equivalent cost windows.')
+
+    # Weight phases keep their separate model-specific scope labels.
     for model, stem, stage_labels in [
         ('GLM-5.1-FP8', 'fig5_glm_phases', ['Worker.load_model envelope', 'load_weights envelope', 'postprocess envelope']),
         ('DeepSeek-V4-Pro', 'fig5_v4_phases', ['Worker.load_model envelope', 'load_weights (Store: remainder/session)', 'postprocess (Store: expert restore/H2D + processing)']),
@@ -219,6 +224,14 @@ def export(output):
                xticks=range(4), xticklabels=LABELS, ylabel='Mean host-envelope seconds')
         ax.legend(fontsize=8); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
         save(fig, stem, 'Model-specific scopes; stages overlap and must not be added or subtracted.\nNo pure disk, H2D, quantization or path-count attribution; no added CUDA synchronization.')
+
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4.3))
+    for ax, model in zip(axes, MODELS):
+        bottom = np.zeros(4)
+        for key, label, color in [('command_to_route_s', 'Command -> route', '#3267A5'), ('route_to_backend_first_token_s', 'Route -> backend first output', '#C57935'), ('backend_first_token_to_correct_http_s', 'First output -> correct HTTP', '#4D9568')]:
+            values = np.array([mean(primary[model][c]['startup_segments_s'][key]) for c in CONDITIONS]); ax.bar(range(4), values, bottom=bottom, color=color, label=label); bottom += values
+        ax.set(title=model, xticks=range(4), xticklabels=LABELS, ylabel='Mean seconds'); ax.tick_params(axis='x', labelrotation=25); ax.legend(fontsize=7)
+    save(fig, 'fig6_exclusive', 'The three non-overlapping host-event intervals sum to A. Backend first output is not client streaming TTFT or GPU token time.')
 
     fig, axes = plt.subplots(3, 1, figsize=(13, 5.4))
     rows = read(BASE / 'inputs/v4/results/qualified-rows.json')

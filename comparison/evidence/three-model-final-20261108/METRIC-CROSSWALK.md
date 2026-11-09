@@ -36,7 +36,7 @@ GLM官方参考V1代码不能代替实际映射文件证明。V4核查的是固�
 
 全部为主机函数包络：异步设备工作与主机调用可以交错；end证明host正常返回，不保证未同步CUDA任务全部完成。本轮没有加CUDA同步改历史定义。1552条逐rank/缺测槽位见derived/rank_durations.csv；每attempt包络与max见phase_attempts.csv，各条件均值见phase_summary.csv。
 
-## Prep：不等价成本不堆叠
+## Prep：分模型原口径图与分项明细
 
 | 模型 | 原Prep起止/范围 | 已有端点可拆什么 | 保持null什么 |
 |---|---|---|---|
@@ -44,7 +44,7 @@ GLM官方参考V1代码不能代替实际映射文件证明。V4核查的是固�
 | GLM | preparation_begin_ns→preparation_complete_ns；目标cache/pool准备、必要旧pool卸载和文件级准入；公共栈先已启动且跨26次共享 | 原Prep合计，来源formal_trials.py与各result；共享成本不按条件均摊 | 每条件环境、建池、纯注册、独立cache/admission分量 |
 | V4 | 宿主preparation origin→startup_command_ns；含环境/服务、池、注册验证、cache构造/准入 | 可精确拆原始里程碑：origin→store-configuration-checked；→trial-cache-complete；→startup。三段逐attempt相加等于原Prep | 里程碑段不等于纯建池、注册、IO或准入；这些纯分量仍null |
 
-derived/preparation_components.csv逐ID记录可拆值与null；v4_preparation_milestones.csv是有范围名称的里程碑，不是估算填项。互相嵌套或重叠的分量不加总。
+derived/preparation_components.csv逐ID记录可拆值与null；v4_preparation_milestones.csv是有范围名称的里程碑，不是估算填项。互相嵌套或重叠的分量不加总。图3按用户指定97f0359样式恢复各模型原记录Prep+A分面，不把三个分面当作同口径总成本比较。
 
 ## Controller：起止、退出与释放
 
