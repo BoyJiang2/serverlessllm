@@ -1,0 +1,50 @@
+{
+  "api": "warm_file_cache_observed(paths, allowed_roots, deadline, *, telemetry=None)",
+  "baseline_helper_sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "sllm_store/tests/python/test_file_cache_state.py",
+    "-v"
+  ],
+  "created_epoch": 1794197646.0277717,
+  "elapsed_s": 0.2004971168935299,
+  "fixes": [
+    "Check actual captured whole-sweep end against the unchanged absolute deadline before OBSERVED/admission; red fixture fails on exact ca8e old bytes then passes on new bytes.",
+    "read_complete false until full finite payload list read and identity verified; partial last positive preadv return remains read_end_ns without implying completion."
+  ],
+  "red_failure_kind": "TimeoutError at Q0 caused by last-read heavy telemetry on exact 075 bytes",
+  "red_original_sha256": "075081a91b3b531d12c5ffae7d6bbf7334cfdb94306b073b7cc5d375d140f1fa",
+  "red_test_expected_failure_count": 1,
+  "returncode": 0,
+  "revision": "file-cache-warm-observation-v1",
+  "schema": "cache-observation-implementation-cpu-v1",
+  "scope": "small temporary owned Linux files, real preadv/mincore plus deterministic clock/error mocks; no existing model/cache/Store/GPU/container/Git operations",
+  "semantics": {
+    "full_read_cap_s": 1800,
+    "offsets_s": [
+      0,
+      30,
+      60,
+      90,
+      120
+    ],
+    "old_api": "same signatures, single operation pass then whole-manifest query; additive timing fields",
+    "partial_residency": "sticky admitted=false; continue only five original snapshots",
+    "query_absolute_cap_s": 30,
+    "read_endpoint": "actual last positive preadv return; before query or telemetry; cap includes callbacks/validation",
+    "scope_limit": "client cache sampled snapshots only; not continuous residency or server/physical cache",
+    "start_lateness_tolerance_s": 2,
+    "technical_errors": "raise original with error.cache_observation partial evidence; no retry",
+    "time_limit": "cooperative around blocking syscalls; external guard still required"
+  },
+  "source_sha256": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/file_cache_state.py": "576732096b335b4c6bd922d4de6dfaf6dbeac63bb8701d299149d0983570e039",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_file_cache_state.py": "450cfa8e69c627cd26cb2d36c0d2712a3db41cceb8050b0158de8afb11af4a1c"
+  },
+  "supersedes": "cpu-verification-v2.json (preserved)",
+  "tests": 28,
+  "tests_output_sha256": "61c0c8f86fd2d9516ab31861a22405470f769807a0e663f5380b4e9d708ed524",
+  "v3_fix": "Only skip heavy read_progress after total opened identity bytes have been consumed. Intermediate completed files still report progress. Actual last preadv endpoint and Q0 anchor unchanged."
+}

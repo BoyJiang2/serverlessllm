@@ -1,0 +1,41 @@
+{
+  "status": "CHANGES_REQUIRED_QUERY_END_CAP_AND_EXPLICIT_READ_COMPLETION",
+  "reviewed_at_utc": "2026-11-09T03:59:43.898151+00:00",
+  "reviewed_helper_sha256": "ca8e2292fec72a26254bba266ab9091d494b6a774f39fc0d7b4db9cff3872570",
+  "reviewed_test_sha256": "dcedab4e7f7d26fa0b772bba7b785e57624d65e57656560037d3b9d22cf0a9db",
+  "independent_existing_cpu_tests": {
+    "tests": 25,
+    "passed": 25,
+    "elapsed_seconds": 0.113
+  },
+  "issues": [
+    {
+      "source_lines_v1": [
+        236,
+        245
+      ],
+      "finding": "Last query_deadline check precedes query_end_ns timestamp/statusOBSERVED. A scheduling gap crossing fixed30second end between those lines can record an over-cap end but final path checks onlyoveralldeadline.",
+      "minimal_change": "Validate sampled query_end_ns strictly against fixedscheduled+30 andglobaldeadline before OBSERVED/admission; testactualquery-end timestamp boundary, preservepartial evidence andTimeoutError."
+    },
+    {
+      "source_lines_v1": [
+        168,
+        170,
+        285,
+        310
+      ],
+      "finding": "On technicalfailure read_end_ns can identify latest successful partialpreadv return, not completion of the frozenlist. Data are retained correctly but require an unambiguous completionflag.",
+      "minimal_change": "read_complete=False initially, True only after completefrozenlist readbytes andidentitychecks; preservepartial lastread timestamps andexactbytes, controller also validates expectedfiles/bytes."
+    }
+  ],
+  "otherwise_reviewed": [
+    "No addedpayloadreads during queryrounds, fivefixed offsets from producerread_end,2s starttolerance andfixedend relative tosameanchor",
+    "Partial residency only stickyfalse andnormalobservationalcompletion; technicalerrors raise originalerror withpartial cache_observation",
+    "Finitepaths/identity/trust/mmapbounded checks retained; externalguardstillrequired"
+  ],
+  "limits": [
+    "No claim independentdynamic reproduction of oldca8e race: source had moved to authorWIP before additional test could bind that exactversion. Staticcontrolflow defect is concrete; authorsred/green finalcase pending.",
+    "CurrentWIP source not reviewed/accepted; freezev2required",
+    "No asset/cache/GPU/model/Store/Git/sourceedit; only tinyfileCPUtests andsource reading."
+  ]
+}

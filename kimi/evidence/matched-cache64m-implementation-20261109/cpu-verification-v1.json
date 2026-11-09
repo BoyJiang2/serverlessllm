@@ -1,0 +1,41 @@
+{
+  "api": "warm_file_cache_observed(paths, allowed_roots, deadline, *, telemetry=None)",
+  "baseline_helper_sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "sllm_store/tests/python/test_file_cache_state.py",
+    "-v"
+  ],
+  "created_epoch": 1794196651.0102215,
+  "elapsed_s": 0.1796724470332265,
+  "returncode": 0,
+  "revision": "file-cache-warm-observation-v1",
+  "schema": "cache-observation-implementation-cpu-v1",
+  "scope": "small temporary owned Linux files, real preadv/mincore plus deterministic clock/error mocks; no existing model/cache/Store/GPU/container/Git operations",
+  "semantics": {
+    "full_read_cap_s": 1800,
+    "offsets_s": [
+      0,
+      30,
+      60,
+      90,
+      120
+    ],
+    "old_api": "same signatures, single operation pass then whole-manifest query; additive timing fields",
+    "partial_residency": "sticky admitted=false; continue only five original snapshots",
+    "query_absolute_cap_s": 30,
+    "read_endpoint": "actual last positive preadv return; before query or telemetry; cap includes callbacks/validation",
+    "scope_limit": "client cache sampled snapshots only; not continuous residency or server/physical cache",
+    "start_lateness_tolerance_s": 2,
+    "technical_errors": "raise original with error.cache_observation partial evidence; no retry",
+    "time_limit": "cooperative around blocking syscalls; external guard still required"
+  },
+  "source_sha256": {
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/file_cache_state.py": "ca8e2292fec72a26254bba266ab9091d494b6a774f39fc0d7b4db9cff3872570",
+    "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_file_cache_state.py": "dcedab4e7f7d26fa0b772bba7b785e57624d65e57656560037d3b9d22cf0a9db"
+  },
+  "tests": 25,
+  "tests_output_sha256": "dde856c30cede80b7f9c1ebd246c88bfd7d5caf76ca89bef335a6d092e2bcd16"
+}

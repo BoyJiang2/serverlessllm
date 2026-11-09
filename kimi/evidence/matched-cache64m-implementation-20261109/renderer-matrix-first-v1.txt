@@ -1,0 +1,15 @@
+......................................................F...........................
+======================================================================
+FAIL: test_actual_q0_render_pins_ids_and_negative_profile (__main__.Q0RaidProfileTest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/python/test_prepare_kimi_four_condition.py", line 1607, in test_actual_q0_render_pins_ids_and_negative_profile
+    spec,cmd=p.render(protocol,original,command,attempt['attempt_id'],original['native_source_pins'])
+  File "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py", line 769, in render
+    assert not (pathlib.Path(protocol["resource_budget"].get("runs_root",str(base.EVIDENCE.parent/"runs"))) / attempt_id).exists(), "identity already used"
+AssertionError: identity already used
+
+----------------------------------------------------------------------
+Ran 82 tests in 23.366s
+
+FAILED (failures=1)

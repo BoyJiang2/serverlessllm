@@ -1,0 +1,210 @@
+"""Real Linux cache operations on tiny owned files only; no model or GPU work."""
+import ctypes
+import errno
+import fcntl
+import importlib.util
+import os
+from pathlib import Path
+import tempfile
+import time
+import unittest
+from unittest import mock
+
+SPEC = importlib.util.spec_from_file_location(
+    "cache_state", Path(__file__).resolve().parents[1] / "file_cache_state.py")
+cache = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(cache)
+
+
+class FileCacheStateTest(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="sllm-cache-cpu-")
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.page = os.sysconf("SC_PAGE_SIZE")
+        self.path = self.root / "owned.bin"
+        self.path.write_bytes(b"x" * (self.page + 7))
+
+    def invoke(self, function=cache.query_cache_state, paths=None, deadline=None):
+        return function(paths or [self.path], [self.root],
+                        time.monotonic() + 5 if deadline is None else deadline)
+
+    def test_real_readonly_partial_page_warm_and_residency(self):
+        self.path.chmod(0o400)
+        result = self.invoke(cache.warm_file_cache)
+        self.assertTrue(result["admitted"])
+        self.assertEqual(result["pages"], 2)
+        self.assertEqual(result["resident_pages"], 2)
+        self.assertEqual(result["files"][0]["read_bytes"], self.page + 7)
+        query = self.invoke()
+        self.assertEqual(query["resident_pages"], 2)
+        self.assertIsNone(query["admitted"])
+        self.assertNotIn("content", result["files"][0])
+
+    def test_zero_file_has_no_mapping_and_not_fake_hot(self):
+        self.path.write_bytes(b"")
+        with mock.patch.object(cache._LIBC, "mmap", side_effect=AssertionError("must not map empty")):
+            row = self.invoke(cache.warm_file_cache)
+        self.assertEqual((row["pages"], row["resident_pages"]), (0, 0))
+        self.assertTrue(row["all_cold"])
+        self.assertFalse(row["all_hot"])
+        self.assertFalse(row["admitted"])
+
+    def test_real_mincore_uses_bounded_nonpopulating_readonly_maps(self):
+        actual = cache._LIBC.mmap
+        calls = []
+        def mapping(address, length, protection, flags, fd, offset):
+            calls.append((length, protection, flags, offset))
+            return actual(address, length, protection, flags, fd, offset)
+        with mock.patch.object(cache, "WINDOW_BYTES", self.page), mock.patch.object(cache._LIBC, "mmap", side_effect=mapping):
+            row = self.invoke()
+        self.assertEqual(row["pages"], 2)
+        self.assertEqual([x[0] for x in calls], [self.page, 7])
+        self.assertTrue(all(x[1] == cache.mmap.PROT_READ and x[2] == cache.mmap.MAP_SHARED for x in calls))
+        self.assertEqual([x[3] for x in calls], [0, self.page])
+
+    def test_fadvise_only_readonly_target_and_query_controls_admission(self):
+        actual = os.posix_fadvise
+        def advice(fd, offset, size, operation):
+            self.assertEqual(fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_ACCMODE, os.O_RDONLY)
+            self.assertEqual((offset, size, operation), (0, self.page * 2, os.POSIX_FADV_DONTNEED))
+            return actual(fd, offset, size, operation)
+        with mock.patch.object(cache.os, "posix_fadvise", side_effect=advice):
+            row = self.invoke(cache.evict_file_cache)
+        self.assertEqual(row["admitted"], row["resident_pages"] == 0)
+        with mock.patch.object(cache, "_residency", return_value=(2, 2)):
+            self.assertFalse(self.invoke(cache.evict_file_cache)["admitted"])
+        with mock.patch.object(cache, "_residency", return_value=(2, 1)):
+            self.assertFalse(self.invoke(cache.warm_file_cache)["admitted"])
+
+    def test_later_warm_read_eviction_is_seen_by_final_whole_manifest_query(self):
+        second = self.root / "second.bin";second.write_bytes(b"y" * (self.page + 7))
+        first_inode, second_inode = self.path.stat().st_ino, second.stat().st_ino
+        resident = {first_inode: True, second_inode: True}
+        mapping, events = {}, []
+        real_read, real_map = os.preadv, cache._LIBC.mmap
+        def read(fd, buffers, offset):
+            inode = os.fstat(fd).st_ino
+            events.append(("read", inode))
+            if inode == second_inode:resident[first_inode] = False
+            return real_read(fd, buffers, offset)
+        def mapped(address, length, protection, flags, fd, offset):
+            result = real_map(address, length, protection, flags, fd, offset)
+            mapping[result] = os.fstat(fd).st_ino
+            return result
+        def query(address, length, vector):
+            inode = mapping[address];events.append(("query", inode))
+            for index in range((length + self.page - 1) // self.page):
+                vector[index] = int(resident[inode])
+            return 0
+        with mock.patch.object(cache.os, "preadv", side_effect=read), mock.patch.object(cache._LIBC, "mmap", side_effect=mapped), mock.patch.object(cache._LIBC, "mincore", side_effect=query):
+            result = self.invoke(cache.warm_file_cache, paths=[self.path, second])
+        self.assertEqual([kind for kind, _ in events], ["read", "read", "query", "query"])
+        self.assertEqual([row["resident_pages"] for row in result["files"]], [0, 2])
+        self.assertEqual([row["read_bytes"] for row in result["files"]], [self.page + 7] * 2)
+        self.assertFalse(result["all_hot"])
+        self.assertFalse(result["admitted"])
+
+    def test_malformed_missing_outside_symlink_directory_and_duplicate_inode(self):
+        link = self.root / "hardlink";os.link(self.path, link)
+        symlink = self.root / "symlink";symlink.symlink_to(self.path)
+        for paths in [[Path("relative")], [self.root / "missing"], [self.root], [symlink], [self.path, link]]:
+            with self.subTest(paths=paths), self.assertRaises((ValueError, OSError)):
+                self.invoke(paths=paths)
+        with tempfile.TemporaryDirectory() as outside:
+            file = Path(outside) / "other";file.write_bytes(b"a")
+            with self.assertRaisesRegex(ValueError, "outside"):
+                self.invoke(paths=[file])
+            symlink.unlink();symlink.symlink_to(file)
+            with self.assertRaisesRegex(ValueError, "nonsymlink"):
+                self.invoke(paths=[symlink])
+        with self.assertRaises(ValueError):
+            cache.query_cache_state([], [self.root], time.monotonic() + 5)
+        with self.assertRaises(ValueError):
+            cache.query_cache_state([self.path], ["relative"], time.monotonic() + 5)
+
+    def test_fifo_and_open_identity_redirection_rejected_before_cache_operation(self):
+        fifo = self.root / "fifo";os.mkfifo(fifo)
+        with self.assertRaisesRegex(ValueError, "regular"):
+            self.invoke(paths=[fifo])
+        actual = os.open
+        with tempfile.TemporaryDirectory() as outside:
+            other = Path(outside) / "foreign";other.write_bytes(b"a")
+            def redirect(path, flags):
+                return actual(other, flags)
+            with mock.patch.object(cache.os, "open", side_effect=redirect), mock.patch.object(cache.os, "posix_fadvise") as advice:
+                with self.assertRaisesRegex(RuntimeError, "identity changed"):
+                    self.invoke(cache.evict_file_cache)
+                advice.assert_not_called()
+
+    def test_unreadable_and_untrusted_mincore_are_errors(self):
+        with mock.patch.object(cache.os, "open", side_effect=PermissionError("unreadable")):
+            with self.assertRaises(PermissionError):self.invoke()
+        with mock.patch.object(cache.os, "geteuid", return_value=self.path.stat().st_uid + 1):
+            with self.assertRaisesRegex(PermissionError, "trust"):
+                self.invoke()
+        actual = Path.read_text
+        def read(path, *args, **kwargs):
+            return "0 100000 65536\n" if str(path) == "/proc/self/uid_map" else actual(path, *args, **kwargs)
+        with mock.patch.object(Path, "read_text", read):
+            with self.assertRaisesRegex(PermissionError, "UID mapping"):
+                self.invoke()
+
+    def test_root_nonowner_requires_actual_fowner_capability_proof(self):
+        actual = Path.read_text
+        owner = self.path.stat()
+        info = type("Info", (), {"st_uid": owner.st_uid + 1})()
+        caps = [8]
+        def read(path, *args, **kwargs):
+            if str(path) == "/proc/self/status":return f"Uid:\t0\t0\t0\t0\nCapEff:\t{caps[0]:016x}\n"
+            return actual(path, *args, **kwargs)
+        with mock.patch.object(cache.os, "geteuid", return_value=0), mock.patch.object(Path, "read_text", read):
+            proof = cache._trust(info)
+            self.assertTrue(proof["cap_fowner"])
+            caps[0] = 0
+            with self.assertRaises(PermissionError):cache._trust(info)
+
+    def test_identity_race_after_operation_rejected(self):
+        actual = cache._residency
+        def mutate(fd, size, deadline):
+            result = actual(fd, size, deadline)
+            info = self.path.stat()
+            os.utime(self.path, ns=(info.st_atime_ns, info.st_mtime_ns + 1))
+            return result
+        with mock.patch.object(cache, "_residency", side_effect=mutate):
+            with self.assertRaisesRegex(RuntimeError, "identity changed"):
+                self.invoke()
+
+    def test_expired_deadline_and_post_syscall_overrun_never_admit(self):
+        with self.assertRaises(TimeoutError):self.invoke(deadline=time.monotonic()-1)
+        with self.assertRaises(TimeoutError):self.invoke(deadline=float("inf"))
+        clock = [0.0]
+        def overrun(fd, buffers, offset):
+            clock[0] = 2.0
+            return len(buffers[0])
+        with mock.patch.object(cache.time, "monotonic", side_effect=lambda: clock[0]), mock.patch.object(cache.os, "preadv", side_effect=overrun):
+            with self.assertRaises(TimeoutError):self.invoke(cache.warm_file_cache, deadline=1.0)
+
+    def test_real_errors_short_read_and_mincore_failure_propagate(self):
+        with mock.patch.object(cache.os, "preadv", return_value=0):
+            with self.assertRaises(OSError):self.invoke(cache.warm_file_cache)
+        with mock.patch.object(cache.os, "posix_fadvise", side_effect=OSError(errno.EIO, "advice failed")):
+            with self.assertRaises(OSError):self.invoke(cache.evict_file_cache)
+        def fail(*args):
+            ctypes.set_errno(errno.EACCES)
+            return -1
+        with mock.patch.object(cache._LIBC, "mincore", side_effect=fail):
+            with self.assertRaises(OSError) as caught:self.invoke()
+        self.assertEqual(caught.exception.errno, errno.EACCES)
+        unmap = cache._LIBC.munmap
+        def failed_cleanup(address, length):
+            unmap(address, length)
+            ctypes.set_errno(errno.EIO)
+            return -1
+        with mock.patch.object(cache._LIBC, "mincore", side_effect=fail), mock.patch.object(cache._LIBC, "munmap", side_effect=failed_cleanup):
+            with self.assertRaises(OSError) as original:self.invoke()
+        self.assertEqual(original.exception.errno, errno.EACCES)
+
+
+if __name__ == "__main__":
+    unittest.main()

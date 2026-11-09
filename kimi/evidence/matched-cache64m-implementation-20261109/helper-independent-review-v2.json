@@ -1,0 +1,44 @@
+{
+  "status": "ACCEPT_HELPER_SOURCE_AND_TINY_CPU_ONLY",
+  "reviewed_at_utc": "2026-11-09T04:01:00.325008+00:00",
+  "source_pins": {
+    "sllm_store/tests/file_cache_state.py": "075081a91b3b531d12c5ffae7d6bbf7334cfdb94306b073b7cc5d375d140f1fa",
+    "sllm_store/tests/python/test_file_cache_state.py": "63ce6fb858419720441ce6b65fb56587fc30fab5c38d836ccf2240f69dc393f6"
+  },
+  "author_cpu_receipt_sha256": "aff1d960ea79b5b221b1fb23a6b0f00cc626eeb7646a42b7f3cbd70a4271679e",
+  "independent_cpu": {
+    "command": "python3 -B -m unittest discover -s sllm_store/tests/python -p test_file_cache_state.py -v",
+    "tests": 26,
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "elapsed_seconds": 0.119,
+    "scope": "Tiny temporary realfiles/mincore plus mocked clock/failures only; no actualmodelassets accessed"
+  },
+  "closed_issues": {
+    "old_issue_review": "helper-independent-review-v1.json",
+    "old_issue_review_sha256": "d163fc208ea97f8e0181dc1fbaabdd4e9732f2a9c518ce11354b631425d514a0",
+    "query_end": "After producer sweepquery_end_ns is sampled, strict end<min(overall,fixedscheduled+30s) validation now precedes OBSERVED/admission. Actual consumer clock fixture covers finalstamp crossing after lastcooperativecheck.",
+    "read_complete": "Falseinitially; True only after allfrozenpaths read and post-readidentity checks. Failedpartial/timed-out lastread timestamp stays usable but explicitly notcomplete."
+  },
+  "reviewed_contract": [
+    "Firstactualpreadv begin andlastsuccessfulpreadv return timestamps retained, not callback/warmreturn/parentstorage timestamps; fullreadbytes andperfiletiming preserved",
+    "Allfiles operations finish before anyquery; no payloadread afterread_end, no rewarmed retries; five offsets0/30/60/90/120 fixedfrom actualread_end",
+    "2second starttolerance checkedafter telemetry andactualfirstfileidentity verification; fixedabsolute30second end ratherthan start+30; late/missed/errorraises andunexecutedslots remain explicit",
+    "Partialresidency is stickyFalse acrossremainingplannedquery-onlysweeps; technicalexception preservesoriginalobject pluscache_observation ERROR andnotcomplete",
+    "Finitepaths/nosymlink/regularfiles/noinodealias/allowedroot/fd+pathprepostidentity/trustedmincore retained; additive defaulttimingfields do not alter allhot/allcold predicates",
+    "Telemetrycallbacks failures notswallowed, boundedprogress cadence anddeadline rechecks; callback/syscall durations cooperative not hardreal-time guarantees"
+  ],
+  "limits": [
+    "26CPUtests do not validate595GB/cachepersistence/newStore64MiB/GPU ornewdiagnostic lifecycle",
+    "Sequentialmincoresweeps are samplednonatomicsnapshots, notcontinuousallpages proof",
+    "Rootcgroup/resource collector inrenderer is separate andnotapprovedbythishelperreview; missing/kernelrootnotapplicable vsunknown effectiveancestor limits must remain distinguishable",
+    "Helperbytes changedfrom3340; oldfrozenprofiles mustcontinue rejectingnewbytes. Onlynewreviewedcohort/source/pins canadmitthishelper",
+    "Concreteexternalguard/7200tailbudget/actualcommand+newuserresourceapproval stillpending"
+  ],
+  "not_performed": [
+    "No runtime sourcewrites/Git",
+    "No realweights/cache/Store/GPU/container orenvironment operation",
+    "No executionauthorization orformal/L1qualification"
+  ]
+}
