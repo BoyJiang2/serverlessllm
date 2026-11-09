@@ -91,7 +91,7 @@ def _residency(fd, size, deadline):
     return pages, resident
 
 
-def _run(paths, allowed_roots, deadline, action):
+def _run(paths, allowed_roots, deadline, action, *, observation=None, telemetry=None):
     _check_deadline(deadline)
     if not isinstance(paths, (list, tuple)) or not 0 < len(paths) <= 1024:
         raise ValueError("provide a nonempty bounded path list")
@@ -104,6 +104,17 @@ def _run(paths, allowed_roots, deadline, action):
         raise ValueError("allowed roots must be directories")
     rows, opened, seen = [], [], set()
     read_counts = {}
+    read_times = {}
+    read_deadline = deadline
+    if observation is not None:
+        observation["read_phase_begin_ns"] = time.monotonic_ns()
+        read_deadline = min(deadline, observation["read_phase_begin_ns"] / 1e9 + 1800)
+        if telemetry:
+            telemetry("baseline")
+            _check_deadline(read_deadline)
+            telemetry("read_begin")
+            _check_deadline(read_deadline)
+    next_telemetry = time.monotonic() + 30
     with ExitStack() as stack:
         for raw in paths:
             _check_deadline(deadline)
@@ -130,6 +141,11 @@ def _run(paths, allowed_roots, deadline, action):
             _verify(fd, path, identity)
             size = identity["size"]
             read_bytes = 0
+            timing = {"path": str(path), "identity": identity,
+                      "read_begin_ns": None, "read_end_ns": None, "read_bytes": 0}
+            read_times[fd] = timing
+            if observation is not None:
+                observation["read_files"].append(timing)
             if action == "evict" and size:
                 page = os.sysconf("SC_PAGE_SIZE")
                 os.posix_fadvise(fd, 0, ((size + page - 1) // page) * page,
@@ -137,37 +153,114 @@ def _run(paths, allowed_roots, deadline, action):
             elif action == "warm" and size:
                 buffer = bytearray(min(WINDOW_BYTES, size))
                 while read_bytes < size:
-                    _check_deadline(deadline)
+                    _check_deadline(read_deadline)
+                    if timing["read_begin_ns"] is None:
+                        timing["read_begin_ns"] = time.monotonic_ns()
+                        if observation is not None and observation["read_begin_ns"] is None:
+                            observation["read_begin_ns"] = timing["read_begin_ns"]
                     count = os.preadv(fd, [memoryview(buffer)[:min(len(buffer), size-read_bytes)]], read_bytes)
-                    _check_deadline(deadline)
+                    returned_ns = time.monotonic_ns()
                     if count <= 0:
+                        _check_deadline(read_deadline)
                         raise OSError(errno.EIO, f"short cache warm read: {path}")
                     read_bytes += count
+                    timing.update(read_bytes=read_bytes, read_end_ns=returned_ns)
+                    if observation is not None:
+                        observation["read_bytes"] += count
+                        observation["read_end_ns"] = returned_ns
+                    _check_deadline(read_deadline)
+                    if observation is not None and telemetry and time.monotonic() >= next_telemetry:
+                        telemetry("read_progress")
+                        _check_deadline(read_deadline)
+                        next_telemetry = time.monotonic() + 30
             _verify(fd, path, identity)
             _check_deadline(deadline)
             read_counts[fd] = read_bytes
         # All manifest operations finish before any admission residency query.
-        for fd, path, identity, trust in opened:
-            _check_deadline(deadline)
-            _verify(fd, path, identity)
-            if _trust(os.fstat(fd)) != trust:
-                raise PermissionError("mincore trust changed")
-            pages, resident = _residency(fd, identity["size"], deadline)
-            if _trust(os.fstat(fd)) != trust:
-                raise PermissionError("mincore trust changed")
-            _verify(fd, path, identity)
-            _check_deadline(deadline)
-            rows.append({"path": str(path), "identity": identity,
-                         "pages": pages, "resident_pages": resident,
-                         "read_bytes": read_counts[fd], "mincore_trust": trust})
-        for fd, path, identity, _ in opened:
-            _verify(fd, path, identity)
-        _check_deadline(deadline)
+        if observation is not None:
+            if observation["read_end_ns"] is None:
+                raise ValueError("observed warm requires nonempty payload")
+            observation["read_complete"] = True
+            observation["sweeps"] = [
+                {"offset_s": offset, "scheduled_ns": observation["read_end_ns"] + offset * 10**9,
+                 "query_begin_ns": None, "query_end_ns": None, "lateness_ns": None,
+                 "status": "NOT_EXECUTED", "all_hot": None, "files": []}
+                for offset in (0, 30, 60, 90, 120)]
+            if telemetry:
+                telemetry("read_end")
+            _check_deadline(read_deadline)
+        rounds = observation["sweeps"] if observation is not None else [None]
+        for sweep in rounds:
+            query_deadline = deadline
+            rows = [] if sweep is None else sweep["files"]
+            if sweep is not None:
+                scheduled = sweep["scheduled_ns"] / 1e9
+                while time.monotonic() < scheduled:
+                    _check_deadline(deadline)
+                    time.sleep(max(0, min(0.25, scheduled - time.monotonic())))
+                query_deadline = min(deadline, scheduled + 30)
+                if telemetry:
+                    telemetry(f"query_{sweep['offset_s']}_begin")
+                sweep["attempted_ns"] = time.monotonic_ns()
+                if sweep["attempted_ns"] > sweep["scheduled_ns"] + 2 * 10**9:
+                    sweep["lateness_ns"] = sweep["attempted_ns"] - sweep["scheduled_ns"]
+                    sweep["status"] = "MISSED" if sweep["attempted_ns"] >= sweep["scheduled_ns"] + 30 * 10**9 else "LATE"
+                    raise TimeoutError("fixed cache query start missed its two-second tolerance")
+            for fd, path, identity, trust in opened:
+                _check_deadline(query_deadline)
+                _verify(fd, path, identity)
+                if _trust(os.fstat(fd)) != trust:
+                    raise PermissionError("mincore trust changed")
+                query_begin_ns = time.monotonic_ns()
+                if sweep is not None and sweep["query_begin_ns"] is None:
+                    sweep["query_begin_ns"] = query_begin_ns
+                    sweep["lateness_ns"] = query_begin_ns - sweep["scheduled_ns"]
+                    if sweep["lateness_ns"] > 2 * 10**9:
+                        sweep["status"] = "MISSED" if query_begin_ns >= sweep["scheduled_ns"] + 30 * 10**9 else "LATE"
+                        raise TimeoutError("fixed cache query start missed its two-second tolerance")
+                    sweep["status"] = "QUERYING"
+                row = {"path": str(path), "identity": identity,
+                       "query_begin_ns": query_begin_ns, "query_end_ns": None,
+                       "pages": None, "resident_pages": None,
+                       "read_bytes": read_counts[fd], "mincore_trust": trust,
+                       "read_begin_ns": read_times[fd]["read_begin_ns"],
+                       "read_end_ns": read_times[fd]["read_end_ns"]}
+                rows.append(row)
+                pages, resident = _residency(fd, identity["size"], query_deadline)
+                row.update(query_end_ns=time.monotonic_ns(), pages=pages, resident_pages=resident)
+                if _trust(os.fstat(fd)) != trust:
+                    raise PermissionError("mincore trust changed")
+                _verify(fd, path, identity)
+                _check_deadline(query_deadline)
+            for fd, path, identity, _ in opened:
+                _verify(fd, path, identity)
+            _check_deadline(query_deadline)
+            if sweep is not None:
+                sweep["query_end_ns"] = time.monotonic_ns()
+                if sweep["query_end_ns"] >= min(deadline * 1e9, sweep["scheduled_ns"] + 30 * 10**9):
+                    raise TimeoutError("fixed cache query completion deadline expired")
+                sweep["all_hot"] = (sum(row["pages"] for row in rows) > 0 and
+                                    all(row["pages"] == row["resident_pages"] for row in rows))
+                sweep["status"] = "OBSERVED"
+                observation["admitted"] = observation["admitted"] and sweep["all_hot"]
+                if telemetry:
+                    telemetry(f"query_{sweep['offset_s']}_end")
+                _check_deadline(deadline)
+        if observation is not None:
+            observation["observation_complete"] = True
+            observation["technical_status"] = "COMPLETED"
+            return observation
+
     pages = sum(row["pages"] for row in rows)
     resident = sum(row["resident_pages"] for row in rows)
     cold, hot = resident == 0, pages > 0 and resident == pages
     return {"operation": action, "files": rows, "pages": pages,
             "resident_pages": resident, "all_cold": cold, "all_hot": hot,
+            "read_bytes": sum(row["read_bytes"] for row in rows),
+            "read_begin_ns": min((row["read_begin_ns"] for row in rows if row["read_begin_ns"] is not None), default=None),
+            "read_end_ns": max((row["read_end_ns"] for row in rows if row["read_end_ns"] is not None), default=None),
+            "query_begin_ns": min(row["query_begin_ns"] for row in rows),
+            "query_end_ns": max(row["query_end_ns"] for row in rows),
             "admitted": cold if action == "evict" else hot if action == "warm" else None,
             "scope": "local Linux client page-cache snapshot; NFS server and physical disk uncontrolled",
             "deadline_semantics": "cooperative checks; external guard required for hard syscall/runtime bound"}
@@ -183,3 +276,38 @@ def evict_file_cache(paths, allowed_roots, deadline):
 
 def warm_file_cache(paths, allowed_roots, deadline):
     return _run(paths, allowed_roots, deadline, "warm")
+
+
+def warm_file_cache_observed(paths, allowed_roots, deadline, *, telemetry=None):
+    """One full read, then five fixed client-cache snapshots; never rewarm.
+
+    Technical errors (including late/missed queries) raise with partial evidence
+    in ``error.cache_observation``. Partial residency is sticky, not an exception.
+    Callback and syscall limits are cooperative; an external guard is required.
+    """
+    result = {"schema": "file-cache-warm-observation-v1", "pid": os.getpid(),
+              "clock_identity": None, "read_phase_begin_ns": None,
+              "read_begin_ns": None, "read_end_ns": None, "read_bytes": 0,
+              "read_complete": False, "read_files": [], "sweeps": [], "admitted": True,
+              "observation_complete": False, "technical_status": "INCOMPLETE",
+              "read_cap_s": 1800, "query_cap_s": 30, "start_lateness_tolerance_s": 2,
+              "scope": "local Linux client page cache; not continuous residency or NFS server cache",
+              "deadline_semantics": "cooperative; external guard required"}
+    try:
+        _check_deadline(deadline)
+        if telemetry is not None and not callable(telemetry):
+            raise TypeError("telemetry must be callable")
+        proc = Path("/proc/self")
+        result["clock_identity"] = {
+            "boot_id": Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+            "container_hostname": os.uname().nodename,
+            "process_startticks": int((proc / "stat").read_text().rsplit(")", 1)[1].split()[19]),
+            "time_namespace": os.readlink(proc / "ns/time"),
+            "monotonic_clock_implementation": time.get_clock_info("monotonic").implementation}
+        return _run(paths, allowed_roots, deadline, "warm", observation=result, telemetry=telemetry)
+    except BaseException as error:
+        result["admitted"] = False
+        result["technical_status"] = "ERROR"
+        result["error"] = {"type": type(error).__name__, "message": str(error)}
+        error.cache_observation = result
+        raise
