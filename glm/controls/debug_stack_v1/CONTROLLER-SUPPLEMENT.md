@@ -132,3 +132,14 @@ CPU验证：73调试测试+6成本+6C23参数+10导入=95。新增实际head/wor
 
 
 完整startup R1对cfdf0650及清单e36063d2给出BLOCKED，仅STARTUP-R1-01：905秒准入上界不能证明900秒预算。新修订只收紧startup上界900并补901秒拒绝，旧3245不改。systemd AccuracySec=1及调度延迟不是物理无延迟保证，现场需记录实际NextElapse、arm→Main余量及最终触发/退出；不能将容差作为额外授权时间。旧候选与BLOCKED结论保留。
+
+
+## worker应用／Ray边界的下一必要CPU准备（尚无GPU运行批准）
+
+上一sleep控制通过只能覆盖head及GPU容器本身，不能覆盖原失败的worker Python/Ray应用启动。复用现有debug_service.main的原Ray CLI、ray.init和两节点/8逻辑GPU身份检查，在其后增加明确ray_only分支：取得同run新鲜健康host收据、观察30秒、正常结束Ray；整个原Store/服务/三金标/删除分支位于else且AST与a9e17edb完全相同。没有新脚本或框架，不改runtime/active。
+
+仅显式measure --startup-only --startup-stage ray可派生SLLM_STARTUP_RAY_ONLY=1；worker核环境与controller-start的startup_only/startup_stage一致，否则在launch前拒绝。plan不能把ray stage用于普通模型run。新scope为glm-ray-startup-monitor-control-v1，与sleep或完整模型R1相互拒绝；预算仍180秒工作、900秒独立slice截止/300秒容器寿命，guard代码与实际probe要求不变。新控制身份/冻结清单和授权范围须在完整审阅后确认，不复用已用的sleep run5a947f74。
+
+Ray模式复用实际stop_processes的出生/主动SIGTERM/完整日志及非force ray stop无活跃进程检查；只在ray_only模式跳过不存在的HTTP日志，单独输出ray_control_pass，完整服务success仍false。主程序仅Ray控制通过才exit0；外层需worker正常exit0、ray_only与ray_control_pass都为true以及原监控/释放门。不能将组件通过冒充HTTP/Store/GLM Controller或四条件数据。Ray内部升级信号未逐个审计的限制保留。
+
+当前100项CPU检查（78调试+6C23参数+6成本+10导入）通过。实际完整main的CPU夹具确认只启动Ray、不进入Store/业务；默认Store分支AST与冻结版本一致；Ray日志unexpected-deceased、scope混用及环境/注册失配被拒绝。最初夹具Linux signal常量缺失/缺Alive字段等失败已定位为CPU夹具问题并修正，不更改生产逻辑迎合夹具。尚须匹配既有环境的真实CPU Ray退出组件验证、完整新commit/manifest审阅。即使CPU或Ray控制通过，也不证明原慢采样根因修复。

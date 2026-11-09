@@ -31,6 +31,20 @@ def load(name, path):
 
 
 class FrozenDerivation(unittest.TestCase):
+    def test_ray_stage_reuses_application_entry_and_cannot_be_selected_for_model_run(self):
+        args = dict(run_id=RUN, holder=HOLDER, seconds=300, head_ip=IP, deadline_unix=DEADLINE,
+                    supplement_condition='safetensors_disk_cold', supplement_start_sha='a'*64)
+        normal = p.plan(**args)
+        ray = p.plan(**args, startup_only=True, startup_stage='ray')
+        self.assertEqual(ray['head'], normal['head'])
+        expected = json.loads(json.dumps(normal['worker']['spec']))
+        expected['env']['SLLM_STARTUP_RAY_ONLY'] = '1'
+        self.assertEqual(ray['worker']['spec'], expected)
+        with self.assertRaises(ValueError):
+            p.plan(**args, startup_stage='ray')
+        with self.assertRaises(ValueError):
+            p.plan(**args, startup_only=True, startup_stage='invalid')
+
     def test_startup_control_changes_only_worker_entry_and_keeps_identity_and_gpu_plan(self):
         args = dict(run_id=RUN, holder=HOLDER, seconds=300, head_ip=IP, deadline_unix=DEADLINE,
                     supplement_condition='safetensors_disk_cold', supplement_start_sha='a'*64)

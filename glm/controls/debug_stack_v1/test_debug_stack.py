@@ -164,6 +164,9 @@ class Ownership(unittest.TestCase):
             d.verify_supplement_review(review, source)
         with self.assertRaises(RuntimeError):
             d.verify_supplement_review(dict(review, scope='glm-controller-supplement-v1'), source, True)
+        with self.assertRaises(RuntimeError):
+            d.verify_supplement_review(review, source, True, 'ray')
+        d.verify_supplement_review(dict(review, scope='glm-ray-startup-monitor-control-v1'), source, True, 'ray')
 
     def test_actual_monitor_retains_rejected_sample_without_ready(self):
         tree = ast.parse((HERE/'debug_stack.py').read_text())

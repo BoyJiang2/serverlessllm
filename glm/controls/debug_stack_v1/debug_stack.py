@@ -351,7 +351,7 @@ def up(args, state=None):
         head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', args.weight_format, not args.no_query,
                               active=active, deadline_unix=deadline, supplement_condition=condition,
                               supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None,
-                              startup_only=state.get('startup_only', False))['head']
+                              startup_only=state.get('startup_only', False), startup_stage=state.get('startup_stage', 'sleep'))['head']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
@@ -367,7 +367,7 @@ def up(args, state=None):
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
                                active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
                                supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None,
-                               startup_only=state.get('startup_only', False))['worker']
+                               startup_only=state.get('startup_only', False), startup_stage=state.get('startup_stage', 'sleep'))['worker']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -633,9 +633,12 @@ def require_supplement_release(row, baseline):
             raise RuntimeError('owned cgroup active or anonymous/locked/shared memory retained')
 
 
-def verify_supplement_review(review, source, startup_only=False):
+def verify_supplement_review(review, source, startup_only=False, startup_stage='sleep'):
     expected = {p.relative_to(TREE).as_posix():sha256(p) for p in TOOLS}
-    if (review.get('scope') != ('glm-startup-monitor-control-v1' if startup_only else 'glm-controller-supplement-v1') or review.get('verdict') != 'PASS'
+    if startup_stage not in ('sleep', 'ray') or (startup_stage != 'sleep' and not startup_only):
+        raise RuntimeError('invalid startup review stage')
+    scope = ('glm-ray-startup-monitor-control-v1' if startup_stage == 'ray' else 'glm-startup-monitor-control-v1') if startup_only else 'glm-controller-supplement-v1'
+    if (review.get('scope') != scope or review.get('verdict') != 'PASS'
             or review.get('tool_sha256') != expected or review.get('source_tree_sha256') != source['tree_sha256']
             or review.get('code_commit') != source['code_commit']
             or review.get('work_seconds') != (180 if startup_only else SUPPLEMENT_WORK_SECONDS)
@@ -829,13 +832,14 @@ def measure(args):
     """One independent supplementary condition; never changes a historical ID."""
     begin_ns, unit = controller_unit(args.controller_unit)
     startup_only = getattr(args, 'startup_only', False)
+    startup_stage = getattr(args, 'startup_stage', 'sleep')
     work_seconds, total_seconds = (180, 900) if startup_only else (SUPPLEMENT_WORK_SECONDS, SUPPLEMENT_TOTAL_SECONDS)
     if startup_only and args.condition != 'safetensors_disk_cold':
         raise ValueError('startup control is not a four-condition model attempt')
     boot = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     source = verified_source(args.source_tree)
     review = json.loads(pathlib.Path(args.review).read_text())
-    verify_supplement_review(review, source, startup_only)
+    verify_supplement_review(review, source, startup_only, startup_stage)
     verify_runtime_assets(review['runtime_reference'])
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(args.source_tree))
@@ -856,6 +860,7 @@ def measure(args):
     state = dict(run_id=run, holder=probe['holder'], verified_slice_cgroup=unit['verified_slice_cgroup'])
     if startup_only:
         state['startup_only'] = True
+        state['startup_stage'] = startup_stage
     debug_root = HOST/'debug'
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
@@ -935,7 +940,12 @@ def measure(args):
             if not worker['State']['Running']:
                 if startup_only:
                     if worker['State']['ExitCode'] != 0 or worker['State']['OOMKilled']:
-                        raise RuntimeError('startup sleep worker did not finish normally')
+                        raise RuntimeError('startup control worker did not finish normally')
+                    if startup_stage == 'ray':
+                        control = json.loads((root/'debug-service/result.json').read_text())
+                        if control.get('ray_control_pass') is not True or control.get('ray_only') is not True:
+                            raise RuntimeError('Ray startup control did not pass')
+                        result['worker_control'] = control
                     break
                 worker_result = json.loads((root/'debug-service/result.json').read_text())
                 result['worker'] = worker_result
@@ -988,7 +998,7 @@ def measure(args):
         result['controller_metric_provisional'] = True
         result['controller_finalizer'] = 'historical_costs.py --finalize-controller '+state['run_id']
         if startup_only:
-            result.update(measurement_class='startup monitor control only', model_service_pass=False,
+            result.update(measurement_class=startup_stage+' startup monitor control only', model_service_pass=False,
                           publish_controller=False, controller_finalizer=None,
                           status='startup control passed' if result['success'] else 'startup control failed')
         write(root/'controller-result.json', result)
@@ -1014,7 +1024,8 @@ if __name__ == '__main__':
     measurement.add_argument('--review', required=True)
     measurement.add_argument('--guard-probe', required=True)
     measurement.add_argument('--controller-unit', required=True)
-    measurement.add_argument('--startup-only', action='store_true', help='reviewed bounded GPU-container startup control; no worker application, Store or model')
+    measurement.add_argument('--startup-only', action='store_true', help='separately reviewed bounded startup control; never starts Store or model')
+    measurement.add_argument('--startup-stage', choices=('sleep', 'ray'), default='sleep', help='separately reviewed diagnostic boundary; Ray stage never starts Store or model')
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()

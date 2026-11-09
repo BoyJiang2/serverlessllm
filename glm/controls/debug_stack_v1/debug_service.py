@@ -428,7 +428,8 @@ def stop_processes(processes, env, logs, record, strict=False):
                 record.setdefault('shutdown_log_sha256', {})[name] = hashlib.sha256(raw).hexdigest()
                 return raw.decode(errors='replace')
             try:
-                ray_log, sllm_log = tail('ray-worker'), tail('sllm')
+                ray_log = tail('ray-worker')
+                sllm_log = '' if record.get('ray_only') else tail('sllm')
                 ray_signal = signals.get('ray-worker', {})
                 ray_hook = (ray_signal.get('signal') == signal.SIGTERM and ray_signal.get('alive_before') is True
                     and ray_signal.get('requested_ns', 0) < ray_signal.get('delivery_returned_ns', 0) <= ray_signal.get('exit_observed_ns', 0)
@@ -450,6 +451,12 @@ def stop_processes(processes, env, logs, record, strict=False):
                 and time.monotonic() <= shutdown_deadline
                 and set(record['returncodes']) == set(allowed)
                 and all(code in allowed[name] for name, code in record['returncodes'].items()))
+            if record.get('ray_only'):
+                record['ray_control_pass'] = (record['status'] == 'Ray startup control completed'
+                    and not forced and not errors and not unexpected and ray_hook
+                    and time.monotonic() <= shutdown_deadline
+                    and set(record['returncodes']) == {'ray-worker'}
+                    and record['returncodes']['ray-worker'] in allowed['ray-worker'])
         write(OUT/'result.json', record)
     return forced
 
@@ -472,11 +479,17 @@ def main():
     weight_format = os.environ['SLLM_DEBUG_WEIGHT_FORMAT']
     query = os.environ['SLLM_DEBUG_QUERY'] == '1'
     condition = os.environ.get('SLLM_SUPPLEMENT_CONDITION')
+    ray_flag = os.environ.get('SLLM_STARTUP_RAY_ONLY')
+    if ray_flag not in (None, '1') or (ray_flag and not condition):
+        raise ValueError('Ray-only diagnostic requires a registered supplement control')
+    ray_only = ray_flag == '1'
     if condition is not None and (condition not in SUPPLEMENT_CONDITIONS or not query or
             weight_format != ('safetensors' if condition.startswith('safetensors_') else 'serverless_llm')):
         raise ValueError('supplement requires matching format, condition and gold queries')
     if condition:
         controller = supplement_registration()
+        if ray_only != (controller.get('startup_only') is True and controller.get('startup_stage') == 'ray'):
+            raise ValueError('Ray-only worker and controller registration differ')
         reference = controller['runtime_reference']
         if hashlib.sha256(GOLD.read_bytes()).hexdigest() != reference['reference_sha256']['native-gold.json']:
             raise RuntimeError('frozen native gold changed')
@@ -487,6 +500,8 @@ def main():
     if condition and (restored['pool_bytes'] != 768799145984 or restored['chunk_bytes'] != 536870912):
         raise RuntimeError('frozen716GiB pool geometry changed')
     pool_bytes, chunk_bytes = pool_for('serverless_llm' if condition else weight_format, restored)
+    if ray_only:
+        pool_bytes, chunk_bytes = 0, 0
     OUT.mkdir(exist_ok=False)
     env = dict(os.environ, STORAGE_PATH='/experiment/store', RAY_TMPDIR=str(RUN/'ray-debug'),
                RAY_USAGE_STATS_ENABLED='0', SLLM_SERVICE_WEIGHT_FORMAT=weight_format)
@@ -495,6 +510,8 @@ def main():
     ip = socket.gethostbyname(socket.gethostname())
     record = dict(status='starting', purpose='DEBUG-UNREVIEWED', weight_format=weight_format, query=query,
                   pool_bytes=pool_bytes, chunk_bytes=chunk_bytes, worker_ip=ip, head_address=address, begin_ns=time.monotonic_ns())
+    if ray_only:
+        record.update(ray_only=True, measurement_class='Ray startup control only', model_service_pass=False, publish_controller=False)
     if condition:
         if controller['condition'] != condition:
             raise RuntimeError('supplement controller/worker condition identity differs')
@@ -558,53 +575,61 @@ def main():
                 write(OUT/'ray-nodes.json', nodes)
             finally:
                 ray.shutdown()
-        # store_numa_exec_v13 pins only the Store to node-0 CPUs; do the same without its formal receipt.
-        cpus = cpu_list(pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()) & os.sched_getaffinity(0)
-        assert cpus
-        record['store_cpu_affinity'] = sorted(cpus)
-        if condition:
-            write(OUT/'pre-pool-host-monitor.json', fresh_host_snapshot(record, time.monotonic_ns(), require_helper=False))
-        store_argv = ([PYTHON, '-u', str(pathlib.Path(__file__)), 'serve-store'] if condition else [PYTHON, '-u', '-c', STORE_SERVE])
-        launch('store', store_argv+[env['STORAGE_PATH'], str(chunk_bytes), str(pool_bytes)],
-               preexec_fn=lambda: os.sched_setaffinity(0, cpus))
+        if ray_only:
+            write(OUT/'ray-control-host-monitor.json', fresh_host_snapshot(record, time.monotonic_ns(), require_helper=False))
+            record['ray_ready_ns'] = time.monotonic_ns()
+            time.sleep(30)
+            if processes['ray-worker'].poll() is not None:
+                raise RuntimeError('Ray CLI exited during startup observation')
+            record['status'] = 'Ray startup control completed'
+        else:
+            # store_numa_exec_v13 pins only the Store to node-0 CPUs; do the same without its formal receipt.
+            cpus = cpu_list(pathlib.Path('/sys/devices/system/node/node0/cpulist').read_text()) & os.sched_getaffinity(0)
+            assert cpus
+            record['store_cpu_affinity'] = sorted(cpus)
+            if condition:
+                write(OUT/'pre-pool-host-monitor.json', fresh_host_snapshot(record, time.monotonic_ns(), require_helper=False))
+            store_argv = ([PYTHON, '-u', str(pathlib.Path(__file__)), 'serve-store'] if condition else [PYTHON, '-u', '-c', STORE_SERVE])
+            launch('store', store_argv+[env['STORAGE_PATH'], str(chunk_bytes), str(pool_bytes)],
+                   preexec_fn=lambda: os.sched_setaffinity(0, cpus))
 
-        def store_ready():
-            with socket.create_connection(('127.0.0.1', 8073), timeout=1):
-                return True
-        wait_ready(store_ready, 1800, 'store')
-        if condition:
-            from sllm_store.client import SllmStoreClient
-            record['resident_pool_identity'] = require_resident_pool(
-                SllmStoreClient(), processes['store'], pool_bytes, chunk_bytes, cpus)
-        launch('sllm', [PYTHON, '-u', '-c', 'from sllm.cli._cli_utils import start_server; start_server(host="127.0.0.1",port=8343)'])
+            def store_ready():
+                with socket.create_connection(('127.0.0.1', 8073), timeout=1):
+                    return True
+            wait_ready(store_ready, 1800, 'store')
+            if condition:
+                from sllm_store.client import SllmStoreClient
+                record['resident_pool_identity'] = require_resident_pool(
+                    SllmStoreClient(), processes['store'], pool_bytes, chunk_bytes, cpus)
+            launch('sllm', [PYTHON, '-u', '-c', 'from sllm.cli._cli_utils import start_server; start_server(host="127.0.0.1",port=8343)'])
 
-        def healthy():
-            with urllib.request.urlopen('http://127.0.0.1:8343/health', timeout=2) as response:
-                return json.load(response) == {'status': 'ok'}
-        wait_ready(healthy, 90, 'sllm')
-        record.update(status='control plane healthy', healthy_ns=time.monotonic_ns())
-        if condition:
-            auxiliary_baseline(record)
-            prepare_supplement(condition, record)
-            supplement_requests(gold, condition, record)
-            observe_deleted(record)
-            record['status'] = 'supplement business and instance deletion completed'
-        elif query:
-            number = int(os.environ.get('SLLM_DEBUG_GOLD_CASE', '1'))
-            assert http('/register', model_config(gold, weight_format)) == {'status': 'ok'}
-            begin = time.monotonic_ns()
-            result = http('/v1/chat/completions', gold_request(gold, number))
-            write(OUT/'query-result.json', result)
-            match = matches_gold(result, gold['results'][number])
-            record.update(gold_case=gold['requests'][number]['name'], gold_match=match,
-                          query_seconds=(time.monotonic_ns()-begin)/1e9,
-                          status='serving; gold match' if match else 'serving; GOLD MISMATCH')
-        write(OUT/'ready.json', record)
-        if not condition:
-            ready = True
-            while all(process.poll() is None for process in processes.values()):
-                time.sleep(5)
-            raise RuntimeError('stack process exited: '+json.dumps({n: p.returncode for n, p in processes.items()}))
+            def healthy():
+                with urllib.request.urlopen('http://127.0.0.1:8343/health', timeout=2) as response:
+                    return json.load(response) == {'status': 'ok'}
+            wait_ready(healthy, 90, 'sllm')
+            record.update(status='control plane healthy', healthy_ns=time.monotonic_ns())
+            if condition:
+                auxiliary_baseline(record)
+                prepare_supplement(condition, record)
+                supplement_requests(gold, condition, record)
+                observe_deleted(record)
+                record['status'] = 'supplement business and instance deletion completed'
+            elif query:
+                number = int(os.environ.get('SLLM_DEBUG_GOLD_CASE', '1'))
+                assert http('/register', model_config(gold, weight_format)) == {'status': 'ok'}
+                begin = time.monotonic_ns()
+                result = http('/v1/chat/completions', gold_request(gold, number))
+                write(OUT/'query-result.json', result)
+                match = matches_gold(result, gold['results'][number])
+                record.update(gold_case=gold['requests'][number]['name'], gold_match=match,
+                              query_seconds=(time.monotonic_ns()-begin)/1e9,
+                              status='serving; gold match' if match else 'serving; GOLD MISMATCH')
+            write(OUT/'ready.json', record)
+            if not condition:
+                ready = True
+                while all(process.poll() is None for process in processes.values()):
+                    time.sleep(5)
+                raise RuntimeError('stack process exited: '+json.dumps({n: p.returncode for n, p in processes.items()}))
     except BaseException as error:
         record['stop_reason'] = repr(error)
         # A TERM after readiness is the normal end of a debug session, not a failure.
@@ -620,6 +645,8 @@ def main():
             signal.setitimer(signal.ITIMER_REAL, 0)
     # Like bootstrap_control13, only a Store that misses its grace is a failure; other helpers may need a kill.
     if condition:
+        if ray_only:
+            return 0 if record.get('ray_control_pass') is True else 1
         return 0 if record['success'] else 1
     return 0 if record['status'] == 'stopped after serving' and 'store' not in forced and not record['shutdown_errors'] else 1
 

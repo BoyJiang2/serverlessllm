@@ -1,5 +1,7 @@
 import ast
+import contextlib
 import copy
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -30,6 +32,17 @@ def assigned(node, name):
 
 
 class FormalEquivalence(unittest.TestCase):
+    def test_normal_store_and_service_branch_matches_pre_diagnostic_source(self):
+        before = subprocess.check_output(['git', 'show', 'a9e17edb6f3d9393118ba4fb1c0d8acdbfdd1bf5:glm/controls/debug_stack_v1/debug_service.py'],
+                                         cwd=HERE, text=True)
+        old_main = next(n for n in ast.parse(before).body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        old_work = next(n for n in old_main.body if isinstance(n, ast.Try))
+        first = next(i for i,n in enumerate(old_work.body) if assigned(n, 'cpus'))
+        new_main = next(n for n in ast.parse((HERE/'debug_service.py').read_text()).body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        new_work = next(n for n in new_main.body if isinstance(n, ast.Try))
+        self.assertEqual(ast.dump(ast.Module(body=old_work.body[first:], type_ignores=[])),
+                         ast.dump(ast.Module(body=new_work.body[-1].orelse, type_ignores=[])))
+
     def test_model_config_equals_validation_control13(self):
         body = formal_run_statements()
         start = next(i for i, n in enumerate(body) if assigned(n, 'model'))
@@ -81,13 +94,14 @@ class SupplementRequests(unittest.TestCase):
         tree = ast.parse((HERE/'debug_service.py').read_text())
         main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
         work = next(n for n in main.body if isinstance(n, ast.Try))
-        index = next(i for i,n in enumerate(work.body) if any(isinstance(call, ast.Call)
+        body = work.body[-1].orelse
+        index = next(i for i,n in enumerate(body) if any(isinstance(call, ast.Call)
                      and isinstance(call.func, ast.Name) and call.func.id == 'fresh_host_snapshot' for call in ast.walk(n)))
         launch = Mock()
         gate = Mock(side_effect=RuntimeError('unhealthy or missing pre-pool monitor'))
         namespace = dict(vars(s), condition='store_disk_cold', record={}, fresh_host_snapshot=gate, launch=launch)
         with self.assertRaisesRegex(RuntimeError, 'pre-pool monitor'):
-            exec(compile(ast.Module(body=work.body[index:index+3], type_ignores=[]), '<actual-pre-pool-CPU>', 'exec'), namespace)
+            exec(compile(ast.Module(body=body[index:index+3], type_ignores=[]), '<actual-pre-pool-CPU>', 'exec'), namespace)
         launch.assert_not_called()
 
     def test_pre_pool_gate_requires_healthy_receipt_and_exact_worker(self):
@@ -183,6 +197,68 @@ class SupplementRequests(unittest.TestCase):
                 s.require_resident_pool(client, types.SimpleNamespace(pid=1), 768799145984, 536870912, {0})
 
 
+class RayStartupOnly(unittest.TestCase):
+    def test_ray_flag_without_matching_registration_refuses_before_launch(self):
+        env = dict(SLLM_DEBUG_WEIGHT_FORMAT='safetensors', SLLM_DEBUG_QUERY='1',
+                   SLLM_SUPPLEMENT_CONDITION='safetensors_disk_cold', SLLM_STARTUP_RAY_ONLY='1')
+        with patch.dict(s.os.environ, env), patch.object(s, 'supplement_registration', return_value={}), \
+             patch.object(s.subprocess, 'Popen') as launch, self.assertRaisesRegex(ValueError, 'registration differ'):
+            s.main()
+        launch.assert_not_called()
+
+    def test_actual_main_ray_control_never_enters_store_or_business(self):
+        with tempfile.TemporaryDirectory() as directory, contextlib.ExitStack() as patches:
+            root = Path(directory)
+            gold, restore = root/'gold.json', root/'restore.json'
+            gold.write_text(json.dumps(GOLD))
+            restore.write_text(json.dumps(dict(pool_bytes=768799145984, chunk_bytes=536870912)))
+            registration = dict(startup_only=True, startup_stage='ray', condition='safetensors_disk_cold',
+                                run_id='test', holder='h', runtime_reference=dict(reference_sha256={
+                                    'native-gold.json':hashlib.sha256(gold.read_bytes()).hexdigest(),
+                                    'store-restore-validation.json':hashlib.sha256(restore.read_bytes()).hexdigest()}))
+            nodes = [dict(Alive=True, NodeManagerAddress='172.17.0.2', NodeID='head', Resources={}),
+                     dict(Alive=True, NodeManagerAddress='172.17.0.3', NodeID='worker', Resources={'GPU':8})]
+            ray = types.SimpleNamespace(init=Mock(), shutdown=Mock(), nodes=lambda:nodes,
+                                        get_runtime_context=lambda:types.SimpleNamespace(get_node_id=lambda:'worker'))
+            process = Mock(pid=123, poll=Mock(return_value=None))
+            env = dict(SLLM_DEBUG_WEIGHT_FORMAT='safetensors', SLLM_DEBUG_QUERY='1',
+                       SLLM_SUPPLEMENT_CONDITION='safetensors_disk_cold', SLLM_STARTUP_RAY_ONLY='1',
+                       SLLM_PRIVATE_RAY_ADDRESS='172.17.0.2:26532')
+            original_read = Path.read_text
+            def read(path, *args, **kwargs):
+                if path.as_posix().startswith('/proc/'):
+                    return 'boot' if path.name == 'boot_id' else '123 (process) '+' '.join(['0']*19+['9'])
+                if path.name == 'ray-worker.log':
+                    return 'Ray runtime started.'
+                return original_read(path, *args, **kwargs)
+            observed = {}
+            def stop(processes, environment, logs, record, strict):
+                observed.update(record=record.copy(), roles=set(processes), strict=strict)
+                for log in logs:
+                    log.close()
+                record.update(success=False, ray_control_pass=record['status'] == 'Ray startup control completed')
+                return []
+            for patcher in [patch.dict(s.os.environ, env), patch.dict(sys.modules, ray=ray),
+                    patch.object(s, 'GOLD', gold), patch.object(s, 'RESTORE', restore), patch.object(s, 'OUT', root/'out'),
+                    patch.object(s, 'supplement_registration', return_value=registration),
+                    patch.object(s.pathlib.Path, 'read_text', read), patch.object(s.socket, 'gethostbyname', return_value='172.17.0.3'),
+                    patch.object(s.subprocess, 'Popen', return_value=process), patch.object(s.time, 'sleep'),
+                    patch.object(s.signal, 'signal'), patch.object(s.signal, 'setitimer', create=True),
+                    patch.object(s.signal, 'SIGALRM', 14, create=True), patch.object(s.signal, 'ITIMER_REAL', 0, create=True),
+                    patch.object(s, 'fresh_host_snapshot', return_value={'healthy':True}), patch.object(s, 'stop_processes', side_effect=stop)]:
+                patches.enter_context(patcher)
+            for name in ('cpu_list', 'require_resident_pool', 'prepare_supplement', 'supplement_requests', 'observe_deleted'):
+                patches.enter_context(patch.object(s, name, side_effect=AssertionError('forbidden model/Store path')))
+            code = s.main()
+            self.assertEqual(code, 0, observed['record'].get('stop_reason'))
+            self.assertEqual(observed['roles'], {'ray-worker'})
+            self.assertTrue(observed['strict'])
+            self.assertEqual(observed['record']['pool_bytes'], 0)
+            self.assertEqual(observed['record']['status'], 'Ray startup control completed')
+            self.assertNotIn('requests', observed['record'])
+            self.assertTrue(observed['record']['ray_only'])
+
+
 class ShutdownEvidence(unittest.TestCase):
     class Process:
         def __init__(self, code, pid):
@@ -224,6 +300,22 @@ class ShutdownEvidence(unittest.TestCase):
             with self.subTest(code=code):
                 record, _ = self.run_cleanup(sllm_code=code)
                 self.assertEqual(record['success'], expected)
+
+    def test_ray_only_shutdown_pass_is_separate_from_full_service(self):
+        for unexpected in (False, True):
+            process = self.Process(1, 123)
+            record = dict(ray_only=True, status='Ray startup control completed',
+                          child_births={'ray-worker':dict(pid=123, startticks=9)})
+            with self.subTest(unexpected=unexpected), tempfile.TemporaryDirectory() as temp, \
+                 patch.object(s, 'OUT', Path(temp)), patch.object(s, 'write'), \
+                 patch.object(s.pathlib.Path, 'read_text', return_value='123 (ray) '+' '.join(['0']*19+['9'])), \
+                 patch.object(s.subprocess, 'run', return_value=types.SimpleNamespace(
+                     returncode=0, stdout='Did not find any active Ray processes.', stderr='')):
+                (Path(temp)/'ray-worker.log').write_text('Some Ray subprocesses exited unexpectedly:' if unexpected else 'Ray runtime started.')
+                s.stop_processes({'ray-worker':process}, {}, [], record, strict=True)
+                self.assertEqual(record['ray_control_pass'], not unexpected)
+                self.assertFalse(record['success'])
+                self.assertFalse(record['http_graceful_shutdown_evidence'])
 
     def test_ray_hook_one_is_conditional_and_http_exits_before_ray_signal(self):
         record, _ = self.run_cleanup(ray_code=1)
