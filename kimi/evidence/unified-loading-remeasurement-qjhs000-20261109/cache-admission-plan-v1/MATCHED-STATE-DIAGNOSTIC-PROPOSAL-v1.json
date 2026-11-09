@@ -1,0 +1,109 @@
+{
+  "schema": "kimi-matched-state-cache-only-diagnostic-proposal-v1",
+  "status": "READONLY_DESIGN_PROPOSAL_NOT_IMPLEMENTED_NOT_EXECUTABLE_NO_NEW_GPU_AUTHORIZATION",
+  "created_at_utc": "2026-11-09T03:32:00.492798+00:00",
+  "decision": "Optional pureCPU D0 is not a required prerequisite. Recommended nextdesign is ONE matched-state cache-only nativecase, single595GB read, stopbefore modelregistration. No mandatory duplicate fullread.",
+  "resource_state": {
+    "host": "qjhs000/qjhs0",
+    "baseline_source_commit": "91fb2a10481b44c9d50a2cd963ecf0ac0d250c80",
+    "services": "Reuse same head/worker existingimage/bootstrap/Ray2roles/APIhealth/controllerauth and Storestartup, no model registered",
+    "Store_pool_bytes": 67108864,
+    "Store_chunk_bytes": 67108864,
+    "Store_threads": 4,
+    "GPU_scope": "InitializesCUDA/streams andregisters64MiB hostmemory; exposesactual8GPUs asexistingworker. NOT pureCPU, NOT noGPU. Requires separate explicitnewruntimeauthorization.",
+    "state_equivalence": "Matches proposedfuture SF small-pool prewarm resourceprofile only when allactualconfigs/roles/allowedmems verified. OldformalSF used640GiB pool, so this is not an exact resource-state reproduction of oldformalSF. Cache-only does not demonstrate smallpool fullSF model lifecycle."
+  },
+  "actual_callsite_changes_proposed_only": {
+    "existing_file": "sllm_store/tests/prepare_kimi_four_condition.py plus existingtest",
+    "pool_triplet": [
+      "actual official sllm_store.cli --mem-pool-size640GB ->64MB",
+      "actual root GetServerConfig exact mem_pool_size687194767360 ->67108864",
+      "actual store_config role expected mem_pool_size687194767360 ->67108864"
+    ],
+    "keep": "chunk-size64MB /67108864 unchanged; officialCLI entry and GetConfig proof preserved, no customStoreconstructor",
+    "cache_control": "Use existing helper with additive producerread/querytiming and fixed5-sweep observational entry, readonce1800cap, actualread_end0/30/60/90/120 scans <=30s, wholecachephase2400. Allsnapshot identity/trust/100%perfile criteria unchanged.",
+    "skip_entirely": "command_register/HTTPinference/tokens/8rankloadrecords/structuredmodelinit/delete/modelownership validation. No hidden preload, register_model/load_into_cpu orwarm-up modelrequest. APIhealth and Raymetadata queries remain legitimate initialization.",
+    "result_contract": "New explicit DIAGNOSTIC_ONLY/NOT_FORMAL, primary_sample_qualified=False for everyterminal. Cacheadmissionfalse stayssticky observedFAIL andremainingpreset query-only observations maycomplete insideoriginalcaps, then orderlyteardown; no fabricated gold/clock/ownership samplePASS. Technicalguard/identity/IPC/deadlineerrors retain strictexistingABORT.",
+    "normal_cleanup": "Preserve official controller_shutdown/APIstop/Storestrict60/Raystop/CIDnormalexit/strictgone/guardunitmetadata/observerquiet>=60. Expectednegativecacheresult cannotretroactivelybecomeadmittedtrue aftercleanup. Successfuldiagnostic workflow is not L1 orformalperformancePASS."
+  },
+  "budget": {
+    "full_once_seconds": 7200,
+    "phase_names": [
+      "headbootstrap",
+      "workerbootstrap",
+      "rayjoin_pool",
+      "api",
+      "cache_diagnostic",
+      "register_arithmetic_SKIPPED",
+      "ready_requests_SKIPPED",
+      "delete_SKIPPED",
+      "orderedstop600_release120",
+      "evidence"
+    ],
+    "phase_max_seconds": [
+      300,
+      300,
+      1200,
+      120,
+      2400,
+      0,
+      0,
+      0,
+      720,
+      180
+    ],
+    "sum": 5220,
+    "pre_ordered_stop_nominal_max": 4320,
+    "stop_end_nominal_max": 4920,
+    "release_end_nominal_max": 5040,
+    "evidence_end_nominal_max": 5220,
+    "outer_margin_nominal_seconds": 1980,
+    "cache_phase_math": "single fullread<=1800 plus fivequeries covering read_end+120 with finalqueryend<=read_end+150 leaves >=450 within2400phase for boundedidentity/telemetry/dispatch/evidence; no separate D0fullread. Allquantities policycaps, not throughput guarantees.",
+    "guard_unchanged": {
+      "head_deadline": 6900,
+      "head_overall": 6940,
+      "head_native": 7080,
+      "worker_deadline": 6300,
+      "worker_overall": 6340,
+      "worker_native": 6480,
+      "observer_duration": 6450,
+      "observer_native": 6480,
+      "normal_done_global_cap": 6600,
+      "allguard_done_global_cap": 7020,
+      "controller_runtime": 7197,
+      "outer_end_code": 7198,
+      "Store_stop_window": 60,
+      "release_quiet_min": 60
+    },
+    "admission_proof": "Even conservativeglobaltime bound5040 remains beforeworker normaldeadline6300/overall6340 andobserver6450 if counted fromearliestpossibleactivation; actualguards GO/ActiveEnter are later. Nevertheless retain ORIGINAL beforeANYshutdown checks full600normalstop+120release/cleanup+180evidence against actualGO/unit/observer/outerends. AddedCPU IO mayrunlate and mustFAIL ratherthantruncatewindows. Nominalphase sum alone is not a schedulingguarantee.",
+    "singlecase_vsformal": "Onlyoneoncecache diagnosticcase uses7200, not4newfullreads. Existingformal4case parent28920 andold40/main8 remainunchanged; no automaticformalcontinuation from cache-onlyresult."
+  },
+  "telemetry_and_pool_evidence": [
+    "Producerfullreadbegin/end andallquerybegin/end exactmonotonicns, clockboot/timens/PIDstartticks andnodebinding; no warmreturn/parentfinish substitution",
+    "Baseline/duringread/atqueries/stop capture host/perNUMAavailablefields, cpusetallowednodes/CPU policies, PSI/reclaim and effectivefinitecgroupancestor limits/headroom withsamebootcounterdeltas",
+    "StoreexactGetConfig64MiB/chunk64MiB, PID/startticks,actualphaseinitbegin/end, workerRSS/lockedmem/cgroupcharge and all8GPUcontextbaseline beforecache. Record no modelregistered/no loadintoCPU events in thismode.",
+    "Sameinode/otherRAIDusers remaincoordinationlimit; do notstopunrelatedjobs orclaimabsencewithout evidence"
+  ],
+  "required_cpu_validation_before_anyruntime": [
+    "Mockactualgeneratedcallchain asserts head/worker/Ray/API/Store64MiB precedecache andNO /register/infer/model_load/hostpreload/delete callsoccur",
+    "AllthreepoolCLI/root/roleconsumerconstants agree64MiB; wrongconfig rejected",
+    "Actualcache observations preserveonefullread, fixedpoints/identity/failuresticky and exactproducerclock; traceoffnormalformaloldmodebytes unchanged",
+    "Actualnormalshutdown60 andguardquiet60 preserved, late600+release/evidenceadmission rejects beforestartofshutdown, noemptyallowancesforremovedphases",
+    "Actualdiagnosticfalsecache result reports false withoutformalqualification; technicalerrors retainoriginalprimaryexception/cleanup/failedhistory"
+  ],
+  "D0_retained_optional": {
+    "proposal_path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache-only-595GB-validation-readonly-protocol-draft-v1.json",
+    "scope": "Optional2400CPU-only noStore isolation experiment ifuserseparatelyrequests; not a gate and cannotstandinfor smallpoolactualSFvalidation. No automaticexecute."
+  },
+  "pending": [
+    "Dependencyagent confirms intendedSFpool/resourcecondition andsourcefeasibility",
+    "Ownerfinalizesprotocolscope then minimalexistingfileimplementation+actualconsumerCPUreview",
+    "Separate userapproval for one newGPUpoolinitializedcachecase andfreshfull7200rootresources/window/probe/claims",
+    "Aftercache-onlyresult, actualSF smallpoolmodel lifecycle stillrequires separate approved validation; noL1claim here"
+  ],
+  "not_performed": [
+    "No source modification/Git",
+    "No newGPU/Store/container/model/cache/weight orCPUexperiment",
+    "No executableargv/spec generated; designbudget only"
+  ]
+}

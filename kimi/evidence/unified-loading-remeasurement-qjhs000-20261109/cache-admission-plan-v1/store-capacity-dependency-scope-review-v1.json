@@ -1,0 +1,119 @@
+{
+  "schema": "kimi-store-capacity-and-next-diagnostic-scope-readonly-review-v1",
+  "status": "SOURCE_ARITHMETIC_AND_SCOPE_ACCEPTED_NOT_EXECUTION_APPROVAL",
+  "epoch": 1794195148.790066,
+  "capacity_input": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/store-capacity-arithmetic-readonly-v1.json",
+    "sha256": "b9ff64c7c6cae9685463e19578fe382aeb8aa51bc1d5ba4b5f80dd4f5751d3f3",
+    "bytes": 2004
+  },
+  "frozen_inventory": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2.json",
+    "sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+    "bytes": 99021
+  },
+  "independent_arithmetic": {
+    "ranks": 8,
+    "partition_payload_files": 64,
+    "per_rank_payload_bytes": 77125095424,
+    "per_rank_chunks": 1150,
+    "chunk_bytes": 67108864,
+    "all_rank_chunks": 9200,
+    "all_rank_rounded_bytes": 617401548800,
+    "all_rank_rounded_GiB": 575,
+    "Store_retained_GiB": 640,
+    "retained_margin_chunks": 1040,
+    "retained_margin_GiB": 65,
+    "rounding_basis": "Model.Initialize sums partition sizes; Model.AllocatePinnedMemory618requestsmodel_size_; pool.Allocate121roundsup modelsize/chunk. Round each rank independently then sum, not round each partition or metadata.",
+    "source_refs": [
+      {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/model.cpp",
+        "sha256": "6f8b64645763a1e336b77f27c8a301bb45e84b545e38858e8374f80091a84509",
+        "bytes": 21231,
+        "line_ranges": [
+          [
+            40,
+            69
+          ],
+          [
+            608,
+            631
+          ]
+        ]
+      },
+      {
+        "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/csrc/sllm_store/pinned_memory_pool.cpp",
+        "sha256": "058b84f43d6ee6fd02665db19a71b93ddc1612532eb3f7bc03351293b9dced1d",
+        "bytes": 5707,
+        "line_ranges": [
+          [
+            25,
+            47
+          ],
+          [
+            114,
+            126
+          ]
+        ]
+      }
+    ],
+    "limits": "Capacity arithmetic from frozen stat inventory only. Not CUDA allocation/registration, concurrent runtime or performance validation; Store must retain640GiB."
+  },
+  "dependency_review": {
+    "reference": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/dependency-audit-v1.json",
+      "sha256": "25113f257985fc7bc532f96f7462720fc7d91f95d69e04e74653185eae6ab552",
+      "bytes": 34006
+    },
+    "confirmed": [
+      "SF native service still needs liveStore discovery and8rank metadata registration.",
+      "Actual SF setup has FCFS, storage-awareoff and placement.memory_pool=[]; explicit safetensors choosesDefaultModelLoader and normalquant processing, not Storeload_dict.",
+      "RegisterModel Initialize access/stat only; no model-sized pool borrow until payload loading branch.",
+      "Smallest positive unchanged64MiBchunk-aligned Store constructor pool candidate is64MiB;0invalid and nonaligned tinyreportedsize does not reduce physicalchunk allocation.",
+      "Store construction is CUDA-interacting (GPU contexts/streams/cudaHostRegister); cache-only native diagnostic is not a noGPU CPUtest."
+    ],
+    "risks": [
+      "This does not identify why q0cache residency failed and does not guarantee smallerpool passes all-hot.",
+      "No smallpool native lifecycle run has been validated.",
+      "Any changedscheduler/prefetch/loaderbranch could invalidate the metadata-only assumption.",
+      "GeneralStore documentation largestmodel requirement still applies to Storepayload conditions."
+    ]
+  },
+  "recommended_next_scope": {
+    "recommendation": "Reuse existing native head/worker/API/Ray plus one64MiB Store; stop-before-register cache diagnosis under existing guards, newcohort/newIDs, no model load/inference.",
+    "D0_CPU_only_draft": "Optional alternative, not a prerequisite or mandatory stage. Do not promote its2400s CPU resource assumptions into the native diagnostic.",
+    "four_existing_files": [
+      {
+        "path": "sllm_store/tests/prepare_kimi_four_condition.py",
+        "necessary_scope": "Add one explicit new diagnostic/cohort branch using existing native head/worker/Ray/API and64MiB Store; stop before /register; bind newIDs/protocol/pins, preserve all guard/normalstop/release/hardbudget gates. Do not modify historical formal branches. Expose exact cache call/query timing and evidence only."
+      },
+      {
+        "path": "sllm_store/tests/python/test_prepare_kimi_four_condition.py",
+        "necessary_scope": "Actual generated consumer fixtures: newIDs/pins, native lifecycle,64MiB CLI and GetServerConfig agreement, no /register/inference/CPUload/GPUrestore in diagnostic, stickyfailure/no retry, cleanup/release budget invariants and oldbranches unchanged."
+      },
+      {
+        "path": "sllm_store/tests/file_cache_state.py",
+        "necessary_scope": "Only necessary read/return/query producer timing and fixed scheduled residency evidence additions, preserving finite manifest identity/trust checks, two-stage fullread-then-query semantics, strict all-hot and existing default API behavior. No mlock/globaldrop/NUMA migration or changed storage/loader behavior."
+      },
+      {
+        "path": "sllm_store/tests/python/test_file_cache_state.py",
+        "necessary_scope": "Actual tiny-file consumer tests for exact readbytes and boundary timestamps, delayed save not shifting endpoints, scheduled read-only queries/stickyadmissionfailure/coverage, original identity/deadline/trust semantics. No largecache tests or ML."
+      }
+    ],
+    "excluded": [
+      "No guard/observer modification",
+      "No loader/kernel/quantlayout/nativeELF/overlay modification",
+      "No checkout/env/framework or assets copy",
+      "No weakening all-hot/normalexit/quiet60 or automatic retry"
+    ],
+    "authorization": "Readonly scope acceptance only; implementing/starting the CUDA-interacting diagnostic requires parent/user-approved concrete protocol/source/artifact/resource gates."
+  },
+  "budget_review_scope": {
+    "old_per_case_hardmax_seconds": 7200,
+    "parent_proposed_native_phase_sum_seconds": 5220,
+    "native_phase_sum_independently_verified_here": false,
+    "why": "Current visible cache-only draft is optionalD0 with2400s budget. Detailed native5220phase/lifecycle closure is assigned to CPU reviewer; this narrow receipt does not substitute for that review.",
+    "invariants": "Do not shorten7200outermax or existingguardlifetimes, strict Storestop60/normalCIDexit/independentrelease60; explicitnativephase+evidence+cleanup must fit beforeexecution."
+  },
+  "actions": "Read-only existing JSON/source arithmetic and scope review only. No source edits, Git/sync, newstats/probes, cache/weights/model/Store/container action."
+}

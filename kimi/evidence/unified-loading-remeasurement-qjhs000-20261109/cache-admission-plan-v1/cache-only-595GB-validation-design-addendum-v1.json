@@ -1,0 +1,40 @@
+{
+  "status": "DESIGN_DIRECTION_AGREED_NOT_EXECUTABLE_NO_RESOURCE_AUTHORIZATION",
+  "created_at_utc": "2026-11-09T03:27:23.352905+00:00",
+  "base_draft": {
+    "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache-only-595GB-validation-readonly-protocol-draft-v1.json",
+    "sha256": "9b8d0d128e8628eeb5e8c1ae80ba7d5e0f788905a02205ebc3d8da2022c1b127"
+  },
+  "minimal_source_scope_when_authorized": {
+    "D0_only": [
+      "sllm_store/tests/file_cache_state.py",
+      "sllm_store/tests/python/test_file_cache_state.py"
+    ],
+    "meaning": "Add actual producer full-read/query timing and one fixed bounded observation entry in existing helper, no new permanent wrapper/framework. No code implemented or approved for execution here.",
+    "separate_future_change": [
+      "sllm_store/tests/prepare_kimi_four_condition.py",
+      "sllm_store/tests/python/test_prepare_kimi_four_condition.py"
+    ],
+    "future_scope": "SF pool selector only if later authorized; D0 no-pool result never substitutes formal SF matched resource condition."
+  },
+  "guard_design": "Reuse existing native root one-shot systemd RuntimeMaxSec/Restart=no/KillMode=control-group/exclusiveclaim pattern for CPU job, not the GPU+CIDs guard that requires OCI/container/GPU. Concrete argv/independent consumer tests remain unimplemented and pending review.",
+  "budget_absolute_requirement": {
+    "full_including_release_seconds": 2400,
+    "conservative_max_path_seconds": 2160,
+    "external_reserve_before_outer_deadline_seconds": 150,
+    "reserve_parts": {
+      "process_termination_cleanup": 30,
+      "independent_process_scope_quiet_observation": 60,
+      "evidence": 60
+    },
+    "reader_and_observation_deadline": "No later than actual outerunitActiveEnter+2400-150; actual command must assert this before launch. Stage/read/query caps do not borrow the last external60release or silently slide scheduled points.",
+    "walltime_caveat": "Per-syscall cooperative timeout does not guarantee kernel IO return; external process kill/reap and guardian termination boundaries must be verified in actual command before claiming2400 closure."
+  },
+  "release_semantics": "Only owned reader/sampler process PID/startticks identities gone and cgroup.procs empty for the required observation; page cache may remain resident/charged/reparented. No implicit DONTNEED/drop_caches or requirement to restore zero pages.",
+  "authorization": "Design can be frozen after dependency/resource decision; no actualcommand runnable yet. New once CPU595GB read+large-memory reservation and sameinode coordination still require explicit user authorization; oldfailedGPUgrant is exhausted.",
+  "not_performed": [
+    "No source edits/Git",
+    "No CPUfullread/query/evict/weights/cache operations",
+    "NoGPU/Store/container or newenvironment"
+  ]
+}

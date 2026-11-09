@@ -1,0 +1,149 @@
+{
+  "schema": "kimi-sf-cache-only-validation-protocol-draft-v1",
+  "status": "DRAFT_NOT_FROZEN_NOT_EXECUTABLE_REQUIRES_NEW_CPU_RESOURCE_APPROVAL",
+  "created_at_utc": "2026-11-09T03:26:26.065960+00:00",
+  "scope": "D0 only: one full sequential buffered read of finite SF84files followed by scheduled query-only residency sweeps. No Store pool/process/service startup, GPU/container/model/conversion, retry or automatic rewarm. Does not replace full formal SF matching-pool profile.",
+  "evidence": {
+    "helper": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/file_cache_state.py",
+      "sha256": "3340bf6a700d5e6477137ecf937235a07b76d0e5b95044758b5a0c3f0782b4f8"
+    },
+    "existing_native_cpu_callsite": {
+      "path": "/home/boyjiang/kimi-new/ServerlessLLM/sllm_store/tests/prepare_kimi_four_condition.py",
+      "source_commit": "91fb2a10481b44c9d50a2cd963ecf0ac0d250c80",
+      "functions": "CACHE_CODE.construct_cache and frozen_files; native full renderer cannot itself be executed as CPU-only D0 because it starts Store/GPU roles"
+    },
+    "q0_failed_analysis_ref": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/cache-warm-failure-readonly-analysis-v2.json",
+      "sha256": "02fa49a34a4b8043f72dfa774a2d6253fcc7666abaebcd97909ed71b11339514"
+    },
+    "inventory": {
+      "path": "/home/boyjiang/kimi-new/evidence/s4b-readonly-20261104/kimi-unified-loading-20261109-qjhs000-raid-v1/input-inventory-qjhs000-v2.json",
+      "sha256": "ca03227f2baac3a430c13e9a6e62799558734b5035f0212e7af2dec1d13c3c08",
+      "files": 84,
+      "bytes": 595204634151,
+      "pages_4096": 145313657,
+      "rounded_page_bytes": 595204739072,
+      "fresh_stat_required_before_new_run": true
+    }
+  },
+  "existing_helper_capability": {
+    "already_supported": [
+      "Explicit allowedroot and exactfinite list, O_NOFOLLOW regularfiles/inode dedup/path+fd pre/post identity",
+      "Owner or rootCAP_FOWNER/fulluidmap mincore trust, <=8MiB buffered preadv, completeoperationphase before allfile query",
+      "Perfile read_bytes/pages/resident_pages, strict all_hot only everycountedpage resident; no false success from adviceACK",
+      "Query-only repeated full-list mincore without touching payload; cooperative deadline and externalguardian requirement"
+    ],
+    "not_supported_without_adjustment": [
+      "Actual fullread producer monotonic begin/end; warm return includes final mincore and cannot be called pure read time",
+      "Query begin/end/perfile observation intervals; repeatedscheduled window and deadline/missedpoint ledger",
+      "Current/perNUMA/effectiveancestor memory, PSI/reclaim telemetry and exactpoolconcurrency timeline",
+      "A dedicated CPU-only whole595GB guarded entry: current native callsite starts nonCPU roles"
+    ]
+  },
+  "proposed_resource_profile": {
+    "host": "qjhs000/qjhs0",
+    "CPUQuota_cores": 4,
+    "MemoryMax_bytes": 824633720832,
+    "MemoryHigh": "infinity",
+    "MemorySwapMax_bytes": 0,
+    "new_env_image_or_venv": false,
+    "minimum_global_MemAvailable_bytes": 962072674304,
+    "finite_ancestor_remaining_headroom_min_bytes": 663924215808,
+    "finite_job_or_ancestor_check": "For each effectivecgroup v2 ancestor use memory.max minus memory.current, not absoluteMax alone. Record finite memory.high and headroom too; if high below requiredheadroom predeclare reject/defer instead of silently claiming unrestricted. Unlimited values remain explicit. Check cpu/cpuset effective values and actual membership, not requested CLI properties only.",
+    "NUMA_policy": "Keep existing policy unchanged; record processCpus/Mems_allowed_list and cpuset.{cpus,mems}.effective, pernode meminfo/vmstat/numastat. No numactl binding/migration/prefault/mlock. If allowednodes capacity cannotcontain target+margin, reject.",
+    "scope_limit": "These are conservative resource ceilings/admissionpolicy, not proof pages will stayresident or performance prediction. Pagecache can be charged to readercgroup; never reuse8GiB CPUprofile. Swap0 does not prevent file-page reclaim.",
+    "dependency_pending": "SF safe resource state and absence/identity of concurrent ownedStore pool require dependencyagent result and fresh read-only coordination. Do not stop or inspect unrelated privatework beyond authorization."
+  },
+  "proposed_budget": {
+    "total_hard_seconds": 2400,
+    "startup_admission_cap_seconds": 60,
+    "full_buffered_read_cap_seconds": 1800,
+    "initial_and_each_scheduled_query_cap_seconds": 30,
+    "retention_last_offset_seconds": 120,
+    "retention_final_query_end_cap_after_read_end_seconds": 150,
+    "evidence_cap_seconds": 60,
+    "termination_cleanup_cap_seconds": 30,
+    "release_observation_min_seconds": 60,
+    "conservative_max_path_seconds": 2160,
+    "remaining_outer_margin_seconds": 240,
+    "math": "60+1800+(120+30)+60+30+60=2160<2400. Warm helper includes round0 query; do not double count it as a separate fullread duration. Concretecommand must verify exactunit activation/max/kill+reap envelope before freeze.",
+    "minimum_implied_read_progress_bytes_per_second": 330669241.195,
+    "selection_basis": "1800 implies about330.67MB/s if allbytesread; configuredpolicy only, not proven RAID lowerbound. Prior248.608698536s was construction-to-failure envelope including query/save/finalization, not exactread duration or guaranteed hardmaximum.",
+    "deadline_failure": "Fullread >1800, query >30, missed fixedpoint, changedidentity, telemetry/auth loss or outerbudget exhaustion is stickyFAIL/INCOMPLETE; no deadlineextension. Outerhardstop may leave missingfinaltimestamp, reportunknown not guessed throughput."
+  },
+  "scheduled_residency_protocol": {
+    "full_reads_allowed": 1,
+    "read_begin": "Producer just before first full-list bufferedread operation after frozenidentity/open/trust admission",
+    "read_end": "Producer after last requiredbytes successfully read and before finalresidencyquery; store exact boundary labels, no parentfinish or warmreturn substitution",
+    "round_offsets_seconds": [
+      0,
+      30,
+      60,
+      90,
+      120
+    ],
+    "anchor": "actual producer full_read_end_monotonic_ns",
+    "round0": "Use existing warm helper finalquery as round0 if actualquery begin/end are recorded; warmreturn alone is not read_end. Subsequentcalls query_cache_state only.",
+    "start_lateness_tolerance_seconds": 2,
+    "absolute_round_end": "read_end+offset+30, no slidingdeadline; startwithin[scheduled,scheduled+2], finishbyfixedend. Latecall stickyFAIL, never reset t0.",
+    "criterion": "All84 frozen files and full145313657pages, eachfile resident_pages==pages, exactmetadata/payload identity and trustedmincore, all five completequeries; report bothperfile/global counts plus observationtime ranges. Fullread bytecount exactly595204634151, notphysicaldiskbytes.",
+    "stickyfailure": "Retain firstfailure andalllaterplannedobservations if safe andwithin originalbudget, but never turnoverallresult backtoPASS; no retry/evict/rewarm/extraendpoint experiment.",
+    "interpretation": "Five full-list sampled all-hot sweeps across120seconds; NOT continuous100%resident proof, not atomicallfiles atoneinstant. Sequentialmincore cannot establish those stronger claims.",
+    "release": "CPUproducer/ownedunits stop and identity/scopegone observed>=60seconds. This does not mean cachedfilepages evicted; no automatic postrunDONTNEED/drop_caches unless separately authorized."
+  },
+  "telemetry_protocol": {
+    "cadence_seconds": 5,
+    "timebase": "Samehost boot_id/time_namespace/monotonicimplementation; authenticatedPID/startticks forproducer/supervisor, actualunit ActiveEnter timestamps. Everytelemetry row records actualbegin/end and missedintervals.",
+    "phases": [
+      "pre_read baseline",
+      "fullread",
+      "everyquery boundary",
+      "retention",
+      "postfailure ornormalstop",
+      "release"
+    ],
+    "global": [
+      "/proc/meminfo:MemAvailable,MemFree,Cached,Buffers,AnonPages,Shmem,Unevictable,Dirty,Writeback,Slab",
+      "/proc/vmstat:available pgscan*/pgsteal*/pgfault/pgmajfault/workingset_refault*/allocstall*/compact* fields",
+      "/proc/pressure/memory:some/full avg plus total; deltas from samebootbaseline"
+    ],
+    "pernode": [
+      "/sys/devices/system/node/node*/meminfo:MemTotal,MemFree,FilePages,AnonPages,Shmem,Unevictable,Slab",
+      "node*/vmstat ornumastat available reclaim/NUMA allocation counters; missingfields explicitnull, no invented pernodeMemAvailable"
+    ],
+    "cgroup": [
+      "reader andallancestors memory.current/peak/max/high/min/low/swap.max/stat/events/events.local/pressure",
+      "cpuset.cpus.effective,cpuset.mems.effective,CPU limits and reader /proc/status allowedlists",
+      "Compare counterdeltas and actualtimes; ancestor historicalOOM totals never imply a newrunOOM"
+    ],
+    "pool_and_concurrency": "D0 startup/stop snapshots state noownStore created and record pre-existing authorizedpool PID/startticks/size ifany; if unavailableoractiveownpool then rejectD0. Keep exactresourcecondition immutable duringread/window. Shared inode readers/writers and RAID traffic notprovedabsent mustbedisclosed, notcalledisolated."
+  },
+  "minimal_existing_file_proposal": [
+    {
+      "file": "sllm_store/tests/file_cache_state.py",
+      "change": "Add additive producerfullread begin/end andquery begin/end monotonic_ns plus boundary labels/bytecounts, preserve defaults/predicates/two-phaseorder. Queryround timing supports no payloadread. On missingreturn dueerror/kill leave timingunknown unless originalerroralreadycarriespartialmetadata; nevermaskprimaryerror."
+    },
+    {
+      "file": "sllm_store/tests/python/test_file_cache_state.py",
+      "change": "Actualtinyfiles/mockclock CPU tests verify timeplacement, no laterread afterquery, exactreadbytes, identity/trust/deadlinefailures andoriginalexception retention."
+    },
+    {
+      "file": "sllm_store/tests/prepare_kimi_four_condition.py and existing python/test_prepare_kimi_four_condition.py only if an entry is needed",
+      "change": "Minimal explicitlyCPU-only D0preparation mode or existing one-shot CPUcommandDATA body; reusefiniteinventory/helper and rootunit timeout patterns, never route through native Store/GPU setup. Fixedoneprofile/fivetimepoints/stickyFAIL, no newgenericframework or environment. Concretechoice awaits parentreview; not implemented."
+    }
+  ],
+  "required_before_execution": [
+    "User separately authorizes this CPU595GB single-read/per-filecache operation and large-memoryprofile; oldfailedGPUauthorization is exhausted",
+    "Dependencyagent SF/noStore resourcecondition resolved",
+    "ActualCPU-only command/spec fullbudget/externalguard andwritepermissions independentlyreviewed aftertinyCPUtests",
+    "Fresh CPUbooking/full2400 resources/effectiveancestor limits/identitycachetrust/inodecoordination +exclusiveonceID claim",
+    "NoGPU/Store/container/model starts andno all-systemdrop_caches or cachepinning"
+  ],
+  "not_performed": [
+    "No cachequery/warm/evict orweight/Storepayloadread",
+    "No newCPUexperiment/tests/sampling orlivehardware/resourceprobe",
+    "NoGPU/container/Store/Git/source modifications",
+    "No executionauthorization inferred from draft"
+  ]
+}
