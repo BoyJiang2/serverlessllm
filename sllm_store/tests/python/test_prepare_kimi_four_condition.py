@@ -2094,6 +2094,10 @@ class StoreStopObservationTest(unittest.TestCase):
             self.assertEqual(finalspec['source_commit'],p.SOURCE)
             self.assertEqual(finalspec['status'],'FROZEN_STORE_STOP_OBSERVATION_REQUIRES_REVIEW_AND_RUNTIME_AUTHORIZATION')
             self.assertFalse(finalspec['primary_sample_qualified']);self.assertFalse(runs.exists())
+            for directory in (output,finalout):
+                generated=json.loads(next(directory.glob('*-command.json')).read_text())
+                inline=generated['argv'][generated['argv'].index('-c')+1]
+                self.assertEqual(generated['inline_lines'],len(inline.splitlines()))
             for selection in (['--block','1'],['--attempt-id',protocol['attempts'][1]['attempt_id']],['--matched-cache-only']):
                 with self.subTest(selection=selection),mock.patch.object(p,'validate_inventory'),mock.patch.object(sys,'argv',argv+selection),self.assertRaisesRegex(AssertionError,'stop observation protocol'):
                     p.main()
