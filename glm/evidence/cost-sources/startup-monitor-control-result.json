@@ -1,0 +1,384 @@
+{
+  "scope": "independent startup-control verification only; not GLM model service or controller supplement",
+  "run_id": "sllm-debug-20261109T163357Z-5a947f74",
+  "code_commit": "a9e17edb6f3d9393118ba4fb1c0d8acdbfdd1bf5",
+  "unit": {
+    "MainPID": "0",
+    "Result": "success",
+    "ExecMainStartTimestampMonotonic": "1366845208750",
+    "ExecMainExitTimestampMonotonic": "1366946832236",
+    "ExecMainCode": "1",
+    "ExecMainStatus": "0",
+    "ExecStart": "{ path=/usr/bin/python3 ; argv[]=/usr/bin/python3 -I -B /data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-3ca49717f6dd/controls/debug_stack_v1/debug_stack.py measure --startup-only --source-tree /data/brick1/boyjiang/glm5.1-fp8/code/source-debug-a9e17edb6f3d-0201b7b26c11 --condition safetensors_disk_cold --review /data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/startup-a9e17edb-r1-approved.json --guard-probe /run/sllm-debug-20261109T163357Z-5a947f74/guard-verification.json --controller-unit sllm-debug-20261109T163357Z-5a947f74-controller.service ; ignore_errors=no ; start_time=[Tue 2026-11-10 00:42:07 CST] ; stop_time=[Tue 2026-11-10 00:43:48 CST] ; pid=892999 ; code=exited ; status=0 }",
+    "ActiveState": "active",
+    "SubState": "exited",
+    "InvocationID": "0e48f806b6384df2bac7302df0249e16"
+  },
+  "unit_elapsed_s": 101.623486,
+  "monitor": {
+    "samples": 77,
+    "span_s": 98.870344401,
+    "maximum_sample_s": 0.492331029,
+    "maximum_gap_s": 1.492782718,
+    "stage_maximum_s": {
+      "GPU devices": 0.169816484,
+      "GPU processes": 0.168182318,
+      "remaining resources": 0.002602445,
+      "head inspect": 0.215111963,
+      "head init and cgroup": 0.001413413,
+      "head members": 0.000865729,
+      "head smaps_rollup": 8.3684e-05,
+      "worker inspect": 0.025353121,
+      "worker init and cgroup": 0.000852786,
+      "worker members": 0.000158916,
+      "worker smaps_rollup": 5.6954e-05
+    }
+  },
+  "release": {
+    "samples": 47,
+    "span_s": 60.128680346,
+    "maximum_sample_s": 0.562573374,
+    "maximum_gap_s": 1.563726192,
+    "stage_maximum_s": {
+      "head inspect": 0.024385073,
+      "worker inspect": 0.023980583,
+      "GPU devices": 0.199765804,
+      "GPU processes": 0.127635934,
+      "remaining resources": 0.196022605
+    }
+  },
+  "guard": {
+    "root_proof_path": "/run/sllm-debug-20261109T163357Z-5a947f74/guard-verification.json",
+    "sha256": "427faabeebf062bb011e080ce7a645e212136f9d973cf187f459254295c7a5f2",
+    "deadline_delay_s": 900,
+    "deadline_after_main_s": 866.90865,
+    "accuracy": "NextElapseUSecMonotonic=2w 1d 19h 55min 12.117400s\nAccuracyUSec=1s\n",
+    "arm_to_main_s": 33.094685953
+  },
+  "result": {
+    "run_id": "sllm-debug-20261109T163357Z-5a947f74",
+    "holder": "b0801f263e982f86e8a86e4fefdbc7a2",
+    "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261109T163357Z.slice/sllm-debug-20261109T163357Z-5a947f74.slice",
+    "startup_only": true,
+    "controller_begin_ns": 1366845208750000,
+    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "pid": 892999,
+    "startticks": 136684520,
+    "condition": "safetensors_disk_cold",
+    "work_seconds": 180,
+    "total_seconds": 900,
+    "r1_sha256": "ad70d55d94b5170580f71bba81cbbc5ff0c35d77f673c6bfd1300e4517e5f0df",
+    "guard_probe_sha256": "427faabeebf062bb011e080ce7a645e212136f9d973cf187f459254295c7a5f2",
+    "status": "startup control passed",
+    "success": true,
+    "exit_evidence": {
+      "worker": {
+        "container_id": "584992ad541efdc8e271497592af8868994cc695b224a1c53c3bfd76671bbe30",
+        "before": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:14.450799172Z",
+          "FinishedAt": "2026-11-09T16:42:44.99480828Z"
+        },
+        "stop_returncode": null,
+        "normal_exit_verified": true,
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:14.450799172Z",
+          "FinishedAt": "2026-11-09T16:42:44.99480828Z"
+        }
+      },
+      "head": {
+        "container_id": "9597f0d19a45732e15dd02a338cab8231371119ce095047e7aa0248fe1871212",
+        "before": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 893393,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:09.694180137Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "stop_returncode": 0,
+        "normal_exit_verified": true,
+        "stop_stderr": "",
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:09.694180137Z",
+          "FinishedAt": "2026-11-09T16:42:47.907899145Z"
+        }
+      }
+    },
+    "all_owned_containers_removed_ns": 1366886393204621,
+    "release_observation_s": 60.128680346,
+    "controller_end_ns": 1366946820636665,
+    "end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+    "controller_elapsed_s": 101.611886665,
+    "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+    "controller_metric_provisional": true,
+    "controller_finalizer": null,
+    "measurement_class": "startup monitor control only",
+    "model_service_pass": false,
+    "publish_controller": false
+  },
+  "stack": {
+    "run_id": "sllm-debug-20261109T163357Z-5a947f74",
+    "holder": "b0801f263e982f86e8a86e4fefdbc7a2",
+    "startup_only": true,
+    "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+    "configuration": {
+      "weight_format": "safetensors",
+      "pool_bytes": 0,
+      "chunk_bytes": null,
+      "c23_pool_bytes": 768799145984,
+      "differs_from_formal": [
+        "fresh public stack for each condition instead of C23 shared stack",
+        "independently reviewed supplementary entry, not the original formal gate",
+        "fresh native-home compilation cache; compilation costs remain charged",
+        "DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs"
+      ],
+      "comparable_to_formal_measurements": false,
+      "measurement_class": "startup monitor control; no worker application",
+      "request_order": [
+        "arithmetic",
+        "translation",
+        "fixed32"
+      ],
+      "condition": "safetensors_disk_cold"
+    },
+    "tool_sha256": {
+      "controls/debug_stack_v1/debug_plan.py": "92ce320614613d51e643e43b726c2e4a36b5992494f411b5bd5d5c2b81261dda",
+      "controls/debug_stack_v1/debug_stack.py": "a97f7534d988a100f7c360b69a66a5e19fa3aaccce8ffd4ab6abbd188b681e61",
+      "controls/debug_stack_v1/debug_service.py": "fc69c8ebfd66e2da75091acd8747142bd874e522f1b54aea904c36eb2ea36f5e",
+      "controls/debug_stack_v1/debug_guard.py": "3d70fc4ad03f54ff474aa3a492b664c9bddae341b780b78f9e561a263141f342",
+      "controls/debug_stack_v1/install_debug_guard.sh": "782e995d6bd1669c2d0aeb83a3fffe8ad9a2f8b42a5cf43e9468702341e7b2f4",
+      "controls/service_smoke_v1/docker_args.py": "6d20317cb8c653ed521734bf93bd95b4e360a17bb2fcf54f2816088fad96e2af",
+      "tools/restore_original_image.py": "8ae69f46144cc8ce8ed20e9b6f15d05e347a39a327f3b80ddf045cee88e85f32",
+      "tools/docker_plan.py": "759685a9f5266d1a87a26207d4f3520aab2bfaece1cebaf1ed69e49e7f2b6fbd"
+    },
+    "source": {
+      "tree": "/data/brick1/boyjiang/glm5.1-fp8/code/source-debug-a9e17edb6f3d-0201b7b26c11",
+      "code_commit": "a9e17edb6f3d9393118ba4fb1c0d8acdbfdd1bf5",
+      "tree_sha256": "0201b7b26c1149cb81b753e44050d70e47af8e521999ba3f3cf3d21a06148930",
+      "files": 83
+    },
+    "down": {
+      "worker": "removed",
+      "head": "removed"
+    },
+    "exit_evidence": {
+      "worker": {
+        "container_id": "584992ad541efdc8e271497592af8868994cc695b224a1c53c3bfd76671bbe30",
+        "before": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:14.450799172Z",
+          "FinishedAt": "2026-11-09T16:42:44.99480828Z"
+        },
+        "stop_returncode": null,
+        "normal_exit_verified": true,
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:14.450799172Z",
+          "FinishedAt": "2026-11-09T16:42:44.99480828Z"
+        }
+      },
+      "head": {
+        "container_id": "9597f0d19a45732e15dd02a338cab8231371119ce095047e7aa0248fe1871212",
+        "before": {
+          "Status": "running",
+          "Running": true,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 893393,
+          "ExitCode": 0,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:09.694180137Z",
+          "FinishedAt": "0001-01-01T00:00:00Z"
+        },
+        "stop_returncode": 0,
+        "normal_exit_verified": true,
+        "stop_stderr": "",
+        "final": {
+          "Status": "exited",
+          "Running": false,
+          "Paused": false,
+          "Restarting": false,
+          "OOMKilled": false,
+          "Dead": false,
+          "Pid": 0,
+          "ExitCode": 1,
+          "Error": "",
+          "StartedAt": "2026-11-09T16:42:09.694180137Z",
+          "FinishedAt": "2026-11-09T16:42:47.907899145Z"
+        }
+      }
+    }
+  },
+  "files": {
+    "controller-result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/controller-result.json",
+      "bytes": 46606,
+      "sha256": "d9834bf163e2318a384c2899b3957074596fc5f6be42eea1dacae9e743442705"
+    },
+    "controller-start.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/controller-start.json",
+      "bytes": 44215,
+      "sha256": "0c94a41538334fa3c495b6a170871d69f019f7227270a2fc36615daf126f4ad4"
+    },
+    "stack.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/stack.json",
+      "bytes": 6615,
+      "sha256": "3533926b630bacdaef817db5fd21faf2858712ef62d2ec4531881f2031fc2149"
+    },
+    "controller-monitor.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/controller-monitor.jsonl",
+      "bytes": 1600559,
+      "sha256": "02e00613ad881534c7bb064a06d150f5528aacf1c93c1e2b4151e58098bf58c7"
+    },
+    "release60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/release60.jsonl",
+      "bytes": 349821,
+      "sha256": "fc9948cc7a490e74fcdf4580ef55b941b27e6899b8876a37d0c127c2e5e3c57d"
+    },
+    "guard-verification-preserved.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/guard-verification-preserved.json",
+      "bytes": 44309,
+      "sha256": "427faabeebf062bb011e080ce7a645e212136f9d973cf187f459254295c7a5f2"
+    }
+  },
+  "success": true,
+  "model_service_pass": false,
+  "historical_slow_sample_root_cause": "unresolved; no reproduction in this one sleep-only startup control",
+  "independent_verification_source": {
+    "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/startup-independent-verification.json",
+    "sha256": "d9e93484dc346af3e63f771d0decd6ae3bbe2d8e9cb59aa9e15eecd3d2380801",
+    "bytes": 60258
+  },
+  "guard_cleanup": {
+    "-deadline.timer": {
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "-slice-probe-deadline.timer": {
+      "LoadState": "not-found",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    ".slice": {
+      "LoadState": "loaded",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "-host-probe.slice": {
+      "LoadState": "loaded",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "-slice-probe.slice": {
+      "LoadState": "loaded",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    }
+  },
+  "post_cleanup_gpu": "0, 0\n1, 0\n2, 0\n3, 0\n4, 0\n5, 0\n6, 0\n7, 0\n",
+  "post_cleanup_gpu_processes": "",
+  "executed_independent_verifier": {
+    "source": "import pathlib,json,hashlib,subprocess,time\nrun='sllm-debug-20261109T163357Z-5a947f74';root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run\nfiles={}\ndef read(name):\n p=root/name;b=p.read_bytes();files[name]={'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()};return json.loads(b)\nresult=read('controller-result.json');start=read('controller-start.json');stack=read('stack.json')\nunit=dict(x.split('=',1) for x in subprocess.check_output(['systemctl','show',run+'-controller.service','-p','MainPID,Result,ExecMainCode,ExecMainStatus,ExecMainStartTimestampMonotonic,ExecMainExitTimestampMonotonic,InvocationID,ExecStart,ActiveState,SubState'],text=True).splitlines())\nassert unit['MainPID']=='0' and unit['Result']=='success' and unit['ExecMainStatus']=='0'\nbegin=int(unit['ExecMainStartTimestampMonotonic'])*1000;end=int(unit['ExecMainExitTimestampMonotonic'])*1000\nassert 0<end-begin<=900*10**9 and result['success'] is True and result['publish_controller'] is False and result['model_service_pass'] is False\nfor role in ('worker','head'):\n e=result['exit_evidence'][role];assert e['normal_exit_verified'] and not e['final']['OOMKilled']\n assert not subprocess.check_output(['docker','ps','-aq','--no-trunc','--filter','id='+e['container_id']],text=True).strip()\nassert result['exit_evidence']['worker']['final']['ExitCode']==0 and not result.get('monitor_errors')\nout={'scope':'independent startup-control verification only; not GLM model service or controller supplement','run_id':run,'code_commit':'a9e17edb6f3d9393118ba4fb1c0d8acdbfdd1bf5','unit':unit,'unit_elapsed_s':(end-begin)/1e9,'monitor':{},'release':{}}\nfor name,dest in [('controller-monitor.jsonl','monitor'),('release60.jsonl','release')]:\n p=root/name;b=p.read_bytes();a=[json.loads(x) for x in b.splitlines()];files[name]={'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}\n points=[x['monotonic_ns'] for x in a];spans=[(x['sample_end_ns']-x['sample_begin_ns'])/1e9 for x in a]\n assert len(a)>1 and all(begin<=x<=end for x in points) and max(spans)<=5 and all(0<y-x<=5*10**9 for x,y in zip(points,points[1:]))\n assert all(not x['gpu_processes'].strip() and all(int(line.split(',')[3].strip().split()[0])==0 for line in x['gpu'].splitlines()) for x in a)\n assert all(all(not int(line.split()[1]) for line in x['private_slice_memory_events'].splitlines() if line.split()[0].startswith('oom')) for x in a)\n if dest=='release':\n  assert (points[-1]-points[0])/1e9>=60 and abs((points[-1]-points[0])/1e9-result['release_observation_s'])<1e-6\n  assert all(all(y.get('absent') for y in x['containers'].values()) for x in a)\n stages={}\n for row in a:\n  for label,t0,t1 in row['stage_timings_ns']:stages[label]=max(stages.get(label,0),(t1-t0)/1e9)\n out[dest]={'samples':len(a),'span_s':(points[-1]-points[0])/1e9,'maximum_sample_s':max(spans),'maximum_gap_s':max(y-x for x,y in zip(points,points[1:]))/1e9,'stage_maximum_s':stages}\nproof_path=pathlib.Path('/run')/run/'guard-verification.json';raw=proof_path.read_bytes();proof=json.loads(raw)\nassert proof_path.stat().st_uid==0 and proof_path.stat().st_mode&0o222==0 and proof['holder']==start['holder'] and proof['deadline_delay_seconds']==900\nassert start['independent_controller_unit']['InvocationID']==unit['InvocationID']\nout['guard']={'root_proof_path':str(proof_path),'sha256':hashlib.sha256(raw).hexdigest(),'deadline_delay_s':proof['deadline_delay_seconds'],'deadline_after_main_s':(int(proof['deadline_next_monotonic_usec'])*1000-begin)/1e9,'accuracy':subprocess.check_output(['systemctl','show',run+'-deadline.timer','-p','AccuracyUSec,NextElapseUSecMonotonic'],text=True),'arm_to_main_s':(begin-proof['armed_ns'])/1e9}\nassert 0<out['guard']['deadline_after_main_s']<=900\n(root/'guard-verification-preserved.json').write_bytes(raw);files['guard-verification-preserved.json']={'path':str(root/'guard-verification-preserved.json'),'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}\nout['result']=result;out['stack']=stack;out['files']=files;out['success']=True;out['model_service_pass']=False;out['historical_slow_sample_root_cause']='unresolved; no reproduction in this one sleep-only startup control'\np=root/'startup-independent-verification.json';b=(json.dumps(out,indent=2)+'\\n').encode();p.write_bytes(b);print(json.dumps({'path':str(p),'sha256':hashlib.sha256(b).hexdigest(),'verification':out}))\n",
+    "sha256": "885a843adcb9a71fe209b881c9636f69fc2feee958c6d9ffc154bf0135bf8546",
+    "scope": "one-time post-exit verifier executed by primary via SSH; source retained for audit; live root/unit checks are historical observations, not assumed reproducible after reboot"
+  },
+  "additional_raw_row_audit": {
+    "scope": "CPU raw-row audit of completed startup control; no new run",
+    "run_id": "sllm-debug-20261109T163357Z-5a947f74",
+    "files": {
+      "controller-monitor.jsonl": {
+        "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/controller-monitor.jsonl",
+        "bytes": 1600559,
+        "sha256": "02e00613ad881534c7bb064a06d150f5528aacf1c93c1e2b4151e58098bf58c7"
+      },
+      "release60.jsonl": {
+        "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74/release60.jsonl",
+        "bytes": 349821,
+        "sha256": "fc9948cc7a490e74fcdf4580ef55b941b27e6899b8876a37d0c127c2e5e3c57d"
+      }
+    },
+    "monitor_rows": 77,
+    "release_rows": 47,
+    "init_birth_checks": 53,
+    "cgroup_identity_checks": 53,
+    "success": true,
+    "limits": [
+      "raw Docker Config/Labels not independently stored for every sample; ownership checks remain source/runtime checked",
+      "no full model, Store, gold or loading phases are proved",
+      "root cause unresolved"
+    ]
+  },
+  "independent_review": {
+    "reviewer": "/root/glm_controller_r1",
+    "verdict": "PASS_STARTUP_COMPONENT_ONLY",
+    "reviewed_input_sha256": "edf6d0fbeeb3804fae846953b3374118562788258187eea051fab3c72000ef3d",
+    "code_commit": "a9e17edb6f3d9393118ba4fb1c0d8acdbfdd1bf5",
+    "approved_gate_sha256": "ad70d55d94b5170580f71bba81cbbc5ff0c35d77f673c6bfd1300e4517e5f0df",
+    "verifier_source_sha256": "885a843adcb9a71fe209b881c9636f69fc2feee958c6d9ffc154bf0135bf8546",
+    "kernel_elapsed_s_recomputed": 101.623486,
+    "verified_locally": "run/holder/commit/tree/eight tools/gate; normal kernel exit0, origin/end/boot; exit States and private deadline margin",
+    "raw_rows_directly_read_by_reviewer": false,
+    "boundary": "reviewer read local summary and executed verifier, not original77/47 rows; raw SHA and spans were independently recomputed by primary via SSH",
+    "additional_raw_row_audit_after_review": true,
+    "root_cause": "UNRESOLVED",
+    "model_service_pass": false,
+    "publish_full_glm_controller": false,
+    "historical_cells_filled": false,
+    "actions": {
+      "files_modified": false,
+      "remote_access": false,
+      "new_runs": false
+    }
+  }
+}

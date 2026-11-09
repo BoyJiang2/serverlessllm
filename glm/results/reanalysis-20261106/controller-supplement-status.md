@@ -36,3 +36,18 @@
 当前取证源码beeea857已push核远端、上传90工具并逐项SHA核验（code/debug-stack-1f548274b575）。92项相关CPU检查通过，只读复审PASS_FOR_FORENSIC_SOURCE_CHANGE_ONLY，runtime_approval=false。新增原始拒绝snapshot/前时刻/错误/分段时钟取证，不放宽5秒、不改原生产入口、不改权重/金标。采集直接抛异常时snapshot=null、无法定位内部未完成子阶段，明确留作覆盖限制。
 
 下一步不是第四批模型试跑：先冻结一次轻量GPU容器启动控制的完整命令/480秒级最大预算（最终以受审实际命令为准）/新身份/守护与释放判据，再完整审阅并现场准入；不启动Ray worker、Store池或模型。用新分段证据定位Docker、proc/cgroup、smaps或GPU查询的耗时。未复现则记录未复现，不连续盲试。不将源码取证修订通过当模型恢复通过。
+
+
+## 2026-11-10 一次轻量GPU容器启动取证已完成
+
+用户明确允许当前Azure预约bk-20261109T1403-6650c8d2（至10:00）中一次最多15分钟的无模型/无Store启动取证。新run为sllm-debug-20261109T163357Z-5a947f74，实际运行代码a9e17edb，source83/tree0201b7…；完整只读源码R1 PASS gate ad70d55d…，不沿用旧模型gate。新root故障probe通过，私有slice独立900秒timer实际目标在Main后866.90865秒、arm→Main余量33.094685953秒、Accuracy1秒；此前cfdf的905秒容差审阅阻断原样保留。
+
+本次仅原CPU Ray head及GPU配置的sleep30 worker，未启动Ray worker应用、Store池、模型、业务请求或缓存控制。kernel Main正常exit0，总控制进程成本101.623486秒；不是完整模型Controller。77个监控样本最大0.492331029秒、最大间隔1.492782718秒。47个释放样本首末60.128680346秒、最大间隔1.563726192秒，worker自然exit0，head受控stop后exit1，均非OOM；本run容器已删除，临时timer/slices已独立核inactive，八卡0且无GPU进程。
+
+主进程直接读取完整77/47原始JSONL校验SHA、时钟/原始跨度；后续CPU逐行补审复核八卡UUID/显存、5秒时序、53次init PID出生/cgroup身份及全部47行原释放判据。独立子代理只读核本地小摘要、冻结源及已执行verifier，结论PASS_STARTUP_COMPONENT_ONLY；它未直接读取远端原始JSONL，不能称两人均逐行复核。模型服务与完整GLM Controller仍未通过，报告缺测格不填。
+
+原始证据目录：/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T163357Z-5a947f74。原monitor/release总约1.95MB留服务器，本地仅小型摘要/来源SHA和实际verifier源码，见glm/evidence/cost-sources/startup-monitor-control-result.json。控制源/池/缓存均未新增GB副本。独立guard故障probe、审阅、源码部署等公共初始化在主进程101.6秒之外，启动控制成本不能冒充包含这些步骤的总项目成本；root probe原始时刻和文件SHA已保留。
+
+结论：此一次GPU容器创建/sleep控制未复现原慢采样，不证明根因已解决，也不能排除间歇性Docker/NVML或调度问题。原失败发生的worker应用/Python/Ray启动不在本次覆盖内，是下一待定位边界；任何更深入的现场控制须先有具体有界方案、独立审阅、资源授权与新守护，不能直接启第四模型cohort。当前没有持续占用GPU或大池。
+
+原40仍35成功/5失败；三个补充cohort各0成功/1失败/3未开始，全部保留，不重试、不补入C23。下一阶段仍是证据驱动定位和必要修复，最终再进行受审四条件同次补测，goal未完成。
