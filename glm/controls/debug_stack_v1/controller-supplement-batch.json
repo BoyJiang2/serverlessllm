@@ -22,25 +22,52 @@
       "condition": "safetensors_disk_cold",
       "run_id": "sllm-debug-20261109T105600Z-3d427ecc",
       "holder": "4f5119ddc1a046d99a0db7873b2419ff",
-      "status": "not_started"
+      "status": "failed",
+      "controller_unit": "sllm-debug-20261109T105600Z-3d427ecc-controller.service",
+      "controller_start_monotonic_usec": 1346278745679,
+      "root_probe_sha256": "67ac915377796643dfd2f90e4b696177f8fc61d31b697889e319e54e12d903c5",
+      "runtime_source": "/data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-48dd5367ab79",
+      "root_probe_scope": "actual CPU deadline probes passed; controller and model lifecycle still running",
+      "controller_success_metric": null,
+      "primary_failure": "phase_summary router_instance_published missing",
+      "arithmetic_gold_match": true,
+      "remaining_business_cases_completed": false,
+      "normal_whole_exit_verified": false,
+      "post_failure_release_s": 61.225920305,
+      "post_failure_cleanup_not_a_success": true,
+      "failures": [
+        "missing router event",
+        "unverified live-container disappearance race during teardown",
+        "normal child returncode rules not met",
+        "original release sample span59.926809936s below60"
+      ]
     },
     {
       "condition": "safetensors_disk_hot",
       "run_id": "sllm-debug-20261109T105600Z-7203b881",
       "holder": "d2b324ec440f4356a14f5b7c4b0257ae",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "first attempt failed; frozen cohort halted, no automatic replacement/retry"
     },
     {
       "condition": "store_disk_cold",
       "run_id": "sllm-debug-20261109T105600Z-54cb731c",
       "holder": "3045be594aa14187bb030e0c74aba92e",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "first attempt failed; frozen cohort halted, no automatic replacement/retry"
     },
     {
       "condition": "store_pool_hit",
       "run_id": "sllm-debug-20261109T105600Z-74dae954",
       "holder": "ba2677b331b149f384d401635b8356f5",
-      "status": "not_started"
+      "status": "not_started",
+      "pause_reason": "first attempt failed; frozen cohort halted, no automatic replacement/retry"
     }
-  ]
+  ],
+  "batch_state": "stopped_after_first_failure",
+  "counts": {
+    "success": 0,
+    "failed": 1,
+    "not_started": 3
+  }
 }
