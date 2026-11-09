@@ -1,5 +1,7 @@
 # 调试栈 v1（只用于调试，永远不产生正式数据）
 
+2026-11-09：宿主 `up` 入口开始记录 `controller_begin_ns` 和 boot ID；`down` 在归属核验、容器删除及原有 GPU 进程检查之后记录结束端点。只有同一 boot 且端点顺序正确才给出 `controller_elapsed_s`，旧记录或跨重启记录保持 null，重复 down 不改写首次结束端点。这仍是调试起停包络，**没有自动增加实例删除后 60 秒观察、完整内存释放证明或正式准入**，不能填入 C23 的 controller 缺测栏。四条件补充准备见 `CONTROLLER-SUPPLEMENT.md`。
+
 一条命令起停 head + 8 卡 worker 的原生 ServerlessLLM 栈，用于看服务、排查问题、开发计量。设计依据见
 `deepseek-harness/default-workspace/P1-DESIGN-DRAFT.md`（方案 B）。
 

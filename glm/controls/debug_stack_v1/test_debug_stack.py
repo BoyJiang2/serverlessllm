@@ -181,5 +181,33 @@ class CommandLine(unittest.TestCase):
                 self.assertIn('usage:', result.stdout)
 
 
+class ControllerClock(unittest.TestCase):
+    def finish(self, state, boot_id='boot-a', end_ns=3000000000):
+        with patch.object(d, 'load_state', return_value=state), \
+             patch.object(d, 'remove_owned', return_value='absent') as cleanup, \
+             patch.object(d.pathlib.Path, 'read_text', return_value=boot_id), \
+             patch.object(d.time, 'monotonic_ns', return_value=end_ns), \
+             patch.object(d, 'write'):
+            result = d.down(type('Args', (), dict(run_id=STATE['run_id']))())
+        self.assertEqual(cleanup.call_count, 2)
+        return result
+
+    def test_same_boot_and_first_endpoint_preserved(self):
+        state = dict(STATE, controller_begin_ns=1000000000, controller_boot_id='boot-a')
+        result = self.finish(state)
+        self.assertEqual(result['controller_elapsed_s'], 2.0)
+        self.assertTrue(result['controller_timing_valid'])
+        self.assertEqual(self.finish(result, end_ns=5000000000)['controller_end_ns'], 3000000000)
+
+    def test_missing_cross_boot_and_reversed_clock_do_not_block_cleanup(self):
+        for extra in ({}, dict(controller_begin_ns=1, controller_boot_id='old-boot'),
+                      dict(controller_begin_ns=4000000000, controller_boot_id='boot-a')):
+            with self.subTest(extra=extra):
+                result = self.finish(dict(STATE, **extra))
+                self.assertIsNone(result['controller_elapsed_s'])
+                self.assertFalse(result['controller_timing_valid'])
+                self.assertEqual(result['status'], 'released')
+
+
 if __name__ == '__main__':
     unittest.main()

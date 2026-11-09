@@ -256,6 +256,8 @@ def remove_owned(state, role):
 
 
 def up(args):
+    controller_begin_ns = time.monotonic_ns()
+    controller_boot_id = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     gpu = not args.head_only
     refuse_shared_state(gpu)
     booking = gpu_authority(args.borrow, args.booking_id, args.booking_end, args.seconds) if gpu else None
@@ -276,6 +278,8 @@ def up(args):
     run_root = debug_root/run_id
     run_root.mkdir(mode=0o700)
     state = dict(run_id=run_id, holder=holder, purpose=plan.PURPOSE, image_id=plan.IMAGE, mode='head-only' if args.head_only else 'gpu',
+                 controller_begin_ns=controller_begin_ns, controller_boot_id=controller_boot_id,
+                 controller_clock='time.monotonic_ns on qjhs003 host',
                  lifetime_seconds=args.seconds, deadline_unix=deadline, weight_format=args.weight_format, query=not args.no_query,
                  booking=booking, guard=guard, configuration=config,
                  tool_sha256={str(p.relative_to(TREE)): sha256(p) for p in TOOLS}, status='deploying source')
@@ -349,6 +353,18 @@ def down(args):
             if time.monotonic() > deadline:
                 raise RuntimeError('GPU processes remain after the worker was removed')
             time.sleep(2)
+    end_ns = time.monotonic_ns()
+    boot_id = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+    # Missing or cross-boot timing must never prevent cleanup, nor become a duration.
+    if 'controller_end_ns' not in state:
+        begin_ns = state.get('controller_begin_ns')
+        valid = (type(begin_ns) is int and begin_ns < end_ns and bool(boot_id)
+                 and state.get('controller_boot_id') == boot_id)
+        state.update(controller_end_ns=end_ns, controller_end_boot_id=boot_id,
+                     controller_elapsed_s=(end_ns-begin_ns)/1e9 if valid else None,
+                     controller_timing_valid=valid,
+                     controller_scope='up entry through owned container removal and GPU-process check; '
+                                      'excludes any later resource observation; debug evidence, not C23')
     state.update(status='released', released_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
     write(HOST/'debug'/state['run_id']/'stack.json', state)
     return state
