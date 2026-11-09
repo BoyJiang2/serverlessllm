@@ -4,6 +4,7 @@ if sys.flags.optimize or os.environ.get('PYTHONOPTIMIZE'):
 """Debug-only GPU stack lifecycle on qjhs003: up/status/down. Never formal; refuses next to any formal run."""
 import argparse
 import datetime
+import errno
 import hashlib
 import ipaddress
 import json
@@ -343,8 +344,6 @@ def up(args, state=None):
         else:
             state['image'] = dict(head=restore_with_receipt(run_root/'image-init-head.json'))
         head_plan = plan.plan(run_id, holder, args.seconds, 'PENDING_OBSERVED_HEAD_IP', active=active, deadline_unix=deadline)['head']
-        if condition:
-            head_plan['docker_argv'][2:2] = ['--cgroup-parent='+run_id+'.slice']
         head = create_and_start(head_plan['docker_argv'], 'head', state, receipt)
         ip = head['NetworkSettings']['Networks']['bridge']['IPAddress']
         if not ipaddress.ip_address(ip).is_private:
@@ -360,8 +359,6 @@ def up(args, state=None):
             worker = plan.plan(run_id, holder, args.seconds, ip, args.weight_format, not args.no_query,
                                active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
                                supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None)['worker']
-            if condition:
-                worker['docker_argv'][2:2] = ['--cgroup-parent='+run_id+'.slice']
             create_and_start(worker['docker_argv'], 'worker', state, receipt)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -461,38 +458,49 @@ def supplement_sample(state):
             continue
         if not owned(info, state, role):
             raise RuntimeError('monitor container ownership differs')
-        pid = info['State']['Pid']
-        item = dict(container_id=cid, docker_state=info['State'], pid=pid)
-        if pid:
-            proc = pathlib.Path('/proc')/str(pid)
-            before = proc.joinpath('stat').read_text()
-            item.update(startticks=int(before.rsplit(')', 1)[1].split()[19]), status=proc.joinpath('status').read_text())
-            cg, = [line[3:] for line in proc.joinpath('cgroup').read_text().splitlines() if line.startswith('0::')]
-            base = pathlib.Path('/sys/fs/cgroup')/cg.lstrip('/')
-            if not base.resolve().is_relative_to(pathlib.Path('/sys/fs/cgroup')):
-                raise RuntimeError('cgroup escaped host mount')
-            item['cgroup_path'] = str(base)
-            if cid not in base.name:
-                raise RuntimeError('container cgroup path does not bind exact Docker ID')
-            birth = dict(path=str(base), inode=base.stat().st_ino, container_id=cid)
-            registered = state.setdefault('bound_cgroups', {}).setdefault(role, birth)
-            if registered != birth:
-                raise RuntimeError('container cgroup birth identity changed')
-            item['cgroup'] = {name:(base/name).read_text() for name in
-                              ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
-            item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
-            for member in item['cgroup']['cgroup.procs'].split():
-                member_proc = pathlib.Path('/proc')/member
-                try:
-                    row['processes'].append(dict(pid=int(member), stat=(member_proc/'stat').read_text(),
-                        status=(member_proc/'status').read_text(), cgroup=(member_proc/'cgroup').read_text(),
-                        pid_namespace=(member_proc/'ns/pid').readlink().as_posix()))
-                except FileNotFoundError:
-                    # Birth/disappearance is explicit; it is never a zero-memory sample.
-                    row.setdefault('processes_disappeared_during_sample', []).append(int(member))
-            item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
-            if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
-                raise RuntimeError('monitor PID reused')
+        try:
+            pid = info['State']['Pid']
+            item = dict(container_id=cid, docker_state=info['State'], pid=pid)
+            if pid:
+                proc = pathlib.Path('/proc')/str(pid)
+                before = proc.joinpath('stat').read_text()
+                item.update(startticks=int(before.rsplit(')', 1)[1].split()[19]), status=proc.joinpath('status').read_text())
+                cg, = [line[3:] for line in proc.joinpath('cgroup').read_text().splitlines() if line.startswith('0::')]
+                base = pathlib.Path('/sys/fs/cgroup')/cg.lstrip('/')
+                if not base.resolve().is_relative_to(pathlib.Path('/sys/fs/cgroup')):
+                    raise RuntimeError('cgroup escaped host mount')
+                item['cgroup_path'] = str(base)
+                if cid not in base.name:
+                    raise RuntimeError('container cgroup path does not bind exact Docker ID')
+                birth = dict(path=str(base), inode=base.stat().st_ino, container_id=cid)
+                registered = state.setdefault('bound_cgroups', {}).setdefault(role, birth)
+                if registered != birth:
+                    raise RuntimeError('container cgroup birth identity changed')
+                item['cgroup'] = {name:(base/name).read_text() for name in
+                                  ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+                item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
+                for member in item['cgroup']['cgroup.procs'].split():
+                    member_proc = pathlib.Path('/proc')/member
+                    try:
+                        row['processes'].append(dict(container_id=cid, pid=int(member), stat=(member_proc/'stat').read_text(),
+                            status=(member_proc/'status').read_text(), cgroup=(member_proc/'cgroup').read_text(),
+                            pid_namespace=(member_proc/'ns/pid').readlink().as_posix()))
+                    except FileNotFoundError:
+                        # Birth/disappearance is explicit; it is never a zero-memory sample.
+                        row.setdefault('processes_disappeared_during_sample', []).append(int(member))
+                item['smaps_rollup'] = proc.joinpath('smaps_rollup').read_text()
+                if before.rsplit(')', 1)[1].split()[19] != proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19]:
+                    raise RuntimeError('monitor PID reused')
+        except OSError as error:
+            if error.errno not in (errno.ENOENT, errno.ESRCH):
+                raise
+            final = inspect(cid)
+            if final is not None and (not owned(final, state, role) or final['State']['Running']):
+                raise RuntimeError('missing live container process/cgroup remains unverified') from error
+            item = dict(container_id=cid, absent=final is None, pid=0,
+                        docker_state=final['State'] if final else None,
+                        disappeared_during_sample=True, memory_observation='missing; not zero', error=repr(error))
+            row['processes'] = [p for p in row['processes'] if p.get('container_id') != cid]
         row['containers'][role] = item
     row['gpu'] = subprocess.check_output(['/usr/bin/timeout', '-k', '2s', '10s', 'nvidia-smi',
                                         '--query-gpu=index,uuid,memory.total,memory.used,utilization.gpu', '--format=csv,noheader'], text=True, timeout=15)
@@ -515,14 +523,25 @@ def supplement_sample(state):
     row['retained_cgroups'] = {}
     for role, registered in list(state.get('bound_cgroups', {}).items()):
         base = pathlib.Path(registered['path'])
-        if not base.exists():
-            row['retained_cgroups'][role] = dict(registered, absent=True)
-        else:
-            if base.stat().st_ino != registered['inode']:
-                raise RuntimeError('registered cgroup inode reused')
-            row['retained_cgroups'][role] = dict(registered, absent=False,
-                values={name:(base/name).read_text() for name in
-                        ('cgroup.events', 'cgroup.procs', 'memory.stat', 'memory.current', 'io.stat')})
+        try:
+            if not base.exists():
+                row['retained_cgroups'][role] = dict(registered, absent=True)
+            else:
+                if base.stat().st_ino != registered['inode']:
+                    raise RuntimeError('registered cgroup inode reused')
+                row['retained_cgroups'][role] = dict(registered, absent=False,
+                    values={name:(base/name).read_text() for name in
+                            ('cgroup.events', 'cgroup.procs', 'memory.stat', 'memory.current', 'io.stat')})
+        except OSError as error:
+            if error.errno not in (errno.ENOENT, errno.ESRCH):
+                raise
+            if base.exists():
+                raise RuntimeError('retained cgroup lost fields while still present') from error
+            row['retained_cgroups'][role] = dict(registered, absent=True, disappeared_during_sample=True)
+    if state.get('verified_slice_cgroup'):
+        parent = pathlib.Path('/sys/fs/cgroup')/state['verified_slice_cgroup'].lstrip('/')
+        row['private_slice_memory_events'] = (parent/'memory.events').read_text()
+        state['last_private_slice_memory_events'] = row['private_slice_memory_events']
     row['last_sample_ns'] = row['monotonic_ns'] = time.monotonic_ns()
     row['sample_end_ns'] = time.monotonic_ns()
     return row
@@ -544,6 +563,9 @@ def gpu_memory_by_uuid(raw):
 
 
 def require_supplement_release(row, baseline):
+    events = dict(line.split() for line in row['private_slice_memory_events'].splitlines())
+    if not {'oom', 'oom_kill'} <= events.keys() or any(int(value) for name, value in events.items() if name.startswith('oom')):
+        raise RuntimeError('owned slice OOM evidence missing or nonzero')
     if row['gpu_processes'].strip() or gpu_memory_by_uuid(row['gpu']) != baseline:
         raise RuntimeError('GPU process/memory baseline not released')
     if any(not r.get('absent') for r in row['containers'].values()):
@@ -614,6 +636,9 @@ def check_supplement_resources(sample):
     memory = sample['host_memory_bytes']
     if sample['hostname'] != 'qjhs3' or sample['uid'] != UID:
         raise RuntimeError('supplement node/user identity differs')
+    cgroup = sample['cgroup_filesystem']
+    if cgroup['fstype'] != 'cgroup2' or 'memory_localevents' in cgroup['options'].split(','):
+        raise RuntimeError('hierarchical private-slice OOM accounting unavailable')
     if (memory['MemTotal'] < 1900*gib or memory['MemAvailable'] < 1700*gib or memory['SwapTotal'] != 0
             or memory['AnonPages'] > 8*gib or any(memory[k] > gib for k in ('Mlocked', 'Unevictable', 'Shmem'))):
         raise RuntimeError('host available/anonymous/locked/shared memory admission failed')
@@ -634,6 +659,9 @@ def check_supplement_resources(sample):
 def supplement_resources():
     sample = dict(begin_ns=time.monotonic_ns(), hostname=socket.gethostname(), uid=os.getuid(),
                   loadavg1=os.getloadavg()[0], filesystems=[], numa_reclaimable_bytes={})
+    fstype, options = subprocess.check_output(['findmnt', '-n', '-T', '/sys/fs/cgroup', '-o', 'FSTYPE,OPTIONS'],
+                                              text=True, timeout=15).split()
+    sample['cgroup_filesystem'] = dict(fstype=fstype, options=options)
     text = pathlib.Path('/proc/meminfo').read_text()
     sample['host_memory_bytes'] = {line.split(':', 1)[0]:int(line.split()[1])*1024 for line in text.splitlines()}
     for path in pathlib.Path('/sys/devices/system/node').glob('node[0-9]*/meminfo'):
@@ -777,12 +805,18 @@ def measure(args):
                     if list(gpu_memory_by_uuid(snapshot['gpu'])) != list(baseline):
                         raise RuntimeError('GPU UUID identity changed during supplement')
                     previous_begin, previous_mid = snapshot['sample_begin_ns'], snapshot['last_sample_ns']
-                    snapshot.update(observers_ok=True, history_ok=True, first_monitor_error=None)
+                    events = dict(line.split() for line in snapshot['private_slice_memory_events'].splitlines())
+                    oom = (not {'oom', 'oom_kill'} <= events.keys()
+                           or any(int(value) for name, value in events.items() if name.startswith('oom')))
+                    snapshot.update(observers_ok=not oom, history_ok=True,
+                                    first_monitor_error='owned slice OOM' if oom else None)
                     payload = json.dumps(snapshot)+'\n'
                     if stream.tell()+len(payload.encode()) > 256*1024**2:
                         raise RuntimeError('bounded supplementary monitor exceeded256MiB')
                     stream.write(payload)
                     stream.flush()
+                    if oom:
+                        raise RuntimeError('owned slice OOM: '+snapshot['private_slice_memory_events'])
                     write(root/'supplement-monitor-ready.json', snapshot)
                     stopped.wait(1)
         except BaseException as error:
@@ -857,6 +891,7 @@ def measure(args):
         if result['controller_elapsed_s'] is None or result['controller_elapsed_s'] > SUPPLEMENT_TOTAL_SECONDS:
             result.update(success=False, budget_or_clock_failure=True)
         result['status'] = 'components passed; awaiting kernel unit exit finalization' if result['success'] else 'failed independent supplement'
+        result['last_private_slice_memory_events'] = state.get('last_private_slice_memory_events')
         result['controller_metric_provisional'] = True
         result['controller_finalizer'] = 'historical_costs.py --finalize-controller '+state['run_id']
         write(root/'controller-result.json', result)

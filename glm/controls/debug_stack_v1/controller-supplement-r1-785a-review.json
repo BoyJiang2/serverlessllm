@@ -1,0 +1,70 @@
+{
+  "scope": "glm-controller-supplement-v1",
+  "review_type": "complete_local_readonly_R1",
+  "reviewer": "/root/glm_controller_r1",
+  "reviewed_commit": "785a3ee4d9e46cd8348160b9589f022edb9377ff",
+  "manifest": "glm/controls/debug_stack_v1/controller-supplement-r1-current.json",
+  "manifest_sha256": "6de3e6f133c91192772d99eff3e1d32c38d769aa8062699366675db265a2adde",
+  "verdict": "BLOCKED",
+  "approved": false,
+  "runtime_admission": false,
+  "review_actions": {
+    "files_modified": false,
+    "remote_access": false,
+    "containers_started": false,
+    "gpu_or_pool_started": false,
+    "new_cpu_probe_started": false
+  },
+  "record_kind": "primary-agent transcription of independent readonly review; findings preserved, wording condensed",
+  "blocking_findings": [
+    {
+      "id": "R1-785a-01",
+      "priority": "P1",
+      "file": "glm/controls/debug_stack_v1/debug_stack.py",
+      "lines": "458-495;769-789;827-854",
+      "problem": "Normal exit/removal may race init PID/cgroup reads after inspect and incorrectly terminate monitoring.",
+      "minimum_fix": "Catch only ENOENT/ESRCH; re-inspect exact CID and confirm stopped/removed; retain explicit missing/race without zero; still reject live unknown/reused identities.",
+      "required_regression": [
+        "init PID disappears after inspect",
+        "cgroup disappears after inspect",
+        "live/reused PID rejected"
+      ]
+    },
+    {
+      "id": "R1-785a-02",
+      "priority": "P1",
+      "file": "glm/controls/debug_stack_v1/debug_stack.py",
+      "lines": "264-277;481-482;546-561;728-862",
+      "problem": "Docker OOMKilled=false does not exclude OOM killing a child; deleted child cgroups may lose counters.",
+      "minimum_fix": "Read private slice hierarchical memory.events continuously and through release; nonzero/increasing oom/oom_kill fails, missing is not zero; preserve counters.",
+      "required_regression": [
+        "child oom_kill increases while PID1 and Docker OOMKilled remain normal; released GPU/child cgroups must not make success"
+      ]
+    }
+  ],
+  "prior_findings_status": {
+    "B1": "RESOLVED",
+    "B2": "DESIGN_CLOSED_PENDING_FIELD_ADMISSION",
+    "B3": "RESOLVED_IN_SOURCE",
+    "B4": "RESOLVED_IN_SOURCE_PENDING_REAL_POOL",
+    "B5": "DESIGN_CLOSED_PENDING_FIELD_ADMISSION",
+    "B6": "PARTIAL_R1-785a-02",
+    "B7": "PARTIAL_R1-785a-01_AND_02",
+    "B8": "RESOLVED_FOR_DECLARED_SCOPE_NOT_ALL_RANK_MAPPED_MACHINE_CODE",
+    "B9": "RESOLVED_IN_SOURCE_FRESH_CHECK_STILL_REQUIRED"
+  },
+  "remaining_field_admission": [
+    "new commit and manifest independent R1",
+    "actual CPU timeout/setsid/exact-slice Docker+sentinel probe after SSH disconnect",
+    "root receipt and actual timer/unit/cgroup/deadline/hash/birth verification",
+    "fresh resource/NUMA/IO and bounded user-authorized window",
+    "same-run gold/cache/phase/idle60/release60 and normal kernel exit finalization"
+  ],
+  "notes": [
+    "Duplicate identical cgroup-parent is nonblocking redundancy.",
+    "ray stop nonzero/timeout is failure; force teardown is not described as every Ray process exiting without a signal.",
+    "failed host CPU probe unit and RemainAfterExit one-shots preserve metadata; actual behavior still needs probe.",
+    "contrast sleep90s means verification should finish before90s; late failure retained.",
+    "new n1 cohort never spliced into C23 or original40"
+  ]
+}

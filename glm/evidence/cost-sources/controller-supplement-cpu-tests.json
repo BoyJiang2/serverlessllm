@@ -3,7 +3,7 @@
   "checks": [
     {
       "suite": "debug_stack_v1/test_debug_*.py",
-      "passed": 58
+      "passed": 60
     },
     {
       "suite": "glm/tools/test_final_costs.py",
@@ -18,21 +18,44 @@
       "passed": 10
     }
   ],
-  "tests_passed": 80,
+  "tests_passed": 82,
   "gpu_execution": false,
   "native_pool_created": false,
-  "full_r1_status": "BLOCKED; current root probe and kernel-exit candidate awaiting full independent R1",
+  "full_r1_status": "785a BLOCKED two source findings; corrected revision awaiting new full R1",
   "retained_prior_failures": [
     "Git-less source snapshot refused Git HEAD verification",
     "remote metadata source escaping SyntaxError fixed with bytes([0])",
     "raw official-blob differences diagnosed as28 CRLF-only variants and3 pinned patches; no server rewrite",
     "stale CPU unit fixture lacked controller_unit, corrected fixture only",
     "root-probe fixture FileNotFoundError lacked errno; corrected fixture to errno2",
-    "Windows temporary path escaping in finalizer CPU fixture; changed fixture paths to POSIX"
+    "Windows temporary path escaping in finalizer CPU fixture; changed fixture paths to POSIX",
+    "new monitoring fixture initially intercepted plan JSON reads; delegated real JSON file reads without changing production behavior",
+    "cgroup/PID-reuse CPU fixture initially used Windows drive resolution for Linux paths; mocked Linux path resolution only in fixture, production containment check unchanged"
   ],
   "extra_syntax_checks": [
     "installer embedded Python AST",
     "qjhs003 bash -n only; no script executed",
     "post-exit finalizer remote Python AST"
-  ]
+  ],
+  "monitor_oom_red_green": {
+    "base_commit": "785a3ee4d9e46cd8348160b9589f022edb9377ff",
+    "tests": [
+      "test_monitor_requires_same_container_exit_before_accepting_missing_process",
+      "test_release_requires_eight_devices_memory_and_owned_cgroups"
+    ],
+    "before": {
+      "success": false,
+      "failures": 1,
+      "errors": 2,
+      "output": "EEF\n======================================================================\nERROR: test_monitor_requires_same_container_exit_before_accepting_missing_process (test_debug_stack.SupplementAdmission.test_monitor_requires_same_container_exit_before_accepting_missing_process) (final={'Config': {'Labels': {'sllm.run_id': 'sllm-debug-20261028T120000Z-0123abcd', 'sllm.purpose': 'DEBUG-UNREVIEWED', 'sllm.holder': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'}}, 'Image': 'sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f', 'Name': '/sllm-debug-20261028T120000Z-0123abcd-headservice13a', 'State': {'Pid': 0, 'Running': False}})\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\glm\\controls\\debug_stack_v1\\test_debug_stack.py\", line 248, in test_monitor_requires_same_container_exit_before_accepting_missing_process\n    row = d.supplement_sample(dict(STATE, head_container_id='c'*64))\n  File \"D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\glm\\controls\\debug_stack_v1\\debug_stack.py\", line 468, in supplement_sample\n    cg, = [line[3:] for line in proc.joinpath('cgroup').read_text().splitlines() if line.startswith('0::')]\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\glm\\controls\\debug_stack_v1\\test_debug_stack.py\", line 242, in read\n    raise FileNotFoundError(2, 'exited during sample')\nFileNotFoundError: [Errno 2] exited during sample\n\n======================================================================\nERROR: test_monitor_requires_same_container_exit_before_accepting_missing_process (test_debug_stack.SupplementAdmission.test_monitor_requires_same_container_exit_before_accepting_missing_process)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\glm\\controls\\debug_stack_v1\\test_debug_stack.py\", line 249, in test_monitor_requires_same_container_exit_before_accepting_missing_process\n    self.assertTrue(row['containers']['head']['disappeared_during_sample'])\n                    ^^^\nUnboundLocalError: cannot access local variable 'row' where it is not associated with a value\n\n======================================================================\nFAIL: test_release_requires_eight_devices_memory_and_owned_cgroups (test_debug_stack.SupplementAdmission.test_release_requires_eight_devices_memory_and_owned_cgroups)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"D:\\Documents\\codex\\2026-10-24\\new-chat\\serverlessllm\\glm\\controls\\debug_stack_v1\\test_debug_stack.py\", line 327, in test_release_requires_eight_devices_memory_and_owned_cgroups\n    with self.assertRaisesRegex(RuntimeError, 'OOM'):\n         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^\nAssertionError: RuntimeError not raised\n\n----------------------------------------------------------------------\nRan 2 tests in 0.006s\n\nFAILED (failures=1, errors=2)\n"
+    },
+    "after": {
+      "success": true,
+      "failures": 0,
+      "errors": 0,
+      "output": "..\n----------------------------------------------------------------------\nRan 2 tests in 0.004s\n\nOK\n"
+    },
+    "scope": "CPU fault injection only; no real cgroup or OOM created"
+  },
+  "readonly_cgroup_mount_check": "qjhs003 cgroup2 rw,nosuid,nodev,noexec,relatime; no memory_localevents; not a runtime admission"
 }

@@ -231,22 +231,83 @@ class ControllerClock(unittest.TestCase):
 
 
 class SupplementAdmission(unittest.TestCase):
+    def test_monitor_cgroup_disappearance_and_pid_reuse_remain_distinct(self):
+        cid = 'c'*64
+        base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')
+        original_read, original_stat = Path.read_text, Path.stat
+        for mode in ('cgroup_exit', 'pid_reuse'):
+            gone, stat_reads = [False], [0]
+            def stat(path, **kwargs):
+                if path == base:
+                    if gone[0]:
+                        raise FileNotFoundError(2, 'cgroup removed')
+                    return type('Stat', (), dict(st_ino=123))()
+                return original_stat(path, **kwargs)
+            def read(path, **kwargs):
+                if path.suffix == '.json':
+                    return original_read(path, **kwargs)
+                if path == Path('/proc/123/stat'):
+                    stat_reads[0] += 1
+                    tick = 2 if mode == 'pid_reuse' and stat_reads[0] > 1 else 1
+                    return '123 (init) '+' '.join(['0']*19+[str(tick)])
+                if path == Path('/proc/123/cgroup'):
+                    return '0::'+base.as_posix().removeprefix('/sys/fs/cgroup')+'\n'
+                if path == base/'memory.current' and mode == 'cgroup_exit':
+                    gone[0] = True
+                    raise FileNotFoundError(2, 'cgroup exited between reads')
+                return ''
+            with self.subTest(mode=mode), patch.object(d.pathlib.Path, 'stat', stat), \
+                 patch.object(d.pathlib.Path, 'read_text', read), \
+                 patch.object(d.pathlib.Path, 'resolve', lambda path: path), \
+                 patch.object(d, 'inspect', side_effect=[info(State=dict(Pid=123, Running=True)), None]), \
+                 patch.object(d.subprocess, 'check_output', side_effect=['', '']):
+                if mode == 'pid_reuse':
+                    with self.assertRaisesRegex(RuntimeError, 'PID reused'):
+                        d.supplement_sample(dict(STATE, head_container_id=cid))
+                else:
+                    row = d.supplement_sample(dict(STATE, head_container_id=cid))
+                    self.assertTrue(row['retained_cgroups']['head']['absent'])
+                    self.assertTrue(row['containers']['head']['disappeared_during_sample'])
+
+    def test_monitor_requires_same_container_exit_before_accepting_missing_process(self):
+        before = info(State=dict(Pid=123, Running=True))
+        stopped = info(State=dict(Pid=0, Running=False))
+        original_read = Path.read_text
+        def read(path, **kwargs):
+            if path.suffix == '.json':
+                return original_read(path, **kwargs)
+            if path.as_posix().endswith('/123/stat'):
+                raise FileNotFoundError(2, 'exited during sample')
+            return 'boot' if path.name == 'boot_id' else ''
+        for final in (stopped, None):
+            with self.subTest(final=final), patch.object(d, 'inspect', side_effect=[before, final]), \
+                 patch.object(d.pathlib.Path, 'read_text', read), \
+                 patch.object(d.subprocess, 'check_output', side_effect=['', '']):
+                row = d.supplement_sample(dict(STATE, head_container_id='c'*64))
+            self.assertTrue(row['containers']['head']['disappeared_during_sample'])
+            self.assertEqual(row['containers']['head']['memory_observation'], 'missing; not zero')
+        with patch.object(d, 'inspect', side_effect=[before, before]), \
+             patch.object(d.pathlib.Path, 'read_text', read), self.assertRaisesRegex(RuntimeError, 'remains unverified'):
+            d.supplement_sample(dict(STATE, head_container_id='c'*64))
+
     def test_idle_gpu_does_not_bypass_host_numa_or_io_admission(self):
         gib = 1024**3
-        sample = dict(hostname='qjhs3', uid=2147, host_memory_bytes=dict(MemTotal=1923*gib, MemAvailable=1850*gib,
+        sample = dict(hostname='qjhs3', uid=2147, cgroup_filesystem=dict(fstype='cgroup2', options='rw,nosuid'),
+                      host_memory_bytes=dict(MemTotal=1923*gib, MemAvailable=1850*gib,
                       SwapTotal=0, AnonPages=3*gib, Mlocked=0, Unevictable=0, Shmem=0),
                       numa_reclaimable_bytes={'node0':950*gib, 'node1':950*gib},
                       gpu_devices=[dict(index=i, uuid='GPU-'+str(i), name='H20-3e', total_MiB=143771, used_MiB=0) for i in range(8)],
                       gpu_processes='', loadavg1=.2, read_sectors=[100, 100], read_inflight=[0, 0],
                       filesystems=[dict(fstype='xfs', source='/dev/nvme1n1')]*2)
         d.check_supplement_resources(sample)
-        for kind in ('locked', 'numa', 'memory', 'gpu', 'io'):
+        for kind in ('locked', 'numa', 'memory', 'gpu', 'io', 'local_events'):
             bad = copy.deepcopy(sample)
             if kind == 'locked': bad['host_memory_bytes']['Mlocked'] = 2*gib
             if kind == 'numa': bad['numa_reclaimable_bytes']['node1'] = 700*gib
             if kind == 'memory': bad['host_memory_bytes']['MemAvailable'] = 1600*gib
             if kind == 'gpu': bad['gpu_devices'][7]['used_MiB'] = 1
             if kind == 'io': bad['read_sectors'][1] += 1
+            if kind == 'local_events': bad['cgroup_filesystem']['options'] += ',memory_localevents'
             with self.subTest(kind=kind), self.assertRaises(RuntimeError):
                 d.check_supplement_resources(bad)
 
@@ -298,9 +359,13 @@ class SupplementAdmission(unittest.TestCase):
     def test_release_requires_eight_devices_memory_and_owned_cgroups(self):
         raw = '\n'.join(f'{i}, GPU-{i}, 0 MiB' for i in range(8))
         baseline = d.gpu_memory_by_uuid(raw)
-        row = dict(gpu=raw, gpu_processes='', containers={'head':dict(absent=True), 'worker':dict(absent=True)},
+        row = dict(gpu=raw, gpu_processes='', private_slice_memory_events='oom 0\noom_kill 0\n',
+                   containers={'head':dict(absent=True), 'worker':dict(absent=True)},
                    retained_cgroups={role:dict(absent=True) for role in ('head', 'worker')})
         d.require_supplement_release(row, baseline)
+        # Child cgroups may already be gone and Docker PID1 may report OOMKilled=false.
+        with self.assertRaisesRegex(RuntimeError, 'OOM'):
+            d.require_supplement_release(dict(row, private_slice_memory_events='oom 1\noom_kill 1\n'), baseline)
         with self.assertRaisesRegex(RuntimeError, 'eight-rank'):
             d.gpu_memory_by_uuid('\n'.join(raw.splitlines()[:-1]))
         with self.assertRaisesRegex(RuntimeError, 'baseline not released'):

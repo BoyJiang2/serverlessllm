@@ -67,3 +67,12 @@ B8已通过SSH只读复核57个小型运行源码/native/配置资产，共20073
 - 独立守护安装/probe、源码部署、镜像恢复及闲置slice等公共准备成本另账，不因放在主Controller外消失。主Controller包含本次资源/代码检查、建池、缓存控制、部署/请求及两层释放观察。镜像必须已存在，缺失则停止，不在计时里发起异步load。
 
 当前只完成CPU源码检查，不存在本修订实际root probe、四条件运行或批准。18:23(+08)只读快照八卡0MiB，主机MemAvailable2018325405696字节；快照不授予后续准入。下一步完整源码/预算R1，之后实际CPU守护probe及新鲜资源检查，通过才按固定顺序各一次；异常停止后续，不与C23六块拼接。
+
+
+## 785a完整R1与后续最小修订
+
+完整只读R1对785a3ee4及清单6de3e6f133c91192772d99eff3e1d32c38d769aa8062699366675db265a2adde给出BLOCKED；独立结论转录于controller-supplement-r1-785a-review.json。除现场准入外还剩两项源码阻断：正常退出采样PID/cgroup消失竞态，及Docker子进程OOM未纳入成功判定。该提交、远端90文件副本及旧冻结清单不变。
+
+下一修订仅在已有实现/测试中修复：ENOENT/ESRCH发生后重新inspect同一CID，只有确认退出/移除才保留明确missing/race并继续；身份复用/仍活且不明/权限错误仍失败。私有slice在Main存活期间持续保留层级memory.events，oom/oom_kill非零或缺失均失败；子Docker cgroup消失后仍能保留计数，不把OOMKilled=false当无OOM。实际准入核cgroup2且未启用memory_localevents；qjhs003只读挂载核验为cgroup2 rw,nosuid,nodev,noexec,relatime，未修改挂载。监控和释放收据保存原始OOM字段。去除up中重复同值cgroup-parent，复用原docker_args既有参数。
+
+CPU故障回归在785a冻结源码上重现失败、在修订上通过；仅证明故障注入判据，未制造真实OOM、未运行模型。完整新R1及实际root CPU probe仍待完成，四条件补测仍0启动。
