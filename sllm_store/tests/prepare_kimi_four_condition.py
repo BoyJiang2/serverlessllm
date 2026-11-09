@@ -1167,7 +1167,7 @@ def validate_frozen_protocol(protocol, source_commit):
     for key in (('conditions',) if unified else ('conditions','design','attempts')):
         assert protocol[key]==original[key],('preregistered contract changed',key)
     if unified:
-        assert protocol['statistics']==(MATCHED_STATISTICS if protocol['unified_loading']['cohort_id']==SMALL_POOL_COHORT else UNIFIED_STATISTICS)
+        assert protocol['statistics']==(MATCHED_STATISTICS if protocol['unified_loading']['cohort_id']==SMALL_POOL_COHORT else STOP_OBSERVE_STATISTICS if protocol['unified_loading']['cohort_id']==STOP_OBSERVE_COHORT else UNIFIED_STATISTICS)
         validate_unified_overlay(protocol)
     statistics=copy.deepcopy(protocol['statistics'])
     assert statistics.pop('success_rate_denominator',None)=='launch_requested','launch-requested success-rate denominator must be preregistered'
