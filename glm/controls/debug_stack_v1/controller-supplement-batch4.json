@@ -55,10 +55,11 @@
       "status": "failed",
       "metrics": null,
       "failure_evidence": "glm/evidence/cost-sources/controller-supplement-v4-store_disk_cold-failure.json",
-      "failure_evidence_sha256": "4e923c96244cc793261ac1e46e442823274761a1bed0c488f43572314f9459a9",
-      "error": "continuous monitor missing live container cgroup during Store pool initialization; no business response",
-      "controller_elapsed_s": 172.026049133,
-      "full_release_observation_s": 61.111785459
+      "failure_evidence_sha256": "90a0f80ad3a2929005a37999a94dfa1b1786df714c52ae3a142d7cb51feff64e",
+      "error": "continuous monitor rejected live worker process/cgroup evidence (ESRCH); no business response",
+      "controller_elapsed_s": 172.041009,
+      "full_release_observation_s": 61.111785459,
+      "inner_elapsed_s": 172.026049133
     },
     {
       "condition": "store_pool_hit",
@@ -246,7 +247,7 @@
     "note": "Only failed CPU probe resources were cleaned; external sllm-v7 containers and GPU processes were untouched."
   },
   "rewrite_candidate": {
-    "blocker": "Worker cgroup file briefly returned ENOENT while Docker reported the same live PID/startticks during 716GiB Store pool creation.",
+    "blocker": "Monitor reported ESRCH in 'container init or cgroup read' while Docker reported the same live PID during 716 GiB Store pool initialization. Exact operation and cause unknown.",
     "change": "Retry only the six cgroup reads for at most 2.5 seconds and record retries; persistent unknown, PID reuse and live container with unavailable cgroup still fail.",
     "cpu_tests": {
       "debug_stack": 78,

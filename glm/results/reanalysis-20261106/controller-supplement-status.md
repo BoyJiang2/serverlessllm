@@ -159,8 +159,8 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 
 ## 第四cohort在Store冷读失败后终止
 
-新复跑探针在时限内通过，随后Store冷读run sllm-debug-20261109T183328Z-b44dd6d7实际启动。716GiB公共Store池开始创建（1432×512MiB）后，worker仍被Docker报告为running且PID/startticks未变，但监控在一次样本读取其cgroup时得到ENOENT；约2秒重查仍未消失，正确拒绝将缺失当作零内存并终止。Controller 172.026049133秒后exit1，业务金标未执行，无Controller/Prep/A可发布。
+新探针在时限内通过，Store 冷读 run sllm-debug-20261109T183328Z-b44dd6d7 实际启动。Store 日志记录开始创建 716 GiB 池（1432 × 512 MiB），未取得建池完成证据。监控拒绝回执记录 ESRCH（errno 3），阶段为 container init or cgroup read，filename 为 null。Docker 复查持续报告同一 PID 正在运行，具体失败操作和根因未知。宿主 unit 经过 172.041009 秒后 exit 1，内部计时为 172.026049133 秒。业务金标未执行，成功指标保留为空。
 
 清理后本run容器全部移除，完整释放观察61.111785459秒，GPU八卡0且无计算进程；独立3240秒timer和空slice已另行停止。原始controller-final、monitor rejection、controller result、stack、release、Store/Ray日志及SHA见glm/evidence/cost-sources/controller-supplement-v4-store_disk_cold-failure.json。
 
-第四cohort因此终态为2成功/1失败/1未开始，Store池命中未启动，失败ID不得重试。已证实行为缺口只允许在既有debug_stack.py修复：cgroup六个文件在ENOENT/ESRCH时最多2.5秒重试并记录，持续未知仍失败。新增回归加原78项debug、6项C23、6项final-cost、10项runtime-import共100项CPU检查全部通过。新commit、完整manifest和R1尚未完成，故代码未部署、未重跑；后续必须创建新的cohort身份。
+第四cohort因此终态为2成功/1失败/1未开始，Store池命中未启动，失败ID不得重试。已证实行为缺口只允许在既有debug_stack.py修复：cgroup六个文件在ENOENT/ESRCH时最多2.5秒重试并记录，持续未知仍失败。新增回归加原78项debug、6项C23、6项final-cost、10项runtime-import共100项CPU检查全部通过。第五批候选已在 92979a42 冻结，四项均未开始，须完成该候选的独立 R1 及现场准入。

@@ -8,7 +8,7 @@
   "review_sha256": "007c9a285cb4272acce1490fd5b6dc8cfc73de412cb3a0abdd41f08f58a8c1d6",
   "started": "2026-11-10T14:09:41+08:00",
   "ended": "2026-11-10T14:12:33+08:00",
-  "controller_elapsed_s": 172.026049133,
+  "controller_elapsed_s": 172.041009,
   "controller_final": {
     "success": false,
     "failure": "AssertionError; failed finalizer receipt retained",
@@ -21,8 +21,8 @@
   },
   "failure": {
     "stage": "collect",
-    "kind": "continuous monitor missing live container cgroup",
-    "summary": "Worker Docker state remained running with the same PID/startticks, but a recorded cgroup read raised ENOENT during Store pool initialization. The monitor rechecked the exact Docker container for about two seconds, found the same live identity, and therefore correctly refused to treat memory as absent or zero. The controller then aborted the attempt.",
+    "kind": "continuous monitor could not verify the live worker process or cgroup",
+    "summary": "The rejection records ESRCH (errno 3), stage 'container init or cgroup read', and a null filename. Docker rechecks continued reporting the same running PID. The exact failed operation and cause are unknown. The controller aborted the attempt.",
     "worker": {
       "container_id": "4adbb1509569aa4d14b222f33691779517d63d48523cd2a63843a188d2d4cece",
       "pid": 3834944,
@@ -32,12 +32,13 @@
     "errno": 3,
     "cleanup_error": "supplement normal container exit not verified; resources cleaned, failure retained",
     "model_business_response": false,
-    "store_pool_created": true,
+    "store_pool_created": null,
     "store_log_shows_pool": {
       "buffers": 1432,
       "chunk_bytes": 536870912,
       "pool_bytes": 768799145984
-    }
+    },
+    "store_pool_initialization_started": true
   },
   "release": {
     "instance_idle_observation_s": null,
@@ -94,5 +95,11 @@
     }
   },
   "stop_rule": "Store pool hit not started; failed ID is terminal and must not be retried or relabeled. Original 40 and prior strata unchanged. New revision requires commit/manifest/R1 and a new cohort identity.",
-  "root_cause_status": "MONITOR BEHAVIOR VERIFIED; UNDERLYING TRANSIENT CGROUP DISAPPEARANCE MECHANISM NOT YET ESTABLISHED"
+  "root_cause_status": "MONITOR BEHAVIOR VERIFIED; UNDERLYING TRANSIENT CGROUP DISAPPEARANCE MECHANISM NOT YET ESTABLISHED",
+  "inner_elapsed_s": 172.026049133,
+  "controller_kernel_interval": {
+    "start_monotonic_us": 1415299370295,
+    "exit_monotonic_us": 1415471411304,
+    "exit_status": 1
+  }
 }
