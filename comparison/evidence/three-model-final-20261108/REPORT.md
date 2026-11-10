@@ -266,6 +266,27 @@ V4 cgroup memory.current 包括文件缓存，不是完整进程 RSS/全物理�
 
 38 次合格均以正常 Store/Ray/容器退出、原 PID 身份消失、无 compute apps 和 GPU 回原零基线独立验收。结束后现场八卡均 0 MiB、无计算进程。独立 native 两轮生命周期 run `native-service-20261107T093848Z` 的源为 69f67ad，轮间 62.028 秒只余已校准 Store daemon，第二轮重新注册/恢复/请求成功；不能将它写成 88cc71e 新重跑的两轮证明。
 
+## GLM第四独立Controller补充（2026-11-10，部分完成）
+
+这是原报告之后新增的独立GPU补测，原文“本次整理仅CPU”描述的是原始整理版本。本节单独报告同次Controller/Prep/A，**不回填或合并上文C23六块的缺测格**。原40项35成功/5失败、三个旧补充cohort各0成功/1失败/3未开始均不变。
+
+| 条件 | n | Prep/秒 | command→首个正确算术HTTP/秒 | Controller/秒 | 权重加载全rank跨度/秒 |
+|---|---:|---:|---:|---:|---:|
+| SF冷读 | 1 | 2.097072 | 843.981771 | 1274.926636 | 358.086166 |
+| SF热读 | 1 | 264.563567 | 625.085142 | 1301.317127 | 147.021788 |
+| Store冷读 | 0 | 未开始 | 未开始 | 未开始 | 未开始 |
+| Store池命中 | 0 | 未开始 | 未开始 | 未开始 | 未开始 |
+
+Controller起点是实际宿主systemd unit的kernel启动，终点是正常退出；退出前包含完整栈清理和至少60秒全资源释放观察。实例删除后另有至少60秒观察。两项观察分别为SF冷60.095283099/60.472522724秒、SF热60.104987589/60.425782300秒。两项均通过冻结金标的算术→翻译→fixed32、原缓存准入及八rank阶段校验，再由独立后置finalizer确认kernel端点后发布。A对应第一条算术请求的非流式正确HTTP完成，不是fixed32时延、客户端TTFT或最后token时间。
+
+两项官方FP8、TP8和推理配置一致，四条件公共Store池仍为716GiB；每run使用独立native-home，实际编译/预热约360秒计入本次Controller，**与C23共享编译缓存的实验条件不同**。守护故障probe、部署及审阅等unit外初始化另计，不能将Controller称整个项目总成本。权重阶段是跨rank包络，可能与其他phase嵌套，不相加，也不凭同名断言与V4工作边界等价。
+
+当前2成功/0失败/2未开始；每个已完成条件只有n=1，不发布CI、可靠性或四条件完整结论，不据此追认旧慢采样或exit137根因已解决。独立子代理核对本地小回执、kernel算术和冻结finalizer后未发现这两项限定发布的阻断；其未亲读远端原始JSONL/phase payload，不称第二人逐条复算。
+
+12:39后其他GPU作业出现，后续只读预查又遇CPU负载及GPU占用；Store两项尚无Main启动。冻结“首次准入失败即停”对外层只读占用预查的适用边界待用户裁定，当前不继续启动、不擅自放宽门槛。运行后还须完整四条件复核，现有图4/5及C23主表保持原样。
+
+来源：[第四cohort账本](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/controls/debug_stack_v1/controller-supplement-batch4.json)、[SF冷读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json)、[SF热读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json)、[完整边界与审阅记录](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/results/reanalysis-20261106/controller-supplement-status.md)。回执含各原始来源的绝对路径、大小和SHA，原始大日志留qjhs003，不复制模型或大监控。
+
 ## GLM仍需新测量的缺项
 
 CPU已补回历史容器成本、采样峰及helper区间；以下不从旧总历时倒推：fixed32独立客户端begin/end；如必须统一的f7边界；纯save/纯填池分量；N>1持续保留池的摊销；与其他模型同端点的完整逐次controller。新增运行需独立预算、守护及审阅，不重跑或替换原40项、不为显著性增加旧样本。
