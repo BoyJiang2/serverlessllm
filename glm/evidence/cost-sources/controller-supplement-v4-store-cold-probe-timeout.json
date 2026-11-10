@@ -1,0 +1,56 @@
+{
+  "schema": "glm-controller-supplement-pre-run-probe-failure-v1",
+  "run_id": "sllm-debug-20261109T183328Z-b44dd6d7",
+  "holder": "0dc4540b0b6793975556e78cb874df5a",
+  "condition": "store_disk_cold",
+  "status": "pre_run_failed",
+  "model_attempt_started": false,
+  "controller_main_started": false,
+  "store_pool_created": false,
+  "formal_attempt_id_consumed": false,
+  "failure": {
+    "kind": "guard_probe_verifier_window_exceeded",
+    "verification_utc_offset": "+08:00",
+    "verification_time": "2026-11-10T13:42:17+08:00",
+    "probe_start_time": "2026-11-10T13:39:49+08:00",
+    "reason": "The approved verifier allows verification 8-120 seconds after start; it was invoked after that window and exited with RuntimeError. The original failure is retained rather than rewritten as PASS."
+  },
+  "observed_partial_evidence": {
+    "host_probe": {
+      "result": "timeout",
+      "exec_main_status": 9,
+      "start_monotonic_us": 1413508141175,
+      "exit_monotonic_us": 1413515203834
+    },
+    "slice_deadline_service": {
+      "result": "success",
+      "exec_main_status": 0,
+      "start_monotonic_us": 1413513253597,
+      "exit_monotonic_us": 1413513257821
+    },
+    "slice_targets_empty_at_later_observation": true,
+    "container_final_state": "not preserved before owned probe container was removed; therefore exact SIGKILL/137 cannot be claimed from this failed attempt"
+  },
+  "preserved_sources": {
+    "registration": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-supplement-v4-store-cold-probe-timeout-registration.json",
+      "sha256": "bd4b78f79f8740347f0ef2dc381f323ac29f65db39ac2ab52d8c2716cb4ce8be"
+    },
+    "failure_receipt": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-supplement-v4-store-cold-probe-timeout-failure.json",
+      "sha256": "5f53fdaeea380d33b4801644a515dda3e330f200b733e165697c5690abd277a3"
+    },
+    "ephemeral_original_directory": "/run/sllm-debug-20261109T183328Z-b44dd6d7-probe-timeout-20261110T134217Z"
+  },
+  "resource_observation_after_failure": {
+    "time": "2026-11-10T13:52:21+08:00",
+    "gpu_process_pid": 3659282,
+    "gpu_process_user": "boyjiang",
+    "gpu_process_command": "/opt/sllm-v4/bin/python /control/script.py --root /data --pool 1099511627776 --chunk 33554432",
+    "gpu_used_MiB_per_device": 2387,
+    "mem_available_bytes": 830650244352,
+    "admission_pass": false,
+    "owned_by_this_attempt": false
+  },
+  "disposition": "Stop this failed pre-run probe. Do not claim root probe PASS. The original condition remains not_started; a fresh probe must correct the verifier timing before any controller start and must run only after a fresh resource admission. No Git operation during a formal run or release observation."
+}

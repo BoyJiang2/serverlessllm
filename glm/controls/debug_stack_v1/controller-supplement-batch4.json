@@ -54,7 +54,7 @@
       "holder": "0dc4540b0b6793975556e78cb874df5a",
       "status": "not_started",
       "metrics": null,
-      "pause_reason": "Current GPU occupancy; user permits resuming original unstarted IDs only after resources are free and all original admissions pass."
+      "pause_reason": "A fresh root probe is required after the prior verifier-window failure; current external GPU and host-memory occupancy also prevents admission. No controller Main or model start occurred."
     },
     {
       "condition": "store_pool_hit",
@@ -105,12 +105,24 @@
   "total_seconds": 3600,
   "minimum_start_budget_seconds": 3900,
   "pool_bytes": 768799145984,
-  "batch_state": "waiting_for_resources_user_stop_boundary_resolved",
+  "batch_state": "waiting_for_resources_after_pre_run_probe_failure",
   "runtime_review": "Two local small receipts and finalizer checked independently; reviewer did not read remote raw JSONL. Full four-condition R2 pending.",
-  "observed_host_time": "2026-11-10T13:18:59+08:00",
+  "observed_host_time": "2026-11-10T13:52:21+08:00",
   "pre_run_resource_wait_ruling": {
     "authority": "User explicit reply in this chat on 2026-11-10",
     "decision": "按可恢复的资源等待处理，空闲且原准入通过后继续",
     "scope": "Only outer read-only checks before Main start and resource allocation; preserve all prior refusals. Original runtime/cache/gold/guard/budget checks and stop-on-failed-attempt unchanged."
-  }
+  },
+  "pre_run_probe_failures": [
+    {
+      "run_id": "sllm-debug-20261109T183328Z-b44dd6d7",
+      "condition": "store_disk_cold",
+      "kind": "guard_probe_verifier_window_exceeded",
+      "evidence": "glm/evidence/cost-sources/controller-supplement-v4-store-cold-probe-timeout.json",
+      "model_attempt_started": false,
+      "controller_main_started": false,
+      "formal_attempt_id_consumed": false,
+      "status": "pre_run_failed"
+    }
+  ]
 }

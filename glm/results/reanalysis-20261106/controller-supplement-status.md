@@ -143,3 +143,10 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 ### 用户裁定：外层只读占用预查可恢复等待
 
 2026-11-10用户明确回复：“按可恢复的资源等待处理，空闲且原准入通过后继续”。该裁定只适用于未启动Main、未分配资源的外层只读占用预查；保留此前拒绝及冻结原条款，不修改运行失败停止条件，不重试终态ID，不放宽资源/缓存/金标/守护/预算门槛。原Store冷读和池命中两项可在完整原准入通过后按序继续。13:18:59现场负载3.58，但八卡仍各2045MiB且有GPU PID3523075，尚不符合八卡0/无compute进程要求，因此当前不启动。目标已由用户恢复active。
+
+
+### Store冷读前置探针失败，正式attempt未启动
+
+2026-11-10 13:39:49启动Store冷读的root CPU故障探针；宿主探针在约7.06秒后按故障结果结束，5秒slice deadline service也成功执行。但独立复核在13:42:17才运行，超过冻结的8–120秒验证窗口，批准verifier以RuntimeError拒绝，故不能声明root probe PASS。探针容器最终State没有在移除前保存，不能补写成已证实ExitCode137；此缺口保留。
+
+全部CPU探针已退出；失败registration和回执保存在服务器既有v2目录，SHA分别bd4b78f7…和5f53fda…，本地小型来源摘要见glm/evidence/cost-sources/controller-supplement-v4-store-cold-probe-timeout.json。Controller Main、Store池、模型、权重读取均未启动，Store冷读ID不作为模型失败消费，仍保持not_started。外部sllm-v7 Store作业随后重新出现，八卡各约2387MiB、可用内存约773.5GiB，资源准入不通过。下一次即使资源释放，也必须先补做时限内独立探针；不得把本次超时验证当作通过。
