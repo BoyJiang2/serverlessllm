@@ -154,3 +154,5 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 资源等待追加核验：13:52外部Store容器及GPU进程出现；13:55该外部作业八个worker已各占约76–77GiB，loadavg1为25.60，主机可用约791.9GiB，另有约322MiB/卡的常驻Store进程。归入外部资源占用，不是本次attempt；未停止对方进程，Store冷读仍未启动。
 
 失败探测资源清理：已移除仅属本run的CPU探针容器，停止其服务、子slice和空父slice；复查无populated cgroup路径。失败registration留在/run与既有v2持久副本，外部sllm-v7容器及GPU进程未动。
+
+再次等待60秒后，外部八个worker已退出，但其sllm-v7 Store容器仍运行，每卡2387MiB且主机可用约775GiB；13:57确认仍是同一容器与PID。它不属于本attempt，资源等待仍未通过，未启动任何模型或Store池。

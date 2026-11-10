@@ -105,7 +105,7 @@
   "total_seconds": 3600,
   "minimum_start_budget_seconds": 3900,
   "pool_bytes": 768799145984,
-  "batch_state": "waiting_for_resources_after_pre_run_probe_failure",
+  "batch_state": "blocked_on_external_store_pool",
   "runtime_review": "Two local small receipts and finalizer checked independently; reviewer did not read remote raw JSONL. Full four-condition R2 pending.",
   "observed_host_time": "2026-11-10T13:52:21+08:00",
   "pre_run_resource_wait_ruling": {
@@ -197,6 +197,38 @@
         "sllm-v7-store-20261110T054033Z-00-fixed-kimi"
       ],
       "note": "External job is not owned by this attempt; no process was stopped."
+    },
+    {
+      "time": "2026-11-10T13:56:22+08:00",
+      "status": "admission_fail_external_store_after_workers_exit",
+      "loadavg1": 14.31,
+      "mem_available_bytes": 831998148608,
+      "gpu_processes": [
+        {
+          "pid": 3659282,
+          "used_MiB_per_device": 322
+        }
+      ],
+      "containers": [
+        "sllm-v7-store-20261110T054033Z-store"
+      ],
+      "note": "External model workers had exited; their Store pool still occupied each GPU and large host memory."
+    },
+    {
+      "time": "2026-11-10T13:57:33+08:00",
+      "status": "admission_fail_external_store",
+      "loadavg1": 6.32,
+      "mem_available_bytes": 832211042304,
+      "gpu_processes": [
+        {
+          "pid": 3659282,
+          "used_MiB_per_device": 322
+        }
+      ],
+      "containers": [
+        "sllm-v7-store-20261110T054033Z-store"
+      ],
+      "note": "Same external Store remained running after a 60-second bounded wait."
     }
   ],
   "probe_cleanup": {
