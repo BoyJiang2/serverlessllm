@@ -1,0 +1,111 @@
+{
+  "schema": "glm-controller-supplement-batch-v4-observed",
+  "node": "qjhs003",
+  "actual_hostname": "qjhs3",
+  "code_commit": "16f6c59a2509cdc966747e7084c176a906e254f9",
+  "r1_sha256": "007c9a285cb4272acce1490fd5b6dc8cfc73de412cb3a0abdd41f08f58a8c1d6",
+  "source_tree_sha256": "70a71e5dca77d2e62047c83e15457746c65243eb2d16b683be63ad87c2a35baa",
+  "attempts": [
+    {
+      "condition": "safetensors_disk_cold",
+      "run_id": "sllm-debug-20261109T183328Z-71a4a759",
+      "holder": "9746df9f20286e6092bca77a3c7a8e6c",
+      "status": "success",
+      "evidence": "glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json",
+      "evidence_sha256": "6ddae26c627e40cc6c08d8fff4e97f73cf8f6d07a121e4bd5e20f199925c3c5a",
+      "metrics": {
+        "preparation_s": 2.097072447,
+        "command_to_correct_business_response_s": 843.981770861,
+        "trigger_to_correct_business_response_s": 831.580939854,
+        "phase_device_setup_including_communication_span_s": 7.389232818,
+        "phase_communication_groups_span_s": 5.421687066,
+        "phase_weights_pipeline_including_allocation_span_s": 358.086165935,
+        "phase_weight_ingestion_span_s": 353.217158525,
+        "phase_quantization_postprocess_span_s": 3.663447649,
+        "phase_kv_cache_allocation_span_s": 0.118208437,
+        "phase_compile_graph_and_warmup_span_s": 360.684862931,
+        "controller_s": 1274.926636
+      }
+    },
+    {
+      "condition": "safetensors_disk_hot",
+      "run_id": "sllm-debug-20261109T183328Z-6d5543f9",
+      "holder": "27f584058be9dba6201f1d24ffdabe2f",
+      "status": "success",
+      "evidence": "glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json",
+      "evidence_sha256": "fe8169d09a34c29f2e4255ce0676878b9c12621950c9af3c63b373fe77a3daf0",
+      "metrics": {
+        "preparation_s": 264.563566876,
+        "command_to_correct_business_response_s": 625.085141866,
+        "trigger_to_correct_business_response_s": 615.39466426,
+        "phase_device_setup_including_communication_span_s": 8.06305018,
+        "phase_communication_groups_span_s": 7.122925289,
+        "phase_weights_pipeline_including_allocation_span_s": 147.021788025,
+        "phase_weight_ingestion_span_s": 142.129424391,
+        "phase_quantization_postprocess_span_s": 3.032811044,
+        "phase_kv_cache_allocation_span_s": 0.088373071,
+        "phase_compile_graph_and_warmup_span_s": 357.854143225,
+        "controller_s": 1301.317127
+      }
+    },
+    {
+      "condition": "store_disk_cold",
+      "run_id": "sllm-debug-20261109T183328Z-b44dd6d7",
+      "holder": "0dc4540b0b6793975556e78cb874df5a",
+      "status": "not_started",
+      "metrics": null,
+      "pause_reason": "Other GPU jobs and load prevent fresh resource admission; stop-rule boundary of pre-run read-only checks under review before any further start."
+    },
+    {
+      "condition": "store_pool_hit",
+      "run_id": "sllm-debug-20261109T183328Z-d1014313",
+      "holder": "63526a2d6fd2c2969562c1802983d3d6",
+      "status": "not_started",
+      "metrics": null,
+      "pause_reason": "Other GPU jobs and load prevent fresh resource admission; stop-rule boundary of pre-run read-only checks under review before any further start."
+    }
+  ],
+  "counts": {
+    "success": 2,
+    "failed": 0,
+    "not_started": 2
+  },
+  "prior_cohorts": [
+    {
+      "file": "controller-supplement-batch.json",
+      "counts": {
+        "success": 0,
+        "failed": 1,
+        "not_started": 3
+      }
+    },
+    {
+      "file": "controller-supplement-batch2.json",
+      "counts": {
+        "success": 0,
+        "failed": 1,
+        "not_started": 3
+      }
+    },
+    {
+      "file": "controller-supplement-batch3.json",
+      "counts": {
+        "success": 0,
+        "failed": 1,
+        "not_started": 3
+      }
+    }
+  ],
+  "original40_unchanged": {
+    "success": 35,
+    "failed": 5
+  },
+  "sample_scope": "independent fourth cohort, n=1 per completed condition; never merge Controller with C23 Prep/A",
+  "work_seconds": 1800,
+  "total_seconds": 3600,
+  "minimum_start_budget_seconds": 3900,
+  "pool_bytes": 768799145984,
+  "batch_state": "waiting_for_resources_and_stop_boundary_review",
+  "runtime_review": "Two local small receipts and finalizer checked independently; reviewer did not read remote raw JSONL. Full four-condition R2 pending.",
+  "observed_host_time": "2026-11-10T12:47:07+08:00"
+}

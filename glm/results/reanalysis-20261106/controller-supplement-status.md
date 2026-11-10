@@ -133,3 +133,8 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 独立只读子代理glm_controller_r1核对main 117ef3e0的两项本地小回执、冻结approved清单与实际finalizer，结论：未发现这两项限定发布的阻断；Controller由systemd单调kernel起止独立重算精确一致，finalizer源码SHA b96bb7c9…与批准清单匹配。两项unit正常exit0，worker exit0，head主动stop后exit1符合冻结规则。它没有亲读远端原始JSONL、请求响应或phase payload，因此Prep/A/phase/释放来源依赖主进程已执行finalizer的回执，不称第二人逐条独立复算，更不称完整四条件R2已通过。
 
 后续Store冷读的只读启动准入尚未通过：先遇CPU/shared-IO gate（现场loadavg1 8.44，随后10.43，阈值严格<8；采样1秒nvme读sectors未变），稍后再遇GPU occupied。所有拒绝均发生在root probe/模型/大池启动之前；未创建本次Store run目录，未消耗其ID，无新模型失败可登记。等待成本与先前已成功的终态结果分开。不得将这些前置拒绝绕过或更改冻结阈值。
+
+
+### 启动前资源拒绝的停止边界待用户裁定
+
+独立只读复核发现冻结approved.full_path_required的“halt on first failed admission or attempt”未明确定义外层、尚未启动Main的资源预查例外。measure内部也先执行refuse_shared_state/supplement_resources后才mkdir/write-start，所以无run目录本身不足以证明不受停止条款约束。此前“等待后继续”尚未实际执行；现暂停后续启动并请求用户裁定，保留原条款及全部拒绝事实。两项not_started不改失败，不擅自默认继续；全部硬件、缓存、金标、守护和预算门槛保持原样。
