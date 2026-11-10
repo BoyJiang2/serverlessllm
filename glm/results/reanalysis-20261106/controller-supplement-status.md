@@ -172,3 +172,10 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 当前工作树整改将 2.5 秒重试预算按样本共享，并受原 5 秒样本和前次采样时钟约束。重试前和接受结果前均检查截止；保留失败读取路径、错误码、截止和事件时间，即使采样未返回也将重试记录写入拒绝回执。读取后复核进程 cgroup 路径和 inode，原 PID 出生检查保留。100 项 CPU 检查通过，其中监控回归覆盖 ENOENT、ESRCH、截止后成功拒绝、head/worker 共用截止及拒绝回执保留。冻结旧候选及原 CPU 回执仍保留；旧回执关于历史 ENOENT/短暂文件消失的解释由本页的原始证据复核更正。
 
 剩余 R1 阻断：启动前须强制核验批准的 condition/run_id/holder、顺序和前一条独立成功回执，落实有效窗口及 3900 秒剩余预算校验。整改完成后须重新冻结完整清单并独立复审。第五批仍为 0 成功 / 0 失败 / 4 未开始。\x60n
+### 第五批 R1 通过，现场准入待闭合
+
+独立审阅对 9ff7c862 候选给出源码和设计 PASS。运行工具提交 e04de769，批准文件 SHA-256 为 25f755f4fc3e93a90860ba8fb65ed109fd97f3e16d9f74cfb3ded96cbd8b0cfd，批准记录已推送 b30d9c81。独立重建 83 个部署源码文件，核对 39 个 Git blob 引用并通过 102 项 CPU 检查。后续条件须将计时外独立复算的前序 final SHA 放入 root 窗口回执，Main 绑定前序 dispatch、内核退出与 start/result。第五批仍为 0 成功 / 0 失败 / 4 未开始。
+
+首条是 safetensors_disk_cold，run sllm-debug-20261110T061909Z-cce53f64，holder a37467ebb11fcd623819f8607c749f68。由现有 deploy_debug_stack.py 清单重建 90 个文件（788344 字节），逐一核对 Git blob，批准工具哈希全部匹配。预期工具部署路径为 /data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-2f7f1d35c6b4，批准文件目的地为 /data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-supplement-r1-v5-approved.json。现场只读检查确认两者尚未部署；原冻结 source-debug-16f6c59a2509-70a71e5dca77、精确 aa161e38 镜像及基础守护存在。首条 unit inactive，run 和窗口回执均不存在。
+
+2026-11-10 19:48（UTC+8），qjhs003 八卡均约 96697 MiB，计算 PID 4112722–4112729，1 分钟负载 8.27。预约 API 此轮 TLS 读取失败，无法确认本实验可用截止。尚无独占资源、当前窗口或实际 per-run guard 证据。资源与授权通过后，按已有部署方式上传并独立核验新工具和批准文件，建立 root 窗口回执（首条 prior_final_sha256 为空对象），先 measure --preflight，再启动并在独立 SSH 中验证 CPU probe。Main 沿用已取证的 systemd 3570 秒运行上限、30 秒停止上限和私有 slice；在实际 dispatch 前保留至少 3900 秒有效窗口。按原顺序执行，计时及观察区间内停止同步。
