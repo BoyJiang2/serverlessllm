@@ -1,6 +1,7 @@
 import datetime
 import ast
 import copy
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -534,12 +535,78 @@ class SupplementAdmission(unittest.TestCase):
     def test_no_r1_rejected_before_resource_or_docker_calls(self):
         with patch.object(d, 'verified_source', return_value=dict(tree_sha256='b'*64)), \
              patch.object(d, 'controller_unit', return_value=(1, {})), \
-             patch.object(d.pathlib.Path, 'read_text', side_effect=['boot', '{"verdict":"FAIL"}']), \
+             patch.object(d.pathlib.Path, 'read_text', return_value='boot'), \
+             patch.object(d.pathlib.Path, 'read_bytes', return_value=b'{"verdict":"FAIL"}'), \
              patch.object(d, 'refuse_shared_state') as resource, patch.object(d, 'docker') as docker:
             with self.assertRaisesRegex(RuntimeError, 'R1 not approved'):
                 d.measure(type('Args', (), dict(source_tree='unused', review='unused', controller_unit='unused'))())
         resource.assert_not_called()
         docker.assert_not_called()
+
+    def test_supplement_window_boundary_and_identity(self):
+        now = datetime.datetime(2026, 11, 10, tzinfo=UTC)
+        clock = Mock(wraps=datetime.datetime)
+        clock.now.return_value = now
+        with patch.object(d.datetime, 'datetime', clock):
+            for seconds in (3899, 3900):
+                window = dict(window_start=now.isoformat(),
+                              window_end=(now+datetime.timedelta(seconds=seconds)).isoformat())
+                if seconds == 3899:
+                    with self.assertRaisesRegex(RuntimeError, '3900-second'):
+                        d.verify_supplement_window(window)
+                else:
+                    self.assertEqual(d.verify_supplement_window(window)['checked_utc'], now.isoformat())
+
+    def test_supplement_dispatch_requires_approved_prefix_and_is_single_use(self):
+        with tempfile.TemporaryDirectory() as temp:
+            host = Path(temp)
+            debug = host/'debug'
+            debug.mkdir()
+            uid = debug.stat().st_uid
+            attempts = [dict(condition=name, run_id=STATE['run_id'][:-8]+f'{index:08x}',
+                             holder=f'{index:032x}', status='not_started')
+                        for index, name in enumerate(d.SUPPLEMENT_CONDITIONS)]
+            review = dict(proposed_attempts=attempts, field_budget=dict(minimum_remaining_seconds_before_each_attempt=3900),
+                          reviewed_extra_sha256={'glm/tools/historical_costs.py': 'b'*64})
+            digest = 'a'*64
+            def admit(index, invocation=None, **overrides):
+                row = attempts[index]
+                now = datetime.datetime.now(UTC)
+                window = dict(run_id=row['run_id'], condition=row['condition'], holder=row['holder'],
+                              boot_id='boot', review_sha256=digest, node='qjhs003', uid=uid,
+                              authority_reference='fixture', window_start=now.isoformat(),
+                              window_end=(now+datetime.timedelta(hours=2)).isoformat())
+                return d.verify_supplement_attempt(review, digest, row['run_id'], row['condition'],
+                                                   'boot', dict(window, **overrides), invocation=invocation)
+            with patch.object(d, 'HOST', host), patch.object(d, 'UID', uid):
+                with self.assertRaisesRegex(RuntimeError, 'authorization identity'):
+                    admit(0, holder='f'*32)
+                with self.assertRaises(FileNotFoundError):
+                    admit(1)
+                admit(0)
+                self.assertFalse(list(debug.iterdir()))
+                admit(0, invocation='one')
+                root = debug/attempts[0]['run_id']
+                self.assertTrue((root/'controller-dispatch.json').is_file())
+                with self.assertRaisesRegex(RuntimeError, 'already has a run directory'):
+                    admit(0, invocation='two')
+                first = attempts[0]
+                start = dict(first, r1_sha256=digest, independent_controller_unit=dict(InvocationID='one'))
+                d.write(root/'controller-start.json', start)
+                d.write(root/'controller-result.json', dict(success=True))
+                inputs = {name: dict(sha256=hashlib.sha256((root/name).read_bytes()).hexdigest())
+                          for name in ('controller-start.json', 'controller-result.json')}
+                final = dict(schema='glm-independent-controller-supplement-v1', attempt_id=first['run_id'],
+                             condition=first['condition'], unit=dict(InvocationID='one', Result='success', ExecMainStatus='0'),
+                             finalizer_source_sha256='b'*64, inputs=inputs, success=False)
+                d.write(root/'controller-final.json', final)
+                with self.assertRaisesRegex(RuntimeError, 'independent success'):
+                    admit(1)
+                d.write(root/'controller-final.json', dict(final, success=True))
+                admit(1)
+                d.write(root/'controller-result.json', dict(success=True, altered=True))
+                with self.assertRaisesRegex(RuntimeError, 'independent success'):
+                    admit(1)
 
     def test_independent_unit_requires_exact_deadline_pid_and_private_cgroup(self):
         unit = STATE['run_id']+'-controller.service'

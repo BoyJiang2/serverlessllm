@@ -43,6 +43,8 @@ TOOLS = (HERE/'debug_plan.py', HERE/'debug_stack.py', HERE/'debug_service.py', H
          TREE/'controls/service_smoke_v1/docker_args.py', TREE/'tools/restore_original_image.py', TREE/'tools/docker_plan.py')
 SUPPLEMENT_WORK_SECONDS = 1800
 SUPPLEMENT_TOTAL_SECONDS = 3600
+SUPPLEMENT_START_BUDGET_SECONDS = SUPPLEMENT_TOTAL_SECONDS + 300
+SUPPLEMENT_CONDITIONS = ('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit')
 
 
 def sha256(path):
@@ -703,6 +705,85 @@ def verify_supplement_review(review, source, startup_only=False, startup_stage='
         raise RuntimeError('current full supplement R1 not approved')
 
 
+def verify_supplement_window(authorization):
+    start = datetime.datetime.fromisoformat(authorization['window_start'])
+    end = datetime.datetime.fromisoformat(authorization['window_end'])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    if (start.tzinfo is None or end.tzinfo is None or now < start
+            or (end-now).total_seconds() < SUPPLEMENT_START_BUDGET_SECONDS):
+        raise RuntimeError('authorization window lacks full 3900-second budget')
+    return dict(authorization, checked_utc=now.isoformat())
+
+
+def verify_supplement_attempt(review, review_sha, run, condition, boot, authorization, *, invocation=None):
+    attempts = review['proposed_attempts']
+    if (tuple(row['condition'] for row in attempts) != SUPPLEMENT_CONDITIONS
+            or len({row['run_id'] for row in attempts}) != 4
+            or len({row['holder'] for row in attempts}) != 4
+            or any(row['status'] != 'not_started' or not re.fullmatch(plan.RUN_PATTERN, row['run_id'])
+                   or not re.fullmatch('[0-9a-f]{32}', row['holder']) for row in attempts)
+            or review['field_budget']['minimum_remaining_seconds_before_each_attempt'] != SUPPLEMENT_START_BUDGET_SECONDS):
+        raise RuntimeError('approved attempt sequence or budget differs')
+    index = SUPPLEMENT_CONDITIONS.index(condition)
+    attempt = attempts[index]
+    if attempt['run_id'] != run:
+        raise RuntimeError('approved attempt identity differs')
+    expected = dict(run_id=run, condition=condition, holder=attempt['holder'], boot_id=boot,
+                    review_sha256=review_sha, node='qjhs003', uid=UID)
+    if (any(authorization.get(key) != value for key, value in expected.items())
+            or not isinstance(authorization.get('authority_reference'), str)
+            or not authorization['authority_reference'].strip()):
+        raise RuntimeError('authorization identity differs')
+    debug_root = HOST/'debug'
+    if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
+        raise RuntimeError('supplement debug directory owner/type differs')
+    for offset, prior in enumerate(attempts):
+        root = HOST/'debug'/prior['run_id']
+        if offset >= index:
+            if root.exists() or root.is_symlink():
+                raise RuntimeError('current or later attempt already has a run directory')
+            continue
+        paths = {name: root/name for name in ('controller-start.json', 'controller-result.json', 'controller-final.json')}
+        if root.is_symlink() or any(path.is_symlink() for path in paths.values()):
+            raise RuntimeError('previous attempt evidence must be in its exact run directory')
+        evidence = {}
+        for name, path in paths.items():
+            with path.open('rb') as stream:
+                evidence[name] = stream.read(1024**2+1)
+            if len(evidence[name]) > 1024**2:
+                raise RuntimeError('previous attempt evidence exceeds its read bound')
+        prior_start, result, final = (json.loads(evidence[name]) for name in paths)
+        if (any(prior_start.get(key) != prior[key] for key in ('run_id', 'holder', 'condition'))
+                or prior_start.get('r1_sha256') != review_sha
+                or result.get('success') is not True or final.get('success') is not True
+                or final.get('schema') != 'glm-independent-controller-supplement-v1'
+                or final.get('attempt_id') != prior['run_id'] or final.get('condition') != prior['condition']
+                or final.get('finalizer_source_sha256') != review['reviewed_extra_sha256']['glm/tools/historical_costs.py']
+                or final['unit'].get('Result') != 'success' or final['unit'].get('ExecMainStatus') != '0'
+                or final['unit'].get('InvocationID') != prior_start['independent_controller_unit']['InvocationID']
+                or any(final['inputs'][name]['sha256'] != hashlib.sha256(evidence[name]).hexdigest()
+                       for name in ('controller-start.json', 'controller-result.json'))):
+            raise RuntimeError('previous attempt lacks a bound independent success receipt')
+    if invocation is not None:
+        root = debug_root/run
+        root.mkdir(mode=0o700)
+        write(root/'controller-dispatch.json', dict(expected, invocation_id=invocation,
+              authorization=authorization, status='dispatched; independent success required before next attempt'))
+    return verify_supplement_window(authorization)
+
+
+def supplement_authorization(run):
+    path = pathlib.Path('/run')/(run+'-controller-window.json')
+    meta = path.stat()
+    if path.is_symlink() or not path.is_file() or meta.st_uid != 0 or meta.st_mode & 0o222:
+        raise RuntimeError('controller window receipt must be a root-owned read-only file')
+    with path.open('rb') as stream:
+        data = stream.read(8193)
+    if len(data) > 8192:
+        raise RuntimeError('controller window receipt exceeds 8 KiB')
+    return json.loads(data)
+
+
 def verify_controller_unit(properties, unit, pid, cgroup, invocation, slice_cgroup):
     run = unit.removesuffix('-controller.service')
     if (not re.fullmatch(plan.RUN_PATTERN+r'-controller\.service', unit)
@@ -887,16 +968,34 @@ def await_first_monitor(root, errors, run, boot):
 
 def measure(args):
     """One independent supplementary condition; never changes a historical ID."""
-    begin_ns, unit = controller_unit(args.controller_unit)
+    preflight = getattr(args, 'preflight', False)
+    if not preflight:
+        begin_ns, unit = controller_unit(args.controller_unit)
     startup_only = getattr(args, 'startup_only', False)
     startup_stage = getattr(args, 'startup_stage', 'sleep')
     work_seconds, total_seconds = (180, 900) if startup_only else (SUPPLEMENT_WORK_SECONDS, SUPPLEMENT_TOTAL_SECONDS)
     if startup_only and args.condition != 'safetensors_disk_cold':
         raise ValueError('startup control is not a four-condition model attempt')
+    if preflight and startup_only:
+        raise ValueError('supplement preflight is for full model attempts')
     boot = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     source = verified_source(args.source_tree)
-    review = json.loads(pathlib.Path(args.review).read_text())
+    review_bytes = pathlib.Path(args.review).read_bytes()
+    review = json.loads(review_bytes)
     verify_supplement_review(review, source, startup_only, startup_stage)
+    review_sha = hashlib.sha256(review_bytes).hexdigest()
+    run = args.controller_unit.removesuffix('-controller.service')
+    if not re.fullmatch(plan.RUN_PATTERN, run) or args.controller_unit != run+'-controller.service':
+        raise RuntimeError('exact controller unit required')
+    if not startup_only:
+        authorization = supplement_authorization(run)
+        window = verify_supplement_attempt(review, review_sha, run, args.condition, boot, authorization,
+                                           invocation=None if preflight else unit['InvocationID'])
+        if preflight:
+            refuse_shared_state(True)
+            resources = supplement_resources()
+            window = verify_supplement_window(authorization)
+            return dict(success=True, scope='read-only preflight', authorization=window, resources=resources)
     verify_runtime_assets(review['runtime_reference'])
     sys.dont_write_bytecode = True
     sys.path.insert(0, str(args.source_tree))
@@ -909,11 +1008,14 @@ def measure(args):
     if not guard['active']:
         raise RuntimeError('supplement independent guard not ready')
     # A new actual probe receipt is mandatory; a prior timer snapshot alone is insufficient.
-    run = args.controller_unit.removesuffix('-controller.service')
     probe = verify_root_probe(args.guard_probe, run, boot, begin_ns, unit['verified_slice_cgroup'], startup_only)
+    if not startup_only and probe['holder'] != authorization['holder']:
+        raise RuntimeError('root probe holder differs from approved attempt')
     admission = supplement_resources()
     if docker('image', 'inspect', plan.IMAGE, '--format', '{{.Id}}') != plan.IMAGE:
         raise RuntimeError('restore original image before the supplement, outside timing')
+    if not startup_only:
+        window = verify_supplement_window(authorization)
     state = dict(run_id=run, holder=probe['holder'], verified_slice_cgroup=unit['verified_slice_cgroup'])
     if startup_only:
         state['startup_only'] = True
@@ -922,14 +1024,17 @@ def measure(args):
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
     root = HOST/'debug'/state['run_id']
-    root.mkdir(mode=0o700)
+    if startup_only:
+        root.mkdir(mode=0o700)
     initial = dict(state, controller_begin_ns=begin_ns, boot_id=boot, pid=os.getpid(),
                    startticks=int(pathlib.Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
                    condition=args.condition, work_seconds=work_seconds, total_seconds=total_seconds,
-                   r1_sha256=sha256(args.review), guard_probe_sha256=sha256(args.guard_probe))
+                   r1_sha256=review_sha, guard_probe_sha256=sha256(args.guard_probe))
     initial['independent_controller_unit'] = unit
     initial['resource_admission'] = admission
     initial['runtime_reference'] = review['runtime_reference']
+    if not startup_only:
+        initial['authorization'] = window
     write(root/'controller-start.json', initial)
     stopped = threading.Event()
     monitor_errors = []
@@ -1080,15 +1185,18 @@ if __name__ == '__main__':
                        help='owner-approved use of idle GPUs without a booking; lifetime capped at %d s' % BORROW_MAX_SECONDS)
     measurement = sub.add_parser('measure', help='one independently reviewed four-condition supplementary sample; not C23')
     measurement.add_argument('--source-tree', required=True)
-    measurement.add_argument('--condition', required=True, choices=('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit'))
+    measurement.add_argument('--condition', required=True, choices=SUPPLEMENT_CONDITIONS)
     measurement.add_argument('--review', required=True)
-    measurement.add_argument('--guard-probe', required=True)
+    measurement.add_argument('--guard-probe')
     measurement.add_argument('--controller-unit', required=True)
     measurement.add_argument('--startup-only', action='store_true', help='separately reviewed bounded startup control; never starts Store or model')
+    measurement.add_argument('--preflight', action='store_true', help='read-only window, ordering and resource checks before root probe')
     measurement.add_argument('--startup-stage', choices=('sleep', 'ray'), default='sleep', help='separately reviewed diagnostic boundary; Ray stage never starts Store or model')
     for name in ('status', 'down'):
         sub.add_parser(name).add_argument('--run-id', required=True)
     args = parser.parse_args()
+    if args.action == 'measure' and not args.preflight and not args.guard_probe:
+        parser.error('measure requires --guard-probe outside --preflight')
     outcome = dict(up=up, status=status, down=down, measure=measure)[args.action](args)
     print(json.dumps(outcome, indent=2))
     if args.action == 'measure' and not outcome['success']:

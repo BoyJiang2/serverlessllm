@@ -146,3 +146,11 @@ Ray模式复用实际stop_processes的出生/主动SIGTERM/完整日志及非for
 
 
 匹配原镜像/原只读三挂载的真实CPU Ray退出组件已验证（4904638c函数AST完全一致）：4CPU/8GiB/8192任务、runc、无GPU Devices/DeviceRequests、CUDA_VISIBLE_DEVICES为空，entry timeout130+kill5秒。原生Ray head仅广告0GPU，约10.896936009秒，CLI受控exit1、容器exit0，无OOM/外层force/退出错误，已删除容器。记录ray_control_pass=true但完整服务success=false；只证明新Ray-only退出分支，不能当原worker/8GPU启动、监控或Store验证。一次性源码拼接预检曾因AST行位移SyntaxError在本地失败，未访问远端；修正原片段提取后仅执行一次真实CPU控制。来源及原生日志见ray-startup-cpu-control.json，未新增环境或模型副本。
+
+## 第五批启动顺序与窗口
+
+独立 R1 批准后，每条使用自己的宿主窗口回执 `/run/<run_id>-controller-window.json`。执行前核验当前实际授权证据及起止时间，再由 root 独占创建普通文件，设置 0444。回执包含 `run_id`、`condition`、`holder`、`boot_id`、`review_sha256`、`node=qjhs003`、`uid=2147`、`authority_reference`、带时区的 `window_start` 与 `window_end`。回执记录现场核验，文件本身不证明预约 API 已核验，也不得用推算时间填写未确认的窗口终点。
+
+在独立 CPU 故障探针及 systemd Main 前，使用现有 `measure` 命令加 `--preflight`（省略 `--guard-probe`），传同一源码、批准文件、条件和 controller unit 名称。此入口只读，检查当前批准身份、前序独立成功回执和实际资源。全路径 Main 复查同样的顺序和授权，原子保留 run 目录并写 `controller-dispatch.json`，核验独立守护与 probe holder，复查资源和窗口后才进入模型启动。窗口检查要求从检查时刻到截止至少 3900 秒。原 3600 秒 Main 上限及两层释放观察不变。
+
+外层只读占用预查可以等待。已登记 dispatch 后的拒绝或运行失败保留该 run 目录并停止后续，不能以重建窗口回执重试。前序必须有同批准 SHA、同身份、正常 kernel 退出且绑定当次 start/result SHA 的独立成功回执。以冻结 finalizer 正常生成成功回执为准，手工填写或改写回执不能作为放行依据。
