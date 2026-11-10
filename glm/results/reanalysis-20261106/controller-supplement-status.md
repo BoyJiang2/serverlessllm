@@ -103,3 +103,26 @@ measure_mode=measure
 ```
 
 完整模型探针使用 3240 秒独立私有 slice 截止。宿主 controller unit 使用 3570 秒运行上限和 30 秒停止上限。释放完成且 unit 已退出后，在本地调用 `glm/tools/historical_costs.py --finalize-controller <run_id>`。以生成的 `controller-final.json` 中 `success=true` 作为继续下一条的必要条件。失败则保留该条证据与成本，后续未开始条目保持原状态。
+
+
+## 2026-11-10 第四补充 cohort：两项已通过，后两项未开始
+
+实际运行代码16f6c59a2509cdc966747e7084c176a906e254f9；完整批准gate SHA256 007c9a285cb4272acce1490fd5b6dc8cfc73de412cb3a0abdd41f08f58a8c1d6。两项均由独立后置finalizer验证kernel端点、同次业务金标、缓存、八rank阶段和两层至少60秒观察后发布；不是原C23样本。四条件保持716GiB公共Store池；各run独立native-home，实际编译/预热计入Controller，不能和历史共享编译缓存直接合并。
+
+| 条件 | Prep/秒 | command→首个正确算术HTTP/秒 | Controller/秒 | 权重加载全rank包络/秒 |
+|---|---:|---:|---:|---:|
+| safetensors_disk_cold | 2.097072 | 843.981771 | 1274.926636 | 358.086166 |
+| safetensors_disk_hot | 264.563567 | 625.085142 | 1301.317127 | 147.021788 |
+| store_disk_cold | 未开始 | 未开始 | 未开始 | 未开始 |
+| store_pool_hit | 未开始 | 未开始 | 未开始 | 未开始 |
+
+Controller为实际宿主unit kernel启动到正常退出，覆盖完整退出及全资源释放观察；command A是第一条算术请求的正确HTTP响应，不是fixed32、客户端TTFT或纯generation。阶段包络可能嵌套，不相加。每条件当前n=1，仅描述观测，不发布推断或可靠性结论。root守护故障probe、源码部署和审阅等unit外初始化仍属于额外成本，表中Controller不包含这些unit外步骤。
+
+SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；SF热读分别60.104987589秒和60.425782300秒。两项私有timer/slices已核inactive，所属容器已删除。SF热读最终回执kernel正常exit0；12:39:31起新出现weihaoni的八rank GPU进程，晚于本次正常退出，12:41:32复查仍占用八卡。后续Store启动暂缓，不能终止对方作业或以授权代替实际资源准入；未开始ID不消耗、不替换。新启动仍须完整3900秒余量、重新资源核验和每run独立守护。
+
+本cohort当前2成功/0失败/2未开始；前三个cohort各0成功/1失败/3未开始不变；原40项35成功/5失败和C23六块不变。旧慢采样/exit137原因未知；这两次通过不能追认旧失败为成功或证明根因闭环。
+
+小型来源回执（原始monitor/缓存/事件留qjhs003，路径及SHA见回执）：
+
+- `glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json` SHA256 `6ddae26c627e40cc6c08d8fff4e97f73cf8f6d07a121e4bd5e20f199925c3c5a`。
+- `glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json` SHA256 `fe8169d09a34c29f2e4255ce0676878b9c12621950c9af3c63b373fe77a3daf0`。
