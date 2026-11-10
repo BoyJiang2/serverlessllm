@@ -164,3 +164,11 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 清理后本run容器全部移除，完整释放观察61.111785459秒，GPU八卡0且无计算进程；独立3240秒timer和空slice已另行停止。原始controller-final、monitor rejection、controller result、stack、release、Store/Ray日志及SHA见glm/evidence/cost-sources/controller-supplement-v4-store_disk_cold-failure.json。
 
 第四cohort因此终态为2成功/1失败/1未开始，Store池命中未启动，失败ID不得重试。已证实行为缺口只允许在既有debug_stack.py修复：cgroup六个文件在ENOENT/ESRCH时最多2.5秒重试并记录，持续未知仍失败。新增回归加原78项debug、6项C23、6项final-cost、10项runtime-import共100项CPU检查全部通过。第五批候选已在 92979a42 冻结，四项均未开始，须完成该候选的独立 R1 及现场准入。
+
+### 第五批候选独立 R1
+
+只读审阅 glm_v5_frozen_review 对 92979a42 给出 BLOCKED。候选 SHA-256 为 19cd3e700b0f0113633960953a56a7ac7dde78932c07129eb42f1e9526af05fa。重建的 83 个源码文件（678252 字节）与冻结清单一致，8 个工具、8 个额外引用和 11 个证据引用的 Git blob SHA 均匹配。审阅方独立运行 100 项 CPU 检查通过，另用精确冻结函数复现了 2.49 秒故障、2.54 秒重试仍被接受的问题。
+
+当前工作树整改将 2.5 秒重试预算按样本共享，并受原 5 秒样本和前次采样时钟约束。重试前和接受结果前均检查截止；保留失败读取路径、错误码、截止和事件时间，即使采样未返回也将重试记录写入拒绝回执。读取后复核进程 cgroup 路径和 inode，原 PID 出生检查保留。100 项 CPU 检查通过，其中监控回归覆盖 ENOENT、ESRCH、截止后成功拒绝、head/worker 共用截止及拒绝回执保留。冻结旧候选及原 CPU 回执仍保留；旧回执关于历史 ENOENT/短暂文件消失的解释由本页的原始证据复核更正。
+
+剩余 R1 阻断：启动前须强制核验批准的 condition/run_id/holder、顺序和前一条独立成功回执，落实有效窗口及 3900 秒剩余预算校验。整改完成后须重新冻结完整清单并独立复审。第五批仍为 0 成功 / 0 失败 / 4 未开始。\x60n

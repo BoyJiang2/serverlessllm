@@ -452,26 +452,43 @@ def down(args):
     return state
 
 
-def supplement_sample(state):
+def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
     """Host sampling, attributed by exact container ID and its host cgroup."""
     row = dict(sample_begin_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(),
                containers={}, processes=[], stage_timings_ns=[], run_id=state.get('run_id'),
                boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
-               cgroup_read_retries=[])
+               cgroup_read_retries=[] if cgroup_retries is None else cgroup_retries)
+    sample_deadline = row['sample_begin_ns']+5_000_000_000
+    if previous_mid_ns is not None:
+        sample_deadline = min(sample_deadline, previous_mid_ns+5_000_000_000)
+    retry_deadline = None
+
     def cgroup_snapshot(base, role):
-        deadline = time.monotonic()+2.5
-        attempt = 0
+        nonlocal retry_deadline
+        last_error = None
         while True:
-            attempt += 1
+            if last_error is not None and time.monotonic_ns() >= retry_deadline:
+                raise last_error
+            values = {}
             try:
-                return {name:(base/name).read_text() for name in
-                        ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+                for name in ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat'):
+                    values[name] = (base/name).read_text()
             except OSError as error:
-                if error.errno not in (errno.ENOENT, errno.ESRCH) or time.monotonic() >= deadline:
+                if error.errno not in (errno.ENOENT, errno.ESRCH):
                     raise
-                row['cgroup_read_retries'].append(dict(role=role, path=str(base), attempt=attempt,
-                                                       errno=error.errno, filename=error.filename))
-                time.sleep(.05)
+                now = time.monotonic_ns()
+                if retry_deadline is None:
+                    retry_deadline = min(now+2_500_000_000, sample_deadline)
+                row['cgroup_read_retries'].append(dict(role=role, path=str(base/name), monotonic_ns=now,
+                    deadline_ns=retry_deadline, errno=error.errno, filename=error.filename))
+                if now >= retry_deadline:
+                    raise
+                last_error = error
+                time.sleep(min(.05, (retry_deadline-now)/1e9))
+            else:
+                if last_error is not None and time.monotonic_ns() >= retry_deadline:
+                    raise last_error
+                return values
     for role in ('head', 'worker'):
         cid = state.get(role+'_container_id')
         if not cid:
@@ -505,6 +522,9 @@ def supplement_sample(state):
                     raise RuntimeError('container cgroup birth identity changed')
                 item['cgroup'] = cgroup_snapshot(base, role)
                 item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
+                if cg != next(line[3:] for line in item['raw_cgroup'].splitlines() if line.startswith('0::')) \
+                        or base.stat().st_ino != birth['inode']:
+                    raise RuntimeError('container cgroup identity changed during reads')
                 row['stage_timings_ns'].append((role+' init and cgroup', stage_begin, time.monotonic_ns()))
                 stage_begin = time.monotonic_ns()
                 for member in item['cgroup']['cgroup.procs'].split():
@@ -915,13 +935,13 @@ def measure(args):
     monitor_errors = []
 
     def monitor():
-        snapshot, stage = None, 'not started'
+        snapshot, stage, cgroup_retries = None, 'not started', []
         previous_begin = previous_mid = None
         try:
             with (root/'controller-monitor.jsonl').open('x') as stream:
                 while not stopped.is_set():
-                    snapshot, stage = None, 'collect'
-                    snapshot = supplement_sample(state)
+                    snapshot, stage, cgroup_retries = None, 'collect', []
+                    snapshot = supplement_sample(state, cgroup_retries=cgroup_retries, previous_mid_ns=previous_mid)
                     stage = 'validate'
                     require_monitor_sample(snapshot['sample_begin_ns'], snapshot['last_sample_ns'], snapshot['sample_end_ns'],
                                            previous_begin, previous_mid)
@@ -948,7 +968,8 @@ def measure(args):
             monitor_errors.append(repr(error))
             try:
                 write(root/'controller-monitor-rejected.json', dict(snapshot=snapshot, error=repr(error), stage=stage,
-                      previous_begin_ns=previous_begin, previous_mid_ns=previous_mid, healthy=False))
+                      previous_begin_ns=previous_begin, previous_mid_ns=previous_mid,
+                      cgroup_read_retries=cgroup_retries, healthy=False))
             except BaseException as evidence_error:
                 monitor_errors.append('monitor failure evidence write: '+repr(evidence_error))
 

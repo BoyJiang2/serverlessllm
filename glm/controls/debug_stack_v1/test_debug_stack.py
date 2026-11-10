@@ -185,7 +185,12 @@ class Ownership(unittest.TestCase):
             with self.subTest(sample=sample, failure=failure), tempfile.TemporaryDirectory() as directory:
                 root = Path(directory)
                 errors = []
-                sampler = Mock(return_value=sample, side_effect=failure)
+                retry = dict(role='worker', path='/sys/fs/cgroup/worker/io.stat', errno=3)
+                def rejected_collect(state, *, cgroup_retries, previous_mid_ns):
+                    cgroup_retries.append(retry)
+                    raise failure
+                sampler = Mock(return_value=sample, side_effect=(
+                    rejected_collect if isinstance(failure, OSError) else failure))
                 namespace = dict(vars(d), root=root, state={}, stopped=Mock(is_set=Mock(return_value=False)),
                                  monitor_errors=errors, supplement_sample=sampler,
                                  gpu_memory_by_uuid=lambda _: {'gpu':0}, baseline={'gpu':0},
@@ -196,6 +201,7 @@ class Ownership(unittest.TestCase):
                 self.assertFalse(receipt['healthy'])
                 self.assertEqual(receipt['snapshot'], sample)
                 self.assertEqual(receipt['stage'], 'validate' if sample is not None else 'collect')
+                self.assertEqual(receipt['cgroup_read_retries'], [retry] if isinstance(failure, OSError) else [])
                 if sample is foreign:
                     self.assertIn('unattributed GPU processes',receipt['error'])
                     sampler.assert_called_once()
@@ -372,10 +378,14 @@ class SupplementAdmission(unittest.TestCase):
         cid = 'c'*64
         base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')
         original_read, original_stat = Path.read_text, Path.stat
-        for mode in ('cgroup_exit', 'pid_reuse', 'member_exit', 'transient_cgroup'):
+        for mode in ('cgroup_exit', 'pid_reuse', 'member_exit', 'transient_cgroup',
+                     'transient_esrch', 'late_success', 'shared_deadline'):
             gone, stat_reads, cgroup_reads = [False], [0], [0]
+            now, retries = [0], []
+            worker_cid = 'd'*64
+            worker_base = base.with_name('docker-'+worker_cid+'.scope')
             def stat(path, **kwargs):
-                if path == base:
+                if path in (base, worker_base):
                     if gone[0]:
                         raise FileNotFoundError(2, 'cgroup removed')
                     return type('Stat', (), dict(st_ino=123))()
@@ -383,12 +393,14 @@ class SupplementAdmission(unittest.TestCase):
             def read(path, **kwargs):
                 if path.suffix == '.json':
                     return original_read(path, **kwargs)
-                if path == Path('/proc/123/stat'):
+                if path in (Path('/proc/123/stat'), Path('/proc/124/stat')):
                     stat_reads[0] += 1
                     tick = 2 if mode == 'pid_reuse' and stat_reads[0] > 1 else 1
                     return '123 (init) '+' '.join(['0']*19+[str(tick)])
                 if path == Path('/proc/123/cgroup'):
                     return '0::'+base.as_posix().removeprefix('/sys/fs/cgroup')+'\n'
+                if path == Path('/proc/124/cgroup'):
+                    return '0::'+worker_base.as_posix().removeprefix('/sys/fs/cgroup')+'\n'
                 if path == base/'cgroup.procs' and mode == 'member_exit':
                     return '999'
                 if path == Path('/proc/999/stat'):
@@ -396,16 +408,31 @@ class SupplementAdmission(unittest.TestCase):
                 if path == base/'memory.current' and mode == 'cgroup_exit':
                     gone[0] = True
                     raise FileNotFoundError(2, 'cgroup exited between reads')
-                if path == base/'io.stat' and mode == 'transient_cgroup':
+                if path == worker_base/'memory.current' and mode == 'shared_deadline':
+                    raise ProcessLookupError(3, 'worker cgroup read interrupted')
+                if path == base/'io.stat' and mode in ('transient_cgroup', 'transient_esrch', 'late_success', 'shared_deadline'):
                     cgroup_reads[0] += 1
                     if cgroup_reads[0] == 1:
-                        raise FileNotFoundError(2, 'cgroup file briefly unavailable')
+                        if mode == 'transient_cgroup':
+                            raise FileNotFoundError(2, 'cgroup file briefly unavailable')
+                        raise ProcessLookupError(3, 'cgroup read interrupted')
+                    if mode == 'late_success':
+                        now[0] = 2_501_000_000
+                    if mode == 'shared_deadline':
+                        now[0] = 2_490_000_000
                     return ''
                 return ''
+            initial = info(State=dict(Pid=123, Running=True))
+            rechecks = [initial, initial] if mode == 'late_success' else [initial, None]
+            if mode == 'shared_deadline':
+                worker = info('worker', State=dict(Pid=124, Running=True))
+                rechecks = [initial, worker, worker]
             with self.subTest(mode=mode), patch.object(d.pathlib.Path, 'stat', stat), \
                  patch.object(d.pathlib.Path, 'read_text', read), \
                  patch.object(d.pathlib.Path, 'resolve', lambda path: path), \
-                 patch.object(d, 'inspect', side_effect=[info(State=dict(Pid=123, Running=True)), None]), \
+                 patch.object(d.time, 'monotonic_ns', side_effect=lambda: now[0]), \
+                 patch.object(d.time, 'sleep', side_effect=lambda delay: now.__setitem__(0, now[0]+round(delay*1e9))), \
+                 patch.object(d, 'inspect', side_effect=rechecks), \
                  patch.object(d.subprocess, 'check_output', side_effect=['', '']):
                 if mode == 'pid_reuse':
                     with self.assertRaisesRegex(RuntimeError, 'PID reused'):
@@ -414,11 +441,22 @@ class SupplementAdmission(unittest.TestCase):
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertTrue(row['retained_cgroups']['head']['absent'])
                     self.assertTrue(row['containers']['head']['disappeared_during_sample'])
-                elif mode == 'transient_cgroup':
+                elif mode in ('transient_cgroup', 'transient_esrch'):
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertGreaterEqual(cgroup_reads[0], 2)
-                    self.assertEqual(row['cgroup_read_retries'][0]['errno'], 2)
+                    self.assertEqual(row['cgroup_read_retries'][0]['errno'], 2 if mode == 'transient_cgroup' else 3)
                     self.assertFalse(row['containers']['head'].get('disappeared_during_sample', False))
+                elif mode == 'late_success':
+                    with self.assertRaisesRegex(RuntimeError, 'remains unverified'):
+                        d.supplement_sample(dict(STATE, head_container_id=cid), cgroup_retries=retries)
+                    self.assertEqual(retries[0]['path'], str(base/'io.stat'))
+                    self.assertEqual(retries[0]['deadline_ns'], 2_500_000_000)
+                elif mode == 'shared_deadline':
+                    with self.assertRaisesRegex(RuntimeError, 'remains unverified'):
+                        d.supplement_sample(dict(STATE, head_container_id=cid, worker_container_id=worker_cid),
+                                            cgroup_retries=retries)
+                    self.assertEqual([(r['role'], r['deadline_ns']) for r in retries],
+                                     [('head', 2_500_000_000), ('worker', 2_500_000_000)])
                 else:
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertEqual(row['processes_disappeared_during_sample'][0]['pid'], 999)
