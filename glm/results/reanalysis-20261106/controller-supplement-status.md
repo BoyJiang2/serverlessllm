@@ -126,3 +126,10 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 
 - `glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json` SHA256 `6ddae26c627e40cc6c08d8fff4e97f73cf8f6d07a121e4bd5e20f199925c3c5a`。
 - `glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json` SHA256 `fe8169d09a34c29f2e4255ce0676878b9c12621950c9af3c63b373fe77a3daf0`。
+
+
+### 两项运行回执独立只读核验
+
+独立只读子代理glm_controller_r1核对main 117ef3e0的两项本地小回执、冻结approved清单与实际finalizer，结论：未发现这两项限定发布的阻断；Controller由systemd单调kernel起止独立重算精确一致，finalizer源码SHA b96bb7c9…与批准清单匹配。两项unit正常exit0，worker exit0，head主动stop后exit1符合冻结规则。它没有亲读远端原始JSONL、请求响应或phase payload，因此Prep/A/phase/释放来源依赖主进程已执行finalizer的回执，不称第二人逐条独立复算，更不称完整四条件R2已通过。
+
+后续Store冷读的只读启动准入尚未通过：先遇CPU/shared-IO gate（现场loadavg1 8.44，随后10.43，阈值严格<8；采样1秒nvme读sectors未变），稍后再遇GPU occupied。所有拒绝均发生在root probe/模型/大池启动之前；未创建本次Store run目录，未消耗其ID，无新模型失败可登记。等待成本与先前已成功的终态结果分开。不得将这些前置拒绝绕过或更改冻结阈值。
