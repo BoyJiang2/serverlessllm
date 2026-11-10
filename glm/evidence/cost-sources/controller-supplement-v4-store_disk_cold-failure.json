@@ -1,0 +1,98 @@
+{
+  "schema": "glm-controller-supplement-attempt-failure-v1",
+  "attempt_id": "sllm-debug-20261109T183328Z-b44dd6d7",
+  "condition": "store_disk_cold",
+  "status": "failed",
+  "success": false,
+  "code_commit": "16f6c59a2509cdc966747e7084c176a906e254f9",
+  "review_sha256": "007c9a285cb4272acce1490fd5b6dc8cfc73de412cb3a0abdd41f08f58a8c1d6",
+  "started": "2026-11-10T14:09:41+08:00",
+  "ended": "2026-11-10T14:12:33+08:00",
+  "controller_elapsed_s": 172.026049133,
+  "controller_final": {
+    "success": false,
+    "failure": "AssertionError; failed finalizer receipt retained",
+    "metrics": null,
+    "source": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/controller-final.json",
+      "bytes": 1565,
+      "sha256": "9f7887fdb442f151c7cb2851d46f9023041ff14efce9311e227385af058ca64f"
+    }
+  },
+  "failure": {
+    "stage": "collect",
+    "kind": "continuous monitor missing live container cgroup",
+    "summary": "Worker Docker state remained running with the same PID/startticks, but a recorded cgroup read raised ENOENT during Store pool initialization. The monitor rechecked the exact Docker container for about two seconds, found the same live identity, and therefore correctly refused to treat memory as absent or zero. The controller then aborted the attempt.",
+    "worker": {
+      "container_id": "4adbb1509569aa4d14b222f33691779517d63d48523cd2a63843a188d2d4cece",
+      "pid": 3834944,
+      "startticks": 141530930,
+      "cgroup_path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261109T183328Z.slice/sllm-debug-20261109T183328Z-b44dd6d7.slice/docker-4adbb1509569aa4d14b222f33691779517d63d48523cd2a63843a188d2d4cece.scope"
+    },
+    "errno": 3,
+    "cleanup_error": "supplement normal container exit not verified; resources cleaned, failure retained",
+    "model_business_response": false,
+    "store_pool_created": true,
+    "store_log_shows_pool": {
+      "buffers": 1432,
+      "chunk_bytes": 536870912,
+      "pool_bytes": 768799145984
+    }
+  },
+  "release": {
+    "instance_idle_observation_s": null,
+    "full_release_observation_s": 61.111785459,
+    "containers_remaining": 0,
+    "gpu_processes": "",
+    "gpu_memory_used_MiB": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "guard_timer_and_slice_stopped_by_operator_cleanup": true
+  },
+  "source_hashes": {
+    "controller-monitor-rejected.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/controller-monitor-rejected.json",
+      "bytes": 10976,
+      "sha256": "20328145a01b46c7e70b15342ae9c50feeb721d9d8192778047dcfd4d099b1cf"
+    },
+    "controller-result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/controller-result.json",
+      "bytes": 66541,
+      "sha256": "04f45aaeabdd347db22007745158c40265a5b67065e17ba796c4ff8097ec3718"
+    },
+    "stack.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/stack.json",
+      "bytes": 6947,
+      "sha256": "084fdb5c6c8353217ff9d144d8e62c69b934d3f4e5c000a1596281eeb97128c0"
+    },
+    "release60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/release60.jsonl",
+      "bytes": 357120,
+      "sha256": "e9889d7667aac394a20e6ae07a160f21495d78208f796af6094e172e2560812f"
+    },
+    "debug-service/store.log": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/debug-service/store.log",
+      "bytes": 1466,
+      "sha256": "015cf974d436dd27c9c8bebecd29ec756433195373710637b9eb16ec5280101a"
+    },
+    "debug-service/ray-worker.log": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/debug-service/ray-worker.log",
+      "bytes": 1236,
+      "sha256": "b5da93adf1d14c799ee02a77a062e89fa194d27d7ef614916601f0f20a2bcac9"
+    },
+    "debug-service/store-runtime-imports.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261109T183328Z-b44dd6d7/debug-service/store-runtime-imports.json",
+      "bytes": 2184,
+      "sha256": "9540ec92bf12214b5fbccab1961dc9b5d5a7fca14b82d701cd6cafe506cfe278"
+    }
+  },
+  "stop_rule": "Store pool hit not started; failed ID is terminal and must not be retried or relabeled. Original 40 and prior strata unchanged. New revision requires commit/manifest/R1 and a new cohort identity.",
+  "root_cause_status": "MONITOR BEHAVIOR VERIFIED; UNDERLYING TRANSIENT CGROUP DISAPPEARANCE MECHANISM NOT YET ESTABLISHED"
+}

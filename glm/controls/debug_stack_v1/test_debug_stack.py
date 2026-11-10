@@ -372,8 +372,8 @@ class SupplementAdmission(unittest.TestCase):
         cid = 'c'*64
         base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')
         original_read, original_stat = Path.read_text, Path.stat
-        for mode in ('cgroup_exit', 'pid_reuse', 'member_exit'):
-            gone, stat_reads = [False], [0]
+        for mode in ('cgroup_exit', 'pid_reuse', 'member_exit', 'transient_cgroup'):
+            gone, stat_reads, cgroup_reads = [False], [0], [0]
             def stat(path, **kwargs):
                 if path == base:
                     if gone[0]:
@@ -396,6 +396,11 @@ class SupplementAdmission(unittest.TestCase):
                 if path == base/'memory.current' and mode == 'cgroup_exit':
                     gone[0] = True
                     raise FileNotFoundError(2, 'cgroup exited between reads')
+                if path == base/'io.stat' and mode == 'transient_cgroup':
+                    cgroup_reads[0] += 1
+                    if cgroup_reads[0] == 1:
+                        raise FileNotFoundError(2, 'cgroup file briefly unavailable')
+                    return ''
                 return ''
             with self.subTest(mode=mode), patch.object(d.pathlib.Path, 'stat', stat), \
                  patch.object(d.pathlib.Path, 'read_text', read), \
@@ -409,6 +414,11 @@ class SupplementAdmission(unittest.TestCase):
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertTrue(row['retained_cgroups']['head']['absent'])
                     self.assertTrue(row['containers']['head']['disappeared_during_sample'])
+                elif mode == 'transient_cgroup':
+                    row = d.supplement_sample(dict(STATE, head_container_id=cid))
+                    self.assertGreaterEqual(cgroup_reads[0], 2)
+                    self.assertEqual(row['cgroup_read_retries'][0]['errno'], 2)
+                    self.assertFalse(row['containers']['head'].get('disappeared_during_sample', False))
                 else:
                     row = d.supplement_sample(dict(STATE, head_container_id=cid))
                     self.assertEqual(row['processes_disappeared_during_sample'][0]['pid'], 999)

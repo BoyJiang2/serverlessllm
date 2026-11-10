@@ -456,7 +456,22 @@ def supplement_sample(state):
     """Host sampling, attributed by exact container ID and its host cgroup."""
     row = dict(sample_begin_ns=time.monotonic_ns(), host_meminfo=pathlib.Path('/proc/meminfo').read_text(),
                containers={}, processes=[], stage_timings_ns=[], run_id=state.get('run_id'),
-               boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip())
+               boot_id=pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip(),
+               cgroup_read_retries=[])
+    def cgroup_snapshot(base, role):
+        deadline = time.monotonic()+2.5
+        attempt = 0
+        while True:
+            attempt += 1
+            try:
+                return {name:(base/name).read_text() for name in
+                        ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+            except OSError as error:
+                if error.errno not in (errno.ENOENT, errno.ESRCH) or time.monotonic() >= deadline:
+                    raise
+                row['cgroup_read_retries'].append(dict(role=role, path=str(base), attempt=attempt,
+                                                       errno=error.errno, filename=error.filename))
+                time.sleep(.05)
     for role in ('head', 'worker'):
         cid = state.get(role+'_container_id')
         if not cid:
@@ -488,8 +503,7 @@ def supplement_sample(state):
                 registered = state.setdefault('bound_cgroups', {}).setdefault(role, birth)
                 if registered != birth:
                     raise RuntimeError('container cgroup birth identity changed')
-                item['cgroup'] = {name:(base/name).read_text() for name in
-                                  ('memory.current', 'memory.stat', 'memory.events', 'cgroup.procs', 'cpu.stat', 'io.stat')}
+                item['cgroup'] = cgroup_snapshot(base, role)
                 item['raw_cgroup'] = proc.joinpath('cgroup').read_text()
                 row['stage_timings_ns'].append((role+' init and cgroup', stage_begin, time.monotonic_ns()))
                 stage_begin = time.monotonic_ns()

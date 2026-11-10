@@ -1,0 +1,55 @@
+{
+  "schema": "glm-controller-supplement-cpu-fix-evidence-v1",
+  "blocker": "During Store pool creation, a worker cgroup file was briefly unavailable (ENOENT) while Docker kept the same live container, PID and startticks. Prior monitor rechecked Docker identity but did not retry the failed cgroup file read.",
+  "change": "Existing supplement_sample now retries only ENOENT/ESRCH reads of its six cgroup files for at most 2.5 seconds, records every retry, and retains failure if the read remains unavailable. Persistent missing cgroup, PID reuse, live unverified identity and zero-imputation prohibitions remain enforceable.",
+  "files": [
+    {
+      "path": "glm/controls/debug_stack_v1/debug_stack.py",
+      "bytes": 66803,
+      "sha256": "9a7e92b8d6acbb40062e0c3648bd7758b7bf4c1ef090258d1898468ee935b0cb"
+    },
+    {
+      "path": "glm/controls/debug_stack_v1/test_debug_stack.py",
+      "bytes": 38116,
+      "sha256": "01a56797aa19eeb4e46234ae0c0840fc5620c1e75f55e9b374488128ae990450"
+    }
+  ],
+  "tests": {
+    "debug_stack": {
+      "command": "python -B -m unittest discover -s glm/controls/debug_stack_v1 -p test_*.py",
+      "passed": 78,
+      "failed": 0
+    },
+    "c23_regression": {
+      "command": "python -B -m unittest glm.tools.test_c23_regression",
+      "passed": 6,
+      "failed": 0
+    },
+    "final_costs": {
+      "command": "python -B -m unittest test_final_costs",
+      "cwd": "glm/tools",
+      "passed": 6,
+      "failed": 0
+    },
+    "runtime_imports": {
+      "command": "python -B -m unittest test_runtime_imports",
+      "cwd": "glm/runtime/active",
+      "passed": 10,
+      "failed": 0
+    },
+    "total_passed": 100,
+    "total_failed": 0
+  },
+  "test_iteration_failures": [
+    {
+      "kind": "invocation",
+      "error": "initial class-qualified unittest target used a stale class name; corrected to SupplementAdmission"
+    },
+    {
+      "kind": "test_assertion",
+      "error": "first transient fixture observed three reads because retained-cgroup extraction re-read io.stat; assertion changed from exact two to at least two; production retry behavior unchanged"
+    }
+  ],
+  "scope": "CPU source/regression only; no runtime admission, model, Store pool or GPU execution",
+  "review_status": "new commit and full manifest R1 pending"
+}

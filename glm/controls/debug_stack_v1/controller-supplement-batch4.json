@@ -52,9 +52,13 @@
       "condition": "store_disk_cold",
       "run_id": "sllm-debug-20261109T183328Z-b44dd6d7",
       "holder": "0dc4540b0b6793975556e78cb874df5a",
-      "status": "not_started",
+      "status": "failed",
       "metrics": null,
-      "pause_reason": "A fresh root probe is required after the prior verifier-window failure; current external GPU and host-memory occupancy also prevents admission. No controller Main or model start occurred."
+      "failure_evidence": "glm/evidence/cost-sources/controller-supplement-v4-store_disk_cold-failure.json",
+      "failure_evidence_sha256": "4e923c96244cc793261ac1e46e442823274761a1bed0c488f43572314f9459a9",
+      "error": "continuous monitor missing live container cgroup during Store pool initialization; no business response",
+      "controller_elapsed_s": 172.026049133,
+      "full_release_observation_s": 61.111785459
     },
     {
       "condition": "store_pool_hit",
@@ -62,13 +66,13 @@
       "holder": "63526a2d6fd2c2969562c1802983d3d6",
       "status": "not_started",
       "metrics": null,
-      "pause_reason": "Current GPU occupancy; user permits resuming original unstarted IDs only after resources are free and all original admissions pass."
+      "pause_reason": "Not started after the preceding Store cold attempt failed; failed IDs are terminal and are not retried."
     }
   ],
   "counts": {
     "success": 2,
-    "failed": 0,
-    "not_started": 2
+    "failed": 1,
+    "not_started": 1
   },
   "prior_cohorts": [
     {
@@ -105,7 +109,7 @@
   "total_seconds": 3600,
   "minimum_start_budget_seconds": 3900,
   "pool_bytes": 768799145984,
-  "batch_state": "blocked_on_external_store_pool",
+  "batch_state": "terminal_after_failed_store_disk_cold_monitor",
   "runtime_review": "Two local small receipts and finalizer checked independently; reviewer did not read remote raw JSONL. Full four-condition R2 pending.",
   "observed_host_time": "2026-11-10T13:52:21+08:00",
   "pre_run_resource_wait_ruling": {
@@ -240,5 +244,18 @@
     "populated_cgroup_paths": [],
     "failure_registration_preserved": true,
     "note": "Only failed CPU probe resources were cleaned; external sllm-v7 containers and GPU processes were untouched."
+  },
+  "rewrite_candidate": {
+    "blocker": "Worker cgroup file briefly returned ENOENT while Docker reported the same live PID/startticks during 716GiB Store pool creation.",
+    "change": "Retry only the six cgroup reads for at most 2.5 seconds and record retries; persistent unknown, PID reuse and live container with unavailable cgroup still fail.",
+    "cpu_tests": {
+      "debug_stack": 78,
+      "c23_regression": 6,
+      "final_costs": 6,
+      "runtime_imports": 10,
+      "status": "PASS"
+    },
+    "review_status": "new commit and full manifest R1 pending",
+    "runtime_status": "not admitted and not rerun"
   }
 }
