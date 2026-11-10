@@ -124,5 +124,79 @@
       "formal_attempt_id_consumed": false,
       "status": "pre_run_failed"
     }
+  ],
+  "resource_wait_observations": [
+    {
+      "time": "2026-11-10T13:39:23+08:00",
+      "status": "admission_pass",
+      "loadavg1": 0.86,
+      "mem_available_bytes": 2019264413696,
+      "gpu_processes": [],
+      "gpu_used_MiB": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "time": "2026-11-10T13:52:21+08:00",
+      "status": "admission_fail_external_work",
+      "loadavg1": null,
+      "mem_available_bytes": 830650244352,
+      "gpu_processes": [
+        {
+          "pid": 3659282,
+          "used_MiB_per_device": 2387
+        }
+      ],
+      "containers": [
+        "sllm-v7-store-20261110T054033Z-store",
+        "sllm-v7-store-20261110T054033Z-00-fixed-kimi"
+      ]
+    },
+    {
+      "time": "2026-11-10T13:55:13+08:00",
+      "status": "admission_fail_external_work",
+      "loadavg1": 25.6,
+      "mem_available_bytes": 811011465216,
+      "gpu_processes": [
+        {
+          "pid": 3659282,
+          "used_MiB_per_device": 322
+        },
+        {
+          "pids": [
+            3730529,
+            3730531,
+            3730532,
+            3730533,
+            3730534,
+            3730535,
+            3730538,
+            3730542
+          ],
+          "used_MiB_per_device": [
+            77488,
+            76890,
+            76890,
+            76890,
+            76890,
+            76890,
+            76890,
+            76890
+          ]
+        }
+      ],
+      "containers": [
+        "sllm-v7-store-20261110T054033Z-store",
+        "sllm-v7-store-20261110T054033Z-00-fixed-kimi"
+      ],
+      "note": "External job is not owned by this attempt; no process was stopped."
+    }
   ]
 }
