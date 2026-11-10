@@ -734,6 +734,11 @@ def verify_supplement_attempt(review, review_sha, run, condition, boot, authoriz
             or not isinstance(authorization.get('authority_reference'), str)
             or not authorization['authority_reference'].strip()):
         raise RuntimeError('authorization identity differs')
+    sealed_finals = authorization.get('prior_final_sha256')
+    if (not isinstance(sealed_finals, dict)
+            or sealed_finals.keys() != {prior['run_id'] for prior in attempts[:index]}
+            or any(not re.fullmatch('[0-9a-f]{64}', digest) for digest in sealed_finals.values())):
+        raise RuntimeError('root authorization must bind the exact preceding final receipts')
     debug_root = HOST/'debug'
     if debug_root.is_symlink() or not debug_root.is_dir() or debug_root.stat().st_uid != UID:
         raise RuntimeError('supplement debug directory owner/type differs')
@@ -743,7 +748,8 @@ def verify_supplement_attempt(review, review_sha, run, condition, boot, authoriz
             if root.exists() or root.is_symlink():
                 raise RuntimeError('current or later attempt already has a run directory')
             continue
-        paths = {name: root/name for name in ('controller-start.json', 'controller-result.json', 'controller-final.json')}
+        paths = {name: root/name for name in ('controller-dispatch.json', 'controller-start.json',
+                                             'controller-result.json', 'controller-final.json')}
         if root.is_symlink() or any(path.is_symlink() for path in paths.values()):
             raise RuntimeError('previous attempt evidence must be in its exact run directory')
         evidence = {}
@@ -752,15 +758,29 @@ def verify_supplement_attempt(review, review_sha, run, condition, boot, authoriz
                 evidence[name] = stream.read(1024**2+1)
             if len(evidence[name]) > 1024**2:
                 raise RuntimeError('previous attempt evidence exceeds its read bound')
-        prior_start, result, final = (json.loads(evidence[name]) for name in paths)
+        if sealed_finals[prior['run_id']] != hashlib.sha256(evidence['controller-final.json']).hexdigest():
+            raise RuntimeError('previous final receipt differs from root authorization')
+        dispatch, prior_start, result, final = (json.loads(evidence[name]) for name in paths)
+        unit = final['unit']
+        begin = int(unit.get('ExecMainStartTimestampMonotonic', '0'))*1000
+        end = int(unit.get('ExecMainExitTimestampMonotonic', '0'))*1000
         if (any(prior_start.get(key) != prior[key] for key in ('run_id', 'holder', 'condition'))
+                or any(dispatch.get(key) != prior[key] for key in ('run_id', 'holder', 'condition'))
                 or prior_start.get('r1_sha256') != review_sha
+                or dispatch.get('review_sha256') != review_sha
+                or dispatch.get('boot_id') != prior_start.get('boot_id')
                 or result.get('success') is not True or final.get('success') is not True
                 or final.get('schema') != 'glm-independent-controller-supplement-v1'
                 or final.get('attempt_id') != prior['run_id'] or final.get('condition') != prior['condition']
                 or final.get('finalizer_source_sha256') != review['reviewed_extra_sha256']['glm/tools/historical_costs.py']
-                or final['unit'].get('Result') != 'success' or final['unit'].get('ExecMainStatus') != '0'
-                or final['unit'].get('InvocationID') != prior_start['independent_controller_unit']['InvocationID']
+                or unit.get('Id') != prior['run_id']+'-controller.service' or unit.get('MainPID') != '0'
+                or (unit.get('Result'), unit.get('ExecMainCode'), unit.get('ExecMainStatus')) != ('success', '1', '0')
+                or unit.get('InvocationID') != prior_start['independent_controller_unit']['InvocationID']
+                or unit.get('InvocationID') != dispatch.get('invocation_id')
+                or not 0 < begin < end <= begin+SUPPLEMENT_TOTAL_SECONDS*10**9
+                or begin != prior_start.get('controller_begin_ns') or begin != final.get('controller_begin_ns')
+                or end != final.get('controller_end_ns') or not begin < result.get('controller_end_ns', 0) <= end
+                or (final.get('metrics') or {}).get('controller_s') != (end-begin)/1e9
                 or any(final['inputs'][name]['sha256'] != hashlib.sha256(evidence[name]).hexdigest()
                        for name in ('controller-start.json', 'controller-result.json'))):
             raise RuntimeError('previous attempt lacks a bound independent success receipt')

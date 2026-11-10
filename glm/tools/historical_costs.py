@@ -516,13 +516,14 @@ print(json.dumps(reference))
                          bytes=sum(row['bytes'] for row in output['asset_files']), gpu_execution=False)))
 
 
-def finalize_controller(run):
+def finalize_controller(run, *, verify_only=False):
     """Finalize a new sample from kernel unit exit, never an inner self-reported end."""
     import re, subprocess
     if not re.fullmatch(r'sllm-debug-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run):
         raise ValueError('new supplementary run identity required')
     script = '''import pathlib,json,hashlib,subprocess,math
 run=RUN
+verify_only=VERIFY_ONLY
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run
 names=('Id','Result','ExecMainCode','ExecMainStatus','MainPID','InvocationID','ExecMainStartTimestampMonotonic','ExecMainExitTimestampMonotonic')
 raw=subprocess.check_output(['systemctl','show',run+'-controller.service','--property='+','.join(names)],text=True,timeout=15)
@@ -608,12 +609,22 @@ except BaseException as error:
 out['unit_snapshot_sha256']=hashlib.sha256(raw.encode()).hexdigest()
 out['finalizer_source_sha256']=ANALYSIS_SHA
 p=root/'controller-final.json'
-with p.open('x') as f:json.dump(out,f,indent=2)
-print(json.dumps(out))
-'''.replace('RUN', repr(run), 1).replace('ANALYSIS_SHA', repr(hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
+if verify_only:
+ with p.open('rb') as f:stored=f.read(1024**2+1)
+ if len(stored)>1024**2 or not out['success'] or json.loads(stored)!=out:
+  raise RuntimeError('stored final receipt differs from independently recomputed successful result')
+ print(json.dumps(dict(attempt_id=run,success=True,final_sha256=hashlib.sha256(stored).hexdigest())))
+else:
+ with p.open('x') as f:json.dump(out,f,indent=2)
+ print(json.dumps(out))
+'''.replace('RUN', repr(run), 1).replace('VERIFY_ONLY', repr(verify_only), 1).replace(
+        'ANALYSIS_SHA', repr(hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
     result = subprocess.run(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','qjhs003','python3','-I','-'],
                             input=script.encode(), capture_output=True, timeout=90, check=True)
     output = json.loads(result.stdout)
+    if verify_only:
+        print(json.dumps(output))
+        return
     print(json.dumps(dict(attempt_id=run, success=output['success'], metrics=output['metrics'],
                           evidence='/data/brick1/boyjiang/glm5.1-fp8/debug/'+run+'/controller-final.json')))
 
@@ -702,5 +713,7 @@ if __name__ == '__main__':
         controller_runtime_reference()
     elif len(sys.argv)==3 and sys.argv[1]=='--finalize-controller':
         finalize_controller(sys.argv[2])
+    elif len(sys.argv)==3 and sys.argv[1]=='--verify-controller':
+        finalize_controller(sys.argv[2], verify_only=True)
     else:
         main()

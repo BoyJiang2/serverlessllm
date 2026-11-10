@@ -154,3 +154,5 @@ Ray模式复用实际stop_processes的出生/主动SIGTERM/完整日志及非for
 在独立 CPU 故障探针及 systemd Main 前，使用现有 `measure` 命令加 `--preflight`（省略 `--guard-probe`），传同一源码、批准文件、条件和 controller unit 名称。此入口只读，检查当前批准身份、前序独立成功回执和实际资源。全路径 Main 复查同样的顺序和授权，原子保留 run 目录并写 `controller-dispatch.json`，核验独立守护与 probe holder，复查资源和窗口后才进入模型启动。窗口检查要求从检查时刻到截止至少 3900 秒。原 3600 秒 Main 上限及两层释放观察不变。
 
 外层只读占用预查可以等待。已登记 dispatch 后的拒绝或运行失败保留该 run 目录并停止后续，不能以重建窗口回执重试。前序必须有同批准 SHA、同身份、正常 kernel 退出且绑定当次 start/result SHA 的独立成功回执。以冻结 finalizer 正常生成成功回执为准，手工填写或改写回执不能作为放行依据。
+
+窗口回执还必须有 `prior_final_sha256` 对象，第一条为 `{}`，后续以全部前序 run ID 为键。每次结束并完成释放观察后，在下一轮计时前用冻结源码的 `historical_costs.py --verify-controller <前序 run_id>` 重算。该模式查询仍保留的 systemd unit，重新校验两层释放、三项金标、缓存和八 rank 指标，比对存档的完整 final JSON，只在一致且成功时输出该文件的 SHA-256。由负责宿主守护的 root 操作方按验证输出填写窗口回执。保留前序 unit 直至验证完成。前序 unit 或原始证据缺失时，不重新签发未经复核的摘要，也不重跑该 ID。Main 只核受保护的摘要、dispatch 身份、内核端点与小型 start/result 文件；较重的全量回执验证留在计时外。

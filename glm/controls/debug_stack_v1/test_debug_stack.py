@@ -569,19 +569,21 @@ class SupplementAdmission(unittest.TestCase):
             review = dict(proposed_attempts=attempts, field_budget=dict(minimum_remaining_seconds_before_each_attempt=3900),
                           reviewed_extra_sha256={'glm/tools/historical_costs.py': 'b'*64})
             digest = 'a'*64
+            sealed_finals = {}
             def admit(index, invocation=None, **overrides):
                 row = attempts[index]
                 now = datetime.datetime.now(UTC)
                 window = dict(run_id=row['run_id'], condition=row['condition'], holder=row['holder'],
                               boot_id='boot', review_sha256=digest, node='qjhs003', uid=uid,
                               authority_reference='fixture', window_start=now.isoformat(),
-                              window_end=(now+datetime.timedelta(hours=2)).isoformat())
+                              window_end=(now+datetime.timedelta(hours=2)).isoformat(),
+                              prior_final_sha256=dict(sealed_finals))
                 return d.verify_supplement_attempt(review, digest, row['run_id'], row['condition'],
                                                    'boot', dict(window, **overrides), invocation=invocation)
             with patch.object(d, 'HOST', host), patch.object(d, 'UID', uid):
                 with self.assertRaisesRegex(RuntimeError, 'authorization identity'):
                     admit(0, holder='f'*32)
-                with self.assertRaises(FileNotFoundError):
+                with self.assertRaisesRegex(RuntimeError, 'exact preceding'):
                     admit(1)
                 admit(0)
                 self.assertFalse(list(debug.iterdir()))
@@ -591,20 +593,36 @@ class SupplementAdmission(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'already has a run directory'):
                     admit(0, invocation='two')
                 first = attempts[0]
-                start = dict(first, r1_sha256=digest, independent_controller_unit=dict(InvocationID='one'))
+                begin, end = 10**9, 200*10**9
+                start = dict(first, r1_sha256=digest, boot_id='boot', controller_begin_ns=begin,
+                             independent_controller_unit=dict(InvocationID='one'))
                 d.write(root/'controller-start.json', start)
-                d.write(root/'controller-result.json', dict(success=True))
+                d.write(root/'controller-result.json', dict(success=True, controller_end_ns=end-10**9))
                 inputs = {name: dict(sha256=hashlib.sha256((root/name).read_bytes()).hexdigest())
                           for name in ('controller-start.json', 'controller-result.json')}
                 final = dict(schema='glm-independent-controller-supplement-v1', attempt_id=first['run_id'],
-                             condition=first['condition'], unit=dict(InvocationID='one', Result='success', ExecMainStatus='0'),
-                             finalizer_source_sha256='b'*64, inputs=inputs, success=False)
-                d.write(root/'controller-final.json', final)
+                             condition=first['condition'], unit=dict(InvocationID='one', Result='success', ExecMainStatus='0',
+                             Id=first['run_id']+'-controller.service', MainPID='0', ExecMainCode='1',
+                             ExecMainStartTimestampMonotonic=str(begin//1000), ExecMainExitTimestampMonotonic=str(end//1000)),
+                             controller_begin_ns=begin, controller_end_ns=end, metrics=dict(controller_s=199),
+                             finalizer_source_sha256='b'*64, inputs=inputs, success=True)
+                def seal(value):
+                    path = root/'controller-final.json'
+                    d.write(path, value)
+                    sealed_finals[first['run_id']] = hashlib.sha256(path.read_bytes()).hexdigest()
+                seal(dict(final, success=False))
                 with self.assertRaisesRegex(RuntimeError, 'independent success'):
                     admit(1)
-                d.write(root/'controller-final.json', dict(final, success=True))
+                seal(dict(final, unit=dict(final['unit'], ExecMainExitTimestampMonotonic='0')))
+                with self.assertRaisesRegex(RuntimeError, 'independent success'):
+                    admit(1)
+                seal(final)
                 admit(1)
-                d.write(root/'controller-result.json', dict(success=True, altered=True))
+                d.write(root/'controller-final.json', dict(final, altered=True))
+                with self.assertRaisesRegex(RuntimeError, 'differs from root authorization'):
+                    admit(1)
+                seal(final)
+                d.write(root/'controller-result.json', dict(success=True, controller_end_ns=end-10**9, altered=True))
                 with self.assertRaisesRegex(RuntimeError, 'independent success'):
                     admit(1)
 

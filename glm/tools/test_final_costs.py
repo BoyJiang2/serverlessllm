@@ -78,6 +78,15 @@ class CostsTests(unittest.TestCase):
                 good = json.loads((root/'controller-final.json').read_text())
                 self.assertTrue(good['success'], good.get('failure'))
                 self.assertEqual(good['metrics']['controller_s'], 199)
+                saved = (root/'controller-final.json').read_bytes()
+                verified = io.StringIO()
+                with contextlib.redirect_stdout(verified):
+                    finalize_controller(run, verify_only=True)
+                self.assertEqual(json.loads(verified.getvalue())['final_sha256'], hashlib.sha256(saved).hexdigest())
+                self.assertEqual((root/'controller-final.json').read_bytes(), saved)
+                write('controller-final.json', dict(good, metrics=dict(good['metrics'], controller_s=198)))
+                with self.assertRaisesRegex(RuntimeError, 'independently recomputed'):
+                    finalize_controller(run, verify_only=True)
                 cases = [
                     ('debug-service/result.json', dict(worker, delete_complete_ns=55*10**9)),
                     ('controller-result.json', dict(identity, success=True, release_observation_s=60,
