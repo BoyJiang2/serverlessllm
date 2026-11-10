@@ -179,3 +179,5 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 首条是 safetensors_disk_cold，run sllm-debug-20261110T061909Z-cce53f64，holder a37467ebb11fcd623819f8607c749f68。由现有 deploy_debug_stack.py 清单重建 90 个文件（788344 字节），逐一核对 Git blob，批准工具哈希全部匹配。预期工具部署路径为 /data/brick1/boyjiang/glm5.1-fp8/code/debug-stack-2f7f1d35c6b4，批准文件目的地为 /data/brick1/boyjiang/glm5.1-fp8/results/reanalysis-20261106/v2/controller-supplement-r1-v5-approved.json。现场只读检查确认两者尚未部署；原冻结 source-debug-16f6c59a2509-70a71e5dca77、精确 aa161e38 镜像及基础守护存在。首条 unit inactive，run 和窗口回执均不存在。
 
 2026-11-10 19:48（UTC+8），qjhs003 八卡均约 96697 MiB，计算 PID 4112722–4112729，1 分钟负载 8.27。预约 API 此轮 TLS 读取失败，无法确认本实验可用截止。尚无独占资源、当前窗口或实际 per-run guard 证据。资源与授权通过后，按已有部署方式上传并独立核验新工具和批准文件，建立 root 窗口回执（首条 prior_final_sha256 为空对象），先 measure --preflight，再启动并在独立 SSH 中验证 CPU probe。Main 沿用已取证的 systemd 3570 秒运行上限、30 秒停止上限和私有 slice；在实际 dispatch 前保留至少 3900 秒有效窗口。按原顺序执行，计时及观察区间内停止同步。
+
+2026-11-10 19:58（UTC+8），通过预约 API 核验 boyjiang 的整机预约 bk-20261110T1028-ec192ffd 为 19:00–21:00。65 分钟启动余量对应最晚 19:55，核验时仅余约 62 分钟，未进入任何 CPU probe 或 Main。19:54 和 19:55 的 NVML 查询均无 compute PID，但每卡 4 MiB，严格的 0 MiB 显存准入也未通过。保留第五批原顺序和 0/0/4 状态，等待足额授权窗口与实际资源重新核验。
