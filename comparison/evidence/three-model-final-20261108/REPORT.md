@@ -283,9 +283,9 @@ Controller起点是实际宿主systemd unit的kernel启动，终点是正常退�
 
 当前2成功/0失败/2未开始；每个已完成条件只有n=1，不发布CI、可靠性或四条件完整结论，不据此追认旧慢采样或exit137根因已解决。独立子代理核对本地小回执、kernel算术和冻结finalizer后未发现这两项限定发布的阻断；其未亲读远端原始JSONL/phase payload，不称第二人逐条复算。
 
-12:39后其他GPU作业出现，后续只读预查又遇CPU负载及GPU占用；Store两项尚无Main启动。冻结“首次准入失败即停”对外层只读占用预查的适用边界待用户裁定，当前不继续启动、不擅自放宽门槛。运行后还须完整四条件复核，现有图4/5及C23主表保持原样。
+12:39后其他GPU作业出现，后续只读预查又遇CPU负载及GPU占用；Store两项尚无Main启动。用户已于2026-11-10裁定：“按可恢复的资源等待处理，空闲且原准入通过后继续”。此前外层只读预查拒绝保留，原两项未开始ID允许在资源释放后重新通过全部原准入再按序启动；运行失败停止条件、资源/缓存/金标/守护和预算门槛不变。目前仍有其他GPU作业，尚未启动Store两项。运行后还须完整四条件复核，现有图4/5及C23主表保持原样。
 
-来源：[第四cohort账本](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/controls/debug_stack_v1/controller-supplement-batch4.json)、[SF冷读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json)、[SF热读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json)、[完整边界与审阅记录](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/results/reanalysis-20261106/controller-supplement-status.md)。回执含各原始来源的绝对路径、大小和SHA，原始大日志留qjhs003，不复制模型或大监控。
+来源：[第四cohort账本](https://github.com/BoyJiang2/serverlessllm/blob/4f7d1f3a8efac870dab31ae51b7094112e421fd3/glm/controls/debug_stack_v1/controller-supplement-batch4.json)、[SF冷读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_cold.json)、[SF热读回执](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/evidence/cost-sources/controller-supplement-v4-safetensors_disk_hot.json)、[完整边界与审阅记录](https://github.com/BoyJiang2/serverlessllm/blob/cbaf55804474b6b78c6e47dae68e9857c57e364a/glm/results/reanalysis-20261106/controller-supplement-status.md)。回执含各原始来源的绝对路径、大小和SHA，原始大日志留qjhs003，不复制模型或大监控。
 
 ## GLM仍需新测量的缺项
 
