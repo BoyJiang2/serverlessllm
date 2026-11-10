@@ -570,7 +570,7 @@ class SupplementAdmission(unittest.TestCase):
                           reviewed_extra_sha256={'glm/tools/historical_costs.py': 'b'*64})
             digest = 'a'*64
             sealed_finals = {}
-            def admit(index, invocation=None, **overrides):
+            def admit(index, invocation=None, *, requested_run=None, **overrides):
                 row = attempts[index]
                 now = datetime.datetime.now(UTC)
                 window = dict(run_id=row['run_id'], condition=row['condition'], holder=row['holder'],
@@ -578,13 +578,21 @@ class SupplementAdmission(unittest.TestCase):
                               authority_reference='fixture', window_start=now.isoformat(),
                               window_end=(now+datetime.timedelta(hours=2)).isoformat(),
                               prior_final_sha256=dict(sealed_finals))
-                return d.verify_supplement_attempt(review, digest, row['run_id'], row['condition'],
+                return d.verify_supplement_attempt(review, digest, requested_run or row['run_id'], row['condition'],
                                                    'boot', dict(window, **overrides), invocation=invocation)
             with patch.object(d, 'HOST', host), patch.object(d, 'UID', uid):
+                with self.assertRaisesRegex(RuntimeError, 'approved attempt identity'):
+                    admit(0, requested_run=attempts[1]['run_id'])
                 with self.assertRaisesRegex(RuntimeError, 'authorization identity'):
                     admit(0, holder='f'*32)
                 with self.assertRaisesRegex(RuntimeError, 'exact preceding'):
                     admit(1)
+                claimed_prefix = {row['run_id']: 'c'*64 for row in attempts[:2]}
+                with self.assertRaises(FileNotFoundError):
+                    admit(2, prior_final_sha256=claimed_prefix)
+                end_too_soon = (datetime.datetime.now(UTC)+datetime.timedelta(seconds=3899)).isoformat()
+                with self.assertRaisesRegex(RuntimeError, '3900-second'):
+                    admit(0, window_end=end_too_soon)
                 admit(0)
                 self.assertFalse(list(debug.iterdir()))
                 admit(0, invocation='one')
@@ -600,6 +608,10 @@ class SupplementAdmission(unittest.TestCase):
                 d.write(root/'controller-result.json', dict(success=True, controller_end_ns=end-10**9))
                 inputs = {name: dict(sha256=hashlib.sha256((root/name).read_bytes()).hexdigest())
                           for name in ('controller-start.json', 'controller-result.json')}
+                with self.assertRaises(FileNotFoundError) as missing:
+                    admit(1, prior_final_sha256={first['run_id']: 'c'*64})
+                self.assertEqual(Path(missing.exception.filename), root/'controller-final.json')
+                self.assertFalse((debug/attempts[1]['run_id']).exists())
                 final = dict(schema='glm-independent-controller-supplement-v1', attempt_id=first['run_id'],
                              condition=first['condition'], unit=dict(InvocationID='one', Result='success', ExecMainStatus='0',
                              Id=first['run_id']+'-controller.service', MainPID='0', ExecMainCode='1',
@@ -614,6 +626,9 @@ class SupplementAdmission(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'independent success'):
                     admit(1)
                 seal(dict(final, unit=dict(final['unit'], ExecMainExitTimestampMonotonic='0')))
+                with self.assertRaisesRegex(RuntimeError, 'independent success'):
+                    admit(1)
+                seal(dict(final, unit=dict(final['unit'], InvocationID='other')))
                 with self.assertRaisesRegex(RuntimeError, 'independent success'):
                     admit(1)
                 seal(final)
