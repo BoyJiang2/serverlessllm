@@ -1,0 +1,55 @@
+{
+  "checked_at": "2026-11-11T16:25:11+0800",
+  "scope": "B1 pre-acceptance part 1: MP HTTP API contract on the pinned image",
+  "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "lmcache_version": "0.5.6",
+  "overlay": "/data/brick1/boyjiang/lmcache-site",
+  "server_command": [
+    "python",
+    "-m",
+    "lmcache.v1.multiprocess.http_server",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "<mq>",
+    "--transport",
+    "zmq",
+    "--http-host",
+    "0.0.0.0",
+    "--http-port",
+    "<http>",
+    "--l1-size-gb",
+    "<K>",
+    "--l1-init-size-gb",
+    "<K>",
+    "--eviction-policy",
+    "LRU"
+  ],
+  "status_before": {
+    "is_healthy": true,
+    "engine_type": "MPCacheServer",
+    "active_sessions": 0,
+    "memory_used_bytes": 0,
+    "memory_total_bytes": 2147483648,
+    "memory_usage_ratio": 0.0,
+    "num_l2_adapters": 0,
+    "eviction_policy": "LRU"
+  },
+  "clear_l1": {
+    "status": 200,
+    "body": "{\"status\":\"ok\",\"cleared\":{\"tier\":\"l1\"}}"
+  },
+  "clear_l2": {
+    "status": 400,
+    "body": "{\"detail\":\"tier 'l2' not supported; only 'l1'\"}"
+  },
+  "status_after": {
+    "memory_used_bytes": 0,
+    "memory_usage_ratio": 0.0
+  },
+  "notes": [
+    "Part 1 passes: HTTP API reachable, /cache/clear accepts only tier l1 (l2 -> 400), status exposes memory_used_bytes so \"clear to zero\" is directly checkable.",
+    "Part 2 (GET /status showing a registered KV context with nonzero memory_used_bytes) requires a live vLLM worker with LMCacheMPConnector and is recorded by the B1 run."
+  ],
+  "log_excerpt": ""
+}

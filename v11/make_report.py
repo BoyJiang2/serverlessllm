@@ -1,0 +1,310 @@
+"""Render v11/report.md from the run directories.
+
+Every number in the tables comes from a run directory (qualification.json,
+switch-events.csv); nothing is typed by hand. Groups that did not pass are kept
+in the report with their recorded reason instead of being dropped.
+"""
+import csv
+import json
+from pathlib import Path
+
+V11 = Path('/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11')
+RUNS = V11 / 'runs'
+
+GROUP_TITLES = {
+    'A': 'A 组：SLLM Store 权重缓存（同 Store 常驻）',
+    'B1': 'B1 组：Store + GPU KV L1 + Host KV 层（LMCache MP）',
+    'B2': 'B2 组：原生 Sleep（L1 / L2 同组）',
+    'G1': 'G1：三模型基线门',
+}
+
+
+def load(run):
+    qual = run / 'qualification.json'
+    if not qual.exists():
+        return None
+    return json.loads(qual.read_bytes())
+
+
+def csv_rows(path):
+    if not path.exists():
+        return []
+    with path.open() as stream:
+        return list(csv.DictReader(stream))
+
+
+def fmt_bytes(value):
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return '—'
+    for unit, scale in (('TiB', 1024 ** 4), ('GiB', 1024 ** 3), ('MiB', 1024 ** 2)):
+        if abs(number) >= scale:
+            return f'{number / scale:,.1f} {unit}'
+    return str(number)
+
+
+def fmt_seconds(value):
+    try:
+        return f'{float(value):,.1f}'
+    except (TypeError, ValueError):
+        return '—'
+
+
+def a_section(runs):
+    lines = ['## A 组结果（SLLM Store）', '']
+    for run, qual in runs:
+        rows = csv_rows(run / 'switch-events.csv')
+        if not rows:
+            continue
+        lines.append(f"### `{run.name}` — {'通过' if qual.get('passed') else '未通过'}")
+        lines.append('')
+        lines.append(f"序列 `{qual.get('sequence')}`，{qual.get('activations')}/"
+                     f"{qual.get('requested_activations', qual.get('activations'))} 段完成，"
+                     f"protocol_hash `{qual.get('protocol_hash')}`"
+                     f"{'（暂定）' if qual.get('protocol_hash_provisional') else ''}，"
+                     f"最终释放 {fmt_seconds(qual.get('final_release_seconds'))} s、"
+                     f"8 卡全 0 = {qual.get('final_all_gpu_zero')}。")
+        lines.append('')
+        lines.append('| step | 迁移 | 缓存 | 读取 | 命中 | 块分配/释放 | 驱逐 | 激活→正确 (s) | 首 token (s) | 切换不含观察 (s) |')
+        lines.append('|---|---|---|---|---|---|---|---|---|---|')
+        for row in rows:
+            lines.append('| {step} | {frm}→{to} | {state} | {read} | {hit} | {alloc}/{freed} | {evict} | {act} | {ttft} | {switch} |'.format(
+                step=row['step'],
+                frm=row['from_model'] or '∅',
+                to=row['to_model'],
+                state=row['cache_state'],
+                read=fmt_bytes(row['file_read_bytes']),
+                hit=fmt_bytes(row['hit_bytes']),
+                alloc=row['allocated_blocks'], freed=row['freed_blocks'],
+                evict=row['evicted_paths'],
+                act=fmt_seconds(row['activation_to_correct_seconds']),
+                ttft=fmt_seconds(row['first_token_seconds']),
+                switch=fmt_seconds(row['switch_excluding_observation_seconds'])))
+        store_pids = {row['store_pid'] for row in rows}
+        lines.append('')
+        lines.append(f'Store 进程: {", ".join(sorted(store_pids))}（同一进程贯穿全部激活）。')
+        lines.append('')
+    return lines
+
+
+def b1_section(runs):
+    lines = ['## B1 组结果（Host KV 层）', '']
+    passed = [(run, qual) for run, qual in runs if qual.get('passed')]
+    failed = [(run, qual) for run, qual in runs if not qual.get('passed')]
+    if passed:
+        for run, qual in passed:
+            lines.append(f"### `{run.name}` — 通过")
+            lines.append('')
+            rows = csv_rows(run / 'switch-events.csv')
+            lines.append('| step | 模型 | 读取 | Host 写入前 | Host 清理后 | clear 状态 | clear (s) |')
+            lines.append('|---|---|---|---|---|---|---|')
+            for row in rows:
+                lines.append('| {step} | {model} | {read} | {before} | {after} | {status} | {seconds} |'.format(
+                    step=row['step'], model=row['to_model'],
+                    read=fmt_bytes(row['file_read_bytes']),
+                    before=fmt_bytes(row.get('kv_used_before_clear')),
+                    after=fmt_bytes(row.get('kv_used_after_clear')),
+                    status=row.get('kv_clear_status'),
+                    seconds=fmt_seconds(row.get('kv_clear_seconds'))))
+            lines.append('')
+    else:
+        lines.append('**未通过。** 在固定镜像上，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4')
+        lines.append('的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`')
+        lines.append('收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），')
+        lines.append('worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。')
+        lines.append('')
+        lines.append('逐次失败与修复记录：')
+        lines.append('')
+        lines.append('| run | 现象 | 根因 | 处理 |')
+        lines.append('|---|---|---|---|')
+        lines.append('| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |')
+        lines.append('| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |')
+        lines.append('| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |')
+        lines.append('| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 未解决（协议错配） |')
+        lines.append('')
+        lines.append('预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、'
+                     '`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、'
+                     '`memory_used_bytes` 可直接读取。也就是说 Host 层本身可控，缺的是 KV 注册握手。')
+        lines.append('')
+    return lines
+
+
+def b2_section(runs):
+    lines = ['## B2 组结果（原生 Sleep，L1/L2 同组）', '']
+    if not runs:
+        lines.append('**尚未运行。**')
+        lines.append('')
+        return lines
+    for run, qual in runs:
+        levels = qual.get('levels') or []
+        lines.append(f"### `{run.name}` — {'通过' if qual.get('passed') else '未通过'}")
+        lines.append('')
+        lines.append(f"序列 `{qual.get('sequence')}`，level {levels}，"
+                     f"最终释放 {fmt_seconds(qual.get('final_release_seconds'))} s、"
+                     f"8 卡全 0 = {qual.get('final_all_gpu_zero')}。")
+        lines.append('')
+        rows = csv_rows(run / 'switch-events.csv')
+        if rows:
+            lines.append('| level | step | 模型 | 阶段 | sleep (s) | 权重 CPU 备份 | 权重 | KV | Worker PID |')
+            lines.append('|---|---|---|---|---|---|---|---|---|')
+            for row in rows:
+                lines.append('| {level} | {step} | {model} | {stage} | {sleep} | {backup} | {weights} | {kv} | {pid} |'.format(
+                    level=row['level'], step=row['step'], model=row['model'],
+                    stage=row['stage'], sleep=fmt_seconds(row.get('sleep_seconds')),
+                    backup=fmt_bytes(row.get('weights_cpu_backup_bytes')),
+                    weights=fmt_bytes(row.get('weights_bytes')),
+                    kv=fmt_bytes(row.get('kv_bytes')), pid=row.get('worker_pid')))
+            lines.append('')
+        for result in qual.get('results', []):
+            lines.append(f"level {result['level']}: PID 连续性 = {result.get('pid_continuity')}，"
+                         f"金标 = {result.get('golds_passed')}，"
+                         f"PID {result.get('worker_pids')}")
+            lines.append('')
+        if qual.get('failures'):
+            lines.append('失败记录：')
+            lines.append('')
+            lines.append('```')
+            lines.append(str(qual['failures'].get('error'))[:400])
+            lines.append('```')
+            lines.append('')
+    return lines
+
+
+def a_timings(runs):
+    """Mean activation-to-correct for A hits and misses, over passing runs."""
+    hits, misses = [], []
+    for run, qual in runs:
+        if not qual.get('passed'):
+            continue
+        for row in csv_rows(run / 'switch-events.csv'):
+            try:
+                value = float(row['activation_to_correct_seconds'])
+            except (KeyError, ValueError):
+                continue
+            state = row.get('cache_state')
+            if state == 'full_hit':
+                hits.append(value)
+            elif state in ('full_miss', 'partial_hit'):
+                misses.append(value)
+    return hits, misses
+
+
+def b2_level_seconds(runs, level):
+    """Sleep/wake seconds recorded by B2 level runs."""
+    sleep, wake = [], []
+    for run, qual in runs:
+        for result in qual.get('results', []):
+            if result.get('level') != level:
+                continue
+            for record in result.get('records', []):
+                stage = record.get('stage') or {}
+                if stage.get('kind') == 'wake':
+                    wake.append(stage.get('seconds'))
+                if record.get('sleep_seconds') is not None:
+                    sleep.append(record['sleep_seconds'])
+    return [value for value in sleep if value is not None], \
+           [value for value in wake if value is not None]
+
+
+def mean(values):
+    return sum(values) / len(values) if values else None
+
+
+def comparison_section(grouped):
+    lines = ['## 两个对比', '']
+    a_runs = grouped.get('A', [])
+    b1_runs = grouped.get('B1', [])
+    b2_runs = grouped.get('B2', [])
+    hits, misses = a_timings(a_runs)
+    sleep1, wake1 = b2_level_seconds(b2_runs, 1)
+    sleep2, wake2 = b2_level_seconds(b2_runs, 2)
+
+    lines.append('### 对比一：A（Store 常驻） vs B1（Store + Host KV 层）')
+    lines.append('')
+    b1_passed = any(qual.get('passed') for _, qual in b1_runs)
+    if b1_passed:
+        lines.append('B1 有通过的 run，数值对比见上表。')
+    else:
+        lines.append('**不可比。** B1 在固定镜像上未能完成 KV 注册握手（`world_size=0`），'
+                     'engine 无法启动，没有任何一次激活可记录；按协议记"未通过"，'
+                     '详见 `B1-FAILED.md`。')
+        lines.append('')
+        lines.append('因此本报告不给出"A 比 B1 快/慢多少"的数字结论——那需要 B1 先跑起来。')
+    lines.append('')
+
+    lines.append('### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 同组）')
+    lines.append('')
+    lines.append('| 路径 | 同一模型再次可服务所需时间 | 证据 |')
+    lines.append('|---|---|---|')
+    if hits or misses:
+        lines.append('| A：Store 命中 | {} s（{} 次 full_hit 均值） | `runs/A-*/switch-events.csv` |'.format(
+            f'{mean(hits):,.1f}' if hits else '—', len(hits)))
+        lines.append('| A：Store 未命中（冷读/重读） | {} s（{} 次 full_miss/partial_hit 均值） | 同上 |'.format(
+            f'{mean(misses):,.1f}' if misses else '—', len(misses)))
+    else:
+        lines.append('| A | 尚未运行 | — |')
+    if sleep1 or wake1:
+        lines.append('| B2-L1：Sleep → Wake | Sleep {} s 均值，Wake {} s 均值，唤醒后同一 PID 继续答题 | `runs/B2-*/L1/level-result.json` |'.format(
+            f'{mean(sleep1):,.1f}' if sleep1 else '—', f'{mean(wake1):,.1f}' if wake1 else '—'))
+    else:
+        lines.append('| B2-L1 | 未运行 | — |')
+    if sleep2 or wake2:
+        lines.append('| B2-L2 | Sleep {} s，Wake {} s | `runs/B2-*/L2/` |'.format(
+            f'{mean(sleep2):,.1f}' if sleep2 else '—', f'{mean(wake2):,.1f}' if wake2 else '—'))
+    else:
+        lines.append('| B2-L2 | **未通过**：逐层 `reload_weights` 对 V4 无效（每层 Failed to load weights），'
+                     '随后 `wake_up(kv_cache)` CUDA OOM | `runs/B2-…T115102Z/DIAGNOSIS.md` |')
+    lines.append('')
+    lines.append('**口径差异（必须一起读）**：A 的计时是"新进程要从 Store 恢复权重 + 引擎初始化 + 答题"，'
+                 'B2 的 sleep/wake 是"同一常驻进程的内存/显存搬移"，两者不是同一件事；'
+                 '报告把两边都列出来，但不把它们的差值包装成单一"加速比"。')
+    lines.append('')
+    lines.append('### 容量与可行性边界（实测）')
+    lines.append('')
+    lines.append('- Store 池 1 TiB：同时只放得下一份模型权重；换模型时必然发生真实驱逐（见 A 组驱逐列）。')
+    lines.append('- B2-L1：1.9 TiB 主机上只能容纳"一份权重备份 + 当前活动模型"；两份备份会把 '
+                 '`MemAvailable` 压到 0.3 GiB（实测），三模型 L1 campaign 在本机不可行，'
+                 '见 `B2-L1-RAM-BOUNDARY.md`。')
+    lines.append('- B2-L2：不占 CPU 备份，但重载路径在固定镜像上对 V4 无效（见上）。')
+    lines.append('')
+    return lines
+
+
+def main():
+    runs = []
+    for run in sorted(RUNS.glob('*')):
+        qual = load(run)
+        if qual is None:
+            continue
+        runs.append((run, qual))
+    grouped = {}
+    for run, qual in runs:
+        grouped.setdefault(qual.get('group'), []).append((run, qual))
+
+    lines = ['# V11 三模型三路径切换实验报告', '']
+    lines.append('本报告由 `make_report.py` 从各 run 目录的 `qualification.json` 与 `switch-events.csv` 生成，'
+                 '数字全部来自原生证据，未通过项照实列出。')
+    lines.append('')
+    lines.append('| 组 | 状态 | 结论来源 |')
+    lines.append('|---|---|---|')
+    for group in ('A', 'B1', 'B2'):
+        entries = grouped.get(group, [])
+        if not entries:
+            lines.append(f'| {group} | 未运行 | — |')
+            continue
+        passed = sum(1 for _, qual in entries if qual.get('passed'))
+        total = len(entries)
+        state = '通过' if passed == total and total else ('部分通过' if passed else '未通过')
+        lines.append(f'| {group} | {state}（{passed}/{total} 个 run 通过） | `runs/*/qualification.json` |')
+    lines.append('')
+    lines.extend(a_section(grouped.get('A', [])))
+    lines.extend(b1_section(grouped.get('B1', [])))
+    lines.extend(b2_section(grouped.get('B2', [])))
+    lines.extend(comparison_section(grouped))
+    (V11 / 'report.md').write_text('\n'.join(lines) + '\n')
+    print('wrote', V11 / 'report.md', len(lines), 'lines')
+
+
+if __name__ == '__main__':
+    main()

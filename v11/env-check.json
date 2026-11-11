@@ -1,0 +1,61 @@
+{
+  "checked_wall_ns": 1794376956520256335,
+  "checked_at": "2026-11-11T06:02:36.520258+00:00",
+  "host": "qjhs3",
+  "gpu": {
+    "query_exit": 0,
+    "rows": [
+      "0, GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "1, GPU-a3baf382-35c8-8748-626a-f69745aab5f8, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "2, GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "3, GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "4, GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "5, GPU-151684e8-c7ba-a20a-6955-e1f765940536, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "6, GPU-af5f5c7a-0dce-f291-99be-2c844225cec6, NVIDIA H20-3e, 0 MiB, 143771 MiB",
+      "7, GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, NVIDIA H20-3e, 0 MiB, 143771 MiB"
+    ],
+    "apps": []
+  },
+  "memory": {
+    "MemTotal": "2016708628 kB",
+    "MemAvailable": "1968435148 kB",
+    "Mlocked": "229944 kB"
+  },
+  "disk": [
+    "Filesystem     Type  Size  Used Avail Use% Mounted on",
+    "/dev/nvme1n1   xfs   3.5T  2.7T  861G  76% /data/brick1",
+    "/dev/nvme3n1   xfs   3.5T  2.7T  842G  77% /data/brick3",
+    "/dev/vda2      ext4 1008G  223G  745G  23% /"
+  ],
+  "running_containers": [
+    "fastlaunch-central-4c15d8c288fb|Up 5 days",
+    "fullpd-39b90c9529a0-prefill|Up 6 days",
+    "fullpd-ed48d35303b2-prefill|Up 6 days",
+    "node9-pd-control-20261105-1001|Up 6 days",
+    "harbor-alan|Up 11 days"
+  ],
+  "image_digest": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "versions": {
+    "vllm": "0.20.1",
+    "torch": "2.11.0"
+  },
+  "versions_exit": 0,
+  "lmcache": {
+    "probe_exit": 0,
+    "result": "lmcache ABSENT PackageNotFoundError",
+    "stderr": ""
+  },
+  "model_revisions": {
+    "K": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "G": "69b4e81fafca7389fa1e102046ea13aa1c6ec9ed64a9a00f2056fe402034c8ec",
+    "D": "5fe4568daee51c208cb8a79538eaeda090ae011ade1dee2c386aa95f569c810e"
+  },
+  "tensor_parallel": 8,
+  "context_length": 2048,
+  "vllm_commit": "132765e3560659ff63ebd236203672e991b70e08",
+  "notes": [
+    "LMCache is absent from the pinned image; /data/brick1/boyjiang/lmcache-site is empty.",
+    "Prompt \u00a78 item 1 (LMCache version lock) is therefore still open; B1 cannot start.",
+    "Sequences below are final; protocol_hash stays provisional until LMCache is locked."
+  ]
+}

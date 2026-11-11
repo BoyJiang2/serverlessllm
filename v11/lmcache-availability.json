@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-11-11T15:02:48+0800",
+  "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "overlay_site": "/data/brick1/boyjiang/lmcache-site",
+  "installed_via": "uv pip install --target --no-deps lmcache==0.5.6 (Tsinghua mirror)",
+  "runtime_deps_added": [
+    "sortedcontainers",
+    "psutil",
+    "pyyaml",
+    "prometheus_client",
+    "aiohttp",
+    "msgspec"
+  ],
+  "lmcache_version": "lmcache 0.5.6\nfiles ['bin', '.lock', 'lmcache-0.5.6.dist-info', 'lmcache', 'pyyaml-6.0.3.dist-info', 'prometheus_client-0.26.0.dist-info']",
+  "vllm_connectors": "['DecodeBenchConnector', 'ExampleConnector', 'ExampleHiddenStatesConnector', 'FlexKVConnectorV1', 'HF3FSKVConnector', 'LMCacheConnectorV1', 'LMCacheMPConnector', 'MoRIIOConnector', 'MooncakeConnector', 'MultiConnector', 'NixlConnector', 'OffloadingConnector', 'P2pNcclConnector', 'SimpleCPUOffloadConnector']",
+  "server_entrypoints": {
+    "lmcache": "lmcache.cli.main:main",
+    "lmcache_controller": "lmcache.v1.api_server.__main__:main",
+    "lmcache_server": "lmcache.v1.server.__main__:main (usage: <host> <port> <storage>)"
+  },
+  "http_api_present_in_package": [
+    "lmcache/v1/multiprocess/http_apis/info_api.py: GET /status",
+    "lmcache/v1/multiprocess/http_apis/cache_api.py: POST /cache/clear",
+    "lmcache/cli/commands/kvcache.py: POST {url}/cache/clear {\"tier\":\"l1\"}"
+  ],
+  "notes": [
+    "B1 will use kv_connector=LMCacheMPConnector with kv_role=kv_both on the same SLLM Store.",
+    "Pinned LMCache commit/tag is the pypi release 0.5.6; the wheel digest is part of the run record.",
+    "Pre-acceptance still required: GET /status lists a context, POST /cache/clear returns expected, and host-tier accounting drops to zero bytes.",
+    "No L2 adapter is configured, per the protocol."
+  ]
+}
