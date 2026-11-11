@@ -44,7 +44,80 @@
       "condition": "safetensors_disk_cold",
       "run_id": "sllm-debug-20261110T061909Z-cce53f64",
       "holder": "a37467ebb11fcd623819f8607c749f68",
-      "status": "not_started"
+      "status": "failed",
+      "metrics": null,
+      "failed_controller_elapsed_s": 84.438015,
+      "failure_receipt": {
+        "evidence": {
+          "controller-dispatch.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/controller-dispatch.json",
+            "sha256": "77266dd4d4084f52cb72a5ad7a681c6b630b7579730205e3bc88745456c69605",
+            "bytes": 1045
+          },
+          "controller-start.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/controller-start.json",
+            "sha256": "90a963c2fef8c101ef163abc6223d687070bcf05bd083b79eae9e7e52de40f1e",
+            "bytes": 44853
+          },
+          "controller-monitor-rejected.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/controller-monitor-rejected.json",
+            "sha256": "c035584035a2ce23dd6e07b46e1c7b399ade3100f7c9bbb57c666e8fd3f00ad9",
+            "bytes": 48997
+          },
+          "controller-result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/controller-result.json",
+            "sha256": "f884d83632024c3f97ac4539bb811b0fdd768e05f1f1004b3849b3814e7d3fe2",
+            "bytes": 45670
+          },
+          "controller-final.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/controller-final.json",
+            "sha256": "b0da9a815c25e2904bd035265955bf899fc88c55945159aeeb9639ee48a94ff0",
+            "bytes": 1571
+          },
+          "release60.jsonl": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/release60.jsonl",
+            "sha256": "eb113e83db4a264205d77bd17fb117c0d4e3e2eff79cbad235d54ae3fa41f8f4",
+            "bytes": 358560
+          },
+          "stack.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261110T061909Z-cce53f64/stack.json",
+            "sha256": "2d1f7418cd1af4eef91d6f820eaef0d76993f362525b5410a483cf9a5bf33b1b",
+            "bytes": 6967
+          }
+        },
+        "unit": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStartTimestampMonotonic": "1490581015732",
+          "ExecMainExitTimestampMonotonic": "1490665453747",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "Id": "sllm-debug-20261110T061909Z-cce53f64-controller.service",
+          "InvocationID": "df6b4a0e3cf14c469316b0662b1db0ed"
+        },
+        "release_observation_s": 61.2261683,
+        "failure": "RuntimeError('monitor coverage/cadence failed')",
+        "sample_elapsed_s": 4.093969635,
+        "cadence_gap_s": 5.094686897,
+        "worker_inspect_elapsed_s": 3.812296371
+      },
+      "resource_release": {
+        "owned_containers_remaining": 0,
+        "gpu_used_mib": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "owned_cgroup_populated": 0,
+        "private_slice": "inactive",
+        "controller_deadline_timer": "inactive",
+        "probe_deadline_timer": "inactive"
+      }
     },
     {
       "condition": "safetensors_disk_hot",
@@ -68,10 +141,10 @@
   "copied_attempts": false,
   "counts": {
     "success": 0,
-    "failed": 0,
-    "not_started": 4
+    "failed": 1,
+    "not_started": 3
   },
-  "batch_state": "source_R1_pass_field_admission_pending",
+  "batch_state": "stopped_after_first_main_failure",
   "runtime_admission": false,
   "r1_candidate_path": "glm/controls/debug_stack_v1/controller-supplement-r1-v5-admission-tests-candidate.json",
   "r1_candidate_sha256": "3d9b993686b6c94530d8d4430eba179c846c838e35c483150b4ba05050404d5d",

@@ -189,3 +189,10 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 20:20 两次只读采样定位到仍在消耗 CPU 的同 UID 进程 PID 39493，startticks 143680487，工作目录 /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7。该进程 RssAnon 约 8.06–9.41 GiB，同期主机 AnonPages 约 10.48–11.94 GiB。两者是独立观测值，进程 RSS 不作为全主机精确分摊。该 V4 进程不属于本 GLM 补测，未对其执行停止或变更。完整资源门继续拒绝，首条未启动。
 
 2026-11-11 09:34（UTC+8），qjhs003 八卡均为 0 MiB，首条未登记 dispatch，独立探针与 Main 未启动。预约 API 只返回当前补充实验整机窗口 bk-20261110T1411-881646ab（02:00–10:00），剩余约 26 分钟，低于单轮 65 分钟和整批 260 分钟。新版 R1 批准文件 controller-supplement-r1-v5-admission-tests-approved.json 已部署至既有 results/reanalysis-20261106/v2，独立 SSH 使用原生验证函数核对冻结源码及实际运行工具，批准 SHA-256 为 2f01657b4de948e7a3ab5632472a98a5b0883fcf4b27d05dfcef05b5b7e8e078。旧 root 窗口回执仍保留作历史证据，下一有效窗口需要绑定新版批准 SHA。
+
+
+### 第五批首条实际失败并完成释放
+
+2026-11-11 11:04（UTC+8）Safetensors 冷读 sllm-debug-20261110T061909Z-cce53f64 经窗口、资源预查及独立探针后启动 Main。监控 cadence 实测 5.094687 秒，超过 5 秒门槛。被拒样本本身耗时 4.093970 秒，worker inspect 阶段占 3.812296 秒；该阶段内的根因未知，回执无 cgroup 重试。
+
+宿主 systemd 记录 Controller 以状态 1 退出，失败经过时间 84.438015 秒。整栈释放观察 61.226168 秒，八卡归零、容器移除、私有 slice 与两只截止 timer 均已停止。独立 finalizer success=false、metrics=null。第五批终态为 0 成功 / 1 失败 / 3 未开始，停止后续。原始文件路径和 SHA 见第五批账本。该条不能填入 GLM Controller 成功数据列。
