@@ -1,0 +1,312 @@
+{
+  "name": "glm",
+  "config": {
+    "tokenizer": "/experiment/checkpoint",
+    "load_format": "sllm_glm51_raw_0201",
+    "tensor_parallel_size": 8,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "gpu_memory_utilization": 0.9,
+    "enable_prefix_caching": false,
+    "distributed_executor_backend": "mp",
+    "moe_backend": "deep_gemm",
+    "num_gpu_blocks_override": 256,
+    "enforce_eager": true,
+    "seed": 20261024,
+    "speculative_config": null,
+    "pretrained_model_name_or_path": "/data/brick3/boyjiang/glm5.1-fp8-store-v7-target-0201-20261110-v3",
+    "torch_dtype": "bfloat16",
+    "model_loader_extra_config": {
+      "store_path": "/data/brick3/boyjiang/glm5.1-fp8-store-v7-target-0201-20261110-v3",
+      "identity": {
+        "format": "sllm-glm51-fp8-raw-v2",
+        "source_revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+        "config_sha256": "69b4e81fafca7389fa1e102046ea13aa1c6ec9ed64a9a00f2056fe402034c8ec",
+        "vllm_version": "0.20.1",
+        "vllm_commit": "132765e3560659ff63ebd236203672e991b70e08",
+        "torch_version": "2.11.0+cu130",
+        "model_type": "glm_moe_dsa",
+        "quantization": "fp8",
+        "dtype": "torch.bfloat16",
+        "tensor_parallel_size": 8,
+        "seed": 20261024,
+        "VLLM_USE_DEEP_GEMM_E8M0": "0"
+      }
+    }
+  },
+  "requests": [
+    {
+      "name": "business_arithmetic",
+      "payload": {
+        "input_tokens": [
+          154822,
+          154824,
+          154827,
+          98964,
+          99653,
+          99419,
+          98431,
+          99446,
+          1773,
+          98552,
+          102162,
+          122670,
+          99312,
+          3837,
+          99506,
+          100774,
+          1773,
+          154828,
+          154842
+        ],
+        "temperature": 0,
+        "seed": 20261024,
+        "max_tokens": 128,
+        "ignore_eos": false,
+        "logprobs": 1,
+        "return_token_ids": true
+      },
+      "expected": {
+        "content": "42",
+        "token_ids": [
+          101961,
+          154827
+        ],
+        "finish_reason": "stop",
+        "prompt_tokens": 19,
+        "completion_tokens": 2
+      },
+      "length_only": false
+    },
+    {
+      "name": "business_translation",
+      "payload": {
+        "input_tokens": [
+          154822,
+          154824,
+          154827,
+          98964,
+          98493,
+          103577,
+          107449,
+          4616,
+          102696,
+          98350,
+          102169,
+          1773,
+          98552,
+          102162,
+          115775,
+          3837,
+          99506,
+          100774,
+          1773,
+          154828,
+          154842
+        ],
+        "temperature": 0,
+        "seed": 20261024,
+        "max_tokens": 128,
+        "ignore_eos": false,
+        "logprobs": 1,
+        "return_token_ids": true
+      },
+      "expected": {
+        "content": "\u732b",
+        "token_ids": [
+          100713,
+          154827
+        ],
+        "finish_reason": "stop",
+        "prompt_tokens": 21,
+        "completion_tokens": 2
+      },
+      "length_only": false
+    },
+    {
+      "name": "fixed32",
+      "payload": {
+        "input_tokens": [
+          154822,
+          154824,
+          154827,
+          98340,
+          102169,
+          100774,
+          99921,
+          105860,
+          101070,
+          100219,
+          105047,
+          3837,
+          99032,
+          101688,
+          101583,
+          98833,
+          126841,
+          98314,
+          100205,
+          1773,
+          154828,
+          154842
+        ],
+        "temperature": 0,
+        "seed": 20261024,
+        "max_tokens": 32,
+        "ignore_eos": true,
+        "logprobs": 1,
+        "return_token_ids": true
+      },
+      "expected": {
+        "content": "\u5929\u7a7a\u4e4b\u6240\u4ee5\u901a\u5e38\u5448\u73b0\u84dd\u8272\uff0c\u6838\u5fc3\u539f\u56e0\u5728\u4e8e\u592a\u9633\u5149\u4e0e\u5730\u7403\u5927\u6c14\u5c42\u4e4b\u95f4\u53d1\u751f\u7684\u4e00\u79cd\u5149\u5b66\u73b0\u8c61\u2014\u2014**\u745e\u5229\u6563\u5c04\uff08Rayleigh scattering\uff09**\u3002",
+        "token_ids": [
+          105860,
+          103664,
+          101070,
+          101538,
+          105047,
+          3837,
+          100310,
+          99651,
+          101417,
+          101327,
+          98683,
+          98381,
+          102339,
+          104611,
+          98940,
+          99420,
+          99195,
+          101532,
+          109738,
+          100542,
+          8544,
+          334,
+          100466,
+          98537,
+          127287,
+          9904,
+          29080,
+          62524,
+          71268,
+          7552,
+          334,
+          1773
+        ],
+        "finish_reason": "length",
+        "prompt_tokens": 22,
+        "completion_tokens": 32
+      },
+      "length_only": false,
+      "expected_native_0201": {
+        "content": "\u5929\u7a7a\u4e4b\u6240\u4ee5\u901a\u5e38\u5448\u73b0\u84dd\u8272\uff0c\u6839\u672c\u539f\u56e0\u5728\u4e8e\u592a\u9633\u5149\u4e0e\u5730\u7403\u5927\u6c14\u5c42\u4e4b\u95f4\u53d1\u751f\u7684\u4e00\u79cd\u5149\u5b66\u73b0\u8c61\u2014\u2014**\u745e\u5229\u6563\u5c04\uff08Rayleigh scattering\uff09**\u3002\n\n",
+        "token_ids": [
+          105860,
+          103664,
+          101070,
+          101538,
+          105047,
+          3837,
+          100604,
+          99651,
+          101417,
+          101327,
+          98683,
+          98381,
+          102339,
+          104611,
+          98940,
+          99420,
+          99195,
+          101532,
+          109738,
+          100542,
+          8544,
+          334,
+          100466,
+          98537,
+          127287,
+          9904,
+          29080,
+          62524,
+          71268,
+          7552,
+          334,
+          3407
+        ],
+        "finish_reason": "length",
+        "prompt_tokens": 22,
+        "completion_tokens": 32
+      }
+    },
+    {
+      "name": "v7_added_arithmetic",
+      "payload": {
+        "temperature": 0,
+        "seed": 20261024,
+        "max_tokens": 16,
+        "ignore_eos": false,
+        "logprobs": 1,
+        "return_token_ids": true,
+        "messages": [
+          {
+            "role": "user",
+            "content": "\u8bf7\u53ea\u8f93\u51fa\u6570\u5b57\uff1a17 + 25 = ?"
+          }
+        ]
+      },
+      "validation": "exact_numeric_answer",
+      "expected_content": "42"
+    }
+  ],
+  "gold_provenance": {
+    "historical": "expected block above: vLLM 0.19.1.dev1 gold, preserved unchanged",
+    "native_0201": {
+      "reference": {
+        "content": "\u5929\u7a7a\u4e4b\u6240\u4ee5\u901a\u5e38\u5448\u73b0\u84dd\u8272\uff0c\u6839\u672c\u539f\u56e0\u5728\u4e8e\u592a\u9633\u5149\u4e0e\u5730\u7403\u5927\u6c14\u5c42\u4e4b\u95f4\u53d1\u751f\u7684\u4e00\u79cd\u5149\u5b66\u73b0\u8c61\u2014\u2014**\u745e\u5229\u6563\u5c04\uff08Rayleigh scattering\uff09**\u3002\n\n",
+        "token_ids": [
+          105860,
+          103664,
+          101070,
+          101538,
+          105047,
+          3837,
+          100604,
+          99651,
+          101417,
+          101327,
+          98683,
+          98381,
+          102339,
+          104611,
+          98940,
+          99420,
+          99195,
+          101532,
+          109738,
+          100542,
+          8544,
+          334,
+          100466,
+          98537,
+          127287,
+          9904,
+          29080,
+          62524,
+          71268,
+          7552,
+          334,
+          3407
+        ],
+        "finish_reason": "length",
+        "prompt_tokens": 22,
+        "completion_tokens": 32
+      },
+      "run": "v7-native-glm-20261110T135319Z",
+      "store_run": "v7-store-20261110T125209Z",
+      "evidence": "native and Store-restored outputs share every token id; both differ from the 0.19.1.dev1 gold at token index 6"
+    },
+    "rule": "A GLM response passes only if it matches the historical gold or the native 0.20.1 reference exactly; the matched reference is recorded."
+  }
+}

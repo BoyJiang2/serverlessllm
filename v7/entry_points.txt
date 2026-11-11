@@ -1,0 +1,8 @@
+[console_scripts]
+sllm-store = sllm_store.cli:main
+
+[vllm.general_plugins]
+sllm_v4_store = sllm_store.vllm_v4_loader:register
+sllm_glm20_store = sllm_store.vllm_glm20_loader:register
+sllm_kimi20_store = sllm_store.vllm_kimi20_loader:register
+sllm_v7_trace = sllm_store.v7_trace:register

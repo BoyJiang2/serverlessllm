@@ -1,0 +1,62 @@
+{
+  "stage": "frozen",
+  "scope": "GLM-5.1-FP8 target vLLM 0.20.1 TP8 full Store rebuild; no KV persistence",
+  "vllm_commit": "132765e3560659ff63ebd236203672e991b70e08",
+  "model_path": "/data/brick1/boyjiang/glm5.1-fp8/checkpoint",
+  "store_path": "/data/brick3/boyjiang/glm5.1-fp8-store-v7-target-0201-20261110-v3",
+  "gpu_uuids": [
+    "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81",
+    "GPU-a3baf382-35c8-8748-626a-f69745aab5f8",
+    "GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771",
+    "GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb",
+    "GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e",
+    "GPU-151684e8-c7ba-a20a-6955-e1f765940536",
+    "GPU-af5f5c7a-0dce-f291-99be-2c844225cec6",
+    "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700"
+  ],
+  "minimum_available_bytes": 1181116006400,
+  "minimum_window_seconds": 7200,
+  "container_seconds": 7200,
+  "direct_admission_id": "user-20261110T113709Z",
+  "identity": {
+    "format": "sllm-glm51-fp8-raw-v2",
+    "source_revision": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+    "config_sha256": "69b4e81fafca7389fa1e102046ea13aa1c6ec9ed64a9a00f2056fe402034c8ec",
+    "vllm_version": "0.20.1",
+    "vllm_commit": "132765e3560659ff63ebd236203672e991b70e08",
+    "torch_version": "2.11.0+cu130",
+    "model_type": "glm_moe_dsa",
+    "quantization": "fp8",
+    "dtype": "torch.bfloat16",
+    "tensor_parallel_size": 8,
+    "seed": 20261024,
+    "VLLM_USE_DEEP_GEMM_E8M0": "0"
+  },
+  "runtime_source_hashes": {
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_glm_convert.py": "ed5a243722b4fa8ab758c196b60fbdf398b6f73a467b7df19ee55e71379eb9b7",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_glm_convert_once.py": "c7e0f75ad1fa42b93470aa0d1495fc630c07266d9eb81d8daa88ac3e5f59bb7d",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_glm20_loader.py": "91dd1ffc01a3d7c6f46f08ff0d0972957a7e27a11a60d69393309c3256e298b5",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_kimi20_loader.py": "a530e1bd313c849162194f4dcda2f6413f0a28f81b3f097bd58a6ae1ea598a45",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_admission.py": "78bccc5eb740386dbd225ad72a7ac19782329d421f22285d5435961de78bbfe6",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_observe.py": "c0376b4104940bb0d91e054919ce78252efc7cbc78bc785dc0b23522048520f6",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_qualify_sleep.py": "fee5d4b72c3838ed6c07914883e8bcab70c4df6692182579bbf8716ed24afae6",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_backend.py": "d75283870fb61e8a5d6b7a4ad7c416bd492fb2947e9d323a88b56a3284e7acef",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/candidates-v2/profiles.json": "b956107b0bd7f33a070d325d6470ce299283ab6449b7d6c35022a6573cb8e0fe",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/candidates-v2/entry_points.txt": "efccb44765a2644cf6905c755f6b2a947f87e03f5f1f9bf68897a22f797e31fc",
+    "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/sequence_guard.py": "09c67202041932f6c18be274d4391fc50390053527b8ab82ab4c1f71c4c19add"
+  },
+  "booking_id": null,
+  "admission_mode": "user_authorized",
+  "previous_protocol_sha256": "f40e14a67c8062736d30eeb4b91f1a5edda656d3ac526984792f6c39f2a4468b",
+  "retry_of": "v7-glm-rebuild-20261110T062606Z",
+  "supersedes": "v7-glm-rebuild-20261110T062606Z was killed at 85% of the rank save (container exit 137, OOMKilled=false, host MemAvailable 1147 GiB). Its store directory is retained as failed evidence. This attempt uses a new store path, a 1600 GiB container limit, an eight-rank barrier before the read page cache is released, and fadvise DONTNEED of each fsynced tensor file. Identity and eight-rank schema are unchanged.",
+  "memory_controls": {
+    "container_memory_bytes": 1717986918400,
+    "barrier_env": "SLLM_EXPORT_BARRIER=/output/export-barrier",
+    "barrier_ranks": 8,
+    "read_cache_release": "posix_fadvise DONTNEED on checkpoint *.safetensors",
+    "write_cache_release": "fsync then DONTNEED on tensor.data_* per rank"
+  },
+  "prelaunch_driver_baseline_mib": 16,
+  "prelaunch_baseline_note": "Observed 2026-11-10 19:32 +08: all eight GPUs report 4 MiB with zero compute apps after the previous owner engine exited; the earlier exact zero gate could not be satisfied. Admission still requires no compute apps, unchanged GPU UUID order and at most this baseline."
+}

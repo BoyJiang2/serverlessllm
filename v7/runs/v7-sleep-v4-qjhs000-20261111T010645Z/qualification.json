@@ -1,0 +1,255 @@
+{
+  "qualified": true,
+  "model": "v4",
+  "scope": "one native full-model Sleep L1 case; not Store eviction",
+  "sleep_seconds": 289.884030928,
+  "wake_seconds": 7.735841715,
+  "cpu_backup_bytes": 880921280512,
+  "own_store_pool_bytes_during_baseline": 0,
+  "native_load_rank_spans": [
+    {
+      "rank": 0,
+      "begin_ns": 8177905267385034,
+      "end_ns": 8178119171305276,
+      "seconds": 213.903920242
+    },
+    {
+      "rank": 1,
+      "begin_ns": 8177905174693318,
+      "end_ns": 8178118993533072,
+      "seconds": 213.818839754
+    },
+    {
+      "rank": 2,
+      "begin_ns": 8177905134093066,
+      "end_ns": 8178119000498588,
+      "seconds": 213.866405522
+    },
+    {
+      "rank": 3,
+      "begin_ns": 8177905131587949,
+      "end_ns": 8178119199072842,
+      "seconds": 214.067484893
+    },
+    {
+      "rank": 4,
+      "begin_ns": 8177905067970265,
+      "end_ns": 8178118849200854,
+      "seconds": 213.781230589
+    },
+    {
+      "rank": 5,
+      "begin_ns": 8177905095608979,
+      "end_ns": 8178118880201869,
+      "seconds": 213.78459289
+    },
+    {
+      "rank": 6,
+      "begin_ns": 8177905133118569,
+      "end_ns": 8178118994008269,
+      "seconds": 213.8608897
+    },
+    {
+      "rank": 7,
+      "begin_ns": 8177905103644729,
+      "end_ns": 8178118924409434,
+      "seconds": 213.820764705
+    }
+  ],
+  "released_mib_by_gpu": [
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486
+  ],
+  "sleep_observed_seconds": 72.916622451,
+  "final_release_seconds": 73.096726564,
+  "missing_queries": {
+    "before": 0,
+    "sleeping": 0,
+    "after": 0,
+    "final_release": 0
+  },
+  "sampled_cgroup_memory_current": {
+    "before": [
+      222172794880,
+      222299852800,
+      222544150528,
+      223093760000,
+      223499288576,
+      224013590528,
+      222411075584,
+      225738027008,
+      222408413184,
+      223177043968,
+      223411933184,
+      222319857664,
+      223626838016,
+      222767026176,
+      222370009088,
+      223963852800,
+      222326734848,
+      222326206464,
+      222326169600,
+      222326898688,
+      222330703872,
+      222330241024,
+      222330109952
+    ],
+    "sleeping": [
+      1066370408448,
+      1066370494464,
+      1066369851392,
+      1066365104128,
+      1066355900416,
+      1066356105216,
+      1066346848256,
+      1066346086400,
+      1066342219776,
+      1066341855232,
+      1066342084608,
+      1066341695488,
+      1066336817152,
+      1066337017856,
+      1066337046528,
+      1066336727040,
+      1066337005568,
+      1066336538624,
+      1066337251328,
+      1066337103872,
+      1066336657408,
+      1066336866304,
+      1066336915456,
+      1066337124352,
+      1066336743424,
+      1066337173504,
+      1066337120256,
+      1066336591872,
+      1066336604160,
+      1066337374208,
+      1066336899072,
+      1066336641024,
+      1066336989184,
+      1066337030144,
+      1066337021952,
+      1066337030144,
+      1066336612352,
+      1066337001472,
+      1066336493568,
+      1066336493568,
+      1066337120256,
+      1066336780288,
+      1066337144832,
+      1066336604160,
+      1066336514048,
+      1066337124352,
+      1066336894976,
+      1066336989184,
+      1066336858112,
+      1066336858112,
+      1066337112064,
+      1066337525760,
+      1066337112064,
+      1066337103872
+    ],
+    "after": [
+      1066354761728,
+      1066355421184,
+      1066355179520,
+      1066354241536,
+      1066354147328,
+      1066354405376,
+      1066354053120,
+      1066353606656
+    ]
+  },
+  "container_gpu_requests_unchanged": true,
+  "other_model_schedulability": "not tested; native mp has no Ray resource-release result",
+  "memory_scope": "cgroup current includes file cache; backup tensors freed at wake may remain in the host allocator cache",
+  "checks": {
+    "before": [
+      {
+        "name": "business",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "workload32",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "checks": {
+          "text": true,
+          "completion": true,
+          "nonempty": true,
+          "finish": true
+        },
+        "passed": true
+      }
+    ],
+    "after": [
+      {
+        "name": "business",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "workload32",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "checks": {
+          "text": true,
+          "completion": true,
+          "nonempty": true,
+          "finish": true
+        },
+        "passed": true
+      }
+    ]
+  }
+}

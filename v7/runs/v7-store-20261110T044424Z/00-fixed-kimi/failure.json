@@ -1,0 +1,5 @@
+{
+  "error": "AssertionError({'name': 'v7_added_arithmetic', 'checks': {'text': False, 'completion': True, 'nonempty': True, 'finish': True}, 'passed': False})",
+  "traceback": "Traceback (most recent call last):\n  File \"/control/script.py\", line 153, in <module>\n    asyncio.run(main())\n  File \"/opt/python/lib/python3.12/asyncio/runners.py\", line 194, in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n  File \"/opt/python/lib/python3.12/asyncio/runners.py\", line 118, in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/python/lib/python3.12/asyncio/base_events.py\", line 687, in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n  File \"/control/script.py\", line 45, in main\n    await run_requests(backend, data, 'before')\n  File \"/control/script.py\", line 120, in run_requests\n    assert checks[-1]['passed'], checks[-1]\n           ~~~~~~~~~~^^^^^^^^^^\nAssertionError: {'name': 'v7_added_arithmetic', 'checks': {'text': False, 'completion': True, 'nonempty': True, 'finish': True}, 'passed': False}\n",
+  "ns": 1411314179470463
+}

@@ -1,0 +1,264 @@
+{
+  "qualified": true,
+  "model": "v4",
+  "scope": "one native full-model Sleep L1 case; not Store eviction",
+  "sleep_seconds": 42.855343718,
+  "wake_seconds": 3.322441561,
+  "cpu_backup_bytes": 880921280512,
+  "own_store_pool_bytes_during_baseline": 0,
+  "native_load_rank_spans": [
+    {
+      "rank": 0,
+      "begin_ns": 1449433002825456,
+      "end_ns": 1449551988477114,
+      "seconds": 118.985651658
+    },
+    {
+      "rank": 1,
+      "begin_ns": 1449432999272309,
+      "end_ns": 1449552329649656,
+      "seconds": 119.330377347
+    },
+    {
+      "rank": 2,
+      "begin_ns": 1449433241013573,
+      "end_ns": 1449552491325615,
+      "seconds": 119.250312042
+    },
+    {
+      "rank": 3,
+      "begin_ns": 1449433169339881,
+      "end_ns": 1449550500434766,
+      "seconds": 117.331094885
+    },
+    {
+      "rank": 4,
+      "begin_ns": 1449433047827895,
+      "end_ns": 1449551443085514,
+      "seconds": 118.395257619
+    },
+    {
+      "rank": 5,
+      "begin_ns": 1449433101303495,
+      "end_ns": 1449552281031222,
+      "seconds": 119.179727727
+    },
+    {
+      "rank": 6,
+      "begin_ns": 1449433055675233,
+      "end_ns": 1449552299316824,
+      "seconds": 119.243641591
+    },
+    {
+      "rank": 7,
+      "begin_ns": 1449433234812084,
+      "end_ns": 1449552353726299,
+      "seconds": 119.118914215
+    }
+  ],
+  "released_mib_by_gpu": [
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486,
+    132486
+  ],
+  "sleep_observed_seconds": 72.910005714,
+  "final_release_seconds": 74.516260236,
+  "missing_queries": {
+    "before": 0,
+    "sleeping": 0,
+    "after": 0,
+    "final_release": 0
+  },
+  "sampled_cgroup_memory_current": {
+    "before": [
+      244843847680,
+      244978081792,
+      246100611072,
+      245725110272,
+      245959000064,
+      246457524224,
+      244998205440,
+      246451687424,
+      245599408128,
+      245306449920,
+      245013168128,
+      248771293184,
+      245034373120,
+      247371501568,
+      246893522944,
+      245013417984,
+      248211845120,
+      245014958080,
+      245014171648,
+      245014208512,
+      245014503424,
+      245016043520,
+      245016043520,
+      245016289280,
+      245016264704
+    ],
+    "sleeping": [
+      1138284478464,
+      1138283646976,
+      1138283634688,
+      1138282938368,
+      1138282610688,
+      1138282762240,
+      1138282778624,
+      1138282778624,
+      1138282606592,
+      1138282774528,
+      1138282524672,
+      1138282991616,
+      1138282872832,
+      1138282893312,
+      1138282631168,
+      1138282672128,
+      1138282938368,
+      1138282233856,
+      1138282635264,
+      1138282737664,
+      1138282491904,
+      1138282590208,
+      1138282496000,
+      1138282643456,
+      1138281820160,
+      1138282221568,
+      1138282266624,
+      1138282635264,
+      1138282504192,
+      1138282184704,
+      1138282209280,
+      1138282344448,
+      1138282475520,
+      1138282188800,
+      1138282147840,
+      1138282598400,
+      1138282508288,
+      1138282516480,
+      1138282377216,
+      1138282668032,
+      1138282082304,
+      1138282078208,
+      1138282229760,
+      1138282496000,
+      1138281721856,
+      1138281373696,
+      1138281783296,
+      1138282573824,
+      1138282307584,
+      1138281943040,
+      1138282004480,
+      1138282016768,
+      1138282635264,
+      1138282323968,
+      1138282201088,
+      1138282332160,
+      1138282344448,
+      1138282336256,
+      1138282053632,
+      1138282573824
+    ],
+    "after": [
+      1138285428736,
+      1138285383680,
+      1138284941312,
+      1138285211648,
+      1138285342720,
+      1138285015040,
+      1138284269568,
+      1138283905024,
+      1138283843584
+    ]
+  },
+  "container_gpu_requests_unchanged": true,
+  "other_model_schedulability": "not tested; native mp has no Ray resource-release result",
+  "memory_scope": "cgroup current includes file cache; backup tensors freed at wake may remain in the host allocator cache",
+  "checks": {
+    "before": [
+      {
+        "name": "business",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "workload32",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "checks": {
+          "text": true,
+          "completion": true,
+          "nonempty": true,
+          "finish": true
+        },
+        "passed": true
+      }
+    ],
+    "after": [
+      {
+        "name": "business",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "workload32",
+        "checks": {
+          "text": true,
+          "tokens": true,
+          "finish": true,
+          "prompt": true,
+          "completion": true,
+          "actual_ids_count": true
+        },
+        "length_only": false,
+        "passed": true,
+        "matched_reference": "historical"
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "checks": {
+          "text": true,
+          "completion": true,
+          "nonempty": true,
+          "finish": true
+        },
+        "passed": true
+      }
+    ]
+  }
+}

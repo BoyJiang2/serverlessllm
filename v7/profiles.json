@@ -1,0 +1,1107 @@
+{
+  "kimi": {
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "python": "/opt/sllm-v4/bin/python",
+    "env": {
+      "STORAGE_PATH": "/data",
+      "SLLM_PRIVATE_RAY_ADDRESS": "",
+      "SLLM_EVENT_DIR": "/output/events",
+      "SLLM_EVENT_RUN_ID": "v7-candidate-kimi",
+      "SLLM_LOAD_EVIDENCE_DIR": "/output/load-evidence",
+      "SLLM_SERVICE_WEIGHT_AUDIT_DIR": "/output/weight-audits",
+      "HF_HOME": "/output/cache/hf",
+      "TORCHINDUCTOR_CACHE_DIR": "/output/cache/inductor",
+      "TRITON_CACHE_DIR": "/output/cache/triton",
+      "CUDA_CACHE_PATH": "/output/cache/cuda",
+      "VLLM_CACHE_ROOT": "/output/cache/vllm",
+      "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+      "VLLM_HOST_IP": "127.0.0.1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "mounts": [
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm"
+      ],
+      [
+        "/mnt/raid/models/DeepSeek-V4-Pro",
+        "/mnt/raid/models/DeepSeek-V4-Pro"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/cli.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/cli.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/client.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/client.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/device_map_utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/device_map_utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/event_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/event_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/logger.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/logger.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/server.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/server.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/torch.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/torch.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/transformers.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/transformers.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_convert.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_convert.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_export_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_export_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_grouped_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_grouped_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_service.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_service.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_source_pins.json",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_source_pins.json"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/vllm_v4_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2_grpc.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2_grpc.py"
+      ],
+      [
+        "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+        "/mnt/raid/models/Kimi-K2.6"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_glm20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_glm20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_kimi20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_kimi20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_sleep_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_sleep_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/candidates-v2/entry_points.txt",
+        "/opt/sllm-v4/lib/python3.12/site-packages/serverless_llm_store-0.8.0+v4pro.4.dist-info/entry_points.txt"
+      ]
+    ],
+    "backend_config": {
+      "pretrained_model_name_or_path": "/data/brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference",
+      "load_format": "sllm_kimi26_postprocessed_0201",
+      "torch_dtype": "bfloat16",
+      "tensor_parallel_size": 8,
+      "distributed_executor_backend": "mp",
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "gpu_memory_utilization": 0.8,
+      "enforce_eager": true,
+      "mm_encoder_tp_mode": "data",
+      "trust_remote_code": true,
+      "trace_debug": true,
+      "enable_prefix_caching": false,
+      "seed": 0
+    },
+    "requests": [
+      {
+        "name": "arithmetic",
+        "payload": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u8bf7\u8ba1\u7b9717\u52a025\u3002\u53ea\u8f93\u51fa\u6574\u6570\u7ed3\u679c\uff0c\u4e0d\u8981\u89e3\u91ca\u3002"
+            }
+          ],
+          "input_tokens": [
+            163587,
+            2482,
+            163601,
+            2066,
+            6130,
+            1810,
+            865,
+            1453,
+            292,
+            989,
+            13791,
+            55796,
+            3764,
+            378,
+            2556,
+            8637,
+            292,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ],
+          "temperature": 0,
+          "top_p": 1.0,
+          "top_k": 0,
+          "min_p": 0.0,
+          "seed": 20261024,
+          "n": 1,
+          "max_tokens": 128,
+          "ignore_eos": false,
+          "logprobs": 1
+        },
+        "expected": {
+          "content": " 42",
+          "token_ids": [
+            5512,
+            163586
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 23,
+          "completion_tokens": 2
+        },
+        "length_only": false
+      },
+      {
+        "name": "translation",
+        "payload": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u8bf7\u5c06\u82f1\u6587\u5355\u8bcdcat\u7ffb\u8bd1\u6210\u4e2d\u6587\u3002\u53ea\u8f93\u51fa\u8bd1\u6587\uff0c\u4e0d\u8981\u89e3\u91ca\u3002"
+            }
+          ],
+          "input_tokens": [
+            163587,
+            2482,
+            163601,
+            117914,
+            17772,
+            26735,
+            9793,
+            110004,
+            16717,
+            292,
+            989,
+            13791,
+            65264,
+            378,
+            2556,
+            8637,
+            292,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ],
+          "temperature": 0,
+          "top_p": 1.0,
+          "top_k": 0,
+          "min_p": 0.0,
+          "seed": 20261024,
+          "n": 1,
+          "max_tokens": 128,
+          "ignore_eos": false,
+          "logprobs": 1
+        },
+        "expected": {
+          "content": " \u732b",
+          "token_ids": [
+            6927,
+            163586
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 23,
+          "completion_tokens": 2
+        },
+        "length_only": false
+      },
+      {
+        "name": "fixed32",
+        "payload": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u7528\u4e2d\u6587\u89e3\u91ca\u4e3a\u4ec0\u4e48\u5929\u7a7a\u901a\u5e38\u5448\u84dd\u8272\uff0c\u5199\u4e00\u6bb5\u5b8c\u6574\u4e14\u8fde\u8d2f\u7684\u8bf4\u660e\u3002"
+            }
+          ],
+          "input_tokens": [
+            163587,
+            2482,
+            163601,
+            557,
+            16717,
+            8637,
+            3975,
+            16814,
+            8047,
+            6346,
+            18564,
+            378,
+            2283,
+            13072,
+            11023,
+            1669,
+            77733,
+            269,
+            5787,
+            292,
+            163586,
+            163588,
+            69702,
+            163601,
+            163606,
+            163607
+          ],
+          "temperature": 0,
+          "top_p": 1.0,
+          "top_k": 0,
+          "min_p": 0.0,
+          "seed": 20261024,
+          "n": 1,
+          "max_tokens": 32,
+          "ignore_eos": true,
+          "logprobs": 1
+        },
+        "expected": {
+          "content": " \u5929\u7a7a\u5448\u73b0\u84dd\u8272\uff0c\u4e3b\u8981\u662f\u7531\u4e8e**\u745e\u5229\u6563\u5c04**\u8fd9\u4e00\u5149\u5b66\u73b0\u8c61\u3002\n\n\u592a\u9633\u5149\u672c\u8d28\u4e0a\u662f\u7531\u591a\u79cd\u989c\u8272\u7684\u5149\u6df7\u5408\u800c\u6210\u7684\u767d\u5149\uff0c\u4e0d\u540c\u989c\u8272\u7684\u5149\u5177\u6709\u4e0d\u540c\u7684\u6ce2\u957f\u2014\u2014\u7ea2\u5149",
+          "token_ids": [
+            16814,
+            10201,
+            18564,
+            378,
+            101297,
+            381,
+            7249,
+            1147,
+            133637,
+            381,
+            2837,
+            47516,
+            6246,
+            7087,
+            133282,
+            51633,
+            13464,
+            8661,
+            39708,
+            1482,
+            13935,
+            45530,
+            145344,
+            378,
+            2577,
+            39708,
+            1482,
+            3478,
+            6263,
+            115010,
+            35086,
+            119304
+          ],
+          "finish_reason": "length",
+          "prompt_tokens": 26,
+          "completion_tokens": 32
+        },
+        "length_only": true
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "payload": {
+          "temperature": 0,
+          "top_p": 1.0,
+          "top_k": 0,
+          "min_p": 0.0,
+          "seed": 20261024,
+          "n": 1,
+          "max_tokens": 16,
+          "ignore_eos": false,
+          "logprobs": 1,
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u8bf7\u53ea\u8f93\u51fa\u6570\u5b57\uff1a17 + 25 = ?"
+            }
+          ]
+        },
+        "validation": "exact_numeric_answer",
+        "expected_content": "42"
+      }
+    ]
+  },
+  "glm": {
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "python": "/opt/sllm-v4/bin/python",
+    "env": {
+      "STORAGE_PATH": "/data",
+      "SLLM_PRIVATE_RAY_ADDRESS": "",
+      "SLLM_EVENT_DIR": "/output/events",
+      "SLLM_EVENT_RUN_ID": "v7-candidate-glm",
+      "SLLM_LOAD_EVIDENCE_DIR": "/output/load-evidence",
+      "SLLM_SERVICE_WEIGHT_AUDIT_DIR": "/output/weight-audits",
+      "HF_HOME": "/output/cache/hf",
+      "TORCHINDUCTOR_CACHE_DIR": "/output/cache/inductor",
+      "TRITON_CACHE_DIR": "/output/cache/triton",
+      "CUDA_CACHE_PATH": "/output/cache/cuda",
+      "VLLM_CACHE_ROOT": "/output/cache/vllm",
+      "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+      "VLLM_HOST_IP": "127.0.0.1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "VLLM_USE_DEEP_GEMM_E8M0": "0",
+      "SLLM_MODEL_REVISION": "f396cf805182f4ca10fa675e1a99815b3ca384db",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "mounts": [
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm"
+      ],
+      [
+        "/mnt/raid/models/DeepSeek-V4-Pro",
+        "/mnt/raid/models/DeepSeek-V4-Pro"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/cli.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/cli.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/client.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/client.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/device_map_utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/device_map_utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/event_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/event_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/logger.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/logger.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/server.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/server.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/torch.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/torch.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/transformers.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/transformers.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_convert.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_convert.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_export_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_export_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_grouped_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_grouped_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_service.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_service.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_source_pins.json",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_source_pins.json"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/vllm_v4_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2_grpc.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2_grpc.py"
+      ],
+      [
+        "/data/brick1/boyjiang/glm5.1-fp8/checkpoint",
+        "/experiment/checkpoint"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_glm20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_glm20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_kimi20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_kimi20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_sleep_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_sleep_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/candidates-v2/entry_points.txt",
+        "/opt/sllm-v4/lib/python3.12/site-packages/serverless_llm_store-0.8.0+v4pro.4.dist-info/entry_points.txt"
+      ]
+    ],
+    "backend_config": {
+      "tokenizer": "/experiment/checkpoint",
+      "load_format": "sllm_glm51_raw_0201",
+      "tensor_parallel_size": 8,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "gpu_memory_utilization": 0.9,
+      "enable_prefix_caching": false,
+      "distributed_executor_backend": "mp",
+      "moe_backend": "deep_gemm",
+      "num_gpu_blocks_override": 256,
+      "enforce_eager": true,
+      "seed": 20261024,
+      "speculative_config": null,
+      "pretrained_model_name_or_path": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8",
+      "torch_dtype": "bfloat16"
+    },
+    "requests": [
+      {
+        "name": "business_arithmetic",
+        "payload": {
+          "input_tokens": [
+            154822,
+            154824,
+            154827,
+            98964,
+            99653,
+            99419,
+            98431,
+            99446,
+            1773,
+            98552,
+            102162,
+            122670,
+            99312,
+            3837,
+            99506,
+            100774,
+            1773,
+            154828,
+            154842
+          ],
+          "temperature": 0,
+          "seed": 20261024,
+          "max_tokens": 128,
+          "ignore_eos": false,
+          "logprobs": 1,
+          "return_token_ids": true
+        },
+        "expected": {
+          "content": "42",
+          "token_ids": [
+            101961,
+            154827
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 19,
+          "completion_tokens": 2
+        },
+        "length_only": false
+      },
+      {
+        "name": "business_translation",
+        "payload": {
+          "input_tokens": [
+            154822,
+            154824,
+            154827,
+            98964,
+            98493,
+            103577,
+            107449,
+            4616,
+            102696,
+            98350,
+            102169,
+            1773,
+            98552,
+            102162,
+            115775,
+            3837,
+            99506,
+            100774,
+            1773,
+            154828,
+            154842
+          ],
+          "temperature": 0,
+          "seed": 20261024,
+          "max_tokens": 128,
+          "ignore_eos": false,
+          "logprobs": 1,
+          "return_token_ids": true
+        },
+        "expected": {
+          "content": "\u732b",
+          "token_ids": [
+            100713,
+            154827
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 21,
+          "completion_tokens": 2
+        },
+        "length_only": false
+      },
+      {
+        "name": "fixed32",
+        "payload": {
+          "input_tokens": [
+            154822,
+            154824,
+            154827,
+            98340,
+            102169,
+            100774,
+            99921,
+            105860,
+            101070,
+            100219,
+            105047,
+            3837,
+            99032,
+            101688,
+            101583,
+            98833,
+            126841,
+            98314,
+            100205,
+            1773,
+            154828,
+            154842
+          ],
+          "temperature": 0,
+          "seed": 20261024,
+          "max_tokens": 32,
+          "ignore_eos": true,
+          "logprobs": 1,
+          "return_token_ids": true
+        },
+        "expected": {
+          "content": "\u5929\u7a7a\u4e4b\u6240\u4ee5\u901a\u5e38\u5448\u73b0\u84dd\u8272\uff0c\u6838\u5fc3\u539f\u56e0\u5728\u4e8e\u592a\u9633\u5149\u4e0e\u5730\u7403\u5927\u6c14\u5c42\u4e4b\u95f4\u53d1\u751f\u7684\u4e00\u79cd\u5149\u5b66\u73b0\u8c61\u2014\u2014**\u745e\u5229\u6563\u5c04\uff08Rayleigh scattering\uff09**\u3002",
+          "token_ids": [
+            105860,
+            103664,
+            101070,
+            101538,
+            105047,
+            3837,
+            100310,
+            99651,
+            101417,
+            101327,
+            98683,
+            98381,
+            102339,
+            104611,
+            98940,
+            99420,
+            99195,
+            101532,
+            109738,
+            100542,
+            8544,
+            334,
+            100466,
+            98537,
+            127287,
+            9904,
+            29080,
+            62524,
+            71268,
+            7552,
+            334,
+            1773
+          ],
+          "finish_reason": "length",
+          "prompt_tokens": 22,
+          "completion_tokens": 32
+        },
+        "length_only": false
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "payload": {
+          "temperature": 0,
+          "seed": 20261024,
+          "max_tokens": 16,
+          "ignore_eos": false,
+          "logprobs": 1,
+          "return_token_ids": true,
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u8bf7\u53ea\u8f93\u51fa\u6570\u5b57\uff1a17 + 25 = ?"
+            }
+          ]
+        },
+        "validation": "exact_numeric_answer",
+        "expected_content": "42"
+      }
+    ]
+  },
+  "v4": {
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "python": "/opt/sllm-v4/bin/python",
+    "env": {
+      "STORAGE_PATH": "/data",
+      "SLLM_PRIVATE_RAY_ADDRESS": "",
+      "SLLM_EVENT_DIR": "/output/events",
+      "SLLM_EVENT_RUN_ID": "v7-candidate-v4",
+      "SLLM_LOAD_EVIDENCE_DIR": "/output/load-evidence",
+      "SLLM_SERVICE_WEIGHT_AUDIT_DIR": "/output/weight-audits",
+      "HF_HOME": "/output/cache/hf",
+      "TORCHINDUCTOR_CACHE_DIR": "/output/cache/inductor",
+      "TRITON_CACHE_DIR": "/output/cache/triton",
+      "CUDA_CACHE_PATH": "/output/cache/cuda",
+      "VLLM_CACHE_ROOT": "/output/cache/vllm",
+      "VLLM_WORKER_MULTIPROC_METHOD": "spawn",
+      "VLLM_HOST_IP": "127.0.0.1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1"
+    },
+    "mounts": [
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm"
+      ],
+      [
+        "/mnt/raid/models/DeepSeek-V4-Pro",
+        "/mnt/raid/models/DeepSeek-V4-Pro"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/cli.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/cli.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/client.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/client.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/device_map_utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/device_map_utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/event_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/event_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/logger.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/logger.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/server.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/server.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/torch.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/torch.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/transformers.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/transformers.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/utils.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/utils.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_convert.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_convert.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_export_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_export_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_grouped_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_grouped_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_service.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_service.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_source_pins.json",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_source_pins.json"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_state.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_state.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/v4_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/vllm_v4_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/__init__.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/__init__.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/full-preparation/v4-source/sllm_store/sllm_store/proto/storage_pb2_grpc.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/proto/storage_pb2_grpc.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_glm20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_glm20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/vllm_kimi20_loader.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_kimi20_loader.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_sleep_worker.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_sleep_worker.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/v7_trace.py",
+        "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v7_trace.py"
+      ],
+      [
+        "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v7/candidates-v2/entry_points.txt",
+        "/opt/sllm-v4/lib/python3.12/site-packages/serverless_llm_store-0.8.0+v4pro.4.dist-info/entry_points.txt"
+      ]
+    ],
+    "backend_config": {
+      "pretrained_model_name_or_path": "/mnt/raid/models/DeepSeek-V4-Pro",
+      "revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+      "tokenizer_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+      "tokenizer_mode": "deepseek_v4",
+      "torch_dtype": "bfloat16",
+      "kv_cache_dtype": "fp8",
+      "seed": 20261105,
+      "distributed_executor_backend": "mp",
+      "attention_config": {
+        "use_fp4_indexer_cache": false
+      },
+      "tensor_parallel_size": 8,
+      "pipeline_parallel_size": 1,
+      "data_parallel_size": 1,
+      "enable_expert_parallel": false,
+      "enforce_eager": true,
+      "enable_prefix_caching": false,
+      "max_model_len": 2048,
+      "max_num_seqs": 1,
+      "max_num_batched_tokens": 2048,
+      "load_format": "sllm_v4_grouped_store",
+      "model_loader_extra_config": {
+        "store_path": "/data/brick3/boyjiang/sllm-three-model-store-20261109/v4/store-conversion-20261107T020633Z",
+        "identity": {
+          "activation_dtype": "torch.bfloat16",
+          "conversion_id": "store-conversion-20261107T020633Z",
+          "dp": 1,
+          "engine_commit": "132765e3560659ff63ebd236203672e991b70e08",
+          "ep": false,
+          "format": "sllm-v4-pro-raw-v1",
+          "kernel_packages": {
+            "apache-tvm-ffi": "0.1.9",
+            "flashinfer-cubin": "0.6.8.post1",
+            "flashinfer-python": "0.6.8.post1",
+            "tilelang": "0.1.9"
+          },
+          "pp": 1,
+          "source_revision": "b5968e9190ef611bbf34a7229255be88a0e937c1",
+          "state": "before_quantization_postprocessing",
+          "torch_version": "2.11.0+cu130",
+          "tp": 8,
+          "vllm_version": "0.20.1"
+        }
+      }
+    },
+    "requests": [
+      {
+        "name": "business",
+        "payload": {
+          "temperature": 0.0,
+          "top_p": 1.0,
+          "top_k": -1,
+          "min_tokens": 0,
+          "max_tokens": 32,
+          "ignore_eos": false,
+          "seed": 20261105,
+          "stop": null,
+          "presence_penalty": 0.0,
+          "frequency_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "input_tokens": [
+            0,
+            3476,
+            477,
+            260,
+            11502,
+            22896,
+            16,
+            13845,
+            270,
+            3967,
+            12740,
+            6578,
+            16,
+            128803,
+            3085,
+            344,
+            223,
+            20,
+            940,
+            223,
+            20,
+            33,
+            19414,
+            418,
+            1353,
+            270,
+            11424,
+            16,
+            128804,
+            128822
+          ],
+          "return_token_ids": true
+        },
+        "expected": {
+          "content": "4",
+          "token_ids": [
+            22,
+            1
+          ],
+          "finish_reason": "stop",
+          "prompt_tokens": 30,
+          "completion_tokens": 2
+        },
+        "length_only": false
+      },
+      {
+        "name": "workload32",
+        "payload": {
+          "temperature": 0.0,
+          "top_p": 1.0,
+          "top_k": -1,
+          "min_tokens": 32,
+          "max_tokens": 32,
+          "ignore_eos": false,
+          "seed": 20261105,
+          "stop": null,
+          "presence_penalty": 0.0,
+          "frequency_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "input_tokens": [
+            0,
+            3476,
+            477,
+            260,
+            11502,
+            22896,
+            16,
+            13845,
+            270,
+            3967,
+            12740,
+            6578,
+            16,
+            128803,
+            3536,
+            270,
+            18392,
+            538,
+            223,
+            19,
+            1407,
+            223,
+            1457,
+            295,
+            46237,
+            2496,
+            14,
+            17919,
+            513,
+            260,
+            50098,
+            305,
+            260,
+            3987,
+            16,
+            4147,
+            554,
+            1258,
+            411,
+            13401,
+            16,
+            128804,
+            128822
+          ],
+          "return_token_ids": true
+        },
+        "expected": {
+          "content": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,",
+          "token_ids": [
+            19,
+            14,
+            223,
+            20,
+            14,
+            223,
+            21,
+            14,
+            223,
+            22,
+            14,
+            223,
+            23,
+            14,
+            223,
+            24,
+            14,
+            223,
+            25,
+            14,
+            223,
+            26,
+            14,
+            223,
+            27,
+            14,
+            223,
+            553,
+            14,
+            223,
+            779,
+            14
+          ],
+          "finish_reason": "length",
+          "prompt_tokens": 43,
+          "completion_tokens": 32
+        },
+        "length_only": false
+      },
+      {
+        "name": "v7_added_arithmetic",
+        "payload": {
+          "temperature": 0.0,
+          "top_p": 1.0,
+          "top_k": -1,
+          "min_tokens": 0,
+          "max_tokens": 16,
+          "ignore_eos": false,
+          "seed": 20261105,
+          "stop": null,
+          "presence_penalty": 0.0,
+          "frequency_penalty": 0.0,
+          "repetition_penalty": 1.0,
+          "return_token_ids": true,
+          "messages": [
+            {
+              "role": "user",
+              "content": "\u8bf7\u53ea\u8f93\u51fa\u6570\u5b57\uff1a17 + 25 = ?"
+            }
+          ]
+        },
+        "validation": "exact_numeric_answer",
+        "expected_content": "42"
+      }
+    ]
+  }
+}
