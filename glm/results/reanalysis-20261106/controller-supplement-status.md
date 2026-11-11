@@ -199,3 +199,19 @@ SF冷读实例删除后观察60.095283099秒，全释放观察60.472522724秒；
 
 
 Docker events for the exact fifth-cohort worker show create at Unix 1794366276.285020825 and start at 1794366280.265654944. Using a later same-boot wall/monotonic conversion, worker inspect approximately spanned 1794366276.457586–1794366280.269882. The intervals overlap; this does not identify internal daemon locking or host scheduling as the cause. The rejected completion gap included approximately one second of fixed wait after the previous sample. Tool commit 38cd008f targets one second from sample start and retains the original 5-second gates. The cadence replay and all 102 CPU checks passed. A fresh sleep-only control and sixth model cohort are frozen separately. Both require independent R1, and the model cohort also requires a successful actual control.
+
+
+## 第六批终态
+
+三项通过独立 finalizer。Controller 从宿主 unit 启动计至正常退出，包含整栈释放观察。A 从启动指令计至第一条算术请求的正确 HTTP 响应。每个成功条件 n=1。
+
+| 条件 | Controller（秒） | Prep（秒） | A（秒） | 八 rank 权重加载总跨度（秒） |
+|---|---:|---:|---:|---:|
+| Safetensors 冷读 | 1382.565 | 3.178 | 884.108 | 390.759 |
+| Safetensors 热读 | 1296.046 | 263.556 | 615.469 | 139.082 |
+| Store 冷读 | 1010.820 | 2.114 | 600.462 | 122.996 |
+| Store 池命中 | 缺测（启动失败） | — | — | — |
+
+Store 池命中 Main 于 14:42 左右启动。宿主监控拒绝 6.995553 秒样本，其中 worker inspect 为 6.706706 秒。精确容器的 Docker create 和 start 事件相隔约 6.930 秒。同一开机周期换算显示 inspect 几乎与该过渡重叠，调用内部原因未知。finalizer success=false，metrics=null。失败经历 90.520117 秒，整栈释放观察 60.023621 秒，八卡归零，所属容器移除、私有 slice 和两个 timer 停止。
+
+第六批为 3 成功、1 失败。全部原始文件路径及 SHA 在第六批账本。后续分析应验证在保留容器身份和 5 秒门槛的前提下，采样是否可以避开 worker 启动过程中同步阻塞的 inspect 调用。

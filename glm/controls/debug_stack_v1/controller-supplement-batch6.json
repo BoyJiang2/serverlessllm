@@ -330,16 +330,106 @@
       "condition": "store_pool_hit",
       "run_id": "sllm-debug-20261111T031516Z-2f530133",
       "holder": "70c8dc6b5f3d490cba0898279f632346",
-      "status": "not_started"
+      "status": "failed",
+      "metrics": null,
+      "failed_controller_elapsed_s": 90.520117,
+      "failure_receipt": {
+        "evidence": {
+          "controller-dispatch.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/controller-dispatch.json",
+            "sha256": "b47b757c12181296880a2218cc9903cae995ad94ab8d7ef67f4bc0378f0e3fbe",
+            "bytes": 1382
+          },
+          "controller-start.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/controller-start.json",
+            "sha256": "c84f68347c1771ea653475913d8ea970c5d2ba140e3f30cc49acea72eb8b770f",
+            "bytes": 45166
+          },
+          "controller-monitor-rejected.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/controller-monitor-rejected.json",
+            "sha256": "a96283ef3f1dd0c14e8e1e35ca574cda92d4c75d5fc5952ba47b426ba80e7b3a",
+            "bytes": 48893
+          },
+          "controller-result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/controller-result.json",
+            "sha256": "522be22a2b212b66cfcbc7742e8e5c6c924b0703a28f64daa7bc9ad62c07fcc2",
+            "bytes": 45993
+          },
+          "controller-final.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/controller-final.json",
+            "sha256": "aa773635666642d76b8ec0a1e31b61588f9fc5358427a1be07aeefff61725564",
+            "bytes": 1564
+          },
+          "release60.jsonl": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/release60.jsonl",
+            "sha256": "36abd4982bf7ed1f2c9dc5cda0fe6e1df6dc434f618ce261d3e51cf9e05ef310",
+            "bytes": 350996
+          },
+          "stack.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/stack.json",
+            "sha256": "48eab41c334f5ab52186d9b95dc89ea77d49fa3f3ab567132a81e143e07a21c0",
+            "bytes": 6960
+          },
+          "debug-service/result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-2f530133/debug-service/result.json",
+            "sha256": "70034703760448554ef39c63135d82effae0b729286c0c923adbca7c5b178c36",
+            "bytes": 1961
+          }
+        },
+        "unit": {
+          "MainPID": "0",
+          "Result": "exit-code",
+          "ExecMainStartTimestampMonotonic": "1503674457079",
+          "ExecMainExitTimestampMonotonic": "1503764977196",
+          "ExecMainCode": "1",
+          "ExecMainStatus": "1",
+          "Id": "sllm-debug-20261111T031516Z-2f530133-controller.service",
+          "InvocationID": "f2ab7687a67447fdb38872e6a621e4e2"
+        },
+        "release_observation_s": 60.023621131,
+        "failure": "RuntimeError('slow or inconsistent monitor sample')",
+        "sample_elapsed_s": 6.995553323,
+        "worker_inspect_elapsed_s": 6.706705662,
+        "worker_inspect_wall_ns_same_boot_estimate": [
+          1794379373407479779,
+          1794379380114185441
+        ],
+        "docker_worker_id": "67ee1b2bdfee232a4102311e20f0214e005334b90ad82a5aacbb146df3022338",
+        "docker_events": [
+          "1794379373180145877 create",
+          "1794379380110585891 start",
+          "1794379381186128059 kill",
+          "1794379382970065408 stop",
+          "1794379382973852806 die",
+          "1794379383003766370 destroy"
+        ]
+      },
+      "resource_release": {
+        "owned_containers_remaining": 0,
+        "gpu_used_mib": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "owned_cgroup_populated": 0,
+        "private_slice": "inactive",
+        "controller_deadline_timer": "inactive",
+        "probe_deadline_timer": "inactive"
+      }
     }
   ],
   "copied_attempts": false,
   "counts": {
     "success": 3,
-    "failed": 0,
-    "not_started": 1
+    "failed": 1,
+    "not_started": 0
   },
-  "batch_state": "three_attempts_finalized_success",
+  "batch_state": "terminal_after_pool_hit_main_failure",
   "runtime_admission": false,
   "r1_candidate_path": "glm/controls/debug_stack_v1/controller-supplement-r1-v6-cadence-candidate.json",
   "r1_candidate_sha256": "3bc24e8c0250e9dfc35df4296d802ab10b85c3b850658542997126429c70135e",
