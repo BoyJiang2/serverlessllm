@@ -237,7 +237,94 @@
       "condition": "store_disk_cold",
       "run_id": "sllm-debug-20261111T031516Z-efd1c8fd",
       "holder": "03e111eb8278487d8f5845b582454e4d",
-      "status": "not_started"
+      "status": "success",
+      "metrics": {
+        "preparation_s": 2.113919863,
+        "command_to_correct_business_response_s": 600.46207899,
+        "trigger_to_correct_business_response_s": 590.616072461,
+        "phase_device_setup_including_communication_span_s": 7.665966306,
+        "phase_communication_groups_span_s": 7.002342899,
+        "phase_weights_pipeline_including_allocation_span_s": 122.995634858,
+        "phase_weight_ingestion_span_s": 121.1349979,
+        "phase_quantization_postprocess_span_s": 9.385336951,
+        "phase_kv_cache_allocation_span_s": 0.087135635,
+        "phase_compile_graph_and_warmup_span_s": 358.24697451,
+        "controller_s": 1010.820432
+      },
+      "final_receipt": {
+        "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/controller-final.json",
+        "sha256": "0a9dcf0cb44c6f75ff5c5e6d1610c86e2ac2d6041532aa8dd5c4076aa55ebb2a",
+        "inputs": {
+          "controller-start.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/controller-start.json",
+            "bytes": 45062,
+            "sha256": "7df6631b23809e246bbdb37fbbfd0ba17bec945b38b0e75709ae928d17ba0bb9"
+          },
+          "controller-result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/controller-result.json",
+            "bytes": 55705,
+            "sha256": "11792eab1cac4fc3b88fb2451747bd7f08bf11bd2694044219ed031338a4d6ae"
+          },
+          "stack.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/stack.json",
+            "bytes": 6593,
+            "sha256": "2805de201bfc4fdd67fc0ba4f1c34ff8ac0df2935902cc41f7ffffebe26cf4ca"
+          },
+          "debug-service/result.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/result.json",
+            "bytes": 7417,
+            "sha256": "1d25acf24c17747683f56d32a4bfec628f0e77753e9eb080473d31b8e3b3e17a"
+          },
+          "release60.jsonl": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/release60.jsonl",
+            "bytes": 351137,
+            "sha256": "d22ad5570a83c4ea88deeb0987cdd8d6b8547214c54720ab14f66e8177d1dfce"
+          },
+          "debug-service/idle60.jsonl": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/idle60.jsonl",
+            "bytes": 6596844,
+            "sha256": "fafb9da07f2827c3c4ae151bb09b5c0e00ddd7612c36de3fa2f60891e4ce9ff8"
+          },
+          "debug-service/business_arithmetic-response.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/business_arithmetic-response.json",
+            "bytes": 816,
+            "sha256": "81d21d19e5ac9057f340dadccbbfaa295457345748b4a7b588a3bf1ff081b010"
+          },
+          "debug-service/business_translation-response.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/business_translation-response.json",
+            "bytes": 818,
+            "sha256": "4a8c8661d5477f74e3c165304d79e4a3b274268fc2ecdd093e1c62a25849cc24"
+          },
+          "debug-service/fixed32-response.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/fixed32-response.json",
+            "bytes": 6191,
+            "sha256": "58f1ebb3b57bc06af5d1317e9cafe8955b34b1fd61b2f4d7e438f0a37865d899"
+          },
+          "debug-service/cache-admission/summary.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/cache-admission/summary.json",
+            "bytes": 46424,
+            "sha256": "2999fd769dc1efd49c73f701d41d54cca63ed3848641fb43f3dc76886ddbc295"
+          },
+          "debug-service/phases.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/phases.json",
+            "bytes": 35630,
+            "sha256": "012429a5fc78c2d00a8dce34cc18faf01832753b1c43474a0782015981e622ce"
+          },
+          "debug-service/measurement-progress.json": {
+            "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261111T031516Z-efd1c8fd/debug-service/measurement-progress.json",
+            "bytes": 5647,
+            "sha256": "d31bfd526d35e8d0da653e974317948842859cf05a8dc1e9c9d0b259d73fe251"
+          }
+        }
+      },
+      "resource_release": {
+        "owned_containers_remaining": 0,
+        "owned_cgroup_populated": 0,
+        "deadline_timers": "inactive",
+        "instance_observation_s": 60.104711221,
+        "full_observation_s": 61.311671993,
+        "kernel_unit_retained_for_verification": true
+      }
     },
     {
       "condition": "store_pool_hit",
@@ -248,11 +335,11 @@
   ],
   "copied_attempts": false,
   "counts": {
-    "success": 2,
+    "success": 3,
     "failed": 0,
-    "not_started": 2
+    "not_started": 1
   },
-  "batch_state": "two_attempts_finalized_success",
+  "batch_state": "three_attempts_finalized_success",
   "runtime_admission": false,
   "r1_candidate_path": "glm/controls/debug_stack_v1/controller-supplement-r1-v6-cadence-candidate.json",
   "r1_candidate_sha256": "3bc24e8c0250e9dfc35df4296d802ab10b85c3b850658542997126429c70135e",
