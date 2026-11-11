@@ -344,6 +344,27 @@ class Ownership(unittest.TestCase):
                 self.assertNotIn('worker_identity', row)
                 self.assertEqual(row['foreign_gpu_pids'], expected_foreign)
 
+        def missing(path, **kwargs):
+            if path == base:
+                raise FileNotFoundError(str(path))
+            return original_stat(path, **kwargs)
+
+        state = dict(STATE, starting_worker_id=cid, worker_container_id=cid, verified_slice_cgroup='/my.slice')
+        with patch.object(Path, 'resolve', lambda p:p), patch.object(Path, 'stat', missing), \
+             patch.object(Path, 'read_text', read), patch.object(d, 'inspect') as inspect, \
+             patch.object(d.subprocess, 'check_output', side_effect=['', '']):
+            row = d.supplement_sample(state)
+            self.assertEqual(row['containers']['worker']['memory_observation'], 'startup cgroup not yet present')
+            state['bound_cgroups'] = dict(worker=dict(path=str(base), inode=123, container_id=cid))
+            with self.assertRaisesRegex(RuntimeError, 'disappeared after identity binding'):
+                d.supplement_sample(state)
+            inspect.assert_not_called()
+        with patch.object(Path, 'resolve', lambda p:p), patch.object(Path, 'stat', stat), \
+             patch.object(Path, 'exists', return_value=False), patch.object(Path, 'read_text', read), \
+             patch.object(d.subprocess, 'check_output', side_effect=['', '']):
+            with self.assertRaisesRegex(RuntimeError, 'disappeared after identity binding'):
+                d.supplement_sample(state)
+
     def test_foreign_container_is_never_removed(self):
         state = dict(STATE, head_container_id='c'*64)
         with patch.object(d, 'inspect', return_value=info(labels={'sllm.holder': 'b'*32})), \

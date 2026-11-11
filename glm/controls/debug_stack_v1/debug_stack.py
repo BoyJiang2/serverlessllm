@@ -521,6 +521,8 @@ def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
             try:
                 inode = base.stat().st_ino
             except FileNotFoundError:
+                if role in state.get('bound_cgroups', {}):
+                    raise RuntimeError('starting worker cgroup disappeared after identity binding')
                 item['memory_observation'] = 'startup cgroup not yet present'
             else:
                 birth = dict(path=str(base), inode=inode, container_id=cid)
@@ -683,6 +685,8 @@ def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
             if base.exists():
                 raise RuntimeError('retained cgroup lost fields while still present') from error
             row['retained_cgroups'][role] = dict(registered, absent=True, disappeared_during_sample=True)
+        if row['containers'].get(role, {}).get('starting') and row['retained_cgroups'][role]['absent']:
+            raise RuntimeError('starting worker cgroup disappeared after identity binding')
     if state.get('verified_slice_cgroup'):
         parent = pathlib.Path('/sys/fs/cgroup')/state['verified_slice_cgroup'].lstrip('/')
         row['private_slice_memory_events'] = (parent/'memory.events').read_text()
