@@ -210,6 +210,42 @@ class Ownership(unittest.TestCase):
                 self.assertFalse((root/'supplement-monitor-ready.json').exists())
                 self.assertEqual((root/'controller-monitor.jsonl').read_bytes(), b'')
 
+        # Replay the fifth cohort's accepted sample and the next delayed inspect.
+        for duration, expected_error in ((4_093_969_058, None), (4_400_000_000, 'coverage/cadence failed')):
+            with self.subTest(duration=duration), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                errors = []
+                now = 1
+                durations = iter((280_274_459, duration))
+
+                def collect(*args, **kwargs):
+                    nonlocal now
+                    begin = now
+                    now += next(durations)
+                    return dict(sample_begin_ns=begin, last_sample_ns=now, sample_end_ns=now,
+                                gpu='same', foreign_gpu_pids=[], private_slice_memory_events='oom 0\noom_kill 0')
+
+                def wait(seconds):
+                    nonlocal now
+                    now += round(seconds*1e9)
+
+                stopped = Mock(is_set=Mock(side_effect=[False, False, True]), wait=Mock(side_effect=wait))
+                namespace = dict(vars(d), root=root, state={}, stopped=stopped, monitor_errors=errors,
+                                 time=Mock(monotonic_ns=lambda:now), supplement_sample=collect,
+                                 gpu_memory_by_uuid=lambda _: {'gpu':0}, baseline={'gpu':0},
+                                 require_monitor_sample=rules['require_monitor_sample'])
+                exec(compile(ast.Module(body=[monitor], type_ignores=[]), '<actual monitor>', 'exec'), namespace)
+                namespace['monitor']()
+                self.assertAlmostEqual(stopped.wait.call_args_list[0].args[0], .719725541)
+                accepted = (root/'controller-monitor.jsonl').read_text().splitlines()
+                if expected_error:
+                    self.assertIn(expected_error, errors[0])
+                    self.assertEqual(len(accepted), 1)
+                else:
+                    self.assertEqual(errors, [])
+                    self.assertEqual(len(accepted), 2)
+                    self.assertEqual(stopped.wait.call_args_list[1].args, (0,))
+
     def test_up_head_call_propagates_supplement_inputs(self):
         tree = ast.parse((HERE/'debug_stack.py').read_text())
         up = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'up')

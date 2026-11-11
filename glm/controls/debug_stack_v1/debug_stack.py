@@ -1088,7 +1088,8 @@ def measure(args):
                     if oom:
                         raise RuntimeError('owned slice OOM: '+snapshot['private_slice_memory_events'])
                     write(root/'supplement-monitor-ready.json', snapshot)
-                    stopped.wait(1)
+                    elapsed_ns = time.monotonic_ns()-snapshot['sample_begin_ns']
+                    stopped.wait(max(0, (1_000_000_000-elapsed_ns)/1e9))
         except BaseException as error:
             monitor_errors.append(repr(error))
             try:
