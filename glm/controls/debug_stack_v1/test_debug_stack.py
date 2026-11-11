@@ -280,6 +280,70 @@ class Ownership(unittest.TestCase):
             with self.subTest(change=change):
                 self.assertFalse(d.owned(info(**json.loads(json.dumps(change))), STATE, 'head'))
 
+    def test_guarded_worker_marks_only_verified_docker_start_as_pending(self):
+        cid = 'c'*64
+        state = dict(STATE, condition='store_pool_hit', verified_slice_cgroup='/my.slice')
+        created = info('worker', Id=cid, State=dict(Status='created', Pid=0),
+                       HostConfig=dict(CgroupParent=STATE['run_id']+'.slice'))
+
+        def docker(action, *args):
+            if action == 'create':
+                self.assertNotIn('worker_container_id', state)
+                return cid
+            self.assertEqual((action, args), ('start', (cid,)))
+            self.assertEqual(state['worker_container_id'], cid)
+            self.assertEqual(state['starting_worker_id'], cid)
+            raise RuntimeError('start failed')
+
+        with patch.object(d, 'docker', side_effect=docker) as call, patch.object(d, 'write'), \
+             patch.object(d, 'inspect', return_value=created):
+            with self.assertRaisesRegex(RuntimeError, 'start failed'):
+                d.create_and_start(['docker','create'], 'worker', state, Path('/unused'))
+            self.assertEqual(call.call_count, 2)
+        self.assertNotIn('starting_worker_id', state)
+        self.assertEqual(state['worker_container_id'], cid)
+        with patch.object(d, 'docker', return_value=cid) as call, patch.object(d, 'write'), \
+             patch.object(d, 'inspect', return_value=dict(created, HostConfig=dict(CgroupParent='other.slice'))):
+            with self.assertRaisesRegex(RuntimeError, 'create identity differs'):
+                d.create_and_start(['docker','create'], 'worker', state, Path('/unused'))
+            call.assert_called_once_with('create')
+        self.assertNotIn('starting_worker_id', state)
+
+    def test_pending_worker_samples_exact_cgroup_without_inspect(self):
+        cid = 'c'*64
+        group = '/my.slice/docker-'+cid+'.scope'
+        base = Path('/sys/fs/cgroup')/group.lstrip('/')
+        original_stat = Path.stat
+
+        def stat(path, **kwargs):
+            if path == base:
+                return Mock(st_ino=123)
+            return original_stat(path, **kwargs)
+
+        for member_group, expected_foreign in ((group, []), ('/different.slice', [99])):
+            state = dict(STATE, starting_worker_id=cid, worker_container_id=cid, verified_slice_cgroup='/my.slice')
+
+            def read(path, **kwargs):
+                if path == Path('/proc/99/cgroup'):
+                    return '0::'+member_group+'\n'
+                if path == Path('/proc/99/stat'):
+                    return '99 (gpu) '+' '.join(['0']*19+['12'])
+                if path.name == 'memory.events':
+                    return 'oom 0\noom_kill 0\n'
+                return ''
+
+            with self.subTest(member_group=member_group), patch.object(Path, 'resolve', lambda p:p), \
+                 patch.object(Path, 'stat', stat), patch.object(Path, 'read_text', read), \
+                 patch.object(Path, 'readlink', return_value=Path('pid:[123]')), \
+                 patch.object(d, 'inspect') as inspect, \
+                 patch.object(d.subprocess, 'check_output', side_effect=['', '99, 1 MiB\n']):
+                row = d.supplement_sample(state)
+                inspect.assert_not_called()
+                self.assertTrue(row['containers']['worker']['starting'])
+                self.assertIn('memory.current', row['containers']['worker']['cgroup'])
+                self.assertNotIn('worker_identity', row)
+                self.assertEqual(row['foreign_gpu_pids'], expected_foreign)
+
     def test_foreign_container_is_never_removed(self):
         state = dict(STATE, head_container_id='c'*64)
         with patch.object(d, 'inspect', return_value=info(labels={'sllm.holder': 'b'*32})), \

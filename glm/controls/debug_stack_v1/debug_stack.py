@@ -223,9 +223,25 @@ def create_and_start(argv, role, state, receipt):
     cid = docker(*argv[1:])
     if not re.fullmatch('[0-9a-f]{64}', cid):
         raise RuntimeError('docker create did not return a full container ID')
-    state[role+'_container_id'] = cid
-    write(receipt, state)
-    docker('start', cid)
+    guarded_worker = role == 'worker' and state.get('condition') and state.get('verified_slice_cgroup')
+    if guarded_worker:
+        try:
+            created = inspect(cid)
+            if (created is None or created.get('Id') != cid or not owned(created, state, role)
+                    or created['State']['Status'] != 'created' or created['State']['Pid'] != 0
+                    or created['HostConfig']['CgroupParent'] != state['run_id']+'.slice'):
+                raise RuntimeError('worker create identity differs before start')
+            state['starting_worker_id'] = cid
+        finally:
+            state[role+'_container_id'] = cid
+    else:
+        state[role+'_container_id'] = cid
+    try:
+        write(receipt, state)
+        docker('start', cid)
+    finally:
+        if guarded_worker:
+            state.pop('starting_worker_id', None)
     info = inspect(cid)
     if info is None or not owned(info, state, role) or not info['State']['Running']:
         raise RuntimeError(role+' container not running under this holder')
@@ -496,6 +512,27 @@ def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
         if not cid:
             continue
         stage_begin = time.monotonic_ns()
+        if role == 'worker' and state.get('starting_worker_id') == cid:
+            group = state['verified_slice_cgroup']+'/docker-'+cid+'.scope'
+            base = pathlib.Path('/sys/fs/cgroup')/group.lstrip('/')
+            if base.resolve() != base or not base.is_relative_to('/sys/fs/cgroup'):
+                raise RuntimeError('starting worker cgroup escaped the exact guarded path')
+            item = dict(container_id=cid, starting=True, pid=None)
+            try:
+                inode = base.stat().st_ino
+            except FileNotFoundError:
+                item['memory_observation'] = 'startup cgroup not yet present'
+            else:
+                birth = dict(path=str(base), inode=inode, container_id=cid)
+                if state.setdefault('bound_cgroups', {}).setdefault(role, birth) != birth:
+                    raise RuntimeError('starting worker cgroup birth identity changed')
+                values = cgroup_snapshot(base, role)
+                if base.stat().st_ino != inode:
+                    raise RuntimeError('starting worker cgroup inode changed during reads')
+                item.update(cgroup_path=str(base), raw_cgroup='0::'+group+'\n', cgroup=values)
+            row['containers'][role] = item
+            row['stage_timings_ns'].append(('worker starting cgroup', stage_begin, time.monotonic_ns()))
+            continue
         info = inspect(cid)
         row['stage_timings_ns'].append((role+' inspect', stage_begin, time.monotonic_ns()))
         if info is None:
