@@ -6,6 +6,7 @@ in the report with their recorded reason instead of being dropped.
 """
 import csv
 import json
+from collections import Counter
 from pathlib import Path
 
 V11 = Path('/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11')
@@ -53,6 +54,47 @@ def fmt_seconds(value):
 
 def a_section(runs):
     lines = ['## A 组结果（SLLM Store）', '']
+    passing = [(run, qual) for run, qual in runs if qual.get('passed')]
+    if len(passing) > 1:
+        lines.append('### 序列汇总')
+        lines.append('')
+        lines.append('| run | 序列 | 段数 | full_hit | partial_hit | full_miss | 平均切换(不含观察) | 最终释放 |')
+        lines.append('|---|---|---|---|---|---|---|---|')
+        for run, qual in passing:
+            rows_summary = csv_rows(run / 'switch-events.csv')
+            states = [row['cache_state'] for row in rows_summary]
+            switches = []
+            for row in rows_summary:
+                try:
+                    switches.append(float(row['switch_excluding_observation_seconds']))
+                except (KeyError, ValueError):
+                    continue
+            lines.append('| `{}` | {} | {} | {} | {} | {} | {} s | {} s |'.format(
+                run.name, qual.get('sequence'), qual.get('activations'),
+                states.count('full_hit'), states.count('partial_hit'),
+                states.count('full_miss'),
+                f'{mean(switches):,.1f}' if switches else '—',
+                fmt_seconds(qual.get('final_release_seconds'))))
+        lines.append('')
+        lines.append('说明：A 的"激活→正确"包含新进程从 Store 恢复权重（1 TiB 池、32 MiB 块）'
+                     '+ 8 卡引擎初始化 + 答题，所以即使 full_hit 也是百秒量级；'
+                     '命中只省掉磁盘读取，不省进程与引擎拉起。')
+        lines.append('')
+        coverage = Counter()
+        selfs = 0
+        for run, qual in passing:
+            for row in csv_rows(run / 'switch-events.csv'):
+                source = row.get('from_model') or ''
+                target = row.get('to_model') or ''
+                if not source or source == target:
+                    selfs += 1
+                    continue
+                coverage[f'{source}→{target}'] += 1
+        if coverage:
+            lines.append('campaign 覆盖（{} 个通过的 A run 合计）：'.format(len(passing))
+                         + '、'.join(f'`{key}` {value}' for key, value in sorted(coverage.items()))
+                         + f'；自切换 {selfs} 次单独统计 —— 最小非自方向计数 {min(coverage.values())}。')
+            lines.append('')
     for run, qual in runs:
         rows = csv_rows(run / 'switch-events.csv')
         if not rows:

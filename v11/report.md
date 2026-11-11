@@ -4,11 +4,43 @@
 
 | 组 | 状态 | 结论来源 |
 |---|---|---|
-| A | 通过（2/2 个 run 通过） | `runs/*/qualification.json` |
+| A | 通过（3/3 个 run 通过） | `runs/*/qualification.json` |
 | B1 | 未通过（0/4 个 run 通过） | `runs/*/qualification.json` |
 | B2 | 部分通过（2/4 个 run 通过） | `runs/*/qualification.json` |
 
 ## A 组结果（SLLM Store）
+
+### 序列汇总
+
+| run | 序列 | 段数 | full_hit | partial_hit | full_miss | 平均切换(不含观察) | 最终释放 |
+|---|---|---|---|---|---|---|---|
+| `A-seq-10-1-r1-20261111T142600Z` | seq-10-1 | 11 | 2 | 0 | 9 | 389.1 s | 59.4 s |
+| `A-seq-7-1-r1-20261111T081622Z` | seq-7-1 | 8 | 1 | 1 | 6 | 408.6 s | 59.7 s |
+| `A-seq-8-1-r1-20261111T120359Z` | seq-8-1 | 9 | 2 | 0 | 7 | 347.8 s | 59.5 s |
+
+说明：A 的"激活→正确"包含新进程从 Store 恢复权重（1 TiB 池、32 MiB 块）+ 8 卡引擎初始化 + 答题，所以即使 full_hit 也是百秒量级；命中只省掉磁盘读取，不省进程与引擎拉起。
+
+campaign 覆盖（3 个通过的 A run 合计）：`D→G` 3、`D→K` 3、`G→D` 4、`G→K` 3、`K→D` 3、`K→G` 4；自切换 8 次单独统计 —— 最小非自方向计数 3。
+
+### `A-seq-10-1-r1-20261111T142600Z` — 通过
+
+序列 `seq-10-1`，11/11 段完成，protocol_hash `d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7`（暂定），最终释放 59.4 s、8 卡全 0 = True。
+
+| step | 迁移 | 缓存 | 读取 | 命中 | 块分配/释放 | 驱逐 | 激活→正确 (s) | 首 token (s) | 切换不含观察 (s) |
+|---|---|---|---|---|---|---|---|---|---|
+| 0 | ∅→K | full_miss | 574.6 GiB | 0 | 18392/0 | 0 | 273.8 | 269.6 | — |
+| 1 | K→K | full_hit | 0 | 574.6 GiB | 0/0 | 0 | 146.0 | 142.0 | 165.7 |
+| 2 | K→G | full_miss | 710.2 GiB | 0 | 22728/9196 | 4 | 505.5 | 493.2 | 529.4 |
+| 3 | G→D | full_miss | 817.4 GiB | 0 | 26552/26242 | 10 | 481.3 | 469.3 | 498.1 |
+| 4 | D→K | full_miss | 574.6 GiB | 0 | 18392/17903 | 217 | 239.7 | 235.7 | 254.7 |
+| 5 | K→K | full_hit | 0 | 574.6 GiB | 0/0 | 0 | 142.4 | 138.5 | 156.9 |
+| 6 | K→D | full_miss | 817.4 GiB | 0 | 26552/28125 | 287 | 478.0 | 465.9 | 496.5 |
+| 7 | D→G | full_miss | 710.2 GiB | 0 | 22728/21154 | 302 | 501.9 | 489.8 | 515.4 |
+| 8 | G→K | full_miss | 574.6 GiB | 0 | 18392/18519 | 199 | 236.1 | 232.0 | 253.0 |
+| 9 | K→G | full_miss | 710.2 GiB | 0 | 22728/23401 | 9 | 498.7 | 486.3 | 522.8 |
+| 10 | G→D | full_miss | 817.4 GiB | 0 | 26552/26242 | 10 | 481.4 | 469.3 | 498.8 |
+
+Store 进程: 1885780（同一进程贯穿全部激活）。
 
 ### `A-seq-7-1-r1-20261111T081622Z` — 通过
 
@@ -119,8 +151,8 @@ AssertionError('worker exited before ack')
 
 | 路径 | 同一模型再次可服务所需时间 | 证据 |
 |---|---|---|
-| A：Store 命中 | 223.3 s（3 次 full_hit 均值） | `runs/A-*/switch-events.csv` |
-| A：Store 未命中（冷读/重读） | 390.0 s（14 次 full_miss/partial_hit 均值） | 同上 |
+| A：Store 命中 | 191.7 s（5 次 full_hit 均值） | `runs/A-*/switch-events.csv` |
+| A：Store 未命中（冷读/重读） | 398.1 s（23 次 full_miss/partial_hit 均值） | 同上 |
 | B2-L1：Sleep → Wake | Sleep 32.0 s 均值，Wake 3.7 s 均值，唤醒后同一 PID 继续答题 | `runs/B2-*/L1/level-result.json` |
 | B2-L2 | **未通过**：逐层 `reload_weights` 对 V4 无效（每层 Failed to load weights），随后 `wake_up(kv_cache)` CUDA OOM | `runs/B2-…T115102Z/DIAGNOSIS.md` |
 
