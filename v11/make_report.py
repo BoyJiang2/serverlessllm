@@ -132,43 +132,75 @@ def a_section(runs):
 
 def b1_section(runs):
     lines = ['## B1 组结果（Host KV 层）', '']
-    passed = [(run, qual) for run, qual in runs if qual.get('passed')]
-    failed = [(run, qual) for run, qual in runs if not qual.get('passed')]
-    if passed:
-        for run, qual in passed:
-            lines.append(f"### `{run.name}` — 通过")
+    if not runs:
+        lines.append('尚无 B1 run。')
+        lines.append('')
+        return lines
+
+    lines.append('**本组验收口径**：每一段必须同时满足三件事才算闭环——(1) 该模型存活期内、'
+                 '由 1 Hz 采样实际观测到 Host 层非零字节（`kv_peak_bytes`）；'
+                 '(2) 这次写入发生在清空动作之前（`kv_write_before_clear`）；'
+                 '(3) 清空后记账归零且 `POST /cache/clear` 返回 200（`kv_clear_ok`）。'
+                 '只看"清空前字节"是不够的：清理动作发生在 backend 退出并排空显存之后，'
+                 '那时 Host 层可能已经是 0，而模型存活期内其实写过。'
+                 '`passed` 以 `b1_host_kv.steps[].closed` 为准，不再以"跑完 7 段"为准。')
+    lines.append('')
+
+    with_evidence = [(run, qual) for run, qual in runs
+                     if isinstance(qual.get('b1_host_kv'), dict)]
+    scored = [(run, qual) for run, qual in with_evidence
+              if qual['b1_host_kv'].get('steps')]
+    if not scored:
+        lines.append('**未通过。** 没有任何 B1 run 记录到逐段 Host KV 证据'
+                     '（`qualification.json` 无 `b1_host_kv.steps`）。')
+        lines.append('')
+        return lines
+
+    for run, qual in scored[-3:]:
+        steps = qual['b1_host_kv']['steps']
+        closed = sum(1 for step in steps if step.get('closed'))
+        state = '通过' if qual.get('passed') else '未通过'
+        lines.append(f"### `{run.name}` — {state}（Host KV 闭环 {closed}/{len(steps)} 段）")
+        lines.append('')
+        lines.append('| step | 模型 | 读取 | Host 写入峰值 | 写入时刻 | clear 前 | clear 后 | clear 状态 | 闭环 |')
+        lines.append('|---|---|---|---|---|---|---|---|---|')
+        events = {row['step']: row for row in csv_rows(run / 'switch-events.csv')}
+        for step in steps:
+            event = events.get(str(step['step']), {})
+            start_ns = event.get('t2_ns')
+            first_ns = step.get('first_write_ns')
+            if first_ns and start_ns:
+                write_at = '激活后 %.1f s' % ((int(first_ns) - int(start_ns)) / 1e9)
+            else:
+                write_at = '—'
+            lines.append('| {step} | {model} | {read} | {peak} | {peak_at} | {before} | {after} | {status} | {closed} |'.format(
+                step=step['step'], model=step['model'],
+                read=fmt_bytes(event.get('file_read_bytes')),
+                peak=fmt_bytes(step.get('peak_bytes')),
+                peak_at=write_at,
+                before=fmt_bytes(step.get('used_before_clear')),
+                after=fmt_bytes(step.get('used_after_clear')),
+                status=step.get('clear_status'),
+                closed='是' if step.get('closed') else '**否**'))
+        lines.append('')
+        open_steps = [step for step in steps if not step.get('closed')]
+        if open_steps:
+            lines.append('未闭环的段及其证据：')
             lines.append('')
-            rows = csv_rows(run / 'switch-events.csv')
-            lines.append('| step | 模型 | 读取 | Host 写入前 | Host 清理后 | clear 状态 | clear (s) |')
-            lines.append('|---|---|---|---|---|---|---|')
-            for row in rows:
-                lines.append('| {step} | {model} | {read} | {before} | {after} | {status} | {seconds} |'.format(
-                    step=row['step'], model=row['to_model'],
-                    read=fmt_bytes(row['file_read_bytes']),
-                    before=fmt_bytes(row.get('kv_used_before_clear')),
-                    after=fmt_bytes(row.get('kv_used_after_clear')),
-                    status=row.get('kv_clear_status'),
-                    seconds=fmt_seconds(row.get('kv_clear_seconds'))))
+            for step in open_steps:
+                reason = []
+                if not step.get('write_observed'):
+                    reason.append('激活窗口内 Host 层始终 0 字节（`kv_peak_bytes={}`）'.format(
+                        step.get('peak_bytes')))
+                if not step.get('write_before_clear'):
+                    reason.append('未观测到"先写后清"的时序')
+                if not step.get('clear_ok'):
+                    reason.append('清空后未归零或 clear 未返回 200')
+                lines.append(f"- step {step['step']} `{step['model']}`：" + '；'.join(reason))
             lines.append('')
-    else:
-        lines.append('**未通过。** 在固定镜像上，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4')
-        lines.append('的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`')
-        lines.append('收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），')
-        lines.append('worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。')
-        lines.append('')
-        lines.append('逐次失败与修复记录：')
-        lines.append('')
-        lines.append('| run | 现象 | 根因 | 处理 |')
-        lines.append('|---|---|---|---|')
-        lines.append('| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |')
-        lines.append('| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |')
-        lines.append('| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |')
-        lines.append('| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 未解决（协议错配） |')
-        lines.append('')
-        lines.append('预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、'
-                     '`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、'
-                     '`memory_used_bytes` 可直接读取。也就是说 Host 层本身可控，缺的是 KV 注册握手。')
-        lines.append('')
+            lines.append('这些段对应的 `passed` 为 false——`engine ready` 与正确响应只说明模型跑起来了，'
+                         '不说明 KV 层闭环。')
+            lines.append('')
     return lines
 
 

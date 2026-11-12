@@ -1,0 +1,21 @@
+{
+  "group": "B2",
+  "sequence": "B2-smoke",
+  "rep": 1,
+  "levels": [
+    2
+  ],
+  "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+  "models": [
+    "D",
+    "D"
+  ],
+  "results": [],
+  "failures": {
+    "error": "AssertionError('worker exited before ack')",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run_b2.py\", line 205, in main\n    ack = send(worker['cid'], worker['dir'], counters[key],\n  File \"/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run_b2.py\", line 99, in send\n    assert state['State']['Running'] or ack.exists(), 'worker exited before ack'\nAssertionError: worker exited before ack\n"
+  },
+  "final_release_seconds": 59.787,
+  "final_all_gpu_zero": true,
+  "passed": false
+}

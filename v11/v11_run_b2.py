@@ -107,6 +107,7 @@ def main():
     parser.add_argument('--sequence', default=None)
     parser.add_argument('--models', default=None, help='ad-hoc model list for a smoke test')
     parser.add_argument('--levels', default='1,2')
+    parser.add_argument('--reload-mode', default='checkpoint', choices=('checkpoint', 'kernel'))
     parser.add_argument('--rep', type=int, default=1)
     args = parser.parse_args()
     levels = [int(item) for item in args.levels.split(',') if item.strip()]
@@ -202,7 +203,7 @@ def main():
                         worker = workers[key]
                         started = time.monotonic_ns()
                         ack = send(worker['cid'], worker['dir'], counters[key],
-                                   dict(op='wake', level=level))
+                                   dict(op='wake', level=level, reload_mode=args.reload_mode))
                         counters[key] += 1
                         stage = dict(kind='wake', seconds=round((ack['finished_ns'] - started) / 1e9, 3),
                                      reload_seconds=round((ack.get('reload_ns') or 0) / 1e9, 3),

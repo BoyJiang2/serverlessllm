@@ -1,0 +1,126 @@
+{
+  "run": "B1-B1-smoke-r1-20261112T043425Z",
+  "group": "B1",
+  "sequence": "B1-smoke",
+  "rep": 1,
+  "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+  "activations": [
+    {
+      "index": 0,
+      "model": "K",
+      "model_name": "kimi",
+      "start_ns": 1582890173779346,
+      "exit_ns": 1583154024838400,
+      "t3_ns": 1583138737200702,
+      "t3_5_ns": 1583139739597886,
+      "t4_ns": 1583143745838504,
+      "store_pid": 336623,
+      "container_exit": 0,
+      "checks": {
+        "arithmetic": {
+          "name": "arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "translation": {
+          "name": "translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": true,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 617000763392,
+      "hit_bytes": 0,
+      "allocated_blocks": 18392,
+      "freed_blocks": 0,
+      "evicted_paths": 0,
+      "resident_before": [],
+      "activation_to_correct_seconds": 253.572059158,
+      "first_token_seconds": 249.56581854,
+      "kv_used_before_clear": 35979264,
+      "kv_used_after_clear": 0,
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    }
+  ],
+  "qualification": {
+    "group": "B1",
+    "sequence": "B1-smoke",
+    "rep": 1,
+    "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+    "protocol_hash_provisional": true,
+    "models": [
+      "K"
+    ],
+    "activations": 1,
+    "requested_activations": 1,
+    "complete": true,
+    "failure_present": false,
+    "passed": true,
+    "final_release_seconds": 59.618,
+    "final_all_gpu_zero": true,
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "vllm": "0.20.1",
+    "tensor_parallel": 8,
+    "notes": [
+      "path A only; B1 waits for a locked LMCache version",
+      "B2 groups use their own runner"
+    ]
+  }
+}

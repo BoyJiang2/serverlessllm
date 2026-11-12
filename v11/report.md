@@ -5,8 +5,8 @@
 | 组 | 状态 | 结论来源 |
 |---|---|---|
 | A | 通过（3/3 个 run 通过） | `runs/*/qualification.json` |
-| B1 | 未通过（0/4 个 run 通过） | `runs/*/qualification.json` |
-| B2 | 部分通过（2/4 个 run 通过） | `runs/*/qualification.json` |
+| B1 | 部分通过（2/18 个 run 通过） | `runs/*/qualification.json` |
+| B2 | 部分通过（2/5 个 run 通过） | `runs/*/qualification.json` |
 
 ## A 组结果（SLLM Store）
 
@@ -79,21 +79,42 @@ Store 进程: 889517（同一进程贯穿全部激活）。
 
 ## B1 组结果（Host KV 层）
 
-**未通过。** 在固定镜像上，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4
-的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`
-收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），
-worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。
+**本组验收口径**：每一段必须同时满足三件事才算闭环——(1) 该模型存活期内、由 1 Hz 采样实际观测到 Host 层非零字节（`kv_peak_bytes`）；(2) 这次写入发生在清空动作之前（`kv_write_before_clear`）；(3) 清空后记账归零且 `POST /cache/clear` 返回 200（`kv_clear_ok`）。只看"清空前字节"是不够的：清理动作发生在 backend 退出并排空显存之后，那时 Host 层可能已经是 0，而模型存活期内其实写过。`passed` 以 `b1_host_kv.steps[].closed` 为准，不再以"跑完 7 段"为准。
 
-逐次失败与修复记录：
+### `B1-B1-smoke-r1-20261112T085705Z` — 未通过（Host KV 闭环 0/2 段）
 
-| run | 现象 | 根因 | 处理 |
-|---|---|---|---|
-| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |
-| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |
-| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |
-| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 未解决（协议错配） |
+| step | 模型 | 读取 | Host 写入峰值 | 写入时刻 | clear 前 | clear 后 | clear 状态 | 闭环 |
+|---|---|---|---|---|---|---|---|---|
+| 0 | D | 817.4 GiB | 0 | — | 0 | 0 | 200 | **否** |
+| 1 | G | 710.2 GiB | 0 | — | 0 | 0 | 200 | **否** |
 
-预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、`memory_used_bytes` 可直接读取。也就是说 Host 层本身可控，缺的是 KV 注册握手。
+未闭环的段及其证据：
+
+- step 0 `D`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+- step 1 `G`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+
+这些段对应的 `passed` 为 false——`engine ready` 与正确响应只说明模型跑起来了，不说明 KV 层闭环。
+
+### `B1-seq-7-agents-r1-20261112T110659Z` — 未通过（Host KV 闭环 3/7 段）
+
+| step | 模型 | 读取 | Host 写入峰值 | 写入时刻 | clear 前 | clear 后 | clear 状态 | 闭环 |
+|---|---|---|---|---|---|---|---|---|
+| 0 | K | 574.6 GiB | 34.3 MiB | 激活后 254.1 s | 34.3 MiB | 0 | 200 | 是 |
+| 1 | G | 710.2 GiB | 0 | — | 0 | 0 | 200 | **否** |
+| 2 | D | 817.4 GiB | 0 | — | 0 | 0 | 200 | **否** |
+| 3 | G | 621.4 GiB | 0 | — | 0 | 0 | 200 | **否** |
+| 4 | K | 574.6 GiB | 34.3 MiB | 激活后 236.3 s | 34.3 MiB | 0 | 200 | 是 |
+| 5 | D | 817.4 GiB | 0 | — | 0 | 0 | 200 | **否** |
+| 6 | K | 431.0 GiB | 34.3 MiB | 激活后 218.8 s | 34.3 MiB | 0 | 200 | 是 |
+
+未闭环的段及其证据：
+
+- step 1 `G`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+- step 2 `D`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+- step 3 `G`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+- step 5 `D`：激活窗口内 Host 层始终 0 字节（`kv_peak_bytes=0`）
+
+这些段对应的 `passed` 为 false——`engine ready` 与正确响应只说明模型跑起来了，不说明 KV 层闭环。
 
 ## B2 组结果（原生 Sleep，L1/L2 同组）
 
@@ -139,13 +160,21 @@ level 1: PID 连续性 = True，金标 = True，PID {'D': [840589]}
 AssertionError('worker exited before ack')
 ```
 
+### `B2-B2-smoke-r1-20261112T005532Z` — 未通过
+
+序列 `B2-smoke`，level [2]，最终释放 59.8 s、8 卡全 0 = True。
+
+失败记录：
+
+```
+AssertionError('worker exited before ack')
+```
+
 ## 两个对比
 
 ### 对比一：A（Store 常驻） vs B1（Store + Host KV 层）
 
-**不可比。** B1 在固定镜像上未能完成 KV 注册握手（`world_size=0`），engine 无法启动，没有任何一次激活可记录；按协议记"未通过"，详见 `B1-FAILED.md`。
-
-因此本报告不给出"A 比 B1 快/慢多少"的数字结论——那需要 B1 先跑起来。
+B1 有通过的 run，数值对比见上表。
 
 ### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 同组）
 

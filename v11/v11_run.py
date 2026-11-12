@@ -30,7 +30,9 @@ B = pathlib.Path('/home/boyjiang/sllm-v4-pro/cache-competition-20261109')
 V7 = B / 'v7'
 V11 = B / 'v11'
 sys.path.insert(1, str(B))
+sys.path.insert(0, str(V11))
 from cache_ledger import Ledger, self_test  # noqa: E402
+import preflight  # noqa: E402
 
 MODEL_INPUT = {'K': 'kimi', 'G': 'glm', 'D': 'v4'}
 STORE_POOL_BYTES = 1024 ** 4
@@ -38,9 +40,39 @@ STORE_CHUNK_BYTES = 32 * 1024 ** 2
 OBSERVATION_SECONDS = 60
 RELEASE_SECONDS = 60
 LMCACHE_SITE = '/data/brick1/boyjiang/lmcache-site'
+# LMCache 0.5.5 is the first release that ships the fixed `_0201` connector for
+# vLLM 0.20.1 (PR #4135). Its modules take precedence; the 0.5.6 overlay only
+# provides runtime dependencies (cupy, cffi, otel exporter, ...).
+LMCACHE_SITE_055 = '/data/brick1/boyjiang/lmcache055-site'
+LMCACHE_PYTHONPATH = LMCACHE_SITE_055 + ':' + LMCACHE_SITE
+LMCACHE_CONNECTOR_MODULE = 'lmcache.integration.vllm.lmcache_mp_connector_0201'
 LMCACHE_HTTP_PORT = 9100
 LMCACHE_MQ_PORT = 5555
 LMCACHE_TIER_GB = 16
+# LMCache's store path has two implementations. The default (lmcache_driven) fails
+# for the two hybrid-KV models: the engine collapses to one block table while the
+# server sees 7 kernel groups (GLM: tokens_per_block 256/2/256/64/256/64/256), and
+# lmcache_driven_transfer.py:1124 zips the two strict -> ValueError, so nothing is
+# ever stored. Unset keeps the server default; set V11_LMCACHE_TRANSFER_MODE to
+# engine_driven (or auto) to exercise the other path.
+LMCACHE_TRANSFER_MODE = os.environ.get('V11_LMCACHE_TRANSFER_MODE')
+# Frozen requests are short (tens of tokens); a 16-token chunk lets the Host KV layer
+# actually store at least one chunk per request instead of buffering below 256.
+LMCACHE_CHUNK_TOKENS = 256
+FILLER_PROMPT_TOKENS = 512
+# gpu_memory_utilization per model. A keeps vLLM's frozen default (0.90) for all
+# three, so its GPU KV L1 matches the recorded A campaigns bit for bit. B1 must
+# additionally survive the device memory that LMCache still holds after a backend
+# exits; measured on this node after a clean exit with 8/8 ranks unregistered:
+# Kimi falls back to 2,875 MiB per card, GLM to 4,869 MiB, V4 stays at
+# 30,607 MiB for 725 s. The leftover therefore tracks V4's own KV pool, and the
+# only knob that shrinks it is V4's utilisation: 0.76 still leaves 2.5 GiB of KV
+# (2.4x the 0.91 GiB V4 needs for one sequence at max_model_len=2048) while
+# removing ~21 GiB of garbage the next activation would have to live with.
+# preflight.weight_and_kv_fit re-checks the lower bound and
+# preflight.vram_gate re-checks the upper bound before every activation.
+UTILIZATION = {'A': {'K': 0.90, 'G': 0.90, 'D': 0.90},
+               'B1': {'K': 0.90, 'G': 0.90, 'D': 0.76}}
 
 protocol = json.loads((V7 / 'protocol.json').read_bytes())
 profiles = json.loads((V7 / 'candidates-v2/profiles.json').read_bytes())
@@ -95,10 +127,70 @@ def http_json(method, path, body=None, port=LMCACHE_HTTP_PORT, timeout=10):
 
 
 def lmcache_l1(status_body):
-    try:
-        return status_body['storage_manager']['l1_managers']['_default']
-    except (KeyError, TypeError):
-        return {}
+    """Host-tier accounting, tolerant of the 0.5.5 and 0.5.6 status shapes."""
+    manager = (status_body or {}).get('storage_manager') or {}
+    for key in ('l1_manager', 'l1_managers'):
+        value = manager.get(key)
+        if isinstance(value, dict):
+            if '_default' in value:
+                return value['_default']
+            return value
+    return {}
+
+
+def lmcache_l2_adapter_count(status_body):
+    """Number of configured L2 adapters, across 0.5.5 / 0.5.6 status shapes."""
+    manager = (status_body or {}).get('storage_manager') or {}
+    if 'num_l2_adapters' in manager:
+        return manager['num_l2_adapters']
+    controller = (manager.get('store_controllers') or {}).get('_default') or {}
+    return controller.get('num_l2_adapters')
+
+
+def kv_write_window(samples_path, begin_ns, end_ns):
+    """Host KV bytes observed *while the model was alive*.
+
+    Reading the tier only at clear time is not an acceptance test: the clear
+    runs after the backend has exited and drained, and by then the tier can
+    already be empty (measured on GLM and V4: 0 bytes before the clear, non-zero
+    during the activation). The write therefore has to be caught by the 1 Hz
+    sampler inside the activation window.
+    """
+    window = []
+    if not samples_path.exists():
+        return window
+    for line in samples_path.read_text().splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            sample = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        ns = sample.get('ns')
+        if ns is None or not (begin_ns <= ns <= end_ns):
+            continue
+        window.append(dict(ns=ns, phase=sample.get('phase'),
+                           used_bytes=sample.get('lmcache_used_bytes'),
+                           ratio=sample.get('lmcache_ratio'),
+                           sessions=sample.get('lmcache_sessions')))
+    return window
+
+
+def summarise_kv_window(window):
+    """Peak / first-write / sample counts for one activation window."""
+    valued = [item for item in window if item.get('used_bytes') is not None]
+    peak = max((item['used_bytes'] for item in valued), default=None)
+    peak_ns = next((item['ns'] for item in valued if item['used_bytes'] == peak), None) \
+        if peak is not None else None
+    first = next((item['ns'] for item in valued if item['used_bytes']), None)
+    return dict(
+        samples=len(window), valued_samples=len(valued),
+        nonzero_samples=sum(1 for item in valued if item['used_bytes']),
+        peak_bytes=peak, peak_ns=peak_ns, first_write_ns=first,
+        write_observed=bool(peak), peak_ratio=max(
+            (item['ratio'] or 0 for item in valued), default=None))
+
 
 
 def lmc_server_container(run_dir, gpus):
@@ -113,18 +205,24 @@ def lmc_server_container(run_dir, gpus):
             '--tmpfs', '/tmp:rw,exec,nosuid,size=4g,mode=1777',
             '--entrypoint', profile['python']]
     env = dict(profile['env'], HOME='/output', USER='boyjiang', LOGNAME='boyjiang',
-               PYTHONDONTWRITEBYTECODE='1', PYTHONPATH=LMCACHE_SITE,
+               PYTHONDONTWRITEBYTECODE='1', PYTHONPATH=LMCACHE_PYTHONPATH,
+               NUMBA_DISABLE_JIT='1', NUMBA_CACHE_DIR='/tmp/numba-cache',
                CUDA_VISIBLE_DEVICES='0,1,2,3,4,5,6,7',
                NVIDIA_VISIBLE_DEVICES=','.join(gpus))
     for key, value in env.items():
         args += ['-e', key + '=' + value]
     args += ['--mount', 'type=bind,src=' + LMCACHE_SITE + ',dst=' + LMCACHE_SITE + ',readonly']
+    args += ['--mount', 'type=bind,src=' + LMCACHE_SITE_055 + ',dst=' + LMCACHE_SITE_055
+             + ',readonly']
     args += ['--mount', 'type=bind,src=' + str(run_dir / 'lmcache') + ',dst=/output']
     args += [profile['image'], '-m', 'lmcache.v1.multiprocess.http_server',
              '--host', '127.0.0.1', '--port', str(LMCACHE_MQ_PORT), '--transport', 'zmq',
+             '--chunk-size', str(LMCACHE_CHUNK_TOKENS),
              '--http-host', '0.0.0.0', '--http-port', str(LMCACHE_HTTP_PORT),
              '--l1-size-gb', str(LMCACHE_TIER_GB), '--l1-init-size-gb', str(LMCACHE_TIER_GB),
              '--eviction-policy', 'LRU']
+    if LMCACHE_TRANSFER_MODE:
+        args += ['--supported-transfer-mode', LMCACHE_TRANSFER_MODE]
     cid = call(*args, timeout=120)
     return cid, args
 
@@ -242,7 +340,9 @@ def backend_container(run_dir, step_dir, key, gpus, input_path=None, with_lmcach
                LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/host-cuda/lib64:'
                                '/usr/local/cuda/lib64:/opt/sllm-v4/lib/python3.12/site-packages/sllm_store')
     if with_lmcache:
-        env['PYTHONPATH'] = LMCACHE_SITE
+        env['PYTHONPATH'] = LMCACHE_PYTHONPATH
+        env['NUMBA_DISABLE_JIT'] = '1'
+        env['NUMBA_CACHE_DIR'] = '/tmp/numba-cache'
     for key_name, value in env.items():
         args += ['-e', key_name + '=' + value]
     input_source = str(input_path) if input_path else str(
@@ -255,6 +355,7 @@ def backend_container(run_dir, step_dir, key, gpus, input_path=None, with_lmcach
     ]
     if with_lmcache:
         mounts.append((LMCACHE_SITE, LMCACHE_SITE))
+        mounts.append((LMCACHE_SITE_055, LMCACHE_SITE_055))
     for source, target in mounts:
         args += ['--mount', 'type=bind,src=' + source + ',dst=' + target + ',readonly']
     args += ['--mount', 'type=bind,src=' + str(step_dir) + ',dst=/output']
@@ -358,6 +459,24 @@ def main():
             gpus=uuids, checked_ns=time.monotonic_ns(), wall_ns=time.time_ns(),
             instruction='V11 campaign: user asked to continue the new baseline on qjhs003'))
         write(run_dir / 'models.json', dict(models=models, sequence=sequence_id))
+        # The three models' shared constraints are checked once, before the 1 TiB
+        # pool is allocated: block-size/chunk alignment (a mismatch aborts at the
+        # first activation with a ValueError from LMCache), the filler geometry
+        # that guarantees a whole chunk reaches the Host layer, per-model
+        # weight+KV fit, the host RAM budget and port/container hygiene.
+        utilizations = dict(UTILIZATION.get(args.group, UTILIZATION['A']))
+        try:
+            plan = preflight.static_checks(
+                run_dir, models, utilizations, chunk_tokens=LMCACHE_CHUNK_TOKENS,
+                filler_tokens=FILLER_PROMPT_TOKENS, tier_gb=LMCACHE_TIER_GB,
+                group=args.group)
+        except BaseException as error:
+            # preflight.json already carries the failing check and its evidence; the
+            # controller-level failure record keeps the run readable by the same tools.
+            write(run_dir / 'failure.json', dict(error=repr(error),
+                                                 traceback=traceback.format_exc()))
+            raise
+
 
         b1_inputs = {}
         if args.group == 'B1':
@@ -366,14 +485,36 @@ def main():
                 document = json.loads((V7 / 'candidates-v2' / (name + '-input.json')).read_bytes())
                 document['config']['v11_kv_transfer_config'] = dict(
                     kv_connector='LMCacheMPConnector',
+                    kv_connector_module_path=LMCACHE_CONNECTOR_MODULE,
                     kv_role='kv_both',
-                    kv_parallel_size=8,
                     kv_connector_extra_config={
-                        'lmcache.mp.server_urls': ['tcp://127.0.0.1:' + str(LMCACHE_MQ_PORT)],
                         'lmcache.mp.host': 'tcp://127.0.0.1',
                         'lmcache.mp.port': LMCACHE_MQ_PORT,
                     })
                 document['config']['enable_prefix_caching'] = False
+                # Never lower GPU KV L1 for the weight side's sake: at 0.75 V4's
+                # 102.2 GiB of weights leave 0.68 GiB of KV, below the 0.91 GiB one
+                # max-length sequence needs, and the engine refuses to start.
+                document['config']['gpu_memory_utilization'] = utilizations[key]
+                # The frozen prompts are 19-43 tokens while the Host KV layer can
+                # only store whole chunks (256 tokens = V4's block size, the largest
+                # of the three models). This declared filler request guarantees at
+                # least two full chunks per model so the Host layer really writes;
+                # it is reported separately and never mixed into the frozen-request
+                # correctness or timing statistics.
+                seed_request = next(item for item in document['requests']
+                                    if (item.get('payload') or {}).get('input_tokens'))
+                seed_tokens = seed_request['payload']['input_tokens']
+                fill = (seed_tokens * (FILLER_PROMPT_TOKENS // len(seed_tokens) + 1))[:FILLER_PROMPT_TOKENS]
+                document['requests'].append(dict(
+                    name='kv_fill',
+                    purpose='B1 Host-KV fill request (declared, not part of the frozen load)',
+                    payload=dict(input_tokens=fill, temperature=0, top_p=1.0, top_k=0,
+                                 min_p=0.0, seed=20261024, n=1, max_tokens=8,
+                                 ignore_eos=True, logprobs=0),
+                    expected=dict(content='', token_ids=[], finish_reason='length',
+                                  prompt_tokens=FILLER_PROMPT_TOKENS, completion_tokens=8),
+                    length_only=True))
                 path = run_dir / 'b1-inputs' / (name + '-input.json')
                 path.write_text(json.dumps(document, indent=2) + '\n')
                 b1_inputs[key] = path
@@ -424,8 +565,7 @@ def main():
                 tier_gib = (l1_initial.get('memory_total_bytes') or 0) / 2 ** 30
                 assert abs(tier_gib - LMCACHE_TIER_GB) < 0.5, \
                     f'expected {LMCACHE_TIER_GB} GiB host tier, got {tier_gib} GiB'
-                adapters = (initial.get('storage_manager', {}).get('store_controllers', {})
-                            .get('_default', {}).get('num_l2_adapters'))
+                adapters = lmcache_l2_adapter_count(initial)
                 assert adapters == 0, f'L2 adapter must not be configured, got {adapters}'
                 write(run_dir / 'lmcache-initial-status.json', probe)
             cid, store_args = store_container(run_dir, uuids)
@@ -463,6 +603,14 @@ def main():
                 before = set(ledger.resident) & expected
                 input_doc = json.loads((V7 / 'candidates-v2' / (name + '-input.json')).read_bytes())
                 request_names = [item['name'] for item in input_doc['requests']]
+                # Admission gate: vLLM applies the same inequality itself, but only
+                # after loading the weights, which costs ~12 minutes and leaves a
+                # traceback. Checking here costs at most GATE_RETRY_SECONDS and, when
+                # it fails, freezes the device/process state in step_dir/vram-gate-fail:
+                # free MiB per card, every compute PID with its /proc cmdline and RSS,
+                # docker ps and /proc/meminfo.
+                preflight.vram_gate(step_dir, key,
+                                    utilizations.get(key, preflight.DEFAULT_UTILIZATION))
                 cid_b, backend_args = backend_container(
                     run_dir, step_dir, key, uuids,
                     input_path=b1_inputs.get(key),
@@ -519,6 +667,40 @@ def main():
                 write(step_dir / 'final.json', final)
                 containers.pop(step_dir.name)
                 subprocess.run(['docker', 'rm', cid_b], capture_output=True, text=True, timeout=30)
+                # Wait until the previous backend's device memory is reclaimed:
+                # vLLM refuses to start when free memory is below
+                # gpu_memory_utilization * total (measured: V4 -> GLM left ~31 GiB
+                # per card briefly, which aborted the 03-G activation).
+                # Drain until the *next* activation's admission inequality holds, not
+                # until a fixed 3 GiB. After a clean exit V4 still holds ~5.7 GiB per
+                # card (its own KV pool at util 0.76), and the next model can start with
+                # that: preflight.vram_gate re-checks the real threshold before the
+                # container is created, so waiting for the driver baseline only burns
+                # ~12 minutes per D->X boundary for nothing.
+                next_key = models[index + 1] if index + 1 < len(models) else None
+                cards_now, _ = preflight.gpu_table()
+                hbm_mib = min((card['total_mib'] for card in cards_now), default=0)
+                if next_key is None or not hbm_mib:
+                    stop_used_mib = 3000
+                else:
+                    stop_used_mib = max(
+                        3000, hbm_mib - (int(utilizations[next_key] * hbm_mib)
+                                         + preflight.GATE_MARGIN_MIB))
+                drain_until = time.monotonic() + 900
+                drain_samples = []
+                while time.monotonic() < drain_until:
+                    drain_gpu, _ = gpu_state()
+                    drain_used = [int(item.split(',')[2]) for item in drain_gpu.splitlines()]
+                    drain_samples.append(max(drain_used))
+                    if max(drain_used) <= stop_used_mib:
+                        break
+                    time.sleep(5)
+                write(step_dir / 'gpu-drain.json', dict(
+                    samples=drain_samples, final_mib=max(drain_used),
+                    seconds=round((len(drain_samples) - 1) * 5, 1),
+                    stop_used_mib=stop_used_mib, next_model=next_key,
+                    rule='stop when the next activation can be admitted; '
+                         'preflight.vram_gate still enforces the threshold'))
                 coverage = rank_coverage(step_dir)
                 delta, state = snapshot_store(cid, parsed, ledger)
                 cache = ledger.step(offset, expected)
@@ -539,6 +721,15 @@ def main():
                         bytes=event.get('bytes')))
                 kv_row = {}
                 if args.group == 'B1':
+                    # Write first, then clear: the peak inside this activation is the
+                    # evidence that the Host layer really stored this model's KV, and
+                    # only after it is recorded does the clear count as closing the
+                    # loop. A segment that never writes is reported as open, never as
+                    # passed.
+                    window = kv_write_window(samples_path, t2, t1)
+                    summary = summarise_kv_window(window)
+                    write(step_dir / 'kv-write-window.json', dict(
+                        begin_ns=t2, end_ns=t1, summary=summary, window=window))
                     before_clear = http_json('GET', '/status')
                     clear_started = time.monotonic_ns()
                     cleared = http_json('POST', '/cache/clear', {'tier': 'l1'})
@@ -546,12 +737,41 @@ def main():
                     after_clear = http_json('GET', '/status')
                     l1_before = lmcache_l1(before_clear['body'])
                     l1_after = lmcache_l1(after_clear['body'])
+                    before_bytes = l1_before.get('memory_used_bytes')
+                    after_bytes = l1_after.get('memory_used_bytes')
+                    write_observed = bool(summary['write_observed'])
+                    write_before_clear = bool(summary['peak_ns']
+                                              and summary['peak_ns'] < clear_started)
+                    clear_ok = cleared['status'] == 200 and after_bytes == 0
+                    closed = write_observed and write_before_clear and clear_ok
                     write(step_dir / 'kv-clear.json', dict(
                         before=before_clear, clear=cleared, after=after_clear,
-                        seconds=(clear_finished - clear_started) / 1e9))
+                        seconds=(clear_finished - clear_started) / 1e9,
+                        write_window=summary, write_observed=write_observed,
+                        write_before_clear=write_before_clear, clear_ok=clear_ok,
+                        closed=closed))
+                    if not closed:
+                        print(json.dumps(dict(
+                            warning='B1 segment did not close its KV loop',
+                            step=step_dir.name, write_observed=write_observed,
+                            peak_bytes=summary['peak_bytes'],
+                            used_before_clear=before_bytes,
+                            used_after_clear=after_bytes,
+                            clear_status=cleared['status'])), flush=True)
                     kv_row = dict(
-                        kv_used_before_clear=l1_before.get('memory_used_bytes'),
-                        kv_used_after_clear=l1_after.get('memory_used_bytes'),
+                        kv_write_observed=write_observed,
+                        kv_peak_bytes=summary['peak_bytes'],
+                        kv_peak_ns=summary['peak_ns'],
+                        kv_first_write_ns=summary['first_write_ns'],
+                        kv_window_samples=summary['samples'],
+                        kv_window_valued=summary['valued_samples'],
+                        kv_window_nonzero=summary['nonzero_samples'],
+                        kv_fill_passed=(checks.get('kv_fill') or {}).get('passed'),
+                        kv_used_before_clear=before_bytes,
+                        kv_used_after_clear=after_bytes,
+                        kv_write_before_clear=write_before_clear,
+                        kv_clear_ok=clear_ok,
+                        kv_closed=closed,
                         kv_sessions_before=before_clear['body'].get('active_sessions'),
                         kv_clear_status=cleared['status'],
                         kv_clear_seconds=round((clear_finished - clear_started) / 1e9, 3))
@@ -627,6 +847,9 @@ def main():
                           'allocated_blocks', 'freed_blocks', 'evicted_paths',
                           'kv_used_before_clear', 'kv_used_after_clear',
                           'kv_clear_status', 'kv_clear_seconds', 'kv_sessions_before',
+                          'kv_write_observed', 'kv_peak_bytes', 'kv_peak_ns',
+                          'kv_first_write_ns', 'kv_write_before_clear', 'kv_clear_ok',
+                          'kv_closed', 'kv_fill_passed', 'kv_window_samples',
                           'container_exit', 'store_pid']
                 writer = csv.DictWriter(stream, fieldnames=fields)
                 writer.writeheader()
@@ -657,6 +880,15 @@ def main():
                         kv_clear_status=act.get('kv_clear_status'),
                         kv_clear_seconds=act.get('kv_clear_seconds'),
                         kv_sessions_before=act.get('kv_sessions_before'),
+                        kv_write_observed=act.get('kv_write_observed'),
+                        kv_peak_bytes=act.get('kv_peak_bytes'),
+                        kv_peak_ns=act.get('kv_peak_ns'),
+                        kv_first_write_ns=act.get('kv_first_write_ns'),
+                        kv_write_before_clear=act.get('kv_write_before_clear'),
+                        kv_clear_ok=act.get('kv_clear_ok'),
+                        kv_closed=act.get('kv_closed'),
+                        kv_fill_passed=act.get('kv_fill_passed'),
+                        kv_window_samples=act.get('kv_window_samples'),
                         container_exit=act['container_exit'], store_pid=act['store_pid']))
             sample_rows = [json.loads(line) for line in samples_path.read_text().splitlines()]
             sample_rows += released
@@ -674,6 +906,26 @@ def main():
                     writer.writerow(row_data)
             failure_present = (run_dir / 'failure.json').exists()
             complete = len(activations) == len(models)
+            requests_ok = all(all(check['passed'] for check in act['checks'].values())
+                              for act in activations)
+            exits_ok = all(act['container_exit'] == 0 for act in activations)
+            # B1's acceptance is not "the model answered": the Host KV layer has to
+            # show a real write inside the activation and a zero after the clear.
+            # GLM and V4 used to reach `engine ready` with 0 bytes in the tier, and
+            # calling that `passed` read as "B1 closed the loop" when it had not.
+            kv_steps = [dict(
+                step=act['index'], model=act['model'],
+                write_observed=act.get('kv_write_observed'),
+                peak_bytes=act.get('kv_peak_bytes'),
+                first_write_ns=act.get('kv_first_write_ns'),
+                used_before_clear=act.get('kv_used_before_clear'),
+                used_after_clear=act.get('kv_used_after_clear'),
+                clear_status=act.get('kv_clear_status'),
+                clear_ok=act.get('kv_clear_ok'),
+                write_before_clear=act.get('kv_write_before_clear'),
+                closed=act.get('kv_closed')) for act in activations]
+            kv_closed = all(item['closed'] for item in kv_steps) if kv_steps else False
+            requires_kv = args.group == 'B1'
             qualification = dict(
                 group=args.group, sequence=sequence_id, rep=args.rep,
                 protocol_hash=protocol_hash,
@@ -681,17 +933,31 @@ def main():
                 models=models, activations=len(activations),
                 requested_activations=len(models), complete=complete,
                 failure_present=failure_present,
-                passed=(complete and not failure_present
-                        and all(act['container_exit'] == 0 for act in activations)
-                        and all(all(check['passed'] for check in act['checks'].values())
-                                for act in activations)),
+                passed=(complete and not failure_present and exits_ok and requests_ok
+                        and (kv_closed if requires_kv else True)),
+                checks=dict(complete=complete, no_failure=not failure_present,
+                            exit_zero=exits_ok, requests=requests_ok,
+                            b1_host_kv_closed=kv_closed if requires_kv else None),
+                b1_host_kv=(dict(closed=kv_closed, steps=kv_steps,
+                                 requirement='each segment must show non-zero Host KV '
+                                             'bytes during its activation, written before '
+                                             'the clear, and 0 bytes after it')
+                            if requires_kv else None),
+                gpu_memory_utilization={key: utilizations[key] for key in models},
+                gpu_memory_utilization_deviation=(
+                    {key: utilizations[key] for key in models
+                     if abs(utilizations[key] - preflight.DEFAULT_UTILIZATION) > 1e-9}
+                    if args.group == 'B1' else {}),
+                preflight_passed=plan['passed'],
                 final_release_seconds=round(release_seconds, 3),
                 final_all_gpu_zero=all_zero,
                 image=profiles['v4']['image'],
                 vllm='0.20.1',
                 tensor_parallel=8,
                 notes=['path A only; B1 waits for a locked LMCache version',
-                       'B2 groups use their own runner'],
+                       'B2 groups use their own runner',
+                       'B1 passed additionally requires every segment to show a real '
+                       'Host KV write before the clear and a zero after it'],
             )
             write(run_dir / 'qualification.json', qualification)
             write(run_dir / 'result.json', dict(
@@ -700,6 +966,7 @@ def main():
                 qualification=qualification))
             print(json.dumps(dict(run=run_dir.name, passed=qualification['passed'],
                                   activations=len(activations),
+                                  checks=qualification['checks'],
                                   final_release_seconds=qualification['final_release_seconds'],
                                   final_all_gpu_zero=all_zero), indent=2))
 
