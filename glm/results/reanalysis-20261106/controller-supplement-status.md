@@ -215,3 +215,13 @@ Docker events for the exact fifth-cohort worker show create at Unix 1794366276.2
 Store 池命中 Main 于 14:42 左右启动。宿主监控拒绝 6.995553 秒样本，其中 worker inspect 为 6.706706 秒。精确容器的 Docker create 和 start 事件相隔约 6.930 秒。同一开机周期换算显示 inspect 几乎与该过渡重叠，调用内部原因未知。finalizer success=false，metrics=null。失败经历 90.520117 秒，整栈释放观察 60.023621 秒，八卡归零，所属容器移除、私有 slice 和两个 timer 停止。
 
 第六批为 3 成功、1 失败。全部原始文件路径及 SHA 在第六批账本。后续分析应验证在保留容器身份和 5 秒门槛的前提下，采样是否可以避开 worker 启动过程中同步阻塞的 inspect 调用。
+
+## 2026-11-13 独立轻量控制通过
+
+qjhs003 的 sleep-only 控制 sllm-debug-20261113T074916Z-d4063bc2 使用当日有效预约及独立 R1。实际 root CPU 探针通过。118 个宿主监控样本中，第 17–22 行（零基）观察到启动中同一 worker 的已绑定 cgroup 及活进程，第 23 行取得同容器的 Docker running 观测。单样本最长 0.749673107 秒，相邻完成间隔最大 1.451767225 秒。Controller unit 正常退出，释放观察 60.234623152 秒，八卡 0 MiB，无所属容器，两个私有 timer 和 slice 均已停止。控制未执行模型业务或 Store 加载，未产生模型 Controller 指标。
+
+原始目录 /data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261113T074916Z-d4063bc2。SHA-256 如下。
+
+- controller-result.json 7160a19ee77f4f92c8d0332d3f75836ff064ec630c9f71cc38ada43d02d4e636
+- controller-monitor.jsonl 3787810f12f90e3a23346d4951d32a34abab808d44b3b2a74f901cd3fbcc82d4
+- release60.jsonl 9be0fc433fe7f046bea9c16cf17e539131a30ed4a799a84ac8ba7edbc9e8876a
