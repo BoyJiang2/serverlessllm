@@ -257,20 +257,10 @@ def b1_section(runs):
         lines.append('')
         return lines
 
-    lines.append('下面按时间顺序列出**本组正式轮**、其**单模型适配验证**，以及同一序列上'
-                 '**补丁前**的失败 run 作为对照——后者用来说明"为什么必须改 LMCache"。')
+    lines.append('本节只列**最终正式轮**；补丁前的 3/7 失败轮与单模型适配验证留在 '
+                 '`B1-FAILED.md` 作为演进记录，不在这里重复出表。')
     lines.append('')
-    newest = scored[-1]
-    sequence = newest[1].get('sequence')
-    contrast = next(((run, qual) for run, qual in reversed(scored[:-1])
-                     if qual.get('sequence') == sequence and not qual.get('passed')), None)
-    smoke = next(((run, qual) for run, qual in reversed(scored[:-1])
-                  if len(qual.get('models') or []) == 1), None)
-    selected = []
-    for candidate in (contrast, smoke, newest):
-        if candidate and candidate[0] not in [item[0] for item in selected]:
-            selected.append(candidate)
-    selected.sort(key=lambda item: item[0].stat().st_mtime)
+    selected = [scored[-1]]
     for run, qual in selected:
         identity = run / 'lmcache-patch-identity.json'
         steps = qual['b1_host_kv']['steps']
@@ -333,29 +323,6 @@ def b1_section(runs):
         if qual.get('store_audit_reason'):
             lines.extend([qual['store_audit_reason'] + ' 证据见 `b1-store-audit.json`。', ''])
 
-        # --- 验收表（新增 Store 命中列）---
-        lines.append('| step | 模型 | Store 读取 | Store 命中 | Host 写入峰值 | 写入时刻 | clear 前 | clear 后 | clear 状态 | 闭环 |')
-        lines.append('|---|---|---|---|---|---|---|---|---|---|')
-        for step in steps:
-            event = events.get(str(step['step']), {})
-            start_ns = event.get('t2_ns')
-            first_ns = step.get('first_write_ns')
-            if first_ns and start_ns:
-                write_at = '激活后 %.1f s' % ((int(first_ns) - int(start_ns)) / 1e9)
-            else:
-                write_at = '—'
-            lines.append('| {step} | {model} | {read} | {hit} | {peak} | {peak_at} | {before} | {after} | {status} | {closed} |'.format(
-                step=step['step'], model=step['model'],
-                read=fmt_bytes(event.get('file_read_bytes')),
-                hit=fmt_bytes(event.get('hit_bytes')),
-                peak=fmt_bytes(step.get('peak_bytes')),
-                peak_at=write_at,
-                before=fmt_bytes(step.get('used_before_clear')),
-                after=fmt_bytes(step.get('used_after_clear')),
-                status=step.get('clear_status'),
-                closed='是' if step.get('closed') else '**否**'))
-        lines.append('')
-
         # --- 写入来源：必须写清是声明的填充请求，而不是业务流量 ---
         fills = [row for row in events.values() if row.get('kv_fill_passed') == 'True']
         biggest = max((step.get('peak_bytes') or 0) for step in steps) if steps else 0
@@ -388,70 +355,54 @@ def b1_section(runs):
             lines.append('')
 
         ordered = sorted(events.values(), key=lambda row: int(row['step']))
-        figures = [(name, title) for name, title in (
-            ('b1-timing.png', 'Figure 1. B1 激活与切换时延'),
-            ('b1-store.png', 'Figure 2. B1 Store 读取与块分配'),
-            ('b1-kv.png', 'Figure 3. B1 Host KV 写入与 GPU KV 预算'),
-            ('b1-gpu.png', 'Figure 4. B1 八卡峰值显存'),
-        ) if (run / name).exists()]
-        if figures:
-            lines.append('#### 图')
-            lines.append('')
-            for name, title in figures:
+
+        def figure(name, title):
+            """One figure per table: the figure sits directly above its table."""
+            if (run / name).exists():
                 lines.append(f'![{title}](runs/{run.name}/{name})')
                 lines.append('')
                 lines.append(f'*{title}*')
                 lines.append('')
+
+        def delta(a, b):
+            try:
+                return fmt_seconds((int(a) - int(b)) / 1e9)
+            except (TypeError, ValueError):
+                return '—'
+
         if ordered:
-            # --- 切换时延 ---
-            lines.append('#### 加载与切换时延')
+            # --- 表 1：时延 + 阶段分解 ---
+            figure('b1-timing.png', 'Figure 1. B1 激活与切换时延')
+            lines.append('#### 表 1 · 加载与切换时延（含阶段分解）')
             lines.append('')
-            lines.append('| 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |')
-            lines.append('|---|---|---|---|---|---|---|')
-            for row in ordered:
-                lines.append('| {step} | {model} | {act} | {first} | {switch} | {switch_no} | {obs} |'.format(
+            lines.append('| 段 | 模型 | 激活→正确 (s) | 首 token (s) | 切换不含观察 (s) | 上一正确→退出 (s) | 退出→激活 (s) | 激活→就绪 (s) | 就绪→首 token (s) | 首 token→正确 (s) | clear (s) |')
+            lines.append('|---|---|---|---|---|---|---|---|---|---|---|')
+            for position, row in enumerate(ordered):
+                previous = ordered[position - 1] if position else None
+                exit_gap = delta(row.get('t1_ns'), previous.get('t4_ns')) if previous else '—'
+                lines.append('| {step} | {model} | {act} | {first} | {switch_no} | {a} | {b} | {c} | {d} | {e} | {f} |'.format(
                     step=int(row['step']) + 1, model=MODEL_NAMES.get(row['to_model'], row['to_model']),
                     act=fmt_seconds(row.get('activation_to_correct_seconds')),
                     first=fmt_seconds(row.get('first_token_seconds')),
-                    switch=fmt_seconds(row.get('switch_seconds')),
                     switch_no=fmt_seconds(row.get('switch_excluding_observation_seconds')),
-                    obs=fmt_seconds(row.get('observation_seconds'))))
-            lines.append('')
-            lines.append('`t0` = 上一段正确响应，`t1` = 上一 Backend 退出，`t2` = 本段开始激活，'
-                         '`t3` = 引擎就绪，`t3_5` = 首 token，`t4` = 本段正确响应。'
-                         '首段没有上一模型，切换指标缺测。')
-            lines.append('')
-
-            # --- 阶段分解 ---
-            lines.append('#### 阶段分解（`t1` 与 `t2` 分离）')
-            lines.append('')
-            lines.append('| 段 | 模型 | 上一正确响应→退出 (s) | 退出→下一激活 (s) | 激活→引擎就绪 (s) | 就绪→首 token (s) | 首 token→正确 (s) | 本段 clear (s) |')
-            lines.append('|---|---|---|---|---|---|---|---|')
-            for position, row in enumerate(ordered):
-                previous = ordered[position - 1] if position else None
-                def delta(a, b):
-                    try:
-                        return fmt_seconds((int(a) - int(b)) / 1e9)
-                    except (TypeError, ValueError):
-                        return '—'
-                exit_gap = delta(row.get('t1_ns'), previous.get('t4_ns')) if previous else '—'
-                lines.append('| {step} | {model} | {a} | {b} | {c} | {d} | {e} | {f} |'.format(
-                    step=int(row['step']) + 1, model=MODEL_NAMES.get(row['to_model'], row['to_model']),
                     a=exit_gap, b=delta(row.get('t2_ns'), row.get('t1_ns')),
                     c=delta(row.get('t3_ns'), row.get('t2_ns')),
                     d=delta(row.get('t3_5_ns'), row.get('t3_ns')),
                     e=delta(row.get('t4_ns'), row.get('t3_5_ns')),
                     f=fmt_ms_seconds(row.get('kv_clear_seconds'))))
             lines.append('')
-            lines.append('"退出→下一激活"包含排空显存、`vram_gate` 门槛判定和容器创建，'
-                         '不是 LMCache 或 vLLM 的耗时。')
+            lines.append('`t0` = 上一段正确响应，`t1` = 上一 Backend 退出，`t2` = 本段开始激活，'
+                         '`t3` = 引擎就绪，`t3_5` = 首 token，`t4` = 本段正确响应；'
+                         '"退出→激活"包含排空显存、`vram_gate` 判定与容器创建，不是 vLLM/LMCache 的耗时。'
+                         '首段没有上一模型，切换指标缺测。')
             lines.append('')
 
-            # --- Store 与 Host KV ---
-            lines.append('#### Store 权重与 Host KV')
+            # --- 表 2：Store 与 Host KV（含逐段闭环）---
+            figure('b1-store.png', 'Figure 2. B1 Store 读取与 Host KV 写入/清理')
+            lines.append('#### 表 2 · Store 权重与 Host KV（含逐段闭环）')
             lines.append('')
-            lines.append('| 段 | 模型 | 读取 (GiB) | 命中 (GiB) | 分配块 | 归还块 | 驱逐路径 | Host 峰值 (MiB) | clear 前 (MiB) | clear 后 (MiB) |')
-            lines.append('|---|---|---|---|---|---|---|---|---|---|')
+            lines.append('| 段 | 模型 | 读取 (GiB) | 命中 (GiB) | 分配/归还块 | 驱逐 | Host 峰值 (MiB) | 写入时刻 | clear 前 | clear 后 | 状态 | 闭环 |')
+            lines.append('|---|---|---|---|---|---|---|---|---|---|---|---|')
             for row in ordered:
                 def gib(value):
                     try:
@@ -464,14 +415,20 @@ def b1_section(runs):
                     except (TypeError, ValueError):
                         return '—'
                 host = hosts.get(int(row['step']), {})
-                lines.append('| {step} | {model} | {read} | {hit} | {alloc} | {free} | {evict} | {peak} | {before} | {after} |'.format(
+                start_ns = row.get('t2_ns')
+                first_ns = host.get('first_write_ns')
+                write_at = ('%.1f s' % ((int(first_ns) - int(start_ns)) / 1e9)
+                            if (first_ns and start_ns) else '—')
+                lines.append('| {step} | {model} | {read} | {hit} | {alloc}/{free} | {evict} | {peak} | {when} | {before} | {after} | {status} | {closed} |'.format(
                     step=int(row['step']) + 1, model=MODEL_NAMES.get(row['to_model'], row['to_model']),
                     read=gib(row.get('file_read_bytes')), hit=gib(row.get('hit_bytes')),
                     alloc=row.get('allocated_blocks'), free=row.get('freed_blocks'),
                     evict=row.get('evicted_paths'),
-                    peak=mib(host.get('peak_bytes')),
+                    peak=mib(host.get('peak_bytes')), when=write_at,
                     before=mib(host.get('used_before_clear')),
-                    after=mib(host.get('used_after_clear'))))
+                    after=mib(host.get('used_after_clear')),
+                    status=host.get('clear_status'),
+                    closed='是' if host.get('closed') else '**否**'))
             lines.append('')
             hits = [int(number(row.get('hit_bytes')) or 0) for row in ordered]
             hits = [value for value in hits if value > 0]
@@ -485,8 +442,9 @@ def b1_section(runs):
                              fmt_bytes(hit_total), len(hits)))
             lines.append('')
 
-            # --- KV 容量与口径 ---
-            lines.append('#### 引擎加载与 GPU KV 容量')
+            # --- 表 3：KV 容量与口径 ---
+            figure('b1-kv.png', 'Figure 3. B1 Host KV 写入与 GPU KV 预算')
+            lines.append('#### 表 3 · 引擎加载与 GPU KV 容量')
             lines.append('')
             lines.append('| 段 | 模型 | `init engine` (s) | 激活→引擎就绪 (s) | 可用 KV (GiB) | GPU KV 容量 (token) | 每 token 成本 (KiB) |')
             lines.append('|---|---|---|---|---|---|---|')
@@ -529,9 +487,10 @@ def b1_section(runs):
                                  MODEL_NAMES.get(worst[0], worst[0])))
                 lines.append('')
 
-            # --- 资源峰值 ---
+            # --- 表 4：资源峰值 ---
             if peaks:
-                lines.append('#### 资源峰值（1 Hz 采样）')
+                figure('b1-gpu.png', 'Figure 4. B1 八卡峰值显存')
+                lines.append('#### 表 4 · 八卡与宿主资源峰值（1 Hz 采样）')
                 lines.append('')
                 lines.append('| 段 | 模型 | GPU0–7 峰值 (MiB, 取最大卡) | 八卡同刻峰值 (GiB) | 宿主可用最低 (GiB) | Store RSS 峰值 (GiB) |')
                 lines.append('|---|---|---|---|---|---|')
