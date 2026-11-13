@@ -6,6 +6,7 @@ import argparse
 import datetime
 import errno
 import hashlib
+import http.client
 import ipaddress
 import json
 import pathlib
@@ -217,6 +218,36 @@ def inspect(cid):
             return None
         raise RuntimeError('docker inspect failed without confirmed absence')
     return json.loads(result.stdout)[0]
+
+
+def register_sleep_exit_wait(cid):
+    if not re.fullmatch('[0-9a-f]{64}', cid):
+        raise ValueError('sleep exit wait requires a full container ID')
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        sock.settimeout(5)
+        sock.connect('/var/run/docker.sock')
+        sock.sendall((f'POST /v1.41/containers/{cid}/wait?condition=next-exit HTTP/1.1\r\n'
+                      'Host: localhost\r\nContent-Length: 0\r\nConnection: close\r\n\r\n').encode('ascii'))
+        response = http.client.HTTPResponse(sock)
+        response.begin()
+        if response.status != 200:
+            response.close()
+            raise RuntimeError('Docker did not acknowledge sleep exit wait')
+        return sock, response
+    except BaseException:
+        sock.close()
+        raise
+
+
+def read_sleep_exit_wait(response):
+    raw = response.read(4097)
+    if len(raw) > 4096:
+        raise RuntimeError('oversized Docker sleep exit receipt')
+    result = json.loads(raw)
+    if type(result.get('StatusCode')) is not int or result['StatusCode'] != 0 or result.get('Error') is not None:
+        raise RuntimeError('Docker sleep exit wait did not report a clean exit')
+    return result
 
 
 def create_and_start(argv, role, state, receipt):

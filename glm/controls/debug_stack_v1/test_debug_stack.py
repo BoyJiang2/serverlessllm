@@ -281,6 +281,26 @@ class Ownership(unittest.TestCase):
             with self.subTest(change=change):
                 self.assertFalse(d.owned(info(**json.loads(json.dumps(change))), STATE, 'head'))
 
+    def test_sleep_exit_wait_requires_ack_and_clean_exit(self):
+        cid = 'c'*64
+        sock = Mock()
+        response = Mock(status=200, read=Mock(return_value=b'{"StatusCode":0}'))
+        with patch.object(d.socket, 'AF_UNIX', 1, create=True), patch.object(d.socket, 'socket', return_value=sock), \
+             patch.object(d.http.client, 'HTTPResponse', return_value=response):
+            self.assertEqual(d.register_sleep_exit_wait(cid), (sock, response))
+            response.begin.assert_called_once()
+            self.assertIn(f'/containers/{cid}/wait?condition=next-exit'.encode(), sock.sendall.call_args.args[0])
+            self.assertEqual(d.read_sleep_exit_wait(response), {'StatusCode': 0})
+            for payload in (b'{"StatusCode":137}', b'{"StatusCode":0,"Error":{"Message":"failed"}}',
+                            b'{"StatusCode":false}', b'x'*4097):
+                response.read.return_value = payload
+                with self.assertRaises(RuntimeError):
+                    d.read_sleep_exit_wait(response)
+            response.status = 404
+            with self.assertRaisesRegex(RuntimeError, 'acknowledge'):
+                d.register_sleep_exit_wait(cid)
+            sock.close.assert_called_once()
+
     def test_guarded_worker_marks_only_verified_docker_start_as_pending(self):
         cid = 'c'*64
         state = dict(STATE, condition='store_pool_hit', verified_slice_cgroup='/my.slice')
