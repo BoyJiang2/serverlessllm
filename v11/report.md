@@ -95,14 +95,16 @@ B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache
 | --- | --- | --- |
 | SF 冷读 | 原生 SafeTensors，按历史协议完成冷页准入 | 未测 |
 | SF 热读 | 原生 SafeTensors，按历史协议验证热页 | 未测 |
-| Store 冷读 | 使用 Store 权重路径，按单次实验协议完成冷读准入 | 首段同样从空权重池加载，缺少同口径的页缓存准入证据 |
+| Store 冷读 | 使用 Store 权重路径，按单次实验协议完成冷读准入 | 首段从空 Store 权重池加载 |
 | Store 池命中 | 启动前已填入并确认目标权重驻留 | 后六段是自然切换，未设置独立的预填池条件 |
 
 历史四条件的「启动至首个正确业务响应」见 [三模型历史报告](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md)。下表仅列 `144041Z` 的逐段实测。
 
 **加载与切换时间**
 
-![B1 逐段激活与切换耗时](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-timing.png)
+**Figure 1. B1 Activation and Model Switch Latency**
+
+![Figure 1. B1 Activation and Model Switch Latency](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-timing.png)
 
 | 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -130,7 +132,9 @@ B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache
 
 **Store 权重缓存与 LMCache Host KV**
 
-![B1 Store 读取与块分配](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-store.png)
+**Figure 2. B1 Store Weight Reads and Block Allocation**
+
+![Figure 2. B1 Store Weight Reads and Block Allocation](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-store.png)
 
 | 段 | 模型 | 读取 (GiB) | 分配块 | 归还块 | 驱逐路径 | Host KV 峰值 (MiB) | clear 前 (MiB) | clear 后 (MiB) | clear (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -146,7 +150,9 @@ Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16
 
 **引擎加载与 KV 容量**
 
-![B1 Host KV 写入与清理及 GPU KV 预算](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-kv.png)
+**Figure 3. B1 Host KV Writes and GPU KV Budget**
+
+![Figure 3. B1 Host KV Writes and GPU KV Budget](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-kv.png)
 
 | 段 | 模型 | Rank 0 加载日志 (s) | Rank 0 可用于 GPU KV (GiB) | 引擎 GPU KV 容量 (token) | 2048-token 理论并发 | Host STORE 提交数 | Host STORE 完成数 | Host KV 命中 token |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -164,7 +170,9 @@ Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16
 
 **激活与加载阶段资源采样**
 
-![B1 八卡同刻显存采样峰值](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-gpu.png)
+**Figure 4. B1 Peak Concurrent Memory Usage Across Eight GPUs**
+
+![Figure 4. B1 Peak Concurrent Memory Usage Across Eight GPUs](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-gpu.png)
 
 | 段 | 模型 | GPU0 峰值 (MiB) | GPU1 峰值 (MiB) | GPU2 峰值 (MiB) | GPU3 峰值 (MiB) | GPU4 峰值 (MiB) | GPU5 峰值 (MiB) | GPU6 峰值 (MiB) | GPU7 峰值 (MiB) | 八卡同刻峰值 (GiB) | 宿主可用内存最低 (GiB) | Store RSS 峰值 (GiB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
