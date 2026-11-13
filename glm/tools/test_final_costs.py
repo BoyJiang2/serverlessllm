@@ -3,6 +3,7 @@ import json
 import contextlib
 import hashlib
 import io
+import gzip
 import sys
 from pathlib import Path
 import tempfile
@@ -26,7 +27,7 @@ class CostsTests(unittest.TestCase):
                         MainPID='0', InvocationID='a'*32, ExecMainStartTimestampMonotonic='1000000',
                         ExecMainExitTimestampMonotonic='200000000')
             identity = dict(run_id=run, holder='b'*32, boot_id='boot')
-            write('controller-start.json', dict(identity, condition='store_disk_cold', controller_begin_ns=10**9,
+            write('controller-start.json', dict(identity, condition='safetensors_disk_cold', controller_begin_ns=10**9,
                                                 independent_controller_unit=dict(InvocationID='a'*32),
                                                 resource_admission=dict(gpu_devices=[dict(uuid=f'GPU-{i}') for i in range(8)])))
             write('controller-result.json', dict(identity, success=True, release_observation_s=60,
@@ -43,7 +44,7 @@ class CostsTests(unittest.TestCase):
             metrics = dict(preparation_s=1, command_to_correct_business_response_s=1,
                            trigger_to_correct_business_response_s=.5)
             metrics.update({'phase_'+name+'_span_s':.3 for name in phase_names})
-            worker = dict(identity, success=True, condition='store_disk_cold',
+            worker = dict(identity, success=True, condition='safetensors_disk_cold',
                   preparation_begin_ns=2*10**9, preparation_complete_ns=3*10**9, startup_command_ns=4*10**9,
                   business_trigger_ns=4500000000, correct_business_response_ns=5*10**9,
                   delete_complete_ns=49*10**9, idle_observation_seconds=60, metrics=metrics, requests=requests)
@@ -61,8 +62,17 @@ class CostsTests(unittest.TestCase):
             for i in range(3):
                 write('debug-service/case'+str(i)+'-response.json', dict(choices=[dict(token_ids=[1],
                       message=dict(content='ok'), finish_reason='stop', logprobs=[{'1':dict(logprob=-.5)}])]))
-            write('debug-service/cache-admission/summary.json', dict(passed=True, condition='store_disk_cold',
-                  files=[dict(pages=1,resident_pages=0)]))
+            file = 'checkpoint/model.safetensors'
+            vector = 'cache-admission/'+file+'.mincore.gz'
+            flags = bytes(1)
+            write('source/cache-inputs13.json', dict(files=[dict(path='model.safetensors', bytes=4096)]))
+            (root/'debug-service/cache-admission/checkpoint').mkdir()
+            (root/'debug-service'/vector).write_bytes(gzip.compress(flags))
+            cache = dict(passed=True, condition='safetensors_disk_cold',
+                         files=[dict(file=file, source_path='/experiment/'+file, bytes=4096, page_size=4096,
+                                     pages=1, resident_pages=0, vector=vector,
+                                     vector_sha256=hashlib.sha256(flags).hexdigest())])
+            write('debug-service/cache-admission/summary.json', cache)
             phases = dict(begin_ns=4*10**9,end_ns=5*10**9,request_id='request1',first_token_observed_ns=4800000000,
                           control_events=dict(router_instance_published=dict(monotonic_ns=4400000000)),
                           phases={name:phase for name in phase_names})
@@ -95,6 +105,8 @@ class CostsTests(unittest.TestCase):
                     '/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json', (root/'gold.json').as_posix()).replace(
                     '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0',
                     hashlib.sha256((root/'gold.json').read_bytes()).hexdigest())
+                script = script.replace('a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473',
+                                        hashlib.sha256((root/'source/cache-inputs13.json').read_bytes()).hexdigest())
                 output = io.StringIO()
                 with patch.object(sys, 'path', sys.path[:]), patch.object(sys, 'dont_write_bytecode', False), \
                      patch.dict(sys.modules), contextlib.redirect_stdout(output), patch('subprocess.check_output', return_value='\n'.join(
@@ -116,6 +128,9 @@ class CostsTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'independently recomputed'):
                     finalize_controller(run, verify_only=True)
                 cases = [
+                    ('debug-service/cache-admission/summary.json', dict(cache, files=[])),
+                    ('debug-service/cache-admission/summary.json',
+                     dict(cache, files=[dict(cache['files'][0], resident_pages=1)])),
                     ('debug-service/result.json', dict(worker, delete_complete_ns=55*10**9)),
                     ('controller-result.json', dict(identity, success=True, release_observation_s=60,
                          all_owned_containers_removed_ns=125*10**9, controller_end_ns=190*10**9)),

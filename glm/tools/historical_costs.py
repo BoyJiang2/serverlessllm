@@ -521,7 +521,7 @@ def finalize_controller(run, *, verify_only=False):
     import re, subprocess
     if not re.fullmatch(r'sllm-debug-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run):
         raise ValueError('new supplementary run identity required')
-    script = '''import pathlib,json,hashlib,subprocess,math,sys
+    script = '''import pathlib,json,hashlib,subprocess,math,sys,gzip
 run=RUN
 verify_only=VERIFY_ONLY
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run
@@ -616,10 +616,55 @@ try:
   assert all(math.isfinite(row[str(token)]['logprob']) for token,row in zip(choice['token_ids'],choice['logprobs'],strict=True))
  cache=read('debug-service/cache-admission/summary.json')
  assert cache['passed'] is True and cache['condition']==start['condition'] and cache['files']
- if start['condition']=='store_pool_hit':assert cache['pool_confirmed_ranks']==list(range(8))
+ if start['condition'].startswith('safetensors_'):
+  name='source/cache-inputs13.json'
+  frozen=read(name)
+  assert inputs[name]['sha256']=='a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473'
+  expected={'checkpoint/'+item['path']:item['bytes'] for item in frozen['files']}
  else:
-  hot=start['condition']=='safetensors_disk_hot'
-  assert all(row['pages']>0 and row['resident_pages']==(row['pages'] if hot else 0) for row in cache['files'])
+  name='source/store-metadata-inputs.json'
+  frozen=read(name)
+  assert inputs[name]['sha256']=='888fd5cf5f277f275de865b2ac0fd269295b8836f5d871e7e3ae0d6ca9e45734'
+  prefix='store/vllm/glm51-fp8/'
+  expected={prefix+path:item['bytes'] for path,item in frozen['files'].items()}
+  raw_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json')
+  raw=raw_path.read_bytes()
+  raw_sha=hashlib.sha256(raw).hexdigest()
+  assert raw_sha=='dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb'
+  inputs['raw-disk-verification.json']={'path':str(raw_path),'bytes':len(raw),'sha256':raw_sha}
+  for rank in json.loads(raw)['ranks']:
+   if rank['rank']=='inactive_mtp':continue
+   for i,size in enumerate(rank['partition_bytes']):
+    expected[prefix+f"rank_{rank['rank']}/tensor.data_{i}"]=size
+  name='source/cache-inputs13.json'
+  frozen_sf=read(name)
+  assert inputs[name]['sha256']=='a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473'
+  expected.update({'checkpoint/'+item['path']:item['bytes'] for item in frozen_sf['files']
+                   if item['path'] in ('config.json','generation_config.json','tokenizer_config.json',
+                                      'tokenizer.json','chat_template.jinja','model.safetensors.index.json')})
+ rows=cache['files']
+ assert len(rows)==len(expected) and {row['file']:row['bytes'] for row in rows}==expected
+ for row in rows:
+  file=row['file']
+  assert row['source_path']=='/experiment/'+file and row['page_size']==4096
+  pages=(expected[file]+4095)//4096
+  assert pages>0 and row['pages']==pages
+  vector=row['vector']
+  assert vector in [base+file+'.mincore.gz' for base in ('cache-admission/','cache-admission/repair_1/','cache-admission/repair_2/')]
+  name='debug-service/'+vector
+  path=root/name
+  assert path.resolve().is_relative_to(root.resolve()) and not path.is_symlink()
+  with path.open('rb') as stream: packed=stream.read(pages+65537)
+  assert len(packed)<=pages+65536
+  import io
+  with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream: flags=stream.read(pages+1)
+  assert len(flags)==pages and hashlib.sha256(flags).hexdigest()==row['vector_sha256']
+  resident=flags.translate(bytes(i&1 for i in range(256))).count(bytes([1]))
+  assert resident==row['resident_pages']
+  if start['condition']!='store_pool_hit':
+   assert resident==(pages if start['condition']=='safetensors_disk_hot' else 0)
+  inputs[name]={'path':str(path),'bytes':len(packed),'sha256':hashlib.sha256(packed).hexdigest()}
+ if start['condition']=='store_pool_hit':assert cache['pool_confirmed_ranks']==list(range(8))
  phases=read('debug-service/phases.json')
  requests=read('debug-service/measurement-progress.json')['requests']
  assert requests==worker['requests'] and [row['name'] for row in requests]==[gold['requests'][n]['name'] for n in (1,2,0)]
