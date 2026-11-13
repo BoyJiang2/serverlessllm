@@ -244,3 +244,5 @@ Run sllm-debug-20261113T084332Z-29d1eb16 captured populated startup cgroups at z
 - controller-result.json f4dbc643f1f840e2258aa72141657fdfd7cdfc251c00650d2e5bc58be31536ce
 - controller-monitor.jsonl 010c606509bea81a4322fad459c90cb7e254fcb22c7ef5e257c910fbcb7ce5db
 - release60.jsonl dfc82dfdf294296ff348103ec4c594ac7877eb503bb47abfcf216bc13eb6da52
+
+Docker events for the fast-control worker 659a8aada2aebb4af3384c3f9878748a9f119f5475417594a40b61ab26a5625f record start at 1794559622705696598, die (exit 0) at 1794559652939632104 and destroy at 1794559652944766077 (wall-clock ns). Destroy followed die by 5.134 ms. The Docker event confirms process exit 0; the actor and cause of destruction remain unverified and the controller failure stands. Both owned timers and the private slice were stopped after the empty cgroup and absent owned containers were verified.
