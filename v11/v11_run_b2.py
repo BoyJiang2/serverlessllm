@@ -37,7 +37,7 @@ WEIGHT_BYTES = {'K': 617000763392, 'G': 762527481856, 'D': 877729513472}
 RAM_MARGIN_BYTES = 200 * 2 ** 30
 
 
-def native_input(run_dir, key):
+def native_input(run_dir, key, kv_cache_gib=None):
     name = MODEL_INPUT[key]
     document = json.loads((V7 / 'candidates-v2' / (name + '-input.json')).read_bytes())
     config = document['config']
@@ -47,6 +47,8 @@ def native_input(run_dir, key):
     config['enable_sleep_mode'] = True
     config['worker_extension_cls'] = 'sllm_store.v7_sleep_worker.V7SleepWorkerExtension'
     config.pop('model_loader_extra_config', None)
+    if kv_cache_gib is not None:
+        config['kv_cache_memory_bytes'] = kv_cache_gib * 1024 ** 3
     path = run_dir / 'b2-inputs' / (name + '-input.json')
     path.write_text(json.dumps(document, indent=2) + '\n')
     return path
@@ -69,6 +71,9 @@ def worker_container(run_dir, level_dir, key, gpus, input_path):
                SLLM_REQUEST_PREFIX=level_dir.name + '-' + key,
                LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/host-cuda/lib64:'
                                '/usr/local/cuda/lib64:/opt/sllm-v4/lib/python3.12/site-packages/sllm_store')
+    sink_overlay = os.environ.get('V11_B2_V4_SINK_OVERLAY') if key == 'D' else None
+    if sink_overlay:
+        env['CUDA_LAUNCH_BLOCKING'] = '1'
     for key_name, value in env.items():
         args += ['-e', key_name + '=' + value]
     mounts = list(profile['mounts']) + [
@@ -78,6 +83,18 @@ def worker_container(run_dir, level_dir, key, gpus, input_path):
         (str(input_path), '/control/input.json'),
         ('/data', '/data'), ('/etc/passwd', '/etc/passwd'), ('/etc/group', '/etc/group'),
     ]
+    if sink_overlay:
+        mounts.append((sink_overlay, '/opt/sllm-v4/lib/python3.12/site-packages/'
+                       'vllm/model_executor/models/deepseek_v4.py'))
+        overlay_dir = pathlib.Path(sink_overlay).parent
+        pins_target = '/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_source_pins.json'
+        assert sum(target == pins_target for _, target in mounts) == 1
+        mounts = [(str(overlay_dir / 'v4_source_pins.json') if target == pins_target
+                   else source, target) for source, target in mounts]
+        if (overlay_dir / 'meta.py').is_file():
+            mounts.append((str(overlay_dir / 'meta.py'),
+                           '/opt/sllm-v4/lib/python3.12/site-packages/'
+                           'vllm/model_executor/model_loader/reload/meta.py'))
     for source, target in mounts:
         args += ['--mount', 'type=bind,src=' + source + ',dst=' + target + ',readonly']
     args += ['--mount', 'type=bind,src=' + str(level_dir / f'worker-{key}') + ',dst=/output']
@@ -108,9 +125,12 @@ def main():
     parser.add_argument('--models', default=None, help='ad-hoc model list for a smoke test')
     parser.add_argument('--levels', default='1,2')
     parser.add_argument('--reload-mode', default='checkpoint', choices=('checkpoint', 'kernel'))
+    parser.add_argument('--kv-cache-gib', type=int)
     parser.add_argument('--rep', type=int, default=1)
     args = parser.parse_args()
     levels = [int(item) for item in args.levels.split(',') if item.strip()]
+    if args.kv_cache_gib is not None and (levels != [2] or args.kv_cache_gib <= 0):
+        parser.error('--kv-cache-gib requires a positive value and --levels 2')
     assert socket.gethostname() == 'qjhs3'
     with (V11 / 'active.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -140,11 +160,12 @@ def main():
         (run_dir / 'b2-inputs').mkdir(parents=True)
         write(run_dir / 'admission.json', dict(
             group='B2', levels=levels, sequence=sequence_id, rep=args.rep,
+            kv_cache_gib=args.kv_cache_gib, reload_mode=args.reload_mode,
             protocol_hash=protocol_doc['protocol_hash'], gpu=gpu.splitlines(),
             apps=apps.splitlines(), available_bytes=available, gpus=uuids,
             checked_ns=time.monotonic_ns(), wall_ns=time.time_ns(),
             instruction='V11 B2: native Sleep, no SLLM Store, L1 and L2 in one group'))
-        inputs = {key: native_input(run_dir, key) for key in MODEL_INPUT}
+        inputs = {key: native_input(run_dir, key, args.kv_cache_gib) for key in MODEL_INPUT}
         holder = {'cid': None, 'phase': 'startup'}
         sampler = Sampler(run_dir / 'resource-samples.jsonl', holder)
         sampler.start()
@@ -179,6 +200,17 @@ def main():
                                             sleeping_backups={name: WEIGHT_BYTES[name]
                                                               for name in workers})))
                             write(level_dir / 'ram-infeasible.json', records[-1])
+                            break
+                    if level == 2 and workers:
+                        free = [int(line) for line in call(
+                            'nvidia-smi', '--query-gpu=memory.free',
+                            '--format=csv,noheader,nounits').splitlines()]
+                        kv_bytes = (args.kv_cache_gib or 0) * 1024 ** 3
+                        required_mib = (WEIGHT_BYTES[key] // 8 + kv_bytes) // 1024 ** 2 + 8192
+                        gate = dict(free_mib=free, required_mib=required_mib,
+                                    passed=len(free) == 8 and min(free) >= required_mib)
+                        write(level_dir / f'{index:02d}-{key}-vram-gate.json', gate)
+                        if not gate['passed']:
                             break
                     if key not in workers:
                         worker_dir = level_dir / f'worker-{key}'
@@ -276,11 +308,10 @@ def main():
                         and sample['compute_apps'] == 0):
                     break
                 time.sleep(2)
-            begin = time.monotonic_ns()
-            release = []
-            while time.monotonic_ns() - begin < RELEASE_SECONDS * 10 ** 9:
-                release.append(sampler.sample('final-release'))
+            release = [sampler.sample('final-release')]
+            while release[-1]['ns'] - release[0]['ns'] < RELEASE_SECONDS * 10 ** 9:
                 time.sleep(1)
+                release.append(sampler.sample('final-release'))
             all_zero = all(all(item.get(f'gpu{i}', -1) == 0 for i in range(8))
                            and item['compute_apps'] == 0 for item in release)
             release_seconds = (release[-1]['ns'] - release[0]['ns']) / 1e9 if release else 0
@@ -316,8 +347,12 @@ def main():
                 results=results, failures=failures,
                 final_release_seconds=round(release_seconds, 3),
                 final_all_gpu_zero=all_zero,
-                passed=bool(results) and not failures
-                       and all(result['pid_continuity'] and result['golds_passed']
+                passed=bool(results) and not failures and all_zero
+                       and release_seconds >= RELEASE_SECONDS
+                       and all(len(result['records']) == len(models)
+                               and all(record['stage']['kind'] in ('load', 'wake')
+                                       for record in result['records'])
+                               and result['pid_continuity'] and result['golds_passed']
                                for result in results),
             )
             write(run_dir / 'qualification.json', qualification)

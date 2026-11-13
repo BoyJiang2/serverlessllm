@@ -94,11 +94,13 @@ async def main():
                     reload_ns = None
                 else:
                     await backend.engine.wake_up(tags=['weights'])
+                    write(f'wake-{index:04d}-weights-mapped.json', await receipt(backend))
                     reload_started = time.monotonic_ns()
                     checkpoint_format = command.get('reload_mode', 'checkpoint') == 'checkpoint'
                     await backend.engine.collective_rpc(
                         'reload_weights', kwargs={'is_checkpoint_format': checkpoint_format})
                     reload_ns = time.monotonic_ns() - reload_started
+                    write(f'wake-{index:04d}-weights-reloaded.json', await receipt(backend))
                     await backend.engine.wake_up(tags=['kv_cache'])
                 rows = await receipt(backend)
                 ack(index, dict(op=op, level=level, started_ns=started,

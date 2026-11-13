@@ -43,9 +43,15 @@ LMCACHE_SITE = '/data/brick1/boyjiang/lmcache-site'
 # LMCache 0.5.5 is the first release that ships the fixed `_0201` connector for
 # vLLM 0.20.1 (PR #4135). Its modules take precedence; the 0.5.6 overlay only
 # provides runtime dependencies (cupy, cffi, otel exporter, ...).
-LMCACHE_SITE_055 = '/data/brick1/boyjiang/lmcache055-site'
+LMCACHE_SITE_055 = os.environ.get(
+    'V11_LMCACHE_SITE', '/data/brick1/boyjiang/lmcache055-site'
+)
 LMCACHE_PYTHONPATH = LMCACHE_SITE_055 + ':' + LMCACHE_SITE
-LMCACHE_CONNECTOR_MODULE = 'lmcache.integration.vllm.lmcache_mp_connector_0201'
+LMCACHE_HMA = os.environ.get('V11_LMCACHE_HMA') == '1'
+LMCACHE_CONNECTOR_MODULE = (
+    'lmcache.integration.vllm.lmcache_mp_connector' if LMCACHE_HMA
+    else 'lmcache.integration.vllm.lmcache_mp_connector_0201'
+)
 LMCACHE_HTTP_PORT = 9100
 LMCACHE_MQ_PORT = 5555
 LMCACHE_TIER_GB = 16
@@ -124,6 +130,26 @@ def http_json(method, path, body=None, port=LMCACHE_HTTP_PORT, timeout=10):
         return dict(status=error.code, body=parsed)
     except Exception as error:  # connection refused while starting
         return dict(status=0, body={'error': repr(error)})
+
+
+def lmcache_lookup_counters(path):
+    with urllib.request.urlopen(
+        f'http://127.0.0.1:{LMCACHE_HTTP_PORT}/metrics', timeout=10
+    ) as response:
+        raw = response.read().decode()
+    path.write_text(raw)
+    names = dict(
+        lookups='lmcache_mp_lookups_requests_total',
+        requested='lmcache_mp_lookup_requested_tokens_total',
+        hits='lmcache_mp_lookup_hit_tokens_total',
+        dropped='lmcache_mp_event_bus_dropped_events_total',
+    )
+    counters = {}
+    for key, metric in names.items():
+        values = [float(line.rsplit(maxsplit=1)[-1]) for line in raw.splitlines()
+                  if line.startswith((metric + '{', metric + ' '))]
+        counters[key] = sum(values) if values else None
+    return counters
 
 
 def lmcache_l1(status_body):
@@ -492,6 +518,8 @@ def main():
                         'lmcache.mp.port': LMCACHE_MQ_PORT,
                     })
                 document['config']['enable_prefix_caching'] = False
+                if LMCACHE_HMA:
+                    document['config']['disable_hybrid_kv_cache_manager'] = False
                 # Never lower GPU KV L1 for the weight side's sake: at 0.75 V4's
                 # 102.2 GiB of weights leave 0.68 GiB of KV, below the 0.91 GiB one
                 # max-length sequence needs, and the engine refuses to start.
@@ -593,6 +621,7 @@ def main():
                                                           pool=state,
                                                           events=len(delta)))
 
+            store_log_cursor = 0
             for index, key in enumerate(models):
                 name = MODEL_INPUT[key]
                 step_dir = run_dir / f'{index:02d}-{key}-{name}'
@@ -609,6 +638,8 @@ def main():
                 # it fails, freezes the device/process state in step_dir/vram-gate-fail:
                 # free MiB per card, every compute PID with its /proc cmdline and RSS,
                 # docker ps and /proc/meminfo.
+                if args.group == 'B1':
+                    lookup_before = lmcache_lookup_counters(step_dir / 'lmcache-before.prom')
                 preflight.vram_gate(step_dir, key,
                                     utilizations.get(key, preflight.DEFAULT_UTILIZATION))
                 cid_b, backend_args = backend_container(
@@ -743,12 +774,35 @@ def main():
                     write_before_clear = bool(summary['peak_ns']
                                               and summary['peak_ns'] < clear_started)
                     clear_ok = cleared['status'] == 200 and after_bytes == 0
-                    closed = write_observed and write_before_clear and clear_ok
+                    native_log = call('docker', 'logs', containers['lmcache'], timeout=120)
+                    step_log = native_log[store_log_cursor:]
+                    store_log_cursor = len(native_log)
+                    committed_tokens = sum(
+                        int(value) for value in re.findall(r'Stored ([0-9]+) tokens in', step_log)
+                    )
+                    store_failed = 'Cannot store keys due to exception' in step_log
+                    lookup_after = lmcache_lookup_counters(step_dir / 'lmcache-after.prom')
+                    lookup_delta = {
+                        key: value - (lookup_before[key] or 0) if value is not None else None
+                        for key, value in lookup_after.items()
+                    }
+                    zero_hit = (
+                        (lookup_delta['lookups'] or 0) > 0
+                        and (lookup_delta['requested'] or 0) > 0
+                        and lookup_delta['hits'] == 0
+                        and lookup_delta['dropped'] == 0
+                        and lookup_before['dropped'] is not None
+                    )
+                    closed = (write_observed and write_before_clear and clear_ok
+                              and committed_tokens > 0 and not store_failed and zero_hit)
                     write(step_dir / 'kv-clear.json', dict(
                         before=before_clear, clear=cleared, after=after_clear,
                         seconds=(clear_finished - clear_started) / 1e9,
                         write_window=summary, write_observed=write_observed,
                         write_before_clear=write_before_clear, clear_ok=clear_ok,
+                        committed_tokens=committed_tokens, store_failed=store_failed,
+                        lookup_before=lookup_before, lookup_after=lookup_after,
+                        lookup_delta=lookup_delta, zero_hit=zero_hit,
                         closed=closed))
                     if not closed:
                         print(json.dumps(dict(
@@ -771,7 +825,9 @@ def main():
                         kv_used_after_clear=after_bytes,
                         kv_write_before_clear=write_before_clear,
                         kv_clear_ok=clear_ok,
-                        kv_closed=closed,
+                        kv_closed=closed, kv_committed_tokens=committed_tokens,
+                        kv_store_failed=store_failed, kv_zero_hit=zero_hit,
+                        kv_lookup_delta=lookup_delta,
                         kv_sessions_before=before_clear['body'].get('active_sessions'),
                         kv_clear_status=cleared['status'],
                         kv_clear_seconds=round((clear_finished - clear_started) / 1e9, 3))
@@ -923,6 +979,9 @@ def main():
                 clear_status=act.get('kv_clear_status'),
                 clear_ok=act.get('kv_clear_ok'),
                 write_before_clear=act.get('kv_write_before_clear'),
+                committed_tokens=act.get('kv_committed_tokens'),
+                store_failed=act.get('kv_store_failed'), zero_hit=act.get('kv_zero_hit'),
+                lookup_delta=act.get('kv_lookup_delta'),
                 closed=act.get('kv_closed')) for act in activations]
             kv_closed = all(item['closed'] for item in kv_steps) if kv_steps else False
             requires_kv = args.group == 'B1'

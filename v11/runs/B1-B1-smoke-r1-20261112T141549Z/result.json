@@ -1,0 +1,161 @@
+{
+  "run": "B1-B1-smoke-r1-20261112T141549Z",
+  "group": "B1",
+  "sequence": "B1-smoke",
+  "rep": 1,
+  "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+  "activations": [
+    {
+      "index": 0,
+      "model": "D",
+      "model_name": "v4",
+      "start_ns": 1617789887391300,
+      "exit_ns": 1618299244449022,
+      "t3_ns": 1618250914872841,
+      "t3_5_ns": 1618266889383182,
+      "t4_ns": 1618278951843601,
+      "store_pid": 859017,
+      "container_exit": 0,
+      "checks": {
+        "business": {
+          "name": "business",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "workload32": {
+          "name": "workload32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 877729513472,
+      "hit_bytes": 0,
+      "allocated_blocks": 26552,
+      "freed_blocks": 0,
+      "evicted_paths": 0,
+      "resident_before": [],
+      "activation_to_correct_seconds": 489.064452301,
+      "first_token_seconds": 477.001991882,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 49364992,
+      "kv_peak_ns": 1618291410090670,
+      "kv_first_write_ns": 1618291410090670,
+      "kv_window_samples": 273,
+      "kv_window_valued": 273,
+      "kv_window_nonzero": 2,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 49364992,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    }
+  ],
+  "qualification": {
+    "group": "B1",
+    "sequence": "B1-smoke",
+    "rep": 1,
+    "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+    "protocol_hash_provisional": true,
+    "models": [
+      "D"
+    ],
+    "activations": 1,
+    "requested_activations": 1,
+    "complete": true,
+    "failure_present": false,
+    "passed": true,
+    "checks": {
+      "complete": true,
+      "no_failure": true,
+      "exit_zero": true,
+      "requests": true,
+      "b1_host_kv_closed": true
+    },
+    "b1_host_kv": {
+      "closed": true,
+      "steps": [
+        {
+          "step": 0,
+          "model": "D",
+          "write_observed": true,
+          "peak_bytes": 49364992,
+          "first_write_ns": 1618291410090670,
+          "used_before_clear": 49364992,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "closed": true
+        }
+      ],
+      "requirement": "each segment must show non-zero Host KV bytes during its activation, written before the clear, and 0 bytes after it"
+    },
+    "gpu_memory_utilization": {
+      "D": 0.76
+    },
+    "gpu_memory_utilization_deviation": {
+      "D": 0.76
+    },
+    "preflight_passed": true,
+    "final_release_seconds": 58.918,
+    "final_all_gpu_zero": true,
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "vllm": "0.20.1",
+    "tensor_parallel": 8,
+    "notes": [
+      "path A only; B1 waits for a locked LMCache version",
+      "B2 groups use their own runner",
+      "B1 passed additionally requires every segment to show a real Host KV write before the clear and a zero after it"
+    ]
+  }
+}

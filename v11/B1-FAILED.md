@@ -179,3 +179,7 @@ block id，而引擎一张 64-token 表只能给出 4 个，仍会被下一道 u
 结论：在该冻结栈（vLLM 0.20.1 + LMCache 0.5.5，无补丁）上，B1 的 Host KV 层
 只对非 hybrid 模型（Kimi）成立；GLM / V4 的 4 段不可能闭环。B1 记 **未通过**，
 但"激活"与"闭环"分开记录：**7/7 vs 3/7**。
+
+## 旧 Kimi smoke 的验收边界
+
+`B1-B1-smoke-r1-20261112T032145Z` 原运行器标记通过，覆盖 1/1 激活和正确响应。原始 `switch-events.csv` 记录 Host KV 清理前后均为 0、clear HTTP 200，且 `qualification.json` 无逐段 Host KV 写入或零命中验收字段，因此这轮不能证明 Host KV 闭环。后续三模型 7/7 闭环由 `B1-seq-7-agents-r1-20261112T144041Z` 独立提供。

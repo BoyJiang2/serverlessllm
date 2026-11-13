@@ -38,3 +38,7 @@ L1-01-G ...  mem_available    0.3 GiB  (G 备份 762 GB 写入中)
 - 没有为了"跑完"而强杀 sleeping worker 再重新加载冒充 Wake；
 - 没有把这份中止的 run 计入 B2-L1 的通过统计；
 - 没有在 RAM 紧张时继续压测（会触发宿主级 OOM，可能影响同机其它任务）。
+
+## 原始回执复核
+
+V4 单模型 `113723Z` 的八 rank PID 在两次 Sleep 与中间 Wake 一致。两次 Sleep 各记录 `880,921,280,512 B`（820.422 GiB），Wake 后为 0。Kimi → GLM 的 `134318Z` 在 GLM 阶段最低 `MemAvailable=339,124,224 B`（0.316 GiB），第二份备份没有完成。

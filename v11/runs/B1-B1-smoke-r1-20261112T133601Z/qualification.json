@@ -1,0 +1,58 @@
+{
+  "group": "B1",
+  "sequence": "B1-smoke",
+  "rep": 1,
+  "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+  "protocol_hash_provisional": true,
+  "models": [
+    "D"
+  ],
+  "activations": 1,
+  "requested_activations": 1,
+  "complete": true,
+  "failure_present": false,
+  "passed": true,
+  "checks": {
+    "complete": true,
+    "no_failure": true,
+    "exit_zero": true,
+    "requests": true,
+    "b1_host_kv_closed": true
+  },
+  "b1_host_kv": {
+    "closed": true,
+    "steps": [
+      {
+        "step": 0,
+        "model": "D",
+        "write_observed": true,
+        "peak_bytes": 243359744,
+        "first_write_ns": 1615925775274433,
+        "used_before_clear": 243359744,
+        "used_after_clear": 0,
+        "clear_status": 200,
+        "clear_ok": true,
+        "write_before_clear": true,
+        "closed": true
+      }
+    ],
+    "requirement": "each segment must show non-zero Host KV bytes during its activation, written before the clear, and 0 bytes after it"
+  },
+  "gpu_memory_utilization": {
+    "D": 0.76
+  },
+  "gpu_memory_utilization_deviation": {
+    "D": 0.76
+  },
+  "preflight_passed": true,
+  "final_release_seconds": 59.466,
+  "final_all_gpu_zero": true,
+  "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "vllm": "0.20.1",
+  "tensor_parallel": 8,
+  "notes": [
+    "path A only; B1 waits for a locked LMCache version",
+    "B2 groups use their own runner",
+    "B1 passed additionally requires every segment to show a real Host KV write before the clear and a zero after it"
+  ]
+}
