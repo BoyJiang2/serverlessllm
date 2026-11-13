@@ -99,6 +99,21 @@ worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激�
 
 顺序为 Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6。
 
+**本轮测的加载条件**
+
+B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache Host KV 写入和清理**。第 1 段从空 Store 权重池加载 Kimi-K2.6。第 2–7 段保留同一 Store 进程与权重池，按固定顺序驱逐、分配及读取。每段使用新建的 vLLM Backend 和 GPU KV。Host KV 在每段退出后清零，本轮实测 Host KV 命中 token 为 0。
+
+本轮没有按历史四条件逐段重建缓存状态，也没有逐段验证操作系统页缓存冷暖。首段可标为「空 Store 池首次加载」，后六段标为「常驻 Store 序列切换」。所有段均走 Store 权重路径。以下四条件仅用于说明历史口径。
+
+| 历史条件 | 历史实验的启动前状态 | 本轮 B1 的对应关系 |
+| --- | --- | --- |
+| SF 冷读 | 原生 SafeTensors，按历史协议完成冷页准入 | 未测 |
+| SF 热读 | 原生 SafeTensors，按历史协议验证热页 | 未测 |
+| Store 冷读 | 使用 Store 权重路径，按单次实验协议完成冷读准入 | 首段同样从空权重池加载，缺少同口径的页缓存准入证据 |
+| Store 池命中 | 启动前已填入并确认目标权重驻留 | 后六段是自然切换，未设置独立的预填池条件 |
+
+历史四条件的「启动至首个正确业务响应」见 [三模型历史报告](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md)。下表仅列 `144041Z` 的逐段实测。
+
 **加载与切换时间**
 
 | 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |
@@ -111,7 +126,19 @@ worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激�
 | 6 | DeepSeek-V4-Pro | 500.722 | 488.921 | 582.334 | 522.334 | 60.000 |
 | 7 | Kimi-K2.6 | 237.713 | 233.797 | 323.909 | 263.909 | 60.000 |
 
-首段为初始激活。激活至正确响应包含 Store 恢复、引擎初始化与推理。原始 `t0`–`t4` 时间戳见切换事件表。
+激活至正确响应包含 Store 恢复、引擎初始化与推理。切换从上一模型正确响应到下一模型正确响应。首段没有上一模型，因此切换指标缺测。
+
+**加载阶段与 Host KV 清理**
+
+| 段 | 模型 | 上一正确响应至 Backend 退出 (s) | 退出至下一激活 (s) | 激活至引擎就绪 (s) | 就绪至首 token (s) | 首 token 至正确响应 (s) | 本段退出后 Host KV clear (s) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Kimi-K2.6 | — | — | 257.535 | 1.046 | 3.963 | 0.002 |
+| 2 | GLM-5.1-FP8 | 11.980 | 67.594 | 485.877 | 7.469 | 12.761 | 0.002 |
+| 3 | DeepSeek-V4-Pro | 12.938 | 68.657 | 464.242 | 15.809 | 12.228 | 0.001 |
+| 4 | GLM-5.1-FP8 | 21.494 | 68.895 | 467.063 | 10.886 | 12.348 | 0.001 |
+| 5 | Kimi-K2.6 | 14.788 | 70.343 | 239.932 | 0.901 | 3.907 | 0.002 |
+| 6 | DeepSeek-V4-Pro | 11.731 | 69.882 | 473.682 | 15.239 | 11.801 | 0.002 |
+| 7 | Kimi-K2.6 | 18.142 | 68.054 | 232.905 | 0.892 | 3.916 | 0.002 |原始切换表中，`t0` 是上一段正确响应，`t1` 是上一 Backend 退出，`t2` 是本段激活，`t3` 是引擎就绪，`t3_5` 是首 token，`t4` 是本段正确响应。退出至下一激活包含轮间观察等控制器动作。最后一列是本段退出后的独立 clear 调用耗时。
 
 **Store 权重缓存与 LMCache Host KV**
 
@@ -161,7 +188,7 @@ GPU 数值取自 NVML 整卡显存采样，包含权重、GPU KV、工作区和�
 
 正式轮使用 vLLM 0.20.1 @132765e 与带 HMA 补丁的 LMCache 0.5.5 @05a013b。DeepSeek-V4-Pro 的 GPU memory utilization 为 0.76，Kimi-K2.6 和 GLM-5.1-FP8 为 0.90。最终八卡显存归零，释放观测记录为 59.504 秒。
 
-[验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json) · [切换事件与 t1/t2](runs/B1-seq-7-agents-r1-20261112T144041Z/switch-events.csv) · [补丁及运行身份](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json) · [HMA 补丁](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-hma.patch)
+[验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json) · [原始切换事件与 Host KV 清理耗时](runs/B1-seq-7-agents-r1-20261112T144041Z/switch-events.csv) · [补丁及运行身份](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json) · [HMA 补丁](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-hma.patch)
 
 ## B2 组结果（原生 Sleep，L1/L2 同组）
 
