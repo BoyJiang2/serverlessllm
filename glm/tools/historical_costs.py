@@ -521,7 +521,7 @@ def finalize_controller(run, *, verify_only=False):
     import re, subprocess
     if not re.fullmatch(r'sllm-debug-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run):
         raise ValueError('new supplementary run identity required')
-    script = '''import pathlib,json,hashlib,subprocess,math
+    script = '''import pathlib,json,hashlib,subprocess,math,sys
 run=RUN
 verify_only=VERIFY_ONLY
 root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run
@@ -586,6 +586,23 @@ try:
      current_io[role]=values['io.stat']
     assert previous_io is None or all(previous_io.get(role)==v for role,v in current_io.items())
     previous_io=current_io
+  else:
+   source=root/'source'
+   for filename,expected in (
+       ('accept_control13.py','b064d25f90d2b30a48c298faa6f3af2b8d0dce4c8850589b411153b3f9f4197c'),
+       ('gpu_identity13.py','8cefc37753a7bed59f493142129b4e87e87a4121e2f901cea1557fa87aa28047'),
+       ('workspace.py','c81081d04de424f532661183bd517765e7210d8a6db2d0fb84d5c3137bdc586f')):
+    path=source/filename
+    payload=path.read_bytes()
+    assert hashlib.sha256(payload).hexdigest()==expected
+    inputs['source/'+filename]={'path':str(path),'bytes':len(payload),'sha256':expected}
+   sys.dont_write_bytecode=True
+   sys.path.insert(0,str(source))
+   from accept_control13 import validate_native_idle
+   baseline=read('debug-service/auxiliary-gpu-baseline.json')
+   assert baseline['helper']==worker['helper_gpu_identity'] and baseline['memory_MiB']==worker['auxiliary_gpu_baseline_MiB']
+   assert all(row['delete_ack_ns']==deleted for row in samples)
+   validate_native_idle(samples,baseline['memory_MiB'],baseline['helper'],run,start['boot_id'])
   observed=(points[-1]-points[0])/1e9
   assert earliest<=points[0]<points[-1]<=latest and observed>=60 and abs(observed-reported)<1e-6
  gold_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json');gold_bytes=gold_path.read_bytes()

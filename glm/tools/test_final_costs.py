@@ -3,6 +3,7 @@ import json
 import contextlib
 import hashlib
 import io
+import sys
 from pathlib import Path
 import tempfile
 from unittest.mock import patch
@@ -46,6 +47,13 @@ class CostsTests(unittest.TestCase):
                   preparation_begin_ns=2*10**9, preparation_complete_ns=3*10**9, startup_command_ns=4*10**9,
                   business_trigger_ns=4500000000, correct_business_response_ns=5*10**9,
                   delete_complete_ns=49*10**9, idle_observation_seconds=60, metrics=metrics, requests=requests)
+            helper = dict(host_pid=123, boot_id='boot')
+            worker.update(helper_gpu_identity=helper, auxiliary_gpu_baseline_MiB=[0]*8)
+            write('debug-service/auxiliary-gpu-baseline.json', dict(helper=helper, memory_MiB=[0]*8))
+            (root/'source').mkdir()
+            for filename in ('accept_control13.py','gpu_identity13.py','workspace.py'):
+                frozen = Path(__file__).resolve().parents[1]/'runtime/active'/filename
+                (root/'source'/filename).write_bytes(frozen.read_bytes())
             write('debug-service/result.json', worker)
             gold = dict(requests=[dict(name='case'+str(i)) for i in range(3)],
                         results=[dict(token_ids=[1], text='ok', finish_reason='stop')]*3)
@@ -64,9 +72,22 @@ class CostsTests(unittest.TestCase):
                             gpu='\n'.join(f'{i}, GPU-{i}, 0 MiB' for i in range(8)), gpu_processes='',
                             containers={}, private_slice_memory_events='oom 0\noom_kill 0',
                             retained_cgroups={role:dict(absent=True) for role in ('head','worker')})
+            def release_rows(name,first):
+                for i in range(61):
+                    now=(first+i)*10**9
+                    if name=='release60.jsonl':
+                        yield dict(released, monotonic_ns=now)
+                        continue
+                    gpu='\n'.join(f'{j}, GPU-{j}, 143771 MiB, 0 MiB, 0 %' for j in range(8))
+                    snapshot=dict(run_id=run, boot_id='boot', gpu=gpu, gpu_processes='', gpu_pids=[],
+                                  registered_store_helper=helper, foreign_gpu_pids=[], observers_ok=True,
+                                  history_ok=True, first_monitor_error=None, sample_begin_ns=now,
+                                  last_sample_ns=now, sample_end_ns=now)
+                    yield dict(second=i, monotonic_ns=now, delete_ack_ns=49*10**9, gpu=gpu, gpu_processes='',
+                               host_gpu_snapshot=snapshot, memory_current=0, shm_used_bytes=0, pids_current='0',
+                               memory_stat='anon 0\nfile 0\nshmem 0\nunevictable 0', cpu_stat='usage_usec 0')
             for name,first in [('release60.jsonl',120),('debug-service/idle60.jsonl',50)]:
-                extras = released if name == 'release60.jsonl' else {}
-                (root/name).write_text(''.join(json.dumps(dict(extras, monotonic_ns=(first+i)*10**9))+'\n' for i in range(61)))
+                (root/name).write_text(''.join(json.dumps(row)+'\n' for row in release_rows(name,first)))
             def remote(argv, **kwargs):
                 script = kwargs['input'].decode().replace(
                     "pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run", 'pathlib.Path('+repr(str(root))+')')
@@ -75,7 +96,8 @@ class CostsTests(unittest.TestCase):
                     '9a2db6905b69eb6a43b9f68280234c5ba3b52416f116e16d885c00c9301e12c0',
                     hashlib.sha256((root/'gold.json').read_bytes()).hexdigest())
                 output = io.StringIO()
-                with contextlib.redirect_stdout(output), patch('subprocess.check_output', return_value='\n'.join(
+                with patch.object(sys, 'path', sys.path[:]), patch.object(sys, 'dont_write_bytecode', False), \
+                     patch.dict(sys.modules), contextlib.redirect_stdout(output), patch('subprocess.check_output', return_value='\n'.join(
                         k+'='+v for k,v in unit.items())):
                     exec(compile(script, '<CPU-finalizer-fixture>', 'exec'), {})
                 return type('Result', (), dict(stdout=output.getvalue().encode()))()
@@ -117,6 +139,15 @@ class CostsTests(unittest.TestCase):
                 finalize_controller(run)
                 self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
                 release.write_bytes(original_release)
+                (root/'controller-final.json').unlink()
+                idle = root/'debug-service/idle60.jsonl'
+                original_idle = idle.read_bytes()
+                rows = [json.loads(line) for line in original_idle.splitlines()]
+                rows[30]['host_gpu_snapshot']['foreign_gpu_pids'] = [456]
+                idle.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                finalize_controller(run)
+                self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
+                idle.write_bytes(original_idle)
                 (root/'controller-final.json').unlink()
                 unit['ExecMainStatus'] = '1'
                 finalize_controller(run)
