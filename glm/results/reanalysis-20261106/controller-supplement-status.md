@@ -225,3 +225,13 @@ qjhs003 的 sleep-only 控制 sllm-debug-20261113T074916Z-d4063bc2 使用当日�
 - controller-result.json 7160a19ee77f4f92c8d0332d3f75836ff064ec630c9f71cc38ada43d02d4e636
 - controller-monitor.jsonl 3787810f12f90e3a23346d4951d32a34abab808d44b3b2a74f901cd3fbcc82d4
 - release60.jsonl 9be0fc433fe7f046bea9c16cf17e539131a30ed4a799a84ac8ba7edbc9e8876a
+
+## 2026-11-13 第七批匹配轻量控制
+
+运行 sllm-debug-20261113T083449Z-7f3bc467 经 R1 和独立守护探针后正常退出，102 个监控样本最长 1.17276746 秒，最大完成间隔 1.875024328 秒。释放观察 61.299190534 秒，八卡归零，无所属容器。采样未捕获带活进程的启动中 worker cgroup，故现场证据门未通过，不启动第七批模型。
+
+原始文件位于 /data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261113T083449Z-7f3bc467。
+
+- controller-result.json 966869b5cc4a49ca3460bbb8bbc0a7ebecb04f133a1aefb3f6c71678696f08f9
+- controller-monitor.jsonl 470745e60053cf2f0f2c65be30de8f16b66cd900f7c24bba9f66019e0471dae0
+- release60.jsonl d18e082675d5f002d21c3e15ffc89c23a3b598ea32634bda041e2fb4d0124bc1
