@@ -5,7 +5,7 @@
 | 组 | 状态 | 结论来源 |
 |---|---|---|
 | A | 通过（3/3 个 run 通过） | `runs/*/qualification.json` |
-| B1 | 未通过（0/4 个 run 通过） | `runs/*/qualification.json` |
+| B1 | 七段正式轮通过（7/7 段 Host KV 写入并清零） | `runs/*/qualification.json` |
 | B2 | 部分通过（2/4 个 run 通过） | `runs/*/qualification.json` |
 
 ## A 组结果（SLLM Store）
@@ -95,6 +95,22 @@ worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激�
 
 预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、`memory_used_bytes` 可直接读取。也就是说 Host 层本身可控，缺的是 KV 注册握手。
 
+### `B1-seq-7-agents-r1-20261112T144041Z` — 通过（Host KV 闭环 7/7 段）
+
+| step | 模型 | 读取 | Host 写入峰值 | 写入时刻 | clear 前 | clear 后 | clear 状态 | 闭环 |
+|---|---|---|---|---|---|---|---|---|
+| 0 | K | 574.6 GiB | 34.3 MiB | 激活后 269.2 s | 34.3 MiB | 0 | 200 | 是 |
+| 1 | G | 710.2 GiB | 48.9 MiB | 激活后 509.8 s | 48.9 MiB | 0 | 200 | 是 |
+| 2 | D | 817.4 GiB | 47.1 MiB | 激活后 504.4 s | 47.1 MiB | 0 | 200 | 是 |
+| 3 | G | 621.4 GiB | 48.9 MiB | 激活后 493.5 s | 48.9 MiB | 0 | 200 | 是 |
+| 4 | K | 574.6 GiB | 34.3 MiB | 激活后 246.2 s | 34.3 MiB | 0 | 200 | 是 |
+| 5 | D | 817.4 GiB | 47.1 MiB | 激活后 511.8 s | 47.1 MiB | 0 | 200 | 是 |
+| 6 | K | 574.6 GiB | 34.3 MiB | 激活后 237.9 s | 34.3 MiB | 0 | 200 | 是 |
+
+正式轮使用 vLLM 0.20.1 @132765e 与带 HMA 补丁的 LMCache 0.5.5 @05a013b。V4 GPU memory utilization 为 0.76，Kimi 和 GLM 为 0.90。最终八卡显存归零，释放观测记录为 59.504 秒。
+
+[验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json) · [切换事件与 t1/t2](runs/B1-seq-7-agents-r1-20261112T144041Z/switch-events.csv) · [补丁及运行身份](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json) · [HMA 补丁](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-hma.patch)
+
 ## B2 组结果（原生 Sleep，L1/L2 同组）
 
 ### `B2-B2-smoke-r1-20261111T110231Z` — 未通过
@@ -143,9 +159,7 @@ AssertionError('worker exited before ack')
 
 ### 对比一：A（Store 常驻） vs B1（Store + Host KV 层）
 
-**不可比。** B1 在固定镜像上未能完成 KV 注册握手（`world_size=0`），engine 无法启动，没有任何一次激活可记录；按协议记"未通过"，详见 `B1-FAILED.md`。
-
-因此本报告不给出"A 比 B1 快/慢多少"的数字结论——那需要 B1 先跑起来。
+B1 已完成七段 Host KV 写入与清零验收。A 组同一固定序列尚无完成回执，因此暂不计算同序列的 A/B1 时延差。
 
 ### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 同组）
 
