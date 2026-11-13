@@ -262,3 +262,16 @@ sllm-debug-20261113T090241Z-9e351ee4 使用批准提交 990b299b 的工具和冻
 - release60.jsonl 549bdb8fa7557bd4d8fc6b54777e110169d3582e855be21877fef17475f461fb
 - sleep-exit-registration.json 5199b048fdd268beb7f9c1e78c9812ea4d4d3c9e18300accf98cb0cf5d129869
 - sleep-exit-wait.json 3ff40d803ec9ed4885174d64e68e998cf110bd1590487f5f692939428b0cd2b6
+
+## 第七批两项通过，后续停在前序复核
+
+| 条件 | 状态 | Controller 秒 | Prep 秒 | A 秒 | 八 rank 加载跨度秒 |
+|---|---|---:|---:|---:|---:|
+| SF 冷读 | 独立验收通过 | 1388.957537 | 2.239330626 | 892.527865131 | 389.994769606 |
+| SF 热读 | 独立验收通过 | 1281.511409 | 251.634724032 | 611.519229242 | 135.561602120 |
+| Store 冷读 | 未开始 | | | | |
+| Store 池命中 | 未开始 | | | | |
+
+SF 冷读 final SHA-256 为 43dc732bc930c89e3820f347a696d8dcd0608bc3eb1ac3801e8401c11bec08f7，SF 热读为 a84fe6d3115a52fdc77bb29599f24a59617e61bf34485f0b44c47012817e35cd。两份回执保存在各自 run 的 controller-final.json。
+
+冷读曾在热读前通过复算。启动 Store 冷读前再次复算时，冷读 transient unit 已为 LoadState=not-found，InvocationID 为空，两个 kernel 单调时钟端点均为 0。此前清理了所属 timer 和私有 slice，unit 消失的具体机制未确认。已冻结规则要求每项开跑前重新核验全部前序回执，故未创建第三项 dispatch。18:14 现场八卡归零。两个已验收的回执保留，后两项无新指标。
