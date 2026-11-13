@@ -102,6 +102,8 @@ B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache
 
 **加载与切换时间**
 
+![B1 逐段激活与切换耗时](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-timing.png)
+
 | 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Kimi-K2.6 | 262.544 | 258.581 | — | — | 60.000 |
@@ -128,6 +130,8 @@ B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache
 
 **Store 权重缓存与 LMCache Host KV**
 
+![B1 Store 读取与块分配](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-store.png)
+
 | 段 | 模型 | 读取 (GiB) | 分配块 | 归还块 | 驱逐路径 | Host KV 峰值 (MiB) | clear 前 (MiB) | clear 后 (MiB) | clear (s) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Kimi-K2.6 | 574.63 | 18392 | 0 | 0 | 34.31 | 34.31 | 0.00 | 0.002 |
@@ -141,6 +145,8 @@ B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache
 Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16 GiB、每 chunk 256 token。Store 读取与块分配来自权重池账本，Host KV 峰值来自独立的 LMCache 采样。
 
 **引擎加载与 KV 容量**
+
+![B1 Host KV 写入与清理及 GPU KV 预算](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-kv.png)
 
 | 段 | 模型 | Rank 0 加载日志 (s) | Rank 0 可用于 GPU KV (GiB) | 引擎 GPU KV 容量 (token) | 2048-token 理论并发 | Host STORE 提交数 | Host STORE 完成数 | Host KV 命中 token |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -157,6 +163,8 @@ Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16
 [加载日志及 LMCache 计数器原文](runs/B1-seq-7-agents-r1-20261112T144041Z/kv-loading-log-excerpts.txt)
 
 **激活与加载阶段资源采样**
+
+![B1 八卡同刻显存采样峰值](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-gpu.png)
 
 | 段 | 模型 | GPU0 峰值 (MiB) | GPU1 峰值 (MiB) | GPU2 峰值 (MiB) | GPU3 峰值 (MiB) | GPU4 峰值 (MiB) | GPU5 峰值 (MiB) | GPU6 峰值 (MiB) | GPU7 峰值 (MiB) | 八卡同刻峰值 (GiB) | 宿主可用内存最低 (GiB) | Store RSS 峰值 (GiB) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
