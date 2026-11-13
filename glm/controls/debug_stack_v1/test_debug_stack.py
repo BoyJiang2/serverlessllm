@@ -231,6 +231,7 @@ class Ownership(unittest.TestCase):
 
                 stopped = Mock(is_set=Mock(side_effect=[False, False, True]), wait=Mock(side_effect=wait))
                 namespace = dict(vars(d), root=root, state={}, stopped=stopped, monitor_errors=errors,
+                                 startup_only=False, startup_stage='sleep',
                                  time=Mock(monotonic_ns=lambda:now), supplement_sample=collect,
                                  gpu_memory_by_uuid=lambda _: {'gpu':0}, baseline={'gpu':0},
                                  require_monitor_sample=rules['require_monitor_sample'])

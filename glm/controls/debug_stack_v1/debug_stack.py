@@ -1140,7 +1140,9 @@ def measure(args):
                         raise RuntimeError('owned slice OOM: '+snapshot['private_slice_memory_events'])
                     write(root/'supplement-monitor-ready.json', snapshot)
                     elapsed_ns = time.monotonic_ns()-snapshot['sample_begin_ns']
-                    stopped.wait(max(0, (1_000_000_000-elapsed_ns)/1e9))
+                    # The sleep control must observe short Docker start transitions.
+                    interval_ns = 200_000_000 if startup_only and startup_stage == 'sleep' else 1_000_000_000
+                    stopped.wait(max(0, (interval_ns-elapsed_ns)/1e9))
         except BaseException as error:
             monitor_errors.append(repr(error))
             try:
