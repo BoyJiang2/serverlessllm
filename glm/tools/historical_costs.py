@@ -516,11 +516,13 @@ print(json.dumps(reference))
                          bytes=sum(row['bytes'] for row in output['asset_files']), gpu_execution=False)))
 
 
-def finalize_controller(run, *, verify_only=False):
+def finalize_controller(run, *, verify_only=False, archived_cold=False):
     """Finalize a new sample from kernel unit exit, never an inner self-reported end."""
     import re, subprocess
     if not re.fullmatch(r'sllm-debug-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}', run):
         raise ValueError('new supplementary run identity required')
+    if archived_cold and (not verify_only or run != 'sllm-debug-20261113T080607Z-1290dd95'):
+        raise ValueError('archived verification is restricted to the sealed v7 SF-cold predecessor')
     script = '''import pathlib,json,hashlib,subprocess,math,sys,gzip
 run=RUN
 verify_only=VERIFY_ONLY
@@ -528,6 +530,27 @@ root=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run
 names=('Id','Result','ExecMainCode','ExecMainStatus','MainPID','InvocationID','ExecMainStartTimestampMonotonic','ExecMainExitTimestampMonotonic')
 raw=subprocess.check_output(['systemctl','show',run+'-controller.service','--property='+','.join(names)],text=True,timeout=15)
 unit=dict(line.split('=',1) for line in raw.splitlines() if '=' in line)
+if ARCHIVED_COLD:
+ assert subprocess.check_output(['systemctl','show',run+'-controller.service','-p','LoadState','--value'],
+                                text=True,timeout=15).strip()=='not-found'
+ assert unit['MainPID']=='0' and not unit['InvocationID']
+ assert unit['ExecMainStartTimestampMonotonic']==unit['ExecMainExitTimestampMonotonic']=='0'
+ anchor=pathlib.Path('/run/sllm-debug-20261113T080607Z-86571b5c-controller-window.json')
+ meta=anchor.stat()
+ assert not anchor.is_symlink() and anchor.is_file() and meta.st_uid==0 and not meta.st_mode&0o222
+ with anchor.open('rb') as f: anchor_bytes=f.read(8193)
+ assert len(anchor_bytes)<=8192
+ authorization=json.loads(anchor_bytes)
+ assert authorization['run_id']=='sllm-debug-20261113T080607Z-86571b5c'
+ assert authorization['review_sha256']=='ac198316bf85dee0c02dae1016f61fccc7fb6edd6d84d286f46c1dfa1cb26087'
+ assert authorization['boot_id']==pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
+ with (root/'controller-final.json').open('rb') as f: sealed=f.read(1024**2+1)
+ digest='43dc732bc930c89e3820f347a696d8dcd0608bc3eb1ac3801e8401c11bec08f7'
+ assert len(sealed)<=1024**2 and hashlib.sha256(sealed).hexdigest()==digest==authorization['prior_final_sha256'][run]
+ archive=json.loads(sealed)
+ unit=archive['unit']
+ raw=''.join(f'{key}={value}\\n' for key,value in unit.items())
+ assert hashlib.sha256(raw.encode()).hexdigest()==archive['unit_snapshot_sha256']
 if unit.get('MainPID') not in ('0',''):raise RuntimeError('controller still active; no finalization during measurement')
 inputs={}
 def read(name):
@@ -718,7 +741,9 @@ else:
  with p.open('x') as f:json.dump(out,f,indent=2)
  print(json.dumps(out))
 '''.replace('RUN', repr(run), 1).replace('VERIFY_ONLY', repr(verify_only), 1).replace(
-        'ANALYSIS_SHA', repr(hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
+        'ANALYSIS_SHA', repr('a97c8c6ebef86bbf5c793b267d5d600ac4c9a38b3e797df238d79b4d680cf183'
+                             if archived_cold else hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
+    script = script.replace('ARCHIVED_COLD', repr(archived_cold), 1)
     result = subprocess.run(['ssh','-o','BatchMode=yes','-o','ConnectTimeout=10','qjhs003','python3','-I','-'],
                             input=script.encode(), capture_output=True, timeout=90, check=True)
     output = json.loads(result.stdout)
@@ -815,5 +840,7 @@ if __name__ == '__main__':
         finalize_controller(sys.argv[2])
     elif len(sys.argv)==3 and sys.argv[1]=='--verify-controller':
         finalize_controller(sys.argv[2], verify_only=True)
+    elif len(sys.argv)==3 and sys.argv[1]=='--verify-archived-v7-cold':
+        finalize_controller(sys.argv[2], verify_only=True, archived_cold=True)
     else:
         main()
