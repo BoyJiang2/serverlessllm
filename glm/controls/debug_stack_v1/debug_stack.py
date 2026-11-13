@@ -633,10 +633,10 @@ def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
     row['disk_stat'] = pathlib.Path('/sys/block/nvme1n1/stat').read_text()
     row['network'] = pathlib.Path('/proc/net/dev').read_text()
     row['gpu_pids'] = sorted({int(line.split(',', 1)[0]) for line in row['gpu_processes'].splitlines()})
-    owned_pids = {p['pid'] for p in row['processes']}
-    # GPU enumeration follows the member scan. A new PID needs a fresh birth
-    # and an exact, still-registered container cgroup before it can be attributed.
-    for pid in set(row['gpu_pids'])-owned_pids:
+    owned_pids = set()
+    # Revalidate every GPU PID after NVML, including previously sampled members.
+    for pid in row['gpu_pids']:
+        previous = [member for member in row['processes'] if member['pid'] == pid]
         proc = pathlib.Path('/proc')/str(pid)
         try:
             stat = (proc/'stat').read_text()
@@ -650,7 +650,13 @@ def supplement_sample(state, *, cgroup_retries=None, previous_mid_ns=None):
                 item = matches[0]
                 base = pathlib.Path(item['cgroup_path'])
                 registered = next(r for r in state['bound_cgroups'].values() if r['container_id']==item['container_id'])
-                if base.stat().st_ino==registered['inode']:
+                if any(member['container_id'] != item['container_id'] or member['cgroup'] != group
+                       or member['stat'].rsplit(')', 1)[1].split()[19] != first for member in previous):
+                    continue
+                if (proc.joinpath('cgroup').read_text() == group
+                        and proc.joinpath('stat').read_text().rsplit(')', 1)[1].split()[19] == first
+                        and base.stat().st_ino == registered['inode']):
+                    row['processes'] = [member for member in row['processes'] if member['pid'] != pid]
                     row['processes'].append(dict(container_id=item['container_id'], pid=pid, stat=stat,
                         status=status, cgroup=group, pid_namespace=namespace, sampled_after_gpu_query=True))
                     owned_pids.add(pid)

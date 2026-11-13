@@ -501,9 +501,9 @@ class SupplementAdmission(unittest.TestCase):
         base = d.pathlib.Path('/sys/fs/cgroup/my.slice')/('docker-'+cid+'.scope')
         original_read, original_stat = Path.read_text, Path.stat
         for mode in ('cgroup_exit', 'pid_reuse', 'member_exit', 'transient_cgroup',
-                     'transient_esrch', 'late_success', 'shared_deadline'):
+                     'transient_esrch', 'late_success', 'shared_deadline', 'member_moves', 'member_reused'):
             gone, stat_reads, cgroup_reads = [False], [0], [0]
-            now, retries = [0], []
+            now, retries, member_reads = [0], [], [0]
             worker_cid = 'd'*64
             worker_base = base.with_name('docker-'+worker_cid+'.scope')
             def stat(path, **kwargs):
@@ -525,6 +525,16 @@ class SupplementAdmission(unittest.TestCase):
                     return '0::'+worker_base.as_posix().removeprefix('/sys/fs/cgroup')+'\n'
                 if path == base/'cgroup.procs' and mode == 'member_exit':
                     return '999'
+                if mode in ('member_moves', 'member_reused'):
+                    if path == base/'cgroup.procs':
+                        return '999'
+                    if path == Path('/proc/999/stat'):
+                        member_reads[0] += 1
+                        tick = 2 if mode == 'member_reused' and member_reads[0] > 1 else 1
+                        return '999 (gpu) '+' '.join(['0']*19+[str(tick)])
+                    if path == Path('/proc/999/cgroup'):
+                        group = '/other.slice' if mode == 'member_moves' and member_reads[0] > 1 else base.as_posix().removeprefix('/sys/fs/cgroup')
+                        return '0::'+group+'\n'
                 if path == Path('/proc/999/stat'):
                     raise ProcessLookupError(3, 'member exited', str(path))
                 if path == base/'memory.current' and mode == 'cgroup_exit':
@@ -532,7 +542,7 @@ class SupplementAdmission(unittest.TestCase):
                     raise FileNotFoundError(2, 'cgroup exited between reads')
                 if path == worker_base/'memory.current' and mode == 'shared_deadline':
                     raise ProcessLookupError(3, 'worker cgroup read interrupted')
-                if path == base/'io.stat' and mode in ('transient_cgroup', 'transient_esrch', 'late_success', 'shared_deadline'):
+                if path == base/'io.stat' and mode in ('transient_cgroup', 'transient_esrch', 'late_success', 'shared_deadline', 'member_moves', 'member_reused'):
                     cgroup_reads[0] += 1
                     if cgroup_reads[0] == 1:
                         if mode == 'transient_cgroup':
@@ -554,9 +564,13 @@ class SupplementAdmission(unittest.TestCase):
                  patch.object(d.pathlib.Path, 'resolve', lambda path: path), \
                  patch.object(d.time, 'monotonic_ns', side_effect=lambda: now[0]), \
                  patch.object(d.time, 'sleep', side_effect=lambda delay: now.__setitem__(0, now[0]+round(delay*1e9))), \
+                 patch.object(Path, 'readlink', return_value=Path('pid:[123]')), \
                  patch.object(d, 'inspect', side_effect=rechecks), \
-                 patch.object(d.subprocess, 'check_output', side_effect=['', '']):
-                if mode == 'pid_reuse':
+                 patch.object(d.subprocess, 'check_output', side_effect=['', '999, 1 MiB\n' if mode in ('member_moves', 'member_reused') else '']):
+                if mode in ('member_moves', 'member_reused'):
+                    row = d.supplement_sample(dict(STATE, head_container_id=cid))
+                    self.assertEqual(row['foreign_gpu_pids'], [999])
+                elif mode == 'pid_reuse':
                     with self.assertRaisesRegex(RuntimeError, 'PID reused'):
                         d.supplement_sample(dict(STATE, head_container_id=cid))
                 elif mode == 'cgroup_exit':
