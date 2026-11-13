@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent
 A = ROOT / "runs/A-seq-7-agents-r1-20261113T035857Z"
 B1 = ROOT / "runs/B1-seq-7-agents-r1-20261113T052724Z"
 B2 = ROOT / "runs/B2-seq-7-agents-r1-20261113T012344Z"
+L1 = ROOT / "runs/B2-B2-smoke-r1-20261111T113723Z"
 
 
 def render():
@@ -24,6 +25,30 @@ def render():
                   for run in (A, B1, B2)]
     assert all(q["passed"] and q["final_all_gpu_zero"] and q["final_release_seconds"] >= 60
                for q in (qa, qb, ql))
+
+    fig, ax = plt.subplots(figsize=(10, 3.8), layout="constrained")
+    bars = ax.bar(labels, [float(row["activation_to_correct_seconds"]) for row in a],
+                  color="#406795")
+    ax.scatter(labels[1:], [float(row["switch_excluding_observation_seconds"]) for row in a[1:]],
+               color="#d28045", marker="D", label="Switch excluding observation", zorder=3)
+    bars.set_label("Activation to first correct response")
+    ax.set(title="A · Activation and switch timing", ylabel="Seconds", ylim=(0, 630))
+    ax.legend(loc="upper right", frameon=False)
+    fig.savefig(out / "a-activation.png", dpi=160)
+    plt.close(fig)
+
+    fig, axes = plt.subplots(3, 1, figsize=(10, 7), sharex=True, layout="constrained")
+    axes[0].bar(labels, [int(row["file_read_bytes"]) / 2**30 for row in a], color="#406795")
+    axes[0].set(ylabel="GiB", title="Store weight bytes read from files")
+    for field, color, name in (("allocated_blocks", "#406795", "Allocated"),
+                               ("freed_blocks", "#d28045", "Freed")):
+        axes[1].plot(labels, [int(row[field]) for row in a], marker="o", color=color, label=name)
+    axes[1].set(ylabel="Blocks", title="Store pool block turnover")
+    axes[1].legend(frameon=False)
+    axes[2].bar(labels, [int(row["evicted_paths"]) for row in a], color="#387d72")
+    axes[2].set(ylabel="Paths", title="Evicted Store paths")
+    fig.savefig(out / "a-store.png", dpi=160)
+    plt.close(fig)
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 6.5), sharex=True, layout="constrained")
     for ax, field, unit, scale in (
@@ -57,14 +82,31 @@ def render():
 
     records = ql["results"][0]["records"]
     assert [r["model"] for r in records] == list("KGDGKDK")
-    wakes = [(labels[i], r["stage"]) for i, r in enumerate(records) if r["stage"]["kind"] == "wake"]
+    stages = [r["stage"] for r in records]
+    durations = [stage["seconds"] for stage in stages]
     fig, ax = plt.subplots(figsize=(10, 3.8), layout="constrained")
-    bars = ax.barh([label for label, _ in wakes], [s["seconds"] for _, s in wakes], color="#406795")
-    ax.bar_label(bars, fmt="%.1f s", padding=5)
-    ax.set_xlim(0, max(s["seconds"] for _, s in wakes) * 1.17)
+    for kind, color, name in (("load", "#d28045", "First load"),
+                              ("wake", "#406795", "Wake on original workers")):
+        indexes = [i for i, stage in enumerate(stages) if stage["kind"] == kind]
+        bars = ax.barh(indexes, [durations[i] for i in indexes], color=color, label=name)
+        ax.bar_label(bars, fmt="%.1f s", padding=5)
+    ax.set_yticks(range(7), labels)
+    ax.set_xlim(0, max(durations) * 1.17)
     ax.invert_yaxis()
-    ax.set(title="B2-L2 wake on the original workers", xlabel="Wake acknowledgement (seconds)")
+    ax.legend(loc="upper right", frameon=False)
+    ax.set(title="B2-L2 first load and wake", xlabel="Host stage acknowledgement (seconds)")
     fig.savefig(out / "b2-l2-wake.png", dpi=160)
+    plt.close(fig)
+
+    first, wake = json.loads((L1 / "L1/level-result.json").read_text(encoding="utf-8"))["records"]
+    fig, ax = plt.subplots(figsize=(8, 2.8), layout="constrained")
+    bars = ax.barh(["First sleep", "Wake"], [first["sleep_seconds"], wake["stage"]["seconds"]],
+                   color=["#406795", "#387d72"])
+    ax.bar_label(bars, fmt="%.3f s", padding=5)
+    ax.set(title="B2-L1 · DeepSeek-V4-Pro single-model sleep and wake", xlabel="Seconds",
+           xlim=(0, first["sleep_seconds"] * 1.2))
+    ax.invert_yaxis()
+    fig.savefig(out / "b2-l1-timing.png", dpi=160)
     plt.close(fig)
 
 
