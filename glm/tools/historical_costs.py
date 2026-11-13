@@ -628,11 +628,11 @@ try:
   prefix='store/vllm/glm51-fp8/'
   expected={prefix+path:item['bytes'] for path,item in frozen['files'].items()}
   raw_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json')
-  raw=raw_path.read_bytes()
-  raw_sha=hashlib.sha256(raw).hexdigest()
+  raw_receipt=raw_path.read_bytes()
+  raw_sha=hashlib.sha256(raw_receipt).hexdigest()
   assert raw_sha=='dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb'
-  inputs['raw-disk-verification.json']={'path':str(raw_path),'bytes':len(raw),'sha256':raw_sha}
-  for rank in json.loads(raw)['ranks']:
+  inputs['raw-disk-verification.json']={'path':str(raw_path),'bytes':len(raw_receipt),'sha256':raw_sha}
+  for rank in json.loads(raw_receipt)['ranks']:
    if rank['rank']=='inactive_mtp':continue
    for i,size in enumerate(rank['partition_bytes']):
     expected[prefix+f"rank_{rank['rank']}/tensor.data_{i}"]=size

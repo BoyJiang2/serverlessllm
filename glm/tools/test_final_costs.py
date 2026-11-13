@@ -107,6 +107,14 @@ class CostsTests(unittest.TestCase):
                     hashlib.sha256((root/'gold.json').read_bytes()).hexdigest())
                 script = script.replace('a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473',
                                         hashlib.sha256((root/'source/cache-inputs13.json').read_bytes()).hexdigest())
+                for filename, digest in (
+                    ('source/store-metadata-inputs.json','888fd5cf5f277f275de865b2ac0fd269295b8836f5d871e7e3ae0d6ca9e45734'),
+                    ('raw-disk-verification.json','dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb'),
+                ):
+                    if (root/filename).exists():
+                        script = script.replace(digest, hashlib.sha256((root/filename).read_bytes()).hexdigest())
+                script = script.replace('/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json',
+                                        (root/'raw-disk-verification.json').as_posix())
                 output = io.StringIO()
                 with patch.object(sys, 'path', sys.path[:]), patch.object(sys, 'dont_write_bytecode', False), \
                      patch.dict(sys.modules), contextlib.redirect_stdout(output), patch('subprocess.check_output', return_value='\n'.join(
@@ -163,6 +171,38 @@ class CostsTests(unittest.TestCase):
                 finalize_controller(run)
                 self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
                 idle.write_bytes(original_idle)
+                (root/'controller-final.json').unlink()
+                start = json.loads((root/'controller-start.json').read_text())
+                write('controller-start.json', dict(start, condition='store_pool_hit'))
+                write('debug-service/result.json', dict(worker, condition='store_pool_hit'))
+                path = 'rank_0/tensor.data_0'
+                file = 'store/vllm/glm51-fp8/'+path
+                vector = 'cache-admission/'+file+'.mincore.gz'
+                (root/'debug-service'/vector).parent.mkdir(parents=True)
+                (root/'debug-service'/vector).write_bytes(gzip.compress(flags))
+                write('source/store-metadata-inputs.json', dict(files={}))
+                write('raw-disk-verification.json', dict(ranks=[dict(rank=0, partition_bytes=[4096])]))
+                write('debug-service/cache-admission/summary.json', dict(cache, condition='store_pool_hit',
+                      pool_confirmed_ranks=list(range(8)), files=[dict(cache['files'][0],
+                      file=file, source_path='/experiment/'+file, vector=vector)]))
+                for rank in range(8):
+                    write(f'debug-service/pool-rank-{rank}.json', dict(identity, rank=rank,
+                          model_path=f'vllm/glm51-fp8/rank_{rank}', begin_ns=2*10**9+rank*2,
+                          end_ns=2*10**9+rank*2+1, load_accepted=True, confirmed=True))
+                finalize_controller(run)
+                pool = json.loads((root/'controller-final.json').read_text())
+                self.assertTrue(pool['success'], pool.get('failure'))
+                receipt = root/'debug-service/pool-rank-7.json'
+                valid = json.loads(receipt.read_text())
+                for invalid in (None, dict(valid, run_id='other-run'), dict(valid, begin_ns=2*10**9),
+                                dict(valid, confirmed=False)):
+                    (root/'controller-final.json').unlink()
+                    if invalid is None:
+                        receipt.unlink()
+                    else:
+                        receipt.write_text(json.dumps(invalid))
+                    finalize_controller(run)
+                    self.assertIsNone(json.loads((root/'controller-final.json').read_text())['metrics'])
                 (root/'controller-final.json').unlink()
                 unit['ExecMainStatus'] = '1'
                 finalize_controller(run)
