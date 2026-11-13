@@ -669,14 +669,13 @@ class SupplementAdmission(unittest.TestCase):
         clock = Mock(wraps=datetime.datetime)
         clock.now.return_value = now
         with patch.object(d.datetime, 'datetime', clock):
-            for seconds in (3899, 3900):
-                window = dict(window_start=now.isoformat(),
-                              window_end=(now+datetime.timedelta(seconds=seconds)).isoformat())
-                if seconds == 3899:
-                    with self.assertRaisesRegex(RuntimeError, '3900-second'):
-                        d.verify_supplement_window(window)
-                else:
-                    self.assertEqual(d.verify_supplement_window(window)['checked_utc'], now.isoformat())
+            for condition, budget in zip(d.SUPPLEMENT_CONDITIONS, (15600, 3900, 3900, 3900)):
+                window = dict(condition=condition, window_start=now.isoformat(),
+                              window_end=(now+datetime.timedelta(seconds=budget-1)).isoformat())
+                with self.assertRaisesRegex(RuntimeError, f'{budget}-second'):
+                    d.verify_supplement_window(window)
+                window['window_end'] = (now+datetime.timedelta(seconds=budget)).isoformat()
+                self.assertEqual(d.verify_supplement_window(window)['checked_utc'], now.isoformat())
 
     def test_supplement_dispatch_requires_approved_prefix_and_is_single_use(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -697,7 +696,7 @@ class SupplementAdmission(unittest.TestCase):
                 window = dict(run_id=row['run_id'], condition=row['condition'], holder=row['holder'],
                               boot_id='boot', review_sha256=digest, node='qjhs003', uid=uid,
                               authority_reference='fixture', window_start=now.isoformat(),
-                              window_end=(now+datetime.timedelta(hours=2)).isoformat(),
+                              window_end=(now+datetime.timedelta(hours=5)).isoformat(),
                               prior_final_sha256=dict(sealed_finals))
                 return d.verify_supplement_attempt(review, digest, requested_run or row['run_id'], row['condition'],
                                                    'boot', dict(window, **overrides), invocation=invocation)
@@ -711,9 +710,9 @@ class SupplementAdmission(unittest.TestCase):
                 claimed_prefix = {row['run_id']: 'c'*64 for row in attempts[:2]}
                 with self.assertRaises(FileNotFoundError):
                     admit(2, prior_final_sha256=claimed_prefix)
-                end_too_soon = (datetime.datetime.now(UTC)+datetime.timedelta(seconds=3899)).isoformat()
-                with self.assertRaisesRegex(RuntimeError, '3900-second'):
-                    admit(0, window_end=end_too_soon)
+                end_too_soon = (datetime.datetime.now(UTC)+datetime.timedelta(seconds=15599)).isoformat()
+                with self.assertRaisesRegex(RuntimeError, '15600-second'):
+                    admit(0, invocation='short', window_end=end_too_soon)
                 admit(0)
                 self.assertFalse(list(debug.iterdir()))
                 admit(0, invocation='one')

@@ -747,12 +747,15 @@ def verify_supplement_review(review, source, startup_only=False, startup_stage='
 
 
 def verify_supplement_window(authorization):
+    budget = SUPPLEMENT_START_BUDGET_SECONDS
+    if authorization.get('condition') == SUPPLEMENT_CONDITIONS[0]:
+        budget *= len(SUPPLEMENT_CONDITIONS)
     start = datetime.datetime.fromisoformat(authorization['window_start'])
     end = datetime.datetime.fromisoformat(authorization['window_end'])
     now = datetime.datetime.now(datetime.timezone.utc)
     if (start.tzinfo is None or end.tzinfo is None or now < start
-            or (end-now).total_seconds() < SUPPLEMENT_START_BUDGET_SECONDS):
-        raise RuntimeError('authorization window lacks full 3900-second budget')
+            or (end-now).total_seconds() < budget):
+        raise RuntimeError(f'authorization window lacks full {budget}-second budget')
     return dict(authorization, checked_utc=now.isoformat())
 
 
@@ -825,12 +828,13 @@ def verify_supplement_attempt(review, review_sha, run, condition, boot, authoriz
                 or any(final['inputs'][name]['sha256'] != hashlib.sha256(evidence[name]).hexdigest()
                        for name in ('controller-start.json', 'controller-result.json'))):
             raise RuntimeError('previous attempt lacks a bound independent success receipt')
+    window = verify_supplement_window(authorization)
     if invocation is not None:
         root = debug_root/run
         root.mkdir(mode=0o700)
         write(root/'controller-dispatch.json', dict(expected, invocation_id=invocation,
               authorization=authorization, status='dispatched; independent success required before next attempt'))
-    return verify_supplement_window(authorization)
+    return window
 
 
 def supplement_authorization(run):
