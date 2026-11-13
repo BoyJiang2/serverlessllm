@@ -388,6 +388,20 @@ def b1_section(runs):
             lines.append('')
 
         ordered = sorted(events.values(), key=lambda row: int(row['step']))
+        figures = [(name, title) for name, title in (
+            ('b1-timing.png', 'Figure 1. B1 激活与切换时延'),
+            ('b1-store.png', 'Figure 2. B1 Store 读取与块分配'),
+            ('b1-kv.png', 'Figure 3. B1 Host KV 写入与 GPU KV 预算'),
+            ('b1-gpu.png', 'Figure 4. B1 八卡峰值显存'),
+        ) if (run / name).exists()]
+        if figures:
+            lines.append('#### 图')
+            lines.append('')
+            for name, title in figures:
+                lines.append(f'![{title}](runs/{run.name}/{name})')
+                lines.append('')
+                lines.append(f'*{title}*')
+                lines.append('')
         if ordered:
             # --- 切换时延 ---
             lines.append('#### 加载与切换时延')
@@ -700,7 +714,7 @@ def comparison_section(grouped):
         lines.append('因此本报告不给出"A 比 B1 快/慢多少"的数字结论。')
     lines.append('')
 
-    lines.append('### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 同组）')
+    lines.append('### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 分组报告）')
     lines.append('')
     lines.append('| 路径 | 同一模型再次可服务所需时间 | 证据 |')
     lines.append('|---|---|---|')

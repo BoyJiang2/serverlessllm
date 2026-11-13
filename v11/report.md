@@ -284,6 +284,24 @@ overlay `/data/brick1/boyjiang/lmcache055-v11hma-site`，依赖回落 `/data/bri
 
 **写入来源**：Host 层里的数据来自每段一条**声明的 512-token 填充请求**（`kv_fill`，`max_tokens=8`、`ignore_eos`），即 2 个 256-token chunk；冻结业务请求只有 19–43 token，凑不满一个 chunk，且本组按 C1 关闭了 prefix caching，因此业务请求不产生整 chunk 写入。本 run 单段 Host 峰值最大为 48.9 MiB（51,281,920 字节），不能读作"业务流量填满了 16 GiB Host 层"。
 
+#### 图
+
+![Figure 1. B1 激活与切换时延](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-timing.png)
+
+*Figure 1. B1 激活与切换时延*
+
+![Figure 2. B1 Store 读取与块分配](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-store.png)
+
+*Figure 2. B1 Store 读取与块分配*
+
+![Figure 3. B1 Host KV 写入与 GPU KV 预算](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-kv.png)
+
+*Figure 3. B1 Host KV 写入与 GPU KV 预算*
+
+![Figure 4. B1 八卡峰值显存](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-gpu.png)
+
+*Figure 4. B1 八卡峰值显存*
+
 #### 加载与切换时延
 
 | 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |
@@ -503,7 +521,7 @@ B1 有通过的 run，但**两组的序列不同**（见文首状态表），逐
 
 另外，B1 的通过依赖"带补丁的 LMCache"（通用连接器 + 重开 hybrid KV cache manager + `KVCacheSpecKind` 兼容层），A 组是冻结基线；因此即使序列对齐，这两列也不是"同一软件的两种配置"。
 
-### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 同组）
+### 对比二：A（Store 常驻） vs B2（原生 Sleep，L1 / L2 分组报告）
 
 | 路径 | 同一模型再次可服务所需时间 | 证据 |
 |---|---|---|
