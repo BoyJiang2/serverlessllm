@@ -184,7 +184,14 @@ def prepare_supplement(condition, record):
     if condition == 'store_pool_hit':
         for rank in range(8):
             name = f'vllm/glm51-fp8/rank_{rank}'
-            if client.load_into_cpu(name) is False or not client.wait_until_in_cpu(name, timeout=600):
+            begin_ns = time.monotonic_ns()
+            load_accepted = client.load_into_cpu(name)
+            confirmed = load_accepted is not False and client.wait_until_in_cpu(name, timeout=600)
+            write(OUT/f'pool-rank-{rank}.json', dict(
+                run_id=record['run_id'], holder=record['holder'], boot_id=record['boot_id'],
+                rank=rank, model_path=name, begin_ns=begin_ns, end_ns=time.monotonic_ns(),
+                load_accepted=load_accepted is not False, confirmed=bool(confirmed)))
+            if not confirmed:
                 raise RuntimeError('Store pool hit confirmation failed: '+name)
         record['pool_confirmed_ranks'] = list(range(8))
     paths = sf_paths if condition.startswith('safetensors_') else store_paths

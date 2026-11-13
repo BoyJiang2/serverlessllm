@@ -664,7 +664,16 @@ try:
   if start['condition']!='store_pool_hit':
    assert resident==(pages if start['condition']=='safetensors_disk_hot' else 0)
   inputs[name]={'path':str(path),'bytes':len(packed),'sha256':hashlib.sha256(packed).hexdigest()}
- if start['condition']=='store_pool_hit':assert cache['pool_confirmed_ranks']==list(range(8))
+ if start['condition']=='store_pool_hit':
+  assert cache['pool_confirmed_ranks']==list(range(8))
+  last=prep
+  for rank in range(8):
+   receipt=read(f'debug-service/pool-rank-{rank}.json')
+   assert (receipt['run_id'],receipt['holder'],receipt['boot_id'])==(run,start['holder'],start['boot_id'])
+   assert receipt['rank']==rank and receipt['model_path']==f'vllm/glm51-fp8/rank_{rank}'
+   assert receipt['load_accepted'] is True and receipt['confirmed'] is True
+   assert last<=receipt['begin_ns']<receipt['end_ns']<=prepared
+   last=receipt['end_ns']
  phases=read('debug-service/phases.json')
  requests=read('debug-service/measurement-progress.json')['requests']
  assert requests==worker['requests'] and [row['name'] for row in requests]==[gold['requests'][n]['name'] for n in (1,2,0)]
