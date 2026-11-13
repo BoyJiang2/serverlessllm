@@ -51,6 +51,18 @@ qjhs003，8×H20，TP8。A 与 B2-L2 各取一轮完整七段，顺序均为 Kim
 
 [A 逐段数据](runs/A-seq-7-agents-r1-20261113T035857Z/switch-events.csv) · [A 验收回执](runs/A-seq-7-agents-r1-20261113T035857Z/qualification.json)
 
+### 与历史冷读基准对照
+
+两侧均展示激活至首个正确业务响应的耗时，单位为秒。V11 A 按模型对七段实测取算术均值，包含首段 Kimi-K2.6。差值为 V11 A 减历史均值，负值表示本轮更快。
+
+| 模型 | A 段数 | A 均值 | 历史对照条件 | 历史样本数 | 历史均值 | 差值 |
+| --- | ---: | ---: | --- | ---: | ---: | ---: |
+| Kimi-K2.6 | 3 | 237.465 | Store 冷读 | 8 | 241.266 | -3.801 |
+| GLM-5.1-FP8 | 2 | 496.204 | SafeTensors 冷读 | 6 | 448.496 | +47.708 |
+| DeepSeek-V4-Pro | 2 | 481.014 | SafeTensors 冷读 | 9 | 556.222 | -75.207 |
+
+Kimi-K2.6 对照历史 Store 冷读，因为两侧都走 Store 权重文件读取。GLM-5.1-FP8 和 DeepSeek-V4-Pro 以历史原生 SafeTensors 冷读作为替代方案的参照。本轮 A 七段均从常驻 Store 的权重文件读取，操作系统页缓存冷暖未逐段验证。两批的请求和计时端点有差异，差值只用于描述耗时，不估算 Store 的独立收益。[历史三模型报告 · 图 1](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md)
+
 ## B1 组结果（Host KV 层）
 
 **正式轮 `144041Z` 通过，7/7 段均观测到 Host KV 实际写入并在清理后归零。** 该轮使用固定 vLLM 0.20.1 和带 HMA 补丁的 LMCache 0.5.5。[正式验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json)
