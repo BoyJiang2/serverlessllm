@@ -79,21 +79,7 @@ Store 进程: 889517（同一进程贯穿全部激活）。
 
 ## B1 组结果（Host KV 层）
 
-**未通过。** 在固定镜像上，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4
-的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`
-收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），
-worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。
-
-逐次失败与修复记录：
-
-| run | 现象 | 根因 | 处理 |
-|---|---|---|---|
-| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |
-| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |
-| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |
-| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 未解决（协议错配） |
-
-预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、`memory_used_bytes` 可直接读取。也就是说 Host 层本身可控，缺的是 KV 注册握手。
+**正式轮 `144041Z` 通过，7/7 段均观测到 Host KV 实际写入并在清理后归零。** 该轮使用固定 vLLM 0.20.1 和带 HMA 补丁的 LMCache 0.5.5。[正式验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json)
 
 ### `B1-seq-7-agents-r1-20261112T144041Z` — 七段正式轮
 
@@ -189,6 +175,24 @@ GPU 数值取自 NVML 整卡显存采样，包含权重、GPU KV、工作区和�
 正式轮使用 vLLM 0.20.1 @132765e 与带 HMA 补丁的 LMCache 0.5.5 @05a013b。DeepSeek-V4-Pro 的 GPU memory utilization 为 0.76，Kimi-K2.6 和 GLM-5.1-FP8 为 0.90。最终八卡显存归零，释放观测记录为 59.504 秒。
 
 [验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json) · [原始切换事件与 Host KV 清理耗时](runs/B1-seq-7-agents-r1-20261112T144041Z/switch-events.csv) · [补丁及运行身份](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json) · [HMA 补丁](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-hma.patch)
+
+### 早期尝试与失败记录
+
+早期尝试使用固定镜像，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4
+的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`
+收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），
+worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。
+
+逐次失败与修复记录：
+
+| run | 现象 | 根因 | 处理 |
+|---|---|---|---|
+| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |
+| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |
+| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |
+| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 当轮因协议错配终止 |
+
+预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、`memory_used_bytes` 可直接读取。该阶段只完成管理接口检查，随后才修复注册并验证真实写入。
 
 ## B2 组结果（原生 Sleep，L1/L2 同组）
 
