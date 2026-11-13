@@ -250,7 +250,31 @@ def read_sleep_exit_wait(response):
     return result
 
 
-def create_and_start(argv, role, state, receipt):
+def sleep_exit_events(cid, state, since, evidence_path, wait_result):
+    raw = subprocess.check_output(
+        ['docker', 'events', '--since', since, '--until', str(time.time()),
+         '--filter', 'type=container', '--filter', 'container='+cid, '--format', '{{json .}}'],
+        timeout=5)
+    evidence_path.write_bytes(raw)
+    events = [json.loads(line) for line in raw.splitlines()]
+    expected = {'name': state['run_id']+'-'+plan.worker_spec('x')['name'],
+                'image': plan.IMAGE, 'sllm.run_id': state['run_id'], 'sllm.holder': state['holder'],
+                'sllm.purpose': plan.PURPOSE, 'sllm.uid': str(UID)}
+    for event in events:
+        actor = event['Actor']
+        if (event['Type'] != 'container' or actor['ID'] != cid
+                or any(actor['Attributes'].get(key) != value for key, value in expected.items())):
+            raise RuntimeError('sleep exit event identity differs')
+    if [event['Action'] for event in events] != ['create', 'start', 'die', 'destroy']:
+        raise RuntimeError('sleep exit event sequence differs')
+    times = [event['timeNano'] for event in events]
+    if not all(a < b for a, b in zip(times, times[1:])) or events[2]['Actor']['Attributes'].get('exitCode') != '0':
+        raise RuntimeError('sleep exit event status or order differs')
+    return dict(container_id=cid, wait=wait_result, events_sha256=sha256(evidence_path),
+                source='pre-registered Docker next-exit and exact lifecycle events')
+
+
+def create_and_start(argv, role, state, receipt, *, before_start=None):
     cid = docker(*argv[1:])
     if not re.fullmatch('[0-9a-f]{64}', cid):
         raise RuntimeError('docker create did not return a full container ID')
@@ -269,6 +293,8 @@ def create_and_start(argv, role, state, receipt):
         state[role+'_container_id'] = cid
     try:
         write(receipt, state)
+        if before_start is not None:
+            before_start(cid)
         docker('start', cid)
     finally:
         if guarded_worker:
@@ -334,7 +360,7 @@ def remove_owned(state, role):
     return 'removed'
 
 
-def up(args, state=None):
+def up(args, state=None, *, before_worker_start=None):
     controller_begin_ns = time.monotonic_ns()
     controller_boot_id = pathlib.Path('/proc/sys/kernel/random/boot_id').read_text().strip()
     gpu = not args.head_only
@@ -417,7 +443,10 @@ def up(args, state=None):
                                active=active, deadline_unix=deadline, supplement_condition=getattr(args, 'condition', None),
                                supplement_start_sha=sha256(run_root/'controller-start.json') if condition else None,
                                startup_only=state.get('startup_only', False), startup_stage=state.get('startup_stage', 'sleep'))['worker']
-            create_and_start(worker['docker_argv'], 'worker', state, receipt)
+            if before_worker_start is None:
+                create_and_start(worker['docker_argv'], 'worker', state, receipt)
+            else:
+                create_and_start(worker['docker_argv'], 'worker', state, receipt, before_start=before_worker_start)
             state['status'] = 'worker starting; see status for readiness'
         state['up_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         write(receipt, state)
@@ -462,7 +491,7 @@ def status(args):
     return report
 
 
-def down(args):
+def down(args, *, sleep_exit=None):
     state = load_state(args.run_id)
     cleanup_errors = {}
     state['down'] = {}
@@ -495,8 +524,12 @@ def down(args):
                                       'excludes any later resource observation; debug evidence, not C23')
     state.update(status='released', released_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
     write(HOST/'debug'/state['run_id']/'stack.json', state)
-    if state.get('condition') and not all(state.get('exit_evidence', {}).get(role, {}).get('normal_exit_verified')
-                                        for role in ('worker', 'head')):
+    if state.get('condition') and not all(
+            state.get('exit_evidence', {}).get(role, {}).get('normal_exit_verified')
+            or (role == 'worker' and sleep_exit and state.get('startup_only') is True
+                and state.get('startup_stage') == 'sleep' and state['down']['worker'] == 'absent'
+                and sleep_exit['container_id'] == state.get('worker_container_id'))
+            for role in ('worker', 'head')):
         raise RuntimeError('supplement normal container exit not verified; resources cleaned, failure retained')
     return state
 
@@ -1191,6 +1224,13 @@ def measure(args):
     result = dict(initial, status='failed', success=False)
     previous = signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('supplement absolute work deadline')))
     signal.setitimer(signal.ITIMER_REAL, max(.001, work_seconds-(time.monotonic_ns()-begin_ns)/1e9))
+    wait_channel = None
+    sleep_exit = None
+    def register(cid):
+        nonlocal wait_channel
+        wait_channel = register_sleep_exit_wait(cid)
+        write(root/'sleep-exit-registration.json', dict(container_id=cid, run_id=run,
+              holder=state['holder'], boot_id=boot, acknowledged_ns=time.monotonic_ns()))
     try:
         await_first_monitor(root, monitor_errors, state['run_id'], boot)
         args.head_only, args.no_query, args.borrow = False, False, True
@@ -1200,13 +1240,24 @@ def measure(args):
             raise TimeoutError('absolute supplement work budget exhausted before startup')
         args.guard_deadline_unix = int(time.time()+remaining+600)
         args.weight_format = 'safetensors' if args.condition.startswith('safetensors_') else 'serverless_llm'
-        up(args, state)
+        if startup_only and startup_stage == 'sleep':
+            since = str(time.time())
+            up(args, state, before_worker_start=register)
+        else:
+            up(args, state)
         while True:
             if monitor_errors:
                 raise RuntimeError('continuous monitor failed: '+repr(monitor_errors))
             worker = inspect(state['worker_container_id'])
             if worker is None:
-                raise RuntimeError('supplement worker disappeared')
+                if wait_channel is None:
+                    raise RuntimeError('supplement worker disappeared')
+                wait_result = read_sleep_exit_wait(wait_channel[1])
+                write(root/'sleep-exit-wait.json', wait_result)
+                sleep_exit = sleep_exit_events(state['worker_container_id'], state, since,
+                                               root/'sleep-exit-events.jsonl', wait_result)
+                result['sleep_exit_evidence'] = sleep_exit
+                break
             if not worker['State']['Running']:
                 if startup_only:
                     if worker['State']['ExitCode'] != 0 or worker['State']['OOMKilled']:
@@ -1230,7 +1281,12 @@ def measure(args):
         signal.setitimer(signal.ITIMER_REAL, 0)
         signal.signal(signal.SIGALRM, previous)
         try:
-            released = down(args=argparse.Namespace(run_id=state['run_id']))
+            if wait_channel is not None:
+                sock, response = wait_channel
+                response.close()
+                sock.close()
+            cleanup_args = argparse.Namespace(run_id=state['run_id'])
+            released = down(cleanup_args, sleep_exit=sleep_exit) if sleep_exit else down(cleanup_args)
             result['exit_evidence'] = released.get('exit_evidence')
             result['all_owned_containers_removed_ns'] = time.monotonic_ns()
         except BaseException as error:

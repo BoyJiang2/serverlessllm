@@ -301,6 +301,29 @@ class Ownership(unittest.TestCase):
                 d.register_sleep_exit_wait(cid)
             sock.close.assert_called_once()
 
+    def test_sleep_exit_events_reject_wrong_identity_or_interrupted_exit(self):
+        cid = 'c'*64
+        attributes = {'name': STATE['run_id']+'-'+d.plan.worker_spec('x')['name'], 'image': d.plan.IMAGE,
+                      'sllm.run_id': STATE['run_id'], 'sllm.holder': STATE['holder'],
+                      'sllm.purpose': d.plan.PURPOSE, 'sllm.uid': str(d.UID), 'exitCode': '0'}
+        events = [dict(Type='container', Action=action, timeNano=index,
+                       Actor=dict(ID=cid, Attributes=dict(attributes)))
+                  for index, action in enumerate(('create', 'start', 'die', 'destroy'))]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp)/'events.jsonl'
+            for action, identity, code in (('die', cid, '0'), ('kill', cid, '0'),
+                                           ('die', 'd'*64, '0'), ('die', cid, '137')):
+                events[2].update(Action=action, Actor=dict(ID=identity, Attributes=dict(attributes, exitCode=code)))
+                raw = '\n'.join(map(json.dumps, events)).encode()
+                with patch.object(d.subprocess, 'check_output', return_value=raw):
+                    if (action, identity, code) == ('die', cid, '0'):
+                        proof = d.sleep_exit_events(cid, STATE, '1', path, {'StatusCode': 0})
+                        self.assertEqual(proof['events_sha256'], hashlib.sha256(raw).hexdigest())
+                    else:
+                        with self.assertRaises(RuntimeError):
+                            d.sleep_exit_events(cid, STATE, '1', path, {'StatusCode': 0})
+                    self.assertEqual(path.read_bytes(), raw)
+
     def test_guarded_worker_marks_only_verified_docker_start_as_pending(self):
         cid = 'c'*64
         state = dict(STATE, condition='store_pool_hit', verified_slice_cgroup='/my.slice')
