@@ -85,6 +85,24 @@ Store 进程: 889517（同一进程贯穿全部激活）。
 
 顺序为 Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6。
 
+**Figure 0. B1 Weight and KV Cache Architecture**
+
+```mermaid
+flowchart LR
+    Disk["Store weight files"] --> Store["SLLM Store · persistent CPU weight pool"]
+    Store -->|restore weights| A["Current vLLM backend"]
+    Store -->|restore weights| B["Next vLLM backend"]
+    A --> GA["Current GPU KV cache"]
+    B --> GB["New GPU KV cache"]
+    GA -->|STORE| Host["LMCache MP · CPU Host KV"]
+    GB -->|STORE| Host
+    A -->|request completes and backend exits| Clear["Clear Host KV"]
+    Clear -->|occupancy returns to zero| Host
+    Clear -->|then activate| B
+```
+
+SLLM Store 为每个新 Backend 恢复模型权重。vLLM 在本次启动时为 GPU KV 分配空间，LMCache 在请求期间接收 Host KV 写入。旧 Backend 退出后，控制器清理 Host KV，再启动下一个 Backend。本轮实测 Host KV 命中为 0 token。
+
 **本轮测的加载条件**
 
 B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache Host KV 写入和清理**。第 1 段从空 Store 权重池加载 Kimi-K2.6。第 2–7 段保留同一 Store 进程与权重池，按固定顺序驱逐、分配及读取。每段使用新建的 vLLM Backend 和 GPU KV。Host KV 在每段退出后清零，本轮实测 Host KV 命中 token 为 0。
@@ -165,6 +183,12 @@ Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16
 | 7 | Kimi-K2.6 | 93.075 | 52.5 | 802,112 | 391.66 | 1 | 1 | 0 |
 
 加载时间取 vLLM Rank 0 的日志区间。GPU KV GiB 是引擎报告的可用预算，token 容量和理论并发来自 EngineCore。实际设备占用见逐卡采样。Host STORE 与 KV 命中按每段 LMCache 前后 Prometheus 计数器求差，首次出现的计数序列以 0 为起点，表中 — 表示后快照缺少该计数。
+
+**Why DeepSeek-V4-Pro has a smaller GPU KV budget**
+
+vLLM 先按每卡总显存与 `gpu_memory_utilization` 算出目标显存，再扣除权重、预跑测得的激活峰值和非 PyTorch 开销，以及适用时的 CUDA Graph 估算。该轮使用 eager 模式。DeepSeek-V4-Pro 的利用率设置为 **0.76**，另外两个模型为 **0.90**。按每卡约 139.8 GiB 算，0.76 对应约 **106.25 GiB**，比 0.90 少 **19.57 GiB**。两次 DeepSeek-V4-Pro 加载日志均显示 Rank 0 的加载区间显存增量为 **95.88 GiB**，预跑后引擎报告的可用 KV 预算为 **2.08 GiB**。加载日志增量与 profiler 的分项统计口径有别，现有证据未逐项给出各类扣减值。
+
+同一模型每次激活都使用相同的权重、并行和显存配置，并重新跑初始化 profiling，结果接近。图 3 下半部分逐段取 Rank 0 日志。Kimi-K2.6 三次为 **52.49 / 52.50 / 52.50 GiB**，GLM-5.1-FP8 两次均为 **34.25 GiB**，DeepSeek-V4-Pro 两次均为 **2.08 GiB**。后两组在日志的两位小数精度下相同。上半部分是独立采样的 CPU Host KV 占用。[vLLM 预算计算](https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/v1/worker/gpu_worker.py#L391-L425)
 
 [加载日志及 LMCache 计数器原文](runs/B1-seq-7-agents-r1-20261112T144041Z/kv-loading-log-excerpts.txt)
 
