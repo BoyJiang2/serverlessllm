@@ -343,8 +343,9 @@ def remove_owned(state, role, *, on_absent=None):
     if not owned(info, state, role):
         raise RuntimeError(role+' container identity differs; not touching it')
     before = info['State']
-    if on_absent is not None and (before['Running'] or before['OOMKilled']
-                                  or before['ExitCode'] != 0 or before.get('Error')):
+    sleep_contradiction = on_absent is not None and (
+        before['Running'] or before['OOMKilled'] or before['ExitCode'] != 0 or bool(before.get('Error')))
+    if sleep_contradiction:
         on_absent = None
     evidence = dict(container_id=cid, before=info['State'], stop_returncode=None, normal_exit_verified=False)
     state.setdefault('exit_evidence', {})[role] = evidence
@@ -360,7 +361,7 @@ def remove_owned(state, role, *, on_absent=None):
         raise RuntimeError('final container exit identity missing')
     evidence['final'] = final['State']
     code = final['State']['ExitCode']
-    evidence['normal_exit_verified'] = (not final['State']['Running'] and not final['State']['OOMKilled']
+    evidence['normal_exit_verified'] = (not sleep_contradiction and not final['State']['Running'] and not final['State']['OOMKilled']
         and not final['State'].get('Error') and (code == 0 if role == 'worker' else
         (code == 0 or (info['State']['Running'] and evidence['stop_returncode'] == 0 and code in (1, 143, -15)))))
     try:

@@ -329,6 +329,10 @@ class Ownership(unittest.TestCase):
              patch.object(d, 'docker', side_effect=subprocess.CalledProcessError(1, ['docker', 'rm', cid])):
             with self.assertRaises(subprocess.CalledProcessError):
                 d.remove_owned(dict(STATE, worker_container_id=cid), 'worker', on_absent=proof)
+        with patch.object(d, 'inspect', side_effect=[abnormal, clean]), patch.object(d, 'docker', return_value=''):
+            state = dict(STATE, worker_container_id=cid)
+            d.remove_owned(state, 'worker', on_absent=proof)
+            self.assertFalse(state['exit_evidence']['worker']['normal_exit_verified'])
         proof.assert_not_called()
 
     def test_sleep_exit_events_reject_wrong_identity_or_interrupted_exit(self):
