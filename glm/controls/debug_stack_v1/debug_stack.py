@@ -329,7 +329,7 @@ def wait_head_ready(cid, seconds=HEAD_READY_SECONDS, sleep=time.sleep, clock=tim
     raise TimeoutError('head Ray runtime not ready within %d s' % seconds)
 
 
-def remove_owned(state, role):
+def remove_owned(state, role, *, on_absent=None):
     cid = state.get(role+'_container_id')
     if not cid:
         return 'never created'
@@ -337,6 +337,8 @@ def remove_owned(state, role):
     if info is None:
         state.setdefault('exit_evidence', {})[role] = dict(container_id=cid, normal_exit_verified=False,
                                                         reason='container absent before exit inspection')
+        if on_absent is not None:
+            on_absent(cid)
         return 'absent'
     if not owned(info, state, role):
         raise RuntimeError(role+' container identity differs; not touching it')
@@ -347,6 +349,9 @@ def remove_owned(state, role):
                                  timeout=STOP_SECONDS[role]+60)
         evidence.update(stop_returncode=stopped.returncode, stop_stderr=stopped.stderr.decode(errors='replace'))
     final = inspect(cid)
+    if final is None and on_absent is not None:
+        on_absent(cid)
+        return 'absent'
     if final is None or not owned(final, state, role):
         raise RuntimeError('final container exit identity missing')
     evidence['final'] = final['State']
@@ -354,7 +359,13 @@ def remove_owned(state, role):
     evidence['normal_exit_verified'] = (not final['State']['Running'] and not final['State']['OOMKilled']
         and not final['State'].get('Error') and (code == 0 if role == 'worker' else
         (code == 0 or (info['State']['Running'] and evidence['stop_returncode'] == 0 and code in (1, 143, -15)))))
-    docker('rm', cid)
+    try:
+        docker('rm', cid)
+    except subprocess.CalledProcessError:
+        if on_absent is None or inspect(cid) is not None:
+            raise
+        on_absent(cid)
+        return 'absent'
     if docker('ps', '-aq', '--no-trunc', '--filter', 'id='+cid):
         raise RuntimeError(role+' container remains after removal')
     return 'removed'
@@ -497,7 +508,11 @@ def down(args, *, sleep_exit=None):
     state['down'] = {}
     for role in ('worker', 'head'):
         try:
-            state['down'][role] = remove_owned(state, role)
+            if (role == 'worker' and sleep_exit is not None and state.get('startup_only') is True
+                    and state.get('startup_stage') == 'sleep'):
+                state['down'][role] = remove_owned(state, role, on_absent=sleep_exit)
+            else:
+                state['down'][role] = remove_owned(state, role)
         except Exception as error:
             cleanup_errors[role] = repr(error)
     state['cleanup_errors'] = cleanup_errors
@@ -527,8 +542,7 @@ def down(args, *, sleep_exit=None):
     if state.get('condition') and not all(
             state.get('exit_evidence', {}).get(role, {}).get('normal_exit_verified')
             or (role == 'worker' and sleep_exit and state.get('startup_only') is True
-                and state.get('startup_stage') == 'sleep' and state['down']['worker'] == 'absent'
-                and sleep_exit['container_id'] == state.get('worker_container_id'))
+                and state.get('startup_stage') == 'sleep' and state['down']['worker'] == 'absent')
             for role in ('worker', 'head')):
         raise RuntimeError('supplement normal container exit not verified; resources cleaned, failure retained')
     return state
@@ -1225,7 +1239,11 @@ def measure(args):
     previous = signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError('supplement absolute work deadline')))
     signal.setitimer(signal.ITIMER_REAL, max(.001, work_seconds-(time.monotonic_ns()-begin_ns)/1e9))
     wait_channel = None
-    sleep_exit = None
+    wait_result = None
+
+    def record_absence(cid):
+        result['sleep_exit_evidence'] = sleep_exit_events(cid, state, since, root/'sleep-exit-events.jsonl', wait_result)
+
     def register(cid):
         nonlocal wait_channel
         wait_channel = register_sleep_exit_wait(cid)
@@ -1249,15 +1267,15 @@ def measure(args):
             if monitor_errors:
                 raise RuntimeError('continuous monitor failed: '+repr(monitor_errors))
             worker = inspect(state['worker_container_id'])
-            if worker is None:
-                if wait_channel is None:
-                    raise RuntimeError('supplement worker disappeared')
+            if wait_channel is not None and (worker is None or not worker['State']['Running']):
+                if worker is not None and (not owned(worker, state, 'worker')
+                        or worker['State']['ExitCode'] != 0 or worker['State']['OOMKilled'] or worker['State'].get('Error')):
+                    raise RuntimeError('sleep worker inspect contradicts normal exit')
                 wait_result = read_sleep_exit_wait(wait_channel[1])
                 write(root/'sleep-exit-wait.json', wait_result)
-                sleep_exit = sleep_exit_events(state['worker_container_id'], state, since,
-                                               root/'sleep-exit-events.jsonl', wait_result)
-                result['sleep_exit_evidence'] = sleep_exit
                 break
+            if worker is None:
+                raise RuntimeError('supplement worker disappeared')
             if not worker['State']['Running']:
                 if startup_only:
                     if worker['State']['ExitCode'] != 0 or worker['State']['OOMKilled']:
@@ -1280,13 +1298,15 @@ def measure(args):
     finally:
         signal.setitimer(signal.ITIMER_REAL, 0)
         signal.signal(signal.SIGALRM, previous)
+        if wait_channel is not None:
+            for channel in reversed(wait_channel):
+                try:
+                    channel.close()
+                except OSError as error:
+                    result.update(success=False, wait_close_error=repr(error))
         try:
-            if wait_channel is not None:
-                sock, response = wait_channel
-                response.close()
-                sock.close()
             cleanup_args = argparse.Namespace(run_id=state['run_id'])
-            released = down(cleanup_args, sleep_exit=sleep_exit) if sleep_exit else down(cleanup_args)
+            released = down(cleanup_args, sleep_exit=record_absence) if wait_result is not None else down(cleanup_args)
             result['exit_evidence'] = released.get('exit_evidence')
             result['all_owned_containers_removed_ns'] = time.monotonic_ns()
         except BaseException as error:

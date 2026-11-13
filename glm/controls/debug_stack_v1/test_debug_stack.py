@@ -301,6 +301,22 @@ class Ownership(unittest.TestCase):
                 d.register_sleep_exit_wait(cid)
             sock.close.assert_called_once()
 
+    def test_sleep_worker_disappearance_at_each_cleanup_boundary(self):
+        cid = 'c'*64
+        exited = info('worker', State=dict(Running=False, OOMKilled=False, ExitCode=0))
+        for sequence, rm_fails in (([None], False), ([exited, None], False),
+                                   ([exited, exited, None], True)):
+            with self.subTest(sequence=sequence, rm_fails=rm_fails):
+                proof = Mock()
+                docker_error = subprocess.CalledProcessError(1, ['docker', 'rm', cid]) if rm_fails else None
+                with patch.object(d, 'inspect', side_effect=sequence), patch.object(d, 'docker', side_effect=docker_error):
+                    self.assertEqual(d.remove_owned(dict(STATE, worker_container_id=cid), 'worker',
+                                                    on_absent=proof), 'absent')
+                proof.assert_called_once_with(cid)
+        with patch.object(d, 'inspect', side_effect=[exited, None]):
+            with self.assertRaisesRegex(RuntimeError, 'final container exit identity missing'):
+                d.remove_owned(dict(STATE, worker_container_id=cid), 'worker')
+
     def test_sleep_exit_events_reject_wrong_identity_or_interrupted_exit(self):
         cid = 'c'*64
         attributes = {'name': STATE['run_id']+'-'+d.plan.worker_spec('x')['name'], 'image': d.plan.IMAGE,
