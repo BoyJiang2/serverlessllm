@@ -81,25 +81,7 @@ Store 进程: 889517（同一进程贯穿全部激活）。
 
 **正式轮 `144041Z` 通过，7/7 段均观测到 Host KV 实际写入并在清理后归零。** 该轮使用固定 vLLM 0.20.1 和带 HMA 补丁的 LMCache 0.5.5。[正式验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json)
 
-### `B1-seq-7-agents-r1-20261112T144041Z` — 七段正式轮
-
 顺序为 Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6。
-
-**Figure 0. B1 Weight and KV Cache Architecture**
-
-```mermaid
-flowchart LR
-    Disk["Store weight files"] --> Store["SLLM Store · persistent CPU weight pool"]
-    Store -->|restore weights| A["Current vLLM backend"]
-    Store -->|restore weights| B["Next vLLM backend"]
-    A --> GA["Current GPU KV cache"]
-    B --> GB["New GPU KV cache"]
-    GA -->|STORE| Host["LMCache MP · CPU Host KV"]
-    GB -->|STORE| Host
-    A -->|request completes and backend exits| Clear["Clear Host KV"]
-    Clear -->|occupancy returns to zero| Host
-    Clear -->|then activate| B
-```
 
 SLLM Store 为每个新 Backend 恢复模型权重。vLLM 在本次启动时为 GPU KV 分配空间，LMCache 在请求期间接收 Host KV 写入。旧 Backend 退出后，控制器清理 Host KV，再启动下一个 Backend。本轮实测 Host KV 命中为 0 token。
 
