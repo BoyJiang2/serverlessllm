@@ -562,6 +562,30 @@ try:
   inputs[name]={'path':str(path),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()}
   samples=[json.loads(line) for line in data.splitlines() if line.strip()];points=[row['monotonic_ns'] for row in samples]
   assert len(points)>1 and all(0<b-a<=5*10**9 for a,b in zip(points,points[1:]))
+  if name=='release60.jsonl':
+   expected={device['uuid'] for device in start['resource_admission']['gpu_devices']}
+   assert len(expected)==8
+   previous_io=None
+   for row in samples:
+    assert row['run_id']==run and row['boot_id']==start['boot_id']
+    devices=[list(map(str.strip,line.split(','))) for line in row['gpu'].splitlines()]
+    assert len(devices)==8 and [device[0] for device in devices]==list(map(str,range(8)))
+    assert all(len(device) in (3,5) for device in devices) and {device[1] for device in devices}==expected
+    assert all(device[3 if len(device)==5 else 2]=='0 MiB' for device in devices)
+    assert not row['gpu_processes'].strip() and all(item.get('absent') for item in row['containers'].values())
+    events=dict(line.split() for line in row['private_slice_memory_events'].splitlines())
+    assert {'oom','oom_kill'}<=events.keys() and all(int(v)==0 for k,v in events.items() if k.startswith('oom'))
+    assert set(row['retained_cgroups'])=={'head','worker'}
+    current_io={}
+    for role,entry in row['retained_cgroups'].items():
+     if entry['absent']:continue
+     values=entry['values']
+     memory=dict(line.split() for line in values['memory.stat'].splitlines())
+     assert dict(line.split() for line in values['cgroup.events'].splitlines()).get('populated')=='0'
+     assert not values['cgroup.procs'].strip() and all(memory.get(k)=='0' for k in ('anon','shmem','unevictable'))
+     current_io[role]=values['io.stat']
+    assert previous_io is None or all(previous_io.get(role)==v for role,v in current_io.items())
+    previous_io=current_io
   observed=(points[-1]-points[0])/1e9
   assert earliest<=points[0]<points[-1]<=latest and observed>=60 and abs(observed-reported)<1e-6
  gold_path=pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/validation/native-gold.json');gold_bytes=gold_path.read_bytes()

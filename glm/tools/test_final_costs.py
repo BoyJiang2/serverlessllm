@@ -26,7 +26,8 @@ class CostsTests(unittest.TestCase):
                         ExecMainExitTimestampMonotonic='200000000')
             identity = dict(run_id=run, holder='b'*32, boot_id='boot')
             write('controller-start.json', dict(identity, condition='store_disk_cold', controller_begin_ns=10**9,
-                                                independent_controller_unit=dict(InvocationID='a'*32)))
+                                                independent_controller_unit=dict(InvocationID='a'*32),
+                                                resource_admission=dict(gpu_devices=[dict(uuid=f'GPU-{i}') for i in range(8)])))
             write('controller-result.json', dict(identity, success=True, release_observation_s=60,
                   all_owned_containers_removed_ns=119*10**9, controller_end_ns=190*10**9))
             write('stack.json', dict(identity, source=dict(code_commit='c'*40)))
@@ -59,8 +60,13 @@ class CostsTests(unittest.TestCase):
                           phases={name:phase for name in phase_names})
             write('debug-service/phases.json', phases)
             write('debug-service/measurement-progress.json', dict(requests=requests))
+            released = dict(run_id=run, boot_id='boot',
+                            gpu='\n'.join(f'{i}, GPU-{i}, 0 MiB' for i in range(8)), gpu_processes='',
+                            containers={}, private_slice_memory_events='oom 0\noom_kill 0',
+                            retained_cgroups={role:dict(absent=True) for role in ('head','worker')})
             for name,first in [('release60.jsonl',120),('debug-service/idle60.jsonl',50)]:
-                (root/name).write_text(''.join(json.dumps(dict(monotonic_ns=(first+i)*10**9))+'\n' for i in range(61)))
+                extras = released if name == 'release60.jsonl' else {}
+                (root/name).write_text(''.join(json.dumps(dict(extras, monotonic_ns=(first+i)*10**9))+'\n' for i in range(61)))
             def remote(argv, **kwargs):
                 script = kwargs['input'].decode().replace(
                     "pathlib.Path('/data/brick1/boyjiang/glm5.1-fp8/debug')/run", 'pathlib.Path('+repr(str(root))+')')
@@ -102,6 +108,15 @@ class CostsTests(unittest.TestCase):
                     finalize_controller(run)
                     self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
                     (root/name).write_bytes(original)
+                (root/'controller-final.json').unlink()
+                release = root/'release60.jsonl'
+                original_release = release.read_bytes()
+                rows = [json.loads(line) for line in original_release.splitlines()]
+                rows[30]['gpu'] = rows[30]['gpu'].replace('GPU-0, 0 MiB', 'GPU-0, 1 MiB')
+                release.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                finalize_controller(run)
+                self.assertFalse(json.loads((root/'controller-final.json').read_text())['success'])
+                release.write_bytes(original_release)
                 (root/'controller-final.json').unlink()
                 unit['ExecMainStatus'] = '1'
                 finalize_controller(run)
