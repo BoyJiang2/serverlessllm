@@ -173,6 +173,21 @@ class CostsTests(unittest.TestCase):
                 idle.write_bytes(original_idle)
                 (root/'controller-final.json').unlink()
                 start = json.loads((root/'controller-start.json').read_text())
+                write('controller-start.json', dict(start, condition='safetensors_disk_hot'))
+                write('debug-service/result.json', dict(worker, condition='safetensors_disk_hot'))
+                hot_vector = 'repair_1/'+file+'.mincore.gz'
+                hot_path = root/'debug-service/cache-admission'/hot_vector
+                hot_path.parent.mkdir(parents=True)
+                hot_flags = bytes([1])
+                hot_path.write_bytes(gzip.compress(hot_flags))
+                hot_row = dict(cache['files'][0], resident_pages=1, vector=hot_vector,
+                               vector_sha256=hashlib.sha256(hot_flags).hexdigest())
+                for path, expected in ((hot_vector, True), ('../'+hot_vector, False)):
+                    write('debug-service/cache-admission/summary.json', dict(cache, condition='safetensors_disk_hot',
+                          files=[dict(hot_row, vector=path)]))
+                    finalize_controller(run)
+                    self.assertEqual(json.loads((root/'controller-final.json').read_text())['success'], expected)
+                    (root/'controller-final.json').unlink()
                 write('controller-start.json', dict(start, condition='store_pool_hit'))
                 write('debug-service/result.json', dict(worker, condition='store_pool_hit'))
                 path = 'rank_0/tensor.data_0'

@@ -650,7 +650,12 @@ try:
   pages=(expected[file]+4095)//4096
   assert pages>0 and row['pages']==pages
   vector=row['vector']
-  assert vector in [base+file+'.mincore.gz' for base in ('cache-admission/','cache-admission/repair_1/','cache-admission/repair_2/')]
+  suffix=file+'.mincore.gz'
+  if vector in ('repair_1/'+suffix,'repair_2/'+suffix):
+   assert start['condition']=='safetensors_disk_hot'
+   vector='cache-admission/'+vector
+  else:
+   assert vector=='cache-admission/'+suffix
   name='debug-service/'+vector
   path=root/name
   assert path.resolve().is_relative_to(root.resolve()) and not path.is_symlink()
