@@ -9,7 +9,7 @@ import json
 from collections import Counter
 from pathlib import Path
 
-V11 = Path('/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11')
+V11 = Path(__file__).resolve().parent
 RUNS = V11 / 'runs'
 
 GROUP_TITLES = {
@@ -132,11 +132,26 @@ def a_section(runs):
 
 def b1_section(runs):
     lines = ['## B1 组结果（Host KV 层）', '']
-    passed = [(run, qual) for run, qual in runs if qual.get('passed')]
-    failed = [(run, qual) for run, qual in runs if not qual.get('passed')]
+    passed = []
+    for run, qual in runs:
+        audit = run / 'b1-store-audit.json'
+        if audit.is_file():
+            continue
+        steps = (qual.get('b1_host_kv') or {}).get('steps', [])
+        if (qual.get('passed') and len(steps) == qual.get('requested_activations')
+                and steps and all(x.get('closed') and x.get('committed_tokens', 0) > 0
+                                  and x.get('zero_hit') is True for x in steps)):
+            passed.append((run, qual))
+    lines.append('验收逐段核对真实 STORE 提交、零命中、清理归零。历史缺测及失败见 `B1-FAILED.md`。')
+    lines.append('')
     if passed:
         for run, qual in passed:
-            lines.append(f"### `{run.name}` — 通过")
+            lines.append(f"### `{run.name}` — Host KV 闭环通过")
+            lines.append('')
+            identity = json.loads((run / 'lmcache-patch-identity.json').read_text(encoding='utf-8'))
+            lines.append(f"LMCache {identity['version']}，源码 `{identity['source_commit']}`，"
+                         f"补丁 SHA-256 `{identity['patch_sha256']}`。")
+            lines.append(f"最终八卡归零采样跨度 {qual['final_release_seconds']:.3f} 秒。")
             lines.append('')
             rows = csv_rows(run / 'switch-events.csv')
             lines.append('| step | 模型 | 读取 | Host 写入前 | Host 清理后 | clear 状态 | clear (s) |')
@@ -180,20 +195,30 @@ def b2_section(runs):
         return lines
     for run, qual in runs:
         levels = qual.get('levels') or []
-        lines.append(f"### `{run.name}` — {'通过' if qual.get('passed') else '未通过'}")
+        status = '未通过'
+        if qual.get('passed'):
+            status = ('通过' if qual.get('final_all_gpu_zero')
+                      and (qual.get('final_release_seconds') or 0) >= 60
+                      else '运行器通过，严格释放门槛未达')
+        lines.append(f"### `{run.name}` — {status}")
         lines.append('')
         lines.append(f"序列 `{qual.get('sequence')}`，level {levels}，"
                      f"最终释放 {fmt_seconds(qual.get('final_release_seconds'))} s、"
                      f"8 卡全 0 = {qual.get('final_all_gpu_zero')}。")
         lines.append('')
         rows = csv_rows(run / 'switch-events.csv')
+        stages = {(str(result['level']), str(record['step'])): record['stage']
+                  for result in qual.get('results', []) for record in result.get('records', [])}
         if rows:
-            lines.append('| level | step | 模型 | 阶段 | sleep (s) | 权重 CPU 备份 | 权重 | KV | Worker PID |')
-            lines.append('|---|---|---|---|---|---|---|---|---|')
+            lines.append('| level | step | 模型 | 阶段 | 加载或唤醒 (s) | 重载 RPC (s) | sleep (s) | 权重 CPU 备份 | 权重 | KV | Worker PID |')
+            lines.append('|---|---|---|---|---|---|---|---|---|---|---|')
             for row in rows:
-                lines.append('| {level} | {step} | {model} | {stage} | {sleep} | {backup} | {weights} | {kv} | {pid} |'.format(
+                stage = stages.get((row['level'], row['step']), {})
+                lines.append('| {level} | {step} | {model} | {stage} | {elapsed} | {reload} | {sleep} | {backup} | {weights} | {kv} | {pid} |'.format(
                     level=row['level'], step=row['step'], model=row['model'],
-                    stage=row['stage'], sleep=fmt_seconds(row.get('sleep_seconds')),
+                    stage=row['stage'], elapsed=fmt_seconds(stage.get('seconds')),
+                    reload=fmt_seconds(stage.get('reload_seconds')),
+                    sleep=fmt_seconds(row.get('sleep_seconds')),
                     backup=fmt_bytes(row.get('weights_cpu_backup_bytes')),
                     weights=fmt_bytes(row.get('weights_bytes')),
                     kv=fmt_bytes(row.get('kv_bytes')), pid=row.get('worker_pid')))
@@ -260,13 +285,45 @@ def comparison_section(grouped):
     b2_runs = grouped.get('B2', [])
     hits, misses = a_timings(a_runs)
     sleep1, wake1 = b2_level_seconds(b2_runs, 1)
-    sleep2, wake2 = b2_level_seconds(b2_runs, 2)
+    l2_sequence = [(run, qual) for run, qual in b2_runs
+                   if qual.get('sequence') == 'seq-7-agents'
+                   and qual.get('final_all_gpu_zero')
+                   and (qual.get('final_release_seconds') or 0) >= 60]
+    sleep2, wake2 = b2_level_seconds(l2_sequence, 2)
 
     lines.append('### 对比一：A（Store 常驻） vs B1（Store + Host KV 层）')
     lines.append('')
     b1_passed = any(qual.get('passed') for _, qual in b1_runs)
     if b1_passed:
-        lines.append('B1 有通过的 run，数值对比见上表。')
+        b1_name = 'B1-seq-7-agents-r1-20261112T144041Z'
+        version = '0.5.5'
+        for run, qual in reversed(b1_runs):
+            identity = run / 'lmcache-patch-identity.json'
+            if (qual.get('passed') and qual.get('sequence') == 'seq-7-agents'
+                    and qual.get('strict_release_passed')
+                    and (qual.get('b1_host_kv') or {}).get('closed')
+                    and identity.is_file() and json.loads(identity.read_text(encoding='utf-8'))['version'] == '0.5.6'):
+                b1_name = run.name
+                version = '0.5.6'
+                break
+        a_name = 'A-seq-7-agents-r1-20261113T035857Z'
+        lines.append(f'同序列 A `{a_name}` 与 B1 `{b1_name}`（LMCache {version}）各完成 7 段。'
+                     '两组 V4 显存利用率分别为 0.90 和 0.76。'
+                     'B1 额外执行 Host KV 写入和清理。')
+        paired_runs = [RUNS / name for name in (a_name, b1_name)]
+        left, right = (csv_rows(run / 'switch-events.csv') for run in paired_runs)
+        if len(left) == len(right) == 7:
+            lines.append('')
+            lines.append('| 段 | 模型 | A 激活至正确 (s) | B1 激活至正确 (s) | A Store 命中 | B1 Store 命中 |')
+            lines.append('|---|---|---:|---:|---:|---:|')
+            for a, b in zip(left, right, strict=True):
+                assert (a['step'], a['to_model']) == (b['step'], b['to_model'])
+                lines.append(f"| {a['step']} | {a['to_model']} | "
+                             f"{float(a['activation_to_correct_seconds']):.3f} | "
+                             f"{float(b['activation_to_correct_seconds']):.3f} | "
+                             f"{fmt_bytes(a['hit_bytes'])} | {fmt_bytes(b['hit_bytes'])} |")
+            lines.append('')
+            lines.append('两列均为激活至首个正确响应的耗时。差值同时受权重命中状态、显存配置和实现影响。')
     else:
         lines.append('**不可比。** B1 在固定镜像上未能完成 KV 注册握手（`world_size=0`），'
                      'engine 无法启动，没有任何一次激活可记录；按协议记"未通过"，'
@@ -292,7 +349,7 @@ def comparison_section(grouped):
     else:
         lines.append('| B2-L1 | 未运行 | — |')
     if sleep2 or wake2:
-        lines.append('| B2-L2 | Sleep {} s，Wake {} s | `runs/B2-*/L2/` |'.format(
+        lines.append('| B2-L2 七段 | Sleep {} s（7 段），Wake {} s（4 次返回） | `runs/B2-seq-7-agents-*/L2/level-result.json` |'.format(
             f'{mean(sleep2):,.1f}' if sleep2 else '—', f'{mean(wake2):,.1f}' if wake2 else '—'))
     else:
         lines.append('| B2-L2 | **未通过**：逐层 `reload_weights` 对 V4 无效（每层 Failed to load weights），'
@@ -308,7 +365,14 @@ def comparison_section(grouped):
     lines.append('- B2-L1：1.9 TiB 主机上只能容纳"一份权重备份 + 当前活动模型"；两份备份会把 '
                  '`MemAvailable` 压到 0.3 GiB（实测），三模型 L1 campaign 在本机不可行，'
                  '见 `B2-L1-RAM-BOUNDARY.md`。')
-    lines.append('- B2-L2：不占 CPU 备份，但重载路径在固定镜像上对 V4 无效（见上）。')
+    lines.append('- B1 七段 `144041Z` 使用带补丁 LMCache 0.5.5 `05a013b`，0.5.6 为依赖回落。'
+                 '实际路径和补丁哈希见 `runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json`。')
+    lines.append('- B2-L2 历史失败见 `B2-L2-FAILED.md`。V4 单模型 `002126Z` 唤醒后金标通过，'
+                 '最终八卡归零采样跨度 58.873 秒。')
+    lines.append('- B2-L2 同卡短测 `003454Z`：V4 → Kimi → V4 三段金标通过，'
+                 'V4 原八 rank 唤醒 225.437 秒，其中重载 222.863 秒。'
+                 '每 rank KV 池 16 GiB，V4 使用独立补丁和 CUDA 同步诊断。'
+                 '最终 50 个八卡全零采样横跨 61.002 秒。')
     lines.append('')
     return lines
 
@@ -340,11 +404,24 @@ def main():
         state = '通过' if passed == total and total else ('部分通过' if passed else '未通过')
         lines.append(f'| {group} | {state}（{passed}/{total} 个 run 通过） | `runs/*/qualification.json` |')
     lines.append('')
+    lines.extend([
+        '## 同序列七段实测图表', '',
+        '### 图 1　A 与 B1 的激活耗时及权重读取', '',
+        '![A 与 B1 逐段激活耗时和权重读取](figures/a-b1-sequence.png)', '',
+        '上图从激活计到首个正确响应。下图是 Store 记录的文件读取字节。V4 显存利用率分别为 0.90 和 0.76。', '',
+        '### 图 2　B1 Host KV 写入与清理', '',
+        '![B1 Host KV 峰值和清理后占用](figures/b1-host-kv.png)', '',
+        'LMCache 0.5.6 每段提交 512 个 KV token，查询零命中，清理后占用均为零。', '',
+        '### 图 3　B2-L2 原 Worker 唤醒', '',
+        '![B2-L2 四次返回的原 Worker 唤醒耗时](figures/b2-l2-wake.png)', '',
+        '四次返回包含权重映射、checkpoint 重载和 KV 唤醒，计时止于唤醒回执。金标随后验证。', '',
+        '图表使用 A `035857Z`、B1 `052724Z` 和 B2-L2 `012344Z`。在仓库根目录运行 `python v11/plot_v11.py` 重画。', '',
+    ])
     lines.extend(a_section(grouped.get('A', [])))
     lines.extend(b1_section(grouped.get('B1', [])))
     lines.extend(b2_section(grouped.get('B2', [])))
     lines.extend(comparison_section(grouped))
-    (V11 / 'report.md').write_text('\n'.join(lines) + '\n')
+    (V11 / 'report.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print('wrote', V11 / 'report.md', len(lines), 'lines')
 
 

@@ -1,0 +1,68 @@
+--- lmcache/integration/vllm/kv_cache_group_edits.py
++++ lmcache/integration/vllm/kv_cache_group_edits.py
+@@ -41,12 +41,40 @@
+ from typing import TypeAlias
+ 
+ # Third Party
+-from vllm.v1.kv_cache_interface import (
+-    KVCacheConfig,
+-    KVCacheSpec,
+-    KVCacheSpecKind,
+-    get_kv_cache_spec_kind,
+-)
++from enum import Enum, auto
++
++from vllm.v1 import kv_cache_interface as kv
++from vllm.v1.kv_cache_interface import KVCacheConfig, KVCacheSpec
++
++if hasattr(kv, "KVCacheSpecKind"):
++    KVCacheSpecKind = kv.KVCacheSpecKind
++    get_kv_cache_spec_kind = kv.get_kv_cache_spec_kind
++else:
++    class KVCacheSpecKind(Enum):
++        CROSS_ATTENTION = auto()
++        MAMBA = auto()
++        MLA_ATTENTION = auto()
++        SINK_FULL_ATTENTION = auto()
++        SLIDING_WINDOW = auto()
++        CHUNKED_LOCAL_ATTENTION = auto()
++        FULL_ATTENTION = auto()
++        OTHER = auto()
++
++    def get_kv_cache_spec_kind(spec):
++        for spec_type, kind in (
++            (kv.CrossAttentionSpec, KVCacheSpecKind.CROSS_ATTENTION),
++            (kv.MambaSpec, KVCacheSpecKind.MAMBA),
++            (kv.MLAAttentionSpec, KVCacheSpecKind.MLA_ATTENTION),
++            (kv.SlidingWindowMLASpec, KVCacheSpecKind.MLA_ATTENTION),
++            (kv.SinkFullAttentionSpec, KVCacheSpecKind.SINK_FULL_ATTENTION),
++            (kv.SlidingWindowSpec, KVCacheSpecKind.SLIDING_WINDOW),
++            (kv.ChunkedLocalAttentionSpec, KVCacheSpecKind.CHUNKED_LOCAL_ATTENTION),
++            (kv.FullAttentionSpec, KVCacheSpecKind.FULL_ATTENTION),
++        ):
++            if isinstance(spec, spec_type):
++                return kind
++        return KVCacheSpecKind.OTHER
++
+ import torch
+ 
+ # First Party
+--- lmcache/integration/vllm/vllm_multi_process_adapter.py
++++ lmcache/integration/vllm/vllm_multi_process_adapter.py
+@@ -1444,7 +1444,15 @@
+         self._send_register_kv_caches_request(kv_caches)
+ 
+     def _block_ids_per_group(self, op: LoadStoreOp) -> list[list[int]]:
+-        return expand_engine_block_ids(self.engine_group_infos, op.block_ids)
++        expanded = expand_engine_block_ids(self.engine_group_infos, op.block_ids)
++        logger.info(
++            "V11 KV transfer group mapping (engine_group, logical_tokens, ids): %s",
++            [
++                (info.engine_group_id, info.tokens_per_block, len(ids))
++                for info, ids in zip(self.engine_group_infos, expanded, strict=True)
++            ],
++        )
++        return expanded
+ 
+     def _send_register_kv_caches_request(
+         self,
