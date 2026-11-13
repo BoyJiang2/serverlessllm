@@ -250,3 +250,15 @@ Docker events for the fast-control worker 659a8aada2aebb4af3384c3f9878748a9f119f
 The fast worker die event records execDuration=30, exitCode=0 and the exact image, container name, run, holder, UID and purpose labels. Its declared deadline was Unix 1794560395, after the destroy event. This rules out expiration by the declared deadline at that instant, but does not identify the caller. The launcher does not pass --rm. HostConfig.AutoRemove has not been recovered for this container.
 
 For a new sleep-only candidate, register an exact full-container-ID Docker Engine wait with condition=next-exit after verified creation and before start, with registration confirmed by HTTP response headers. A default docker wait can return on a created container. Capture bounded lifecycle events scoped to that ID and verify the label and image binding. If inspect loses the container, require matching wait status 0, a unique ordered start and die with exit 0, and no kill, stop, restart or OOM before die. Missing or contradictory evidence fails. Keep the original populated-cgroup transition and 60-second release checks. The model and Ray exit rules retain their existing inspect requirement. Review and test this candidate before any new control.
+
+## 2026-11-13 匹配版退出控制现场通过
+
+sllm-debug-20261113T090241Z-9e351ee4 使用批准提交 990b299b 的工具和冻结源码。实际独立守护探针通过。324 条样本中，第 19–20 条（零基）观测到启动中的同一 worker cgroup 带活进程，第 21 条 Docker 已确认 running。最长采样 0.878322832 秒，最大完成间隔 0.879230347 秒。预注册 next-exit 返回 0，正常 inspect 退出证据可用，未触发缺失容器事件回退。Controller 退出 0，释放观察 61.244267811 秒，八卡 0 MiB，无所属容器，两个 timer 与私有 slice 已停止。
+
+原始目录 /data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261113T090241Z-9e351ee4。
+
+- controller-result.json 0ba5b06a3791aab7066c70806f6296592b64152f77411e233d86462a792468f9
+- controller-monitor.jsonl 63efa3527e70bf143a3fa8eb976d957629f147331fe9c0fae18aa17471ff8ec8
+- release60.jsonl 549bdb8fa7557bd4d8fc6b54777e110169d3582e855be21877fef17475f461fb
+- sleep-exit-registration.json 5199b048fdd268beb7f9c1e78c9812ea4d4d3c9e18300accf98cb0cf5d129869
+- sleep-exit-wait.json 3ff40d803ec9ed4885174d64e68e998cf110bd1590487f5f692939428b0cd2b6
