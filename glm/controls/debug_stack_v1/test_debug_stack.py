@@ -317,6 +317,20 @@ class Ownership(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'final container exit identity missing'):
                 d.remove_owned(dict(STATE, worker_container_id=cid), 'worker')
 
+    def test_sleep_disappearance_cannot_override_abnormal_inspect(self):
+        cid = 'c'*64
+        clean = info('worker', State=dict(Running=False, OOMKilled=False, ExitCode=0))
+        abnormal = info('worker', State=dict(Running=False, OOMKilled=True, ExitCode=137))
+        proof = Mock()
+        with patch.object(d, 'inspect', side_effect=[abnormal, None]):
+            with self.assertRaisesRegex(RuntimeError, 'final container exit identity missing'):
+                d.remove_owned(dict(STATE, worker_container_id=cid), 'worker', on_absent=proof)
+        with patch.object(d, 'inspect', side_effect=[clean, abnormal, None]), \
+             patch.object(d, 'docker', side_effect=subprocess.CalledProcessError(1, ['docker', 'rm', cid])):
+            with self.assertRaises(subprocess.CalledProcessError):
+                d.remove_owned(dict(STATE, worker_container_id=cid), 'worker', on_absent=proof)
+        proof.assert_not_called()
+
     def test_sleep_exit_events_reject_wrong_identity_or_interrupted_exit(self):
         cid = 'c'*64
         attributes = {'name': STATE['run_id']+'-'+d.plan.worker_spec('x')['name'], 'image': d.plan.IMAGE,

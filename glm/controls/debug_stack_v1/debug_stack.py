@@ -342,6 +342,10 @@ def remove_owned(state, role, *, on_absent=None):
         return 'absent'
     if not owned(info, state, role):
         raise RuntimeError(role+' container identity differs; not touching it')
+    before = info['State']
+    if on_absent is not None and (before['Running'] or before['OOMKilled']
+                                  or before['ExitCode'] != 0 or before.get('Error')):
+        on_absent = None
     evidence = dict(container_id=cid, before=info['State'], stop_returncode=None, normal_exit_verified=False)
     state.setdefault('exit_evidence', {})[role] = evidence
     if info['State']['Running']:
@@ -362,7 +366,7 @@ def remove_owned(state, role, *, on_absent=None):
     try:
         docker('rm', cid)
     except subprocess.CalledProcessError:
-        if on_absent is None or inspect(cid) is not None:
+        if on_absent is None or not evidence['normal_exit_verified'] or inspect(cid) is not None:
             raise
         on_absent(cid)
         return 'absent'
