@@ -235,3 +235,4 @@ qjhs003 的 sleep-only 控制 sllm-debug-20261113T074916Z-d4063bc2 使用当日�
 - controller-result.json 966869b5cc4a49ca3460bbb8bbc0a7ebecb04f133a1aefb3f6c71678696f08f9
 - controller-monitor.jsonl 470745e60053cf2f0f2c65be30de8f16b66cd900f7c24bba9f66019e0471dae0
 - release60.jsonl d18e082675d5f002d21c3e15ffc89c23a3b598ea32634bda041e2fb4d0124bc1
+Docker events for worker 56551e4381a8a5a043c1c3f8696add658a670ff53f9016dbcad0bf74ea6172e1 (Docker wall-clock ns) record create 1794559047882625072, start 1794559048491928269, die 1794559078890252827, destroy 1794559079078353148. Create to start was 0.609303197 s. The first sampled worker state (zero-based monitor row 6) was already running; row 5 had no worker state. These clocks are reported separately. Docker events establish the transition occurred, but do not supply the missing live cgroup sample. A repeat should change the observation method under review instead of repeating the same sampling setup.
