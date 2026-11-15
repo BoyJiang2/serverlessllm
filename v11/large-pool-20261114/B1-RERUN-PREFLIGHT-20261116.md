@@ -20,9 +20,12 @@
 1. 核对用户预约、八卡、端口、独占锁和 RAM 余量。记录实际配额、镜像、LMCache overlay 和命令。新 run ID 沿用同一 runner 的 UTC 命名。
 2. 首段保持 LMCache 配置，从原生 SafeTensors 启动。现有 helper 在放行前逐文件驱逐、核验驻留页为零，保存清单和位图，准入失败停止。首段 Store 仍空，第 2 段才首次访问 Store。
 3. 复用 Host KV 与 Store 的初始化起止、八 rank GPU KV 分配端点、Store 查找/驱逐/完成事件、业务金标、填充请求、KV 清理以及逐阶段进程和 HBM 采样。初始化两段只有串行验证通过才相加，总准备时间独立取控制器准备起点至首段放行。
-4. 已在独立副本接入 LMCache 的原生 MP_STORE_START / MP_STORE_END 回调。以请求 ID、引擎实例和 transfer key 配对，校验时钟后取请求窗口与传输窗口并集的相交时长。入口在同镜像 CPU 容器通过导入与参数检查，配对和缺测分支通过 CPU 测试。真实 GPU 回调覆盖待本轮验证。现有 HBM 采样有设备总量及按 PID 的归属，权重和 GPU KV 拆分需要分配证据。释放用原 60 秒门槛。
-5. 完成 S1 后再排后续序列。B1 验证 Host KV 写入和清零，读取命中需要另设场景。
+4. 已在独立副本接入 LMCache 的原生 MP_STORE_START / MP_STORE_END 回调。以请求 ID、引擎实例和 transfer key 配对，校验时钟后取请求窗口与传输窗口并集的相交时长。入口在同镜像 CPU 容器通过导入与参数检查，配对和缺测分支通过 CPU 测试。真实 GPU 回调覆盖待本轮验证。
+5. 增加 GPU Worker 八 rank 退出前存储回执，分别记录 CUDA 参数、buffer 和引擎 KV 张量的底层存储字节，并计入共享范围去重。采集 RPC 独立计时。该回执描述 Worker 当时可枚举的张量，退出后只对实际剩余 PID 和设备 HBM 计量。LMCache 持有的残留显存缺少权重或 KV 的直接分类证据时留空。释放用原 60 秒门槛。
+6. 完成 S1 后再排后续序列。B1 验证 Host KV 写入和清零，读取命中需要另设场景。
 
 本文件记录 CPU 前检。新轮执行及其验收结果尚待用户提供预约窗口。
 
-[独立副本生成脚本](prepare_b1_trace.py) · [LMCache 事件采集](lmcache_store_trace.py) · [CPU 重算](summarize_pilot.py)
+本次带显存回执的副本位于 qjhs003 的 /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b1-trace-hbm-20261116。存储去重及设备边界通过 CPU 测试，实际八 rank 回执待正式轮验收。
+
+[独立副本生成脚本](prepare_b1_trace.py) · [LMCache 事件采集](lmcache_store_trace.py) · [GPU Worker 存储回执](v11_hbm_receipt.py) · [CPU 重算](summarize_pilot.py)

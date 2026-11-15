@@ -134,6 +134,17 @@ def summarize(run):
             if load(check)["passed"]:
                 business.append(load(path)["received_ns"])
         residency = load(step / "residency.json")
+        hbm_path = step / "backend-hbm-storage.json"
+        storage = load(hbm_path) if hbm_path.is_file() else None
+        if storage:
+            ranks = storage["ranks"]
+            before = residency["before_backend_exit"]
+            assert len(ranks) == 8 and {row["rank"] for row in ranks} == set(range(8))
+            assert {row["identity"]["pid"] for row in ranks} <= {
+                row["pid"] for row in before["processes"][step.name]
+            }
+            assert storage["end_ns"] <= before["ns"]
+            storage["capture_s"] = seconds(storage["begin_ns"], storage["end_ns"])
         callback_overlap = None
         if callbacks:
             worker_clock = load(step / "constructed.json")["clock_identity"]
@@ -170,6 +181,7 @@ def summarize(run):
             commit_log_count=len(lines),
             residency=residency,
             residency_metrics=residency_metrics(residency),
+            backend_hbm_storage=storage,
         ))
     return summary
 
