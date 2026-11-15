@@ -10,6 +10,7 @@ from statistics import median
 from summarize_pilot import load, summarize, seconds
 
 REG = re.compile(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d+)\].*?Registered KV cache for GPU ID (\d+)")
+DISK_DONE = re.compile(r"^(\S+).*?Finished loading model (\S+) from disk")
 
 
 def registration_log(path):
@@ -56,6 +57,15 @@ def collect(root):
                                         last_host_log_ns=registered[-1]["wall_ns"] - offset,
                                         records=registered, source="lmcache/lmcache.log")
                 cache = load(step / "store-step.json")["cache"]
+                disk_done = []
+                if i:
+                    for number, line in enumerate((step / "store-events.log").read_text().splitlines(), 1):
+                        match = DISK_DONE.search(line)
+                        if match:
+                            disk_done.append(dict(line=number, log_utc=match[1], path=match[2]))
+                disk_completion = dict(count=len(disk_done),
+                                       unique_paths=len({event["path"] for event in disk_done}),
+                                       first=disk_done[0], last=disk_done[-1]) if disk_done else None
                 events = [json.loads(line) for source in sorted((step / "events").glob("*.jsonl"))
                           for line in source.read_text().splitlines()]
                 def bounds(phase):
@@ -77,6 +87,7 @@ def collect(root):
                                   weight_begin_ns=weight_bounds[0], weight_ready_ns=weight_bounds[1],
                                   registration=registration, cache_state=row["cache_state"],
                                   hit_bytes=cache["hit_bytes"], read_bytes=cache["file_read_bytes"],
+                                  disk_completion=disk_completion,
                                   evicted_paths=len(cache["evicted_paths"]),
                                   eviction_envelope_s=item["eviction_event_envelope_s"],
                                   store_access_envelope_s=item["store_lookup_to_complete_s"],
@@ -111,6 +122,8 @@ def report(rounds):
 
     rows = ["# V11 大池 B1 可服务前阶段",
             "九个正式 run、63 段。下表为中位数 [最小，最大]，单位秒。每行的逐轮值、可服务端点、注册日志行号以及原 run ID 见 [重算数据](readiness-20261116.json)。[服务器证据索引](readiness-evidence-index.csv.gz) 记录绝对路径、字节数与 SHA-256。",
+            f"共有 {sum(s['disk_completion'] is not None for r in rounds for s in r['steps'][1:])}/54 次切换"
+            "留有 Store 分路径磁盘加载完成日志。派生数据保留首末日志及行号。日志缺少对应读起点，独立重读历时仍为 null。",
             "## 首段 KV 冷启动与准备",
             "| 序列 | Host KV 池初始化 | 权重 Store 池初始化 | 串行用时之和 | 前检至首段放行 | 八 rank GPU KV 分配 | LMCache 首末注册日志 |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -145,7 +158,7 @@ def report(rounds):
         "",
         "重算时在 qjhs003 使用 python3 recompute_readiness.py /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-large-pool-20261113 --report READINESS.md，重定向标准输出可更新 JSON。",
     ])
-    return "\n".join(rows[:1] + [""] + rows[1:2] + [""] + rows[2:3] + [""] + rows[3:]) + "\n"
+    return "\n".join(rows[:1] + [""] + rows[1:2] + [""] + rows[2:3] + [""] + rows[3:4] + [""] + rows[4:]) + "\n"
 
 
 if __name__ == "__main__":
