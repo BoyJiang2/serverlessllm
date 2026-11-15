@@ -437,7 +437,10 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                          f"[qjhs003 原始证据索引]({base}/evidence-index.csv)")
             if release_obs:
                 parts.append(f"最终八卡归零且无计算进程 {release_obs['all_gpu_zero']}，"
-                             f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。")
+                             f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。"
+                             f"末次采样的整机可用 RAM 为 "
+                             f"{fmt(release_obs['last_host_available_bytes'] / GIB)} GiB。"
+                             f"[最终释放采样]({base}/resource-samples.csv)")
             parts.append(table(["段", "模型", "操作", "权重准备（s）", "GPU KV 分配（s）",
                                 "权重切换（s）", "KV 切换（s）", "旧 KV 释放至可服务（s）"],
                                [(s["step"] + 1, MODELS[s["model"]], s["stage"],

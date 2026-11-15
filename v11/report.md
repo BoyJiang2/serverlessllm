@@ -306,7 +306,7 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
 
 `B2-S1-r1-20261115T193956Z` · [验收原件](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/qualification.json) · [qjhs003 原始证据索引](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/evidence-index.csv)
 
-最终八卡归零且无计算进程 True，50 个采样点覆盖 61.037 s。
+最终八卡归零且无计算进程 True，50 个采样点覆盖 61.037 s。末次采样的整机可用 RAM 为 1878.408 GiB。[最终释放采样](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/resource-samples.csv)
 
 | 段 | 模型 | 操作 | 权重准备（s） | GPU KV 分配（s） | 权重切换（s） | KV 切换（s） | 旧 KV 释放至可服务（s） |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -343,7 +343,7 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 `B2-S2-r1-20261115T220612Z` · [验收原件](large-pool-20261114/sleep-runs/B2-S2-r1-20261115T220612Z/qualification.json) · [qjhs003 原始证据索引](large-pool-20261114/sleep-runs/B2-S2-r1-20261115T220612Z/evidence-index.csv)
 
-最终八卡归零且无计算进程 True，50 个采样点覆盖 61.127 s。
+最终八卡归零且无计算进程 True，50 个采样点覆盖 61.127 s。末次采样的整机可用 RAM 为 1878.441 GiB。[最终释放采样](large-pool-20261114/sleep-runs/B2-S2-r1-20261115T220612Z/resource-samples.csv)
 
 | 段 | 模型 | 操作 | 权重准备（s） | GPU KV 分配（s） | 权重切换（s） | KV 切换（s） | 旧 KV 释放至可服务（s） |
 | --- | --- | --- | --- | --- | --- | --- | --- |
