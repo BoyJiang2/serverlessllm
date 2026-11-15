@@ -73,6 +73,24 @@ def seconds(begin, end):
     return (end - begin) / 1e9 if begin is not None and end is not None else None
 
 
+def post_sleep_residency(path):
+    if not path.is_file():
+        return None
+    sample = read(path)
+    gpu_mib = [int(row.split(",")[2]) for row in sample["gpu"]]
+    assert len(gpu_mib) == 8
+    memory_kib = {}
+    for line in sample["host_memory"].splitlines():
+        field, _, value = line.partition(":")
+        if field in ("MemAvailable", "AnonPages", "Cached"):
+            amount, unit = value.split()
+            assert unit == "kB"
+            memory_kib[field] = int(amount)
+    return dict(source=str(path), ns=sample["ns"], gpu_used_mib=gpu_mib,
+                compute_app_count=len(sample["compute_apps"]), host_memory_kib=memory_kib,
+                processes=sample["processes"])
+
+
 def collect(run, result):
     level = run / f"L{result['level']}"
     old = None
@@ -98,6 +116,7 @@ def collect(run, result):
         release = {tag: allocator_span(worker / "worker.log", "gpu_unmap_release", tag,
                                        sleep["sleep_begin_ns"], sleep["sleep_end_ns"])
                    for tag in ("weights", "kv_cache")}
+        phase = f"{level.name}-{record['step']:02d}-{record['model']}"
         steps.append(dict(step=record["step"], model=record["model"], stage=stage["kind"],
                           service_ready_ns=ready, weight_begin_ns=weight_begin,
                           weight_ready_ns=weight_ready, kv_ready_ns=kv_ready,
@@ -108,6 +127,8 @@ def collect(run, result):
                           kv_release_to_service_ready_s=seconds(old["kv_cache"]["begin_ns"], ready)
                           if old else None,
                           weight_switch_s=seconds(old["weights"]["begin_ns"], weight_ready) if old else None,
+                          post_sleep_residency=post_sleep_residency(level / f"{phase}-post-sleep-residency.json"),
+                          sleep_cpu_weight_backup_bytes=record.get("weights_cpu_backup_bytes"),
                           host_kv="not_applicable"))
         old = release
     return steps
