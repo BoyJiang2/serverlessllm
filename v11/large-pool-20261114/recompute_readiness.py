@@ -81,6 +81,16 @@ def collect(root):
                 assert began <= kv_bounds[0] <= kv_bounds[1] <= ready
                 old = data["steps"][i - 1] if i else None
                 old_res = old["residency"] if old else None
+                gpu_exit_samples = None
+                if old_res:
+                    before = old_res["before_backend_exit"]
+                    after = old_res["immediately_after_backend_exit"]
+                    pids = lambda sample: {int(line.split(",")[0]) for line in sample["compute_apps"]}
+                    disappeared = sorted(pids(before) - pids(after))
+                    if disappeared and before["ns"] < after["ns"] <= began:
+                        gpu_exit_samples = dict(before_ns=before["ns"], after_ns=after["ns"],
+                                                disappeared_compute_pids=disappeared,
+                                                source=f"{old['step']}/residency.json")
                 steps.append(dict(step=step.name, model=row["to_model"], activation_ns=began,
                                   service_ready_ns=ready, allocation_s=item["gpu_kv_allocation_eight_rank_s"],
                                   kv_allocation_begin_ns=kv_bounds[0], kv_allocation_end_ns=kv_bounds[1],
@@ -95,6 +105,7 @@ def collect(root):
                                   full_load_s=item["full_eight_rank_weight_load_s"],
                                   missing_block_file_read_s=None, old_gpu_kv_free_start_ns=None,
                                   old_gpu_kv_free_end_ns=None, kv_switch_wall_s=None,
+                                  gpu_exit_samples=gpu_exit_samples,
                                   old_host_clear_seconds=float(timings[i-1]["kv_clear_seconds"]) if i else None,
                                   old_exit_observed_ns=int(row["t1_ns"]) if i else None,
                                   old_after_clear_sample_ns=old_res["after_clear"]["ns"] if old_res else None,
@@ -123,7 +134,9 @@ def report(rounds):
     rows = ["# V11 大池 B1 可服务前阶段",
             "九个正式 run、63 段。下表为中位数 [最小，最大]，单位秒。每行的逐轮值、可服务端点、注册日志行号以及原 run ID 见 [重算数据](readiness-20261116.json)。[服务器证据索引](readiness-evidence-index.csv.gz) 记录绝对路径、字节数与 SHA-256。",
             f"共有 {sum(s['disk_completion'] is not None for r in rounds for s in r['steps'][1:])}/54 次切换"
-            "留有 Store 分路径磁盘加载完成日志。派生数据保留首末日志及行号。日志缺少对应读起点，独立重读历时仍为 null。",
+            "留有 Store 分路径磁盘加载完成日志。派生数据保留首末日志及行号。日志缺少对应读起点，独立重读历时仍为 null。"
+            f" 另有 {sum(s['gpu_exit_samples'] is not None for r in rounds for s in r['steps'][1:])}/54 次"
+            "切换可从退出前后快照核对消失的 GPU 计算 PID。该采样窗口包含整个进程的资源变化，精确 KV 释放历时仍为 null。",
             "## 首段 KV 冷启动与准备",
             "| 序列 | Host KV 池初始化 | 权重 Store 池初始化 | 串行用时之和 | 前检至首段放行 | 八 rank GPU KV 分配 | LMCache 首末注册日志 |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
