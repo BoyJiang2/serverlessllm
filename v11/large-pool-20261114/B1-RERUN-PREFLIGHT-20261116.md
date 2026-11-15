@@ -20,7 +20,9 @@
 1. 核对用户预约、八卡、端口、独占锁和 RAM 余量。记录实际配额、镜像、LMCache overlay 和命令。新 run ID 沿用同一 runner 的 UTC 命名。
 2. 首段保持 LMCache 配置，从原生 SafeTensors 启动。现有 helper 在放行前逐文件驱逐、核验驻留页为零，保存清单和位图，准入失败停止。首段 Store 仍空，第 2 段才首次访问 Store。
 3. 复用 Host KV 与 Store 的初始化起止、八 rank GPU KV 分配端点、Store 查找/驱逐/完成事件、业务金标、填充请求、KV 清理以及逐阶段进程和 HBM 采样。初始化两段只有串行验证通过才相加，总准备时间独立取控制器准备起点至首段放行。
-4. 既有 LMCache 日志有 STORE 完成时间和内部打印用时。实际开始、结束和请求的重叠需要同一时钟域的直接打点。现有 HBM 采样有设备总量及按 PID 的归属，权重和 GPU KV 拆分需要分配证据。缺失分项在报告留空，释放用原 60 秒门槛。
+4. 已在独立副本接入 LMCache 的原生 MP_STORE_START / MP_STORE_END 回调。以请求 ID、引擎实例和 transfer key 配对，校验时钟后取请求窗口与传输窗口并集的相交时长。入口在同镜像 CPU 容器通过导入与参数检查，配对和缺测分支通过 CPU 测试。真实 GPU 回调覆盖待本轮验证。现有 HBM 采样有设备总量及按 PID 的归属，权重和 GPU KV 拆分需要分配证据。释放用原 60 秒门槛。
 5. 完成 S1 后再排后续序列。B1 验证 Host KV 写入和清零，读取命中需要另设场景。
 
 本文件记录 CPU 前检。新轮执行及其验收结果尚待用户提供预约窗口。
+
+[独立副本生成脚本](prepare_b1_trace.py) · [LMCache 事件采集](lmcache_store_trace.py) · [CPU 重算](summarize_pilot.py)

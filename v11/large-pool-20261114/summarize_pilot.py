@@ -53,14 +53,62 @@ def residency_metrics(receipt):
     return phases
 
 
+def store_callback_overlap(events, request, response):
+    """Return a union of successful, request-bound transfer intervals."""
+    if "received_wall_ns" not in response:
+        return None
+    assert response["response"]["id"] == request["request_id"]
+    start, end = request["wall_ns"], response["received_wall_ns"]
+    elapsed = response["received_ns"] - request["ns"]
+    if not (0 <= elapsed and abs(end - start - elapsed) <= 1_000_000):
+        return None
+    pairs = {}
+    for event in events:
+        if event["request_id"] == request["request_id"]:
+            key = (event["engine_id"], event["transfer_key"])
+            if None in key or event["event"] in pairs.setdefault(key, {}):
+                return None
+            pairs[key][event["event"]] = event
+    intervals = []
+    for pair in pairs.values():
+        begin, finish = (pair.get(kind) for kind in ("mp.store.start", "mp.store.end"))
+        if begin is None or finish is None or not finish["stored_count"]:
+            return None
+        left, right = begin["event_wall_ns"], finish["event_wall_ns"]
+        if not start <= left <= right <= finish["drain_wall_ns"]:
+            return None
+        if any(abs((event["drain_wall_ns"] - event["drain_monotonic_ns"]) -
+                   (start - request["ns"])) > 1_000_000 for event in (begin, finish)):
+            return None
+        intervals.append((left, right))
+    if not intervals:
+        return None
+    overlap_ns = 0
+    cursor = start
+    for left, right in sorted(intervals):
+        clipped = min(end, right)
+        overlap_ns += max(0, clipped - max(left, cursor))
+        cursor = max(cursor, clipped)
+    return dict(transfer_count=len(intervals), request_wall_begin_ns=start,
+                request_wall_end_ns=end, transfer_intervals_wall_ns=sorted(intervals),
+                overlap_s=overlap_ns / 1e9)
+
+
 def summarize(run):
     pools = load(run / "pool-init-timing.json")
+    assert pools["kv_ready_ns"] <= pools["store_begin_ns"]
     kv_init = seconds(pools["kv_begin_ns"], pools["kv_ready_ns"])
     store_init = seconds(pools["store_begin_ns"], pools["store_ready_ns"])
     summary = dict(host_kv_init_s=kv_init, weight_store_init_s=store_init,
                    init_sum_s=kv_init + store_init,
                    init_wall_s=seconds(pools["kv_begin_ns"], pools["store_ready_ns"]),
                    steps=[])
+    callback_path = run / "lmcache/store-events.jsonl"
+    callbacks = ([json.loads(line) for line in callback_path.read_text().splitlines()]
+                 if callback_path.is_file() else [])
+    if callbacks:
+        clock = load(run / "lmcache/store-trace-clock.json")
+        assert clock["clock"] == "CLOCK_REALTIME"
     for commit_path in sorted(run.glob("*/kv-commit-timing.json")):
         step = commit_path.parent
         commit = load(commit_path)
@@ -86,11 +134,30 @@ def summarize(run):
             if load(check)["passed"]:
                 business.append(load(path)["received_ns"])
         residency = load(step / "residency.json")
+        callback_overlap = None
+        if callbacks:
+            worker_clock = load(step / "constructed.json")["clock_identity"]
+            assert all(clock[k] == worker_clock[k] for k in ("boot_id", "time_namespace"))
+            callback_overlap = store_callback_overlap(
+                callbacks, commit["request"], load(step / "before-kv_fill-response.json"))
+        kv_begin = [r for r in trace if r["name"] == "kv_cache_allocation_begin"]
+        kv_end = [r for r in trace if r["name"] == "kv_cache_allocation_end"]
+        kv_s = None
+        if len(kv_begin) == len(kv_end) == 8:
+            identity = lambda r: (r["rank"], r["pid"], r["process_start_ticks"], r["boot_id"],
+                                  r["time_namespace"], r["clock_id"])
+            starts = {identity(r): r["monotonic_ns"] for r in kv_begin}
+            ends = {identity(r): r["monotonic_ns"] for r in kv_end}
+            assert set(starts) == set(ends) and {k[0] for k in starts} == set(range(8))
+            assert all(starts[key] <= ends[key] for key in starts)
+            kv_s = seconds(min(starts.values()), max(ends.values()))
         summary["steps"].append(dict(
             step=step.name,
             engine_ready_ns=load(step / "ready.json")["ns"],
             first_correct_business_response_ns=min(business),
             full_eight_rank_weight_load_s=full_load,
+            gpu_kv_allocation_eight_rank_s=kv_s,
+            request_host_store_overlap=callback_overlap,
             # This envelope includes work between rank/path events. It is
             # measured on the Store host and excludes subsequent GPU work.
             store_lookup_to_complete_s=seconds(min(lookups), max(completed)) if lookups else None,
