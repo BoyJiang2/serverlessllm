@@ -85,6 +85,31 @@ def render(data):
     ax.invert_yaxis()
     save(fig, "b2-l1-timing")
 
+    sleep_timing = ROOT / "large-pool-20261114/sleep-timing.json"
+    if sleep_timing.is_file():
+        for run in json.loads(sleep_timing.read_bytes())["rounds"]:
+            if not run["passed"]:
+                continue
+            steps = run["steps"][1:]
+            names = {"K": "Kimi-K2.6", "G": "GLM-5.1-FP8", "D": "DeepSeek-V4-Pro"}
+            labels = [f"{row['step'] + 1} {names[row['model']]}\n{row['stage']}" for row in steps]
+            fig, ax = plt.subplots(figsize=(10, 4), layout="constrained")
+            for offset, field, caption in (
+                (-.24, "weight_switch_s", "Weight release to weight ready"),
+                (0, "kv_switch_s", "KV release to KV ready"),
+                (.24, "kv_release_to_service_ready_s", "KV release to backend ready"),
+            ):
+                observed = [(i + offset, row[field]) for i, row in enumerate(steps)
+                            if row[field] is not None]
+                if observed:
+                    positions, seconds = zip(*observed)
+                    ax.bar(positions, seconds, width=.23, label=caption)
+            ax.set_xticks(range(len(labels)), labels)
+            ax.set(title=f"Sleep L2 {run['sequence']} rep {run['rep']} · {run['run']}",
+                   ylabel="Elapsed seconds", ylim=(0, None))
+            ax.legend(frameon=False)
+            save(fig, f"sleep-{run['run']}")
+
 
 if __name__ == "__main__":
     render(json.loads((ROOT / "derived/report-data.json").read_bytes()))

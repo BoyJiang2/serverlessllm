@@ -404,6 +404,9 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                                  fmt(s["load_or_wake_weight_s"]), fmt(s["kv_allocation_s"]),
                                  fmt(s["weight_switch_s"]), fmt(s["kv_switch_s"]),
                                  fmt(s["kv_release_to_service_ready_s"])) for s in run["steps"]]))
+            if run["passed"]:
+                parts.append(f"![{run['sequence']} 第 {run['rep']} 轮可服务前切换跨度]"
+                             f"(figures/sleep-{rid}.png)")
         parts.append("从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py "
                      "v11/large-pool-20261114/sleep-runs` 重算。"
                      "[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)")

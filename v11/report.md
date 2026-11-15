@@ -276,4 +276,6 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
 | 6 | DeepSeek-V4-Pro | wake | 689.561 | 0.471 | 763.683 | 763.674 | 763.737 |
 | 7 | Kimi-K2.6 | wake | 2264.022 | 0.233 | 2338.592 | 2338.071 | 2338.110 |
 
+![S1 第 1 轮可服务前切换跨度](figures/sleep-B2-S1-r1-20261115T193956Z.png)
+
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py v11/large-pool-20261114/sleep-runs` 重算。[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)
