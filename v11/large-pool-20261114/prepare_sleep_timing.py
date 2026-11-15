@@ -136,6 +136,11 @@ def prepare_runner(path, large_pool):
         "run_dir = V11 / 'runs'": "run_dir = CAMPAIGN / 'runs'",
         "        holder = {'cid': None, 'phase': 'startup'}": """        write(run_dir / 'booking.json', dict(start=args.booking_start, end=args.booking_end,
               guard_deadline_ns=deadline_ns, cleanup_reserve_s=480))
+        write(run_dir / 'instrumentation.json', {
+            name: hashlib.sha256((CAMPAIGN / name).read_bytes()).hexdigest()
+            for name in ('v11_run_b2.py', 'v11_sleep_backend.py', 'cumem.py',
+                         'sf_admission.py', 'campaign.json')
+        })
         owned = {}
         holder = {'cid': None, 'phase': 'startup'}""",
         "                        cid, command = worker_container": """                        assert time.monotonic_ns() < deadline_ns
@@ -148,6 +153,22 @@ def prepare_runner(path, large_pool):
             "                        owned[cid] = (None, None)\n"
             "                        owned[cid] = start_guard(cid, run_dir, deadline_ns, phase)\n"
             "                        log = (worker_dir / 'worker.log').open('w')",
+        "                        stage = dict(kind='load', seconds=round(load_seconds, 3))":
+            "                        stage = dict(kind='load', seconds=round(load_seconds, 3),\n"
+            "                                     ready_ns=json.loads((worker_dir / 'ready.json').read_bytes())['ns'])",
+        "                        started = time.monotonic_ns()":
+            "                        wake_command_index = counters[key]\n"
+            "                        started = time.monotonic_ns()",
+        "                                     receipt=ack['receipt'])":
+            "                                     ready_ns=ack['finished_ns'],\n"
+            "                                     phases_receipt=f'wake-{wake_command_index:04d}-phases.json',\n"
+            "                                     receipt=ack['receipt'])",
+        "                    sleep_started = time.monotonic_ns()":
+            "                    sleep_command_index = counters[key]\n"
+            "                    sleep_started = time.monotonic_ns()",
+        "                        sleep_seconds=round(sleep_seconds, 3), t4_ns=t4,":
+            "                        sleep_seconds=round(sleep_seconds, 3), t4_ns=t4,\n"
+            "                        sleep_phases_receipt=f'sleep-{sleep_command_index:04d}-phases.json',",
         "                    holder['phase'] = phase + ':observation'":
             "                    write(level_dir / f'{phase}-post-sleep-residency.json',\n"
             "                          residency({name: item['cid'] for name, item in workers.items()}))\n"

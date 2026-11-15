@@ -18,6 +18,8 @@ L2 休眠权重无 CPU 备份。前置使用上一轮 Kimi 成功重载采样峰
 
 带 allocator 打点的隔离 runner 位于 qjhs003 的 `/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-sleep-readiness-20261116-allocator`。三个模型的 profile 使用同一镜像，生成前验证原 `cumem.py` 的 SHA-256。每次成功返回的解除映射与释放、创建与映射、CPU 备份拷贝和恢复拷贝分别记录操作标签、rank、字节与主机单调时钟起止。KV 映射结束和 Backend 可服务回执是两个接点，后者仍需单独记录。已通过编译和替身调用验证释放、按标签恢复及时间戳。固定镜像在无 GPU 设备的容器内只读挂载宿主 `libcuda.so.1` 后，已实际导入覆盖的 allocator 模块。实际八 rank 记录待 GPU 验证。
 
-[Sleep Backend 、runner 和 allocator 副本生成脚本](prepare_sleep_timing.py)
+实际候选入口位于同级 `v11-sleep-readiness-20261116-aligned/v11_run_b2.py`。逐段结果直接引用旧模型 sleep 与目标模型 wake 的命令回执，并记录首次 load 的就绪时间或 wake 确认时间。每轮保存 runner、Backend、allocator、冷页准入助手和协议配置的 SHA-256。该入口已通过编译及未来预约窗口拒绝检查。
+
+[Sleep Backend、runner 和 allocator 副本生成脚本](prepare_sleep_timing.py)
 
 [历史 L1 容量证据](../B2-L1-RAM-BOUNDARY.md) · [历史 B2 与 Kimi L2](../report.md#b2--原生-sleep--wake)
