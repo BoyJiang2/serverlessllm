@@ -254,3 +254,26 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **820.42 GiB**，
 [派生数据和逐 rank 起止](derived/report-data.json) · [运行清单](report-inputs/run-manifest.json) · [原始证据索引](report-inputs/evidence-index.csv.gz) · [三模型大池复验](large-pool-20261114/REPORT.md)
 
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)
+
+## 同序列 Sleep L2 复验
+
+TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
+
+
+### S1 第 1 轮 · 通过
+
+`B2-S1-r1-20261115T193956Z` · [验收原件](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/qualification.json) · [qjhs003 原始证据索引](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/evidence-index.csv)
+
+最终八卡归零且无计算进程 True，50 个采样点覆盖 61.037 s。
+
+| 段 | 模型 | 操作 | 权重准备（s） | GPU KV 分配（s） | 权重切换（s） | KV 切换（s） | 旧 KV 释放至可服务（s） |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Kimi-K2.6 | load | 1123.200 | 0.210 | — | — | — |
+| 2 | GLM-5.1-FP8 | load | 544.074 | 0.211 | 643.287 | 669.166 | 943.805 |
+| 3 | DeepSeek-V4-Pro | load | 378.925 | 0.384 | 478.916 | 536.575 | 734.804 |
+| 4 | GLM-5.1-FP8 | wake | 350.557 | 0.194 | 413.499 | 412.923 | 412.969 |
+| 5 | Kimi-K2.6 | wake | 1993.030 | 0.277 | 2055.787 | 2055.421 | 2055.459 |
+| 6 | DeepSeek-V4-Pro | wake | 689.561 | 0.471 | 763.683 | 763.674 | 763.737 |
+| 7 | Kimi-K2.6 | wake | 2264.022 | 0.233 | 2338.592 | 2338.071 | 2338.110 |
+
+从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py v11/large-pool-20261114/sleep-runs` 重算。[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)

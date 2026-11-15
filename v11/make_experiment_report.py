@@ -380,6 +380,33 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 [派生数据和逐 rank 起止](derived/report-data.json) · [运行清单](report-inputs/run-manifest.json) · [原始证据索引](report-inputs/evidence-index.csv.gz) · [三模型大池复验](large-pool-20261114/REPORT.md)
 
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)""")
+    sleep_timing = ROOT / "large-pool-20261114/sleep-timing.json"
+    if sleep_timing.is_file():
+        rounds = json.loads(sleep_timing.read_bytes())["rounds"]
+        parts.append("""## 同序列 Sleep L2 复验
+
+TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
+""")
+        for run in rounds:
+            rid = run["run"]
+            base = f"large-pool-20261114/sleep-runs/{rid}"
+            release_obs = run["final_release"]
+            status = "通过" if run["passed"] else "未通过"
+            parts.append(f"### {run['sequence']} 第 {run['rep']} 轮 · {status}\n\n"
+                         f"`{rid}` · [验收原件]({base}/qualification.json) · "
+                         f"[qjhs003 原始证据索引]({base}/evidence-index.csv)")
+            if release_obs:
+                parts.append(f"最终八卡归零且无计算进程 {release_obs['all_gpu_zero']}，"
+                             f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。")
+            parts.append(table(["段", "模型", "操作", "权重准备（s）", "GPU KV 分配（s）",
+                                "权重切换（s）", "KV 切换（s）", "旧 KV 释放至可服务（s）"],
+                               [(s["step"] + 1, MODELS[s["model"]], s["stage"],
+                                 fmt(s["load_or_wake_weight_s"]), fmt(s["kv_allocation_s"]),
+                                 fmt(s["weight_switch_s"]), fmt(s["kv_switch_s"]),
+                                 fmt(s["kv_release_to_service_ready_s"])) for s in run["steps"]]))
+        parts.append("从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py "
+                     "v11/large-pool-20261114/sleep-runs` 重算。"
+                     "[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 

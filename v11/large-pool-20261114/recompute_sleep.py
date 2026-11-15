@@ -64,7 +64,7 @@ def load_span(worker, phase, run_id, ready):
                                               "time_namespace", "clock_id"))
             assert waiting <= x["monotonic_ns"] < y["monotonic_ns"] <= ready
             rows.append(dict(rank=x["rank"], begin_ns=x["monotonic_ns"], end_ns=y["monotonic_ns"],
-                             source=str(path)))
+                             source=path.as_posix()))
     assert len(rows) == len({row["rank"] for row in rows})
     return dict(span(rows), missing_begin_ranks=sorted(set(range(8)) - coverage["begin"]),
                 missing_end_ranks=sorted(set(range(8)) - coverage["end"]))
@@ -87,7 +87,7 @@ def post_sleep_residency(path):
             amount, unit = value.split()
             assert unit == "kB"
             memory_kib[field] = int(amount)
-    return dict(source=str(path), ns=sample["ns"], gpu_used_mib=gpu_mib,
+    return dict(source=path.as_posix(), ns=sample["ns"], gpu_used_mib=gpu_mib,
                 compute_app_count=len(sample["compute_apps"]), host_memory_kib=memory_kib,
                 processes=sample["processes"])
 
@@ -107,7 +107,7 @@ def final_release(run, qualification):
                    all(int(row[f"gpu{i}"]) == 0 for i in range(8)) for row in samples)
     assert round(elapsed, 3) == qualification["final_release_seconds"]
     assert all_zero == qualification["final_all_gpu_zero"]
-    return dict(source=str(path), samples=len(samples), elapsed_s=elapsed, all_gpu_zero=all_zero,
+    return dict(source=path.as_posix(), samples=len(samples), elapsed_s=elapsed, all_gpu_zero=all_zero,
                 meets_60s=elapsed >= 60, last_host_available_bytes=int(samples[-1]["mem_available"]))
 
 
