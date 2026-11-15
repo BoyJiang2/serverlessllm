@@ -3,7 +3,7 @@ import csv
 import gzip
 import hashlib
 import json
-from statistics import mean
+from statistics import mean, median
 
 from plot_v11 import A, B1, B2, L1, ROOT, render
 
@@ -393,6 +393,22 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                              sum(run["passed"] for run in rounds if run["sequence"] == seq),
                              protocol["target_repetitions_per_sequence"])
                             for seq, models in protocol["sequences"].items()]))
+        b1_rounds = json.loads((sleep_timing.parent / "readiness-20261116.json").read_bytes())
+        cold_kv = []
+        for seq, models in protocol["sequences"].items():
+            b1_values = [r["steps"][0]["allocation_s"] for r in b1_rounds if r["sequence"] == seq]
+            b1_values = [value for value in b1_values if value is not None]
+            l2_values = [r["steps"][0]["kv_allocation_s"] for r in rounds
+                         if r["sequence"] == seq and r["passed"]
+                         and r["steps"][0]["kv_allocation_s"] is not None]
+            cold_kv.append((seq, MODELS[models[0]], len(b1_values),
+                            fmt(median(b1_values) if b1_values else None), len(l2_values),
+                            fmt(median(l2_values) if l2_values else None)))
+        parts.append("首段 GPU KV 分配取最早 rank 开始到最晚 rank 结束。B1 按显存利用率自动计算预算，"
+                     "Sleep L2 固定每 rank 16 GiB。池初始化、LMCache 注册和 Backend 预热各有独立接点。"
+                     "B1 的旧 GPU KV 释放起点缺失，严格的清理至新 KV 就绪跨度为 null。")
+        parts.append(table(["序列", "冷启动模型", "大池 B1 n", "B1 中位数（s）",
+                            "Sleep L2 n", "L2 中位数（s）"], cold_kv))
         for run in rounds:
             rid = run["run"]
             base = f"large-pool-20261114/sleep-runs/{rid}"

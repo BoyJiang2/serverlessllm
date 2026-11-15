@@ -266,6 +266,14 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
 | S2 | GLM-5.1-FP8 → DeepSeek-V4-Pro → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → GLM-5.1-FP8 | 0 | 3 |
 | S3 | DeepSeek-V4-Pro → Kimi-K2.6 → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → DeepSeek-V4-Pro | 0 | 3 |
 
+首段 GPU KV 分配取最早 rank 开始到最晚 rank 结束。B1 按显存利用率自动计算预算，Sleep L2 固定每 rank 16 GiB。池初始化、LMCache 注册和 Backend 预热各有独立接点。B1 的旧 GPU KV 释放起点缺失，严格的清理至新 KV 就绪跨度为 null。
+
+| 序列 | 冷启动模型 | 大池 B1 n | B1 中位数（s） | Sleep L2 n | L2 中位数（s） |
+| --- | --- | --- | --- | --- | --- |
+| S1 | Kimi-K2.6 | 3 | 12.016 | 1 | 0.210 |
+| S2 | GLM-5.1-FP8 | 3 | 7.846 | 0 | — |
+| S3 | DeepSeek-V4-Pro | 3 | 12.422 | 0 | — |
+
 ### S1 第 1 轮 · 通过
 
 `B2-S1-r1-20261115T193956Z` · [验收原件](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/qualification.json) · [qjhs003 原始证据索引](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/evidence-index.csv)
