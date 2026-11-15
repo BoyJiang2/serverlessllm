@@ -30,4 +30,6 @@ L2 休眠权重无 CPU 备份。前置使用上一轮 Kimi 成功重载采样峰
 
 [Sleep Backend、runner 和 allocator 副本生成脚本](prepare_sleep_timing.py)
 
+运行后用 `python3 recompute_sleep.py /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-sleep-readiness-20261116-aligned/runs` 重算。轮次级资格取原始回执，可服务前跨度的有效样本数按指标单独算。旧模型权重与 KV 的释放分别从各自标签的首次解除映射调用计时，目标端按首次 load 或 L2 wake 分别取权重与 KV 就绪接点。八 rank 不齐的包络保留 null。重算入口已用三个历史 Worker 的六组真实首次 load 阶段记录和替身 allocator 日志验证，当前路径尚无新轮回执。
+
 [历史 L1 容量证据](../B2-L1-RAM-BOUNDARY.md) · [历史 B2 与 Kimi L2](../report.md#b2--原生-sleep--wake)
