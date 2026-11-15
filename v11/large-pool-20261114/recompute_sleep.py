@@ -29,20 +29,28 @@ def allocator_span(path, operation, tag, lower, upper):
 
 
 def span(rows):
-    complete = {row["rank"] for row in rows} == set(range(8))
+    missing = sorted(set(range(8)) - {row["rank"] for row in rows})
+    complete = not missing
     return dict(rows=rows, begin_ns=min(row["begin_ns"] for row in rows) if complete else None,
-                end_ns=max(row["end_ns"] for row in rows) if complete else None)
+                end_ns=max(row["end_ns"] for row in rows) if complete else None,
+                missing_rank_pairs=missing)
 
 
 def load_span(worker, phase, run_id, ready):
     waiting = read(worker / "waiting.json")["ns"]
     rows = []
+    coverage = {"begin": set(), "end": set()}
     for path in sorted((worker / "events").glob("*.jsonl")):
         events = [json.loads(line) for line in path.read_bytes().splitlines()]
+        for edge, ranks in coverage.items():
+            ranks.update(event["rank"] for event in events if event["name"] == phase + "_" + edge)
         for x in events:
             if x["name"] != phase + "_begin":
                 continue
-            y, = [y for y in events if y["name"] == phase + "_end" and y["rank"] == x["rank"]]
+            ends = [y for y in events if y["name"] == phase + "_end" and y["rank"] == x["rank"]]
+            if not ends:
+                continue
+            y, = ends
             assert x["run_id"] == y["run_id"] == run_id
             assert all(x[k] == y[k] for k in ("pid", "process_start_ticks", "boot_id",
                                               "time_namespace", "clock_id"))
@@ -50,7 +58,8 @@ def load_span(worker, phase, run_id, ready):
             rows.append(dict(rank=x["rank"], begin_ns=x["monotonic_ns"], end_ns=y["monotonic_ns"],
                              source=str(path)))
     assert len(rows) == len({row["rank"] for row in rows})
-    return span(rows)
+    return dict(span(rows), missing_begin_ranks=sorted(set(range(8)) - coverage["begin"]),
+                missing_end_ranks=sorted(set(range(8)) - coverage["end"]))
 
 
 def seconds(begin, end):
@@ -72,6 +81,7 @@ def collect(run, result):
             kv = allocator_span(worker / "worker.log", "gpu_create_map", "kv_cache",
                                 wake["kv_wake_begin_ns"], wake["kv_ready_ns"])
             kv_ready = wake["kv_ready_ns"] if kv["end_ns"] is not None else None
+            weight = None
         else:
             weight = load_span(worker, "full_weight_load", run.name, ready)
             weight_begin, weight_ready = weight["begin_ns"], weight["end_ns"]
@@ -86,7 +96,7 @@ def collect(run, result):
                           weight_ready_ns=weight_ready, kv_ready_ns=kv_ready,
                           load_or_wake_weight_s=seconds(weight_begin, weight_ready),
                           kv_allocation_s=seconds(kv["begin_ns"], kv["end_ns"]),
-                          gpu_kv=kv, sleep_release=release, wake_phases=wake,
+                          gpu_kv=kv, full_weight_load=weight, sleep_release=release, wake_phases=wake,
                           kv_switch_s=seconds(old["kv_cache"]["begin_ns"], kv_ready) if old else None,
                           weight_switch_s=seconds(old["weights"]["begin_ns"], weight_ready) if old else None,
                           host_kv="not_applicable"))
