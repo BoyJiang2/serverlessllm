@@ -12,4 +12,8 @@ L2 休眠权重无 CPU 备份。前置使用上一轮 Kimi 成功重载采样峰
 
 首段使用对应模型的原生 SafeTensors 冷页准入。后续首次出现的目标原生 load，回访目标才从原 Worker wake。对 L2 独立记录旧 GPU KV 释放、权重映射与 checkpoint reload、GPU KV 重建、可服务回执和业务金标。L1 若迁移到具备容量的节点，另记备份与恢复的起止和有效字节。两者均无 LMCache，注册和 Host KV 清理为不适用。当双方端点齐全时比较墙钟跨度，原历史热度和显存配额差异单列。每机授权窗口内先各做 S1/S2/S3 一次，并在通过后补三次独立重复。
 
+只读核对原生容器挂载及 checkpoint 索引，Kimi、GLM、V4 分别有 64、142、64 个分片，所列文件均存在。此检查只验证文件清单，冷页准入在首段放行前执行。Sleep Backend 的独立副本已在 qjhs003 编译，分别记录 sleep 调用边界、L2 权重映射、checkpoint 重载及 KV 恢复边界。原生 sleep 调用只提供整段接点，旧 GPU KV 释放细分仍待 allocator 打点。当前副本尚待接入 S1/S2/S3 runner 和验证实际八 rank 回执。
+
+[Sleep Backend 计时副本生成脚本](prepare_sleep_timing.py)
+
 [历史 L1 容量证据](../B2-L1-RAM-BOUNDARY.md) · [历史 B2 与 Kimi L2](../report.md#b2--原生-sleep--wake)
