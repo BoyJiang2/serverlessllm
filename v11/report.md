@@ -2,282 +2,240 @@
 
 ## 实验结论
 
-| 路径 | 样本 | 实验结论 |
-| --- | --- | --- |
-| A · 常驻权重 Store | 固定序列 7 段 | 三模型均返回正确结果。六次切换均发生路径驱逐和权重重读，验证了常驻 Store 的空间复用。 |
-| B1 · Store + Host KV | 原版正式轮 7 段 | 七段均观测到 Host KV 实际写入并在清理后归零，沿用原版正式轮结论。 |
-| B2-L1 · Sleep + CPU 权重备份 | V4 单模型，1 次唤醒 | 原 Worker 唤醒后通过金标，单份 CPU 权重备份为 820.42 GiB。 |
-| B2-L2 · Sleep + checkpoint 重载 | 同序列 7 段，其中 4 次唤醒 | 三模型金标通过、PID 连续，记录的 CPU 权重备份为 0。四次唤醒的重载 RPC 占唤醒时间的 99.2%–99.9%。 |
+A 和 B1 各完成同一固定序列的七段业务校验。A 验证常驻权重 Store 的空间复用，B1 加入 LMCache Host KV 写入与清理。B2-L1 验证 V4 单模型的 CPU 备份唤醒，B2-L2 验证原 Worker 从 checkpoint 恢复。Kimi 单模型补测在 1664 GiB 容器上限下通过。
 
-## 实验设置
+qjhs003 使用 8×H20 和 TP8。七段为 Kimi → GLM → V4 → GLM → Kimi → V4 → Kimi。B1 正文、表和图统一使用 **052724Z**，带 HMA 补丁的 LMCache 0.5.6。144041Z 保留为历史证据。图的序号从 1 开始，原始目录从 00 开始。
 
-qjhs003，8×H20，TP8。A 与 B2-L2 各取一轮完整七段，顺序均为 Kimi → GLM → V4 → GLM → Kimi → V4 → Kimi。A 使用 vLLM 0.20.1。A 与 B2-L2 最终八卡全零采样分别覆盖 60.845 和 61.237 秒。A/B2 表格从 1 开始编号，原始记录从 0 开始。B1 沿用原版正式轮及其统计口径。
+**计时口径。** t2 是控制器放行 Backend 启动的 CLOCK_MONOTONIC 时间。t4_first 是有配对通过金标的首个完整业务响应的 received_ns，经段目录、模型和请求 ID 绑定。归档 Backend 的 boot ID 和 time namespace 与同一启动周期的 qjhs003 宿主读回一致，Worker 事件也逐条核对。t4_all 沿用原 t4，表示控制器观察到全套业务响应及检查文件，包含轮询。B1 的 kv_fill 在全套业务之后。B2 Wake 到唤醒回执结束，金标随后验证。
 
-## 各组基线怎么读
+## A · 常驻权重 Store
 
-| 基线 | 权重和 KV 从哪里来 | 用来回答什么 |
-| --- | --- | --- |
-| A · 常驻 Store | 每段启动新 Backend，从同一权重 Store 恢复。本轮七段权重池均未命中。 | 只走权重 Store 的固定序列切换耗时及空间复用。 |
-| B1 · Store + Host KV | 每段仍启动新 Backend，从同一 Store 恢复权重。LMCache 在请求期间写入主机 KV，段末清理，实测零命中。 | 在切换过程中验证 Host KV 确实写入并清零。大池复验单列容量、首段 SF 冷启动及三种序列。 |
-| B2-L1 · 原生 Sleep | 权重留有 CPU 备份，唤醒时搬回 GPU，保留原 Worker。 | 单模型唤醒成本，以及主机权重备份的容量代价。 |
-| B2-L2 · 原生 Sleep | 权重无 CPU 备份，唤醒时由原 Worker 从 checkpoint 重载，再恢复 GPU KV 分配。 | 保留原 Worker 的 checkpoint 重载耗时及唤醒后金标。历史正式轮用了 V4 overlay。 |
+### 数据 1 · 启动和切换
 
-A、B1 的业务指标止于首个正确完整响应。B2 的 Wake 列止于唤醒回执，金标随后验收。历史 SF 冷／热读、Store 冷读与池命中的准入条件见 B1 的历史条件表。
+| 段 | 首个请求 | t4_first − t2（s） | t4_all − t2（s） | 全套切换扣观察（s） |
+| --- | --- | --- | --- | --- |
+| 00-K-kimi | arithmetic | 234.321 | 237.748 | — |
+| 01-G-glm | business_arithmetic | 483.931 | 492.927 | 509.053 |
+| 02-D-v4 | business | 467.579 | 475.364 | 491.401 |
+| 03-G-glm | business_arithmetic | 490.431 | 499.480 | 513.588 |
+| 04-K-kimi | arithmetic | 234.546 | 237.937 | 256.068 |
+| 05-D-v4 | business | 478.496 | 486.665 | 504.440 |
+| 06-K-kimi | arithmetic | 233.245 | 236.709 | 254.107 |
 
-## A · 常驻 Store
+七段首个响应均值 **374.650 s**，全套均值 **380.976 s**。全套切换由上一段 t4_all 计至本段 t4_all，另扣原协议观察时间。
 
-### 数据 1 与图 1 · 激活及切换耗时
+![A 启动图](figures/a-activation.png)
 
-激活耗时从本段激活到首个正确完整响应，包含权重恢复、引擎初始化和推理。切换耗时从上一段正确响应到本段正确响应，表中另扣协议观察时间。首段是首次启动，切换列留空。
+### 数据 2 · 权重 Store 状态
 
-| 段 | 模型 | 激活至正确（s） | 切换扣除观察（s） |
-| --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 237.748 | — |
-| 2 | GLM-5.1-FP8 | 492.927 | 509.053 |
-| 3 | DeepSeek-V4-Pro | 475.364 | 491.401 |
-| 4 | GLM-5.1-FP8 | 499.48 | 513.588 |
-| 5 | Kimi-K2.6 | 237.937 | 256.068 |
-| 6 | DeepSeek-V4-Pro | 486.665 | 504.44 |
-| 7 | Kimi-K2.6 | 236.709 | 254.107 |
-
-![图 1 A 激活至首个正确响应](figures/a-activation.png)
-
-七段激活均值 **381.0 s**，六次切换扣除观察后均值 **421.4 s**。本轮七段均为权重池未命中，适合作为同序列的重读基线。
-
-### 数据 2 与图 2 · 权重读取和空间复用
-
-| 段 | 模型 | 读取（GiB） | 命中（GiB） | 分配块 | 归还块 | 驱逐路径 |
+| 段 | cache_state | 命中（GiB） | 读取（GiB） | 分配块 | 归还块 | 驱逐路径 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 574.63 | 0.00 | 18392 | 0 | 0 |
-| 2 | GLM-5.1-FP8 | 710.16 | 0.00 | 22728 | 9196 | 4 |
-| 3 | DeepSeek-V4-Pro | 817.45 | 0.00 | 26552 | 26242 | 10 |
-| 4 | GLM-5.1-FP8 | 710.16 | 0.00 | 22728 | 22238 | 302 |
-| 5 | Kimi-K2.6 | 574.63 | 0.00 | 18392 | 18519 | 199 |
-| 6 | DeepSeek-V4-Pro | 817.45 | 0.00 | 26552 | 27999 | 11 |
-| 7 | Kimi-K2.6 | 574.63 | 0.00 | 18392 | 16819 | 217 |
+| 00-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 0 | 0 |
+| 01-G-glm | full_miss | 0.00 | 710.16 | 22728 | 9196 | 4 |
+| 02-D-v4 | full_miss | 0.00 | 817.45 | 26552 | 26242 | 10 |
+| 03-G-glm | full_miss | 0.00 | 710.16 | 22728 | 22238 | 302 |
+| 04-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 18519 | 199 |
+| 05-D-v4 | full_miss | 0.00 | 817.45 | 26552 | 27999 | 11 |
+| 06-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 16819 | 217 |
 
-![图 2 A 权重读取、块周转及路径驱逐](figures/a-store.png)
+[原时间戳](runs/A-seq-7-agents-r1-20261113T035857Z/switch-events.csv) · [原验收](runs/A-seq-7-agents-r1-20261113T035857Z/qualification.json)
 
-同一 Store PID 贯穿全序列。以第 4 段 V4 → GLM 为例，驱逐 302 条路径、归还 22,238 块并分配 22,728 块，GLM 重读后返回正确响应。路径数和池块数分别来自 Store 计数，文件读取量不区分 OS 页缓存和物理盘 I/O。
+![A 权重读取与池块](figures/a-store.png)
 
-[A 逐段数据](runs/A-seq-7-agents-r1-20261113T035857Z/switch-events.csv) · [A 验收回执](runs/A-seq-7-agents-r1-20261113T035857Z/qualification.json)
+## B1 · 常驻权重 Store + Host KV
 
-### 与历史冷读基准对照
+### 数据 1 · 启动和切换
 
-两侧均展示激活至首个正确业务响应的耗时，单位为秒。V11 A 按模型对七段实测取算术均值，包含首段 Kimi-K2.6。差值为 V11 A 减历史均值，负值表示本轮更快。
+| 段 | 首个请求 | t4_first − t2（s） | t4_all − t2（s） | 全套切换扣观察（s） |
+| --- | --- | --- | --- | --- |
+| 00-K-kimi | arithmetic | 247.894 | 251.360 | — |
+| 01-G-glm | business_arithmetic | 503.087 | 511.857 | 533.034 |
+| 02-D-v4 | business | 484.810 | 493.011 | 515.917 |
+| 03-G-glm | business_arithmetic | 484.841 | 493.980 | 523.598 |
+| 04-K-kimi | arithmetic | 238.609 | 241.962 | 262.912 |
+| 05-D-v4 | business | 484.789 | 492.899 | 514.589 |
+| 06-K-kimi | arithmetic | 241.579 | 244.918 | 272.810 |
 
-| 模型 | A 段数 | A 均值 | 历史对照条件 | 历史样本数 | 历史均值 | 差值 |
-| --- | ---: | ---: | --- | ---: | ---: | ---: |
-| Kimi-K2.6 | 3 | 237.465 | Store 冷读 | 8 | 241.266 | -3.801 |
-| GLM-5.1-FP8 | 2 | 496.204 | SafeTensors 冷读 | 6 | 448.496 | +47.708 |
-| DeepSeek-V4-Pro | 2 | 481.014 | SafeTensors 冷读 | 9 | 556.222 | -75.207 |
+七段首个响应均值 **383.659 s**，全套均值 **389.998 s**。全套切换由上一段 t4_all 计至本段 t4_all，另扣原协议观察时间。
 
-Kimi-K2.6 对照历史 Store 冷读，因为两侧都走 Store 权重文件读取。GLM-5.1-FP8 和 DeepSeek-V4-Pro 以历史原生 SafeTensors 冷读作为替代方案的参照。本轮 A 七段均从常驻 Store 的权重文件读取，操作系统页缓存冷暖未逐段验证。两批的请求和计时端点有差异，差值只用于描述耗时，不估算 Store 的独立收益。[历史三模型报告 · 图 1](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md)
+![B1 启动图](figures/a-b1-sequence.png)
 
-## B1 组结果（Host KV 层）
+### 数据 2 · 权重 Store 状态
 
-**正式轮 `144041Z` 通过，7/7 段均观测到 Host KV 实际写入并在清理后归零。** 该轮使用固定 vLLM 0.20.1 和带 HMA 补丁的 LMCache 0.5.5。[正式验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json)
-
-顺序为 Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6。
-
-SLLM Store 为每个新 Backend 恢复模型权重。vLLM 在本次启动时为 GPU KV 分配空间，LMCache 在请求期间接收 Host KV 写入。旧 Backend 退出后，控制器清理 Host KV，再启动下一个 Backend。本轮实测 Host KV 命中为 0 token。
-
-**本轮测的加载条件**
-
-B1 测的是 **同一个常驻 SLLM Store 上的三模型切换，加上 LMCache Host KV 写入和清理**。第 1 段从空 Store 权重池加载 Kimi-K2.6。第 2–7 段保留同一 Store 进程与权重池，按固定顺序驱逐、分配及读取。每段使用新建的 vLLM Backend 和 GPU KV。Host KV 在每段退出后清零，本轮实测 Host KV 命中 token 为 0。
-
-本轮没有按历史四条件逐段重建缓存状态，也没有逐段验证操作系统页缓存冷暖。首段可标为「空 Store 池首次加载」，后六段标为「常驻 Store 序列切换」。所有段均走 Store 权重路径。以下四条件仅用于说明历史口径。
-
-| 历史条件 | 历史实验的启动前状态 | 本轮 B1 的对应关系 |
-| --- | --- | --- |
-| SF 冷读 | 原生 SafeTensors，按历史协议完成冷页准入 | 未测 |
-| SF 热读 | 原生 SafeTensors，按历史协议验证热页 | 未测 |
-| Store 冷读 | 使用 Store 权重路径，按单次实验协议完成冷读准入 | 首段从空 Store 权重池加载 |
-| Store 池命中 | 启动前已填入并确认目标权重驻留 | 后六段是自然切换，未设置独立的预填池条件 |
-
-历史四条件的「启动至首个正确业务响应」见 [三模型历史报告](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md)。下表仅列 `144041Z` 的逐段实测。
-
-**加载与切换时间**
-
-**Figure 1. B1 Activation and Model Switch Latency**
-
-![Figure 1. B1 Activation and Model Switch Latency](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-timing.png)
-
-| 段 | 模型 | 激活至正确响应 (s) | 首 token (s) | 切换含观察 (s) | 切换不含观察 (s) | 观察 (s) |
+| 段 | cache_state | 命中（GiB） | 读取（GiB） | 分配块 | 归还块 | 驱逐路径 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 262.544 | 258.581 | — | — | 60.000 |
-| 2 | GLM-5.1-FP8 | 506.107 | 493.346 | 585.680 | 525.680 | 60.000 |
-| 3 | DeepSeek-V4-Pro | 492.280 | 480.051 | 573.875 | 513.875 | 60.000 |
-| 4 | GLM-5.1-FP8 | 490.297 | 477.949 | 580.686 | 520.686 | 60.000 |
-| 5 | Kimi-K2.6 | 244.740 | 240.833 | 329.872 | 269.872 | 60.000 |
-| 6 | DeepSeek-V4-Pro | 500.722 | 488.921 | 582.334 | 522.334 | 60.000 |
-| 7 | Kimi-K2.6 | 237.713 | 233.797 | 323.909 | 263.909 | 60.000 |
+| 00-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 0 | 0 |
+| 01-G-glm | full_miss | 0.00 | 710.16 | 22728 | 9196 | 4 |
+| 02-D-v4 | full_miss | 0.00 | 817.45 | 26552 | 26242 | 10 |
+| 03-G-glm | partial_hit | 88.77 | 621.39 | 19887 | 19397 | 301 |
+| 04-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 18519 | 199 |
+| 05-D-v4 | full_miss | 0.00 | 817.45 | 26552 | 27999 | 11 |
+| 06-K-kimi | full_miss | 0.00 | 574.63 | 18392 | 16819 | 217 |
 
-激活至正确响应包含 Store 恢复、引擎初始化与推理。切换从上一模型正确响应到下一模型正确响应。首段没有上一模型，因此切换指标缺测。
+[原时间戳](runs/B1-seq-7-agents-r1-20261113T052724Z/switch-events.csv) · [原验收](runs/B1-seq-7-agents-r1-20261113T052724Z/qualification.json)
 
-**加载阶段与 Host KV 清理**
+### B1 填充与旧 Backend 退出
 
-| 段 | 模型 | 上一正确响应至 Backend 退出 (s) | 退出至下一激活 (s) | 激活至引擎就绪 (s) | 就绪至首 token (s) | 首 token 至正确响应 (s) | 本段退出后 Host KV clear (s) |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | — | — | 257.535 | 1.046 | 3.963 | 0.002 |
-| 2 | GLM-5.1-FP8 | 11.980 | 67.594 | 485.877 | 7.469 | 12.761 | 0.002 |
-| 3 | DeepSeek-V4-Pro | 12.938 | 68.657 | 464.242 | 15.809 | 12.228 | 0.001 |
-| 4 | GLM-5.1-FP8 | 21.494 | 68.895 | 467.063 | 10.886 | 12.348 | 0.001 |
-| 5 | Kimi-K2.6 | 14.788 | 70.343 | 239.932 | 0.901 | 3.907 | 0.002 |
-| 6 | DeepSeek-V4-Pro | 11.731 | 69.882 | 473.682 | 15.239 | 11.801 | 0.002 |
-| 7 | Kimi-K2.6 | 18.142 | 68.054 | 232.905 | 0.892 | 3.916 | 0.002 |原始切换表中，`t0` 是上一段正确响应，`t1` 是上一 Backend 退出，`t2` 是本段激活，`t3` 是引擎就绪，`t3_5` 是首 token，`t4` 是本段正确响应。退出至下一激活包含轮间观察等控制器动作。最后一列是本段退出后的独立 clear 调用耗时。
+16 GiB Host KV 池在准备阶段初始化。Backend 就绪后先跑业务金标，再以 kv_fill 推理请求生成 KV，验证 Host 写入和清理。七段 Host KV 命中均为 0 token。
 
-**Store 权重缓存与 LMCache Host KV**
+| 下一段 | A t0→t1（s） | B1 t0→t1（s） | A t1→t2（s） | B1 t1→t2（s） | B1 上一段 kv_fill 总长（s） | B1 落在 t0→t1 的 kv_fill（s） |
+| --- | --- | --- | --- | --- | --- | --- |
+| 01-G-glm | 8.426 | 10.529 | 67.700 | 70.648 | 0.920 | 0.774 |
+| 02-D-v4 | 8.879 | 14.935 | 67.158 | 67.971 | 4.283 | 4.237 |
+| 03-G-glm | 6.623 | 21.446 | 67.485 | 68.173 | 12.864 | 12.775 |
+| 04-K-kimi | 10.128 | 12.983 | 68.003 | 67.966 | 4.271 | 4.177 |
+| 05-D-v4 | 9.828 | 13.736 | 67.947 | 67.954 | 0.871 | 0.837 |
+| 06-K-kimi | 8.776 | 19.548 | 68.622 | 68.345 | 12.906 | 12.806 |
 
-**Figure 2. B1 Store Weight Reads and Block Allocation**
+t0 等于上一段 t4_all，t1 是旧 Backend 退出。以 max(0, min(t1, fill_end) − max(t0, fill_start)) 计算实际相交时长。
 
-![Figure 2. B1 Store Weight Reads and Block Allocation](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-store.png)
+| 段 | Host KV 峰值（MiB） | 提交 token | 命中 token | 清理后字节 |
+| --- | --- | --- | --- | --- |
+| 00-K-kimi | 34.31 | 512 | 0 | 0 |
+| 01-G-glm | 48.91 | 512 | 0 | 0 |
+| 02-D-v4 | 47.08 | 512 | 0 | 0 |
+| 03-G-glm | 48.91 | 512 | 0 | 0 |
+| 04-K-kimi | 34.31 | 512 | 0 | 0 |
+| 05-D-v4 | 47.08 | 512 | 0 | 0 |
+| 06-K-kimi | 34.31 | 512 | 0 | 0 |
 
-| 段 | 模型 | 读取 (GiB) | 分配块 | 归还块 | 驱逐路径 | Host KV 峰值 (MiB) | clear 前 (MiB) | clear 后 (MiB) | clear (s) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 574.63 | 18392 | 0 | 0 | 34.31 | 34.31 | 0.00 | 0.002 |
-| 2 | GLM-5.1-FP8 | 710.16 | 22728 | 9196 | 4 | 48.91 | 48.91 | 0.00 | 0.002 |
-| 3 | DeepSeek-V4-Pro | 817.45 | 26552 | 26242 | 10 | 47.08 | 47.08 | 0.00 | 0.001 |
-| 4 | GLM-5.1-FP8 | 621.39 | 19887 | 19397 | 301 | 48.91 | 48.91 | 0.00 | 0.001 |
-| 5 | Kimi-K2.6 | 574.63 | 18392 | 18519 | 199 | 34.31 | 34.31 | 0.00 | 0.002 |
-| 6 | DeepSeek-V4-Pro | 817.45 | 26552 | 27999 | 11 | 47.08 | 47.08 | 0.00 | 0.002 |
-| 7 | Kimi-K2.6 | 574.63 | 18392 | 16819 | 217 | 34.31 | 34.31 | 0.00 | 0.002 |
+![B1 Host KV 写入与清理](figures/b1-host-kv.png)
 
-Store 权重池配置为 1 TiB、每块 32 MiB。LMCache Host KV L1 配置为 16 GiB、每 chunk 256 token。Store 读取与块分配来自权重池账本，Host KV 峰值来自独立的 LMCache 采样。
+### A 与 B1 的逐段差值
 
-**引擎加载与 KV 容量**
+| 段 | 首个响应 B1−A（s） | 全套 B1−A（s） |
+| --- | --- | --- |
+| 00-K-kimi | 13.573 | 13.612 |
+| 01-G-glm | 19.156 | 18.930 |
+| 02-D-v4 | 17.230 | 17.647 |
+| 03-G-glm | -5.589 | -5.500 |
+| 04-K-kimi | 4.063 | 4.025 |
+| 05-D-v4 | 6.294 | 6.234 |
+| 06-K-kimi | 8.335 | 8.209 |
 
-**Figure 3. B1 Host KV Writes and GPU KV Budget**
+B1 的 03-G-glm 命中 rank 6 的 **88.77 GiB**，读取 **621.39 GiB**。A 对应段为全未命中，读取 **710.16 GiB**。V4 的 gpu_memory_utilization 为 A **0.9**、B1 **0.76**。读取状态、显存配置和填充等差异共同影响观测，无法单独量化 LMCache 成本。
 
-![Figure 3. B1 Host KV Writes and GPU KV Budget](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-kv.png)
+## 八 rank 权重阶段（秒）
 
-| 段 | 模型 | Rank 0 加载日志 (s) | Rank 0 可用于 GPU KV (GiB) | 引擎 GPU KV 容量 (token) | 2048-token 理论并发 | Host STORE 提交数 | Host STORE 完成数 | Host KV 命中 token |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 92.712 | 52.49 | 802,080 | 391.64 | 1 | 1 | 0 |
-| 2 | GLM-5.1-FP8 | 120.676 | 34.25 | 16,384 | 8.00 | 1 | 1 | 0 |
-| 3 | DeepSeek-V4-Pro | 142.230 | 2.08 | 4,036 | 1.97 | 1 | 1 | 0 |
-| 4 | GLM-5.1-FP8 | 107.512 | 34.25 | 16,384 | 8.00 | 1 | 1 | 0 |
-| 5 | Kimi-K2.6 | 91.970 | 52.5 | 802,112 | 391.66 | 1 | 1 | 0 |
-| 6 | DeepSeek-V4-Pro | 145.929 | 2.08 | 4,036 | 1.97 | 1 | 1 | 0 |
-| 7 | Kimi-K2.6 | 93.075 | 52.5 | 802,112 | 391.66 | 1 | 1 | 0 |
+同一 run、时钟域和 Worker 身份内配对 begin/end。八 rank 齐全才计算最晚结束减最早开始。派生 JSON 提供逐 rank 起止、最大单 rank 时长和原始路径。破折号对应 null。
 
-加载时间取 vLLM Rank 0 的日志区间。GPU KV GiB 是引擎报告的可用预算，token 容量和理论并发来自 EngineCore。实际设备占用见逐卡采样。Host STORE 与 KV 命中按每段 LMCache 前后 Prometheus 计数器求差，首次出现的计数序列以 0 为起点，表中 — 表示后快照缺少该计数。
+| 组 | 段 | full_weight_load | weight_ingestion | quantization_postprocess |
+| --- | --- | --- | --- | --- |
+| A | 00-K-kimi | 94.175 | 91.587 | — |
+| A | 01-G-glm | 122.790 | 120.468 | 9.512 |
+| A | 02-D-v4 | 140.452 | 10.881 | 127.876 |
+| A | 03-G-glm | 123.747 | 120.694 | 13.945 |
+| A | 04-K-kimi | 93.944 | 91.386 | — |
+| A | 05-D-v4 | 144.642 | 12.867 | 131.900 |
+| A | 06-K-kimi | 94.442 | 91.871 | — |
+| B1 | 00-K-kimi | 94.320 | 91.793 | — |
+| B1 | 01-G-glm | 122.318 | 120.569 | 8.289 |
+| B1 | 02-D-v4 | 143.123 | 11.115 | 129.920 |
+| B1 | 03-G-glm | 107.739 | 105.624 | 89.057 |
+| B1 | 04-K-kimi | 94.472 | 91.868 | — |
+| B1 | 05-D-v4 | 144.199 | 10.587 | 129.880 |
+| B1 | 06-K-kimi | 99.747 | 92.407 | — |
 
-**Why DeepSeek-V4-Pro has a smaller GPU KV budget**
+| 组 | 模型 | full_weight_load 有效 n | weight_ingestion 有效 n | quantization_postprocess 有效 n |
+| --- | --- | --- | --- | --- |
+| A | Kimi-K2.6 | 3 | 3 | 0 |
+| A | GLM-5.1-FP8 | 2 | 2 | 2 |
+| A | DeepSeek-V4-Pro | 2 | 2 | 2 |
+| B1 | Kimi-K2.6 | 3 | 3 | 0 |
+| B1 | GLM-5.1-FP8 | 2 | 2 | 2 |
+| B1 | DeepSeek-V4-Pro | 2 | 2 | 2 |
 
-vLLM 先按每卡总显存与 `gpu_memory_utilization` 算出目标显存，再扣除权重、预跑测得的激活峰值和非 PyTorch 开销，以及适用时的 CUDA Graph 估算。该轮使用 eager 模式。DeepSeek-V4-Pro 的利用率设置为 **0.76**，另外两个模型为 **0.90**。按每卡约 139.8 GiB 算，0.76 对应约 **106.25 GiB**，比 0.90 少 **19.57 GiB**。两次 DeepSeek-V4-Pro 加载日志均显示 Rank 0 的加载区间显存增量为 **95.88 GiB**，预跑后引擎报告的可用 KV 预算为 **2.08 GiB**。加载日志增量与 profiler 的分项统计口径有别，现有证据未逐项给出各类扣减值。
+完整加载接点覆盖 Worker 调用的加载器 load_model()，包括构造与必要恢复步骤，设备初始化和 KV 分配在此窗口外。Kimi 摄入包住 load_dict_owned()，有单独的 restore_postprocess，缺少本表的 quantization_postprocess 接点。GLM 摄入包住 load_weights()，后处理包住 process_weights_after_loading()。V4 后处理包含分组权重恢复及 H2D，摄入未覆盖全部专家权重传输。重叠阶段各自展示。
 
-同一模型每次激活都使用相同的权重、并行和显存配置，并重新跑初始化 profiling，结果接近。图 3 下半部分逐段取 Rank 0 日志。Kimi-K2.6 三次为 **52.49 / 52.50 / 52.50 GiB**，GLM-5.1-FP8 两次均为 **34.25 GiB**，DeepSeek-V4-Pro 两次均为 **2.08 GiB**。后两组在日志的两位小数精度下相同。上半部分是独立采样的 CPU Host KV 占用。[vLLM 预算计算](https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/v1/worker/gpu_worker.py#L391-L425)
+[Kimi 加载器](../v7/vllm_kimi20_loader.py) · [GLM 加载器](../v7/vllm_glm20_loader.py) · [V4 加载接点](../v7/v7_trace.py)
 
-[加载日志及 LMCache 计数器原文](runs/B1-seq-7-agents-r1-20261112T144041Z/kv-loading-log-excerpts.txt)
+## 历史参照
 
-**激活与加载阶段资源采样**
+| 模型 | 条件 | 有效 n | A（s） | 提交 | 端点与准入 |
+| --- | --- | --- | --- | --- | --- |
+| Kimi-K2.6 | Store 冷读 | 8 | 241.266 | d3c10bd | 历史配对块注册至首个正确业务响应，独立 Store 冷读准入 |
+| GLM-5.1-FP8 | SF 冷读（C23） | 6 | 448.496 | d3c10bd | C23 B5–B10 配对块，注册至首个正确算术 HTTP 响应，独立冷读 |
+| GLM-5.1-FP8 | Store 冷读（v7，vLLM 0.20.1） | 1 | 599.712 | 15d9341 | 启动指令至首条算术正确 HTTP 响应，716 GiB 公共池及单次冷读准入 |
+| DeepSeek-V4-Pro | SF 冷读 | 9 | 556.222 | d3c10bd | NFS40 B2–B10，startup_command 至正确业务响应，NFS 冷页准入 |
+| DeepSeek-V4-Pro | Store 冷读 | 9 | 223.752 | d3c10bd | NFS40 B2–B10，startup_command 至正确业务响应，本地 XFS Store 冷读准入 |
 
-**Figure 4. B1 Peak Concurrent Memory Usage Across Eight GPUs**
+| V11 模型 | 每组 n | A 首个响应均值（s） | B1 首个响应均值（s） | A 全套均值（s） | B1 全套均值（s） |
+| --- | --- | --- | --- | --- | --- |
+| Kimi-K2.6 | 3 | 234.037 | 242.694 | 237.464 | 246.080 |
+| GLM-5.1-FP8 | 2 | 487.181 | 493.964 | 496.204 | 502.919 |
+| DeepSeek-V4-Pro | 2 | 473.038 | 484.800 | 481.014 | 492.955 |
 
-![Figure 4. B1 Peak Concurrent Memory Usage Across Eight GPUs](runs/B1-seq-7-agents-r1-20261112T144041Z/b1-gpu.png)
+历史逐次控制缓存。V11 A/B1 在常驻 Store 内自然复用或重读权重，OS 页缓存冷暖未逐段验证。V11 首个响应在 Backend 内记录，历史以服务/控制器接收为终点。审阅提到的 V4 236.737 s 在指定提交中无对应指标，已核实该提交的 Store 冷读 A 为 223.752 s。236.737 s 保留为待核值。
 
-| 段 | 模型 | GPU0 峰值 (MiB) | GPU1 峰值 (MiB) | GPU2 峰值 (MiB) | GPU3 峰值 (MiB) | GPU4 峰值 (MiB) | GPU5 峰值 (MiB) | GPU6 峰值 (MiB) | GPU7 峰值 (MiB) | 八卡同刻峰值 (GiB) | 宿主可用内存最低 (GiB) | Store RSS 峰值 (GiB) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 133657 | 133569 | 133569 | 133569 | 133567 | 133567 | 133567 | 133567 | 1043.59 | 722.20 | 1026.20 |
-| 2 | GLM-5.1-FP8 | 100453 | 100451 | 100451 | 100451 | 100451 | 100447 | 100451 | 100451 | 784.77 | 731.41 | 1026.21 |
-| 3 | DeepSeek-V4-Pro | 115467 | 115465 | 115465 | 115465 | 115465 | 115465 | 115465 | 115465 | 902.07 | 729.55 | 1026.23 |
-| 4 | GLM-5.1-FP8 | 100453 | 100451 | 100451 | 100451 | 100451 | 100447 | 100451 | 100451 | 784.77 | 730.85 | 1026.23 |
-| 5 | Kimi-K2.6 | 133657 | 133569 | 133567 | 133569 | 133567 | 133569 | 133565 | 133569 | 1043.59 | 695.80 | 1026.24 |
-| 6 | DeepSeek-V4-Pro | 115467 | 115465 | 115465 | 115465 | 115465 | 115465 | 115465 | 115465 | 902.07 | 729.14 | 1026.24 |
-| 7 | Kimi-K2.6 | 133655 | 133567 | 133569 | 133567 | 133567 | 133567 | 133565 | 133569 | 1043.58 | 689.13 | 1026.24 |
-
-GPU 数值取自 NVML 整卡显存采样，包含权重、GPU KV、工作区和运行时开销。八卡同刻峰值按每条采样先求和再取最大值。GPU KV 独占显存缺少可分离的实测值。
-
-[原始资源采样](runs/B1-seq-7-agents-r1-20261112T144041Z/resource-samples.csv) · [Store 块账本](runs/B1-seq-7-agents-r1-20261112T144041Z/store-ledger.csv)
-
-正式轮使用 vLLM 0.20.1 @132765e 与带 HMA 补丁的 LMCache 0.5.5 @05a013b。DeepSeek-V4-Pro 的 GPU memory utilization 为 0.76，Kimi-K2.6 和 GLM-5.1-FP8 为 0.90。最终八卡显存归零，释放观测记录为 59.504 秒。
-
-[验收回执](runs/B1-seq-7-agents-r1-20261112T144041Z/qualification.json) · [原始切换事件与 Host KV 清理耗时](runs/B1-seq-7-agents-r1-20261112T144041Z/switch-events.csv) · [补丁及运行身份](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-patch-identity.json) · [HMA 补丁](runs/B1-seq-7-agents-r1-20261112T144041Z/lmcache-hma.patch)
-
-### 早期尝试与失败记录
-
-早期尝试使用固定镜像，vLLM 0.20.1 的 `LMCacheMPConnector` 与 LMCache 0.5.6/0.5.7rc4
-的 MP server 无法完成 `register_kv_caches` 握手：server 端 `LayoutDescRegistry.register`
-收到 `world_size=0` 并拒绝（`ValueError: AttnWindowDesc: world_size must be >= 1, got 0`），
-worker 等满 300 s 超时后 engine init 失败，因此没有任何一次激活可以记录。
-
-逐次失败与修复记录：
-
-| run | 现象 | 根因 | 处理 |
-|---|---|---|---|
-| `…T092923Z` | 作废 | 遗留探针占用 9100/5555，KV 被写进外来 server | 端口预检 + 校验 tier 大小 |
-| `…T094324Z` | register 超时 | server 无 GPU 设备，无法接收 CUDA IPC handle | server 容器加 `--gpus` |
-| `…T100307Z` | register 超时 | `ModuleNotFoundError: cupy`（`lmcache_driven_transfer.py:483`） | 装 `cupy-cuda13x==14.2.0` |
-| `…T102728Z` | register 拒绝 | `AttnWindowDesc: world_size must be >= 1, got 0` | 当轮因协议错配终止 |
-
-预验收第 1 部分（`b1-preacceptance-part1.json`）已通过：`GET /status` 200、`POST /cache/clear {"tier":"l1"}` 200、`tier=l2` 400、`num_l2_adapters=0`、`memory_used_bytes` 可直接读取。该阶段只完成管理接口检查，随后才修复注册并验证真实写入。
+[GLM 历史参照](https://github.com/BoyJiang2/serverlessllm/blob/15d93417f24bdc00291c791d7f95bdd50dd7725e/comparison/evidence/three-model-final-20261108/REPORT.md) · [Kimi/V4 历史参照](https://github.com/BoyJiang2/serverlessllm/blob/d3c10bda437b29d821b4845ca6a79c39b00fb975/comparison/evidence/three-model-final-20261108/REPORT.md) · [V4 九条历史冷读样本](report-inputs/v4-historical-store-cold.json)
 
 ## B2 · 原生 Sleep / Wake
 
-### 数据 1 与图 B2-1 · L1 单模型唤醒与主机容量
+### B2-L1 · CPU 权重备份
 
-| 模型 | CPU 权重备份（GiB） | 首次 Sleep（s） | Wake（s） | 唤醒后金标 |
-| --- | ---: | ---: | ---: | --- |
-| DeepSeek-V4-Pro | 820.42 | 47.406 | 3.881 | 通过 |
+V4 单模型回到原 Worker，金标通过。CPU 权重备份 **820.42 GiB**，首次 Sleep **47.406 s**，Wake **3.881 s**。多模型 L1 受主机内存容量限制。
 
-![图 B2-1 V4 单模型 Sleep 和 Wake 耗时](figures/b2-l1-timing.png)
+![B2-L1 单模型](figures/b2-l1-timing.png)
 
-V4 单模型同 PID 唤醒成功。该轮最终全零采样为 59.858 秒，低于 60 秒严格门槛。1.9 TiB 主机上，Kimi 备份仍驻留时写入 GLM 备份，最低 `MemAvailable` 为 0.316 GiB，因此 L1 的结论限于单模型唤醒。
+### B2-L2 · 正式七段
 
-[L1 原始回执](runs/B2-B2-smoke-r1-20261111T113723Z/L1/level-result.json) · [主机容量证据](B2-L1-RAM-BOUNDARY.md)
+| 原段 | 模型 | 首次加载至就绪（s） |
+| --- | --- | --- |
+| 0 | Kimi-K2.6 | 774.181 |
+| 1 | GLM-5.1-FP8 | 829.322 |
+| 2 | DeepSeek-V4-Pro | 527.144 |
 
-### 数据 2 与图 B2-2 · L2 首次加载及原 Worker 唤醒
+| 原段 | 模型 | 唤醒至回执（s） | 重载 RPC（s） |
+| --- | --- | --- | --- |
+| 3 | GLM-5.1-FP8 | 247.854 | 245.934 |
+| 4 | Kimi-K2.6 | 2584.591 | 2582.761 |
+| 5 | DeepSeek-V4-Pro | 581.513 | 578.630 |
+| 6 | Kimi-K2.6 | 3066.760 | 3064.757 |
 
-| 段 | 模型 | 动作 | 动作至回执（s） | 重载 RPC（s） | 本段 Sleep（s） | Worker PID |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | Kimi-K2.6 | 首次加载 | 774.181 | — | 1.413 | 2405340 |
-| 2 | GLM-5.1-FP8 | 首次加载 | 829.322 | — | 1.489 | 2417938 |
-| 3 | DeepSeek-V4-Pro | 首次加载 | 527.144 | — | 1.748 | 2442464 |
-| 4 | GLM-5.1-FP8 | 唤醒 | 247.854 | 245.934 | 1.362 | 2417938 |
-| 5 | Kimi-K2.6 | 唤醒 | 2584.591 | 2582.761 | 1.448 | 2405340 |
-| 6 | DeepSeek-V4-Pro | 唤醒 | 581.513 | 578.630 | 1.976 | 2442464 |
-| 7 | Kimi-K2.6 | 唤醒 | 3066.760 | 3064.757 | 1.388 | 2405340 |
+首次加载 n=3，均值 **710.216 s**。唤醒 n=4，均值 **1620.179 s**。原 Worker PID 连续，全七段金标通过，权重 CPU 备份为零。V4 实际容器创建回执中的三条只读 bind 均指向 b2-v4-sink-router-overlay，包含 deepseek_v4.py、meta.py 和 v4_source_pins.json。
 
-![图 B2-2 B2-L2 首次加载和原 Worker 唤醒耗时](figures/b2-l2-wake.png)
+![B2-L2 首次加载及原 Worker 唤醒](figures/b2-l2-wake.png)
 
-L2 使用 checkpoint 重载，V4 使用独立 overlay。七段 Sleep 均值 **1.546 s**，四次 Wake 均值 **1620.2 s**。两次 Kimi 返回各耗时超过 2,500 s，且耗时主要落在重载 RPC。L2 证明了保留原 Worker 并恢复正确推理的可行性，当前实现的恢复耗时受 checkpoint 重载限制。表中动作耗时止于回执，金标在随后验证，与 A/B1 首个正确响应的时间端点不同。
+[正式回执](runs/B2-seq-7-agents-r1-20261113T012344Z/qualification.json) · [V4 容器挂载回执](runs/B2-seq-7-agents-r1-20261113T012344Z/L2/02-D-created.json)
 
-[L2 逐段验收与回执](runs/B2-seq-7-agents-r1-20261113T012344Z/qualification.json) · [L2 重载配置](runs/B2-seq-7-agents-r1-20261113T012344Z/diagnostic-config.json)
+### 11 月 15 日 Kimi L2 单模型诊断
 
-### Kimi L2 单模型诊断
+| 运行 | RAM 上限（GiB） | Wake（s） | 重载 RPC（s） | 验收 |
+| --- | --- | --- | --- | --- |
+| 031303Z | 1400 | — | — | rank 5 重载期间退出，Docker 记录 OOM |
+| 041505Z | 1664 | 1062.981 | 1061.138 | 八 rank 身份连续、四项原金标通过，正常退出 |
 
-2026-11-15 台北时间，qjhs003 上的 TP8 单模型补测完成首次金标与 L2 休眠。8 个 rank 均进入 checkpoint 重载及 `load_weights`，逐层重载初始化的八 rank 包络为 **0.061645 秒**。随后 rank 5 在加载期间异常退出，Docker 在同一时刻记录容器主机内存 OOM。加载、后处理及唤醒后金标均缺少完成回执。最终八卡连续归零 **61.074 秒**。该诊断单列，历史正式轮成功样本及统计沿用原值。
+031303Z 八 rank 重载初始化包络 0.061645 s，没有完整重载端点，最终全卡归零 61.074 s。041505Z 与失败轮及历史轮的 Kimi 引擎配置一致。相对历史 2584.591 s 和 3066.760 s，本轮 Wake 短 58.87% 和 65.34%。历史为三模型序列，本轮为 Kimi → Kimi，页缓存状态未对齐。
 
-[验收回执](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/qualification.json) · [八 rank 计时](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/trace-summary.json) · [Docker 事件](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/docker-events.jsonl)
+| 阶段 | 八 rank 包络（s） |
+| --- | --- |
+| reload | 1061.134 |
+| initialize | 0.062 |
+| load | 378.821 |
+| finalize | 786.200 |
 
-### Kimi L2 单模型复跑 · 1664 GiB 上限
+041505Z 唤醒窗口的同一采样点中，memory.current 为 **1630.47 GiB**，anon **1081.56 GiB**，file **543.34 GiB**。八 rank 同点 RssAnon（GiB）为 0=2.58, 1=238.02, 2=125.68, 3=2.42, 4=237.38, 5=233.89, 6=237.53, 7=2.43。原字段单位是 kB（KiB），审阅中的 131–249 GiB 混用了单位并只覆盖部分 rank。五个较高 rank 的区间为 125.68–238.02 GiB。共享页可同时记入多进程 RSS。
 
-同一组八 rank Worker 从 checkpoint 唤醒，四项原金标均通过，后端正常退出，八卡连续归零 **60.892 秒**。Wake 从控制器下发唤醒到成功回执中的完成时间，重载 RPC 来自回执中的 `reload_ns`。
+同点 workingset_refault_file 为 **184,923,939 页**，按宿主 4096 B 页大小折算 **705.43 GiB**。这是该容器 cgroup 从创建到采样点的累计文件页 refault 折算量，可重复计页。它与唯一扫描量、物理盘读字节以及唤醒窗口增量各有不同边界。收尾的进程读取计数仍增长。固定镜像的 layerwise.py 会延迟回放权重加载并处理、复制及恢复 kernel 张量，支持此处存在延迟处理的机制。各层内存占比仍缺分配级打点。1400 GiB 轮的 OOM 及 1664 GiB 轮越过旧上限的采样共同表明容量压力。
 
-| 样本 | 容器 RAM 上限（GiB） | Wake（s） | 重载 RPC（s） |
-| --- | ---: | ---: | ---: |
-| 历史七段 · 第 5 段 Kimi | 1400 | 2584.591 | 2582.761 |
-| 历史七段 · 第 7 段 Kimi | 1400 | 3066.760 | 3064.757 |
-| 本轮 Kimi → Kimi · 唤醒 | 1664 | **1062.981** | **1061.138** |
+[失败轮 Docker OOM](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/docker-events.jsonl) · [失败回执](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/qualification.json) · [失败轮八 rank 接点](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/trace-summary.json) · [复跑验收](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/audit.json) · [内存采样](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/memory-summary.json) · [阶段端点](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/trace-summary.json) · [收尾 I/O](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/finalizer-io-snapshots.txt) · [固定镜像源码](report-inputs/layerwise.py)
 
-本轮 Wake 分别短 **1521.610 秒（58.87%）**和 **2003.779 秒（65.34%）**。三个运行的 Kimi 引擎配置逐项一致，均为 vLLM 0.20.1、TP8、每 rank 16 GiB GPU KV。本轮只有 Kimi，历史两次唤醒发生在三模型序列，操作系统页缓存状态未对齐。差值描述实测耗时，无法单独归因于调高 RAM 上限。
+## 释放观察
 
-| 重载阶段 | 八 rank 主机时间包络（s） |
-| --- | ---: |
-| 初始化逐层重载 | 0.062 |
-| `model.load_weights` | 378.821 |
-| `finalize_layerwise_reload` | 786.200 |
-| Worker 重载全程 | 1061.134 |
+| run ID | 八卡归零且无计算进程 | 最终观察（s） | 严格 ≥60s | 原运行通过标记 | 原始采样数 |
+| --- | --- | --- | --- | --- | --- |
+| A-seq-7-agents-r1-20261113T035857Z | True | 60.845 | True | True | 49 |
+| B1-seq-7-agents-r1-20261113T052724Z | True | 60.866 | True | True | 49 |
+| B1-seq-7-agents-r1-20261112T144041Z | True | 59.504 | False | True | 48 |
+| B2-seq-7-agents-r1-20261113T012344Z | True | 61.237 | True | True | 50 |
+| B2-B2-smoke-r1-20261111T113723Z | True | 59.858 | False | True | 49 |
+| B2-Kimi-L2-diagnostic-r1-20261115T031303Z | True | 61.074 | True | False | 50 |
+| B2-Kimi-L2-memory-r1-20261115T041505Z | True | 60.892 | True | True | 49 |
 
-包络为最早开始到最晚结束。rank 间加载与收尾可重叠，各阶段包络不能相加。收尾期间仍采到文件页等待，八个 Worker 的系统读取计数继续上升。该阶段耗时包含延迟权重处理和读页，主机计时无法分离纯 GPU 耗时。
+144041Z 的 59.504 s 保留原值。实际资源回落和观察时长按各自原始记录核验，严格门槛为 60 秒。
 
-唤醒期容器 RAM **采样峰值 1630.47 GiB**，其中匿名内存 **1081.56 GiB**、文件类内存 **543.34 GiB**，OOM 和 OOM kill 计数均为零。新峰值比原上限高 **230.47 GiB**。上次 Docker OOM 与本轮样本支持 1400 GiB 的容量风险。具体是哪项分配推高匿名内存仍待定位。逐进程 RSS 峰值见内存证据，共享页可能同时计入多个进程。
+## 重算与证据
 
-[验收回执](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/audit.json) · [八 rank 阶段及嵌套计时](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/trace-summary.json) · [分阶段内存及进程 RSS](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/memory-summary.json) · [收尾 I/O 采样](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/finalizer-io-snapshots.txt) · [配置核对](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/config-comparison.json)
+仓库根目录运行 python v11/make_experiment_report.py。单独重绘可运行 python v11/plot_v11.py。生成数据、图和报告使用同一批输入。
 
-补采目录含原始回执、压缩日志、逐秒采样和 `repro/`。在补采目录执行 `python repro/audit.py .` 可核对验收与耗时。将 `worker.log.gz` 解包为 `L2/worker-K/worker.log`、将 `resource-samples.jsonl.gz` 解包到当前目录，再执行 `python repro/summarize.py .` 和 `python repro/summarize-memory.py .` 可重算两份摘要。
-
-## 重算
-
-在仓库根目录运行 `python v11/make_experiment_report.py`。脚本从链接中的 CSV 和 JSON 重算 A/B2 的表格和图，并校验 A 激活时间戳与 B2 金标及 PID 连续性。B1 正文从固定提交读取。
+[派生数据和逐 rank 起止](derived/report-data.json) · [运行清单](report-inputs/run-manifest.json) · [原始证据索引](report-inputs/evidence-index.csv.gz) · [三模型大池复验](large-pool-20261114/REPORT.md)
