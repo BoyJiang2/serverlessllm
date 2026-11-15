@@ -31,8 +31,15 @@ def allocator_span(path, operation, tag, lower, upper):
 def span(rows):
     missing = sorted(set(range(8)) - {row["rank"] for row in rows})
     complete = not missing
+    rank_seconds = {}
+    for rank in sorted({row["rank"] for row in rows}):
+        receipts = [row for row in rows if row["rank"] == rank]
+        rank_seconds[rank] = seconds(min(row["begin_ns"] for row in receipts),
+                                     max(row["end_ns"] for row in receipts))
     return dict(rows=rows, begin_ns=min(row["begin_ns"] for row in rows) if complete else None,
                 end_ns=max(row["end_ns"] for row in rows) if complete else None,
+                rank_envelope_s=rank_seconds,
+                max_rank_envelope_s=max(rank_seconds.values()) if complete else None,
                 missing_rank_pairs=missing)
 
 
@@ -98,6 +105,8 @@ def collect(run, result):
                           kv_allocation_s=seconds(kv["begin_ns"], kv["end_ns"]),
                           gpu_kv=kv, full_weight_load=weight, sleep_release=release, wake_phases=wake,
                           kv_switch_s=seconds(old["kv_cache"]["begin_ns"], kv_ready) if old else None,
+                          kv_release_to_service_ready_s=seconds(old["kv_cache"]["begin_ns"], ready)
+                          if old else None,
                           weight_switch_s=seconds(old["weights"]["begin_ns"], weight_ready) if old else None,
                           host_kv="not_applicable"))
         old = release
@@ -123,7 +132,8 @@ if __name__ == "__main__":
                 key = f"L{row['level']}-{row['sequence']}"
                 for step in row["steps"]:
                     groups.setdefault(f"{key}-{step['step']:02d}", []).append(step)
-    fields = ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s", "weight_switch_s")
+    fields = ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s", "weight_switch_s",
+              "kv_release_to_service_ready_s")
     summary = {key: {field: statistics([row[field] for row in rows]) for field in fields}
                for key, rows in groups.items()}
     print(json.dumps(dict(rounds=rounds, summary=summary), indent=2))
