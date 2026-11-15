@@ -382,7 +382,8 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)""")
     sleep_timing = ROOT / "large-pool-20261114/sleep-timing.json"
     if sleep_timing.is_file():
-        rounds = json.loads(sleep_timing.read_bytes())["rounds"]
+        sleep_data = json.loads(sleep_timing.read_bytes())
+        rounds = sleep_data["rounds"]
         parts.append("""## 同序列 Sleep L2 复验
 
 TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
@@ -409,6 +410,23 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                      "B1 的旧 GPU KV 释放起点缺失，严格的清理至新 KV 就绪跨度为 null。")
         parts.append(table(["序列", "冷启动模型", "大池 B1 n", "B1 中位数（s）",
                             "Sleep L2 n", "L2 中位数（s）"], cold_kv))
+        metrics = ("load_or_wake_weight_s", "kv_allocation_s", "weight_switch_s",
+                   "kv_switch_s", "kv_release_to_service_ready_s")
+        summaries = []
+        for seq, models in protocol["sequences"].items():
+            for step, model in enumerate(models):
+                stats = sleep_data["summary"].get(f"L2-{seq}-{step:02d}", {})
+                cells = [
+                    f"{row['n']} · {fmt(row['median'])} [{fmt(row['min'])}, {fmt(row['max'])}]"
+                    if (row := stats.get(field)) and row["n"] else "0 · —"
+                    for field in metrics
+                ]
+                summaries.append((seq, step + 1, MODELS[model], *cells))
+        parts.append("### 各序列与切换位置汇总\n\n"
+                     "单元格为有效 n · 中位数 [最小值, 最大值]，单位为秒。"
+                     "每项只计入通过轮次中具备该指标起止端点的观测。")
+        parts.append(table(["序列", "段", "模型", "权重准备", "GPU KV 分配",
+                            "权重切换", "KV 切换", "旧 KV 释放至可服务"], summaries))
         for run in rounds:
             rid = run["run"]
             base = f"large-pool-20261114/sleep-runs/{rid}"
