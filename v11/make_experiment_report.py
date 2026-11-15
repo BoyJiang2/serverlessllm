@@ -387,6 +387,12 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 
 TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
 """)
+        protocol = json.loads((sleep_timing.parent / "sleep-l2-protocol.json").read_bytes())
+        parts.append(table(["序列", "七段顺序", "已归档合格轮", "目标轮"],
+                           [(seq, " → ".join(MODELS[model] for model in models),
+                             sum(run["passed"] for run in rounds if run["sequence"] == seq),
+                             protocol["target_repetitions_per_sequence"])
+                            for seq, models in protocol["sequences"].items()]))
         for run in rounds:
             rid = run["run"]
             base = f"large-pool-20261114/sleep-runs/{rid}"

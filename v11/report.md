@@ -260,6 +260,12 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **820.42 GiB**，
 TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
 
 
+| 序列 | 七段顺序 | 已归档合格轮 | 目标轮 |
+| --- | --- | --- | --- |
+| S1 | Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6 | 1 | 3 |
+| S2 | GLM-5.1-FP8 → DeepSeek-V4-Pro → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → GLM-5.1-FP8 | 0 | 3 |
+| S3 | DeepSeek-V4-Pro → Kimi-K2.6 → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → DeepSeek-V4-Pro | 0 | 3 |
+
 ### S1 第 1 轮 · 通过
 
 `B2-S1-r1-20261115T193956Z` · [验收原件](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/qualification.json) · [qjhs003 原始证据索引](large-pool-20261114/sleep-runs/B2-S1-r1-20261115T193956Z/evidence-index.csv)
