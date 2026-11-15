@@ -7,6 +7,45 @@ import sys
 BACKEND_SHA256 = "4925ef47d3cf3bcada77a129dc3d1f5be89891d90e92f01e0f03a98a1fe88cb9"
 RUNNER_SHA256 = "29905f582ce60b5a4640ecb460ba5580aa5085410b9280b34240d4c4d2d74350"
 POOL_RUNNER_SHA256 = "4f0801143942b8e34ef804d96e5e2604bf79498ebc09e68f68edc63d56e882f6"
+ALLOCATOR_SHA256 = "7bfce5277dc508bcf1f0678ee97e349618418e09316d993c570caa1de78ac992"
+
+
+def prepare_allocator(path):
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == ALLOCATOR_SHA256
+    source = raw.decode()
+    start = source.index("    def sleep(")
+    end = source.index("    @contextmanager", start)
+    methods = source[start:end]
+    operations = {
+        "libcudart.cudaMemcpy(cpu_ptr, ptr, size_in_bytes)": "cpu_backup_copy",
+        "unmap_and_release(handle)": "gpu_unmap_release",
+        "create_and_map(handle)": "gpu_create_map",
+        "libcudart.cudaMemcpy(ptr, cpu_ptr, size_in_bytes)": "cpu_restore_copy",
+    }
+    for operation, phase in operations.items():
+        (line,) = [line for line in methods.splitlines() if line.strip() == operation]
+        indent = line[:len(line) - len(operation)]
+        lines = [
+            "_phase_start = _sleep_timing_clock()",
+            operation,
+            "_phase_end = _sleep_timing_clock()",
+            f"_sleep_timing_log({phase!r}, data.tag, handle[1], _phase_start, _phase_end)",
+        ]
+        methods = methods.replace(line, "\n".join(indent + line for line in lines))
+    helper = '''
+
+from time import monotonic_ns as _sleep_timing_clock
+
+
+def _sleep_timing_log(phase, tag, size, start_ns, end_ns):
+    rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else None
+    logger.info("sleep_allocator phase=%s tag=%s rank=%s bytes=%s start_ns=%s end_ns=%s",
+                phase, tag, rank, size, start_ns, end_ns)
+'''
+    source = source[:start] + methods + source[end:] + helper
+    compile(source, str(path), "exec")
+    return source
 
 
 def prepare(path):
@@ -67,6 +106,9 @@ def prepare_runner(path, large_pool):
         "\ndef native_input": "\nCAMPAIGN = pathlib.Path(__file__).resolve().parent\n\n" + helpers + "\n\ndef native_input",
         "(str(V11 / 'v11_sleep_backend.py'), '/control/script.py')":
             "(str(CAMPAIGN / 'v11_sleep_backend.py'), '/control/script.py')",
+        "    for source, target in mounts:": """    mounts.append((str(CAMPAIGN / 'cumem.py'),
+                   '/opt/sllm-v4/lib/python3.12/site-packages/vllm/device_allocator/cumem.py'))
+    for source, target in mounts:""",
         "os.environ.get('V11_B2_V4_SINK_OVERLAY') if key == 'D' else None":
             "str(V11 / 'b2-v4-sink-router-overlay/deepseek_v4.py') if key == 'D' else None",
         "'--memory', '1400g'": "'--memory', '1664g' if key == 'K' else '1400g'",
@@ -135,6 +177,11 @@ def prepare_runner(path, large_pool):
 
 if __name__ == "__main__":
     source, destination = map(Path, sys.argv[1:3])
-    text = prepare(source) if len(sys.argv) == 3 else prepare_runner(source, Path(sys.argv[3]))
+    if len(sys.argv) == 3:
+        text = prepare(source)
+    elif sys.argv[3] == "--allocator":
+        text = prepare_allocator(source)
+    else:
+        text = prepare_runner(source, Path(sys.argv[3]))
     with destination.open("x", encoding="utf-8", newline="\n") as out:
         out.write(text)
