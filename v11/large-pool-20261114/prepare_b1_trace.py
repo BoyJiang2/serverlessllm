@@ -33,6 +33,40 @@ def main(base, dest):
         (str(CAMPAIGN / 'v11_hbm_receipt.py'),
          '/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v11_hbm_receipt.py'),""",
     )
+    runner = replace(runner, "import collections\n", "import collections\nfrom datetime import datetime\n")
+    runner = replace(
+        runner,
+        "    args = parser.parse_args()",
+        """    parser.add_argument('--booking-start', required=True)
+    parser.add_argument('--booking-end', required=True)
+    args = parser.parse_args()
+    booking_start = datetime.fromisoformat(args.booking_start)
+    booking_end = datetime.fromisoformat(args.booking_end)
+    if booking_start.utcoffset() is None or booking_end.utcoffset() is None:
+        parser.error('booking timestamps require explicit UTC offsets')
+    start_wall_ns = round(booking_start.timestamp() * 1e9)
+    end_wall_ns = round(booking_end.timestamp() * 1e9)
+    now_wall_ns = time.time_ns()
+    now_monotonic_ns = time.monotonic_ns()
+    usable_ns = end_wall_ns - now_wall_ns - 480 * 10**9
+    if now_wall_ns < start_wall_ns or usable_ns <= 0:
+        parser.error('outside booking execution window, including 480s cleanup reserve')
+    booking_deadline_ns = now_monotonic_ns + usable_ns""",
+    )
+    runner = replace(
+        runner,
+        "        deadline_ns = time.monotonic_ns() + 14000 * 10 ** 9",
+        """        deadline_ns = min(booking_deadline_ns, now_monotonic_ns + 14000 * 10**9)
+        assert time.monotonic_ns() < deadline_ns, 'booking ended during precheck'
+        write(run_dir / 'booking.json', dict(start=args.booking_start, end=args.booking_end,
+              cleanup_reserve_s=480, guard_deadline_ns=deadline_ns,
+              observed_wall_ns=now_wall_ns, observed_monotonic_ns=now_monotonic_ns))""",
+    )
+    for launch in ("                lmc_cid, lmc_args = lmc_server_container",
+                   "            cid, store_args = store_container",
+                   "                cid_b, backend_args = backend_container"):
+        indent = launch[:len(launch) - len(launch.lstrip())]
+        runner = replace(runner, launch, indent + "assert time.monotonic_ns() < deadline_ns\n" + launch)
     backend = replace(inputs["v11_backend.py"].decode(), "        received = time.monotonic_ns()",
                       "        received = time.monotonic_ns()\n        received_wall = time.time_ns()")
     backend = replace(backend, "received_ns=received, response=response",

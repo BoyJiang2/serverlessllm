@@ -26,6 +26,6 @@
 
 本文件记录 CPU 前检。新轮执行及其验收结果尚待用户提供预约窗口。
 
-本次带显存回执的副本位于 qjhs003 的 /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b1-trace-hbm-20261116。存储去重及设备边界通过 CPU 测试，实际八 rank 回执待正式轮验收。
+本次带显存回执和预约校验的副本位于 qjhs003 的 /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b1-window-20261116。启动必须传入带时区的预约起止，沿用原容器守护期限和预约结束前 480 秒两个上限中较早者。480 秒预留用于停止、等待显存归零及至少 60 秒观察。过期、未开始及缺时区场景均在占卡前拒绝，已在 qjhs003 验证。存储去重及设备边界通过 CPU 测试，实际八 rank 回执待正式轮验收。
 
 [独立副本生成脚本](prepare_b1_trace.py) · [LMCache 事件采集](lmcache_store_trace.py) · [GPU Worker 存储回执](v11_hbm_receipt.py) · [CPU 重算](summarize_pilot.py)
