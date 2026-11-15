@@ -278,4 +278,16 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
 
 ![S1 第 1 轮可服务前切换跨度](figures/sleep-B2-S1-r1-20261115T193956Z.png)
 
+逐段 sleep 后采样。HBM 为八卡合计，RAM 为整机统计，PID 计数覆盖该轮仍存活的 Backend 容器。CPU 权重备份字节来自 allocator 回执。
+
+| 段 | 休眠模型 | HBM（GiB） | 可用 RAM（GiB） | 匿名页（GiB） | 存活 PID 数 | CPU 权重备份（B） |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Kimi-K2.6 | 19.426 | 1857.757 | 22.677 | 11 | 0 |
+| 2 | GLM-5.1-FP8 | 47.566 | 1840.812 | 37.799 | 22 | 0 |
+| 3 | DeepSeek-V4-Pro | 81.332 | 1819.201 | 57.769 | 33 | 0 |
+| 4 | GLM-5.1-FP8 | 86.270 | 1819.820 | 58.107 | 33 | 0 |
+| 5 | Kimi-K2.6 | 86.197 | 643.011 | 1232.622 | 33 | 0 |
+| 6 | DeepSeek-V4-Pro | 132.963 | 641.953 | 1233.162 | 33 | 0 |
+| 7 | Kimi-K2.6 | 132.963 | 579.123 | 1295.910 | 33 | 0 |
+
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py v11/large-pool-20261114/sleep-runs` 重算。[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)

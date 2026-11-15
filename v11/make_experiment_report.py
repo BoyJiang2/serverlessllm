@@ -407,6 +407,25 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             if run["passed"]:
                 parts.append(f"![{run['sequence']} 第 {run['rep']} 轮可服务前切换跨度]"
                              f"(figures/sleep-{rid}.png)")
+            residency = []
+            for step in run["steps"]:
+                sample = step["post_sleep_residency"]
+                if sample is None:
+                    continue
+                mem = sample["host_memory_kib"]
+                index = step["step"] + 1
+                residency.append((
+                    index, MODELS[step["model"]], fmt(sum(sample["gpu_used_mib"]) / 1024),
+                    fmt(mem["MemAvailable"] / 2**20), fmt(mem["AnonPages"] / 2**20),
+                    sum(len(pids) for pids in sample["processes"].values()),
+                    step["sleep_cpu_weight_backup_bytes"],
+                ))
+            if residency:
+                parts.append("逐段 sleep 后采样。HBM 为八卡合计，RAM 为整机统计，"
+                             "PID 计数覆盖该轮仍存活的 Backend 容器。CPU 权重备份字节来自 allocator 回执。")
+                parts.append(table(["段", "休眠模型", "HBM（GiB）", "可用 RAM（GiB）",
+                                    "匿名页（GiB）", "存活 PID 数", "CPU 权重备份（B）"],
+                                   residency))
         parts.append("从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py "
                      "v11/large-pool-20261114/sleep-runs` 重算。"
                      "[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)")
