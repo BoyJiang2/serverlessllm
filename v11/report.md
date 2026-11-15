@@ -251,6 +251,33 @@ L2 使用 checkpoint 重载，V4 使用独立 overlay。七段 Sleep 均值 **1.
 
 [验收回执](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/qualification.json) · [八 rank 计时](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/trace-summary.json) · [Docker 事件](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/docker-events.jsonl)
 
+### Kimi L2 单模型复跑 · 1664 GiB 上限
+
+同一组八 rank Worker 从 checkpoint 唤醒，四项原金标均通过，后端正常退出，八卡连续归零 **60.892 秒**。Wake 从控制器下发唤醒到成功回执中的完成时间，重载 RPC 来自回执中的 `reload_ns`。
+
+| 样本 | 容器 RAM 上限（GiB） | Wake（s） | 重载 RPC（s） |
+| --- | ---: | ---: | ---: |
+| 历史七段 · 第 5 段 Kimi | 1400 | 2584.591 | 2582.761 |
+| 历史七段 · 第 7 段 Kimi | 1400 | 3066.760 | 3064.757 |
+| 本轮 Kimi → Kimi · 唤醒 | 1664 | **1062.981** | **1061.138** |
+
+本轮 Wake 分别短 **1521.610 秒（58.87%）**和 **2003.779 秒（65.34%）**。三个运行的 Kimi 引擎配置逐项一致，均为 vLLM 0.20.1、TP8、每 rank 16 GiB GPU KV。本轮只有 Kimi，历史两次唤醒发生在三模型序列，操作系统页缓存状态未对齐。差值描述实测耗时，无法单独归因于调高 RAM 上限。
+
+| 重载阶段 | 八 rank 主机时间包络（s） |
+| --- | ---: |
+| 初始化逐层重载 | 0.062 |
+| `model.load_weights` | 378.821 |
+| `finalize_layerwise_reload` | 786.200 |
+| Worker 重载全程 | 1061.134 |
+
+包络为最早开始到最晚结束。rank 间加载与收尾可重叠，各阶段包络不能相加。收尾期间仍采到文件页等待，八个 Worker 的系统读取计数继续上升。该阶段耗时包含延迟权重处理和读页，主机计时无法分离纯 GPU 耗时。
+
+唤醒期容器 RAM **采样峰值 1630.47 GiB**，其中匿名内存 **1081.56 GiB**、文件类内存 **543.34 GiB**，OOM 和 OOM kill 计数均为零。新峰值比原上限高 **230.47 GiB**。上次 Docker OOM 与本轮样本支持 1400 GiB 的容量风险。具体是哪项分配推高匿名内存仍待定位。逐进程 RSS 峰值见内存证据，共享页可能同时计入多个进程。
+
+[验收回执](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/audit.json) · [八 rank 阶段及嵌套计时](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/trace-summary.json) · [分阶段内存及进程 RSS](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/memory-summary.json) · [收尾 I/O 采样](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/finalizer-io-snapshots.txt) · [配置核对](runs/B2-Kimi-L2-memory-r1-20261115T041505Z/config-comparison.json)
+
+补采目录含原始回执、压缩日志、逐秒采样和 `repro/`。在补采目录执行 `python repro/audit.py .` 可核对验收与耗时。将 `worker.log.gz` 解包为 `L2/worker-K/worker.log`、将 `resource-samples.jsonl.gz` 解包到当前目录，再执行 `python repro/summarize.py .` 和 `python repro/summarize-memory.py .` 可重算两份摘要。
+
 ## 重算
 
 在仓库根目录运行 `python v11/make_experiment_report.py`。脚本从链接中的 CSV 和 JSON 重算 A/B2 的表格和图，并校验 A 激活时间戳与 B2 金标及 PID 连续性。B1 正文从固定提交读取。

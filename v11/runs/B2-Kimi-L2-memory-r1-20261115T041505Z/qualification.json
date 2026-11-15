@@ -1,0 +1,484 @@
+{
+  "group": "B2",
+  "sequence": "Kimi-L2-memory",
+  "rep": 1,
+  "levels": [
+    2
+  ],
+  "protocol_hash": "d6b76f45627bcdd5032ad4a579fa5abf032de44fb60d5b04eaeb202d6f59b5f7",
+  "models": [
+    "K",
+    "K"
+  ],
+  "results": [
+    {
+      "level": 2,
+      "models": [
+        "K",
+        "K"
+      ],
+      "records": [
+        {
+          "level": 2,
+          "step": 0,
+          "model": "K",
+          "stage": {
+            "kind": "load",
+            "seconds": 1256.098
+          },
+          "sleep_seconds": 1.318,
+          "t4_ns": 1841691329784444,
+          "worker_pid": 1488720,
+          "weights_cpu_backup_bytes": 0,
+          "weights_bytes": 622250164224,
+          "kv_bytes": 138311368704,
+          "checks": {
+            "arithmetic": {
+              "name": "arithmetic",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "translation": {
+              "name": "translation",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "fixed32": {
+              "name": "fixed32",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": true,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "v7_added_arithmetic": {
+              "name": "v7_added_arithmetic",
+              "checks": {
+                "text": true,
+                "completion": true,
+                "nonempty": true,
+                "finish": true
+              },
+              "passed": true
+            }
+          }
+        },
+        {
+          "level": 2,
+          "step": 1,
+          "model": "K",
+          "stage": {
+            "kind": "wake",
+            "seconds": 1062.981,
+            "reload_seconds": 1061.138,
+            "receipt": {
+              "started_ns": 1842815967106910,
+              "received_ns": 1842816003722334,
+              "ranks": [
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488720,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 0,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 0,
+                  "device_uuid": "901a39d6-debb-a126-3079-f1e2f9d4fc81",
+                  "allocation_signature": "ba3c6abf78f9b4a4b983a9a64511100874a2e0be110e3021373458d716c898e6",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "3440344 kB",
+                    "Threads": "60"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100526981120
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488721,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 1,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 1,
+                  "device_uuid": "a3baf382-35c8-8748-626a-f69745aab5f8",
+                  "allocation_signature": "769f798041bb87d52cd3f066da78a68575078e6a8b41d5bdd7568de4bd0294a7",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "250276932 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488722,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 2,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 2,
+                  "device_uuid": "1e269bc5-8466-4c75-a1b5-2fe52da4b771",
+                  "allocation_signature": "7bf9b45f36d96447b9da6638150aa0df86031fea0ef4a554a7431a77cd0dedf3",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "132483524 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488723,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 3,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 3,
+                  "device_uuid": "fa6a72c0-dc98-2006-973f-a38e93672cbb",
+                  "allocation_signature": "42f7541fa4ef8658965eb5a3d293d1371f878952c7397da1df16e1ee6ab88fb5",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "3234912 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488724,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 4,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 4,
+                  "device_uuid": "7e6158f3-be3a-4b12-5698-ab008c6f5f8e",
+                  "allocation_signature": "a0d72e606768af2c40d7711eea0d758e353f26928d41413f68573ef25a9bd7db",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "249606200 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488725,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 5,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 5,
+                  "device_uuid": "151684e8-c7ba-a20a-6955-e1f765940536",
+                  "allocation_signature": "2cd03f3c70cb5f54f84cd20ca0b3c288fcfd87ff0b9f1120442b5cb5457775db",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "245941540 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488726,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 6,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 6,
+                  "device_uuid": "af5f5c7a-0dce-f291-99be-2c844225cec6",
+                  "allocation_signature": "d3d7ede5be116313cdfae05731e3f4aa7b59a89990b4be0b1a866b41817b9406",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "249757332 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                },
+                {
+                  "identity": {
+                    "container_hostname": "qjhs3",
+                    "pid": 1488727,
+                    "process_start_ticks": 184045121,
+                    "clock_ticks_per_second": 100,
+                    "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+                    "time_namespace": "time:[4026531834]",
+                    "pid_namespace": "pid:[4026531836]",
+                    "clock_id": "CLOCK_MONOTONIC"
+                  },
+                  "rank": 7,
+                  "tags": {
+                    "weights": {
+                      "bytes": 77781270528,
+                      "allocations": 488,
+                      "cpu_backup_bytes": 0
+                    },
+                    "kv_cache": {
+                      "bytes": 17288921088,
+                      "allocations": 62,
+                      "cpu_backup_bytes": 0
+                    }
+                  },
+                  "device_ordinal": 7,
+                  "device_uuid": "4b71a43c-50f7-bb0e-4775-1ee12d73c700",
+                  "allocation_signature": "27f2bbb941edab6bf72f711f998a79bdaf3c97eceb0146d475d27e704d193ab4",
+                  "parameter_signature": "30b1838be2bfa4ef7285cc60ba8522e3d90046c639dc3e0c8f6819b16b0a3e1c",
+                  "cuda_parameter_count": 1428,
+                  "uncovered_cuda_parameters": [],
+                  "proc_status": {
+                    "VmLck": "0 kB",
+                    "VmRSS": "3238884 kB",
+                    "Threads": "58"
+                  },
+                  "cuda_allocated_bytes": 94666465280,
+                  "cuda_reserved_bytes": 100428414976
+                }
+              ]
+            }
+          },
+          "sleep_seconds": 1.382,
+          "t4_ns": 1842819724440787,
+          "worker_pid": 1488720,
+          "weights_cpu_backup_bytes": 0,
+          "weights_bytes": 622250164224,
+          "kv_bytes": 138311368704,
+          "checks": {
+            "arithmetic": {
+              "name": "arithmetic",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "translation": {
+              "name": "translation",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "fixed32": {
+              "name": "fixed32",
+              "checks": {
+                "text": false,
+                "tokens": false,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": true,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "v7_added_arithmetic": {
+              "name": "v7_added_arithmetic",
+              "checks": {
+                "text": true,
+                "completion": true,
+                "nonempty": true,
+                "finish": true
+              },
+              "passed": true
+            }
+          }
+        }
+      ],
+      "worker_pids": {
+        "K": [
+          1488720
+        ]
+      },
+      "pid_continuity": true,
+      "golds_passed": true
+    }
+  ],
+  "failures": {},
+  "final_release_seconds": 60.892,
+  "final_all_gpu_zero": true,
+  "passed": true
+}
