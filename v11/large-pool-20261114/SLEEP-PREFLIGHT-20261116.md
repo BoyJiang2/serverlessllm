@@ -22,6 +22,8 @@ L2 休眠权重无 CPU 备份。前置使用上一轮 Kimi 成功重载采样峰
 
 历史 B2-L2 `B2-seq-7-agents-r1-20261113T012344Z` 的三个首次 load 已核对 `L2/worker-{K,G,D}/events/*.jsonl`。两项均有 rank 0–7 的唯一 begin/end，同 rank 配对来自同一进程，且处在 `waiting.json` 到 `ready.json` 之间。新轮继续用这两组接点测首次 load。历史轮的首段冷页准入和本轮配置差异见上文，历史数据仅作端点核验。
 
+九轮大池 B1 的 `b1-inputs/*-input.json` 都采用自动计算 GPU KV 预算，Kimi、GLM、V4 的 `gpu_memory_utilization` 分别为 0.90、0.90、0.76。Sleep L2 候选使用固定 16 GiB/rank。两组模型最大上下文均为 2048，V4 均显式指定 FP8 KV。比较 GPU KV 分配时间或驻留时，需同时列出预算策略和当轮实际分配字节。
+
 | 模型 | 完整权重加载包络 / 最慢 rank（秒） | GPU KV 分配包络 / 最慢 rank（秒） |
 | --- | ---: | ---: |
 | Kimi | 654.165 / 654.165 | 0.253 / 0.253 |
