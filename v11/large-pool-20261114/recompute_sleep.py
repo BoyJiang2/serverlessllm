@@ -113,6 +113,9 @@ def final_release(run, qualification):
 
 def collect(run, result):
     level = run / f"L{result['level']}"
+    kimi_samples = sorted(run.glob("kimi-cgroup-samples.*.jsonl"))
+    cgroup_rows = [(path, json.loads(line)) for path in kimi_samples
+                   for line in path.read_bytes().splitlines()]
     old = None
     steps = []
     for record in result["records"]:
@@ -137,6 +140,18 @@ def collect(run, result):
                                        sleep["sleep_begin_ns"], sleep["sleep_end_ns"])
                    for tag in ("weights", "kv_cache")}
         phase = f"{level.name}-{record['step']:02d}-{record['model']}"
+        memory = None
+        if wake and record["model"] == "K":
+            samples = [(path, row) for path, row in cgroup_rows if
+                       wake["checkpoint_reload_begin_ns"] <= row["start_ns"] and
+                       row["end_ns"] <= wake["checkpoint_reload_end_ns"]]
+            if samples:
+                source, peak = max(samples, key=lambda item: item[1]["current_bytes"])
+                first, last = samples[0][1], samples[-1][1]
+                memory = dict(source=source.as_posix(), sample_count=len(samples),
+                              first=first, last=last, peak=peak,
+                              refault_delta_pages=last["stat"]["workingset_refault_file"]
+                              - first["stat"]["workingset_refault_file"])
         steps.append(dict(step=record["step"], model=record["model"], stage=stage["kind"],
                           service_ready_ns=ready, weight_begin_ns=weight_begin,
                           weight_ready_ns=weight_ready, kv_ready_ns=kv_ready,
@@ -149,6 +164,7 @@ def collect(run, result):
                           weight_switch_s=seconds(old["weights"]["begin_ns"], weight_ready) if old else None,
                           post_sleep_residency=post_sleep_residency(level / f"{phase}-post-sleep-residency.json"),
                           sleep_cpu_weight_backup_bytes=record.get("weights_cpu_backup_bytes"),
+                          checkpoint_memory=memory,
                           host_kv="not_applicable"))
         old = release
     return steps

@@ -432,6 +432,22 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                 parts.append(table(["段", "休眠模型", "HBM（GiB）", "可用 RAM（GiB）",
                                     "匿名页（GiB）", "存活 PID 数", "CPU 权重备份（B）"],
                                    residency))
+            memory_rows = []
+            for step in run["steps"]:
+                memory = step.get("checkpoint_memory")
+                if memory:
+                    peak = memory["peak"]
+                    memory_rows.append((step["step"] + 1, memory["sample_count"],
+                                        fmt(peak["current_bytes"] / GIB),
+                                        fmt(peak["stat"]["anon"] / GIB), fmt(peak["stat"]["file"] / GIB),
+                                        f"{memory['refault_delta_pages']:,}",
+                                        memory["last"]["events"]["oom_kill"] -
+                                        memory["first"]["events"]["oom_kill"]))
+            if memory_rows:
+                parts.append("Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同一峰值采样点。"
+                             "refault 为采样区间计数增量。采样覆盖范围见派生数据。")
+                parts.append(table(["段", "采样数", "峰值（GiB）", "匿名页（GiB）", "文件页（GiB）",
+                                    "文件页 refault 增量（页）", "OOM kill 增量"], memory_rows))
         parts.append("从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py "
                      "v11/large-pool-20261114/sleep-runs` 重算。"
                      "[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)")
