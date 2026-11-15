@@ -71,6 +71,7 @@ def main(snapshot, output):
         f"已纳入 {len(rounds)}/9 轮、{len(steps)}/63 段。qjhs003，TP8，"
         "864 GiB 权重 Store，813 GiB Host KV，512-token 填充。",
         "S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通过冷页准入的 SafeTensors 启动，后六段使用该轮常驻 Store。",
+        "[三项可服务前阶段与缺测](READINESS.md) · [Sleep L1/L2 对照前检](SLEEP-PREFLIGHT-20261116.md)",
         section(output, 1, "双池串行初始化", "s", labels, [
             ("Host KV", [r["host_kv_init_s"] for r in rounds]),
             ("Weight Store", [r["weight_store_init_s"] for r in rounds]),

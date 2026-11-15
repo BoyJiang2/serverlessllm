@@ -4,6 +4,8 @@
 
 S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通过冷页准入的 SafeTensors 启动，后六段使用该轮常驻 Store。
 
+[三项可服务前阶段与缺测](READINESS.md) · [Sleep L1/L2 对照前检](SLEEP-PREFLIGHT-20261116.md)
+
 
 ## 实验结论
 
