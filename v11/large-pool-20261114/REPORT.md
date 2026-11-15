@@ -4,7 +4,18 @@
 
 S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通过冷页准入的 SafeTensors 启动，后六段使用该轮常驻 Store。
 
-## 1. 双池串行初始化（s）
+
+## 实验结论
+
+| 实验问题 | 正式结果 | 对应表图 |
+| --- | --- | --- |
+| 双池初始化 | 从 Host KV 池启动到权重 Store 就绪，实测墙钟 595.138–619.587 秒 | 数据 1 / 图 1 |
+| 模型切换 | 54 次 Store 切换通过金标。Store 驱逐与恢复合并区间为 90.837–139.139 秒 | 数据 2 / 图 2 |
+| Host KV 重建 | 63 段各提交 512 token，查询零命中，清理后归零。填充至提交日志耗时 0.353–11.413 秒 | 数据 3 / 图 3 |
+| 销毁后驻留与释放 | 清理后常驻服务的八卡 HBM 中位数为 19.260 GiB。九轮最终八卡归零窗口均超过 60 秒 | 数据 4–7 / 图 4–7 |
+
+B2 原生 Sleep/Wake 的结果见[旧版 V11 报告](../report.md#b2--原生-sleep--wake)。本批使用后端退出后从 Store 恢复的切换流程。
+## 数据 1 与图 1 · 双池串行初始化（s）
 
 | 样本 | Host KV | Weight Store | Sum | Wall clock |
 | --- | --- | --- | --- | --- |
@@ -22,7 +33,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 
 双池串行启动至就绪的墙钟范围为 **595.138–619.587 秒**。
 
-## 2. 切换与首个正确响应（s）
+## 数据 2 与图 2 · 切换与首个正确响应（s）
 
 | 样本 | SF activation to correct | Switch to correct | Activation to engine ready | Eviction event envelope | Store event envelope |
 | --- | --- | --- | --- | --- | --- |
@@ -161,7 +172,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 
 文件读取量来自 Store 计数，包含可能由 Linux 页缓存满足的读取。
 
-## 3. Host KV 重建（s）
+## 数据 3 与图 3 · Host KV 重建（s）
 
 | 样本 | Fill request to STORE log | Activation to first nonzero sample |
 | --- | --- | --- |
@@ -305,7 +316,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 | S2-r3/6-K | 512 | 512 | 0 | 0 |
 | S2-r3/7-G | 512 | 512 | 0 | 0 |
 
-## 4. 销毁前后八卡显存（GiB）
+## 数据 4 与图 4 · 销毁前后八卡显存（GiB）
 
 | 样本 | before_backend_exit | after_exit_before_clear | after_clear |
 | --- | --- | --- | --- |
@@ -375,7 +386,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 
 ![销毁前后八卡显存](figures/figure-4.png)
 
-## 5. 模型退出并清理后 RAM 驻留（GiB）
+## 数据 5 与图 5 · 模型退出并清理后 RAM 驻留（GiB）
 
 | 样本 | Store payload | store RSS | store PSS | lmcache RSS | lmcache PSS |
 | --- | --- | --- | --- | --- | --- |
@@ -445,7 +456,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 
 ![模型退出并清理后 RAM 驻留](figures/figure-5.png)
 
-## 6. 清理前后 Host KV 数据占用（MiB）
+## 数据 6 与图 6 · 清理前后 Host KV 数据占用（MiB）
 
 | 样本 | before_clear | after_clear |
 | --- | --- | --- |
@@ -515,7 +526,7 @@ S1 以 Kimi 首尾，S2 以 GLM 首尾，S3 以 V4 首尾。每轮首段是通�
 
 ![清理前后 Host KV 数据占用](figures/figure-6.png)
 
-## 7. 末段常驻与八卡归零观察（s）
+## 数据 7 与图 7 · 末段常驻与八卡归零观察（s）
 
 | 样本 | Resident services after clear | All GPUs zero after service exit |
 | --- | --- | --- |
