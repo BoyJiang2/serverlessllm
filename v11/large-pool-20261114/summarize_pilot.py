@@ -1,5 +1,6 @@
 """Summarize the measured V11 pilot boundaries from per-run receipts."""
 import argparse
+import csv
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -99,9 +100,19 @@ def summarize(run):
     assert pools["kv_ready_ns"] <= pools["store_begin_ns"]
     kv_init = seconds(pools["kv_begin_ns"], pools["kv_ready_ns"])
     store_init = seconds(pools["store_begin_ns"], pools["store_ready_ns"])
+    admission = load(run / "admission.json")["checked_ns"]
+    with (run / "switch-events.csv").open(newline="") as source:
+        first = next(csv.DictReader(source), None)
+    prep = None
+    if first and int(first["step"]) == 0:
+        first_activation = int(first["t2_ns"])
+        assert admission <= pools["kv_begin_ns"] <= pools["store_ready_ns"] <= first_activation
+        prep = dict(begin_ns=admission, end_ns=first_activation,
+                    wall_s=seconds(admission, first_activation))
     summary = dict(host_kv_init_s=kv_init, weight_store_init_s=store_init,
                    init_sum_s=kv_init + store_init,
                    init_wall_s=seconds(pools["kv_begin_ns"], pools["store_ready_ns"]),
+                   preparation_to_first_activation=prep,
                    steps=[])
     callback_path = run / "lmcache/store-events.jsonl"
     callbacks = ([json.loads(line) for line in callback_path.read_text().splitlines()]

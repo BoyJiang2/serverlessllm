@@ -56,6 +56,7 @@ def phase_spans(step, run_id, domain, lower, upper):
             assert x["sequence"] < y["sequence"]
             assert lower <= x["monotonic_ns"] < y["monotonic_ns"] <= upper
             pairs[rank] = dict(begin_ns=x["monotonic_ns"], end_ns=y["monotonic_ns"],
+                               duration_s=seconds(y["monotonic_ns"], x["monotonic_ns"]),
                                pid=x["pid"], start_ticks=x["process_start_ticks"],
                                source=source.relative_to(ROOT).as_posix())
         complete = set(pairs) == set(range(8))
@@ -63,8 +64,7 @@ def phase_spans(step, run_id, domain, lower, upper):
             ranks=pairs, begin_ranks=sorted(begin), end_ranks=sorted(end),
             envelope_s=seconds(max(x["end_ns"] for x in pairs.values()),
                                min(x["begin_ns"] for x in pairs.values())) if complete else None,
-            max_rank_s=max(seconds(x["end_ns"], x["begin_ns"])
-                           for x in pairs.values()) if complete else None)
+            max_rank_s=max(x["duration_s"] for x in pairs.values()) if complete else None)
     return spans
 
 
@@ -216,13 +216,14 @@ def main():
     assert int(peak["cgroup_memory"]["current"]) == mem["sampled_peak_bytes"]
     assert stat == mem["memory_stat_at_peak"] and stat["workingset_refault_file"] == 184923939
     assert all(x["cgroup_memory"]["events"]["oom_kill"] == 0 for x in wake_samples)
-    rss = {rank: int(peak["cgroup_processes"][str(pid)]["RssAnon"].split()[0]) / 2**20
-           for rank, pid in audit["worker_pids"].items()}
+    rss_kib = {rank: int(peak["cgroup_processes"][str(pid)]["RssAnon"].split()[0])
+               for rank, pid in audit["worker_pids"].items()}
+    rss = {rank: value / 2**20 for rank, value in rss_kib.items()}
     refault = stat["workingset_refault_file"] * host["page_bytes"] / GIB
     data = dict(A=a, B1=b, host_kv=kv, release=releases, l1=l1["records"],
                 l2_load=loads, l2_wake=wakes, overlay_mounts=mounts, history=historical,
                 kimi=dict(audit=audit, peak_bytes=mem["sampled_peak_bytes"],
-                          peak_stat=stat, rss_anon_gib=rss, refault_gib=refault,
+                          peak_stat=stat, rss_anon_kib=rss_kib, rss_anon_gib=rss, refault_gib=refault,
                           page_bytes=host["page_bytes"], failed_oom=oom, phases=phase_trace,
                           failed_trace=read(OOM / "trace-summary.json")))
     output("report-data.json", data)
@@ -353,7 +354,12 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 {table(["阶段", "八 rank 包络（s）"],
         [(p, fmt(v["all_rank_envelope_seconds"])) for p, v in phase_trace.items()])}
 
-041505Z 唤醒窗口的同一采样点中，memory.current 为 **{mem['sampled_peak_bytes']/GIB:.2f} GiB**，anon **{stat['anon']/GIB:.2f} GiB**，file **{stat['file']/GIB:.2f} GiB**。八 rank 同点 RssAnon（GiB）为 {', '.join(f"{rank}={value:.2f}" for rank, value in rss.items())}。原字段单位是 kB（KiB），审阅中的 131–249 GiB 混用了单位并只覆盖部分 rank。五个较高 rank 的区间为 {sorted(rss.values())[3]:.2f}–{max(rss.values()):.2f} GiB。共享页可同时记入多进程 RSS。
+041505Z 唤醒窗口的同一采样点中，memory.current 为 **{mem['sampled_peak_bytes']/GIB:.2f} GiB**，anon **{stat['anon']/GIB:.2f} GiB**，file **{stat['file']/GIB:.2f} GiB**。
+
+{table(["Rank", "RssAnon 原值（kB，按 KiB）", "折算 GiB"],
+        [(rank, f"{value:,}", f"{rss[rank]:.2f}") for rank, value in rss_kib.items()])}
+
+审阅中的 131–249 GiB 混用了单位并只覆盖部分 rank。五个较高 rank 的区间为 {sorted(rss.values())[3]:.2f}–{max(rss.values()):.2f} GiB。共享页可同时记入多进程 RSS。
 
 同点 workingset_refault_file 为 **{stat['workingset_refault_file']:,} 页**，按宿主 {host['page_bytes']} B 页大小折算 **{refault:.2f} GiB**。这是该容器 cgroup 从创建到采样点的累计文件页 refault 折算量，可重复计页。它与唯一扫描量、物理盘读字节以及唤醒窗口增量各有不同边界。收尾的进程读取计数仍增长。固定镜像的 layerwise.py 会延迟回放权重加载并处理、复制及恢复 kernel 张量，支持此处存在延迟处理的机制。各层内存占比仍缺分配级打点。1400 GiB 轮的 OOM 及 1664 GiB 轮越过旧上限的采样共同表明容量压力。
 
