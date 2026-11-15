@@ -1,5 +1,6 @@
 """Read native Sleep phase receipts and summarize qualified repetitions."""
 import argparse
+import csv
 import json
 from pathlib import Path
 import re
@@ -91,6 +92,25 @@ def post_sleep_residency(path):
                 processes=sample["processes"])
 
 
+def final_release(run, qualification):
+    path = run / "resource-samples.csv"
+    if not path.is_file():
+        return None
+    with path.open(newline="") as stream:
+        samples = [row for row in csv.DictReader(stream) if row["phase"] == "final-release"]
+    if not samples:
+        return None
+    timestamps = [int(row["ns"]) for row in samples]
+    assert all(a < b for a, b in zip(timestamps, timestamps[1:]))
+    elapsed = seconds(timestamps[0], timestamps[-1])
+    all_zero = all(int(row["compute_apps"]) == 0 and
+                   all(int(row[f"gpu{i}"]) == 0 for i in range(8)) for row in samples)
+    assert round(elapsed, 3) == qualification["final_release_seconds"]
+    assert all_zero == qualification["final_all_gpu_zero"]
+    return dict(source=str(path), samples=len(samples), elapsed_s=elapsed, all_gpu_zero=all_zero,
+                meets_60s=elapsed >= 60, last_host_available_bytes=int(samples[-1]["mem_available"]))
+
+
 def collect(run, result):
     level = run / f"L{result['level']}"
     old = None
@@ -142,12 +162,15 @@ if __name__ == "__main__":
     for receipt in sorted(args.runs.glob("*/qualification.json")):
         q = read(receipt)
         run = receipt.parent
+        release = final_release(run, q)
         if not q["results"]:
             rounds.append(dict(run=run.name, level=q["levels"][0], sequence=q["sequence"],
-                               rep=q["rep"], passed=False, failures=q["failures"], steps=[]))
+                               rep=q["rep"], passed=False, failures=q["failures"], steps=[],
+                               final_release=release))
         for result in q["results"]:
             row = dict(run=run.name, level=result["level"], sequence=q["sequence"], rep=q["rep"],
-                       passed=q["passed"], failures=q["failures"], steps=collect(run, result))
+                       passed=q["passed"], failures=q["failures"], steps=collect(run, result),
+                       final_release=release)
             rounds.append(row)
             if row["passed"]:
                 key = f"L{row['level']}-{row['sequence']}"
