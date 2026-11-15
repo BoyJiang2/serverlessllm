@@ -94,6 +94,9 @@ def collect(root):
                 steps.append(dict(step=step.name, model=row["to_model"], activation_ns=began,
                                   service_ready_ns=ready, allocation_s=item["gpu_kv_allocation_eight_rank_s"],
                                   kv_allocation_begin_ns=kv_bounds[0], kv_allocation_end_ns=kv_bounds[1],
+                                  kv_allocation_and_registration_observed_ns=(
+                                      max(kv_bounds[1], registration["last_host_log_ns"])
+                                      if registration else None),
                                   weight_begin_ns=weight_bounds[0], weight_ready_ns=weight_bounds[1],
                                   registration=registration, cache_state=row["cache_state"],
                                   hit_bytes=cache["hit_bytes"], read_bytes=cache["file_read_bytes"],
@@ -165,7 +168,7 @@ def report(rounds):
             cols += [cell(registration(s) for s in steps), cell(s["kv_switch_wall_s"] for s in steps)]
             rows.append(f"| {seq}/{i+1} | {steps[0]['model']} | " + " | ".join(cols) + " |")
     rows.extend(["",
-        "独立缺块文件重读耗时缺开始和结束端点，保留 null，文件读取字节由 Store 台账核验。驱逐次数、访问与恢复事件并列；无驱逐或缺少驱逐包络时以逐轮驱逐路径计数区分。Store 事件可能与权重加载重叠。旧 Backend 退出和清理后快照有记录，实际 GPU KV 释放起止缺失。因此 54 次严格的 KV 清理至就绪总时长留空。旧 Host KV 为常驻池 clear，下一段记录注册和 GPU KV 分配。",
+        "独立缺块文件重读耗时缺读取起点，保留 null，文件读取字节由 Store 台账核验。驱逐次数、访问与恢复事件并列，无驱逐或缺少驱逐包络时以逐轮驱逐路径计数区分。Store 事件可能与权重加载重叠。旧 Backend 退出和清理后快照有记录，实际 GPU KV 释放起止缺失，因此 54 次严格的 KV 清理至就绪总时长留空。旧 Host KV 为常驻池 clear。新段取 GPU KV 分配结束与末条注册成功日志中较晚的接点，并保留时钟换算偏差和独立的 Backend 就绪回执。",
         "",
         "业务金标、kv_fill 和 Host 写入属于请求阶段。填充至提交日志保留在原大池报告，硬件驻留、有效载荷、池容量及 PID 同样保留原报告和原始快照。",
         "",
