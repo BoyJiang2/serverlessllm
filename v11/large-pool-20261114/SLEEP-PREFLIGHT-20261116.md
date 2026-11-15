@@ -20,6 +20,14 @@ L2 休眠权重无 CPU 备份。前置使用上一轮 Kimi 成功重载采样峰
 
 实际候选入口位于同级 `v11-sleep-readiness-20261116-aligned/v11_run_b2.py`。逐段结果直接引用旧模型 sleep 与目标模型 wake 的命令回执，并记录首次 load 的就绪时间或 wake 确认时间。每轮保存 runner、Backend、allocator、冷页准入助手和协议配置的 SHA-256。该入口已通过编译及未来预约窗口拒绝检查。
 
+历史 B2-L2 `B2-seq-7-agents-r1-20261113T012344Z` 的三个首次 load 已核对 `L2/worker-{K,G,D}/events/*.jsonl`。两项均有 rank 0–7 的唯一 begin/end，同 rank 配对来自同一进程，且处在 `waiting.json` 到 `ready.json` 之间。新轮继续用这两组接点测首次 load。历史轮的首段冷页准入和本轮配置差异见上文，历史数据仅作端点核验。
+
+| 模型 | 完整权重加载包络 / 最慢 rank（秒） | GPU KV 分配包络 / 最慢 rank（秒） |
+| --- | ---: | ---: |
+| Kimi | 654.165 / 654.165 | 0.253 / 0.253 |
+| GLM | 484.621 / 484.612 | 0.220 / 0.220 |
+| V4 | 229.971 / 229.923 | 0.362 / 0.362 |
+
 [Sleep Backend、runner 和 allocator 副本生成脚本](prepare_sleep_timing.py)
 
 [历史 L1 容量证据](../B2-L1-RAM-BOUNDARY.md) · [历史 B2 与 Kimi L2](../report.md#b2--原生-sleep--wake)
