@@ -13,6 +13,17 @@
 
 qjhs003，8×H20，TP8。A 与 B2-L2 各取一轮完整七段，顺序均为 Kimi → GLM → V4 → GLM → Kimi → V4 → Kimi。A 使用 vLLM 0.20.1。A 与 B2-L2 最终八卡全零采样分别覆盖 60.845 和 61.237 秒。A/B2 表格从 1 开始编号，原始记录从 0 开始。B1 沿用原版正式轮及其统计口径。
 
+## 各组基线怎么读
+
+| 基线 | 权重和 KV 从哪里来 | 用来回答什么 |
+| --- | --- | --- |
+| A · 常驻 Store | 每段启动新 Backend，从同一权重 Store 恢复。本轮七段权重池均未命中。 | 只走权重 Store 的固定序列切换耗时及空间复用。 |
+| B1 · Store + Host KV | 每段仍启动新 Backend，从同一 Store 恢复权重。LMCache 在请求期间写入主机 KV，段末清理，实测零命中。 | 在切换过程中验证 Host KV 确实写入并清零。大池复验单列容量、首段 SF 冷启动及三种序列。 |
+| B2-L1 · 原生 Sleep | 权重留有 CPU 备份，唤醒时搬回 GPU，保留原 Worker。 | 单模型唤醒成本，以及主机权重备份的容量代价。 |
+| B2-L2 · 原生 Sleep | 权重无 CPU 备份，唤醒时由原 Worker 从 checkpoint 重载，再恢复 GPU KV 分配。 | 保留原 Worker 的 checkpoint 重载耗时及唤醒后金标。历史正式轮用了 V4 overlay。 |
+
+A、B1 的业务指标止于首个正确完整响应。B2 的 Wake 列止于唤醒回执，金标随后验收。历史 SF 冷／热读、Store 冷读与池命中的准入条件见 B1 的历史条件表。
+
 ## A · 常驻 Store
 
 ### 数据 1 与图 1 · 激活及切换耗时
@@ -233,6 +244,12 @@ V4 单模型同 PID 唤醒成功。该轮最终全零采样为 59.858 秒，低�
 L2 使用 checkpoint 重载，V4 使用独立 overlay。七段 Sleep 均值 **1.546 s**，四次 Wake 均值 **1620.2 s**。两次 Kimi 返回各耗时超过 2,500 s，且耗时主要落在重载 RPC。L2 证明了保留原 Worker 并恢复正确推理的可行性，当前实现的恢复耗时受 checkpoint 重载限制。表中动作耗时止于回执，金标在随后验证，与 A/B1 首个正确响应的时间端点不同。
 
 [L2 逐段验收与回执](runs/B2-seq-7-agents-r1-20261113T012344Z/qualification.json) · [L2 重载配置](runs/B2-seq-7-agents-r1-20261113T012344Z/diagnostic-config.json)
+
+### Kimi L2 单模型诊断
+
+2026-11-15 台北时间，qjhs003 上的 TP8 单模型补测完成首次金标与 L2 休眠。8 个 rank 均进入 checkpoint 重载及 `load_weights`，逐层重载初始化的八 rank 包络为 **0.061645 秒**。随后 rank 5 在加载期间异常退出，Docker 在同一时刻记录容器主机内存 OOM。加载、后处理及唤醒后金标均缺少完成回执。最终八卡连续归零 **61.074 秒**。该诊断单列，历史正式轮成功样本及统计沿用原值。
+
+[验收回执](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/qualification.json) · [八 rank 计时](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/trace-summary.json) · [Docker 事件](runs/B2-Kimi-L2-diagnostic-r1-20261115T031303Z/docker-events.jsonl)
 
 ## 重算
 
