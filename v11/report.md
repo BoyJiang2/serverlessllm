@@ -385,6 +385,8 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 第 5 段 V4 唤醒的设备显存峰值增量为 131,430 MiB。第 7 段可用显存比按卡重放该峰值少至多 5,320 MiB。回访后再次休眠，PyTorch 保留显存的逐 rank 最大增量为 DeepSeek-V4-Pro 5,986 MiB、GLM-5.1-FP8 632 MiB。V4 的增量在 checkpoint 重载后、KV 恢复前已经出现。[逐 rank 原始接点与容量推算](large-pool-20261114/sleep-vram-audit.json)
 
+源码显示，MARLIN MXFP4 后处理先用临时 scale 张量创建量化配置和 kernel，随后 layerwise reload 将参数复制回原存储并重新注册参数。量化配置可能仍持有临时 scale。按 V4 的 61 层、384 专家、7168 隐藏维度、TP8 后每 rank 的 384 个中间通道及每 32 元素 1 字节计算，三组 scale 合计 5,764.5 MiB/rank，实测活跃分配增量为 5,795.5 MiB/rank。待逐 rank 对照 scale 的存储地址和权重分配标签，确认具体归属。[MXFP4 后处理](https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/model_executor/layers/quantization/mxfp4.py#L651-L730) · [量化配置](https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/model_executor/layers/fused_moe/config.py#L676-L696) · [layerwise reload](https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/model_executor/model_loader/reload/layerwise.py#L290-L367)
+
 最终八卡归零且无计算进程 True，50 个采样点覆盖 61.041 s。末次采样的整机可用 RAM 为 1878.536 GiB。[最终释放采样](large-pool-20261114/sleep-runs/B2-S3-r1-20261116T004923Z/resource-samples.csv)
 
 | 段 | 模型 | 操作 | 权重准备（s） | GPU KV 分配（s） | 权重切换（s） | KV 切换（s） | 旧 KV 释放至可服务（s） |

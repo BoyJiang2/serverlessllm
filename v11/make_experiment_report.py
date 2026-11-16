@@ -464,6 +464,16 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                              f"回访后再次休眠，PyTorch 保留显存的逐 rank 最大增量为 {units}。"
                              "V4 的增量在 checkpoint 重载后、KV 恢复前已经出现。"
                              "[逐 rank 原始接点与容量推算](large-pool-20261114/sleep-vram-audit.json)")
+                source = "https://github.com/vllm-project/vllm/blob/132765e3560659ff63ebd236203672e991b70e08/vllm/model_executor"
+                parts.append("源码显示，MARLIN MXFP4 后处理先用临时 scale 张量创建量化配置和 kernel，"
+                             "随后 layerwise reload 将参数复制回原存储并重新注册参数。"
+                             "量化配置可能仍持有临时 scale。按 V4 的 61 层、384 专家、"
+                             "7168 隐藏维度、TP8 后每 rank 的 384 个中间通道及每 32 元素 1 字节计算，"
+                             "三组 scale 合计 5,764.5 MiB/rank，实测活跃分配增量为 5,795.5 MiB/rank。"
+                             "待逐 rank 对照 scale 的存储地址和权重分配标签，确认具体归属。"
+                             f"[MXFP4 后处理]({source}/layers/quantization/mxfp4.py#L651-L730) · "
+                             f"[量化配置]({source}/layers/fused_moe/config.py#L676-L696) · "
+                             f"[layerwise reload]({source}/model_loader/reload/layerwise.py#L290-L367)")
             if release_obs:
                 parts.append(f"最终八卡归零且无计算进程 {release_obs['all_gpu_zero']}，"
                              f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。"
