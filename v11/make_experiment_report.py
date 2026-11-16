@@ -437,6 +437,11 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             parts.append(f"### {run['sequence']} 第 {run['rep']} 轮 · {status}\n\n"
                          f"`{rid}` · [验收原件]({base}/qualification.json) · "
                          f"[qjhs003 原始证据索引]({base}/evidence-index.csv)")
+            for gate in run.get("failed_vram_gates", []):
+                parts.append(f"本轮完成 {len(run['steps'])}/{len(protocol['sequences'][run['sequence']])} 段。"
+                             f"下一段准入时，八卡最低可用显存为 {min(gate['free_mib']):,} MiB，"
+                             f"低于要求的 {gate['required_mib']:,} MiB。"
+                             f"[显存准入回执]({base}/{gate['source']})")
             if release_obs:
                 parts.append(f"最终八卡归零且无计算进程 {release_obs['all_gpu_zero']}，"
                              f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。"

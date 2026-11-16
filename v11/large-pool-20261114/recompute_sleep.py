@@ -184,9 +184,17 @@ if __name__ == "__main__":
                                rep=q["rep"], passed=False, failures=q["failures"], steps=[],
                                final_release=release))
         for result in q["results"]:
+            vram_gates = [
+                dict(read(gate), source=gate.relative_to(run).as_posix())
+                for gate in sorted((run / f"L{result['level']}").glob("*-vram-gate.json"))
+            ]
+            failed_vram_gates = [gate for gate in vram_gates if not gate["passed"]]
             row = dict(run=run.name, level=result["level"], sequence=q["sequence"], rep=q["rep"],
                        passed=q["passed"], failures=q["failures"], steps=collect(run, result),
                        final_release=release)
+            if failed_vram_gates:
+                assert not row["passed"]
+                row["failed_vram_gates"] = failed_vram_gates
             rounds.append(row)
             if row["passed"]:
                 key = f"L{row['level']}-{row['sequence']}"
