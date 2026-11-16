@@ -76,6 +76,35 @@ def changes(old, new):
     return sum(old.get(key) != new.get(key) for key in old.keys() | new.keys())
 
 
+def assess_rebind(passed, phases, post_sleep):
+    """Evaluate scale storage independently of total NVML residency."""
+    required = {"after_sleep", "weights_reloaded", "kv_ready"}
+    checks = []
+    checked_phases = []
+    for phase in phases:
+        if phase["phase"] not in required:
+            continue
+        checked_phases.append(phase["phase"])
+        assert {row["rank"] for row in phase["rank_rows"]} == set(range(8))
+        for row in phase["rank_rows"]:
+            aliases = row["aliases"]
+            if (row["layer_count"] != 61 or row["storage"].get("outside_weights") != 0
+                    or any(aliases.get(f"{holder}:contained") != 122
+                           for holder in ("registered", "method", "kernel"))
+                    or any(aliases.get(f"{holder}_vs_registered:alias") != 122
+                           for holder in ("method", "kernel"))):
+                checks.append(dict(source=phase["source"], rank=row["rank"]))
+    first = post_sleep[0]["gpu_used_per_card_mib"] if post_sleep else []
+    deltas = [[value - base for base, value in zip(first, row["gpu_used_per_card_mib"], strict=True)]
+              for row in post_sleep[1:]]
+    if passed:
+        assert checked_phases == [phase for phase in EXPECTED if phase in required]
+        assert len(deltas) == 2
+    return dict(scale_contract_passed=(not checks if passed else None),
+                qualification_passed=passed, scale_contract_failures=checks,
+                post_sleep_delta_from_initial_mib=deltas)
+
+
 def summarize(run):
     worker = run / "L2/worker-D"
     receipts = sorted(((read(path), path) for path in worker.glob("scales-*.json")),
@@ -141,8 +170,11 @@ def summarize(run):
         assert tuple(phase_flags) == EXPECTED and len(post_sleep) == 3
         assert all(row["native_source"] is not None for row in phases
                    if row["phase"] in ("after_sleep", "weights_mapped", "weights_reloaded", "kv_ready"))
-    return dict(run_id=run.name, qualification_passed=passed, phase_count=len(phases),
-                expected_phase_count=len(EXPECTED), phases=phases, post_sleep_nvml=post_sleep)
+    result = dict(run_id=run.name, qualification_passed=passed, phase_count=len(phases),
+                  expected_phase_count=len(EXPECTED), phases=phases, post_sleep_nvml=post_sleep)
+    if run.name.startswith("B2-V4RebindDiag-"):
+        result["rebind"] = assess_rebind(passed, phases, post_sleep)
+    return result
 
 
 if __name__ == "__main__":
