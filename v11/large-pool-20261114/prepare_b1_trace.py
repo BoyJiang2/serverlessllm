@@ -17,7 +17,7 @@ def replace(source, old, new):
     return source.replace(old, new)
 
 
-def main(base, dest, worker_overlay=None):
+def main(base, dest, worker_overlay=None, store_build=None):
     inputs = {name: (base / name).read_bytes() for name in BASE}
     assert {name: hashlib.sha256(raw).hexdigest() for name, raw in inputs.items()} == BASE
     runner = replace(
@@ -104,6 +104,47 @@ def main(base, dest, worker_overlay=None):
                         seconds=(clear_finished - clear_started) / 1e9,
 """,
     )
+    if store_build is not None:
+        binary = "observed_checkpoint_store_b1_trace.so"
+        receipt = (store_build / "build-receipt.json").read_bytes()
+        built = (store_build / binary).read_bytes()
+        assert hashlib.sha256(built).hexdigest() == json.loads(receipt)["extension_sha256"]
+        inputs.update({binary: built, "store-build-receipt.json": receipt})
+        runner = replace(
+            runner,
+            "(str(B / 'cache-observer-build-v1/observed_checkpoint_store.so'),",
+            "(str(CAMPAIGN / 'observed_checkpoint_store_b1_trace.so'),",
+        )
+        runner = replace(
+            runner,
+            "    delta = relevant[len(parsed):]\n",
+            """    trace = [line for line in raw.splitlines() if 'SLLM_B1_' in line]
+    delta = relevant[len(parsed):]
+""",
+        )
+        runner = replace(runner, "    return delta, ledger.settled()",
+                         "    return delta, ledger.settled(), trace")
+        runner = replace(
+            runner,
+            "\n            delta, state = snapshot_store(cid, parsed, ledger)\n",
+            "\n            delta, state, trace = snapshot_store(cid, parsed, ledger)\n",
+        )
+        runner = replace(
+            runner,
+            "            store_log_cursor = 0\n",
+            "            store_log_cursor = 0\n            native_trace = trace\n",
+        )
+        runner = replace(
+            runner,
+            "                delta, state = snapshot_store(cid, parsed, ledger)\n",
+            """                delta, state, trace = snapshot_store(cid, parsed, ledger)
+                if trace[:len(native_trace)] != native_trace:
+                    raise RuntimeError('Store timing log ordering changed')
+                (step_dir / 'store-timing.log').write_text(
+                    ''.join(line + '\\n' for line in trace[len(native_trace):]), encoding='utf-8')
+                native_trace = trace
+""",
+        )
     if worker_overlay is not None:
         overlay_files = (
             "gpu_worker.py", "gpu_model_runner.py",
