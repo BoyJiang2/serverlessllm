@@ -2033,6 +2033,1224 @@
     "failed_v4_gate": null
   },
   {
+    "run_id": "B2-S2-r2-20261116T021051Z",
+    "sequence": "S2",
+    "rep": 2,
+    "passed": true,
+    "wakes": [
+      {
+        "stage": 4,
+        "model": "D",
+        "wake_command": 2,
+        "gate": {
+          "source": "L2/03-D-vram-gate.json",
+          "free_mib": [
+            132656,
+            132760,
+            132760,
+            132760,
+            132760,
+            132760,
+            132760,
+            132760
+          ],
+          "required_mib": 129209,
+          "passed": true,
+          "preceding_sleep": {
+            "source": "L2/L2-02-K-post-sleep-residency.json",
+            "ns": 1922013817428235,
+            "used_mib": [
+              10501,
+              10397,
+              10397,
+              10397,
+              10397,
+              10397,
+              10397,
+              10397
+            ],
+            "model_pid_hbm_mib": {
+              "G": {
+                "3402725": 3596,
+                "3402726": 3596,
+                "3402727": 3596,
+                "3402728": 3596,
+                "3402729": 3596,
+                "3402730": 3596,
+                "3402732": 3596,
+                "3402733": 3596
+              },
+              "D": {
+                "3489452": 4314,
+                "3489453": 4314,
+                "3489456": 4314,
+                "3489460": 4314,
+                "3489461": 4314,
+                "3489462": 4314,
+                "3489463": 4314,
+                "3489464": 4314
+              },
+              "K": {
+                "3582702": 2568,
+                "3582703": 2464,
+                "3582704": 2464,
+                "3582705": 2464,
+                "3582706": 2464,
+                "3582707": 2464,
+                "3582708": 2464,
+                "3582709": 2464
+              }
+            }
+          },
+          "free_plus_preceding_used_mib": [
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157
+          ],
+          "stable_tail_samples": 1,
+          "stable_tail_s": 0.0,
+          "preceding_sleep_sample_to_next_phase_sample_s": 60.593466398,
+          "first_phase_sample_used_mib": [
+            10501,
+            10397,
+            10397,
+            10397,
+            10397,
+            10397,
+            10397,
+            10397
+          ]
+        },
+        "phases_source": "L2/worker-D/wake-0002-phases.json",
+        "allocator_source": "L2/worker-D/worker.log",
+        "torch_sources": {
+          "prior_sleep": "L2/worker-D/ack-0001.json",
+          "weights_mapped": "L2/worker-D/wake-0002-weights-mapped.json",
+          "weights_reloaded": "L2/worker-D/wake-0002-weights-reloaded.json",
+          "resleep": "L2/worker-D/ack-0004.json"
+        },
+        "rank_rows": [
+          {
+            "rank": 0,
+            "pid": 3489452,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 1,
+            "pid": 3489453,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 2,
+            "pid": 3489456,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 3,
+            "pid": 3489460,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 4,
+            "pid": 3489461,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 5,
+            "pid": 3489462,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 6,
+            "pid": 3489463,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          },
+          {
+            "rank": 7,
+            "pid": 3489464,
+            "tags": {
+              "weights": {
+                "bytes": 110115160064,
+                "allocations": 589,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 17133731840,
+                "allocations": 95,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 10521411584
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 6077022208,
+                "cuda_reserved_bytes": 6276775936
+              }
+            }
+          }
+        ],
+        "phase_samples": 212,
+        "reload_samples": 202,
+        "sampled_peak_mib": [
+          141931,
+          141827,
+          141827,
+          141827,
+          141827,
+          141827,
+          141827,
+          141827
+        ],
+        "sampled_peak_increment_mib": [
+          131430,
+          131430,
+          131430,
+          131430,
+          131430,
+          131430,
+          131430,
+          131430
+        ],
+        "sampled_reload_peak_increment_mib": [
+          115048,
+          115048,
+          115048,
+          115048,
+          115048,
+          115048,
+          115048,
+          115048
+        ]
+      },
+      {
+        "stage": 5,
+        "model": "G",
+        "wake_command": 2,
+        "gate": {
+          "source": "L2/04-G-vram-gate.json",
+          "free_mib": [
+            126670,
+            126774,
+            126774,
+            126774,
+            126774,
+            126774,
+            126774,
+            126774
+          ],
+          "required_mib": 115476,
+          "passed": true,
+          "preceding_sleep": {
+            "source": "L2/L2-03-D-post-sleep-residency.json",
+            "ns": 1922336924679491,
+            "used_mib": [
+              16487,
+              16383,
+              16383,
+              16383,
+              16383,
+              16383,
+              16383,
+              16383
+            ],
+            "model_pid_hbm_mib": {
+              "G": {
+                "3402725": 3596,
+                "3402726": 3596,
+                "3402727": 3596,
+                "3402728": 3596,
+                "3402729": 3596,
+                "3402730": 3596,
+                "3402732": 3596,
+                "3402733": 3596
+              },
+              "D": {
+                "3489452": 10300,
+                "3489453": 10300,
+                "3489456": 10300,
+                "3489460": 10300,
+                "3489461": 10300,
+                "3489462": 10300,
+                "3489463": 10300,
+                "3489464": 10300
+              },
+              "K": {
+                "3582702": 2568,
+                "3582703": 2464,
+                "3582704": 2464,
+                "3582705": 2464,
+                "3582706": 2464,
+                "3582707": 2464,
+                "3582708": 2464,
+                "3582709": 2464
+              }
+            }
+          },
+          "free_plus_preceding_used_mib": [
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157
+          ],
+          "stable_tail_samples": 1,
+          "stable_tail_s": 0.0,
+          "preceding_sleep_sample_to_next_phase_sample_s": 60.930143707,
+          "first_phase_sample_used_mib": [
+            43673,
+            41141,
+            42313,
+            43513,
+            41141,
+            43549,
+            42341,
+            43129
+          ]
+        },
+        "phases_source": "L2/worker-G/wake-0002-phases.json",
+        "allocator_source": "L2/worker-G/worker.log",
+        "torch_sources": {
+          "prior_sleep": "L2/worker-G/ack-0001.json",
+          "weights_mapped": "L2/worker-G/wake-0002-weights-mapped.json",
+          "weights_reloaded": "L2/worker-G/wake-0002-weights-reloaded.json",
+          "resleep": "L2/worker-G/ack-0004.json"
+        },
+        "rank_rows": [
+          {
+            "rank": 0,
+            "pid": 3402725,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 1,
+            "pid": 3402726,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 2,
+            "pid": 3402727,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 3,
+            "pid": 3402728,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 4,
+            "pid": 3402729,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 5,
+            "pid": 3402730,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 6,
+            "pid": 3402732,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          },
+          {
+            "rank": 7,
+            "pid": 3402733,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 1470103552
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 22118400,
+                "cuda_reserved_bytes": 662700032
+              }
+            }
+          }
+        ],
+        "phase_samples": 196,
+        "reload_samples": 187,
+        "sampled_peak_mib": [
+          111041,
+          110939,
+          110939,
+          110937,
+          110939,
+          110939,
+          110939,
+          110939
+        ],
+        "sampled_peak_increment_mib": [
+          94554,
+          94556,
+          94556,
+          94554,
+          94556,
+          94556,
+          94556,
+          94556
+        ],
+        "sampled_reload_peak_increment_mib": [
+          92944,
+          92944,
+          92944,
+          92944,
+          92944,
+          92944,
+          92944,
+          92944
+        ]
+      },
+      {
+        "stage": 7,
+        "model": "G",
+        "wake_command": 5,
+        "gate": {
+          "source": "L2/06-G-vram-gate.json",
+          "free_mib": [
+            126110,
+            126142,
+            126142,
+            126142,
+            126142,
+            126140,
+            126142,
+            126142
+          ],
+          "required_mib": 115476,
+          "passed": true,
+          "preceding_sleep": {
+            "source": "L2/L2-05-K-post-sleep-residency.json",
+            "ns": 1924877920890503,
+            "used_mib": [
+              17047,
+              17015,
+              17015,
+              17015,
+              17015,
+              17017,
+              17015,
+              17015
+            ],
+            "model_pid_hbm_mib": {
+              "G": {
+                "3402725": 4228,
+                "3402726": 4228,
+                "3402727": 4228,
+                "3402728": 4228,
+                "3402729": 4228,
+                "3402730": 4228,
+                "3402732": 4228,
+                "3402733": 4228
+              },
+              "D": {
+                "3489452": 10300,
+                "3489453": 10300,
+                "3489456": 10300,
+                "3489460": 10300,
+                "3489461": 10300,
+                "3489462": 10300,
+                "3489463": 10300,
+                "3489464": 10300
+              },
+              "K": {
+                "3582702": 2496,
+                "3582703": 2464,
+                "3582704": 2464,
+                "3582705": 2464,
+                "3582706": 2464,
+                "3582707": 2466,
+                "3582708": 2464,
+                "3582709": 2464
+              }
+            }
+          },
+          "free_plus_preceding_used_mib": [
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157,
+            143157
+          ],
+          "stable_tail_samples": 17,
+          "stable_tail_s": 19.465284389,
+          "preceding_sleep_sample_to_next_phase_sample_s": 61.480695982,
+          "first_phase_sample_used_mib": [
+            88741,
+            84709,
+            83507,
+            88325,
+            83893,
+            82741,
+            85149,
+            83909
+          ]
+        },
+        "phases_source": "L2/worker-G/wake-0005-phases.json",
+        "allocator_source": "L2/worker-G/worker.log",
+        "torch_sources": {
+          "prior_sleep": "L2/worker-G/ack-0004.json",
+          "weights_mapped": "L2/worker-G/wake-0005-weights-mapped.json",
+          "weights_reloaded": "L2/worker-G/wake-0005-weights-reloaded.json",
+          "resleep": "L2/worker-G/ack-0007.json"
+        },
+        "rank_rows": [
+          {
+            "rank": 0,
+            "pid": 3402725,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 1,
+            "pid": 3402726,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 2,
+            "pid": 3402727,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 3,
+            "pid": 3402728,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 4,
+            "pid": 3402729,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 5,
+            "pid": 3402730,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 6,
+            "pid": 3402732,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          },
+          {
+            "rank": 7,
+            "pid": 3402733,
+            "tags": {
+              "weights": {
+                "bytes": 95990841344,
+                "allocations": 421,
+                "cpu_backup_bytes": 0
+              },
+              "kv_cache": {
+                "bytes": 1663041536,
+                "allocations": 88,
+                "cpu_backup_bytes": 0
+              }
+            },
+            "torch_deltas_bytes": {
+              "prior_sleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_mapped": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              },
+              "weights_reloaded": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 1210056704
+              },
+              "resleep": {
+                "cuda_allocated_bytes": 0,
+                "cuda_reserved_bytes": 0
+              }
+            }
+          }
+        ],
+        "phase_samples": 475,
+        "reload_samples": 449,
+        "sampled_peak_mib": [
+          111357,
+          111325,
+          111325,
+          111325,
+          111327,
+          111327,
+          111325,
+          111323
+        ],
+        "sampled_peak_increment_mib": [
+          94310,
+          94310,
+          94310,
+          94310,
+          94312,
+          94310,
+          94310,
+          94308
+        ],
+        "sampled_reload_peak_increment_mib": [
+          92696,
+          92696,
+          92696,
+          92696,
+          92696,
+          92696,
+          92696,
+          92696
+        ]
+      }
+    ],
+    "failed_v4_gate": null
+  },
+  {
     "run_id": "B2-S3-r1-20261116T004923Z",
     "sequence": "S3",
     "rep": 1,
