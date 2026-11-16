@@ -204,4 +204,4 @@ if __name__ == "__main__":
               "kv_release_to_service_ready_s")
     summary = {key: {field: statistics([row[field] for row in rows]) for field in fields}
                for key, rows in groups.items()}
-    print(json.dumps(dict(rounds=rounds, summary=summary), indent=2))
+    print(json.dumps(dict(rounds=rounds, summary=summary), separators=(",", ":")))
