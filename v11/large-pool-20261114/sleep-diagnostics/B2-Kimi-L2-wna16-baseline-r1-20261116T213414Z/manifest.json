@@ -1,0 +1,66 @@
+{
+  "arm": "baseline",
+  "runner_sha256": {
+    "v11_run_b2.py": "8ea00ca24dabe9e8d6209e33901e7968419559d83477dc3319f92fa5f40a47b6",
+    "v11_sleep_backend.py": "af00605112cc936c3a463663163589cc16c2653f03972c2b20586521ea6e3433",
+    "v7_sleep_worker.py": "9f96aeaeb5056309e09f672fb8a35310aa724c452814e81cea3a311aa391a145",
+    "sf_admission.py": "078b7db65c57042d1fde4177ec2c7d2eaeb01fe0beb5aefab79a58ab41b025ef"
+  },
+  "status": "CPU candidate. Matched GPU A/B not started.",
+  "engine_commit": "132765e3560659ff63ebd236203672e991b70e08",
+  "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "scope": "Kimi-K2.6 checkpoint Sleep L2, non-group CT WNA16 Marlin",
+  "patch_sha256": "d14b79d6dacec140c50e13a785a2900b08c5283e2e0fc60557a19fc545b0b443",
+  "overlays": [
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py",
+      "baseline_sha256": "60eadafe3c93458ba8bca47a26e5986f7b41072e5214dc4abda96194899abfd2",
+      "candidate_sha256": "fe798dacd88b16efa4335af278057d1d97a7d367ac04aa07f3ad3383f5bdedff"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/model_loader/reload/layerwise.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/model_loader/reload/layerwise.py",
+      "baseline_sha256": "bf4cc2d80d32963dee1e38e3ddacc375e7f3c4d021ba3a9cd4ed544e3567e5e6",
+      "candidate_sha256": "d6f3c970f80e7299a7e741bb352e01916b829fab70ae8b680ae5d3eaa4235692"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/model_loader/reload/types.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/model_loader/reload/types.py",
+      "baseline_sha256": "37e0c702ecedd50df1597b253cda368237aeb243fae4b8dd7809115cad3a4d7e",
+      "candidate_sha256": "fd139f15ab70dfd2022afb1e113efdbf34124775ecb1c5e2db602498c5e3103c"
+    }
+  ],
+  "checkpoint": {
+    "path": "/mnt/raid/models/Kimi-K2.6",
+    "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "safetensors_index_sha256": "00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3",
+    "expected_expert_key_count": 207360,
+    "routed_layers": 60,
+    "n_experts": 384,
+    "preflight": "Per shard runtime audit must preserve existing immutable checkpoint identity.",
+    "host_path": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+    "cache_admission": "File-level cold, both arms before native load and again before checkpoint wake. Prior mmap diagnostic lacks these paired admissions."
+  },
+  "execution": {
+    "host": "qjhs003",
+    "models": "KK",
+    "levels": "2",
+    "reload_mode": "checkpoint",
+    "kv_cache_gib_per_rank": 16,
+    "cpu_limit": 32,
+    "memory_limit_gib": 1664,
+    "tp": 8,
+    "max_model_len": 2048,
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "checkpoint_input_reference": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/runs/B2-Kimi-L2-memory-r1-20261115T041505Z/b2-inputs/kimi-input.json",
+    "checkpoint_input_sha256": "e9b86ef658ca2e6f71513fd81090dc02cbb86f50634d3d2a1b6f77a0fcbdffab",
+    "historical_reference": "B2-Kimi-L2-memory-r1-20261115T041505Z",
+    "evidence_requires": "matched instrumented unpatched vs candidate runs"
+  },
+  "cpu_test": {
+    "invocation": "cd /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate && bash verify_cpu.sh",
+    "test_sha256": "31087c111dab001e8bb74873e9fbb1f0b8dc7bec674d9ebe98f38bccd56f0bae"
+  }
+}

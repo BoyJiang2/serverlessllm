@@ -787,3 +787,18 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 修复短测 `B2-V4RebindDiag-r1-20261116T044224Z` 沿用相同的 V4 请求和显存准入。两次 checkpoint 唤醒的金标与 Worker 连续性通过，八 rank 的 Marlin scale 在权重分配区外均为 0 字节。三次 Sleep 后每卡最大驻留为 4323 → 4323 → 4323 MiB。最终八卡归零观察 61.036 s。[验收](large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z/qualification.json) · [原始证据索引](large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z/evidence-index.csv) · [逐 rank 重算](large-pool-20261114/v4-rebind-diagnostic.json)
 
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z`。
+
+## Kimi Sleep L2 逐层重载对照
+
+固定 vLLM 0.20.1，TP8，每 rank 16 GiB GPU KV，容器内存上限 1664 GiB。两组首次加载和 checkpoint 唤醒前各做一次 SafeTensors 冷页准入。逐层记录覆盖八 rank 的 480 个专家层实例。匿名内存峰值与文件页 refault 均取重载窗口，refault 折算量按页计数计算。
+
+[baseline 派生审计](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-baseline-r1-20261116T213414Z/audit.json) · [验收回执](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-baseline-r1-20261116T213414Z/qualification.json) · [重算脚本](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-baseline-r1-20261116T213414Z/capsule-provenance/audit_wna16.py)
+
+[candidate 派生审计](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z/audit.json) · [验收回执](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z/qualification.json) · [重算脚本](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z/capsule-provenance/audit_wna16.py)
+
+| 组 | 运行证据 | finalize 完成数 | 重载（s） | GPU KV 唤醒（s） | 匿名内存峰值（GiB） | 文件页 refault 折算（GiB） | 八卡释放观察（s） |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| baseline | [B2-Kimi-L2-wna16-baseline-r1-20261116T213414Z](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-baseline-r1-20261116T213414Z/evidence-index.csv) | 480/480 | 2141.810 | 0.219 | 1313.796 | 953.656 | 60.683 |
+| candidate | [B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z/evidence-index.csv) | 0/480 | 1270.912 | 0.211 | 68.509 | 0.000 | 60.640 |
+
+同配置各测一次，两组均以同一轮内的原八个 Worker 完成唤醒并通过前后金标。本对照重载缩短 870.898 s（40.7%）。基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。

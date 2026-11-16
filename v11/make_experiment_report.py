@@ -677,6 +677,40 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                          "· [逐 rank 重算](large-pool-20261114/v4-rebind-diagnostic.json)")
             parts.append("从仓库根目录运行 "
                          f"`python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/{evidence}`。")
+    wna16 = sorted((ROOT / "large-pool-20261114/sleep-diagnostics").glob(
+        "B2-Kimi-L2-wna16-*/audit.json"))
+    if wna16:
+        parts.append("""## Kimi Sleep L2 逐层重载对照
+
+固定 vLLM 0.20.1，TP8，每 rank 16 GiB GPU KV，容器内存上限 1664 GiB。两组首次加载和 checkpoint 唤醒前各做一次 SafeTensors 冷页准入。逐层记录覆盖八 rank 的 480 个专家层实例。匿名内存峰值与文件页 refault 均取重载窗口，refault 折算量按页计数计算。""")
+        rows = []
+        arms = {}
+        for audit in wna16:
+            result = read(audit)
+            arms[result["arm"]] = result
+            lifecycle, memory = result["lifecycle"], result["memory"]
+            counts = result["layer_completions"]
+            finalized = sum(row.get("finalize", 0) for row in counts.values())
+            observed = sum(sum(row.values()) for row in counts.values())
+            evidence = audit.parent.relative_to(ROOT).as_posix()
+            rows.append([result["arm"], f"[{lifecycle['run']}]({evidence}/evidence-index.csv)",
+                         f"{finalized}/{observed}", fmt(result["reload_seconds"]),
+                         fmt(result["kv_wake_seconds"]),
+                         fmt(memory["reload_sampled_anon_peak"]["anon_bytes"] / GIB),
+                         fmt(memory["refault_bytes"] / GIB),
+                         fmt(lifecycle["released_seconds"])])
+            parts.append(f"[{result['arm']} 派生审计]({evidence}/audit.json) · "
+                         f"[验收回执]({evidence}/qualification.json) · "
+                         f"[重算脚本]({evidence}/capsule-provenance/audit_wna16.py)")
+        parts.append(table(["组", "运行证据", "finalize 完成数", "重载（s）",
+                            "GPU KV 唤醒（s）", "匿名内存峰值（GiB）",
+                            "文件页 refault 折算（GiB）", "八卡释放观察（s）"], rows))
+        if len(wna16) == 2 and {"baseline", "candidate"} == arms.keys():
+            baseline = arms["baseline"]["reload_seconds"]
+            candidate = arms["candidate"]["reload_seconds"]
+            parts.append(f"同配置各测一次，两组均以同一轮内的原八个 Worker 完成唤醒并通过前后金标。"
+                         f"本对照重载缩短 {fmt(baseline - candidate)} s（{(1 - candidate / baseline):.1%}）。"
+                         "基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 
