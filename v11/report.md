@@ -454,3 +454,17 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py v11/large-pool-20261114/sleep-runs` 重算。[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)
 
 显存回执重算使用 `python v11/large-pool-20261114/recompute_sleep_vram.py v11/large-pool-20261114/sleep-runs`。
+
+### V4 Sleep L2 单模型重复唤醒诊断
+
+`B2-V4ScaleDiag-r1-20261116T035714Z` · V4 → V4 → V4，每 rank 16 GiB GPU KV，沿用原显存准入。金标和 Worker 连续性通过，13 个阶段各覆盖八 rank，退出后八卡归零观察 61.028 s。此轮单列，S3 的有效轮次仍为 0。[验收](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/qualification.json) · [原始证据索引](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/evidence-index.csv)
+
+| 第几次 sleep | 每卡 NVML 驻留（MiB） | 八 rank 权重分配区外 scale（GiB） |
+| --- | --- | --- |
+| 1 | 4323 | 0.000 |
+| 2 | 10309 | 45.035 |
+| 3 | 10119 | 45.035 |
+
+首次 checkpoint 重载后，Marlin 的 scale 引用指向权重分配区外的存储，这些存储在下一次 Sleep 后仍被引用。首次重载前后每卡休眠驻留增加 5986 MiB，与 S3 的 V4 驻留增量一致。第二次重载后，区外 scale 容量保持稳定。NVML 总驻留同时包含其他显存分配，按原始读数列示。[逐 rank 派生回执](large-pool-20261114/v4-scale-diagnostic.json)
+
+从仓库根目录运行 `python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z`。

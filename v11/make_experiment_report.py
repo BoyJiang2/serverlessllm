@@ -532,6 +532,37 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
         if vram_audits:
             parts.append("显存回执重算使用 `python v11/large-pool-20261114/recompute_sleep_vram.py "
                          "v11/large-pool-20261114/sleep-runs`。")
+        scale_path = sleep_timing.parent / "v4-scale-diagnostic.json"
+        if scale_path.is_file():
+            scale = json.loads(scale_path.read_bytes())
+            rid = scale["run_id"]
+            evidence = f"large-pool-20261114/sleep-diagnostics/{rid}"
+            receipt = json.loads((ROOT / evidence / "qualification.json").read_bytes())
+            assert receipt["passed"] and scale["qualification_passed"]
+            sleeps = [row for row in scale["phases"] if row["phase"] == "after_sleep"]
+            sleep_rows = []
+            for index, (row, nvml) in enumerate(zip(sleeps, scale["post_sleep_nvml"], strict=True)):
+                outside = row["storage_total_bytes"]["outside_weights"] / GIB
+                mib = nvml["gpu_used_per_card_mib"]
+                per_card = str(mib[0]) if min(mib) == max(mib) else f"{min(mib)}–{max(mib)}"
+                sleep_rows.append((index + 1, per_card, fmt(outside)))
+            parts.append("### V4 Sleep L2 单模型重复唤醒诊断")
+            parts.append(f"`{rid}` · V4 → V4 → V4，每 rank 16 GiB GPU KV，沿用原显存准入。"
+                         f"金标和 Worker 连续性通过，{scale['phase_count']} 个阶段各覆盖八 rank，"
+                         f"退出后八卡归零观察 {fmt(receipt['final_release_seconds'])} s。"
+                         f"此轮单列，S3 的有效轮次仍为 0。[验收]({evidence}/qualification.json) "
+                         f"· [原始证据索引]({evidence}/evidence-index.csv)")
+            parts.append(table(["第几次 sleep", "每卡 NVML 驻留（MiB）",
+                                "八 rank 权重分配区外 scale（GiB）"], sleep_rows))
+            delta = scale["post_sleep_nvml"][1]["gpu_used_delta_per_card_mib"]
+            increase = str(delta[0]) if min(delta) == max(delta) else f"{min(delta)}–{max(delta)}"
+            parts.append("首次 checkpoint 重载后，Marlin 的 scale 引用指向权重分配区外的存储，"
+                         f"这些存储在下一次 Sleep 后仍被引用。首次重载前后每卡休眠驻留增加 {increase} MiB，"
+                         "与 S3 的 V4 驻留增量一致。第二次重载后，区外 scale 容量保持稳定。"
+                         "NVML 总驻留同时包含其他显存分配，按原始读数列示。"
+                         "[逐 rank 派生回执](large-pool-20261114/v4-scale-diagnostic.json)")
+            parts.append("从仓库根目录运行 "
+                         f"`python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/{evidence}`。")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 
