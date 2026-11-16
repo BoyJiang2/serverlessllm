@@ -400,6 +400,22 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                              sum(run["passed"] for run in rounds if run["sequence"] == seq),
                              protocol["target_repetitions_per_sequence"])
                             for seq, models in protocol["sequences"].items()]))
+        s3_gates = []
+        for run in rounds:
+            if run["sequence"] != "S3":
+                continue
+            gate_rel = f"large-pool-20261114/sleep-runs/{run['run']}/L2/06-D-vram-gate.json"
+            gate_path = ROOT / gate_rel
+            if gate_path.is_file():
+                gate = json.loads(gate_path.read_bytes())
+                free = min(gate["free_mib"])
+                required = gate["required_mib"]
+                assert len(gate["free_mib"]) == 8 and gate["passed"] == (free >= required)
+                s3_gates.append((f"[第 {run['rep']} 轮]({gate_rel})", f"{free:,}", f"{required:,}",
+                                 f"{free - required:+,}", "通过" if run["passed"] else "未通过"))
+        if s3_gates:
+            parts.append("S3 末段 V4 显存准入取唤醒前八卡可用显存的最小值。余量为该值减去准入线。")
+            parts.append(table(["轮次", "最低可用（MiB）", "准入线（MiB）", "余量（MiB）", "整轮验收"], s3_gates))
         b1_rounds = json.loads((sleep_timing.parent / "readiness-20261116.json").read_bytes())
         cold_kv = []
         for seq, models in protocol["sequences"].items():

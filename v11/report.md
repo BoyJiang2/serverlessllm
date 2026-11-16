@@ -268,6 +268,13 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
 | S2 | GLM-5.1-FP8 → DeepSeek-V4-Pro → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → GLM-5.1-FP8 | 3 | 3 |
 | S3 | DeepSeek-V4-Pro → Kimi-K2.6 → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → DeepSeek-V4-Pro | 1 | 3 |
 
+S3 末段 V4 显存准入取唤醒前八卡可用显存的最小值。余量为该值减去准入线。
+
+| 轮次 | 最低可用（MiB） | 准入线（MiB） | 余量（MiB） | 整轮验收 |
+| --- | --- | --- | --- | --- |
+| [第 1 轮](large-pool-20261114/sleep-runs/B2-S3-r1-20261116T004923Z/L2/06-D-vram-gate.json) | 126,110 | 129,209 | -3,099 | 未通过 |
+| [第 2 轮](large-pool-20261114/sleep-runs/B2-S3-r2-20261116T050140Z/L2/06-D-vram-gate.json) | 132,096 | 129,209 | +2,887 | 通过 |
+
 首段 GPU KV 初始化取八 rank 最早开始到最晚结束。大池 B1 的历史事件包住 Worker.initialize_from_config，含分配、绑定与 LMCache 注册。服务器注册成功日志的首末跨度与该初始化区间重叠。B1 按显存利用率自动计算预算，Sleep L2 固定每 rank 16 GiB，使用原生初始化。池初始化和 Backend 预热各有独立接点。B1 的旧 GPU KV 释放起点缺失，严格的清理至新 KV 就绪跨度为 null。
 
 | 序列 | 冷启动模型 | 大池 B1 n | B1 中位数（s） | Sleep L2 n | L2 中位数（s） |
