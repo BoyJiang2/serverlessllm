@@ -253,7 +253,7 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **820.42 GiB**，
 
 [派生数据和逐 rank 起止](derived/report-data.json) · [运行清单](report-inputs/run-manifest.json) · [原始证据索引](report-inputs/evidence-index.csv.gz) · [三模型大池复验](large-pool-20261114/REPORT.md)
 
-大池 B1 九轮共 54 次后续切换。独立文件重读缺读取起点，保留读取字节、Store 访问完成时刻与访问跨度。严格的 KV 清理至新 KV 就绪跨度缺旧 GPU KV 释放起点，54 次均为 null。历史证据可复算旧 Host KV clear、新 GPU KV 分配和新 Backend 注册。若需补齐正式对照，需在独立 B1 轮次记录逐 rank 旧 GPU KV 释放起止与 Store 缺块读取起止。已归档的 S1 补测补充了释放观察、池初始化和 Store 字节证据，正式样本仍为九轮。
+大池 B1 九轮共 54 次后续切换。逐路径配对 Store 加载日志后，54 次均可从首个缺块路径开始加载到主机，计至末个路径从磁盘加载完成。该跨度包含读取线程调度和收尾。单独的 `pread` 耗时仍为 null。严格的 KV 清理至新 KV 就绪跨度缺旧 GPU KV 释放起点，54 次均为 null。历史证据可复算旧 Host KV clear、新 GPU KV 分配和新 Backend 注册。独立 B1 补采需要记录逐 rank 旧 GPU KV 释放起止。已归档的 S1 补测补充了释放观察、池初始化和 Store 字节证据，正式样本仍为九轮。
 
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)
 

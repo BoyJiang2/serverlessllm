@@ -10,7 +10,9 @@ from statistics import median
 from summarize_pilot import load, summarize, seconds
 
 REG = re.compile(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d+)\].*?Registered KV cache for GPU ID (\d+)")
-DISK_DONE = re.compile(r"^(\S+).*?Finished loading model (\S+) from disk")
+DISK_LOG = r"^(\S+) I(\d{8} \d{2}:\d{2}:\d{2}\.\d{6})\s+(\d+) model\.cpp:"
+DISK_BEGIN = re.compile(DISK_LOG + r"120\] Loading model (\S+) size (\d+) to host$")
+DISK_DONE = re.compile(DISK_LOG + r"236\] Finished loading model (\S+) from disk$")
 
 
 def registration_log(path):
@@ -22,6 +24,40 @@ def registration_log(path):
             out.append(dict(wall_ns=int(stamp.timestamp()) * 10**9 + stamp.microsecond * 1000,
                             instance_id=match[2], line=line_number))
     return out
+
+
+def disk_load_log(path, cache):
+    starts, ends = {}, {}
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        begin = DISK_BEGIN.match(line)
+        end = DISK_DONE.match(line)
+        if match := begin or end:
+            docker_utc, stamp, tid, model_path = match.groups()[:4]
+            wall = datetime.strptime(stamp, "%Y%m%d %H:%M:%S.%f").replace(tzinfo=timezone.utc)
+            wall_ns = int(wall.timestamp()) * 10**9 + wall.microsecond * 1000
+            parsed = dict(line=line_number, log_utc=docker_utc, path=model_path)
+            records = starts if begin else ends
+            assert model_path not in records, (path, model_path, line_number)
+            records[model_path] = (wall_ns, int(tid), parsed, int(match[5]) if begin else None)
+    assert set(starts) == set(ends) == set(cache["miss_paths"]), path
+    if not starts:
+        assert cache["file_read_bytes"] == 0, path
+        return None, None
+    phases = []
+    for model_path, (begin_ns, begin_tid, begin, size) in starts.items():
+        end_ns, end_tid, end, _ = ends[model_path]
+        assert begin_ns <= end_ns and begin["line"] < end["line"] and begin_tid == end_tid, (path, model_path)
+        phases.append(dict(path=model_path, tid=begin_tid, bytes=size,
+                           begin_ns=begin_ns, end_ns=end_ns,
+                           begin_line=begin["line"], end_line=end["line"]))
+    assert sum(phase["bytes"] for phase in phases) == cache["file_read_bytes"], path
+    begin_ns = min(phase["begin_ns"] for phase in phases)
+    end_ns = max(phase["end_ns"] for phase in phases)
+    completion = dict(count=len(ends), unique_paths=len(ends),
+                      first=next(iter(ends.values()))[2], last=next(reversed(ends.values()))[2])
+    load_phase = dict(source=path.name, clock="glog_realtime_utc", count=len(phases),
+                      begin_ns=begin_ns, end_ns=end_ns, wall_s=seconds(begin_ns, end_ns), paths=phases)
+    return completion, load_phase
 
 
 def collect(root):
@@ -57,15 +93,7 @@ def collect(root):
                                         last_host_log_ns=registered[-1]["wall_ns"] - offset,
                                         records=registered, source="lmcache/lmcache.log")
                 cache = load(step / "store-step.json")["cache"]
-                disk_done = []
-                if i:
-                    for number, line in enumerate((step / "store-events.log").read_text().splitlines(), 1):
-                        match = DISK_DONE.search(line)
-                        if match:
-                            disk_done.append(dict(line=number, log_utc=match[1], path=match[2]))
-                disk_completion = dict(count=len(disk_done),
-                                       unique_paths=len({event["path"] for event in disk_done}),
-                                       first=disk_done[0], last=disk_done[-1]) if disk_done else None
+                disk_completion, disk_load = disk_load_log(step / "store-events.log", cache) if i else (None, None)
                 events = [json.loads(line) for source in sorted((step / "events").glob("*.jsonl"))
                           for line in source.read_text().splitlines()]
                 def bounds(phase):
@@ -101,6 +129,7 @@ def collect(root):
                                   registration=registration, cache_state=row["cache_state"],
                                   hit_bytes=cache["hit_bytes"], read_bytes=cache["file_read_bytes"],
                                   disk_completion=disk_completion,
+                                  miss_path_disk_load=disk_load,
                                   evicted_paths=len(cache["evicted_paths"]),
                                   eviction_envelope_s=item["eviction_event_envelope_s"],
                                   store_access_envelope_s=item["store_lookup_to_complete_s"],
@@ -134,10 +163,14 @@ def report(rounds):
         rows = step["registration"]
         return seconds(rows["first_host_log_ns"], rows["last_host_log_ns"]) if rows else None
 
+    def disk_load(step):
+        row = step["miss_path_disk_load"]
+        return row["wall_s"] if row else None
+
     rows = ["# V11 大池 B1 可服务前阶段",
             "九个正式 run、63 段。下表为中位数 [最小，最大]，单位秒。每行的逐轮值、可服务端点、注册日志行号以及原 run ID 见 [重算数据](readiness-20261116.json)。[服务器证据索引](readiness-evidence-index.csv.gz) 记录绝对路径、字节数与 SHA-256。",
-            f"共有 {sum(s['disk_completion'] is not None for r in rounds for s in r['steps'][1:])}/54 次切换"
-            "留有 Store 分路径磁盘加载完成日志。派生数据保留首末日志及行号。日志缺少对应读起点，独立重读历时仍为 null。"
+            f"共有 {sum(s['miss_path_disk_load'] is not None for r in rounds for s in r['steps'][1:])}/54 次切换"
+            "留有 Store 缺失路径磁盘加载开始和完成日志。派生数据保留逐路径的端点、线程、字节和行号。"
             f" 另有 {sum(s['gpu_exit_samples'] is not None for r in rounds for s in r['steps'][1:])}/54 次"
             "切换可从退出前后快照核对消失的 GPU 计算 PID。该采样窗口包含整个进程的资源变化，精确 KV 释放历时仍为 null。",
             "## 首段 KV 冷启动与准备",
@@ -156,19 +189,20 @@ def report(rounds):
         "GPU KV 端点取八 rank 最早分配开始至最晚结束。LMCache 取同一启动窗口内八个不同实例的服务器成功注册日志，表中的首末跨度覆盖注册完成事件之间的时间。注册调用开始端点缺失。Backend ready 是可服务回执，逐段保留原始时间戳。",
         "",
         "## 后六段切换",
-        "| 序列/段 | 模型 | Store 驱逐事件跨度 | Store 访问至完成 | Store 事件总跨度 | 八 rank 权重加载 | 旧 Host 清理调用 | 新 GPU KV 分配 | 新 LMCache 首末注册日志 | 旧 KV 清理至新 KV 就绪 |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| 序列/段 | 模型 | Store 驱逐事件跨度 | Store 缺失路径磁盘加载 | Store 访问至完成 | Store 事件总跨度 | 八 rank 权重加载 | 旧 Host 清理调用 | 新 GPU KV 分配 | 新 LMCache 首末注册日志 | 旧 KV 清理至新 KV 就绪 |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ])
     for seq in ("S1", "S2", "S3"):
         for i in range(1, 7):
             steps = [r["steps"][i] for r in rounds if r["sequence"] == seq]
-            cols = [cell(s[key] for s in steps) for key in
-                    ("eviction_envelope_s", "store_access_envelope_s", "store_combined_envelope_s",
+            cols = [cell(s["eviction_envelope_s"] for s in steps), cell(disk_load(s) for s in steps)]
+            cols += [cell(s[key] for s in steps) for key in
+                    ("store_access_envelope_s", "store_combined_envelope_s",
                      "full_load_s", "old_host_clear_seconds", "allocation_s")]
             cols += [cell(registration(s) for s in steps), cell(s["kv_switch_wall_s"] for s in steps)]
             rows.append(f"| {seq}/{i+1} | {steps[0]['model']} | " + " | ".join(cols) + " |")
     rows.extend(["",
-        "独立缺块文件重读耗时缺读取起点，保留 null，文件读取字节由 Store 台账核验。驱逐次数、访问与恢复事件并列，无驱逐或缺少驱逐包络时以逐轮驱逐路径计数区分。Store 事件可能与权重加载重叠。旧 Backend 退出和清理后快照有记录，实际 GPU KV 释放起止缺失，因此 54 次严格的 KV 清理至就绪总时长留空。旧 Host KV 为常驻池 clear。新段取 GPU KV 分配结束与末条注册成功日志中较晚的接点，并保留时钟换算偏差和独立的 Backend 就绪回执。",
+        "Store 缺失路径磁盘加载取所有缺失路径的最早开始日志至最晚完成日志，使用同一 Store 的 glog 实时时钟。开始日志位于打开分区文件后、派发读取线程前，完成日志位于线程回收、关闭文件和更新驻留状态之后。逐次 pread 的开始与返回未记录，独立缺块文件重读耗时保留 null。驱逐次数、访问与恢复事件并列，无驱逐或缺少驱逐包络时以逐轮驱逐路径计数区分。Store 事件可能与权重加载重叠。旧 Backend 退出和清理后快照有记录，实际 GPU KV 释放起止缺失，因此 54 次严格的 KV 清理至就绪总时长留空。旧 Host KV 为常驻池 clear。新段取 GPU KV 分配结束与末条注册成功日志中较晚的接点，并保留时钟换算偏差和独立的 Backend 就绪回执。",
         "",
         "业务金标、kv_fill 和 Host 写入属于请求阶段。填充至提交日志保留在原大池报告，硬件驻留、有效载荷、池容量及 PID 同样保留原报告和原始快照。",
         "",
