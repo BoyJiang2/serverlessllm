@@ -1,0 +1,23 @@
+{
+  "node": "qjhs003",
+  "group": "B2",
+  "sleep_level": 2,
+  "tensor_parallel": 8,
+  "first_segment": {
+    "load_format": "native_safetensors",
+    "require_cold_admission": true
+  },
+  "first_visit": "native_load",
+  "revisit": "wake_with_checkpoint_reload",
+  "weight_store": false,
+  "lmcache": false,
+  "gpu_kv_gib_per_rank": 16,
+  "host_memory_limit_gib": {"K": 1664, "G": 1400, "D": 1400},
+  "sequences": {
+    "S1": ["K", "G", "D", "G", "K", "D", "K"],
+    "S2": ["G", "D", "K", "D", "G", "K", "G"],
+    "S3": ["D", "K", "G", "K", "D", "G", "D"]
+  },
+  "target_repetitions_per_sequence": 3,
+  "final_residency_observation_seconds": 60
+}
