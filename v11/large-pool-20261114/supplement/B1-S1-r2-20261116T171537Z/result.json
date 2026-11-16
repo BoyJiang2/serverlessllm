@@ -1,0 +1,1001 @@
+{
+  "run": "B1-S1-r2-20261116T171537Z",
+  "group": "B1",
+  "sequence": "S1",
+  "rep": 2,
+  "protocol_hash": "d3111d7f320cfb9e12a09c6a49e15ecbd3b4215d072c189707e12174ecd3dee7",
+  "activations": [
+    {
+      "index": 0,
+      "model": "K",
+      "model_name": "kimi",
+      "start_ns": 1974325573507601,
+      "exit_ns": 1975625468254063,
+      "t3_ns": 1975597117890773,
+      "t3_5_ns": 1975604060242087,
+      "t4_ns": 1975608842194614,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "arithmetic": {
+          "name": "arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "translation": {
+          "name": "translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": true,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        },
+        "kv_fill": {
+          "name": "kv_fill",
+          "checks": {
+            "text": false,
+            "tokens": false,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": true,
+          "passed": true,
+          "matched_reference": "historical"
+        }
+      },
+      "rank_coverage": null,
+      "cache": "safetensors_disk_cold",
+      "file_read_bytes": 0,
+      "hit_bytes": 0,
+      "allocated_blocks": 0,
+      "freed_blocks": 0,
+      "evicted_paths": 0,
+      "resident_before": [],
+      "activation_to_correct_seconds": 1283.268687013,
+      "first_token_seconds": 1278.486734486,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 35979264,
+      "kv_peak_ns": 1975608485450283,
+      "kv_first_write_ns": 1975608485450283,
+      "kv_window_samples": 789,
+      "kv_window_valued": 789,
+      "kv_window_nonzero": 11,
+      "kv_fill_passed": true,
+      "kv_used_before_clear": 35979264,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 5.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.003
+    },
+    {
+      "index": 1,
+      "model": "G",
+      "model_name": "glm",
+      "start_ns": 1975745526493386,
+      "exit_ns": 1976273692086720,
+      "t3_ns": 1976234434428395,
+      "t3_5_ns": 1976242103791337,
+      "t4_ns": 1976254524231494,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "business_arithmetic": {
+          "name": "business_arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "business_translation": {
+          "name": "business_translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": false,
+            "tokens": false,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true,
+            "native_0201": {
+              "text": true,
+              "tokens": true,
+              "finish": true,
+              "prompt": true,
+              "completion": true,
+              "actual_ids_count": true
+            }
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "native_0201",
+          "historical_gold_status": "differs_on_this_engine_version"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 762527481856,
+      "hit_bytes": 0,
+      "allocated_blocks": 22728,
+      "freed_blocks": 0,
+      "evicted_paths": 0,
+      "resident_before": [],
+      "activation_to_correct_seconds": 508.997738108,
+      "first_token_seconds": 496.577297951,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 51281920,
+      "kv_peak_ns": 1976258504725933,
+      "kv_first_write_ns": 1976258504725933,
+      "kv_window_samples": 341,
+      "kv_window_valued": 341,
+      "kv_window_nonzero": 9,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 51281920,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 5.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    },
+    {
+      "index": 2,
+      "model": "D",
+      "model_name": "v4",
+      "start_ns": 1976419830322488,
+      "exit_ns": 1976975854225077,
+      "t3_ns": 1976921250192356,
+      "t3_5_ns": 1976937138164398,
+      "t4_ns": 1976949388250796,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "business": {
+          "name": "business",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "workload32": {
+          "name": "workload32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 877729513472,
+      "hit_bytes": 0,
+      "allocated_blocks": 26552,
+      "freed_blocks": 22728,
+      "evicted_paths": 8,
+      "resident_before": [],
+      "activation_to_correct_seconds": 529.557928308,
+      "first_token_seconds": 517.30784191,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 49364992,
+      "kv_peak_ns": 1976961869503276,
+      "kv_first_write_ns": 1976961869503276,
+      "kv_window_samples": 342,
+      "kv_window_valued": 342,
+      "kv_window_nonzero": 9,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 49364992,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 4.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.001
+    },
+    {
+      "index": 3,
+      "model": "G",
+      "model_name": "glm",
+      "start_ns": 1977063740291562,
+      "exit_ns": 1977603195964199,
+      "t3_ns": 1977564010767800,
+      "t3_5_ns": 1977571489556179,
+      "t4_ns": 1977583877462274,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "business_arithmetic": {
+          "name": "business_arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "business_translation": {
+          "name": "business_translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": false,
+            "tokens": false,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true,
+            "native_0201": {
+              "text": true,
+              "tokens": true,
+              "finish": true,
+              "prompt": true,
+              "completion": true,
+              "actual_ids_count": true
+            }
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "native_0201",
+          "historical_gold_status": "differs_on_this_engine_version"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 762527481856,
+      "hit_bytes": 0,
+      "allocated_blocks": 22728,
+      "freed_blocks": 21656,
+      "evicted_paths": 400,
+      "resident_before": [],
+      "activation_to_correct_seconds": 520.137170712,
+      "first_token_seconds": 507.749264617,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 51281920,
+      "kv_peak_ns": 1977587656073729,
+      "kv_first_write_ns": 1977587656073729,
+      "kv_window_samples": 335,
+      "kv_window_valued": 335,
+      "kv_window_nonzero": 9,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 51281920,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 5.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    },
+    {
+      "index": 4,
+      "model": "K",
+      "model_name": "kimi",
+      "start_ns": 1977691296355341,
+      "exit_ns": 1977940829236904,
+      "t3_ns": 1977917335948935,
+      "t3_5_ns": 1977918364669098,
+      "t4_ns": 1977924888670859,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "arithmetic": {
+          "name": "arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "translation": {
+          "name": "translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": true,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 617000763392,
+      "hit_bytes": 0,
+      "allocated_blocks": 18392,
+      "freed_blocks": 19101,
+      "evicted_paths": 101,
+      "resident_before": [],
+      "activation_to_correct_seconds": 233.592315518,
+      "first_token_seconds": 227.068313757,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 35979264,
+      "kv_peak_ns": 1977922366714118,
+      "kv_first_write_ns": 1977922366714118,
+      "kv_window_samples": 161,
+      "kv_window_valued": 161,
+      "kv_window_nonzero": 12,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 35979264,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 5.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.001
+    },
+    {
+      "index": 5,
+      "model": "D",
+      "model_name": "v4",
+      "start_ns": 1978032407414820,
+      "exit_ns": 1978542413480206,
+      "t3_ns": 1978487267085796,
+      "t3_5_ns": 1978503190097615,
+      "t4_ns": 1978515204243158,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "business": {
+          "name": "business",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "workload32": {
+          "name": "workload32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 877729513472,
+      "hit_bytes": 0,
+      "allocated_blocks": 26552,
+      "freed_blocks": 26915,
+      "evicted_paths": 11,
+      "resident_before": [],
+      "activation_to_correct_seconds": 482.796828338,
+      "first_token_seconds": 470.782682795,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 49364992,
+      "kv_peak_ns": 1978526348785071,
+      "kv_first_write_ns": 1978526348785071,
+      "kv_window_samples": 332,
+      "kv_window_valued": 332,
+      "kv_window_nonzero": 10,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 49364992,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 4.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    },
+    {
+      "index": 6,
+      "model": "K",
+      "model_name": "kimi",
+      "start_ns": 1978631894510627,
+      "exit_ns": 1978876196680094,
+      "t3_ns": 1978853808824038,
+      "t3_5_ns": 1978854805484012,
+      "t4_ns": 1978860821636139,
+      "store_pid": 2132483,
+      "container_exit": 0,
+      "checks": {
+        "arithmetic": {
+          "name": "arithmetic",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "translation": {
+          "name": "translation",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": false,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "fixed32": {
+          "name": "fixed32",
+          "checks": {
+            "text": true,
+            "tokens": true,
+            "finish": true,
+            "prompt": true,
+            "completion": true,
+            "actual_ids_count": true
+          },
+          "length_only": true,
+          "passed": true,
+          "matched_reference": "historical"
+        },
+        "v7_added_arithmetic": {
+          "name": "v7_added_arithmetic",
+          "checks": {
+            "text": true,
+            "completion": true,
+            "nonempty": true,
+            "finish": true
+          },
+          "passed": true
+        }
+      },
+      "rank_coverage": {
+        "ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "spans": 8
+      },
+      "cache": "full_miss",
+      "file_read_bytes": 617000763392,
+      "hit_bytes": 0,
+      "allocated_blocks": 18392,
+      "freed_blocks": 17321,
+      "evicted_paths": 315,
+      "resident_before": [],
+      "activation_to_correct_seconds": 228.927125512,
+      "first_token_seconds": 222.910973385,
+      "kv_write_observed": true,
+      "kv_peak_bytes": 35979264,
+      "kv_peak_ns": 1978859617369982,
+      "kv_first_write_ns": 1978859617369982,
+      "kv_window_samples": 157,
+      "kv_window_valued": 157,
+      "kv_window_nonzero": 10,
+      "kv_fill_passed": null,
+      "kv_used_before_clear": 35979264,
+      "kv_used_after_clear": 0,
+      "kv_write_before_clear": true,
+      "kv_clear_ok": true,
+      "kv_closed": true,
+      "kv_committed_tokens": 512,
+      "kv_store_failed": false,
+      "kv_zero_hit": true,
+      "kv_lookup_delta": {
+        "lookups": 5.0,
+        "requested": 512.0,
+        "hits": 0.0,
+        "dropped": 0.0
+      },
+      "kv_sessions_before": 0,
+      "kv_clear_status": 200,
+      "kv_clear_seconds": 0.002
+    }
+  ],
+  "qualification": {
+    "group": "B1",
+    "sequence": "S1",
+    "rep": 2,
+    "protocol_hash": "d3111d7f320cfb9e12a09c6a49e15ecbd3b4215d072c189707e12174ecd3dee7",
+    "protocol_hash_provisional": true,
+    "models": [
+      "K",
+      "G",
+      "D",
+      "G",
+      "K",
+      "D",
+      "K"
+    ],
+    "activations": 7,
+    "requested_activations": 7,
+    "complete": true,
+    "failure_present": false,
+    "passed": true,
+    "checks": {
+      "complete": true,
+      "no_failure": true,
+      "exit_zero": true,
+      "requests": true,
+      "b1_host_kv_closed": true,
+      "b1_same_host_kv_pool": true
+    },
+    "b1_host_kv": {
+      "closed": true,
+      "steps": [
+        {
+          "step": 0,
+          "model": "K",
+          "write_observed": true,
+          "peak_bytes": 35979264,
+          "first_write_ns": 1975608485450283,
+          "used_before_clear": 35979264,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 5.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 1,
+          "model": "G",
+          "write_observed": true,
+          "peak_bytes": 51281920,
+          "first_write_ns": 1976258504725933,
+          "used_before_clear": 51281920,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 5.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 2,
+          "model": "D",
+          "write_observed": true,
+          "peak_bytes": 49364992,
+          "first_write_ns": 1976961869503276,
+          "used_before_clear": 49364992,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 4.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 3,
+          "model": "G",
+          "write_observed": true,
+          "peak_bytes": 51281920,
+          "first_write_ns": 1977587656073729,
+          "used_before_clear": 51281920,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 5.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 4,
+          "model": "K",
+          "write_observed": true,
+          "peak_bytes": 35979264,
+          "first_write_ns": 1977922366714118,
+          "used_before_clear": 35979264,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 5.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 5,
+          "model": "D",
+          "write_observed": true,
+          "peak_bytes": 49364992,
+          "first_write_ns": 1978526348785071,
+          "used_before_clear": 49364992,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 4.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        },
+        {
+          "step": 6,
+          "model": "K",
+          "write_observed": true,
+          "peak_bytes": 35979264,
+          "first_write_ns": 1978859617369982,
+          "used_before_clear": 35979264,
+          "used_after_clear": 0,
+          "clear_status": 200,
+          "clear_ok": true,
+          "write_before_clear": true,
+          "committed_tokens": 512,
+          "store_failed": false,
+          "zero_hit": true,
+          "lookup_delta": {
+            "lookups": 5.0,
+            "requested": 512.0,
+            "hits": 0.0,
+            "dropped": 0.0
+          },
+          "closed": true
+        }
+      ],
+      "requirement": "each segment must show non-zero Host KV bytes during its activation, written before the clear, and 0 bytes after it"
+    },
+    "gpu_memory_utilization": {
+      "K": 0.9,
+      "G": 0.9,
+      "D": 0.76
+    },
+    "gpu_memory_utilization_deviation": {
+      "D": 0.76
+    },
+    "preflight_passed": true,
+    "final_release_seconds": 61.326,
+    "final_all_gpu_zero": true,
+    "strict_release_passed": true,
+    "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "vllm": "0.20.1",
+    "tensor_parallel": 8,
+    "notes": [
+      "path A only; B1 waits for a locked LMCache version",
+      "B2 groups use their own runner",
+      "B1 passed additionally requires every segment to show a real Host KV write before the clear and a zero after it"
+    ]
+  }
+}

@@ -384,6 +384,47 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)
 
 新打点 S1 首次尝试 `B1-S1-r1-20261116T165642Z` 在 Kimi 冷页准入后、权重加载前被源码哈希校验拒绝。七段均未验收，最终八卡归零观察覆盖 60.536 s。[失败与释放证据索引](large-pool-20261114/supplement/B1-S1-r1-20261116T165642Z/evidence-index.csv)""")
+    supplements = sorted((ROOT / "large-pool-20261114/supplement").glob("*/derived-metrics.json"))
+    if supplements:
+        parts.append("""## 大池 B1 逐 rank 补测
+
+TP8，864 GiB 权重 Store，813 GiB LMCache Host KV。每轮首段通过 SafeTensors 冷页准入，后六段走同一常驻 Store。有效轮次单列，历史九轮继续使用原样本。
+
+可服务和首个正确响应均从控制器调度计时，终点分别为直接引擎就绪和首个通过业务金标的完整响应。权重准备以八 rank 权重及必要后处理完成为终点。独立 GPU KV 物理释放接点缺测，旧 GPU KV 释放至新 KV 就绪留空。逐次计时、可观测区间并集及权重重叠见派生数据。""")
+        for metrics in supplements:
+            data = read(metrics)
+            receipt = read(metrics.parent / "qualification.json")
+            evidence = metrics.parent.relative_to(ROOT).as_posix()
+            run = data["run_id"]
+            parts.append(f"### {run}\n\n"
+                         f"整轮通过 {receipt['passed']}，同池复用通过 "
+                         f"{receipt['checks']['b1_same_host_kv_pool']}，"
+                         f"八卡归零观察 {fmt(receipt['final_release_seconds'])} 秒。"
+                         f"[验收]({evidence}/qualification.json) · "
+                         f"[证据索引]({evidence}/evidence-index.csv) · "
+                         f"[Host KV 逐点数据]({evidence}/host-kv-time-memory.csv) · "
+                         f"[可复算端点]({evidence}/derived-metrics.json)")
+            init = data["round_metrics"]
+            parts.append(f"Host KV 池初始化 {fmt(init['2']['seconds'])} 秒，"
+                         f"权重 Store 初始化 {fmt(init['1']['seconds'])} 秒，"
+                         f"串行合计 {fmt(init['init_serial_sum_s'])} 秒，"
+                         f"两池初始化墙钟 {fmt(init['init_wall']['seconds'])} 秒。")
+            rows = []
+            for stage, kv in zip(data["stages"], receipt["b1_host_kv"]["steps"], strict=True):
+                timings = stage["metrics"]
+                weight = timings.get("3", timings.get("5", {})).get("seconds")
+                rows.append([stage["step"], fmt(weight),
+                             *(fmt(timings.get(key, {}).get("seconds"))
+                               for key in ("10", "12", "7.1", "7.3")),
+                             kv["committed_tokens"], kv["used_after_clear"]])
+            parts.append(table(["段", "权重准备（s）", "至可服务（s）", "至首个正确响应（s）",
+                                "旧 KV 注销（s）", "旧 Host KV 清理（s）", "写入 token",
+                                "本段清理后字节"], rows))
+            figure = ROOT / f"figures/host-kv-{run}.png"
+            if figure.is_file():
+                parts.append(f"![{run} Host KV 与进程内存](figures/{figure.name})")
+        parts.append("在原始证据所在节点运行 `python v11/large-pool-20261114/"
+                     "recompute_b1_metrics.py <run-directory>` 重算。")
     sleep_timing = ROOT / "large-pool-20261114/sleep-timing.json"
     if sleep_timing.is_file():
         sleep_data = json.loads(sleep_timing.read_bytes())

@@ -1,0 +1,17 @@
+--- a/v11_run.py
++++ b/v11_run.py
+@@ -498,6 +498,14 @@
+         mounts.append((LMCACHE_SITE, LMCACHE_SITE))
+         mounts.append((LMCACHE_SITE_055, LMCACHE_SITE_055))
+         site = '/opt/sllm-v4/lib/python3.12/site-packages'
++        pins_target = site + '/sllm_store/v4_source_pins.json'
++        original_pin_mounts = [src for src, dst in mounts if dst == pins_target]
++        assert len(original_pin_mounts) == 1, original_pin_mounts
++        original_pins = pathlib.Path(original_pin_mounts[0]).read_bytes()
++        assert hashlib.sha256(original_pins).hexdigest() == '12ec1cca6a31bda6011c92eda065b628578eabd0fb7f7ec4e3b4a2190e32a3ef'
++        derived_pins = CAMPAIGN / 'v4_source_pins.json'
++        assert hashlib.sha256(derived_pins.read_bytes()).hexdigest() == '028e607aa4631cc5b04c7ee748b302f386a8c2ce543a2313d4533d96349eda74'
++        mounts = [(str(derived_pins) if dst == pins_target else src, dst) for src, dst in mounts]
+         worker = site + '/vllm/v1/worker/'
+         adapter = LMCACHE_SITE_055 + '/lmcache/integration/vllm/vllm_multi_process_adapter.py'
+         mounts.extend([
