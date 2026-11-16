@@ -174,7 +174,7 @@ def report(rounds):
             f" 另有 {sum(s['gpu_exit_samples'] is not None for r in rounds for s in r['steps'][1:])}/54 次"
             "切换可从退出前后快照核对消失的 GPU 计算 PID。该采样窗口包含整个进程的资源变化，精确 KV 释放历时仍为 null。",
             "## 首段 KV 冷启动与准备",
-            "| 序列 | Host KV 池初始化 | 权重 Store 池初始化 | 串行用时之和 | 前检至首段放行 | 八 rank GPU KV 分配 | LMCache 首末注册日志 |",
+            "| 序列 | Host KV 池初始化 | 权重 Store 池初始化 | 串行用时之和 | 前检至首段放行 | 八 rank GPU KV 初始化 | LMCache 首末注册日志 |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for seq in ("S1", "S2", "S3"):
@@ -186,10 +186,10 @@ def report(rounds):
                  cell(registration(r["steps"][0]) for r in selected)]
         rows.append(f"| {seq} | " + " | ".join(cols) + " |")
     rows.extend(["",
-        "GPU KV 端点取八 rank 最早分配开始至最晚结束。LMCache 取同一启动窗口内八个不同实例的服务器成功注册日志，表中的首末跨度覆盖注册完成事件之间的时间。注册调用开始端点缺失。Backend ready 是可服务回执，逐段保留原始时间戳。",
+        "历史事件 kv_cache_allocation 覆盖 Worker.initialize_from_config，取八 rank 最早调用开始至最晚返回。该调用包含 KV 分配、绑定和 LMCache 注册。LMCache 首末跨度取同一启动窗口内八个不同实例的服务器成功注册日志，注册调用开始端点缺失。这两列不可相加。Backend ready 是独立的可服务回执。",
         "",
         "## 后六段切换",
-        "| 序列/段 | 模型 | Store 驱逐事件跨度 | Store 缺失路径磁盘加载 | Store 访问至完成 | Store 事件总跨度 | 八 rank 权重加载 | 旧 Host 清理调用 | 新 GPU KV 分配 | 新 LMCache 首末注册日志 | 旧 KV 清理至新 KV 就绪 |",
+        "| 序列/段 | 模型 | Store 驱逐事件跨度 | Store 缺失路径磁盘加载 | Store 访问至完成 | Store 事件总跨度 | 八 rank 权重加载 | 旧 Host 清理调用 | 新 GPU KV 初始化 | 新 LMCache 首末注册日志 | 旧 KV 清理至新 KV 就绪 |",
         "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ])
     for seq in ("S1", "S2", "S3"):

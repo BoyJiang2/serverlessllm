@@ -411,8 +411,10 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             cold_kv.append((seq, MODELS[models[0]], len(b1_values),
                             fmt(median(b1_values) if b1_values else None), len(l2_values),
                             fmt(median(l2_values) if l2_values else None)))
-        parts.append("首段 GPU KV 分配取最早 rank 开始到最晚 rank 结束。B1 按显存利用率自动计算预算，"
-                     "Sleep L2 固定每 rank 16 GiB。池初始化、LMCache 注册和 Backend 预热各有独立接点。"
+        parts.append("首段 GPU KV 初始化取八 rank 最早开始到最晚结束。大池 B1 的历史事件包住 "
+                     "Worker.initialize_from_config，含分配、绑定与 LMCache 注册。"
+                     "服务器注册成功日志的首末跨度与该初始化区间重叠。B1 按显存利用率自动计算预算，"
+                     "Sleep L2 固定每 rank 16 GiB，使用原生初始化。池初始化和 Backend 预热各有独立接点。"
                      "B1 的旧 GPU KV 释放起点缺失，严格的清理至新 KV 就绪跨度为 null。")
         parts.append(table(["序列", "冷启动模型", "大池 B1 n", "B1 中位数（s）",
                             "Sleep L2 n", "L2 中位数（s）"], cold_kv))
