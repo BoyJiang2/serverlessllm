@@ -208,7 +208,22 @@ def patch_backend(source):
     )
 
 
-def build(archive, destination, candidate=None):
+def patch_candidate_runner(runner):
+    runner = replace(runner, "    for key_name, value in env.items():",
+                     f"    if key == 'D':\n        env[{OPT_IN!r}] = '1'\n"
+                     "    for key_name, value in env.items():")
+    runner = replace(runner, "    for source, target in mounts:",
+                     "    if key == 'D':\n"
+                     f"        assert all(target != {TARGET!r} for _, target in mounts)\n"
+                     f"        mounts.append((str(CAMPAIGN / 'layerwise.py'), {TARGET!r}))\n"
+                     "    for source, target in mounts:")
+    return replace(runner, "        protocol_doc['protocol_hash'] = hashlib.sha256(config).hexdigest()",
+                   "        protocol_doc['protocol_hash'] = hashlib.sha256(config).hexdigest()\n"
+                   "        assert hashlib.sha256((CAMPAIGN / 'layerwise.py').read_bytes()).hexdigest() "
+                   "== protocol_doc['candidate_overlay_sha256']")
+
+
+def build(archive, destination, candidate=None, formal_s3=False):
     raw = {name: (archive / name).read_bytes() for name in BASE_PINS}
     if {name: sha(value) for name, value in raw.items()} != BASE_PINS:
         raise ValueError("source bytes differ from the archived S3 pins")
@@ -246,20 +261,41 @@ def build(archive, destination, candidate=None):
         campaign.update(sequences={sequence: ["D", "D", "D"]},
                         scope="isolated_v4_marlin_rebind_diagnostic",
                         candidate_overlay_sha256=expected_sha)
-        runner = files["v11_run_b2.py"].decode().replace(SEQUENCE, sequence)
-        runner = replace(runner, "    for key_name, value in env.items():",
-                         f"    env[{OPT_IN!r}] = '1'\n    for key_name, value in env.items():")
-        runner = replace(runner, "    for source, target in mounts:",
-                         f"    assert all(target != {TARGET!r} for _, target in mounts)\n"
-                         f"    mounts.append((str(CAMPAIGN / 'layerwise.py'), {TARGET!r}))\n"
-                         "    for source, target in mounts:")
-        runner = replace(runner, "        protocol_doc['protocol_hash'] = hashlib.sha256(config).hexdigest()",
-                         "        protocol_doc['protocol_hash'] = hashlib.sha256(config).hexdigest()\n"
-                         "        assert hashlib.sha256((CAMPAIGN / 'layerwise.py').read_bytes()).hexdigest() "
-                         "== protocol_doc['candidate_overlay_sha256']")
-        runner = replace(runner, "'v4-diagnostic-input.json', 'diagnostic-manifest.json')",
-                         "'v4-diagnostic-input.json', 'diagnostic-manifest.json',\n"
-                         "                         'layerwise.py', 'candidate-manifest.json')")
+        if formal_s3:
+            campaign["sequences"] = {"S3": json.loads(raw["repro/campaign.json"])["sequences"]["S3"]}
+            campaign.update(scope="formal_s3_marlin_rebind", target_repetitions_per_sequence=3)
+            del campaign["expected_v4_input_sha256"]
+            campaign["expected_input_sha256"] = {
+                "D": BASE_PINS["b2-inputs/v4-input.json"],
+                "G": "15909c601f150ba80f5aaf869e85f2d9163ccddc979c4873883fc084be698854",
+                "K": "e9b86ef658ca2e6f71513fd81090dc02cbb86f50634d3d2a1b6f77a0fcbdffab",
+            }
+            runner = raw["repro/v11_run_b2.py"].decode()
+            runner = replace(runner, "choices=('S1', 'S2', 'S3')", "choices=('S3',)")
+            runner = replace(
+                runner, "        protocol_doc = dict(protocol_hash=hashlib.sha256(config).hexdigest())",
+                """        protocol_doc = json.loads(config)
+        protocol_doc['protocol_hash'] = hashlib.sha256(config).hexdigest()
+        assert profiles['v4']['image'] == protocol_doc['expected_v4_image']
+        for item in protocol_doc['expected_v4_overlay']:
+            source = pathlib.Path(item['source']).read_bytes()
+            assert not item['rw'] and len(source) == item['size']
+            assert hashlib.sha256(source).hexdigest() == item['sha256']""")
+            runner = replace(runner, "'sf_admission.py', 'campaign.json')",
+                             "'sf_admission.py', 'campaign.json', 'layerwise.py', 'candidate-manifest.json')")
+            input_line = "        inputs = {key: native_input(run_dir, key, args.kv_cache_gib) for key in MODEL_INPUT}"
+            runner = replace(runner, input_line, input_line + "\n"
+                             "        for key, path in inputs.items():\n"
+                             "            assert hashlib.sha256(path.read_bytes()).hexdigest() "
+                             "== protocol_doc['expected_input_sha256'][key], path")
+            files["v11_sleep_backend.py"] = raw["repro/v11_sleep_backend.py"]
+            del files[HELPER], files["v4-diagnostic-input.json"]
+        else:
+            runner = files["v11_run_b2.py"].decode().replace(SEQUENCE, sequence)
+            runner = replace(runner, "'v4-diagnostic-input.json', 'diagnostic-manifest.json')",
+                             "'v4-diagnostic-input.json', 'diagnostic-manifest.json',\n"
+                             "                         'layerwise.py', 'candidate-manifest.json')")
+        runner = patch_candidate_runner(runner)
         files.update({"v11_run_b2.py": runner.encode(),
                       "campaign.json": (json.dumps(campaign, indent=2) + "\n").encode(),
                       "layerwise.py": patched, "candidate-manifest.json": manifest_bytes})
@@ -271,7 +307,8 @@ def build(archive, destination, candidate=None):
         (destination / name).write_bytes(content)
     manifest = dict(source_run=archive.name, source_sha256=BASE_PINS,
                     files_sha256={name: sha(content) for name, content in files.items()},
-                    phase_timing="Native operation bounds stay outside metadata RPC; round and command totals include diagnostic work")
+                    phase_timing=("Original formal S3 timing instrumentation" if formal_s3 else
+                                  "Native operation bounds stay outside metadata RPC; round and command totals include diagnostic work"))
     (destination / "diagnostic-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n",
                                                          encoding="utf-8")
 
@@ -334,6 +371,7 @@ if __name__ == "__main__":
     parser.add_argument("archive", type=Path, nargs="?")
     parser.add_argument("destination", type=Path, nargs="?")
     parser.add_argument("--candidate", type=Path, help="Directory generated by the pinned Marlin rebind builder")
+    parser.add_argument("--formal-s3", action="store_true", help="Stage the seven-step S3 candidate")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
     if args.self_test:
@@ -341,4 +379,6 @@ if __name__ == "__main__":
     else:
         if args.archive is None or args.destination is None:
             parser.error("provide archive and new destination")
-        build(args.archive, args.destination, args.candidate)
+        if args.formal_s3 and args.candidate is None:
+            parser.error("--formal-s3 requires --candidate")
+        build(args.archive, args.destination, args.candidate, args.formal_s3)
