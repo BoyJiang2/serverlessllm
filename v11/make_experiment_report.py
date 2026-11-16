@@ -563,6 +563,21 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                          "[逐 rank 派生回执](large-pool-20261114/v4-scale-diagnostic.json)")
             parts.append("从仓库根目录运行 "
                          f"`python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/{evidence}`。")
+        rebind_path = sleep_timing.parent / "v4-rebind-diagnostic.json"
+        if rebind_path.is_file():
+            rebind = json.loads(rebind_path.read_bytes())
+            evidence = f"large-pool-20261114/sleep-diagnostics/{rebind['run_id']}"
+            receipt = json.loads((ROOT / evidence / "qualification.json").read_bytes())
+            assert receipt["passed"] and rebind["rebind"]["scale_contract_passed"]
+            residency = " → ".join(str(row["gpu_used_max_mib"]) for row in rebind["post_sleep_nvml"])
+            parts.append(f"修复短测 `{rebind['run_id']}` 沿用相同的 V4 请求和显存准入。"
+                         "两次 checkpoint 唤醒的金标与 Worker 连续性通过，八 rank 的 Marlin scale "
+                         f"在权重分配区外均为 0 字节。三次 Sleep 后每卡最大驻留为 {residency} MiB。"
+                         f"最终八卡归零观察 {fmt(receipt['final_release_seconds'])} s。"
+                         f"[验收]({evidence}/qualification.json) · [原始证据索引]({evidence}/evidence-index.csv) "
+                         "· [逐 rank 重算](large-pool-20261114/v4-rebind-diagnostic.json)")
+            parts.append("从仓库根目录运行 "
+                         f"`python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/{evidence}`。")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 

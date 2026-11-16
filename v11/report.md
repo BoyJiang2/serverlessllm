@@ -468,3 +468,7 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 首次 checkpoint 重载后，Marlin 的 scale 引用指向权重分配区外的存储，这些存储在下一次 Sleep 后仍被引用。首次重载前后每卡休眠驻留增加 5986 MiB，与 S3 的 V4 驻留增量一致。第二次重载后，区外 scale 容量保持稳定。NVML 总驻留同时包含其他显存分配，按原始读数列示。[逐 rank 派生回执](large-pool-20261114/v4-scale-diagnostic.json)
 
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z`。
+
+修复短测 `B2-V4RebindDiag-r1-20261116T044224Z` 沿用相同的 V4 请求和显存准入。两次 checkpoint 唤醒的金标与 Worker 连续性通过，八 rank 的 Marlin scale 在权重分配区外均为 0 字节。三次 Sleep 后每卡最大驻留为 4323 → 4323 → 4323 MiB。最终八卡归零观察 61.036 s。[验收](large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z/qualification.json) · [原始证据索引](large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z/evidence-index.csv) · [逐 rank 重算](large-pool-20261114/v4-rebind-diagnostic.json)
+
+从仓库根目录运行 `python v11/large-pool-20261114/recompute_v4_scale_diagnostic.py v11/large-pool-20261114/sleep-diagnostics/B2-V4RebindDiag-r1-20261116T044224Z`。
