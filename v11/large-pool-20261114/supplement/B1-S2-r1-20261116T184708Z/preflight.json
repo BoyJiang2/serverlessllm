@@ -1,0 +1,268 @@
+{
+  "ns": 1979147000967160,
+  "wall_ns": 1794854829152982557,
+  "group": "B1",
+  "models": [
+    "G",
+    "D",
+    "K",
+    "D",
+    "G",
+    "K",
+    "G"
+  ],
+  "chunk_tokens": 256,
+  "filler_tokens": 512,
+  "utilizations": {
+    "K": 0.9,
+    "G": 0.9,
+    "D": 0.76
+  },
+  "block_size_evidence": {
+    "K": {
+      "block_size": 16,
+      "occurrences": 0,
+      "evidence": [],
+      "source": "frozen table; no override line in the recorded logs (vLLM 0.20.1 default)",
+      "override_lines_absent_in": [
+        "B1-seq-7-agents-r1-20261113T052724Z/00-K-kimi/backend.log",
+        "B1-seq-7-agents-r1-20261113T052724Z/04-K-kimi/backend.log",
+        "B1-seq-7-agents-r1-20261113T052724Z/06-K-kimi/backend.log"
+      ]
+    },
+    "G": {
+      "block_size": 64,
+      "occurrences": 48,
+      "evidence": [
+        {
+          "log": "B1-seq-7-agents-r1-20261113T052724Z/01-G-glm/backend.log",
+          "line": 144,
+          "text": "(Worker_TP2 pid=3906707) INFO 11-13 05:44:17 [interface.py:489] Setting kv cache block size to 64 for DEEPSEEK_V32_INDEXER backend."
+        },
+        {
+          "log": "B1-seq-7-agents-r1-20261113T052724Z/03-G-glm/backend.log",
+          "line": 144,
+          "text": "(Worker_TP6 pid=6158) INFO 11-13 06:02:26 [interface.py:489] Setting kv cache block size to 64 for DEEPSEEK_V32_INDEXER backend."
+        }
+      ],
+      "source": "recorded backend log"
+    },
+    "D": {
+      "block_size": 256,
+      "occurrences": 48,
+      "evidence": [
+        {
+          "log": "B1-seq-7-agents-r1-20261113T052724Z/02-D-v4/backend.log",
+          "line": 2063,
+          "text": "(Worker_TP6 pid=4048168) INFO 11-13 05:54:37 [interface.py:489] Setting kv cache block size to 256 for DEEPSEEK_SPARSE_SWA backend."
+        },
+        {
+          "log": "B1-seq-7-agents-r1-20261113T052724Z/05-D-v4/backend.log",
+          "line": 2065,
+          "text": "(Worker_TP7 pid=208330) INFO 11-13 06:19:20 [interface.py:489] Setting kv cache block size to 256 for DEEPSEEK_SPARSE_SWA backend."
+        }
+      ],
+      "source": "recorded backend log"
+    }
+  },
+  "checks": [
+    {
+      "name": "block_size_evidence",
+      "passed": true,
+      "detail": "recorded logs agree with the frozen block sizes (scanned 3 run dirs)",
+      "observed": {
+        "block_sizes": {
+          "G": 64,
+          "D": 256,
+          "K": 16
+        },
+        "frozen": {
+          "K": 16,
+          "G": 64,
+          "D": 256
+        },
+        "mismatch": {}
+      }
+    },
+    {
+      "name": "chunk_alignment",
+      "passed": true,
+      "detail": "chunk 256 tokens is a multiple of every model block size and of their lcm 256",
+      "observed": {
+        "divisibility": {
+          "G": {
+            "chunk_tokens": 256,
+            "block_size": 64,
+            "remainder": 0
+          },
+          "D": {
+            "chunk_tokens": 256,
+            "block_size": 256,
+            "remainder": 0
+          },
+          "K": {
+            "chunk_tokens": 256,
+            "block_size": 16,
+            "remainder": 0
+          }
+        },
+        "lcm": 256,
+        "lcm_ok": true
+      }
+    },
+    {
+      "name": "filler_geometry",
+      "passed": true,
+      "detail": "declared fill request covers 2 whole chunks (512 tokens)",
+      "observed": {
+        "filler_tokens": 512,
+        "chunk_tokens": 256,
+        "chunks": 2
+      }
+    },
+    {
+      "name": "weight_and_kv_fit",
+      "passed": true,
+      "detail": "every model has room for its weights plus a minimum KV pool at its utilisation",
+      "observed": {
+        "per_card_total_mib": 143771,
+        "budget": {
+          "G": {
+            "utilization": 0.9,
+            "quota_mib": 129393,
+            "weights_mib": 90931,
+            "min_kv_mib": 1024,
+            "non_torch_mib": 2048,
+            "need_mib": 94003,
+            "slack_mib": 35390,
+            "kv_pool_mib": 36414
+          },
+          "D": {
+            "utilization": 0.76,
+            "quota_mib": 109265,
+            "weights_mib": 104652,
+            "min_kv_mib": 1024,
+            "non_torch_mib": 2048,
+            "need_mib": 107724,
+            "slack_mib": 1541,
+            "kv_pool_mib": 2565
+          },
+          "K": {
+            "utilization": 0.9,
+            "quota_mib": 129393,
+            "weights_mib": 73523,
+            "min_kv_mib": 1024,
+            "non_torch_mib": 2048,
+            "need_mib": 76595,
+            "slack_mib": 52798,
+            "kv_pool_mib": 53822
+          }
+        },
+        "short": {}
+      }
+    },
+    {
+      "name": "host_ram_budget",
+      "passed": true,
+      "detail": "Store pool 864 GiB + host KV tier 813 GiB + 200 GiB margin fits in MemAvailable",
+      "observed": {
+        "need_bytes": 2015413403648,
+        "meminfo": {
+          "MemTotal": 2065109635072,
+          "MemAvailable": 2017989722112,
+          "Mlocked": 235462656
+        },
+        "tier_bytes": 872952102912
+      }
+    },
+    {
+      "name": "ports_free",
+      "passed": true,
+      "detail": "all V11 ports are free",
+      "observed": {
+        "ports": {
+          "store": {
+            "port": 8073,
+            "in_use": false
+          },
+          "lmcache_http": {
+            "port": 9100,
+            "in_use": false
+          },
+          "lmcache_mq": {
+            "port": 5555,
+            "in_use": false
+          }
+        },
+        "busy": {}
+      }
+    },
+    {
+      "name": "no_leftover_containers",
+      "passed": true,
+      "detail": "no V11/V4 container is running",
+      "observed": {
+        "containers": []
+      }
+    },
+    {
+      "name": "gpu_baseline",
+      "passed": true,
+      "detail": "no compute process and device memory at driver baseline",
+      "observed": {
+        "cards": [
+          {
+            "index": 0,
+            "uuid": "GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 1,
+            "uuid": "GPU-a3baf382-35c8-8748-626a-f69745aab5f8",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 2,
+            "uuid": "GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 3,
+            "uuid": "GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 4,
+            "uuid": "GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 5,
+            "uuid": "GPU-151684e8-c7ba-a20a-6955-e1f765940536",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 6,
+            "uuid": "GPU-af5f5c7a-0dce-f291-99be-2c844225cec6",
+            "total_mib": 143771,
+            "used_mib": 0
+          },
+          {
+            "index": 7,
+            "uuid": "GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700",
+            "total_mib": 143771,
+            "used_mib": 0
+          }
+        ],
+        "apps": []
+      }
+    }
+  ],
+  "passed": true
+}

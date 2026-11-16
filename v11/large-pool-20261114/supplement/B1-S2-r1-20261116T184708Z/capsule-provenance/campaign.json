@@ -1,0 +1,22 @@
+{
+  "node": "qjhs003",
+  "group": "B1",
+  "tensor_parallel": 8,
+  "first_segment": {
+    "load_format": "safetensors",
+    "require_cold_admission": true,
+    "populate_weight_store": false
+  },
+  "remaining_segments": "store",
+  "candidate_capacity_gib": {
+    "weight_store": 864,
+    "host_kv": 813
+  },
+  "sequences": {
+    "S1": ["K", "G", "D", "G", "K", "D", "K"],
+    "S2": ["G", "D", "K", "D", "G", "K", "G"],
+    "S3": ["D", "K", "G", "K", "D", "G", "D"]
+  },
+  "blocks": [["S1", "S2", "S3"], ["S2", "S3", "S1"], ["S3", "S1", "S2"]],
+  "final_residency_observation_seconds": 60
+}
