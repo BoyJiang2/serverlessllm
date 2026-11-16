@@ -144,6 +144,34 @@ def build():
     return primary, descriptive, summary, formal, kimi, read(legacy / 'comparison-all40-glm-ledger.json')
 
 
+def render_figure1(primary, summary, save):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    raw = (BASE / 'inputs/glm-cpu/controller-supplement-batch7.json').read_bytes()
+    if hashlib.sha256(raw).hexdigest() != '02a62feb078d67230eedc10f5e3920d0bd9c65dafc98677fe8a55a817dd4a51a':
+        raise ValueError('Changed GLM v7 final receipts')
+    rows = [item['receipt'] for item in json.loads(raw)['attempts']]
+    assert [row['condition'] for row in rows] == CONDITIONS
+    assert all(row['success'] and row['sample_n'] == 1 for row in rows)
+    glm = {row['condition']: row['metrics']['command_to_correct_business_response_s'] for row in rows}
+    primary = {**primary, MODELS[1]: {c: {'A_s': [v]} for c, v in glm.items()}}
+    summary = {**summary, MODELS[1]: {
+        c: {'A_mean_s': v, 'relative_to_own_SF_cold': v / glm[CONDITIONS[0]]} for c, v in glm.items()}}
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 4.8))
+    for j, model in enumerate(MODELS):
+        for i, c in enumerate(CONDITIONS):
+            x = j + (i - 1.5) * .19
+            axes[0].bar(x, summary[model][c]['A_mean_s'], .18, color=COLORS[i], label=LABELS[i] if j == 0 else None)
+            axes[0].scatter(x + (np.linspace(-.035, .035, len(primary[model][c]['A_s'])) if model != MODELS[1] else 0), primary[model][c]['A_s'], s=9, c='#222222', alpha=.6)
+            axes[1].bar(x, summary[model][c]['relative_to_own_SF_cold'], .18, color=COLORS[i])
+    for ax in axes:
+        ax.set_xticks(range(3), ['Kimi (n=8)', 'GLM v7 (n=1)', 'V4 (n=9)']); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
+    axes[0].set(title='Startup command to correct first business response', ylabel='Seconds'); axes[0].legend(fontsize=8)
+    axes[1].set(title='Normalized within each model', ylabel='Latency / own SF-cold value (lower is better)')
+    save(fig, 'fig1_startup', 'Different engines, models, requests, CPU, JIT and media; descriptive comparison, no cross-model causal test.')
+
 def export(output):
     primary, descriptive, summary, formal, kimi, glm_ledger = build()
     output.mkdir(exist_ok=False)
@@ -179,18 +207,7 @@ def export(output):
             fig.savefig(output / (name + '.' + extension), bbox_inches='tight')
         plt.close(fig)
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4.8))
-    for j, model in enumerate(MODELS):
-        for i, c in enumerate(CONDITIONS):
-            x = j + (i - 1.5) * .19
-            axes[0].bar(x, summary[model][c]['A_mean_s'], .18, color=COLORS[i], label=LABELS[i] if j == 0 else None)
-            axes[0].scatter(x + np.linspace(-.035, .035, len(primary[model][c]['A_s'])), primary[model][c]['A_s'], s=9, c='#222222', alpha=.6)
-            axes[1].bar(x, summary[model][c]['relative_to_own_SF_cold'], .18, color=COLORS[i])
-    for ax in axes:
-        ax.set_xticks(range(3), ['Kimi (n=8)', 'GLM C23 (n=6)', 'V4 (n=9)']); ax.grid(axis='y', alpha=.2); ax.set_axisbelow(True)
-    axes[0].set(title='Startup command to correct first business response', ylabel='Mean seconds'); axes[0].legend(fontsize=8)
-    axes[1].set(title='Normalized within each model', ylabel='Latency / own SF-cold mean (lower is better)')
-    save(fig, 'fig1_startup', 'Different engines, models, requests, CPU, JIT and media; descriptive comparison, no cross-model causal test.')
+    render_figure1(primary, summary, save)
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.2))
     for ax, model in zip(axes, MODELS):
