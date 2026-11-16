@@ -13,6 +13,18 @@ REG = re.compile(r"\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d+)\].*?Registered KV
 DISK_LOG = r"^(\S+) I(\d{8} \d{2}:\d{2}:\d{2}\.\d{6})\s+(\d+) model\.cpp:"
 DISK_BEGIN = re.compile(DISK_LOG + r"120\] Loading model (\S+) size (\d+) to host$")
 DISK_DONE = re.compile(DISK_LOG + r"236\] Finished loading model (\S+) from disk$")
+GLOG_TIME = "%Y%m%d %H:%M:%S.%f"
+STORE_LOOKUP = re.compile(r"I(\d{8} \d\d:\d\d:\d\d\.\d+)\s+\d+ checkpoint_store\.cpp:118\] SLLM_CACHE_LOOKUP path=(\S+) resident=[01] bytes=(\d+)$")
+STORE_EVICT = re.compile(r"\] Model (\S+) is freed from memory$")
+STORE_COMPLETE = re.compile(r"\] SLLM_CACHE_COMPLETE path=(\S+) rc=0 resident=1$")
+REPLICA_CREATE = re.compile(r"I(\d{8} \d\d:\d\d:\d\d\.\d+)\s+\d+ model\.cpp:279\] Creating replica (\S+)$")
+REPLICA_CONFIRM = re.compile(r"INFO (\d\d-\d\d \d\d:\d\d:\d\d) server\.py:156\] Confirm model (\S+) replica (\S+) success$")
+RECOVERY_REQUEST = re.compile(r"\(Worker_TP(\d+) pid=(\d+)\).*?client\.py:93\] load_into_gpu: (\S+), (\S+)$")
+
+
+def wall_ns(text, fmt):
+    stamp = datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
+    return int(stamp.timestamp()) * 10**9 + stamp.microsecond * 1000
 
 
 def registration_log(path):
@@ -20,8 +32,7 @@ def registration_log(path):
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         match = REG.search(line)
         if match:
-            stamp = datetime.strptime(match[1], "%Y-%m-%d %H:%M:%S,%f").replace(tzinfo=timezone.utc)
-            out.append(dict(wall_ns=int(stamp.timestamp()) * 10**9 + stamp.microsecond * 1000,
+            out.append(dict(wall_ns=wall_ns(match[1], "%Y-%m-%d %H:%M:%S,%f"),
                             instance_id=match[2], line=line_number))
     return out
 
@@ -33,12 +44,10 @@ def disk_load_log(path, cache):
         end = DISK_DONE.match(line)
         if match := begin or end:
             docker_utc, stamp, tid, model_path = match.groups()[:4]
-            wall = datetime.strptime(stamp, "%Y%m%d %H:%M:%S.%f").replace(tzinfo=timezone.utc)
-            wall_ns = int(wall.timestamp()) * 10**9 + wall.microsecond * 1000
             parsed = dict(line=line_number, log_utc=docker_utc, path=model_path)
             records = starts if begin else ends
             assert model_path not in records, (path, model_path, line_number)
-            records[model_path] = (wall_ns, int(tid), parsed, int(match[5]) if begin else None)
+            records[model_path] = (wall_ns(stamp, GLOG_TIME), int(tid), parsed, int(match[5]) if begin else None)
     assert set(starts) == set(ends) == set(cache["miss_paths"]), path
     if not starts:
         assert cache["file_read_bytes"] == 0, path
@@ -58,6 +67,79 @@ def disk_load_log(path, cache):
     load_phase = dict(source=path.name, clock="glog_realtime_utc", count=len(phases),
                       begin_ns=begin_ns, end_ns=end_ns, wall_s=seconds(begin_ns, end_ns), paths=phases)
     return completion, load_phase
+
+
+def store_replica_log(path):
+    queued, confirmed = {}, {}
+    for line_number, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+        if match := REPLICA_CREATE.search(line):
+            stamp, replica = match.groups()
+            assert replica not in queued, replica
+            queued[replica] = (wall_ns(stamp, GLOG_TIME), stamp[:4], line_number)
+        elif match := REPLICA_CONFIRM.search(line):
+            stamp, model_path, replica = match.groups()
+            assert replica not in confirmed, replica
+            confirmed[replica] = (stamp, model_path, line_number)
+    return queued, confirmed
+
+
+def store_gpu_recovery(step, cache, queued, confirmed, rank_pids):
+    records = []
+    for line_number, line in enumerate((step / "backend.log").read_text(errors="replace").splitlines(), 1):
+        if match := RECOVERY_REQUEST.search(line):
+            rank, pid, model_path, replica = match.groups()
+            rank, pid = int(rank), int(pid)
+            assert rank_pids[rank] == pid, (step, rank, pid)
+            begin, year, begin_line = queued[replica]
+            stamp, confirmed_path, end_line = confirmed[replica]
+            end_floor = wall_ns(year + "-" + stamp, "%Y-%m-%d %H:%M:%S")
+            assert model_path == confirmed_path and begin_line < end_line and begin < end_floor + 10**9
+            records.append(dict(rank=rank, pid=pid, path=model_path, replica_uuid=replica,
+                                backend_request_line=line_number, create_line=begin_line,
+                                confirm_line=end_line, create_wall_ns=begin, confirm_wall_floor_ns=end_floor))
+    assert len(records) == len({row["replica_uuid"] for row in records})
+    assert sorted(row["path"] for row in records) == sorted(cache["hit_paths"] + cache["miss_paths"]), step
+    assert {row["rank"] for row in records} == set(rank_pids), step
+    begin = min(row["create_wall_ns"] for row in records)
+    end_floor = max(row["confirm_wall_floor_ns"] for row in records)
+    return dict(backend_source=f"{step.name}/backend.log", store_source="store/store.log",
+                clock="store_realtime_utc", confirm_resolution_ns=10**9, count=len(records),
+                create_wall_ns=begin, last_confirm_wall_floor_ns=end_floor,
+                wall_s_lower=max(0, seconds(begin, end_floor)),
+                wall_s_upper=seconds(begin, end_floor + 10**9), paths=records)
+
+
+def store_space(path, cache, before, sizes, chunk_bytes):
+    resident = set(before["resident_paths"])
+    begins, evicted_payload = [], 0
+    for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if match := STORE_LOOKUP.search(line):
+            stamp, model_path, size = match.groups()
+            size = int(size)
+            assert sizes.setdefault(model_path, size) == size
+            begins.append((wall_ns(stamp, GLOG_TIME), number))
+        elif match := STORE_EVICT.search(line):
+            model_path = match[1]
+            resident.remove(model_path)
+            evicted_payload += sizes[model_path]
+        elif match := STORE_COMPLETE.search(line):
+            resident.add(match[1])
+    after = cache["pool_after"]
+    assert resident == set(after["resident_paths"]), path
+    assert after["resident_payload_bytes"] == before["resident_payload_bytes"] + cache["file_read_bytes"] - evicted_payload
+    assert before["used_blocks"] + cache["allocated_blocks"] - cache["freed_blocks"] == after["used_blocks"]
+    assert after["used_blocks"] == sum((sizes[p] + chunk_bytes - 1) // chunk_bytes for p in resident)
+    assert after["used_blocks"] + after["free_blocks"] == before["used_blocks"] + before["free_blocks"]
+    return dict(source=path.name, chunk_bytes=chunk_bytes,
+                capacity_bytes=(after["used_blocks"] + after["free_blocks"]) * chunk_bytes,
+                resident_payload_before_bytes=before["resident_payload_bytes"],
+                resident_payload_after_bytes=after["resident_payload_bytes"],
+                occupied_blocks_before_bytes=before["used_blocks"] * chunk_bytes,
+                occupied_blocks_after_bytes=after["used_blocks"] * chunk_bytes,
+                evicted_payload_bytes=evicted_payload,
+                freed_blocks_bytes=cache["freed_blocks"] * chunk_bytes,
+                first_lookup_wall_ns=min(begins)[0] if begins else None,
+                first_lookup_line=min(begins)[1] if begins else None)
 
 
 def collect(root):
@@ -81,6 +163,14 @@ def collect(root):
             with (run / "switch-events.csv").open(newline="") as source:
                 timings = list(csv.DictReader(source))
             assert len(timings) == len(data["steps"]) == 7
+            queued, confirmed = store_replica_log(run / "store/store.log")
+            command = load(run / "store-created.json")["command"]
+            chunk_bytes = int(command[command.index("--chunk") + 1])
+            pool_bytes = int(command[command.index("--pool") + 1])
+            assert chunk_bytes == 32 * 2**20 and pool_bytes == 864 * 2**30
+            pool = dict(resident_paths=[], resident_payload_bytes=0, used_blocks=0,
+                        free_blocks=pool_bytes // chunk_bytes)
+            store_sizes = {}
             steps = []
             for i, (row, item) in enumerate(zip(timings, data["steps"])):
                 step = run / item["step"]
@@ -94,6 +184,17 @@ def collect(root):
                                         records=registered, source="lmcache/lmcache.log")
                 cache = load(step / "store-step.json")["cache"]
                 disk_completion, disk_load = disk_load_log(step / "store-events.log", cache) if i else (None, None)
+                space = store_space(step / "store-events.log", cache, pool, store_sizes, chunk_bytes)
+                pool = cache["pool_after"]
+                host = item["residency"]
+                host_before, host_after = host["host_kv_before_clear"], host["host_kv_after_clear"]
+                assert host_before["memory_configured_bytes"] == host_after["memory_configured_bytes"]
+                host_kv_space = dict(source="residency.json", peak_source="kv-write-window.json",
+                                     configured_capacity_bytes=host_before["memory_configured_bytes"],
+                                     effective_capacity_bytes=host_before["memory_total_bytes"],
+                                     peak_used_bytes=load(step / "kv-write-window.json")["summary"]["peak_bytes"],
+                                     before_clear_used_bytes=host_before["memory_used_bytes"],
+                                     after_clear_used_bytes=host_after["memory_used_bytes"])
                 events = [json.loads(line) for source in sorted((step / "events").glob("*.jsonl"))
                           for line in source.read_text().splitlines()]
                 def bounds(phase):
@@ -107,6 +208,17 @@ def collect(root):
                 weight_bounds = bounds("full_weight_load")
                 assert began <= weight_bounds[0] <= weight_bounds[1] <= ready
                 assert began <= kv_bounds[0] <= kv_bounds[1] <= ready
+                recovery, lookup_to_weight_ready = None, None
+                if i:
+                    rank_pids = {event["rank"]: event["pid"] for event in events
+                                 if event["name"] == "full_weight_load_begin"}
+                    recovery = store_gpu_recovery(step, cache, queued, confirmed, rank_pids)
+                    if clock_error <= 5_000_000:
+                        lookup_ns = space["first_lookup_wall_ns"] - offset
+                        assert began <= lookup_ns <= weight_bounds[1], step
+                        lookup_to_weight_ready = dict(begin_ns=lookup_ns, end_ns=weight_bounds[1],
+                                                      wall_s=seconds(lookup_ns, weight_bounds[1]),
+                                                      clock_calibration_max_error_ns=clock_error)
                 old = data["steps"][i - 1] if i else None
                 old_res = old["residency"] if old else None
                 gpu_exit_samples = None
@@ -130,6 +242,9 @@ def collect(root):
                                   hit_bytes=cache["hit_bytes"], read_bytes=cache["file_read_bytes"],
                                   disk_completion=disk_completion,
                                   miss_path_disk_load=disk_load,
+                                  store_gpu_recovery=recovery,
+                                  store_lookup_to_eight_rank_weight_ready=lookup_to_weight_ready,
+                                  store_space=space, host_kv_space=host_kv_space,
                                   evicted_paths=len(cache["evicted_paths"]),
                                   eviction_envelope_s=item["eviction_event_envelope_s"],
                                   store_access_envelope_s=item["store_lookup_to_complete_s"],
@@ -166,6 +281,10 @@ def report(rounds):
     def disk_load(step):
         row = step["miss_path_disk_load"]
         return row["wall_s"] if row else None
+
+    def values(step, field, key, scale=1):
+        row = step[field]
+        return row[key] / scale if row and row[key] is not None else None
 
     rows = ["# V11 大池 B1 可服务前阶段",
             "九个正式 run、63 段。下表为中位数 [最小，最大]，单位秒。每行的逐轮值、可服务端点、注册日志行号以及原 run ID 见 [重算数据](readiness-20261116.json)。[服务器证据索引](readiness-evidence-index.csv.gz) 记录绝对路径、字节数与 SHA-256。",
@@ -204,6 +323,37 @@ def report(rounds):
     rows.extend(["",
         "Store 缺失路径磁盘加载取所有缺失路径的最早开始日志至最晚完成日志，使用同一 Store 的 glog 实时时钟。开始日志位于打开分区文件后、派发读取线程前，完成日志位于线程回收、关闭文件和更新驻留状态之后。逐次 pread 的开始与返回未记录，独立缺块文件重读耗时保留 null。驱逐次数、访问与恢复事件并列，无驱逐或缺少驱逐包络时以逐轮驱逐路径计数区分。Store 事件可能与权重加载重叠。旧 Backend 退出和清理后快照有记录，实际 GPU KV 释放起止缺失，因此 54 次严格的 KV 清理至就绪总时长留空。旧 Host KV 为常驻池 clear。新段取 GPU KV 分配结束与末条注册成功日志中较晚的接点，并保留时钟换算偏差和独立的 Backend 就绪回执。",
         "",
+        "## Store 到 GPU 的恢复接点",
+        "",
+        "按 Worker rank、PID、Store 路径和副本 UUID 核对客户端分派、原生 Store 创建副本及 Store 确认成功，54 次切换共 9,216 个副本。创建至确认包含等待 Host 数据、H2D、句柄关闭和 RPC 确认。原生创建日志是微秒分辨率，确认日志是整秒，表中分别报告真实跨度的下界与上界。单次 CUDA 拷贝时间缺测。首次 Store 查找至权重就绪用同机时钟校准换算到单调时钟的八 rank 完整加载结束。",
+        "",
+        "| 序列/段 | 模型 | 首次 Store 查找至八 rank 权重就绪（s） | 副本阶段下界（s） | 副本阶段上界（s） |",
+        "| --- | --- | ---: | ---: | ---: |",
+    ])
+    for seq in ("S1", "S2", "S3"):
+        for i in range(1, 7):
+            steps = [r["steps"][i] for r in rounds if r["sequence"] == seq]
+            cols = [cell(values(s, "store_lookup_to_eight_rank_weight_ready", "wall_s") for s in steps)]
+            cols += [cell(values(s, "store_gpu_recovery", key) for s in steps)
+                     for key in ("wall_s_lower", "wall_s_upper")]
+            rows.append(f"| {seq}/{i+1} | {steps[0]['model']} | " + " | ".join(cols) + " |")
+    rows.extend(["",
+        "## Host 权重和 KV 空间",
+        "",
+        "权重 Store 使用 864 GiB 池和 32 MiB 块。有效驻留按原始 Store 路径字节计，池占用和驱逐释放另按块计。切换前取上一段已结算台账，切换后取当前段已结算台账。首段在常驻池为空时走 SafeTensors。Host KV 用状态采样取段内峰值和 clear 前后有效字节，配置容量 813 GiB。每段块占用和实际返回的 KV 池容量见派生数据。",
+        "",
+        "| 序列/段 | 模型 | Store 驻留前（GiB） | Store 驻留后（GiB） | 驱逐释放块（GiB） | Host KV 峰值（MiB） | Host KV clear 前（MiB） | Host KV clear 后（MiB） |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ])
+    for seq in ("S1", "S2", "S3"):
+        for i in range(7):
+            steps = [r["steps"][i] for r in rounds if r["sequence"] == seq]
+            cols = [cell(values(s, "store_space", key, 2**30) for s in steps)
+                    for key in ("resident_payload_before_bytes", "resident_payload_after_bytes", "freed_blocks_bytes")]
+            cols += [cell(values(s, "host_kv_space", key, 2**20) for s in steps)
+                     for key in ("peak_used_bytes", "before_clear_used_bytes", "after_clear_used_bytes")]
+            rows.append(f"| {seq}/{i+1} | {steps[0]['model']} | " + " | ".join(cols) + " |")
+    rows.extend(["",
         "业务金标、kv_fill 和 Host 写入属于请求阶段。填充至提交日志保留在原大池报告，硬件驻留、有效载荷、池容量及 PID 同样保留原报告和原始快照。",
         "",
         "重算时在 qjhs003 使用 python3 recompute_readiness.py /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-large-pool-20261113 --report READINESS.md，重定向标准输出可更新 JSON。",
