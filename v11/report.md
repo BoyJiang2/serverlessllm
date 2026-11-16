@@ -383,6 +383,8 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 本轮完成 6/7 段。下一段准入时，八卡最低可用显存为 126,110 MiB，低于要求的 129,209 MiB。[显存准入回执](large-pool-20261114/sleep-runs/B2-S3-r1-20261116T004923Z/L2/06-D-vram-gate.json)
 
+第 5 段 V4 唤醒的设备显存峰值增量为 131,430 MiB。第 7 段可用显存比按卡重放该峰值少至多 5,320 MiB。回访后再次休眠，PyTorch 保留显存的逐 rank 最大增量为 DeepSeek-V4-Pro 5,986 MiB、GLM-5.1-FP8 632 MiB。V4 的增量在 checkpoint 重载后、KV 恢复前已经出现。[逐 rank 原始接点与容量推算](large-pool-20261114/sleep-vram-audit.json)
+
 最终八卡归零且无计算进程 True，50 个采样点覆盖 61.041 s。末次采样的整机可用 RAM 为 1878.536 GiB。[最终释放采样](large-pool-20261114/sleep-runs/B2-S3-r1-20261116T004923Z/resource-samples.csv)
 
 | 段 | 模型 | 操作 | 权重准备（s） | GPU KV 分配（s） | 权重切换（s） | KV 切换（s） | 旧 KV 释放至可服务（s） |
@@ -412,3 +414,5 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 | 4 | 211 | 1054.214 | 648.211 | 398.700 | 41,700,360 | 0 |
 
 从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py v11/large-pool-20261114/sleep-runs` 重算。[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)
+
+显存回执重算使用 `python v11/large-pool-20261114/recompute_sleep_vram.py v11/large-pool-20261114/sleep-runs`。

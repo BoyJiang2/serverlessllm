@@ -386,6 +386,10 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
     if sleep_timing.is_file():
         sleep_data = json.loads(sleep_timing.read_bytes())
         rounds = sleep_data["rounds"]
+        audit_path = sleep_timing.parent / "sleep-vram-audit.json"
+        vram_audits = {}
+        if audit_path.is_file():
+            vram_audits = {row["run_id"]: row for row in json.loads(audit_path.read_bytes())}
         parts.append("""## 同序列 Sleep L2 复验
 
 TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。
@@ -442,6 +446,24 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                              f"下一段准入时，八卡最低可用显存为 {min(gate['free_mib']):,} MiB，"
                              f"低于要求的 {gate['required_mib']:,} MiB。"
                              f"[显存准入回执]({base}/{gate['source']})")
+            audit = vram_audits.get(rid, {})
+            failed_v4 = audit.get("failed_v4_gate")
+            if failed_v4 and "cap_projection" in failed_v4:
+                previous = next(wake for wake in audit["wakes"] if wake["stage"] == failed_v4["prior_v4_wake_stage"])
+                stages = [wake for wake in audit["wakes"] if previous["stage"] <= wake["stage"] < failed_v4["stage"]]
+                retained = []
+                for wake in stages:
+                    reserved_bytes = max(row["torch_deltas_bytes"]["resleep"]["cuda_reserved_bytes"]
+                                         for row in wake["rank_rows"])
+                    retained.append(f"{MODELS[wake['model']]} {reserved_bytes / 2**20:,.0f} MiB")
+                margin = failed_v4["cap_projection"]["original_min_sampled_peak_margin_mib"]
+                units = "、".join(retained)
+                parts.append(f"第 {previous['stage']} 段 V4 唤醒的设备显存峰值增量为 "
+                             f"{max(previous['sampled_peak_increment_mib']):,} MiB。"
+                             f"第 {failed_v4['stage']} 段可用显存比按卡重放该峰值少至多 {-margin:,} MiB。"
+                             f"回访后再次休眠，PyTorch 保留显存的逐 rank 最大增量为 {units}。"
+                             "V4 的增量在 checkpoint 重载后、KV 恢复前已经出现。"
+                             "[逐 rank 原始接点与容量推算](large-pool-20261114/sleep-vram-audit.json)")
             if release_obs:
                 parts.append(f"最终八卡归零且无计算进程 {release_obs['all_gpu_zero']}，"
                              f"{release_obs['samples']} 个采样点覆盖 {release_obs['elapsed_s']:.3f} s。"
@@ -495,6 +517,9 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
         parts.append("从仓库根目录运行 `python v11/large-pool-20261114/recompute_sleep.py "
                      "v11/large-pool-20261114/sleep-runs` 重算。"
                      "[逐 rank 端点及各位置统计](large-pool-20261114/sleep-timing.json)")
+        if vram_audits:
+            parts.append("显存回执重算使用 `python v11/large-pool-20261114/recompute_sleep_vram.py "
+                         "v11/large-pool-20261114/sleep-runs`。")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 
