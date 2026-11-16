@@ -67,6 +67,35 @@ def main(base, dest):
                    "                cid_b, backend_args = backend_container"):
         indent = launch[:len(launch) - len(launch.lstrip())]
         runner = replace(runner, launch, indent + "assert time.monotonic_ns() < deadline_ns\n" + launch)
+    runner = replace(
+        runner,
+        "                t3 = time.monotonic_ns()\n",
+        """                t3 = time.monotonic_ns()
+                ready_state = residency(containers)
+                write(step_dir / 'backend-ready-residency.json', dict(
+                    begin_ns=t3, end_ns=time.monotonic_ns(), snapshot=ready_state))
+""",
+    )
+    runner = replace(
+        runner,
+        "                resident_before_exit = residency(containers)\n",
+        """                before_exit_begin_ns = time.monotonic_ns()
+                resident_before_exit = residency(containers)
+                before_exit_end_ns = time.monotonic_ns()
+""",
+    )
+    runner = replace(
+        runner,
+        """                resident_after_exit = residency(
+                    {name: cid for name, cid in containers.items() if cid != cid_b})
+""",
+        """                resident_after_exit = residency(
+                    {name: cid for name, cid in containers.items() if cid != cid_b})
+                write(step_dir / 'exit-residency-windows.json', dict(
+                    before_backend_exit=dict(begin_ns=before_exit_begin_ns, end_ns=before_exit_end_ns),
+                    after_backend_exit=dict(begin_ns=t1, end_ns=time.monotonic_ns())))
+""",
+    )
     backend = replace(inputs["v11_backend.py"].decode(), "        received = time.monotonic_ns()",
                       "        received = time.monotonic_ns()\n        received_wall = time.time_ns()")
     backend = replace(backend, "received_ns=received, response=response",
