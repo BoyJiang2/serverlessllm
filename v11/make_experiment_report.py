@@ -443,6 +443,30 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             parts.append(f"### {run['sequence']} 第 {run['rep']} 轮 · {status}\n\n"
                          f"`{rid}` · [验收原件]({base}/qualification.json) · "
                          f"[qjhs003 原始证据索引]({base}/evidence-index.csv)")
+            campaign_path = ROOT / base / "repro/campaign.json"
+            if campaign_path.is_file():
+                campaign = json.loads(campaign_path.read_bytes())
+                if campaign.get("scope") == "formal_s3_marlin_rebind":
+                    mount_path = ROOT / base / "v4-overlay-mounts.json"
+                    if mount_path.is_file():
+                        mounts = json.loads(mount_path.read_bytes())["mounts"]
+                        overlay = next(mount for mount in mounts
+                                       if mount["destination"].endswith("/reload/layerwise.py"))
+                        assert not overlay["rw"] and overlay["sha256"] == campaign["candidate_overlay_sha256"]
+                        parts.append("本轮采用 V4 Marlin scale 引用修复。"
+                                     f"[运行配置]({base}/repro/campaign.json) · "
+                                     f"[容器挂载回执]({base}/v4-overlay-mounts.json)")
+                    else:
+                        assert not run["passed"]
+                        parts.append(f"本轮配置启用 V4 Marlin scale 引用修复，容器挂载回执缺失。"
+                                     f"[运行配置]({base}/repro/campaign.json)")
+                    gate_path = ROOT / base / "L2/06-D-vram-gate.json"
+                    if gate_path.is_file():
+                        gate = json.loads(gate_path.read_bytes())
+                        if gate["passed"]:
+                            parts.append(f"末段 V4 唤醒前八卡最低可用显存为 {min(gate['free_mib']):,} MiB，"
+                                         f"通过原 {gate['required_mib']:,} MiB 准入。"
+                                         f"[显存准入回执]({base}/L2/06-D-vram-gate.json)")
             for gate in run.get("failed_vram_gates", []):
                 parts.append(f"本轮完成 {len(run['steps'])}/{len(protocol['sequences'][run['sequence']])} 段。"
                              f"下一段准入时，八卡最低可用显存为 {min(gate['free_mib']):,} MiB，"
@@ -550,7 +574,7 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             parts.append(f"`{rid}` · V4 → V4 → V4，每 rank 16 GiB GPU KV，沿用原显存准入。"
                          f"金标和 Worker 连续性通过，{scale['phase_count']} 个阶段各覆盖八 rank，"
                          f"退出后八卡归零观察 {fmt(receipt['final_release_seconds'])} s。"
-                         f"此轮单列，S3 的有效轮次仍为 0。[验收]({evidence}/qualification.json) "
+                         f"[验收]({evidence}/qualification.json) "
                          f"· [原始证据索引]({evidence}/evidence-index.csv)")
             parts.append(table(["第几次 sleep", "每卡 NVML 驻留（MiB）",
                                 "八 rank 权重分配区外 scale（GiB）"], sleep_rows))

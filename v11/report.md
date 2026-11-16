@@ -457,7 +457,7 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 ### V4 Sleep L2 单模型重复唤醒诊断
 
-`B2-V4ScaleDiag-r1-20261116T035714Z` · V4 → V4 → V4，每 rank 16 GiB GPU KV，沿用原显存准入。金标和 Worker 连续性通过，13 个阶段各覆盖八 rank，退出后八卡归零观察 61.028 s。此轮单列，S3 的有效轮次仍为 0。[验收](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/qualification.json) · [原始证据索引](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/evidence-index.csv)
+`B2-V4ScaleDiag-r1-20261116T035714Z` · V4 → V4 → V4，每 rank 16 GiB GPU KV，沿用原显存准入。金标和 Worker 连续性通过，13 个阶段各覆盖八 rank，退出后八卡归零观察 61.028 s。[验收](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/qualification.json) · [原始证据索引](large-pool-20261114/sleep-diagnostics/B2-V4ScaleDiag-r1-20261116T035714Z/evidence-index.csv)
 
 | 第几次 sleep | 每卡 NVML 驻留（MiB） | 八 rank 权重分配区外 scale（GiB） |
 | --- | --- | --- |
