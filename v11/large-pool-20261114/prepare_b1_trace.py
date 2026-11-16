@@ -1,5 +1,6 @@
 """Stage B1 observability beside a verified copy of the existing large-pool runner."""
 import hashlib
+import json
 from pathlib import Path
 import sys
 
@@ -16,7 +17,7 @@ def replace(source, old, new):
     return source.replace(old, new)
 
 
-def main(base, dest):
+def main(base, dest, worker_overlay=None):
     inputs = {name: (base / name).read_bytes() for name in BASE}
     assert {name: hashlib.sha256(raw).hexdigest() for name, raw in inputs.items()} == BASE
     runner = replace(
@@ -103,6 +104,33 @@ def main(base, dest):
                         seconds=(clear_finished - clear_started) / 1e9,
 """,
     )
+    if worker_overlay is not None:
+        overlay_files = (
+            "gpu_worker.py", "gpu_model_runner.py",
+            "vllm_multi_process_adapter.py", "v11_b1_worker_trace.py",
+        )
+        manifest = (worker_overlay / "worker-trace-manifest.json").read_bytes()
+        overlay = {name: (worker_overlay / name).read_bytes() for name in overlay_files}
+        assert {name: hashlib.sha256(raw).hexdigest() for name, raw in overlay.items()} == (
+            json.loads(manifest)["overlay_sha256"]
+        )
+        inputs.update(overlay, **{"worker-trace-manifest.json": manifest})
+        runner = replace(
+            runner,
+            """        mounts.append((LMCACHE_SITE_055, LMCACHE_SITE_055))
+""",
+            """        mounts.append((LMCACHE_SITE_055, LMCACHE_SITE_055))
+        site = '/opt/sllm-v4/lib/python3.12/site-packages'
+        worker = site + '/vllm/v1/worker/'
+        adapter = LMCACHE_SITE_055 + '/lmcache/integration/vllm/vllm_multi_process_adapter.py'
+        mounts.extend([
+            (str(CAMPAIGN / 'gpu_worker.py'), worker + 'gpu_worker.py'),
+            (str(CAMPAIGN / 'gpu_model_runner.py'), worker + 'gpu_model_runner.py'),
+            (str(CAMPAIGN / 'vllm_multi_process_adapter.py'), adapter),
+            (str(CAMPAIGN / 'v11_b1_worker_trace.py'), site + '/sllm_store/v11_b1_worker_trace.py'),
+        ])
+""",
+        )
     backend = replace(inputs["v11_backend.py"].decode(), "        received = time.monotonic_ns()",
                       "        received = time.monotonic_ns()\n        received_wall = time.time_ns()")
     backend = replace(backend, "received_ns=received, response=response",
