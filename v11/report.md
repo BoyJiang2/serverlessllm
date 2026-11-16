@@ -257,6 +257,8 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **820.42 GiB**，
 
 [大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)
 
+新打点 S1 首次尝试 `B1-S1-r1-20261116T165642Z` 在 Kimi 冷页准入后、权重加载前被源码哈希校验拒绝。七段均未验收，最终八卡归零观察覆盖 60.536 s。[失败与释放证据索引](large-pool-20261114/supplement/B1-S1-r1-20261116T165642Z/evidence-index.csv)
+
 ## 同序列 Sleep L2 复验
 
 TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 checkpoint。配置为每 rank 16 GiB 的 GPU KV 预算。此路径不使用 SLLM Store 或 LMCache。权重就绪、GPU KV 就绪和 Backend 可服务是独立接点，表中跨度存在重叠。

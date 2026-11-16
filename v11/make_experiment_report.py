@@ -381,7 +381,9 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 
 大池 B1 九轮共 54 次后续切换。逐路径配对 Store 日志后，可重算缺块加载到主机的跨度，以及副本创建到恢复成功确认的上下界。首次 Store 查找至八 rank 权重就绪的实测范围为 91.203–139.670 秒。Store 驻留、驱逐释放块与 Host KV clear 前后字节均可从原回执重算。独立 `pread` 和 CUDA 拷贝耗时仍为 null。54 次切换缺旧 GPU KV 释放起点，完整 KV 清理至就绪跨度同样保留 null。已归档的 S1 补测单列，正式样本仍为九轮。
 
-[大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)""")
+[大池 B1 九轮可服务前指标](large-pool-20261114/READINESS.md) · [独立 S1 补测与释放回执](large-pool-20261114/supplement/B1-S1-r1-20261115T180856Z/README.md) · [Sleep L1/L2 前检](large-pool-20261114/SLEEP-PREFLIGHT-20261116.md)
+
+新打点 S1 首次尝试 `B1-S1-r1-20261116T165642Z` 在 Kimi 冷页准入后、权重加载前被源码哈希校验拒绝。七段均未验收，最终八卡归零观察覆盖 60.536 s。[失败与释放证据索引](large-pool-20261114/supplement/B1-S1-r1-20261116T165642Z/evidence-index.csv)""")
     sleep_timing = ROOT / "large-pool-20261114/sleep-timing.json"
     if sleep_timing.is_file():
         sleep_data = json.loads(sleep_timing.read_bytes())
