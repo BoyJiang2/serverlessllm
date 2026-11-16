@@ -1,0 +1,49 @@
+{
+  "image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "image_sources_sha256": {
+    "model.cpp": "2668e2548f8a49539e6ec2915b870a61c00899fcfd0226c5db4db481afb02f58",
+    "checkpoint_store.cpp": "f8334640d50dc1453e443a2dec87a49f934e79e1876164753167e924b9e0c174"
+  },
+  "observer_source_sha256": "a4b72bac84ba52a1e8e467500f1744609888a9a5d847df4ba1574c5898e0ab1e",
+  "prepared_sources_sha256": {
+    "model.cpp": "61b115026212154fe5266e2720bcce4e3851a34a6a90ec1a6cac2783e429d9ee",
+    "checkpoint_store.cpp": "939b095435f497ae624c108dba1339b3223fc30f56f980cf8e34686cb21c15b3",
+    "b1_store_timing.h": "6caa0f80f85d6bc0e311a533c703fbef2619d8d455b925541582eff285e9b224"
+  },
+  "clock": "CLOCK_MONOTONIC",
+  "local_cpu_fixture": true,
+  "cpu_build_argv": [
+    "docker",
+    "run",
+    "--rm",
+    "--runtime",
+    "runc",
+    "--network",
+    "none",
+    "--cpus",
+    "4",
+    "--memory",
+    "32g",
+    "--pids-limit",
+    "2048",
+    "--tmpfs",
+    "/tmp:rw,exec,nosuid,size=16g,mode=1777",
+    "-e",
+    "NVIDIA_VISIBLE_DEVICES=void",
+    "-e",
+    "CUDA_VISIBLE_DEVICES=",
+    "-e",
+    "LD_LIBRARY_PATH=/usr/local/cuda/compat:/opt/sllm-v4/lib/python3.12/site-packages/torch/lib",
+    "--mount",
+    "type=bind,src=<PREPARED>,dst=/b1-store-trace,readonly",
+    "--mount",
+    "type=bind,src=<EMPTY_OUTPUT>,dst=/out",
+    "--entrypoint",
+    "/opt/sllm-v4/bin/python",
+    "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+    "/b1-store-trace/build_inside.py"
+  ],
+  "extension_sha256": "d5b5c4a55c8a7b4539d4772745e47d5970e382c92ad5050dc92f2b0e18d3472c",
+  "extension_bytes": 652544,
+  "cuda_initialized": false
+}

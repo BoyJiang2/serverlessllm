@@ -1,0 +1,28 @@
+BASE+OVERLAY REJECTED
+INFO 11-16 17:13:45 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 11-16 17:13:45 [nixl_utils.py:34] NIXL is not available
+WARNING 11-16 17:13:45 [nixl_utils.py:44] NIXL agent config is not available
+W1116 17:13:44.825000 1 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py", line 96, in check_engine_source
+    raise ValueError(
+ValueError: V4 engine source differs from the pinned target: v1/worker/gpu_worker.py
+
+DERIVED+OVERLAY ACCEPTED
+INFO 11-16 17:13:53 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 11-16 17:13:53 [nixl_utils.py:34] NIXL is not available
+WARNING 11-16 17:13:53 [nixl_utils.py:44] NIXL agent config is not available
+CHECK_ENGINE_SOURCE_OK
+W1116 17:13:51.849000 1 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+
+ALTERED RUNNER REJECTED
+INFO 11-16 17:13:59 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 11-16 17:13:59 [nixl_utils.py:34] NIXL is not available
+WARNING 11-16 17:13:59 [nixl_utils.py:44] NIXL agent config is not available
+W1116 17:13:58.854000 1 torch/utils/cpp_extension.py:140] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/vllm_v4_loader.py", line 96, in check_engine_source
+    raise ValueError(
+ValueError: V4 engine source differs from the pinned target: v1/worker/gpu_model_runner.py

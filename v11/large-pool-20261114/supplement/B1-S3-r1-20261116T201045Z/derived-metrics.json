@@ -1,0 +1,4115 @@
+{
+  "run_id": "B1-S3-r1-20261116T201045Z",
+  "round_status": true,
+  "round_metrics": {
+    "1": {
+      "begin_ns": 1984357907556375,
+      "end_ns": 1984775522356864,
+      "seconds": 417.614800489,
+      "status": "observed",
+      "source": "pool-init-timing.json:Store Docker start to port ready",
+      "reason": null
+    },
+    "2": {
+      "begin_ns": 1984172607975574,
+      "end_ns": 1984356054148542,
+      "seconds": 183.446172968,
+      "status": "observed",
+      "source": "LMCache entrypoint start ? pool initialization complete",
+      "reason": null
+    },
+    "lmcache_pool_constructor": {
+      "begin_ns": 1984179386132349,
+      "end_ns": 1984356054148542,
+      "seconds": 176.668016193,
+      "status": "observed",
+      "source": "pool init span in LMCache status",
+      "reason": null
+    },
+    "lmcache_controller_ready": {
+      "begin_ns": 1984170140483558,
+      "end_ns": 1984356738691956,
+      "seconds": 186.598208398,
+      "status": "observed",
+      "source": "pool-init-timing.json",
+      "reason": null
+    },
+    "init_serial_sum_s": 601.060973457,
+    "init_wall": {
+      "begin_ns": 1984172607975574,
+      "end_ns": 1984775522356864,
+      "seconds": 602.91438129,
+      "status": "observed",
+      "source": null,
+      "reason": null
+    },
+    "controller_init_wall": {
+      "begin_ns": 1984170140483558,
+      "end_ns": 1984775522356864,
+      "seconds": 605.381873306,
+      "status": "observed",
+      "source": null,
+      "reason": null
+    },
+    "lmcache_server_process_start_ns": 1984172607975574
+  },
+  "stages": [
+    {
+      "step": "00-D-v4",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1984835601952539,
+          "end_ns": 1985706482885165,
+          "seconds": 870.880932626,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1985742958907077,
+          "end_ns": 1985755619384568,
+          "seconds": 12.660477491,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1985742958907077,
+          "end_ns": 1985754147791012,
+          "seconds": 11.188883935,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 2003,
+          "event_lines": [
+            2
+          ],
+          "stored_bytes": 49362656,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1984835601952539,
+          "end_ns": 1985735112842017,
+          "seconds": 899.510889478,
+          "status": "observed",
+          "source": "business",
+          "reason": null
+        },
+        "3": {
+          "begin_ns": 1984888410117457,
+          "end_ns": 1985377342731687,
+          "seconds": 488.93261423,
+          "status": "observed",
+          "source": "events + sf-admission/summary.json",
+          "reason": null
+        },
+        "4": {
+          "begin_ns": 1985483129898300,
+          "end_ns": 1985495352944572,
+          "seconds": 12.223046272,
+          "status": "observed",
+          "source": null,
+          "reason": null
+        },
+        "4.1": {
+          "begin_ns": 1985483129898300,
+          "end_ns": 1985483197729389,
+          "seconds": 0.067831089,
+          "status": "observed",
+          "source": null,
+          "reason": null
+        },
+        "4.2": {
+          "begin_ns": 1985483201915442,
+          "end_ns": 1985495352214034,
+          "seconds": 12.150298592,
+          "status": "observed",
+          "source": null,
+          "reason": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1984888551131881,
+              1985376663877515
+            ],
+            "sources": [
+              "events/process-qjhs3-319085-198486531.jsonl:6",
+              "events/process-qjhs3-319085-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1984888484836023,
+              1985376782979323
+            ],
+            "sources": [
+              "events/process-qjhs3-319087-198486531.jsonl:6",
+              "events/process-qjhs3-319087-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1984888410117457,
+              1985376610511884
+            ],
+            "sources": [
+              "events/process-qjhs3-319088-198486531.jsonl:6",
+              "events/process-qjhs3-319088-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1984888604077327,
+              1985376643346538
+            ],
+            "sources": [
+              "events/process-qjhs3-319090-198486531.jsonl:6",
+              "events/process-qjhs3-319090-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1984888567218290,
+              1985376847824903
+            ],
+            "sources": [
+              "events/process-qjhs3-319092-198486531.jsonl:6",
+              "events/process-qjhs3-319092-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1984888581068615,
+              1985376901084482
+            ],
+            "sources": [
+              "events/process-qjhs3-319093-198486531.jsonl:6",
+              "events/process-qjhs3-319093-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1984888675038423,
+              1985377342731687
+            ],
+            "sources": [
+              "events/process-qjhs3-319094-198486531.jsonl:6",
+              "events/process-qjhs3-319094-198486531.jsonl:11"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1984888549901600,
+              1985376866095393
+            ],
+            "sources": [
+              "events/process-qjhs3-319097-198486531.jsonl:6",
+              "events/process-qjhs3-319097-198486531.jsonl:11"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [
+          {
+            "rank": 0,
+            "bounds": [
+              1985366804670077,
+              1985376652845393
+            ],
+            "sources": [
+              "events/process-qjhs3-319085-198486531.jsonl:9",
+              "events/process-qjhs3-319085-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1985366809606186,
+              1985376772051349
+            ],
+            "sources": [
+              "events/process-qjhs3-319087-198486531.jsonl:9",
+              "events/process-qjhs3-319087-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1985366809780906,
+              1985376599484168
+            ],
+            "sources": [
+              "events/process-qjhs3-319088-198486531.jsonl:9",
+              "events/process-qjhs3-319088-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1985366804394687,
+              1985376632909443
+            ],
+            "sources": [
+              "events/process-qjhs3-319090-198486531.jsonl:9",
+              "events/process-qjhs3-319090-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1985366804648053,
+              1985376837017349
+            ],
+            "sources": [
+              "events/process-qjhs3-319092-198486531.jsonl:9",
+              "events/process-qjhs3-319092-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1985366804576755,
+              1985376890303349
+            ],
+            "sources": [
+              "events/process-qjhs3-319093-198486531.jsonl:9",
+              "events/process-qjhs3-319093-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1985366807493192,
+              1985377330872840
+            ],
+            "sources": [
+              "events/process-qjhs3-319094-198486531.jsonl:9",
+              "events/process-qjhs3-319094-198486531.jsonl:10"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1985366804736490,
+              1985376855545936
+            ],
+            "sources": [
+              "events/process-qjhs3-319097-198486531.jsonl:9",
+              "events/process-qjhs3-319097-198486531.jsonl:10"
+            ]
+          }
+        ],
+        "postprocess_gap": null,
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          },
+          "pread": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          },
+          "h2d": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          },
+          "recovery": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          },
+          "eviction": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1985763361406959,
+          "end_ns": 1985763784919394,
+          "seconds": 0.423512435,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1985763361406959,
+              1985763388723096
+            ],
+            "sources": [
+              "events/process-qjhs3-319085-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1985763361673640,
+              1985763751365733
+            ],
+            "sources": [
+              "events/process-qjhs3-319087-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1985763361680275,
+              1985763426299615
+            ],
+            "sources": [
+              "events/process-qjhs3-319088-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1985763361524636,
+              1985763413887860
+            ],
+            "sources": [
+              "events/process-qjhs3-319090-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1985763362948046,
+              1985763401245041
+            ],
+            "sources": [
+              "events/process-qjhs3-319092-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1985763361894667,
+              1985763762068712
+            ],
+            "sources": [
+              "events/process-qjhs3-319093-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1985763362096078,
+              1985763774445405
+            ],
+            "sources": [
+              "events/process-qjhs3-319094-198486531.jsonl:23"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1985763362798744,
+              1985763784919394
+            ],
+            "sources": [
+              "events/process-qjhs3-319097-198486531.jsonl:23"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1985788311291966,
+          "end_ns": 1985788314150933,
+          "seconds": 0.002858967,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1985788311291966,
+          1985788314150933
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1985763356551083,
+          "end_ns": 1985781598002537,
+          "seconds": 18.241451454,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "01-K-kimi",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1985855624968902,
+          "end_ns": 1986146079123201,
+          "seconds": 290.454154299,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1986151359548861,
+          "end_ns": 1986152295197796,
+          "seconds": 0.935648935,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1986151359548861,
+          "end_ns": 1986151792844976,
+          "seconds": 0.433296115,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 1188,
+          "event_lines": [
+            4
+          ],
+          "stored_bytes": 35979264,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1985855624968902,
+          "end_ns": 1986147956298778,
+          "seconds": 292.331329876,
+          "status": "observed",
+          "source": "arithmetic",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1985969562742930,
+          "end_ns": 1986061398318413,
+          "seconds": 91.835575483,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": 0.0,
+          "status": "did_not_occur",
+          "reason": "Store ledger confirms operation did not occur"
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1985969564646823,
+          "end_ns": 1986060589559939,
+          "seconds": 91.024913116,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1985969641740180,
+          "end_ns": 1986061398318413,
+          "seconds": 91.756578233,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1985763361406959,
+          "end_ns": 1985763784919394,
+          "seconds": 0.423512435,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1985788311291966,
+          "end_ns": 1985788314150933,
+          "seconds": 0.002858967,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1986142071770317,
+          "end_ns": 1986142223602305,
+          "seconds": 0.151831988,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1986142219696427,
+          "end_ns": 1986142623805279,
+          "seconds": 0.404108852,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1985763356551083,
+          "end_ns": 1985781598002537,
+          "seconds": 18.241451454,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 0.978406364,
+          "observed_union_intervals": [
+            [
+              1985763361406959,
+              1985763784919394
+            ],
+            [
+              1985788311291966,
+              1985788314150933
+            ],
+            [
+              1986142071770317,
+              1986142623805279
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1985950940246568,
+              1986059629125745
+            ],
+            "sources": [
+              "events/process-qjhs3-567174-198592640.jsonl:6",
+              "events/process-qjhs3-567174-198592640.jsonl:11"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1985950932986300,
+              1986061039889314
+            ],
+            "sources": [
+              "events/process-qjhs3-567175-198592641.jsonl:6",
+              "events/process-qjhs3-567175-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1985950890714953,
+              1986056188275271
+            ],
+            "sources": [
+              "events/process-qjhs3-567176-198592641.jsonl:6",
+              "events/process-qjhs3-567176-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1985950886648572,
+              1986060719960492
+            ],
+            "sources": [
+              "events/process-qjhs3-567177-198592641.jsonl:6",
+              "events/process-qjhs3-567177-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1985950926089785,
+              1986061241090311
+            ],
+            "sources": [
+              "events/process-qjhs3-567178-198592641.jsonl:6",
+              "events/process-qjhs3-567178-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1985950896987366,
+              1986060545185337
+            ],
+            "sources": [
+              "events/process-qjhs3-567179-198592641.jsonl:6",
+              "events/process-qjhs3-567179-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1985950924967257,
+              1986061398318413
+            ],
+            "sources": [
+              "events/process-qjhs3-567180-198592641.jsonl:6",
+              "events/process-qjhs3-567180-198592641.jsonl:11"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1985950935559302,
+              1986060892568068
+            ],
+            "sources": [
+              "events/process-qjhs3-567181-198592641.jsonl:6",
+              "events/process-qjhs3-567181-198592641.jsonl:11"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [],
+        "postprocess_gap": "quantization_postprocess: missing rank coverage or worker collision",
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 64,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "eviction": {
+            "status": "not_applicable",
+            "observed_records": 0,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1986160332498099,
+          "end_ns": 1986160610031577,
+          "seconds": 0.277533478,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1986160332498099,
+              1986160553554745
+            ],
+            "sources": [
+              "events/process-qjhs3-567174-198592640.jsonl:23"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1986160332846500,
+              1986160587337801
+            ],
+            "sources": [
+              "events/process-qjhs3-567175-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1986160333171996,
+              1986160602677057
+            ],
+            "sources": [
+              "events/process-qjhs3-567176-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1986160332831361,
+              1986160594819717
+            ],
+            "sources": [
+              "events/process-qjhs3-567177-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1986160333200687,
+              1986160610031577
+            ],
+            "sources": [
+              "events/process-qjhs3-567178-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1986160332774281,
+              1986160569662622
+            ],
+            "sources": [
+              "events/process-qjhs3-567179-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1986160332835176,
+              1986160579766115
+            ],
+            "sources": [
+              "events/process-qjhs3-567180-198592641.jsonl:23"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1986160333330583,
+              1986160561456714
+            ],
+            "sources": [
+              "events/process-qjhs3-567181-198592641.jsonl:23"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1986183547876857,
+          "end_ns": 1986183549542117,
+          "seconds": 0.00166526,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1986183547876857,
+          1986183549542117
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1986160328499910,
+          "end_ns": 1986176901988085,
+          "seconds": 16.573488175,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "02-G-glm",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1986250551917600,
+          "end_ns": 1986738809499006,
+          "seconds": 488.257581406,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1986758513013054,
+          "end_ns": 1986762659574176,
+          "seconds": 4.146561122,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1986758513013054,
+          "end_ns": 1986761215710484,
+          "seconds": 2.70269743,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 1229,
+          "event_lines": [
+            6
+          ],
+          "stored_bytes": 51277824,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1986250551917600,
+          "end_ns": 1986749809150309,
+          "seconds": 499.257232709,
+          "status": "observed",
+          "source": "business_arithmetic",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1986315356146532,
+          "end_ns": 1986436323274721,
+          "seconds": 120.967128189,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": 1986315372883713,
+          "end_ns": 1986315983083261,
+          "seconds": 0.610199548,
+          "status": "observed",
+          "source": "successful observed Store evictions",
+          "reason": null
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1986315360567435,
+          "end_ns": 1986435557844981,
+          "seconds": 120.197277546,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1986315845351688,
+          "end_ns": 1986436323274721,
+          "seconds": 120.477923033,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1986160332498099,
+          "end_ns": 1986160610031577,
+          "seconds": 0.277533478,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1986183547876857,
+          "end_ns": 1986183549542117,
+          "seconds": 0.00166526,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1986463608712121,
+          "end_ns": 1986463772958537,
+          "seconds": 0.164246416,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1986463772753007,
+          "end_ns": 1986463942718741,
+          "seconds": 0.169965734,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1986160328499910,
+          "end_ns": 1986176901988085,
+          "seconds": 16.573488175,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 0.613205358,
+          "observed_union_intervals": [
+            [
+              1986160332498099,
+              1986160610031577
+            ],
+            [
+              1986183547876857,
+              1986183549542117
+            ],
+            [
+              1986463608712121,
+              1986463942718741
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1986313603987393,
+              1986433123237727
+            ],
+            "sources": [
+              "events/process-qjhs3-641900-198629085.jsonl:6",
+              "events/process-qjhs3-641900-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1986313561003497,
+              1986436323274721
+            ],
+            "sources": [
+              "events/process-qjhs3-641901-198629085.jsonl:6",
+              "events/process-qjhs3-641901-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1986313561448797,
+              1986436131313418
+            ],
+            "sources": [
+              "events/process-qjhs3-641902-198629085.jsonl:6",
+              "events/process-qjhs3-641902-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1986313562210278,
+              1986416939112766
+            ],
+            "sources": [
+              "events/process-qjhs3-641903-198629085.jsonl:6",
+              "events/process-qjhs3-641903-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1986313604712581,
+              1986435720122075
+            ],
+            "sources": [
+              "events/process-qjhs3-641904-198629085.jsonl:6",
+              "events/process-qjhs3-641904-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1986313570620957,
+              1986435288567173
+            ],
+            "sources": [
+              "events/process-qjhs3-641905-198629085.jsonl:6",
+              "events/process-qjhs3-641905-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1986313567036538,
+              1986435054430364
+            ],
+            "sources": [
+              "events/process-qjhs3-641906-198629085.jsonl:6",
+              "events/process-qjhs3-641906-198629085.jsonl:14"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1986313738183094,
+              1986436165949721
+            ],
+            "sources": [
+              "events/process-qjhs3-641907-198629085.jsonl:6",
+              "events/process-qjhs3-641907-198629085.jsonl:14"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [
+          {
+            "rank": 0,
+            "bounds": [
+              1986432857628648,
+              1986433110067427
+            ],
+            "sources": [
+              "events/process-qjhs3-641900-198629085.jsonl:12",
+              "events/process-qjhs3-641900-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1986436206488947,
+              1986436310175707
+            ],
+            "sources": [
+              "events/process-qjhs3-641901-198629085.jsonl:12",
+              "events/process-qjhs3-641901-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1986435790210615,
+              1986436117465715
+            ],
+            "sources": [
+              "events/process-qjhs3-641902-198629085.jsonl:12",
+              "events/process-qjhs3-641902-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1986414467054451,
+              1986416922724287
+            ],
+            "sources": [
+              "events/process-qjhs3-641903-198629085.jsonl:12",
+              "events/process-qjhs3-641903-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1986435598117618,
+              1986435707245513
+            ],
+            "sources": [
+              "events/process-qjhs3-641904-198629085.jsonl:12",
+              "events/process-qjhs3-641904-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1986435168558773,
+              1986435274740350
+            ],
+            "sources": [
+              "events/process-qjhs3-641905-198629085.jsonl:12",
+              "events/process-qjhs3-641905-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1986434942923928,
+              1986435042251376
+            ],
+            "sources": [
+              "events/process-qjhs3-641906-198629085.jsonl:12",
+              "events/process-qjhs3-641906-198629085.jsonl:13"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1986436011971289,
+              1986436153563322
+            ],
+            "sources": [
+              "events/process-qjhs3-641907-198629085.jsonl:12",
+              "events/process-qjhs3-641907-198629085.jsonl:13"
+            ]
+          }
+        ],
+        "postprocess_gap": null,
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 80,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "eviction": {
+            "status": "complete",
+            "observed_records": 6,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1986769801291333,
+          "end_ns": 1986769892091169,
+          "seconds": 0.090799836,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1986769801291333,
+              1986769814155843
+            ],
+            "sources": [
+              "events/process-qjhs3-641900-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1986769801847936,
+              1986769836536823
+            ],
+            "sources": [
+              "events/process-qjhs3-641901-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1986769802236737,
+              1986769892091169
+            ],
+            "sources": [
+              "events/process-qjhs3-641902-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1986769802148736,
+              1986769870127610
+            ],
+            "sources": [
+              "events/process-qjhs3-641903-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1986769802061266,
+              1986769847836998
+            ],
+            "sources": [
+              "events/process-qjhs3-641904-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1986769802100171,
+              1986769859029364
+            ],
+            "sources": [
+              "events/process-qjhs3-641905-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1986769802267550,
+              1986769881199132
+            ],
+            "sources": [
+              "events/process-qjhs3-641906-198629085.jsonl:26"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1986769802694185,
+              1986769825109978
+            ],
+            "sources": [
+              "events/process-qjhs3-641907-198629085.jsonl:26"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1986792561919118,
+          "end_ns": 1986792563487627,
+          "seconds": 0.001568509,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1986792561919118,
+          1986792563487627
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1986769797069458,
+          "end_ns": 1986785784313254,
+          "seconds": 15.987243796,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "03-K-kimi",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1986859460660930,
+          "end_ns": 1987101010238091,
+          "seconds": 241.549577161,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1987105917918315,
+          "end_ns": 1987106786493903,
+          "seconds": 0.868575588,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1987105917918315,
+          "end_ns": 1987106296334545,
+          "seconds": 0.37841623,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 1219,
+          "event_lines": [
+            8
+          ],
+          "stored_bytes": 35979264,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1986859460660930,
+          "end_ns": 1987102702004844,
+          "seconds": 243.241343914,
+          "status": "observed",
+          "source": "arithmetic",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1986927579955927,
+          "end_ns": 1987019288840154,
+          "seconds": 91.708884227,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": 1986927580074484,
+          "end_ns": 1986930092526821,
+          "seconds": 2.512452337,
+          "status": "observed",
+          "source": "successful observed Store evictions",
+          "reason": null
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1986927581303751,
+          "end_ns": 1987019040687538,
+          "seconds": 91.459383787,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1986927598445146,
+          "end_ns": 1987019288840154,
+          "seconds": 91.690395008,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1986769801291333,
+          "end_ns": 1986769892091169,
+          "seconds": 0.090799836,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1986792561919118,
+          "end_ns": 1986792563487627,
+          "seconds": 0.001568509,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1987097324925832,
+          "end_ns": 1987097436098580,
+          "seconds": 0.111172748,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1987097419849020,
+          "end_ns": 1987097548458690,
+          "seconds": 0.12860967,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1986769797069458,
+          "end_ns": 1986785784313254,
+          "seconds": 15.987243796,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 0.315901203,
+          "observed_union_intervals": [
+            [
+              1986769801291333,
+              1986769892091169
+            ],
+            [
+              1986792561919118,
+              1986792563487627
+            ],
+            [
+              1987097324925832,
+              1987097548458690
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1986923982215212,
+              1987018669112948
+            ],
+            "sources": [
+              "events/process-qjhs3-783627-198690008.jsonl:6",
+              "events/process-qjhs3-783627-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1986923986168543,
+              1987010251072361
+            ],
+            "sources": [
+              "events/process-qjhs3-783628-198690008.jsonl:6",
+              "events/process-qjhs3-783628-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1986923982724486,
+              1987018361879333
+            ],
+            "sources": [
+              "events/process-qjhs3-783629-198690008.jsonl:6",
+              "events/process-qjhs3-783629-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1986923908843509,
+              1987018830617383
+            ],
+            "sources": [
+              "events/process-qjhs3-783630-198690008.jsonl:6",
+              "events/process-qjhs3-783630-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1986924019364276,
+              1987019288840154
+            ],
+            "sources": [
+              "events/process-qjhs3-783631-198690008.jsonl:6",
+              "events/process-qjhs3-783631-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1986924050412296,
+              1987018134332171
+            ],
+            "sources": [
+              "events/process-qjhs3-783632-198690008.jsonl:6",
+              "events/process-qjhs3-783632-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1986924072281461,
+              1987017979165708
+            ],
+            "sources": [
+              "events/process-qjhs3-783633-198690008.jsonl:6",
+              "events/process-qjhs3-783633-198690008.jsonl:11"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1986924047108760,
+              1987019122039169
+            ],
+            "sources": [
+              "events/process-qjhs3-783634-198690009.jsonl:6",
+              "events/process-qjhs3-783634-198690009.jsonl:11"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [],
+        "postprocess_gap": "quantization_postprocess: missing rank coverage or worker collision",
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 64,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "eviction": {
+            "status": "complete",
+            "observed_records": 7,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1987115725966674,
+          "end_ns": 1987115788133716,
+          "seconds": 0.062167042,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987115726452600,
+              1987115773072541
+            ],
+            "sources": [
+              "events/process-qjhs3-783627-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987115727182644,
+              1987115788133716
+            ],
+            "sources": [
+              "events/process-qjhs3-783628-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987115726064184,
+              1987115750400064
+            ],
+            "sources": [
+              "events/process-qjhs3-783629-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987115725966674,
+              1987115735134451
+            ],
+            "sources": [
+              "events/process-qjhs3-783630-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987115726373275,
+              1987115765539114
+            ],
+            "sources": [
+              "events/process-qjhs3-783631-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987115726696084,
+              1987115780568827
+            ],
+            "sources": [
+              "events/process-qjhs3-783632-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987115726356664,
+              1987115758003162
+            ],
+            "sources": [
+              "events/process-qjhs3-783633-198690008.jsonl:23"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987115727536462,
+              1987115742698358
+            ],
+            "sources": [
+              "events/process-qjhs3-783634-198690009.jsonl:23"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1987138686074829,
+          "end_ns": 1987138687547421,
+          "seconds": 0.001472592,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1987138686074829,
+          1987138687547421
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1987115722315933,
+          "end_ns": 1987131968139941,
+          "seconds": 16.245824008,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "04-D-v4",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1987205600064360,
+          "end_ns": 1987662096443021,
+          "seconds": 456.496378661,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1987690278309872,
+          "end_ns": 1987702820561600,
+          "seconds": 12.542251728,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1987690278309872,
+          "end_ns": 1987701338027327,
+          "seconds": 11.059717455,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 1228,
+          "event_lines": [
+            10
+          ],
+          "stored_bytes": 49362656,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1987205600064360,
+          "end_ns": 1987682060073960,
+          "seconds": 476.4600096,
+          "status": "observed",
+          "source": "business",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1987263752309256,
+          "end_ns": 1987398102572179,
+          "seconds": 134.350262923,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": 1987264478506223,
+          "end_ns": 1987390286017980,
+          "seconds": 125.807511757,
+          "status": "observed",
+          "source": "successful observed Store evictions",
+          "reason": null
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1987263752492586,
+          "end_ns": 1987397753633275,
+          "seconds": 134.001140689,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1987263773837942,
+          "end_ns": 1987398102572179,
+          "seconds": 134.328734237,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1987115725966674,
+          "end_ns": 1987115788133716,
+          "seconds": 0.062167042,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1987138686074829,
+          "end_ns": 1987138687547421,
+          "seconds": 0.001472592,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1987458141529939,
+          "end_ns": 1987458199487916,
+          "seconds": 0.057957977,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1987458189081252,
+          "end_ns": 1987458355655823,
+          "seconds": 0.166574571,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1987115722315933,
+          "end_ns": 1987131968139941,
+          "seconds": 16.245824008,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 0.277765518,
+          "observed_union_intervals": [
+            [
+              1987115725966674,
+              1987115788133716
+            ],
+            [
+              1987138686074829,
+              1987138687547421
+            ],
+            [
+              1987458141529939,
+              1987458355655823
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987259120346521,
+              1987390013753404
+            ],
+            "sources": [
+              "events/process-qjhs3-855408-198723561.jsonl:6",
+              "events/process-qjhs3-855408-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987259060983920,
+              1987396842298735
+            ],
+            "sources": [
+              "events/process-qjhs3-855409-198723561.jsonl:6",
+              "events/process-qjhs3-855409-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987259237454888,
+              1987395356819007
+            ],
+            "sources": [
+              "events/process-qjhs3-855410-198723561.jsonl:6",
+              "events/process-qjhs3-855410-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987259119558715,
+              1987395386227805
+            ],
+            "sources": [
+              "events/process-qjhs3-855411-198723561.jsonl:6",
+              "events/process-qjhs3-855411-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987259124507356,
+              1987396948648320
+            ],
+            "sources": [
+              "events/process-qjhs3-855415-198723561.jsonl:6",
+              "events/process-qjhs3-855415-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987259289100079,
+              1987396980693097
+            ],
+            "sources": [
+              "events/process-qjhs3-855416-198723561.jsonl:6",
+              "events/process-qjhs3-855416-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987259223112318,
+              1987396944008508
+            ],
+            "sources": [
+              "events/process-qjhs3-855417-198723561.jsonl:6",
+              "events/process-qjhs3-855417-198723561.jsonl:257"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987259233207921,
+              1987398102572179
+            ],
+            "sources": [
+              "events/process-qjhs3-855418-198723561.jsonl:6",
+              "events/process-qjhs3-855418-198723561.jsonl:257"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987271688070728,
+              1987390003434965
+            ],
+            "sources": [
+              "events/process-qjhs3-855408-198723561.jsonl:11",
+              "events/process-qjhs3-855408-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987275040742588,
+              1987396832206997
+            ],
+            "sources": [
+              "events/process-qjhs3-855409-198723561.jsonl:11",
+              "events/process-qjhs3-855409-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987271394898424,
+              1987395346754416
+            ],
+            "sources": [
+              "events/process-qjhs3-855410-198723561.jsonl:11",
+              "events/process-qjhs3-855410-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987271352854742,
+              1987395376246937
+            ],
+            "sources": [
+              "events/process-qjhs3-855411-198723561.jsonl:11",
+              "events/process-qjhs3-855411-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987275836210573,
+              1987396938492983
+            ],
+            "sources": [
+              "events/process-qjhs3-855415-198723561.jsonl:11",
+              "events/process-qjhs3-855415-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987272769197568,
+              1987396970251010
+            ],
+            "sources": [
+              "events/process-qjhs3-855416-198723561.jsonl:11",
+              "events/process-qjhs3-855416-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987273454637729,
+              1987396934346499
+            ],
+            "sources": [
+              "events/process-qjhs3-855417-198723561.jsonl:11",
+              "events/process-qjhs3-855417-198723561.jsonl:256"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987272979365135,
+              1987398091629715
+            ],
+            "sources": [
+              "events/process-qjhs3-855418-198723561.jsonl:11",
+              "events/process-qjhs3-855418-198723561.jsonl:256"
+            ]
+          }
+        ],
+        "postprocess_gap": null,
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "eviction": {
+            "status": "complete",
+            "observed_records": 11,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1987710160930114,
+          "end_ns": 1987710547728949,
+          "seconds": 0.386798835,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987710160930114,
+              1987710172275187
+            ],
+            "sources": [
+              "events/process-qjhs3-855408-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987710161712833,
+              1987710529038006
+            ],
+            "sources": [
+              "events/process-qjhs3-855409-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987710161295437,
+              1987710191142108
+            ],
+            "sources": [
+              "events/process-qjhs3-855410-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987710161596165,
+              1987710201287405
+            ],
+            "sources": [
+              "events/process-qjhs3-855411-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987710162428719,
+              1987710547728949
+            ],
+            "sources": [
+              "events/process-qjhs3-855415-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987710162193817,
+              1987710539164158
+            ],
+            "sources": [
+              "events/process-qjhs3-855416-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987710162363030,
+              1987710181661669
+            ],
+            "sources": [
+              "events/process-qjhs3-855417-198723561.jsonl:269"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987710161615881,
+              1987710520496976
+            ],
+            "sources": [
+              "events/process-qjhs3-855418-198723561.jsonl:269"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1987731828410536,
+          "end_ns": 1987731829966732,
+          "seconds": 0.001556196,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1987731828410536,
+          1987731829966732
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1987710157017142,
+          "end_ns": 1987724506826589,
+          "seconds": 14.349809447,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "05-G-glm",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1987799000036152,
+          "end_ns": 1988275640670501,
+          "seconds": 476.640634349,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1988295561712091,
+          "end_ns": 1988299783927220,
+          "seconds": 4.222215129,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1988295561712091,
+          "end_ns": 1988298311550844,
+          "seconds": 2.749838753,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 2919,
+          "event_lines": [
+            12
+          ],
+          "stored_bytes": 51277824,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1987799000036152,
+          "end_ns": 1988286729516926,
+          "seconds": 487.729480774,
+          "status": "observed",
+          "source": "business_arithmetic",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1987849202662191,
+          "end_ns": 1987970267865175,
+          "seconds": 121.065202984,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": 1987849203255704,
+          "end_ns": 1987849241056199,
+          "seconds": 0.037800495,
+          "status": "observed",
+          "source": "successful observed Store evictions",
+          "reason": null
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1987849204355082,
+          "end_ns": 1987969384346952,
+          "seconds": 120.17999187,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1987849759124518,
+          "end_ns": 1987970267865175,
+          "seconds": 120.508740657,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1987710160930114,
+          "end_ns": 1987710547728949,
+          "seconds": 0.386798835,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1987731828410536,
+          "end_ns": 1987731829966732,
+          "seconds": 0.001556196,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1987997740143876,
+          "end_ns": 1987998102335517,
+          "seconds": 0.362191641,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1987998100632889,
+          "end_ns": 1987998272262107,
+          "seconds": 0.171629218,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1987710157017142,
+          "end_ns": 1987724506826589,
+          "seconds": 14.349809447,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 0.920473262,
+          "observed_union_intervals": [
+            [
+              1987710160930114,
+              1987710547728949
+            ],
+            [
+              1987731828410536,
+              1987731829966732
+            ],
+            [
+              1987997740143876,
+              1987998272262107
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987847279713842,
+              1987970045280886
+            ],
+            "sources": [
+              "events/process-qjhs3-1005990-198782419.jsonl:6",
+              "events/process-qjhs3-1005990-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987847232947324,
+              1987969849976191
+            ],
+            "sources": [
+              "events/process-qjhs3-1005991-198782419.jsonl:6",
+              "events/process-qjhs3-1005991-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987847229111691,
+              1987969463044307
+            ],
+            "sources": [
+              "events/process-qjhs3-1005992-198782419.jsonl:6",
+              "events/process-qjhs3-1005992-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987847230036605,
+              1987969658395523
+            ],
+            "sources": [
+              "events/process-qjhs3-1005993-198782419.jsonl:6",
+              "events/process-qjhs3-1005993-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987847315057690,
+              1987967037942626
+            ],
+            "sources": [
+              "events/process-qjhs3-1005994-198782419.jsonl:6",
+              "events/process-qjhs3-1005994-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987847285179433,
+              1987964828299699
+            ],
+            "sources": [
+              "events/process-qjhs3-1005995-198782419.jsonl:6",
+              "events/process-qjhs3-1005995-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987847331927600,
+              1987965099272063
+            ],
+            "sources": [
+              "events/process-qjhs3-1005996-198782419.jsonl:6",
+              "events/process-qjhs3-1005996-198782419.jsonl:14"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987847230808388,
+              1987970267865175
+            ],
+            "sources": [
+              "events/process-qjhs3-1005997-198782419.jsonl:6",
+              "events/process-qjhs3-1005997-198782419.jsonl:14"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [
+          {
+            "rank": 0,
+            "bounds": [
+              1987969932690867,
+              1987970033101457
+            ],
+            "sources": [
+              "events/process-qjhs3-1005990-198782419.jsonl:12",
+              "events/process-qjhs3-1005990-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1987969738410580,
+              1987969837377808
+            ],
+            "sources": [
+              "events/process-qjhs3-1005991-198782419.jsonl:12",
+              "events/process-qjhs3-1005991-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1987969350751139,
+              1987969450522631
+            ],
+            "sources": [
+              "events/process-qjhs3-1005992-198782419.jsonl:12",
+              "events/process-qjhs3-1005992-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1987969543982754,
+              1987969645304791
+            ],
+            "sources": [
+              "events/process-qjhs3-1005993-198782419.jsonl:12",
+              "events/process-qjhs3-1005993-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1987966923018722,
+              1987967025229317
+            ],
+            "sources": [
+              "events/process-qjhs3-1005994-198782419.jsonl:12",
+              "events/process-qjhs3-1005994-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1987962401560158,
+              1987964814598172
+            ],
+            "sources": [
+              "events/process-qjhs3-1005995-198782419.jsonl:12",
+              "events/process-qjhs3-1005995-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1987964984898743,
+              1987965086784639
+            ],
+            "sources": [
+              "events/process-qjhs3-1005996-198782419.jsonl:12",
+              "events/process-qjhs3-1005996-198782419.jsonl:13"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1987970125214668,
+              1987970254507560
+            ],
+            "sources": [
+              "events/process-qjhs3-1005997-198782419.jsonl:12",
+              "events/process-qjhs3-1005997-198782419.jsonl:13"
+            ]
+          }
+        ],
+        "postprocess_gap": null,
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 80,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 8,
+            "problems": []
+          },
+          "eviction": {
+            "status": "complete",
+            "observed_records": 400,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1988306925446325,
+          "end_ns": 1988307153925739,
+          "seconds": 0.228479414,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1988306925446325,
+              1988307073754626
+            ],
+            "sources": [
+              "events/process-qjhs3-1005990-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1988306926582798,
+              1988307142989837
+            ],
+            "sources": [
+              "events/process-qjhs3-1005991-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1988306926402625,
+              1988307120886524
+            ],
+            "sources": [
+              "events/process-qjhs3-1005992-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1988306926452667,
+              1988307131834057
+            ],
+            "sources": [
+              "events/process-qjhs3-1005993-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1988306927155306,
+              1988307153925739
+            ],
+            "sources": [
+              "events/process-qjhs3-1005994-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1988306926263794,
+              1988307097806648
+            ],
+            "sources": [
+              "events/process-qjhs3-1005995-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1988306927478902,
+              1988307086592762
+            ],
+            "sources": [
+              "events/process-qjhs3-1005996-198782419.jsonl:26"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1988306926281828,
+              1988307109767605
+            ],
+            "sources": [
+              "events/process-qjhs3-1005997-198782419.jsonl:26"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1988331317749792,
+          "end_ns": 1988331319205967,
+          "seconds": 0.001456175,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1988331317749792,
+          1988331319205967
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1988306920961174,
+          "end_ns": 1988324476875516,
+          "seconds": 17.555914342,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    },
+    {
+      "step": "06-D-v4",
+      "clock": [
+        "0145ca12-ac6e-40fc-9760-5d0639290553",
+        "time:[4026531834]",
+        "CLOCK_MONOTONIC"
+      ],
+      "metrics": {
+        "9": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "not_applicable",
+          "reason": "frozen input enforce_eager=true"
+        },
+        "10": {
+          "begin_ns": 1988398437768794,
+          "end_ns": 1988846789234405,
+          "seconds": 448.351465611,
+          "status": "observed",
+          "source": "activation-readiness.json",
+          "reason": "direct engine admission; external router/health unavailable"
+        },
+        "11_response": {
+          "begin_ns": 1988874944235599,
+          "end_ns": 1988887466266226,
+          "seconds": 12.522030627,
+          "status": "observed",
+          "source": "kv_fill request, response and checks",
+          "reason": null
+        },
+        "11_write_confirmed": {
+          "begin_ns": 1988874944235599,
+          "end_ns": 1988885961333335,
+          "seconds": 11.017097736,
+          "status": "observed",
+          "source": "lmcache/store-events.jsonl:mp.store.end, scoped by request and transfer",
+          "reason": null,
+          "bridge_spread_ns": 2223,
+          "event_lines": [
+            14
+          ],
+          "stored_bytes": 49362656,
+          "clock": "LMCache REALTIME mapped to host MONOTONIC; observed bracket spread"
+        },
+        "12": {
+          "begin_ns": 1988398437768794,
+          "end_ns": 1988866965392264,
+          "seconds": 468.52762347,
+          "status": "observed",
+          "source": "business",
+          "reason": null
+        },
+        "5": {
+          "begin_ns": 1988450577440945,
+          "end_ns": 1988583826362753,
+          "seconds": 133.248921808,
+          "status": "observed",
+          "source": "Store lookup to eight-rank full_weight_load",
+          "reason": null
+        },
+        "5.1": {
+          "begin_ns": 1988450581007848,
+          "end_ns": 1988573273175697,
+          "seconds": 122.692167849,
+          "status": "observed",
+          "source": "successful observed Store evictions",
+          "reason": null
+        },
+        "5.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "native Store partitions",
+          "reason": "exact Host pool publication absent; report pread envelope separately"
+        },
+        "5.2_pread_envelope": {
+          "begin_ns": 1988450581388463,
+          "end_ns": 1988583536247152,
+          "seconds": 132.954858689,
+          "status": "observed",
+          "source": "per-file earliest pread to last pread",
+          "reason": null
+        },
+        "5.3": {
+          "begin_ns": 1988450599097811,
+          "end_ns": 1988583826362753,
+          "seconds": 133.227264942,
+          "status": "observed",
+          "source": "Store recovery request to eight-rank full_weight_load",
+          "reason": null
+        },
+        "6": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": null,
+          "reason": "old independently observable physical KV release start is absent"
+        },
+        "7.1": {
+          "begin_ns": 1988306925446325,
+          "end_ns": 1988307153925739,
+          "seconds": 0.228479414,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "7.2": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "7.3": {
+          "begin_ns": 1988331317749792,
+          "end_ns": 1988331319205967,
+          "seconds": 0.001456175,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "7.4": {
+          "begin_ns": 1988644512567096,
+          "end_ns": 1988645349760053,
+          "seconds": 0.837192957,
+          "status": "observed",
+          "source": "b1_kv_tensor_init",
+          "reason": null
+        },
+        "7.5": {
+          "begin_ns": 1988644588720111,
+          "end_ns": 1988645393343992,
+          "seconds": 0.804623881,
+          "status": "observed",
+          "source": "b1_lmcache_register_transfer initial ACK",
+          "reason": null
+        },
+        "8": {
+          "begin_ns": 1988306920961174,
+          "end_ns": 1988324476875516,
+          "seconds": 17.555914342,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        },
+        "7": {
+          "status": "partial",
+          "missing": [
+            "7.2"
+          ],
+          "observed_union_s": 1.089866668,
+          "observed_union_intervals": [
+            [
+              1988306925446325,
+              1988307153925739
+            ],
+            [
+              1988331317749792,
+              1988331319205967
+            ],
+            [
+              1988644512567096,
+              1988644586227369
+            ],
+            [
+              1988644588720111,
+              1988645325397766
+            ],
+            [
+              1988645333927716,
+              1988645349760053
+            ],
+            [
+              1988645359583178,
+              1988645393343992
+            ]
+          ],
+          "weight_overlap_observed_s": 0.0,
+          "weight_overlap_basis": "per-file PREAD and per-device H2D envelopes, eviction and rank postprocess spans; sub-envelope gaps unobserved",
+          "full_exact_union_s": null
+        }
+      },
+      "phase_coverage": {
+        "full_weight": [
+          {
+            "rank": 0,
+            "bounds": [
+              1988446179530420,
+              1988574090756417
+            ],
+            "sources": [
+              "events/process-qjhs3-1147007-198842311.jsonl:6",
+              "events/process-qjhs3-1147007-198842311.jsonl:257"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1988446185620568,
+              1988582157908262
+            ],
+            "sources": [
+              "events/process-qjhs3-1147008-198842311.jsonl:6",
+              "events/process-qjhs3-1147008-198842311.jsonl:257"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1988446234830665,
+              1988580480408474
+            ],
+            "sources": [
+              "events/process-qjhs3-1147009-198842312.jsonl:6",
+              "events/process-qjhs3-1147009-198842312.jsonl:257"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1988446183313754,
+              1988582916547893
+            ],
+            "sources": [
+              "events/process-qjhs3-1147010-198842312.jsonl:6",
+              "events/process-qjhs3-1147010-198842312.jsonl:257"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1988446249183260,
+              1988583826362753
+            ],
+            "sources": [
+              "events/process-qjhs3-1147011-198842312.jsonl:6",
+              "events/process-qjhs3-1147011-198842312.jsonl:257"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1988446310819071,
+              1988580759047809
+            ],
+            "sources": [
+              "events/process-qjhs3-1147012-198842312.jsonl:6",
+              "events/process-qjhs3-1147012-198842312.jsonl:257"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1988446268130197,
+              1988583804570050
+            ],
+            "sources": [
+              "events/process-qjhs3-1147013-198842312.jsonl:6",
+              "events/process-qjhs3-1147013-198842312.jsonl:257"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1988446214397698,
+              1988583066270329
+            ],
+            "sources": [
+              "events/process-qjhs3-1147014-198842312.jsonl:6",
+              "events/process-qjhs3-1147014-198842312.jsonl:257"
+            ]
+          }
+        ],
+        "full_weight_gap": null,
+        "postprocess": [
+          {
+            "rank": 0,
+            "bounds": [
+              1988457261708592,
+              1988574081144244
+            ],
+            "sources": [
+              "events/process-qjhs3-1147007-198842311.jsonl:11",
+              "events/process-qjhs3-1147007-198842311.jsonl:256"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1988460335792030,
+              1988582148246898
+            ],
+            "sources": [
+              "events/process-qjhs3-1147008-198842311.jsonl:11",
+              "events/process-qjhs3-1147008-198842311.jsonl:256"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1988458605150315,
+              1988580470269301
+            ],
+            "sources": [
+              "events/process-qjhs3-1147009-198842312.jsonl:11",
+              "events/process-qjhs3-1147009-198842312.jsonl:256"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1988459224095230,
+              1988582906878196
+            ],
+            "sources": [
+              "events/process-qjhs3-1147010-198842312.jsonl:11",
+              "events/process-qjhs3-1147010-198842312.jsonl:256"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1988460476889460,
+              1988583816489570
+            ],
+            "sources": [
+              "events/process-qjhs3-1147011-198842312.jsonl:11",
+              "events/process-qjhs3-1147011-198842312.jsonl:256"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1988460419705251,
+              1988580748830273
+            ],
+            "sources": [
+              "events/process-qjhs3-1147012-198842312.jsonl:11",
+              "events/process-qjhs3-1147012-198842312.jsonl:256"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1988460474300893,
+              1988583794451249
+            ],
+            "sources": [
+              "events/process-qjhs3-1147013-198842312.jsonl:11",
+              "events/process-qjhs3-1147013-198842312.jsonl:256"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1988460433274775,
+              1988583055766944
+            ],
+            "sources": [
+              "events/process-qjhs3-1147014-198842312.jsonl:11",
+              "events/process-qjhs3-1147014-198842312.jsonl:256"
+            ]
+          }
+        ],
+        "postprocess_gap": null,
+        "worker": {
+          "weight_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_budget": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_tensor_init": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_initialized_storage": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "initial_registration": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_worker_ready": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          },
+          "kv_reference_cleanup": {
+            "status": "complete",
+            "ranks": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "issues": []
+          }
+        },
+        "store": {
+          "lookup": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "pread": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "h2d": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "recovery": {
+            "status": "complete",
+            "observed_records": 496,
+            "problems": []
+          },
+          "eviction": {
+            "status": "complete",
+            "observed_records": 104,
+            "problems": []
+          }
+        }
+      },
+      "own_shutdown": {
+        "unregister": {
+          "begin_ns": 1988894913575925,
+          "end_ns": 1988895011405488,
+          "seconds": 0.097829563,
+          "status": "observed",
+          "source": "worker unregister success ACK",
+          "reason": null
+        },
+        "unregister_ranks": [
+          {
+            "rank": 0,
+            "bounds": [
+              1988894913575925,
+              1988894922994748
+            ],
+            "sources": [
+              "events/process-qjhs3-1147007-198842311.jsonl:269"
+            ]
+          },
+          {
+            "rank": 1,
+            "bounds": [
+              1988894913890955,
+              1988894940129678
+            ],
+            "sources": [
+              "events/process-qjhs3-1147008-198842311.jsonl:269"
+            ]
+          },
+          {
+            "rank": 2,
+            "bounds": [
+              1988894914311251,
+              1988894992508983
+            ],
+            "sources": [
+              "events/process-qjhs3-1147009-198842312.jsonl:269"
+            ]
+          },
+          {
+            "rank": 3,
+            "bounds": [
+              1988894914234576,
+              1988894983332741
+            ],
+            "sources": [
+              "events/process-qjhs3-1147010-198842312.jsonl:269"
+            ]
+          },
+          {
+            "rank": 4,
+            "bounds": [
+              1988894914220054,
+              1988894948516177
+            ],
+            "sources": [
+              "events/process-qjhs3-1147011-198842312.jsonl:269"
+            ]
+          },
+          {
+            "rank": 5,
+            "bounds": [
+              1988894914694684,
+              1988895011405488
+            ],
+            "sources": [
+              "events/process-qjhs3-1147012-198842312.jsonl:269"
+            ]
+          },
+          {
+            "rank": 6,
+            "bounds": [
+              1988894914940738,
+              1988894931415941
+            ],
+            "sources": [
+              "events/process-qjhs3-1147013-198842312.jsonl:269"
+            ]
+          },
+          {
+            "rank": 7,
+            "bounds": [
+              1988894914264647,
+              1988895002194465
+            ],
+            "sources": [
+              "events/process-qjhs3-1147014-198842312.jsonl:269"
+            ]
+          }
+        ],
+        "reference_cleanup_observed_ranks": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "physical_release": {
+          "begin_ns": null,
+          "end_ns": null,
+          "seconds": null,
+          "status": "missing",
+          "source": "b1_kv_reference_cleanup; CUDA context/exit separate",
+          "reason": "no independent physical KV release witness"
+        },
+        "host_clear": {
+          "begin_ns": 1988917651219164,
+          "end_ns": 1988917652747004,
+          "seconds": 0.00152784,
+          "status": "observed",
+          "source": "kv-clear.json:HTTP+zero",
+          "reason": null
+        },
+        "clear_bounds": [
+          1988917651219164,
+          1988917652747004
+        ],
+        "exit_and_drain": {
+          "begin_ns": 1988894907055477,
+          "end_ns": 1988910076011622,
+          "seconds": 15.168956145,
+          "status": "observed",
+          "source": "gpu-drain.json:later of exit and passed NVML sample",
+          "reason": null
+        }
+      }
+    }
+  ]
+}
