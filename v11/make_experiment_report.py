@@ -386,13 +386,29 @@ V4 单模型回到原 Worker，金标通过。CPU 权重备份 **{l1['records'][
 新打点 S1 首次尝试 `B1-S1-r1-20261116T165642Z` 在 Kimi 冷页准入后、权重加载前被源码哈希校验拒绝。七段均未验收，最终八卡归零观察覆盖 60.536 s。[失败与释放证据索引](large-pool-20261114/supplement/B1-S1-r1-20261116T165642Z/evidence-index.csv)""")
     supplements = sorted((ROOT / "large-pool-20261114/supplement").glob("*/derived-metrics.json"))
     if supplements:
+        measured_runs = [read(path) for path in supplements]
+        qualified = [stage["metrics"] for run in measured_runs if run["round_status"]
+                     for stage in run["stages"]]
         parts.append("""## 大池 B1 逐 rank 补测
 
 TP8，864 GiB 权重 Store，813 GiB LMCache Host KV。每轮首段通过 SafeTensors 冷页准入，后六段走同一常驻 Store。有效轮次单列，历史九轮继续使用原样本。
 
 可服务和首个正确响应均从控制器调度计时，终点分别为直接引擎就绪和首个通过业务金标的完整响应。权重准备以八 rank 权重及必要后处理完成为终点。独立 GPU KV 物理释放接点缺测，旧 GPU KV 释放至新 KV 就绪留空。逐次计时、可观测区间并集及权重重叠见派生数据。""")
-        for metrics in supplements:
-            data = read(metrics)
+        summary = []
+        for label, key in (
+            ("首段 SF 权重准备", "3"), ("首段 GPU KV 初始化及注册", "4"),
+            ("Store 切换权重准备", "5"), ("缺块读取至 Host 数据发布", "5.2"),
+            ("旧 GPU KV 释放至新 KV 就绪", "6"), ("旧 GPU KV 注销", "7.1"),
+            ("旧 Host KV 清理", "7.3"), ("新 GPU KV 分配与初始化", "7.4"),
+            ("新 GPU KV 注册", "7.5"),
+        ):
+            values = [row[key]["seconds"] for row in qualified
+                      if row.get(key, {}).get("seconds") is not None]
+            summary.append([label, len(values), fmt(median(values) if values else None),
+                            fmt(min(values) if values else None),
+                            fmt(max(values) if values else None)])
+        parts.append(table(["可服务前指标", "有效 n", "中位数（s）", "最小（s）", "最大（s）"], summary))
+        for metrics, data in zip(supplements, measured_runs, strict=True):
             receipt = read(metrics.parent / "qualification.json")
             evidence = metrics.parent.relative_to(ROOT).as_posix()
             run = data["run_id"]
