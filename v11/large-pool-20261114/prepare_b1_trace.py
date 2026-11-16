@@ -96,6 +96,13 @@ def main(base, dest):
                     after_backend_exit=dict(begin_ns=t1, end_ns=time.monotonic_ns())))
 """,
     )
+    runner = replace(
+        runner,
+        "                        seconds=(clear_finished - clear_started) / 1e9,\n",
+        """                        http_begin_ns=clear_started, http_end_ns=clear_finished,
+                        seconds=(clear_finished - clear_started) / 1e9,
+""",
+    )
     backend = replace(inputs["v11_backend.py"].decode(), "        received = time.monotonic_ns()",
                       "        received = time.monotonic_ns()\n        received_wall = time.time_ns()")
     backend = replace(backend, "received_ns=received, response=response",
