@@ -158,6 +158,13 @@ def fmt(x):
     return "—" if x is None else f"{x:.3f}"
 
 
+def fmt_range(item):
+    if not item["n"]:
+        return "0 · —"
+    lower, upper = item["range"]
+    return f"{item['n']} · {fmt(item['median'])} [{fmt(lower)}, {fmt(upper)}]"
+
+
 def output(name, data):
     (OUT / name).write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n",
                             encoding="utf-8", newline="\n")
@@ -799,7 +806,10 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                      "Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。"
                      "每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。")
         if repeated:
+            passed_steps = sum(len(run["steps"]) for run in accepted)
+            wakes = sum(step["stage"] == "wake" for run in accepted for step in run["steps"])
             parts.append("、".join(f"{seq} 有效 {n}/3 轮" for seq, n in counts.items()) + "。"
+                         f"已验收 {passed_steps} 段金标与 {wakes} 次原 Worker 回访。"
                          "每轮前 3 段首次加载，其中第 00 段通过 SafeTensors 冷页准入。"
                          "后 4 段按八 rank PID 核验原 Worker 后从 checkpoint 唤醒。")
         parts.append(table(["序列", "验收回执", "通过段数", "回访唤醒", "八卡归零观察（s）"],
@@ -820,33 +830,47 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                                  f"sleep-wna16-sequences/{run['run']}/{run.get('receipt', 'qualification.json')})"]
                                 for run in rejected]))
         for stage, heading in (("load", "首次加载"), ("wake", "原 Worker 回访唤醒")):
+            show_reload = repeated and stage == "wake"
+            show_load_state = repeated and stage == "load"
             rows = []
             for run in accepted:
                 evidence = f"large-pool-20261114/sleep-wna16-sequences/{run['run']}/evidence-index.csv"
                 for step in run["steps"]:
                     if step["stage"] != stage:
                         continue
-                    rows.append([f"[{run['sequence']}/{step['step']:02d}]({evidence})", MODELS[step["model"]],
-                                 fmt(step["load_or_wake_weight_s"]), fmt(step["kv_allocation_s"]),
+                    rows.append([f"[{run['sequence']}/{step['step']:02d}]({evidence})",
+                                 *([run["run"]] if repeated else []), MODELS[step["model"]],
+                                 *(["SF 冷页" if step["step"] == 0 else "轮内首次"] if show_load_state else []),
+                                 fmt(step["load_or_wake_weight_s"]),
+                                 *([fmt(step["checkpoint_reload_s"])] if show_reload else []),
+                                 fmt(step["kv_allocation_s"]),
                                  fmt(step["kv_switch_s"]), fmt(step["kv_release_to_service_ready_s"]),
                                  fmt(step["weight_begin_to_service_s"]),
                                  *([fmt(step["first_correct_s"])] if repeated else []),
                                  fmt(step["gold_s"]), step["gold_passed"]])
-                    if repeated:
-                        rows[-1].insert(1, run["run"])
             parts.append(f"### {heading}\n\n" + table(
-                ["序列/段", *(["运行编号"] if repeated else []), "目标模型", "权重准备（s）",
+                ["序列/段", *(["运行编号"] if repeated else []), "目标模型",
+                 *(["加载条件"] if show_load_state else []), "权重准备（s）",
+                 *(["checkpoint 重载（s）"] if show_reload else []),
                  "GPU KV 分配（s）", "旧 KV 释放→新 KV 就绪（s）", "旧 KV 释放→可服务（s）",
                  "权重准备开始→可服务（s）", *(["可服务→首个正确业务响应（s）"] if repeated else []),
                  "就绪→金标完成（s）", "金标"], rows))
             totals = []
+            fields = ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s", "kv_release_to_service_ready_s")
+            totals_headers = ["模型", "权重准备", "GPU KV 分配", "旧 KV 释放→新 KV 就绪", "旧 KV 释放→可服务"]
+            if repeated:
+                fields += ("sleep_s",)
+                totals_headers.append("本段结束后的 Sleep")
+                if show_reload:
+                    fields += ("checkpoint_reload_s", "wake_s")
+                    totals_headers.extend(("checkpoint 重载", "权重映射开始→KV 就绪"))
             for key in MODELS:
                 metrics = combined["stats"][f"{stage}-{key}"]
-                totals.append([MODELS[key], *(f"{metrics[field]['n']} · {fmt(metrics[field]['median'])}"
-                    for field in ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s",
-                                  "kv_release_to_service_ready_s"))])
-            parts.append("各项汇总为有效 n · 中位数（s）。\n\n" + table(
-                ["模型", "权重准备", "GPU KV 分配", "旧 KV 释放→新 KV 就绪", "旧 KV 释放→可服务"], totals))
+                totals.append([MODELS[key], *(fmt_range(metrics[field]) if repeated else
+                    f"{metrics[field]['n']} · {fmt(metrics[field]['median'])}" for field in fields)])
+            totals_scope = "有效 n · 中位数［最小值、最大值］（s）" if repeated else "有效 n · 中位数（s）"
+            load_scope = "按模型汇总包含第 00 段冷页与第 01、02 段轮内首次加载。" if show_load_state else ""
+            parts.append(f"各项汇总为{totals_scope}。{load_scope}\n\n" + table(totals_headers, totals))
             if repeated:
                 fields = ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s", "kv_release_to_service_ready_s",
                           "weight_begin_to_service_s", "first_correct_s", "gold_s")
@@ -858,10 +882,7 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                             continue
                         key = f"{seq}/{step['step']:02d}"
                         values = [combined["positions"][key][field] for field in fields]
-                        position_rows.append([key, MODELS[step["model"]],
-                            *(f"{item['n']} · {fmt(item['median'])} "
-                              f"[{fmt(item['range'][0])}, {fmt(item['range'][1])}]"
-                              if item["n"] else "0 · —" for item in values)])
+                        position_rows.append([key, MODELS[step["model"]], *map(fmt_range, values)])
                 parts.append("同序列同位置有效 n · 中位数［最小值、最大值］，单位为秒。"
                              " 首个正确业务响应由完整响应的接收时间与对应金标配对。\n\n" + table(
                     ["序列/段", "目标模型", "权重准备", "GPU KV 分配", "旧 KV 释放→新 KV 就绪",
@@ -901,16 +922,25 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                             if row["memory"]["anon_peak_bytes"] is not None],
                            [row["memory"]["refault_delta_pages"] * row["memory"]["refault_page_bytes"] / GIB
                             for row in cohort if row["memory"]["refault_delta_pages"] is not None])
-                paired.append([position, label,
-                               *(f"{len(samples)} · {fmt(median(samples) if samples else None)}"
-                                 for samples in metrics)])
-        parts.append("同一位置各指标的有效 n · 中位数。\n\n" + table(
+                paired.append([position, label, *(
+                    fmt_range(dict(n=len(samples), median=median(samples), range=(min(samples), max(samples))))
+                    if repeated and samples else
+                    f"{len(samples)} · {fmt(median(samples) if samples else None)}"
+                    for samples in metrics)])
+        paired_scope = "有效 n · 中位数［最小值、最大值］" if repeated else "有效 n · 中位数"
+        parts.append(f"同一位置各指标的{paired_scope}。\n\n" + table(
             ["位置", "配置", "重载（s）", *(["最后专家实例完成（s）"] if repeated else []),
              "匿名内存峰值（GiB）", "文件页 refault（GiB）"], paired))
         parts.append("历史整序列没有逐专家层完成打点。S1/S2 的历史运行早于本轮使用的 V4 Marlin scale 补丁，"
                      "同位置对照包含这项配置差异。匿名内存峰值和 refault 使用各自重载窗口内的采样，"
                      "refault 指该窗口首末采样点间的文件页计数增量。"
                      "[逐次端点、逐层事件与采样来源](large-pool-20261114/sleep-wna16-sequences/audit.json)")
+        if repeated:
+            parts.append("在 qjhs003 的复测目录重算该批次。较大的原始日志、资源采样和逐 rank 事件"
+                         "在各轮证据索引中列出服务器路径、大小和 SHA-256。\n\n```bash\n"
+                         "cd /home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b2-sleep-repeats-20261117\n"
+                         "python3 -B audit_sequences.py ../v11-b2-kimi-wna16-sequences-20261117/runs runs > /tmp/v11-l2-audit.json\n"
+                         "```")
     original_glm = pool / "original-cold/sllm-debug-20261116T225019Z-dfb118ad"
     if (original_glm / "controller-final.json").is_file():
         final = read(original_glm / "controller-final.json")
