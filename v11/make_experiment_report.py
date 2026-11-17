@@ -259,6 +259,24 @@ qjhs003 使用 8×H20 和 TP8。七段为 Kimi → GLM → V4 → GLM → Kimi �
 {link(run, 'switch-events.csv', '原时间戳')} · {link(run, 'qualification.json', '原验收')}""")
         if label == "A":
             parts.append("![A 权重读取与池块](figures/a-store.png)")
+            historical_a_runs = [RUNS / run_id for run_id in (
+                "A-seq-7-1-r1-20261111T081622Z", "A-seq-8-1-r1-20261111T120359Z",
+                "A-seq-10-1-r1-20261111T142600Z")]
+            historical_a = []
+            for run in historical_a_runs:
+                raw = run / "release-samples.jsonl"
+                samples = lines(raw)
+                recorded = release(run)
+                exact = seconds(samples[-1]["ns"], samples[0]["ns"])
+                qualification = read(run / "qualification.json")
+                assert recorded["original_passed"] and recorded["zero"] and not recorded["strict"]
+                historical_a.append([f"[{run.name}]({raw.relative_to(ROOT).as_posix()})",
+                                     qualification["activations"], fmt(exact), len(samples),
+                                     hashlib.sha256(raw.read_bytes()).hexdigest()])
+            parts.append("历史 A 的三轮各通过本轮业务验收，共 28/28 段。八卡均归零，三轮原始采样跨度均低于 60 秒。"
+                         "上方同序列 A 是独立的七段对照。\n\n" + table(
+                             ["历史轮次与原始释放采样", "有效段数", "零显存观察（s）", "采样数", "原件 SHA-256"],
+                             historical_a))
     parts.append(f"""### B1 填充与旧 Backend 退出
 
 16 GiB Host KV 池在准备阶段初始化。Backend 就绪后先跑业务金标，再以 kv_fill 推理请求生成 KV，验证 Host 写入和清理。七段 Host KV 命中均为 0 token。
@@ -718,6 +736,17 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
         final = read(original_glm / "controller-final.json")
         assert final["success"]
         original_a = final["metrics"]["command_to_correct_business_response_s"]
+        original_v4 = {}
+        for review_path in sorted(original_glm.parent.glob("v4n40_pilot_003_*/review.json")):
+            review = read(review_path)
+            assert review["runtime_qualified"] and review["full_model_condition_pilot_qualified"]
+            assert not review["formal_id_consumed"] and review["qjhs003_initialized_store_context"]["passed"]
+            assert review["qjhs003_initialized_store_context"]["span_s"] >= 60
+            assert review["source_head"] == "88cc71ec50c8668c26f26636d7d432c3351356fe"
+            assert review["native_disk_loads"] == {"safetensors_disk_cold": 0, "store_disk_cold": 496}[review["condition"]]
+            assert min(review["release_seconds"].values()) >= 60
+            assert review["condition"] not in original_v4
+            original_v4[review["condition"]] = (review, review_path)
         rows = []
         for label, historical_a, sequence_name, run_id, step_id, request in (
             ("V4 SF 冷读", "556.222（n=9）", "S3", "B1-S3-r1-20261116T201045Z", "00-D-v4", "business"),
@@ -744,6 +773,11 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             observed_a = fmt(seconds(received["received_ns"], int(row["t2_ns"])))
             reference = f"[{sequence_name} / {step_id}]({response.relative_to(ROOT).as_posix()})"
             original_value = fmt(original_a) + "（n=1）" if label == "GLM Store 冷读" else "待测"
+            condition = "safetensors_disk_cold" if label == "V4 SF 冷读" else "store_disk_cold"
+            if label.startswith("V4 ") and condition in original_v4:
+                review, review_path = original_v4[condition]
+                original_value = (f"{fmt(review['command_to_correct_response_seconds'])}（n=1） "
+                                  f"[{review_path.parent.name}]({review_path.relative_to(ROOT).as_posix()})")
             rows.append([label, historical_a, original_value, reference, observed_a, state])
         parts.append("## 原版冷读补测与现版本 B1 参照\n\n" + table(
             ["条件", "历史图 1 A（s）", "原版重测 A（s）", "现版本 B1 段", "B1 t4_first − t2（s）", "B1 缓存证据"], rows))
@@ -754,6 +788,19 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                      "[历史图 1](https://github.com/BoyJiang2/serverlessllm/blob/870d7daac4071790874884d2b3a9bdfc3af00f95/comparison/evidence/three-model-final-20261108/REPORT.md#图-1四条件启动至首个正确业务响应) · "
                      f"[GLM 原版终态]({original_glm.relative_to(ROOT).as_posix()}/controller-final.json) · "
                      f"[源证据索引]({original_glm.relative_to(ROOT).as_posix()}/evidence-index.csv)")
+        if original_v4:
+            parts.append("V4 原版代码复测在 qjhs003 运行固定源码 `88cc71e` 和原镜像，A 沿用启动命令到外部完整金标响应。"
+                         "SafeTensors 沿用 NFS 路径，Store 使用 qjhs003 的本地 XFS 副本。启动器适配节点路径、"
+                         "清单和 GPU 准入，并在冷页检查前采样至少 60 s 的本机 Store 显存基线。"
+                         "两项均使用独立核验的 JIT 缓存，包含原清单的 174 个文件及 70 个 DeepGEMM 配套源文件。")
+            parts.extend(f"[{path.parent.name} 证据索引]({path.with_name('evidence-index.csv').relative_to(ROOT).as_posix()})"
+                         for _, path in original_v4.values())
+        failure_root = original_glm.parent / "v4n40_pilot_003_sf_20261117T0046Z"
+        if (failure_root / "failure-excerpt.json").is_file():
+            parts.append("qjhs003 的早期 SF 尝试分别止于启动许可握手和 DeepGEMM 缓存目录缺失配套源文件。"
+                         "两次均无有效 A。 "
+                         "[握手超时证据](large-pool-20261114/original-cold/v4n40_pilot_003_sf_20261117T0043Z/evidence-index.csv) · "
+                         f"[JIT 缺失证据]({(failure_root / 'failure-excerpt.json').relative_to(ROOT).as_posix()})")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 

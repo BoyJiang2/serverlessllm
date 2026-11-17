@@ -1,0 +1,35 @@
+{
+  "run_id": "v4n40_pilot_003_sf_20261117T0046Z",
+  "pilot_qualified": false,
+  "error": "ValueError('native trial HTTP status 500')",
+  "raw_log": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-v4-original-qjhs003/evidence/v4n40_pilot_003_sf_20261117T0046Z/head-failure.log",
+  "raw_log_bytes": 476226,
+  "raw_log_sha256": "184082933923dfc5d0d80a8c3ed41adba5257fd2d1a7c5fa21f34f2c7fe98f53",
+  "matching_lines": [
+    {
+      "line": 2487,
+      "text": "\u001b[36m(VllmBackend pid=1209, ip=192.168.80.3)\u001b[0m (Worker_TP2 pid=1529) ERROR 11-17 01:03:23 [multiproc_executor.py:962] RuntimeError: Assertion error (/opt/src/vllm/.deps/deepgemm-src/csrc/apis/../jit_kernels/impls/../../jit/kernel_runtime.hpp:107): false and \"Corrupted JIT cache directory\""
+    },
+    {
+      "line": 2541,
+      "text": "\u001b[36m(VllmBackend pid=1209, ip=192.168.80.3)\u001b[0m (Worker_TP2 pid=1529) ERROR 11-17 01:03:23 [multiproc_executor.py:962] RuntimeError: Assertion error (/opt/src/vllm/.deps/deepgemm-src/csrc/apis/../jit_kernels/impls/../../jit/kernel_runtime.hpp:107): false and \"Corrupted JIT cache directory\""
+    }
+  ],
+  "matches": 18,
+  "cold_admission_passed": true,
+  "post_failure_release_passed": true,
+  "cleanup": {
+    "completed_ns": 2001814621868043,
+    "head": {
+      "removed": true,
+      "stopped": true
+    },
+    "network_removed": true,
+    "worker": {
+      "removed": true,
+      "stopped": true
+    }
+  },
+  "root_cause": "Pinned JIT manifest carried only kernel.cubin for each of 70 DeepGEMM kernel dirs. The warmed qjhs002 cache pairs each cubin with kernel.cu; the exact image validator at kernel_runtime.hpp:97\u2013107 requires both.",
+  "metric_a_seconds": null
+}

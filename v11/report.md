@@ -42,6 +42,14 @@ qjhs003 使用 8×H20 和 TP8。七段为 Kimi → GLM → V4 → GLM → Kimi �
 
 ![A 权重读取与池块](figures/a-store.png)
 
+历史 A 的三轮各通过本轮业务验收，共 28/28 段。八卡均归零，三轮原始采样跨度均低于 60 秒。上方同序列 A 是独立的七段对照。
+
+| 历史轮次与原始释放采样 | 有效段数 | 零显存观察（s） | 采样数 | 原件 SHA-256 |
+| --- | --- | --- | --- | --- |
+| [A-seq-7-1-r1-20261111T081622Z](runs/A-seq-7-1-r1-20261111T081622Z/release-samples.jsonl) | 8 | 59.690 | 48 | 094b81683c0fa35ce7d9c9b681558fba7622f9af28511b063d1fdb3cd5412a05 |
+| [A-seq-8-1-r1-20261111T120359Z](runs/A-seq-8-1-r1-20261111T120359Z/release-samples.jsonl) | 9 | 59.529 | 48 | 0c0694c1ad9a573e98c0f5aa57f6acd10ac4781fcde460760fa79b888a51a0c6 |
+| [A-seq-10-1-r1-20261111T142600Z](runs/A-seq-10-1-r1-20261111T142600Z/release-samples.jsonl) | 11 | 59.369 | 44 | cef1baa9b4c68c0bac9a161e33d4b40694925517d5325119f9fac6a48a67855a |
+
 ## B1 · 常驻权重 Store + Host KV
 
 ### 数据 1 · 启动和切换
@@ -807,10 +815,18 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 | 条件 | 历史图 1 A（s） | 原版重测 A（s） | 现版本 B1 段 | B1 t4_first − t2（s） | B1 缓存证据 |
 | --- | --- | --- | --- | --- | --- |
-| V4 SF 冷读 | 556.222（n=9） | 待测 | [S3 / 00-D-v4](large-pool-20261114/supplement/B1-S3-r1-20261116T201045Z/00-D-v4/before-business-response.json) | 887.709 | 首段 SF，64 个分片零驻留页 |
-| V4 Store 冷读 | 223.752（n=9） | 待测 | [S2 / 01-D-v4](large-pool-20261114/supplement/B1-S2-r1-20261116T184708Z/01-D-v4/before-business-response.json) | 496.615 | 空权重池，496 条路径未命中，读 877,729,513,472 B |
+| V4 SF 冷读 | 556.222（n=9） | 682.869（n=1） [v4n40_pilot_003_sf_20261117T0135Z](large-pool-20261114/original-cold/v4n40_pilot_003_sf_20261117T0135Z/review.json) | [S3 / 00-D-v4](large-pool-20261114/supplement/B1-S3-r1-20261116T201045Z/00-D-v4/before-business-response.json) | 887.709 | 首段 SF，64 个分片零驻留页 |
+| V4 Store 冷读 | 223.752（n=9） | 391.235（n=1） [v4n40_pilot_003_store_20261117T0200Z](large-pool-20261114/original-cold/v4n40_pilot_003_store_20261117T0200Z/review.json) | [S2 / 01-D-v4](large-pool-20261114/supplement/B1-S2-r1-20261116T184708Z/01-D-v4/before-business-response.json) | 496.615 | 空权重池，496 条路径未命中，读 877,729,513,472 B |
 | GLM Store 冷读 | 599.712（n=1） | 625.635（n=1） | [S1 / 01-G-glm](large-pool-20261114/supplement/B1-S1-r2-20261116T171537Z/01-G-glm/before-business_arithmetic-response.json) | 499.985 | 空权重池，8 条路径未命中，读 762,527,481,856 B |
 
 原版 GLM 延用 HTTP `/register` 前到外部完整业务响应的 A。本轮 Store 数据、Store 元数据和共享 checkpoint 元数据共 108 个文件，合并准入的驻留页均为零。B1 从控制器放行 Backend 到内部正确完整响应，两条 Store 段的全未命中属于 RAM 权重池状态，历史/原版冷读还验证 OS 页缓存。计时端点、Store 路径和缓存准入有差异，版本差值缺测。
 
 [历史图 1](https://github.com/BoyJiang2/serverlessllm/blob/870d7daac4071790874884d2b3a9bdfc3af00f95/comparison/evidence/three-model-final-20261108/REPORT.md#图-1四条件启动至首个正确业务响应) · [GLM 原版终态](large-pool-20261114/original-cold/sllm-debug-20261116T225019Z-dfb118ad/controller-final.json) · [源证据索引](large-pool-20261114/original-cold/sllm-debug-20261116T225019Z-dfb118ad/evidence-index.csv)
+
+V4 原版代码复测在 qjhs003 运行固定源码 `88cc71e` 和原镜像，A 沿用启动命令到外部完整金标响应。SafeTensors 沿用 NFS 路径，Store 使用 qjhs003 的本地 XFS 副本。启动器适配节点路径、清单和 GPU 准入，并在冷页检查前采样至少 60 s 的本机 Store 显存基线。两项均使用独立核验的 JIT 缓存，包含原清单的 174 个文件及 70 个 DeepGEMM 配套源文件。
+
+[v4n40_pilot_003_sf_20261117T0135Z 证据索引](large-pool-20261114/original-cold/v4n40_pilot_003_sf_20261117T0135Z/evidence-index.csv)
+
+[v4n40_pilot_003_store_20261117T0200Z 证据索引](large-pool-20261114/original-cold/v4n40_pilot_003_store_20261117T0200Z/evidence-index.csv)
+
+qjhs003 的早期 SF 尝试分别止于启动许可握手和 DeepGEMM 缓存目录缺失配套源文件。两次均无有效 A。 [握手超时证据](large-pool-20261114/original-cold/v4n40_pilot_003_sf_20261117T0043Z/evidence-index.csv) · [JIT 缺失证据](large-pool-20261114/original-cold/v4n40_pilot_003_sf_20261117T0046Z/failure-excerpt.json)
