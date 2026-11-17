@@ -18,6 +18,11 @@ SOURCE_FILES = ("campaign.json", "capacity-admission.json", "v11_run_b2.py", "v1
                 "v7_sleep_worker.py", "cumem.py", "sf_admission.py", "layerwise.py",
                 "candidate-manifest.json", "observe-failed-l1-release.py")
 FIELDS = ("server_path", "bytes", "sha256", "published_path")
+KDK_CAMPAIGN = CAMPAIGN.with_name("v11-b2-l1-kdk-exact-20261118")
+KDK_SOURCES = ("campaign.json", "historical-bounds.json", "v11_run_b2.py", "v11_sleep_backend.py",
+               "v7_sleep_worker.py", "cumem.py", "sf_admission.py", "layerwise.py",
+               "candidate-manifest.json", "cumem-exact-backup.patch", "test_cumem_cpu.py",
+               "run-after-l2-r3.sh", "handoff.log")
 
 
 def terminal_qualification(run):
@@ -35,13 +40,14 @@ def terminal_qualification(run):
     raise SystemExit(f"Missing terminal qualification or failed-run release observation for {run.name}")
 
 
-def evidence_files(require_complete=True):
-    runs = sorted((CAMPAIGN / "runs").glob("B2-L1-D-*"))
+def evidence_files(require_complete=True, kdk=False):
+    campaign = KDK_CAMPAIGN if kdk else CAMPAIGN
+    runs = sorted((campaign / "runs").glob("B2-L1-KDK-*" if kdk else "B2-L1-D-*"))
     if not runs:
         raise SystemExit("No L1 repetitions found")
-    runner_sources = sorted(CAMPAIGN.glob("v11_run_b2-used-by-l1-*.py"))
+    runner_sources = sorted(campaign.glob("v11_run_b2-used-by-l1-*.py"))
     runner_pins = {hashlib.sha256(path.read_bytes()).hexdigest()
-                   for path in [CAMPAIGN / "v11_run_b2.py", *runner_sources]}
+                   for path in [campaign / "v11_run_b2.py", *runner_sources]}
     accepted = []
     for run in runs:
         q = terminal_qualification(run)
@@ -51,18 +57,18 @@ def evidence_files(require_complete=True):
             pins = json.loads((run / "instrumentation.json").read_bytes())
             for name, digest in pins.items():
                 sources = runner_pins if name == "v11_run_b2.py" else {
-                    hashlib.sha256((CAMPAIGN / name).read_bytes()).hexdigest()}
+                    hashlib.sha256((campaign / name).read_bytes()).hexdigest()}
                 if digest not in sources:
                     raise ValueError(f"{run.name}: provenance checksum mismatch for {name}")
     if require_complete and sorted(accepted) != [1, 2, 3]:
         raise SystemExit(f"Expected all three L1 repetitions to qualify, found {accepted}")
 
-    for name in SOURCE_FILES:
-        yield CAMPAIGN / name, name if name == "capacity-admission.json" else f"provenance/{name}"
+    for name in KDK_SOURCES if kdk else SOURCE_FILES:
+        yield campaign / name, name if name == "capacity-admission.json" else f"provenance/{name}"
     for path in runner_sources:
         yield path, f"provenance/{path.name}"
     for pattern in ("L1-D-r*-controller.*.log", "l1-batch*.log", "run-l1-batch*.sh"):
-        for path in sorted(CAMPAIGN.glob(pattern)):
+        for path in sorted(campaign.glob(pattern)):
             yield path, f"provenance/{path.name}"
     for run in runs:
         for folder, dirs, files in os.walk(run):
@@ -72,13 +78,14 @@ def evidence_files(require_complete=True):
                 if path.is_symlink():
                     continue
                 if path.suffix in {".json", ".jsonl", ".log", ".csv"} or name.endswith(".mincore.gz"):
-                    yield path, path.relative_to(run.parent).as_posix()
+                    rel = path.relative_to(run.parent)
+                    yield path, (Path("runs") / rel if kdk else rel).as_posix()
                 elif name == "receipt.tar":
                     yield path, ""
 
 
-def emit_archive(require_complete):
-    paths = list(evidence_files(require_complete))
+def emit_archive(require_complete, kdk=False):
+    paths = list(evidence_files(require_complete, kdk))
     index = io.StringIO(newline="")
     writer = csv.writer(index)
     writer.writerow(FIELDS)
@@ -122,6 +129,7 @@ def main():
     parser.add_argument("output", type=Path)
     parser.add_argument("--terminal-only", action="store_true",
                         help="collect terminal runs even if the batch stopped before all three passed")
+    parser.add_argument("--kdk", action="store_true", help="collect exact-size KDK cohort")
     args = parser.parse_args()
     output = args.output.resolve()
     if output.exists():
@@ -132,6 +140,8 @@ def main():
             command = ["ssh", "-o", "BatchMode=yes", "qjhs003", "python3", "-B", "-", "--emit-archive"]
             if args.terminal_only:
                 command.append("--terminal-only")
+            if args.kdk:
+                command.append("--kdk")
             result = subprocess.run(command, input=Path(__file__).read_bytes(), stdout=archive_stream)
             if result.returncode:
                 raise SystemExit(result.returncode)
@@ -145,7 +155,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if sys.argv[1:] in (["--emit-archive"], ["--emit-archive", "--terminal-only"]):
-        emit_archive("--terminal-only" not in sys.argv)
+    if len(sys.argv) > 1 and sys.argv[1] == "--emit-archive":
+        emit_archive("--terminal-only" not in sys.argv, "--kdk" in sys.argv)
     else:
         main()

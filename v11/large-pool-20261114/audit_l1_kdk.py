@@ -1,8 +1,10 @@
 """Verify the native L1 Kimi → V4 → Kimi capacity run from terminal receipts."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
+from statistics import median
 
 from recompute_sleep import allocator_span, final_release, load_span, read, seconds
 
@@ -10,12 +12,106 @@ from recompute_sleep import allocator_span, final_release, load_span, read, seco
 STAGES = (("K", "load", "arithmetic", 0), ("D", "load", "business", 0),
           ("K", "wake", "arithmetic", 1))
 MODELS = {"K": "Kimi-K2.6", "D": "DeepSeek-V4-Pro"}
+GIB = 2**30
+CUDA_ALLOCATOR = "/opt/sllm-v4/lib/python3.12/site-packages/vllm/device_allocator/cumem.py"
+METRICS = ("weight_s", "kv_s", "old_kv_release_to_new_ready_s", "weight_begin_to_ready_s",
+           "first_correct_s", "all_golds_s", "cpu_backup_copy_s", "cpu_restore_copy_s", "sleep_s", "wake_s")
 
 
 def rank_receipt(ack):
     receipts = {row["rank"]: row for row in ack["receipt"]["ranks"]}
     assert len(ack["receipt"]["ranks"]) == 8 and set(receipts) == set(range(8))
     return receipts
+
+
+def verify_candidate(run, config, steps, passed):
+    level = run / "L1"
+    pin = config["allocator_sha256"]
+    imports, lifecycle, backups, container_ids = {}, {}, {}, {}
+    errors = []
+    for index, key in enumerate(MODELS):
+        model = "kimi" if key == "K" else "v4"
+        frozen = run / f"b2-inputs/{model}-input.json"
+        assert hashlib.sha256(frozen.read_bytes()).hexdigest() == config["l1_historical_input_sha256"][key]
+        settings = read(frozen)["config"]
+        assert settings["tensor_parallel_size"] == 8 and settings["enable_sleep_mode"]
+        assert settings.get("kv_cache_memory_bytes") == (None if key == "K" else 26 * GIB)
+        worker = level / f"worker-{key}"
+        created_path = level / f"{index:02d}-{key}-created.json"
+        if created_path.is_file():
+            inspect = read(created_path)["inspect"]
+            container_ids[key] = inspect["Id"]
+            env = dict(row.split("=", 1) for row in inspect["Config"]["Env"])
+            assert (env.get("SLLM_V11_EXACT_L1_PINNED_BACKUP") == "1") == (key == "K")
+            assert inspect["Image"] == config["expected_kimi_image" if key == "K" else "expected_v4_image"]
+            mount, = [row for row in inspect["Mounts"] if row["Destination"] == CUDA_ALLOCATOR]
+            assert not mount["RW"]
+        imported = worker / "worker-imports.json"
+        if imported.is_file():
+            imports_raw = read(imported)
+            rows = {row["rank"]: row for row in imports_raw}
+            assert len(imports_raw) == 8 and set(rows) == set(range(8))
+            expected = {"vllm.device_allocator.cumem": {"path": CUDA_ALLOCATOR, "sha256": pin}} if key == "K" else {}
+            assert all(row["imports"] == expected for row in rows.values())
+            imports[key] = {rank: row["pid"] for rank, row in rows.items()}
+        acks = [(path, read(path)) for path in sorted(worker.glob("ack-*.json"))]
+        lifecycle[key] = [ack["op"] for _, ack in acks]
+        for path, ack in acks:
+            if ack["op"] not in {"sleep", "wake"}:
+                continue
+            ranks = rank_receipt(ack)
+            asleep = ack["op"] == "sleep"
+            assert ack["sleeping"] == asleep
+            assert {i: row["identity"]["pid"] for i, row in ranks.items()} == imports[key]
+            assert all(row["identity"]["process_start_ticks"] > 0 for row in ranks.values())
+            assert all(not row["uncovered_cuda_parameters"] for row in ranks.values())
+            assert all(row["tags"]["weights"]["cpu_backup_bytes"] == (row["tags"]["weights"]["bytes"] if asleep else 0)
+                       and row["tags"]["kv_cache"]["cpu_backup_bytes"] == 0 for row in ranks.values())
+            if asleep:
+                amount = sum(row["tags"]["weights"]["cpu_backup_bytes"] for row in ranks.values())
+                assert amount == config["l1_backup_bytes"][key]
+                backups[key] = dict(bytes=amount, ack=path.relative_to(run).as_posix(),
+                                    finished_ns=ack["finished_ns"])
+        log = worker / "worker.log"
+        if log.is_file():
+            with log.open(errors="replace") as stream:
+                errors.extend(dict(model=key, source=log.relative_to(run).as_posix(), line=n, text=line.rstrip())
+                              for n, line in enumerate(stream, 1) if "Exact L1 host backup cleanup failed" in line
+                              or "Exact L1 restore rollback failed" in line)
+
+    combined = None
+    after_d = steps[1]["post_sleep"]
+    if after_d:
+        cgroups = after_d["cgroups"]
+        assert set(cgroups) == set(backups) == {"K", "D"}
+        assert len({row["container"] for row in cgroups.values()}) == 2
+        assert {key: row["container"] for key, row in cgroups.items()} == container_ids
+        assert all(cgroups[key]["ns"] >= backups[key]["finished_ns"] for key in backups)
+        assert after_d["backup_bytes"] == backups["D"]["bytes"]
+        before_wake = steps[2]["host_gate"]
+        if before_wake:
+            observed = {row["container"]: row for row in before_wake["resident_cgroups"]}
+            assert set(observed) == set(container_ids.values())
+            assert all(observed[row["container"]]["ns"] >= row["ns"] for row in cgroups.values())
+        if steps[2].get("wake_start_ns") is not None:
+            assert max(row["ns"] for row in cgroups.values()) < steps[2]["wake_start_ns"]
+        combined = dict(logical_bytes=sum(row["bytes"] for row in backups.values()),
+                        host_available_bytes=after_d["host_available_bytes"], cgroups=cgroups,
+                        source=steps[1]["sources"]["post_sleep"], sleep_acks=backups)
+    if passed:
+        assert set(imports) == {"K", "D"} and lifecycle == {"K": ["run", "sleep", "wake", "run", "shutdown"],
+                                                             "D": ["run", "sleep", "shutdown"]}
+        assert combined and not errors
+        common = ("weight_s", "kv_s", "weight_begin_to_ready_s", "first_correct_s", "all_golds_s")
+        for index, step in enumerate(steps):
+            extra = ("cpu_backup_copy_s", "sleep_s") if index < 2 else ("cpu_restore_copy_s", "wake_s")
+            if index:
+                extra += ("old_kv_release_to_new_ready_s",)
+            for metric in (*common, *extra):
+                assert step[metric] is not None and step[metric] > 0, (run.name, index, metric, step[metric])
+        assert steps[2]["cpu_backup_bytes"] == 0
+    return dict(allocator_sha256=pin, worker_import_pids=imports, lifecycle=lifecycle,
+                simultaneous_backups=combined, allocator_errors=errors)
 
 
 def acknowledged_steps(level):
@@ -113,7 +209,7 @@ def snapshot(stage, run, record, old_kv_begin):
         weight = allocator_span(log, "cpu_restore_copy", "weights", start, finish)
         kv = allocator_span(log, "gpu_create_map", "kv_cache", start, finish)
         weight_start = weights_map["begin_ns"]
-        result.update(wake_s=seconds(start, finish),
+        result.update(wake_s=seconds(start, finish), wake_start_ns=start,
                       cpu_restore_copy_s=seconds(weight["begin_ns"], weight["end_ns"]))
         result["sources"]["wake_phases"] = (worker / wake_name).relative_to(run).as_posix()
     result.update(gold=True, weight_s=seconds(weight_start, weight["end_ns"]),
@@ -127,7 +223,7 @@ def snapshot(stage, run, record, old_kv_begin):
     return result, result.get("old_kv_unmap", {}).get("begin_ns")
 
 
-def audit(run):
+def audit(run, candidate=False):
     q = read(run / "qualification.json")
     assert q["sequence"] == "L1-KDK" and q["levels"] == [1] and q["models"] == ["K", "D", "K"]
     release = final_release(run, q)
@@ -163,9 +259,6 @@ def audit(run):
                              and awake[i]["tags"]["weights"]["cpu_backup_bytes"] == 0 for i in range(8))
     blocker_path = level_path / "ram-infeasible.json"
     blocker = read(blocker_path) if blocker_path.is_file() else None
-    if blocker and blocker["step"] == 1 and "required_bytes" in blocker:
-        assert blocker["available_bytes"] - blocker["required_bytes"] == blocker["margin_bytes"] < 0
-        assert not steps[1]["container_created"] and steps[1]["gold"] is None
     stopped = {}
     for model in MODELS:
         path = level_path / f"worker-{model}-final.json"
@@ -183,6 +276,24 @@ def audit(run):
         stop = dict(kind="ram_infeasible", step=i, model=steps[i]["model"],
                     worker_created=steps[i]["container_created"],
                     source=blocker_path.relative_to(run).as_posix())
+        assert blocker["model"] == steps[i]["model"]
+        if "gate" in blocker:
+            gate = blocker["gate"]
+            assert gate["host_available_bytes"] - gate["required_for_backup_bytes"] == gate["host_margin_bytes"]
+            assert gate["cgroup"]["limit_bytes"] - gate["cgroup_required_bytes"] == gate["cgroup_margin_bytes"]
+            assert min(gate["host_margin_bytes"], gate["cgroup_margin_bytes"]) < 0
+            assert steps[i]["container_created"] and steps[i]["gold"] is True and steps[i]["sleep_s"] is None
+            stop["phase"] = "before_sleep"
+        else:
+            assert blocker["available_bytes"] - blocker["required_bytes"] == blocker["margin_bytes"]
+            assert blocker["margin_bytes"] < 0 or any(value < blocker["required_bytes"]
+                                                     for value in blocker.get("cgroup_margin_bytes", []))
+            assert steps[i]["gold"] is None
+            if i == 1:
+                assert not steps[i]["container_created"]
+            if i == 2:
+                stop["worker_created"] = steps[0]["container_created"]
+            stop["phase"] = "before_wake" if i == 2 else "before_load"
     elif not q["passed"]:
         for step in steps:
             if step["vram_gate"] and not step["vram_gate"]["passed"]:
@@ -191,13 +302,68 @@ def audit(run):
                 break
         if q["failures"]:
             stop = dict(kind="runtime_failure", detail=q["failures"])
-    return dict(run=run.name, passed=q["passed"], steps=steps, cold_passed=cold_passed,
-                same_kimi_ranks=same_ranks, shutdown=stopped, release=release, blocker=blocker,
-                stop=stop, failures=q["failures"])
+            breached = sorted(level_path.glob("L1-*-ram-floor-breach.json"))
+            if breached:
+                path, = breached
+                floor = read(path)
+                i = int(path.name.split("-")[1])
+                assert floor["available_bytes"] - floor["required_bytes"] == floor["margin_bytes"] < 0
+                stop.update(kind="ram_floor_breach", step=i, model=steps[i]["model"],
+                            phase=f"during_{floor['op']}", source=path.relative_to(run).as_posix(), floor=floor)
+    result = dict(run=run.name, passed=q["passed"], steps=steps, cold_passed=cold_passed,
+                  same_kimi_ranks=same_ranks, shutdown=stopped, release=release, blocker=blocker,
+                  stop=stop, failures=q["failures"])
+    if candidate:
+        result["candidate"] = verify_candidate(run, config, steps, q["passed"])
+    return result
+
+
+def audit_cohort(runs):
+    rounds = []
+    for run in sorted(runs.glob("B2-L1-KDK-*")):
+        if (run / "qualification.json").is_file():
+            rounds.append(audit(run, candidate=True))
+            continue
+        failure = run / "failure.json"
+        if failure.is_file():
+            # Controller failure can preempt qualification and release export.
+            # Keep the attempt without inventing either qualification or release.
+            rounds.append(audit_unqualified(run, failure))
+    assert rounds, f"No terminal KDK attempts under {runs}"
+    accepted = [row for row in rounds if row["passed"]]
+    summaries = []
+    for index, (model, kind, _, _) in enumerate(STAGES):
+        metrics = {}
+        for name in METRICS:
+            values = [row["steps"][index][name] for row in accepted if row["steps"][index][name] is not None]
+            metrics[name] = dict(n=len(values), median=median(values) if values else None,
+                                 range=[min(values), max(values)] if values else None)
+        summaries.append(dict(index=index, model=model, kind=kind, metrics=metrics))
+    return dict(rounds=rounds, summaries=summaries)
+
+
+def audit_unqualified(run, failure):
+    level = run / "L1"
+    records = acknowledged_steps(level)
+    steps = []
+    old_kv = None
+    for stage in range(len(STAGES)):
+        result, old_kv = snapshot(stage, run, records.get(stage), old_kv)
+        steps.append(result)
+    config_path = run / "campaign-input.json"
+    candidate = (verify_candidate(run, read(config_path), steps, False) if config_path.is_file()
+                 else dict(simultaneous_backups=None, allocator_errors=[]))
+    failure_data = read(failure)
+    return dict(run=run.name, passed=False, steps=steps, cold_passed=None, same_kimi_ranks=None,
+                shutdown={}, release=None, blocker=None, stop=dict(kind="runtime_failure", source="failure.json"),
+                failures=failure_data, candidate=candidate, receipt="failure.json")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("run", type=Path)
+    parser.add_argument("path", type=Path)
+    parser.add_argument("--candidate-cohort", action="store_true",
+                        help="audit every qualified or failed candidate receipt in the runs directory")
     args = parser.parse_args()
-    print(json.dumps(audit(args.run), ensure_ascii=False, indent=2))
+    result = audit_cohort(args.path) if args.candidate_cohort else audit(args.path)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
