@@ -1,0 +1,75 @@
+--- a/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py
++++ b/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py
+@@ -271,11 +271,19 @@
+ 
+         layer.register_parameter("w13_weight_shape", w13_weight_shape)
+         set_weight_attrs(w13_weight_shape, extra_weight_attrs)
+-
++        if self.actorder != "group" and self.kernel_backend == "Marlin":
++            # Gate/up projections write the same shape slot for each expert.
++            w13_weight_shape._reload_count_unique_expert = True
++
++        # Non-group Marlin kernels use empty g_idx/sort tensors at runtime.
++        # Register their actual sizes before layerwise captures load metadata.
++        group_actorder = self.actorder == "group" or self.kernel_backend != "Marlin"
++        g_idx_w13_size = hidden_size if group_actorder else 0
++        g_idx_w2_size = intermediate_size_per_partition if group_actorder else 0
+         w13_g_idx = torch.nn.Parameter(
+             torch.empty(
+                 num_experts,
+-                hidden_size,
++                g_idx_w13_size,
+                 dtype=torch.int32,
+             ),
+             requires_grad=False,
+@@ -286,7 +294,7 @@
+         w2_g_idx = torch.nn.Parameter(
+             torch.empty(
+                 num_experts,
+-                intermediate_size_per_partition,
++                g_idx_w2_size,
+                 dtype=torch.int32,
+             ),
+             requires_grad=False,
+@@ -297,7 +305,7 @@
+         w13_g_idx_sort_indices = torch.nn.Parameter(
+             torch.empty(
+                 num_experts,
+-                hidden_size,
++                g_idx_w13_size,
+                 dtype=torch.int32,
+             ),
+             requires_grad=False,
+@@ -308,7 +316,7 @@
+         w2_g_idx_sort_indices = torch.nn.Parameter(
+             torch.empty(
+                 num_experts,
+-                intermediate_size_per_partition,
++                g_idx_w2_size,
+                 dtype=torch.int32,
+             ),
+             requires_grad=False,
+--- a/vllm/model_executor/model_loader/reload/layerwise.py
++++ b/vllm/model_executor/model_loader/reload/layerwise.py
+@@ -165,6 +165,11 @@
+         # Buffer loaded weights, track loading progress
+         info.loaded_weights.append((param_name, bound_args))
+         num_loaded, ret = get_numel_loaded(original_loader, bound_args)
++        if num_loaded and getattr(param, "_reload_count_unique_expert", False):
++            expert_id = bound_args.arguments["expert_id"]
++            if (param_name, expert_id) in info.counted_expert_shapes:
++                num_loaded = 0
++            info.counted_expert_shapes.add((param_name, expert_id))
+         info.load_numel += num_loaded
+ 
+         logger.debug(
+--- a/vllm/model_executor/model_loader/reload/types.py
++++ b/vllm/model_executor/model_loader/reload/types.py
+@@ -22,6 +22,7 @@
+     # track how many elements are ready for loading, used by `online_process_loader`
+     load_numel: int = 0
+     load_numel_total: int | None = None
++    counted_expert_shapes: set[tuple[str, int]] = field(default_factory=set)
+ 
+     # used by `online_process_loader` to buffer args and tensors until ready to load
+     loaded_weights: list[tuple[str, BoundArguments]] = field(default_factory=list)
