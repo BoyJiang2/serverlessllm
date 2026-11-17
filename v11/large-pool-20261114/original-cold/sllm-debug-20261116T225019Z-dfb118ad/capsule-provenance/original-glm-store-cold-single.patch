@@ -1,0 +1,52 @@
+--- a/controls/debug_stack_v1/debug_stack.py
++++ b/controls/debug_stack_v1/debug_stack.py
+@@ -46,6 +46,9 @@
+ SUPPLEMENT_TOTAL_SECONDS = 3600
+ SUPPLEMENT_START_BUDGET_SECONDS = SUPPLEMENT_TOTAL_SECONDS + 300
+ SUPPLEMENT_CONDITIONS = ('safetensors_disk_cold', 'safetensors_disk_hot', 'store_disk_cold', 'store_pool_hit')
++STORE_COLD_SINGLE_SCOPE = 'glm-controller-supplement-store-cold-single-v1'
++STORE_COLD_PARENT_REVIEW = HOST/'results/reanalysis-20261106/v2/controller-supplement-r1-v7-field-approved.json'
++STORE_COLD_PARENT_SHA256 = 'ac198316bf85dee0c02dae1016f61fccc7fb6edd6d84d286f46c1dfa1cb26087'
+ 
+ 
+ def sha256(path):
+@@ -827,6 +830,17 @@
+     if startup_stage not in ('sleep', 'ray') or (startup_stage != 'sleep' and not startup_only):
+         raise RuntimeError('invalid startup review stage')
+     scope = ('glm-ray-startup-monitor-control-v1' if startup_stage == 'ray' else 'glm-startup-monitor-control-v1') if startup_only else 'glm-controller-supplement-v1'
++    if not startup_only and review.get('scope') == STORE_COLD_SINGLE_SCOPE:
++        scope = STORE_COLD_SINGLE_SCOPE
++        raw = STORE_COLD_PARENT_REVIEW.read_bytes()
++        if (hashlib.sha256(raw).hexdigest() != STORE_COLD_PARENT_SHA256
++                or review.get('parent_review_sha256') != STORE_COLD_PARENT_SHA256):
++            raise RuntimeError('original GLM review digest differs')
++        parent = json.loads(raw)
++        if any(review.get(key) != parent[key] for key in (
++                'code_commit', 'source_tree_sha256', 'runtime_reference', 'reviewed_extra_sha256',
++                'work_seconds', 'total_seconds', 'field_budget')):
++            raise RuntimeError('single Store cold review changes original runtime pins')
+     if (review.get('scope') != scope or review.get('verdict') != 'PASS'
+             or review.get('tool_sha256') != expected or review.get('source_tree_sha256') != source['tree_sha256']
+             or review.get('code_commit') != source['code_commit']
+@@ -850,14 +864,17 @@
+ 
+ def verify_supplement_attempt(review, review_sha, run, condition, boot, authorization, *, invocation=None):
+     attempts = review['proposed_attempts']
+-    if (tuple(row['condition'] for row in attempts) != SUPPLEMENT_CONDITIONS
+-            or len({row['run_id'] for row in attempts}) != 4
+-            or len({row['holder'] for row in attempts}) != 4
++    conditions = ('store_disk_cold',) if review.get('scope') == STORE_COLD_SINGLE_SCOPE else SUPPLEMENT_CONDITIONS
++    if (tuple(row['condition'] for row in attempts) != conditions
++            or len({row['run_id'] for row in attempts}) != len(conditions)
++            or len({row['holder'] for row in attempts}) != len(conditions)
+             or any(row['status'] != 'not_started' or not re.fullmatch(plan.RUN_PATTERN, row['run_id'])
+                    or not re.fullmatch('[0-9a-f]{32}', row['holder']) for row in attempts)
+             or review['field_budget']['minimum_remaining_seconds_before_each_attempt'] != SUPPLEMENT_START_BUDGET_SECONDS):
+         raise RuntimeError('approved attempt sequence or budget differs')
+-    index = SUPPLEMENT_CONDITIONS.index(condition)
++    if condition not in conditions:
++        raise RuntimeError('condition is outside reviewed scope')
++    index = conditions.index(condition)
+     attempt = attempts[index]
+     if attempt['run_id'] != run:
+         raise RuntimeError('approved attempt identity differs')

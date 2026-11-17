@@ -802,3 +802,15 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 | candidate | [B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z](large-pool-20261114/sleep-diagnostics/B2-Kimi-L2-wna16-candidate-r1-20261116T223422Z/evidence-index.csv) | 0/480 | 1270.912 | 0.211 | 68.509 | 0.000 | 60.640 |
 
 同配置各测一次，两组均以同一轮内的原八个 Worker 完成唤醒并通过前后金标。本对照重载缩短 870.898 s（40.7%）。基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。
+
+## 原版冷读补测与现版本 B1 参照
+
+| 条件 | 历史图 1 A（s） | 原版重测 A（s） | 现版本 B1 段 | B1 t4_first − t2（s） | B1 缓存证据 |
+| --- | --- | --- | --- | --- | --- |
+| V4 SF 冷读 | 556.222（n=9） | 待测 | [S3 / 00-D-v4](large-pool-20261114/supplement/B1-S3-r1-20261116T201045Z/00-D-v4/before-business-response.json) | 887.709 | 首段 SF，64 个分片零驻留页 |
+| V4 Store 冷读 | 223.752（n=9） | 待测 | [S2 / 01-D-v4](large-pool-20261114/supplement/B1-S2-r1-20261116T184708Z/01-D-v4/before-business-response.json) | 496.615 | 空权重池，496 条路径未命中，读 877,729,513,472 B |
+| GLM Store 冷读 | 599.712（n=1） | 625.635（n=1） | [S1 / 01-G-glm](large-pool-20261114/supplement/B1-S1-r2-20261116T171537Z/01-G-glm/before-business_arithmetic-response.json) | 499.985 | 空权重池，8 条路径未命中，读 762,527,481,856 B |
+
+原版 GLM 延用 HTTP `/register` 前到外部完整业务响应的 A。本轮 Store 数据、Store 元数据和共享 checkpoint 元数据共 108 个文件，合并准入的驻留页均为零。B1 从控制器放行 Backend 到内部正确完整响应，两条 Store 段的全未命中属于 RAM 权重池状态，历史/原版冷读还验证 OS 页缓存。计时端点、Store 路径和缓存准入有差异，版本差值缺测。
+
+[历史图 1](https://github.com/BoyJiang2/serverlessllm/blob/870d7daac4071790874884d2b3a9bdfc3af00f95/comparison/evidence/three-model-final-20261108/REPORT.md#图-1四条件启动至首个正确业务响应) · [GLM 原版终态](large-pool-20261114/original-cold/sllm-debug-20261116T225019Z-dfb118ad/controller-final.json) · [源证据索引](large-pool-20261114/original-cold/sllm-debug-20261116T225019Z-dfb118ad/evidence-index.csv)

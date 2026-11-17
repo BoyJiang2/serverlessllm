@@ -1,0 +1,676 @@
+{
+  "schema": "glm-independent-controller-supplement-v1",
+  "attempt_id": "sllm-debug-20261116T225019Z-dfb118ad",
+  "condition": "store_disk_cold",
+  "unit": {
+    "MainPID": "0",
+    "Result": "success",
+    "ExecMainStartTimestampMonotonic": "1997996305441",
+    "ExecMainExitTimestampMonotonic": "1999106953508",
+    "ExecMainCode": "1",
+    "ExecMainStatus": "0",
+    "Id": "sllm-debug-20261116T225019Z-dfb118ad-controller.service",
+    "InvocationID": "2c86983807a44fb8a70a3e7bd585db50"
+  },
+  "success": true,
+  "metrics": {
+    "preparation_s": 2.125131714,
+    "command_to_correct_business_response_s": 625.63452548,
+    "trigger_to_correct_business_response_s": 610.995869211,
+    "phase_device_setup_including_communication_span_s": 7.82801242,
+    "phase_communication_groups_span_s": 5.497030854,
+    "phase_weights_pipeline_including_allocation_span_s": 123.546362174,
+    "phase_weight_ingestion_span_s": 121.060160296,
+    "phase_quantization_postprocess_span_s": 6.38014333,
+    "phase_kv_cache_allocation_span_s": 0.116626613,
+    "phase_compile_graph_and_warmup_span_s": 365.121323603,
+    "controller_s": 1110.648067
+  },
+  "inputs": {
+    "controller-start.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/controller-start.json",
+      "bytes": 44836,
+      "sha256": "a1b90e5b9e00614ebacd22cb37bdd6dfb5de92e5f319551cded8c30f6b2cb9a5"
+    },
+    "controller-result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/controller-result.json",
+      "bytes": 55481,
+      "sha256": "0942535d6ddfd8810fb102e66146ba4511cd0f9589d0afdf437fdbb29b06fcc3"
+    },
+    "stack.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/stack.json",
+      "bytes": 6946,
+      "sha256": "9463fc24b58d825d0a9907112127b29566ee4ee8533322be80a2846d8dd70381"
+    },
+    "debug-service/result.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/result.json",
+      "bytes": 7418,
+      "sha256": "4de85279b2bf8d0275a6e216222e4b557095641c9234ffaf1e3ca054dc4892be"
+    },
+    "release60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/release60.jsonl",
+      "bytes": 343850,
+      "sha256": "77ed87f621653597409d74ec39afb9e4f6a68ab8cc95e63a87e3cf7ca4dfeb68"
+    },
+    "debug-service/idle60.jsonl": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/idle60.jsonl",
+      "bytes": 6618706,
+      "sha256": "1d515c6b8585819e8023707a718dad37d28d3462609c7ad4343ec311a183b123"
+    },
+    "source/accept_control13.py": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/source/accept_control13.py",
+      "bytes": 22990,
+      "sha256": "b064d25f90d2b30a48c298faa6f3af2b8d0dce4c8850589b411153b3f9f4197c"
+    },
+    "source/gpu_identity13.py": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/source/gpu_identity13.py",
+      "bytes": 4021,
+      "sha256": "8cefc37753a7bed59f493142129b4e87e87a4121e2f901cea1557fa87aa28047"
+    },
+    "source/workspace.py": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/source/workspace.py",
+      "bytes": 7484,
+      "sha256": "c81081d04de424f532661183bd517765e7210d8a6db2d0fb84d5c3137bdc586f"
+    },
+    "debug-service/auxiliary-gpu-baseline.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/auxiliary-gpu-baseline.json",
+      "bytes": 115572,
+      "sha256": "a6565f6671cd49238186651df771847f5024a05fcd4f625680ae55e2bb8d2f4f"
+    },
+    "debug-service/business_arithmetic-response.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/business_arithmetic-response.json",
+      "bytes": 817,
+      "sha256": "4f379e81b252895baa719f2464316e93240d3024fb58087939148942c6c0ea77"
+    },
+    "debug-service/business_translation-response.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/business_translation-response.json",
+      "bytes": 819,
+      "sha256": "79df47ca9a8290654a80cb4f088f06c1756d6a98405e19b1a6c5dcbeeda38338"
+    },
+    "debug-service/fixed32-response.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/fixed32-response.json",
+      "bytes": 6191,
+      "sha256": "7b42e749296f7b60bceddce027b7a3041ce62fd3df694e443526764339ae81f7"
+    },
+    "debug-service/cache-admission/summary.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/summary.json",
+      "bytes": 46424,
+      "sha256": "2999fd769dc1efd49c73f701d41d54cca63ed3848641fb43f3dc76886ddbc295"
+    },
+    "source/store-metadata-inputs.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/source/store-metadata-inputs.json",
+      "bytes": 3562,
+      "sha256": "888fd5cf5f277f275de865b2ac0fd269295b8836f5d871e7e3ae0d6ca9e45734"
+    },
+    "raw-disk-verification.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/store/tp8/raw-disk-verification.json",
+      "bytes": 4316,
+      "sha256": "dcc2d3c6d63b12802206e17273bc823b664a61cd9783e8d8e8a22063ca2eacdb"
+    },
+    "source/cache-inputs13.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/source/cache-inputs13.json",
+      "bytes": 39797,
+      "sha256": "a210862f708c1b8c106d1d7a7c235cc818ce9b53a0c5232f7ffab53979ef5473"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_0.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_0.mincore.gz",
+      "bytes": 11311,
+      "sha256": "4cd547c30e446d8185fe9a29dea085a9008bb20bd37932ff1ab8c9bb8fb22eb7"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_1.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_1.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_2.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_2.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_3.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_3.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_4.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_4.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_5.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_5.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_6.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_6.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_7.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_7.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_8.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_8.mincore.gz",
+      "bytes": 10770,
+      "sha256": "e465cbb36bdd6506f888c4f5c4da77a803d34db4cb9474db7b0a82864a6daf65"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_9.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor.data_9.mincore.gz",
+      "bytes": 4286,
+      "sha256": "35f865d154f907dfafdbe99f9f7c8011c2143d526dfa589b0eebe11da860eeba"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/chat_template.jinja.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/chat_template.jinja.mincore.gz",
+      "bytes": 22,
+      "sha256": "ce7f8571b102a027ab89d5e30870107a806af7131b90b8d76caf89943e4d45d2"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/config.json.mincore.gz",
+      "bytes": 23,
+      "sha256": "dff014b45d1dbdc6ab448dd015ce68cd1e6bfae9e3e727656cd3b92a11a6bd4f"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/generation_config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/generation_config.json.mincore.gz",
+      "bytes": 21,
+      "sha256": "4cb97ebea8063fbe6735ce0e83706570d346d8494bc22b1676fa2f3b21c62a8c"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/model.safetensors.index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/model.safetensors.index.json.mincore.gz",
+      "bytes": 47,
+      "sha256": "e32f162c3ff5e4ed9c8ad67b6adbbef56d30fab761dbbf19f126430b2218e6d0"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_0/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_1/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_2/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_3/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_4/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_5/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_6/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/raw_state.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/raw_state.json.mincore.gz",
+      "bytes": 26,
+      "sha256": "b190d0a1f8e55aadf4c2e7f8f934ab45927a8877bc5e12469d2c4769c6c429aa"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor_index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/rank_7/tensor_index.json.mincore.gz",
+      "bytes": 24,
+      "sha256": "a2524df12df5d5457e52268656bf8534eb1a46b2fe5c42f2e0d0a23d8d444d80"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/tokenizer.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/tokenizer.json.mincore.gz",
+      "bytes": 57,
+      "sha256": "a00879506d46b54f768a920e2e842ce35344fc48f6d9f953f2f1964201c55757"
+    },
+    "debug-service/cache-admission/store/vllm/glm51-fp8/tokenizer_config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/store/vllm/glm51-fp8/tokenizer_config.json.mincore.gz",
+      "bytes": 21,
+      "sha256": "4cb97ebea8063fbe6735ce0e83706570d346d8494bc22b1676fa2f3b21c62a8c"
+    },
+    "debug-service/cache-admission/checkpoint/config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/config.json.mincore.gz",
+      "bytes": 23,
+      "sha256": "dff014b45d1dbdc6ab448dd015ce68cd1e6bfae9e3e727656cd3b92a11a6bd4f"
+    },
+    "debug-service/cache-admission/checkpoint/generation_config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/generation_config.json.mincore.gz",
+      "bytes": 21,
+      "sha256": "4cb97ebea8063fbe6735ce0e83706570d346d8494bc22b1676fa2f3b21c62a8c"
+    },
+    "debug-service/cache-admission/checkpoint/tokenizer_config.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/tokenizer_config.json.mincore.gz",
+      "bytes": 21,
+      "sha256": "4cb97ebea8063fbe6735ce0e83706570d346d8494bc22b1676fa2f3b21c62a8c"
+    },
+    "debug-service/cache-admission/checkpoint/tokenizer.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/tokenizer.json.mincore.gz",
+      "bytes": 57,
+      "sha256": "a00879506d46b54f768a920e2e842ce35344fc48f6d9f953f2f1964201c55757"
+    },
+    "debug-service/cache-admission/checkpoint/chat_template.jinja.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/chat_template.jinja.mincore.gz",
+      "bytes": 22,
+      "sha256": "ce7f8571b102a027ab89d5e30870107a806af7131b90b8d76caf89943e4d45d2"
+    },
+    "debug-service/cache-admission/checkpoint/model.safetensors.index.json.mincore.gz": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/cache-admission/checkpoint/model.safetensors.index.json.mincore.gz",
+      "bytes": 47,
+      "sha256": "e32f162c3ff5e4ed9c8ad67b6adbbef56d30fab761dbbf19f126430b2218e6d0"
+    },
+    "debug-service/phases.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/phases.json",
+      "bytes": 35631,
+      "sha256": "9e87256a960adae5333149232bde49235808e437c85c81eb2c92ff8f4d8e1171"
+    },
+    "debug-service/measurement-progress.json": {
+      "path": "/data/brick1/boyjiang/glm5.1-fp8/debug/sllm-debug-20261116T225019Z-dfb118ad/debug-service/measurement-progress.json",
+      "bytes": 5648,
+      "sha256": "3bfae3a499b24caa23700bdd6acf8fda18e5e8b852fc718a9d5cbc8d58f9e8ad"
+    }
+  },
+  "original40_modified": false,
+  "controller_begin_ns": 1997996305441000,
+  "controller_end_ns": 1999106953508000,
+  "clock": "systemd CLOCK_MONOTONIC microseconds converted to ns;1us resolution",
+  "code_commit": "fb98c22540f8724f2ef298c708a5f004a8e09514",
+  "protocol_revision": "independent-controller-supplement-v1",
+  "sample_n": 1,
+  "scope": "same-run Controller/Prep/A/phases; not historical C23 blocks; phase envelopes not proven V4 equivalent",
+  "unit_snapshot_sha256": "0a46000bc9547bb3a3c5de8084fa14b60dbaf8944950ee0f180ae4571ee03096",
+  "finalizer_source_sha256": "a97c8c6ebef86bbf5c793b267d5d600ac4c9a38b3e797df238d79b4d680cf183"
+}

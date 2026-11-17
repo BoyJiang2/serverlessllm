@@ -711,6 +711,49 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             parts.append(f"同配置各测一次，两组均以同一轮内的原八个 Worker 完成唤醒并通过前后金标。"
                          f"本对照重载缩短 {fmt(baseline - candidate)} s（{(1 - candidate / baseline):.1%}）。"
                          "基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。")
+
+    pool = ROOT / "large-pool-20261114"
+    original_glm = pool / "original-cold/sllm-debug-20261116T225019Z-dfb118ad"
+    if (original_glm / "controller-final.json").is_file():
+        final = read(original_glm / "controller-final.json")
+        assert final["success"]
+        original_a = final["metrics"]["command_to_correct_business_response_s"]
+        rows = []
+        for label, historical_a, sequence_name, run_id, step_id, request in (
+            ("V4 SF 冷读", "556.222（n=9）", "S3", "B1-S3-r1-20261116T201045Z", "00-D-v4", "business"),
+            ("V4 Store 冷读", "223.752（n=9）", "S2", "B1-S2-r1-20261116T184708Z", "01-D-v4", "business"),
+            ("GLM Store 冷读", "599.712（n=1）", "S1", "B1-S1-r2-20261116T171537Z", "01-G-glm", "business_arithmetic"),
+        ):
+            run = pool / "supplement" / run_id
+            step = run / step_id
+            qualification = read(run / "qualification.json")
+            assert qualification["passed"] and qualification["strict_release_passed"]
+            row, = [r for r in csv_rows(run / "switch-events.csv") if int(r["step"]) == int(step_id[:2])]
+            assert read(step / f"before-{request}-checks.json")["passed"]
+            response = step / f"before-{request}-response.json"
+            received = read(response)
+            assert received["response"]["id"] == f"{step_id}-before-{request}"
+            assert int(row["t2_ns"]) <= received["received_ns"] <= int(row["t4_ns"])
+            cache = read(step / "store-step.json")["cache"]
+            if label == "V4 SF 冷读":
+                assert cache["cache_state"] == "safetensors_disk_cold"
+                state = "首段 SF，64 个分片零驻留页"
+            else:
+                assert cache["cache_state"] == "full_miss" and cache["hit_bytes"] == 0
+                state = f"空权重池，{len(cache['miss_paths'])} 条路径未命中，读 {cache['file_read_bytes']:,} B"
+            observed_a = fmt(seconds(received["received_ns"], int(row["t2_ns"])))
+            reference = f"[{sequence_name} / {step_id}]({response.relative_to(ROOT).as_posix()})"
+            original_value = fmt(original_a) + "（n=1）" if label == "GLM Store 冷读" else "待测"
+            rows.append([label, historical_a, original_value, reference, observed_a, state])
+        parts.append("## 原版冷读补测与现版本 B1 参照\n\n" + table(
+            ["条件", "历史图 1 A（s）", "原版重测 A（s）", "现版本 B1 段", "B1 t4_first − t2（s）", "B1 缓存证据"], rows))
+        parts.append("原版 GLM 延用 HTTP `/register` 前到外部完整业务响应的 A。"
+                     "本轮 Store 数据、Store 元数据和共享 checkpoint 元数据共 108 个文件，合并准入的驻留页均为零。"
+                     "B1 从控制器放行 Backend 到内部正确完整响应，两条 Store 段的全未命中属于 RAM 权重池状态，"
+                     "历史/原版冷读还验证 OS 页缓存。计时端点、Store 路径和缓存准入有差异，版本差值缺测。\n\n"
+                     "[历史图 1](https://github.com/BoyJiang2/serverlessllm/blob/870d7daac4071790874884d2b3a9bdfc3af00f95/comparison/evidence/three-model-final-20261108/REPORT.md#图-1四条件启动至首个正确业务响应) · "
+                     f"[GLM 原版终态]({original_glm.relative_to(ROOT).as_posix()}/controller-final.json) · "
+                     f"[源证据索引]({original_glm.relative_to(ROOT).as_posix()}/evidence-index.csv)")
     (ROOT / "report.md").write_text("\n\n".join(parts) + "\n", encoding="utf-8", newline="\n")
 
 

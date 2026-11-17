@@ -1,0 +1,73 @@
+{
+  "sample_begin_ns": 1999106444277719,
+  "host_meminfo": "MemTotal:       2016708628 kB\nMemFree:        1341479168 kB\nMemAvailable:   1969913856 kB\nBuffers:           76668 kB\nCached:         635570592 kB\nSwapCached:            0 kB\nActive:         593917172 kB\nInactive:       44528868 kB\nActive(anon):      86056 kB\nInactive(anon):  2894952 kB\nActive(file):   593831116 kB\nInactive(file): 41633916 kB\nUnevictable:      231480 kB\nMlocked:          229944 kB\nSwapTotal:             0 kB\nSwapFree:              0 kB\nDirty:               656 kB\nWriteback:             0 kB\nAnonPages:       3007888 kB\nMapped:           258964 kB\nShmem:            148316 kB\nKReclaimable:    2585868 kB\nSlab:            7392332 kB\nSReclaimable:    2585868 kB\nSUnreclaim:      4806464 kB\nKernelStack:       87248 kB\nPageTables:        42224 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    1008354312 kB\nCommitted_AS:   26406288 kB\nVmallocTotal:   13743895347199 kB\nVmallocUsed:      687264 kB\nVmallocChunk:          0 kB\nPercpu:           857280 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:   1603584 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:         0 kB\nFilePmdMapped:         0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:    1264317140 kB\nDirectMap2M:    755236864 kB\nDirectMap1G:    31457280 kB\n",
+  "containers": {
+    "head": {
+      "container_id": "319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3",
+      "absent": true
+    },
+    "worker": {
+      "container_id": "b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263",
+      "absent": true
+    }
+  },
+  "processes": [],
+  "stage_timings_ns": [
+    [
+      "head inspect",
+      1999106444366632,
+      1999106463822396
+    ],
+    [
+      "worker inspect",
+      1999106463823867,
+      1999106483566862
+    ],
+    [
+      "GPU devices",
+      1999106483567915,
+      1999106615850836
+    ],
+    [
+      "GPU processes",
+      1999106615851207,
+      1999106794096195
+    ],
+    [
+      "remaining resources",
+      1999106794096479,
+      1999106794587367
+    ]
+  ],
+  "run_id": "sllm-debug-20261116T225019Z-dfb118ad",
+  "boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+  "cgroup_read_retries": [],
+  "gpu": "0, GPU-901a39d6-debb-a126-3079-f1e2f9d4fc81, 143771 MiB, 0 MiB, 0 %\n1, GPU-a3baf382-35c8-8748-626a-f69745aab5f8, 143771 MiB, 0 MiB, 0 %\n2, GPU-1e269bc5-8466-4c75-a1b5-2fe52da4b771, 143771 MiB, 0 MiB, 0 %\n3, GPU-fa6a72c0-dc98-2006-973f-a38e93672cbb, 143771 MiB, 0 MiB, 0 %\n4, GPU-7e6158f3-be3a-4b12-5698-ab008c6f5f8e, 143771 MiB, 0 MiB, 0 %\n5, GPU-151684e8-c7ba-a20a-6955-e1f765940536, 143771 MiB, 0 MiB, 0 %\n6, GPU-af5f5c7a-0dce-f291-99be-2c844225cec6, 143771 MiB, 0 MiB, 0 %\n7, GPU-4b71a43c-50f7-bb0e-4775-1ee12d73c700, 143771 MiB, 0 MiB, 0 %\n",
+  "gpu_processes": "",
+  "disk_stat": "2746767848     2875 343141122982 3142033705 10862946   122915 2449867921 11549367        0 112160156 3153583837     6035        0 11115712728      764        0        0\n",
+  "network": "Inter-|   Receive                                                |  Transmit\n face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed\nbr-2e1328879aee: 1615272   29379    0    0    0     0          0         0 186064481   41739    0    0    0     0       0          0\n    lo: 1572076190817 14596403115    0    0    0     0          0         0 1572076190817 14596403115    0    0    0     0       0          0\n  eth0: 1806969136998 1284184753    0    0    0     0          0     66631 1481611691158 1123440462    0    0    0     0       0          0\nbr-008e9bbc3814:  986054   12753    0    0    0     0          0         0 81174773   29155    0    0    0     0       0          0\n  eth1: 206630404 1607486    0    0    0     0          0     66634 220543742 1594003    0    0    0     0       0          0\n  eth2: 17365672   75930    0    0    0     0          0     66634 15073966   76506    0    0    0     0       0          0\n  eth3: 17365214   75923    0    0    0     0          0     66634 15073718   76502    0    0    0     0       0          0\n  eth4: 17364832   75916    0    0    0     0          0     66634 15073126   76492    0    0    0     0       0          0\ndocker0:  890028   11499    0    0    0     0          0         0 21300897   13643    0    0    0     0       0          0\nbr-ea1ebc77c8c5: 2207663   34058    0    0    0     0          0         0 90648739   48247    0    0    0     0       0          0\nbr-5bdd69a228a6:  511515    8972    0    0    0     0          0         0 16519429   10000    0    0    0     0       0          0\nbr-6040d7fa51bc:  983488   14949    0    0    0     0          0         0 34208159   19105    0    0    0     0       0          0\nbr-032e6a376a75: 1071463   13494    0    0    0     0          0         0 37849063   18289    0    0    0     0       0          0\nbr-a453c8652db3:  253881    4550    0    0    0     0          0         0 18135070    6742    0    0    0     0       0          0\nbr-87f3e9310ad0:  819689   10255    0    0    0     0          0         0 46031474   19273    0    0    0     0       0          0\nbr-bc9c16b7ab59:  141014    2579    0    0    0     0          0         0 16880454    3530    0    0    0     0       0          0\nbr-e3865163e76d:  121266    2204    0    0    0     0          0         0 16859026    3206    0    0    0     0       0          0\nbr-2ae4a54db5f3:  158344    2871    0    0    0     0          0         0 16006906    3731    0    0    0     0       0          0\nbr-64235ae29b83:  101224    1786    0    0    0     0          0         0 15926397    2772    0    0    0     0       0          0\nbr-24b5af417019:  130264    2410    0    0    0     0          0         0 15959727    3277    0    0    0     0       0          0\nbr-14100e507abd: 1207850   20602    0    0    0     0          0         0 59930170   27110    0    0    0     0       0          0\nbr-65db831d0970: 1462247   23623    0    0    0     0          0         0 58563100   28359    0    0    0     0       0          0\nbr-87cb0b5f219e: 1903866   30291    0    0    0     0          0         0 75965736   39508    0    0    0     0       0          0\nbr-19c63cfb9ab9: 1003599   14389    0    0    0     0          0         0 65802383   22349    0    0    0     0       0          0\nbr-c28f35fa94e8: 1470848   24294    0    0    0     0          0         0 69138698   31986    0    0    0     0       0          0\n",
+  "gpu_pids": [],
+  "foreign_gpu_pids": [],
+  "registered_store_helper": null,
+  "retained_cgroups": {
+    "head": {
+      "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261116T225019Z.slice/sllm-debug-20261116T225019Z-dfb118ad.slice/docker-319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3.scope",
+      "inode": 6818845,
+      "container_id": "319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3",
+      "absent": true
+    },
+    "worker": {
+      "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261116T225019Z.slice/sllm-debug-20261116T225019Z-dfb118ad.slice/docker-b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263.scope",
+      "inode": 6818910,
+      "container_id": "b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263",
+      "absent": true
+    }
+  },
+  "private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+  "last_sample_ns": 1999106794587827,
+  "monotonic_ns": 1999106794587827,
+  "sample_end_ns": 1999106794588312,
+  "observers_ok": true,
+  "history_ok": true,
+  "first_monitor_error": null
+}

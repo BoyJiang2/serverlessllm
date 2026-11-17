@@ -1,0 +1,172 @@
+{
+  "run_id": "sllm-debug-20261116T225019Z-dfb118ad",
+  "holder": "c903ffd7ff374566e4edce3c72fbca5c",
+  "verified_slice_cgroup": "/sllm.slice/sllm-debug.slice/sllm-debug-20261116T225019Z.slice/sllm-debug-20261116T225019Z-dfb118ad.slice",
+  "last_private_slice_memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\n",
+  "purpose": "DEBUG-UNREVIEWED",
+  "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+  "mode": "gpu",
+  "controller_begin_ns": 1997998379815843,
+  "controller_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+  "controller_clock": "time.monotonic_ns on qjhs003 host",
+  "lifetime_seconds": 1800,
+  "deadline_unix": 1794876078,
+  "weight_format": "serverless_llm",
+  "query": true,
+  "booking": {
+    "mode": "borrowed without booking",
+    "authorized_by": "owner instruction in this chat; latest short-borrow confirmation 2026-11-09",
+    "checked_utc": "2026-11-17T00:01:20.670499+00:00",
+    "max_lifetime_seconds": 2400,
+    "scope": "GPUs idle and no formal or debug containers when up ran; not a reservation"
+  },
+  "guard": {
+    "timer": "sllm-debug-guard.timer",
+    "script": "/usr/local/lib/sllm-debug-guard/debug_guard.py",
+    "active": true,
+    "problems": [],
+    "heartbeat_age_seconds": 13.4,
+    "checked_utc": "2026-11-17T00:01:20.677467+00:00"
+  },
+  "configuration": {
+    "weight_format": "serverless_llm",
+    "pool_bytes": 768799145984,
+    "chunk_bytes": 536870912,
+    "c23_pool_bytes": 768799145984,
+    "differs_from_formal": [
+      "fresh public stack for each condition instead of C23 shared stack",
+      "independently reviewed supplementary entry, not the original formal gate",
+      "fresh native-home compilation cache; compilation costs remain charged",
+      "DEBUG-UNREVIEWED guard namespace retained; no historical formal IDs"
+    ],
+    "comparable_to_formal_measurements": false,
+    "measurement_class": "independent supplement candidate",
+    "request_order": [
+      "arithmetic",
+      "translation",
+      "fixed32"
+    ],
+    "condition": "store_disk_cold"
+  },
+  "tool_sha256": {
+    "controls/debug_stack_v1/debug_plan.py": "cc4435b2db9c829626f35182ab913376ac5adcad0313d43f8338defe40886598",
+    "controls/debug_stack_v1/debug_stack.py": "bd5a3750a6905e7910574bf70dc06482c1e614085133dff0ae03dba16132e225",
+    "controls/debug_stack_v1/debug_service.py": "8eec370d9e2a9a24f09d422c49af6e6e0fed54360a36db896f08becbdcb0593e",
+    "controls/debug_stack_v1/debug_guard.py": "3d70fc4ad03f54ff474aa3a492b664c9bddae341b780b78f9e561a263141f342",
+    "controls/debug_stack_v1/install_debug_guard.sh": "782e995d6bd1669c2d0aeb83a3fffe8ad9a2f8b42a5cf43e9468702341e7b2f4",
+    "controls/service_smoke_v1/docker_args.py": "6d20317cb8c653ed521734bf93bd95b4e360a17bb2fcf54f2816088fad96e2af",
+    "tools/restore_original_image.py": "8ae69f46144cc8ce8ed20e9b6f15d05e347a39a327f3b80ddf045cee88e85f32",
+    "tools/docker_plan.py": "759685a9f5266d1a87a26207d4f3520aab2bfaece1cebaf1ed69e49e7f2b6fbd"
+  },
+  "status": "released",
+  "condition": "store_disk_cold",
+  "source": {
+    "tree": "/data/brick1/boyjiang/glm5.1-fp8/code/source-debug-fb98c22540f8-58d1d50ae064",
+    "code_commit": "fb98c22540f8724f2ef298c708a5f004a8e09514",
+    "tree_sha256": "58d1d50ae064033d4ca8b56c9ae684514bd8a8865582b0473d8034d02a712c8f",
+    "files": 83
+  },
+  "image": {
+    "head": {
+      "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "restored": false
+    },
+    "worker": {
+      "image_id": "sha256:aa161e3800353473bf1c4bfc312cef77eb16fdf85e45d45d274246e6de582b6f",
+      "restored": false
+    }
+  },
+  "head_container_id": "319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3",
+  "bound_cgroups": {
+    "head": {
+      "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261116T225019Z.slice/sllm-debug-20261116T225019Z-dfb118ad.slice/docker-319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3.scope",
+      "inode": 6818845,
+      "container_id": "319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3"
+    },
+    "worker": {
+      "path": "/sys/fs/cgroup/sllm.slice/sllm-debug.slice/sllm-debug-20261116T225019Z.slice/sllm-debug-20261116T225019Z-dfb118ad.slice/docker-b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263.scope",
+      "inode": 6818910,
+      "container_id": "b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263"
+    }
+  },
+  "head_ip": "172.17.0.2",
+  "head_ready_seconds": 14.5,
+  "worker_container_id": "b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263",
+  "up_utc": "2026-11-17T00:01:58.158782+00:00",
+  "down": {
+    "worker": "removed",
+    "head": "removed"
+  },
+  "exit_evidence": {
+    "worker": {
+      "container_id": "b8c186fd18c2999f57f82726f1913c0c4a5fa2e3d4bb6df403fc29e69ae97263",
+      "before": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-17T00:01:40.250666617Z",
+        "FinishedAt": "2026-11-17T00:18:44.677477788Z"
+      },
+      "stop_returncode": null,
+      "normal_exit_verified": true,
+      "final": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-17T00:01:40.250666617Z",
+        "FinishedAt": "2026-11-17T00:18:44.677477788Z"
+      }
+    },
+    "head": {
+      "container_id": "319e6847f9829a90ea5998171c60ea10f45ce377c35f03254c84f10b0f4191b3",
+      "before": {
+        "Status": "running",
+        "Running": true,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 2092104,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-17T00:01:20.804006032Z",
+        "FinishedAt": "0001-01-01T00:00:00Z"
+      },
+      "stop_returncode": 0,
+      "normal_exit_verified": true,
+      "stop_stderr": "",
+      "final": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 1,
+        "Error": "",
+        "StartedAt": "2026-11-17T00:01:20.804006032Z",
+        "FinishedAt": "2026-11-17T00:18:47.894464702Z"
+      }
+    }
+  },
+  "cleanup_errors": {},
+  "controller_end_ns": 1999046409786810,
+  "controller_end_boot_id": "0145ca12-ac6e-40fc-9760-5d0639290553",
+  "controller_elapsed_s": 1048.029970967,
+  "controller_timing_valid": true,
+  "controller_scope": "up entry through owned container removal and GPU-process check; excludes any later resource observation; debug evidence, not C23",
+  "released_utc": "2026-11-17T00:18:48.561893+00:00"
+}
