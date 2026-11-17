@@ -871,12 +871,18 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
         full_bound = kdk_path.with_name("three-model-ram-lower-bound.json")
         if full_bound.is_file():
             lower = read(full_bound)
+            glm_counts = lower.get("glm_l2_corroboration", {}).get("counts_by_operation")
+            glm_check = (f"GLM 的 {glm_counts['load']} 次首次加载和 {glm_counts['wake']} 次回访得到相同权重字节数。"
+                         if glm_counts else "")
+            required = lower["weights_total_bytes"] + lower["reserve_bytes"]
             parts.append("### 完整 L1 七段序列准入\n\n"
                          "S1–S3 到第三段结束都需同时保留三个权重备份。"
                          "Kimi、V4 取 L1 备份实测，GLM 取同构型 L2 已标记权重作为 L1 负载估计。"
+                         f"{glm_check}"
                          f"三份逻辑权重合计 {fmt(lower['weights_total_bytes'] / GIB)} GiB，"
                          f"qjhs003 实测宿主总 RAM 为 {fmt(lower['host_total_bytes'] / GIB)} GiB。"
-                         f"即使使用无取整开销的备份，再预留 200 GiB，第三段至少缺 "
+                         f"按原始字节备份并预留 {fmt(lower['reserve_bytes'] / GIB)} GiB，"
+                         f"宿主至少需 {fmt(required / GIB)} GiB，第三段最少缺 "
                          f"{fmt(-lower['headroom_with_reserve_bytes'] / GIB)} GiB。"
                          "该下界未计运行时内存，三条完整序列留待满足逐段准入的节点验证。"
                          f" [权重字节与主机总量回执]({root}/three-model-ram-lower-bound.json)")
