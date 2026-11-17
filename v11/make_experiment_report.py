@@ -745,6 +745,12 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                              f"[{run['run']}](large-pool-20261114/sleep-wna16-sequences/{run['run']}/qualification.json)",
                              len(run["steps"]), sum(step["stage"] == "wake" for step in run["steps"]),
                              fmt(run["release"]["elapsed_s"])] for run in accepted]))
+        parts.append("S1 第一次启动缺少补丁清单，在创建容器前退出。后续 S1 七段金标通过，三组 Worker 正常退出。"
+                     "控制器因 CSV 表头缺少内存字段而中止导出，61.002 s 为收尾后重新采集的连续归零观察。"
+                     "S2、S3 使用修正后的导出器。"
+                     " [启动日志](large-pool-20261114/sleep-wna16-sequences/provenance/S1-controller.CbyPgp.log)"
+                     " · [S1 验收补录回执](large-pool-20261114/sleep-wna16-sequences/"
+                     "B2-WNA16-S1-r2-20261117T032950Z/qualification-recovery.json)")
         for stage, heading in (("load", "首次加载"), ("wake", "原 Worker 回访唤醒")):
             rows = []
             for run in accepted:
