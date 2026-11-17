@@ -868,6 +868,18 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                                  *[fmt(row[key] / GIB) for key in ("logical_bytes", "rounded_bytes",
                                                                   "shmem_delta_bytes", "excess_bytes")]]
                                 for row in read(allocator_path)]))
+        full_bound = kdk_path.with_name("three-model-ram-lower-bound.json")
+        if full_bound.is_file():
+            lower = read(full_bound)
+            parts.append("### 完整 L1 七段序列准入\n\n"
+                         "S1–S3 到第三段结束都需同时保留三个权重备份。"
+                         "Kimi、V4 取 L1 备份实测，GLM 取同构型 L2 已标记权重作为 L1 负载估计。"
+                         f"三份逻辑权重合计 {fmt(lower['weights_total_bytes'] / GIB)} GiB，"
+                         f"qjhs003 实测宿主总 RAM 为 {fmt(lower['host_total_bytes'] / GIB)} GiB。"
+                         f"即使使用无取整开销的备份，再预留 200 GiB，第三段至少缺 "
+                         f"{fmt(-lower['headroom_with_reserve_bytes'] / GIB)} GiB。"
+                         "该下界未计运行时内存，三条完整序列留待满足逐段准入的节点验证。"
+                         f" [权重字节与主机总量回执]({root}/three-model-ram-lower-bound.json)")
 
     combined_path = pool / "sleep-wna16-sequences/audit.json"
     if combined_path.is_file():

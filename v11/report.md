@@ -902,6 +902,10 @@ vLLM 0.20.1 的 L1 为每个权重段分别申请 pinned 缓冲。该镜像的 P
 | DeepSeek-V4-Pro | B2-L1-D-r2-20261117T092434Z | 820.422 | 849.562 | 849.563 | 29.141 |
 | DeepSeek-V4-Pro | B2-L1-D-r3-20261117T093946Z | 820.422 | 849.562 | 849.563 | 29.141 |
 
+### 完整 L1 七段序列准入
+
+S1–S3 到第三段结束都需同时保留三个权重备份。Kimi、V4 取 L1 备份实测，GLM 取同构型 L2 已标记权重作为 L1 负载估计。三份逻辑权重合计 2115.125 GiB，qjhs003 实测宿主总 RAM 为 1923.283 GiB。即使使用无取整开销的备份，再预留 200 GiB，第三段至少缺 391.842 GiB。该下界未计运行时内存，三条完整序列留待满足逐段准入的节点验证。 [权重字节与主机总量回执](large-pool-20261114/sleep-l1-kdk/three-model-ram-lower-bound.json)
+
 ## Kimi WNA16 修复后的三模型 Sleep L2 复验
 
 沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。
