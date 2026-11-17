@@ -793,6 +793,68 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                 f"[失败回执]({prefix}/{row['run']}/failure.json)",
                 fmt(row["release"]["elapsed_s"]) if row["release"] else "—"] for row in rejected_l1]))
 
+    kdk_path = pool / "sleep-l1-kdk/audit.json"
+    if kdk_path.is_file():
+        root = "large-pool-20261114/sleep-l1-kdk"
+        trial = read(kdk_path)
+        run = f"{root}/{trial['run']}"
+        parts.append("## 原生 Sleep L1 跨模型回访 Kimi → DeepSeek → Kimi\n\n"
+                     "在 Kimi 保持原 Worker 和 CPU 备份的情况下，DeepSeek 加载、推理并保存第二份 CPU 备份，"
+                     "随后在原八 rank 上唤醒 Kimi。现场准入保留 200 GiB 主机余量，按阶段使用宿主可用量与"
+                     "各 Worker cgroup 的计费，`shmem` 归入 `file`。"
+                     f" [历史边界重算]({root}/historical-bounds.json) · [本轮验收]({run}/qualification.json)"
+                     f" · [证据索引]({root}/evidence-index.csv)")
+        stage_names = ("首次冷加载并休眠", "轮内首次加载并休眠", "原 Worker 回访唤醒")
+        parts.append(table(["段", "目标模型", "操作", "权重准备（s）", "新 GPU KV 分配（s）",
+                            "旧 KV 开始释放 → 新 KV 就绪（s）", "权重准备开始 → 可服务（s）",
+                            "可服务 → 首个正确响应（s）", "金标", "CPU 备份（GiB）", "CPU 备份拷贝（s）",
+                            "CPU 恢复拷贝（s）"],
+                           [[i + 1, MODELS[step["model"]], stage_names[i], fmt(step["weight_s"]),
+                             fmt(step["kv_s"]), fmt(step["old_kv_release_to_new_ready_s"]),
+                             fmt(step["weight_begin_to_ready_s"]), fmt(step["first_correct_s"]),
+                             "通过" if step["gold"] else "—",
+                             fmt(step["cpu_backup_bytes"] / GIB if step["cpu_backup_bytes"] is not None else None),
+                             fmt(step["cpu_backup_copy_s"]), fmt(step["cpu_restore_copy_s"])]
+                            for i, step in enumerate(trial["steps"])]))
+        first = trial["steps"][0]
+        after = first["post_sleep"]
+        if after:
+            memory = after["cgroups"]["K"]
+            parts.append(table(["Kimi 休眠后", "GiB"], [
+                ["CPU 权重逻辑备份", fmt(after["backup_bytes"] / GIB)],
+                ["宿主 MemAvailable", fmt(after["host_available_bytes"] / GIB)],
+                ["cgroup memory.current", fmt(memory["current_bytes"] / GIB)],
+                ["cgroup anon", fmt(memory["anon_bytes"] / GIB)],
+                ["cgroup shmem", fmt(memory["shmem_bytes"] / GIB)],
+                ["cgroup file（扣除 shmem）", fmt(memory["file_without_shmem_bytes"] / GIB)],
+                ["cgroup 计费上限", fmt(memory["limit_bytes"] / GIB)],
+            ]))
+            parts.append("逻辑备份来自八 rank allocator 回执。cgroup 各项反映实际计费与驻留，"
+                         "逻辑备份不再与它们相加。")
+        stop = trial["stop"]
+        if stop and stop["kind"] == "ram_infeasible":
+            blocker = trial["blocker"]
+            parts.append(f"第 {stop['step'] + 1} 段 RAM 准入拒绝。需要 "
+                         f"{fmt(blocker['required_bytes'] / GIB)} GiB，可用 "
+                         f"{fmt(blocker['available_bytes'] / GIB)} GiB，差额 "
+                         f"{fmt(blocker['margin_bytes'] / GIB)} GiB。"
+                         + ("该段 Worker 尚未创建。" if not stop["worker_created"] else "")
+                         + f" [原始拒绝回执]({run}/{stop['source']})")
+            gate = trial["steps"][stop["step"]]["host_gate"]
+            if gate and gate["kind"] == "V4-load-and-future-second-backup":
+                hbm = blocker["hbm"]
+                parts.append(f"V4 单独加载的主机预算为 {fmt(gate['load_required_bytes'] / GIB)} GiB。"
+                             f"即使只按第二份备份和保护余量计算，当前也差 "
+                             f"{fmt(-gate['margin_after_backup_only_bytes'] / GIB)} GiB。"
+                             f"最紧一张卡剩 {min(hbm['free_mib'])} MiB，现行准入线为 {hbm['required_mib']} MiB。"
+                             "后续 V4 Sleep 和 Kimi 回访均缺实测端点。")
+        elif stop and stop.get("source"):
+            parts.append(f"第 {stop['step'] + 1} 段触发 {stop['kind']}。 [原始回执]({run}/{stop['source']})")
+        if trial["release"]:
+            parts.append(f"短序列有效轮次 {int(trial['passed'])}/3。最终八卡全零观察 "
+                         f"{fmt(trial['release']['elapsed_s'])} 秒，释放验收"
+                         f"{'通过' if trial['release']['all_gpu_zero'] and trial['release']['meets_60s'] else '未通过'}。")
+
     combined_path = pool / "sleep-wna16-sequences/audit.json"
     if combined_path.is_file():
         combined = read(combined_path)

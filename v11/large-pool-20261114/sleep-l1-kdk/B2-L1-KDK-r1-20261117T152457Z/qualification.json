@@ -1,0 +1,108 @@
+{
+  "group": "B2",
+  "sequence": "L1-KDK",
+  "rep": 1,
+  "levels": [
+    1
+  ],
+  "protocol_hash": "cbe65c646daf8563b79b77bbcc6cdda4d21b5f6f8e71c9dceccf766190012ba5",
+  "models": [
+    "K",
+    "D",
+    "K"
+  ],
+  "results": [
+    {
+      "level": 1,
+      "models": [
+        "K",
+        "D",
+        "K"
+      ],
+      "records": [
+        {
+          "level": 1,
+          "step": 0,
+          "model": "K",
+          "stage": {
+            "kind": "load",
+            "seconds": 1241.377,
+            "ready_ns": 2054715088781356
+          },
+          "sleep_seconds": 95.963,
+          "t4_ns": 2054720396255002,
+          "sleep_phases_receipt": "sleep-0001-phases.json",
+          "worker_pid": 2227016,
+          "weights_cpu_backup_bytes": 622250164224,
+          "weights_bytes": 622250164224,
+          "kv_bytes": 353227505664,
+          "checks": {
+            "arithmetic": {
+              "name": "arithmetic",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "translation": {
+              "name": "translation",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": false,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "fixed32": {
+              "name": "fixed32",
+              "checks": {
+                "text": true,
+                "tokens": true,
+                "finish": true,
+                "prompt": true,
+                "completion": true,
+                "actual_ids_count": true
+              },
+              "length_only": true,
+              "passed": true,
+              "matched_reference": "historical"
+            },
+            "v7_added_arithmetic": {
+              "name": "v7_added_arithmetic",
+              "checks": {
+                "text": true,
+                "completion": true,
+                "nonempty": true,
+                "finish": true
+              },
+              "passed": true
+            }
+          }
+        }
+      ],
+      "worker_pids": {
+        "K": [
+          2227016
+        ]
+      },
+      "pid_continuity": true,
+      "golds_passed": true
+    }
+  ],
+  "failures": {},
+  "final_release_seconds": 60.988,
+  "final_all_gpu_zero": true,
+  "passed": false
+}

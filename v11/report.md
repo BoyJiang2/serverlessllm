@@ -865,6 +865,34 @@ python -B v11/make_experiment_report.py
 | --- | --- | --- |
 | B2-L1-D-r1-20261117T085046Z | [失败回执](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r1-20261117T085046Z/failure.json) | 60.733 |
 
+## 原生 Sleep L1 跨模型回访 Kimi → DeepSeek → Kimi
+
+在 Kimi 保持原 Worker 和 CPU 备份的情况下，DeepSeek 加载、推理并保存第二份 CPU 备份，随后在原八 rank 上唤醒 Kimi。现场准入保留 200 GiB 主机余量，按阶段使用宿主可用量与各 Worker cgroup 的计费，`shmem` 归入 `file`。 [历史边界重算](large-pool-20261114/sleep-l1-kdk/historical-bounds.json) · [本轮验收](large-pool-20261114/sleep-l1-kdk/B2-L1-KDK-r1-20261117T152457Z/qualification.json) · [证据索引](large-pool-20261114/sleep-l1-kdk/evidence-index.csv)
+
+| 段 | 目标模型 | 操作 | 权重准备（s） | 新 GPU KV 分配（s） | 旧 KV 开始释放 → 新 KV 就绪（s） | 权重准备开始 → 可服务（s） | 可服务 → 首个正确响应（s） | 金标 | CPU 备份（GiB） | CPU 备份拷贝（s） | CPU 恢复拷贝（s） |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Kimi-K2.6 | 首次冷加载并休眠 | 1116.141 | 0.362 | — | 1200.338 | 1.904 | 通过 | 579.516 | 95.342 | — |
+| 2 | DeepSeek-V4-Pro | 轮内首次加载并休眠 | — | — | — | — | — | — | — | — | — |
+| 3 | Kimi-K2.6 | 原 Worker 回访唤醒 | — | — | — | — | — | — | — | — | — |
+
+| Kimi 休眠后 | GiB |
+| --- | --- |
+| CPU 权重逻辑备份 | 579.516 |
+| 宿主 MemAvailable | 963.937 |
+| cgroup memory.current | 1190.235 |
+| cgroup anon | 19.896 |
+| cgroup shmem | 877.213 |
+| cgroup file（扣除 shmem） | 287.969 |
+| cgroup 计费上限 | 1400.000 |
+
+逻辑备份来自八 rank allocator 回执。cgroup 各项反映实际计费与驻留，逻辑备份不再与它们相加。
+
+第 2 段 RAM 准入拒绝。需要 1085.165 GiB，可用 963.907 GiB，差额 -121.258 GiB。该段 Worker 尚未创建。 [原始拒绝回执](large-pool-20261114/sleep-l1-kdk/B2-L1-KDK-r1-20261117T152457Z/L1/ram-infeasible.json)
+
+V4 单独加载的主机预算为 225.904 GiB。即使只按第二份备份和保护余量计算，当前也差 56.515 GiB。最紧一张卡剩 140360 MiB，现行准入线为 140753 MiB。后续 V4 Sleep 和 Kimi 回访均缺实测端点。
+
+短序列有效轮次 0/3。最终八卡全零观察 60.988 秒，释放验收通过。
+
 ## Kimi WNA16 修复后的三模型 Sleep L2 复验
 
 沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。

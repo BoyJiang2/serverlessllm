@@ -1,0 +1,119 @@
+{
+  "node": "qjhs003",
+  "group": "B2",
+  "sleep_level": 1,
+  "tensor_parallel": 8,
+  "first_segment": {
+    "load_format": "native_safetensors",
+    "require_cold_admission": true
+  },
+  "first_visit": "native_load",
+  "revisit": "wake_with_checkpoint_reload",
+  "weight_store": false,
+  "lmcache": false,
+  "gpu_kv_gib_per_rank": null,
+  "host_memory_limit_gib": {
+    "K": 1400,
+    "D": 1400
+  },
+  "sequences": {
+    "L1-KDK": [
+      "K",
+      "D",
+      "K"
+    ]
+  },
+  "target_repetitions_per_sequence": 3,
+  "final_residency_observation_seconds": 60,
+  "scope": "Native Kimi and V4 L1 with both CPU backups resident before Kimi wake. Admission stop retained.",
+  "expected_v4_image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "expected_v4_overlay": [
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/b2-v4-sink-router-overlay/v4_source_pins.json",
+      "destination": "/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/v4_source_pins.json",
+      "rw": false,
+      "size": 2150,
+      "sha256": "83edf2712d2d1934a683aa25550be336867d6c9e1f8c069f4fddcdbefc2ac2cf"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/b2-v4-sink-router-overlay/meta.py",
+      "destination": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/model_loader/reload/meta.py",
+      "rw": false,
+      "size": 4700,
+      "sha256": "e125f28c2eb522a83b8c746ee2afca71ef1308f8741cf13342913956914c5aba"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/b2-v4-sink-router-overlay/deepseek_v4.py",
+      "destination": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/models/deepseek_v4.py",
+      "rw": false,
+      "size": 57619,
+      "sha256": "d40337b257491006fd22b392595ac6399fc574b1237a14b7c8c58ae1b7f67301"
+    }
+  ],
+  "candidate_overlay_sha256": "f2dee8a6eb7296bbe0804a0583953dad1401047e6c8e32001668164458403e29",
+  "expected_input_sha256": {
+    "D": "631038f096b8d509779bdb47b3d087e07be518e13a9193b1421122ef58347300",
+    "G": "15909c601f150ba80f5aaf869e85f2d9163ccddc979c4873883fc084be698854",
+    "K": "e9b86ef658ca2e6f71513fd81090dc02cbb86f50634d3d2a1b6f77a0fcbdffab"
+  },
+  "expected_kimi_image": "sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d",
+  "kimi_overlays": [
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/layers/quantization/compressed_tensors/compressed_tensors_moe/compressed_tensors_moe_wna16_marlin.py",
+      "baseline_sha256": "60eadafe3c93458ba8bca47a26e5986f7b41072e5214dc4abda96194899abfd2",
+      "candidate_sha256": "fe798dacd88b16efa4335af278057d1d97a7d367ac04aa07f3ad3383f5bdedff"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/model_loader/reload/layerwise.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/model_loader/reload/layerwise.py",
+      "baseline_sha256": "bf4cc2d80d32963dee1e38e3ddacc375e7f3c4d021ba3a9cd4ed544e3567e5e6",
+      "candidate_sha256": "d6f3c970f80e7299a7e741bb352e01916b829fab70ae8b680ae5d3eaa4235692"
+    },
+    {
+      "source": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-kimi-wna16-candidate/vllm/model_executor/model_loader/reload/types.py",
+      "target": "/opt/sllm-v4/lib/python3.12/site-packages/vllm/model_executor/model_loader/reload/types.py",
+      "baseline_sha256": "37e0c702ecedd50df1597b253cda368237aeb243fae4b8dd7809115cad3a4d7e",
+      "candidate_sha256": "fd139f15ab70dfd2022afb1e113efdbf34124775ecb1c5e2db602498c5e3103c"
+    }
+  ],
+  "kimi_patch_sha256": "d14b79d6dacec140c50e13a785a2900b08c5283e2e0fc60557a19fc545b0b443",
+  "kimi_checkpoint": {
+    "path": "/mnt/raid/models/Kimi-K2.6",
+    "config_sha256": "85825ca6e18cbe539eb83ee09eedfb3f4222265929f06e9f535a6d9364f55899",
+    "safetensors_index_sha256": "00a982d005d6e39b25cfcb379a7e6d57f393fc0346e70892ea4271c259c0d1e3",
+    "expected_expert_key_count": 207360,
+    "routed_layers": 60,
+    "n_experts": 384,
+    "preflight": "Per shard runtime audit must preserve existing immutable checkpoint identity.",
+    "host_path": "/data/brick1/boyjiang/kimi-k2.6/checkpoint/7eb5002f6aadc958aed6a9177b7ed26bb94011bb",
+    "cache_admission": "File-level cold, both arms before native load and again before checkpoint wake. Prior mmap diagnostic lacks these paired admissions."
+  },
+  "allocator_sha256": "e90097b2017df0ceeabbd5a09905cf4e80ab6073f3760b3f04a5aae79bf04bc4",
+  "profile_sha256": "b956107b0bd7f33a070d325d6470ce299283ab6449b7d6c35022a6573cb8e0fe",
+  "runner_sha256": "fba06c9892d36eff45aa52b31497f2e996f449cd16d3997e299d34acddf2f42a",
+  "l1_historical_input_sha256": {
+    "K": "a4d131c7a93cc9bccd70de6a08cd75391a67b4319466fad19722b93a8019d9ba",
+    "D": "67e4ba1b4673c9ca9332003a2d27c3e88dfc4290d29e618c4fc2b30bf8361ec8"
+  },
+  "l1_capacity_sha256": "6a5e15cf9b08a50c9d52c3c0eb634f883aa9885e068e7e14f718e1dd71f460fb",
+  "l1_kv_bytes": {
+    "K": 353227505664,
+    "D": 234277044224
+  },
+  "l1_backup_bytes": {
+    "K": 622250164224,
+    "D": 880921280512
+  },
+  "l1_host_from_idle": {
+    "K": 983069769728,
+    "D": 950438469632,
+    "D_awake": 27814092800
+  },
+  "l1_sleep_increment": {
+    "K": 959142739968,
+    "D": 929069244416
+  },
+  "historical_bounds_sha256": "2f1062ee4f6efeced0801b181a23829b3c07cee17d0126b42b18536da7cf6a7c",
+  "protocol_hash": "cbe65c646daf8563b79b77bbcc6cdda4d21b5f6f8e71c9dceccf766190012ba5"
+}
