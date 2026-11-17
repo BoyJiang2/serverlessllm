@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b2-sleep-repeats-20261117/v11_run_b2.py", line 618, in <module>
+    passed=bool(results) and not failures and all_zero
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b2-sleep-repeats-20261117/v11_run_b2.py", line 550, in main
+    except BaseException as error:
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b2-sleep-repeats-20261117/v11_run_b2.py", line 229, in sample
+    sample = super().sample(phase)
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 268, in sample
+    gpu, apps = gpu_state()
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 109, in gpu_state
+    gpu = call('nvidia-smi', '--query-gpu=index,uuid,memory.used', '--format=csv,noheader,nounits')
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 89, in call
+    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+  File "/usr/lib/python3.10/subprocess.py", line 505, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib/python3.10/subprocess.py", line 1154, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/usr/lib/python3.10/subprocess.py", line 2022, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.10/subprocess.py", line 1198, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '('nvidia-smi', '--query-gpu=index,uuid,memory.used', '--format=csv,noheader,nounits')' timed out after 60 seconds

@@ -731,15 +731,77 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                          "基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。")
 
     pool = ROOT / "large-pool-20261114"
+    l1_repeat_path = pool / "sleep-l1-repeats/audit.json"
+    if l1_repeat_path.is_file():
+        prefix = "large-pool-20261114/sleep-l1-repeats"
+        l1_repeats = read(l1_repeat_path)
+        accepted_l1 = [run for run in l1_repeats["rounds"] if run["passed"]]
+        parts.append("## DeepSeek-V4-Pro 原生 Sleep L1 复测\n\n"
+                     "按实测主机内存压力再预留 200 GiB，S1–S3 和六种跨模型回访均未通过分配前准入。"
+                     "单模型复测在 qjhs003 使用八张 H20、vLLM 0.20.1 与 TP8。"
+                     "首段从 SafeTensors 冷页加载，GPU KV 容量由引擎测定，回访在原 Worker 上恢复。"
+                     f" [分段容量估算]({prefix}/capacity-admission.json) · [证据索引]({prefix}/evidence-index.csv)")
+        capacity = read(l1_repeat_path.with_name("capacity-admission.json"))
+        admission_rows = []
+        for sequence_id, case in capacity["cases"].items():
+            denied = case["first_denied"]
+            if denied is None:
+                boundary = max(case["records"], key=lambda row: row["required_host_bytes"])
+            else:
+                boundary = case["records"][denied]
+            path = " → ".join(MODELS[row["model"]] for row in case["records"])
+            admission_rows.append([f"{sequence_id} · {path}",
+                f"第 {denied + 1} 段拒绝 · {MODELS[boundary['model']]}" if denied is not None else "通过（全程最大需求）",
+                fmt(boundary["required_host_bytes"] / GIB), fmt(boundary["available_host_bytes"] / GIB)])
+        parts.append(table(["序列", "准入结果", "主机需求估算（GiB）", "主机可用（GiB）"], admission_rows))
+        metrics = ["weight_s", "kv_s", "switch_s", "weight_start_to_ready_s", "first_correct_s", "all_golds_s"]
+        columns = ["权重准备（s）", "新 GPU KV 分配（s）", "旧 GPU KV 开始释放 → 新 KV 就绪（s）",
+                   "权重准备开始 → 可服务（s）", "可服务 → 首个正确业务响应（s）", "可服务 → 全套金标（s）"]
+        for index, title in enumerate(("首次加载", "回访唤醒")):
+            parts.append(f"### L1 {title}")
+            rows = [[f"[{run['run']}]({prefix}/{run['run']}/qualification.json)",
+                     *[fmt(run["steps"][index][key]) for key in metrics]] for run in accepted_l1]
+            stats = l1_repeats["summaries"][("load", "wake")[index]]
+            rows.append(["中位数［范围］（有效 n）", *[f"{fmt(stats[key]['median'])} "
+                         f"［{fmt(stats[key]['range'][0])}, {fmt(stats[key]['range'][1])}］（{stats[key]['n']}）"
+                         if stats[key]["range"] else "—（0）" for key in metrics]])
+            parts.append(table(["运行", *columns], rows))
+        parts.append(table(["运行", "CPU 备份（GiB）", "首次 Sleep（s）", "CPU 备份拷贝（s）",
+                            "CPU 恢复拷贝（s）", "原生 Wake（s）", "八卡归零观察（s）"],
+                           [[run["run"], fmt(run["steps"][0]["cpu_backup_bytes"] / GIB),
+                             fmt(run["steps"][0]["sleep_s"]), fmt(run["steps"][0]["cpu_backup_copy_s"]),
+                             fmt(run["steps"][1]["cpu_restore_copy_s"]), fmt(run["steps"][1]["wake_s"]),
+                             fmt(run["release"]["elapsed_s"])] for run in accepted_l1]))
+        parts.append("拷贝和 KV 分配使用八 rank 最早开始到最晚完成的主机端包络。"
+                     "CPU 备份拷贝的起点在首个 CPU 缓冲区分配后，Sleep 区间覆盖分配和拷贝。"
+                     "唤醒后以收齐八 rank 回执为服务就绪接点。旧 KV 释放至新 KV 就绪量到新 KV 映射完成，包含中间 60 秒观测。"
+                     f"原生唤醒内可出现重叠，逐项端点和逐 rank 值见[重算结果]({prefix}/audit.json)。")
+        parts.append("从仓库根目录重算本节数据。\n\n```bash\n"
+                     "python -B v11/large-pool-20261114/audit_l1_repeats.py "
+                     f"v11/{prefix} > v11/{prefix}/audit.json\n"
+                     "python -B v11/make_experiment_report.py\n```")
+        rejected_l1 = [row for row in l1_repeats["rounds"] if not row["passed"]]
+        if rejected_l1:
+            parts.append(table(["未通过运行", "原始失败记录", "独立归零观察（s）"], [[row["run"],
+                f"[失败回执]({prefix}/{row['run']}/failure.json)",
+                fmt(row["release"]["elapsed_s"]) if row["release"] else "—"] for row in rejected_l1]))
+
     combined_path = pool / "sleep-wna16-sequences/audit.json"
     if combined_path.is_file():
         combined = read(combined_path)
         accepted = [run for run in combined["rounds"] if run["passed"]]
-        assert len(accepted) == 3 and {run["sequence"] for run in accepted} == {"S1", "S2", "S3"}
+        counts = {seq: sum(run["sequence"] == seq for run in accepted) for seq in ("S1", "S2", "S3")}
+        assert sum(counts.values()) == len(accepted) and all(1 <= n <= 3 for n in counts.values())
+        repeated = len(accepted) > 3
+        assert len({run["run"] for run in combined["rounds"]}) == len(combined["rounds"])
         parts.append("## Kimi WNA16 修复后的三模型 Sleep L2 复验\n\n"
                      "沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。"
                      "Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。"
                      "每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。")
+        if repeated:
+            parts.append("、".join(f"{seq} 有效 {n}/3 轮" for seq, n in counts.items()) + "。"
+                         "每轮前 3 段首次加载，其中第 00 段通过 SafeTensors 冷页准入。"
+                         "后 4 段按八 rank PID 核验原 Worker 后从 checkpoint 唤醒。")
         parts.append(table(["序列", "验收回执", "通过段数", "回访唤醒", "八卡归零观察（s）"],
                            [[run["sequence"],
                              f"[{run['run']}](large-pool-20261114/sleep-wna16-sequences/{run['run']}/qualification.json)",
@@ -751,6 +813,12 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                      " [启动日志](large-pool-20261114/sleep-wna16-sequences/provenance/S1-controller.CbyPgp.log)"
                      " · [S1 验收补录回执](large-pool-20261114/sleep-wna16-sequences/"
                      "B2-WNA16-S1-r2-20261117T032950Z/qualification-recovery.json)")
+        rejected = [run for run in combined["rounds"] if not run["passed"]]
+        if rejected:
+            parts.append(table(["序列", "未通过的运行"],
+                               [[run["sequence"], f"[{run['run']}](large-pool-20261114/"
+                                 f"sleep-wna16-sequences/{run['run']}/{run.get('receipt', 'qualification.json')})"]
+                                for run in rejected]))
         for stage, heading in (("load", "首次加载"), ("wake", "原 Worker 回访唤醒")):
             rows = []
             for run in accepted:
@@ -761,10 +829,16 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                     rows.append([f"[{run['sequence']}/{step['step']:02d}]({evidence})", MODELS[step["model"]],
                                  fmt(step["load_or_wake_weight_s"]), fmt(step["kv_allocation_s"]),
                                  fmt(step["kv_switch_s"]), fmt(step["kv_release_to_service_ready_s"]),
-                                 fmt(step["weight_begin_to_service_s"]), fmt(step["gold_s"]), step["gold_passed"]])
+                                 fmt(step["weight_begin_to_service_s"]),
+                                 *([fmt(step["first_correct_s"])] if repeated else []),
+                                 fmt(step["gold_s"]), step["gold_passed"]])
+                    if repeated:
+                        rows[-1].insert(1, run["run"])
             parts.append(f"### {heading}\n\n" + table(
-                ["序列/段", "目标模型", "权重准备（s）", "GPU KV 分配（s）", "旧 KV 释放→新 KV 就绪（s）",
-                 "旧 KV 释放→可服务（s）", "权重准备开始→可服务（s）", "就绪→金标完成（s）", "金标"], rows))
+                ["序列/段", *(["运行编号"] if repeated else []), "目标模型", "权重准备（s）",
+                 "GPU KV 分配（s）", "旧 KV 释放→新 KV 就绪（s）", "旧 KV 释放→可服务（s）",
+                 "权重准备开始→可服务（s）", *(["可服务→首个正确业务响应（s）"] if repeated else []),
+                 "就绪→金标完成（s）", "金标"], rows))
             totals = []
             for key in MODELS:
                 metrics = combined["stats"][f"{stage}-{key}"]
@@ -773,35 +847,66 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                                   "kv_release_to_service_ready_s"))])
             parts.append("各项汇总为有效 n · 中位数（s）。\n\n" + table(
                 ["模型", "权重准备", "GPU KV 分配", "旧 KV 释放→新 KV 就绪", "旧 KV 释放→可服务"], totals))
+            if repeated:
+                fields = ("load_or_wake_weight_s", "kv_allocation_s", "kv_switch_s", "kv_release_to_service_ready_s",
+                          "weight_begin_to_service_s", "first_correct_s", "gold_s")
+                position_rows = []
+                for seq in counts:
+                    exemplar = next(run for run in accepted if run["sequence"] == seq)
+                    for step in exemplar["steps"]:
+                        if step["stage"] != stage:
+                            continue
+                        key = f"{seq}/{step['step']:02d}"
+                        values = [combined["positions"][key][field] for field in fields]
+                        position_rows.append([key, MODELS[step["model"]],
+                            *(f"{item['n']} · {fmt(item['median'])} "
+                              f"[{fmt(item['range'][0])}, {fmt(item['range'][1])}]"
+                              if item["n"] else "0 · —" for item in values)])
+                parts.append("同序列同位置有效 n · 中位数［最小值、最大值］，单位为秒。"
+                             " 首个正确业务响应由完整响应的接收时间与对应金标配对。\n\n" + table(
+                    ["序列/段", "目标模型", "权重准备", "GPU KV 分配", "旧 KV 释放→新 KV 就绪",
+                     "旧 KV 释放→可服务", "权重准备开始→可服务", "可服务→首个正确业务响应",
+                     "可服务→全套金标"], position_rows))
         rows = []
+        kimi_positions = {}
         for item in combined["kimi"]:
             position = f"{item['sequence']}/{item['step']:02d}"
-            for run_id, row in (*item["baseline"].items(), (item["run"], item["candidate"])):
+            cohorts = kimi_positions.setdefault(position, {"修复前": {}, "修复后": {}})
+            assert not cohorts["修复前"] or cohorts["修复前"] == item["baseline"]
+            cohorts["修复前"].update(item["baseline"])
+            cohorts["修复后"][item["run"]] = item["candidate"]
+        for position, cohorts in kimi_positions.items():
+            for run_id, row in (*cohorts["修复前"].items(), *cohorts["修复后"].items()):
                 memory = row["memory"]
                 anon = memory["anon_peak_bytes"]
                 pages = memory["refault_delta_pages"]
                 layer = row["layer_completion"]
                 rows.append([position, run_id, fmt(row["checkpoint_reload_s"]),
                              f"{layer['load']}/{layer['finalize']}" if layer else "—",
+                             *([fmt(layer.get("last_completion_s") if layer else None)] if repeated else []),
                              fmt(anon / GIB if anon is not None else None),
                              fmt(pages * memory["refault_page_bytes"] / GIB if pages is not None else None)])
         parts.append("### Kimi 同序列同位置对照\n\n" + table(
             ["位置", "运行编号", "checkpoint 重载（s）", "重载中/收尾完成实例",
+             *(["重载开始→最后专家实例完成（s）"] if repeated else []),
              "匿名内存采样峰值（GiB）", "文件页 refault 折算（GiB）"], rows))
         paired = []
-        for item in combined["kimi"]:
-            values = list(item["baseline"].values())
-            for label, cohort in (("修复前", values), ("修复后", [item["candidate"]])):
+        for position, cohorts in kimi_positions.items():
+            for label, by_run in cohorts.items():
+                cohort = list(by_run.values())
                 metrics = ([row["checkpoint_reload_s"] for row in cohort],
+                           *([[row["layer_completion"]["last_completion_s"] for row in cohort
+                               if row["layer_completion"]]] if repeated else []),
                            [row["memory"]["anon_peak_bytes"] / GIB for row in cohort
                             if row["memory"]["anon_peak_bytes"] is not None],
                            [row["memory"]["refault_delta_pages"] * row["memory"]["refault_page_bytes"] / GIB
                             for row in cohort if row["memory"]["refault_delta_pages"] is not None])
-                paired.append([f"{item['sequence']}/{item['step']:02d}", label,
+                paired.append([position, label,
                                *(f"{len(samples)} · {fmt(median(samples) if samples else None)}"
                                  for samples in metrics)])
         parts.append("同一位置各指标的有效 n · 中位数。\n\n" + table(
-            ["位置", "配置", "重载（s）", "匿名内存峰值（GiB）", "文件页 refault（GiB）"], paired))
+            ["位置", "配置", "重载（s）", *(["最后专家实例完成（s）"] if repeated else []),
+             "匿名内存峰值（GiB）", "文件页 refault（GiB）"], paired))
         parts.append("历史整序列没有逐专家层完成打点。S1/S2 的历史运行早于本轮使用的 V4 Marlin scale 补丁，"
                      "同位置对照包含这项配置差异。匿名内存峰值和 refault 使用各自重载窗口内的采样，"
                      "refault 指该窗口首末采样点间的文件页计数增量。"

@@ -811,6 +811,60 @@ Kimi checkpoint 重载窗口的 cgroup 实测。匿名页和文件页取自同�
 
 同配置各测一次，两组均以同一轮内的原八个 Worker 完成唤醒并通过前后金标。本对照重载缩短 870.898 s（40.7%）。基线的专家层实例全部在最终收尾阶段完成，修复组全部在重载过程中完成。
 
+## DeepSeek-V4-Pro 原生 Sleep L1 复测
+
+按实测主机内存压力再预留 200 GiB，S1–S3 和六种跨模型回访均未通过分配前准入。单模型复测在 qjhs003 使用八张 H20、vLLM 0.20.1 与 TP8。首段从 SafeTensors 冷页加载，GPU KV 容量由引擎测定，回访在原 Worker 上恢复。 [分段容量估算](large-pool-20261114/sleep-l1-repeats/capacity-admission.json) · [证据索引](large-pool-20261114/sleep-l1-repeats/evidence-index.csv)
+
+| 序列 | 准入结果 | 主机需求估算（GiB） | 主机可用（GiB） |
+| --- | --- | --- | --- |
+| S1 · Kimi-K2.6 → GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6 | 第 2 段拒绝 · GLM-5.1-FP8 | 2084.762 | 1877.359 |
+| S2 · GLM-5.1-FP8 → DeepSeek-V4-Pro → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → Kimi-K2.6 → GLM-5.1-FP8 | 第 2 段拒绝 · DeepSeek-V4-Pro | 2052.530 | 1877.359 |
+| S3 · DeepSeek-V4-Pro → Kimi-K2.6 → GLM-5.1-FP8 → Kimi-K2.6 → DeepSeek-V4-Pro → GLM-5.1-FP8 → DeepSeek-V4-Pro | 第 2 段拒绝 · Kimi-K2.6 | 1998.878 | 1877.359 |
+| KGK · Kimi-K2.6 → GLM-5.1-FP8 → Kimi-K2.6 | 第 2 段拒绝 · GLM-5.1-FP8 | 2084.762 | 1877.359 |
+| KDK · Kimi-K2.6 → DeepSeek-V4-Pro → Kimi-K2.6 | 第 2 段拒绝 · DeepSeek-V4-Pro | 1998.878 | 1877.359 |
+| GKG · GLM-5.1-FP8 → Kimi-K2.6 → GLM-5.1-FP8 | 第 2 段拒绝 · Kimi-K2.6 | 2084.762 | 1877.359 |
+| GDG · GLM-5.1-FP8 → DeepSeek-V4-Pro → GLM-5.1-FP8 | 第 2 段拒绝 · DeepSeek-V4-Pro | 2052.530 | 1877.359 |
+| DKD · DeepSeek-V4-Pro → Kimi-K2.6 → DeepSeek-V4-Pro | 第 2 段拒绝 · Kimi-K2.6 | 1998.878 | 1877.359 |
+| DGD · DeepSeek-V4-Pro → GLM-5.1-FP8 → DeepSeek-V4-Pro | 第 2 段拒绝 · GLM-5.1-FP8 | 2052.530 | 1877.359 |
+| L1-D · DeepSeek-V4-Pro → DeepSeek-V4-Pro | 通过（全程最大需求） | 1083.323 | 1877.359 |
+
+### L1 首次加载
+
+| 运行 | 权重准备（s） | 新 GPU KV 分配（s） | 旧 GPU KV 开始释放 → 新 KV 就绪（s） | 权重准备开始 → 可服务（s） | 可服务 → 首个正确业务响应（s） | 可服务 → 全套金标（s） |
+| --- | --- | --- | --- | --- | --- | --- |
+| [B2-L1-D-r1-20261117T090919Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r1-20261117T090919Z/qualification.json) | 231.045 | 0.398 | — | 487.548 | 19.351 | 27.081 |
+| [B2-L1-D-r2-20261117T092434Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r2-20261117T092434Z/qualification.json) | 232.890 | 0.449 | — | 490.656 | 19.637 | 27.249 |
+| [B2-L1-D-r3-20261117T093946Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r3-20261117T093946Z/qualification.json) | 227.755 | 0.412 | — | 486.943 | 19.649 | 27.243 |
+| 中位数［范围］（有效 n） | 231.045 ［227.755, 232.890］（3） | 0.412 ［0.398, 0.449］（3） | —（0） | 487.548 ［486.943, 490.656］（3） | 19.637 ［19.351, 19.649］（3） | 27.243 ［27.081, 27.249］（3） |
+
+### L1 回访唤醒
+
+| 运行 | 权重准备（s） | 新 GPU KV 分配（s） | 旧 GPU KV 开始释放 → 新 KV 就绪（s） | 权重准备开始 → 可服务（s） | 可服务 → 首个正确业务响应（s） | 可服务 → 全套金标（s） |
+| --- | --- | --- | --- | --- | --- | --- |
+| [B2-L1-D-r1-20261117T090919Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r1-20261117T090919Z/qualification.json) | 3.520 | 0.679 | 77.757 | 3.892 | 0.668 | 8.083 |
+| [B2-L1-D-r2-20261117T092434Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r2-20261117T092434Z/qualification.json) | 3.420 | 0.717 | 79.137 | 3.755 | 0.704 | 7.338 |
+| [B2-L1-D-r3-20261117T093946Z](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r3-20261117T093946Z/qualification.json) | 3.485 | 0.680 | 74.663 | 3.720 | 0.704 | 8.151 |
+| 中位数［范围］（有效 n） | 3.485 ［3.420, 3.520］（3） | 0.680 ［0.679, 0.717］（3） | 77.757 ［74.663, 79.137］（3） | 3.755 ［3.720, 3.892］（3） | 0.704 ［0.668, 0.704］（3） | 8.083 ［7.338, 8.151］（3） |
+
+| 运行 | CPU 备份（GiB） | 首次 Sleep（s） | CPU 备份拷贝（s） | CPU 恢复拷贝（s） | 原生 Wake（s） | 八卡归零观察（s） |
+| --- | --- | --- | --- | --- | --- | --- |
+| B2-L1-D-r1-20261117T090919Z | 820.422 | 74.321 | 73.526 | 3.516 | 3.807 | 60.868 |
+| B2-L1-D-r2-20261117T092434Z | 820.422 | 71.161 | 70.352 | 3.415 | 3.663 | 61.113 |
+| B2-L1-D-r3-20261117T093946Z | 820.422 | 74.412 | 73.920 | 3.480 | 3.640 | 60.918 |
+
+拷贝和 KV 分配使用八 rank 最早开始到最晚完成的主机端包络。CPU 备份拷贝的起点在首个 CPU 缓冲区分配后，Sleep 区间覆盖分配和拷贝。唤醒后以收齐八 rank 回执为服务就绪接点。旧 KV 释放至新 KV 就绪量到新 KV 映射完成，包含中间 60 秒观测。原生唤醒内可出现重叠，逐项端点和逐 rank 值见[重算结果](large-pool-20261114/sleep-l1-repeats/audit.json)。
+
+从仓库根目录重算本节数据。
+
+```bash
+python -B v11/large-pool-20261114/audit_l1_repeats.py v11/large-pool-20261114/sleep-l1-repeats > v11/large-pool-20261114/sleep-l1-repeats/audit.json
+python -B v11/make_experiment_report.py
+```
+
+| 未通过运行 | 原始失败记录 | 独立归零观察（s） |
+| --- | --- | --- |
+| B2-L1-D-r1-20261117T085046Z | [失败回执](large-pool-20261114/sleep-l1-repeats/B2-L1-D-r1-20261117T085046Z/failure.json) | 60.733 |
+
 ## Kimi WNA16 修复后的三模型 Sleep L2 复验
 
 沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。
