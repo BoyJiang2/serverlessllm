@@ -854,6 +854,20 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
             parts.append(f"短序列有效轮次 {int(trial['passed'])}/3。最终八卡全零观察 "
                          f"{fmt(trial['release']['elapsed_s'])} 秒，释放验收"
                          f"{'通过' if trial['release']['all_gpu_zero'] and trial['release']['meets_60s'] else '未通过'}。")
+        allocator_path = kdk_path.with_name("pinned-backup-rounding.json")
+        if allocator_path.is_file():
+            parts.append("vLLM 0.20.1 的 L1 为每个权重段分别申请 pinned 缓冲。该镜像的 PyTorch 2.11.0 "
+                         "把每个请求向上取整到二次幂。按实测拷贝记录逐块复算，Kimi 和三轮 V4 的 "
+                         "`shmem` 增量都只比取整模型多 114,688 B。"
+                         " [vLLM 备份路径](https://github.com/vllm-project/vllm/blob/v0.20.1/vllm/device_allocator/cumem.py#L174-L188)"
+                         " · [PyTorch 分配路径](https://github.com/pytorch/pytorch/blob/v2.11.0/aten/src/ATen/core/CachingHostAllocator.h)"
+                         f" · [八 rank 重算]({root}/pinned-backup-rounding.json)")
+            parts.append(table(["模型", "运行", "逻辑备份（GiB）", "按块取整（GiB）",
+                                "实测 shmem 增量（GiB）", "取整额外容量（GiB）"],
+                               [[MODELS[row["model"]], row["run"],
+                                 *[fmt(row[key] / GIB) for key in ("logical_bytes", "rounded_bytes",
+                                                                  "shmem_delta_bytes", "excess_bytes")]]
+                                for row in read(allocator_path)]))
 
     combined_path = pool / "sleep-wna16-sequences/audit.json"
     if combined_path.is_file():

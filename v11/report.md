@@ -893,6 +893,15 @@ V4 单独加载的主机预算为 225.904 GiB。即使只按第二份备份和�
 
 短序列有效轮次 0/3。最终八卡全零观察 60.988 秒，释放验收通过。
 
+vLLM 0.20.1 的 L1 为每个权重段分别申请 pinned 缓冲。该镜像的 PyTorch 2.11.0 把每个请求向上取整到二次幂。按实测拷贝记录逐块复算，Kimi 和三轮 V4 的 `shmem` 增量都只比取整模型多 114,688 B。 [vLLM 备份路径](https://github.com/vllm-project/vllm/blob/v0.20.1/vllm/device_allocator/cumem.py#L174-L188) · [PyTorch 分配路径](https://github.com/pytorch/pytorch/blob/v2.11.0/aten/src/ATen/core/CachingHostAllocator.h) · [八 rank 重算](large-pool-20261114/sleep-l1-kdk/pinned-backup-rounding.json)
+
+| 模型 | 运行 | 逻辑备份（GiB） | 按块取整（GiB） | 实测 shmem 增量（GiB） | 取整额外容量（GiB） |
+| --- | --- | --- | --- | --- | --- |
+| Kimi-K2.6 | B2-L1-KDK-r1-20261117T152457Z | 579.516 | 876.812 | 876.813 | 297.297 |
+| DeepSeek-V4-Pro | B2-L1-D-r1-20261117T090919Z | 820.422 | 849.562 | 849.563 | 29.141 |
+| DeepSeek-V4-Pro | B2-L1-D-r2-20261117T092434Z | 820.422 | 849.562 | 849.563 | 29.141 |
+| DeepSeek-V4-Pro | B2-L1-D-r3-20261117T093946Z | 820.422 | 849.562 | 849.563 | 29.141 |
+
 ## Kimi WNA16 修复后的三模型 Sleep L2 复验
 
 沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。
