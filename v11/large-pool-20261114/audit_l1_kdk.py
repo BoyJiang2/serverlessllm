@@ -277,8 +277,8 @@ def audit(run, candidate=False):
                     worker_created=steps[i]["container_created"],
                     source=blocker_path.relative_to(run).as_posix())
         assert blocker["model"] == steps[i]["model"]
-        if "gate" in blocker:
-            gate = blocker["gate"]
+        gate = blocker.get("gate", blocker)
+        if "required_for_backup_bytes" in gate:
             assert gate["host_available_bytes"] - gate["required_for_backup_bytes"] == gate["host_margin_bytes"]
             assert gate["cgroup"]["limit_bytes"] - gate["cgroup_required_bytes"] == gate["cgroup_margin_bytes"]
             assert min(gate["host_margin_bytes"], gate["cgroup_margin_bytes"]) < 0

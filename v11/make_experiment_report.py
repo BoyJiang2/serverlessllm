@@ -894,6 +894,12 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                      f" [补丁]({prefix}/cumem-exact-backup.patch) · [逐段审计]({prefix}/audit.json)"
                      f" · [证据索引]({prefix}/evidence-index.csv)")
         labels = ("Kimi 首次冷加载", "DeepSeek 轮内首次加载", "Kimi 原 Worker 回访唤醒")
+        def exact_stat(stat):
+            if not stat["n"]:
+                return "0 · —"
+            low, high = stat["range"]
+            return f"{stat['n']} · {fmt(stat['median'])}［{fmt(low)}, {fmt(high)}］"
+
         metrics = ("weight_s", "kv_s", "old_kv_release_to_new_ready_s", "weight_begin_to_ready_s",
                    "first_correct_s", "all_golds_s")
         columns = ("权重准备（s）", "新 GPU KV 分配（s）", "旧 KV 开始释放 → 新 KV 就绪（s）",
@@ -910,20 +916,23 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                                  "通过" if step["gold"] else "—"])
                 stats = exact_kdk["summaries"][i]["metrics"]
                 rows.append([labels[i], "有效 n · 中位数［范围］",
-                             *[f"{s['n']} · {fmt(s['median'])}［{fmt(s['range'][0])}, {fmt(s['range'][1])}］"
-                               if s["n"] else "0 · —" for key in metrics for s in [stats[key]]], "—"])
+                             *[exact_stat(stats[key]) for key in metrics], "—"])
             parts.append(table(["段", "运行或统计", *columns, "金标"], rows))
         parts.append("统计行只使用通过完整三段验收的轮次。未执行或缺端点的字段显示为 `—`，派生数据保留 `null`。"
                      "首个响应以该模型的首个业务请求完整响应与金标配对，Kimi 为 arithmetic，DeepSeek 为 business。")
 
+        backup_metrics = ("cpu_backup_copy_s", "sleep_s", "cpu_restore_copy_s", "wake_s")
         backup_rows = []
-        for run in rounds:
-            for i, step in enumerate(run["steps"]):
+        for i, label in enumerate(labels):
+            for run in rounds:
+                step = run["steps"][i]
                 if step["gold"]:
                     backup = step["cpu_backup_bytes"]
-                    backup_rows.append([run["run"], labels[i], fmt(backup / GIB if backup is not None else None),
-                                        fmt(step["cpu_backup_copy_s"]), fmt(step["sleep_s"]),
-                                        fmt(step["cpu_restore_copy_s"]), fmt(step["wake_s"])])
+                    backup_rows.append([run["run"], label, fmt(backup / GIB if backup is not None else None),
+                                        *[fmt(step[key]) for key in backup_metrics]])
+            stats = exact_kdk["summaries"][i]["metrics"]
+            backup_rows.append(["有效 n · 中位数［范围］", label, "—",
+                                *[exact_stat(stats[key]) for key in backup_metrics]])
         parts.append(table(["运行", "段", "段末 CPU 逻辑备份（GiB）", "备份拷贝（s）", "原生 Sleep（s）",
                             "恢复拷贝（s）", "原生 Wake（s）"], backup_rows))
 
@@ -936,26 +945,76 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                 residency_rows.append([run["run"], "Kimi 休眠后", MODELS["K"], fmt(first_sleep["backup_bytes"] / GIB),
                                        *[fmt(mem[name] / GIB) for name in ("current_bytes", "anon_bytes", "shmem_bytes",
                                                                           "file_without_shmem_bytes")],
+                                       fmt((mem["anon_bytes"] - first_sleep["backup_bytes"]) / GIB),
                                        fmt(first_sleep["host_available_bytes"] / GIB)])
             if resident:
                 for key, mem in resident["cgroups"].items():
-                    residency_rows.append([run["run"], "双备份驻留", MODELS[key], fmt(resident["sleep_acks"][key]["bytes"] / GIB),
+                    backup = resident["sleep_acks"][key]["bytes"]
+                    other_anon = mem["anon_bytes"] - (backup if key == "K" else 0)
+                    residency_rows.append([run["run"], "双备份驻留", MODELS[key], fmt(backup / GIB),
                                            *[fmt(mem[name] / GIB) for name in ("current_bytes", "anon_bytes", "shmem_bytes",
                                                                               "file_without_shmem_bytes")],
+                                           fmt(other_anon / GIB),
                                            fmt(resident["host_available_bytes"] / GIB)])
         if residency_rows:
             parts.append("两份备份同时驻留的证据取自两模型各自的八 rank Sleep 回执及 DeepSeek 休眠后的双 cgroup 快照。"
-                         "逻辑备份量不与 cgroup 计费相加。")
+                         "Kimi 的其他匿名内存以同点 anon 扣除匿名映射中的备份字节估算。DeepSeek 原生备份计入 shmem，"
+                         "其他匿名内存直接取该点 anon。")
             parts.append(table(["运行", "阶段", "模型", "CPU 逻辑备份（GiB）", "cgroup current（GiB）", "anon（GiB）",
-                                "shmem（GiB）", "file 扣除 shmem（GiB）", "宿主 MemAvailable（GiB）"], residency_rows))
+                                "shmem（GiB）", "file 扣除 shmem（GiB）", "其他匿名内存（GiB）",
+                                "宿主 MemAvailable（GiB）"], residency_rows))
 
         names = {"before_load": "创建目标 Worker 前", "before_sleep": "目标金标后、Sleep 前",
                  "before_wake": "原 Worker 唤醒前", "during_load": "加载途中达到 RAM 停止线",
-                 "during_sleep": "休眠途中达到 RAM 停止线"}
+                 "during_sleep": "休眠途中达到 RAM 停止线", "during_wake": "唤醒途中达到 RAM 停止线"}
         statuses = []
-        gates = []
+        ram_rows = []
+        hbm_rows = []
         for run in rounds:
-            run_link = f"[{run['run']}]({prefix}/runs/{run['run']}/{run.get('receipt', 'qualification.json')})"
+            evidence_root = f"{prefix}/runs/{run['run']}"
+            run_link = f"[{run['run']}]({evidence_root}/{run.get('receipt', 'qualification.json')})"
+            for step in run["steps"]:
+                model = MODELS[step["model"]]
+                sources = step["sources"]
+                ram_checks = []
+                host_gate = step["host_gate"]
+                if host_gate and host_gate.get("kind") == "V4-load-and-future-second-backup":
+                    ram_checks.extend([
+                        ("V4 启动预算", host_gate.get("available_bytes"), host_gate.get("load_required_bytes"),
+                         host_gate.get("load_margin_bytes"), None, "host_gate"),
+                        ("V4 加载至第二份备份预算", host_gate.get("available_bytes"),
+                         host_gate.get("whole_phase_required_bytes"), host_gate.get("margin_after_expected_peak_bytes"),
+                         None, "host_gate"),
+                    ])
+                elif host_gate and host_gate.get("kind") == "original-Kimi-wake":
+                    required = host_gate.get("required_bytes")
+                    cg_min = min(host_gate.get("cgroup_margin_bytes") or [], default=None)
+                    cg_margin = cg_min - required if cg_min is not None and required is not None else None
+                    ram_checks.append(("原 Kimi Worker 唤醒前", host_gate.get("available_bytes"), required,
+                                       host_gate.get("margin_bytes"), cg_margin, "host_gate"))
+                backup_gate = step["backup_gate"]
+                if backup_gate:
+                    ram_checks.append(("金标后、Sleep 备份前", backup_gate.get("host_available_bytes"),
+                                       backup_gate.get("required_for_backup_bytes"), backup_gate.get("host_margin_bytes"),
+                                       backup_gate.get("cgroup_margin_bytes"), "backup_gate"))
+                for phase, available, required, host_margin, cg_margin, source in ram_checks:
+                    observed = [value for value in (host_margin, cg_margin) if value is not None]
+                    needs_cgroup = source == "backup_gate" or phase == "原 Kimi Worker 唤醒前"
+                    complete = host_margin is not None and (not needs_cgroup or cg_margin is not None)
+                    verdict = "拒绝" if any(value < 0 for value in observed) else ("满足" if complete else "—")
+                    source_link = f"[回执]({evidence_root}/{sources[source]})" if source in sources else "—"
+                    ram_rows.append([run_link, model, phase, verdict,
+                                     *[fmt(value / GIB if value is not None else None)
+                                       for value in (available, required, host_margin, cg_margin)], source_link])
+                hbm_gate = step["vram_gate"]
+                if hbm_gate:
+                    free = min(hbm_gate.get("free_mib") or [], default=None)
+                    verdict = {True: "通过", False: "拒绝"}.get(hbm_gate.get("passed"), "—")
+                    source_link = f"[回执]({evidence_root}/{sources['vram_gate']})" if "vram_gate" in sources else "—"
+                    hbm_rows.append([run_link, model, labels[step["index"]], verdict,
+                                     *["—" if value is None else value for value in (free, hbm_gate.get("required_mib"),
+                                                                                    hbm_gate.get("minimum_margin_mib"))],
+                                     source_link])
             stop = run["stop"]
             outcome = "通过" if run["passed"] else "未通过"
             detail = "—"
@@ -964,27 +1023,25 @@ TP8，首模型经 SafeTensors 冷页准入，回访模型在原 Worker 重载 c
                 detail = f"第 {stage + 1} 段 " if stage is not None else ""
                 detail += names.get(stop.get("phase"), stop["kind"])
                 if stop.get("source"):
-                    detail += f" [回执]({prefix}/runs/{run['run']}/{stop['source']})"
-                blocker = run["blocker"] or stop.get("floor")
-                if blocker:
-                    gate = blocker.get("gate", blocker)
-                    available = gate.get("host_available_bytes", gate.get("available_bytes"))
-                    required = gate.get("required_for_backup_bytes", gate.get("required_bytes"))
-                    cg = gate.get("cgroup_margin_bytes")
-                    cgroup_headroom = min(cg, default=None) if isinstance(cg, list) else cg
-                    if isinstance(cg, list) and cgroup_headroom is not None:
-                        cgroup_headroom -= required
-                    gates.append([run_link, MODELS[stop["model"]], names[stop["phase"]],
-                                  fmt(available / GIB), fmt(required / GIB), fmt((available - required) / GIB),
-                                  fmt(cgroup_headroom / GIB if cgroup_headroom is not None else None)])
+                    detail += f" [回执]({evidence_root}/{stop['source']})"
+                floor = stop.get("floor")
+                if floor:
+                    ram_rows.append([run_link, MODELS[stop["model"]], names[stop["phase"]], "拒绝",
+                                     *[fmt(floor[key] / GIB) for key in ("available_bytes", "required_bytes", "margin_bytes")],
+                                     "—", f"[回执]({evidence_root}/{stop['source']})"])
             release_receipt = run["release"]
             statuses.append([run_link, outcome, detail, fmt(release_receipt["elapsed_s"] if release_receipt else None),
                              "通过" if release_receipt and release_receipt["all_gpu_zero"]
                              and release_receipt["meets_60s"] else "—"])
         parts.append(table(["运行", "整轮验收", "停止位置", "八卡归零观察（s）", "释放验收"], statuses))
-        if gates:
-            parts.append(table(["运行", "模型", "RAM 停止点", "宿主可用（GiB）", "宿主需求（GiB）",
-                                "宿主差额（GiB）", "cgroup 扣除门槛后最小差额（GiB）"], gates))
+        if ram_rows:
+            parts.append(table(["运行", "模型", "RAM 核对点", "结果", "宿主可用（GiB）", "宿主需求（GiB）",
+                                "宿主差额（GiB）", "cgroup 扣除门槛后最小差额（GiB）", "证据"], ram_rows))
+            parts.append("V4 启动预算和第二份备份预算是同次现场采样下的两项模型预算。"
+                         "Sleep 前另用当时的可用量和 cgroup 计费复核。")
+        if hbm_rows:
+            parts.append(table(["运行", "模型", "HBM 准入点", "结果", "最少空闲（MiB/卡）",
+                                "需求（MiB/卡）", "最小余量（MiB/卡）", "证据"], hbm_rows))
         parts.append("从仓库根目录重算本节。\n\n```bash\n"
                      "python -B v11/large-pool-20261114/audit_l1_kdk.py --candidate-cohort "
                      f"v11/{prefix}/runs > v11/{prefix}/audit.json\n"

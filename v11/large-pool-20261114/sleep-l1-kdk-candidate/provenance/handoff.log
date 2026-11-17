@@ -1,0 +1,40 @@
+B2-WNA16-S1-r3-20261117T135519Z 61.051
+B2-WNA16-S2-r3-20261117T155357Z 61.071
+B2-WNA16-S3-r3-20261117T170811Z 61.056
+2026-11-18T02:18:23+08:00
+Exception in thread Thread-1:
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 309, in run
+    row_data = self.sample(self.holder.get('phase', 'run'))
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11-b2-l1-kdk-exact-20261118/v11_run_b2.py", line 237, in sample
+    sample = super().sample(phase)
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 268, in sample
+    gpu, apps = gpu_state()
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 109, in gpu_state
+    gpu = call('nvidia-smi', '--query-gpu=index,uuid,memory.used', '--format=csv,noheader,nounits')
+  File "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/v11/v11_run.py", line 89, in call
+    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+  File "/usr/lib/python3.10/subprocess.py", line 505, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+  File "/usr/lib/python3.10/subprocess.py", line 1154, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+  File "/usr/lib/python3.10/subprocess.py", line 2022, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/usr/lib/python3.10/subprocess.py", line 1198, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '('nvidia-smi', '--query-gpu=index,uuid,memory.used', '--format=csv,noheader,nounits')' timed out after 60 seconds
+{
+  "run": "B2-L1-KDK-r1-20261117T181823Z",
+  "passed": true,
+  "levels": [
+    {
+      "level": 1,
+      "pid_continuity": true,
+      "golds": true
+    }
+  ],
+  "final_release_seconds": 60.947,
+  "final_all_gpu_zero": true
+}

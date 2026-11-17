@@ -1,0 +1,179 @@
+--- a/vllm/device_allocator/cumem.py
++++ b/vllm/device_allocator/cumem.py
+@@ -8,8 +8,10 @@
+ # both of them failed because of cuda context mismatch.
+ # not sure why, they are created from a different context.
+ # the only successful approach is to call cuda driver API in C.
++import ctypes
+ import dataclasses
+ import gc
++import mmap
+ import os
+ from collections.abc import Callable, Iterator
+ from contextlib import contextmanager
+@@ -48,11 +50,52 @@
+ HandleType = tuple[int, int, int, int]
+ 
+ 
++class _ExactPinnedBackup:
++    """Own one page-rounded host mapping outside PyTorch's pinned cache."""
++
++    device = torch.device("cpu")
++
++    def __init__(self, size: int):
++        register = libcudart.lib.cudaHostRegister
++        register.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_uint]
++        register.restype = ctypes.c_int
++        unregister = libcudart.lib.cudaHostUnregister
++        unregister.argtypes = [ctypes.c_void_p]
++        unregister.restype = ctypes.c_int
++        mapping = mmap.mmap(-1, size, flags=mmap.MAP_PRIVATE | mmap.MAP_ANONYMOUS)
++        try:
++            pointer = ctypes.addressof(ctypes.c_char.from_buffer(mapping))
++            libcudart.CUDART_CHECK(register(pointer, size, 0))
++        except BaseException:
++            mapping.close()
++            raise
++        self._mapping = mapping
++        self._pointer = pointer
++        self._size = size
++        self._unregister = unregister
++        self._registered = True
++
++    def data_ptr(self) -> int:
++        return self._pointer
++
++    def numel(self) -> int:
++        return self._size
++
++    def element_size(self) -> int:
++        return 1
++
++    def close(self) -> None:
++        if self._registered:
++            libcudart.CUDART_CHECK(self._unregister(self._pointer))
++            self._registered = False
++        self._mapping.close()
++
++
+ @dataclasses.dataclass
+ class AllocationData:
+     handle: HandleType
+     tag: str
+-    cpu_backup_tensor: torch.Tensor | None = None
++    cpu_backup_tensor: torch.Tensor | _ExactPinnedBackup | None = None
+ 
+ 
+ def create_and_map(allocation_handle: HandleType) -> None:
+@@ -131,6 +174,7 @@
+         self.pointer_to_data: dict[int, AllocationData] = {}
+         self.current_tag: str = CuMemAllocator.default_tag
+         self.allocator_and_pools: dict[str, Any] = {}
++        self._failed_host_releases: list[_ExactPinnedBackup] = []
+         # Creating strong references to the two callbacks here to prevent
+         # these ephemeral bound-method objects being garbage collected.
+         # See discussions in https://github.com/vllm-project/vllm/pull/22724
+@@ -158,8 +202,9 @@
+         Internal method to look up the allocation data
+         when memory is freed in the memory pool."""
+         data = self.pointer_to_data.pop(ptr)
+-        if data.cpu_backup_tensor is not None:
+-            data.cpu_backup_tensor = None
++        if isinstance(data.cpu_backup_tensor, _ExactPinnedBackup):
++            self._discard_host_backup(data.cpu_backup_tensor)
++        data.cpu_backup_tensor = None
+         logger.debug(
+             "Freed %s bytes for %s with address %s from cumem allocator",
+             data.handle[1],
+@@ -168,6 +213,30 @@
+         )
+         return data.handle
+ 
++    def _discard_host_backup(self, backup: _ExactPinnedBackup) -> None:
++        try:
++            backup.close()
++        except Exception:
++            # The C free callback still needs its handle. Retain any host
++            # range with uncertain registration until the worker exits.
++            self._failed_host_releases.append(backup)
++            logger.exception("Exact L1 host backup cleanup failed")
++
++    def _restore_exact_backup(self, ptr: int, data: AllocationData, backup: _ExactPinnedBackup) -> None:
++        try:
++            start = _sleep_timing_clock()
++            libcudart.cudaMemcpy(ptr, backup.data_ptr(), data.handle[1])
++            finish = _sleep_timing_clock()
++            backup.close()
++        except BaseException:
++            try:
++                unmap_and_release(data.handle)
++            except Exception:
++                logger.exception("Exact L1 restore rollback failed")
++            raise
++        data.cpu_backup_tensor = None
++        _sleep_timing_log('cpu_restore_copy', data.tag, data.handle[1], start, finish)
++
+     def sleep(self, offload_tags: tuple[str, ...] | str | None = None) -> None:
+         """
+         Put the allocator in sleep mode.
+@@ -185,6 +254,15 @@
+             offload_tags = (offload_tags,)
+ 
+         assert isinstance(offload_tags, tuple)
++        exact_weights = (
++            os.environ.get("SLLM_V11_EXACT_L1_PINNED_BACKUP") == "1"
++            and "weights" in offload_tags
++        )
++        if exact_weights:
++            if torch.version.cuda is None or not is_pin_memory_available():
++                raise RuntimeError("Exact L1 backup requires CUDA host registration")
++            if self._failed_host_releases:
++                raise RuntimeError("A previous exact L1 backup failed to release")
+ 
+         total_bytes = 0
+         backup_bytes = 0
+@@ -193,17 +271,28 @@
+             handle = data.handle
+             total_bytes += handle[1]
+             if data.tag in offload_tags:
++                if exact_weights and isinstance(data.cpu_backup_tensor, _ExactPinnedBackup):
++                    raise RuntimeError("An exact L1 backup is already attached to this allocation")
+                 backup_bytes += handle[1]
+                 size_in_bytes = handle[1]
+-                cpu_backup_tensor = torch.empty(
+-                    size_in_bytes,
+-                    dtype=torch.uint8,
+-                    device="cpu",
+-                    pin_memory=is_pin_memory_available(),
++                cpu_backup_tensor = (
++                    _ExactPinnedBackup(size_in_bytes)
++                    if exact_weights and data.tag == "weights"
++                    else torch.empty(
++                        size_in_bytes,
++                        dtype=torch.uint8,
++                        device="cpu",
++                        pin_memory=is_pin_memory_available(),
++                    )
+                 )
+                 cpu_ptr = cpu_backup_tensor.data_ptr()
+                 _phase_start = _sleep_timing_clock()
+-                libcudart.cudaMemcpy(cpu_ptr, ptr, size_in_bytes)
++                try:
++                    libcudart.cudaMemcpy(cpu_ptr, ptr, size_in_bytes)
++                except BaseException:
++                    if isinstance(cpu_backup_tensor, _ExactPinnedBackup):
++                        self._discard_host_backup(cpu_backup_tensor)
++                    raise
+                 _phase_end = _sleep_timing_clock()
+                 _sleep_timing_log('cpu_backup_copy', data.tag, handle[1], _phase_start, _phase_end)
+                 data.cpu_backup_tensor = cpu_backup_tensor
+@@ -243,6 +332,9 @@
+                 _sleep_timing_log('gpu_create_map', data.tag, handle[1], _phase_start, _phase_end)
+                 if data.cpu_backup_tensor is not None:
+                     cpu_backup_tensor = data.cpu_backup_tensor
++                    if isinstance(cpu_backup_tensor, _ExactPinnedBackup):
++                        self._restore_exact_backup(ptr, data, cpu_backup_tensor)
++                        continue
+                     if cpu_backup_tensor is not None:
+                         size_in_bytes = (
+                             cpu_backup_tensor.numel() * cpu_backup_tensor.element_size()

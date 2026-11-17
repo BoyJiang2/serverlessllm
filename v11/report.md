@@ -906,6 +906,72 @@ vLLM 0.20.1 的 L1 为每个权重段分别申请 pinned 缓冲。该镜像的 P
 
 S1–S3 到第三段结束都需同时保留三个权重备份。Kimi、V4 取 L1 备份实测，GLM 取同构型 L2 已标记权重作为 L1 负载估计。三份逻辑权重合计 2115.125 GiB，qjhs003 实测宿主总 RAM 为 1923.283 GiB。即使使用无取整开销的备份，再预留 200 GiB，第三段至少缺 391.842 GiB。该下界未计运行时内存，三条完整序列留待满足逐段准入的节点验证。 [权重字节与主机总量回执](large-pool-20261114/sleep-l1-kdk/three-model-ram-lower-bound.json)
 
+## 精确大小 CPU 备份的 Sleep L1 跨模型回访
+
+Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原生 L1 备份并使用 26 GiB/rank GPU KV 配置。这是单独的实验批次。完整验收通过 1 轮，实际结束 1 轮。 [补丁](large-pool-20261114/sleep-l1-kdk-candidate/cumem-exact-backup.patch) · [逐段审计](large-pool-20261114/sleep-l1-kdk-candidate/audit.json) · [证据索引](large-pool-20261114/sleep-l1-kdk-candidate/evidence-index.csv)
+
+### 精确备份 首次加载
+
+| 段 | 运行或统计 | 权重准备（s） | 新 GPU KV 分配（s） | 旧 KV 开始释放 → 新 KV 就绪（s） | 权重准备开始 → 可服务（s） | 可服务 → 首个正确响应（s） | 可服务 → 全套金标（s） | 金标 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Kimi 首次冷加载 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-K/c0-arithmetic-response.json) | 1115.939 | 0.394 | — | 1221.423 | 2.143 | 5.625 | 通过 |
+| Kimi 首次冷加载 | 有效 n · 中位数［范围］ | 1 · 1115.939［1115.939, 1115.939］ | 1 · 0.394［0.394, 0.394］ | 0 · — | 1 · 1221.423［1221.423, 1221.423］ | 1 · 2.143［2.143, 2.143］ | 1 · 5.625［5.625, 5.625］ | — |
+| DeepSeek 轮内首次加载 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-D/c0-business-response.json) | 291.462 | 0.367 | 525.116 | 571.197 | 20.047 | 27.620 | 通过 |
+| DeepSeek 轮内首次加载 | 有效 n · 中位数［范围］ | 1 · 291.462［291.462, 291.462］ | 1 · 0.367［0.367, 0.367］ | 1 · 525.116［525.116, 525.116］ | 1 · 571.197［571.197, 571.197］ | 1 · 20.047［20.047, 20.047］ | 1 · 27.620［27.620, 27.620］ | — |
+
+### 精确备份 原 Worker 回访唤醒
+
+| 段 | 运行或统计 | 权重准备（s） | 新 GPU KV 分配（s） | 旧 KV 开始释放 → 新 KV 就绪（s） | 权重准备开始 → 可服务（s） | 可服务 → 首个正确响应（s） | 可服务 → 全套金标（s） | 金标 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Kimi 原 Worker 回访唤醒 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-K/c1-arithmetic-response.json) | 12.849 | 2.383 | 107.124 | 13.103 | 2.253 | 5.561 | 通过 |
+| Kimi 原 Worker 回访唤醒 | 有效 n · 中位数［范围］ | 1 · 12.849［12.849, 12.849］ | 1 · 2.383［2.383, 2.383］ | 1 · 107.124［107.124, 107.124］ | 1 · 13.103［13.103, 13.103］ | 1 · 2.253［2.253, 2.253］ | 1 · 5.561［5.561, 5.561］ | — |
+
+统计行只使用通过完整三段验收的轮次。未执行或缺端点的字段显示为 `—`，派生数据保留 `null`。首个响应以该模型的首个业务请求完整响应与金标配对，Kimi 为 arithmetic，DeepSeek 为 business。
+
+| 运行 | 段 | 段末 CPU 逻辑备份（GiB） | 备份拷贝（s） | 原生 Sleep（s） | 恢复拷贝（s） | 原生 Wake（s） |
+| --- | --- | --- | --- | --- | --- | --- |
+| B2-L1-KDK-r1-20261117T181823Z | Kimi 首次冷加载 | 579.516 | 56.707 | 57.441 | — | — |
+| 有效 n · 中位数［范围］ | Kimi 首次冷加载 | — | 1 · 56.707［56.707, 56.707］ | 1 · 57.441［57.441, 57.441］ | 0 · — | 0 · — |
+| B2-L1-KDK-r1-20261117T181823Z | DeepSeek 轮内首次加载 | 820.422 | 103.645 | 104.382 | — | — |
+| 有效 n · 中位数［范围］ | DeepSeek 轮内首次加载 | — | 1 · 103.645［103.645, 103.645］ | 1 · 104.382［104.382, 104.382］ | 0 · — | 0 · — |
+| B2-L1-KDK-r1-20261117T181823Z | Kimi 原 Worker 回访唤醒 | 0.000 | — | — | 12.845 | 13.033 |
+| 有效 n · 中位数［范围］ | Kimi 原 Worker 回访唤醒 | — | 0 · — | 0 · — | 1 · 12.845［12.845, 12.845］ | 1 · 13.033［13.033, 13.033］ |
+
+两份备份同时驻留的证据取自两模型各自的八 rank Sleep 回执及 DeepSeek 休眠后的双 cgroup 快照。Kimi 的其他匿名内存以同点 anon 扣除匿名映射中的备份字节估算。DeepSeek 原生备份计入 shmem，其他匿名内存直接取该点 anon。
+
+| 运行 | 阶段 | 模型 | CPU 逻辑备份（GiB） | cgroup current（GiB） | anon（GiB） | shmem（GiB） | file 扣除 shmem（GiB） | 其他匿名内存（GiB） | 宿主 MemAvailable（GiB） |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| B2-L1-KDK-r1-20261117T181823Z | Kimi 休眠后 | Kimi-K2.6 | 579.516 | 967.479 | 599.423 | 0.401 | 365.076 | 19.908 | 1266.712 |
+| B2-L1-KDK-r1-20261117T181823Z | 双备份驻留 | Kimi-K2.6 | 579.516 | 625.256 | 599.423 | 0.401 | 22.884 | 19.908 | 382.439 |
+| B2-L1-KDK-r1-20261117T181823Z | 双备份驻留 | DeepSeek-V4-Pro | 820.422 | 946.078 | 17.976 | 849.967 | 74.067 | 17.976 | 382.439 |
+
+| 运行 | 整轮验收 | 停止位置 | 八卡归零观察（s） | 释放验收 |
+| --- | --- | --- | --- | --- |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | 通过 | — | 60.947 | 通过 |
+
+| 运行 | 模型 | RAM 核对点 | 结果 | 宿主可用（GiB） | 宿主需求（GiB） | 宿主差额（GiB） | cgroup 扣除门槛后最小差额（GiB） | 证据 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | Kimi-K2.6 | 金标后、Sleep 备份前 | 满足 | 1856.235 | 1093.271 | 762.963 | 598.726 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/L1-00-K-backup-capacity.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | DeepSeek-V4-Pro | V4 启动预算 | 满足 | 1266.712 | 225.904 | 1040.808 | — | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/L1-01-D-ram-admission.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | DeepSeek-V4-Pro | V4 加载至第二份备份预算 | 满足 | 1266.712 | 1085.165 | 181.547 | — | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/L1-01-D-ram-admission.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | DeepSeek-V4-Pro | 金标后、Sleep 备份前 | 满足 | 1244.220 | 1065.263 | 178.957 | 360.709 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/L1-01-D-backup-capacity.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | Kimi-K2.6 | 原 Kimi Worker 唤醒前 | 满足 | 382.408 | 200.000 | 182.408 | 327.989 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/L1-02-K-ram-admission.json) |
+
+V4 启动预算和第二份备份预算是同次现场采样下的两项模型预算。Sleep 前另用当时的可用量和 cgroup 计费复核。
+
+| 运行 | 模型 | HBM 准入点 | 结果 | 最少空闲（MiB/卡） | 需求（MiB/卡） | 最小余量（MiB/卡） | 证据 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | Kimi-K2.6 | Kimi 首次冷加载 | 通过 | 143157 | 123853 | 19304 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/00-K-vram-gate.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | DeepSeek-V4-Pro | DeepSeek 轮内首次加载 | 通过 | 140432 | 139830 | 602 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/01-D-vram-gate.json) |
+| [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | Kimi-K2.6 | Kimi 原 Worker 回访唤醒 | 通过 | 135900 | 116286 | 19614 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/02-K-vram-gate.json) |
+
+从仓库根目录重算本节。
+
+```bash
+python -B v11/large-pool-20261114/audit_l1_kdk.py --candidate-cohort v11/large-pool-20261114/sleep-l1-kdk-candidate/runs > v11/large-pool-20261114/sleep-l1-kdk-candidate/audit.json
+python -B v11/make_experiment_report.py
+```
+
 ## Kimi WNA16 修复后的三模型 Sleep L2 复验
 
 沿用 TP8、每 rank 16 GiB GPU KV 和原生 checkpoint。Kimi 用已验收的 WNA16 补丁，V4 用已验收的 Marlin scale 修复。每个模型的实际镜像、逐 rank 导入路径和 SHA 见本轮验收证据。
