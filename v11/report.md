@@ -908,7 +908,7 @@ S1–S3 到第三段结束都需同时保留三个权重备份。Kimi、V4 取 L
 
 ## 精确大小 CPU 备份的 Sleep L1 跨模型回访
 
-Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原生 L1 备份并使用 26 GiB/rank GPU KV 配置。这是单独的实验批次。完整验收通过 2 轮，实际结束 2 轮。 [补丁](large-pool-20261114/sleep-l1-kdk-candidate/cumem-exact-backup.patch) · [逐段审计](large-pool-20261114/sleep-l1-kdk-candidate/audit.json) · [证据索引](large-pool-20261114/sleep-l1-kdk-candidate/evidence-index.csv)
+Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原生 L1 备份并使用 26 GiB/rank GPU KV 配置。这是单独的实验批次。完整验收通过 3 轮，实际结束 3 轮。 [补丁](large-pool-20261114/sleep-l1-kdk-candidate/cumem-exact-backup.patch) · [逐段审计](large-pool-20261114/sleep-l1-kdk-candidate/audit.json) · [证据索引](large-pool-20261114/sleep-l1-kdk-candidate/evidence-index.csv)
 
 ### 精确备份 首次加载
 
@@ -916,10 +916,12 @@ Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原�
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Kimi 首次冷加载 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-K/c0-arithmetic-response.json) | 1115.939 | 0.394 | — | 1221.423 | 2.143 | 5.625 | 通过 |
 | Kimi 首次冷加载 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/worker-K/c0-arithmetic-response.json) | 1104.328 | 0.346 | — | 1184.119 | 1.952 | 5.368 | 通过 |
-| Kimi 首次冷加载 | 有效 n · 中位数［范围］ | 2 · 1110.133［1104.328, 1115.939］ | 2 · 0.370［0.346, 0.394］ | 0 · — | 2 · 1202.771［1184.119, 1221.423］ | 2 · 2.048［1.952, 2.143］ | 2 · 5.497［5.368, 5.625］ | — |
+| Kimi 首次冷加载 | [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/worker-K/c0-arithmetic-response.json) | 1100.387 | 0.384 | — | 1190.565 | 2.034 | 5.354 | 通过 |
+| Kimi 首次冷加载 | 有效 n · 中位数［范围］ | 3 · 1104.328［1100.387, 1115.939］ | 3 · 0.384［0.346, 0.394］ | 0 · — | 3 · 1190.565［1184.119, 1221.423］ | 3 · 2.034［1.952, 2.143］ | 3 · 5.368［5.354, 5.625］ | — |
 | DeepSeek 轮内首次加载 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-D/c0-business-response.json) | 291.462 | 0.367 | 525.116 | 571.197 | 20.047 | 27.620 | 通过 |
 | DeepSeek 轮内首次加载 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/worker-D/c0-business-response.json) | 368.735 | 0.370 | 536.229 | 648.391 | 21.617 | 29.524 | 通过 |
-| DeepSeek 轮内首次加载 | 有效 n · 中位数［范围］ | 2 · 330.098［291.462, 368.735］ | 2 · 0.369［0.367, 0.370］ | 2 · 530.673［525.116, 536.229］ | 2 · 609.794［571.197, 648.391］ | 2 · 20.832［20.047, 21.617］ | 2 · 28.572［27.620, 29.524］ | — |
+| DeepSeek 轮内首次加载 | [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/worker-D/c0-business-response.json) | 251.762 | 0.374 | 423.552 | 529.566 | 20.484 | 28.149 | 通过 |
+| DeepSeek 轮内首次加载 | 有效 n · 中位数［范围］ | 3 · 291.462［251.762, 368.735］ | 3 · 0.370［0.367, 0.374］ | 3 · 525.116［423.552, 536.229］ | 3 · 571.197［529.566, 648.391］ | 3 · 20.484［20.047, 21.617］ | 3 · 28.149［27.620, 29.524］ | — |
 
 ### 精确备份 原 Worker 回访唤醒
 
@@ -927,7 +929,8 @@ Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原�
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Kimi 原 Worker 回访唤醒 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/L1/worker-K/c1-arithmetic-response.json) | 12.849 | 2.383 | 107.124 | 13.103 | 2.253 | 5.561 | 通过 |
 | Kimi 原 Worker 回访唤醒 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/worker-K/c1-arithmetic-response.json) | 7.943 | 1.012 | 87.146 | 8.173 | 2.506 | 5.790 | 通过 |
-| Kimi 原 Worker 回访唤醒 | 有效 n · 中位数［范围］ | 2 · 10.396［7.943, 12.849］ | 2 · 1.698［1.012, 2.383］ | 2 · 97.135［87.146, 107.124］ | 2 · 10.638［8.173, 13.103］ | 2 · 2.379［2.253, 2.506］ | 2 · 5.675［5.561, 5.790］ | — |
+| Kimi 原 Worker 回访唤醒 | [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/worker-K/c1-arithmetic-response.json) | 6.224 | 0.350 | 83.398 | 6.624 | 2.570 | 6.005 | 通过 |
+| Kimi 原 Worker 回访唤醒 | 有效 n · 中位数［范围］ | 3 · 7.943［6.224, 12.849］ | 3 · 1.012［0.350, 2.383］ | 3 · 87.146［83.398, 107.124］ | 3 · 8.173［6.624, 13.103］ | 3 · 2.506［2.253, 2.570］ | 3 · 5.790［5.561, 6.005］ | — |
 
 统计行只使用通过完整三段验收的轮次。未执行或缺端点的字段显示为 `—`，派生数据保留 `null`。首个响应以该模型的首个业务请求完整响应与金标配对，Kimi 为 arithmetic，DeepSeek 为 business。
 
@@ -935,13 +938,16 @@ Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原�
 | --- | --- | --- | --- | --- | --- | --- |
 | B2-L1-KDK-r1-20261117T181823Z | Kimi 首次冷加载 | 579.516 | 56.707 | 57.441 | — | — |
 | B2-L1-KDK-r2-20261117T190039Z | Kimi 首次冷加载 | 579.516 | 23.678 | 24.276 | — | — |
-| 有效 n · 中位数［范围］ | Kimi 首次冷加载 | — | 2 · 40.193［23.678, 56.707］ | 2 · 40.858［24.276, 57.441］ | 0 · — | 0 · — |
+| B2-L1-KDK-r3-20261117T194155Z | Kimi 首次冷加载 | 579.516 | 19.605 | 20.161 | — | — |
+| 有效 n · 中位数［范围］ | Kimi 首次冷加载 | — | 3 · 23.678［19.605, 56.707］ | 3 · 24.276［20.161, 57.441］ | 0 · — | 0 · — |
 | B2-L1-KDK-r1-20261117T181823Z | DeepSeek 轮内首次加载 | 820.422 | 103.645 | 104.382 | — | — |
 | B2-L1-KDK-r2-20261117T190039Z | DeepSeek 轮内首次加载 | 820.422 | 75.177 | 76.142 | — | — |
-| 有效 n · 中位数［范围］ | DeepSeek 轮内首次加载 | — | 2 · 89.411［75.177, 103.645］ | 2 · 90.262［76.142, 104.382］ | 0 · — | 0 · — |
+| B2-L1-KDK-r3-20261117T194155Z | DeepSeek 轮内首次加载 | 820.422 | 64.458 | 65.203 | — | — |
+| 有效 n · 中位数［范围］ | DeepSeek 轮内首次加载 | — | 3 · 75.177［64.458, 103.645］ | 3 · 76.142［65.203, 104.382］ | 0 · — | 0 · — |
 | B2-L1-KDK-r1-20261117T181823Z | Kimi 原 Worker 回访唤醒 | 0.000 | — | — | 12.845 | 13.033 |
 | B2-L1-KDK-r2-20261117T190039Z | Kimi 原 Worker 回访唤醒 | 0.000 | — | — | 7.867 | 8.125 |
-| 有效 n · 中位数［范围］ | Kimi 原 Worker 回访唤醒 | — | 0 · — | 0 · — | 2 · 10.356［7.867, 12.845］ | 2 · 10.579［8.125, 13.033］ |
+| B2-L1-KDK-r3-20261117T194155Z | Kimi 原 Worker 回访唤醒 | 0.000 | — | — | 6.220 | 6.582 |
+| 有效 n · 中位数［范围］ | Kimi 原 Worker 回访唤醒 | — | 0 · — | 0 · — | 3 · 7.867［6.220, 12.845］ | 3 · 8.125［6.582, 13.033］ |
 
 两份备份同时驻留的证据取自两模型各自的八 rank Sleep 回执及 DeepSeek 休眠后的双 cgroup 快照。Kimi 的其他匿名内存以同点 anon 扣除匿名映射中的备份字节估算。DeepSeek 原生备份计入 shmem，其他匿名内存直接取该点 anon。
 
@@ -953,11 +959,15 @@ Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原�
 | B2-L1-KDK-r2-20261117T190039Z | Kimi 休眠后 | Kimi-K2.6 | 579.516 | 1154.644 | 599.413 | 0.401 | 552.259 | 19.898 | 1267.681 |
 | B2-L1-KDK-r2-20261117T190039Z | 双备份驻留 | Kimi-K2.6 | 579.516 | 654.041 | 599.413 | 0.401 | 51.693 | 19.898 | 384.650 |
 | B2-L1-KDK-r2-20261117T190039Z | 双备份驻留 | DeepSeek-V4-Pro | 820.422 | 1037.651 | 17.878 | 849.967 | 165.030 | 17.878 | 384.650 |
+| B2-L1-KDK-r3-20261117T194155Z | Kimi 休眠后 | Kimi-K2.6 | 579.516 | 1157.581 | 599.423 | 0.401 | 555.180 | 19.907 | 1267.469 |
+| B2-L1-KDK-r3-20261117T194155Z | 双备份驻留 | Kimi-K2.6 | 579.516 | 655.433 | 599.423 | 0.401 | 53.052 | 19.907 | 384.469 |
+| B2-L1-KDK-r3-20261117T194155Z | 双备份驻留 | DeepSeek-V4-Pro | 820.422 | 1052.260 | 18.107 | 849.967 | 179.182 | 18.107 | 384.469 |
 
 | 运行 | 整轮验收 | 停止位置 | 八卡归零观察（s） | 释放验收 |
 | --- | --- | --- | --- | --- |
 | [B2-L1-KDK-r1-20261117T181823Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r1-20261117T181823Z/qualification.json) | 通过 | — | 60.947 | 通过 |
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | 通过 | — | 60.978 | 通过 |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | 通过 | — | 60.907 | 通过 |
 
 | 运行 | 模型 | RAM 核对点 | 结果 | 宿主可用（GiB） | 宿主需求（GiB） | 宿主差额（GiB） | cgroup 扣除门槛后最小差额（GiB） | 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -971,6 +981,11 @@ Kimi 在 L1 使用按页对齐的匿名映射保存权重。DeepSeek 保留原�
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | DeepSeek-V4-Pro | V4 加载至第二份备份预算 | 满足 | 1267.663 | 1085.165 | 182.498 | — | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/L1-01-D-ram-admission.json) |
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | DeepSeek-V4-Pro | 金标后、Sleep 备份前 | 满足 | 1247.211 | 1065.263 | 181.948 | 360.104 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/L1-01-D-backup-capacity.json) |
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | Kimi-K2.6 | 原 Kimi Worker 唤醒前 | 满足 | 384.636 | 200.000 | 184.636 | 327.379 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/L1-02-K-ram-admission.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | Kimi-K2.6 | 金标后、Sleep 备份前 | 满足 | 1855.522 | 1093.271 | 762.251 | 598.731 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/L1-00-K-backup-capacity.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | DeepSeek-V4-Pro | V4 启动预算 | 满足 | 1267.435 | 225.904 | 1041.531 | — | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/L1-01-D-ram-admission.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | DeepSeek-V4-Pro | V4 加载至第二份备份预算 | 满足 | 1267.435 | 1085.165 | 182.270 | — | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/L1-01-D-ram-admission.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | DeepSeek-V4-Pro | 金标后、Sleep 备份前 | 满足 | 1247.256 | 1065.263 | 181.992 | 359.680 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/L1-01-D-backup-capacity.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | Kimi-K2.6 | 原 Kimi Worker 唤醒前 | 满足 | 384.492 | 200.000 | 184.492 | 326.922 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/L1-02-K-ram-admission.json) |
 
 V4 启动预算和第二份备份预算是同次现场采样下的两项模型预算。Sleep 前另用当时的可用量和 cgroup 计费复核。
 
@@ -982,6 +997,9 @@ V4 启动预算和第二份备份预算是同次现场采样下的两项模型�
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | Kimi-K2.6 | Kimi 首次冷加载 | 通过 | 143157 | 123853 | 19304 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/00-K-vram-gate.json) |
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | DeepSeek-V4-Pro | DeepSeek 轮内首次加载 | 通过 | 140434 | 139830 | 604 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/01-D-vram-gate.json) |
 | [B2-L1-KDK-r2-20261117T190039Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/qualification.json) | Kimi-K2.6 | Kimi 原 Worker 回访唤醒 | 通过 | 135902 | 116286 | 19616 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r2-20261117T190039Z/L1/02-K-vram-gate.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | Kimi-K2.6 | Kimi 首次冷加载 | 通过 | 143157 | 123853 | 19304 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/00-K-vram-gate.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | DeepSeek-V4-Pro | DeepSeek 轮内首次加载 | 通过 | 140434 | 139830 | 604 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/01-D-vram-gate.json) |
+| [B2-L1-KDK-r3-20261117T194155Z](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/qualification.json) | Kimi-K2.6 | Kimi 原 Worker 回访唤醒 | 通过 | 135902 | 116286 | 19616 | [回执](large-pool-20261114/sleep-l1-kdk-candidate/runs/B2-L1-KDK-r3-20261117T194155Z/L1/02-K-vram-gate.json) |
 
 从仓库根目录重算本节。
 
