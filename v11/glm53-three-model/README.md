@@ -50,6 +50,8 @@ python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2
 
 将 `S1_RUN`、`S2_RUN`、`S3_RUN` 替换为 qjhs003 的完整原始回执目录。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)
 
+将同轮主机采样 JSONL 传给 `recompute_joint_b2.py --host-memory` 可复算从逐段准入到该段休眠完成的可用 RAM 低点。复算匹配两池的实际容器 ID，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
+
 ## 从双池采样重算主机 slab
 
 在 qjhs003 将 `S1_TRACE` 和 `S2_TRACE` 替换为 [Store 内存时间线](derived/store-memory-lifecycle.json) 中的路径。命令只读取各轮指定单调端点之前的完整记录，并输出该前缀的 SHA-256。

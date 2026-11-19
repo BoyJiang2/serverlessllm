@@ -337,7 +337,8 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
     if fresh and first_alloc and previous and previous['unmap_begin_ns'] is not None:
         old_to_new_s = seconds(previous['unmap_begin_ns'], first_alloc['end_ns'])
     return dict(index=index, model=model, mode=mode, equivalent_workers=fresh is False,
-                evidence=step.name, precheck_ns=gate['ns'], activation_ns=active, native_ready_ns=native, ready_ns=ready,
+                evidence=step.name, precheck_ns=gate['ns'], ram_at_admission_bytes=gate['available_bytes'],
+                activation_ns=active, native_ready_ns=native, ready_ns=ready,
                 activation_to_serve_s=seconds(active, ready), activation_to_first_gold_s=seconds(active, kv['first_ns']),
                 activation_to_all_gold_s=seconds(active, kv['all_ns']), full_first_weight_load=weight,
                 weight_preparation_s=weight_prep_s, checkpoint_reload_s=reload_s, wake_stages=wake_stages,
@@ -462,12 +463,45 @@ def inspect(root):
     return out
 
 
+def add_host_memory(run, result, path):
+    """Use complete monitor samples from the same resident pool containers."""
+    source = path.read_bytes()
+    prefix = source[:source.rfind(b'\n') + 1]
+    ids = {role: read(run / f'{role}-created.json')['Id'] for role in ('lmcache', 'store')}
+    samples = []
+    for line in prefix.splitlines():
+        sample = json.loads(line)
+        if all((sample['services'].get(role) or {}).get('container') == cid for role, cid in ids.items()):
+            samples.append(sample)
+    require(samples, 'Host memory trace does not contain both run-specific pools')
+    result['host_monitor'] = dict(path=str(path), read_bytes=len(prefix), sha256=hashlib.sha256(prefix).hexdigest())
+    for step in result['segments']:
+        begin, end = step['precheck_ns'], step['sleep_end_ns']
+        window = [s for s in samples if begin <= s['start_ns'] <= s['end_ns'] <= end]
+        step['host_memory'] = None
+        if not window:
+            continue
+        low = min(window, key=lambda s: s['host']['MemAvailable'])
+        gap = max((right['start_ns'] - left['start_ns'] for left, right in zip(window, window[1:])), default=0)
+        minimum = low['host']['MemAvailable']
+        step['host_memory'] = dict(sample_count=len(window), min_available_bytes=minimum,
+                                   max_drop_from_admission_bytes=step['ram_at_admission_bytes'] - minimum,
+                                   min_sample_ns=low['start_ns'], max_gap_ns=gap,
+                                   covers_window_to_3s=max(window[0]['start_ns'] - begin,
+                                                           end - window[-1]['end_ns'], gap) <= 3 * 10**9,
+                                   anon_bytes_at_min={role: state['anon'] for role, state in low['services'].items()
+                                                      if state is not None})
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path)
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--host-memory', type=Path, help='same-run observe_pool_memory JSONL')
     args = parser.parse_args()
     result = inspect(args.run)
+    if args.host_memory:
+        add_host_memory(args.run, result, args.host_memory)
     data = json.dumps(result, indent=2) + '\n'
     if args.output:
         args.output.write_text(data, encoding='utf-8')

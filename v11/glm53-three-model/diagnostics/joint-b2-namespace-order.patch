@@ -1,0 +1,158 @@
+--- a/b2_host_kv.py
++++ b/b2_host_kv.py
+@@ -74,30 +74,24 @@
+     return rows
+ 
+ 
+-def namespace_probe(cid, python, namespace, previous_namespace, tokens, path, deadline):
+-    assert namespace != previous_namespace
+-    namespaces = {'previous': previous_namespace, 'active': namespace}
++def namespace_probe(cid, python, namespace, tokens, path, deadline, *, expected_hits):
+     started_ns = time.monotonic_ns()
+     process = subprocess.run(['docker', 'exec', '-i', cid, python, '-B', '/joint/b2_namespace_lookup.py'],
+-                             input=json.dumps(dict(port=MQ_PORT, namespaces=namespaces, tokens=tokens)),
++                             input=json.dumps(dict(port=MQ_PORT, namespace=namespace, tokens=tokens)),
+                              capture_output=True, text=True, timeout=remaining_timeout(deadline, 135))
+     path.with_suffix('.log').write_text(process.stdout + process.stderr)
+     process.check_returncode()
+     receipt = json.loads(process.stdout.splitlines()[-1])
+-    assert receipt['previous']['token_sha256'] == receipt['active']['token_sha256'], receipt
+-    requests = {result['request_id'] for result in receipt.values()}
+-    assert len(requests) == 2
+     evidence = path.parent.parent / 'lmcache/lookup-completions.jsonl'
+-    rows = lookup_completions(evidence, requests, started_ns, deadline)
+-    write(path, dict(receipt=receipt, server=rows))
+-    by_id = {row['request_id']: row for row in rows}
+-    for name, expected in (('previous', 512), ('active', 0)):
+-        result = receipt[name]
+-        row = by_id[result['request_id']]
+-        assert result['namespace'] == row['model_name'] == namespaces[name], result
+-        assert result['hit_tokens'] == row['hit_tokens'] == expected, row
+-        assert row['requested_tokens'] == 512 and not row['early_exit_reason'], row
+-    return receipt
++    row, = lookup_completions(evidence, {receipt['request_id']}, started_ns, deadline)
++    timing = dict(started_ns=started_ns, finished_ns=time.monotonic_ns())
++    result = dict(receipt=receipt, server=row, **timing)
++    write(path, result)
++    assert receipt['namespace'] == row['model_name'] == namespace, result
++    assert receipt['hit_tokens'] == row['hit_tokens'] == expected_hits, result
++    assert row['requested_tokens'] == 512 and not row['early_exit_reason'], result
++    assert timing['started_ns'] <= row['ns'] <= timing['finished_ns'], result
++    return result
+ 
+ 
+ def probe(root, step, key, namespace, worker_path, rows, command, phase, hit_tokens, deadline):
+--- a/b2_sequence.py
++++ b/b2_sequence.py
+@@ -123,13 +123,16 @@
+     assert not ledger.resident
+     steps = []
+     previous = None
++    outgoing_lookup = None
++    retained_after_sleep = None
+     for index, key in enumerate(sequence):
+         remaining_timeout(deadline, 1)
+         step = root / f'{index:02d}-{key}-{plan["workers"][key]["name"]}'
+         step.mkdir()
+         worker = workers[key]
+         fresh = worker.cid is None
+-        mode = ('safetensors_disk_cold' if index == 0 else 'store_inplace_cumem') if fresh else 'checkpoint_wake'
++        load = plan['first_load'] if index == 0 else plan['subsequent_first_load']
++        mode = load if fresh else 'checkpoint_wake'
+         headroom, required = phase_headroom(admission, mode, key)
+         stamp = time.monotonic_ns()
+         memory = available_bytes()
+@@ -182,12 +185,25 @@
+         assert worker.namespace == namespace
+         write(step / 'registered.json', dict(ranks=ranks, status=active, native_ready_ns=native_ready_ns,
+                                              ready_ns=ready_ns))
+-        if previous is not None:
++        if previous is not None and previous != key:
+             other = workers[previous]
+-            assert other.keys and other.tokens
+-            namespace_probe(lmc_cid, lmcache_python, namespace, other.namespace, other.tokens,
+-                            step / 'cross-model-lookup.json', deadline)
+-            assert status_bytes(pool_snapshot(instances, deadline)) == status_bytes(active)
++            assert other.keys and other.tokens and outgoing_lookup
++            previous_probe = outgoing_lookup['receipt']
++            assert previous_probe['namespace'] == other.namespace != namespace
++            assert status_bytes(active) == retained_after_sleep
++            active_lookup = namespace_probe(lmc_cid, lmcache_python, namespace, other.tokens,
++                                            step / 'incoming-namespace-lookup.json', deadline, expected_hits=0)
++            active_probe = active_lookup['receipt']
++            assert previous_probe['token_sha256'] == active_probe['token_sha256']
++            assert outgoing_lookup['finished_ns'] <= ready_ns <= active_lookup['started_ns']
++            after_lookup = status_bytes(pool_snapshot(instances, deadline))
++            assert after_lookup == retained_after_sleep
++            write(step / 'cross-model-lookup.json', dict(
++                receipt=dict(previous=previous_probe, active=active_probe),
++                server=[outgoing_lookup['server'], active_lookup['server']],
++                intervals=dict(previous={k: outgoing_lookup[k] for k in ('started_ns', 'finished_ns')},
++                               active={k: active_lookup[k] for k in ('started_ns', 'finished_ns')}),
++                retained_after_sleep=retained_after_sleep, retained_after_lookup=after_lookup))
+ 
+         phase = f'{index:02d}-first' if fresh else f'{index:02d}-wake'
+         kv = probe(root, step, key, namespace, worker.directory, ranks, worker.command, phase,
+@@ -215,14 +231,23 @@
+ 
+         offset = len(ledger.events)
+         snapshot_store(store_cid, store_log, ledger)
+-        lookup = set(inventories[key]) if fresh and index > 0 else set()
++        lookup = set(inventories[key]) if mode == 'store_inplace_cumem' else set()
+         cache = ledger.step(offset, lookup)
+         if lookup:
+             assert cache['file_read_bytes'] + cache['hit_bytes'] == sum(inventories[key].values()), cache
++            if index == 0:
++                assert cache['cache_state'] == 'full_miss' and cache['hit_bytes'] == 0, cache
+         else:
+             assert cache['file_read_bytes'] == cache['hit_bytes'] == 0, cache
+             cache['cache_state'] = 'safetensors_disk_cold' if fresh else 'not_used'
+ 
++        outgoing_lookup = None
++        if index + 1 < len(sequence) and sequence[index + 1] != key:
++            # LMCache drops the namespace's layout on its final GPU unregister.
++            # Query the outgoing prefix before detach and reuse it after the switch.
++            outgoing_lookup = namespace_probe(lmc_cid, lmcache_python, namespace, worker.tokens,
++                                              step / 'outgoing-namespace-lookup.json', deadline, expected_hits=512)
++        bound_bytes = status_bytes(pool_snapshot(instances, deadline))
+         hbm_before = gpu_state()[1]
+         detached = worker.observe('unregister')
+         inactive = pool_snapshot([], deadline)
+@@ -232,12 +257,14 @@
+         assert sleep['sleeping'] is True and sleep['level'] == 2
+         after_sleep = worker.observe('observe')
+         assert all(not row['bound'] and row['asleep'] is True for row in after_sleep)
+-        assert status_bytes(pool_snapshot([], deadline)) == status_bytes(inactive)
++        host_after_sleep = pool_snapshot([], deadline)
++        retained_after_sleep = status_bytes(host_after_sleep)
++        assert retained_after_sleep == status_bytes(inactive) == bound_bytes
+         hbm_after = gpu_state()[1]
+         assert all(new < original for new, original in zip(hbm_after, hbm_before, strict=True)), (hbm_before, hbm_after)
+         sleep_phases = sleep if key == 'G' else read(worker.directory / f'sleep-{old_index:04d}-phases.json')
+         write(step / 'sleep.json', dict(ack=sleep, stages=sleep_phases, hbm_mib_before=hbm_before,
+-                                        hbm_mib_after=hbm_after, ranks=after_sleep))
++                                        hbm_mib_after=hbm_after, ranks=after_sleep, host_status=host_after_sleep))
+         result = dict(index=index, model=key, mode=mode, activation_ns=activation, ready_ns=ready_ns,
+                       native_ready_ns=native_ready_ns,
+                       sleep_end_ns=sleep_phases['sleep_end_ns'], gold=True, store=cache,
+@@ -251,6 +278,9 @@
+         if worker.keys:
+             delete_keys(root, f'final-{worker.name}', worker.namespace, worker.keys, [], deadline)
+         worker.command('shutdown')
+-    assert status_bytes(pool_snapshot([], deadline)) == (0, 0)
+-    write(root / 'joint-sequence.json', dict(started_ns=first_ns, finished_ns=time.monotonic_ns(), steps=steps))
++    final_host = pool_snapshot([], deadline)
++    finished_ns = time.monotonic_ns()
++    write(root / 'lmcache-final-empty.json', dict(ns=finished_ns, status=final_host))
++    assert status_bytes(final_host) == (0, 0)
++    write(root / 'joint-sequence.json', dict(started_ns=first_ns, finished_ns=finished_ns, steps=steps))
+     return steps
+--- a/overlay/b2_namespace_lookup.py
++++ b/overlay/b2_namespace_lookup.py
+@@ -32,5 +32,4 @@
+ 
+ if __name__ == '__main__':
+     request = json.load(sys.stdin)
+-    print(json.dumps({name: lookup(request['port'], namespace, request['tokens'])
+-                      for name, namespace in request['namespaces'].items()}))
++    print(json.dumps(lookup(request['port'], request['namespace'], request['tokens'])))
