@@ -79,7 +79,9 @@ S1 首次执行 `B2-GLM53-S1-20261119T205243Z` 在守护器校验截止时间时
 
 第二次 `B2-GLM53-S1-20261119T205548Z` 通过守护器校验，LMCache 因 FD 接收器的 `RLIMIT_NOFILE` 不足退出。该轮执行 0/7 段，独立清理后八卡归零 61.055 秒。LMCache 容器现在显式使用 `nofile=8192:8192`，控制器也检查服务是否在就绪前退出。[LMCache 原始日志](raw/B2-GLM53-S1-20261119T205548Z/external-cleanup/lmcache-final.log) · [清理回执](raw/B2-GLM53-S1-20261119T205548Z/external-cleanup/result.json)
 
-第三次 `B2-GLM53-S1-20261119T210129Z` 开池前实测可用 RAM 1877.129 GiB。LMCache 已进入初始化，正式七段的验收待最终回执。[实际准入](raw/B2-GLM53-S1-20261119T210129Z/live-admission.json) · [控制器文件指纹](raw/B2-GLM53-S1-20261119T210129Z/controller-source.json)
+第三次 `B2-GLM53-S1-20261119T210129Z` 完成 1/7 段。Kimi 从冷页启动并通过金标，Host KV 实写 34.312 MiB。GLM-5.3 八 rank 从 Store 读取的路径总量为 757,596,880,896 B，包含后处理的加载调用跨度为 125.566 秒。旧模型注销后，LMCache 查询返回 `no_gpu_context`，解锁 RPC 随后超时，GLM-5.3 本段尚未执行金标。原始回执保留两项 Worker 清理错误，八卡连续归零 60.927 秒。[独立复核](raw/B2-GLM53-S1-20261119T210129Z/verification.json) · [原始文件索引](raw/B2-GLM53-S1-20261119T210129Z/evidence-index.json)
+
+对照查询移至两个模型实际注册的窗口。先在旧模型注销前确认同一 512-token 前缀命中，再在新模型注册后验证该前缀零命中。检查切换前后的池内对象数和字节数。后续回访以原 Worker 八 rank 的实际 H2D 及金标验证保留的数据。
 
 ## 验收要求
 

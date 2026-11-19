@@ -1,0 +1,42 @@
+{
+  "qualified": false,
+  "sequence": "S1",
+  "steps": [
+    {
+      "index": 0,
+      "model": "K",
+      "mode": "safetensors_disk_cold",
+      "activation_ns": 2247014126342224,
+      "ready_ns": 2248338456776133,
+      "native_ready_ns": 2248337783199518,
+      "sleep_end_ns": 2248348677606441,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 27648,
+          "used_blocks": 0,
+          "resident_paths": [],
+          "resident_payload_bytes": 0
+        },
+        "events": []
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2248340707418337,
+      "all_business_ns": 2248344010931640
+    }
+  ],
+  "error": "CalledProcessError(1, ['docker', 'exec', '-i', '559918b694482114e6fe5d5b94b99eb9b4f1e70c8b2f40d065797dc2bacb2edc', '/usr/bin/python3', '-B', '/joint/b2_namespace_lookup.py'], '', '\\x1b[32;20m[2026-11-19 21:42:52,164] LMCache INFO:\\x1b[0m torch_dev=<module \\'torch.cuda\\' from \\'/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py\\'>, torch_device_type=cuda \\x1b[3m(_device_detect.py:312:lmcache.v1.platform._device_detect)\\x1b[0m\\n\\x1b[32;20m[2026-11-19 21:42:52,164] LMCache INFO:\\x1b[0m Auto-selected backend [cuda] for accelerator \\'cuda\\' from candidate backends [cuda, rocm]. \\x1b[3m(__init__.py:148:lmcache.v1.platform)\\x1b[0m\\nTraceback (most recent call last):\\n  File \"/joint/b2_namespace_lookup.py\", line 35, in <module>\\n    print(json.dumps({name: lookup(request[\\'port\\'], namespace, request[\\'tokens\\'])\\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/joint/b2_namespace_lookup.py\", line 27, in lookup\\n    assert client.free_lookup_locks(key, 8).result(timeout=15) is None\\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/usr/local/lib/python3.12/dist-packages/lmcache/v1/multiprocess/futures.py\", line 63, in result\\n    raise LMCacheTimeoutError(\"Future result not available within timeout\")\\nlmcache.v1.mp_observability.errors.LMCacheTimeoutError: Future result not available within timeout\\n')",
+  "cleanup_errors": {
+    "worker-G": "AssertionError()",
+    "worker-K": "AssertionError()"
+  },
+  "release_seconds": 60.926651932
+}

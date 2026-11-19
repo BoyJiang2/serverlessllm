@@ -37,6 +37,19 @@ python v11/glm53-three-model/recompute_glm53_l2_memory.py GLM53_RUN_DIR --output
 
 `GLM53_RUN_DIR` 使用原始证据索引中的 qjhs003 目录。脚本核对两个 KV 分组、原八 rank 的实际 H2D、金标与释放，并按各自端点切分 RAM 采样。正式 S1 的容量生成器和 B1 原始水位重算脚本一并归档。[GLM-5.3 证据索引](derived/glm53-l2-memory-evidence.json) · [容量生成器](diagnostics/make_phase_capacity.py) · [B1 水位重算](diagnostics/replay-b1-host-capacity-20261120.py)
 
+## 从原始回执重算联合 B2
+
+```bash
+python v11/glm53-three-model/recompute_joint_b2.py S1_RUN --output derived/b2-s1.json
+python v11/glm53-three-model/recompute_joint_b2.py S2_RUN --output derived/b2-s2.json
+python v11/glm53-three-model/recompute_joint_b2.py S3_RUN --output derived/b2-s3.json
+python v11/glm53-three-model/index_evidence.py S1_RUN S2_RUN S3_RUN --output derived/b2-evidence-index.json
+python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json \
+  --index derived/b2-evidence-index.json --output B2-JOINT.md
+```
+
+将 `S1_RUN`、`S2_RUN`、`S3_RUN` 替换为 qjhs003 的完整原始回执目录。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)
+
 ## 从双池采样重算主机 slab
 
 在 qjhs003 将 `S1_TRACE` 和 `S2_TRACE` 替换为 [Store 内存时间线](derived/store-memory-lifecycle.json) 中的路径。命令只读取各轮指定单调端点之前的完整记录，并输出该前缀的 SHA-256。
