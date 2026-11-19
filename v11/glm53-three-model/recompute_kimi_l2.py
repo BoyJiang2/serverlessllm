@@ -48,6 +48,31 @@ def expert_reload(path, begin, end):
     return layers
 
 
+def host_observations(path, intervals):
+    if not path.is_file():
+        return None
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    assert all(row['begin_ns'] <= row['end_ns'] for row in rows)
+    assert all(first['end_ns'] < last['begin_ns'] for first, last in zip(rows, rows[1:]))
+    phases = {}
+    for name, (begin, end) in intervals.items():
+        samples = [row for row in rows if begin <= row['begin_ns'] and row['end_ns'] <= end and row['worker']]
+        phases[name] = None
+        if not samples:
+            continue
+        available = [int(next(line.split()[1] for line in row['host_meminfo'].splitlines()
+                              if line.startswith('MemAvailable:'))) * 1024 for row in samples]
+        first, last = samples[0], samples[-1]
+        refaults = [row['worker']['stats'].get('workingset_refault_file') for row in (first, last)]
+        delta = None if None in refaults else refaults[1] - refaults[0]
+        assert delta is None or delta >= 0
+        phases[name] = dict(samples=len(samples), begin_gap_s=(first['begin_ns'] - begin) / 1e9,
+                            end_gap_s=(end - last['end_ns']) / 1e9, first_available_bytes=available[0],
+                            min_available_bytes=min(available), last_available_bytes=available[-1],
+                            worker_file_refault_pages_delta=delta)
+    return phases
+
+
 def inspect(root):
     qualification = root / 'qualification.json'
     if not qualification.is_file():
@@ -122,6 +147,13 @@ def inspect(root):
     reload_rows = [row for row in rows if endpoints[2] <= row['ns'] <= endpoints[3]]
     trace_path = root / 'backend-full.log'
     layers = expert_reload(trace_path, endpoints[2], endpoints[3])
+    host_path = root / 'host-memory-live.jsonl'
+    host = host_observations(host_path, dict(cold_load=(cold_begin, cold_end), sleeping=(sleep_end, endpoints[0]),
+                                            checkpoint_reload=endpoints[2:4]))
+    raw_files = [qualification, wake_path, sleep_path, worker / 'events', worker / 'worker-imports.json',
+                 root / 'worker-memory.jsonl', trace_path]
+    if host is not None:
+        raw_files.append(host_path)
     return dict(run_id=root.name, state='qualified', arm=launch['arm'], sha256=launch['candidate_sha256'],
                 comparison=comparison,
                 cold_load_s=(cold_end - cold_begin) / 1e9, cold_load_endpoints_ns=load,
@@ -129,8 +161,7 @@ def inspect(root):
                 release_s=result['release_seconds'], wake_endpoints_ns=wake,
                 full_memory=measure(rows), cold_load_memory=measure(cold_rows), sleep_memory=measure(sleep_rows),
                 reload_memory=measure(reload_rows), expert_layer_completions=layers, responses=responses,
-                raw_files=[str(path) for path in (qualification, wake_path, sleep_path, worker / 'events',
-                           worker / 'worker-imports.json', root / 'worker-memory.jsonl', trace_path)])
+                host_observations=host, raw_files=[str(path) for path in raw_files])
 
 
 if __name__ == '__main__':

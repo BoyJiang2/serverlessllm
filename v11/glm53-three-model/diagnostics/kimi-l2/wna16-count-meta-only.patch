@@ -1,0 +1,46 @@
+--- a/vllm/model_executor/model_loader/reload/meta.py
++++ b/vllm/model_executor/model_loader/reload/meta.py
+@@ -142,6 +142,43 @@
+     :return: number of elements loaded by the weight loader, the return value of the
+         weight loader
+     """
++    # Keep the buffered CPU tensor for the replay. The transposed Marlin
++    # packed weights and group scales use only shape/stride while counting.
++    if (
++        getattr(weight_loader, "__module__", None)
++        == "vllm.model_executor.layers.fused_moe.layer"
++        and getattr(weight_loader, "__qualname__", None) == "FusedMoE.weight_loader"
++        and type(
++            getattr(getattr(weight_loader, "__self__", None), "quant_method", None)
++        ).__name__ == "CompressedTensorsWNA16MarlinMoEMethod"
++    ):
++        param = args.arguments.get("param")
++        loaded_weight = args.arguments.get("loaded_weight")
++        weight_name = args.arguments.get("weight_name")
++        if (
++            isinstance(param, torch.Tensor)
++            and param.is_meta
++            and getattr(param, "is_transposed", False)
++            and not any(getattr(param, attr, False) for attr in (
++                "is_gguf_weight", "is_gguf_weight_type", "use_bitsandbytes_4bit"
++            ))
++            and isinstance(loaded_weight, torch.Tensor)
++            and loaded_weight.layout == torch.strided
++            and loaded_weight.device.type == "cpu"
++            and loaded_weight.ndim == 2
++            and isinstance(weight_name, str)
++            and (
++                weight_name.endswith((".w13_weight_packed", ".w2_weight_packed"))
++                or (
++                    getattr(param, "quant_method", None) == "group"
++                    and weight_name.endswith((".w13_weight_scale", ".w2_weight_scale"))
++                )
++            )
++        ):
++            args = inspect.BoundArguments(
++                args.signature, dict(args.arguments, loaded_weight=loaded_weight.to("meta"))
++            )
++
+     with CopyCounter() as counter:
+         return_value = weight_loader(*args.args, **args.kwargs)
+     return counter.copied_numel, return_value
