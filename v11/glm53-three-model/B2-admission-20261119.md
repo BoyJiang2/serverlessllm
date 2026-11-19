@@ -95,6 +95,12 @@ S3 的 Kimi 首载从空 Store 原位恢复，前序 V4 为 SafeTensors 首载�
 
 Kimi 以 107.553 GiB 通过 87 GiB 准入，控制器随后在 `docker start` 的 30 秒等待处超时。Docker 的 create 至 start 事件间隔为 31.909 秒。该段未取得模型加载回执，保留两个 Worker 清理错误。八卡连续归零 61.048 秒。再次执行使用最多 90 秒的 Docker 启动等待，原预约截止仍约束启动。[启动等待修正](diagnostics/joint-b2-container-start-timeout.patch) · [原始文件索引](raw/B2-GLM53-S3-20261119T224044Z/evidence-index.json)
 
+## S2 Kimi 首载准入
+
+S3 重跑 `231013Z` 的 Kimi 空 Store 首载已取得逐段回执。八 rank 原位加载跨度为 95.853 秒，实际读取 617,000,763,392 B，金标及 Host KV 实写通过。从逐段准入至休眠结束的 255 个内存采样中，可用 RAM 从 107.974 GiB 降至 86.661 GiB，最大下降 21.313 GiB。复算及八 rank 原始证据使用该完成段，整轮由各自最终回执验收。[S3 Kimi 首载证据](derived/s3-kimi-store-admission-evidence.json)
+
+S2 候选以 55 GiB 运行停止线为基线，对实测下降量加 8 GiB 操作余量和 1 GiB 驱逐附加余量后向上取整，得到 86 GiB。仅在 GLM-5.3、V4 都已休眠且 Store 只保留完整 V4 工件的阶段使用。匹配历史 B1 观测到 Kimi 驱逐 315 条 V4 路径、释放 17,321 块。固定源码的驱逐路径回收已注册的内存块，因此将 1 GiB 用于额外控制器、驱动和 I/O 波动。S2 的实际驱逐、最低可用 RAM 和全段金标另行实测。[仅 S2 使用的准入配置](derived/b2-phase-capacity-s2.json) · [驻留检查](diagnostics/joint-b2-s2-store-entry.patch)
+
 ## 验收要求
 
 - 各轮三次首次加载和四次原 Worker checkpoint 唤醒。固定每 rank 16 GiB GPU KV 配置，记录实际分配和显存准入。

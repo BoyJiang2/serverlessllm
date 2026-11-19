@@ -1,0 +1,20 @@
+--- a/b2_sequence.py
++++ b/b2_sequence.py
+@@ -133,10 +133,16 @@
+         fresh = worker.cid is None
+         load = plan['first_load'] if index == 0 else plan['subsequent_first_load']
+         mode = load if fresh else 'checkpoint_wake'
++        sleepers = [item for item, state in workers.items() if state.cid is not None]
++        if admission.get('applicable_sequence') == 'S2' and key == 'K' and mode == 'store_inplace_cumem':
++            snapshot_store(store_cid, store_log, ledger)
++            pool = ledger.settled()
++            write(step / 'store-entry.json', dict(ns=time.monotonic_ns(), sleepers=sleepers, **pool))
++            if set(sleepers) != {'G', 'D'} or set(pool['resident_paths']) != set(inventories['D']):
++                raise RuntimeError('S2 Kimi admission requires both sleepers and only the full V4 Store inventory')
+         headroom, required = phase_headroom(admission, mode, key)
+         stamp = time.monotonic_ns()
+         memory = available_bytes()
+-        sleepers = [item for item, state in workers.items() if state.cid is not None]
+         write(step / 'host-admission.json', dict(available_bytes=memory, required_bytes=required, ns=stamp,
+               model=key, mode=mode, headroom_bytes=headroom, sleepers=sleepers))
+         assert memory >= required, (key, mode, memory, required)

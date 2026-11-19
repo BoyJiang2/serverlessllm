@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 from diagnostics import b2_kv_evidence
 from diagnostics.b2_kv_evidence import registration, verify_transfer, worker_identity
 from recompute_b1 import (GIB, NAMES, RANKS, SEQUENCES, backing_bytes, cold_proof, envelope,
-                          exited, l1, lines, read, release, require, seconds)
+                          exited, l1, lines, paths_for, read, release, require, seconds)
 
 
 ALLOCATOR = re.compile(r'sleep_allocator phase=gpu_unmap_release tag=kv_cache rank=(\d+) '
@@ -306,6 +306,17 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
                 cache['cache_state'] == ('safetensors_disk_cold' if fresh else 'not_used'), 'Unexpected Store use')
         store = dict(cache_state=cache['cache_state'], file_read_bytes=0, hit_bytes=0,
                      allocated_blocks=0, freed_blocks=0, evicted_paths=0)
+    store_entry = None
+    if (capacity.get('applicable_sequence') == 'S2' and model == 'K'
+            and mode == 'store_inplace_cumem'):
+        store_entry = read(step / 'store-entry.json')
+        prior_store = read(previous['step'] / 'step-result.json')['store']['pool_after']
+        require(store_entry['ns'] <= gate['ns'] and set(store_entry['sleepers']) == set(gate['sleepers']) == {'G', 'D'}
+                and all(store_entry[field] == value for field, value in prior_store.items())
+                and set(store_entry['resident_paths']) == paths_for(protocol, 'D'),
+                'S2 Kimi admission does not match the live V4 Store snapshot')
+        require(store['evicted_paths'] > 0 and store['freed_blocks'] > 0,
+                'S2 Kimi Store load did not demonstrate the expected eviction')
     cold = cold_proof(step, active, root.name) if index == 0 else None
     sleep = read(step / 'sleep.json')
     start, end = (sleep['stages'][key] for key in ('sleep_begin_ns', 'sleep_end_ns'))
@@ -347,7 +358,8 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
                 sleep_begin_ns=start, sleep_end_ns=end,
                 old_kv_unmap_begin_ns=unmap_begin, hbm_mib_after_sleep=sleep['hbm_mib_after'],
                 host_kv_after_sleep_bytes=sleep_host[0] if sleep_host is not None else None,
-                gold=True, store=store, sf_cold=cold, kv=kv, after_clear=aftermath, cross_model=cross, tail_delete=tail)
+                gold=True, store=store, store_entry=store_entry, sf_cold=cold, kv=kv, after_clear=aftermath,
+                cross_model=cross, tail_delete=tail)
 
 
 def finish(root, terminal, state, rows, gpus):
