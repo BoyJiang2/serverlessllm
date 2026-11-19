@@ -1,0 +1,102 @@
+--- a/vllm/model_executor/layers/fused_moe/layer.py
++++ b/vllm/model_executor/layers/fused_moe/layer.py
+@@ -827,6 +827,7 @@
+         loaded_weight: torch.Tensor,
+         tp_rank: int,
+         load_full_w2: bool = False,
++        materialize_local_transpose: bool = False,
+     ):
+         """
+         Load grouped weight scales for group quantization or model weights
+@@ -846,6 +847,7 @@
+                 expert_data=expert_data,
+                 tp_rank=tp_rank,
+                 load_full=load_full_w2,
++                materialize_local_transpose=materialize_local_transpose,
+             )
+         elif shard_id in ("w1", "w3"):
+             self._load_w13(
+@@ -854,6 +856,7 @@
+                 loaded_weight=loaded_weight,
+                 expert_data=expert_data,
+                 tp_rank=tp_rank,
++                materialize_local_transpose=materialize_local_transpose,
+             )
+ 
+     def _load_per_channel_weight_scale(
+@@ -948,6 +951,7 @@
+         loaded_weight: torch.Tensor,
+         tp_rank: int,
+         load_full: bool = False,
++        materialize_local_transpose: bool = False,
+     ):
+         # Index the loaded weight for tp sharding.
+         # gate_up_proj: "MergedColumnParallel", so tp sharding on output_dim
+@@ -984,6 +988,8 @@
+             hidden_dim=hidden_dim,
+             shard_dim=shard_dim,
+         )
++        if materialize_local_transpose:
++            loaded_weight = loaded_weight.contiguous()
+         expert_data.copy_(loaded_weight)
+ 
+     def _load_w2(
+@@ -993,6 +999,7 @@
+         loaded_weight: torch.Tensor,
+         tp_rank: int,
+         load_full: bool = False,
++        materialize_local_transpose: bool = False,
+     ):
+         # Index the loaded weight for tp sharding.
+         # down_proj: "RowParallel" so tp sharding on input_dim
+@@ -1020,6 +1027,8 @@
+             hidden_dim=hidden_dim,
+             shard_dim=shard_dim,
+         )
++        if materialize_local_transpose:
++            loaded_weight = loaded_weight.contiguous()
+         expert_data.copy_(loaded_weight)
+ 
+     def _load_single_value(
+@@ -1139,14 +1148,28 @@
+         # compressed-tensors checkpoints with packed weights are stored flipped
+         # TODO (mgoin): check self.quant_method.quant_config.quant_format
+         # against known CompressionFormat enum values that have this quality
++        materialize_local_transpose = (
++            quant_method_name == "CompressedTensorsWNA16MarlinMoEMethod"
++            and is_transposed
++            and self.tp_size > 1
++            and loaded_weight.ndim == 2
++            and loaded_weight.dtype == torch.int32
++            and loaded_weight.device.type == "cpu"
++            and param.device.type != "meta"
++            and weight_name.rsplit(".", 1)[-1] in ("w13_weight_packed", "w2_weight_packed")
++            and not getattr(param, "use_bitsandbytes_4bit", False)
++            and not getattr(param, "is_gguf_weight", False)
++            and not getattr(param, "is_gguf_weight_type", False)
++            and not getattr(param, "load_full_w2", False)
++        )
+         if quant_method_name in (
+             "CompressedTensorsWNA16MarlinMoEMethod",
+             "CompressedTensorsWNA16MoEMethod",
+-        ):
+-            if is_transposed:
+-                loaded_weight = loaded_weight.t().contiguous()
+-            else:
+-                loaded_weight = loaded_weight
++        ) and is_transposed:
++            # Keep the transpose as a view until the existing TP narrow is applied.
++            loaded_weight = loaded_weight.t()
++            if not materialize_local_transpose:
++                loaded_weight = loaded_weight.contiguous()
+ 
+         if shard_id not in ("w1", "w2", "w3"):
+             raise ValueError(f"shard_id must be ['w1','w2','w3'] but got {shard_id}.")
+@@ -1377,6 +1400,7 @@
+                 loaded_weight=loaded_weight,
+                 expert_data=expert_data,
+                 tp_rank=self.tp_rank,
++                materialize_local_transpose=materialize_local_transpose,
+             )
+             return True if return_success else None
+ 

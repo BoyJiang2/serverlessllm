@@ -25,7 +25,9 @@ python v11/glm53-three-model/render_b1.py derived/b1-recomputed.json REPORT.md
 python v11/glm53-three-model/recompute_kimi_l2.py BASELINE_RUN CANDIDATE_RUN --output derived/kimi-l2.json
 ```
 
-每份 Kimi 数据来自同一 1 GiB Host KV 配置的独立单模型 Sleep L2。脚本核对三次探针命中、八 rank H2D、金标和释放。checkpoint 重载区间使用各轮原始单调端点。`current_peak` 的字段来自同一采样点，`max_bytes` 逐字段取峰，两个统计分别展示。
+每份 Kimi 数据来自同一 1 GiB Host KV 配置的独立单模型 Sleep L2。脚本核对镜像和冻结输入、原八 rank 身份、实际补丁导入、三次探针命中、H2D、金标和释放。checkpoint 重载区间使用各轮原始单调端点，保留每个专家层在八 rank 的完成时点。`current_peak` 的字段来自同一采样点，`max_bytes` 逐字段取峰。[服务器原始证据索引](derived/kimi-l2-evidence.json)
+
+TP 切片前移的 [源码补丁](diagnostics/kimi-l2/localize-wna16-transpose.patch)、[CPU 对照脚本](diagnostics/kimi-l2/verify_cpu.py) 和 [验收回执](diagnostics/kimi-l2/cpu-contract.txt) 已归档。联合 B2 容量采样使用 [只读采样程序](diagnostics/observe_pool_memory.py) 记录两池与三个 Worker cgroup。
 
 ## 从双池采样重算主机 slab
 
