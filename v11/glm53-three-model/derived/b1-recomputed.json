@@ -1,6 +1,6 @@
 {
   "counts": {
-    "qualified": 2,
+    "qualified": 3,
     "failed": 2
   },
   "runs": [
@@ -2944,6 +2944,1549 @@
         "release_seconds": 61.238269418
       },
       "release_evidence": "release.jsonl"
+    },
+    {
+      "run_id": "B1-GLM53-S3-20261119T175803Z",
+      "status": "qualified",
+      "sequence": "S3",
+      "evidence": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z",
+      "pool_init": {
+        "kv_init_s": 202.891965607,
+        "store_init_s": 424.628850228,
+        "both_ready_s": 627.521565878,
+        "host_used_bytes_at_kv_ready": 0,
+        "kv_begin_ns": 2235404369928382,
+        "kv_ready_ns": 2235607261893989,
+        "store_begin_ns": 2235607262644032,
+        "store_ready_ns": 2236031891494260
+      },
+      "release": {
+        "seconds": 61.082857731,
+        "samples": 50,
+        "start_ns": 2240518542108867,
+        "end_ns": 2240579624966598,
+        "evidence": "release.jsonl"
+      },
+      "steps": [
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 0,
+          "model": "v4",
+          "source_model": null,
+          "evidence": "00-D-v4",
+          "sf_cold": {
+            "files": 64,
+            "pages": 211113568,
+            "resident_pages": 0,
+            "evidence": "00-D-v4/sf-admission/summary.json"
+          },
+          "activation_ns": 2236081467988904,
+          "ready_ns": 2237313961349908,
+          "activate_to_ready_s": 1232.493361004,
+          "first_response_ns": 2237362397424177,
+          "activate_to_first_s": 1280.929435273,
+          "first_business_request": "business",
+          "full_weight_load_s": 333.256276257,
+          "full_weight_max_rank_s": 333.223012197,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2236127103537468,
+              "end_ns": 2236460359813725,
+              "seconds": 333.256276257,
+              "max_rank_s": 333.223012197,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2236127146643003,
+                  "end_ns": 2236460208291806,
+                  "seconds": 333.061648803
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2236127103537468,
+                  "end_ns": 2236460118752392,
+                  "seconds": 333.015214924
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2236127106922597,
+                  "end_ns": 2236460017505590,
+                  "seconds": 332.910582993
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2236127104761437,
+                  "end_ns": 2236460035558561,
+                  "seconds": 332.930797124
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2236127140500029,
+                  "end_ns": 2236460359813725,
+                  "seconds": 333.219313696
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2236127106364702,
+                  "end_ns": 2236460309753202,
+                  "seconds": 333.2033885
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2236127113879094,
+                  "end_ns": 2236460336891291,
+                  "seconds": 333.223012197
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2236127161154981,
+                  "end_ns": 2236460247496493,
+                  "seconds": 333.086341512
+                }
+              ],
+              "evidence": "events/*.jsonl full_weight_load_begin/end"
+            },
+            "weight_ingestion": {
+              "start_ns": 2236130497884591,
+              "end_ns": 2236450139005663,
+              "seconds": 319.641121072,
+              "max_rank_s": 319.637826768,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2236130501178895,
+                  "end_ns": 2236450139005663,
+                  "seconds": 319.637826768
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2236130497884591,
+                  "end_ns": 2236449957100578,
+                  "seconds": 319.459215987
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2236130506902428,
+                  "end_ns": 2236449957110453,
+                  "seconds": 319.450208025
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2236130516938963,
+                  "end_ns": 2236449957117986,
+                  "seconds": 319.440179023
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2236130526943137,
+                  "end_ns": 2236449957112958,
+                  "seconds": 319.430169821
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2236130519934169,
+                  "end_ns": 2236449957108749,
+                  "seconds": 319.43717458
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2236130512833527,
+                  "end_ns": 2236449957132516,
+                  "seconds": 319.444298989
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2236130524979646,
+                  "end_ns": 2236449957124269,
+                  "seconds": 319.432144623
+                }
+              ],
+              "evidence": "events/*.jsonl weight_ingestion_begin/end"
+            },
+            "quantization_postprocess": {
+              "start_ns": 2236450217907877,
+              "end_ns": 2236460348030124,
+              "seconds": 10.130122247,
+              "max_rank_s": 10.130122247,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2236450221722705,
+                  "end_ns": 2236460197117847,
+                  "seconds": 9.975395142
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2236450221719409,
+                  "end_ns": 2236460108174420,
+                  "seconds": 9.886455011
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2236450221961382,
+                  "end_ns": 2236460006562953,
+                  "seconds": 9.784601571
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2236450222836766,
+                  "end_ns": 2236460024900011,
+                  "seconds": 9.802063245
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2236450217907877,
+                  "end_ns": 2236460348030124,
+                  "seconds": 10.130122247
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2236450217958379,
+                  "end_ns": 2236460299148920,
+                  "seconds": 10.081190541
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2236450218049376,
+                  "end_ns": 2236460326001052,
+                  "seconds": 10.107951676
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2236450221516281,
+                  "end_ns": 2236460236792195,
+                  "seconds": 10.015275914
+                }
+              ],
+              "evidence": "events/*.jsonl quantization_postprocess_begin/end"
+            },
+            "kv_cache_allocation": {
+              "start_ns": 2236931125085717,
+              "end_ns": 2236973500378447,
+              "seconds": 42.37529273,
+              "max_rank_s": 42.375005933,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2236931125110071,
+                  "end_ns": 2236970624093607,
+                  "seconds": 39.498983536
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2236931125104149,
+                  "end_ns": 2236965293581875,
+                  "seconds": 34.168477726
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2236931125094984,
+                  "end_ns": 2236962872232565,
+                  "seconds": 31.747137581
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2236931125085717,
+                  "end_ns": 2236970569134482,
+                  "seconds": 39.444048765
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2236931125486724,
+                  "end_ns": 2236964187694535,
+                  "seconds": 33.062207811
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2236931125337450,
+                  "end_ns": 2236966454231761,
+                  "seconds": 35.328894311
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2236931125202237,
+                  "end_ns": 2236972274658902,
+                  "seconds": 41.149456665
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2236931125372514,
+                  "end_ns": 2236973500378447,
+                  "seconds": 42.375005933
+                }
+              ],
+              "evidence": "events/*.jsonl kv_cache_allocation_begin/end"
+            }
+          },
+          "kv_fill_started_ns": 2237370013106023,
+          "kv_fill_received_ns": 2237382655456455,
+          "kv_fill_response_s": 12.642350432,
+          "host_write_confirmed_ns": 2237382910595238,
+          "host_confirm_s_from_request": 12.897489215,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 49364992,
+          "host_used_bytes_before_clear": 49364992,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2237470206210601,
+          "host_clear_end_ns": 2237470213297619,
+          "cache_state": "safetensors_disk_cold",
+          "file_read_bytes": 0,
+          "hit_bytes": 0,
+          "allocated_blocks": 0,
+          "freed_blocks": 0,
+          "evicted_paths": 0
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 1,
+          "model": "kimi",
+          "source_model": "v4",
+          "evidence": "01-K-kimi",
+          "sf_cold": null,
+          "activation_ns": 2237593286567891,
+          "ready_ns": 2237839488753254,
+          "activate_to_ready_s": 246.202185363,
+          "first_response_ns": 2237841390526272,
+          "activate_to_first_s": 248.103958381,
+          "first_business_request": "arithmetic",
+          "full_weight_load_s": 106.259146007,
+          "full_weight_max_rank_s": 106.259146007,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2237645544764107,
+              "end_ns": 2237751803910114,
+              "seconds": 106.259146007,
+              "max_rank_s": 106.259146007,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2237645544764107,
+                  "end_ns": 2237751803910114,
+                  "seconds": 106.259146007
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2237645594431023,
+                  "end_ns": 2237751255623419,
+                  "seconds": 105.661192396
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2237645590111288,
+                  "end_ns": 2237747781778874,
+                  "seconds": 102.191667586
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2237645595230523,
+                  "end_ns": 2237751510480733,
+                  "seconds": 105.91525021
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2237645603596933,
+                  "end_ns": 2237751664385568,
+                  "seconds": 106.060788635
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2237645634803236,
+                  "end_ns": 2237745754802709,
+                  "seconds": 100.119999473
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2237645642905757,
+                  "end_ns": 2237748786135999,
+                  "seconds": 103.143230242
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2237645637920750,
+                  "end_ns": 2237751100282383,
+                  "seconds": 105.462361633
+                }
+              ],
+              "evidence": "events/*.jsonl full_weight_load_begin/end"
+            },
+            "weight_ingestion": {
+              "start_ns": 2237659796822885,
+              "end_ns": 2237751776982727,
+              "seconds": 91.980159842,
+              "max_rank_s": 91.66770639,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2237660168323677,
+                  "end_ns": 2237751776982727,
+                  "seconds": 91.60865905
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2237660195345269,
+                  "end_ns": 2237751228374069,
+                  "seconds": 91.0330288
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2237660150440824,
+                  "end_ns": 2237747737793967,
+                  "seconds": 87.587353143
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2237659796822885,
+                  "end_ns": 2237751464529275,
+                  "seconds": 91.66770639
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2237660229201574,
+                  "end_ns": 2237751619657109,
+                  "seconds": 91.390455535
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2237660040198273,
+                  "end_ns": 2237745710108621,
+                  "seconds": 85.669910348
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2237660221619965,
+                  "end_ns": 2237748758017818,
+                  "seconds": 88.536397853
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2237660084673146,
+                  "end_ns": 2237751071903654,
+                  "seconds": 90.987230508
+                }
+              ],
+              "evidence": "events/*.jsonl weight_ingestion_begin/end"
+            },
+            "restore_postprocess": {
+              "start_ns": 2237745742391741,
+              "end_ns": 2237751803055513,
+              "seconds": 6.060663772,
+              "max_rank_s": 0.012881544,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2237751791601753,
+                  "end_ns": 2237751803055513,
+                  "seconds": 0.01145376
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2237751243266973,
+                  "end_ns": 2237751254835926,
+                  "seconds": 0.011568953
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2237747769130657,
+                  "end_ns": 2237747780805373,
+                  "seconds": 0.011674716
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2237751496666553,
+                  "end_ns": 2237751509548097,
+                  "seconds": 0.012881544
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2237751651673310,
+                  "end_ns": 2237751663487181,
+                  "seconds": 0.011813871
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2237745742391741,
+                  "end_ns": 2237745753917451,
+                  "seconds": 0.01152571
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2237748773500152,
+                  "end_ns": 2237748785242052,
+                  "seconds": 0.0117419
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2237751087648472,
+                  "end_ns": 2237751099330123,
+                  "seconds": 0.011681651
+                }
+              ],
+              "evidence": "events/*.jsonl restore_postprocess_begin/end"
+            },
+            "kv_cache_allocation": {
+              "start_ns": 2237831745128324,
+              "end_ns": 2237836009173774,
+              "seconds": 4.26404545,
+              "max_rank_s": 4.26404545,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2237831745128324,
+                  "end_ns": 2237836009173774,
+                  "seconds": 4.26404545
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2237831745229760,
+                  "end_ns": 2237835679795087,
+                  "seconds": 3.934565327
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2237831745187694,
+                  "end_ns": 2237835735392046,
+                  "seconds": 3.990204352
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2237831745224534,
+                  "end_ns": 2237835983616915,
+                  "seconds": 4.238392381
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2237831745306540,
+                  "end_ns": 2237835651200812,
+                  "seconds": 3.905894272
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2237831745155260,
+                  "end_ns": 2237835996356025,
+                  "seconds": 4.251200765
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2237831745239398,
+                  "end_ns": 2237835970877980,
+                  "seconds": 4.225638582
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2237831745354447,
+                  "end_ns": 2237835665484562,
+                  "seconds": 3.920130115
+                }
+              ],
+              "evidence": "events/*.jsonl kv_cache_allocation_begin/end"
+            }
+          },
+          "kv_fill_started_ns": 2237844572406733,
+          "kv_fill_received_ns": 2237845448753724,
+          "kv_fill_response_s": 0.876346991,
+          "host_write_confirmed_ns": 2237845647883692,
+          "host_confirm_s_from_request": 1.075476959,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 35979264,
+          "host_used_bytes_before_clear": 35979264,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2237855781544374,
+          "host_clear_end_ns": 2237855783854446,
+          "cache_state": "full_miss",
+          "file_read_bytes": 617000763392,
+          "hit_bytes": 0,
+          "allocated_blocks": 18392,
+          "freed_blocks": 0,
+          "evicted_paths": 0
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 2,
+          "model": "glm53",
+          "source_model": "kimi",
+          "evidence": "02-G-glm53",
+          "sf_cold": null,
+          "activation_ns": 2237922621497118,
+          "ready_ns": 2238396372119520,
+          "activate_to_ready_s": 473.750622402,
+          "first_response_ns": 2238401133236163,
+          "activate_to_first_s": 478.511739045,
+          "first_business_request": "business",
+          "full_weight_load_s": 122.627479811,
+          "full_weight_max_rank_s": 122.578462776,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2238023578586636,
+              "end_ns": 2238146206066447,
+              "seconds": 122.627479811,
+              "max_rank_s": 122.578462776,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238023752148883,
+                  "end_ns": 2238146156593549,
+                  "seconds": 122.404444666
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238023663803798,
+                  "end_ns": 2238146158589924,
+                  "seconds": 122.494786126
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238023644721014,
+                  "end_ns": 2238146159366640,
+                  "seconds": 122.514645626
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238023578586636,
+                  "end_ns": 2238146157049412,
+                  "seconds": 122.578462776
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238023775856388,
+                  "end_ns": 2238146206066447,
+                  "seconds": 122.430210059
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238023689745256,
+                  "end_ns": 2238146158763376,
+                  "seconds": 122.46901812
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238023673546378,
+                  "end_ns": 2238146179789870,
+                  "seconds": 122.506243492
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238023664468244,
+                  "end_ns": 2238146158740376,
+                  "seconds": 122.494272132
+                }
+              ],
+              "evidence": "weight-load-rank-*.jsonl"
+            }
+          },
+          "kv_fill_started_ns": 2238401134530714,
+          "kv_fill_received_ns": 2238402854962077,
+          "kv_fill_response_s": 1.720431363,
+          "host_write_confirmed_ns": 2238403013110334,
+          "host_confirm_s_from_request": 1.87857962,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 27623424,
+          "host_used_bytes_before_clear": 27623424,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2238411068892685,
+          "host_clear_end_ns": 2238411070972495,
+          "cache_state": "full_miss",
+          "file_read_bytes": 757596880896,
+          "hit_bytes": 0,
+          "allocated_blocks": 22584,
+          "freed_blocks": 13794,
+          "evicted_paths": 6
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 3,
+          "model": "kimi",
+          "source_model": "glm53",
+          "evidence": "03-K-kimi",
+          "sf_cold": null,
+          "activation_ns": 2238478381500685,
+          "ready_ns": 2238701280913734,
+          "activate_to_ready_s": 222.899413049,
+          "first_response_ns": 2238704443537036,
+          "activate_to_first_s": 226.062036351,
+          "first_business_request": "arithmetic",
+          "full_weight_load_s": 95.610451905,
+          "full_weight_max_rank_s": 95.522959669,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2238524430144591,
+              "end_ns": 2238620040596496,
+              "seconds": 95.610451905,
+              "max_rank_s": 95.522959669,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238524430144591,
+                  "end_ns": 2238618900330478,
+                  "seconds": 94.470185887
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238524451909142,
+                  "end_ns": 2238618349063710,
+                  "seconds": 93.897154568
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238524485200300,
+                  "end_ns": 2238619729194420,
+                  "seconds": 95.24399412
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238524467589312,
+                  "end_ns": 2238614362745968,
+                  "seconds": 89.895156656
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238524517636827,
+                  "end_ns": 2238620040596496,
+                  "seconds": 95.522959669
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238524613245953,
+                  "end_ns": 2238619884721413,
+                  "seconds": 95.27147546
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238524569158640,
+                  "end_ns": 2238619211691724,
+                  "seconds": 94.642533084
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238524562972216,
+                  "end_ns": 2238619057169331,
+                  "seconds": 94.494197115
+                }
+              ],
+              "evidence": "events/*.jsonl full_weight_load_begin/end"
+            },
+            "weight_ingestion": {
+              "start_ns": 2238528245245045,
+              "end_ns": 2238620012322223,
+              "seconds": 91.767077178,
+              "max_rank_s": 91.457943712,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238528245245045,
+                  "end_ns": 2238618872306101,
+                  "seconds": 90.627061056
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238528460405905,
+                  "end_ns": 2238618320798823,
+                  "seconds": 89.860392918
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238528361293375,
+                  "end_ns": 2238619701557494,
+                  "seconds": 91.340264119
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238528489821611,
+                  "end_ns": 2238614333626130,
+                  "seconds": 85.843804519
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238528554378511,
+                  "end_ns": 2238620012322223,
+                  "seconds": 91.457943712
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238528672343154,
+                  "end_ns": 2238619856761679,
+                  "seconds": 91.184418525
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238529018603614,
+                  "end_ns": 2238619183536122,
+                  "seconds": 90.164932508
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238528597647068,
+                  "end_ns": 2238619028552180,
+                  "seconds": 90.430905112
+                }
+              ],
+              "evidence": "events/*.jsonl weight_ingestion_begin/end"
+            },
+            "restore_postprocess": {
+              "start_ns": 2238614349520912,
+              "end_ns": 2238620039505921,
+              "seconds": 5.689985009,
+              "max_rank_s": 0.012135475,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238618887523307,
+                  "end_ns": 2238618899223694,
+                  "seconds": 0.011700387
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238618336231145,
+                  "end_ns": 2238618348174048,
+                  "seconds": 0.011942903
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238619716601150,
+                  "end_ns": 2238619728139537,
+                  "seconds": 0.011538387
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238614349520912,
+                  "end_ns": 2238614361656387,
+                  "seconds": 0.012135475
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238620027519672,
+                  "end_ns": 2238620039505921,
+                  "seconds": 0.011986249
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238619871689526,
+                  "end_ns": 2238619883623378,
+                  "seconds": 0.011933852
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238619198657660,
+                  "end_ns": 2238619210606052,
+                  "seconds": 0.011948392
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238619044213383,
+                  "end_ns": 2238619056106312,
+                  "seconds": 0.011892929
+                }
+              ],
+              "evidence": "events/*.jsonl restore_postprocess_begin/end"
+            },
+            "kv_cache_allocation": {
+              "start_ns": 2238696856629760,
+              "end_ns": 2238697781854398,
+              "seconds": 0.925224638,
+              "max_rank_s": 0.925068953,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238696856629760,
+                  "end_ns": 2238697705394759,
+                  "seconds": 0.848764999
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238696856855436,
+                  "end_ns": 2238697717934921,
+                  "seconds": 0.861079485
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238696856720198,
+                  "end_ns": 2238697692490646,
+                  "seconds": 0.835770448
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238696856702282,
+                  "end_ns": 2238697730718059,
+                  "seconds": 0.874015777
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238696856724154,
+                  "end_ns": 2238697756022822,
+                  "seconds": 0.899298668
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238696856919217,
+                  "end_ns": 2238697769071422,
+                  "seconds": 0.912152205
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238696856702924,
+                  "end_ns": 2238697743422088,
+                  "seconds": 0.886719164
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238696856785445,
+                  "end_ns": 2238697781854398,
+                  "seconds": 0.925068953
+                }
+              ],
+              "evidence": "events/*.jsonl kv_cache_allocation_begin/end"
+            }
+          },
+          "kv_fill_started_ns": 2238707620411134,
+          "kv_fill_received_ns": 2238708486231035,
+          "kv_fill_response_s": 0.865819901,
+          "host_write_confirmed_ns": 2238708682193238,
+          "host_confirm_s_from_request": 1.061782104,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 35979264,
+          "host_used_bytes_before_clear": 35979264,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2238716690745890,
+          "host_clear_end_ns": 2238716692751986,
+          "cache_state": "full_miss",
+          "file_read_bytes": 617000763392,
+          "hit_bytes": 0,
+          "allocated_blocks": 18392,
+          "freed_blocks": 18713,
+          "evicted_paths": 7
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 4,
+          "model": "v4",
+          "source_model": "kimi",
+          "evidence": "04-D-v4",
+          "sf_cold": null,
+          "activation_ns": 2238782650839890,
+          "ready_ns": 2239230104807871,
+          "activate_to_ready_s": 447.453967981,
+          "first_response_ns": 2239250297687217,
+          "activate_to_first_s": 467.646847327,
+          "first_business_request": "business",
+          "full_weight_load_s": 142.663793128,
+          "full_weight_max_rank_s": 142.620827629,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2238821392525433,
+              "end_ns": 2238964056318561,
+              "seconds": 142.663793128,
+              "max_rank_s": 142.620827629,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238821418985354,
+                  "end_ns": 2238952889471616,
+                  "seconds": 131.470486262
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238821392525433,
+                  "end_ns": 2238963111036412,
+                  "seconds": 141.718510979
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238821489058972,
+                  "end_ns": 2238963090509723,
+                  "seconds": 141.601450751
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238821490429009,
+                  "end_ns": 2238963703276975,
+                  "seconds": 142.212847966
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238821483029728,
+                  "end_ns": 2238963050943286,
+                  "seconds": 141.567913558
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238821546719849,
+                  "end_ns": 2238959910087842,
+                  "seconds": 138.363367993
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238821415010146,
+                  "end_ns": 2238956779943018,
+                  "seconds": 135.364932872
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238821435490932,
+                  "end_ns": 2238964056318561,
+                  "seconds": 142.620827629
+                }
+              ],
+              "evidence": "events/*.jsonl full_weight_load_begin/end"
+            },
+            "weight_ingestion": {
+              "start_ns": 2238825427275699,
+              "end_ns": 2238836240074047,
+              "seconds": 10.812798348,
+              "max_rank_s": 10.794943959,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238825427275699,
+                  "end_ns": 2238833234523017,
+                  "seconds": 7.807247318
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238825445130088,
+                  "end_ns": 2238836240074047,
+                  "seconds": 10.794943959
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238825430528901,
+                  "end_ns": 2238833269708028,
+                  "seconds": 7.839179127
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238825437081530,
+                  "end_ns": 2238834358857903,
+                  "seconds": 8.921776373
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238825439276688,
+                  "end_ns": 2238834370279979,
+                  "seconds": 8.931003291
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238825508762956,
+                  "end_ns": 2238834606934326,
+                  "seconds": 9.09817137
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238825455088868,
+                  "end_ns": 2238836214563903,
+                  "seconds": 10.759475035
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238825445391924,
+                  "end_ns": 2238836180597704,
+                  "seconds": 10.73520578
+                }
+              ],
+              "evidence": "events/*.jsonl weight_ingestion_begin/end"
+            },
+            "quantization_postprocess": {
+              "start_ns": 2238833238819237,
+              "end_ns": 2238964045945674,
+              "seconds": 130.807126437,
+              "max_rank_s": 129.806967397,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2238833238819237,
+                  "end_ns": 2238952879185333,
+                  "seconds": 119.640366096
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2238836243971358,
+                  "end_ns": 2238963100043612,
+                  "seconds": 126.856072254
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2238833273733147,
+                  "end_ns": 2238963080700544,
+                  "seconds": 129.806967397
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2238834362952571,
+                  "end_ns": 2238963692219446,
+                  "seconds": 129.329266875
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2238834374393895,
+                  "end_ns": 2238963040931840,
+                  "seconds": 128.666537945
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2238834611351270,
+                  "end_ns": 2238959899855368,
+                  "seconds": 125.288504098
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2238836218625309,
+                  "end_ns": 2238956769877307,
+                  "seconds": 120.551251998
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2238836184740808,
+                  "end_ns": 2238964045945674,
+                  "seconds": 127.861204866
+                }
+              ],
+              "evidence": "events/*.jsonl quantization_postprocess_begin/end"
+            },
+            "kv_cache_allocation": {
+              "start_ns": 2239024446721157,
+              "end_ns": 2239025379107484,
+              "seconds": 0.932386327,
+              "max_rank_s": 0.932131837,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2239024446721157,
+                  "end_ns": 2239025294361237,
+                  "seconds": 0.84764008
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2239024446760349,
+                  "end_ns": 2239025279103062,
+                  "seconds": 0.832342713
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2239024446825214,
+                  "end_ns": 2239025309684540,
+                  "seconds": 0.862859326
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2239024446727344,
+                  "end_ns": 2239025325474193,
+                  "seconds": 0.878746849
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2239024446984994,
+                  "end_ns": 2239025347577958,
+                  "seconds": 0.900592964
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2239024446811256,
+                  "end_ns": 2239025262702090,
+                  "seconds": 0.815890834
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2239024446975647,
+                  "end_ns": 2239025379107484,
+                  "seconds": 0.932131837
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2239024447086053,
+                  "end_ns": 2239025363114757,
+                  "seconds": 0.916028704
+                }
+              ],
+              "evidence": "events/*.jsonl kv_cache_allocation_begin/end"
+            }
+          },
+          "kv_fill_started_ns": 2239258440038619,
+          "kv_fill_received_ns": 2239271168185394,
+          "kv_fill_response_s": 12.728146775,
+          "host_write_confirmed_ns": 2239271291946143,
+          "host_confirm_s_from_request": 12.851907524,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 49364992,
+          "host_used_bytes_before_clear": 49364992,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2239278958767626,
+          "host_clear_end_ns": 2239278960906222,
+          "cache_state": "full_miss",
+          "file_read_bytes": 877729513472,
+          "hit_bytes": 0,
+          "allocated_blocks": 26552,
+          "freed_blocks": 26861,
+          "evicted_paths": 11
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 5,
+          "model": "glm53",
+          "source_model": "v4",
+          "evidence": "05-G-glm53",
+          "sf_cold": null,
+          "activation_ns": 2239341523513423,
+          "ready_ns": 2239801556542609,
+          "activate_to_ready_s": 460.033029186,
+          "first_response_ns": 2239806431494661,
+          "activate_to_first_s": 464.907981238,
+          "first_business_request": "business",
+          "full_weight_load_s": 119.908861065,
+          "full_weight_max_rank_s": 119.825277207,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2239432498592384,
+              "end_ns": 2239552407453449,
+              "seconds": 119.908861065,
+              "max_rank_s": 119.825277207,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2239432598930397,
+                  "end_ns": 2239550523077166,
+                  "seconds": 117.924146769
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2239432526970872,
+                  "end_ns": 2239550745847377,
+                  "seconds": 118.218876505
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2239432498592384,
+                  "end_ns": 2239530026131927,
+                  "seconds": 97.527539543
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2239432582176242,
+                  "end_ns": 2239552407453449,
+                  "seconds": 119.825277207
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2239432512071370,
+                  "end_ns": 2239552272530344,
+                  "seconds": 119.760458974
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2239432545212884,
+                  "end_ns": 2239549346606468,
+                  "seconds": 116.801393584
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2239432624948779,
+                  "end_ns": 2239546409057850,
+                  "seconds": 113.784109071
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2239432616695548,
+                  "end_ns": 2239551047991969,
+                  "seconds": 118.431296421
+                }
+              ],
+              "evidence": "weight-load-rank-*.jsonl"
+            }
+          },
+          "kv_fill_started_ns": 2239806432644668,
+          "kv_fill_received_ns": 2239808097952221,
+          "kv_fill_response_s": 1.665307553,
+          "host_write_confirmed_ns": 2239808194531811,
+          "host_confirm_s_from_request": 1.761887143,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 27623424,
+          "host_used_bytes_before_clear": 27623424,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2239818671579788,
+          "host_clear_end_ns": 2239818673663299,
+          "cache_state": "full_miss",
+          "file_read_bytes": 757596880896,
+          "hit_bytes": 0,
+          "allocated_blocks": 22584,
+          "freed_blocks": 21503,
+          "evicted_paths": 397
+        },
+        {
+          "run_id": "B1-GLM53-S3-20261119T175803Z",
+          "sequence": "S3",
+          "segment": 6,
+          "model": "v4",
+          "source_model": "glm53",
+          "evidence": "06-D-v4",
+          "sf_cold": null,
+          "activation_ns": 2239890079065923,
+          "ready_ns": 2240332783914675,
+          "activate_to_ready_s": 442.704848752,
+          "first_response_ns": 2240352994991117,
+          "activate_to_first_s": 462.915925194,
+          "first_business_request": "business",
+          "full_weight_load_s": 138.273618313,
+          "full_weight_max_rank_s": 138.156575571,
+          "observed_phases": {
+            "full_weight_load": {
+              "start_ns": 2239931150286084,
+              "end_ns": 2240069423904397,
+              "seconds": 138.273618313,
+              "max_rank_s": 138.156575571,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2239931226369291,
+                  "end_ns": 2240065687133110,
+                  "seconds": 134.460763819
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2239931151035553,
+                  "end_ns": 2240067063286056,
+                  "seconds": 135.912250503
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2239931150286084,
+                  "end_ns": 2240065707101112,
+                  "seconds": 134.556815028
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2239931154115198,
+                  "end_ns": 2240065113598271,
+                  "seconds": 133.959483073
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2239931231353265,
+                  "end_ns": 2240065654528657,
+                  "seconds": 134.423175392
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2239931267328826,
+                  "end_ns": 2240069423904397,
+                  "seconds": 138.156575571
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2239931262477506,
+                  "end_ns": 2240066570680591,
+                  "seconds": 135.308203085
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2239931224960136,
+                  "end_ns": 2240065650595605,
+                  "seconds": 134.425635469
+                }
+              ],
+              "evidence": "events/*.jsonl full_weight_load_begin/end"
+            },
+            "weight_ingestion": {
+              "start_ns": 2239934700631441,
+              "end_ns": 2239946108295389,
+              "seconds": 11.407663948,
+              "max_rank_s": 11.356670164,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2239934718817101,
+                  "end_ns": 2239942076676697,
+                  "seconds": 7.357859596
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2239934720826364,
+                  "end_ns": 2239945079909923,
+                  "seconds": 10.359083559
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2239934702158228,
+                  "end_ns": 2239943659503196,
+                  "seconds": 8.957344968
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2239934700631441,
+                  "end_ns": 2239944386400624,
+                  "seconds": 9.685769183
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2239934746057058,
+                  "end_ns": 2239943737662438,
+                  "seconds": 8.99160538
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2239934790565973,
+                  "end_ns": 2239945329296444,
+                  "seconds": 10.538730471
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2239934777333830,
+                  "end_ns": 2239945315092931,
+                  "seconds": 10.537759101
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2239934751625225,
+                  "end_ns": 2239946108295389,
+                  "seconds": 11.356670164
+                }
+              ],
+              "evidence": "events/*.jsonl weight_ingestion_begin/end"
+            },
+            "quantization_postprocess": {
+              "start_ns": 2239942080987460,
+              "end_ns": 2240069414027220,
+              "seconds": 127.33303976,
+              "max_rank_s": 124.080558135,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2239942080987460,
+                  "end_ns": 2240065676499932,
+                  "seconds": 123.595512472
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2239945083952510,
+                  "end_ns": 2240067053148524,
+                  "seconds": 121.969196014
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2239943663685192,
+                  "end_ns": 2240065696571895,
+                  "seconds": 122.032886703
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2239944390550760,
+                  "end_ns": 2240065103599412,
+                  "seconds": 120.713048652
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2239943741718080,
+                  "end_ns": 2240065643824228,
+                  "seconds": 121.902106148
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2239945333469085,
+                  "end_ns": 2240069414027220,
+                  "seconds": 124.080558135
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2239945319228731,
+                  "end_ns": 2240066560697984,
+                  "seconds": 121.241469253
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2239946112445019,
+                  "end_ns": 2240065639704517,
+                  "seconds": 119.527259498
+                }
+              ],
+              "evidence": "events/*.jsonl quantization_postprocess_begin/end"
+            },
+            "kv_cache_allocation": {
+              "start_ns": 2240127862559400,
+              "end_ns": 2240128778284473,
+              "seconds": 0.915725073,
+              "max_rank_s": 0.915428028,
+              "ranks": [
+                {
+                  "rank": 0,
+                  "start_ns": 2240127862586984,
+                  "end_ns": 2240128701544236,
+                  "seconds": 0.838957252
+                },
+                {
+                  "rank": 1,
+                  "start_ns": 2240127862723420,
+                  "end_ns": 2240128686399135,
+                  "seconds": 0.823675715
+                },
+                {
+                  "rank": 2,
+                  "start_ns": 2240127862601050,
+                  "end_ns": 2240128716737942,
+                  "seconds": 0.854136892
+                },
+                {
+                  "rank": 3,
+                  "start_ns": 2240127862559400,
+                  "end_ns": 2240128670526467,
+                  "seconds": 0.807967067
+                },
+                {
+                  "rank": 4,
+                  "start_ns": 2240127862913106,
+                  "end_ns": 2240128747518931,
+                  "seconds": 0.884605825
+                },
+                {
+                  "rank": 5,
+                  "start_ns": 2240127862690708,
+                  "end_ns": 2240128732234928,
+                  "seconds": 0.86954422
+                },
+                {
+                  "rank": 6,
+                  "start_ns": 2240127862856445,
+                  "end_ns": 2240128778284473,
+                  "seconds": 0.915428028
+                },
+                {
+                  "rank": 7,
+                  "start_ns": 2240127862889098,
+                  "end_ns": 2240128762803420,
+                  "seconds": 0.899914322
+                }
+              ],
+              "evidence": "events/*.jsonl kv_cache_allocation_begin/end"
+            }
+          },
+          "kv_fill_started_ns": 2240361036392958,
+          "kv_fill_received_ns": 2240373718740632,
+          "kv_fill_response_s": 12.682347674,
+          "host_write_confirmed_ns": 2240373926669881,
+          "host_confirm_s_from_request": 12.890276923,
+          "host_committed_tokens": 512,
+          "host_used_bytes_after_write": 49364992,
+          "host_used_bytes_before_clear": 49364992,
+          "host_used_bytes_after_clear": 0,
+          "host_lookup_hit_tokens": 0.0,
+          "host_clear_begin_ns": 2240380795292516,
+          "host_clear_end_ns": 2240380797430056,
+          "cache_state": "full_miss",
+          "file_read_bytes": 877729513472,
+          "hit_bytes": 0,
+          "allocated_blocks": 26552,
+          "freed_blocks": 27633,
+          "evicted_paths": 107
+        }
+      ]
     }
   ]
 }

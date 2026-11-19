@@ -4,6 +4,8 @@
 
 [正式 B1 报告](REPORT.md) · [服务器原始证据索引](derived/evidence-index.json)
 
+S3 重试首段的 [系统盘、cgroup 与 rank 原始采样](raw/host-memory/B1-GLM53-S3-20261119T175803Z-root-io.jsonl) 共 180 条，SHA-256 `b32ef5b03abe4dd8940d1670ed678293a8198e8961c90ff4e90ba8527a86d070`。服务器原件位于 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/B1-GLM53-S3-20261119T175803Z-root-io.jsonl`。
+
 ## 从原始回执重算 B1
 
 在可读取 qjhs003 原始回执的环境运行。`RUN_DIR` 为该轮证据目录，替换为实际的一个或多个路径。
