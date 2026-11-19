@@ -29,6 +29,14 @@ python v11/glm53-three-model/recompute_kimi_l2.py BASELINE_RUN CANDIDATE_RUN --o
 
 TP 切片前移和 meta 计数分别有源码及 CPU 对照。联合 B2 容量采样使用只读程序记录两池与三个 Worker cgroup。[TP 切片补丁](diagnostics/kimi-l2/localize-wna16-transpose.patch) · [TP 切片 CPU 对照](diagnostics/kimi-l2/verify_cpu.py) · [meta 计数补丁](diagnostics/kimi-l2/wna16-count-meta-only.patch) · [meta 计数 CPU 对照](diagnostics/kimi-l2/verify_meta_cpu.py) · [联合容量采样](diagnostics/observe_pool_memory.py)
 
+## 从原始回执重算 GLM-5.3 Sleep L2
+
+```bash
+python v11/glm53-three-model/recompute_glm53_l2_memory.py GLM53_RUN_DIR --output derived/glm53-l2-memory.json
+```
+
+`GLM53_RUN_DIR` 使用原始证据索引中的 qjhs003 目录。脚本核对两个 KV 分组、原八 rank 的实际 H2D、金标与释放，并按各自端点切分 RAM 采样。正式 S1 的容量生成器和 B1 原始水位重算脚本一并归档。[GLM-5.3 证据索引](derived/glm53-l2-memory-evidence.json) · [容量生成器](diagnostics/make_phase_capacity.py) · [B1 水位重算](diagnostics/replay-b1-host-capacity-20261120.py)
+
 ## 从双池采样重算主机 slab
 
 在 qjhs003 将 `S1_TRACE` 和 `S2_TRACE` 替换为 [Store 内存时间线](derived/store-memory-lifecycle.json) 中的路径。命令只读取各轮指定单调端点之前的完整记录，并输出该前缀的 SHA-256。

@@ -9,7 +9,7 @@
 | 保留 50 GiB 时的双池后准入 | 179 GiB | 将历史最大变化与余量相加并向上取整 |
 | qjhs003 物理 RAM | 1923.283 GiB | 节点 `/proc/meminfo` |
 
-两池实际就绪后的余量尚不足以按现有保守门槛启动联合 B2。历史原生 L2 和当前 B1 的压力来自各自独立运行。联合 B2 已完成三条序列的 CPU 启动计划验证，尚无联合运行的 OOM 或同 Worker 回读结果。GLM-5.3 单模型此前已通过两组 Host KV 回读，尚需带分阶段 cgroup 采样复跑。
+179 GiB 来自历史原生 L2 的整轮最大下降。当前已取得 Kimi meta 补丁和 GLM-5.3 的分阶段实测，正式 S1 采用开池与逐段两级准入。B1 同容量池证据提供开池预算，原生 L2 及单模型结果用于逐段估计。准入、正式结果与代理观测分别留证。
 
 历史原生 L2 的 S1 第 5 轮在第三次休眠后，主机可用内存较开轮低约 59.622 GiB。分阶段准入须在实际操作前计入全部休眠 Worker，记录两池和三个 Worker 的 cgroup，与首次加载、休眠、唤醒端点对齐。采样程序已用 qjhs003 的在途单模型容器验证 cgroup 读取，联合模式的记录周期为 1 秒。
 
@@ -51,6 +51,35 @@ S2 的同次 cgroup 读取记录，Store 匿名内存 **865.166 GiB** 中有 **2
 | meta 计数 `20261119T195718Z` | 320.904 | 320.285 | 20.332 | 22.360 | 61.113 |
 
 相对基线，meta 计数的 checkpoint 重载缩短 429.861 秒（57.3%），重载匿名内存峰值低 55.073 GiB。三组首次休眠的不可回收估计峰值为 22.067、22.104、22.105 GiB，均缺第二次休眠的驻留数据。两种补丁分别验收，联合候选选用 meta 计数。两个补丁组在各自 checkpoint 重载采样窗口内 `workingset_refault_file` 增量均为 0 页，基线无该计数。独立单模型数据用于评估补丁与容量，联合双池准入仍按实机水位判定。[重算结果](derived/kimi-l2.json) · [服务器证据索引](derived/kimi-l2-evidence.json)
+
+## GLM-5.3 单模型 RAM 补测
+
+`glm53-sleep-L2-memory-20261119T203024Z` 在 qjhs003 上使用 TP8、固定 16 GiB/rank GPU KV 和独立 1 GiB Host KV。原八 rank 的 indexer 21 层和 MLA 78 层各实际回读 512 token，三个探针命中依次为 0、512、0，金标逐 token 一致，八卡归零观察 61.163 秒。样本为单次。
+
+| 采样区间 | 时间（秒） | 采样点 | 主机可用 RAM 最大采样降幅（GiB） | cgroup 匿名内存峰值（GiB） |
+| --- | ---: | ---: | ---: | ---: |
+| 八 rank 权重加载 | 477.28 | 477 | 5.47 | 17.04 |
+| 完成休眠至发起唤醒 | 75.10 | 75 | 0.81 | 19.95 |
+| checkpoint 重载 | 143.29 | 143 | 0.00 | 19.27 |
+| 开始唤醒至重新注册 | 145.56 | 146 | 0.05 | 19.95 |
+
+降幅以各区间前 10 秒样本的中位数为基线。容器启动前至首次休眠完成的最大采样降幅另计为 24.009 GiB。唤醒至重新注册的 `workingset_refault_file` 增量为 73,082,340 页，计数可包含同一文件页的重复 refault。[重算结果](derived/glm53-l2-memory.json) · [逐 rank H2D](raw/glm53-sleep-L2-memory-20261119T203024Z/glm53-sf-cold/after-wake-h2d.json) · [原始证据索引](derived/glm53-l2-memory-evidence.json)
+
+## 正式 S1 准入与运行
+
+开池前要求至少 1871 GiB 可用 RAM，沿用 B1 的 1750 GiB 双池预算。运行每段前读取包含所有休眠 Worker 在内的实际 `MemAvailable`，以 50 GiB 保留量、观测上界向上取整和 8 GiB 操作缓冲计算该段门槛。操作期间轮询读数低于 55 GiB 会进入清理。V4 `gpu_memory_utilization` 显式设为同节点 B1 验证过的 0.76，继续执行逐卡显存准入并保留 16 GiB/rank 固定 KV。[准入配置及各模式依据](derived/b2-phase-capacity.json) · [B1 双池阶段采样](derived/b1-host-capacity.json)
+
+| 阶段最低可用 RAM（GiB） | Kimi-K2.6 | GLM-5.3 | DeepSeek-V4-Pro |
+| --- | ---: | ---: | ---: |
+| SafeTensors 首载 | 81 | 83 | 84 |
+| Store 原位首载 | 129 | 83 | 83 |
+| checkpoint 回访 | 59 | 61 | 67 |
+
+S1 首次执行 `B2-GLM53-S1-20261119T205243Z` 在守护器校验截止时间时停止。LMCache 容器处于 `created`，执行 0/7 段，清理后八卡归零 61.069 秒。控制器改为取预约截止与守护器四小时上限的较早值。[首轮失败回执](raw/B2-GLM53-S1-20261119T205243Z/result.json) · [守护器原始日志](raw/B2-GLM53-S1-20261119T205243Z/lmcache-guard.log)
+
+第二次 `B2-GLM53-S1-20261119T205548Z` 通过守护器校验，LMCache 因 FD 接收器的 `RLIMIT_NOFILE` 不足退出。该轮执行 0/7 段，独立清理后八卡归零 61.055 秒。LMCache 容器现在显式使用 `nofile=8192:8192`，控制器也检查服务是否在就绪前退出。[LMCache 原始日志](raw/B2-GLM53-S1-20261119T205548Z/external-cleanup/lmcache-final.log) · [清理回执](raw/B2-GLM53-S1-20261119T205548Z/external-cleanup/result.json)
+
+第三次 `B2-GLM53-S1-20261119T210129Z` 开池前实测可用 RAM 1877.129 GiB。LMCache 已进入初始化，正式七段的验收待最终回执。[实际准入](raw/B2-GLM53-S1-20261119T210129Z/live-admission.json) · [控制器文件指纹](raw/B2-GLM53-S1-20261119T210129Z/controller-source.json)
 
 ## 验收要求
 

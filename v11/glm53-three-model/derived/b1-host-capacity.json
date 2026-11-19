@@ -1,0 +1,992 @@
+{
+  "method": "Drops are host MemAvailable at step admission minus sampled minimum, with both pools present. Use store_ready_ns through kv-clear.end_ns for the first step to cover cold preparation. Use step activation_ns through kv-clear.end_ns for other steps. Peak comparison requires samples within three seconds of both boundaries and internal gaps <=3s. This is ordinary B1 with one active Backend, no sleepers. Pool pressure compares live-admission MemAvailable to near-ready monitor samples.",
+  "runs": [
+    {
+      "run_id": "B1-GLM53-S1-20261119T141542Z",
+      "controller_start_available_bytes": 2016130912256,
+      "pool_ready_ns": 2222633863630149,
+      "first_monitor_sample_ns": 2226387902523669,
+      "both_services_samples_within_10s_of_pool_ready": [],
+      "steps": [
+        {
+          "index": 0,
+          "name": "00-K-kimi",
+          "model": "kimi",
+          "cache_state": "safetensors_disk_cold",
+          "window_begin_ns": 2222633863630149,
+          "window_end_ns": 2223993371051125,
+          "activation_ns": 2222652554367899,
+          "entry_available_bytes": 140022652928,
+          "memory": null,
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/00-K-kimi/step-result.json",
+              "sha256": "decd2f3164456361b9dcf198c737da3dd134b988b5b8a265e27dbc96b7c200a2",
+              "bytes": 23222
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/00-K-kimi/host-admission.json",
+              "sha256": "2db815bd9dd461e30b03707dca373dff1e0b5931ed9be7626f3ac6363073b9f3",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/00-K-kimi/kv-clear.json",
+              "sha256": "c25cbb7e07548d149b7908ce6eb242b075fb029f4d1e338c2fc756c3b251720e",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 1,
+          "name": "01-G-glm53",
+          "model": "glm53",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2224055518597635,
+          "window_end_ns": 2224597786295058,
+          "activation_ns": 2224055518597635,
+          "entry_available_bytes": 138502807552,
+          "memory": null,
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/01-G-glm53/step-result.json",
+              "sha256": "5d3eaf626bb09d153d79b9e6a8c1ba93f447f4de96af94fe37f1558f0e0dae9b",
+              "bytes": 18933
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/01-G-glm53/host-admission.json",
+              "sha256": "8ab17515e4369198c504689510647ffc132399ea31a320f2f9ae56fdb7e1d0bf",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/01-G-glm53/kv-clear.json",
+              "sha256": "864fc575b43fa2a6f32a38d271b2f46252a3284ba0339100b51d8bad107b62d1",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 2,
+          "name": "02-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2224670166910474,
+          "window_end_ns": 2225185281151980,
+          "activation_ns": 2224670166910474,
+          "entry_available_bytes": 138258612224,
+          "memory": null,
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/02-D-v4/step-result.json",
+              "sha256": "baea754b7870534924bc229eaa8f473ab8001777962568a44d3373637a74ee99",
+              "bytes": 1314589
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/02-D-v4/host-admission.json",
+              "sha256": "30c6098f2c9c755f21c48744ca36487e73f3a3a2f2472f2552925ad581001c3d",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/02-D-v4/kv-clear.json",
+              "sha256": "8cb3273a496c00e9ae4ee9ad13c3eabae6efc0cd00a3f84e5409dea3b9772f99",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 3,
+          "name": "03-G-glm53",
+          "model": "glm53",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2225246603049190,
+          "window_end_ns": 2225750233757830,
+          "activation_ns": 2225246603049190,
+          "entry_available_bytes": 138109865984,
+          "memory": null,
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/03-G-glm53/step-result.json",
+              "sha256": "4f53515a947a6c6d03b4c7787ef317d2ef9639a023c7edf3d6f340705880385c",
+              "bytes": 329738
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/03-G-glm53/host-admission.json",
+              "sha256": "6d0e616df3f54a717b2020176f3f02c96214128efc85a9e28c7fa92d2cfbda21",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/03-G-glm53/kv-clear.json",
+              "sha256": "9a2f869e77830e6e5379864f4d64516f2f878b36baede8ad3551f1c874044a32",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 4,
+          "name": "04-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2225818840576869,
+          "window_end_ns": 2226074275449108,
+          "activation_ns": 2225818840576869,
+          "entry_available_bytes": 137795936256,
+          "memory": null,
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/04-K-kimi/step-result.json",
+              "sha256": "efe1032ee340a6b4acb1c1290afcf048c37e716387e5a0b5a6efb0361509ad40",
+              "bytes": 122755
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/04-K-kimi/host-admission.json",
+              "sha256": "17325ae88f615674583d589e34546de7b243b084ce651b0428ce8738bc3ca9bd",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/04-K-kimi/kv-clear.json",
+              "sha256": "1673a6335ef0820d2abed92bf7001f217ee0dbbc36f11b59c0cfa8d7ee79d505",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 5,
+          "name": "05-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2226142945776341,
+          "window_end_ns": 2226656714061475,
+          "activation_ns": 2226142945776341,
+          "entry_available_bytes": 138489544704,
+          "memory": {
+            "n": 135,
+            "first_sample_ns": 2226387902523669,
+            "last_sample_ns": 2226656318494680,
+            "max_gap_ns": 2004514451,
+            "observed_min_available_ns": 2226393911355711,
+            "observed_min_available_bytes": 112804188160,
+            "entry_to_min_drop_bytes": 25685356544,
+            "covers_window_to_3s": false
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/05-D-v4/step-result.json",
+              "sha256": "0c030b6bfc1925b497b30c385aaebb903f20043002bae4e859fcb2f4e4ec5f9d",
+              "bytes": 1318443
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/05-D-v4/host-admission.json",
+              "sha256": "f423db9a604ac270f3546932873e06f6bdae2270a9fb77a2b4360c5fd51b49ad",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/05-D-v4/kv-clear.json",
+              "sha256": "6b2cf093c98d85c22fbcf3555dcd2b8c60151ee48eabd163251f276ae8fdfc33",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 6,
+          "name": "06-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2226724195222016,
+          "window_end_ns": 2226973849997351,
+          "activation_ns": 2226724195222016,
+          "entry_available_bytes": 137972551680,
+          "memory": {
+            "n": 125,
+            "first_sample_ns": 2226724414449231,
+            "last_sample_ns": 2226972764035800,
+            "max_gap_ns": 2004587510,
+            "observed_min_available_ns": 2226776491191836,
+            "observed_min_available_bytes": 65085407232,
+            "entry_to_min_drop_bytes": 72887144448,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/06-K-kimi/step-result.json",
+              "sha256": "cd6adb1f248c82a3a2bcac49dde8b0a3d527b906e011436b9ef6a675328c8c95",
+              "bytes": 301694
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/06-K-kimi/host-admission.json",
+              "sha256": "a0abbc8300c19371bfa79039b0feeda72c75f3dcd2007486895ce12e10e7d995",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/06-K-kimi/kv-clear.json",
+              "sha256": "131bae68ad859f43aa06312cc121e8b443bbbdb39d4c60248da7755e84ca8c8b",
+              "bytes": 4362
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "result": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/result.json",
+          "sha256": "4043eb3984282c9f18104ce3d7d7c3ea556736d961e5fbb4fcc61da0e1e5e89c",
+          "bytes": 1305
+        },
+        "admission": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/live-admission.json",
+          "sha256": "3e14916d44e0fa785621306bb2c838c0a67977dc223b747546b50fd6df96799b",
+          "bytes": 689
+        },
+        "timing": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S1-20261119T141542Z/pool-init-timing.json",
+          "sha256": "0b070b00c80eb81809b61ce926c5d11eedd2e312cf4ac0b8fc000eaecabbfc2a",
+          "bytes": 149
+        },
+        "monitor": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/memory-observations/B1-GLM53-S1-20261119T141542Z.jsonl",
+          "sha256": "73fbbda3574e6b755a40b8895cdccb1ea9fd9b9e4e735c6101c93139e3f816ef",
+          "bytes": 336458,
+          "n": 406
+        }
+      }
+    },
+    {
+      "run_id": "B1-GLM53-S2-20261119T154121Z",
+      "controller_start_available_bytes": 2017505980416,
+      "pool_ready_ns": 2227797216216427,
+      "first_monitor_sample_ns": 2227200311769547,
+      "both_services_samples_within_10s_of_pool_ready": [
+        {
+          "sample_ns": 2227789148396326,
+          "offset_ns": -8067820101,
+          "available_bytes": 165623623680,
+          "starting_available_minus_sample_bytes": 1851882356736
+        },
+        {
+          "sample_ns": 2227791151141575,
+          "offset_ns": -6065074852,
+          "available_bytes": 160930418688,
+          "starting_available_minus_sample_bytes": 1856575561728
+        },
+        {
+          "sample_ns": 2227793153833186,
+          "offset_ns": -4062383241,
+          "available_bytes": 153117401088,
+          "starting_available_minus_sample_bytes": 1864388579328
+        },
+        {
+          "sample_ns": 2227795156543163,
+          "offset_ns": -2059673264,
+          "available_bytes": 145316687872,
+          "starting_available_minus_sample_bytes": 1872189292544
+        },
+        {
+          "sample_ns": 2227797159352976,
+          "offset_ns": -56863451,
+          "available_bytes": 138703622144,
+          "starting_available_minus_sample_bytes": 1878802358272
+        },
+        {
+          "sample_ns": 2227799161972069,
+          "offset_ns": 1945755642,
+          "available_bytes": 138578460672,
+          "starting_available_minus_sample_bytes": 1878927519744
+        },
+        {
+          "sample_ns": 2227801165181933,
+          "offset_ns": 3948965506,
+          "available_bytes": 138567720960,
+          "starting_available_minus_sample_bytes": 1878938259456
+        },
+        {
+          "sample_ns": 2227803168032541,
+          "offset_ns": 5951816114,
+          "available_bytes": 138580078592,
+          "starting_available_minus_sample_bytes": 1878925901824
+        },
+        {
+          "sample_ns": 2227805170850749,
+          "offset_ns": 7954634322,
+          "available_bytes": 138558582784,
+          "starting_available_minus_sample_bytes": 1878947397632
+        },
+        {
+          "sample_ns": 2227807173867322,
+          "offset_ns": 9957650895,
+          "available_bytes": 138516615168,
+          "starting_available_minus_sample_bytes": 1878989365248
+        }
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "name": "00-G-glm53",
+          "model": "glm53",
+          "cache_state": "safetensors_disk_cold",
+          "window_begin_ns": 2227797216216427,
+          "window_end_ns": 2228648198961800,
+          "activation_ns": 2227807063533335,
+          "entry_available_bytes": 138710106112,
+          "memory": {
+            "n": 424,
+            "first_sample_ns": 2227799161972069,
+            "last_sample_ns": 2228646510997671,
+            "max_gap_ns": 2004822237,
+            "observed_min_available_ns": 2228402122249710,
+            "observed_min_available_bytes": 117172019200,
+            "entry_to_min_drop_bytes": 21538086912,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/00-G-glm53/step-result.json",
+              "sha256": "08c77899d7e20b7154e474e27e22b68f985491d705efa8f8bf193e6ec9fb25bd",
+              "bytes": 1523
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/00-G-glm53/host-admission.json",
+              "sha256": "eb1e8972c83ad8ec0ee4a66120ade5bf9ae1f5a6c362497e0644787616b8a0d8",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/00-G-glm53/kv-clear.json",
+              "sha256": "7f67a1b3fd1fde0846f39062cfc263b965599e7663a7b9a21e53cb2c7041a73f",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 1,
+          "name": "01-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2228725517948551,
+          "window_end_ns": 2229245864808620,
+          "activation_ns": 2228725517948551,
+          "entry_available_bytes": 137731387392,
+          "memory": {
+            "n": 260,
+            "first_sample_ns": 2228726628451031,
+            "last_sample_ns": 2229245465999055,
+            "max_gap_ns": 2004813017,
+            "observed_min_available_ns": 2229233445971674,
+            "observed_min_available_bytes": 112062705664,
+            "entry_to_min_drop_bytes": 25668681728,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/01-D-v4/step-result.json",
+              "sha256": "f05200364ac6e27520116befadb16d35e79c9acf2339ad2f371c66e71b881e2d",
+              "bytes": 1310317
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/01-D-v4/host-admission.json",
+              "sha256": "2ea2c43992f076d6b1c2c2868099740ca670825c3e9406647ff508653bcb9d2f",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/01-D-v4/kv-clear.json",
+              "sha256": "3e84dfd015a4b35c4f0918bd1b4b731a364ba5ba3eaa013785bb1d0927d1f776",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 2,
+          "name": "02-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2229314667990966,
+          "window_end_ns": 2229559720879480,
+          "activation_ns": 2229314667990966,
+          "entry_available_bytes": 139166855168,
+          "memory": {
+            "n": 122,
+            "first_sample_ns": 2229315566022893,
+            "last_sample_ns": 2229557927016274,
+            "max_gap_ns": 2003975646,
+            "observed_min_available_ns": 2229365640965293,
+            "observed_min_available_bytes": 78928187392,
+            "entry_to_min_drop_bytes": 60238667776,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/02-K-kimi/step-result.json",
+              "sha256": "0ba1316f50493e0bb28f958f0c7620dd4fe274860b4bb2bdc31422b99d24de97",
+              "bytes": 303065
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/02-K-kimi/host-admission.json",
+              "sha256": "a95301c76cdd88afaac7b1ce141c17c05c654bc1e964a059fafc07bc02d947ac",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/02-K-kimi/kv-clear.json",
+              "sha256": "66e62021455a21fa42d498c46ee6c92b248f4612d37ee73fef8cd1290c1daef8",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 3,
+          "name": "03-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2229626075959611,
+          "window_end_ns": 2230135284091356,
+          "activation_ns": 2229626075959611,
+          "entry_available_bytes": 138410639360,
+          "memory": {
+            "n": 254,
+            "first_sample_ns": 2229628026380702,
+            "last_sample_ns": 2230134825307954,
+            "max_gap_ns": 2007427562,
+            "observed_min_available_ns": 2230122808028160,
+            "observed_min_available_bytes": 112065724416,
+            "entry_to_min_drop_bytes": 26344914944,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/03-D-v4/step-result.json",
+              "sha256": "b2b5f07e5eb8ccae711126d9805cd0b2bfc924728b4fde8e9211f5e4f1367915",
+              "bytes": 1548343
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/03-D-v4/host-admission.json",
+              "sha256": "849de0ea3bd2b1cfb7addb69dc06a6a139c2374d9c57177120e07c5da234407d",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/03-D-v4/kv-clear.json",
+              "sha256": "54d7a7dc43df9f0458a603e642c93cdf49752118364b12a3d3d3032864559088",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 4,
+          "name": "04-G-glm53",
+          "model": "glm53",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2230197991528178,
+          "window_end_ns": 2230692807281632,
+          "activation_ns": 2230197991528178,
+          "entry_available_bytes": 138734637056,
+          "memory": {
+            "n": 247,
+            "first_sample_ns": 2230198914980797,
+            "last_sample_ns": 2230691690137069,
+            "max_gap_ns": 2004364878,
+            "observed_min_available_ns": 2230657633000778,
+            "observed_min_available_bytes": 115024195584,
+            "entry_to_min_drop_bytes": 23710441472,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/04-G-glm53/step-result.json",
+              "sha256": "8fc84eb6a031ab9e471cd1edf8884ff09e3efad1011f761689d94de153ec4d13",
+              "bytes": 331437
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/04-G-glm53/host-admission.json",
+              "sha256": "4b7ceae1f4ed59166713d1a1eab4722cc902a939eb1212b6b439ef054520938b",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/04-G-glm53/kv-clear.json",
+              "sha256": "821938e3c2e7da8848644931049f2a12812cfe5cb7ef974da1e6bd5d54aa52bf",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 5,
+          "name": "05-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2230763308232834,
+          "window_end_ns": 2231006687285166,
+          "activation_ns": 2230763308232834,
+          "entry_available_bytes": 138258792448,
+          "memory": {
+            "n": 122,
+            "first_sample_ns": 2230763799005669,
+            "last_sample_ns": 2231006159454593,
+            "max_gap_ns": 2004257504,
+            "observed_min_available_ns": 2230811866025600,
+            "observed_min_available_bytes": 63145934848,
+            "entry_to_min_drop_bytes": 75112857600,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/05-K-kimi/step-result.json",
+              "sha256": "91351166a61812b0b19bae1aeb5d68d3377eff44a090b44c99c196a9688cb2ee",
+              "bytes": 123276
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/05-K-kimi/host-admission.json",
+              "sha256": "de2d38ab3421f2ea834a7f4b46eb2681e12aeca00d86bb0c4d5fb2e1888d767a",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/05-K-kimi/kv-clear.json",
+              "sha256": "a5603e0aa246181cb4a2ff9b17aac251b790086a51d61f7340ee55d17b7c949c",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 6,
+          "name": "06-G-glm53",
+          "model": "glm53",
+          "cache_state": "partial_hit",
+          "window_begin_ns": 2231068858264689,
+          "window_end_ns": 2231547699813444,
+          "activation_ns": 2231068858264689,
+          "entry_available_bytes": 137802207232,
+          "memory": {
+            "n": 239,
+            "first_sample_ns": 2231070255516765,
+            "last_sample_ns": 2231546984883436,
+            "max_gap_ns": 2004012245,
+            "observed_min_available_ns": 2231352689614614,
+            "observed_min_available_bytes": 115297996800,
+            "entry_to_min_drop_bytes": 22504210432,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/06-G-glm53/step-result.json",
+              "sha256": "37f4bdd1002efe299b3062f8c8fbac190b6a2a57ef9cb2cccd293513242abddf",
+              "bytes": 27775
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/06-G-glm53/host-admission.json",
+              "sha256": "af30c53840de5172cef19e7bc6fba177879c6da0dbc583d37c4260e57131f2fb",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/06-G-glm53/kv-clear.json",
+              "sha256": "fef5abdaedbb39a6f72896d4fadd536846ce169eeb866c916b7f6c5a48b4e19e",
+              "bytes": 4362
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "result": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/result.json",
+          "sha256": "5f30099e76eb1cc01e00e9c188a2b41a940f7da3aecf86513855c88c5456a7c4",
+          "bytes": 1317
+        },
+        "admission": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/live-admission.json",
+          "sha256": "8a3631653ecc8df6e7538a649af29f79956b4eaf242f2b28414f143e2ddcf4a2",
+          "bytes": 689
+        },
+        "timing": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S2-20261119T154121Z/pool-init-timing.json",
+          "sha256": "fd1562de597718e69b0d0eeaf78dcdf755e62d6e487cab40cbe090a80167bb05",
+          "bytes": 149
+        },
+        "monitor": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/memory-observations/B1-GLM53-S2-20261119T154121Z.jsonl",
+          "sha256": "2e55e28afd3ba6cd63bf589d994c8d751608f4885586e015211d7754533acdbd",
+          "bytes": 1967586,
+          "n": 2286
+        }
+      }
+    },
+    {
+      "run_id": "B1-GLM53-S3-20261119T175803Z",
+      "controller_start_available_bytes": 2017102807040,
+      "pool_ready_ns": 2236031891494260,
+      "first_monitor_sample_ns": 2235403178105001,
+      "both_services_samples_within_10s_of_pool_ready": [
+        {
+          "sample_ns": 2236022029481476,
+          "offset_ns": -9862012784,
+          "available_bytes": 155734044672,
+          "starting_available_minus_sample_bytes": 1861368762368
+        },
+        {
+          "sample_ns": 2236024032036635,
+          "offset_ns": -7859457625,
+          "available_bytes": 150539694080,
+          "starting_available_minus_sample_bytes": 1866563112960
+        },
+        {
+          "sample_ns": 2236026035305963,
+          "offset_ns": -5856188297,
+          "available_bytes": 145517858816,
+          "starting_available_minus_sample_bytes": 1871584948224
+        },
+        {
+          "sample_ns": 2236028040630282,
+          "offset_ns": -3850863978,
+          "available_bytes": 143919206400,
+          "starting_available_minus_sample_bytes": 1873183600640
+        },
+        {
+          "sample_ns": 2236030043761760,
+          "offset_ns": -1847732500,
+          "available_bytes": 142776213504,
+          "starting_available_minus_sample_bytes": 1874326593536
+        },
+        {
+          "sample_ns": 2236032046808546,
+          "offset_ns": 155314286,
+          "available_bytes": 138957398016,
+          "starting_available_minus_sample_bytes": 1878145409024
+        },
+        {
+          "sample_ns": 2236034050117408,
+          "offset_ns": 2158623148,
+          "available_bytes": 138960019456,
+          "starting_available_minus_sample_bytes": 1878142787584
+        },
+        {
+          "sample_ns": 2236036053044632,
+          "offset_ns": 4161550372,
+          "available_bytes": 138693910528,
+          "starting_available_minus_sample_bytes": 1878408896512
+        },
+        {
+          "sample_ns": 2236038056057945,
+          "offset_ns": 6164563685,
+          "available_bytes": 138671939584,
+          "starting_available_minus_sample_bytes": 1878430867456
+        },
+        {
+          "sample_ns": 2236040058917791,
+          "offset_ns": 8167423531,
+          "available_bytes": 138656604160,
+          "starting_available_minus_sample_bytes": 1878446202880
+        }
+      ],
+      "steps": [
+        {
+          "index": 0,
+          "name": "00-D-v4",
+          "model": "v4",
+          "cache_state": "safetensors_disk_cold",
+          "window_begin_ns": 2236031891494260,
+          "window_end_ns": 2237470213297619,
+          "activation_ns": 2236081467988904,
+          "entry_available_bytes": 138965954560,
+          "memory": {
+            "n": 719,
+            "first_sample_ns": 2236032046808546,
+            "last_sample_ns": 2237470172123124,
+            "max_gap_ns": 2061675528,
+            "observed_min_available_ns": 2237113726752349,
+            "observed_min_available_bytes": 111267921920,
+            "entry_to_min_drop_bytes": 27698032640,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/00-D-v4/step-result.json",
+              "sha256": "72b5f04530c1a2ab3ff166dd631f89ce521b2b352c02ce3e84346659bf3397fa",
+              "bytes": 96585
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/00-D-v4/host-admission.json",
+              "sha256": "7833c2b43b2aaab12fec0f58c9a479ad745ad28c14dce70985c38fd062dd7218",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/00-D-v4/kv-clear.json",
+              "sha256": "606ceb5008261577f165367a5310d46608218829ef67c82bed831b08043045b7",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 1,
+          "name": "01-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2237593286567891,
+          "window_end_ns": 2237855783854446,
+          "activation_ns": 2237593286567891,
+          "entry_available_bytes": 137730711552,
+          "memory": {
+            "n": 131,
+            "first_sample_ns": 2237594340210857,
+            "last_sample_ns": 2237854768777123,
+            "max_gap_ns": 2004701128,
+            "observed_min_available_ns": 2237658439696130,
+            "observed_min_available_bytes": 67979436032,
+            "entry_to_min_drop_bytes": 69751275520,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/01-K-kimi/step-result.json",
+              "sha256": "56cfde6279751916b27915e621cfa6cd958ad2542c227649bee4b23151f8b030",
+              "bytes": 41744
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/01-K-kimi/host-admission.json",
+              "sha256": "8f4378d5a248de58d0843c4a327d1bf6f4d9d759b5e3bad3b2fd9f23082cde5d",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/01-K-kimi/kv-clear.json",
+              "sha256": "26a1a4f78538923794be6dee6b5425a0f901b31517b4066a56d4a7e977a6dc89",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 2,
+          "name": "02-G-glm53",
+          "model": "glm53",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2237922621497118,
+          "window_end_ns": 2238411070972495,
+          "activation_ns": 2237922621497118,
+          "entry_available_bytes": 137829171200,
+          "memory": {
+            "n": 244,
+            "first_sample_ns": 2237922860433366,
+            "last_sample_ns": 2238409616450400,
+            "max_gap_ns": 2004270282,
+            "observed_min_available_ns": 2238399600926413,
+            "observed_min_available_bytes": 114486816768,
+            "entry_to_min_drop_bytes": 23342354432,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/02-G-glm53/step-result.json",
+              "sha256": "d2b59ab11318f73c2170346b06592d560ce085bfa2e61e000742f4bceed76540",
+              "bytes": 26398
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/02-G-glm53/host-admission.json",
+              "sha256": "5cbbf950a9600d9aa3fe5ee1560cdcfa3bae6e4738b0195e669a18f16094ea99",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/02-G-glm53/kv-clear.json",
+              "sha256": "1399792b8bc172e40d844e21723a2d84b5f35c2de2bdc1bcce2ab0b6df47ae41",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 3,
+          "name": "03-K-kimi",
+          "model": "kimi",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2238478381500685,
+          "window_end_ns": 2238716692751986,
+          "activation_ns": 2238478381500685,
+          "entry_available_bytes": 138739429376,
+          "memory": {
+            "n": 119,
+            "first_sample_ns": 2238479715680024,
+            "last_sample_ns": 2238716087466358,
+            "max_gap_ns": 2004210334,
+            "observed_min_available_ns": 2238527786493618,
+            "observed_min_available_bytes": 69670596608,
+            "entry_to_min_drop_bytes": 69068832768,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/03-K-kimi/step-result.json",
+              "sha256": "9c1e15b19c0257a5d787233c5d66053ffe81862238834713c254a0a84306130a",
+              "bytes": 50970
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/03-K-kimi/host-admission.json",
+              "sha256": "5eeadef672a151c0844825e4ccb4a0dec76303124cc25b740196dbb5284992bc",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/03-K-kimi/kv-clear.json",
+              "sha256": "b238412d6c746a46a5fb62dcf87cdf769f2594c9c85f9c9795e6d63f9357817e",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 4,
+          "name": "04-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2238782650839890,
+          "window_end_ns": 2239278960906222,
+          "activation_ns": 2238782650839890,
+          "entry_available_bytes": 139320414208,
+          "memory": {
+            "n": 247,
+            "first_sample_ns": 2238784187533911,
+            "last_sample_ns": 2239277044217841,
+            "max_gap_ns": 2043154593,
+            "observed_min_available_ns": 2239265024043205,
+            "observed_min_available_bytes": 113834758144,
+            "entry_to_min_drop_bytes": 25485656064,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/04-D-v4/step-result.json",
+              "sha256": "b24a66264230a7d1f34a9b55a395e7b1d1cc2652bda9ebf293260eedb8e17ab3",
+              "bytes": 1323491
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/04-D-v4/host-admission.json",
+              "sha256": "4f1abecfc7d877585d313b8035736ac6681a4f38bddd66fb9e25fd38de13d706",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/04-D-v4/kv-clear.json",
+              "sha256": "120df8cbbeb3ce0c487d692b003e79ef2b206527aff326fde5dd72363a948d5c",
+              "bytes": 4363
+            }
+          }
+        },
+        {
+          "index": 5,
+          "name": "05-G-glm53",
+          "model": "glm53",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2239341523513423,
+          "window_end_ns": 2239818673663299,
+          "activation_ns": 2239341523513423,
+          "entry_available_bytes": 138423918592,
+          "memory": {
+            "n": 238,
+            "first_sample_ns": 2239343137469726,
+            "last_sample_ns": 2239817892843251,
+            "max_gap_ns": 2005269891,
+            "observed_min_available_ns": 2239585521022882,
+            "observed_min_available_bytes": 115330945024,
+            "entry_to_min_drop_bytes": 23092973568,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/05-G-glm53/step-result.json",
+              "sha256": "d81259cb3cf34469cb744979cc8850b068614d53e0d1ffbebc4b0da4094be1b6",
+              "bytes": 331438
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/05-G-glm53/host-admission.json",
+              "sha256": "78a8074558f2c50aa1af97a77d4821f38dd66f9489b5eff41c619148283ee417",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/05-G-glm53/kv-clear.json",
+              "sha256": "c319f5c5e2c73606b76b6012b94bf0e4a357d26c8f36eee75e2c42291087f63a",
+              "bytes": 4362
+            }
+          }
+        },
+        {
+          "index": 6,
+          "name": "06-D-v4",
+          "model": "v4",
+          "cache_state": "full_miss",
+          "window_begin_ns": 2239890079065923,
+          "window_end_ns": 2240380797430056,
+          "activation_ns": 2239890079065923,
+          "entry_available_bytes": 138251833344,
+          "memory": {
+            "n": 244,
+            "first_sample_ns": 2239891991214644,
+            "last_sample_ns": 2240378938419952,
+            "max_gap_ns": 2159051359,
+            "observed_min_available_ns": 2240256595461265,
+            "observed_min_available_bytes": 112867966976,
+            "entry_to_min_drop_bytes": 25383866368,
+            "covers_window_to_3s": true
+          },
+          "evidence": {
+            "step": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/06-D-v4/step-result.json",
+              "sha256": "37418fdd18edae6183e8dd0be52fe6ea3a46827089fad21feb496089983b9e9c",
+              "bytes": 1437852
+            },
+            "entry": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/06-D-v4/host-admission.json",
+              "sha256": "bc52987569799eefec62e134858f7834d490ffbe42289251358ade0eac81abb5",
+              "bytes": 72
+            },
+            "clear": {
+              "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/06-D-v4/kv-clear.json",
+              "sha256": "5d87d7ff3bdaba4a5de7207945f7057f0007e877537db335a7420ba1150e5b88",
+              "bytes": 4363
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "result": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/result.json",
+          "sha256": "ac30a2d9cd871e3942f14fce1d8ff05ad7c8bd9d7fb83f68b0acd07ce6e1e2e1",
+          "bytes": 1305
+        },
+        "admission": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/live-admission.json",
+          "sha256": "e27673c612f7db4ad927d71ab2fc70cf92a2ab0a48497b464d44216d1e2eb2c7",
+          "bytes": 689
+        },
+        "timing": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/B1-GLM53-S3-20261119T175803Z/pool-init-timing.json",
+          "sha256": "9e5b9ccc982192e75e0342d8451af939a7d7ea30ac28e424e2e276eee600e535",
+          "bytes": 149
+        },
+        "monitor": {
+          "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs/memory-observations/B1-GLM53-S3-20261119T175803Z.jsonl",
+          "sha256": "897af5829f46f6ae890a139e15af326d1021aea17c1539bb6ca60f5f20f20f46",
+          "bytes": 2606321,
+          "n": 2601
+        }
+      }
+    }
+  ],
+  "observed_max_drops": {
+    "kimi:store": {
+      "drop_bytes": 75112857600,
+      "drop_gib": 69.9543,
+      "run_id": "B1-GLM53-S2-20261119T154121Z",
+      "step": "05-K-kimi",
+      "cache_state": "full_miss"
+    },
+    "glm53:sf_cold": {
+      "drop_bytes": 21538086912,
+      "drop_gib": 20.058907,
+      "run_id": "B1-GLM53-S2-20261119T154121Z",
+      "step": "00-G-glm53",
+      "cache_state": "safetensors_disk_cold"
+    },
+    "v4:store": {
+      "drop_bytes": 26344914944,
+      "drop_gib": 24.535614,
+      "run_id": "B1-GLM53-S2-20261119T154121Z",
+      "step": "03-D-v4",
+      "cache_state": "full_miss"
+    },
+    "glm53:store": {
+      "drop_bytes": 23710441472,
+      "drop_gib": 22.082069,
+      "run_id": "B1-GLM53-S2-20261119T154121Z",
+      "step": "04-G-glm53",
+      "cache_state": "full_miss"
+    },
+    "v4:sf_cold": {
+      "drop_bytes": 27698032640,
+      "drop_gib": 25.795803,
+      "run_id": "B1-GLM53-S3-20261119T175803Z",
+      "step": "00-D-v4",
+      "cache_state": "safetensors_disk_cold"
+    }
+  }
+}

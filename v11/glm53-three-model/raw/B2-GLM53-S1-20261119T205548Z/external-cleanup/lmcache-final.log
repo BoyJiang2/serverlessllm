@@ -1,0 +1,13 @@
+[32;20m[2026-11-19 20:55:57,951] LMCache INFO:[0m torch_dev=<module 'torch.cuda' from '/usr/local/lib/python3.12/dist-packages/torch/cuda/__init__.py'>, torch_device_type=cuda [3m(_device_detect.py:312:lmcache.v1.platform._device_detect)[0m
+[32;20m[2026-11-19 20:55:57,954] LMCache INFO:[0m Auto-selected backend [cuda] for accelerator 'cuda' from candidate backends [cuda, rocm]. [3m(__init__.py:148:lmcache.v1.platform)[0m
+Traceback (most recent call last):
+  File "/joint/b2_shared_lmcache_server.py", line 114, in <module>
+    main()
+  File "/joint/b2_shared_lmcache_server.py", line 105, in main
+    with fd_receiver(os.environ['V11_B2_LMCACHE_FD_SOCKET']) as resolver:
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/joint/v4_sleep_transport.py", line 85, in fd_receiver
+    raise RuntimeError('V4 FD receiver requires a larger RLIMIT_NOFILE')
+RuntimeError: V4 FD receiver requires a larger RLIMIT_NOFILE
