@@ -1,0 +1,63 @@
+--- a/overlay/v4_sleep_worker.py
++++ b/overlay/v4_sleep_worker.py
+@@ -48,9 +48,10 @@
+             raise ValueError(f'Unexpected V4 logical KV group or SWA window: {group}')
+         for i in group.layer_indices:
+             name, tensor = views[i]
+-            if (tuple(tensor.shape[1:]), tuple(tensor.stride()), str(tensor.dtype)) != (
+-                    (slots, 1, size), (stride0, size, size, 1), dtype):
+-                raise ValueError(f'Unexpected V4 physical KV view: {name}')
++            actual = (tuple(tensor.shape[1:]), tuple(tensor.stride()), str(tensor.dtype))
++            expected_view = ((slots, size), (stride0, size, 1), dtype)
++            if actual != expected_view:
++                raise ValueError(f'Unexpected V4 physical KV view: {name}, got {actual}, expected {expected_view}')
+     signature = [(name, t.data_ptr(), tuple(t.shape), tuple(t.stride()), str(t.dtype))
+                  for name, t in views]
+     return hashlib.sha256(json.dumps(signature).encode()).hexdigest()
+--- a/b2_legacy_launch.py
++++ b/b2_legacy_launch.py
+@@ -10,9 +10,10 @@
+ IMAGE = 'sha256:7d6a368950d1685904baf87e86a2aa7f367c381901cf4a475936d03f2674ad6d'
+ EXTENSION_SHA256 = 'bb74697fc2094b1691ab070ac9187fca3c666058587a3371cd96a1642ca01216'
+ EXTENSION = '/opt/sllm-v4/lib/python3.12/site-packages/sllm_store/_C.cpython-312-x86_64-linux-gnu.so'
+-KIMI_RELOAD_MODULE = 'vllm.model_executor.model_loader.reload.meta'
++RELOAD_META_MODULE = 'vllm.model_executor.model_loader.reload.meta'
+ KIMI_RELOAD_FILE = 'kimi_wna16_count_meta.py'
+ KIMI_RELOAD_SHA256 = '94052a2faa6ed9b4afc02a73d44b5df2c41720f249f0d40569f32d30f87df8de'
++V4_RELOAD_META_SHA256 = 'e125f28c2eb522a83b8c746ee2afca71ef1308f8741cf13342913956914c5aba'
+ SITE = Path('/data/brick1/boyjiang/lmcache055-v11hma-site')
+ SOCKET = '/joint-ipc/kv.sock'
+ MODEL = {'K': 'kimi', 'D': 'v4'}
+@@ -173,12 +174,18 @@
+                      if i and args[i - 1] == '-e'}
+     patch_index = env_positions['SLLM_B2_PATCH_IMPORTS']
+     patches = json.loads(args[patch_index].split('=', 1)[1])
++    meta_target = f'/opt/sllm-v4/lib/python3.12/site-packages/{RELOAD_META_MODULE.replace(".", "/")}.py'
+     if key == 'K':
+         reload_count = overlay / KIMI_RELOAD_FILE
+         checked(reload_count, KIMI_RELOAD_SHA256)
+-        target = f'/opt/sllm-v4/lib/python3.12/site-packages/{KIMI_RELOAD_MODULE.replace(".", "/")}.py'
+-        overlay_mounts.append((reload_count, target, True))
+-        patches[KIMI_RELOAD_MODULE] = dict(path=target, sha256=KIMI_RELOAD_SHA256)
++        overlay_mounts.append((reload_count, meta_target, True))
++        patches[RELOAD_META_MODULE] = dict(path=meta_target, sha256=KIMI_RELOAD_SHA256)
++    else:
++        reload_meta = Path(native.V11) / 'b2-v4-sink-router-overlay/meta.py'
++        checked(reload_meta, V4_RELOAD_META_SHA256)
++        if args.count(bind(reload_meta, meta_target)) != 1:
++            raise ValueError('Missing pinned V4 reload metadata mount')
++        patches[RELOAD_META_MODULE] = dict(path=meta_target, sha256=V4_RELOAD_META_SHA256)
+     for source_name, overlay_path in support.items():
+         patches[source_name] = dict(path=f'/joint/{overlay_path.name}', sha256=digest(overlay_path))
+     for source_name, sha in HMA_PINS.items():
+--- a/run_three_model_b2.py
++++ b/run_three_model_b2.py
+@@ -57,6 +57,8 @@
+     root = args.output.resolve()
+     assert root.parent == ROOT / 'formal-b2-runs' and root.name.startswith(f'B2-GLM53-{args.sequence}-')
+     capacity = validate_capacity(read(args.capacity))
++    if capacity.get('applicable_sequence', args.sequence) != args.sequence:
++        raise ValueError('Phase capacity profile belongs to a different sequence')
+     admission = read(args.admission)
+     deadline = min(deadline_ns(admission, {'booking_id': args.booking_id}, 0),
+                    time.monotonic_ns() + SERVICE_GUARD_LIMIT_NS)

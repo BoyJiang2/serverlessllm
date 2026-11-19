@@ -1,0 +1,380 @@
+{
+  "qualified": false,
+  "sequence": "S1",
+  "steps": [
+    {
+      "index": 0,
+      "model": "K",
+      "mode": "safetensors_disk_cold",
+      "activation_ns": 2249749065639447,
+      "ready_ns": 2251085034660664,
+      "native_ready_ns": 2251084227166554,
+      "sleep_end_ns": 2251125008074116,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 27648,
+          "used_blocks": 0,
+          "resident_paths": [],
+          "resident_payload_bytes": 0
+        },
+        "events": []
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2251086930276402,
+      "all_business_ns": 2251090395293566
+    },
+    {
+      "index": 1,
+      "model": "G",
+      "mode": "store_inplace_cumem",
+      "activation_ns": 2251129702686809,
+      "ready_ns": 2251614804467259,
+      "native_ready_ns": 2251614323116492,
+      "sleep_end_ns": 2251631964698277,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7"
+        ],
+        "cache_state": "full_miss",
+        "file_read_bytes": 757596880896,
+        "hit_bytes": 0,
+        "allocated_blocks": 22584,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 5064,
+          "used_blocks": 22584,
+          "resident_paths": [
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7"
+          ],
+          "resident_payload_bytes": 757596880896
+        },
+        "events": [
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "759996",
+            "raw": "I20261119 22:21:55.924526 759996 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "blocks": 2823,
+            "free": 24825,
+            "tid": "759996",
+            "raw": "I20261119 22:21:55.927292 759996 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 24825 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "bytes": 94699610112,
+            "tid": "759996",
+            "raw": "I20261119 22:21:55.927351 759996 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760005",
+            "raw": "I20261119 22:21:55.949522 760005 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "blocks": 2823,
+            "free": 22002,
+            "tid": "760005",
+            "raw": "I20261119 22:21:55.952623 760005 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 22002 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "bytes": 94699610112,
+            "tid": "760005",
+            "raw": "I20261119 22:21:55.952692 760005 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760007",
+            "raw": "I20261119 22:21:55.953027 760007 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "blocks": 2823,
+            "free": 19179,
+            "tid": "760007",
+            "raw": "I20261119 22:21:55.956202 760007 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 19179 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "bytes": 94699610112,
+            "tid": "760007",
+            "raw": "I20261119 22:21:55.956270 760007 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760023",
+            "raw": "I20261119 22:21:55.957314 760023 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "blocks": 2823,
+            "free": 16356,
+            "tid": "760023",
+            "raw": "I20261119 22:21:55.960239 760023 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 16356 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "bytes": 94699610112,
+            "tid": "760023",
+            "raw": "I20261119 22:21:55.960314 760023 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760025",
+            "raw": "I20261119 22:21:55.960511 760025 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "blocks": 2823,
+            "free": 13533,
+            "tid": "760025",
+            "raw": "I20261119 22:21:55.964444 760025 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 13533 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "bytes": 94699610112,
+            "tid": "760025",
+            "raw": "I20261119 22:21:56.000049 760025 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760033",
+            "raw": "I20261119 22:21:56.000257 760033 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "blocks": 2823,
+            "free": 10710,
+            "tid": "760033",
+            "raw": "I20261119 22:21:56.010556 760033 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 10710 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "bytes": 94699610112,
+            "tid": "760033",
+            "raw": "I20261119 22:21:56.010639 760033 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760043",
+            "raw": "I20261119 22:21:56.010854 760043 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "blocks": 2823,
+            "free": 7887,
+            "tid": "760043",
+            "raw": "I20261119 22:21:56.014883 760043 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 7887 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "bytes": 94699610112,
+            "tid": "760043",
+            "raw": "I20261119 22:21:56.014957 760043 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "760052",
+            "raw": "I20261119 22:21:56.015169 760052 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "blocks": 2823,
+            "free": 5064,
+            "tid": "760052",
+            "raw": "I20261119 22:21:56.022033 760052 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 5064 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "bytes": 94699610112,
+            "tid": "760052",
+            "raw": "I20261119 22:21:56.022104 760052 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 size 94699610112 to host"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "bytes": 94699610112,
+            "tid": "760023",
+            "raw": "I20261119 22:23:37.622534 760023 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "tid": "760023",
+            "raw": "I20261119 22:23:37.622571 760023 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "bytes": 94699610112,
+            "tid": "760033",
+            "raw": "I20261119 22:23:38.067963 760033 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "tid": "760033",
+            "raw": "I20261119 22:23:38.067986 760033 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "bytes": 94699610112,
+            "tid": "760005",
+            "raw": "I20261119 22:23:41.814046 760005 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "tid": "760005",
+            "raw": "I20261119 22:23:41.814088 760005 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "bytes": 94699610112,
+            "tid": "760043",
+            "raw": "I20261119 22:23:44.479315 760043 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "tid": "760043",
+            "raw": "I20261119 22:23:44.479346 760043 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "bytes": 94699610112,
+            "tid": "759996",
+            "raw": "I20261119 22:23:47.186342 759996 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "tid": "759996",
+            "raw": "I20261119 22:23:47.186365 759996 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "bytes": 94699610112,
+            "tid": "760025",
+            "raw": "I20261119 22:23:47.464037 760025 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "tid": "760025",
+            "raw": "I20261119 22:23:47.464073 760025 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "bytes": 94699610112,
+            "tid": "760052",
+            "raw": "I20261119 22:23:48.215157 760052 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "tid": "760052",
+            "raw": "I20261119 22:23:48.215176 760052 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "bytes": 94699610112,
+            "tid": "760007",
+            "raw": "I20261119 22:23:49.255075 760007 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "tid": "760007",
+            "raw": "I20261119 22:23:49.255097 760007 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 rc=0 resident=1"
+          }
+        ]
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2251624538835170,
+      "all_business_ns": 2251624538835170
+    }
+  ],
+  "error": "AssertionError('worker-D')",
+  "cleanup_errors": {
+    "worker-D": "AssertionError()",
+    "worker-G": "AssertionError()",
+    "worker-K": "AssertionError()"
+  },
+  "release_seconds": 60.989507781
+}

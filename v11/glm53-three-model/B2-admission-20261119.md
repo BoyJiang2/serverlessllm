@@ -83,6 +83,12 @@ S1 首次执行 `B2-GLM53-S1-20261119T205243Z` 在守护器校验截止时间时
 
 对照查询移至两个模型实际注册的窗口。先在旧模型注销前确认同一 512-token 前缀命中，再在新模型注册后验证该前缀零命中。检查切换前后的池内对象数和字节数。后续回访以原 Worker 八 rank 的实际 H2D 及金标验证保留的数据。[控制器变更](diagnostics/joint-b2-namespace-order.patch)
 
+第四次 `B2-GLM53-S1-20261119T214730Z` 通过 2/7 段。修正后的 Kimi → GLM-5.3 查询为 512 → 0 token，期间均保留 35,979,264 B、2 个 Host KV 对象。V4 随后完成全部 496 条 Store 路径读取及八 rank 后处理，权重准备跨度 153.111 秒。KV 注册在 `model.layers.0.attn` 物理视图校验停止，V4 该段未执行金标。保留三项 Worker 清理错误和八卡连续归零 60.990 秒的采样。[独立复核](raw/B2-GLM53-S1-20261119T214730Z/verification.json) · [原始文件索引](raw/B2-GLM53-S1-20261119T214730Z/evidence-index.json)
+
+V4 的历史注册日志和固定 vLLM 后端均使用 `(blocks, slots, width)` 三维物理 KV 视图。联合 B2 修正为严格校验这套形状、block 步幅和 dtype，沿用八组映射、地址签名和原 IPC 传输。旧错误回执未包含张量元组，修正后会在拒绝时输出实际与预期值。固定镜像中的 13 项 CPU 测试通过，包含真实八组历史几何、原消息编解码以及退出和再注册检查。[历史几何证据](diagnostics/v4-historical-kv-geometry.json) · [控制器和 V4 修正](diagnostics/joint-b2-v4-view.patch)
+
+S3 的 Kimi 首载从空 Store 原位恢复，前序 V4 为 SafeTensors 首载。该段采用暂定 87 GiB 准入，即 55 GiB 运行停止线、向上取整的 24 GiB 代理压力及 8 GiB 余量。代理参考 Kimi 历史加载阶段与同双池下 V4 的 23.412 GiB 实测下降。Kimi 原位首载发出前仍需读取 V4 休眠后的实际 RAM。S2 的 Kimi 前序有 V4 已驻留权重，需要单独核对驱逐压力。[仅 S3 使用的准入配置](derived/b2-phase-capacity-s3.json)
+
 ## 验收要求
 
 - 各轮三次首次加载和四次原 Worker checkpoint 唤醒。固定每 rank 16 GiB GPU KV 配置，记录实际分配和显存准入。

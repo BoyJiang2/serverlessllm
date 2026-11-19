@@ -1,0 +1,65 @@
+{
+  "node": "qjhs003",
+  "sleep_level": 2,
+  "pool_gib": {
+    "weights": 864,
+    "host_kv": 813
+  },
+  "pool_budget_bytes": 1879048192000,
+  "runtime_floor_bytes": 53687091200,
+  "runtime_stop_bytes": 59055800320,
+  "operating_allowance_gib": 8,
+  "observed_or_proxy_gib": {
+    "safetensors_disk_cold": {
+      "K": 22.42133331298828,
+      "G": 24.009384155273438,
+      "D": 25.79580307006836
+    },
+    "store_inplace_cumem": {
+      "K": 23.412,
+      "G": 24.009384155273438,
+      "D": 24.941638946533203
+    },
+    "checkpoint_wake": {
+      "K": 0.833,
+      "G": 2.1934356689453125,
+      "D": 8.303
+    }
+  },
+  "backend_headroom_bytes": {
+    "safetensors_disk_cold": {
+      "K": 33285996544,
+      "G": 35433480192,
+      "D": 36507222016
+    },
+    "store_inplace_cumem": {
+      "K": 39728447488,
+      "G": 35433480192,
+      "D": 35433480192
+    },
+    "checkpoint_wake": {
+      "K": 9663676416,
+      "G": 11811160064,
+      "D": 18253611008
+    }
+  },
+  "basis": {
+    "pool": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; retain prior qualified 1750 GiB pool budget and 1871 GiB startup check",
+    "safetensors_disk_cold": {
+      "K": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; native initial load with pinned Kimi artifact",
+      "G": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-candidate.bgI5O6WZ/glm53-l2-memory.json; larger of current 5.3 native and dual-pool first load pressure",
+      "D": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; current V4 first load"
+    },
+    "store_inplace_cumem": {
+      "K": "S3 only: first Kimi Store load after the V4 SafeTensors first load leaves the Store empty. Old B1 Kimi used a CPU skeleton: five observed minima occurred 0.459-2.518 s before any weight ingestion; maximum observed loss from the first rank ingestion to KV clear was 21.499 GiB. The B2 Kimi loader builds CUDA-owned tensors explicitly and reuses preallocated Store chunks. Kimi native first-load maxima were 22.421 GiB (historical) and 21.880/21.759 GiB to native ready (210129Z/214730Z with the same two pools). GLM-5.3's eight-rank in-place load with Kimi asleep lost 20.830/18.984 GiB through registration and stage completion respectively. In the same S1 two-pool environment V4 in-place with two sleepers lost 23.412 GiB in 301 samples before its independent shape guard failed. Use 24 GiB as a conservative cross-model proxy, 8 GiB operating allowance, and the existing 55 GiB live stop for an 87 GiB provisional gate. Require measured S3 loading, Host KV, gold, Store bytes and release. No evidence for using this gate after the V4 Store eviction in S2.",
+      "G": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-candidate.bgI5O6WZ/glm53-l2-memory.json; dual-pool B1 Store and standalone GLM-5.3 first load are proxies",
+      "D": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; dual-pool B1 Store and native V4 first load are proxies"
+    },
+    "checkpoint_wake": {
+      "K": "Kimi meta sleep-kv-L2-wna16-meta-20261119T195718Z host trace, prewake quiet to sampled minimum through the postwake probe",
+      "G": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-candidate.bgI5O6WZ/glm53-l2-memory.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; qualified GLM-5.3 full wake/rebind and historical GLM-5.1 as cross-run check",
+      "D": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; 8.303 GiB across nine same-model checkpoint wake phases, mapped weights to KV-ready"
+    }
+  },
+  "applicable_sequence": "S3"
+}

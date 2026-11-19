@@ -1,0 +1,163 @@
+{
+  "run_id": "B2-GLM53-S1-20261119T214730Z",
+  "qualified": false,
+  "completed_segments": 2,
+  "scheduled_segments": 7,
+  "segments": [
+    {
+      "index": 0,
+      "model": "K",
+      "mode": "safetensors_disk_cold",
+      "gold": true,
+      "activate_to_first_gold_s": 1337.864636955,
+      "activate_to_all_gold_s": 1341.329654119,
+      "hit_tokens": 0,
+      "host_kv_after_sleep": [
+        35979264,
+        2
+      ],
+      "store_file_read_bytes": 0,
+      "store_hit_bytes": 0
+    },
+    {
+      "index": 1,
+      "model": "G",
+      "mode": "store_inplace_cumem",
+      "gold": true,
+      "activate_to_first_gold_s": 494.836148361,
+      "activate_to_all_gold_s": 494.836148361,
+      "hit_tokens": 0,
+      "host_kv_after_sleep": [
+        63602688,
+        4
+      ],
+      "store_file_read_bytes": 757596880896,
+      "store_hit_bytes": 0
+    }
+  ],
+  "split_lookup": {
+    "previous_hit_tokens": 512,
+    "active_hit_tokens": 0,
+    "token_sha256": "6d902254915c06e2058f7febfbb880fff48df0d38db532a6fa54545ab33bfa92",
+    "retained_bytes": 35979264,
+    "retained_objects": 2,
+    "evidence": "01-G-glm53/cross-model-lookup.json"
+  },
+  "v4": {
+    "operator_scope": "earliest weights_pipeline_including_allocation begin to latest successful end",
+    "weight_prepare_begin_ns": 2251704092112179,
+    "weight_prepare_end_ns": 2251857203086945,
+    "weight_prepare_s": 153.110974766,
+    "ranks": [
+      {
+        "rank": 0,
+        "weights_begin_ns": 2251704092173813,
+        "weights_end_ns": 2251853661032047,
+        "postprocess_end_ns": 2251853033201319,
+        "kv_begin_ns": 2251924150546562,
+        "kv_failed_ns": 2251924445694937
+      },
+      {
+        "rank": 1,
+        "weights_begin_ns": 2251704092112179,
+        "weights_end_ns": 2251855444595784,
+        "postprocess_end_ns": 2251854783519132,
+        "kv_begin_ns": 2251924150474276,
+        "kv_failed_ns": 2251924452496395
+      },
+      {
+        "rank": 2,
+        "weights_begin_ns": 2251704092633032,
+        "weights_end_ns": 2251852100044672,
+        "postprocess_end_ns": 2251851466130251,
+        "kv_begin_ns": 2251924150555835,
+        "kv_failed_ns": 2251924452539815
+      },
+      {
+        "rank": 3,
+        "weights_begin_ns": 2251704092972194,
+        "weights_end_ns": 2251857051923138,
+        "postprocess_end_ns": 2251856291407017,
+        "kv_begin_ns": 2251924150497919,
+        "kv_failed_ns": 2251924453110813
+      },
+      {
+        "rank": 4,
+        "weights_begin_ns": 2251704093038047,
+        "weights_end_ns": 2251856932410443,
+        "postprocess_end_ns": 2251856088296993,
+        "kv_begin_ns": 2251924150781887,
+        "kv_failed_ns": 2251924453181193
+      },
+      {
+        "rank": 5,
+        "weights_begin_ns": 2251704093516878,
+        "weights_end_ns": 2251856917835826,
+        "postprocess_end_ns": 2251856230979357,
+        "kv_begin_ns": 2251924150848261,
+        "kv_failed_ns": 2251924453927213
+      },
+      {
+        "rank": 6,
+        "weights_begin_ns": 2251704092361197,
+        "weights_end_ns": 2251856994097996,
+        "postprocess_end_ns": 2251856297402359,
+        "kv_begin_ns": 2251924150803466,
+        "kv_failed_ns": 2251924452550943
+      },
+      {
+        "rank": 7,
+        "weights_begin_ns": 2251704094088941,
+        "weights_end_ns": 2251857203086945,
+        "postprocess_end_ns": 2251856313853936,
+        "kv_begin_ns": 2251924150782580,
+        "kv_failed_ns": 2251924452921510
+      }
+    ],
+    "groups_per_rank": 62,
+    "completed_group_ranks": 496,
+    "store_file_read_bytes": 877729513472,
+    "gold": null,
+    "completed_experiment_segment": false,
+    "physical_view_error": "Unexpected V4 physical KV view: model.layers.0.attn",
+    "server_log": "worker-D-final.log",
+    "server_log_line": 14827,
+    "worker_failure": "workers/worker-D/failure.json"
+  },
+  "cleanup_errors": {
+    "worker-D": "AssertionError()",
+    "worker-G": "AssertionError()",
+    "worker-K": "AssertionError()"
+  },
+  "exited": {
+    "worker-K": {
+      "exit_code": 137,
+      "docker_oom_killed": false
+    },
+    "worker-G": {
+      "exit_code": 1,
+      "docker_oom_killed": false
+    },
+    "worker-D": {
+      "exit_code": 1,
+      "docker_oom_killed": false
+    },
+    "lmcache": {
+      "exit_code": 0,
+      "docker_oom_killed": false
+    },
+    "store": {
+      "exit_code": 0,
+      "docker_oom_killed": false
+    }
+  },
+  "gpu_release": {
+    "seconds": 60.989507781,
+    "samples": 50,
+    "start_ns": 2252087611217729,
+    "end_ns": 2252148600725510,
+    "evidence": "release.jsonl",
+    "max_sample_gap_s": 1.248369344,
+    "eight_gpus_zero": true
+  }
+}
