@@ -13,6 +13,17 @@
 
 B1 S1 的 L1 状态回执报告 813 GiB 容量，LMCache cgroup 的匿名内存实测约 813.516 GiB。该轮 LMCache 的一次整池 CUDA pin 请求失败，日志报告 872,952,102,912 B。七段实际 KV 写入、清理和金标均通过。两池退出后，同机 `SUnreclaim` 从约 71 GiB 回落到约 4.7 GiB。现有普通用户采样无法确定各类 slab 的归属。[S1 LMCache 原始日志](raw/B1-GLM53-S1-20261119T141542Z/lmcache-final.log)
 
+S1 先退出 Store，S2 先启动 LMCache。两条时间线都采到了 LMCache 匿名内存仍达到配置的 99%、Store 匿名内存小于等于 512 MiB 的间隔。将这些点与双池匿名内存各自达到配置 99% 的点比较，得到以下主机 `SUnreclaim` 中位数。
+
+| 序列与方向 | LMCache 仍驻留（样本数） | 双池已驻留（样本数） | 差值 |
+| --- | ---: | ---: | ---: |
+| S1 退出 | 4.706 GiB（3） | 71.240 GiB（324） | 66.535 GiB |
+| S2 启动 | 4.676 GiB（19） | 71.056 GiB（51） | 66.379 GiB |
+
+增量随 Store 的建立和释放出现。样本为主机 slab 总量，包含同一时点的其他进程负载。S2 只取截至所列单调时钟端点的采样，正式 B1 验收仍以该轮最终回执为准。[采样范围、逐组统计与原始前缀 SHA-256](derived/store-memory-lifecycle.json)
+
+S2 的同次 cgroup 读取记录，Store 匿名内存 **865.166 GiB** 中有 **24.182 GiB** 记为 `anon_thp`（2.80%）。LMCache 对应为 **813.438 GiB** 和 **659.623 GiB**（81.09%）。独立 CPU 小测用同节点每次四个 32 MiB 缓冲，原 `aligned_alloc(4096)` 在 CPU 首写后达到 120/128 MiB THP，2 MiB 对齐并提示 `MADV_HUGEPAGE` 的映射达到 128/128 MiB，两种模式各三次。下一步对照 CUDA 注册前后的 THP、slab 和实际传输，以判定是否能追回容量余量。CPU 小测只覆盖分配和首次写入。[S2 同次原始采样](raw/host-memory/B1-GLM53-S2-20261119T154121Z-thp-20261119T155646Z.jsonl) · [六份 CPU 原始回执](diagnostics/store-thp-cpu/cpu-results.jsonl)
+
 ## 验收要求
 
 - 各轮三次首次加载和四次原 Worker checkpoint 唤醒。固定每 rank 16 GiB GPU KV 配置，记录实际分配和显存准入。

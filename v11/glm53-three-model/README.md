@@ -24,3 +24,21 @@ python v11/glm53-three-model/recompute_kimi_l2.py BASELINE_RUN CANDIDATE_RUN --o
 ```
 
 每份 Kimi 数据来自同一 1 GiB Host KV 配置的独立单模型 Sleep L2。脚本核对三次探针命中、八 rank H2D、金标和释放。checkpoint 重载区间使用各轮原始单调端点。`current_peak` 的字段来自同一采样点，`max_bytes` 逐字段取峰，两个统计分别展示。
+
+## 从双池采样重算主机 slab
+
+在 qjhs003 将 `S1_TRACE` 和 `S2_TRACE` 替换为 [Store 内存时间线](derived/store-memory-lifecycle.json) 中的路径。命令只读取各轮指定单调端点之前的完整记录，并输出该前缀的 SHA-256。
+
+```bash
+python v11/glm53-three-model/recompute_pool_memory.py S1_TRACE 2227199063470316 S2_TRACE 2227895300589156 > derived/store-memory-lifecycle.json
+```
+
+Store 内存分配的 CPU 小测在 qjhs003 上用四个 32 MiB 缓冲验证。每种模式三次，记录 CPU 首写耗时、缺页和 `smaps` THP。原始环境和数据在 [`diagnostics/store-thp-cpu`](diagnostics/store-thp-cpu)。
+
+```bash
+cd v11/glm53-three-model/diagnostics/store-thp-cpu
+cc -std=c11 -O2 -Wall -Wextra -Werror store_thp_probe.c -o /tmp/store_thp_probe
+for mode in current thp thp current current thp; do
+    /tmp/store_thp_probe "$mode"
+done
+```
