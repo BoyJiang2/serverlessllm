@@ -1,0 +1,25 @@
+--- a/run_glm_mixed.py
++++ b/run_glm_mixed.py
+@@ -78,7 +78,10 @@
+     services[name]['guard'] = guard
+     armed = root / f'{name}-guard/armed.json'
+     wait_until(lambda: guard.poll() is None and armed.is_file(), time.monotonic_ns()+30*10**9)
+-    call('docker', 'start', cid)
++    remaining_s = (deadline - time.monotonic_ns()) / 1e9
++    if remaining_s <= 0:
++        raise TimeoutError('Service launch deadline elapsed')
++    call('docker', 'start', cid, timeout=min(90, remaining_s))
+     services[name]['pid'] = int(call('docker', 'inspect', '--format', '{{.State.Pid}}', cid))
+ 
+ 
+--- a/run_three_model_b2.py
++++ b/run_three_model_b2.py
+@@ -69,7 +69,7 @@
+     source = Path(__file__).resolve().parent
+     write(root / 'controller-source.json', {name: digest(source / name) for name in (
+         'run_three_model_b2.py', 'b2_prepare.py', 'b2_legacy_launch.py', 'b2_lmcache_launch.py', 'b2_sequence.py',
+-        'b2_host_kv.py', 'b2_kv_evidence.py')})
++        'b2_host_kv.py', 'b2_kv_evidence.py', 'run_glm_mixed.py')})
+     services = {}
+     result = dict(qualified=False, sequence=args.sequence, steps=[])
+     gpus = None

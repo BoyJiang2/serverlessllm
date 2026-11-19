@@ -89,6 +89,12 @@ V4 的历史注册日志和固定 vLLM 后端均使用 `(blocks, slots, width)` 
 
 S3 的 Kimi 首载从空 Store 原位恢复，前序 V4 为 SafeTensors 首载。该段采用暂定 87 GiB 准入，即 55 GiB 运行停止线、向上取整的 24 GiB 代理压力及 8 GiB 余量。代理参考 Kimi 历史加载阶段与同双池下 V4 的 23.412 GiB 实测下降。Kimi 原位首载发出前仍需读取 V4 休眠后的实际 RAM。S2 的 Kimi 前序有 V4 已驻留权重，需要单独核对驱逐压力。[仅 S3 使用的准入配置](derived/b2-phase-capacity-s3.json)
 
+## S3 首次执行回执
+
+`B2-GLM53-S3-20261119T224044Z` 最终完成 1/7 段。V4 的 64 个 SafeTensors 分片观测到零驻留页，权重准备跨度 436.937 秒，激活至首个正确完整响应 820.237 秒。八 rank 实际注册三维物理视图，每 rank 覆盖八组。Host KV 实际 D2H 写入 49,362,656 B，休眠后保留两个对象、49,364,992 B。该模型注销前的 512-token 对照查询全部命中。八 rank 的 V4 reload.meta 导入指纹均匹配。[复算和逐 rank 证据](raw/B2-GLM53-S3-20261119T224044Z/verification.json)
+
+Kimi 以 107.553 GiB 通过 87 GiB 准入，控制器随后在 `docker start` 的 30 秒等待处超时。Docker 的 create 至 start 事件间隔为 31.909 秒。该段未取得模型加载回执，保留两个 Worker 清理错误。八卡连续归零 61.048 秒。再次执行使用最多 90 秒的 Docker 启动等待，原预约截止仍约束启动。[启动等待修正](diagnostics/joint-b2-container-start-timeout.patch) · [原始文件索引](raw/B2-GLM53-S3-20261119T224044Z/evidence-index.json)
+
 ## 验收要求
 
 - 各轮三次首次加载和四次原 Worker checkpoint 唤醒。固定每 rank 16 GiB GPU KV 配置，记录实际分配和显存准入。

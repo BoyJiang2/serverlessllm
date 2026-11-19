@@ -1,0 +1,163 @@
+{
+  "run_id": "B2-GLM53-S3-20261119T224044Z",
+  "qualified": false,
+  "completed_segments": 1,
+  "scheduled_segments": 7,
+  "v4": {
+    "mode": "safetensors_disk_cold",
+    "gold": true,
+    "activation_to_first_gold_s": 820.236624027,
+    "activation_to_all_gold_s": 829.599247364,
+    "sf_cold_files": 64,
+    "gpu_rank_count": 8,
+    "groups_per_rank": 8,
+    "layout_view_ndim": 3,
+    "layout_basis": "eight worker imports and physical view contract; eight LMCache registered group descriptors per rank",
+    "registered_num_blocks": 11591,
+    "physical_groups": [
+      [
+        0,
+        256,
+        -1,
+        31,
+        2,
+        584,
+        1728,
+        "torch.uint8"
+      ],
+      [
+        0,
+        256,
+        -1,
+        30,
+        64,
+        132,
+        8640,
+        "torch.uint8"
+      ],
+      [
+        0,
+        256,
+        -1,
+        30,
+        64,
+        584,
+        37440,
+        "torch.uint8"
+      ],
+      [
+        1,
+        64,
+        128,
+        31,
+        64,
+        584,
+        37440,
+        "torch.uint8"
+      ],
+      [
+        2,
+        64,
+        128,
+        30,
+        64,
+        584,
+        37440,
+        "torch.uint8"
+      ],
+      [
+        3,
+        8,
+        128,
+        31,
+        8,
+        1024,
+        9360,
+        "torch.float32"
+      ],
+      [
+        4,
+        4,
+        8,
+        30,
+        4,
+        512,
+        2160,
+        "torch.float32"
+      ],
+      [
+        4,
+        4,
+        8,
+        30,
+        4,
+        2048,
+        9360,
+        "torch.float32"
+      ]
+    ],
+    "worker_imports": "workers/worker-D/worker-imports.json",
+    "actual_v4_worker_overlay_sha256": "77a716c7e95df47248d95335bdabfd10575e60509c3aa85b6383703a7b646526",
+    "actual_v4_transport_sha256": "bc98980eadfb6028e62a7a718f7fb798bfd9afabc70ab6094da6b44124fa2ec3",
+    "fresh_lookup_hit_tokens": 0,
+    "host_commit_d2h_bytes": 49362656,
+    "host_pool_after_sleep_bytes": 49364992,
+    "host_pool_after_sleep_objects": 2,
+    "outgoing_same_prefix_host_hit_tokens": 512
+  },
+  "kimi": {
+    "container_id": "897569efae718a5d55d93c4b3cd2a2a61ec650dcea7fa45fda62dc3ed11bafc3",
+    "controller_error": "TimeoutExpired(('docker', 'start', '897569efae718a5d55d93c4b3cd2a2a61ec650dcea7fa45fda62dc3ed11bafc3'), 30)",
+    "docker_start_cli_timeout_seconds": 30,
+    "model_runtime_receipt": null,
+    "backend_log_bytes": 0,
+    "docker_create_inspect_utc": "2026-11-19T23:04:36.011554523Z",
+    "docker_state_started_utc": "2026-11-19T23:04:37.125802447Z",
+    "docker_state_finished_utc": "2026-11-19T23:05:08.539464225Z",
+    "docker_event_time_nano": {
+      "create": 1795129476100313997,
+      "start": 1795129508008919167,
+      "kill": 1795129508490791868,
+      "stop": 1795129509859282540,
+      "die": 1795129510229931941,
+      "destroy": 1795129510343493689
+    },
+    "docker_events_create_to_start_s": 31.90860517,
+    "docker_events_start_to_sigint_s": 0.481872701,
+    "docker_kill_signal": 2,
+    "guard_inspect_timeouts": 32,
+    "first_guard_inspect_timeout_ns": 2253795482905019,
+    "last_guard_inspect_timeout_ns": 2253827544529293
+  },
+  "cleanup_errors": {
+    "worker-K": "AssertionError()",
+    "worker-D": "AssertionError()"
+  },
+  "exited": {
+    "worker-K": {
+      "exit_code": 130,
+      "docker_oom_killed": false
+    },
+    "worker-D": {
+      "exit_code": 137,
+      "docker_oom_killed": false
+    },
+    "lmcache": {
+      "exit_code": 0,
+      "docker_oom_killed": false
+    },
+    "store": {
+      "exit_code": 0,
+      "docker_oom_killed": false
+    }
+  },
+  "gpu_release": {
+    "seconds": 61.047827638,
+    "samples": 50,
+    "start_ns": 2253972813243901,
+    "end_ns": 2254033861071539,
+    "evidence": "release.jsonl",
+    "max_sample_gap_s": 1.257847895,
+    "eight_gpus_zero": true
+  }
+}
