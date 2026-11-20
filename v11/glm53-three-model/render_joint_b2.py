@@ -142,6 +142,9 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
               '回访的 Host KV 恢复在后续请求中实测，H2D 字节覆盖参与的八 rank。',
               '- GLM-5.3 的 Host KV 回读分别核对每个 rank 的 MLA 78 层与 indexer 21 层。'
               '每段 `wake-transfers.json` 保留分组、block ID、传输方向及完成回执，文件名带段号。',
+              '- GLM-5.3 首次加载缺八 rank GPU KV 分配的独立单调时钟端点。'
+              '休眠回执记录整体 Sleep 区间，缺各 rank 开始卸载 `kv_cache` 的时点。'
+              '这两项保留缺测。GLM-5.3 回访使用实际 KV 唤醒开始至就绪端点。',
               '- 至可服务计到 LMCache 注册完成。后续段的业务响应窗口包含注册后的跨模型对照查询。'
               '业务金标仅统计业务请求。新 GPU KV 采用原生分配或唤醒端点。缺独立端点显示为 `—`。', '',
               ' · '.join(evidence_links), '']
