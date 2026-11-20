@@ -16,7 +16,8 @@ TIMES = ('weight_preparation_s', 'new_gpu_kv_s', 'old_gpu_kv_release_to_new_kv_r
          'activation_to_serve_s', 'activation_to_first_gold_s', 'activation_to_all_gold_s')
 TIME_HEADERS = ('权重准备（s）', '新 GPU KV（s）', '旧 GPU KV 释放 → 新 KV 就绪（s）',
                 '至可服务（s）', '首个正确完整响应（s）', '全套业务金标（s）')
-PIN_STATUS = {'failure_observed': '观察到注册失败', 'disabled_reported': '日志报告关闭',
+PIN_STATUS = {'success_confirmed': '整池注册成功', 'failure_observed': '观察到注册失败',
+              'disabled_reported': '日志报告关闭',
               'unverified': '锁页未核实'}
 
 

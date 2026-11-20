@@ -454,20 +454,34 @@ def finish(root, terminal, state, rows, gpus, capacity_bytes, *, has_store):
     return ending, observed, empty['ns'] if empty is not None else None
 
 
-def pin_evidence(path):
+def pin_evidence(path, expected_bytes):
     if not path.is_file():
         return None
     matches = []
-    failure = disabled = False
+    failure = disabled = registered = False
     with path.open(encoding='utf-8', errors='replace') as stream:
         for number, row in enumerate(stream, 1):
             failed = bool(PIN_FAILURE.search(row))
             off = bool(PIN_DISABLED.search(row))
             failure |= failed
             disabled |= off
-            if failed or off or 'CudaPinMemoryBackend:' in row:
+            prefix = 'V11_L1_PIN '
+            if row.startswith(prefix):
+                try:
+                    record = json.loads(row[len(prefix):])
+                except json.JSONDecodeError:
+                    record = None
+                registered |= (isinstance(record, dict) and
+                               record.get('configured_bytes') == expected_bytes and
+                               record.get('registered_ranges') == [[0, expected_bytes]])
+            if failed or off or 'CudaPinMemoryBackend:' in row or row.startswith(prefix):
                 matches.append(dict(line=number, message=row.strip()))
-    state = 'failure_observed' if failure else 'disabled_reported' if disabled else 'unverified'
+    if failure:
+        state = 'failure_observed'
+    elif disabled:
+        state = 'disabled_reported'
+    else:
+        state = 'success_confirmed' if registered else 'unverified'
     return dict(state=state, evidence=path.name, lines=matches)
 
 
@@ -566,7 +580,7 @@ def inspect(root):
         out['host_kv_peak_bytes'] = max(
             (probe[field] for row in out['segments'] for probe in (row['kv'], row['after_clear']) if probe
              for field in ('host_bytes_before', 'host_bytes_after')), default=None)
-        out['host_pin'] = pin_evidence(root / 'lmcache-final.log') if terminal else None
+        out['host_pin'] = pin_evidence(root / 'lmcache-final.log', capacity_bytes) if terminal else None
         if terminal and terminal.get('qualified'):
             require(out['pool_init'] is not None, 'Pool timing is missing')
             out['tail_delete'], out['gpu_release'], out['final_host_empty_ns'] = finish(

@@ -1,0 +1,22 @@
+--- a/overlay/b2_shared_lmcache_server.py
++++ b/overlay/b2_shared_lmcache_server.py
+@@ -42,0 +43,17 @@
++def log_l1_pin(manager):
++    # The fixed-size lazy allocator records only successful CUDA host registrations.
++    try:
++        config = manager._l1_config.memory_config
++        allocator = manager._l1_manager._memory_manager._allocator
++        size = config.size_in_bytes
++        if not (config.use_lazy and type(allocator).__name__ == 'LazyMemoryAllocator' and
++                0 < size == config.init_size_in_bytes == allocator._curr_size == allocator._final_size):
++            return
++        base = allocator.get_underlying_buffer().data_ptr()
++        ranges = [(ptr - base, length) for ptr, length in allocator._pin_record]
++    except AttributeError:
++        return
++    print('V11_L1_PIN ' + json.dumps(dict(ns=time.monotonic_ns(), pid=os.getpid(),
++                                        configured_bytes=size, registered_ranges=ranges)), flush=True)
++
++
+@@ -50,0 +68 @@
++        log_l1_pin(manager)
