@@ -30,16 +30,18 @@ def measure(rows):
                 max_bytes={k: max(row[k] for row in rows) for k in FIELDS})
 
 
-def expert_reload(path, begin, end):
+def expert_reload(path, begin, end, *, multiple=False):
     marker = 'KIMI_L2_TRACE '
     layers = {f'language_model.model.layers.{layer}.mlp.experts': {} for layer in range(1, 61)}
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding='utf-8').splitlines():
         if marker not in line:
             continue
         trace = json.loads(line.split(marker, 1)[1])
         if trace['event'] != 'wna16_layer':
             continue
         rank, ns, layer = trace['rank'], trace['ns'], trace['layer']
+        if multiple and not begin <= ns <= end:
+            continue
         assert begin <= trace['start_ns'] <= ns <= end and rank in range(8)
         assert trace['loaded'] == trace['expected'] > 0 and rank not in layers[layer]
         layers[layer][rank] = dict(end_ns=ns, seconds_from_reload=(ns - begin) / 1e9,

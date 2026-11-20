@@ -52,6 +52,8 @@ python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2
 
 将同轮主机采样 JSONL 传给 `recompute_joint_b2.py --host-memory` 可复算从逐段准入到该段休眠完成的可用 RAM 低点。复算匹配两池的实际容器 ID，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
 
+正式报表复算同时传入 `--kimi-log RUN/worker-K-final.log` 和同轮 `--host-memory`。以原 Kimi Worker 容器 ID 和各次 checkpoint 窗口核对匿名内存采样峰值、文件页 refault 计数及 60 层 × 八 rank 的专家实例完成时点。多个回访的日志按各自单调时间窗分别复算。历史原生和 WNA16 对照由 `render_joint_b2.py --kimi-history` 读取，默认使用仓库中的 `sleep-wna16-sequences/audit.json`。
+
 ## 从双池采样重算主机 slab
 
 在 qjhs003 将 `S1_TRACE` 和 `S2_TRACE` 替换为 [Store 内存时间线](derived/store-memory-lifecycle.json) 中的路径。命令只读取各轮指定单调端点之前的完整记录，并输出该前缀的 SHA-256。

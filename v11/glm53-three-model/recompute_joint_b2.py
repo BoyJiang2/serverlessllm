@@ -11,6 +11,7 @@ from diagnostics import b2_kv_evidence
 from diagnostics.b2_kv_evidence import registration, verify_transfer, worker_identity
 from recompute_b1 import (GIB, NAMES, RANKS, SEQUENCES, backing_bytes, cold_proof, envelope,
                           exited, l1, lines, paths_for, read, release, require, seconds)
+from recompute_kimi_l2 import expert_reload
 
 
 ALLOCATOR = re.compile(r'sleep_allocator phase=gpu_unmap_release tag=kv_cache rank=(\d+) '
@@ -487,7 +488,11 @@ def add_host_memory(run, result, path):
             samples.append(sample)
     require(samples, 'Host memory trace does not contain both run-specific pools')
     result['host_monitor'] = dict(path=str(path), read_bytes=len(prefix), sha256=hashlib.sha256(prefix).hexdigest())
+    kimi_receipt = run / 'worker-K-created.json'
+    kimi_id = read(kimi_receipt)['Id'] if kimi_receipt.is_file() else None
     for step in result['segments']:
+        if step['model'] == 'K' and step['mode'] == 'checkpoint_wake':
+            step['kimi_reload_memory'] = kimi_reload_memory(samples, kimi_id, step['wake_stages'])
         begin, end = step['precheck_ns'], step['sleep_end_ns']
         window = [s for s in samples if begin <= s['start_ns'] <= s['end_ns'] <= end]
         step['host_memory'] = None
@@ -505,15 +510,61 @@ def add_host_memory(run, result, path):
                                                       if state is not None})
 
 
+def kimi_reload_memory(samples, container, wake):
+    begin, end = wake['checkpoint_reload_begin_ns'], wake['checkpoint_reload_end_ns']
+    window = [(sample, state) for sample in samples
+              if begin <= sample['start_ns'] <= sample['end_ns'] <= end
+              and (state := sample['services'].get('worker-K'))
+              and state['container'] == container]
+    if not window:
+        return None
+    first, last = window[0][0], window[-1][0]
+    gap = max((b[0]['start_ns'] - a[0]['start_ns'] for a, b in zip(window, window[1:])), default=0)
+    peak, peak_state = max(window, key=lambda pair: pair[1]['anon'])
+    refaults = [state.get('workingset_refault_file') for _, state in window]
+    delta = None
+    if len(refaults) > 1 and None not in refaults and all(a <= b for a, b in zip(refaults, refaults[1:])):
+        delta = refaults[-1] - refaults[0]
+    return dict(container=container, samples=len(window), first_sample_ns=first['start_ns'],
+                last_sample_ns=last['end_ns'], max_gap_ns=gap,
+                covers_window_to_3s=max(first['start_ns'] - begin, end - last['end_ns'], gap) <= 3 * 10**9,
+                anon_peak_bytes=peak_state['anon'], anon_peak_sample_ns=peak['start_ns'],
+                refault_pages_delta=delta)
+
+
+def add_kimi_trace(result, path):
+    with path.open('rb') as stream:
+        result['kimi_trace'] = dict(path=str(path), sha256=hashlib.file_digest(stream, 'sha256').hexdigest())
+    for step in result['segments']:
+        if step['model'] != 'K' or step['mode'] != 'checkpoint_wake':
+            continue
+        wake = step['wake_stages']
+        try:
+            layers = expert_reload(path, wake['checkpoint_reload_begin_ns'], wake['checkpoint_reload_end_ns'],
+                                   multiple=True)
+        except (AssertionError, KeyError, ValueError) as error:
+            step['kimi_experts'] = None
+            step['kimi_trace_error'] = repr(error) if error.args else 'Expected 60 expert layers × 8 complete ranks'
+            continue
+        records = [record for ranks in layers.values() for record in ranks.values()]
+        step['kimi_experts'] = dict(layer_rank_completions=len(records),
+                                   completed_during_finalize=sum(record['during_finalize'] for record in records),
+                                   last_expert_s=max(record['seconds_from_reload'] for record in records),
+                                   layers=layers)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--host-memory', type=Path, help='same-run observe_pool_memory JSONL')
+    parser.add_argument('--kimi-log', type=Path, help='same-run complete Kimi Worker log')
     args = parser.parse_args()
     result = inspect(args.run)
     if args.host_memory:
         add_host_memory(args.run, result, args.host_memory)
+    if args.kimi_log:
+        add_kimi_trace(result, args.kimi_log)
     data = json.dumps(result, indent=2) + '\n'
     if args.output:
         args.output.write_text(data, encoding='utf-8')

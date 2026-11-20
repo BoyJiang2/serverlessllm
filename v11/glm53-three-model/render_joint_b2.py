@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from statistics import median
 
-from recompute_b1 import NAMES, SEQUENCES
+from recompute_b1 import GIB, NAMES, SEQUENCES
 from render_b1 import MODEL, relative, seconds, table
 
 
@@ -22,7 +22,66 @@ def times(rows, field):
     return f'{seconds(median(values))}（n={len(values)}）' if values else '—（n=0）'
 
 
-def render(runs, *, evidence_links):
+def kimi_comparison(wake, history, history_link):
+    positions = {(run['sequence'], row['index']): {} for run, row in wake if row['model'] == 'K'}
+    cohorts = ('历史原生未修', '历史 WNA16 修复', '本轮联合 B2 · WNA16 + meta')
+    for item in history['kimi']:
+        position = item['sequence'], item['step']
+        if position not in positions:
+            continue
+        historical = positions[position]
+        for run_id, row in item['baseline'].items():
+            historical[cohorts[0], run_id] = row
+        historical[cohorts[1], item['run']] = item['candidate']
+
+    lines = ['', '## Kimi 同序列同唤醒位置对照', '',
+             '历史原生 Sleep 使用 GLM-5.1-FP8。联合 B2 使用 GLM-5.3、常驻双池及 Host KV 回读。'
+             '历史与本轮的同位置数据用于描述实际运行差异。'
+             '单模型同配置补丁对照另见[准入与优化证据](B2-admission-20261119.md)。', '']
+    details = []
+    summaries = []
+    fields = ('reload', 'last_expert', 'anon', 'refault')
+    for run, row in wake:
+        if row['model'] != 'K':
+            continue
+        position = run['sequence'], row['index']
+        label = f'{position[0]}/{position[1]:02d}'
+        memory = row.get('kimi_reload_memory') or {}
+        expert = row.get('kimi_experts') or {}
+        metrics = {cohort: [] for cohort in cohorts}
+        for (cohort, run_id), sample in positions[position].items():
+            mem = sample['memory']
+            layer = sample['layer_completion'] or {}
+            offsets = mem['endpoint_offsets_ns']
+            metrics[cohort].append(dict(run_id=run_id, reload=sample['checkpoint_reload_s'],
+                                        last_expert=layer.get('last_completion_s'),
+                                        anon=mem['anon_peak_bytes'] / GIB if mem['anon_peak_bytes'] is not None else None,
+                                        refault=mem['refault_delta_pages'],
+                                        memory_complete=bool(offsets) and max(map(abs, offsets)) <= 5 * 10**9))
+        metrics[cohorts[2]].append(dict(run_id=run['run_id'], reload=row['checkpoint_reload_s'],
+                                        last_expert=expert.get('last_expert_s'),
+                                        anon=memory['anon_peak_bytes'] / GIB if memory else None,
+                                        refault=memory.get('refault_pages_delta'),
+                                        memory_complete=memory.get('covers_window_to_3s', False)))
+        for cohort, samples in metrics.items():
+            for sample in samples:
+                cells = [seconds(sample[field]) for field in fields]
+                if not sample['memory_complete']:
+                    cells[-2:] = [cell + '（部分覆盖）' if cell != '—' else cell for cell in cells[-2:]]
+                details.append((label, cohort, f"`{sample['run_id']}`", *cells))
+            memory_samples = [sample for sample in samples if sample['memory_complete']]
+            summaries.append((label, cohort, *(times(samples, field) for field in fields[:2]),
+                              *(times(memory_samples, field) for field in fields[2:])))
+    headers = ('checkpoint 重载（s）', '重载开始至最后专家层（s）', '匿名内存采样峰值（GiB）', '文件页 refault（页）')
+    lines += table(('位置', '配置', 'run ID', *headers), details)
+    lines += ['', '各位置、各配置按有效 n 报中位数。专家层时间覆盖 60 层 × 8 rank。'
+              '匿名内存为 checkpoint 窗口内 Worker cgroup 采样峰值。refault 为窗口内首末采样点的计数增量。'
+              '内存中位数要求历史首末采样距端点各不超过 5 秒，本轮另要求首末偏差和最大间隔均不超过 3 秒。'
+              f'[历史逐次对照证据]({history_link})', '']
+    return lines + table(('位置', '配置', *headers), summaries)
+
+
+def render(runs, *, evidence_links, history, history_link):
     runs = sorted((run for run in runs if run['qualified']), key=lambda run: run['sequence'])
     if not runs or len({run['sequence'] for run in runs}) != len(runs):
         raise ValueError('Expected one independently qualified run per included sequence')
@@ -72,6 +131,8 @@ def render(runs, *, evidence_links):
     lines += table(('模型', '路径', '段数', *TIME_HEADERS), [
         (MODEL[NAMES[key]], WEIGHT_PATH[mode], str(len(rows)), *(times(rows, field) for field in TIMES))
         for key, mode, rows in groups if rows])
+    lines += kimi_comparison([(run, row) for run in runs for row in run['segments']
+                             if row['mode'] == 'checkpoint_wake'], history, history_link)
     lines += ['', '## 计时与证据', '',
               '- 首次加载的权重准备采用八 rank 最早开始至最晚成功返回。唤醒从权重映射开始计至 checkpoint 重载结束。'
               '回访的 Host KV 恢复在后续请求中实测，H2D 字节覆盖参与的八 rank。',
@@ -86,11 +147,15 @@ def main():
     parser.add_argument('results', type=Path, nargs='+')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--index', type=Path, required=True)
+    parser.add_argument('--kimi-history', type=Path, default=Path(__file__).resolve().parents[1] /
+                        'large-pool-20261114' / 'sleep-wna16-sequences' / 'audit.json')
     args = parser.parse_args()
     runs = [json.loads(path.read_bytes()) for path in args.results]
     links = [f"[{run['run_id']}]({relative(path, args.output)})" for path, run in zip(args.results, runs, strict=True)]
     links += [f'[原始证据路径、大小和 SHA-256]({relative(args.index, args.output)})']
-    args.output.write_text(render(runs, evidence_links=links), encoding='utf-8')
+    history = json.loads(args.kimi_history.read_bytes())
+    report = render(runs, evidence_links=links, history=history, history_link=relative(args.kimi_history, args.output))
+    args.output.write_text(report, encoding='utf-8')
 
 
 if __name__ == '__main__':
