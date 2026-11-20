@@ -45,7 +45,7 @@ python v11/glm53-three-model/recompute_joint_b2.py S2_RUN --output derived/b2-s2
 python v11/glm53-three-model/recompute_joint_b2.py S3_RUN --output derived/b2-s3.json
 python v11/glm53-three-model/index_evidence.py S1_RUN S2_RUN S3_RUN --output derived/b2-evidence-index.json
 python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json \
-  --index derived/b2-evidence-index.json --output B2-JOINT.md
+  --index derived/b2-evidence-index.json --figure figures/b2-joint-ready.png --output B2-JOINT.md
 ```
 
 将 `S1_RUN`、`S2_RUN`、`S3_RUN` 替换为 qjhs003 的完整原始回执目录。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)

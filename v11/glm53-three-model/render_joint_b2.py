@@ -81,7 +81,7 @@ def kimi_comparison(wake, history, history_link):
     return lines + table(('位置', '配置', *headers), summaries)
 
 
-def render(runs, *, evidence_links, history, history_link):
+def render(runs, *, evidence_links, history, history_link, figure=None):
     runs = sorted((run for run in runs if run['qualified']), key=lambda run: run['sequence'])
     if not runs or len({run['sequence'] for run in runs}) != len(runs):
         raise ValueError('Expected one independently qualified run per included sequence')
@@ -111,6 +111,8 @@ def render(runs, *, evidence_links, history, history_link):
         (f"`{run['run_id']}`", ' → '.join(MODEL[NAMES[key]] for key in SEQUENCES[run['sequence']]),
          *(seconds(run['pool_init'][field]) for field in ('kv_init_s', 'store_init_s', 'both_ready_s')),
          '7/7', seconds(run['gpu_release']['seconds'])) for run in runs])
+    if figure:
+        lines += ['', f'![首次加载和回访唤醒的权重准备、激活至可服务]({figure})']
     lines += ['', '## 首次加载', '']
     lines += table(('段', '目标模型', '路径', *TIME_HEADERS, 'Store 重读 / 命中（GiB）', '金标'), [
         (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
@@ -142,11 +144,44 @@ def render(runs, *, evidence_links, history, history_link):
     return '\n'.join(lines)
 
 
+def plot(runs, output):
+    from plot_b1 import plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(13, 6.5), sharex=True)
+    for axis, wake, title in zip(axes, (False, True), ('First loads', 'Same-worker checkpoint wakes'), strict=True):
+        rows = [(run['sequence'], row) for run in sorted(runs, key=lambda run: run['sequence']) if run['qualified']
+                for row in run['segments'] if (row['mode'] == 'checkpoint_wake') == wake]
+        labels = [f"{sequence}/{row['index']:02d}  {MODEL[NAMES[row['model']]]}" for sequence, row in rows]
+        y = range(len(rows))
+        for field, offset, color, label in (
+                ('weight_preparation_s', -0.18, '#2B826D', 'Weight preparation'),
+                ('activation_to_serve_s', 0.18, '#286BA4', 'Activation to service ready')):
+            measured = [(i + offset, row[field]) for i, (_, row) in enumerate(rows) if row[field] is not None]
+            if measured:
+                bars = axis.barh(*zip(*measured, strict=True), height=0.30, color=color, label=label)
+                axis.bar_label(bars, fmt='%.1f', padding=4, fontsize=8)
+        axis.set_yticks(y, labels)
+        axis.invert_yaxis()
+        axis.set_title(title, loc='left')
+        axis.set_xlabel('Seconds')
+        axis.grid(axis='x', color='#DCE2E8', linewidth=0.6)
+        axis.set_axisbelow(True)
+        axis.spines[['top', 'right', 'left']].set_visible(False)
+        axis.tick_params(axis='y', length=0)
+    fig.legend(*axes[0].get_legend_handles_labels(), loc='upper center', ncols=2, frameon=False)
+    fig.tight_layout(rect=(0, 0, 1, 0.94), w_pad=3)
+    axes[0].set_xlim(0, axes[0].get_xlim()[1] * 1.12)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output, dpi=170, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('results', type=Path, nargs='+')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--index', type=Path, required=True)
+    parser.add_argument('--figure', type=Path)
     parser.add_argument('--kimi-history', type=Path, default=Path(__file__).resolve().parents[1] /
                         'large-pool-20261114' / 'sleep-wna16-sequences' / 'audit.json')
     args = parser.parse_args()
@@ -154,7 +189,11 @@ def main():
     links = [f"[{run['run_id']}]({relative(path, args.output)})" for path, run in zip(args.results, runs, strict=True)]
     links += [f'[原始证据路径、大小和 SHA-256]({relative(args.index, args.output)})']
     history = json.loads(args.kimi_history.read_bytes())
-    report = render(runs, evidence_links=links, history=history, history_link=relative(args.kimi_history, args.output))
+    figure = relative(args.figure, args.output) if args.figure else None
+    report = render(runs, evidence_links=links, history=history, history_link=relative(args.kimi_history, args.output),
+                    figure=figure)
+    if args.figure:
+        plot(runs, args.figure)
     args.output.write_text(report, encoding='utf-8')
 
 
