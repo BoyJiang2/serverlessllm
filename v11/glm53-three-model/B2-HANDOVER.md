@@ -1,10 +1,20 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-**截至 11 月 21 日 00:21（台北时间），参考探针版 S1 本次完成 6/7 段，整轮未通过。** 正式 B2 为 0/3 轮，B1 补跑为 0/6 轮。已验收的 B1 r1 三条序列均为 7/7 段。[B1 r1 原报告](REPORT.md)
+**截至 11 月 21 日 07:05（台北时间），正式 B2 已通过 3/3 轮、21/21 段，完成 12 次回访唤醒。** B1 r2/r3 补跑为 0/6 轮，开轮仍须实测达到 1871 GiB 可用 RAM。B1 r1 三条序列已各通过 7/7 段。[正式 B2 报告](B2-JOINT.md) · [B2 原始证据索引](derived/b2-evidence-index.json) · [B1 r1 原报告](REPORT.md)
 
-当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。每次启动前用 `start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+正式 B2 使用 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。每次启动前用 `start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
-## 本地进度与恢复入口
+## 正式 B2 验收
+
+| 序列 | Run ID | 金标通过 | 512 token 实际回读及删键后零命中 | 八卡连续归零 |
+| --- | --- | ---: | ---: | ---: |
+| S1 | `B2-GLM53-S1-20261120T163053Z` | 7/7 | 4/4 | 60.131 s |
+| S2 | `B2-GLM53-S2-20261120T190052Z` | 7/7 | 4/4 | 61.191 s |
+| S3 | `B2-GLM53-S3-20261120T213052Z` | 7/7 | 4/4 | 60.008 s |
+
+三轮的 813 GiB 整池锁页注册均失败并使用降级路径。逐段数据、锁页日志及释放采样见[正式报告](B2-JOINT.md)和[原始证据索引](derived/b2-evidence-index.json)。
+
+## 历史失败轮次
 
 | 轮次 | 配置 | 完成段数 | 停止点 | 八卡释放 | 本地证据 |
 | --- | --- | ---: | --- | --- | --- |
@@ -19,7 +29,7 @@
 
 `145031Z` 于 22:50:31 启动。00:30 预约结束前保留 5 分钟释放和 6 分钟收尾，Worker 回执截止为 00:19。末段 00:08:48 开始，截止时 Kimi 已加载 30/64 个分片。三组 Worker 退出码为 137，Docker 未记录 OOM。该轮保留为预约截止失败。
 
-重跑前先核查现场预约、八卡空闲和 20 个冻结文件，再以新 run ID 从参考探针版 S1 开始。S1、S2、S3 三轮各自完成 7/7 及释放验收后，按 r2、r3 各跑 S1、S2、S3。上表失败轮不计入正式样本。
+上表失败轮不计入正式样本。B1 补跑按 r2、r3 各跑 S1、S2、S3。
 
 离线复核已逐文件比对四轮的八份复算和索引 SHA-256，并用实际归档验证正式 B2 报告入口会拒绝这四次失败。B1 r1 的 21 段在同盘临时目录重生成了 Markdown 和 PNG。Windows 上报告输出和输入资料放在同一盘，供生成相对链接。
 
@@ -33,9 +43,9 @@
 
 三轮都复用 Kimi 已验收的 560-token 参考探针。前 512 token 走实测 Host KV 回读，后 48 token 要求复述前缀中的编号。验收要求自然停止、逐 token 匹配及删键后零命中。业务金标、GLM 和 V4 输入均保留。[参考探针](diagnostics/kimi-reference-probe.json) · [适配补丁](diagnostics/joint-b2-kimi-reference.patch)
 
-下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
+下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无双池正式运行，S3 最好一次 6/7。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
 
-## GLM-5.1-FP8 通过与 GLM-5.3 本轮未通过的原因
+## 历史 GLM-5.1-FP8 原生通过与 GLM-5.3 双池未通过的原因
 
 | 对照项 | 历史 GLM-5.1-FP8 原生 B2-L2 | 历史 GLM-5.3 联合双池 B2-L2 |
 | --- | --- | --- |
@@ -43,9 +53,9 @@
 | 常驻组件 | 运行清单 `weight_store=false`、`lmcache=false`。 | 常驻 **864 GiB 权重 Store + 813 GiB Host KV**。逐段按双池和休眠 Worker 同时驻留时的实际 `MemAvailable` 检查准入。 |
 | 通过范围 | Kimi WNA16 与 V4 Marlin scale 修复后的 S1、S2、S3 各 3 轮，**63/63 段金标、36 次原 Worker 回访**。 | S3 已验证三个模型各一次真实 Host KV 回读。最后一次 V4 在唤醒前因主机 RAM 准入停止，整轮未通过。 |
 
-历史通过证明原生 Sleep L2 的权重重载、原 Worker 身份与金标。本次还要求 Store 首载、常驻 Host KV 的注册和实际传输、跨模型隔离及轮末清理。最新 S3 停在 `06-D-v4`，可用 **66.937222 GiB**，距 **67 GiB** 门槛差 **64.285 MiB**。此前 `05-G-glm53` 已在原 Worker 的八个 rank 上回读 512 token，每个 rank 均有 78 层 MLA 与 21 层 indexer 的实际 H2D 和金标回执。GLM-5.3 的独立 1 GiB Host KV 单模型对照也通过了两组回读、金标及 61.163 秒八卡释放观察。当前能确认的失败点是末段 V4 的主机 RAM 准入。GLM 模型和引擎版本各自的影响仍缺相同双池、加载路径和准入规则下的配对证据。[历史报告](../report.md#kimi-wna16-修复后的三模型-sleep-l2-复验) · [历史实际配置](../large-pool-20261114/sleep-wna16-sequences/B2-WNA16-S3-r1-20261117T062729Z/campaign-input.json) · [GLM-5.3 单模型复算](derived/glm53-l2-memory.json) · [本轮准入原件](raw/B2-GLM53-S3-20261119T231013Z/06-D-v4/host-admission.json)
+历史通过证明原生 Sleep L2 的权重重载、原 Worker 身份与金标。历史联合双池还要求 Store 首载、常驻 Host KV 的注册和实际传输、跨模型隔离及轮末清理。历史双池 S3 停在 `06-D-v4`，可用 **66.937222 GiB**，距 **67 GiB** 门槛差 **64.285 MiB**。此前 `05-G-glm53` 已在原 Worker 的八个 rank 上回读 512 token，每个 rank 均有 78 层 MLA 与 21 层 indexer 的实际 H2D 和金标回执。GLM-5.3 的独立 1 GiB Host KV 单模型对照也通过了两组回读、金标及 61.163 秒八卡释放观察。GLM 模型和引擎版本各自的影响仍缺相同双池、加载路径和准入规则下的配对证据。[历史报告](../report.md#kimi-wna16-修复后的三模型-sleep-l2-复验) · [历史实际配置](../large-pool-20261114/sleep-wna16-sequences/B2-WNA16-S3-r1-20261117T062729Z/campaign-input.json) · [GLM-5.3 单模型复算](derived/glm53-l2-memory.json) · [历史双池准入原件](raw/B2-GLM53-S3-20261119T231013Z/06-D-v4/host-admission.json)
 
-## 补丁及验证状态
+## 历史双池补丁及验证状态
 
 | 项目 | 补丁或源码 | 实测覆盖与剩余验证 |
 | --- | --- | --- |
@@ -77,7 +87,7 @@
 ## 历史双池快照与当前复算入口
 
 - 历史双池快照父目录为 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/`。S1 `formal-ram-S1.VWIupndC/`，S2 `formal-ram-S2.Apr9Wlvn/`，S3 `formal-ram-S3.kSgbpiJf/`，各自的 `cpu-plan/b2-plan.json` 为 CPU 计划。[S1 容量配置](derived/b2-phase-capacity.json) · [S2 容量配置](derived/b2-phase-capacity-s2.json) · [S3 容量配置](derived/b2-phase-capacity-s3.json)
-- 当前正式启动器使用 `formal-nostore-813-reference/`，按首段说明校验三份计划和预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮 813 GiB 全部通过再生成正式报告。
+- 正式 B2 启动器使用 `formal-nostore-813-reference/`，按首段说明校验三份计划和预约。使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算三轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。[正式报告](B2-JOINT.md)
 - 首次加载与回访分开统计，分别列权重准备、新 GPU KV、旧 GPU KV 开始释放至新 KV 就绪、至可服务、首个正确完整响应及全套金标。GLM-5.3 目前缺首载八 rank 独立 GPU KV 分配起止和旧 `kv_cache` 逐 rank 解除映射起点，保留 `null`，已有回访 KV 唤醒端点照常使用。
 
 ## 原始日志与失败回执
@@ -93,4 +103,4 @@
 | `B2-GLM53-S3-20261119T224044Z` | 1/7，Kimi `docker start` 超时 | [终态](raw/B2-GLM53-S3-20261119T224044Z/result.json) · [Docker 事件](raw/B2-GLM53-S3-20261119T224044Z/docker-events-worker-K.jsonl) · [索引](raw/B2-GLM53-S3-20261119T224044Z/evidence-index.json) |
 | `B2-GLM53-S3-20261119T231013Z` | 6/7，最后一次 V4 RAM 准入不足；八卡持续归零 60.959 秒，保留三个 Worker 清理错误 | [终态](raw/B2-GLM53-S3-20261119T231013Z/result.json) · [逐段复算](raw/B2-GLM53-S3-20261119T231013Z/recomputed.json) · [释放原件](raw/B2-GLM53-S3-20261119T231013Z/release.jsonl) · [完整索引](raw/B2-GLM53-S3-20261119T231013Z/evidence-index.json) |
 
-最新 S3 在运行原件目录下保存 `lmcache-final.log`、`store-final.log`、`worker-{K,G,D}-final.log` 和 `lmcache/` 的原始事件。`06-D-v4/host-admission.json` 是停止点，轮末清零回执缺失。控制器与主机采样另存于 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-s3-start.A6G9E6F0/`，文件为 `controller-B2-GLM53-S3-20261119T231013Z.log` 与 `B2-GLM53-S3-20261119T231013Z-host-memory.jsonl`。采样共 13,282,515 B，SHA-256 `5a678c2bf400621d7111b910a063df24ffe1082523848261d2b15ca171e42a17`。分组原件可从 [GLM 回访传输](raw/B2-GLM53-S3-20261119T231013Z/05-G-glm53/05-wake-transfers.json) 和 [V4 回访传输](raw/B2-GLM53-S3-20261119T231013Z/04-D-v4/04-wake-transfers.json) 查起。
+历史双池 S3 在运行原件目录下保存 `lmcache-final.log`、`store-final.log`、`worker-{K,G,D}-final.log` 和 `lmcache/` 的原始事件。`06-D-v4/host-admission.json` 是停止点，轮末清零回执缺失。控制器与主机采样另存于 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-s3-start.A6G9E6F0/`，文件为 `controller-B2-GLM53-S3-20261119T231013Z.log` 与 `B2-GLM53-S3-20261119T231013Z-host-memory.jsonl`。采样共 13,282,515 B，SHA-256 `5a678c2bf400621d7111b910a063df24ffe1082523848261d2b15ca171e42a17`。分组原件可从 [GLM 回访传输](raw/B2-GLM53-S3-20261119T231013Z/05-G-glm53/05-wake-transfers.json) 和 [V4 回访传输](raw/B2-GLM53-S3-20261119T231013Z/04-D-v4/04-wake-transfers.json) 查起。

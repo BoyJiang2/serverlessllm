@@ -2,7 +2,9 @@
 
 本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。正式联合 B2 使用 **813 GiB LMCache Host KV 单池**，前三段从 SafeTensors 冷页首载，后四段验证原 Worker Sleep L2 唤醒与 Host KV 回读。384 GiB 先行轮次独立留证。[执行交接](B2-HANDOVER.md) · [当前 813 GiB CPU 前检与冻结哈希](derived/b2-nostore-813-reference-preflight.json) · [容量变更补丁](diagnostics/joint-b2-nostore-813.patch) · [384 GiB 前检](derived/b2-nostore-384-preflight.json)
 
-[正式 B1 报告](REPORT.md) · [服务器原始证据索引](derived/evidence-index.json)
+**正式 B2 已通过 3/3 轮、21/21 段。** 12 次原 Worker 回访均实际回读 512 token，删键后均为零命中。三轮均通过至少 60 秒的八卡归零观察，813 GiB 整池锁页注册均降级。[正式 B2 报告](B2-JOINT.md) · [B2 服务器原始证据索引](derived/b2-evidence-index.json)
+
+**B1 r1 已通过 3/3 轮，r2/r3 补跑为 0/6 轮。** 双池开轮仍须实测达到 1871 GiB 可用 RAM。[B1 r1 报告](REPORT.md) · [B1 服务器原始证据索引](derived/evidence-index.json)
 
 S3 重试首段的 [系统盘、cgroup 与 rank 原始采样](raw/host-memory/B1-GLM53-S3-20261119T175803Z-root-io.jsonl) 共 180 条，SHA-256 `b32ef5b03abe4dd8940d1670ed678293a8198e8961c90ff4e90ba8527a86d070`。服务器原件位于 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/B1-GLM53-S3-20261119T175803Z-root-io.jsonl`。
 
