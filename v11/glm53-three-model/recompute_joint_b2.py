@@ -19,6 +19,15 @@ ALLOCATOR = re.compile(r'sleep_allocator phase=gpu_unmap_release tag=kv_cache ra
                        r'bytes=\d+ start_ns=(\d+) end_ns=(\d+)')
 STORE_IO = re.compile(r'\] (?:SLLM_CACHE_(?:LOOKUP|COMPLETE) .+|Loading model \S+ size \d+ to host|'
                       r'Finished loading model \S+ from disk)$')
+PIN_FAILURE = re.compile(r'pin_memory failed|cudaHostRegister\b.*\b(?:failed|error)\b', re.IGNORECASE)
+PIN_DISABLED = re.compile(r'(?:disabl\w+.*(?:cuda host register|pin_memory)|'
+                          r'(?:cuda host register|pin_memory).*disabl\w+)', re.IGNORECASE)
+POOL_CONFIGS = {(864, 813), (0, 813), (0, 384)}
+KIMI_META_MODULE = 'vllm.model_executor.model_loader.reload.meta'
+KIMI_META_SHA = '94052a2faa6ed9b4afc02a73d44b5df2c41720f249f0d40569f32d30f87df8de'
+KIMI_WNA16_MODULE = ('vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.'
+                     'compressed_tensors_moe_wna16_marlin')
+KIMI_WNA16_SHA = 'fe798dacd88b16efa4335af278057d1d97a7d367ac04aa07f3ad3383f5bdedff'
 
 
 def completed_lines(path):
@@ -32,18 +41,21 @@ def signature(keys):
     return result
 
 
-def pool(status, ids):
+def pool(status, ids, capacity_bytes):
     tier = l1(status)
     require(status['is_healthy'] and status['chunk_size'] == 256 and
             set(status['registered_gpu_ids']) == ids and not status['active_sessions'] and
-            not status['active_prefetch_jobs'] and tier['memory_total_bytes'] == 813 * GIB and
+            not status['active_prefetch_jobs'] and tier['memory_total_bytes'] == capacity_bytes and
             not tier['read_locked_count'] and not tier['write_locked_count'], 'Invalid Host KV state')
-    return tier['memory_used_bytes'], tier['total_object_count']
+    used, objects = tier['memory_used_bytes'], tier['total_object_count']
+    require(0 <= used <= capacity_bytes and objects >= 0 and (used == 0) == (objects == 0),
+            'Host KV occupancy is inconsistent with pool capacity')
+    return used, objects
 
 
-def delete(path, keys, ids):
+def delete(path, keys, ids, capacity_bytes):
     entry = read(path)
-    before, after = (pool(entry[kind], ids) for kind in ('before', 'after'))
+    before, after = (pool(entry[kind], ids, capacity_bytes) for kind in ('before', 'after'))
     require(signature(entry['keys']) == signature(keys) and before[1] - after[1] == len(keys) and
             after[0] < before[0] and entry['response']['ok'] and
             entry['response']['deleted'] == len(keys) and entry['response']['skipped'] == 0,
@@ -85,7 +97,7 @@ def legacy_gold(raw, request):
     return False
 
 
-def probe(step, worker, key, phase, namespace, ranks, hit, requests, server):
+def probe(step, worker, key, phase, namespace, ranks, hit, requests, server, capacity_bytes):
     ack = read(step / f'{phase}-ack.json')
     require(set(ack['checks']) == set(requests) and all(check['passed'] is True for check in ack['checks'].values()),
             f'Gold failed: {phase}')
@@ -127,7 +139,7 @@ def probe(step, worker, key, phase, namespace, ranks, hit, requests, server):
     require(all(transfer_bytes[row['device'].split(':')[1]] == row['total_bytes'] for row in finishes),
             f'GPU copy bytes do not match completion: {phase}')
     ids = {row['instance_id'] for row in ranks}
-    before, after = (pool(read(step / f'{phase}-host-{kind}.json'), ids) for kind in ('before', 'after'))
+    before, after = (pool(read(step / f'{phase}-host-{kind}.json'), ids, capacity_bytes) for kind in ('before', 'after'))
     commits = read(step / f'{phase}-host-commits.json')
     keys = commits['keys']
     events = commits['events']
@@ -147,7 +159,7 @@ def probe(step, worker, key, phase, namespace, ranks, hit, requests, server):
                 host_bytes_before=before[0], host_bytes_after=after[0], host_objects_after=after[1], keys=keys)
 
 
-def previous_namespace(step, namespace, other, status, ready, run_start, server):
+def previous_namespace(step, namespace, other, status, ready, run_start, server, capacity_bytes):
     raw = read(step / 'cross-model-lookup.json')
     by_id = {row['request_id']: row for row in raw['server']}
     require(len(by_id) == len(raw['server']) == 2 and all(row in server['lookup-completions'] for row in raw['server']),
@@ -175,7 +187,7 @@ def previous_namespace(step, namespace, other, status, ready, run_start, server)
         require(other['all_gold_ns'] <= intervals['previous']['started_ns'], 'Outgoing lookup preceded gold')
         ids = set(status['registered_gpu_ids'])
         require(tuple(raw['retained_after_sleep']) == tuple(raw['retained_after_lookup']) ==
-                other['retained'] == pool(status, ids), 'Host KV bytes or object count changed across switch')
+                other['retained'] == pool(status, ids, capacity_bytes), 'Host KV bytes or object count changed across switch')
     return dict(previous_hit_tokens=512, active_hit_tokens=0, prefix_sha256=digest, intervals=intervals)
 
 
@@ -240,11 +252,26 @@ def allocator_events(root):
     return per_model
 
 
+def kimi_imports(worker, ranks):
+    expected = read(worker / 'legacy-launch-plan.json')['imports']
+    require(expected[KIMI_META_MODULE]['sha256'] == KIMI_META_SHA and
+            expected[KIMI_WNA16_MODULE]['sha256'] == KIMI_WNA16_SHA, 'Kimi reload pins differ')
+    actual = read(worker / 'worker-imports.json')
+    pids = {row['rank']: row['pid'] for row in ranks}
+    require(len(actual) == 8 and {row['rank'] for row in actual} == RANKS and
+            all(row['pid'] == pids[row['rank']] and row['imports'] == expected for row in actual),
+            'Kimi actual import identities or SHA-256 differ')
+    return dict(ranks=len(actual), meta=expected[KIMI_META_MODULE], wna16=expected[KIMI_WNA16_MODULE])
+
+
 def step_result(root, step, index, model, state, previous, protocol, allocator, server, capacity):
     measured = read(step / 'step-result.json')
     worker = root / 'workers' / f'worker-{model}'
+    capacity_bytes = protocol['host_kv_bytes']
     fresh = model not in state
-    mode = ('safetensors_disk_cold' if index == 0 else 'store_inplace_cumem') if fresh else 'checkpoint_wake'
+    first_load = protocol.get('first_load', 'safetensors_disk_cold')
+    subsequent_first_load = protocol.get('subsequent_first_load', 'store_inplace_cumem')
+    mode = (first_load if index == 0 else subsequent_first_load) if fresh else 'checkpoint_wake'
     require((measured['index'], measured['model'], measured['mode'], measured['gold']) ==
             (index, model, mode, True), 'Unexpected sequence segment')
     gate = read(step / 'host-admission.json')
@@ -271,6 +298,8 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
     ranks = status['ranks']
     identity = worker_identity(ranks)
     namespace = registration(status['status'], model, ranks, bound=True)
+    ids = {row['instance_id'] for row in ranks}
+    pool(status['status'], ids, capacity_bytes)
     require(all(row['asleep'] is False for row in ranks), 'KV storage was asleep after registration')
     original = state.get(model)
     if original:
@@ -281,12 +310,12 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
     inputs = read(root / 'b2-inputs' / f'{NAMES[model]}-input.json')['requests'] if model != 'G' else []
     requests = {item['name']: item for item in inputs} if inputs else {'business': None, 'kv_fill': None}
     kv = probe(step, worker, model, f"{index:02d}-{'first' if fresh else 'wake'}", namespace, ranks,
-               0 if fresh else 512, requests, server)
+               0 if fresh else 512, requests, server, capacity_bytes)
     require((kv['first_ns'], kv['all_ns'], kv['hit_tokens']) ==
             (measured['first_business_ns'], measured['all_business_ns'], measured['host_hit_tokens']) and
             ready <= kv['first_ns'], 'Correct response or hit endpoint differs')
     cross = previous_namespace(step, namespace, previous, status['status'], ready,
-                               kv['run_started_ns'], server) if previous else None
+                               kv['run_started_ns'], server, capacity_bytes) if previous else None
     aftermath = wake_stages = None
     weight_prep_s = reload_s = kv_allocation_s = kv_ready = old_to_new_s = None
     weight = first_alloc = None
@@ -311,8 +340,9 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
         kv_ready = w['kv_ready_ns']
         if previous['unmap_begin_ns'] is not None:
             old_to_new_s = seconds(previous['unmap_begin_ns'], native)
-        cleared = delete(step / 'after-wake-clear.json', original['keys'], {row['instance_id'] for row in ranks})
-        aftermath = probe(step, worker, model, f'{index:02d}-after-clear', namespace, ranks, 0, requests, server)
+        cleared = delete(step / 'after-wake-clear.json', original['keys'], ids, capacity_bytes)
+        aftermath = probe(step, worker, model, f'{index:02d}-after-clear', namespace, ranks, 0, requests, server,
+                          capacity_bytes)
         require(aftermath['kv_response'] == original['reference'], 'Cleared-prefix control returned different tokens')
         aftermath['deleted'] = cleared
     cache = measured['store']
@@ -334,7 +364,7 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
                 'S2 Kimi admission does not match the live V4 Store snapshot')
         require(store['evicted_paths'] > 0 and store['freed_blocks'] > 0,
                 'S2 Kimi Store load did not demonstrate the expected eviction')
-    cold = cold_proof(step, active, root.name) if index == 0 else None
+    cold = cold_proof(step, active, root.name) if mode == 'safetensors_disk_cold' else None
     sleep = read(step / 'sleep.json')
     start, end = (sleep['stages'][key] for key in ('sleep_begin_ns', 'sleep_end_ns'))
     require(kv['all_ns'] <= start < end == measured['sleep_end_ns'] and sleep['ack']['sleeping'] is True and
@@ -354,10 +384,11 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
     retained = (latest['host_bytes_after'], latest['host_objects_after'])
     tail = None
     if index == 6:
-        tail = delete(step / 'last-use-clear.json', keys, {row['instance_id'] for row in ranks})
+        tail = delete(step / 'last-use-clear.json', keys, ids, capacity_bytes)
         keys = []
         retained = (tail['bytes_after'], tail['objects_after'])
-    sleep_host = pool(sleep['host_status'], set()) if 'host_status' in sleep else None
+    require(capacity_bytes != 384 * GIB or 'host_status' in sleep, 'Missing post-sleep Host KV status')
+    sleep_host = pool(sleep['host_status'], set(), capacity_bytes) if 'host_status' in sleep else None
     require(sleep_host is None or sleep_host == retained, 'Post-sleep Host KV state differs')
     state[model] = dict(identity=identity, namespace=namespace, reference=kv['kv_response'], tokens=tokens,
                         keys=keys, unmap_begin_ns=unmap_begin, step=step, unregister_ns=unregister_ns,
@@ -380,19 +411,22 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
                 cross_model=cross, tail_delete=tail)
 
 
-def finish(root, terminal, state, rows, gpus):
+def finish(root, terminal, state, rows, gpus, capacity_bytes, *, has_store):
     require(not terminal.get('error') and not terminal.get('cleanup_errors') and len(rows) == 7,
             'Terminal result differs from complete raw evidence')
     raw = [read(root / row['evidence'] / 'step-result.json') for row in rows]
     sequence = read(root / 'joint-sequence.json')
     require(raw == terminal['steps'] == sequence['steps'], 'Sequence summaries disagree')
     # Shutdown may emit additional frees. The primary I/O log coverage must be exact.
-    events = [event for row in raw for event in row['store']['events']]
-    with (root / 'store-final.log').open(encoding='utf-8', errors='replace') as stream:
-        observed = [raw for line in stream if STORE_IO.search(raw := line.rstrip('\r\n'))]
-    require(observed == [event['raw'] for event in events if STORE_IO.search(event['raw'])],
-            'Store final log lookup/completion/read events differ')
-    types = tuple(f'worker-{key}' for key in 'KGD') + ('lmcache', 'store')
+    if has_store:
+        events = [event for row in raw for event in row['store']['events']]
+        with (root / 'store-final.log').open(encoding='utf-8', errors='replace') as stream:
+            observed = [raw for line in stream if STORE_IO.search(raw := line.rstrip('\r\n'))]
+        require(observed == [event['raw'] for event in events if STORE_IO.search(event['raw'])],
+                'Store final log lookup/completion/read events differ')
+        types = tuple(f'worker-{key}' for key in 'KGD') + ('lmcache', 'store')
+    else:
+        types = tuple(f'worker-{key}' for key in 'KGD') + ('lmcache',)
     for role in types:
         exited(root / f'{role}-exit.json')
     shutdown = []
@@ -405,17 +439,36 @@ def finish(root, terminal, state, rows, gpus):
         shutdown.append(last['finished_ns'])
     require('LMCache HTTP server stopped' in (root / 'lmcache-final.log').read_text(encoding='utf-8'),
             'LMCache normal shutdown missing')
-    ending = [delete(root / f'final-worker-{key}-clear.json', state[key]['keys'], set())
+    ending = [delete(root / f'final-worker-{key}-clear.json', state[key]['keys'], set(), capacity_bytes)
               for key in state if state[key]['keys']]
     require(ending and ending[-1]['bytes_after'] == ending[-1]['objects_after'] == 0, 'Tail Host KV was not zero')
     empty_path = root / 'lmcache-final-empty.json'
     empty = read(empty_path) if empty_path.is_file() else None
+    require(capacity_bytes != 384 * GIB or empty is not None, 'Final empty Host KV snapshot is missing')
     if empty is not None:
-        require(pool(empty['status'], set()) == (0, 0) and max(shutdown) <= empty['ns'] <= sequence['finished_ns'],
+        require(pool(empty['status'], set(), capacity_bytes) == (0, 0) and not empty['status']['cache_context_meta'] and
+                max(shutdown) <= empty['ns'] <= sequence['finished_ns'],
                 'Final empty Host KV snapshot differs')
     observed = release(root, gpus)
     require(observed['seconds'] == terminal['release_seconds'], 'Release summary differs from raw samples')
     return ending, observed, empty['ns'] if empty is not None else None
+
+
+def pin_evidence(path):
+    if not path.is_file():
+        return None
+    matches = []
+    failure = disabled = False
+    with path.open(encoding='utf-8', errors='replace') as stream:
+        for number, row in enumerate(stream, 1):
+            failed = bool(PIN_FAILURE.search(row))
+            off = bool(PIN_DISABLED.search(row))
+            failure |= failed
+            disabled |= off
+            if failed or off or 'CudaPinMemoryBackend:' in row:
+                matches.append(dict(line=number, message=row.strip()))
+    state = 'failure_observed' if failure else 'disabled_reported' if disabled else 'unverified'
+    return dict(state=state, evidence=path.name, lines=matches)
 
 
 def inspect(root):
@@ -423,18 +476,28 @@ def inspect(root):
     terminal = read(terminal_path) if terminal_path.is_file() else None
     out = dict(run_id=root.name, status='failed' if terminal else 'partial', qualified=False, segments=[],
                pool_init=None, tail_delete=None, gpu_release=None, final_host_empty_ns=None, evidence_errors=[],
-               terminal_error=(terminal or {}).get('error'))
+               terminal_error=(terminal or {}).get('error'), host_pin=None, host_kv_peak_bytes=None)
     try:
         if not (root / 'b2-plan.json').is_file() and not (terminal or {}).get('qualified'):
             return out
         plan = read(root / 'b2-plan.json')
         seq = list(SEQUENCES[plan['sequence']])
         out['sequence'] = plan['sequence']
-        require(seq == plan['steps'] and plan['level'] == 2 and
-                (plan['weight_store_gib'], plan['host_kv_pool_gib'], plan['gpu_kv_bytes_per_rank']) ==
-                (864, 813, 16 * GIB), 'Frozen protocol differs')
+        store_gib, host_gib = (plan[key] for key in ('weight_store_gib', 'host_kv_pool_gib'))
+        out.update(weight_store_gib=store_gib, host_kv_pool_gib=host_gib)
+        require(seq == plan['steps'] and plan['level'] == 2 and (store_gib, host_gib) in POOL_CONFIGS and
+                plan['gpu_kv_bytes_per_rank'] == 16 * GIB, 'Frozen protocol differs')
+        has_store = store_gib > 0
+        capacity_bytes = host_gib * GIB
+        capacity = read(root / 'capacity.json')
+        require(capacity['pool_gib'] == {'weights': store_gib, 'host_kv': host_gib} and
+                capacity['pool_budget_bytes'] >= (store_gib + host_gib) * GIB,
+                'Capacity receipt disagrees with frozen pools')
+        require(capacity['runtime_stop_bytes'] >= capacity['runtime_floor_bytes'] >= 50 * GIB,
+                'Measured capacity floor is below 50 GiB')
+        expected_subsequent = 'store_inplace_cumem' if has_store else 'safetensors_disk_cold'
         require((plan['first_load'], plan['subsequent_first_load'], plan['wake']) ==
-                ('safetensors_disk_cold', 'store_inplace_cumem', 'native_checkpoint_same_worker'),
+                ('safetensors_disk_cold', expected_subsequent, 'native_checkpoint_same_worker'),
                 'Frozen load or wake path differs')
         live = read(root / 'live-admission.json')
         booking = read(root / 'admission.json')
@@ -445,26 +508,47 @@ def inspect(root):
         require(len(gpus) == len(set(gpus)) == 8 and live['device_mib'] == [0] * 8 and
                 not live['compute_pids'] and not live['occupied_ports'] and
                 live['available_bytes'] >= live['joint_required_bytes'], 'Initial resource admission failed')
-        # The V4 worker opens COMPLETE.json in the export root. Store requests
-        # refer to the data paths under its groups mount.
-        artifacts = plan['store_artifacts']
-        k_store, d_groups = map(PurePosixPath, plan['legacy_daemon_mounts'])
-        require(k_store == PurePosixPath(artifacts['K']) and
-                d_groups == PurePosixPath(artifacts['D']) / 'groups', 'Store daemon mounts differ')
-        protocol = dict(store_artifacts=[artifacts['K'], str(d_groups), artifacts['G']],
-                        store_artifact_bytes=plan['store_artifact_bytes'], store_pool_bytes=864 * GIB)
+        if has_store:
+            # The V4 worker opens COMPLETE.json in the export root. Store requests
+            # refer to the data paths under its groups mount.
+            artifacts = plan['store_artifacts']
+            k_store, d_groups = map(PurePosixPath, plan['legacy_daemon_mounts'])
+            require(k_store == PurePosixPath(artifacts['K']) and
+                    d_groups == PurePosixPath(artifacts['D']) / 'groups', 'Store daemon mounts differ')
+            protocol = dict(store_artifacts=[artifacts['K'], str(d_groups), artifacts['G']],
+                            store_artifact_bytes=plan['store_artifact_bytes'], store_pool_bytes=store_gib * GIB,
+                            first_load=plan['first_load'], subsequent_first_load=plan['subsequent_first_load'])
+        else:
+            require(not any((root / f'store-{suffix}').exists() for suffix in ('created.json', 'exit.json', 'final.log')),
+                    'Store service appeared in a Host-KV-only run')
+            if host_gib == 384:
+                require(not any(plan.get(field) for field in ('store_artifacts', 'store_artifact_bytes',
+                                                              'legacy_daemon_mounts')),
+                        'Store artifacts present in the 384 GiB plan')
+            protocol = dict(store_artifacts=[], store_artifact_bytes={}, store_pool_bytes=0,
+                            first_load=plan['first_load'], subsequent_first_load=plan['subsequent_first_load'])
+        protocol['host_kv_bytes'] = capacity_bytes
+        initial = root / 'lmcache-empty.json'
+        if initial.is_file():
+            status = read(initial)
+            require(pool(status, set(), capacity_bytes) == (0, 0) and not status['cache_context_meta'],
+                    'Initial Host KV pool is not empty')
         timing_path = root / 'pool-init-timing.json'
         if timing_path.is_file():
             timing = read(timing_path)
             kv_start, kv_ready, store_start, store_ready = (timing[key] for key in (
                 'lmcache_started_ns', 'lmcache_ready_ns', 'store_started_ns', 'store_ready_ns'))
-            require(kv_start < kv_ready <= store_start < store_ready, 'Dual-pool timing order differs')
-            out['pool_init'] = dict(kv_init_s=seconds(kv_start, kv_ready),
-                                    store_init_s=seconds(store_start, store_ready),
-                                    both_ready_s=seconds(kv_start, store_ready), **timing)
-        capacity = read(root / 'capacity.json')
-        require(capacity['runtime_stop_bytes'] >= capacity['runtime_floor_bytes'] >= 50 * GIB,
-                'Measured capacity floor is below 50 GiB')
+            if has_store:
+                require(kv_start < kv_ready <= store_start < store_ready, 'Dual-pool timing order differs')
+                out['pool_init'] = dict(kv_init_s=seconds(kv_start, kv_ready),
+                                        store_init_s=seconds(store_start, store_ready),
+                                        both_ready_s=seconds(kv_start, store_ready), **timing)
+            else:
+                require(kv_start < kv_ready and store_start is None and store_ready is None,
+                        'Single-pool timing order differs')
+                out['pool_init'] = dict(kv_init_s=seconds(kv_start, kv_ready),
+                                        store_init_s=None,
+                                        both_ready_s=seconds(kv_start, kv_ready), **timing)
         observer = Path(b2_kv_evidence.__file__)
         require(hashlib.sha256(observer.read_bytes()).hexdigest() ==
                 read(root / 'controller-source.json')['b2_kv_evidence.py'], 'B2 group verifier source differs')
@@ -479,10 +563,23 @@ def inspect(root):
                 break
             out['segments'].append(step_result(root, path, index, key, state, previous, protocol, allocator, server, capacity))
             previous = state[key]
+        out['host_kv_peak_bytes'] = max(
+            (probe[field] for row in out['segments'] for probe in (row['kv'], row['after_clear']) if probe
+             for field in ('host_bytes_before', 'host_bytes_after')), default=None)
+        out['host_pin'] = pin_evidence(root / 'lmcache-final.log') if terminal else None
         if terminal and terminal.get('qualified'):
-            require(out['pool_init'] is not None, 'Dual-pool timing is missing')
+            require(out['pool_init'] is not None, 'Pool timing is missing')
             out['tail_delete'], out['gpu_release'], out['final_host_empty_ns'] = finish(
-                root, terminal, state, out['segments'], gpus)
+                root, terminal, state, out['segments'], gpus, capacity_bytes, has_store=has_store)
+            if host_gib == 384:
+                require(initial.is_file(), 'Initial empty Host KV snapshot is missing')
+                first_kimi = next(row for row in out['segments'] if row['model'] == 'K')
+                ranks = read(root / first_kimi['evidence'] / 'registered.json')['ranks']
+                out['kimi_worker_imports'] = kimi_imports(root / 'workers' / 'worker-K', ranks)
+                add_kimi_trace(out, root / 'worker-K-final.log')
+                require(all((row.get('kimi_experts') or {}).get('layer_rank_completions') == 480
+                            for row in out['segments'] if row['model'] == 'K' and row['mode'] == 'checkpoint_wake'),
+                        'Kimi checkpoint reload lacks 60 expert layers × 8 ranks')
             out.update(status='qualified', qualified=True)
         elif terminal and (root / 'release.jsonl').is_file() and terminal.get('release_seconds', 0) >= 60:
             out['gpu_release'] = release(root, gpus)
@@ -497,14 +594,25 @@ def add_host_memory(run, result, path):
     """Use complete monitor samples from the same resident pool containers."""
     source = path.read_bytes()
     prefix = source[:source.rfind(b'\n') + 1]
-    ids = {role: read(run / f'{role}-created.json')['Id'] for role in ('lmcache', 'store')}
+    has_store = result.get('weight_store_gib', (run / 'store-created.json').is_file())
+    pool_roles = ('lmcache', 'store') if has_store else ('lmcache',)
+    ids = {role: read(run / f'{role}-created.json')['Id'] for role in pool_roles}
     samples = []
     for line in prefix.splitlines():
         sample = json.loads(line)
         if all((sample['services'].get(role) or {}).get('container') == cid for role, cid in ids.items()):
+            require('store' in ids or sample['services'].get('store') is None, 'Unexpected Store in host trace')
             samples.append(sample)
-    require(samples, 'Host memory trace does not contain both run-specific pools')
-    result['host_monitor'] = dict(path=str(path), read_bytes=len(prefix), sha256=hashlib.sha256(prefix).hexdigest())
+    require(samples, 'Host memory trace does not contain the run-specific pools')
+    live_since = (result.get('pool_init') or {}).get('lmcache_ready_ns')
+    live = [sample for sample in samples if live_since is None or sample['start_ns'] >= live_since]
+    require(live, 'Host memory trace lacks samples after pool readiness')
+    low = min(live, key=lambda sample: sample['host']['MemAvailable'])
+    result['host_monitor'] = dict(path=str(path), read_bytes=len(prefix), sha256=hashlib.sha256(prefix).hexdigest(),
+                                  sample_count=len(live), min_available_bytes=low['host']['MemAvailable'],
+                                  min_available_ns=low['start_ns'],
+                                  lmcache_anon_at_min_bytes=low['services']['lmcache']['anon'],
+                                  lmcache_anon_peak_bytes=max(s['services']['lmcache']['anon'] for s in live))
     kimi_receipt = run / 'worker-K-created.json'
     kimi_id = read(kimi_receipt)['Id'] if kimi_receipt.is_file() else None
     for step in result['segments']:
@@ -580,7 +688,7 @@ def main():
     result = inspect(args.run)
     if args.host_memory:
         add_host_memory(args.run, result, args.host_memory)
-    if args.kimi_log:
+    if args.kimi_log and 'kimi_trace' not in result:
         add_kimi_trace(result, args.kimi_log)
     data = json.dumps(result, indent=2) + '\n'
     if args.output:

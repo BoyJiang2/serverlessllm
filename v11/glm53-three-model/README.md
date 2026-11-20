@@ -1,6 +1,6 @@
 # GLM-5.3 三模型复现实验
 
-本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。联合 B2 沿用双池容量并验证原 Worker Sleep L2 唤醒。[联合 B2 容量与验收](B2-admission-20261119.md)
+本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。当前联合 B2 使用 **384 GiB LMCache Host KV 单池**，前三段从 SafeTensors 冷页首载，后四段验证原 Worker Sleep L2 唤醒与 Host KV 回读。[执行交接](B2-HANDOVER.md) · [384 GiB CPU 前检与冻结哈希](derived/b2-nostore-384-preflight.json) · [容量变更补丁](diagnostics/joint-b2-nostore-384.patch)
 
 [正式 B1 报告](REPORT.md) · [服务器原始证据索引](derived/evidence-index.json)
 
@@ -43,7 +43,8 @@ python v11/glm53-three-model/recompute_glm53_l2_memory.py GLM53_RUN_DIR --output
 python v11/glm53-three-model/recompute_joint_b2.py S1_RUN --output derived/b2-s1.json
 python v11/glm53-three-model/recompute_joint_b2.py S2_RUN --output derived/b2-s2.json
 python v11/glm53-three-model/recompute_joint_b2.py S3_RUN --output derived/b2-s3.json
-python v11/glm53-three-model/index_evidence.py S1_RUN S2_RUN S3_RUN --output derived/b2-evidence-index.json
+python v11/glm53-three-model/index_evidence.py S1_RUN S2_RUN S3_RUN \
+  --recomputed derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json --output derived/b2-evidence-index.json
 python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json \
   --index derived/b2-evidence-index.json --figure figures/b2-joint-ready.png --output B2-JOINT.md
 ```
@@ -53,6 +54,8 @@ python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2
 将同轮主机采样 JSONL 传给 `recompute_joint_b2.py --host-memory` 可复算从逐段准入到该段休眠完成的可用 RAM 低点。复算匹配两池的实际容器 ID，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
 
 正式报表复算同时传入 `--kimi-log RUN/worker-K-final.log` 和同轮 `--host-memory`。以原 Kimi Worker 容器 ID 和各次 checkpoint 窗口核对匿名内存采样峰值、文件页 refault 计数及 60 层 × 八 rank 的专家实例完成时点。多个回访的日志按各自单调时间窗分别复算。历史原生和 WNA16 对照由 `render_joint_b2.py --kimi-history` 读取，默认使用仓库中的 `sleep-wna16-sequences/audit.json`。
+
+等 Linux 观测器结束后重算并生成索引。`--recomputed` 依据同轮摘要核对主机采样是否为已读回的完整文件，并把执行目录外的主机采样、控制器和观测器日志纳入索引。Kimi 专家层日志的路径、大小及 SHA-256 与重算摘要逐项核对。
 
 ## 从双池采样重算主机 slab
 

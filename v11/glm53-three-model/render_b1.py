@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-from recompute_b1 import NAMES, SEQUENCES
+from recompute_b1 import NAMES, SEQUENCES, SUMMARY_TIMINGS, s3_non_weight_comparison, segment_statistics
 
 
 MODEL = {'kimi': 'Kimi-K2.6', 'glm53': 'GLM-5.3', 'v4': 'DeepSeek-V4-Pro'}
@@ -22,6 +22,20 @@ def table(header, rows):
 
 def seconds(value):
     return '—' if value is None else f'{value:.3f}'
+
+
+def timing_summary(metric):
+    if metric['n'] == 0:
+        return '0 / —'
+    return f"{metric['n']} / {seconds(metric['median'])} [{seconds(metric['low'])}, {seconds(metric['high'])}]"
+
+
+def pin_cell(run):
+    pin = run.get('host_kv_cuda_pin', {})
+    if pin.get('status') != 'failed':
+        return '缺测'
+    failed_sizes = '、'.join(f"{warning['bytes'] / 2**30:g} GiB" for warning in pin['failures'])
+    return f'失败（{failed_sizes}）'
 
 
 def relative(target, report):
@@ -61,12 +75,13 @@ def render(data, *, figure, json_link, csv_link, index_link):
 
     if runs:
         lines += ['## 数据 1 · 轮前初始化和整轮释放', '']
-        lines += table(('序列与 run ID', 'Host KV 池初始化（s）', '权重 Store 初始化（s）', '两池就绪（s）',
-                        '八卡归零观察（s）', '归零采样数', '金标'), [
+        lines += table(('序列与 run ID', 'Host KV 池初始化（s）', 'Host KV CUDA 注册', '权重 Store 初始化（s）',
+                        '两池就绪（s）', '八卡归零观察（s）', '归零采样数', '金标'), [
             (f"{run['sequence']} · `{run['run_id']}`", seconds(run['pool_init']['kv_init_s']),
-             seconds(run['pool_init']['store_init_s']), seconds(run['pool_init']['both_ready_s']),
+             pin_cell(run), seconds(run['pool_init']['store_init_s']), seconds(run['pool_init']['both_ready_s']),
              seconds(run['release']['seconds']), str(run['release']['samples']), '7/7') for run in runs])
         lines += ['', '先建 Host KV 池，再建权重 Store。两池就绪从首个池初始化发起计至第二个池就绪，含中间间隔。'
+                  'CUDA 注册取 `lmcache-final.log` 的明确回执，无回执记缺测。逻辑容量、Host KV 写入和清理分别按功能回执核对。'
                   '释放观察从末尾连续八卡归零的首个采样计至末个采样。', '',
                   '## 数据 2 · 逐段启动、权重和 Host KV', '',
                   f'![正式 B1 七段激活至首个正确完整响应]({figure})', '']
@@ -83,6 +98,25 @@ def render(data, *, figure, json_link, csv_link, index_link):
             lines += ['']
         lines += [f'[逐段 CSV]({csv_link}) · [带原始端点和逐 rank 值的复算 JSON]({json_link})', '']
 
+        lines += ['## 数据 3 · 同段同缓存状态重复统计', '',
+                  '每个时间单元格按有效 n / 中位数 [最小值, 最大值] 报告，单位为秒。', '']
+        lines += table(('序列与段号（从 00 起）', '目标模型', '缓存状态', 'A', '完整权重加载', '激活至可服务'), [
+            (f"{row['sequence']} · {row['segment']:02d}", MODEL[row['model']], CACHE[row['cache_state']],
+             *(timing_summary(row['metrics'][field]) for field in SUMMARY_TIMINGS))
+            for row in segment_statistics(runs)])
+        lines += ['']
+
+        comparison = s3_non_weight_comparison(runs)
+        if comparison:
+            lines += ['## S3 首段 V4 · 完整权重加载窗口之外的时间', '',
+                      '按激活至八 rank 最早开始加载、八 rank 最晚加载结束至首个正确完整响应两个窗口计算。'
+                      '后一个窗口可包含 KV 分配、注册及业务请求。', '']
+            lines += table(('正式轮次', '加载前（s）', '加载后（s）', '窗口之外合计（s）', 'r1 − 本轮（s）'), [
+                (f"`{row['run_id']}`", *(seconds((row['windows'] or {}).get(field))
+                   for field in ('before_s', 'after_s', 'total_s')), seconds(row.get('r1_minus_peer_s')))
+                for row in [comparison, *comparison['peers']]])
+            lines += ['', f"r1 的同一首段、同缓存状态有效对照 n={comparison['peer_n']}。", '']
+
     lines += ['## 计时与缓存口径', '',
               '- **A** 取控制器放行激活至首个通过金标的完整业务响应。请求和 tokenizer 按各模型冻结，`kv_fill` 在业务响应之后单独记录。',
               '- **完整权重加载** 取八 rank 中最早进入加载调用到最晚成功返回的主机端跨度。V4 分组恢复及 H2D 可发生在后处理内。缺测记 `—`。',
@@ -90,7 +124,7 @@ def render(data, *, figure, json_link, csv_link, index_link):
               '表中重读量来自 Store 路径回执，磁盘页缓存状态以另有准入证据为准。',
               '- **Host KV** 取 LMCache 状态回执中清理前后的池内有效占用。整轮 GPU 释放由八卡采样独立核验。', '',
               '## 原始证据', '', f'原始目录为 `{RAW}/<run_id>/`。', '',
-              '- 轮次使用 `protocol.json`、`admission.json`、`live-admission.json`、`pool-init-timing.json`、`result.json` 和 `release.jsonl`。',
+              '- 轮次使用 `protocol.json`、`admission.json`、`live-admission.json`、`pool-init-timing.json`、`lmcache-final.log`、`result.json` 和 `release.jsonl`。',
               '- 逐段使用 `step-result.json`、业务响应与金标回执、`events/*.jsonl` 或 `weight-load-rank-*.jsonl`、`kv-write.json`、'
               '`kv-clear.json` 和 `lookup-{before,after}.prom`。首段另有 `sf-admission/summary.json` 和原始 mincore 向量。',
               '', f'[失败与未结束记录索引]({json_link}) · [原始证据路径、大小和 SHA-256]({index_link})', '',

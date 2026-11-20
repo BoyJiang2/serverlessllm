@@ -1,0 +1,111 @@
+--- a/b2_lmcache_launch.py
++++ b/b2_lmcache_launch.py
+@@ -1,15 +1,16 @@
+ """Shared LMCache process for the three Sleep workers."""
+
+-from mixed_glm51 import lmcache_command
+-from run_glm53_export import mount
+-
++HOST_KV_GIB = 384
+
+ IPC_DIR = '/joint-ipc'
+ IPC_SOCKET = IPC_DIR + '/kv.sock'
+
+
+ def prepare_lmcache(root, gpus, config, runtime, overlay, fd_dir, *, pool_gib):
+-    assert pool_gib == 813
++    from mixed_glm51 import lmcache_command
++    from run_glm53_export import mount
++
++    assert pool_gib == HOST_KV_GIB
+     (root / 'lmcache').mkdir()
+     assert fd_dir.is_dir() and not any(fd_dir.iterdir()), fd_dir
+     command = lmcache_command(root, gpus, config, runtime, pool_gib=pool_gib)
+--- a/b2_prepare.py
++++ b/b2_prepare.py
+@@ -5,10 +5,10 @@
+ import time
+ from pathlib import Path
+
+-from b2_lmcache_launch import prepare_lmcache
++from b2_lmcache_launch import HOST_KV_GIB, prepare_lmcache
+ from run_glm53_export import CONTROL, core_config, digest
+ from run_glm53_restore import write
+-from run_three_model_b1 import HOST_KV_GIB, NAMES, historical_runner
++from run_three_model_b1 import NAMES, historical_runner
+ from mixed_glm51 import MQ_PORT
+
+
+--- a/b2_host_kv.py
++++ b/b2_host_kv.py
+@@ -6,6 +6,7 @@
+
+ import lmcache_smoke_worker as lmc
+ from b2_kv_evidence import registration, verify_transfer
++from b2_lmcache_launch import HOST_KV_GIB
+ from b2_shared_lmcache_server import clear_model_keys
+ from mixed_glm51 import HTTP_PORT, MQ_PORT
+ from run_glm_mixed import wait_until
+@@ -26,7 +27,7 @@
+         status = lmc.request('/status', timeout=remaining_timeout(until, 90))
+         assert status['is_healthy'], status
+         tier = lmc.l1(status)
+-        assert tier['memory_total_bytes'] == 813 * 2**30
++        assert tier['memory_total_bytes'] == tier['memory_configured_bytes'] == HOST_KV_GIB * 2**30
+         if set(status['registered_gpu_ids']) != set(expected_ids):
+             return
+         if tier['read_locked_count'] or tier['write_locked_count'] or status['active_prefetch_jobs']:
+--- a/run_three_model_b2.py
++++ b/run_three_model_b2.py
+@@ -8,6 +8,7 @@
+ from pathlib import Path
+
+ from b2_host_kv import pool_snapshot, status_bytes
++from b2_lmcache_launch import HOST_KV_GIB
+ from b2_prepare import prepare
+ from b2_sequence import execute, phase_headroom, require_host_ram
+ from run_glm_mixed import service, shutdown, wait_until
+@@ -24,6 +25,7 @@
+
+
+ HOST_RESERVE = 50 * GIB
++POOL_BUDGET_HEADROOM_GIB = 67
+ SERVICE_GUARD_LIMIT_NS = 14400 * 10**9
+
+
+@@ -33,10 +35,10 @@
+
+ def validate_capacity(profile):
+     assert profile['node'] == 'qjhs003' and profile['sleep_level'] == 2
+-    assert profile['pool_gib'] == {'weights': 0, 'host_kv': 813}
++    assert profile['pool_gib'] == {'weights': 0, 'host_kv': HOST_KV_GIB}
+     assert profile['runtime_floor_bytes'] >= HOST_RESERVE
+     assert profile['runtime_stop_bytes'] >= profile['runtime_floor_bytes']
+-    assert profile['pool_budget_bytes'] >= 880 * GIB
++    assert profile['pool_budget_bytes'] >= (HOST_KV_GIB + POOL_BUDGET_HEADROOM_GIB) * GIB
+     modes = {'safetensors_disk_cold', 'checkpoint_wake'}
+     assert set(profile['backend_headroom_bytes']) == modes and profile['basis']['pool']
+     for mode, limits in profile['backend_headroom_bytes'].items():
+--- a/phase-capacity.json
++++ b/phase-capacity.json
+@@ -3,9 +3,9 @@
+   "sleep_level": 2,
+   "pool_gib": {
+     "weights": 0,
+-    "host_kv": 813
++    "host_kv": 384
+   },
+-  "pool_budget_bytes": 944892805120,
++  "pool_budget_bytes": 484257562624,
+   "runtime_floor_bytes": 53687091200,
+   "runtime_stop_bytes": 59055800320,
+   "operating_allowance_gib": 8,
+@@ -34,7 +34,7 @@
+     }
+   },
+   "basis": {
+-    "pool": "No SLLM weight store (0 GiB); single 813 GiB LMCache Host KV pool with 880 GiB pool budget and 1000 GiB startup check",
++    "pool": "No SLLM weight store; 384 GiB LMCache Host KV with a 451 GiB pool budget (the prior 67 GiB reserve retained) and the same 1000 GiB startup check.",
+     "safetensors_disk_cold": {
+       "K": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/historical-host-phase-envelope.json; native initial load with pinned Kimi artifact",
+       "G": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/meta-plan.ISt4iUKs/replay-b1-host-capacity-20261120.json; /data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-candidate.bgI5O6WZ/glm53-l2-memory.json; larger of current 5.3 native and dual-pool first load pressure",

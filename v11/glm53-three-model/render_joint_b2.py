@@ -6,6 +6,7 @@ from pathlib import Path
 from statistics import median
 
 from recompute_b1 import GIB, NAMES, SEQUENCES
+from recompute_joint_b2 import POOL_CONFIGS
 from render_b1 import MODEL, relative, seconds, table
 
 
@@ -15,6 +16,8 @@ TIMES = ('weight_preparation_s', 'new_gpu_kv_s', 'old_gpu_kv_release_to_new_kv_r
          'activation_to_serve_s', 'activation_to_first_gold_s', 'activation_to_all_gold_s')
 TIME_HEADERS = ('权重准备（s）', '新 GPU KV（s）', '旧 GPU KV 释放 → 新 KV 就绪（s）',
                 '至可服务（s）', '首个正确完整响应（s）', '全套业务金标（s）')
+PIN_STATUS = {'failure_observed': '观察到注册失败', 'disabled_reported': '日志报告关闭',
+              'unverified': '锁页未核实'}
 
 
 def times(rows, field):
@@ -22,7 +25,29 @@ def times(rows, field):
     return f'{seconds(median(values))}（n={len(values)}）' if values else '—（n=0）'
 
 
-def kimi_comparison(wake, history, history_link):
+def pool_observations(runs):
+    rows = []
+    for run in runs:
+        memory = run.get('host_monitor') or {}
+        pin = run.get('host_pin') or {}
+        peak = run.get('host_kv_peak_bytes')
+        if peak is None and not memory and not pin:
+            continue
+        host = [memory.get(field) for field in (
+            'min_available_bytes', 'lmcache_anon_at_min_bytes', 'lmcache_anon_peak_bytes')]
+        rows.append((f"`{run['run_id']}`", seconds(peak / 2**20 if peak is not None else None),
+                     *(seconds(value / GIB if value is not None else None) for value in host),
+                     PIN_STATUS.get(pin.get('state'), '—')))
+    if not rows:
+        return []
+    return ['', '## Host KV 占用与锁页观测', '',
+            *table(('run ID', '有效 KV 观测峰值（MiB）', '主机最低可用（GiB）',
+                    '该点 LMCache 匿名内存（GiB）', 'LMCache 匿名内存峰值（GiB）', '锁页日志'), rows),
+            '', '有效 KV 从各探针前后快照取最大值。主机和 cgroup 指标取池就绪后的实际采样。'
+            '后端选择日志仅记录使用的注册接口，锁页状态以可核实的日志为准。']
+
+
+def kimi_comparison(wake, history, history_link, *, has_store=True):
     positions = {(run['sequence'], row['index']): {} for run, row in wake if row['model'] == 'K'}
     cohorts = ('历史原生未修', '历史 WNA16 修复', '本轮联合 B2 · WNA16 + meta')
     for item in history['kimi']:
@@ -36,8 +61,9 @@ def kimi_comparison(wake, history, history_link):
                 raise ValueError(f'Conflicting historical evidence for {position} in {run_id}')
         historical[cohorts[1], item['run']] = item['candidate']
 
+    pool_phrase = '常驻双池' if has_store else '常驻 Host KV 池（无权重 Store）'
     lines = ['', '## Kimi 同序列同唤醒位置对照', '',
-             '历史原生 Sleep 使用 GLM-5.1-FP8。联合 B2 使用 GLM-5.3、常驻双池及 Host KV 回读。'
+             f'历史原生 Sleep 使用 GLM-5.1-FP8。联合 B2 使用 GLM-5.3、{pool_phrase}及 Host KV 回读。'
              '历史与本轮的同位置数据用于描述实际运行差异。'
              '单模型同配置补丁对照另见[准入与优化证据](B2-admission-20261119.md)。', '']
     details = []
@@ -99,28 +125,59 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
     first = [(sequence, row) for sequence, row in data if row['mode'] != 'checkpoint_wake']
     wake = [(sequence, row) for sequence, row in data if row['mode'] == 'checkpoint_wake']
 
+    configs = {(run.get('weight_store_gib', 864 if run['pool_init']['store_init_s'] is not None else 0),
+                run.get('host_kv_pool_gib', 813)) for run in runs}
+    if len(configs) != 1 or not configs.issubset(POOL_CONFIGS):
+        raise ValueError('Expected one supported pool configuration per report')
+    store_gib, host_kv_gib = configs.pop()
+    has_store = store_gib > 0
+    if host_kv_gib == 384:
+        for run in runs:
+            if (run.get('final_host_empty_ns') is None or (run.get('kimi_worker_imports') or {}).get('ranks') != 8
+                    or any((row.get('kimi_experts') or {}).get('layer_rank_completions') != 480
+                           for row in run['segments']
+                           if row['model'] == 'K' and row['mode'] == 'checkpoint_wake')):
+                raise ValueError(f"Missing Host KV or Kimi evidence for {run['run_id']}")
+    pool_desc = (f'qjhs003 使用 8×H20、TP8、{store_gib} GiB 权重 Store 和 {host_kv_gib} GiB Host KV 池。'
+                 'GLM-5.3 使用 vLLM 0.30.0，Kimi-K2.6 和 DeepSeek-V4-Pro 使用 vLLM 0.20.1。'
+                 '每轮先初始化 Host KV 池，再初始化权重 Store。'
+                 if has_store else
+                 f'qjhs003 使用 8×H20、TP8 与 {host_kv_gib} GiB Host KV 池（不启用权重 Store）。'
+                 'GLM-5.3 使用 vLLM 0.30.0，Kimi-K2.6 和 DeepSeek-V4-Pro 使用 vLLM 0.20.1。'
+                 '每轮仅初始化 Host KV 池。')
+
     lines = ['# V11 联合 B2 三模型 Sleep L2 · GLM-5.3', '',
              f'**{len(runs)}/3 轮验收通过，共 {len(data)} 段。** '
              f'{len(first)} 次首次加载和 {len(wake)} 次原 Worker 唤醒均通过金标。'
              '回访实测从 Host KV 恢复 512 token，删除对应键后复查为零命中。'
              '模型间使用同一前缀做命中与未命中的配对查询。', '',
-             'qjhs003 使用 8×H20、TP8、864 GiB 权重 Store 和 813 GiB Host KV 池。'
-             'GLM-5.3 使用 vLLM 0.30.0，Kimi-K2.6 和 DeepSeek-V4-Pro 使用 vLLM 0.20.1。'
-             '每轮先初始化 Host KV 池，再初始化权重 Store。', '',
+             pool_desc, '',
              '## 轮次与释放', '']
-    lines += table(('序列与 run ID', '模型顺序', 'Host KV 池（s）', 'Store 池（s）', '两池就绪（s）',
-                    '金标', '八卡归零观察（s）'), [
-        (f"`{run['run_id']}`", ' → '.join(MODEL[NAMES[key]] for key in SEQUENCES[run['sequence']]),
-         *(seconds(run['pool_init'][field]) for field in ('kv_init_s', 'store_init_s', 'both_ready_s')),
-         '7/7', seconds(run['gpu_release']['seconds'])) for run in runs])
+    if has_store:
+        lines += table(('序列与 run ID', '模型顺序', 'Host KV 池（s）', 'Store 池（s）', '两池就绪（s）',
+                        '金标', '八卡归零观察（s）'), [
+            (f"`{run['run_id']}`", ' → '.join(MODEL[NAMES[key]] for key in SEQUENCES[run['sequence']]),
+             *(seconds(run['pool_init'][field]) for field in ('kv_init_s', 'store_init_s', 'both_ready_s')),
+             '7/7', seconds(run['gpu_release']['seconds'])) for run in runs])
+    else:
+        lines += table(('序列与 run ID', '模型顺序', 'Host KV 池（s）', '金标', '八卡归零观察（s）'), [
+            (f"`{run['run_id']}`", ' → '.join(MODEL[NAMES[key]] for key in SEQUENCES[run['sequence']]),
+             seconds(run['pool_init']['kv_init_s']),
+             '7/7', seconds(run['gpu_release']['seconds'])) for run in runs])
+    lines += pool_observations(runs)
     if figure:
         lines += ['', f'![首次加载和回访唤醒的权重准备、激活至可服务]({figure})']
     lines += ['', '## 首次加载', '']
-    lines += table(('段', '目标模型', '路径', *TIME_HEADERS, 'Store 重读 / 命中（GiB）', '金标'), [
-        (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
-         *(seconds(row[field]) for field in TIMES),
-         f"{row['store']['file_read_bytes'] / 2**30:.3f} / {row['store']['hit_bytes'] / 2**30:.3f}"
-         if row['mode'] == 'store_inplace_cumem' else '不适用', '通过') for sequence, row in first])
+    if has_store:
+        lines += table(('段', '目标模型', '路径', *TIME_HEADERS, 'Store 重读 / 命中（GiB）', '金标'), [
+            (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
+             *(seconds(row[field]) for field in TIMES),
+             f"{row['store']['file_read_bytes'] / 2**30:.3f} / {row['store']['hit_bytes'] / 2**30:.3f}"
+             if row['mode'] == 'store_inplace_cumem' else '不适用', '通过') for sequence, row in first])
+    else:
+        lines += table(('段', '目标模型', '路径', *TIME_HEADERS, '金标'), [
+            (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
+             *(seconds(row[field]) for field in TIMES), '通过') for sequence, row in first])
     lines += ['', '## 回访唤醒', '']
     lines += table(('段', '目标模型', *TIME_HEADERS, '其中 checkpoint 重载（s）',
                     'Host KV 恢复（token / MiB）', '金标'), [
@@ -128,15 +185,17 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
          *(seconds(row[field]) for field in TIMES), seconds(row['checkpoint_reload_s']),
          f"{row['kv']['hit_tokens']} / {sum(row['kv']['rank_bytes'].values()) / 2**20:.3f}", '通过')
         for sequence, row in wake])
-    lines += ['', '## 按模型和路径汇总', '',
-              '各列报告中位数和有效样本数。SafeTensors 冷读、Store 首载和 checkpoint 唤醒分别统计。', '']
+    summary_note = ('各列报告中位数和有效样本数。SafeTensors 冷读、Store 首载和 checkpoint 唤醒分别统计。'
+                    if has_store else
+                    '各列报告中位数和有效样本数。SafeTensors 冷读和 checkpoint 唤醒分别统计。')
+    lines += ['', '## 按模型和路径汇总', '', summary_note, '']
     groups = [(key, mode, [row for _, row in data if row['model'] == key and row['mode'] == mode])
               for key in NAMES for mode in WEIGHT_PATH]
     lines += table(('模型', '路径', '段数', *TIME_HEADERS), [
         (MODEL[NAMES[key]], WEIGHT_PATH[mode], str(len(rows)), *(times(rows, field) for field in TIMES))
         for key, mode, rows in groups if rows])
     lines += kimi_comparison([(run, row) for run in runs for row in run['segments']
-                             if row['mode'] == 'checkpoint_wake'], history, history_link)
+                             if row['mode'] == 'checkpoint_wake'], history, history_link, has_store=has_store)
     lines += ['', '## 计时与证据', '',
               '- 首次加载的权重准备采用八 rank 最早开始至最晚成功返回。唤醒从权重映射开始计至 checkpoint 重载结束。'
               '回访的 Host KV 恢复在后续请求中实测，H2D 字节覆盖参与的八 rank。',

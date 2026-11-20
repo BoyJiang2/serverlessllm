@@ -7,8 +7,9 @@ import hashlib
 import json
 import math
 import re
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path, PurePosixPath
+from statistics import median
 
 
 GIB = 2**30
@@ -16,6 +17,9 @@ CHUNK = 32 * 2**20
 RANKS = set(range(8))
 SEQUENCES = {'S1': 'KGDGKDK', 'S2': 'GDKDGKG', 'S3': 'DKGKDGD'}
 NAMES = {'K': 'kimi', 'G': 'glm53', 'D': 'v4'}
+S3_R1 = 'B1-GLM53-S3-20261119T175803Z'
+SUMMARY_TIMINGS = ('activate_to_first_s', 'full_weight_load_s', 'activate_to_ready_s')
+PIN_FAILURE = re.compile(r'pin_memory failed for chunk at ptr=0x[0-9a-fA-F]+ size=(\d+)')
 METRICS = {'lookups': 'lmcache_mp_lookups_requests_total',
            'requested': 'lmcache_mp_lookup_requested_tokens_total',
            'hits': 'lmcache_mp_lookup_hit_tokens_total',
@@ -264,19 +268,83 @@ def release(root, gpus):
     return dict(seconds=elapsed, samples=len(tail), start_ns=tail[0], end_ns=tail[-1], evidence='release.jsonl')
 
 
+def host_kv_cuda_pin(root):
+    path = root / 'lmcache-final.log'
+    try:
+        raw = path.read_bytes()
+    except OSError:
+        return dict(status='unobserved', evidence=None, failures=[])
+    failures = [dict(line=number, bytes=int(match[1]))
+                for number, line in enumerate(raw.decode('utf-8', errors='replace').splitlines(), 1)
+                if (match := PIN_FAILURE.search(line))]
+    # LMCache 0.5.5 logs registration failures and has no success receipt for this allocation.
+    return dict(status='failed' if failures else 'unobserved', evidence=path.name,
+                sha256=hashlib.sha256(raw).hexdigest(), failures=failures)
+
+
+def segment_statistics(runs):
+    grouped = defaultdict(list)
+    for run in runs:
+        if run['status'] == 'qualified':
+            for row in run['steps']:
+                grouped[row['sequence'], row['segment'], row['cache_state']].append(row)
+    statistics = []
+    for (sequence, segment, cache), rows in sorted(grouped.items()):
+        metrics = {}
+        for field in SUMMARY_TIMINGS:
+            values = [row[field] for row in rows if row.get(field) is not None]
+            metrics[field] = dict(n=len(values), median=median(values) if values else None,
+                                  low=min(values, default=None), high=max(values, default=None))
+        statistics.append(dict(sequence=sequence, segment=segment, cache_state=cache,
+                               model=rows[0]['model'], run_ids=sorted(row['run_id'] for row in rows),
+                               metrics=metrics))
+    return statistics
+
+
+def non_weight_windows(step):
+    load = step.get('observed_phases', {}).get('full_weight_load')
+    if load is None:
+        return None
+    activation, response = step['activation_ns'], step['first_response_ns']
+    require(activation <= load['start_ns'] < load['end_ns'] <= response,
+            'Full-weight envelope outside activation to first response')
+    before = load['start_ns'] - activation
+    after = response - load['end_ns']
+    return dict(before_s=before / 1e9, after_s=after / 1e9, total_s=(before + after) / 1e9)
+
+
+def s3_non_weight_comparison(runs):
+    first_loads = {run['run_id']: run['steps'][0] for run in runs
+                   if run['status'] == 'qualified' and run['sequence'] == 'S3'}
+    if S3_R1 not in first_loads:
+        return None
+    reference = first_loads[S3_R1]
+    baseline = non_weight_windows(reference)
+    peers = []
+    for run_id, step in sorted(first_loads.items()):
+        if run_id == S3_R1 or (step['model'], step['cache_state']) != (reference['model'], reference['cache_state']):
+            continue
+        windows = non_weight_windows(step)
+        difference = baseline['total_s'] - windows['total_s'] if baseline and windows else None
+        peers.append(dict(run_id=run_id, windows=windows, r1_minus_peer_s=difference))
+    return dict(run_id=S3_R1, windows=baseline, peers=peers,
+                peer_n=sum(peer['r1_minus_peer_s'] is not None for peer in peers))
+
+
 def inspect(root, include_partial=False):
+    pin = host_kv_cuda_pin(root)
     result_path = root / 'result.json'
     if result_path.is_file():
         terminal = read(result_path)
         if terminal.get('qualified') is False:
-            return dict(run_id=root.name, status='failed', evidence=str(result_path), raw_result=terminal,
+            return dict(run_id=root.name, status='failed', evidence=str(result_path), raw_result=terminal, host_kv_cuda_pin=pin,
                         release_evidence='release.jsonl' if (root / 'release.jsonl').is_file() else None)
         require(terminal.get('qualified') is True and 'error' not in terminal and not terminal.get('cleanup_errors'),
                 'Invalid terminal qualification')
     else:
         terminal = None
         if not include_partial or not (root / 'pool-init-timing.json').is_file():
-            return dict(run_id=root.name, status='unfinalized', evidence=str(root))
+            return dict(run_id=root.name, status='unfinalized', evidence=str(root), host_kv_cuda_pin=pin)
     protocol = read(root / 'protocol.json')
     sequence = protocol['sequence']
     frozen = SEQUENCES[sequence]
@@ -316,7 +384,8 @@ def inspect(root, include_partial=False):
                          sf_cold=sf, **timing, **host_kv_row, **backing))
         previous_end = host_kv_row['host_clear_end_ns']
     if terminal is None:
-        return dict(run_id=root.name, status='unfinalized', sequence=sequence, pool_init=pool_timing, observed_steps=rows)
+        return dict(run_id=root.name, status='unfinalized', sequence=sequence, pool_init=pool_timing,
+                    host_kv_cuda_pin=pin, observed_steps=rows)
     require(terminal['sequence'] == sequence and len(terminal['steps']) == len(rows) == 7, 'Terminal segment count differs')
     for observed, declared in zip(rows, terminal['steps'], strict=True):
         require(declared == dict(model=observed['model'], gold=True, seconds=observed['activate_to_first_s'],
@@ -328,7 +397,7 @@ def inspect(root, include_partial=False):
     require(previous_end < released['start_ns'] and math.isclose(terminal['release_seconds'], released['seconds'],
             rel_tol=0, abs_tol=1e-9), 'Terminal GPU release differs from sampled evidence')
     return dict(run_id=root.name, status='qualified', sequence=sequence, evidence=str(root),
-                pool_init=pool_timing, release=released, steps=rows)
+                pool_init=pool_timing, host_kv_cuda_pin=pin, release=released, steps=rows)
 
 
 def main():
@@ -338,7 +407,7 @@ def main():
     parser.add_argument('--include-partial', action='store_true', help='Show observations from unfinalized runs in JSON only')
     args = parser.parse_args()
     roots = [path.resolve() for path in args.runs]
-    if len(roots) != len(set(roots)):
+    if len(roots) != len({path.name for path in roots}):
         parser.error('Pass each run only once')
     runs = []
     for root in roots:
@@ -348,8 +417,9 @@ def main():
             runs.append(dict(run_id=root.name, status='invalid_evidence', evidence=str(root), error=str(error)))
     args.output.mkdir(parents=True, exist_ok=True)
     status_counts = Counter(run['status'] for run in runs)
-    (args.output / 'b1-recomputed.json').write_text(json.dumps(dict(counts=status_counts, runs=runs),
-                                                     indent=2, allow_nan=False) + '\n', encoding='utf-8')
+    summary = dict(counts=status_counts, runs=runs, segment_statistics=segment_statistics(runs),
+                   s3_non_weight_comparison=s3_non_weight_comparison(runs))
+    (args.output / 'b1-recomputed.json').write_text(json.dumps(summary, indent=2, allow_nan=False) + '\n', encoding='utf-8')
     with (args.output / 'b1-segments.csv').open('w', encoding='utf-8', newline='') as stream:
         writer = csv.DictWriter(stream, fieldnames=CSV_FIELDS, extrasaction='ignore')
         writer.writeheader()

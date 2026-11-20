@@ -29,11 +29,16 @@ def plot(csv_path, output):
     if not runs or any(len(rows) != 7 for rows in runs.values()):
         raise ValueError('The plot requires at least one complete qualified seven-segment run')
     count = len(runs)
-    fig, axes = plt.subplots(1, count, figsize=(5.4 * count, 4.2), sharex=True, squeeze=False)
+    columns = min(3, count)
+    rows_count = (count + columns - 1) // columns
+    fig, axes = plt.subplots(rows_count, columns, figsize=(5.4 * columns, 4.2 * rows_count),
+                             sharex=True, squeeze=False)
     ceiling = max(float(row['activate_to_first_s']) for rows in runs.values() for row in rows)
     if not math.isfinite(ceiling) or ceiling <= 0:
         raise ValueError('Invalid activation intervals')
-    for ax, ((sequence, run), rows) in zip(axes[0], sorted(runs.items()), strict=True):
+    for ax in axes.flat[count:]:
+        ax.set_visible(False)
+    for ax, ((sequence, run), rows) in zip(axes.flat, sorted(runs.items())):
         rows.sort(key=lambda x: int(x['segment']))
         seconds = [float(row['activate_to_first_s']) for row in rows]
         if any(not math.isfinite(x) or x <= 0 for x in seconds):
@@ -46,6 +51,7 @@ def plot(csv_path, output):
         ax.invert_yaxis()
         ax.set_title(f'{sequence} · {run.rsplit("-", 1)[-1]}', loc='left', pad=9)
         ax.set_xlabel('Activation to first correct complete response (s)')
+        ax.tick_params(axis='x', labelbottom=True)
         ax.grid(axis='x', color='#DCE2E8', linewidth=0.6)
         ax.set_axisbelow(True)
         ax.spines[['top', 'right', 'left']].set_visible(False)
