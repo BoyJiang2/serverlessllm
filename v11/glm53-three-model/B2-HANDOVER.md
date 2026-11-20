@@ -2,7 +2,7 @@
 
 当前正式候选为从 `formal-nostore/` 独立冻结的 `formal-nostore-813/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划和容量检查已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[813 GiB 前检](derived/b2-nostore-813-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
-384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮完整保留，两种容量分别复算。
+384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮独立复算为 6/7 段。末段 Kimi 实测命中 512 token 并通过四项业务金标，但同前缀探针的第 2 个输出 token 从 `1453` 变为 `25074`，触发原逐 token 断言，删键后的零命中对照未执行。八卡连续归零 61.133954103 秒。三个 Worker 均退出，退出码分别为 Kimi 137、GLM-5.3 1、V4 137。全部 384 GiB 锁页注册成功，已完成段内复算的最低可用内存为 1378.077 GiB。[独立复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [原始证据与 SHA-256](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json)
 
 下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
 
