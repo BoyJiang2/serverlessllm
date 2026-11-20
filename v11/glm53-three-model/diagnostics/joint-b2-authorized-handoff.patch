@@ -1,0 +1,23 @@
+--- a/run_three_model_b2.py
++++ b/run_three_model_b2.py
+@@ -63,0 +64,17 @@
++def admission_deadline(admission, booking_id, run_id):
++    protocol = {'booking_id': booking_id}
++    if admission.get('mode') == 'user_authorized':
++        handoff = admission['handoff_booking']
++        assert admission['id'] == f'handoff-{run_id}'
++        assert admission['authorization'] == 'current_holder_confirmed_by_operator'
++        assert handoff['id'] == booking_id and handoff['user'] and handoff['user'] != 'boyjiang'
++        assert admission['resource_id'] == handoff['resource_id'] == 'h20/qjhs003'
++        assert admission['node'] == handoff['node'] == 'qjhs003'
++        assert admission['cluster_id'] == handoff['cluster_id'] == 'h20'
++        start, end = admission['start_ms'], admission['end_ms']
++        assert handoff['start_ms'] <= start < end <= handoff['end_ms']
++        assert end - start == 150 * 60 * 1000
++        protocol = dict(booking_id=None, direct_admission_id=admission['id'], admission_mode='user_authorized')
++    return deadline_ns(admission, protocol, 0)
++
++
+@@ -72 +89 @@
+-    deadline = min(deadline_ns(admission, {'booking_id': args.booking_id}, 0),
++    deadline = min(admission_deadline(admission, args.booking_id, root.name),

@@ -515,7 +515,21 @@ def inspect(root):
                 'Frozen load or wake path differs')
         live = read(root / 'live-admission.json')
         booking = read(root / 'admission.json')
-        window = booking['booking']
+        if booking.get('mode') == 'user_authorized':
+            window = booking
+            handoff = booking['handoff_booking']
+            require(booking['id'] == f'handoff-{root.name}' and
+                    booking['authorization'] == 'current_holder_confirmed_by_operator' and
+                    booking['resource_id'] == handoff['resource_id'] == 'h20/qjhs003' and
+                    handoff['node'] == 'qjhs003' and handoff['cluster_id'] == 'h20' and
+                    handoff['id'] and handoff['user'] and handoff['user'] != 'boyjiang' and
+                    handoff['start_ms'] <= window['start_ms'] < window['end_ms'] <= handoff['end_ms'] and
+                    window['end_ms'] - window['start_ms'] == 150 * 60 * 1000,
+                    'Authorized handoff window differs from the recorded booking')
+            out['admission_mode'] = 'user_authorized'
+            out['handoff_booking_id'] = handoff['id']
+        else:
+            window = booking['booking']
         require(window['node'] == 'qjhs003' and window['cluster_id'] == 'h20' and window['id'] and
                 window['start_ms'] <= booking['checked_at_wall_ns'] // 10**6 < window['end_ms'], 'Booking invalid')
         gpus = live['gpus']

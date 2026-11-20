@@ -1,6 +1,6 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-当前正式候选为 `formal-nostore/`，只启用 **384 GiB LMCache Host KV**，LMCache 容器上限 448 GiB，开池预算 451 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划、容量检查和报告复算已做 CPU 核验，待各取一轮 7/7 实测。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对 `formal-nostore/` 的当前哈希和本人预约。开跑前还须核对实时节点准入并告知用户，每轮使用独立 run ID。
+当前正式候选为 `formal-nostore/`，只启用 **384 GiB LMCache Host KV**，LMCache 容器上限 448 GiB，开池预算 451 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划、容量检查和报告复算已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
 下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
 
