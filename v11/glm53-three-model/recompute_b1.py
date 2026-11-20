@@ -106,6 +106,7 @@ def paths_for(protocol, key):
 
 
 def backing_bytes(cache, protocol, key, index):
+    # 首段直接读 SafeTensors，后续段按 Store 路径核对命中、重读和块分配。
     expected = paths_for(protocol, key) if index else set()
     events = cache['events']
     lookups = {row['path']: row for row in events if row['kind'] == 'lookup'}
@@ -187,6 +188,7 @@ def host_kv(step, result, fill, expected_bytes):
 
 
 def envelope(intervals, activation, upper):
+    # 八 rank 包络取该阶段最早起点至最晚终点，同时保留最慢 rank 的耗时。
     require({row['rank'] for row in intervals} == RANKS and len(intervals) == 8, 'Expected eight rank intervals')
     for row in intervals:
         require(activation <= row['start_ns'] < row['end_ns'] <= upper, 'Rank interval outside activation')
@@ -225,6 +227,7 @@ def timings(step, key, measured):
         for phase in ('full_weight_load', 'weight_ingestion', 'quantization_postprocess', 'restore_postprocess', 'kv_cache_allocation'):
             paired = {end: [row for row in traces if row['name'] == f'{phase}_{end}'] for end in ('begin', 'end')}
             if any(len(rows) != 8 for rows in paired.values()):
+                # 缺少完整八 rank 接点的历史阶段保持缺测，避免用部分跨度代替。
                 continue
             require({(r['boot_id'], r['time_namespace'], r['clock_id'], r['run_id'])
                      for rows in paired.values() for r in rows} == {(*domain, trace_run)}, 'Rank clock domain differs')
@@ -308,6 +311,7 @@ def non_weight_windows(step):
     activation, response = step['activation_ns'], step['first_response_ns']
     require(activation <= load['start_ns'] < load['end_ns'] <= response,
             'Full-weight envelope outside activation to first response')
+    # 只拆分加载前后的实测窗口，避免把剩余耗时直接归因于 KV 操作。
     before = load['start_ns'] - activation
     after = response - load['end_ns']
     return dict(before_s=before / 1e9, after_s=after / 1e9, total_s=(before + after) / 1e9)
@@ -353,6 +357,7 @@ def inspect(root, include_partial=False):
     gpus = admission(root, protocol)
     pools = read(root / 'pool-init-timing.json')
     initial = l1(read(root / 'lmcache-ready.json'))
+    # 两池依次准备，先核对真实接点顺序再计算初始化耗时。
     require(pools['kv_ready_ns'] <= pools['store_begin_ns']
             and initial['memory_total_bytes'] == protocol['host_kv_pool_bytes']
             and initial['memory_used_bytes'] == 0, 'Pool order, capacity or initial occupancy differs')

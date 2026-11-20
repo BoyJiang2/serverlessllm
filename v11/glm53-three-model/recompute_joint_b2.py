@@ -135,6 +135,7 @@ def probe(step, worker, key, phase, namespace, ranks, hit, requests, server, cap
             f'Host KV transfer from the wrong Worker: {phase}')
     transfer_keys = {row['transfer_key'] for row in finishes}
     groups = [row for row in transfer['groups'] if row['transfer_key'] in transfer_keys]
+    # 命中只证明查找成功，实际传输还需核对八 rank 的分组与完成字节数。
     transfer_bytes = verify_transfer(key, groups, finishes, ranks, namespace, direction)
     require(all(transfer_bytes[row['device'].split(':')[1]] == row['total_bytes'] for row in finishes),
             f'GPU copy bytes do not match completion: {phase}')
@@ -174,6 +175,7 @@ def previous_namespace(step, namespace, other, status, ready, run_start, server,
                 not event['early_exit_reason'], 'Cross-model key isolation failed')
     intervals = raw.get('intervals')
     if intervals is not None:
+        # 旧模型须在注销前查找，新模型在注册后查找，才能验证跨模型隔离。
         for name, source in (('previous', other['step'] / 'outgoing-namespace-lookup.json'),
                              ('active', step / 'incoming-namespace-lookup.json')):
             arm = receipt[name]
@@ -319,6 +321,7 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
     aftermath = wake_stages = None
     weight_prep_s = reload_s = kv_allocation_s = kv_ready = old_to_new_s = None
     weight = first_alloc = None
+    # 首载取权重加载调用的边界，回访从原 Worker 重映射权重开始计时。
     if fresh:
         weight, first_alloc = first_weight(worker, model, active, native)
         if weight:
@@ -635,6 +638,7 @@ def add_host_memory(run, result, path):
     live_since = (result.get('pool_init') or {}).get('lmcache_ready_ns')
     live = [sample for sample in samples if live_since is None or sample['start_ns'] >= live_since]
     require(live, 'Host memory trace lacks samples after pool readiness')
+    # 最低可用内存及当时的匿名内存取同一个样本，匿名峰值另计。
     low = min(live, key=lambda sample: sample['host']['MemAvailable'])
     result['host_monitor'] = dict(path=str(path), read_bytes=len(prefix), sha256=hashlib.sha256(prefix).hexdigest(),
                                   sample_count=len(live), min_available_bytes=low['host']['MemAvailable'],
@@ -692,6 +696,7 @@ def add_kimi_trace(result, path):
         if step['model'] != 'K' or step['mode'] != 'checkpoint_wake':
             continue
         wake = step['wake_stages']
+        # 一份日志包含多次唤醒，只在本段重载窗口内检查专家层完成记录。
         try:
             layers = expert_reload(path, wake['checkpoint_reload_begin_ns'], wake['checkpoint_reload_end_ns'],
                                    multiple=True)
