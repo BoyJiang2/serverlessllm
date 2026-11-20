@@ -1,0 +1,22 @@
+--- a/b2_legacy_launch.py
++++ b/b2_legacy_launch.py
+@@ -18,0 +19 @@
++KIMI_REFERENCE_SHA256 = 'd1954a790ffc9ef8e437da91f977ce6fff9c06fffe8da445029bfc9d5cab0b8d'
+@@ -89 +90,6 @@
+-    probe = kv_run_request(fill)
++    # Kimi uses the qualified L2 reference with the same 512-token cached prefix.
++    reference = None
++    if key == 'K':
++        reference = json.loads(checked(Path(__file__).with_name('kimi-reference-probe.json'),
++                                       KIMI_REFERENCE_SHA256))
++    probe = kv_run_request(fill, reference)
+@@ -220 +226 @@
+-        input_sha256=digest(input_path), probe_source_sha256=INPUT_PINS[key][1],
++        input_sha256=digest(input_path), probe_source_sha256=KIMI_REFERENCE_SHA256 if reference else INPUT_PINS[key][1],
+@@ -222 +228 @@
+-        prompt_tokens=513, cached_tokens=512, first_load=cfg['load_format'],
++        prompt_tokens=len(probe['payload']['input_tokens']), cached_tokens=512, first_load=cfg['load_format'],
+--- a/b2_prepare.py
++++ b/b2_prepare.py
+@@ -46,0 +47 @@
++    source_hashes['kimi-reference-probe.json'] = digest(Path(__file__).with_name('kimi-reference-probe.json'))

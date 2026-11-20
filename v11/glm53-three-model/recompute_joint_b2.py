@@ -23,6 +23,7 @@ PIN_FAILURE = re.compile(r'pin_memory failed|cudaHostRegister\b.*\b(?:failed|err
 PIN_DISABLED = re.compile(r'(?:disabl\w+.*(?:cuda host register|pin_memory)|'
                           r'(?:cuda host register|pin_memory).*disabl\w+)', re.IGNORECASE)
 POOL_CONFIGS = {(864, 813), (0, 813), (0, 384)}
+KIMI_REFERENCE_PROBE_SHA = 'd1954a790ffc9ef8e437da91f977ce6fff9c06fffe8da445029bfc9d5cab0b8d'
 KIMI_META_MODULE = 'vllm.model_executor.model_loader.reload.meta'
 KIMI_META_SHA = '94052a2faa6ed9b4afc02a73d44b5df2c41720f249f0d40569f32d30f87df8de'
 KIMI_WNA16_MODULE = ('vllm.model_executor.layers.quantization.compressed_tensors.compressed_tensors_moe.'
@@ -506,6 +507,14 @@ def inspect(root):
         require(seq == plan['steps'] and plan['level'] == 2 and (store_gib, host_gib) in POOL_CONFIGS and
                 plan['gpu_kv_bytes_per_rank'] == 16 * GIB, 'Frozen protocol differs')
         has_store = store_gib > 0
+        if (reference_sha := plan.get('source_sha256', {}).get('kimi-reference-probe.json')) is not None:
+            launch = read(root / 'workers' / 'worker-K' / 'legacy-launch-plan.json')
+            worker_input = root / 'b2-inputs' / 'kimi-input.json'
+            require(reference_sha == launch['probe_source_sha256'] == KIMI_REFERENCE_PROBE_SHA and
+                    (launch['prompt_tokens'], launch['cached_tokens']) == (560, 512) and
+                    launch['input_sha256'] == hashlib.sha256(worker_input.read_bytes()).hexdigest(),
+                    'Kimi reference probe differs from the frozen worker input')
+            out['kimi_reference_probe_sha256'] = reference_sha
         capacity_bytes = host_gib * GIB
         capacity = read(root / 'capacity.json')
         require(capacity['pool_gib'] == {'weights': store_gib, 'host_kv': host_gib} and

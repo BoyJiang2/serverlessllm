@@ -1,6 +1,10 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-当前正式候选为从 `formal-nostore/` 独立冻结的 `formal-nostore-813/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划和容量检查已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[813 GiB 前检](derived/b2-nostore-813-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划和容量检查已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+
+813 GiB 首次尝试 `B2-GLM53-S1-20261120T061704Z` 完成 4/7 段。第 04 段原八 rank 实际回读了 512 token，输出与首载一致。精确删掉两个对象后，同一 Worker 的零命中重算在第 2 个生成 token 与首载分歧，四项业务金标在两次请求中都通过。WNA16 复核有 480 条专家层完成记录。八卡连续归零 61.303401544 秒，三个 Worker 清理异常按原回执保留。[失败复算](derived/failed-813/B2-GLM53-S1-20261120T061704Z-recomputed.json) · [原始证据与 SHA-256](derived/failed-813/B2-GLM53-S1-20261120T061704Z-index.json)
+
+重跑从 S1 开始，三条序列都使用 Kimi 已验收的 560-token 参考探针。512 token 仍走实测 Host KV 回读，后 48 token 明确要求复述前缀中的编号。验收要求自然停止并逐 token 匹配此前确认的答案。业务金标、GLM 和 V4 输入均保留。各轮使用同一份探针哈希。[参考探针](diagnostics/kimi-reference-probe.json) · [适配补丁](diagnostics/joint-b2-kimi-reference.patch)
 
 384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮独立复算为 6/7 段。末段 Kimi 实测命中 512 token 并通过四项业务金标，但同前缀探针的第 2 个输出 token 从 `1453` 变为 `25074`，触发原逐 token 断言，删键后的零命中对照未执行。八卡连续归零 61.133954103 秒。三个 Worker 均退出，退出码分别为 Kimi 137、GLM-5.3 1、V4 137。全部 384 GiB 锁页注册成功，已完成段内复算的最低可用内存为 1378.077 GiB。[独立复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [原始证据与 SHA-256](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json)
 
@@ -48,7 +52,7 @@
 ## 历史双池快照与当前复算入口
 
 - 历史双池快照父目录为 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/`。S1 `formal-ram-S1.VWIupndC/`，S2 `formal-ram-S2.Apr9Wlvn/`，S3 `formal-ram-S3.kSgbpiJf/`，各自的 `cpu-plan/b2-plan.json` 为 CPU 计划。[S1 容量配置](derived/b2-phase-capacity.json) · [S2 容量配置](derived/b2-phase-capacity-s2.json) · [S3 容量配置](derived/b2-phase-capacity-s3.json)
-- 当前正式启动器只用 `formal-nostore-813/`，按首段说明校验三份计划和预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮 813 GiB 全部通过再生成正式报告。
+- 当前正式启动器使用 `formal-nostore-813-reference/`，按首段说明校验三份计划和预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮 813 GiB 全部通过再生成正式报告。
 - 首次加载与回访分开统计，分别列权重准备、新 GPU KV、旧 GPU KV 开始释放至新 KV 就绪、至可服务、首个正确完整响应及全套金标。GLM-5.3 目前缺首载八 rank 独立 GPU KV 分配起止和旧 `kv_cache` 逐 rank 解除映射起点，保留 `null`，已有回访 KV 唤醒端点照常使用。
 
 ## 原始日志与失败回执

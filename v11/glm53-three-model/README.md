@@ -1,6 +1,6 @@
 # GLM-5.3 三模型复现实验
 
-本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。正式联合 B2 使用 **813 GiB LMCache Host KV 单池**，前三段从 SafeTensors 冷页首载，后四段验证原 Worker Sleep L2 唤醒与 Host KV 回读。384 GiB 先行轮次独立留证。[执行交接](B2-HANDOVER.md) · [813 GiB CPU 前检与冻结哈希](derived/b2-nostore-813-preflight.json) · [容量变更补丁](diagnostics/joint-b2-nostore-813.patch) · [384 GiB 前检](derived/b2-nostore-384-preflight.json)
+本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。正式联合 B2 使用 **813 GiB LMCache Host KV 单池**，前三段从 SafeTensors 冷页首载，后四段验证原 Worker Sleep L2 唤醒与 Host KV 回读。384 GiB 先行轮次独立留证。[执行交接](B2-HANDOVER.md) · [当前 813 GiB CPU 前检与冻结哈希](derived/b2-nostore-813-reference-preflight.json) · [容量变更补丁](diagnostics/joint-b2-nostore-813.patch) · [384 GiB 前检](derived/b2-nostore-384-preflight.json)
 
 [正式 B1 报告](REPORT.md) · [服务器原始证据索引](derived/evidence-index.json)
 
@@ -54,7 +54,7 @@ python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2
   --index derived/b2-evidence-index.json --figure figures/b2-joint-ready.png --output B2-JOINT.md
 ```
 
-将 `S1_RUN`、`S2_RUN`、`S3_RUN` 设为 qjhs003 三轮 813 GiB B2 的完整原始回执目录。`S1_TRACE`、`S2_TRACE`、`S3_TRACE` 分别指向 `formal-nostore-813` 下对应 `<run_id>-host-memory.jsonl`。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)
+将 `S1_RUN`、`S2_RUN`、`S3_RUN` 设为 qjhs003 三轮 813 GiB B2 的完整原始回执目录。`S1_TRACE`、`S2_TRACE`、`S3_TRACE` 分别指向 `formal-nostore-813-reference` 下对应 `<run_id>-host-memory.jsonl`。复算核对首次加载路径、八 rank 身份及 Host KV 传输、Kimi 参考探针、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-HANDOVER.md)
 
 主机采样用于复算从逐段准入到该段休眠完成的可用 RAM 低点。复算按该轮实际启动的池服务和 Worker 容器 ID 匹配样本，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
 

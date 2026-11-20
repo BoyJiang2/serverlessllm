@@ -1,0 +1,924 @@
+{
+  "run_id": "B2-GLM53-S1-20261120T061704Z",
+  "status": "failed",
+  "qualified": false,
+  "segments": [
+    {
+      "index": 0,
+      "model": "K",
+      "mode": "safetensors_disk_cold",
+      "equivalent_workers": false,
+      "evidence": "00-K-kimi",
+      "precheck_ns": 2279977650639311,
+      "ram_at_admission_bytes": 1115531132928,
+      "host_admission_settle": null,
+      "activation_ns": 2280006080263467,
+      "native_ready_ns": 2281269942771650,
+      "ready_ns": 2281270680030916,
+      "activation_to_serve_s": 1264.599767449,
+      "activation_to_first_gold_s": 1266.364328246,
+      "activation_to_all_gold_s": 1269.902577635,
+      "full_first_weight_load": {
+        "start_ns": 2280081351075027,
+        "end_ns": 2281185335392857,
+        "seconds": 1103.98431783,
+        "max_rank_s": 1103.983747095,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2280081375405716,
+            "end_ns": 2281185137803611,
+            "seconds": 1103.762397895
+          },
+          {
+            "rank": 1,
+            "start_ns": 2280081356848546,
+            "end_ns": 2281182293860748,
+            "seconds": 1100.937012202
+          },
+          {
+            "rank": 2,
+            "start_ns": 2280081351075027,
+            "end_ns": 2281185188501004,
+            "seconds": 1103.837425977
+          },
+          {
+            "rank": 3,
+            "start_ns": 2280081362123048,
+            "end_ns": 2281184666056082,
+            "seconds": 1103.303933034
+          },
+          {
+            "rank": 4,
+            "start_ns": 2280081354397995,
+            "end_ns": 2281184489533487,
+            "seconds": 1103.135135492
+          },
+          {
+            "rank": 5,
+            "start_ns": 2280081357092642,
+            "end_ns": 2281184488605830,
+            "seconds": 1103.131513188
+          },
+          {
+            "rank": 6,
+            "start_ns": 2280081351645762,
+            "end_ns": 2281185335392857,
+            "seconds": 1103.983747095
+          },
+          {
+            "rank": 7,
+            "start_ns": 2280081354046148,
+            "end_ns": 2281185288303952,
+            "seconds": 1103.934257804
+          }
+        ],
+        "event": "weights_pipeline_including_allocation"
+      },
+      "weight_preparation_s": 1103.98431783,
+      "checkpoint_reload_s": null,
+      "wake_stages": null,
+      "new_gpu_kv_s": 2.278402588,
+      "new_gpu_kv_ready_ns": 2281265801916494,
+      "first_gpu_kv_allocation": {
+        "start_ns": 2281263523513906,
+        "end_ns": 2281265801916494,
+        "seconds": 2.278402588,
+        "max_rank_s": 2.278333254,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2281263523638964,
+            "end_ns": 2281264227622097,
+            "seconds": 0.703983133
+          },
+          {
+            "rank": 1,
+            "start_ns": 2281263523513906,
+            "end_ns": 2281265184246369,
+            "seconds": 1.660732463
+          },
+          {
+            "rank": 2,
+            "start_ns": 2281263523653825,
+            "end_ns": 2281265593851064,
+            "seconds": 2.070197239
+          },
+          {
+            "rank": 3,
+            "start_ns": 2281263523583240,
+            "end_ns": 2281265801916494,
+            "seconds": 2.278333254
+          },
+          {
+            "rank": 4,
+            "start_ns": 2281263523627369,
+            "end_ns": 2281265389053697,
+            "seconds": 1.865426328
+          },
+          {
+            "rank": 5,
+            "start_ns": 2281263523574535,
+            "end_ns": 2281264505751799,
+            "seconds": 0.982177264
+          },
+          {
+            "rank": 6,
+            "start_ns": 2281263523683517,
+            "end_ns": 2281264982271132,
+            "seconds": 1.458587615
+          },
+          {
+            "rank": 7,
+            "start_ns": 2281263523681893,
+            "end_ns": 2281264749786853,
+            "seconds": 1.22610496
+          }
+        ],
+        "event": "kv_cache_allocation"
+      },
+      "old_gpu_kv_release_to_new_kv_ready_s": null,
+      "unregister_ns": 2281282660164829,
+      "sleep_begin_ns": 2281283109399552,
+      "sleep_end_ns": 2281284287299943,
+      "old_kv_unmap_begin_ns": 2281283696059574,
+      "hbm_mib_after_sleep": [
+        2977,
+        2873,
+        2873,
+        2873,
+        2873,
+        2873,
+        2873,
+        2873
+      ],
+      "host_kv_after_sleep_bytes": 35979264,
+      "gold": true,
+      "store": {
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": 0
+      },
+      "store_entry": null,
+      "sf_cold": {
+        "files": 64,
+        "pages": 145307138,
+        "resident_pages": 0,
+        "evidence": "00-K-kimi/sf-admission/summary.json"
+      },
+      "kv": {
+        "first_ns": 2281272444591713,
+        "all_ns": 2281275982841102,
+        "gold_requests": [
+          "arithmetic",
+          "fixed32",
+          "translation",
+          "v7_added_arithmetic"
+        ],
+        "kv_response": [
+          "\u52a025\u3002\u53ea\u8f93\u51fa\u6574\u6570\u7ed3\u679c\uff0c",
+          [
+            865,
+            1453,
+            292,
+            989,
+            13791,
+            55796,
+            3764,
+            378
+          ],
+          "length"
+        ],
+        "run_started_ns": 2281270749158360,
+        "run_finished_ns": 2281276855948190,
+        "hit_tokens": 0,
+        "direction": "D2H",
+        "rank_bytes": {
+          "0": 35979264
+        },
+        "groups_per_rank": {
+          "0": 1
+        },
+        "host_bytes_before": 0,
+        "host_bytes_after": 35979264,
+        "host_objects_after": 2,
+        "keys": [
+          {
+            "chunk_hash_hex": "f2aef89496c64b5e1916998971ccd63ee0673ccb8068319d7bad7f64017359e8",
+            "model_name": "/mnt/raid/models/Kimi-K2.6",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          },
+          {
+            "chunk_hash_hex": "8c27a483a4478ee8a54d9dc937435762a32b544083b0a5d23304846cd8690e84",
+            "model_name": "/mnt/raid/models/Kimi-K2.6",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          }
+        ]
+      },
+      "after_clear": null,
+      "cross_model": null,
+      "tail_delete": null,
+      "host_memory": {
+        "sample_count": 1303,
+        "min_available_bytes": 1092046176256,
+        "max_drop_from_admission_bytes": 23484956672,
+        "min_sample_ns": 2281281503113733,
+        "max_gap_ns": 1232778943,
+        "covers_window_to_3s": true,
+        "anon_bytes_at_min": {
+          "lmcache": 873878138880,
+          "worker-K": 22269739008
+        }
+      }
+    },
+    {
+      "index": 1,
+      "model": "G",
+      "mode": "safetensors_disk_cold",
+      "equivalent_workers": false,
+      "evidence": "01-G-glm53",
+      "precheck_ns": 2281285317120519,
+      "ram_at_admission_bytes": 1092484411392,
+      "host_admission_settle": null,
+      "activation_ns": 2281299213518377,
+      "native_ready_ns": 2282140635673283,
+      "ready_ns": 2282141290770467,
+      "activation_to_serve_s": 842.07725209,
+      "activation_to_first_gold_s": 852.265156721,
+      "activation_to_all_gold_s": 852.265156721,
+      "full_first_weight_load": {
+        "start_ns": 2281385061218456,
+        "end_ns": 2281877640180453,
+        "seconds": 492.578961997,
+        "max_rank_s": 492.574470124,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2281385171221767,
+            "end_ns": 2281877635711604,
+            "seconds": 492.464489837
+          },
+          {
+            "rank": 1,
+            "start_ns": 2281385102847258,
+            "end_ns": 2281877636810920,
+            "seconds": 492.533963662
+          },
+          {
+            "rank": 2,
+            "start_ns": 2281385140396122,
+            "end_ns": 2281877639257370,
+            "seconds": 492.498861248
+          },
+          {
+            "rank": 3,
+            "start_ns": 2281385077717667,
+            "end_ns": 2281877633770018,
+            "seconds": 492.556052351
+          },
+          {
+            "rank": 4,
+            "start_ns": 2281385074905695,
+            "end_ns": 2281877637563830,
+            "seconds": 492.562658135
+          },
+          {
+            "rank": 5,
+            "start_ns": 2281385065082449,
+            "end_ns": 2281877635440052,
+            "seconds": 492.570357603
+          },
+          {
+            "rank": 6,
+            "start_ns": 2281385066073057,
+            "end_ns": 2281877640180453,
+            "seconds": 492.574107396
+          },
+          {
+            "rank": 7,
+            "start_ns": 2281385061218456,
+            "end_ns": 2281877635688580,
+            "seconds": 492.574470124
+          }
+        ]
+      },
+      "weight_preparation_s": 492.578961997,
+      "checkpoint_reload_s": null,
+      "wake_stages": null,
+      "new_gpu_kv_s": null,
+      "new_gpu_kv_ready_ns": null,
+      "first_gpu_kv_allocation": null,
+      "old_gpu_kv_release_to_new_kv_ready_s": null,
+      "unregister_ns": 2282157237936043,
+      "sleep_begin_ns": 2282157637847531,
+      "sleep_end_ns": 2282158445219805,
+      "old_kv_unmap_begin_ns": null,
+      "hbm_mib_after_sleep": [
+        6013,
+        5909,
+        5909,
+        5909,
+        5909,
+        5909,
+        5909,
+        5909
+      ],
+      "host_kv_after_sleep_bytes": 63602688,
+      "gold": true,
+      "store": {
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": 0
+      },
+      "store_entry": null,
+      "sf_cold": {
+        "files": 141,
+        "pages": 184480518,
+        "resident_pages": 0,
+        "evidence": "01-G-glm53/sf-admission/summary.json"
+      },
+      "kv": {
+        "first_ns": 2282151478675098,
+        "all_ns": 2282151478675098,
+        "gold_requests": [
+          "business"
+        ],
+        "kv_response": [
+          "</think>42",
+          [
+            154842,
+            101961,
+            154827
+          ],
+          "stop"
+        ],
+        "run_started_ns": 2282146345696508,
+        "run_finished_ns": 2282152233369353,
+        "hit_tokens": 0,
+        "direction": "D2H",
+        "rank_bytes": {
+          "0": 27617280
+        },
+        "groups_per_rank": {
+          "0": 2
+        },
+        "host_bytes_before": 35979264,
+        "host_bytes_after": 63602688,
+        "host_objects_after": 4,
+        "keys": [
+          {
+            "chunk_hash_hex": "96fb188a1261501d8f425913a5ffaddc7b51e822ab49b187f9861131cee2bef6",
+            "model_name": "/mnt/raid/models/GLM-5.3",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          },
+          {
+            "chunk_hash_hex": "0e2acf88e56ada489a9a3eb6788f627715ff30f399c88daba6d7c0ed1a7b5a27",
+            "model_name": "/mnt/raid/models/GLM-5.3",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          }
+        ]
+      },
+      "after_clear": null,
+      "cross_model": {
+        "previous_hit_tokens": 512,
+        "active_hit_tokens": 0,
+        "prefix_sha256": "6d902254915c06e2058f7febfbb880fff48df0d38db532a6fa54545ab33bfa92",
+        "intervals": {
+          "previous": {
+            "started_ns": 2281276949270465,
+            "finished_ns": 2281282398201967
+          },
+          "active": {
+            "started_ns": 2282141292166144,
+            "finished_ns": 2282146297157674
+          }
+        }
+      },
+      "tail_delete": null,
+      "host_memory": {
+        "sample_count": 871,
+        "min_available_bytes": 1076178649088,
+        "max_drop_from_admission_bytes": 16305762304,
+        "min_sample_ns": 2281393796164884,
+        "max_gap_ns": 1023500221,
+        "covers_window_to_3s": true,
+        "anon_bytes_at_min": {
+          "lmcache": 873515630592,
+          "worker-K": 22264954880,
+          "worker-G": 12602699776
+        }
+      }
+    },
+    {
+      "index": 2,
+      "model": "D",
+      "mode": "safetensors_disk_cold",
+      "equivalent_workers": false,
+      "evidence": "02-D-v4",
+      "precheck_ns": 2282159096657129,
+      "ram_at_admission_bytes": 1077640609792,
+      "host_admission_settle": null,
+      "activation_ns": 2282190229429931,
+      "native_ready_ns": 2282936241821035,
+      "ready_ns": 2282937107912856,
+      "activation_to_serve_s": 746.878482925,
+      "activation_to_first_gold_s": 773.197861634,
+      "activation_to_all_gold_s": 782.833414456,
+      "full_first_weight_load": {
+        "start_ns": 2282236550372360,
+        "end_ns": 2282654091709793,
+        "seconds": 417.541337433,
+        "max_rank_s": 417.493109402,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2282236550458863,
+            "end_ns": 2282652672806482,
+            "seconds": 416.122347619
+          },
+          {
+            "rank": 1,
+            "start_ns": 2282236590165915,
+            "end_ns": 2282653211952432,
+            "seconds": 416.621786517
+          },
+          {
+            "rank": 2,
+            "start_ns": 2282236550372360,
+            "end_ns": 2282652931742767,
+            "seconds": 416.381370407
+          },
+          {
+            "rank": 3,
+            "start_ns": 2282236854101279,
+            "end_ns": 2282653730115385,
+            "seconds": 416.876014106
+          },
+          {
+            "rank": 4,
+            "start_ns": 2282236554011929,
+            "end_ns": 2282652947667167,
+            "seconds": 416.393655238
+          },
+          {
+            "rank": 5,
+            "start_ns": 2282236622589467,
+            "end_ns": 2282653239806671,
+            "seconds": 416.617217204
+          },
+          {
+            "rank": 6,
+            "start_ns": 2282236559633839,
+            "end_ns": 2282653060045012,
+            "seconds": 416.500411173
+          },
+          {
+            "rank": 7,
+            "start_ns": 2282236598600391,
+            "end_ns": 2282654091709793,
+            "seconds": 417.493109402
+          }
+        ],
+        "event": "weights_pipeline_including_allocation"
+      },
+      "weight_preparation_s": 417.541337433,
+      "checkpoint_reload_s": null,
+      "wake_stages": null,
+      "new_gpu_kv_s": 1.784649607,
+      "new_gpu_kv_ready_ns": 2282720418680697,
+      "first_gpu_kv_allocation": {
+        "start_ns": 2282718634031090,
+        "end_ns": 2282720418680697,
+        "seconds": 1.784649607,
+        "max_rank_s": 1.78456862,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2282718634031090,
+            "end_ns": 2282719681562513,
+            "seconds": 1.047531423
+          },
+          {
+            "rank": 1,
+            "start_ns": 2282718634185326,
+            "end_ns": 2282719869554449,
+            "seconds": 1.235369123
+          },
+          {
+            "rank": 2,
+            "start_ns": 2282718634229911,
+            "end_ns": 2282719771476295,
+            "seconds": 1.137246384
+          },
+          {
+            "rank": 3,
+            "start_ns": 2282718634185805,
+            "end_ns": 2282720079278658,
+            "seconds": 1.445092853
+          },
+          {
+            "rank": 4,
+            "start_ns": 2282718634112077,
+            "end_ns": 2282720418680697,
+            "seconds": 1.78456862
+          },
+          {
+            "rank": 5,
+            "start_ns": 2282718634166715,
+            "end_ns": 2282720297747959,
+            "seconds": 1.663581244
+          },
+          {
+            "rank": 6,
+            "start_ns": 2282718634111716,
+            "end_ns": 2282719973258167,
+            "seconds": 1.339146451
+          },
+          {
+            "rank": 7,
+            "start_ns": 2282718634388171,
+            "end_ns": 2282720187463551,
+            "seconds": 1.55307538
+          }
+        ],
+        "event": "kv_cache_allocation"
+      },
+      "old_gpu_kv_release_to_new_kv_ready_s": null,
+      "unregister_ns": 2282993924691399,
+      "sleep_begin_ns": 2282994286329149,
+      "sleep_end_ns": 2282995993130983,
+      "old_kv_unmap_begin_ns": 2282995341454177,
+      "hbm_mib_after_sleep": [
+        10333,
+        10229,
+        10229,
+        10229,
+        10229,
+        10229,
+        10229,
+        10229
+      ],
+      "host_kv_after_sleep_bytes": 112967680,
+      "gold": true,
+      "store": {
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": 0
+      },
+      "store_entry": null,
+      "sf_cold": {
+        "files": 64,
+        "pages": 211113568,
+        "resident_pages": 0,
+        "evidence": "02-D-v4/sf-admission/summary.json"
+      },
+      "kv": {
+        "first_ns": 2282963427291565,
+        "all_ns": 2282973062844387,
+        "gold_requests": [
+          "business",
+          "v7_added_arithmetic",
+          "workload32"
+        ],
+        "kv_response": [
+          " are a helpful assistant. Follow the user",
+          [
+            477,
+            260,
+            11502,
+            22896,
+            16,
+            13845,
+            270,
+            3967
+          ],
+          "length"
+        ],
+        "run_started_ns": 2282942852484603,
+        "run_finished_ns": 2282988721157678,
+        "hit_tokens": 0,
+        "direction": "D2H",
+        "rank_bytes": {
+          "0": 49362656
+        },
+        "groups_per_rank": {
+          "0": 8
+        },
+        "host_bytes_before": 63602688,
+        "host_bytes_after": 112967680,
+        "host_objects_after": 6,
+        "keys": [
+          {
+            "chunk_hash_hex": "79dcc333961bc839e3620621e9a4cb68fbf201eea18f107716278c19d79dee66",
+            "model_name": "/mnt/raid/models/DeepSeek-V4-Pro",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          },
+          {
+            "chunk_hash_hex": "4c16d3d928b2720e186e4856d3533e1c80a776f15403a236ebb6780db514bafd",
+            "model_name": "/mnt/raid/models/DeepSeek-V4-Pro",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          }
+        ]
+      },
+      "after_clear": null,
+      "cross_model": {
+        "previous_hit_tokens": 512,
+        "active_hit_tokens": 0,
+        "prefix_sha256": "c1275dc2b79842d5130f81f4efbf87580e95d8a970c65447ba44ddcdd909eb3f",
+        "intervals": {
+          "previous": {
+            "started_ns": 2282152584358842,
+            "finished_ns": 2282157003519593
+          },
+          "active": {
+            "started_ns": 2282937110698112,
+            "finished_ns": 2282942700286667
+          }
+        }
+      },
+      "tail_delete": null,
+      "host_memory": {
+        "sample_count": 834,
+        "min_available_bytes": 1051360481280,
+        "max_drop_from_admission_bytes": 26280128512,
+        "min_sample_ns": 2282852275526540,
+        "max_gap_ns": 1010791276,
+        "covers_window_to_3s": true,
+        "anon_bytes_at_min": {
+          "lmcache": 873531650048,
+          "worker-K": 22264975360,
+          "worker-G": 19250831360,
+          "worker-D": 25840369664
+        }
+      }
+    },
+    {
+      "index": 3,
+      "model": "G",
+      "mode": "checkpoint_wake",
+      "equivalent_workers": true,
+      "evidence": "03-G-glm53",
+      "precheck_ns": 2282997070911151,
+      "ram_at_admission_bytes": 1054869004288,
+      "host_admission_settle": null,
+      "activation_ns": 2282997507754512,
+      "native_ready_ns": 2283342733675419,
+      "ready_ns": 2283344230265646,
+      "activation_to_serve_s": 346.722511134,
+      "activation_to_first_gold_s": 352.876722608,
+      "activation_to_all_gold_s": 352.876722608,
+      "full_first_weight_load": null,
+      "weight_preparation_s": 344.798036829,
+      "checkpoint_reload_s": 343.539205399,
+      "wake_stages": {
+        "op": "wake",
+        "started_ns": 2282997509091805,
+        "level": 2,
+        "sleeping": false,
+        "weight_map_begin_ns": 2282997509095618,
+        "weight_map_end_ns": 2282998767927048,
+        "checkpoint_reload_begin_ns": 2282998767927048,
+        "checkpoint_reload_end_ns": 2283342307132447,
+        "kv_wake_begin_ns": 2283342307132799,
+        "kv_ready_ns": 2283342733675419,
+        "finished_ns": 2283342733681613
+      },
+      "new_gpu_kv_s": 0.42654262,
+      "new_gpu_kv_ready_ns": 2283342733675419,
+      "first_gpu_kv_allocation": null,
+      "old_gpu_kv_release_to_new_kv_ready_s": 347.392221242,
+      "unregister_ns": 2283357827061792,
+      "sleep_begin_ns": 2283358228875587,
+      "sleep_end_ns": 2283359074421543,
+      "old_kv_unmap_begin_ns": null,
+      "hbm_mib_after_sleep": [
+        10353,
+        10253,
+        10253,
+        10253,
+        10253,
+        10253,
+        10253,
+        10253
+      ],
+      "host_kv_after_sleep_bytes": 112967680,
+      "gold": true,
+      "store": {
+        "cache_state": "not_used",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": 0
+      },
+      "store_entry": null,
+      "sf_cold": null,
+      "kv": {
+        "first_ns": 2283350384477120,
+        "all_ns": 2283350384477120,
+        "gold_requests": [
+          "business"
+        ],
+        "kv_response": [
+          "</think>42",
+          [
+            154842,
+            101961,
+            154827
+          ],
+          "stop"
+        ],
+        "run_started_ns": 2283349774624175,
+        "run_finished_ns": 2283351197944467,
+        "hit_tokens": 512,
+        "direction": "H2D",
+        "rank_bytes": {
+          "0": 27617280,
+          "1": 27617280,
+          "2": 27617280,
+          "3": 27617280,
+          "4": 27617280,
+          "5": 27617280,
+          "6": 27617280,
+          "7": 27617280
+        },
+        "groups_per_rank": {
+          "0": 2,
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2
+        },
+        "host_bytes_before": 112967680,
+        "host_bytes_after": 112967680,
+        "host_objects_after": 6,
+        "keys": []
+      },
+      "after_clear": {
+        "first_ns": 2283352060367104,
+        "all_ns": 2283352060367104,
+        "gold_requests": [
+          "business"
+        ],
+        "kv_response": [
+          "</think>42",
+          [
+            154842,
+            101961,
+            154827
+          ],
+          "stop"
+        ],
+        "run_started_ns": 2283351498976783,
+        "run_finished_ns": 2283352822121232,
+        "hit_tokens": 0,
+        "direction": "D2H",
+        "rank_bytes": {
+          "0": 27617280
+        },
+        "groups_per_rank": {
+          "0": 2
+        },
+        "host_bytes_before": 85344256,
+        "host_bytes_after": 112967680,
+        "host_objects_after": 6,
+        "keys": [
+          {
+            "chunk_hash_hex": "96fb188a1261501d8f425913a5ffaddc7b51e822ab49b187f9861131cee2bef6",
+            "model_name": "/mnt/raid/models/GLM-5.3",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          },
+          {
+            "chunk_hash_hex": "0e2acf88e56ada489a9a3eb6788f627715ff30f399c88daba6d7c0ed1a7b5a27",
+            "model_name": "/mnt/raid/models/GLM-5.3",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          }
+        ],
+        "deleted": {
+          "keys": 2,
+          "bytes_before": 112967680,
+          "bytes_after": 85344256,
+          "objects_before": 6,
+          "objects_after": 4
+        }
+      },
+      "cross_model": {
+        "previous_hit_tokens": 512,
+        "active_hit_tokens": 0,
+        "prefix_sha256": "d3328efa82ae8cc32482c8c19b11c07a9be6af697fccf60063c0cd928d7b1cf7",
+        "intervals": {
+          "previous": {
+            "started_ns": 2282989155901392,
+            "finished_ns": 2282993536463752
+          },
+          "active": {
+            "started_ns": 2283344231689363,
+            "finished_ns": 2283349730372595
+          }
+        }
+      },
+      "tail_delete": null,
+      "host_memory": {
+        "sample_count": 361,
+        "min_available_bytes": 1054777163776,
+        "max_drop_from_admission_bytes": 91840512,
+        "min_sample_ns": 2282998709826814,
+        "max_gap_ns": 1017306471,
+        "covers_window_to_3s": true,
+        "anon_bytes_at_min": {
+          "lmcache": 873531830272,
+          "worker-K": 22264975360,
+          "worker-G": 19250831360,
+          "worker-D": 22473248768
+        }
+      }
+    }
+  ],
+  "pool_init": {
+    "kv_init_s": 233.279543543,
+    "store_init_s": null,
+    "both_ready_s": 233.279543543,
+    "lmcache_started_ns": 2279744367187448,
+    "lmcache_ready_ns": 2279977646730991,
+    "store_started_ns": null,
+    "store_ready_ns": null
+  },
+  "tail_delete": null,
+  "gpu_release": {
+    "seconds": 61.303401544,
+    "samples": 50,
+    "start_ns": 2284694251749494,
+    "end_ns": 2284755555151038,
+    "evidence": "release.jsonl"
+  },
+  "final_host_empty_ns": null,
+  "evidence_errors": [],
+  "terminal_error": "AssertionError()",
+  "host_pin": {
+    "state": "failure_observed",
+    "evidence": "lmcache-final.log",
+    "lines": [
+      {
+        "line": 16,
+        "message": "\u001b[32;20m[2026-11-20 06:17:30,777] LMCache INFO:\u001b[0m CudaPinMemoryBackend: using torch cudart \u001b[3m(pin_memory.py:89:lmcache.v1.platform.cuda.pin_memory)\u001b[0m"
+      },
+      {
+        "line": 22,
+        "message": "\u001b[33;20m[2026-11-20 06:20:59,667] LMCache WARNING:\u001b[0m pin_memory failed for chunk at ptr=0x7e9623fff000 size=872952102912; DMA performance may be degraded \u001b[3m(lazy_memory_allocator.py:308:lmcache.v1.memory_allocators.lazy_memory_allocator)\u001b[0m"
+      },
+      {
+        "line": 27,
+        "message": "V11_L1_PIN {\"ns\": 2279977524336706, \"pid\": 1, \"configured_bytes\": 872952102912, \"registered_ranges\": []}"
+      }
+    ]
+  },
+  "host_kv_peak_bytes": 112967680,
+  "sequence": "S1",
+  "weight_store_gib": 0,
+  "host_kv_pool_gib": 813,
+  "admission_mode": "user_authorized",
+  "handoff_booking_id": "bk-20261119T1450-de16ef1f",
+  "host_monitor": {
+    "path": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-nostore-813/B2-GLM53-S1-20261120T061704Z-host-memory.jsonl",
+    "read_bytes": 10347910,
+    "sha256": "c7b524ce9b0addee6f229d46385e7b1732f25d1bbc39e225e5081230b69bfd34",
+    "sample_count": 4702,
+    "min_available_bytes": 1051360481280,
+    "min_available_ns": 2282852275526540,
+    "lmcache_anon_at_min_bytes": 873531650048,
+    "lmcache_anon_peak_bytes": 873889513472
+  },
+  "kimi_trace": {
+    "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b2-runs/B2-GLM53-S1-20261120T061704Z/worker-K-final.log",
+    "bytes": 1799945,
+    "sha256": "0499d305db5015124ea0dd0391ca98ad01d952c27b05d056466f49c6eb8de3ac"
+  }
+}

@@ -132,6 +132,9 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
         raise ValueError('Expected one supported pool configuration per report')
     store_gib, host_kv_gib = configs.pop()
     has_store = store_gib > 0
+    reference_shas = {run.get('kimi_reference_probe_sha256') for run in runs}
+    if len(reference_shas) != 1:
+        raise ValueError('Expected one Kimi KV probe revision per report')
     # 容量相同也不能替代完整的无 Store 回读、清空和专家层证据。
     if not has_store:
         for run in runs:
@@ -148,6 +151,8 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
                  'GLM-5.3 使用 vLLM 0.30.0，Kimi-K2.6 和 DeepSeek-V4-Pro 使用 vLLM 0.20.1。'
                  '每轮仅初始化 Host KV 池。')
 
+    if next(iter(reference_shas)):
+        pool_desc += 'Kimi 使用已验收的 560-token 参考探针，其中 512 token 用于 Host KV 回读。'
     lines = ['# V11 联合 B2 三模型 Sleep L2 · GLM-5.3', '',
              f'**{len(runs)}/3 轮验收通过，共 {len(data)} 段。** '
              f'{len(first)} 次首次加载和 {len(wake)} 次原 Worker 唤醒均通过金标。'
