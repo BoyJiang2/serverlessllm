@@ -1,0 +1,18 @@
+--- a/b2_lmcache_launch.py
++++ b/b2_lmcache_launch.py
+@@ -3 +3 @@
+-HOST_KV_GIB = 384
++HOST_KV_GIB = 813
+@@ -16,0 +17 @@
++    assert command[command.index('--memory') + 1] == f'{pool_gib + 64}g'
+--- a/phase-capacity.json
++++ b/phase-capacity.json
+@@ -6 +6 @@
+-    "host_kv": 384
++    "host_kv": 813
+@@ -8 +8 @@
+-  "pool_budget_bytes": 484257562624,
++  "pool_budget_bytes": 944892805120,
+@@ -37 +37 @@
+-    "pool": "No SLLM weight store; 384 GiB LMCache Host KV with a 451 GiB pool budget (the prior 67 GiB reserve retained) and the same 1000 GiB startup check.",
++    "pool": "No SLLM weight store; 813 GiB LMCache Host KV with an 880 GiB pool budget (67 GiB reserve) and the same 1000 GiB startup check.",

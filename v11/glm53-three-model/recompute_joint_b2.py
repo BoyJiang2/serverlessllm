@@ -390,7 +390,8 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
         tail = delete(step / 'last-use-clear.json', keys, ids, capacity_bytes)
         keys = []
         retained = (tail['bytes_after'], tail['objects_after'])
-    require(capacity_bytes != 384 * GIB or 'host_status' in sleep, 'Missing post-sleep Host KV status')
+    # 无 Store 的两种池容量都须由休眠后的实际快照证明驻留状态。
+    require(protocol['store_pool_bytes'] > 0 or 'host_status' in sleep, 'Missing post-sleep Host KV status')
     sleep_host = pool(sleep['host_status'], set(), capacity_bytes) if 'host_status' in sleep else None
     require(sleep_host is None or sleep_host == retained, 'Post-sleep Host KV state differs')
     state[model] = dict(identity=identity, namespace=namespace, reference=kv['kv_response'], tokens=tokens,
@@ -447,7 +448,7 @@ def finish(root, terminal, state, rows, gpus, capacity_bytes, *, has_store):
     require(ending and ending[-1]['bytes_after'] == ending[-1]['objects_after'] == 0, 'Tail Host KV was not zero')
     empty_path = root / 'lmcache-final-empty.json'
     empty = read(empty_path) if empty_path.is_file() else None
-    require(capacity_bytes != 384 * GIB or empty is not None, 'Final empty Host KV snapshot is missing')
+    require(has_store or empty is not None, 'Final empty Host KV snapshot is missing')
     if empty is not None:
         require(pool(empty['status'], set(), capacity_bytes) == (0, 0) and not empty['status']['cache_context_meta'] and
                 max(shutdown) <= empty['ns'] <= sequence['finished_ns'],
@@ -552,10 +553,9 @@ def inspect(root):
         else:
             require(not any((root / f'store-{suffix}').exists() for suffix in ('created.json', 'exit.json', 'final.log')),
                     'Store service appeared in a Host-KV-only run')
-            if host_gib == 384:
-                require(not any(plan.get(field) for field in ('store_artifacts', 'store_artifact_bytes',
-                                                              'legacy_daemon_mounts')),
-                        'Store artifacts present in the 384 GiB plan')
+            require(not any(plan.get(field) for field in ('store_artifacts', 'store_artifact_bytes',
+                                                          'legacy_daemon_mounts')),
+                    'Store artifacts present in a Host-KV-only plan')
             protocol = dict(store_artifacts=[], store_artifact_bytes={}, store_pool_bytes=0,
                             first_load=plan['first_load'], subsequent_first_load=plan['subsequent_first_load'])
         protocol['host_kv_bytes'] = capacity_bytes
@@ -602,7 +602,7 @@ def inspect(root):
             require(out['pool_init'] is not None, 'Pool timing is missing')
             out['tail_delete'], out['gpu_release'], out['final_host_empty_ns'] = finish(
                 root, terminal, state, out['segments'], gpus, capacity_bytes, has_store=has_store)
-            if host_gib == 384:
+            if not has_store:
                 require(initial.is_file(), 'Initial empty Host KV snapshot is missing')
                 first_kimi = next(row for row in out['segments'] if row['model'] == 'K')
                 ranks = read(root / first_kimi['evidence'] / 'registered.json')['ranks']

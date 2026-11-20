@@ -132,7 +132,8 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
         raise ValueError('Expected one supported pool configuration per report')
     store_gib, host_kv_gib = configs.pop()
     has_store = store_gib > 0
-    if host_kv_gib == 384:
+    # 容量相同也不能替代完整的无 Store 回读、清空和专家层证据。
+    if not has_store:
         for run in runs:
             if (run.get('final_host_empty_ns') is None or (run.get('kimi_worker_imports') or {}).get('ranks') != 8
                     or any((row.get('kimi_experts') or {}).get('layer_rank_completions') != 480

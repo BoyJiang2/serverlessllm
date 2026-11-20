@@ -1,6 +1,8 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-当前正式候选为 `formal-nostore/`，只启用 **384 GiB LMCache Host KV**，LMCache 容器上限 448 GiB，开池预算 451 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划、容量检查和报告复算已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+当前正式候选为从 `formal-nostore/` 独立冻结的 `formal-nostore-813/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划和容量检查已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[813 GiB 前检](derived/b2-nostore-813-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+
+384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮完整保留，两种容量分别复算。
 
 下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
 
@@ -46,7 +48,7 @@
 ## 历史双池快照与当前复算入口
 
 - 历史双池快照父目录为 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/`。S1 `formal-ram-S1.VWIupndC/`，S2 `formal-ram-S2.Apr9Wlvn/`，S3 `formal-ram-S3.kSgbpiJf/`，各自的 `cpu-plan/b2-plan.json` 为 CPU 计划。[S1 容量配置](derived/b2-phase-capacity.json) · [S2 容量配置](derived/b2-phase-capacity-s2.json) · [S3 容量配置](derived/b2-phase-capacity-s3.json)
-- 当前正式启动器只用 `formal-nostore/`，按首段说明校验三份计划和本人预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮全部通过再生成当前单池报告。
+- 当前正式启动器只用 `formal-nostore-813/`，按首段说明校验三份计划和预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮 813 GiB 全部通过再生成正式报告。
 - 首次加载与回访分开统计，分别列权重准备、新 GPU KV、旧 GPU KV 开始释放至新 KV 就绪、至可服务、首个正确完整响应及全套金标。GLM-5.3 目前缺首载八 rank 独立 GPU KV 分配起止和旧 `kv_cache` 逐 rank 解除映射起点，保留 `null`，已有回访 KV 唤醒端点照常使用。
 
 ## 原始日志与失败回执

@@ -55,11 +55,11 @@ $summaries = @($B2Results | ForEach-Object { Get-Content -LiteralPath $_ -Raw | 
 if ($summaries.Count -ne 3 -or ((@($summaries.sequence | Sort-Object) -join ',') -cne 'S1,S2,S3') -or
     ($summaries | Where-Object {
         $_.qualified -ne $true -or $_.status -ne 'qualified' -or $_.evidence_errors -or
-        $_.weight_store_gib -ne 0 -or $_.host_kv_pool_gib -ne 384 -or
+        $_.weight_store_gib -ne 0 -or $_.host_kv_pool_gib -ne 813 -or
         $_.segments.Count -ne 7 -or $_.gpu_release.seconds -lt 60 -or
         !$_.host_monitor -or !$_.kimi_trace
     })) {
-    throw 'Three qualified 384 GiB no-Store B2 recomputations are required before B1'
+    throw 'Three qualified 813 GiB no-Store B2 recomputations are required before B1'
 }
 if (!$active -or !$idle -or !$enoughMemory) { throw 'Live B1 reservation, GPU, port or RAM admission failed' }
 
