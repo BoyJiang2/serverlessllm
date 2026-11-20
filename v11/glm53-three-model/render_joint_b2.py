@@ -31,7 +31,9 @@ def kimi_comparison(wake, history, history_link):
             continue
         historical = positions[position]
         for run_id, row in item['baseline'].items():
-            historical[cohorts[0], run_id] = row
+            previous = historical.setdefault((cohorts[0], run_id), row)
+            if previous != row:
+                raise ValueError(f'Conflicting historical evidence for {position} in {run_id}')
         historical[cohorts[1], item['run']] = item['candidate']
 
     lines = ['', '## Kimi 同序列同唤醒位置对照', '',
@@ -138,6 +140,8 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
     lines += ['', '## 计时与证据', '',
               '- 首次加载的权重准备采用八 rank 最早开始至最晚成功返回。唤醒从权重映射开始计至 checkpoint 重载结束。'
               '回访的 Host KV 恢复在后续请求中实测，H2D 字节覆盖参与的八 rank。',
+              '- GLM-5.3 的 Host KV 回读分别核对每个 rank 的 MLA 78 层与 indexer 21 层。'
+              '每段 `wake-transfers.json` 保留分组、block ID、传输方向及完成回执，文件名带段号。',
               '- 至可服务计到 LMCache 注册完成。后续段的业务响应窗口包含注册后的跨模型对照查询。'
               '业务金标仅统计业务请求。新 GPU KV 采用原生分配或唤醒端点。缺独立端点显示为 `—`。', '',
               ' · '.join(evidence_links), '']
