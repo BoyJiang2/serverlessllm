@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 
 from diagnostics import b2_kv_evidence
 from diagnostics.b2_kv_evidence import registration, verify_transfer, worker_identity
+from index_evidence import indexed_file
 from recompute_b1 import (GIB, NAMES, RANKS, SEQUENCES, backing_bytes, cold_proof, envelope,
                           exited, l1, lines, paths_for, read, release, require, seconds)
 from recompute_kimi_l2 import expert_reload
@@ -533,8 +534,8 @@ def kimi_reload_memory(samples, container, wake):
 
 
 def add_kimi_trace(result, path):
-    with path.open('rb') as stream:
-        result['kimi_trace'] = dict(path=str(path), sha256=hashlib.file_digest(stream, 'sha256').hexdigest())
+    result['kimi_trace'] = indexed_file(path.parent, path)
+    result['kimi_trace']['path'] = str(path)
     for step in result['segments']:
         if step['model'] != 'K' or step['mode'] != 'checkpoint_wake':
             continue
