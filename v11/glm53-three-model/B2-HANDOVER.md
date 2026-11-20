@@ -1,20 +1,38 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三条序列均为前三段原生 SafeTensors 冷页首载，后四段原 Worker checkpoint 唤醒。三份计划和容量检查已做 CPU 核验。`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和本人预约。用户确认原持有人已交接的 `bk-20261119T1450-de16ef1f` 可用 `-AuthorizedHandoff` 走现有 `user_authorized` 模式，保留原预约回执，单轮有效窗口 150 分钟且完整落在原预约内。开跑前仍核对实时节点准入并告知用户，每轮使用独立 run ID。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+**截至 11 月 20 日，机器操作按用户指示暂停，当前只做本地整理。** 正式 B2 为 0/3 轮，B1 补跑为 0/6 轮。已验收的 B1 r1 三条序列均为 7/7 段。[B1 r1 原报告](REPORT.md)
 
-813 GiB 首次尝试 `B2-GLM53-S1-20261120T061704Z` 完成 4/7 段。第 04 段原八 rank 实际回读了 512 token，输出与首载一致。精确删掉两个对象后，同一 Worker 的零命中重算在第 2 个生成 token 与首载分歧，四项业务金标在两次请求中都通过。WNA16 复核有 480 条专家层完成记录。八卡连续归零 61.303401544 秒，三个 Worker 清理异常按原回执保留。[失败复算](derived/failed-813/B2-GLM53-S1-20261120T061704Z-recomputed.json) · [原始证据与 SHA-256](derived/failed-813/B2-GLM53-S1-20261120T061704Z-index.json)
+当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。恢复机器使用后，`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
-重跑从 S1 开始，三条序列都使用 Kimi 已验收的 560-token 参考探针。512 token 仍走实测 Host KV 回读，后 48 token 明确要求复述前缀中的编号。验收要求自然停止并逐 token 匹配此前确认的答案。业务金标、GLM 和 V4 输入均保留。各轮使用同一份探针哈希。[参考探针](diagnostics/kimi-reference-probe.json) · [适配补丁](diagnostics/joint-b2-kimi-reference.patch)
+## 本地进度与恢复入口
 
-`B2-GLM53-S1-20261120T074802Z` 通过 Kimi 首载，业务及参考探针均通过。GLM-5.3 Worker 创建前，GPU2 的独立 SGLang 进程占用 16,284 MiB，最低每卡可用 124,606 MiB，低于 130,417 MiB 门槛。控制器结束于 1/7，原释放观察仍有该进程，八卡释放未通过。原始进程归属、VRAM 快照、退出和逐次释放采样已索引。[失败复算](derived/failed-813/B2-GLM53-S1-20261120T074802Z-recomputed.json) · [原始证据与 SHA-256](derived/failed-813/B2-GLM53-S1-20261120T074802Z-index.json)
+| 轮次 | 配置 | 完成段数 | 停止点 | 八卡释放 | 本地证据 |
+| --- | --- | ---: | --- | --- | --- |
+| S1 `043421Z` | 384 GiB，独立先行 | 6/7 | 末段 Kimi 回读探针逐 token 分歧 | 61.134 s，Worker 退出异常 | [复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [索引](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json) |
+| S1 `061704Z` | 813 GiB，原探针 | 4/7 | Kimi 回读匹配，删键后零命中重算出现分歧 | 61.303 s，Worker 清理异常 | [复算](derived/failed-813/B2-GLM53-S1-20261120T061704Z-recomputed.json) · [索引](derived/failed-813/B2-GLM53-S1-20261120T061704Z-index.json) |
+| S1 `074802Z` | 813 GiB，参考探针 | 1/7 | Kimi 通过，独立 SGLang 进程触发 GLM-5.3 首载前显存门槛 | GPU2 持续占用，未通过 | [复算](derived/failed-813/B2-GLM53-S1-20261120T074802Z-recomputed.json) · [索引](derived/failed-813/B2-GLM53-S1-20261120T074802Z-index.json) |
 
-384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮独立复算为 6/7 段。末段 Kimi 实测命中 512 token 并通过四项业务金标，但同前缀探针的第 2 个输出 token 从 `1453` 变为 `25074`，触发原逐 token 断言，删键后的零命中对照未执行。八卡连续归零 61.133954103 秒。三个 Worker 均退出，退出码分别为 Kimi 137、GLM-5.3 1、V4 137。全部 384 GiB 锁页注册成功，已完成段内复算的最低可用内存为 1378.077 GiB。[独立复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [原始证据与 SHA-256](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json)
+`061704Z` 已实际跑完 GLM-5.3 首载，141 个分片通过零驻留页准入。激活至首个正确完整响应为 **852.265 秒**，Host KV 池增加 **26.344 MiB**。同轮回访已在原八 rank 上实际回读 512 token，每 rank 覆盖 21 层 indexer 和 78 层 MLA，删键后零命中且金标通过。这些数据仅作为单段证据。
+
+两次 813 GiB 尝试均观察到整池锁页注册失败，384 GiB 先行轮确认整池注册成功。`074802Z` 在准入时的最低可用显存为 124,606 MiB，门槛为 130,417 MiB。进程归属、显存快照和逐次释放采样可从上表索引找到。
+
+恢复后先核查现场预约、八卡空闲和 20 个冻结文件，再以新 run ID 从参考探针版 S1 开始。S1、S2、S3 三轮各自完成 7/7 及释放验收后，按 r2、r3 各跑 S1、S2、S3。三次失败轮不计入正式样本。
+
+正式 B2 的前三段均为原生 SafeTensors 冷载，后四段均从 checkpoint 唤醒原 Worker。K 为 Kimi-K2.6，G 为 GLM-5.3，D 为 DeepSeek-V4-Pro。
+
+| 序列 | 首次冷载 `00–02` | 回访唤醒 `03–06` |
+| --- | --- | --- |
+| S1 | K → G → D | G → K → D → K |
+| S2 | G → D → K | D → G → K → G |
+| S3 | D → K → G | K → D → G → D |
+
+三轮都复用 Kimi 已验收的 560-token 参考探针。前 512 token 走实测 Host KV 回读，后 48 token 要求复述前缀中的编号。验收要求自然停止、逐 token 匹配及删键后零命中。业务金标、GLM 和 V4 输入均保留。[参考探针](diagnostics/kimi-reference-probe.json) · [适配补丁](diagnostics/joint-b2-kimi-reference.patch)
 
 下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
 
 ## GLM-5.1-FP8 通过与 GLM-5.3 本轮未通过的原因
 
-| 对照项 | 历史 GLM-5.1-FP8 原生 B2-L2 | 当前 GLM-5.3 联合 B2-L2 |
+| 对照项 | 历史 GLM-5.1-FP8 原生 B2-L2 | 历史 GLM-5.3 联合双池 B2-L2 |
 | --- | --- | --- |
 | 加载及回访 | 三个模型首次均原生加载，首段做 SafeTensors 冷页准入。回访从 checkpoint 唤醒原 Worker。 | 首段 SafeTensors 冷页加载，另外两个模型首次由同一 Store 原位恢复。回访从 checkpoint 唤醒原 Worker，再注册 LMCache 并回读同模型的 Host KV。 |
 | 常驻组件 | 运行清单 `weight_store=false`、`lmcache=false`。 | 常驻 **864 GiB 权重 Store + 813 GiB Host KV**。逐段按双池和休眠 Worker 同时驻留时的实际 `MemAvailable` 检查准入。 |
@@ -33,7 +51,7 @@
 | 服务与容器启动 | `run_three_model_b2.py`、`b2_lmcache_launch.py` · [Docker 等待补丁](diagnostics/joint-b2-container-start-timeout.patch) | **S3 实测双池就绪且三模型启动。** 守护器按预约截止和四小时上限取较早值，LMCache 设置 `nofile=8192:8192` 并检查就绪前退出，`docker start` 最多等 90 秒且受本轮截止约束。 |
 | Kimi WNA16 + meta、V4 Marlin scale | [Kimi meta 计数补丁](diagnostics/kimi-l2/wna16-count-meta-only.patch) · [TP 前切片候选](diagnostics/kimi-l2/localize-wna16-transpose.patch) · [V4 Marlin rebind 生成器](../large-pool-20261114/prepare_v4_marlin_rebind_candidate.py) | **Kimi 单模型 GPU 对照、联合 S3 Kimi 与 V4 各一次回访已通过。** 联合配置沿用 WNA16 + meta，TP 前切片候选留作独立对照。正式启动要核对实际镜像、挂载和逐 rank 导入 SHA，参照[单模型对照](derived/kimi-l2.json)及[S3 Kimi](raw/B2-GLM53-S3-20261119T231013Z/workers/worker-K/worker-imports.json)、[S3 V4](raw/B2-GLM53-S3-20261119T231013Z/workers/worker-D/worker-imports.json) 的实际导入回执。 |
 
-## S1、S2、S3 验收顺序
+## 历史双池 B2 的 S1、S2、S3 验收顺序
 
 段号从 `00` 开始。K 为 Kimi-K2.6，G 为 GLM-5.3，D 为 DeepSeek-V4-Pro。固定 qjhs003、8×H20、TP8、每 rank 16 GiB GPU KV、原权重和金标请求。G 使用 vLLM 0.30.0，K 与 D 使用 0.20.1。先初始化 813 GiB Host KV，再初始化 864 GiB 权重 Store。
 
@@ -43,7 +61,7 @@
 | S2 | G | D → K | D → G → K → G | `02-K-kimi` 先采 `store-entry.json`，须对应 `01-D-v4` 的 Store 快照，且完整 V4 为唯一驻留工件、G 和 D 都已休眠。通过 86 GiB 后记录实际驱逐路径、释放及分配块、读入字节、RAM 最低点和金标。`04`、`06` 均验证 GLM 两组回读。 |
 | S3 | D | K → G | K → D → G → D | `01-K-kimi` 核对空 Store 与 87 GiB 准入。`04-D-v4`、`05-G-glm53`、`06-D-v4` 分别取回访证据，重点保存末段主机 RAM 原读数、复查采样、最后即时准入和轮末清理。历史 6/7 归档，正式验收从 `00` 重新跑。 |
 
-### 每轮公用检查
+### 历史双池 B2 的每轮检查
 
 1. **开池前**核对有效预约、节点端口、无在途任务、八卡初始占用和主机 RAM。沿用最低 1871 GiB 的开池准入与逐段 RAM、显存准入。冻结模型工件、容器镜像、挂载、补丁及 SHA-256，并记录 `b2-plan.json`、`controller-source.json`、`live-admission.json`、`pool-init-timing.json`。脚本和既有快照在下文列出。
 2. **首载**保存 `00-*/sf-admission/summary.json` 的冷页回执。Store 两段保存实际读入、命中、驱逐及块分配。传输证据要有实际 `STORE` 完成、Host 对象提交及金标，记录各段 `NN-first-*` 和 `step-result.json`。记录旧模型休眠前、目标注册后的同前缀配对查询，并检查八 rank 的身份及休眠回执。
