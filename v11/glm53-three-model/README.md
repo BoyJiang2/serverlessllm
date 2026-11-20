@@ -39,19 +39,24 @@ python v11/glm53-three-model/recompute_glm53_l2_memory.py GLM53_RUN_DIR --output
 
 ## 从原始回执重算联合 B2
 
+在能读取原始回执的 qjhs003 上重算三轮并生成索引。若服务器环境缺图表依赖，将四份派生 JSON 复制回本地报告工作树，用已安装 Matplotlib 的环境执行最后一条渲染命令。
+
 ```bash
-python v11/glm53-three-model/recompute_joint_b2.py S1_RUN --output derived/b2-s1.json
-python v11/glm53-three-model/recompute_joint_b2.py S2_RUN --output derived/b2-s2.json
-python v11/glm53-three-model/recompute_joint_b2.py S3_RUN --output derived/b2-s3.json
-python v11/glm53-three-model/index_evidence.py S1_RUN S2_RUN S3_RUN \
+python v11/glm53-three-model/recompute_joint_b2.py "$S1_RUN" --host-memory "$S1_TRACE" \
+  --kimi-log "$S1_RUN/worker-K-final.log" --output derived/b2-s1.json
+python v11/glm53-three-model/recompute_joint_b2.py "$S2_RUN" --host-memory "$S2_TRACE" \
+  --kimi-log "$S2_RUN/worker-K-final.log" --output derived/b2-s2.json
+python v11/glm53-three-model/recompute_joint_b2.py "$S3_RUN" --host-memory "$S3_TRACE" \
+  --kimi-log "$S3_RUN/worker-K-final.log" --output derived/b2-s3.json
+python v11/glm53-three-model/index_evidence.py "$S1_RUN" "$S2_RUN" "$S3_RUN" \
   --recomputed derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json --output derived/b2-evidence-index.json
 python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json \
   --index derived/b2-evidence-index.json --figure figures/b2-joint-ready.png --output B2-JOINT.md
 ```
 
-将 `S1_RUN`、`S2_RUN`、`S3_RUN` 替换为 qjhs003 的完整原始回执目录。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)
+将 `S1_RUN`、`S2_RUN`、`S3_RUN` 设为 qjhs003 的完整原始回执目录。`S1_TRACE`、`S2_TRACE`、`S3_TRACE` 分别指向 `formal-nostore` 下对应 `<run_id>-host-memory.jsonl`。复算核对首次加载路径、八 rank 身份及 Host KV 传输、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-admission-20261119.md)
 
-将同轮主机采样 JSONL 传给 `recompute_joint_b2.py --host-memory` 可复算从逐段准入到该段休眠完成的可用 RAM 低点。复算匹配两池的实际容器 ID，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
+主机采样用于复算从逐段准入到该段休眠完成的可用 RAM 低点。复算按该轮实际启动的池服务和 Worker 容器 ID 匹配样本，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
 
 正式报表复算同时传入 `--kimi-log RUN/worker-K-final.log` 和同轮 `--host-memory`。以原 Kimi Worker 容器 ID 和各次 checkpoint 窗口核对匿名内存采样峰值、文件页 refault 计数及 60 层 × 八 rank 的专家实例完成时点。多个回访的日志按各自单调时间窗分别复算。历史原生和 WNA16 对照由 `render_joint_b2.py --kimi-history` 读取，默认使用仓库中的 `sleep-wna16-sequences/audit.json`。
 

@@ -43,11 +43,10 @@
 4. **轮末**保存最后一段的 `last-use-clear.json`，按仍有对象的模型保存 `final-worker-*-clear.json`。核对最终 Host KV 有效字节、对象数和注册均为零，保存 `lmcache-final-empty.json` 或由原始删除回执对齐的清零证据。三组 Worker 及两服务均正常退出，保存关停 ACK 和 `*-exit.json`。从原始 `release.jsonl` 核对八卡同一组 UUID 均为 0 MiB、无计算进程、连续至少 60 秒。最后比对 `joint-sequence.json`、七个 `step-result.json` 与 `result.json`，要求 **7/7、`qualified=true`、无运行和清理错误**。
 5. **失败即保留原次。** 记录首个失败接点及实际读数、控制器和 Worker 日志、LMCache MP 回执及释放采样。GPU 已归零的失败轮单独报告释放结果。新运行使用新 run ID，三轮分别验收，历史片段不拼接成一轮。
 
-## 启动与复算入口
+## 历史双池快照与当前复算入口
 
-- 本地工作区的 `glm53-four-condition/start_joint_b2.ps1` 支持 `-Sequence S1|S2|S3 -PreflightOnly`，用于检查对应快照、预约和服务器时钟。准备正式启动时核对接手人的实际预约，更新脚本中旧的预约 ID 和时间。三个源快照均有 CPU 契约通过与实际工件计划。
-- 快照父目录为 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/`。S1 `formal-ram-S1.VWIupndC/`，S2 `formal-ram-S2.Apr9Wlvn/`，S3 `formal-ram-S3.kSgbpiJf/`，各自的 `cpu-plan/b2-plan.json` 为 CPU 计划。[S1 容量配置](derived/b2-phase-capacity.json) · [S2 容量配置](derived/b2-phase-capacity-s2.json) · [S3 容量配置](derived/b2-phase-capacity-s3.json)
-- 观测器结束后，在能读 qjhs003 原始回执的环境运行 `python3 recompute_joint_b2.py "$RUN" --host-memory "$TRACE" --kimi-log "$RUN/worker-K-final.log" --output "$OUT"`。使用实际 run 目录与同轮主机采样。待三轮全部通过，用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 生成结果。索引的 `--recomputed` 扩展在这次暂停前尚未提交和验证，正式使用前须校验；原始回执和既有索引仍可独立核对。
+- 历史双池快照父目录为 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/`。S1 `formal-ram-S1.VWIupndC/`，S2 `formal-ram-S2.Apr9Wlvn/`，S3 `formal-ram-S3.kSgbpiJf/`，各自的 `cpu-plan/b2-plan.json` 为 CPU 计划。[S1 容量配置](derived/b2-phase-capacity.json) · [S2 容量配置](derived/b2-phase-capacity-s2.json) · [S3 容量配置](derived/b2-phase-capacity-s3.json)
+- 当前正式启动器只用 `formal-nostore/`，按首段说明校验三份计划和本人预约。观测器结束后使用 [重算、索引与报告命令](README.md#从原始回执重算联合-b2) 复算该轮原始证据，传入同轮的主机采样及 `worker-K-final.log`。索引核对复算所用的同轮采样和 Kimi 日志的路径、大小及 SHA-256。待三轮全部通过再生成当前单池报告。
 - 首次加载与回访分开统计，分别列权重准备、新 GPU KV、旧 GPU KV 开始释放至新 KV 就绪、至可服务、首个正确完整响应及全套金标。GLM-5.3 目前缺首载八 rank 独立 GPU KV 分配起止和旧 `kv_cache` 逐 rank 解除映射起点，保留 `null`，已有回访 KV 唤醒端点照常使用。
 
 ## 原始日志与失败回执
