@@ -1,0 +1,290 @@
+{
+  "run_id": "B2-GLM53-S1-20261120T074802Z",
+  "status": "failed",
+  "qualified": false,
+  "segments": [
+    {
+      "index": 0,
+      "model": "K",
+      "mode": "safetensors_disk_cold",
+      "equivalent_workers": false,
+      "evidence": "00-K-kimi",
+      "precheck_ns": 2285403964328894,
+      "ram_at_admission_bytes": 1131559436288,
+      "host_admission_settle": null,
+      "activation_ns": 2285442191733444,
+      "native_ready_ns": 2286769885291921,
+      "ready_ns": 2286770616937887,
+      "activation_to_serve_s": 1328.425204443,
+      "activation_to_first_gold_s": 1330.609212106,
+      "activation_to_all_gold_s": 1334.039208604,
+      "full_first_weight_load": {
+        "start_ns": 2285545538858646,
+        "end_ns": 2286644703978560,
+        "seconds": 1099.165119914,
+        "max_rank_s": 1099.164005534,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2285545548253038,
+            "end_ns": 2286644110309604,
+            "seconds": 1098.562056566
+          },
+          {
+            "rank": 1,
+            "start_ns": 2285545544604235,
+            "end_ns": 2286644582590965,
+            "seconds": 1099.03798673
+          },
+          {
+            "rank": 2,
+            "start_ns": 2285545550340412,
+            "end_ns": 2286644123883442,
+            "seconds": 1098.57354303
+          },
+          {
+            "rank": 3,
+            "start_ns": 2285545546401588,
+            "end_ns": 2286644642075260,
+            "seconds": 1099.095673672
+          },
+          {
+            "rank": 4,
+            "start_ns": 2285545539973026,
+            "end_ns": 2286644703978560,
+            "seconds": 1099.164005534
+          },
+          {
+            "rank": 5,
+            "start_ns": 2285545541066106,
+            "end_ns": 2286642940045610,
+            "seconds": 1097.398979504
+          },
+          {
+            "rank": 6,
+            "start_ns": 2285545543702993,
+            "end_ns": 2286643968541996,
+            "seconds": 1098.424839003
+          },
+          {
+            "rank": 7,
+            "start_ns": 2285545538858646,
+            "end_ns": 2286643958341602,
+            "seconds": 1098.419482956
+          }
+        ],
+        "event": "weights_pipeline_including_allocation"
+      },
+      "weight_preparation_s": 1099.165119914,
+      "checkpoint_reload_s": null,
+      "wake_stages": null,
+      "new_gpu_kv_s": 2.1760517,
+      "new_gpu_kv_ready_ns": 2286751631079098,
+      "first_gpu_kv_allocation": {
+        "start_ns": 2286749455027398,
+        "end_ns": 2286751631079098,
+        "seconds": 2.1760517,
+        "max_rank_s": 2.175995893,
+        "ranks": [
+          {
+            "rank": 0,
+            "start_ns": 2286749455027398,
+            "end_ns": 2286750173393414,
+            "seconds": 0.718366016
+          },
+          {
+            "rank": 1,
+            "start_ns": 2286749455127672,
+            "end_ns": 2286750767343077,
+            "seconds": 1.312215405
+          },
+          {
+            "rank": 2,
+            "start_ns": 2286749455083205,
+            "end_ns": 2286751631079098,
+            "seconds": 2.175995893
+          },
+          {
+            "rank": 3,
+            "start_ns": 2286749455258717,
+            "end_ns": 2286751190795856,
+            "seconds": 1.735537139
+          },
+          {
+            "rank": 4,
+            "start_ns": 2286749456041661,
+            "end_ns": 2286750983084552,
+            "seconds": 1.527042891
+          },
+          {
+            "rank": 5,
+            "start_ns": 2286749455368016,
+            "end_ns": 2286750374405235,
+            "seconds": 0.919037219
+          },
+          {
+            "rank": 6,
+            "start_ns": 2286749455034595,
+            "end_ns": 2286750569274026,
+            "seconds": 1.114239431
+          },
+          {
+            "rank": 7,
+            "start_ns": 2286749455078366,
+            "end_ns": 2286751404473207,
+            "seconds": 1.949394841
+          }
+        ],
+        "event": "kv_cache_allocation"
+      },
+      "old_gpu_kv_release_to_new_kv_ready_s": null,
+      "unregister_ns": 2286782030135159,
+      "sleep_begin_ns": 2286782479030008,
+      "sleep_end_ns": 2286783632381232,
+      "old_kv_unmap_begin_ns": 2286783028160134,
+      "hbm_mib_after_sleep": [
+        2977,
+        2875,
+        19165,
+        2873,
+        2875,
+        2875,
+        2873,
+        2875
+      ],
+      "host_kv_after_sleep_bytes": 35979264,
+      "gold": true,
+      "store": {
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": 0
+      },
+      "store_entry": null,
+      "sf_cold": {
+        "files": 64,
+        "pages": 145307138,
+        "resident_pages": 0,
+        "evidence": "00-K-kimi/sf-admission/summary.json"
+      },
+      "kv": {
+        "first_ns": 2286772800945550,
+        "all_ns": 2286776230942048,
+        "gold_requests": [
+          "arithmetic",
+          "fixed32",
+          "translation",
+          "v7_added_arithmetic"
+        ],
+        "kv_response": [
+          " 42",
+          [
+            5512,
+            163586
+          ],
+          "stop"
+        ],
+        "run_started_ns": 2286770691489437,
+        "run_finished_ns": 2286776826934428,
+        "hit_tokens": 0,
+        "direction": "D2H",
+        "rank_bytes": {
+          "0": 35979264
+        },
+        "groups_per_rank": {
+          "0": 1
+        },
+        "host_bytes_before": 0,
+        "host_bytes_after": 35979264,
+        "host_objects_after": 2,
+        "keys": [
+          {
+            "chunk_hash_hex": "41f6d77aff81bf009b0bcbaba5e8d746944fdb8b76fe97b7573588c42dcedefc",
+            "model_name": "/mnt/raid/models/Kimi-K2.6",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          },
+          {
+            "chunk_hash_hex": "9f9423e19efd43badeaa3cce1a253ae72270de44124fac06dc7ca49928ca2879",
+            "model_name": "/mnt/raid/models/Kimi-K2.6",
+            "kv_rank": 16777472,
+            "object_group_id": 0,
+            "cache_salt": ""
+          }
+        ]
+      },
+      "after_clear": null,
+      "cross_model": null,
+      "tail_delete": null,
+      "host_memory": {
+        "sample_count": 1376,
+        "min_available_bytes": 1103851352064,
+        "max_drop_from_admission_bytes": 27708084224,
+        "min_sample_ns": 2286781667542536,
+        "max_gap_ns": 1069177078,
+        "covers_window_to_3s": true,
+        "anon_bytes_at_min": {
+          "lmcache": 873878073344,
+          "worker-K": 22126559232
+        }
+      }
+    }
+  ],
+  "pool_init": {
+    "kv_init_s": 201.369378554,
+    "store_init_s": null,
+    "both_ready_s": 201.369378554,
+    "lmcache_started_ns": 2285202592309030,
+    "lmcache_ready_ns": 2285403961687584,
+    "store_started_ns": null,
+    "store_ready_ns": null
+  },
+  "tail_delete": null,
+  "gpu_release": null,
+  "final_host_empty_ns": null,
+  "evidence_errors": [],
+  "terminal_error": "RuntimeError('G cannot start: free 124606 MiB per card < required 130417 MiB (gpu_memory_utilization=0.90 of 143771 MiB + 1024 MiB margin); snapshot in /home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b2-runs/B2-GLM53-S1-20261120T074802Z/01-G-glm53/vram-gate-fail')",
+  "host_pin": {
+    "state": "failure_observed",
+    "evidence": "lmcache-final.log",
+    "lines": [
+      {
+        "line": 16,
+        "message": "\u001b[32;20m[2026-11-20 07:48:17,220] LMCache INFO:\u001b[0m CudaPinMemoryBackend: using torch cudart \u001b[3m(pin_memory.py:89:lmcache.v1.platform.cuda.pin_memory)\u001b[0m"
+      },
+      {
+        "line": 22,
+        "message": "\u001b[33;20m[2026-11-20 07:51:25,937] LMCache WARNING:\u001b[0m pin_memory failed for chunk at ptr=0x7e718ffff000 size=872952102912; DMA performance may be degraded \u001b[3m(lazy_memory_allocator.py:308:lmcache.v1.memory_allocators.lazy_memory_allocator)\u001b[0m"
+      },
+      {
+        "line": 27,
+        "message": "V11_L1_PIN {\"ns\": 2285403793079863, \"pid\": 1, \"configured_bytes\": 872952102912, \"registered_ranges\": []}"
+      }
+    ]
+  },
+  "host_kv_peak_bytes": 35979264,
+  "sequence": "S1",
+  "weight_store_gib": 0,
+  "host_kv_pool_gib": 813,
+  "kimi_reference_probe_sha256": "d1954a790ffc9ef8e437da91f977ce6fff9c06fffe8da445029bfc9d5cab0b8d",
+  "admission_mode": "user_authorized",
+  "handoff_booking_id": "bk-20261119T1450-de16ef1f",
+  "host_monitor": {
+    "path": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-nostore-813-reference/B2-GLM53-S1-20261120T074802Z-host-memory.jsonl",
+    "read_bytes": 2753500,
+    "sha256": "d3229c7d30688054d108180a1cb449d323eb779641172ec812c7911fd088f891",
+    "sample_count": 1577,
+    "min_available_bytes": 1103851352064,
+    "min_available_ns": 2286781667542536,
+    "lmcache_anon_at_min_bytes": 873878073344,
+    "lmcache_anon_peak_bytes": 873878073344
+  },
+  "kimi_trace": {
+    "path": "/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b2-runs/B2-GLM53-S1-20261120T074802Z/worker-K-final.log",
+    "bytes": 871551,
+    "sha256": "972a90d944eacc797d7a7a2ccb0b116b762944fde0a1ea2fa7f893faf0b82d57"
+  }
+}

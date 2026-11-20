@@ -6,6 +6,8 @@
 
 重跑从 S1 开始，三条序列都使用 Kimi 已验收的 560-token 参考探针。512 token 仍走实测 Host KV 回读，后 48 token 明确要求复述前缀中的编号。验收要求自然停止并逐 token 匹配此前确认的答案。业务金标、GLM 和 V4 输入均保留。各轮使用同一份探针哈希。[参考探针](diagnostics/kimi-reference-probe.json) · [适配补丁](diagnostics/joint-b2-kimi-reference.patch)
 
+`B2-GLM53-S1-20261120T074802Z` 通过 Kimi 首载，业务及参考探针均通过。GLM-5.3 Worker 创建前，GPU2 的独立 SGLang 进程占用 16,284 MiB，最低每卡可用 124,606 MiB，低于 130,417 MiB 门槛。控制器结束于 1/7，原释放观察仍有该进程，八卡释放未通过。原始进程归属、VRAM 快照、退出和逐次释放采样已索引。[失败复算](derived/failed-813/B2-GLM53-S1-20261120T074802Z-recomputed.json) · [原始证据与 SHA-256](derived/failed-813/B2-GLM53-S1-20261120T074802Z-index.json)
+
 384 GiB 先行轮 `B2-GLM53-S1-20261120T043421Z` 使用原 `formal-nostore/` 源码与观测器。该轮独立复算为 6/7 段。末段 Kimi 实测命中 512 token 并通过四项业务金标，但同前缀探针的第 2 个输出 token 从 `1453` 变为 `25074`，触发原逐 token 断言，删键后的零命中对照未执行。八卡连续归零 61.133954103 秒。三个 Worker 均退出，退出码分别为 Kimi 137、GLM-5.3 1、V4 137。全部 384 GiB 锁页注册成功，已完成段内复算的最低可用内存为 1378.077 GiB。[独立复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [原始证据与 SHA-256](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json)
 
 下文保留 2026-11-20 的历史双池回执及当时的验收步骤。历史 S1 最好一次 2/7，S2 尚无正式运行，S3 最好一次 6/7。当前正式候选使用上段单池配置。历史 S1 的 V4 Store 首载与 S2 的 Kimi Store 驱逐门槛仅用于解释旧轮次。
