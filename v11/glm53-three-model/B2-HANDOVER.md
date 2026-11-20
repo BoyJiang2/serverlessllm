@@ -14,6 +14,10 @@
 
 三轮的 813 GiB 整池锁页注册均失败并使用降级路径。逐段数据、锁页日志及释放采样见[正式报告](B2-JOINT.md)和[原始证据索引](derived/b2-evidence-index.json)。
 
+## B1 r2 准入失败留证
+
+S1 `B1-GLM53-S1-20261120T230829Z` 开池前可用 RAM 为 1874.027687 GiB，通过 1871 GiB 门槛。813 GiB Host KV 与 864 GiB 权重 Store 均已就绪。首段 Kimi 激活前仅余 117.866344 GiB，低于 121 GiB 门槛，Backend 未启动，整轮 0/7。两池正常退出，退出码均为 0，八卡连续归零 61.186198311 秒（50 个样本）。此轮单独归档。[开池准入](raw/B1-GLM53-S1-20261120T230829Z/live-admission.json) · [首段准入](raw/B1-GLM53-S1-20261120T230829Z/00-K-kimi/host-admission.json) · [复算](raw/B1-GLM53-S1-20261120T230829Z/b1-recomputed.json) · [原始证据索引](raw/B1-GLM53-S1-20261120T230829Z/evidence-index.json)
+
 ## 历史失败轮次
 
 | 轮次 | 配置 | 完成段数 | 停止点 | 八卡释放 | 本地证据 |
