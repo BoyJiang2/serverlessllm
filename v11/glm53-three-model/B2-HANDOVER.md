@@ -1,8 +1,8 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-**截至 11 月 20 日，机器操作按用户指示暂停，当前只做本地整理。** 正式 B2 为 0/3 轮，B1 补跑为 0/6 轮。已验收的 B1 r1 三条序列均为 7/7 段。[B1 r1 原报告](REPORT.md)
+**截至 11 月 21 日 00:21（台北时间），参考探针版 S1 本次完成 6/7 段，整轮未通过。** 正式 B2 为 0/3 轮，B1 补跑为 0/6 轮。已验收的 B1 r1 三条序列均为 7/7 段。[B1 r1 原报告](REPORT.md)
 
-当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。恢复机器使用后，`start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
+当前正式候选为 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。每次启动前用 `start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[当前前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
 ## 本地进度与恢复入口
 
@@ -11,14 +11,17 @@
 | S1 `043421Z` | 384 GiB，独立先行 | 6/7 | 末段 Kimi 回读探针逐 token 分歧 | 61.134 s，Worker 退出异常 | [复算](derived/independent-384/B2-GLM53-S1-20261120T043421Z-recomputed.json) · [索引](derived/independent-384/B2-GLM53-S1-20261120T043421Z-index.json) |
 | S1 `061704Z` | 813 GiB，原探针 | 4/7 | Kimi 回读匹配，删键后零命中重算出现分歧 | 61.303 s，Worker 清理异常 | [复算](derived/failed-813/B2-GLM53-S1-20261120T061704Z-recomputed.json) · [索引](derived/failed-813/B2-GLM53-S1-20261120T061704Z-index.json) |
 | S1 `074802Z` | 813 GiB，参考探针 | 1/7 | Kimi 通过，独立 SGLang 进程触发 GLM-5.3 首载前显存门槛 | GPU2 持续占用，未通过 | [复算](derived/failed-813/B2-GLM53-S1-20261120T074802Z-recomputed.json) · [索引](derived/failed-813/B2-GLM53-S1-20261120T074802Z-index.json) |
+| S1 `145031Z` | 813 GiB，参考探针 | 6/7，六段金标通过 | 末段 Kimi checkpoint 唤醒等待回执，触及预约保护截止时间 | 八卡归零 61.195 s，三个 Worker 清理回执异常 | [复算](derived/failed-813/B2-GLM53-S1-20261120T145031Z-recomputed.json) · [索引](derived/failed-813/B2-GLM53-S1-20261120T145031Z-index.json) |
 
 `061704Z` 已实际跑完 GLM-5.3 首载，141 个分片通过零驻留页准入。激活至首个正确完整响应为 **852.265 秒**，Host KV 池增加 **26.344 MiB**。同轮回访已在原八 rank 上实际回读 512 token，每 rank 覆盖 21 层 indexer 和 78 层 MLA，删键后零命中且金标通过。这些数据仅作为单段证据。
 
-两次 813 GiB 尝试均观察到整池锁页注册失败，384 GiB 先行轮确认整池注册成功。`074802Z` 在准入时的最低可用显存为 124,606 MiB，门槛为 130,417 MiB。进程归属、显存快照和逐次释放采样可从上表索引找到。
+三次 813 GiB 尝试均观察到整池锁页注册失败，384 GiB 先行轮确认整池注册成功。`074802Z` 在准入时的最低可用显存为 124,606 MiB，门槛为 130,417 MiB。`145031Z` 的 `04-K-kimi` 已完成 512 token 实际回读与删键后零命中，末段 `06-K-kimi` 未收到唤醒回执。进程归属、显存快照、原始日志和逐次释放采样可从上表索引找到。
 
-恢复后先核查现场预约、八卡空闲和 20 个冻结文件，再以新 run ID 从参考探针版 S1 开始。S1、S2、S3 三轮各自完成 7/7 及释放验收后，按 r2、r3 各跑 S1、S2、S3。三次失败轮不计入正式样本。
+`145031Z` 于 22:50:31 启动。00:30 预约结束前保留 5 分钟释放和 6 分钟收尾，Worker 回执截止为 00:19。末段 00:08:48 开始，截止时 Kimi 已加载 30/64 个分片。三组 Worker 退出码为 137，Docker 未记录 OOM。该轮保留为预约截止失败。
 
-离线复核已逐文件比对三轮的六份复算和索引 SHA-256，并用实际归档验证正式 B2 报告入口会拒绝这三次失败。B1 r1 的 21 段在同盘临时目录重生成了 Markdown 和 PNG。Windows 上报告输出和输入资料放在同一盘，供生成相对链接。
+重跑前先核查现场预约、八卡空闲和 20 个冻结文件，再以新 run ID 从参考探针版 S1 开始。S1、S2、S3 三轮各自完成 7/7 及释放验收后，按 r2、r3 各跑 S1、S2、S3。上表失败轮不计入正式样本。
+
+离线复核已逐文件比对四轮的八份复算和索引 SHA-256，并用实际归档验证正式 B2 报告入口会拒绝这四次失败。B1 r1 的 21 段在同盘临时目录重生成了 Markdown 和 PNG。Windows 上报告输出和输入资料放在同一盘，供生成相对链接。
 
 正式 B2 的前三段均为原生 SafeTensors 冷载，后四段均从 checkpoint 唤醒原 Worker。K 为 Kimi-K2.6，G 为 GLM-5.3，D 为 DeepSeek-V4-Pro。
 
