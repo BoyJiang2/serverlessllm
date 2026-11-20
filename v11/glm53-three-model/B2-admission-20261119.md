@@ -95,6 +95,10 @@ S3 的 Kimi 首载从空 Store 原位恢复，前序 V4 为 SafeTensors 首载�
 
 Kimi 以 107.553 GiB 通过 87 GiB 准入，控制器随后在 `docker start` 的 30 秒等待处超时。Docker 的 create 至 start 事件间隔为 31.909 秒。该段未取得模型加载回执，保留两个 Worker 清理错误。八卡连续归零 61.048 秒。再次执行使用最多 90 秒的 Docker 启动等待，原预约截止仍约束启动。[启动等待修正](diagnostics/joint-b2-container-start-timeout.patch) · [原始文件索引](raw/B2-GLM53-S3-20261119T224044Z/evidence-index.json)
 
+第二轮 `B2-GLM53-S3-20261119T231013Z` 完成 6/7 段。前三段首次加载通过，随后 Kimi、V4 和 GLM-5.3 分别在原 Worker 从 Host KV 实际回读 512 token。每次均覆盖八 rank，GLM-5.3 每 rank 同时覆盖 MLA 78 层与 indexer 21 层。三次回访均通过金标、跨模型零旧命中和删键复查。末段 V4 准入实测可用 RAM 71,873,294,336 B，低于 67 GiB 门槛 67,407,872 B。控制器在发出唤醒前停止，保留三个 Worker 的清理错误。八卡实际连续归零 60.959 秒，共 50 点。[独立复算](raw/B2-GLM53-S3-20261119T231013Z/recomputed.json) · [运行终态](raw/B2-GLM53-S3-20261119T231013Z/result.json) · [完整原始文件索引](raw/B2-GLM53-S3-20261119T231013Z/evidence-index.json)
+
+清理开始前最后两个主机样本为 66.947、66.911 GiB，首次回到 67 GiB 以上的样本发生在清理信号之后。同轮上一段 V4 回访从激活到休眠为 644.859 秒，末段停止前距执行截止 790.979 秒。候选控制逻辑只在 V4 checkpoint 唤醒的首次准入未达到 67 GiB 时复查，间隔 2 秒，最长 30 秒，连续三次达标才继续。低于 55 GiB 停止，唤醒前仍即时核对原门槛。复查在激活前记录，保留预约截止和清理余量。三个独立快照分别通过 9 项 CPU 契约并生成实际工件计划。[准入复查补丁](diagnostics/joint-b2-v4-ram-settle.patch)
+
 ## S2 Kimi 首载准入
 
 S3 重跑 `231013Z` 的 Kimi 空 Store 首载已取得逐段回执。八 rank 原位加载跨度为 95.853 秒，实际读取 617,000,763,392 B，金标及 Host KV 实写通过。从逐段准入至休眠结束的 255 个内存采样中，可用 RAM 从 107.974 GiB 降至 86.661 GiB，最大下降 21.313 GiB。复算及八 rank 原始证据使用该完成段，整轮由各自最终回执验收。[S3 Kimi 首载证据](derived/s3-kimi-store-admission-evidence.json)

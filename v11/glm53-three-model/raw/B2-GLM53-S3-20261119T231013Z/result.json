@@ -1,0 +1,1002 @@
+{
+  "qualified": false,
+  "sequence": "S3",
+  "steps": [
+    {
+      "index": 0,
+      "model": "D",
+      "mode": "safetensors_disk_cold",
+      "activation_ns": 2254735289327720,
+      "ready_ns": 2256039983548203,
+      "native_ready_ns": 2256039210184993,
+      "sleep_end_ns": 2256095367019557,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "safetensors_disk_cold",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 27648,
+          "used_blocks": 0,
+          "resident_paths": [],
+          "resident_payload_bytes": 0
+        },
+        "events": []
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2256060783421679,
+      "all_business_ns": 2256070207360860
+    },
+    {
+      "index": 1,
+      "model": "K",
+      "mode": "store_inplace_cumem",
+      "activation_ns": 2256097754197750,
+      "ready_ns": 2256333466136308,
+      "native_ready_ns": 2256332737584533,
+      "sleep_end_ns": 2256351713741979,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+        ],
+        "cache_state": "full_miss",
+        "file_read_bytes": 617000763392,
+        "hit_bytes": 0,
+        "allocated_blocks": 18392,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 9256,
+          "used_blocks": 18392,
+          "resident_paths": [
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+          ],
+          "resident_payload_bytes": 617000763392
+        },
+        "events": [
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823123",
+            "raw": "I20261119 23:43:58.369978 1823123 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7",
+            "blocks": 2299,
+            "free": 25349,
+            "tid": "1823123",
+            "raw": "I20261119 23:43:58.370822 1823123 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 25349 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7",
+            "bytes": 77125095424,
+            "tid": "1823123",
+            "raw": "I20261119 23:43:58.370891 1823123 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823125",
+            "raw": "I20261119 23:43:58.371078 1823125 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "blocks": 2299,
+            "free": 23050,
+            "tid": "1823125",
+            "raw": "I20261119 23:43:58.371964 1823125 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 23050 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "bytes": 77125095424,
+            "tid": "1823125",
+            "raw": "I20261119 23:43:58.372031 1823125 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823197",
+            "raw": "I20261119 23:43:58.397467 1823197 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "blocks": 2299,
+            "free": 20751,
+            "tid": "1823197",
+            "raw": "I20261119 23:43:58.398598 1823197 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 20751 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "bytes": 77125095424,
+            "tid": "1823197",
+            "raw": "I20261119 23:43:58.398667 1823197 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823199",
+            "raw": "I20261119 23:43:58.399034 1823199 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "blocks": 2299,
+            "free": 18452,
+            "tid": "1823199",
+            "raw": "I20261119 23:43:58.400065 1823199 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 18452 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "bytes": 77125095424,
+            "tid": "1823199",
+            "raw": "I20261119 23:43:58.400128 1823199 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823212",
+            "raw": "I20261119 23:43:58.400655 1823212 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "blocks": 2299,
+            "free": 16153,
+            "tid": "1823212",
+            "raw": "I20261119 23:43:58.401574 1823212 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 16153 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "bytes": 77125095424,
+            "tid": "1823212",
+            "raw": "I20261119 23:43:58.401646 1823212 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823246",
+            "raw": "I20261119 23:43:58.406507 1823246 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "blocks": 2299,
+            "free": 13854,
+            "tid": "1823246",
+            "raw": "I20261119 23:43:58.407061 1823246 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 13854 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "bytes": 77125095424,
+            "tid": "1823246",
+            "raw": "I20261119 23:43:58.407127 1823246 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823272",
+            "raw": "I20261119 23:43:58.408682 1823272 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "blocks": 2299,
+            "free": 11555,
+            "tid": "1823272",
+            "raw": "I20261119 23:43:58.409065 1823272 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 11555 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "bytes": 77125095424,
+            "tid": "1823272",
+            "raw": "I20261119 23:43:58.460064 1823272 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6 size 77125095424 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "hit": false,
+            "bytes": 77125095424,
+            "tid": "1823316",
+            "raw": "I20261119 23:43:58.461324 1823316 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3 resident=0 bytes=77125095424"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "blocks": 2299,
+            "free": 9256,
+            "tid": "1823316",
+            "raw": "I20261119 23:43:58.462031 1823316 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2299 buffers free buffers 9256 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "bytes": 77125095424,
+            "tid": "1823316",
+            "raw": "I20261119 23:43:58.462078 1823316 model.cpp:120] Loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3 size 77125095424 to host"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "bytes": 77125095424,
+            "tid": "1823197",
+            "raw": "I20261119 23:45:17.415903 1823197 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "tid": "1823197",
+            "raw": "I20261119 23:45:17.415959 1823197 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "bytes": 77125095424,
+            "tid": "1823199",
+            "raw": "I20261119 23:45:22.905066 1823199 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "tid": "1823199",
+            "raw": "I20261119 23:45:22.905117 1823199 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "bytes": 77125095424,
+            "tid": "1823272",
+            "raw": "I20261119 23:45:26.120339 1823272 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "tid": "1823272",
+            "raw": "I20261119 23:45:26.120374 1823272 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "bytes": 77125095424,
+            "tid": "1823212",
+            "raw": "I20261119 23:45:28.708010 1823212 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "tid": "1823212",
+            "raw": "I20261119 23:45:28.708048 1823212 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "bytes": 77125095424,
+            "tid": "1823246",
+            "raw": "I20261119 23:45:29.222311 1823246 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "tid": "1823246",
+            "raw": "I20261119 23:45:29.222337 1823246 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "bytes": 77125095424,
+            "tid": "1823125",
+            "raw": "I20261119 23:45:29.329574 1823125 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "tid": "1823125",
+            "raw": "I20261119 23:45:29.329602 1823125 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "bytes": 77125095424,
+            "tid": "1823316",
+            "raw": "I20261119 23:45:29.574494 1823316 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "tid": "1823316",
+            "raw": "I20261119 23:45:29.574512 1823316 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7",
+            "bytes": 77125095424,
+            "tid": "1823123",
+            "raw": "I20261119 23:45:29.632651 1823123 model.cpp:236] Finished loading model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7",
+            "tid": "1823123",
+            "raw": "I20261119 23:45:29.632674 1823123 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7 rc=0 resident=1"
+          }
+        ]
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2256340410973793,
+      "all_business_ns": 2256343735511203
+    },
+    {
+      "index": 2,
+      "model": "G",
+      "mode": "store_inplace_cumem",
+      "activation_ns": 2256354420790950,
+      "ready_ns": 2256851968632308,
+      "native_ready_ns": 2256851442720321,
+      "sleep_end_ns": 2256869487407396,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+          "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7"
+        ],
+        "cache_state": "full_miss",
+        "file_read_bytes": 757596880896,
+        "hit_bytes": 0,
+        "allocated_blocks": 22584,
+        "freed_blocks": 13794,
+        "evicted_paths": [
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+          "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5"
+        ],
+        "pool_after": {
+          "free_blocks": 466,
+          "used_blocks": 27182,
+          "resident_paths": [
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+          ],
+          "resident_payload_bytes": 911847071744
+        },
+        "events": [
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941595",
+            "raw": "I20261119 23:48:55.234159 1941595 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "blocks": 2823,
+            "free": 6433,
+            "tid": "1941595",
+            "raw": "I20261119 23:48:55.235281 1941595 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 6433 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "bytes": 94699610112,
+            "tid": "1941595",
+            "raw": "I20261119 23:48:55.235349 1941595 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941603",
+            "raw": "I20261119 23:48:55.235750 1941603 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "blocks": 2823,
+            "free": 3610,
+            "tid": "1941603",
+            "raw": "I20261119 23:48:55.236860 1941603 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 3610 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "bytes": 94699610112,
+            "tid": "1941603",
+            "raw": "I20261119 23:48:55.236927 1941603 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941612",
+            "raw": "I20261119 23:48:55.237125 1941612 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "blocks": 2823,
+            "free": 787,
+            "tid": "1941612",
+            "raw": "I20261119 23:48:55.238253 1941612 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 787 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "bytes": 94699610112,
+            "tid": "1941612",
+            "raw": "I20261119 23:48:55.238312 1941612 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.248524 1941652 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "shortage",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "available": 787,
+            "needed": 2823,
+            "tid": "1941652",
+            "raw": "E20261119 23:48:55.248550 1941652 pinned_memory_pool.cpp:64] PinnedMemoryPool out of memory (787 buffers available, 2823 buffers needed)"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 3086,
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.249342 1941652 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4",
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.249353 1941652 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_4 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 0,
+            "free": 3086,
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.249359 1941652 pinned_memory_pool.cpp:98] Deallocated 0 buffers"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "blocks": 2823,
+            "free": 263,
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.249553 1941652 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 263 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "bytes": 94699610112,
+            "tid": "1941652",
+            "raw": "I20261119 23:48:55.249607 1941652 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.254455 1941679 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "shortage",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "available": 263,
+            "needed": 2823,
+            "tid": "1941679",
+            "raw": "E20261119 23:48:55.254484 1941679 pinned_memory_pool.cpp:64] PinnedMemoryPool out of memory (263 buffers available, 2823 buffers needed)"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 2562,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255218 1941679 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0",
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255229 1941679 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_0 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 4861,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255716 1941679 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6",
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255725 1941679 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_6 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 0,
+            "free": 4861,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255733 1941679 pinned_memory_pool.cpp:98] Deallocated 0 buffers"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "blocks": 2823,
+            "free": 2038,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255786 1941679 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 2038 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "bytes": 94699610112,
+            "tid": "1941679",
+            "raw": "I20261119 23:48:55.255854 1941679 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.267266 1941706 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "shortage",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "available": 2038,
+            "needed": 2823,
+            "tid": "1941706",
+            "raw": "E20261119 23:48:55.267289 1941706 pinned_memory_pool.cpp:64] PinnedMemoryPool out of memory (2038 buffers available, 2823 buffers needed)"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 4337,
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.268071 1941706 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1",
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.268085 1941706 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_1 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 0,
+            "free": 4337,
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.268092 1941706 pinned_memory_pool.cpp:98] Deallocated 0 buffers"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "blocks": 2823,
+            "free": 1514,
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.268163 1941706 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 1514 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "bytes": 94699610112,
+            "tid": "1941706",
+            "raw": "I20261119 23:48:55.268218 1941706 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.400414 1941796 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "shortage",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "available": 1514,
+            "needed": 2823,
+            "tid": "1941796",
+            "raw": "E20261119 23:48:55.400444 1941796 pinned_memory_pool.cpp:64] PinnedMemoryPool out of memory (1514 buffers available, 2823 buffers needed)"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 3813,
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.401108 1941796 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2",
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.401118 1941796 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_2 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 0,
+            "free": 3813,
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.401125 1941796 pinned_memory_pool.cpp:98] Deallocated 0 buffers"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "blocks": 2823,
+            "free": 990,
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.401190 1941796 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 990 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "bytes": 94699610112,
+            "tid": "1941796",
+            "raw": "I20261119 23:48:55.401242 1941796 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 size 94699610112 to host"
+          },
+          {
+            "kind": "lookup",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "hit": false,
+            "bytes": 94699610112,
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.476126 1941841 checkpoint_store.cpp:118] SLLM_CACHE_LOOKUP path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 resident=0 bytes=94699610112"
+          },
+          {
+            "kind": "shortage",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "available": 990,
+            "needed": 2823,
+            "tid": "1941841",
+            "raw": "E20261119 23:48:55.476155 1941841 pinned_memory_pool.cpp:64] PinnedMemoryPool out of memory (990 buffers available, 2823 buffers needed)"
+          },
+          {
+            "kind": "free",
+            "blocks": 2299,
+            "free": 3289,
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.476920 1941841 pinned_memory_pool.cpp:98] Deallocated 2299 buffers"
+          },
+          {
+            "kind": "evict",
+            "path": "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5",
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.476931 1941841 checkpoint_store.cpp:144] Model brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_5 is freed from memory"
+          },
+          {
+            "kind": "free",
+            "blocks": 0,
+            "free": 3289,
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.476938 1941841 pinned_memory_pool.cpp:98] Deallocated 0 buffers"
+          },
+          {
+            "kind": "allocate",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "blocks": 2823,
+            "free": 466,
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.476996 1941841 pinned_memory_pool.cpp:78] PinnedMemoryPool Allocate 2823 buffers free buffers 466 total buffers 27648"
+          },
+          {
+            "kind": "read_begin",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "bytes": 94699610112,
+            "tid": "1941841",
+            "raw": "I20261119 23:48:55.477051 1941841 model.cpp:120] Loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 size 94699610112 to host"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "bytes": 94699610112,
+            "tid": "1941706",
+            "raw": "I20261119 23:50:45.332047 1941706 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "tid": "1941706",
+            "raw": "I20261119 23:50:45.332100 1941706 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "bytes": 94699610112,
+            "tid": "1941595",
+            "raw": "I20261119 23:50:45.375093 1941595 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "tid": "1941595",
+            "raw": "I20261119 23:50:45.375128 1941595 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "bytes": 94699610112,
+            "tid": "1941679",
+            "raw": "I20261119 23:50:46.106282 1941679 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "tid": "1941679",
+            "raw": "I20261119 23:50:46.106307 1941679 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "bytes": 94699610112,
+            "tid": "1941603",
+            "raw": "I20261119 23:50:46.982650 1941603 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "tid": "1941603",
+            "raw": "I20261119 23:50:46.982661 1941603 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "bytes": 94699610112,
+            "tid": "1941796",
+            "raw": "I20261119 23:50:48.204452 1941796 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "tid": "1941796",
+            "raw": "I20261119 23:50:48.204473 1941796 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "bytes": 94699610112,
+            "tid": "1941612",
+            "raw": "I20261119 23:50:48.382159 1941612 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "tid": "1941612",
+            "raw": "I20261119 23:50:48.382170 1941612 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "bytes": 94699610112,
+            "tid": "1941841",
+            "raw": "I20261119 23:50:48.406517 1941841 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "tid": "1941841",
+            "raw": "I20261119 23:50:48.406534 1941841 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6 rc=0 resident=1"
+          },
+          {
+            "kind": "read_end",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "bytes": 94699610112,
+            "tid": "1941652",
+            "raw": "I20261119 23:50:48.606557 1941652 model.cpp:236] Finished loading model brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 from disk"
+          },
+          {
+            "kind": "complete",
+            "path": "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "tid": "1941652",
+            "raw": "I20261119 23:50:48.606580 1941652 checkpoint_store.cpp:165] SLLM_CACHE_COMPLETE path=brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5 rc=0 resident=1"
+          }
+        ]
+      },
+      "host_hit_tokens": 0,
+      "first_business_ns": 2256862087505479,
+      "all_business_ns": 2256862087505479
+    },
+    {
+      "index": 3,
+      "model": "K",
+      "mode": "checkpoint_wake",
+      "activation_ns": 2256872102476188,
+      "ready_ns": 2258106544869019,
+      "native_ready_ns": 2258105536545943,
+      "sleep_end_ns": 2258131435765115,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "not_used",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 466,
+          "used_blocks": 27182,
+          "resident_paths": [
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+          ],
+          "resident_payload_bytes": 911847071744
+        },
+        "events": []
+      },
+      "host_hit_tokens": 512,
+      "first_business_ns": 2258114985990612,
+      "all_business_ns": 2258118250645081
+    },
+    {
+      "index": 4,
+      "model": "D",
+      "mode": "checkpoint_wake",
+      "activation_ns": 2258133992142718,
+      "ready_ns": 2258742941836274,
+      "native_ready_ns": 2258740771895125,
+      "sleep_end_ns": 2258778850845236,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "not_used",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 466,
+          "used_blocks": 27182,
+          "resident_paths": [
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+          ],
+          "resident_payload_bytes": 911847071744
+        },
+        "events": []
+      },
+      "host_hit_tokens": 512,
+      "first_business_ns": 2258751356849944,
+      "all_business_ns": 2258758839983103
+    },
+    {
+      "index": 5,
+      "model": "G",
+      "mode": "checkpoint_wake",
+      "activation_ns": 2258781514256805,
+      "ready_ns": 2259248605327539,
+      "native_ready_ns": 2259247308813098,
+      "sleep_end_ns": 2259265384301131,
+      "gold": true,
+      "store": {
+        "hit_paths": [],
+        "miss_paths": [],
+        "cache_state": "not_used",
+        "file_read_bytes": 0,
+        "hit_bytes": 0,
+        "allocated_blocks": 0,
+        "freed_blocks": 0,
+        "evicted_paths": [],
+        "pool_after": {
+          "free_blocks": 466,
+          "used_blocks": 27182,
+          "resident_paths": [
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_0",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_1",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_2",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_3",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_4",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_5",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_6",
+            "brick0/boyjiang/glm53-store-bridge.ZY0JHwah/glm53-store-export-20261118T121335Z/rank_7",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_3",
+            "brick1/boyjiang/kimi-k2.6/store-conversion-20261105-once/vllm/kimi-k2.6-sf-reference/rank_7"
+          ],
+          "resident_payload_bytes": 911847071744
+        },
+        "events": []
+      },
+      "host_hit_tokens": 512,
+      "first_business_ns": 2259256123425306,
+      "all_business_ns": 2259256123425306
+    }
+  ],
+  "error": "AssertionError(('D', 'checkpoint_wake', 71873294336, 71940702208))",
+  "cleanup_errors": {
+    "worker-G": "AssertionError()",
+    "worker-K": "AssertionError()",
+    "worker-D": "AssertionError()"
+  },
+  "release_seconds": 60.959022727
+}

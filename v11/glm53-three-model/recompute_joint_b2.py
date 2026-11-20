@@ -252,6 +252,21 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
             (model, mode, capacity['backend_headroom_bytes'][mode][model]) and
             set(gate['sleepers']) == set(state) and gate['available_bytes'] >= gate['required_bytes'] ==
             capacity['runtime_floor_bytes'] + gate['headroom_bytes'], 'Stage host admission differs')
+    settle_path = step / 'host-admission-settle.json'
+    settle = read(settle_path) if settle_path.is_file() else None
+    if settle:
+        samples = settle['samples']
+        required, floor = gate['required_bytes'], capacity['runtime_stop_bytes']
+        require((model, mode) == ('D', 'checkpoint_wake') and settle['qualified'] is True and
+                settle['required_consecutive'] == 3 and settle['required_bytes'] == required and
+                settle['runtime_stop_bytes'] == floor and len(samples) >= 4 and
+                floor <= samples[0]['available_bytes'] < required and
+                all(sample['available_bytes'] >= floor for sample in samples) and
+                all(sample['available_bytes'] >= required for sample in samples[-3:]) and
+                all(b['ns'] - a['ns'] >= 2 * 10**9 for a, b in zip(samples, samples[1:])) and
+                samples[-1]['ns'] < settle['cutoff_ns'] <= samples[0]['ns'] + 30 * 10**9 and
+                samples[-1] == {field: gate[field] for field in ('available_bytes', 'ns')},
+                'V4 wake headroom settling evidence differs')
     status = read(step / 'registered.json')
     ranks = status['ranks']
     identity = worker_identity(ranks)
@@ -351,6 +366,7 @@ def step_result(root, step, index, model, state, previous, protocol, allocator, 
         old_to_new_s = seconds(previous['unmap_begin_ns'], first_alloc['end_ns'])
     return dict(index=index, model=model, mode=mode, equivalent_workers=fresh is False,
                 evidence=step.name, precheck_ns=gate['ns'], ram_at_admission_bytes=gate['available_bytes'],
+                host_admission_settle=settle,
                 activation_ns=active, native_ready_ns=native, ready_ns=ready,
                 activation_to_serve_s=seconds(active, ready), activation_to_first_gold_s=seconds(active, kv['first_ns']),
                 activation_to_all_gold_s=seconds(active, kv['all_ns']), full_first_weight_load=weight,

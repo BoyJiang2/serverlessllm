@@ -1,0 +1,53 @@
+--- a/b2_sequence.py
++++ b/b2_sequence.py
+@@ -24,6 +24,30 @@
+     if memory < minimum:
+         write(path, dict(phase=phase, available_bytes=memory, minimum_bytes=minimum, ns=time.monotonic_ns()))
+         raise RuntimeError(f'Host RAM below the {phase} threshold: {memory} < {minimum}')
++
++
++
++def settle_v4_wake_ram(step, first, required, runtime_stop, deadline):
++    """Check for three consecutive in-range samples without dispatching a wake."""
++    cutoff = min(deadline, first['ns'] + 30 * 10**9)
++    samples = [first]
++    streak = 0
++    while samples[-1]['available_bytes'] >= runtime_stop:
++        if cutoff - time.monotonic_ns() <= 2 * 10**9:
++            break
++        time.sleep(2)
++        stamp = time.monotonic_ns()
++        if stamp >= cutoff:
++            break
++        sample = dict(available_bytes=available_bytes(), ns=stamp)
++        samples.append(sample)
++        streak = streak + 1 if sample['available_bytes'] >= required else 0
++        if streak == 3:
++            break
++    write(step / 'host-admission-settle.json', dict(
++        samples=samples, required_bytes=required, runtime_stop_bytes=runtime_stop,
++        cutoff_ns=cutoff, required_consecutive=3, qualified=streak == 3))
++    return samples[-1] if streak == 3 else None
+
+
+ def phase_headroom(admission, mode, model):
+@@ -137,9 +161,16 @@
+         stamp = time.monotonic_ns()
+         memory = available_bytes()
+         sleepers = [item for item, state in workers.items() if state.cid is not None]
+-        write(step / 'host-admission.json', dict(available_bytes=memory, required_bytes=required, ns=stamp,
+-              model=key, mode=mode, headroom_bytes=headroom, sleepers=sleepers))
+-        assert memory >= required, (key, mode, memory, required)
++        host_gate = dict(available_bytes=memory, required_bytes=required, ns=stamp,
++                         model=key, mode=mode, headroom_bytes=headroom, sleepers=sleepers)
++        write(step / 'host-admission.json', host_gate)
++        if key == 'D' and mode == 'checkpoint_wake' and admission['runtime_stop_bytes'] <= memory < required:
++            settled = settle_v4_wake_ram(step, dict(available_bytes=memory, ns=stamp), required,
++                                        admission['runtime_stop_bytes'], deadline)
++            if settled is not None:
++                host_gate.update(settled)
++                write(step / 'host-admission.json', host_gate)
++        assert host_gate['available_bytes'] >= required, (key, mode, host_gate['available_bytes'], required)
+         for name in ('lmcache', 'store'):
+             svc = services[name]
+             assert int(call('docker', 'inspect', '--format', '{{.State.Pid}}', svc['cid'])) == svc['pid'] > 0
