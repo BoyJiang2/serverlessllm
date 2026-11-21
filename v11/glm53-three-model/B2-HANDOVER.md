@@ -14,9 +14,11 @@
 
 三轮的 813 GiB 整池锁页注册均失败并使用降级路径。逐段数据、锁页日志及释放采样见[正式报告](B2-JOINT.md)和[原始证据索引](derived/b2-evidence-index.json)。
 
-## B1 r2 准入失败留证
+## B1 r2 失败留证
 
 S1 `B1-GLM53-S1-20261120T230829Z` 开池前可用 RAM 为 1874.027687 GiB，通过 1871 GiB 门槛。813 GiB Host KV 与 864 GiB 权重 Store 均已就绪。首段 Kimi 激活前仅余 117.866344 GiB，低于 121 GiB 门槛，Backend 未启动，整轮 0/7。两池正常退出，退出码均为 0，八卡连续归零 61.186198311 秒（50 个样本）。此轮单独归档。[开池准入](raw/B1-GLM53-S1-20261120T230829Z/live-admission.json) · [首段准入](raw/B1-GLM53-S1-20261120T230829Z/00-K-kimi/host-admission.json) · [复算](raw/B1-GLM53-S1-20261120T230829Z/b1-recomputed.json) · [原始证据索引](raw/B1-GLM53-S1-20261120T230829Z/evidence-index.json)
+
+S3 `B1-GLM53-S3-20261121T033218Z` 前三段 V4、Kimi、GLM-5.3 金标通过，整轮 3/7。第四段 `03-K-kimi` 通过 RAM 和显存准入，等待 `waiting.json` 超时。清理发出 SIGINT 时，进程仍在读取 `torch.fx` 导入文件，`start-model` 未产生。前三段 Backend 和两池退出码均为 0，第四段 Backend 退出码为 130，Docker 未记录 OOM。八卡连续归零 61.138103961 秒（50 个样本）。复算保留失败状态，正式 CSV 无该轮数据。[终态](raw/B1-GLM53-S3-20261121T033218Z/result.json) · [第四段退出](raw/B1-GLM53-S3-20261121T033218Z/03-K-kimi/container-exit.json) · [复算](raw/B1-GLM53-S3-20261121T033218Z/b1-recomputed.json) · [原始证据索引](raw/B1-GLM53-S3-20261121T033218Z/evidence-index.json)
 
 ## 历史失败轮次
 
