@@ -1,6 +1,6 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-**截至 11 月 21 日 07:05（台北时间），正式 B2 已通过 3/3 轮、21/21 段，完成 12 次回访唤醒。** B1 r2/r3 补跑为 0/6 轮，开轮仍须实测达到 1871 GiB 可用 RAM。B1 r1 三条序列已各通过 7/7 段。[正式 B2 报告](B2-JOINT.md) · [B2 原始证据索引](derived/b2-evidence-index.json) · [B1 r1 原报告](REPORT.md)
+**截至 11 月 21 日 19:12（台北时间），正式 B2 已通过 3/3 轮、21/21 段，完成 12 次回访唤醒。** B1 r2/r3 补跑 6/6 轮通过，连同历史 r1 合计 9 轮、63 段。双池开轮准入要求 1871 GiB 可用 RAM。[正式 B2 报告](B2-JOINT.md) · [B2 原始证据索引](derived/b2-evidence-index.json) · [B1 正式报告](REPORT.md)
 
 正式 B2 使用 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。每次启动前用 `start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
@@ -35,7 +35,7 @@ S3 `B1-GLM53-S3-20261121T033218Z` 前三段 V4、Kimi、GLM-5.3 金标通过，�
 
 `145031Z` 于 22:50:31 启动。00:30 预约结束前保留 5 分钟释放和 6 分钟收尾，Worker 回执截止为 00:19。末段 00:08:48 开始，截止时 Kimi 已加载 30/64 个分片。三组 Worker 退出码为 137，Docker 未记录 OOM。该轮保留为预约截止失败。
 
-上表失败轮不计入正式样本。B1 补跑按 r2、r3 各跑 S1、S2、S3。
+上表失败轮不计入正式样本。B1 的 r2 和 r3 均按 S1、S2、S3 串行执行，每轮单独验收。
 
 离线复核已逐文件比对四轮的八份复算和索引 SHA-256，并用实际归档验证正式 B2 报告入口会拒绝这四次失败。B1 r1 的 21 段在同盘临时目录重生成了 Markdown 和 PNG。Windows 上报告输出和输入资料放在同一盘，供生成相对链接。
 

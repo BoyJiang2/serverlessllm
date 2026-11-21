@@ -4,22 +4,32 @@
 
 **正式 B2 已通过 3/3 轮、21/21 段。** 12 次原 Worker 回访均实际回读 512 token，删键后均为零命中。三轮均通过至少 60 秒的八卡归零观察，813 GiB 整池锁页注册均降级。[正式 B2 报告](B2-JOINT.md) · [B2 服务器原始证据索引](derived/b2-evidence-index.json)
 
-**B1 r1 已通过 3/3 轮，r2/r3 补跑为 0/6 轮。** 双池开轮仍须实测达到 1871 GiB 可用 RAM。[B1 r1 报告](REPORT.md) · [B1 服务器原始证据索引](derived/evidence-index.json)
+**B1 已通过 9/9 轮、63/63 段。** S1、S2、S3 各 3 轮，包含历史 r1 三轮和本批 r2/r3 六轮。九轮均观察到 813 GiB Host KV 整池 CUDA 注册失败，降级后仍通过逐段写入、清理及八卡释放验收。双池开轮准入要求 1871 GiB 可用 RAM。[B1 正式报告](REPORT.md) · [B1 服务器原始证据索引](derived/evidence-index.json)
 
 S3 重试首段的 [系统盘、cgroup 与 rank 原始采样](raw/host-memory/B1-GLM53-S3-20261119T175803Z-root-io.jsonl) 共 180 条，SHA-256 `b32ef5b03abe4dd8940d1670ed678293a8198e8961c90ff4e90ba8527a86d070`。服务器原件位于 `qjhs003:/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/B1-GLM53-S3-20261119T175803Z-root-io.jsonl`。
 
 ## 从原始回执重算 B1
 
-在可读取 qjhs003 原始回执的环境运行。`RUN_DIR` 为该轮证据目录，替换为实际的一个或多个路径。
+在 qjhs003 的仓库根目录执行。列表依次为 r1、r2、r3 各三轮，末四项为保留的失败轮。
 
 ```bash
-python v11/glm53-three-model/recompute_b1.py RUN_DIR --output derived
-python v11/glm53-three-model/index_evidence.py RUN_DIR --output derived/evidence-index.json
-python v11/glm53-three-model/plot_b1.py derived/b1-segments.csv figures/b1-activation.png
-python v11/glm53-three-model/render_b1.py derived/b1-recomputed.json REPORT.md
+base=/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b1-runs
+runs=(
+  B1-GLM53-S1-20261119T141542Z B1-GLM53-S2-20261119T154121Z B1-GLM53-S3-20261119T175803Z
+  B1-GLM53-S1-20261120T232702Z B1-GLM53-S2-20261121T021542Z B1-GLM53-S3-20261121T042117Z
+  B1-GLM53-S1-20261121T070054Z B1-GLM53-S2-20261121T082711Z B1-GLM53-S3-20261121T094530Z
+  B1-GLM53-S1-20261119T134935Z B1-GLM53-S3-20261119T165820Z
+  B1-GLM53-S1-20261120T230829Z B1-GLM53-S3-20261121T033218Z
+)
+for j in "${!runs[@]}"; do runs[$j]="$base/${runs[$j]}"; done
+out=$(mktemp -d)
+python3 -B v11/glm53-three-model/recompute_b1.py "${runs[@]}" --output "$out/derived"
+cp v11/glm53-three-model/derived/evidence-index.json "$out/derived/evidence-index.json"
+python3 -B v11/glm53-three-model/plot_b1.py "$out/derived/b1-segments.csv" "$out/figures/b1-activation.png"
+python3 -B v11/glm53-three-model/render_b1.py "$out/derived/b1-recomputed.json" "$out/REPORT.md"
 ```
 
-`--include-partial` 将在途轮次的已落盘回执纳入 JSON，正式 CSV 只包含整轮通过的七段。绘图需要至少一轮通过。主机端激活时间指请求激活到首个正确完整业务响应。完整权重加载、池初始化和释放观察按独立端点计量。
+复算应返回 9 轮合格、4 轮失败。正式 CSV 有 63 行，按同一序列、段号和缓存状态计算中位数与范围。用 `index_evidence.py "${runs[@]}"` 可重新核对各轮主目录文件的大小和 SHA-256。正式索引还记录 r2/r3 的主机采样、控制器、启动及退出回执，六轮各有 21 份原始回执可在 `raw/<run_id>/` 直接核对。主机端激活时间指放行激活到首个正确完整业务响应，完整权重加载、池初始化和释放观察按各自端点计量。
 
 ## 从原始回执重算 Kimi 重载对照
 
