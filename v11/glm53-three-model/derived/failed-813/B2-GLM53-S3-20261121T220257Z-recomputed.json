@@ -1,0 +1,59 @@
+{
+  "run_id": "B2-GLM53-S3-20261121T220257Z",
+  "status": "failed",
+  "qualified": false,
+  "segments": [],
+  "pool_init": {
+    "kv_init_s": 198.002547067,
+    "store_init_s": null,
+    "both_ready_s": 198.002547067,
+    "lmcache_started_ns": 2422897052506852,
+    "lmcache_ready_ns": 2423095055053919,
+    "store_started_ns": null,
+    "store_ready_ns": null
+  },
+  "tail_delete": null,
+  "gpu_release": {
+    "seconds": 60.164411913,
+    "samples": 49,
+    "start_ns": 2423831551801674,
+    "end_ns": 2423891716213587,
+    "evidence": "release.jsonl"
+  },
+  "final_host_empty_ns": null,
+  "evidence_errors": [],
+  "terminal_error": "AssertionError('worker-D')",
+  "host_pin": {
+    "state": "failure_observed",
+    "evidence": "lmcache-final.log",
+    "lines": [
+      {
+        "line": 16,
+        "message": "\u001b[32;20m[2026-11-21 22:03:18,323] LMCache INFO:\u001b[0m CudaPinMemoryBackend: using torch cudart \u001b[3m(pin_memory.py:89:lmcache.v1.platform.cuda.pin_memory)\u001b[0m"
+      },
+      {
+        "line": 22,
+        "message": "\u001b[33;20m[2026-11-21 22:06:16,966] LMCache WARNING:\u001b[0m pin_memory failed for chunk at ptr=0x7eac9ffff000 size=872952102912; DMA performance may be degraded \u001b[3m(lazy_memory_allocator.py:308:lmcache.v1.memory_allocators.lazy_memory_allocator)\u001b[0m"
+      },
+      {
+        "line": 27,
+        "message": "V11_L1_PIN {\"ns\": 2423094817488775, \"pid\": 1, \"configured_bytes\": 872952102912, \"registered_ranges\": []}"
+      }
+    ]
+  },
+  "host_kv_peak_bytes": null,
+  "sequence": "S3",
+  "weight_store_gib": 0,
+  "host_kv_pool_gib": 813,
+  "kimi_reference_probe_sha256": "d1954a790ffc9ef8e437da91f977ce6fff9c06fffe8da445029bfc9d5cab0b8d",
+  "host_monitor": {
+    "path": "/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-nostore-813-reference/B2-GLM53-S3-20261121T220257Z-host-memory.jsonl",
+    "read_bytes": 1351606,
+    "sha256": "6c3a9201d69138c875077b1c72a5bdfc31f8f46b3b933c02255687a10d7eaf96",
+    "sample_count": 733,
+    "min_available_bytes": 1108307820544,
+    "min_available_ns": 2423783503686099,
+    "lmcache_anon_at_min_bytes": 873422553088,
+    "lmcache_anon_peak_bytes": 873441275904
+  }
+}

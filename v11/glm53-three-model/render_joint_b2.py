@@ -1,7 +1,10 @@
 """Render the formal GLM-5.3 three-model Sleep L2 measurements."""
 
 import argparse
+import csv
 import json
+import re
+from collections import Counter, defaultdict
 from pathlib import Path
 from statistics import median
 
@@ -14,6 +17,8 @@ WEIGHT_PATH = {'safetensors_disk_cold': 'SafeTensors 冷读',
                'store_inplace_cumem': 'Store 原位恢复', 'checkpoint_wake': 'Checkpoint 唤醒'}
 TIMES = ('weight_preparation_s', 'new_gpu_kv_s', 'old_gpu_kv_release_to_new_kv_ready_s',
          'activation_to_serve_s', 'activation_to_first_gold_s', 'activation_to_all_gold_s')
+CSV_FIELDS = ('run_id', 'sequence', 'segment', 'model', 'source_model', 'mode', *TIMES,
+              'checkpoint_reload_s', 'gold', 'host_kv_restored_tokens', 'host_kv_restored_bytes', 'evidence')
 TIME_HEADERS = ('权重准备（s）', '新 GPU KV（s）', '旧 GPU KV 释放 → 新 KV 就绪（s）',
                 '至可服务（s）', '首个正确完整响应（s）', '全套业务金标（s）')
 PIN_STATUS = {'success_confirmed': '整池注册成功', 'failure_observed': '观察到注册失败',
@@ -23,7 +28,17 @@ PIN_STATUS = {'success_confirmed': '整池注册成功', 'failure_observed': '�
 
 def times(rows, field):
     values = [row[field] for row in rows if row[field] is not None]
-    return f'{seconds(median(values))}（n={len(values)}）' if values else '—（n=0）'
+    if not values:
+        return '—（n=0）'
+    spread = f'，{seconds(min(values))}–{seconds(max(values))}' if len(values) > 1 else ''
+    return f'{seconds(median(values))}（n={len(values)}{spread}）'
+
+
+def group_positions(data):
+    positions = defaultdict(list)
+    for run, row in data:
+        positions[run['sequence'], row['index']].append((run, row))
+    return sorted(positions.items())
 
 
 def pool_observations(runs):
@@ -49,7 +64,8 @@ def pool_observations(runs):
 
 
 def kimi_comparison(wake, history, history_link, *, has_store=True):
-    positions = {(run['sequence'], row['index']): {} for run, row in wake if row['model'] == 'K'}
+    grouped = group_positions((run, row) for run, row in wake if row['model'] == 'K')
+    positions = {position: {} for position, _ in grouped}
     cohorts = ('历史原生未修', '历史 WNA16 修复', '本轮联合 B2 · WNA16 + meta')
     for item in history['kimi']:
         position = item['sequence'], item['step']
@@ -60,7 +76,9 @@ def kimi_comparison(wake, history, history_link, *, has_store=True):
             previous = historical.setdefault((cohorts[0], run_id), row)
             if previous != row:
                 raise ValueError(f'Conflicting historical evidence for {position} in {run_id}')
-        historical[cohorts[1], item['run']] = item['candidate']
+        previous = historical.setdefault((cohorts[1], item['run']), item['candidate'])
+        if previous != item['candidate']:
+            raise ValueError(f"Conflicting historical evidence for {position} in {item['run']}")
 
     pool_phrase = '常驻双池' if has_store else '常驻 Host KV 池（无权重 Store）'
     lines = ['', '## Kimi 同序列同唤醒位置对照', '',
@@ -70,13 +88,8 @@ def kimi_comparison(wake, history, history_link, *, has_store=True):
     details = []
     summaries = []
     fields = ('reload', 'last_expert', 'anon', 'refault')
-    for run, row in wake:
-        if row['model'] != 'K':
-            continue
-        position = run['sequence'], row['index']
+    for position, current in grouped:
         label = f'{position[0]}/{position[1]:02d}'
-        memory = row.get('kimi_reload_memory') or {}
-        expert = row.get('kimi_experts') or {}
         metrics = {cohort: [] for cohort in cohorts}
         for (cohort, run_id), sample in positions[position].items():
             mem = sample['memory']
@@ -87,11 +100,14 @@ def kimi_comparison(wake, history, history_link, *, has_store=True):
                                         anon=mem['anon_peak_bytes'] / GIB if mem['anon_peak_bytes'] is not None else None,
                                         refault=mem['refault_delta_pages'],
                                         memory_complete=bool(offsets) and max(map(abs, offsets)) <= 5 * 10**9))
-        metrics[cohorts[2]].append(dict(run_id=run['run_id'], reload=row['checkpoint_reload_s'],
-                                        last_expert=expert.get('last_expert_s'),
-                                        anon=memory['anon_peak_bytes'] / GIB if memory else None,
-                                        refault=memory.get('refault_pages_delta'),
-                                        memory_complete=memory.get('covers_window_to_3s', False)))
+        for run, row in current:
+            memory = row.get('kimi_reload_memory') or {}
+            expert = row.get('kimi_experts') or {}
+            metrics[cohorts[2]].append(dict(run_id=run['run_id'], reload=row['checkpoint_reload_s'],
+                                           last_expert=expert.get('last_expert_s'),
+                                           anon=memory['anon_peak_bytes'] / GIB if memory else None,
+                                           refault=memory.get('refault_pages_delta'),
+                                           memory_complete=memory.get('covers_window_to_3s', False)))
         for cohort, samples in metrics.items():
             for sample in samples:
                 cells = [seconds(sample[field]) for field in fields]
@@ -103,28 +119,41 @@ def kimi_comparison(wake, history, history_link, *, has_store=True):
                               *(times(memory_samples, field) for field in fields[2:])))
     headers = ('checkpoint 重载（s）', '重载开始至最后专家层（s）', '匿名内存采样峰值（GiB）', '文件页 refault（页）')
     lines += table(('位置', '配置', 'run ID', *headers), details)
-    lines += ['', '各位置、各配置按有效 n 报中位数。专家层时间覆盖 60 层 × 8 rank。'
+    lines += ['', '各位置、各配置报告中位数、有效 n 和最小值–最大值。专家层时间覆盖 60 层 × 8 rank。'
               '匿名内存为 checkpoint 窗口内 Worker cgroup 采样峰值。refault 为窗口内首末采样点的计数增量。'
               '内存中位数要求历史首末采样距端点各不超过 5 秒，本轮另要求首末偏差和最大间隔均不超过 3 秒。'
               f'[历史逐次对照证据]({history_link})', '']
     return lines + table(('位置', '配置', *headers), summaries)
 
 
-def render(runs, *, evidence_links, history, history_link, figure=None):
-    runs = sorted((run for run in runs if run['qualified']), key=lambda run: run['sequence'])
-    if not runs or len({run['sequence'] for run in runs}) != len(runs):
-        raise ValueError('Expected one independently qualified run per included sequence')
+def qualified_runs(runs):
+    if len({run['run_id'] for run in runs}) != len(runs):
+        raise ValueError('Run IDs must be unique')
+    return sorted((run for run in runs if run['qualified']), key=lambda run: (run['sequence'], run['run_id']))
+
+
+def render(runs, *, evidence_links, history, history_link, figure=None, repeats=None):
+    runs = qualified_runs(runs)
+    if not runs:
+        raise ValueError('Expected independently qualified runs')
+    counts = Counter(run['sequence'] for run in runs)
+    repeats = max(counts.values()) if repeats is None else repeats
+    if max(counts.values()) > repeats:
+        raise ValueError('Qualified run count exceeds repetitions per sequence')
 
     data = []
     for run in runs:
         segments = run['segments']
+        sequence = run['sequence']
         if (run['status'] != 'qualified' or run['evidence_errors'] or
-                ''.join(row['model'] for row in segments) != SEQUENCES[run['sequence']] or
+                ''.join(row['model'] for row in segments) != SEQUENCES.get(sequence) or
+                not re.fullmatch(rf'B2-GLM53-{sequence}-\d{{8}}T\d{{6}}Z', run['run_id']) or
+                [row['index'] for row in segments] != list(range(7)) or
                 run['gpu_release']['seconds'] < 60 or any(row['gold'] is not True for row in segments)):
             raise ValueError(f"Invalid qualified run {run['run_id']}")
-        data.extend((run['sequence'], row) for row in segments)
-    first = [(sequence, row) for sequence, row in data if row['mode'] != 'checkpoint_wake']
-    wake = [(sequence, row) for sequence, row in data if row['mode'] == 'checkpoint_wake']
+        data.extend((run, row) for row in segments)
+    first = [(run, row) for run, row in data if row['mode'] != 'checkpoint_wake']
+    wake = [(run, row) for run, row in data if row['mode'] == 'checkpoint_wake']
 
     configs = {(run.get('weight_store_gib', 864 if run['pool_init']['store_init_s'] is not None else 0),
                 run.get('host_kv_pool_gib', 813)) for run in runs}
@@ -135,6 +164,10 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
     reference_shas = {run.get('kimi_reference_probe_sha256') for run in runs}
     if len(reference_shas) != 1:
         raise ValueError('Expected one Kimi KV probe revision per report')
+    expected = ['safetensors_disk_cold'] + ['store_inplace_cumem' if has_store else 'safetensors_disk_cold'] * 2
+    expected += ['checkpoint_wake'] * 4
+    if any([row['mode'] for row in run['segments']] != expected for run in runs):
+        raise ValueError('Run loading and wake paths differ from the reported protocol')
     # 容量相同也不能替代完整的无 Store 回读、清空和专家层证据。
     if not has_store:
         for run in runs:
@@ -153,11 +186,13 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
 
     if next(iter(reference_shas)):
         pool_desc += 'Kimi 使用已验收的 560-token 参考探针，其中 512 token 用于 Host KV 回读。'
+    sequence_counts = '，'.join(f'{sequence} {counts[sequence]}/{repeats}' for sequence in SEQUENCES)
     lines = ['# V11 联合 B2 三模型 Sleep L2 · GLM-5.3', '',
-             f'**{len(runs)}/3 轮验收通过，共 {len(data)} 段。** '
+             f'**{len(runs)}/{len(SEQUENCES) * repeats} 轮验收通过，共 {len(data)} 段。** '
              f'{len(first)} 次首次加载和 {len(wake)} 次原 Worker 唤醒均通过金标。'
              '回访实测从 Host KV 恢复 512 token，删除对应键后复查为零命中。'
              '模型间使用同一前缀做命中与未命中的配对查询。', '',
+             f'序列验收轮数为 {sequence_counts}。', '',
              pool_desc, '',
              '## 轮次与释放', '']
     if has_store:
@@ -174,35 +209,46 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
     lines += pool_observations(runs)
     if figure:
         lines += ['', f'![首次加载和回访唤醒的权重准备、激活至可服务]({figure})']
+        if max(counts.values()) > 1:
+            lines += ['', '柱长为固定段的中位数，细线标出最小值–最大值。']
     lines += ['', '## 首次加载', '']
     if has_store:
-        lines += table(('段', '目标模型', '路径', *TIME_HEADERS, 'Store 重读 / 命中（GiB）', '金标'), [
-            (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
+        lines += table(('run ID', '段', '目标模型', '路径', *TIME_HEADERS, 'Store 重读 / 命中（GiB）', '金标'), [
+            (f"`{run['run_id']}`", f"`{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
              *(seconds(row[field]) for field in TIMES),
              f"{row['store']['file_read_bytes'] / 2**30:.3f} / {row['store']['hit_bytes'] / 2**30:.3f}"
-             if row['mode'] == 'store_inplace_cumem' else '不适用', '通过') for sequence, row in first])
+             if row['mode'] == 'store_inplace_cumem' else '不适用', '通过') for run, row in first])
     else:
-        lines += table(('段', '目标模型', '路径', *TIME_HEADERS, '金标'), [
-            (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
-             *(seconds(row[field]) for field in TIMES), '通过') for sequence, row in first])
+        lines += table(('run ID', '段', '目标模型', '路径', *TIME_HEADERS, '金标'), [
+            (f"`{run['run_id']}`", f"`{row['evidence']}`", MODEL[NAMES[row['model']]], WEIGHT_PATH[row['mode']],
+             *(seconds(row[field]) for field in TIMES), '通过') for run, row in first])
     lines += ['', '## 回访唤醒', '']
-    lines += table(('段', '目标模型', *TIME_HEADERS, '其中 checkpoint 重载（s）',
+    lines += table(('run ID', '段', '目标模型', *TIME_HEADERS, '其中 checkpoint 重载（s）',
                     'Host KV 恢复（token / MiB）', '金标'), [
-        (f"{sequence} · `{row['evidence']}`", MODEL[NAMES[row['model']]],
+        (f"`{run['run_id']}`", f"`{row['evidence']}`", MODEL[NAMES[row['model']]],
          *(seconds(row[field]) for field in TIMES), seconds(row['checkpoint_reload_s']),
          f"{row['kv']['hit_tokens']} / {sum(row['kv']['rank_bytes'].values()) / 2**20:.3f}", '通过')
-        for sequence, row in wake])
-    summary_note = ('各列报告中位数和有效样本数。SafeTensors 冷读、Store 首载和 checkpoint 唤醒分别统计。'
+        for run, row in wake])
+    if repeats > 1:
+        statistics = []
+        for (sequence, index), samples in group_positions(data):
+            rows = [row for _, row in samples]
+            statistics.append((f'{sequence}/{index:02d}', MODEL[NAMES[rows[0]['model']]],
+                               WEIGHT_PATH[rows[0]['mode']], str(len(rows)),
+                               *(times(rows, field) for field in (*TIMES, 'checkpoint_reload_s'))))
+        lines += ['', '## 按序列和段位汇总', '',
+                  '各指标报告中位数、有效 n 和最小值–最大值。单个样本仅列实测值，缺测保持 n=0。', '',
+                  *table(('段位', '目标模型', '路径', '通过轮数', *TIME_HEADERS, '其中 checkpoint 重载（s）'), statistics)]
+    summary_note = ('各列报告中位数、有效 n 和最小值–最大值。SafeTensors 冷读、Store 首载和 checkpoint 唤醒分别统计。'
                     if has_store else
-                    '各列报告中位数和有效样本数。SafeTensors 冷读和 checkpoint 唤醒分别统计。')
+                    '各列报告中位数、有效 n 和最小值–最大值。SafeTensors 冷读和 checkpoint 唤醒分别统计。')
     lines += ['', '## 按模型和路径汇总', '', summary_note, '']
     groups = [(key, mode, [row for _, row in data if row['model'] == key and row['mode'] == mode])
               for key in NAMES for mode in WEIGHT_PATH]
     lines += table(('模型', '路径', '段数', *TIME_HEADERS), [
         (MODEL[NAMES[key]], WEIGHT_PATH[mode], str(len(rows)), *(times(rows, field) for field in TIMES))
         for key, mode, rows in groups if rows])
-    lines += kimi_comparison([(run, row) for run in runs for row in run['segments']
-                             if row['mode'] == 'checkpoint_wake'], history, history_link, has_store=has_store)
+    lines += kimi_comparison(wake, history, history_link, has_store=has_store)
     lines += ['', '## 计时与证据', '',
               '- 首次加载的权重准备采用八 rank 最早开始至最晚成功返回。唤醒从权重映射开始计至 checkpoint 重载结束。'
               '回访的 Host KV 恢复在后续请求中实测，H2D 字节覆盖参与的八 rank。',
@@ -217,23 +263,48 @@ def render(runs, *, evidence_links, history, history_link, figure=None):
     return '\n'.join(lines)
 
 
+def write_csv(runs, output):
+    runs = qualified_runs(runs)
+    with output.open('w', encoding='utf-8', newline='') as stream:
+        writer = csv.writer(stream)
+        writer.writerow(CSV_FIELDS)
+        for run in runs:
+            for row in run['segments']:
+                kv = row['kv'] if row['mode'] == 'checkpoint_wake' else {}
+                ranks = kv.get('rank_bytes')
+                writer.writerow((run['run_id'], run['sequence'], row['index'], row['model'], row.get('source_model'),
+                                 row['mode'], *(row[field] for field in TIMES), row['checkpoint_reload_s'], row['gold'],
+                                 kv.get('hit_tokens'), sum(ranks.values()) if ranks is not None else None,
+                                 f"{run['run_id']}/{row['evidence']}"))
+
+
 def plot(runs, output):
     from plot_b1 import plt
 
     fig, axes = plt.subplots(1, 2, figsize=(13, 6.5), sharex=True)
+    data = [(run, row) for run in runs if run['qualified'] for row in run['segments']]
     for axis, wake, title in zip(axes, (False, True), ('First loads', 'Same-worker checkpoint wakes'), strict=True):
-        rows = [(run['sequence'], row) for run in sorted(runs, key=lambda run: run['sequence']) if run['qualified']
-                for row in run['segments'] if (row['mode'] == 'checkpoint_wake') == wake]
-        labels = [f"{sequence}/{row['index']:02d}  {MODEL[NAMES[row['model']]]}" for sequence, row in rows]
-        y = range(len(rows))
+        positions = group_positions((run, row) for run, row in data if (row['mode'] == 'checkpoint_wake') == wake)
+        labels = [f'{sequence}/{index:02d}  {MODEL[NAMES[samples[0][1]["model"]]]}'
+                  for (sequence, index), samples in positions]
         for field, offset, color, label in (
                 ('weight_preparation_s', -0.18, '#2B826D', 'Weight preparation'),
                 ('activation_to_serve_s', 0.18, '#286BA4', 'Activation to service ready')):
-            measured = [(i + offset, row[field]) for i, (_, row) in enumerate(rows) if row[field] is not None]
+            measured = []
+            for i, (_, samples) in enumerate(positions):
+                values = [row[field] for _, row in samples if row[field] is not None]
+                if values:
+                    middle = median(values)
+                    measured.append((i + offset, middle, middle - min(values), max(values) - middle))
             if measured:
-                bars = axis.barh(*zip(*measured, strict=True), height=0.30, color=color, label=label)
-                axis.bar_label(bars, fmt='%.1f', padding=4, fontsize=8)
-        axis.set_yticks(y, labels)
+                y, medians, lows, highs = zip(*measured, strict=True)
+                has_range = any(lows) or any(highs)
+                bars = axis.barh(y, medians, height=0.30, color=color, label=label,
+                                 xerr=(lows, highs) if has_range else None,
+                                 error_kw=dict(ecolor='#253444', elinewidth=1.1, capsize=2.5))
+                if not has_range:
+                    axis.bar_label(bars, fmt='%.1f', padding=4, fontsize=8)
+        axis.set_yticks(range(len(positions)), labels)
         axis.invert_yaxis()
         axis.set_title(title, loc='left')
         axis.set_xlabel('Seconds')
@@ -255,19 +326,25 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--index', type=Path, required=True)
     parser.add_argument('--figure', type=Path)
+    parser.add_argument('--csv', type=Path, metavar='PATH', help='Write one row per qualified segment')
+    parser.add_argument('--repeats', type=int, help='Expected qualified runs per sequence')
     parser.add_argument('--kimi-history', type=Path, default=Path(__file__).resolve().parents[1] /
                         'large-pool-20261114' / 'sleep-wna16-sequences' / 'audit.json')
     args = parser.parse_args()
     runs = [json.loads(path.read_bytes()) for path in args.results]
     links = [f"[{run['run_id']}]({relative(path, args.output)})" for path, run in zip(args.results, runs, strict=True)]
     links += [f'[原始证据路径、大小和 SHA-256]({relative(args.index, args.output)})']
+    if args.csv:
+        links.append(f'[逐段 CSV]({relative(args.csv, args.output)})')
     history = json.loads(args.kimi_history.read_bytes())
     figure = relative(args.figure, args.output) if args.figure else None
     report = render(runs, evidence_links=links, history=history, history_link=relative(args.kimi_history, args.output),
-                    figure=figure)
+                    figure=figure, repeats=args.repeats)
     if args.figure:
         plot(runs, args.figure)
     args.output.write_text(report, encoding='utf-8')
+    if args.csv:
+        write_csv(runs, args.csv)
 
 
 if __name__ == '__main__':

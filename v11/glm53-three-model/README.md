@@ -2,7 +2,7 @@
 
 本目录保存 GLM-5.3 替换 GLM-5.1-FP8 后的新增证据。硬件为 qjhs003 8×H20，TP8。B1 使用 864 GiB 权重 Store 与 813 GiB LMCache Host KV 池。正式联合 B2 使用 **813 GiB LMCache Host KV 单池**，前三段从 SafeTensors 冷页首载，后四段验证原 Worker Sleep L2 唤醒与 Host KV 回读。384 GiB 先行轮次独立留证。[执行交接](B2-HANDOVER.md) · [当前 813 GiB CPU 前检与冻结哈希](derived/b2-nostore-813-reference-preflight.json) · [容量变更补丁](diagnostics/joint-b2-nostore-813.patch) · [384 GiB 前检](derived/b2-nostore-384-preflight.json)
 
-**正式 B2 已通过 3/3 轮、21/21 段。** 12 次原 Worker 回访均实际回读 512 token，删键后均为零命中。三轮均通过至少 60 秒的八卡归零观察，813 GiB 整池锁页注册均降级。[正式 B2 报告](B2-JOINT.md) · [B2 服务器原始证据索引](derived/b2-evidence-index.json)
+**正式 B2 的 S1、S2、S3 各通过三轮，共 9/9 轮、63/63 段。** 27 次首载和 36 次回访均通过金标。每次回访均在原 Worker 实际回读 512 token，删键后均为零命中。九轮均通过至少 60 秒八卡归零观察，813 GiB 整池 CUDA 注册均观察到降级。[正式 B2 报告](B2-JOINT.md) · [B2 逐段 CSV](derived/b2-segments.csv) · [B2 原始证据索引](derived/b2-evidence-index.json)
 
 **B1 已通过 9/9 轮、63/63 段。** S1、S2、S3 各 3 轮，包含历史 r1 三轮和本批 r2/r3 六轮。九轮均观察到 813 GiB Host KV 整池 CUDA 注册失败，降级后仍通过逐段写入、清理及八卡释放验收。双池开轮准入要求 1871 GiB 可用 RAM。[B1 正式报告](REPORT.md) · [B1 服务器原始证据索引](derived/evidence-index.json)
 
@@ -51,22 +51,35 @@ python v11/glm53-three-model/recompute_glm53_l2_memory.py GLM53_RUN_DIR --output
 
 ## 从原始回执重算联合 B2
 
-在能读取原始回执的 qjhs003 上重算三轮并生成索引。若服务器环境缺图表依赖，将四份派生 JSON 复制回本地报告工作树，用已安装 Matplotlib 的环境执行最后一条渲染命令。
+在 qjhs003 的仓库根目录重算。以下 run ID 依次为 r1、r2、r3 各三轮，S3 的 `B2-GLM53-S3-20261121T220257Z` 单独保留在失败档案。若服务器缺图表依赖，可将复算 JSON 和索引复制到有 Matplotlib 的环境再渲染。
 
 ```bash
-python v11/glm53-three-model/recompute_joint_b2.py "$S1_RUN" --host-memory "$S1_TRACE" \
-  --kimi-log "$S1_RUN/worker-K-final.log" --output derived/b2-s1.json
-python v11/glm53-three-model/recompute_joint_b2.py "$S2_RUN" --host-memory "$S2_TRACE" \
-  --kimi-log "$S2_RUN/worker-K-final.log" --output derived/b2-s2.json
-python v11/glm53-three-model/recompute_joint_b2.py "$S3_RUN" --host-memory "$S3_TRACE" \
-  --kimi-log "$S3_RUN/worker-K-final.log" --output derived/b2-s3.json
-python v11/glm53-three-model/index_evidence.py "$S1_RUN" "$S2_RUN" "$S3_RUN" \
-  --recomputed derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json --output derived/b2-evidence-index.json
-python v11/glm53-three-model/render_joint_b2.py derived/b2-s1.json derived/b2-s2.json derived/b2-s3.json \
-  --index derived/b2-evidence-index.json --figure figures/b2-joint-ready.png --output B2-JOINT.md
+base=/home/boyjiang/sllm-v4-pro/cache-competition-20261109/glm53-four-condition-20261118/formal-b2-runs
+trace=/data/brick0/boyjiang/glm53-store-bridge.ZY0JHwah/joint-b2-control.OtdU9n/formal-nostore-813-reference
+ids=(
+  B2-GLM53-S1-20261120T163053Z B2-GLM53-S2-20261120T190052Z B2-GLM53-S3-20261120T213052Z
+  B2-GLM53-S1-20261121T123640Z B2-GLM53-S2-20261121T141943Z B2-GLM53-S3-20261121T160117Z
+  B2-GLM53-S1-20261121T183659Z B2-GLM53-S2-20261121T202330Z B2-GLM53-S3-20261121T222136Z
+)
+out=$(mktemp -d)
+runs=()
+results=()
+for id in "${ids[@]}"; do
+  run="$base/$id"
+  result="$out/$id.json"
+  python3 -B v11/glm53-three-model/recompute_joint_b2.py "$run" \
+    --host-memory "$trace/$id-host-memory.jsonl" --kimi-log "$run/worker-K-final.log" --output "$result"
+  runs+=("$run")
+  results+=("$result")
+done
+python3 -B v11/glm53-three-model/index_evidence.py "${runs[@]}" \
+  --recomputed "${results[@]}" --output "$out/b2-evidence-index.json"
+python3 -B v11/glm53-three-model/render_joint_b2.py "${results[@]}" --repeats 3 \
+  --index "$out/b2-evidence-index.json" --figure "$out/b2-joint-ready.png" \
+  --csv "$out/b2-segments.csv" --output "$out/B2-JOINT.md"
 ```
 
-将 `S1_RUN`、`S2_RUN`、`S3_RUN` 设为 qjhs003 三轮 813 GiB B2 的完整原始回执目录。`S1_TRACE`、`S2_TRACE`、`S3_TRACE` 分别指向 `formal-nostore-813-reference` 下对应 `<run_id>-host-memory.jsonl`。复算核对首次加载路径、八 rank 身份及 Host KV 传输、Kimi 参考探针、金标和末尾释放。报告从完成验收的轮次生成两张逐段表，分别展示首次加载和回访唤醒。各阶段的缺测保留在 JSON 中。[联合 B2 前检及失败回执](B2-HANDOVER.md)
+复算核对首次加载路径、八 rank 身份及 Host KV 传输、Kimi 参考探针、金标和末尾释放。每个序列的运行计划在核对时仅归一化 run ID、原始目录和预约派生的绝对截止时刻。报告分开列首载与回访，按同序列同段位汇总有效 n、中位数和范围，各阶段缺测保留在复算 JSON 和 CSV。九轮的 909 份紧凑原件见 `raw/<run_id>/`，大文件保留在索引所指的 qjhs003 路径。[联合 B2 前检及失败回执](B2-HANDOVER.md)
 
 主机采样用于复算从逐段准入到该段休眠完成的可用 RAM 低点。复算按该轮实际启动的池服务和 Worker 容器 ID 匹配样本，记录参与采样数、最大间隔和低点同一采样的各容器匿名内存。
 

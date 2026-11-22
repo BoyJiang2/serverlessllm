@@ -1,6 +1,6 @@
 # GLM-5.3 联合 B2 Sleep L2 交接
 
-**截至 11 月 21 日 19:12（台北时间），正式 B2 已通过 3/3 轮、21/21 段，完成 12 次回访唤醒。** B1 r2/r3 补跑 6/6 轮通过，连同历史 r1 合计 9 轮、63 段。双池开轮准入要求 1871 GiB 可用 RAM。[正式 B2 报告](B2-JOINT.md) · [B2 原始证据索引](derived/b2-evidence-index.json) · [B1 正式报告](REPORT.md)
+**截至 11 月 22 日 07:55（台北时间），B2 的 S1、S2、S3 各三轮均通过验收，共 9/9 轮、63/63 段，完成 36 次回访唤醒。** B1 r2/r3 补跑 6/6 轮通过，连同历史 r1 合计 9 轮、63 段。双池开轮准入要求 1871 GiB 可用 RAM。[正式 B2 报告](B2-JOINT.md) · [B2 原始证据索引](derived/b2-evidence-index.json) · [B1 正式报告](REPORT.md)
 
 正式 B2 使用 `formal-nostore-813-reference/`，只启用 **813 GiB LMCache Host KV**，LMCache 容器上限 877 GiB，开池预算 880 GiB，开轮门槛 1,000 GiB。三份计划和容量检查已做 CPU 核验。每次启动前用 `start_joint_b2.ps1 -Sequence Sx -PreflightOnly` 核对当前哈希和预约。历史交接窗口 `bk-20261119T1450-de16ef1f` 的原回执随对应轮次保留。[前检](derived/b2-nostore-813-reference-preflight.json) · [准入适配](diagnostics/joint-b2-authorized-handoff.patch)
 
@@ -13,6 +13,12 @@
 | S3 | `B2-GLM53-S3-20261120T213052Z` | 7/7 | 4/4 | 60.008 s |
 
 三轮的 813 GiB 整池锁页注册均失败并使用降级路径。逐段数据、锁页日志及释放采样见[正式报告](B2-JOINT.md)和[原始证据索引](derived/b2-evidence-index.json)。
+
+## B2 r3 S3 失败留证
+
+`B2-GLM53-S3-20261121T220257Z` 通过 V4 首段冷页、RAM 和显存准入，尚未就绪即退出，整轮 0/7。八个 rank 于 06:17:50 发起 KV 注册，TP1–TP7 约两秒后超时。LMCache 于 06:17:53.704 记录一条 `cuda:0` 注册成功，其余七个 context 缺失。冻结的 `overlay/v4_sleep_transport.py` 按 2 秒限制文件描述符交接，外层异常打印的是 300 秒配置值。现有日志未区分连接、发送与等待应答。V4 退出码为 1，Docker 未记录 OOM，LMCache 正常退出。49 个样本确认八卡连续归零 60.164 秒。[V4 日志](raw/B2-GLM53-S3-20261121T220257Z/worker-D-final.log) · [LMCache 日志](raw/B2-GLM53-S3-20261121T220257Z/lmcache-final.log) · [复算](derived/failed-813/B2-GLM53-S3-20261121T220257Z-recomputed.json) · [原始证据索引](derived/failed-813/B2-GLM53-S3-20261121T220257Z-index.json)
+
+同配置补跑 `B2-GLM53-S3-20261121T222136Z` 已通过 7/7 段和四次实际 Host KV 回读，八卡连续归零 60.185 秒。[复算](derived/b2-repeats-813/B2-GLM53-S3-20261121T222136Z.json) · [释放原件](raw/B2-GLM53-S3-20261121T222136Z/release.jsonl)
 
 ## B1 r2 失败留证
 
